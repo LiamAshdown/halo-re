@@ -56,7 +56,7 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
         if (unit_set_or_test_seat_and_weapon_label(unit_index, seat_name, weapon_label, 0) == 0) {
             object *check = object_try_and_get(unit_index, _object_mask_unit);
             if ((check != (object *)0) && (((unit_data *)((uint8_t *)check + k_unit_data_offset))->animation_state == 0x1b)) {
-                unit_detach_from_seat(unit_index, 0, 0, 0); // UNSURE: original calls with no visible args
+                unit_detach_from_seat(unit_index, 1, 1, 0); // 0x56d49f: push 0, 1, 1, esi
             }
         }
     }

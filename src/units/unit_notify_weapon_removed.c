@@ -13,12 +13,12 @@
 
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 
-void unit_notify_weapon_removed(int32_t object_index, int16_t new_state) // blam-cc: in_EAX, UNSURE 2nd arg
+void unit_notify_weapon_removed(int32_t object_index) // blam-cc: EAX -> object_index
 {
+    // objdump 0x56ab10: push 0x25; push eax; call 0x565f90 -- the state is always 0x25
     if (object_index != -1) {
-        unit_try_set_animation_state((uint32_t)object_index, new_state);
+        unit_try_set_animation_state((uint32_t)object_index, 0x25);
     }
-    return;
 }
 
 #if 0

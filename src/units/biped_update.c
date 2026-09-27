@@ -1,32 +1,22 @@
 // biped_update  (Ghidra: unit_update, renamed)
 // address 0x5590a0, size 3460 bytes
-// name confidence: 0.85   rewrite confidence: 0.3
-// evidence: out/phase4/units_types_notes.md "Misattributed functions": the object_type_definition
-//   vtable read straight out of .data (0x0069bfdc) puts this address in the *biped* row's
-//   +0x34 ("update") column, not the unit row's -- the real unit_update is 0x5625b0, outside
-//   this batch. This is the single highest-value correction the notes call out for the module,
-//   so this rewrite uses the corrected name even though Ghidra still reports the old one.
-// register convention: object index recognized as a normal (stack) parameter; every callee this
-//   function invokes with literally no visible arguments in Ghidra's decompile (FUN_0042c370,
-//   FUN_00492730, FUN_004c2ee0, FUN_004c4b50, unit_state_is_scripted_animation, unit_all_seats_unoccupied, unit_notify_weapon_removed,
-//   unit_recompute_seat_occupants, unit_pick_and_ready_next_weapon, unit_get_weapon_object_index, unit_evaluate_flee_reaction) is declared and
-//   called with no arguments here too, to avoid inventing a binding this decompilation does not
-//   show; every register-passed input actually needed is the object index itself, which x86
-//   calling conventions would leave live in EAX/ECX across most of these calls without any
-//   visible reload.
-// UNSURE (see body comments for detail): the exact ECX index object_try_and_get(3) receives in
-//   the vehicle-seat branch (modeled here as the biped's parent, i.e. the vehicle, re-validated
-//   after unit_evaluate_flee_reaction may have changed things); the CONCAT12/CONCAT22 byte-splicing around the
-//   melee-timer countdown (lines ~427-443 of the original) has been algebraically simplified --
-//   see detach_and_realign_to_parent_seat's melee-timer analogue is absent, this is in the tail
-//   section instead, simplified to `biped->unknown_506 = biped->unknown_505 - (int8_t)second_roll`
-//   after confirming the CONCAT construction reduces to exactly that. local_8/local_7 in the
-//   original are written on one early-exit path (parent.type==0) but never read on any reachable
-//   path afterward (the LAB_00559dd2 tail never touches them, and the function always returns 1
-//   regardless), so they are omitted here as dead.
-// reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
-// reconciled: R32 follow-up: local extern player_control_globals (0x0071c2d8) renamed network_client (networking.h name) because game.h is now included and owns the player_control_globals typedef
-// reconciled: R26 object.unknown_018 -> network_position_valid (0x018)
+// name confidence: 0.85   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x5590a0..0x559e23 (the draft called about a dozen callees without arguments and read the
+//   unit's parent vehicle as a stale tag pointer). The biped row's +0x34 update of object_type_definitions.
+//   - a networked object (+0x04 == 1) with a fresh network position (+0x18) and no parent is repositioned;
+//   - riding a biped: the request is (parent +0x106 bit 2) | 0x20;
+//   - in a vehicle seat: unit_evaluate_flee_reaction; a unit flagged to leave (+0x208 bit 6) on a non-client plays
+//     its seat's exit animation (slot 8; the driver's leaving sets the vehicle's state 0x25), and when the
+//     vehicle is upside down (up.k < 0, +0x10 bit 1, global 0x6893cc) the unit is detached from the seat where
+//     its body is (biped_detach_from_seat);
+//   - on foot: the up vector, the planar aim (+0x224), the stance byte (+0x4d2 from the animation state), the
+//     airborne / slipping counters (+0x501/+0x502), facing, movement with collision, the idle / fidget / frame
+//     trigger branches, melee (a player's melee input starts the overlay 7 swing and sets the +0x505 countdown
+//     and the +0x506 hit frame from the weapon's first-person melee animation 0xd; the scan runs at the hit
+//     frame), footsteps, evasion and falling off the level (all skipped while unit updates are suppressed);
+//   then the animation state machine runs on the request, a result of 1 snaps the unit to the ground, and the
+//   +0xbc counter counts ticks while +0x106 bit 2 and +0x10 bit 5 are set. Always returns 1.
+// blam-cc: stack -> object_index
 
 #include "tags.h"
 #include "memory.h"
@@ -39,428 +29,376 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern data_array *player_data;     // 0x0087a480, players module, stride 0x200 (types/units.h)
-extern int32_t game_connection_role; // 0x00719720: 1 = client, 2 = server (types/units.h)
-extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
-extern uint8_t *network_client; // 0x0071c2d8 (networking.h network_client; renamed from network_client, which collides with game.h's typedef), +0xf48 is the prediction history (types/units.h)
-extern uint8_t DAT_006893cc;         // UNSURE: unresolved global, gates the "falling out of a
-                                      // vehicle" reposition below
-extern uint8_t unit_updates_suppressed; // 0x0071c419, types/units.h
-extern real_vector3d *global_forward3d_pointer; // 0x00696718: indirect pointer to math.h's
-                                             // global_forward3d (0x0065c20c), per this function's
-                                             // own "globals referenced" list
-extern real_point3d *global_origin3d_pointer;   // 0x00696714, math.h global_origin3d_pointer
+extern data_array *player_data;     // 0x0087a480
+extern int16_t game_connection_role; // 0x00719720: 1 = client
+extern game_time_globals *game_time; // 0x006f1d6c
+extern uint8_t *network_client;      // 0x0071c2d8, +0xf48 the prediction history
+extern uint8_t biped_detach_from_flipped_vehicle; // 0x006893cc
+extern uint8_t unit_updates_suppressed; // 0x0071c419
+extern real_vector3d *global_forward3d_pointer; // 0x00696718
+extern real_point3d *global_origin3d_pointer;   // 0x00696714
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, returns length, ECX (verified elsewhere in this module)
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0, verified in src/math
-extern void * datum_get(datum_index handle, data_array *array);      // 0x4d0680, memory module
-extern void player_update_history_free_all(void *history);          // 0x4e6f20, game module
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
-                                                object_marker *marker, uint32_t flags); // 0x4f6080
-extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward,
-                                                 real_vector3d *up, real_point3d *position); // 0x4f51c0, position in EDI
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
-extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); // 0x4f9a20, object_index in EAX
-extern void unit_recalculate_position(uint32_t object_index); // 0x558eb0
-extern void unit_reset_orientation_and_find_position(uint32_t object_index); // 0x55add0, this batch: reset orientation basis / find spawn position
-extern void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *state); // 0x55cfd0, this batch: full per-tick movement
-extern void unit_evaluate_flee_reaction(uint32_t object_index); // 0x55e2d0, this batch: vehicle flee/evade evaluation, no visible args
-extern void unit_check_fell_off_level(uint32_t object_index); // 0x55e4a0, this batch: fallen-below-level check, object_index implicit
-extern void biped_check_evade_reaction(uint32_t object_index); // 0x55e190, this batch: evasive reaction check
-extern void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out); // 0x55e840, this batch: idle basis refresh selection
-extern void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out); // 0x55e940, this batch: idle fidget impulse
-extern void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out); // 0x55eb90, this batch: animation frame trigger
-extern void biped_trigger_on_velocity_threshold(uint32_t object_index); // 0x55ec20, this batch: velocity-threshold trigger
-extern uint32_t unit_snap_to_min_ground_height(uint32_t object_index); // 0x55ecf0, this batch: snap to min ground height
-extern void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); // 0x55b7c0, EAX, stack
-  // real signature (biped_update_facing.c): void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); Ghidra recovered 1 of 2 args at this call site
-extern void unit_update_footstep_and_idle_triggers(uint32_t unit_index); // 0x560410, next batch: seat/turret angle-limit trigger
-extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, next batch: level up-vector toward target
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, next batch: seat-transition dispatcher; returns a status this
-                                                  // rewrite discards where Ghidra shows a used result (see body)
-extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, next batch: uninterruptible/special-move state test
-extern void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command); // 0x565e00, next batch: seat-control overlay starter
-extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, next batch: seat-occupancy test
-extern void unit_notify_weapon_removed(void); // 0x56ab10, next batch: weapon-removal guard
-  // real signature (unit_notify_weapon_removed.c): void unit_notify_weapon_removed(int32_t object_index, int16_t new_state); Ghidra recovered 0 of 2 args at this call site
-extern void unit_dispatch_scripted_event_9(int32_t param_1); // 0x56c370, next batch: scripted event dispatch
-  // real signature (unit_dispatch_scripted_event_9.c): void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); Ghidra recovered 1 of 2 args at this call site
-extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
-  // real signature (unit_recompute_seat_occupants.c): void unit_recompute_seat_occupants(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
-extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
-  // real signature (unit_pick_and_ready_next_weapon.c): void unit_pick_and_ready_next_weapon(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site
-extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
-extern void unit_melee_attack_scan(uint32_t unit_index); // 0x56f550
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
-  // real signature (unit_get_weapon_object_index.c): datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); Ghidra recovered 1 of 2 args at this call site
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // UNSURE module, object_index visible
-extern uint32_t actor_notify_weapon_pickup_once(void); // UNSURE module, implicit args only
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void actor_notify_weapon_pickup_once(datum_index object_index); // 0x42c370, ECX
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
 extern uint32_t weapon_prevents_melee_attack(datum_index item_index); // 0x4c2ee0, ECX
-extern void weapon_reset_triggers(datum_index weapon_index); // UNSURE module
-extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index,
-    int16_t category, int16_t mode); // 0x4c2f80, EAX, CX, stack
-extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90, next batch (signature per sibling agent's src/units/unit_update_animation_state_machine.c)
-extern int16_t animation_choose_random_permutation(uint32_t flag); // UNSURE module
+extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category,
+    int16_t mode); // 0x4c2f80, EAX, CX, stack
+extern void weapon_reset_triggers(datum_index item_index); // 0x4c4b50, stack
+extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
+extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)
+extern void player_update_history_free_all(void *history); // 0x4e6f20
+extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
+    real_point3d *position); // 0x4f51c0, stack, EDI position
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+    uint32_t flags); // 0x4f6080
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
+    int32_t invoke_callback); // 0x4f9a20, EAX, stack
+extern void unit_recalculate_position(uint32_t object_index); // 0x558eb0, EAX
+extern void unit_reset_orientation_and_find_position(uint32_t object_index); // 0x55add0
+extern void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); // 0x55b7c0, EAX, stack
+extern void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *state); // 0x55cfd0
+extern void biped_check_evade_reaction(uint32_t object_index); // 0x55e190
+extern void unit_evaluate_flee_reaction(uint32_t object_index); // 0x55e2d0, EDI
+extern void unit_check_fell_off_level(uint32_t object_index); // 0x55e4a0, ECX
+extern void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out); // 0x55e840, ESI, EDI
+extern void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out); // 0x55e940, EDI, stack
+extern void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out); // 0x55eb90, EAX, stack
+extern void biped_trigger_on_velocity_threshold(uint32_t object_index); // 0x55ec20, EAX
+extern uint32_t unit_snap_to_min_ground_height(uint32_t object_index); // 0x55ecf0
+extern void unit_update_footstep_and_idle_triggers(uint32_t unit_index); // 0x560410, EAX
+extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, EAX, ECX
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, ECX
+extern void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command); // 0x565e00
+extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
+extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
+extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
+extern void unit_notify_weapon_removed(int32_t object_index); // 0x56ab10, EAX (sets animation state 0x25)
+extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
+extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
+extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, EAX, DX, stack
+extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
+extern void unit_melee_attack_scan(uint32_t unit_index); // 0x56f550
 
-// Shared by both places biped_update repositions this unit relative to a parent's seat marker
-// (entering a vehicle seat, and the "unit fell below its parent" recheck later in the same
-// function): looks up the seat's marker_name on the parent's Unit tag, reads the marker's
-// current local transform, derives a world position from the delta between the biped's own
-// root-node position and that marker (offset by the tag's default root-node translation on Z
-// only -- preserved exactly, not simplified), applies it via object_set_position_and_orientation,
-// recombines the root node's current basis with the model's default root-node basis into the
-// object's forward/up vectors, then clears the transient seat-tracking fields this reposition
-// invalidates and lets the seat-occupancy/weapon-switch/seat-transition machinery catch up.
-// UNSURE: parent_object_index's exact provenance at each call site (see call sites below).
-static void detach_and_realign_to_parent_seat(uint32_t object_index, datum_index parent_object_index,
-                                               int16_t vehicle_seat_index)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+// 0x5596d3.. / 0x5591a9..: take the unit out of its vehicle seat, keep it where its body was.
+static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    object *parent = ((object_header *)object_data->data)[parent_object_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    unit_data *parent_unit = (unit_data *)((uint8_t *)parent + k_unit_data_offset);
-    Unit *parent_tag = (Unit *)tag_instances[parent->definition_tag & 0xffff].data;
-    UnitSeat *seat = &((UnitSeat *)parent_tag->seats.pointer)[vehicle_seat_index];
-    Object *object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-    GBXModel *model = (GBXModel *)tag_instances[object_tag->model.tag_id.index].data;
-    ModelNode *model_nodes = (ModelNode *)model->nodes.pointer;
-    real_matrix4x3 *own_nodes = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
+    uint8_t *self = OBJECT_DATA(object_index);
+    uint8_t *vehicle = OBJECT_DATA(vehicle_index);
+    uint8_t *nodes = self + *(int16_t *)(self + 0x1f2);
+    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *model_nodes;
     object_marker marker;
-    real_point3d delta, new_position;
-    real_matrix4x3 combined;
+    real_point3d offset;
+    real_point3d default_translation;
+    real_point3d position;
+    real_matrix4x3 basis;
 
-    object_get_node_local_transform(parent_object_index, seat->marker_name.string, &marker, 1);
-
-    delta.x = own_nodes[0].position.x - marker.node_transform.position.x;
-    delta.y = own_nodes[0].position.y - marker.node_transform.position.y;
-    delta.z = own_nodes[0].position.z - marker.node_transform.position.z;
-    new_position.x = delta.x + obj->position.x;
-    new_position.y = delta.y + obj->position.y;
-    new_position.z = (delta.z + obj->position.z) - model_nodes[0].default_translation.z; // preserved as-is; Z only
-
-    if (parent_unit->driver_unit_index == object_index && parent_unit->animation_state != 0x25 &&
-        obj->parent_object != k_datum_index_none) {
-        unit_try_set_animation_state(obj->parent_object, 0x25);
+    object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
+    offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
+    offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
+    offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    default_translation = *(real_point3d *)(model_nodes + 0x28);
+    if (*(datum_index *)(vehicle + 0x324) == object_index && vehicle[0x2a3] != 0x25 &&
+        *(datum_index *)(self + 0x11c) != k_datum_index_none) {
+        unit_try_set_animation_state(*(datum_index *)(self + 0x11c), 0x25);
     }
-
-    unit->last_parent_object_index = parent_object_index;
-    unit->last_seat_change_tick = game_time->game_time;
-    if (unit->driver_unit_index == object_index) unit->driver_unit_index = k_datum_index_none;
-    if (unit->gunner_unit_index == object_index) unit->gunner_unit_index = k_datum_index_none;
-
-    // UNSURE: FUN_004f6610, no visible arguments in Ghidra beyond object_index
+    *(datum_index *)(self + 0x32c) = vehicle_index;
+    *(int32_t *)(self + 0x330) = game_time->game_time;
+    if (*(datum_index *)(self + 0x324) == object_index) {
+        *(datum_index *)(self + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(self + 0x328) == object_index) {
+        *(datum_index *)(self + 0x328) = k_datum_index_none;
+    }
     object_snap_to_parent_marker_and_detach(object_index);
-
-    object_set_position_and_orientation(object_index, 0, 0, &new_position);
-
+    position.x = offset.x + *(float *)(self + 0x5c);
+    position.y = offset.y + *(float *)(self + 0x60);
+    position.z = offset.z + *(float *)(self + 0x64) - default_translation.z;
+    object_set_position_and_orientation(object_index, 0, 0, &position);
     {
-        real_matrix4x3 *own_root = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
-        // ModelNode (types/tags.h, 0x9c bytes) ends with scale / rotation / translation at
-        // +0x68, +0x6c and +0x90 -- bit for bit a real_matrix4x3 (scale, forward, left, up,
-        // position). Taken through &model_nodes[0].scale so the offset stays in tags.h.
-        real_matrix4x3 *default_root = (real_matrix4x3 *)&model_nodes[0].scale;
-        matrix4x3_multiply(own_root, default_root, &combined);
-        obj->forward = combined.forward;
-        obj->up = combined.up;
-    }
+        uint8_t *reloaded = OBJECT_DATA(object_index);
 
-    // Ghidra's puVar3 here is *our own* object pointer, re-derived fresh (object_data->data at
-    // this unit's own header slot again); local_1c is our own tag's model.tag_id (Object+0x34):
-    // a light-attachment refresh, gated on whether this unit even has a model tag assigned.
-    if (*(uint32_t *)&object_tag->model.tag_id != 0xffffffff && (obj->flags & 1) != 0) {
-        object_for_each_light_attachment(object_index, 0, 1);
+        matrix4x3_multiply((real_matrix4x3 *)(reloaded + *(int16_t *)(reloaded + 0x1f2)),
+            (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
-    if (*(uint32_t *)&object_tag->model.tag_id != 0xffffffff) {
-        obj->flags = obj->flags & ~1u;
-        // this unit's own object_header.flags |= 2 (a separate byte from object.flags above)
-        ((object_header *)object_data->data)[object_index & 0xffff].flags |= 2;
-    }
-
-    unit->vehicle_seat_index = -1;
-    unit->base_animation_state = 2;
-    if (parent_unit->driver_unit_index == object_index) parent_unit->driver_unit_index = k_datum_index_none;
-    if (parent_unit->gunner_unit_index == object_index) parent_unit->gunner_unit_index = k_datum_index_none;
-
-    // FIXED (0x559422..0x55943d / 0x559969..0x559987): the parent's seat occupants are recomputed (EAX = the
-    // parent), this unit readies its next weapon (ESI), and the state machine runs with ECX = a local request
-    // {0x14, 0} (the draft passed no arguments and a NULL request).
+    *(real_vector3d *)(self + 0x74) = basis.forward;
+    *(real_vector3d *)(self + 0x80) = basis.up;
     {
-        int8_t exit_request[2] = { 0x14, 0 };
+        uint8_t *object = OBJECT_DATA(object_index);
+        uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        unit_recompute_seat_occupants(parent_object_index);
-        unit_pick_and_ready_next_weapon(object_index);
-        unit_update_animation_state_machine(object_index, exit_request);
+        if (*(int32_t *)(object_tag + 0x34) != -1 && (object[0x10] & 1) != 0) {
+            object_for_each_light_attachment(object_index, 0, 1);
+        }
+        if (*(int32_t *)(object_tag + 0x34) != -1) {
+            *(uint32_t *)(object + 0x10) &= ~1u;
+            OBJECT_HEADER(object_index).flags |= 2;
+        }
     }
-
+    *(int16_t *)(self + 0x2f0) = -1;
+    self[0x2a7] = 2;
+    if (*(datum_index *)(vehicle + 0x324) == object_index) {
+        *(datum_index *)(vehicle + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(vehicle + 0x328) == object_index) {
+        *(datum_index *)(vehicle + 0x328) = k_datum_index_none;
+    }
+    unit_recompute_seat_occupants(vehicle_index);
+    unit_pick_and_ready_next_weapon(object_index);
     {
-        // UNSURE: offset 0x1ea within the unit relative to *(short*)(puVar10+0x1ea)+puVar10+0x10,
-        // i.e. object + (a cached signed offset) + 0x10; not identified against any documented
-        // field. Preserved as a raw write of the tag's default root-node translation.
-        Point3D *target = (Point3D *)((uint8_t *)obj + *(int16_t *)((uint8_t *)obj + 0x1ea) + 0x10);
-        target->x = model_nodes[0].default_translation.x;
-        target->y = model_nodes[0].default_translation.y;
-        target->z = model_nodes[0].default_translation.z;
-    }
+        int8_t request[2] = { 0x14, 0 };
 
-    if (*(int16_t *)((uint8_t *)obj + 0xb4) == 0) { // object.type == biped: only reset ground-adjust state for bipeds
+        unit_update_animation_state_machine(object_index, request);
+    }
+    *(real_point3d *)(self + *(int16_t *)(self + 0x1ea) + 0x10) = default_translation;
+    if (*(int16_t *)(self + 0xb4) == 0) {
         unit_reset_orientation_and_find_position(object_index);
     }
     object_recalculate_bounding_radius_recursive(object_index);
+    if (unit_all_seats_unoccupied(vehicle_index) == 1) {
+        uint8_t *empty = (uint8_t *)object_try_and_get(vehicle_index, 2);
 
-    if (unit_all_seats_unoccupied(object_index) == 1) { // index in EAX
-        object *vehicle = object_try_and_get(object_index, 2);
-        if (vehicle != 0) {
-            *(int32_t *)((uint8_t *)vehicle + 0x5ac) = game_time->game_time; // vehicle_data.network_update_tick
+        if (empty != 0) {
+            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-
     if (game_connection_role == 1) {
-        void *history = datum_get(0, player_data); // UNSURE: index argument not visible in the decompile
-        if (history != 0 && *(int16_t *)((uint8_t *)history + 2) == -1) {
-            *(int32_t *)((uint8_t *)history + 0x180) = 0;
-            *(int32_t *)((uint8_t *)history + 0x17c) = 0;
-            *(int32_t *)((uint8_t *)history + 0x1e0) = 0;
-            *(int32_t *)((uint8_t *)history + 0x1dc) = 0;
+        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
+
+        if (player != 0 && *(int16_t *)(player + 2) == -1) {
+            *(int32_t *)(player + 0x180) = 0;
+            *(int32_t *)(player + 0x17c) = 0;
+            *(int32_t *)(player + 0x1e0) = 0;
+            *(int32_t *)(player + 0x1dc) = 0;
         }
     }
 }
 
-// Top-level per-frame update for a biped object: while seated in a vehicle, keeps the seat
-// occupancy, weapon-switch and prediction-history bookkeeping in sync with the vehicle each
-// tick (and repositions relative to the seat marker if the unit has fallen too far below its
-// parent); otherwise runs the normal grounded-biped tick: leveling the up-vector, driving
-// facing/movement/animation-state triggers, and gating melee/evade reactions on a per-tick
-// countdown.
-uint32_t biped_update(uint32_t object_index)
+// 0x559505 / 0x559a59: a client drops the prediction history of a local player's unit.
+static void biped_free_local_player_history(uint8_t *self)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    int8_t request[2] = { 0, 0 }; // [ebp-0x4] state, [ebp-0x3] action flag (0x55910a/0x55910e)
+    datum_index player_index = *(datum_index *)(self + 0x218);
+    int16_t index = (int16_t)player_index;
+    int16_t salt = (int16_t)(player_index >> 16);
+    uint8_t *player;
 
-    if (obj->network_role == 1 && obj->network_position_valid == 1 && obj->parent_object == k_datum_index_none) {
+    if (game_connection_role != 1 || player_index == k_datum_index_none || index < 0 ||
+        index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
+        return;
+    }
+    player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
+    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || *(int16_t *)(player + 2) == -1) {
+        return;
+    }
+    if (network_client != 0) {
+        player_update_history_free_all(*(void **)(network_client + 0xf48));
+    }
+}
+
+uint8_t biped_update(uint32_t object_index)
+{
+    uint8_t *obj = OBJECT_DATA(object_index);
+    uint8_t *tag = TAG_DATA(*(datum_index *)obj);
+    int8_t state[2];
+
+    if (*(int32_t *)(obj + 4) == 1 && obj[0x18] == 1 && *(datum_index *)(obj + 0x11c) == k_datum_index_none) {
         unit_recalculate_position(object_index);
     }
+    state[0] = 0;
+    state[1] = 0;
 
-    if (obj->parent_object != k_datum_index_none) {
-        object *parent = ((object_header *)object_data->data)[obj->parent_object & 0xffff].data;
+    if (*(datum_index *)(obj + 0x11c) != k_datum_index_none) {
+        uint8_t *parent = OBJECT_DATA(*(datum_index *)(obj + 0x11c));
 
-        if (*(int16_t *)((uint8_t *)parent + 0xb4) != 1) {
-            // parent is not a vehicle: if it's a biped, nothing further to do here (local_8's
-            // write on this path is provably dead, see file header); either way skip to the tail.
+        if (*(int16_t *)(parent + 0xb4) != 1) {
+            // 0x559adc: riding another biped
+            if (*(int16_t *)(parent + 0xb4) == 0) {
+                state[0] = (int8_t)((parent[0x106] & 4) | 0x20);
+            }
             goto tail;
         }
+        unit_evaluate_flee_reaction(object_index);
+        if ((obj[0x208] & 0x40) != 0 && game_connection_role != 1) {
+            uint8_t *self = (uint8_t *)object_try_and_get(object_index, 3);
+            datum_index vehicle_index;
 
-        unit_evaluate_flee_reaction(object_index); // index in EDI
+            if (self != 0 && (vehicle_index = *(datum_index *)(self + 0x11c)) != k_datum_index_none &&
+                *(int16_t *)(self + 0x2f0) != -1) {
+                if (*(int16_t *)(self + 0xb4) == 1) {
+                    // 0x5591a9: never taken for a biped (type 0)
+                    biped_detach_from_seat(object_index, vehicle_index);
+                    biped_free_local_player_history(OBJECT_DATA(object_index));
+                } else if (!unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
+                    // 0x55957f: start the seat's exit animation (slot 8)
+                    uint8_t *self_tag = TAG_DATA(*(datum_index *)self);
+                    datum_index graph = *(datum_index *)(self_tag + 0x44);
+                    uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
 
-        if ((unit->control_flags & 0x40) != 0) {
-            // UNSURE: object_try_and_get's index argument is ECX, not visible in the decompile;
-            // re-validating the vehicle we are parented to (mask 3 = biped|vehicle) is the
-            // interpretation that makes the candidate.type==1 test below meaningful.
-            object *candidate = object_try_and_get(obj->parent_object, 3);
-            if (candidate != 0 && game_connection_role != 1 &&
-                candidate->parent_object != k_datum_index_none &&
-                *(int16_t *)((uint8_t *)candidate + 0x2f0) != -1) { // unit_data.vehicle_seat_index
-                if (*(int16_t *)((uint8_t *)candidate + 0xb4) == 1) {
-                    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-                    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-                    if (candidate->parent_object == k_datum_index_none ||
-                        *(int16_t *)((uint8_t *)candidate + 0x2f0) == -1) {
-                        goto network_role_check;
-                    }
-                    detach_and_realign_to_parent_seat(object_index, candidate->parent_object,
-                                                       *(int16_t *)((uint8_t *)candidate + 0x2f0));
-                network_role_check:
-                    if (game_connection_role == 1) {
-                        datum_index controlling_player = unit->controlling_player;
-                        if (controlling_player != k_datum_index_none &&
-                            (int16_t)controlling_player >= 0 &&
-                            (int16_t)controlling_player < *(int16_t *)((uint8_t *)player_data + 0x20)) {
-                            int32_t entry = (int32_t)*(int16_t *)((uint8_t *)player_data + 0x22) *
-                                            (int16_t)controlling_player;
-                            int16_t sequence = *(int16_t *)(entry + *(int32_t *)((uint8_t *)player_data + 0x34));
-                            int16_t salt = (int16_t)(controlling_player >> 0x10);
-                            if (sequence != 0 && (salt == 0 || sequence == salt) &&
-                                *(int16_t *)(entry + *(int32_t *)((uint8_t *)player_data + 0x34) + 2) != -1 &&
-                                network_client != 0) {
-                                player_update_history_free_all(*(void **)(network_client + 0xf48));
+                    if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
+                        int16_t exit_animation = (*(int16_t **)(seat_block + 0x44))[8];
+                        uint8_t *object;
+                        uint8_t *object_tag;
+
+                        if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == object_index) {
+                            unit_notify_weapon_removed((int32_t)vehicle_index);
+                        }
+                        unit_set_custom_animation(object_index, *(datum_index *)(self_tag + 0x44),
+                            animation_choose_random_permutation(graph, exit_animation, 1));
+                        object = OBJECT_DATA(object_index);
+                        object_tag = TAG_DATA(*(datum_index *)object);
+                        if (*(int32_t *)(object_tag + 0x34) != -1) {
+                            if ((object[0x10] & 1) != 0) {
+                                object_for_each_light_attachment(object_index, 0, 1);
+                            }
+                            if (*(int32_t *)(object_tag + 0x34) != -1) {
+                                *(uint32_t *)(object + 0x10) &= ~1u;
+                                OBJECT_HEADER(object_index).flags |= 2;
                             }
                         }
+                        self[0x2a3] = 0x1b;
+                        actor_notify_weapon_pickup_once(object_index);
+                        if (*(int32_t *)(self + 4) == 0) {
+                            unit_dispatch_scripted_event_9(0, (int32_t)object_index);
+                        }
                     }
-                } else {
-                    // candidate.type != vehicle: nothing more to do on this path
-                }
-            }
-        } else if (unit_state_is_scripted_animation(unit) == 0) { // unit_data * in ECX
-            Object *object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-            ModelAnimations *graph = (ModelAnimations *)tag_instances[object_tag->animation_graph.tag_id.index].data;
-            int8_t animation_definition_index = unit->animation_definition_index;
-            uint8_t *unit_block = (uint8_t *)graph->units.pointer + animation_definition_index * 100; // UNSURE: 100 = ModelAnimationsAnimationGraphUnitSeat stride per units.h
-
-            if (*(int32_t *)(unit_block + 0x40) > 8 && *(int16_t *)(*(int32_t *)(unit_block + 0x44) + 0x10) != -1) {
-                // UNSURE: the original truncates a leftover tag-data pointer (local_c, still
-                // holding this unit's own tag data from the top of the function, never
-                // re-derived on this path) to 16 bits and uses it as an object index -- almost
-                // certainly a decompiler artifact of dead/reused storage rather than intended
-                // logic. Preserved bug-for-bug via the same stale pointer.
-                {
-                    void *stale_tag_data_pointer = tag_instances[obj->definition_tag & 0xffff].data;
-                    uint16_t bogus_index = (uint16_t)(uint32_t)stale_tag_data_pointer;
-                    object *bogus_object = ((object_header *)object_data->data)[bogus_index].data;
-                    if (((unit_data *)((uint8_t *)bogus_object + k_unit_data_offset))->driver_unit_index == object_index) {
-                        unit_notify_weapon_removed();
-                    }
-                }
-                {
-                    uint32_t custom_animation_index = animation_choose_random_permutation(1);
-                    unit_set_custom_animation(object_index, object_tag->animation_graph.tag_id.index,
-                                               custom_animation_index);
-                }
-                obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-                object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
-                if (*(uint32_t *)&object_tag->model.tag_id != 0xffffffff) {
-                    if ((obj->flags & 1) != 0) {
-                        object_for_each_light_attachment(object_index, 0, 1);
-                    }
-                    if (*(uint32_t *)&object_tag->model.tag_id != 0xffffffff) {
-                        obj->flags = obj->flags & ~1u;
-                    }
-                }
-                unit->animation_state = 0x1b;
-                actor_notify_weapon_pickup_once();
-                if (parent->network_role == 0) {
-                    unit_dispatch_scripted_event_9(0);
                 }
             }
         }
-
-        if (DAT_006893cc != 0 && obj->position.z < 0.0f && (parent->flags & 2) != 0 &&
+        // 0x5596ac: falling out of an upside-down vehicle
+        if (biped_detach_from_flipped_vehicle && *(float *)(parent + 0x88) < 0.0f && (parent[0x10] & 2) != 0 &&
             game_connection_role != 1) {
-            if (unit->vehicle_seat_index != -1) { // re-validated parent+seat, see file header
-                detach_and_realign_to_parent_seat(object_index, obj->parent_object, unit->vehicle_seat_index);
+            uint8_t *self = OBJECT_DATA(object_index);
+            datum_index vehicle_index = *(datum_index *)(self + 0x11c);
+
+            if (vehicle_index != k_datum_index_none && *(int16_t *)(self + 0x2f0) != -1) {
+                biped_detach_from_seat(object_index, vehicle_index);
             }
-            if (parent->network_role == 0) {
-                unit_dispatch_scripted_event_9(1);
+            if (*(int32_t *)(self + 4) == 0) {
+                unit_dispatch_scripted_event_9(1, (int32_t)object_index);
             }
-            if (game_connection_role == 1) {
-                datum_index controlling_player = unit->controlling_player;
-                if (controlling_player != k_datum_index_none && (int16_t)controlling_player >= 0 &&
-                    (int16_t)controlling_player < *(int16_t *)((uint8_t *)player_data + 0x20)) {
-                    int32_t entry = (int32_t)*(int16_t *)((uint8_t *)player_data + 0x22) *
-                                    (int16_t)controlling_player;
-                    int16_t sequence = *(int16_t *)(entry + *(int32_t *)((uint8_t *)player_data + 0x34));
-                    int16_t salt = (int16_t)(controlling_player >> 0x10);
-                    if (sequence != 0 && (salt == 0 || sequence == salt) &&
-                        *(int16_t *)(entry + *(int32_t *)((uint8_t *)player_data + 0x34) + 2) != -1 &&
-                        network_client != 0) {
-                        player_update_history_free_all(*(void **)(network_client + 0xf48));
-                    }
-                }
-            }
+            biped_free_local_player_history(self);
         }
         goto tail;
     }
 
-    // -- unparented biped: the normal per-tick update --
-    // Ghidra: FUN_00560800() with no bound arguments -- EAX carries the Biped tag and ECX the
-    // object (see that function's own register note), both of which this scope can re-derive.
-    unit_update_up_vector((Biped *)tag_instances[obj->definition_tag & 0xffff].data, obj);
-    if ((obj->vitality_flags & 4) != 0 || (unit->flags & 0x44) == 0) {
-        unit->desired_facing_vector.k = 0.0f; // matches puVar10[0x8b] cleared unconditionally before the test
-        if (vector3d_normalize_with_length(&unit->desired_facing_vector) == 0.0f) {
-            unit->desired_facing_vector = *global_forward3d_pointer;
+    // 0x559af9: on foot
+    unit_update_up_vector((Biped *)tag, (object *)obj);
+    if ((obj[0x106] & 4) != 0 || (*(uint32_t *)(tag + 0x2f4) & 0x44) == 0) {
+        *(float *)(obj + 0x22c) = 0.0f;
+        if (vector3d_normalize_with_length((real_vector3d *)(obj + 0x224)) == 0.0f) {
+            *(real_vector3d *)(obj + 0x224) = *global_forward3d_pointer;
         }
     }
-    switch (unit->animation_state) {
-        case 0: case 2: case 3: biped->movement_state = 0; break;
-        case 4: case 5: case 6: case 7: biped->movement_state = 1; break;
-        default: biped->movement_state = 2; break;
+    switch (obj[0x2a3]) {
+    case 0: case 2: case 3:
+        obj[0x4d2] = 0;
+        break;
+    case 4: case 5: case 6: case 7:
+        obj[0x4d2] = 1;
+        break;
+    default:
+        obj[0x4d2] = 2;
+        break;
     }
-    if (unit->throttle.i * unit->throttle.i + unit->throttle.j * unit->throttle.j +
-        unit->throttle.k * unit->throttle.k < 0.010000001f) {
-        unit->throttle.i = global_origin3d_pointer->x;
-        unit->throttle.j = global_origin3d_pointer->y;
-        unit->throttle.k = global_origin3d_pointer->z;
+    {
+        float *v = (float *)(obj + 0x278);
+
+        if (v[0] * v[0] + v[1] * v[1] + v[2] * v[2] < 0.01f) {
+            *(real_point3d *)(obj + 0x278) = *global_origin3d_pointer;
+        }
     }
-
-    biped->unknown_501 = (biped->flags & 1) ? ((biped->unknown_501 < 0x7f) ? biped->unknown_501 + 1 : biped->unknown_501) : 0;
-    biped->unknown_502 = (biped->flags & 2) ? ((biped->unknown_502 < 0x7f) ? biped->unknown_502 + 1 : biped->unknown_502) : 0;
-
-    // FIXED (0x559c29..0x559cb0): the 2-byte request is {0, control flags bit 0}; biped_update_facing gets the
-    // unit (EAX) and the request; every sibling below gets the request (the draft passed a lone byte).
-    request[1] = (int8_t)(*(uint8_t *)&unit->control_flags & 1);
-    request[0] = 0;
-    if ((obj->vitality_flags & 4) == 0) {
-        biped_update_facing(object_index, request);
-    }
-    biped_integrate_movement_with_collision(object_index, request);
-
-    if ((obj->vitality_flags & 4) == 0) {
-        if ((biped->flags & 1) == 0) {
-            if (biped->unknown_508 == -1) {
-                if ((biped->flags & 2) != 0) biped_trigger_on_velocity_threshold(object_index);
-            } else {
-                biped_advance_frame_counter_trigger(object_index, (char *)request);
-            }
-        } else {
-            biped_apply_idle_fidget(object_index, (uint8_t *)request); // EDI unit, stack request
+    if ((obj[0x4cc] & 1) != 0) {
+        if ((int8_t)obj[0x501] < 0x7f) {
+            obj[0x501]++;
         }
     } else {
-        // Ghidra: FUN_0055e840() with no bound arguments; both parameters are register-carried.
-        // UNSURE: the state_out pointer is taken to be the same byte its sibling calls above
-        // write through.
-        biped_update_idle_basis(object_index, (uint8_t *)request); // ESI unit, EDI request
+        obj[0x501] = 0;
     }
+    if ((obj[0x4cc] & 2) != 0) {
+        if ((int8_t)obj[0x502] < 0x7f) {
+            obj[0x502]++;
+        }
+    } else {
+        obj[0x502] = 0;
+    }
+    state[1] = (int8_t)(obj[0x208] & 1);
+    state[0] = 0;
+    if ((obj[0x106] & 4) == 0) {
+        biped_update_facing(object_index, state);
+    }
+    biped_integrate_movement_with_collision(object_index, state);
+    if ((obj[0x106] & 4) != 0) {
+        biped_update_idle_basis(object_index, (uint8_t *)state);
+    } else if ((obj[0x4cc] & 1) != 0) {
+        biped_apply_idle_fidget(object_index, (uint8_t *)state);
+    } else if (*(int16_t *)(obj + 0x508) != -1) {
+        biped_advance_frame_counter_trigger(object_index, (char *)state);
+    } else if ((obj[0x4cc] & 2) != 0) {
+        biped_trigger_on_velocity_threshold(object_index);
+    }
+    if (unit_updates_suppressed) {
+        goto tail;
+    }
+    // 0x559cc2: melee
+    if (obj[0x505] == 0) {
+        if (*(datum_index *)(obj + 0x218) != k_datum_index_none && (int8_t)obj[0x208] < 0) {
+            datum_index weapon = unit_get_weapon_object_index(object_index,
+                *(int16_t *)(OBJECT_DATA(object_index) + 0x2f2));
 
-    if (unit_updates_suppressed != 0) goto tail;
+            if (!weapon_prevents_melee_attack(weapon) && obj[0x320] == 0xff) {
+                int8_t total;
+                int8_t quarter;
+                int8_t tail_time;
 
-    if (biped->unknown_505 == 0) {
-        if (unit->controlling_player != k_datum_index_none && (int8_t)unit->control_flags < 0) {
-            // FIXED (0x559ceb..0x559d8a): the weapon in the unit's current slot (+0x2f2), and every callee's
-            // real arguments.
-            datum_index weapon = unit_get_weapon_object_index(object_index, unit->current_weapon_index);
-            uint32_t allowed = weapon_prevents_melee_attack(weapon);
-            if (allowed == 0 && unit->zoom_level == -1) {
                 unit_start_seat_overlay_animation_a(object_index, 7);
                 weapon_reset_triggers(weapon);
                 weapon_action_notify_for_unit(object_index, 4);
-                {
-                    int8_t duration = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 0, -1);
-                    biped->unknown_505 = (int8_t)(duration - (duration >> 2)); // ~75% of duration
-                    biped->unknown_506 = (int8_t)(biped->unknown_505 -
-                        (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 1, -1));
+                total = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 0, -1);
+                quarter = (int8_t)(total >> 2);
+                obj[0x505] = (uint8_t)(total - quarter);
+                tail_time = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 1, -1);
+                obj[0x506] = (uint8_t)(total - quarter - tail_time);
+                if (unit_updates_suppressed) {
+                    goto tail;
                 }
-                goto melee_countdown_tail;
             }
         }
     } else {
-        if (biped->unknown_505 == biped->unknown_506) {
+        if (obj[0x505] == obj[0x506]) {
             unit_melee_attack_scan(object_index);
         }
-        biped->unknown_505 = biped->unknown_505 - 1;
-    melee_countdown_tail:
-        if (unit_updates_suppressed != 0) goto tail;
+        obj[0x505]--;
+        if (unit_updates_suppressed) {
+            goto tail;
+        }
     }
-
-    unit_update_footstep_and_idle_triggers(object_index); // UNSURE: callee takes its argument in a register Ghidra could not bind; object_index is the only live candidate here
-    if (unit_updates_suppressed == 0) {
+    unit_update_footstep_and_idle_triggers(object_index);
+    if (!unit_updates_suppressed) {
         biped_check_evade_reaction(object_index);
-        unit_check_fell_off_level(object_index); // UNSURE: callee takes its argument in ECX; object_index is the only live candidate here
+        unit_check_fell_off_level(object_index);
     }
 
 tail:
-    // FIXED (0x559dd2..0x559de5): the state machine runs with ECX = the request (the draft called a
-    // nonexistent twin and never ran it here).
-    if (unit_update_animation_state_machine(object_index, request) == 1) {
+    if (unit_update_animation_state_machine(object_index, state) == 1) {
         unit_snap_to_min_ground_height(object_index);
     }
-    if ((obj->vitality_flags & 4) != 0 && (obj->flags & 0x20) != 0) {
-        *(int16_t *)((uint8_t *)obj + 0xbc) = *(int16_t *)((uint8_t *)obj + 0xbc) + 1;
-        return 1;
+    if ((obj[0x106] & 4) != 0 && (obj[0x10] & 0x20) != 0) {
+        (*(int16_t *)(obj + 0xbc))++;
+    } else {
+        *(int16_t *)(obj + 0xbc) = 0;
     }
-    *(int16_t *)((uint8_t *)obj + 0xbc) = 0;
     return 1;
 }
 

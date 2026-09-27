@@ -1,11 +1,12 @@
 // unit_try_start_seat_exit_animation  (Ghidra: FUN_0056c470)
-// address 0x56c470, size 461 bytes, name confidence 0.4, rewrite confidence 0.25
-// functions.md: "Attempts to start the controlled unit's seat-exit animation sequence,
-// returning whether the exit was actually initiated."
-// evidence: shares its melee/lunge-style animation swap with unit_try_exit_controlled_seat.c
-//   (0x56b5f0) and unit_detach_child_at_named_seat.c (0x56ab50).
-// blam-cc: implicit ECX -> object_try_and_get's handle (UNSURE), in_AL -> force_flag,
-//   unaff_EDI -> unit_index.
+// address 0x56c470, size 461 bytes
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x56c470..0x56c63c (the draft looked up object -1 and called its callees without their
+//   arguments). EDI = unit, AL = force. Only a seated unit, and on a client only when forced: a vehicle unit
+//   (type 1) is detached (0x56c640 stack unit, 1, force, 1) and 0 returned; any other unit, unless its
+//   animation is scripted, starts its seat's exit animation (slot 8; the vehicle's driver leaving sets the
+//   vehicle to state 0x25), becomes visible, enters state 0x1b, notifies the AI and returns 1.
+// blam-cc: AL -> force_flag, EDI -> unit_index
 
 #include "tags.h"
 #include "memory.h"
@@ -16,64 +17,80 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern int32_t game_connection_role; // 0x00719720
+extern int16_t game_connection_role; // 0x00719720
 
-extern void actor_notify_weapon_pickup_once(uint32_t object_index);                        // 0x42c370, UNSURE signature
-extern int32_t animation_choose_random_permutation(int32_t mode);                              // 0x4d6280
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void object_for_each_light_attachment(uint32_t object_index, uint32_t flag); // 0x4f9a20, UNSURE signature  // real signature (object_for_each_light_attachment.c): void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); Ghidra recovered 2 of 3 args at this call site
-extern uint8_t unit_state_is_scripted_animation(unit_data *unit);                    // 0x565c60, UNSURE signature
-extern void unit_notify_weapon_removed(int32_t object_index, int16_t new_state);      // 0x56ab10
-extern void unit_dispatch_scripted_event_9(uint32_t param_1);                             // 0x56c370, UNSURE signature  // real signature (unit_dispatch_scripted_event_9.c): void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); Ghidra recovered 1 of 2 args at this call site
-extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event); // 0x56c640
-extern void unit_set_custom_animation(TagID animation_graph_tag, int16_t animation_index); // 0x56ebd0  // real signature (unit_set_custom_animation.c): void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); Ghidra recovered 2 of 3 args at this call site
+extern void actor_notify_weapon_pickup_once(datum_index object_index); // 0x42c370, ECX
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
+    int32_t stream); // 0x4d6280, EAX, DX, stack
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
+    int32_t invoke_callback); // 0x4f9a20, EAX, stack
+extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, ECX
+extern void unit_notify_weapon_removed(int32_t object_index); // 0x56ab10, EAX
+extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
+extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag,
+    uint8_t fire_trigger_event); // 0x56c640, stack
+extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
 
-uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index) // blam-cc: in_AL, unaff_EDI
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+
+uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index)
 {
-    uint8_t result = 0;
-    object *self_obj = object_try_and_get(k_datum_index_none /* UNSURE: implicit ECX handle */, _object_mask_unit);
-    if (self_obj == (object *)0) {
+    uint8_t *self = (uint8_t *)object_try_and_get(unit_index, 3);
+    datum_index vehicle_index;
+    uint8_t *self_tag;
+    datum_index graph;
+    uint8_t *seat_block;
+    int16_t exit_animation;
+    uint8_t *object;
+    uint8_t *object_tag;
+
+    if (self == 0) {
         return 0;
     }
-
-    if ((game_connection_role != 1) || (force_flag == 1)) {
-        datum_index vehicle_index = self_obj->parent_object;
-        if ((vehicle_index != k_datum_index_none) && (((unit_data *)((uint8_t *)self_obj + k_unit_data_offset))->vehicle_seat_index != -1)) {
-            object *parent = ((object_header *)object_data->data)[vehicle_index & 0xffff].data;
-            if (parent->type == _object_type_vehicle) {
-                unit_detach_from_seat(unit_index, 0, 0, 0); // UNSURE: original calls with no visible args
-                return 0;
-            }
-            if (unit_state_is_scripted_animation(0) == 0) {
-                Unit *self_tag = (Unit *)tag_instances[self_obj->definition_tag & 0xffff].data;
-                uint8_t *units_block = *(uint8_t **)((uint8_t *)tag_instances[self_tag->base.animation_graph.tag_id.index & 0xffff].data + 0x10);
-                uint8_t *seat_block = units_block + ((unit_data *)((uint8_t *)self_obj + k_unit_data_offset))->animation_definition_index * 100;
-                if ((8 < *(int32_t *)(seat_block + 0x40)) && (*(int16_t *)(*(int32_t *)(seat_block + 0x44) + 0x10) != -1)) {
-                    unit_data *vehicle_unit = (unit_data *)((uint8_t *)parent + k_unit_data_offset);
-                    if (vehicle_unit->driver_unit_index == unit_index) {
-                        unit_notify_weapon_removed((int32_t)vehicle_index, 0);
-                    }
-                    int16_t new_anim = (int16_t)animation_choose_random_permutation(1);
-                    unit_set_custom_animation(self_tag->base.animation_graph.tag_id, new_anim);
-                    Object *self_def = (Object *)tag_instances[self_obj->definition_tag & 0xffff].data;
-                    if (*(uint32_t *)&self_def->model.tag_id != 0xffffffff) {
-                        if ((self_obj->flags & 1) != 0) object_for_each_light_attachment(unit_index, 1);
-                        if (*(uint32_t *)&self_def->model.tag_id != 0xffffffff) {
-                            self_obj->flags &= ~1u;                          // object + 0x10, bit 0
-                            ((object_header *)object_data->data)[unit_index & 0xffff].flags |= 0x02;
-                        }
-                    }
-                    ((unit_data *)((uint8_t *)self_obj + k_unit_data_offset))->animation_state = 0x1b;
-                    actor_notify_weapon_pickup_once(unit_index);
-                    result = 1;
-                    if (self_obj->network_role == 0) {
-                        unit_dispatch_scripted_event_9(0);
-                    }
-                }
-            }
+    if (game_connection_role == 1 && force_flag != 1) {
+        return 0;
+    }
+    vehicle_index = *(datum_index *)(self + 0x11c);
+    if (vehicle_index == k_datum_index_none || *(int16_t *)(self + 0x2f0) == -1) {
+        return 0;
+    }
+    if (*(int16_t *)(self + 0xb4) == 1) {
+        unit_detach_from_seat(unit_index, 1, force_flag, 1);
+        return 0;
+    }
+    if (unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
+        return 0;
+    }
+    self_tag = TAG_DATA(*(datum_index *)self);
+    graph = *(datum_index *)(self_tag + 0x44);
+    seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
+    if (!(*(int32_t *)(seat_block + 0x40) > 8) || (exit_animation = (*(int16_t **)(seat_block + 0x44))[8]) == -1) {
+        return 0;
+    }
+    if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == unit_index) {
+        unit_notify_weapon_removed((int32_t)vehicle_index);
+    }
+    unit_set_custom_animation(unit_index, *(datum_index *)(self_tag + 0x44),
+        animation_choose_random_permutation(graph, exit_animation, 1));
+    object = OBJECT_DATA(unit_index);
+    object_tag = TAG_DATA(*(datum_index *)object);
+    if (*(int32_t *)(object_tag + 0x34) != -1) {
+        if ((object[0x10] & 1) != 0) {
+            object_for_each_light_attachment(unit_index, 0, 1);
+        }
+        if (*(int32_t *)(object_tag + 0x34) != -1) {
+            *(uint32_t *)(object + 0x10) &= ~1u;
+            ((object_header *)object_data->data)[unit_index & 0xffff].flags |= 2;
         }
     }
-    return result;
+    self[0x2a3] = 0x1b;
+    actor_notify_weapon_pickup_once(unit_index);
+    if (*(int32_t *)(self + 4) == 0) {
+        unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
+    }
+    return 1;
 }
 
 #if 0

@@ -18,7 +18,7 @@ extern uint8_t *network_message_table; // 0x00687130, UNSURE (PTR_DAT_00687130)
 
 extern uint8_t message_delta_decode_compound_field(void);                                     // 0x4ec590, UNSURE signature
 extern void message_delta_decode_compound_field_staged(void);                                        // 0x4ec670, UNSURE signature
-extern uint8_t unit_try_start_seat_exit_animation(void);                                     // 0x56c470, UNSURE signature  // real signature (unit_try_start_seat_exit_animation.c): uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index); Ghidra recovered 0 of 2 args at this call site
+extern uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index); // 0x56c470, AL, EDI
 extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event); // 0x56c640, UNSURE signature
 
 void unit_dispatch_seat_exit_message(int32_t *message, int32_t player_slot, uint8_t already_handled)
@@ -29,7 +29,7 @@ void unit_dispatch_seat_exit_message(int32_t *message, int32_t player_slot, uint
         if ((ok != 0) && (player_slot != 0)) {
             int32_t unit_index = (*(int32_t **)(network_message_table + 0x28))[player_slot];
             if (unit_index != -1) {
-                if ((already_handled == 1) || (unit_try_start_seat_exit_animation() == 0)) {
+                if ((already_handled == 1) || (unit_try_start_seat_exit_animation(1, (uint32_t)unit_index) == 0 /* 0x56c439: AL 1, EDI unit */)) {
                     unit_detach_from_seat((uint32_t)unit_index, 0, 1, 0);
                 }
                 return;
