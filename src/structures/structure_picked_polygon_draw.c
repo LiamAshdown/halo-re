@@ -41,6 +41,10 @@ extern void structure_leaf_faces_for_each(int32_t render_context,
 // on for the duration (unless a bitmap-less BSP already has it on), enumerates the visible
 // surfaces' faces through the debug draw callbacks, and pokes the rasterizer device once more if
 // its version is old enough.
+extern void structure_picked_polygon_lightmap_begin(void *bitmap_data); // 0x511f20
+extern void structure_picked_polygon_material(void *shader_data, int16_t shader_permutation, int32_t render_context,
+    int32_t surface_offset, int16_t surface_count, void *material_extra); // 0x511f30
+
 void structure_picked_polygon_draw(void)
 {
     int16_t saved_render_flag;
@@ -57,7 +61,9 @@ void structure_picked_polygon_draw(void)
     rasterizer_underwater_tint_set_states(); // UNSURE: see file header
 
     structure_leaf_faces_for_each(picked_surfaces_geometry,
-        (structure_lightmap_begin_callback)0x511f20, (structure_material_callback)0x511f30,
+        (structure_lightmap_begin_callback)structure_picked_polygon_lightmap_begin, // 0x511f20
+        (structure_material_callback)structure_picked_polygon_material, // 0x511f30
+       
         (structure_lightmap_end_callback)function_do_nothing, (structure_transparent_material_callback)0,
         visible_surface_indices, (int16_t)visible_surface_count);
 

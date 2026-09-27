@@ -49,6 +49,9 @@ extern void structure_leaf_faces_for_each(int32_t render_context,
 // its cluster_count / cluster_indices pair, not a "box"/"is_box" pair, and the gate on the fallback
 // path is `cluster_indices != NULL`. The query is always issued with ECX = 0 (no query box) and
 // EDX = this function's query_point.
+extern void render_window_structure_material_0x511f40(void *shader_data, int16_t shader_permutation, int32_t render_context,
+    int32_t first_surface, int32_t surface_count, void *material_extra); // 0x511f40
+
 void structure_debug_draw_surfaces_in_box_alt(void *render_point, real_point3d *query_point,
     float radius, int16_t cluster_count, int16_t *cluster_indices)
 {
@@ -85,7 +88,7 @@ void structure_debug_draw_surfaces_in_box_alt(void *render_point, real_point3d *
     if (geometry_handle != -1) {
         rasterizer_light_cone_set_orientation_constants(render_point); // UNSURE: see file header
         structure_leaf_faces_for_each(geometry_handle, (structure_lightmap_begin_callback)0,
-            (structure_material_callback)0x511f40, (structure_lightmap_end_callback)0,
+            (structure_material_callback)render_window_structure_material_0x511f40, (structure_lightmap_end_callback)0,
             (structure_transparent_material_callback)0, surface_indices, surface_count);
     }
 }

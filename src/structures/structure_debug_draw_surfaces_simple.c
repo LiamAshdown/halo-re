@@ -52,6 +52,9 @@ extern void structure_leaf_faces_for_each(int32_t render_context,
 // (query_box) and arg4 its planes, while the incoming ECX is the plane count. An earlier rewrite
 // had only three stack parameters and mapped ECX onto one of them.
 // blam-cc: ECX -> plane_count
+extern void render_window_structure_material_0x511f50(void *shader_data, int16_t shader_permutation, int32_t render_context,
+    int32_t first_surface, int32_t surface_count, void *material_extra); // 0x511f50
+
 void structure_debug_draw_surfaces_simple(real_point3d *query_point, float radius,
     real_rectangle3d *query_box, real_plane3d *planes, int16_t plane_count)
 {
@@ -73,7 +76,7 @@ void structure_debug_draw_surfaces_simple(real_point3d *query_point, float radiu
 
             if (geometry_handle != -1) {
                 structure_leaf_faces_for_each(geometry_handle, (structure_lightmap_begin_callback)0,
-                    (structure_material_callback)0x511f50, (structure_lightmap_end_callback)0,
+                    (structure_material_callback)render_window_structure_material_0x511f50, (structure_lightmap_end_callback)0,
                     (structure_transparent_material_callback)0, local_surface_indices, surface_count);
             }
         }
