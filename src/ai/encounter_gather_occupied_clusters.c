@@ -42,7 +42,8 @@ extern data_array *object_data;                       // 0x008603b0
 extern data_array *prop_data;                         // 0x008802c0
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
 
-extern uint32_t actor_get_firing_position_group_mask(int32_t unused); // 0x412880, not yet rewritten
+extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind,
+    int16_t search_override); // 0x412880, EAX, SI, stack
 
 // blam-cc: EAX -> encounter_index, EBX -> out_clusters, stack -> (record_per_actor, other_clusters)
 // Fills out_clusters with one bit per BSP cluster that a live member of the encounter
@@ -146,7 +147,8 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
                         }
                         zone_mask = zone_mask | extra;
                     } else if (a->mode == 3 || a->mode == 5) {
-                        zone_mask = zone_mask | actor_get_firing_position_group_mask(0);
+                        // FIXED (0x4363de..0x4363e2): EAX = this actor, SI = 0, stack = 0
+                        zone_mask = zone_mask | actor_get_firing_position_group_mask(current, 0, 0);
                     }
                 } else if (a->awareness_level == 2 && *(int16_t *)(a->mode_data + 0) != 0) {
                     squad_mask = squad_mask | (1 << (a->squad_index & 0x1f));

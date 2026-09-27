@@ -44,7 +44,8 @@ extern uint32_t random_seed_global; // 0x00719cd0
 extern float k_random_scale_65536;  // 0x00672b84, 1.5259022e-05 = 1/65536
 extern float ticks_per_second;      // 0x00672ac8, 30.0
 
-extern uint8_t encounter_squad_spawn_actor(datum_index encounter_index, int16_t squad_index); // 0x438e20, see header for the arity mismatch
+extern uint8_t encounter_squad_spawn_actor(datum_index encounter_index, int16_t squad_index, uint32_t unit_type_index,
+    uint32_t unused); // 0x438e20, all stack
 
 // blam-cc: ECX -> encounter_index, EAX(low16) -> squad_index
 uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index)
@@ -58,7 +59,7 @@ uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_
 
     result = (uint32_t)ai_globals_ptr;
     if (ai_globals_ptr->actors_valid != 0) {
-        result = encounter_squad_spawn_actor(encounter_index, squad_index);
+        result = encounter_squad_spawn_actor(encounter_index, squad_index, 0, 1); // FIXED: pushes (ECX, EAX, 0, 1) at 0x438f7a
         if ((int8_t)result != 0) {
             self = (encounter *)((uint8_t *)encounter_data->data + (encounter_index & 0xffff) * sizeof(encounter));
             encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index & 0xffff];

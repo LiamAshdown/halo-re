@@ -38,8 +38,10 @@ extern Scenario *global_scenario;   // 0x00746f8c
 extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 
-extern void actor_reset_squad_link_for_type_change(int32_t squad_index);           // 0x4290f0 = actor_reset_squad_link_for_type_change, see header for the arity mismatch
-extern void actor_notify_squad_and_flag_danger(uint8_t flee_when_maneuvering);  // 0x423600 = actor_notify_squad_and_flag_danger, see header for the arity mismatch
+extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
+    int16_t squad_index); // 0x4290f0, EAX, EBX, stack
+extern void actor_notify_squad_and_flag_danger(datum_index actor_index, uint8_t alternate_event,
+    uint8_t raise_danger_flag); // 0x423600, EAX, ECX, stack
 extern void encounters_recompute_dirty(void);                           // 0x435f00, not yet rewritten: re-runs morale for dirty squads
 
 // blam-cc: stack -> encounter_index
@@ -70,6 +72,8 @@ void encounter_propagate_platoon_state_to_actors(datum_index encounter_index)
     }
 
     while ((ai_globals_ptr->actors_valid != 0) && (actor_index != (datum_index)0xffffffff)) {
+        datum_index current = actor_index;
+
         member = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
         actor_index = member->next_in_encounter;
 
@@ -99,9 +103,13 @@ void encounter_propagate_platoon_state_to_actors(datum_index encounter_index)
             squad_definition = &((ScenarioSquad *)encounter_definition->squads.pointer)[member->squad_index];
             maneuver_to_squad = squad_definition->maneuver_to_squad;
             if ((-1 < maneuver_to_squad) && (maneuver_to_squad < (int32_t)encounter_definition->squads.count)) {
-                actor_reset_squad_link_for_type_change(maneuver_to_squad);
+                // FIXED (objdump 0x439ed5..0x439efa): the squad move gets (EAX = this actor, EBX = the encounter,
+                //   squad) and the notify gets (actor, CL = platoon flags bit 1, stack = bit 0). The draft passed one
+                //   argument to each.
+                actor_reset_squad_link_for_type_change(current, encounter_index, maneuver_to_squad);
                 platoon_definition = &((ScenarioPlatoon *)encounter_definition->platoons.pointer)[platoon_index];
-                actor_notify_squad_and_flag_danger(platoon_definition->flags & 1);
+                actor_notify_squad_and_flag_danger(current, (uint8_t)((*(uint32_t *)&platoon_definition->flags >> 1) & 1),
+                    (uint8_t)(*(uint32_t *)&platoon_definition->flags & 1));
             }
         }
     }

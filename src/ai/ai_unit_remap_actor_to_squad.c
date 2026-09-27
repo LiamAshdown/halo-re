@@ -1,6 +1,6 @@
 // ai_unit_remap_actor_to_squad  (Ghidra: ai_unit_remap_actor_to_squad; named for this rewrite)
 // address 0x433970, size 241 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump; call arguments FIXED)
 // evidence: resolves a unit's controlling actor (unit_data.actor_index at object+0x1f4,
 // falling back to unit_data.swarm_actor_index at +0x1f8), then finds that actor's best
 // matching squad slot within a target encounter via ai_squad_find_best_matching_member
@@ -28,8 +28,10 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index,
     uint8_t *requested_actor_data, uint8_t *requested_actor_variant_data, char match_by_index); // 0x4333d0, this batch
-extern void actor_reset_squad_link_for_type_change(int16_t squad_index); // 0x4290f0, outside this rewrite's range, UNSURE signature
-extern void actor_notify_squad_and_flag_danger(int32_t unused); // 0x423600, outside this rewrite's range, UNSURE signature
+extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
+    int16_t squad_index); // 0x4290f0, EAX, EBX, stack
+extern void actor_notify_squad_and_flag_danger(datum_index actor_index, uint8_t alternate_event,
+    uint8_t raise_danger_flag); // 0x423600, EAX, ECX, stack
 
 // blam-cc: ECX -> unit_index, stack -> packed_reference, notify
 void ai_unit_remap_actor_to_squad(datum_index unit_index, uint32_t packed_reference, char notify)
@@ -51,9 +53,12 @@ void ai_unit_remap_actor_to_squad(datum_index unit_index, uint32_t packed_refere
                                                                   actor_variant_data, already_in_target);
 
         if ((int16_t)best_squad != -1 && (already_in_target == 0 || (int16_t)best_squad != a->squad_index)) {
-            actor_reset_squad_link_for_type_change((int16_t)best_squad);
+            // FIXED (objdump 0x433a36..0x433a53): EAX = the actor, EBX = the target encounter (ref & 0xffff),
+            //   stack = the squad; the notify gets (actor, CL = notify, 0). The draft passed only the squad.
+            actor_reset_squad_link_for_type_change(actor_index, (datum_index)(packed_reference & 0xffff),
+                (int16_t)best_squad);
             if (notify != 0) {
-                actor_notify_squad_and_flag_danger(0);
+                actor_notify_squad_and_flag_danger(actor_index, (uint8_t)notify, 0);
             }
         }
     }

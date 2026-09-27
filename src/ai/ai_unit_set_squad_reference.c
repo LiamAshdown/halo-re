@@ -33,8 +33,9 @@ extern Scenario *global_scenario;  // 0x00746f8c
 extern ai_globals *ai_global_data; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
 
-extern void actor_reset_squad_link_for_type_change(datum_index actor_index, int32_t squad_index); // 0x4290f0, not yet rewritten
-extern datum_index ai_reference_actor_iterator_init_cursor(void); // 0x4369f0, Ghidra shows no argument
+extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
+    int16_t squad_index); // 0x4290f0, EAX, EBX, stack
+extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
 
 // blam-cc: stack -> (object_index, packed_reference)
 void ai_unit_set_squad_reference(datum_index object_index, uint32_t packed_reference)
@@ -98,14 +99,21 @@ void ai_unit_set_squad_reference(datum_index object_index, uint32_t packed_refer
         out_encounter = encounter_index;
         if (encounter_index != -1 && (int16_t)squad_index != -1 &&
             *(int16_t *)((uint8_t *)obj + 0x334) != -1) {
-            actor_index = ai_reference_actor_iterator_init_cursor();
+            // FIXED (objdump 0x435814..0x435888): walk the members of the unit's OLD encounter (+0x334) and move
+            //   the ones driving this unit to (EBX = the new encounter, stack = the squad). The draft passed no
+            //   cursor and left the new encounter out of the move.
+            datum_index cursor[3];
+
+            ai_reference_actor_iterator_init_cursor((int32_t)*(int16_t *)((uint8_t *)obj + 0x334), cursor);
+            actor_index = cursor[2];
             while (ai_global_data->actors_valid != 0 &&
                    actor_index != (datum_index)k_datum_index_none) {
                 datum_index current = actor_index;
                 a = &((actor *)actor_data->data)[current & 0xffff];
                 actor_index = a->next_in_encounter;
                 if (a->active_unit_index == object_index) {
-                    actor_reset_squad_link_for_type_change(current, (int32_t)squad_index);
+                    actor_reset_squad_link_for_type_change(current, (datum_index)(int32_t)encounter_index,
+                        (int16_t)squad_index);
                 }
             }
         }

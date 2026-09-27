@@ -1,6 +1,6 @@
 // ai_reference_for_each_squad  (Ghidra: ai_reference_for_each_squad; named for this rewrite)
 // address 0x432f50, size 60 bytes
-// name confidence: 0.3   rewrite confidence: 0.45
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump; callback arguments FIXED)
 // evidence: walks every encounter_squad_state a packed ai reference names (via
 // ai_reference_squad_iterator_new/_next, 0x4324f0/0x4325b0, this batch) and calls
 // encounter_squad_clear_spawn_delay on each -- outside this rewrite's range, so its true argument (presumably
@@ -17,7 +17,7 @@
 // TYPES-GAP: mirrors ai_reference_squad_iterator_new.c's local struct of the same name.
 extern void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_reference_squad_iterator *out_iterator); // 0x4324f0, this batch
 extern encounter_squad_state *ai_reference_squad_iterator_next(ai_reference_squad_iterator *iterator); // 0x4325b0, this batch
-extern void encounter_squad_clear_spawn_delay(encounter_squad_state *squad_state); // 0x439270, outside this rewrite's range, UNSURE signature
+extern void encounter_squad_clear_spawn_delay(datum_index encounter_index, int16_t squad_index); // 0x439270, ECX, EDX
 
 // blam-cc: EAX -> packed_reference
 void ai_reference_for_each_squad(uint32_t packed_reference)
@@ -29,7 +29,8 @@ void ai_reference_for_each_squad(uint32_t packed_reference)
         ai_reference_squad_iterator_new(packed_reference, &iterator);
         state = ai_reference_squad_iterator_next(&iterator);
         while (state != 0) {
-            encounter_squad_clear_spawn_delay(state);
+            // FIXED (0x432f70..0x432f77): ECX = iterator.encounter_index, EDX = iterator.cursor
+            encounter_squad_clear_spawn_delay((datum_index)iterator.encounter_index, (int16_t)iterator.cursor);
             state = ai_reference_squad_iterator_next(&iterator);
         }
     }

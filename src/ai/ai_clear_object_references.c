@@ -28,7 +28,7 @@ extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *object_data;    // 0x008603b0
 extern data_array *prop_data;      // 0x008802c0
 
-extern void actor_release_from_cluster_or_delete(datum_index object_index); // 0x428e50, not yet rewritten
+extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index); // 0x428e50, EAX, stack
 extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60, blam-cc: EBX -> actor_index, stack -> flag; not yet rewritten
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, stack, ESI, EDI
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
@@ -63,7 +63,8 @@ void ai_clear_object_references(datum_index object_index)
     if (unit->actor_index != (datum_index)k_datum_index_none) {
         actor_delete(unit->actor_index, 0);
     } else if (unit->swarm_actor_index != (datum_index)k_datum_index_none) {
-        actor_release_from_cluster_or_delete(object_index);
+        // FIXED (objdump 0x42c19d..0x42c1a9): EAX = the swarm actor (+0x1f8), stack = this unit
+        actor_release_from_cluster_or_delete(unit->swarm_actor_index, object_index);
     }
 
     iterator.data = prop_data;

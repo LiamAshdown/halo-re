@@ -95,7 +95,8 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, EAX -> actor_index
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
     real_vector3d *out_angular_velocity); // 0x4f6aa0, EAX -> object_index, ESI -> out_velocity, EDI -> out_angular_velocity
-extern void actor_target_mark_engaged(datum_index target_prop_index, uint8_t mark_engaged); // 0x41fa80, EAX -> target_prop_index, stack -> mark_engaged
+extern void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_index,
+    uint8_t mark_engaged); // 0x41fa80, EAX, EBX, stack
 extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, EAX -> actor_index, EDI -> target_prop_index
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX -> handle, ESI -> array
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50, stack args
@@ -524,11 +525,11 @@ after_engage:
         ((actor_has_unshielded_threat_weapon(actor_index) != 0 && p->distance < self->vitality_wait_time) ||
          ((actor_def->flags & 0x08000000u) != 0 && p->distance < actor_def->melee_fudge_factor))) {
         // bit 27 = "suicidal_melee_attack" per ActorFlags' documented bit order
-        actor_target_mark_engaged(target_prop_index, 0);
+        actor_target_mark_engaged(target_prop_index, actor_index, 0); // FIXED: EBX = the actor (EDI)
     }
 
     if (p->unknown_a0 != -1 && p->unknown_a0 + 0x96 < tick) {
-        actor_target_mark_engaged(target_prop_index, 0);
+        actor_target_mark_engaged(target_prop_index, actor_index, 0); // FIXED: EBX = the actor (EDI)
     }
 
     if (p->unknown_126 != 0) {
