@@ -71,7 +71,7 @@ extern void *ai_actor_mode_dispatch_table; // 0x00655278, see header UNSURE
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
-extern void *object_try_and_get(int32_t kind); // 0x4f6ec0, see header UNSURE
+extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, stack, ECX
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, EDX
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index, stack -> skip_counters
@@ -131,7 +131,7 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
         } while (player_record != 0);
     } else if (target_mode == 2) {
         datum_index cached_target = self->unknown_64;
-        if (object_try_and_get(3) == 0) {
+        if (object_try_and_get(cached_target, 3) == 0) { // FIXED: ECX = self +0x64 (0x43954d)
             self->unknown_64 = (datum_index)0xffffffff;
             return;
         }

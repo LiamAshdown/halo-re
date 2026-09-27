@@ -16,7 +16,7 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern void actor_begin_vocalization(int32_t event_type, int32_t count, int16_t *payload); // 0x4142d0, outside this rewrite's range, UNSURE signature
+extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant, void *context); // 0x4142d0, EAX, stack
 
 // blam-cc: EAX -> unit_index, ECX -> unused
 void ai_unit_dispatch_actor_event_d(datum_index unit_index, int32_t unused)
@@ -25,9 +25,12 @@ void ai_unit_dispatch_actor_event_d(datum_index unit_index, int32_t unused)
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
     if (unused != -1 && unit->actor_index != (datum_index)k_datum_index_none) {
-        int16_t payload[8];
+        // FIXED (objdump 0x435a2d..0x435a40): EAX = the unit's actor, stack = (0xd, 1, &payload), where the payload is
+        //   {word 6, dword ECX}. The draft passed no actor and dropped ECX.
+        int16_t payload[8] = {0};
         payload[0] = 6;
-        actor_begin_vocalization(0xd, 1, payload);
+        *(int32_t *)&payload[2] = unused;
+        actor_begin_vocalization(unit->actor_index, 0xd, 1, payload);
     }
 }
 

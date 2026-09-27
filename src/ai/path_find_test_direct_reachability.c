@@ -1,6 +1,6 @@
 // path_find_test_direct_reachability  (Ghidra: path_find_test_direct_reachability, renamed)
 // address 0x43a0a0, size 234 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.85 (collision query FIXED against objdump)
 // evidence: phase-4 summary "tests whether two 3D points are effectively coincident along a
 // computed interpolation fraction, used as a pathfinding proximity check"; already referenced
 // as "direct-line reachability" from src/ai/actor_firing_position_near_point.c. Calls
@@ -27,8 +27,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "physics.h"
 
-extern uint8_t collision_bsp_query_segment_init(uint32_t bsp_handle, uint32_t param_b, uint32_t param_c, float *out_fraction); // 0x502060, physics module, not in this rewrite's range
+extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
+    ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin,
+    real_vector3d *delta, float max_fraction); // 0x502060, EAX, ECX, stack
 
 // blam-cc: EAX -> point_a, ECX -> point_b, ESI -> out_position, stack -> context, out_success
 uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
@@ -39,8 +42,19 @@ uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const re
     uint8_t hit;
     uint8_t success;
 
-    fraction = 0.0f;
-    hit = collision_bsp_query_segment_init(*(uint32_t *)((uint8_t *)context + 0xb4), 0, 0, &fraction);
+    // FIXED (objdump 0x43a0a6..0x43a0ff): the segment from point_b along (point_a - point_b), EAX = 1, ECX = the
+    //   result, stack = (context +0xb4 bsp, 0, 0, point_b, &delta, FLT_MAX). The draft passed four unrelated values.
+    {
+        collision_bsp_segment_result result;
+        real_vector3d delta;
+
+        delta.i = point_a->x - point_b->x;
+        delta.j = point_a->y - point_b->y;
+        delta.k = point_a->z - point_b->z;
+        hit = collision_bsp_query_segment_init(1, &result, *(ModelCollisionGeometryBSP **)((uint8_t *)context + 0xb4),
+            0, 0, (real_point3d *)point_b, &delta, 3.4028235e+38f);
+        fraction = result.t;
+    }
 
     success = 0;
     if ((hit == 0) || (1.0f <= fraction)) {

@@ -23,9 +23,12 @@
 extern data_array *actor_data;     // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void ai_pursuit_note_object(datum_index encounter_index);                         // 0x436b10, not yet rewritten
-extern uint8_t ai_pursuit_check_object(datum_index encounter_index, int32_t *out_count,
-                            int32_t *out_last_tick);                            // 0x436b90, not yet rewritten
+extern uint8_t ai_pursuit_note_object(datum_index object_index, datum_index encounter_index, int16_t type,
+    int32_t min_last_tick); // 0x436b10, EDX object, stack encounter, CX type, EAX min_last_tick
+extern uint8_t ai_pursuit_check_object(datum_index object_index, datum_index encounter_index, int16_t type,
+    int32_t min_last_tick, char create_if_missing, int16_t *out_count, uint32_t *out_last_tick);
+    // 0x436b90: EBX object, EAX min_last_tick, CX type, stack (encounter, out_count, out_last_tick); the
+    // create_if_missing slot is the constant 0 the binary passes on to squad_recent_object_get_or_create
 
 // blam-cc: stack -> actor_index, query, candidate
 // The pursuit rule. A candidate the actor can already reach in under six units and that the
@@ -57,12 +60,17 @@ uint8_t actor_reject_firing_position_by_pursuit(datum_index actor_index,
     }
 
     if (candidate->request_result != 0 || candidate->distance_from_actor >= 6.0f) {
-        missed = (uint8_t)(ai_pursuit_check_object(self->encounter_index, &count_out, &last_tick) == 0);
-        sighting_count = (int16_t)count_out;
+        // FIXED (objdump 0x4123d5..0x4123f0): EBX = the actor, EAX = query +0xc, CX = the firing position,
+        //   stack = (encounter, &count, &last_tick). The draft passed three arguments in the wrong slots.
+        int16_t count16 = 0;
+        missed = (uint8_t)(ai_pursuit_check_object(actor_index, self->encounter_index, candidate->firing_position_index,
+            *(int32_t *)((uint8_t *)query + 0xc), 0, &count16, (uint32_t *)&last_tick) == 0);
+        sighting_count = count16;
     } else {
-        // UNSURE: ai_pursuit_note_object is handed only the encounter; the candidate position it
-        // records must be coming in through a register Ghidra dropped.
-        ai_pursuit_note_object(self->encounter_index);
+        // FIXED (objdump 0x4123b3..0x4123c2): EDX = the actor, EAX = query +0xc, CX = the firing position,
+        //   stack = the encounter.
+        ai_pursuit_note_object(actor_index, self->encounter_index, candidate->firing_position_index,
+            *(int32_t *)((uint8_t *)query + 0xc));
         sighting_count = 7;
         missed = 0;
         last_tick = tick;

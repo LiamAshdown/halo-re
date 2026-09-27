@@ -1694,3 +1694,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - actor_movement_action_resolve path_find_validate_and_record_goal(&self+0x4a8, bsp, &body, 0, &dest);
   - actor_movement_test_obstacle_ray: ray_intersects_cylinder gets all 7 arguments (the draft passed 5 in the wrong order, so obstacle avoidance tested garbage);
   - actor_score_firing_positions_by_threat: point3d_distance_squared_to_segment was declared (point, origin, segment) but is (start, direction, point), so both calls were wrong; segment3d_distance_squared_to_segment now gets its 4 arguments.
+- More AI argument fixes:
+  - ai_unit_dispatch_actor_event_d: vocalization(actor, 0xd, 1, {6, ECX}).
+  - encounter_redistribute: object_try_and_get(self+0x64, 3).
+  - actor_reject_firing_position_by_pursuit: ai_pursuit_check_object / note_object now get (actor, encounter, firing position, query+0xc, ...). The real 0x436b90 convention is EBX object, EAX min tick, CX type, stack (encounter, out_count, out_last_tick).
+  - path_find_test_direct_reachability: the BSP segment query now gets (1, &result, bsp, 0, 0, point_b, a - b, FLT_MAX); the draft passed four unrelated values (0.3 -> 0.85).
