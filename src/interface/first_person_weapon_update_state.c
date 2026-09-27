@@ -1,6 +1,6 @@
 // first_person_weapon_update_state  (Ghidra: FUN_00492d20, unnamed)
 // address 0x492d20, size 269 bytes
-// name confidence: 0.45   rewrite confidence: 0.35
+// name confidence: 0.45   rewrite confidence: 0.85 (VERIFIED against objdump 0x492d20..0x492e2c (jump table 0x492e30/0x492e48 decoded: every state maps as in the C; set_state is AX state, stack (player, 0)))
 // evidence: out/phase4/interface_functions.md "Given the local player's current first-person
 // weapon animation state, decides whether/how to transition to a new state via FUN_00492e60."
 // Disassembled directly (objdump bin/halo.exe 0x492d20..0x492e28) since Ghidra shows all three

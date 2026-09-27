@@ -1,6 +1,6 @@
 // first_person_weapon_set_state  (Ghidra: already named)
 // address 0x492e60, size 524 bytes
-// name confidence: 0.55   rewrite confidence: 0.3
+// name confidence: 0.55   rewrite confidence: 0.85 (VERIFIED against objdump 0x492e60..0x49306b (both jump tables decoded: 6..9 need state in {0,4,5,6,0xd,0xe,0xf,0x10,0x11,0x16}, 0xb/0xc need state 0 or 5, 0x13 is a no-op when already 0x13; blend 0 for 3/10/0x13, 3 for 6..9, else 6); FIXED the blend-0 test: CX = weapon type (+0x4e2) == 1, not the stage)
 // evidence: out/phase4/interface_functions.md "Weapon animation state machine: validates and
 // applies a state transition for the local player's first-person weapon, recording the previous
 // pose for blending when needed." types/items.h weapon_data.flags bit 0x01
@@ -117,7 +117,9 @@ void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pos
 
     animation_stage = item_type_to_animation_stage(new_state);
 
-    if (animation_stage == 1 /* UNSURE: extraout_CX, see header note */ && fp->state == 0x10) {
+    // 0x492f8b: CX is still the weapon type (tag +0x4e2, loaded at 0x492f66; item_type_to_animation_stage never
+    // touches ECX), not the returned stage.
+    if (*(int16_t *)(item_tag_data + 0x4e2) == 1 && fp->state == 0x10) {
         blend_gap = 0;
     } else {
         switch (new_state) {

@@ -1,6 +1,6 @@
 // first_person_weapon_interface_initialize  (Ghidra: FUN_00493c60, renamed per types/interface.h)
 // address 0x493c60, size 487 bytes
-// name confidence: 0.5   rewrite confidence: 0.25
+// name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN parts from objdump 0x493c60..0x493e42: the two node match tables map the weapon's first-person animation graph (+0x478, EAX) onto the hands model (globals +0x180 -> +0xc) and the weapon's first-person model (+0x468) (ECX); the draft matched the weapon tag against the graph (garbage node permutation, gun drawn at the eye). +0x14 needs the animation's frame_count (graph +0x78, 0xb4 each, +0x22) >= 9)
 // evidence: types/interface.h first_person_weapon_interface struct comment names this address
 // first_person_weapon_interface_initialize; first_person_weapon_set_attached.c's disassembly-
 // confirmed effect_reattach_markers_for_object/effect_release_first_person_markers/
@@ -114,19 +114,29 @@ void first_person_weapon_interface_initialize(int16_t local_player_index)
     fp->animation_index = -1;
     if (node_array_block[4] > 4 /* +0x10 */) {
         marker_node_index = *(int16_t *)(*(int32_t *)((char *)node_array_block + 0x14) + 8); // UNSURE
+        // 0x493d5b..0x493d6d: the animation's frame_count (+0x22) in the graph's animations block (+0x78,
+        // 0xb4 each) must be at least 9. The draft read it straight off the tag data.
         if (marker_node_index != -1 &&
-            *(int16_t *)((char *)hud_interface_tag_data + 0x22 +
-                          (uint32_t)marker_node_index * 0xb4) > 8) { // UNSURE: model node table
+            *(int16_t *)(*(char **)(hud_interface_tag_data + 0x78) + 0x22 +
+                          (int32_t)marker_node_index * 0xb4) >= 9) {
             fp->animation_index = marker_node_index;
         }
     }
 
-    if (*(int32_t *)(*(int32_t *)((char *)global_globals + 0x180) + 0xc) != -1) {
-        fp->device_hud_valid = hud_meter_find_matching_elements(
-            weapon_tag_ref, hud_interface_tag_ref, fp->device_hud_element);
+    // 0x493d73..0x493db4: both tables map the ANIMATION GRAPH (EAX = weapon tag +0x478) nodes onto a model's
+    // nodes (ECX): first the first-person hands model (globals +0x180 -> +0xc) into +0x1e10, then the weapon's
+    // first-person model (weapon tag +0x468) into +0x1d8e. The draft passed the weapon tag as the source and the
+    // graph as the target for both, so every node matrix was permuted from garbage (gun drawn at the eye).
+    {
+        uint32_t hands_model = *(uint32_t *)(*(int32_t *)((char *)global_globals + 0x180) + 0xc);
+
+        if (hands_model != 0xffffffff) {
+            fp->device_hud_valid = hud_meter_find_matching_elements(hud_interface_tag_ref, hands_model,
+                fp->device_hud_element);
+        }
     }
-    weapon_hud_matched = hud_meter_find_matching_elements(weapon_tag_ref, hud_interface_tag_ref,
-                                                            fp->weapon_hud_element);
+    weapon_hud_matched = hud_meter_find_matching_elements(hud_interface_tag_ref,
+        *(uint32_t *)(weapon_tag_data + 0x468), fp->weapon_hud_element);
     fp->weapon_hud_valid = weapon_hud_matched;
 
     if (weapon_hud_matched != 0 && fp->device_hud_valid != 0) {
