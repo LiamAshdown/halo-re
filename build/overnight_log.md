@@ -1380,3 +1380,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   (OPEN, next).
 - unit_seat_candidates_from_zone_and_enter 0x56a4c0 (vehicle_load_magic) REWRITTEN (0.2 -> 0.9): the re-seat path
   relinked NULL and multiplied NULL matrices; now reuses biped_update.c's detach / history helpers.
+- actor_update_firing_state 0x40e7b0 REWRITTEN from objdump (0.3 -> 0.85; every armed actor, every tick). Fixed:
+  argless unit_get_camera_position (vehicle firing origin written through garbage), grenade top-up / lead /
+  drift / line-of-fire / override-target helpers without operands, aim point fields, the "friend in the way"
+  logic (0x42b190 returns clear, not blocked), burst timer via fistp.

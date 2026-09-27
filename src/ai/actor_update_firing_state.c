@@ -1,25 +1,17 @@
 // actor_update_firing_state  (Ghidra: actor_update_firing_state, renamed)
 // address 0x40e7b0, size 3752 bytes
-// name confidence: 0.5   rewrite confidence: 0.3
-// evidence: it is the per-tick driver of the five-state machine at actor+0x5f2 (states 0..4
-//   with the tick counter at 0x5f4), it decrements the four countdowns at 0x5f4/0x5f6/0x5f8/
-//   0x5fc, it resolves the current threat into the 0x60c..0x638 block, and it calls
-//   actor_update_aim_wander @0x40fcb0 and actor_reseed_movement_pause_timer @0x4104e0 on the
-//   state transitions. Every tag field it reads lines up with types/tags.h:
-//   ActorVariant.maximum_firing_distance / special_fire_mode / special_fire_situation /
-//   special_fire_chance / special_fire_delay / super_ballistic_range / bombardment_range /
-//   target_tracking / target_leading, and Actor.flags bit 9 must_crouch_to_shoot, bit 13
-//   start_firing_before_aligned, Actor.more_flags bit 1 must_stand_to_fire and bit 2
-//   must_stop_to_fire, plus the standing / crouching gun offsets at Actor+0x34 and +0x40.
-// register convention: actor_index is the one Ghidra-recognized stack parameter.
-//
-// UNSURE (0.3): this function is heavily register-aliased in the export. weapon_trigger_get_aiming_vector,
-// weapon_trigger_projectile_time_fraction, actor_grenade_trajectory_blocked, unit_add_marker_relative_offset, unit_get_camera_position, weapon_get_zoom_fov_resolved and
-// unit_set_grenade_type_and_count_delta are all called with some or all of their arguments invisible; local_18 /
-// local_14 / local_10 are read on one path before any visible assignment; and local_30 is
-// reused first as the Actor tag pointer and then, in the tail, as a byte pair fed to
-// actor_set_override_target. The control flow is preserved exactly. Do not trust the individual argument
-// lists without a hook comparison.
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x40e7b0..0x40f657. The draft wrote the vehicle firing origin through a garbage pointer
+//   (argless unit_get_camera_position), called the grenade top-up, lead, drift, line-of-fire and trigger helpers
+//   without their operands, and resolved the aim point from the wrong fields. Per tick: age the countdowns, pick the
+//   target (+0x270 prop, or the +0x460 point) and track it, maybe decide on a grenade (definition +0x154..+0x15c),
+//   find the aiming vector (0x4c2b40), gate firing (forced +0x457, stance, minimum range, visibility, range +0x608),
+//   run the burst state machine (+0x5f2: 0 idle, 1 hold, 2 aim, 3 pause, 4 special), and while aiming build the aim
+//   point (drift +0xbc and lead +0xc0 toward the prop, plus the accumulated error +0x664), the firing origin (camera
+//   in a vehicle, else a marker offset), check friends in the line of fire (0x42b190; after 45 blocked ticks shout
+//   0xe at them) and pull the primary trigger (burst timer +0x5f8) or flag the secondary (actor +0x6d0 bit 0x1000)
+//   through 0x42a5e0.
+// blam-cc: stack -> actor_index
 
 #include "tags.h"
 #include "memory.h"
@@ -32,515 +24,447 @@ extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint32_t *player_globals;    // 0x0087a478, the per-player bitset this reads at +0x18
+extern uint8_t *local_player_globals; // 0x0087a478, +0x18 a bitset of players
 
 extern real random_real_range(real min, real max);          // 0x401050
 extern real random_real(void);                                // 0x4019f0
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern void point3d_add_scaled(real_point3d *point, float scale); // 0x401930
-extern real vector3d_distance(const real_point3d *a, const real_point3d *b); // 0x4088b0
-extern real vector3d_magnitude_squared(real_vector3d *v);                     // 0x401000, src/math; blam-cc: EAX v
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);      // 0x401020, src/math; blam-cc: EAX a, ECX b
-
-extern uint8_t actor_grenade_behavior_kind_allowed(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_grenade_behavior_kind_allowed at 0x40f670
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern uint8_t actor_target_is_visible_or_object_count_ok(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_target_is_visible_or_object_count_ok at 0x40f700
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern void actor_get_aim_from_position(); // SIGNATURE-CONFLICT: this call site and the rewrite of actor_get_aim_from_position at 0x40f9b0
-                 // disagree on the argument list; Ghidra drops the register arguments
-                 // here. Left unprototyped so the conflict is visible. See src/ai/README.md.
-extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, this module
-extern void actor_update_aim_wander(datum_index actor_index);  // 0x40fcb0, this module
-extern void actor_reseed_movement_pause_timer(datum_index actor_index); // 0x4104e0, this module
-extern uint8_t actor_should_hold_position(datum_index actor_index);               // 0x4105c0, this module
+extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale); // 0x401930, EAX, ECX, stack
+extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0, EAX, ECX
+extern real vector3d_magnitude_squared(real_vector3d *v);        // 0x401000, EAX
+extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
+extern uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind); // 0x40f670, EAX, stack
+extern uint8_t actor_target_is_visible_or_object_count_ok(datum_index actor_index, int16_t kind); // 0x40f700, EAX, stack
+extern void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3]); // 0x40f9b0, EAX, ECX
+extern uint8_t *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
+extern void actor_update_aim_wander(datum_index actor_index);        // 0x40fcb0
+extern void actor_reseed_movement_pause_timer(datum_index actor_index); // 0x4104e0
+extern uint8_t actor_should_hold_position(datum_index actor_index);  // 0x4105c0, EAX (EDX the definition)
 extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b); // 0x4106b0
-extern uint8_t actor_action_has_queued_secondary(datum_index actor_index);        // 0x417b70
-extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);                             // 0x428370, not yet rewritten
-extern void actor_set_override_target(uint32_t flags, uint32_t value);      // 0x42a5e0, not yet rewritten
-extern uint8_t actor_grenade_trajectory_blocked(float a, void *b, float *c);       // 0x42b190, not yet rewritten
+extern uint8_t actor_action_has_queued_secondary(datum_index actor_index); // 0x417b70, EAX
+extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0, EAX
+extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX
+extern void actor_set_override_target(datum_index actor_index, uint8_t enable, datum_index override_target); // 0x42a5e0, EAX, stack
+extern uint8_t actor_grenade_trajectory_blocked(real_vector3d *trajectory_direction, datum_index source_actor_index,
+    datum_index exclude_object_index, real_point3d *landing_position, int32_t *out_blocking_prop); // 0x42b190, EAX, ECX, stack
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
     real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
     datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
-// 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
-// site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
-// sites are artefacts, not a reduced-arity overload.
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
+    datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 extern int32_t fistp_round(float x); // harness/x87_shims.c: FISTP in the current (round-to-nearest) mode
-extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70: difficulty scale, ECX table, AX team
-extern uint8_t weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_t trigger_index,
-    real_point3d *origin, real_point3d *target, uint8_t use_high_arc, real_vector3d *out_direction,
-    real *out_time, real *out_range, uint8_t *out_used_straight_line);
-    // 0x4c2b40, src/items; blam-cc: EAX weapon_index, CX trigger_index, 7 stack args
-extern float weapon_trigger_projectile_time_fraction(uint32_t handle);                    // 0x4c2be0, not yet rewritten
-extern void unit_get_camera_position(void);                    // 0x568f80
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
-    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
-extern void unit_set_grenade_type_and_count_delta(int32_t a);                           // 0x56d160, not yet rewritten
+extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
+extern uint8_t weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_t trigger_index, real_point3d *origin,
+    real_point3d *target, uint8_t use_high_arc, real_vector3d *out_direction, real *out_time, real *out_range,
+    uint8_t *out_used_straight_line); // 0x4c2b40, EAX, CX, stack
+extern real weapon_trigger_projectile_time_fraction(datum_index item_index, int16_t trigger_index, real elapsed); // 0x4c2be0, EAX, CX, stack
+extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point, uint32_t param_4,
+    uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX
+extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta); // 0x56d160, EAX, DX, stack
+
+#define F(p, o) (*(float *)((p) + (o)))
+#define W(p, o) (*(int16_t *)((p) + (o)))
+#define D(p, o) (*(datum_index *)((p) + (o)))
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
 
 // blam-cc: stack -> actor_index
-// One tick of the firing state machine. Ages the countdowns, re-derives which threat the
-// actor is shooting at and how far away it is, decides whether firing is allowed at all,
-// advances the burst state machine (0 idle, 1 hold, 2 swing, 3 pause, 4 special fire), and
-// on the swing state builds the actual aim point and tests whether the shot is on target.
-// Ends by handing the resulting fire / no-fire decision to 0x42a5e0 and setting or clearing
-// actor.flags bit 0x1000.
 void actor_update_firing_state(datum_index actor_index)
 {
-    actor *self;
-    Actor *actor_definition;
-    ActorVariant *variant;       // from actor.actor_variant_tag
-    ActorVariant *aim_variant;   // from actor_get_actor_definition
-    void *weapon_definition;
-    prop *target;
-    datum_index weapon_object;
-    int16_t kind;
-    int16_t next_state;
-    uint8_t may_fire;
-    uint8_t off_target;
-    uint8_t want_special;
-    uint8_t blocked;
-    uint8_t stationary;
-    uint32_t fire_flag;
-    uint32_t fire_value;
-    float delay;
-    float scale;
-    real_point3d aim_from;
-    real_vector3d to_target;
-    real_point3d *offset;
-    float lead;
-    int8_t hold_flag;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;   // ebp
+    uint8_t *actor_tag = TAG_DATA(D(a, 0x58));      // [esp+0x18]
+    uint8_t *variant = TAG_DATA(D(a, 0x5c));        // [esp+0x20]
+    uint8_t *def = actor_get_actor_definition(actor_index); // [esp+0x14]
+    uint8_t *weapon_tag = 0;                        // [esp+0x24]
+    datum_index weapon;                             // [esp+0x1c]
+    uint8_t fire_primary = 0;                       // [esp+0x11]
+    uint8_t fire_secondary = 0;                     // [esp+0x12]
+    uint8_t used_straight_line = 0;                 // [esp+0x13]
+    uint8_t wants_fire = 0;                         // bl
+    int16_t state;
+    uint8_t enable = 0;                             // [esp+0x18]
+    float value = 0.0f;                             // [esp+0x1c]
+    uint8_t secondary_flag = 0;                     // [esp+0x13]
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
-    variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
-    aim_variant = actor_get_actor_definition(actor_index);
-
-    weapon_definition = (void *)0;
-    weapon_object = actor_get_threat_weapon_object_index(actor_index);
-    if (weapon_object != (datum_index)0xffffffff) {
-        object *weapon = ((object_header *)object_data->data)[weapon_object & 0xffff].data;
-        weapon_definition = tag_instances[weapon->definition_tag & 0xffff].data;
+    weapon = actor_get_threat_weapon_object_index(actor_index);
+    if (weapon != k_datum_index_none) {
+        weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
     }
-    off_target = 0;
-    weapon_object = actor_get_threat_weapon_object_index(actor_index);
+    weapon = actor_get_threat_weapon_object_index(actor_index);
 
-    if (self->unknown_5f4 > 0) { self->unknown_5f4 = self->unknown_5f4 - 1; }
-    if (self->unknown_5f6 > 0) { self->unknown_5f6 = self->unknown_5f6 - 1; }
-    if (self->unknown_5f8 > 0) { self->unknown_5f8 = self->unknown_5f8 - 1; }
-    if (self->unknown_5fc > 0) { self->unknown_5fc = self->unknown_5fc - 1; }
-    if (self->unknown_60c > 0) { self->unknown_61c = self->unknown_61c + 1; }
+    if (W(a, 0x5f4) > 0) W(a, 0x5f4) -= 1;
+    if (W(a, 0x5f6) > 0) W(a, 0x5f6) -= 1;
+    if (W(a, 0x5f8) > 0) W(a, 0x5f8) -= 1;
+    if (W(a, 0x5fc) > 0) W(a, 0x5fc) -= 1;
+    if (W(a, 0x60c) > 0) *(int32_t *)(a + 0x61c) += 1;
 
-    // ------------------------------------------------------------------ resolve the threat
-    if (self->unknown_5f2 != 2) {
-        kind = 0;
-        if (self->unknown_454 != 0) {
-            if (self->unknown_45d == 0) {
-                if (self->target_unit_index != (datum_index)0xffffffff) {
-                    kind = 1;
-                }
-            } else {
+    // 0x40e8c5: what are we shooting at (1 a prop, 2 a point)
+    if (W(a, 0x5f2) != 2) {
+        int16_t kind = 0;
+        uint8_t changed;
+
+        if (a[0x454]) {
+            if (a[0x45d]) {
                 kind = 2;
+            } else if (D(a, 0x270) != k_datum_index_none) {
+                kind = 1;
             }
         }
-        if (kind != self->unknown_60c ||
-            (kind == 1 && self->target_unit_index != (datum_index)self->unknown_610) ||
-            // 0x40e949..0x40e955: EAX = actor + 0x610, ECX = actor + 0x460 (both points here)
-            (kind == 2 && vector3d_distance_squared((real_point3d *)((uint8_t *)self + 0x610),
-                              (real_point3d *)((uint8_t *)self + 0x460)) > 0.25f)) {
-            self->unknown_61c = 0;
-        }
-        self->unknown_60c = kind;
-        if (kind == 1) {
-            self->unknown_610 = (datum_index)self->target_unit_index;
+        if (kind != W(a, 0x60c)) {
+            changed = 1;
+        } else if (kind == 1) {
+            changed = (uint8_t)(D(a, 0x610) != D(a, 0x270));
         } else if (kind == 2) {
-            self->unknown_610 = *(datum_index *)((uint8_t *)self + 0x460);
-            *(uint32_t *)((uint8_t *)self + 0x614) = *(uint32_t *)((uint8_t *)self + 0x464);
-            *(uint32_t *)((uint8_t *)self + 0x618) = *(uint32_t *)((uint8_t *)self + 0x468);
-        }
-    }
-
-    self->unknown_628 = 0;
-    self->vitality_wait_time = (actor_has_unshielded_threat_weapon(actor_index) == 0) ? 0.0f : aim_variant->maximum_firing_distance;
-
-    may_fire = 0;
-    if (self->unknown_45c != 0) {
-        // The actor is out of the fight entirely: force the machine back to state 0 and
-        // broadcast the "cannot fire" event once.
-        if (variant->grenade_type != -1 &&
-            *(char *)((uint8_t *)((object_header *)object_data->data)[self->unit_index & 0xffff].data
-                      + 0x31e + variant->grenade_type) == 0) {
-            unit_set_grenade_type_and_count_delta(1);
-        }
-        self->flags = self->flags | 0x2000;
-        ai_communication_broadcast(9, self->unit_index, 0xffffffff, 0xffffffff, 0xffffffff,
-                                   0xffffffff, 0);
-        self->unknown_5f2 = 0;
-    } else if (actor_has_unshielded_threat_weapon(actor_index) == 0) {
-        self->unknown_5f2 = 0;
-    } else if (self->unknown_5f2 == 4) {
-        may_fire = 1;
-    } else {
-        // ---------------------------------------------------- special fire mode roll
-        if (aim_variant->special_fire_mode > 0 && self->unknown_5f2 != 2 &&
-            self->unknown_5fc < 1 && self->unknown_5fe < 1) {
-            object *weapon = ((object_header *)object_data->data)[weapon_object & 0xffff].data;
-            void *weapon_tag = tag_instances[weapon->definition_tag & 0xffff].data;
-            uint8_t eligible = 0;
-            weapon_get_zoom_fov_resolved(0x12, *(int16_t *)((uint8_t *)self + 0x3e)); // 0x40eae3, result discarded
-            if (aim_variant->special_fire_mode == 1) {
-                weapon_get_zoom_fov_resolved(0x11, *(int16_t *)((uint8_t *)self + 0x3e)); // 0x40ebba, result discarded
-                if (*(int32_t *)((uint8_t *)weapon_tag + 0x4fc) > 0) {
-                    eligible = 1;
-                }
-            } else if (aim_variant->special_fire_mode != 2 ||
-                       *(int32_t *)((uint8_t *)weapon_tag + 0x4fc) > 1) {
-                eligible = 1;
-            }
-            if (eligible != 0 && actor_grenade_behavior_kind_allowed(aim_variant->special_fire_situation) != 0) {
-                delay = random_real_range(0.0f, 1.5f) + aim_variant->special_fire_delay;
-                random_real();
-                self->unknown_5fc = (int16_t)(int32_t)delay;
-                if (delay < aim_variant->special_fire_chance &&
-                    actor_target_is_visible_or_object_count_ok(aim_variant->special_fire_situation) != 0) {
-                    if (aim_variant->special_fire_situation == 3) {
-                        self->unknown_5fe = 3;
-                    }
-                    if (aim_variant->special_fire_mode == 1) {
-                        self->unknown_602 = 1;
-                    } else if (aim_variant->special_fire_mode == 2) {
-                        self->unknown_604 = 1;
-                    }
-                }
-            }
-        }
-
-        // ---------------------------------------------------- refresh the threat block
-        if (self->unknown_60c > 0) {
-            if (self->unknown_60c == 1) {
-                target = &((prop *)prop_data->data)[self->unknown_610 & 0xffff];
-                self->wander_unknown_638 = target->distance;
-                self->wander_unknown_62c = *(float *)((uint8_t *)target + 0xc8);
-                self->wander_unknown_630 = *(float *)((uint8_t *)target + 0xcc);
-                self->wander_unknown_634 = *(float *)((uint8_t *)target + 0xd0);
-                *(int16_t *)((uint8_t *)self + 0x626) = target->unknown_38;
-                *(uint8_t *)((uint8_t *)self + 0x621) = target->unknown_118;
-                *(uint8_t *)((uint8_t *)self + 0x624) = 1;
-                if (*(int16_t *)((uint8_t *)target + 0x100) != -1) {
-                    int16_t player = *(int16_t *)((uint8_t *)target + 0x100);
-                    *(uint8_t *)((uint8_t *)self + 0x624) =
-                        (uint8_t)(1 - ((player_globals[6 + (player >> 5)] &
-                                        (1u << (((uint8_t)player) & 0x1f))) != 0));
-                }
-            } else {
-                self->wander_unknown_62c = *(float *)((uint8_t *)self + 0x610);
-                self->wander_unknown_630 = *(float *)((uint8_t *)self + 0x614);
-                self->wander_unknown_634 = *(float *)((uint8_t *)self + 0x618);
-                // 0x40ecb8: EAX = +0x610, ECX = the aim origin (+0x120)
-                self->wander_unknown_638 = vector3d_distance((real_point3d *)((uint8_t *)self + 0x610),
-                                                             &self->aim_origin);
-                *(uint8_t *)((uint8_t *)self + 0x621) = 0;
-                *(uint8_t *)((uint8_t *)self + 0x624) = 0;
-                if (self->unknown_61c % 10 == 0) {
-                    *(int16_t *)((uint8_t *)self + 0x626) =
-                        (int16_t)actor_evaluate_engagement_reachability(
-                            *(int16_t *)((uint8_t *)self + 0x148), -1, (real_point3d *)&self->wander_unknown_62c,
-                            &self->aim_origin, 0, 0, 0xffffffff,
-                            self->active_unit_index != (datum_index)0xffffffff); // 0x40eceb: CX = -1, ESI = +0x62c, EDI = +0x120
-                }
-            }
-
-            *(uint8_t *)((uint8_t *)self + 0x622) = 0;
-            if (aim_variant->super_ballistic_range > 0.0f &&
-                aim_variant->super_ballistic_range < self->wander_unknown_638) {
-                *(uint8_t *)((uint8_t *)self + 0x622) = 1;
-            }
-            *(uint8_t *)((uint8_t *)self + 0x623) =
-                (uint8_t)(self->unknown_455[0] != 0 && aim_variant->bombardment_range > 0.0f);
-
-            // 0x40ed7b..0x40eda7: EAX = [esp+0x1c] (actor_get_threat_weapon_object_index's
-            // result), CX = 0 (the first trigger)
-            if (weapon_trigger_get_aiming_vector(weapon_object, 0, (real_point3d *)&self->aim_origin,
-                             (real_point3d *)&self->wander_unknown_62c,
-                             *(uint8_t *)((uint8_t *)self + 0x622),
-                             (real_vector3d *)((uint8_t *)self + 0x63c), 0, (real *)((uint8_t *)self + 0x648),
-                             (uint8_t *)&blocked) == 0) {
-                self->unknown_60c = 0;
-            }
-        }
-
-        // ---------------------------------------------------- the gate on firing at all
-        hold_flag = (int8_t)*(uint8_t *)((uint8_t *)self + 0x457);
-        if (self->unknown_60c == 0 || *(uint8_t *)((uint8_t *)self + 0x624) != 0 ||
-            (hold_flag == 0 && self->unknown_5f6 > 0) ||
-            actor_action_has_queued_secondary(actor_index) != 0 ||
-            (hold_flag == 0 &&
-             ((self->unknown_15c != 0 && self->flying == 0 &&
-               (((uint8_t *)variant)[0] & 1) == 0) ||
-              ((actor_definition->flags & 0x200) != 0 /* must_crouch_to_shoot */ &&
-               self->unknown_508 == 0))) ||
-            (hold_flag == 0 &&
-             (((actor_definition->more_flags & 2) != 0 /* must_stand_to_fire */ &&
-               self->unknown_508 != 0) ||
-              ((actor_definition->more_flags & 4) != 0 /* must_stop_to_fire */ &&
-               self->unknown_504 != 0))) ||
-            *(uint8_t *)((uint8_t *)self + 0x621) != 0 || self->unknown_15d != 0 ||
-            (weapon_definition != (void *)0 &&
-             *(float *)((uint8_t *)weapon_definition + 0x40c) > 0.0f &&
-             self->wander_unknown_638 < *(float *)((uint8_t *)weapon_definition + 0x40c)) ||
-            self->vocalization_unknown_3e8 == 0 ||
-            self->vocalization_unknown_3ec != 2 ||
-            *(uint8_t *)((uint8_t *)self + 0x58c) != 0) {
-            self->unknown_5f2 = 0;
-        } else if (self->unknown_5f2 == 2) {
-            may_fire = 1;
+            changed = (uint8_t)(vector3d_distance_squared((real_point3d *)(a + 0x610), (real_point3d *)(a + 0x460)) > 0.25f);
         } else {
-            int16_t result = *(int16_t *)((uint8_t *)self + 0x626);
-            *(uint8_t *)((uint8_t *)self + 0x620) = (uint8_t)(result == 0 || result == 1);
-            if ((*(uint8_t *)((uint8_t *)self + 0x620) == 0 &&
-                 *(uint8_t *)((uint8_t *)self + 0x623) == 0) ||
-                (hold_flag == 0 && self->vitality_wait_time <= self->wander_unknown_638)) {
-                self->unknown_5f2 = 0;
-            } else {
-                may_fire = 1;
-                self->unknown_628 = 1;
-                if ((actor_definition->flags & 0x2000) == 0 /* start_firing_before_aligned */) {
-                    float cone = (self->wander_unknown_638 >= 1.5f)
-                                     ? 0.97f
-                                     : self->wander_unknown_638 * 0.17526217f + 0.70710677f;
-                    actor_get_aim_from_position();
-                    if (aim_from.x * *(float *)((uint8_t *)self + 0x63c) +
-                        aim_from.z * *(float *)((uint8_t *)self + 0x644) +
-                        aim_from.y * *(float *)((uint8_t *)self + 0x640) < cone) {
-                        off_target = 1;
-                    }
-                }
-            }
+            changed = 0;
+        }
+        if (changed) {
+            *(int32_t *)(a + 0x61c) = 0;
+        }
+        W(a, 0x60c) = kind;
+        if (kind == 1) {
+            D(a, 0x610) = D(a, 0x270);
+        } else if (kind == 2) {
+            *(real_point3d *)(a + 0x610) = *(real_point3d *)(a + 0x460);
         }
     }
+    a[0x628] = 0;
+    F(a, 0x608) = actor_has_unshielded_threat_weapon(actor_index) ? F(def, 0x74) : 0.0f;
 
-    // ------------------------------------------------------------------ state machine
-    next_state = self->unknown_5f2;
-    switch (self->unknown_5f2) {
-    case 0:
-        if (may_fire == 0) {
-            goto after_switch;
+    if (a[0x45c]) {
+        // 0x40e9c2: a scripted grenade request: top up an empty grenade slot and shout
+        int16_t grenade = W(variant, 0x180);
+
+        if (grenade != -1 && *(int8_t *)(OBJECT_DATA(D(a, 0x18)) + 0x31e + grenade) == 0) {
+            unit_set_grenade_type_and_count_delta(D(a, 0x18), grenade, 1);
         }
-        next_state = 1;
-        break;
-    case 1:
-    case 3:
-        if (off_target != 0 || self->unknown_5f4 != 0) {
-            goto after_switch;
-        }
-        next_state = 2;
-        break;
-    case 2:
-        if (self->unknown_5f4 != 0) {
-            goto after_switch;
-        }
-        next_state = 3;
-        break;
-    case 4:
-        if (self->unknown_5f4 != 0) {
-            goto after_switch;
-        }
-        next_state = 0;
-        break;
-    default:
-        goto after_switch;
+        *(uint32_t *)(a + 0x6d0) |= 0x2000;
+        ai_communication_broadcast(9, D(a, 0x18), k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
+        goto idle;
+    }
+    if (!actor_has_unshielded_threat_weapon(actor_index)) {
+        goto idle;
+    }
+    if (W(a, 0x5f2) == 4) {
+        wants_fire = 1;
+        goto dispatch;
     }
 
-    if (next_state == 1) {
-        if (actor_should_hold_position(actor_index) == 0 && off_target == 0) {
-            next_state = 2;
-            actor_update_aim_wander(actor_index);
-        }
-    } else if (next_state == 2) {
-        actor_update_aim_wander(actor_index);
-    } else if (next_state == 3) {
-        actor_reseed_movement_pause_timer(actor_index);
-    }
-    self->unknown_5f2 = next_state;
+    // 0x40ea83: throw a grenade instead?
+    if (W(def, 0x154) > 0 && W(a, 0x5f2) != 2 && !(W(a, 0x5fc) > 0) && !(W(a, 0x5fe) > 0)) {
+        uint8_t *threat_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
+        uint8_t allowed;
 
-after_switch:
-    off_target = 0;
-    may_fire = 0;
-    *(uint8_t *)((uint8_t *)self + 0x688) = 0;
-
-    if (self->unknown_5f2 == 4) {
-        off_target = 1;
-    } else if (self->unknown_5f2 == 2) {
-        // ---------------------------------------------------- build the aim point
-        float *aim_point = (float *)((uint8_t *)self + 0x658);
-        float *fire_point = (float *)&self->grenade_aim_direction;
-
-        aim_point[0] = self->wander_unknown_64c.i;
-        aim_point[1] = self->wander_unknown_64c.j;
-        aim_point[2] = self->wander_unknown_64c.k;
-        lead = -3.4028235e+38f;
-
-        if (self->unknown_60c == 1) {
-            target = &((prop *)prop_data->data)[self->unknown_610 & 0xffff];
-            scale = aim_variant->target_tracking;
-            lead = *(float *)((uint8_t *)target + 0x114);
-            if ((weapon_get_zoom_fov_resolved(0xf, *(int16_t *)((uint8_t *)self + 0x3e)) + scale >= 1.0f || weapon_get_zoom_fov_resolved(0xf, *(int16_t *)((uint8_t *)self + 0x3e)) + scale > 0.0f) && // 0x40f104
-                *(uint8_t *)((uint8_t *)self + 0x623) == 0) {
-                to_target.i = *(float *)((uint8_t *)target + 0xc8) - self->wander_unknown_64c.i;
-                to_target.j = *(float *)((uint8_t *)target + 0xcc) - self->wander_unknown_64c.j;
-                to_target.k = *(float *)((uint8_t *)target + 0xd0) - self->wander_unknown_64c.k;
-                point3d_add_scaled((real_point3d *)aim_point, aim_variant->target_tracking);
-            }
-            scale = aim_variant->target_leading;
-            if (weapon_get_zoom_fov_resolved(0x10, *(int16_t *)((uint8_t *)self + 0x3e)) + scale >= 1.0f || weapon_get_zoom_fov_resolved(0x10, *(int16_t *)((uint8_t *)self + 0x3e)) + scale > 0.0f) { // 0x40f18e
-                float flight = weapon_trigger_projectile_time_fraction(*(uint32_t *)((uint8_t *)self + 0x648));
-                float weight = aim_variant->target_leading;
-                aim_point[0] = flight * *(float *)((uint8_t *)target + 0xd4) * weight + aim_point[0];
-                aim_point[1] = flight * *(float *)((uint8_t *)target + 0xd8) * weight + aim_point[1];
-                aim_point[2] = flight * *(float *)((uint8_t *)target + 0xdc) * weight + aim_point[2];
-            }
-        }
-
-        self->wander_unknown_664.i = self->wander_unknown_670.i + self->wander_unknown_664.i;
-        self->wander_unknown_664.j = self->wander_unknown_670.j + self->wander_unknown_664.j;
-        self->wander_unknown_664.k = self->wander_unknown_670.k + self->wander_unknown_664.k;
-        fire_point[0] = self->wander_unknown_664.i + aim_point[0];
-        fire_point[1] = aim_point[1] + self->wander_unknown_664.j;
-        fire_point[2] = aim_point[2] + self->wander_unknown_664.k;
-
-        // ---------------------------------------------------- pick the firing origin
-        if (self->active_unit_index != (datum_index)0xffffffff) {
-            unit_get_camera_position();
+        weapon_get_zoom_fov_resolved(0x12, W(a, 0x3e));
+        if (W(def, 0x154) == 1) {
+            weapon_get_zoom_fov_resolved(0x11, W(a, 0x3e));
+            allowed = (uint8_t)(*(int32_t *)(threat_tag + 0x4fc) > 0);
+        } else if (W(def, 0x154) == 2) {
+            allowed = (uint8_t)(*(int32_t *)(threat_tag + 0x4fc) > 1);
         } else {
-            offset = (real_point3d *)0;
-            if (self->unknown_508 == 0) {
-                offset = (real_point3d *)&aim_variant->custom_stand_gun_offset;
-                if (aim_variant->custom_stand_gun_offset.i * aim_variant->custom_stand_gun_offset.i +
-                    aim_variant->custom_stand_gun_offset.j * aim_variant->custom_stand_gun_offset.j +
-                    aim_variant->custom_stand_gun_offset.k * aim_variant->custom_stand_gun_offset.k <=
-                        0.0001f) {
-                    offset = (real_point3d *)&actor_definition->standing_gun_offset;
-                    if (vector3d_magnitude_squared((real_vector3d *)offset) <= 0.0001f) { // 0x40f327..0x40f330: EAX = offset
-                        offset = (real_point3d *)0;
-                    }
+            allowed = 1;
+        }
+        if (allowed && actor_grenade_behavior_kind_allowed(actor_index, (int16_t)*(uint16_t *)(def + 0x156))) {
+            float delay = random_real_range(0.0f, 1.5f) + F(def, 0x15c);
+            float roll = random_real();
+
+            W(a, 0x5fc) = (int16_t)(int32_t)(delay * 30.0f);
+            if (roll < F(def, 0x158) &&
+                actor_target_is_visible_or_object_count_ok(actor_index, (int16_t)*(uint16_t *)(def + 0x156))) {
+                if (W(def, 0x156) == 3) {
+                    W(a, 0x5fe) = 3;
                 }
-            } else {
-                offset = (real_point3d *)&aim_variant->custom_crouch_gun_offset;
-                if (aim_variant->custom_crouch_gun_offset.i * aim_variant->custom_crouch_gun_offset.i +
-                    aim_variant->custom_crouch_gun_offset.j * aim_variant->custom_crouch_gun_offset.j +
-                    aim_variant->custom_crouch_gun_offset.k * aim_variant->custom_crouch_gun_offset.k <=
-                        0.0001f) {
-                    offset = (real_point3d *)&actor_definition->crouching_gun_offset;
-                    if (vector3d_magnitude_squared((real_vector3d *)offset) <= 0.0001f) { // 0x40f327..0x40f330: EAX = offset
-                        offset = (real_point3d *)0;
-                    }
+                if (W(def, 0x154) == 1) {
+                    a[0x602] = 1;
+                } else if (W(def, 0x154) == 2) {
+                    a[0x604] = 1;
                 }
             }
-            if (offset != (real_point3d *)0) {
-                to_target.i = self->body_position.x - fire_point[0];
-                to_target.j = self->body_position.y - fire_point[1];
-                to_target.k = self->body_position.z - fire_point[2];
-                if (vector2d_normalize_with_length((real_vector2d *)&to_target) <= 0.0f) {
-                    to_target.i = self->facing.i;
-                    to_target.j = self->facing.j;
-                    to_target.k = self->facing.k;
+        }
+    }
+
+    // 0x40ebdd: track the target and find the aiming vector
+    if (W(a, 0x60c) > 0) {
+        if (W(a, 0x60c) == 1) {
+            uint8_t *p = PROP(D(a, 0x610));
+
+            F(a, 0x638) = F(p, 0x11c);
+            *(real_point3d *)(a + 0x62c) = *(real_point3d *)(p + 0xc8);
+            W(a, 0x626) = W(p, 0x38);
+            a[0x621] = p[0x118];
+            a[0x624] = 1;
+            if (W(p, 0x100) != -1) {
+                int32_t bit = W(p, 0x100);
+
+                a[0x624] = (uint8_t)!(*(uint32_t *)(local_player_globals + 0x18 + (bit >> 5) * 4) & (1u << (bit & 0x1f)));
+            }
+        } else {
+            *(real_point3d *)(a + 0x62c) = *(real_point3d *)(a + 0x610);
+            F(a, 0x638) = vector3d_distance((real_point3d *)(a + 0x610), (real_point3d *)(a + 0x120));
+            a[0x621] = 0;
+            a[0x624] = 0;
+            if (*(int32_t *)(a + 0x61c) % 10 == 0) {
+                W(a, 0x626) = (int16_t)actor_evaluate_engagement_reachability(W(a, 0x148), -1,
+                    (real_point3d *)(a + 0x62c), (real_point3d *)(a + 0x120), 0, 0, k_datum_index_none,
+                    (uint8_t)(D(a, 0x158) != k_datum_index_none));
+            }
+        }
+        a[0x622] = (uint8_t)(F(def, 0x148) > 0.0f && F(a, 0x638) > F(def, 0x148));
+        a[0x623] = (uint8_t)(a[0x455] && F(def, 0x14c) > 0.0f);
+        if (!weapon_trigger_get_aiming_vector(weapon, 0, (real_point3d *)(a + 0x120), (real_point3d *)(a + 0x62c),
+                                              a[0x622], (real_vector3d *)(a + 0x63c), 0, (real *)(a + 0x648),
+                                              &used_straight_line)) {
+            W(a, 0x60c) = 0;
+        }
+    }
+    if (W(a, 0x60c) == 0 || a[0x624]) {
+        goto idle;
+    }
+
+    // 0x40edd8: may we fire at all
+    {
+        uint8_t forced = a[0x457];
+
+        if (!forced && W(a, 0x5f6) > 0) goto idle;
+        if (actor_action_has_queued_secondary(actor_index)) goto idle;
+        if (!forced) {
+            if (a[0x15c] && !a[0x99] && !(variant[0] & 1)) goto idle;
+            if ((*(uint32_t *)actor_tag & 0x200) && !a[0x508]) goto idle;
+            if ((actor_tag[4] & 2) && a[0x508]) goto idle;
+            if ((actor_tag[4] & 4) && a[0x504]) goto idle;
+        }
+        if (a[0x621] || a[0x15d]) goto idle;
+        if (weapon_tag != 0 && F(weapon_tag, 0x40c) > 0.0f && F(a, 0x638) < F(weapon_tag, 0x40c)) goto idle;
+        if (W(a, 0x3e8) == 0 || W(a, 0x3ec) != 2 || a[0x58c]) goto idle;
+        if (W(a, 0x5f2) == 2) {
+            wants_fire = 1;
+            goto dispatch;
+        }
+        a[0x620] = (uint8_t)(W(a, 0x626) == 0 || W(a, 0x626) == 1);
+        if (!a[0x620] && !a[0x623]) goto idle;
+        if (!forced && !(F(a, 0x638) < F(a, 0x608))) goto idle;
+        wants_fire = 1;
+        a[0x628] = 1;
+        if (!(*(uint32_t *)actor_tag & 0x2000)) {
+            // 0x40ef6d: on target when the aim direction is within the tolerance (wider up close)
+            float tolerance = F(a, 0x638) >= 1.5f ? 0.97f : F(a, 0x638) * 0.17526217f + 0.70710677f;
+            real_vector3d aim;
+
+            actor_get_aim_from_position(actor_index, (uint32_t *)&aim);
+            if (!(aim.j * F(a, 0x640) + aim.k * F(a, 0x644) + aim.i * F(a, 0x63c) >= tolerance)) {
+                fire_primary = 1; // off target
+            }
+        }
+        goto dispatch;
+    }
+
+idle:
+    wants_fire = 0;
+    W(a, 0x5f2) = 0;
+
+dispatch:
+    // 0x40ea4e: the burst state machine (0 idle, 1 hold, 2 aim, 3 pause, 4 special)
+    {
+        int16_t next = -1;
+
+        switch (W(a, 0x5f2)) {
+        case 0:
+            if (wants_fire) next = 1;
+            break;
+        case 1:
+        case 3:
+            if (!fire_primary && W(a, 0x5f4) == 0) next = 2;
+            break;
+        case 2:
+            if (W(a, 0x5f4) == 0) next = 3;
+            break;
+        case 4:
+            if (W(a, 0x5f4) == 0) next = 0;
+            break;
+        default:
+            break;
+        }
+        if (next != -1) {
+            if (next == 1) {
+                if (!actor_should_hold_position(actor_index) && !fire_primary) {
+                    next = 2;
+                    actor_update_aim_wander(actor_index);
+                }
+            } else if (next == 2) {
+                actor_update_aim_wander(actor_index);
+            } else if (next == 3) {
+                actor_reseed_movement_pause_timer(actor_index);
+            }
+            W(a, 0x5f2) = next;
+        }
+    }
+
+    // 0x40f067
+    fire_primary = 0;
+    fire_secondary = 0;
+    a[0x688] = 0;
+    state = W(a, 0x5f2);
+    if (state == 4) {
+        fire_primary = 1;
+    } else if (state == 2) {
+        // 0x40f099: build this tick's aim point
+        datum_index exclude = k_datum_index_none;   // [esp+0x24]
+        real_point3d *aim_point = (real_point3d *)(a + 0x658);
+        real_point3d *final_point = (real_point3d *)(a + 0x67c);
+        real_point3d origin;                        // [esp+0x30]
+        int32_t blocking_prop = -1;                 // [esp+0x28]
+
+        *aim_point = *(real_point3d *)(a + 0x64c);
+        if (W(a, 0x60c) == 1) {
+            uint8_t *p = PROP(D(a, 0x610));
+            float f;
+
+            exclude = D(p, 0x114);
+            f = weapon_get_zoom_fov_resolved(0xf, W(a, 0x3e)) + F(def, 0xbc);
+            if (!(f <= 0.0f && f < 1.0f) && !a[0x623]) {
+                // drift toward the target's real position
+                real_vector3d delta;
+
+                delta.i = F(p, 0xc8) - F(a, 0x64c);
+                delta.j = F(p, 0xcc) - F(a, 0x650);
+                delta.k = F(p, 0xd0) - F(a, 0x654);
+                point3d_add_scaled(aim_point, &delta, aim_point, F(def, 0xbc));
+            }
+            f = weapon_get_zoom_fov_resolved(0x10, W(a, 0x3e)) + F(def, 0xc0);
+            if (!(f <= 0.0f && f < 1.0f)) {
+                // lead the target by the projectile's flight time
+                float lead = F(def, 0xc0);
+                real t = weapon_trigger_projectile_time_fraction(weapon, (int16_t)(a[0x603] != 0), F(a, 0x648));
+
+                aim_point->x += t * F(p, 0xd4) * lead;
+                aim_point->y += t * F(p, 0xd8) * lead;
+                aim_point->z += t * F(p, 0xdc) * lead;
+            }
+        }
+        // 0x40f22e: add the accumulated aiming error
+        F(a, 0x664) = F(a, 0x670) + F(a, 0x664);
+        F(a, 0x668) = F(a, 0x674) + F(a, 0x668);
+        F(a, 0x66c) = F(a, 0x678) + F(a, 0x66c);
+        final_point->x = F(a, 0x664) + aim_point->x;
+        final_point->y = aim_point->y + F(a, 0x668);
+        final_point->z = aim_point->z + F(a, 0x66c);
+
+        // 0x40f28c: where the shot leaves from
+        if (D(a, 0x158) != k_datum_index_none) {
+            unit_get_camera_position(D(a, 0x18), &origin);
+        } else {
+            uint8_t *offset = 0;
+
+            if (a[0x508]) {
+                real_vector3d *v = (real_vector3d *)(def + 0xb0);
+
+                if (v->i * v->i + v->j * v->j + v->k * v->k > 9.999999747378752e-05f) {
+                    offset = def + 0xb0;
+                } else if (vector3d_magnitude_squared((real_vector3d *)(actor_tag + 0x40)) > 9.999999747378752e-05f) {
+                    offset = actor_tag + 0x40;
+                }
+            } else {
+                real_vector3d *v = (real_vector3d *)(def + 0xa4);
+
+                if (v->i * v->i + v->j * v->j + v->k * v->k > 9.999999747378752e-05f) {
+                    offset = def + 0xa4;
+                } else if (vector3d_magnitude_squared((real_vector3d *)(actor_tag + 0x34)) > 9.999999747378752e-05f) {
+                    offset = actor_tag + 0x34;
+                }
+            }
+            if (offset == 0) {
+                origin = *(real_point3d *)(a + 0x120);
+            } else {
+                real_vector3d facing;       // [esp+0x3c]
+
+                facing.i = F(a, 0x12c) - final_point->x;
+                facing.j = F(a, 0x130) - final_point->y;
+                facing.k = F(a, 0x134) - final_point->z;
+                if (vector2d_normalize_with_length((real_vector2d *)&facing) > 0.0f) {
+                    facing.k = 0.0f;
                 } else {
-                    to_target.k = 0.0f;
+                    facing = *(real_vector3d *)(a + 0x174);
                 }
-                unit_add_marker_relative_offset(self->unit_index, 3, (float *)&self->body_position, (uint32_t)&to_target,
-                    (uint32_t)offset, &aim_from); // 0x40f3cf: EAX = aim_from
-            } else {
-                aim_from.x = self->aim_origin.x;
-                aim_from.y = self->aim_origin.y;
-                aim_from.z = self->aim_origin.z;
+                unit_add_marker_relative_offset(D(a, 0x18), 3, (float *)(a + 0x12c), (uint32_t)&facing,
+                                                (uint32_t)offset, &origin);
             }
         }
 
-        // ---------------------------------------------------- is the shot on target
-        // 0x40f3db..0x40f40b: EAX = the same weapon, CX = (unknown_603 != 0), the secondary trigger
-        weapon_trigger_get_aiming_vector(weapon_object, (int16_t)(self->unknown_603 != 0),
-                     (real_point3d *)&aim_from, (real_point3d *)fire_point,
-                     *(uint8_t *)((uint8_t *)self + 0x622),
-                     (real_vector3d *)((uint8_t *)self + 0x68c), 0, (real *)0, (uint8_t *)&blocked);
-        *(uint8_t *)((uint8_t *)self + 0x688) = (uint8_t)(blocked == 0);
-        to_target.i = fire_point[0] - aim_from.x;
-        to_target.j = fire_point[1] - aim_from.y;
-        to_target.k = fire_point[2] - aim_from.z;
+        // 0x40f3db: the firing direction, and whether a friend is in the way
+        weapon_trigger_get_aiming_vector(weapon, (int16_t)(a[0x603] != 0), &origin, final_point, a[0x622],
+                                         (real_vector3d *)(a + 0x68c), 0, 0, &used_straight_line);
+        a[0x688] = (uint8_t)(used_straight_line == 0);
+        {
+            real_vector3d path;             // [esp+0x3c]
 
-        if (actor_grenade_trajectory_blocked(lead, &aim_from, &scale) == 0) {
-            self->unknown_5fa = self->unknown_5fa + 1;
-            self->unknown_5f4 = self->unknown_5f4 + 1;
-            if (self->unknown_5fa > 0x2c && self->target_combat_status > 6) {
-                uint32_t object_index = 0xffffffff;
-                if (scale != -3.4028235e+38f) {
-                    object_index = (uint32_t)
-                        ((prop *)prop_data->data)[(uint32_t)scale & 0xffff].object_index;
+            path.i = final_point->x - origin.x;
+            path.j = final_point->y - origin.y;
+            path.k = final_point->z - origin.z;
+            if (actor_grenade_trajectory_blocked(&path, actor_index, exclude, &origin, &blocking_prop)) {
+                // clear: fire
+                W(a, 0x5fa) = 0;
+                if (a[0x603]) {
+                    fire_secondary = 1;
+                } else {
+                    fire_primary = 1;
                 }
-                ai_communication_broadcast(0xe, self->unit_index, object_index, 2, 0xffffffff,
-                                           0xffffffff, 0);
-                self->unknown_5fa = 0;
-            }
-        } else {
-            self->unknown_5fa = 0;
-            if (self->unknown_603 == 0) {
-                off_target = 1;
             } else {
-                may_fire = 1;
+                // a friend is in the way: hold, and after 1.5 seconds tell them to move
+                W(a, 0x5fa) += 1;
+                W(a, 0x5f4) += 1;
+                if (W(a, 0x5fa) >= 0x2d && W(a, 0x268) >= 7) {
+                    datum_index in_the_way = blocking_prop != -1 ? D(PROP(blocking_prop), 0x18) : k_datum_index_none;
+
+                    ai_communication_broadcast(0xe, D(a, 0x18), in_the_way, 2, k_datum_index_none, k_datum_index_none, 0);
+                    W(a, 0x5fa) = 0;
+                }
             }
         }
     }
 
-    // ------------------------------------------------------------------ commit
-    fire_flag = 0;
-    fire_value = 0;
-    stationary = 0;
+    // 0x40f4e4: pull the trigger
+    if (fire_primary) {
+        float burst = F(def, 0x78);                  // [esp+0x24]
 
-    if (off_target != 0) {
-        scale = aim_variant->rate_of_fire;
-        if (self->unknown_602 != 0) {
-            self->unknown_602 = 0;
-        } else if (scale != 0.0f) {
-            if (self->unknown_5f8 == 0) {
-                float *burst_a = (float *)0;
-                float *burst = (float *)0;
-                fire_flag = 1;
-                fire_value = 0x3f800000; // 1.0f as a bit pattern, exactly as the original
-                // 0x40f548..0x40f59b: rate = difficulty scale 0xa x scale (x burst[2] when positive); 30 / rate
-                float rate = weapon_get_zoom_fov_resolved(0xa, *(int16_t *)((uint8_t *)self + 0x3e)) * scale;
-                actor_select_stance_offset_pair(actor_index, (uint8_t *)aim_variant,
-                                                (uint8_t **)&burst_a, (uint8_t **)&burst);
-                if (burst != (float *)0 && burst[2] > 0.0f) {
-                    rate = rate * burst[2];
-                }
-                scale = 30.0f / rate;
-                {   // 0x40f5a5: fistp (round to nearest), low 16 bits, then at least 2
-                    int16_t ticks = (int16_t)fistp_round(scale);
-                    self->unknown_5f8 = (ticks < 2) ? 2 : ticks;
-                }
+        if (a[0x602]) {
+            a[0x602] = 0;
+        } else if (burst == 0.0f) {
+            enable = 1;
+            value = 1.0f;
+        } else if (W(a, 0x5f8) == 0) {
+            uint8_t *stance_a;
+            uint8_t *stance_b = 0;                  // [esp+0x28]
+            float rate;
+            int16_t ticks;
+
+            enable = 1;
+            value = 1.0f;
+            rate = weapon_get_zoom_fov_resolved(0xa, W(a, 0x3e)) * burst;
+            actor_select_stance_offset_pair(actor_index, def, &stance_a, &stance_b);
+            if (stance_b != 0 && F(stance_b, 0x8) > 0.0f) {
+                rate *= F(stance_b, 0x8);
             }
-        } else {
-            fire_flag = 1;
-            fire_value = 0x3f800000;
+            ticks = (int16_t)fistp_round(30.0f / rate);
+            W(a, 0x5f8) = ticks < 2 ? 2 : ticks;
         }
-    } else if (may_fire != 0) {
-        if (self->unknown_603 == 0) {
-            stationary = 1;
+    } else if (fire_secondary) {
+        if (a[0x602]) {
+            a[0x602] = 0;
         } else {
-            self->unknown_603 = 0;
+            secondary_flag = 1;
         }
-    } else if (self->unknown_602 != 0) {
-        fire_flag = 1;
-        fire_value = 0x3f800000;
+    } else if (a[0x602]) {
+        enable = 1;
+        value = 1.0f;
     }
-
-    actor_set_override_target(fire_flag, fire_value);
-
-    if (stationary != 0) {
-        self->flags = self->flags | 0x1000;
+    actor_set_override_target(actor_index, enable, *(datum_index *)&value);
+    if (secondary_flag) {
+        *(uint32_t *)(a + 0x6d0) |= 0x1000;
     } else {
-        self->flags = self->flags & 0xffffefff;
+        *(uint32_t *)(a + 0x6d0) &= ~0x1000u;
     }
 }
 
