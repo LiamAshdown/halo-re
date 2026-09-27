@@ -1821,3 +1821,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - The 11-argument ai_communication_select_speaker_by_team was called with 10 arguments. Its DI team (param_a object +0xb8) was stack garbage, so the team filter picked random speakers.
   - actor_classify_communication_object_type is given the selected speaker (EAX = result), not the line kind.
 - Relink: left unresolved 1, traps 128.
+
+## 2026-09-27 (user testing) -- a10 cryo tube exit: NOT A BUG
+- User: "can't get out of the cryo tube when the NPC says you can come out". tutorial_action shows the help text, enables input, resets the action test, then sleep_until player_action_test_action (bit 0x1 = control_flags 0x40 = raw button 2, the action key). Only after that does it fade out and call unit_exit_vehicle player0.
+- The cdb trace (scratchpad/cdb_action_trace.txt) showed the script waiting at the test with jump/look/move bits set but no action bit, i.e. the user had not pressed the action key. The user then pressed E and the exit works.
+- Statically verified on the way (no change): game_engine_digitize_control_input (0x472760) bit mapping and edge tail, hs player_action_test_action/accept/reset, hs player_enable_input, the button suppression and copy loop in game_engine_build_local_player_control_input, and the widget_close suppression.

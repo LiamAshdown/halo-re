@@ -1,7 +1,7 @@
 // physics_point_refresh_leaf  (Ghidra: FUN_00505540, still unnamed there; phase-2 guessed
 // physics_point_test_and_clear)
 // address 0x505540, size 102 bytes
-// name confidence: 0.3   rewrite confidence: 0.2 -- among the lowest-confidence files in this
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against 0x505540 (body matches; convention corrected to EDX -> point)) -- among the lowest-confidence files in this
 //   batch; see the UNSURE paragraphs below.
 // evidence: out/phase4/physics_functions.md ("Thin wrapper that re-evaluates a physics point's
 //   containing BSP leaf and refreshes its active/contact state."); the breakable-surfaces
@@ -24,7 +24,7 @@
 //   is reconstructed as a hidden ESI parameter, matching the identical "a point survives
 //   untouched across two BSP-query callees" shape object_collision_context_test_point (0x504e90,
 //   this batch) already established for ESI.
-//   // blam-cc: ESI -> point, stack -> radius
+//   // blam-cc: EDX -> point, stack -> radius
 // UNSURE (major): collision_bsp_query_sphere_init needs a full collision_bsp_sphere_result
 // (0x1010 bytes) as its ESI "result" argument, far larger than this 102-byte function's own
 // stack frame could hold; this rewrite declares one as a local anyway (a valid, behaviour-
@@ -52,7 +52,9 @@ extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp,
 // inside the tree at all, runs a zero-radius-ish sphere query (radius) at the same spot against
 // the current BSP's still-intact breakable surfaces. Returns whether the point is still
 // considered active (either outside the tree entirely, or a fresh sphere touch was found).
-// blam-cc: ESI -> point, stack -> radius
+// blam-cc: EDX -> point, stack -> radius
+// FIXED (convention): the point arrives in EDX (0x505552 hands the untouched EDX to
+//   bsp3d_node_find_leaf, 0x50556c pushes it; every caller does mov/lea edx), not ESI.
 uint8_t physics_point_refresh_leaf(real_point3d *point, float radius)
 {
     if (bsp3d_node_find_leaf(0, global_structure_collision_bsp, point) != 0xffffffff) {
