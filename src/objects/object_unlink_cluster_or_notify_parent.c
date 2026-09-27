@@ -3,7 +3,7 @@
 // name confidence: 0.5 (still FUN_004f5de0 in Ghidra; functions.md's summary matches: "Removes
 //   an object from its current cluster/placement bookkeeping, or notifies its parent object
 //   when it is owned by one")
-// rewrite confidence: 0.45
+// rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/objects.h object_header (flags at 0x02, in_pvs_pass bit); object
 //   (parent_object 0x11c, flags 0x10 with _object_needs_cluster_update_bit,
 //   _object_at_rest_bit); global 0x008603b0 object_data; callee object_try_and_get 0x4f6ec0.

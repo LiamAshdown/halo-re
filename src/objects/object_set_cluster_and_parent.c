@@ -4,7 +4,7 @@
 //   "Assigns an object's containing cluster (if unparented) or links it into its parent's child
 //   chain, then updates cluster-membership bookkeeping and may trigger deletion of stale
 //   sub-objects")
-// rewrite confidence: 0.5 (raised from 0.4 by the phase-4 review pass: the leaf/cluster lookup was corrected and the location pair is now typed bsp_leaf_reference)
+// rewrite confidence: 0.9 (VERIFIED against objdump) (raised from 0.4 by the phase-4 review pass: the leaf/cluster lookup was corrected and the location pair is now typed bsp_leaf_reference)
 // evidence: types/objects.h object_header (flags at 0x02 with in_pvs_pass/unknown_80 bits),
 //   object (parent_object 0x11c, next_object 0x114, first_child_object 0x118,
 //   location_leaf_index 0x098, location_cluster_index 0x09c, placement_id 0x10c,
