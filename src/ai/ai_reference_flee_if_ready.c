@@ -1,6 +1,6 @@
 // ai_reference_flee_if_ready  (Ghidra: ai_reference_flee_if_ready; named for this rewrite)
 // address 0x434d90, size 91 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: for every actor a packed ai reference names, switches it into mode 0xb
 // (types/ai.h _actor_mode_flee) via actor_set_mode (already established) if a readiness
 // predicate (actor_squad_action_status_broadcast, outside this rewrite's range) is satisfied. Mirrors

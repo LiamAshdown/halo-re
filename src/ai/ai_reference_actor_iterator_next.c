@@ -1,6 +1,6 @@
 // ai_reference_actor_iterator_next  (Ghidra: ai_reference_actor_iterator_next; named for this rewrite)
 // address 0x4326d0, size 97 bytes
-// name confidence: 0.5   rewrite confidence: 0.5
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/ai.h already documents this as the partner of 0x432650 ("next; EDX ->
 // iterator"). Chains actor.next_in_encounter (+0x2c) exactly like the global actor iterator
 // (actor_iterator_next @0x436a70, this batch) and the encounter member list itself

@@ -1,6 +1,6 @@
 // actor_mark_units_and_release  (Ghidra: actor_mark_units_and_release, renamed)
 // address 0x4289c0, size 235 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/ai.h actor.swarm(0x06)/unit_index(0x18)/cluster_unit_index(0x24)/
 //   encounter_index(0x34); types/objects.h object.vitality_flags (0x106); types/units.h
 //   unit_data.swarm_next_unit_index (object+0x1fc). Calls actor_unlink_unit (0x427bc0),

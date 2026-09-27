@@ -1648,3 +1648,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - items: weapon_trigger_begin_reload -> weapon_action_notify_for_weapon(item, 9/10);
   - interface: first_person_weapon_process_action REWRITTEN (zoom-invalidate unit argument; state 0xd/0xf/message stage instead of always 0).
 - Verified (0.9): effect_new_on_object, effect_rebuild_markers, effect_first_person_screen_timer_active.
+- a10 script-worker sweep (scratchpad/a10deps.py):
+  - actor_movement_action_cancel (0x428650) REWRITTEN: it tests and clears active_movement.type (+0x46c), not secondary_action (+0x418), and passes the actor to the mode's +0x24 handler (the draft called it with no argument). 0.3 -> 0.9.
+  - effect_new_on_object_with_node_table: first-person check now gets its object (ECX).
+  - VERIFIED (0.9): actor_mark_units_and_release (ai_kill worker), ai_reference_flee_if_ready, the ai_reference actor iterator new/next/init_cursor, unit_update_vitality_fractions (unit_set_current_vitality), effect_new_with_color, actor_squad_action_status_broadcast.

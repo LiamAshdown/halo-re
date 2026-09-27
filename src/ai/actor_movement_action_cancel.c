@@ -1,6 +1,6 @@
 // actor_movement_action_cancel  (Ghidra: actor_movement_action_cancel, renamed per types/ai.h's own citation)
 // address 0x428650, size 101 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.9 (REWRITTEN from objdump)
 // evidence: types/ai.h actor_movement_action.cancelled (0x02, actor_movement_action_cancel
 //   sets it) cites this exact address; actor.secondary_action(0x46c)/firing_position_index
 //   (0x3b8)/active_movement.extra(0x480). The mode-table call at 0x00655278 is
@@ -21,19 +21,23 @@ extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 // blam-cc: EDI -> actor_index
 void actor_movement_action_cancel(datum_index actor_index)
 {
+    // REWRITTEN from objdump 0x428650..0x4286b4: the claimed firing position (+0x3b8) is released; an ACTIVE
+    //   movement (+0x46c type) of kind 3 or 4 is reset to 0 with its extra (+0x480) cleared; then the mode's
+    //   +0x24 handler runs with the actor pushed. The draft tested secondary_action (+0x418) and called the
+    //   handler without its actor argument.
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    int16_t secondary = self->secondary_action;
+    int16_t movement_type = self->active_movement.type;
 
     self->firing_position_index = -1;
-    if (secondary == 3 || secondary == 4) {
-        self->secondary_action = 0;
+    if (movement_type == 3 || movement_type == 4) {
+        self->active_movement.type = 0;
         self->active_movement.extra = 0xffffffff;
     }
 
     {
-        uint32_t proc = *(uint32_t *)((uint8_t *)&actor_mode_definitions[self->mode] + 0x24); // UNSURE offset
+        uint32_t proc = *(uint32_t *)((uint8_t *)&actor_mode_definitions[self->mode] + 0x24);
         if (proc != 0) {
-            ((void (*)(void))proc)();
+            ((void (*)(datum_index))proc)(actor_index);
         }
     }
 }

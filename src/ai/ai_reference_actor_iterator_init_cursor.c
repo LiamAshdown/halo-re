@@ -1,6 +1,6 @@
 // ai_reference_actor_iterator_init_cursor  (Ghidra: ai_reference_actor_iterator_init_cursor; named for this rewrite)
 // address 0x4369f0, size 61 bytes
-// name confidence: 0.4   rewrite confidence: 0.5
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: tail-called from ai_reference_actor_iterator_new (0x432650, this batch) with
 // ECX advanced by 0xc (confirmed by objdump, `add ecx,0xc; jmp 0x4369f0`), so its own
 // in_ECX[0..2] are types/ai.h ai_reference_actor_iterator's bytes 0xc, 0x10 (actor_index)

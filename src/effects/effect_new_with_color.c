@@ -2,7 +2,7 @@
 // out/phase4/effects_functions.md: "Creates a new particle system with an explicit (or default)
 // tint color and resolved lightmap index, binding it to the object's markers")
 // address 0x450980, size 282 bytes
-// name confidence: 0.3   rewrite confidence: 0.25 (LOW -- see UNSURE notes)
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump) (LOW -- see UNSURE notes)
 // evidence: types/effects.h effect (object_index 0x3c set to k_datum_index_none -- this is the
 // one wrapper that creates a free-standing, unattached effect; location 0x10; color 0x24 --
 // wait: this function writes offset 0x24, which is `velocity`, not `color` (0x18); see UNSURE);

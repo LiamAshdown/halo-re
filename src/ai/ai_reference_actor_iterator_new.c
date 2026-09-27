@@ -1,6 +1,6 @@
 // ai_reference_actor_iterator_new  (Ghidra: ai_reference_actor_iterator_new; named for this rewrite)
 // address 0x432650, size 121 bytes
-// name confidence: 0.5   rewrite confidence: 0.5
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/ai.h already documents this exact function ("the pair at 0x432650 (new;
 // ECX -> iterator, stack -> packed ai reference)"), matching the ai_reference_actor_iterator
 // struct there. Decodes the packed reference the same way as its siblings in this batch

@@ -2,7 +2,7 @@
 // address 0x561b80, size 300 bytes
 // name confidence: 0.2 (renamed from phase2's "unit_update_speed_scale_from_limits"; the body
 //   only ever touches object.body_vitality/shield_vitality and their maximums, not any speed
-//   or scale field)   rewrite confidence: 0.3
+//   or scale field)   rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: types/objects.h object.maximum_body_vitality/maximum_shield_vitality (0xd8/0xdc),
 //   .body_vitality/.shield_vitality (0xe0/0xe4). object_set_shield_depleted_flag,
 //   object_set_health_frozen_flag.

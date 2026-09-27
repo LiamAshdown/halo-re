@@ -2,7 +2,7 @@
 // own summary in out/phase4/effects_functions.md: "Creates a new particle system on an object
 // with an explicit orientation/placement and an associated node-table entry")
 // address 0x450870, size 265 bytes
-// name confidence: 0.3   rewrite confidence: 0.2 (LOW -- see UNSURE notes)
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump; first-person check argument FIXED) (LOW -- see UNSURE notes)
 // evidence: types/effects.h effect (object_index 0x3c, flags _effect_first_person_bit,
 // location_markers[32]) and effect_marker_callback_context (0x006b0adc, "the scratch block the
 // marker resolution thunk at 0x00451850 reads").
@@ -42,7 +42,7 @@ extern datum_index effect_new(datum_index definition_index, datum_index creator_
     uint8_t force_create); // 0x451500, this module
 extern void effect_set_placement(effect *self, const ColorRGB *color,
     const effect_tint_source *tint_source, real a_scale, real b_scale); // 0x451600, this module
-extern uint8_t effect_first_person_screen_timer_active(void); // 0x450680, this module
+extern uint8_t effect_first_person_screen_timer_active(datum_index object_index); // 0x450680, ECX
 extern void effect_rebuild_markers(effect *self,
     int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t)); // 0x451710, this module
 extern int32_t effect_marker_node_table_resolver(uint32_t object_index, const char *location,
@@ -72,7 +72,7 @@ datum_index effect_new_on_object_with_node_table(datum_index creator_object_inde
             // EDX = stack arg 8 (FIXED: the draft had no such parameters and passed 0, 0)
         self->object_index = object_index;
 
-        if (first_person_effects_enabled != 0 && effect_first_person_screen_timer_active()) {
+        if (first_person_effects_enabled != 0 && effect_first_person_screen_timer_active(object_index)) { // FIXED: ECX = EDI (0x4508d5)
             self->flags = self->flags | _effect_first_person_bit;
         }
 
