@@ -1,6 +1,6 @@
 // actor_wants_reload_or_swap  (Ghidra: actor_wants_reload_or_swap, renamed)
 // address 0x40ab80, size 161 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.9 (checked against objdump 0x40ab80..0x40ac20)
 // evidence: types/ai.h actor.unknown_90/unknown_92/encounter_index/squad_index/unknown_6e/
 //   mode; encounter.first_squad (0x04) and encounter_squad_state.unknown_12 (0x12), reached
 //   through encounter_data/encounter_squad_states exactly as established elsewhere; phase-4
@@ -20,7 +20,7 @@ extern data_array *actor_data;             // 0x00880360
 extern data_array *encounter_data;         // 0x008802c8
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
 
-extern void encounter_squad_clear_spawn_delay(void); // 0x439270, not yet rewritten (called with no visible arguments/return used)
+extern void encounter_squad_clear_spawn_delay(datum_index encounter_index, int16_t squad_index); // 0x439270, ECX, EDX
 
 uint8_t actor_wants_reload_or_swap(uint32_t actor_index)
 {
@@ -39,7 +39,7 @@ uint8_t actor_wants_reload_or_swap(uint32_t actor_index)
             if (a->unknown_6e < 5) {
                 result = 1;
             } else {
-                encounter_squad_clear_spawn_delay();
+                encounter_squad_clear_spawn_delay(a->encounter_index, a->squad_index); // 0x40abf6: ECX, DX
             }
         }
     }

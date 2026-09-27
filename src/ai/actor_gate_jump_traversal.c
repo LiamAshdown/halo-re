@@ -1,6 +1,6 @@
 // actor_gate_jump_traversal  (Ghidra: actor_gate_jump_traversal, renamed)
 // address 0x40a700, size 235 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.9 (checked against objdump 0x40a700..0x40a7ea)
 // evidence: types/ai.h actor.unknown_308/unknown_30c/order_committed/mode/unknown_398/
 //   unit_index; phase-4 summary "gates whether the actor may perform a jump/climb-style
 //   traversal action, applying a per-actor cooldown and a scripted animation trigger".

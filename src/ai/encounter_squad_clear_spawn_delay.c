@@ -1,6 +1,6 @@
 // encounter_squad_clear_spawn_delay  (Ghidra: encounter_squad_clear_spawn_delay, renamed)
 // address 0x439270, size 123 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.9 (checked against objdump 0x439270..0x4392ea)
 // evidence: types/ai.h encounter / encounter_squad_state; types/tags.h ScenarioSquad.flags
 //   confirmed at +0x28 by offsetof(), bit 4 = magic_sight_after_timer (see
 //   ScenarioSquadFlags in types/tags.h). Called from encounter_decay_squad_spawn_delays
@@ -28,7 +28,7 @@ extern data_array *encounter_data;  // 0x008802c8
 extern Scenario *global_scenario;   // 0x00746f8c
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
 
-extern void ai_reference_respawn_all_players(void); // 0x432d90, not yet rewritten (respawns squad members via a datum iterator)
+extern void ai_reference_respawn_all_players(uint32_t packed_reference); // 0x432d90, ESI
 
 // blam-cc: ECX -> encounter_index, EDX -> squad_index
 void encounter_squad_clear_spawn_delay(datum_index encounter_index, int16_t squad_index)
@@ -46,7 +46,9 @@ void encounter_squad_clear_spawn_delay(datum_index encounter_index, int16_t squa
     squad_state->squad_delay_ticks = 0;
 
     if ((squad_definition->flags & 0x10) != 0) {
-        ai_reference_respawn_all_players();
+        // 0x4392d0: ESI = the squad's packed ai reference ((squad & 0xff | 0x8000) << 16 | encounter)
+        ai_reference_respawn_all_players(((uint32_t)(((uint16_t)squad_index & 0xff) | 0x8000) << 16) |
+                                         (encounter_index & 0xffff));
     }
     return;
 }

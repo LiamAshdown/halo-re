@@ -1,26 +1,16 @@
 // actor_process_order_request  (Ghidra: actor_process_order_request, already named)
 // address 0x409ea0, size 621 bytes
-// name confidence: 0.5   rewrite confidence: 0.2
-// evidence: types/ai.h actor.unknown_64 (0x64, "actor_new sets -1", used here as a per-actor
-//   cooldown timestamp)/mode (0x6c)/swarm (0x06)/order_committed (0x160)/awareness_level
-//   (0x6a); calls actor_set_mode, this session's actor_check_melee_target_reachable
-//   (actor_check_melee_target_reachable), actor_build_order_default (actor_build_order_default) and two more order builders;
-//   phase-4 summary "central dispatcher that turns a requested order code into a concrete
-//   built order for the actor, subject to per-code cooldowns".
-//
-// Kept close to the Ghidra decompilation given its size and an unresolved global lookup
-// table (DAT_00655590); see UNSURE notes below.
-// UNSURE: the builder calls (actor_build_order_default/_004044b0/_00404510/_00403f00) are shown with at
-// most one visible stack argument each; the rest of their parameters (actor index and the
-// order buffer pointer) are register-inherited from this function's own locals, matching
-// each builder's own established signature in this session. The order buffer this function
-// passes to actor_set_mode is a plain byte buffer sized to the largest builder used
-// (0x5c bytes, actor_order's size), not a single shared named struct.
-//   UNSURE: DAT_00655590 (an int16 table indexed by order_code) is not identified anywhere
-//   else in this module; kept as a raw extern array.
-//   UNSURE: actor+0xc0/0xaa (the "melee" order sub-state) and actor+0x9c (mode_data's first
-//   field, reused here as a generic "current order marker") are used as raw/mode_data
-//   offsets consistent with their treatment elsewhere in this session.
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x409ea0..0x40a10b (the draft built default orders from the request code instead of
+//   its order kind (table 0x655590), passed the request code in the idle fallback where the binary passes 0,
+//   ignored the order builders' results and mis-shaped the melee order). Stack (actor, request code or -1).
+//   Without an explicit request, at most one every 45 ticks, taking the pending request at +0x60 (then clearing
+//   it) or else +0x62 (-1 meaning 0). 1: awareness 1 (mode 1); 8: return to anchor (mode 6) unless already
+//   guarding that way; 9: guard (mode 6), or flag +0xaa on a mode 6 actor not in guard kind 3; 10: combat
+//   awareness, melee or return to anchor; 11: a melee order (mode 4) when a target is reachable, else return to
+//   anchor; others: a default order (mode 2) of the table's kind. Any actor left in mode 0 gets a default order
+//   of kind 0. Returns 1 when a new mode was set.
+// blam-cc: stack -> (actor_index, order_code)
 
 #include "tags.h"
 #include "memory.h"
@@ -29,139 +19,141 @@
 #include "game.h"
 #include <string.h>
 
+
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
-extern int16_t order_code_mode_data_expect[16]; // 0x00655590, UNSURE: guessed size
+extern int16_t order_code_mode_data_expect[12]; // 0x00655590: request code -> default order kind
 
-extern int32_t actor_build_order_default(uint32_t actor_index, int16_t order_code, actor_order *order, int16_t parameter); // 0x401090, this session
-extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order); // 0x403f00, this session
-extern void actor_build_order_return_to_anchor(uint32_t actor_index, actor_order *order); // 0x4044b0, this session
-extern void actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position); // 0x404510, this session
-extern uint8_t actor_update_melee_combat_action(datum_index actor_index); // 0x40cdf0, sibling session
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, sibling session
-extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, sibling session
+extern int32_t actor_build_order_default(uint32_t actor_index, int16_t order_code, actor_order *order, int16_t parameter); // 0x401090, EAX, ECX, EDX, stack
+extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order); // 0x403f00, stack, EBX
+extern int32_t actor_build_order_return_to_anchor(uint32_t actor_index, actor_order *order); // 0x4044b0, EAX, EDX
+extern int32_t actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position); // 0x404510, EAX, EDX, EBX
+extern uint8_t actor_update_melee_combat_action(datum_index actor_index); // 0x40cdf0, stack
+extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
+extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, EAX
 
-// Central dispatcher: turns a requested order_code (or, if 0xffff, whichever of the actor's
-// two pending order codes is set) into a concrete order, subject to a ~45-tick (0x2d) per-
-// actor cooldown when no explicit code is given. See the file header for scope.
 uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
 {
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    uint8_t committed = 0;
-    uint32_t new_mode = 0;
-    uint8_t order[0x5c];
-    uint8_t have_order = 0;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    int16_t mode = *(int16_t *)(act + 0x6c);
+    uint8_t order[k_actor_mode_data_size];
+    int16_t code = (int16_t)order_code;
 
-    if (order_code == 0xffff && a->unknown_64 != -1 && game_time->game_time <= a->unknown_64 + 0x2d) {
+    if (code == -1 && *(int32_t *)(act + 0x64) != -1 && *(int32_t *)(act + 0x64) + 0x2d >= game_time->game_time) {
         return 0;
     }
-    a->unknown_64 = game_time->game_time;
-
-    if (order_code == 0xffff) {
-        order_code = *(uint16_t *)((uint8_t *)a + 0x60);
-        if (order_code == 0xffff) {
-            uint16_t alt = *(uint16_t *)((uint8_t *)a + 0x62);
-            order_code = alt & (uint16_t)-(alt == 0xffff ? 0 : 1); // preserves the original's odd zero-vs-passthrough selection
+    *(int32_t *)(act + 0x64) = game_time->game_time;
+    if (code == -1) {
+        code = *(int16_t *)(act + 0x60);
+        if (code != -1) {
+            *(int16_t *)(act + 0x60) = -1;
         } else {
-            *(uint16_t *)((uint8_t *)a + 0x60) = 0xffff;
+            code = *(int16_t *)(act + 0x62);
+            if (code == -1) {
+                code = 0;
+            }
         }
     }
 
-    switch ((int16_t)order_code) {
-    case 0: case 2: case 3: case 4: case 5: case 6: case 7:
-        if (a->mode == 2 && *(int16_t *)(a->mode_data) == order_code_mode_data_expect[(int16_t)order_code]) {
-            break;
-        }
-        memset(order, 0, sizeof(actor_order));
-        if (actor_build_order_default(actor_index, order_code, (actor_order *)order, 0xffff) != 0) {
-            have_order = 1;
-            new_mode = 2;
-        }
-        break;
+    switch (code) {
     case 1:
-        if (a->awareness_level != 1) {
-            a->awareness_level = 1;
+        if (*(int16_t *)(act + 0x6a) != 1) {
+            *(int16_t *)(act + 0x6a) = 1;
             actor_set_mode(actor_index, 1, 0);
             return 1;
         }
         break;
+
     case 8:
-        if (a->mode == 6 && *(int16_t *)(a->mode_data + (0xc0 - 0x9c)) == 1) {
+        if (mode == 6 && *(int16_t *)(act + 0xc0) == 1) {
             break;
         }
-        memset(order, 0, sizeof(actor_order));
-        actor_build_order_return_to_anchor(actor_index, (actor_order *)order);
-        // UNSURE: the builder no longer reports success/failure explicitly in this rewrite
-        // (it always fills the order); treated as always succeeding here.
-        have_order = 1;
-        new_mode = 6;
+        if (actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
+            actor_set_mode(actor_index, 6, order);
+            return 1;
+        }
         break;
+
     case 9:
-        if (a->mode == 6) {
-            if (*(int16_t *)(a->mode_data + (0xc0 - 0x9c)) != 3) {
-                a->mode_data[0xaa - 0x9c] = 1;
+        if (mode == 6) {
+            if (*(int16_t *)(act + 0xc0) != 3) {
+                act[0xaa] = 1;
             }
-        } else {
-            memset(order, 0, sizeof(actor_order));
-            actor_build_order_guard(actor_index, (actor_order *)order, 0);
-            have_order = 1;
-            new_mode = 6;
+            break;
+        }
+        if (actor_build_order_guard(actor_index, (actor_order *)order, 0)) {
+            actor_set_mode(actor_index, 6, order);
+            return 1;
         }
         break;
+
     case 10:
-        if (actor_get_current_mode_combat_grade(actor_index) != 3) {
-            a->awareness_level = 3;
-            a->unknown_72 = 2;
-            a->unknown_6e = 2;
-            if (actor_update_melee_combat_action(actor_index) == 0) {
-                memset(order, 0, sizeof(actor_order));
-                actor_build_order_return_to_anchor(actor_index, (actor_order *)order);
-                have_order = 1;
-                new_mode = 6;
-            }
+        if (actor_get_current_mode_combat_grade(actor_index) == 3) {
+            break;
+        }
+        *(int16_t *)(act + 0x6a) = 3;
+        *(int16_t *)(act + 0x72) = 2;
+        *(int16_t *)(act + 0x6e) = 2;
+        if (actor_update_melee_combat_action(actor_index)) {
+            break;
+        }
+        if (actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
+            actor_set_mode(actor_index, 6, order);
+            return 1;
         }
         break;
-    case 0xb:
-        if (a->mode != 4) {
-            if (a->order_committed == 0) {
-                memset(order, 0, sizeof(order));
-                *(int16_t *)(order + 8) = -1;
-                *(int32_t *)(order + 0x1c) = -1;
-                *(int16_t *)(order + 0x14) = 0xd;
-                *(int16_t *)order = 0xb4;
-                order[0xc] = 0;
-                order[0xd] = 0;
-                if (a->swarm == 0) {
-                    actor_check_melee_target_reachable(actor_index, (int16_t *)order);
-                    if (*(int16_t *)(order + 8) != -1) {
-                        have_order = 1;
-                        new_mode = 4;
-                        break;
-                    }
-                    order[0x12] = 0; // UNSURE: local_82, byte offset guessed
+
+    case 11:
+        if (mode == 4) {
+            break;
+        }
+        if (act[0x160] == 0) {
+            memset(order, 0, 0x30);
+            *(int16_t *)(order + 0x8) = -1;
+            *(int32_t *)(order + 0x1c) = -1;
+            *(int16_t *)(order + 0xc) = 0xd;
+            *(int16_t *)(order + 0x0) = 0xb4;
+            order[0x4] = 0;
+            order[0x5] = 0;
+            if (act[0x6] == 0) {
+                actor_check_melee_target_reachable(actor_index, (int16_t *)order);
+                if (*(int16_t *)(order + 0x8) != -1) {
+                    actor_set_mode(actor_index, 4, order);
+                    return 1;
                 }
-            }
-            if (a->mode != 6) {
-                break;
+                order[0xe] = 0;
             }
         }
-        // falls through to the mode==0 default below, matching the original's fallthrough
+        if (*(int16_t *)(act + 0x6c) == 6) {
+            break;
+        }
+        if (actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
+            actor_set_mode(actor_index, 6, order);
+            return 1;
+        }
+        break;
+
+    case 0: case 2: case 3: case 4: case 5: case 6: case 7:
+        if (mode == 2 && *(int16_t *)(act + 0x9c) == order_code_mode_data_expect[code]) {
+            break;
+        }
+        if (actor_build_order_default(actor_index, order_code_mode_data_expect[code], (actor_order *)order, -1)) {
+            actor_set_mode(actor_index, 2, order);
+            return 1;
+        }
+        break;
+
+    default:
         break;
     }
 
-    if (!have_order && a->mode == 0) {
-        memset(order, 0, sizeof(actor_order));
-        if (actor_build_order_default(actor_index, order_code, (actor_order *)order, 0xffff) != 0) {
-            have_order = 1;
-            new_mode = 2;
-        }
+    // 0x409f8a: an idle actor always gets something to do
+    if (*(int16_t *)(act + 0x6c) == 0 &&
+        actor_build_order_default(actor_index, 0, (actor_order *)order, -1)) {
+        actor_set_mode(actor_index, 2, order);
+        return 1;
     }
-
-    if (have_order) {
-        actor_set_mode(actor_index, new_mode, order);
-        committed = 1;
-    }
-    return committed;
+    return 0;
 }
 
 #if 0

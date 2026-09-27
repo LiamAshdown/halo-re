@@ -1,6 +1,6 @@
 // actor_swarm_for_each_component  (Ghidra: actor_swarm_for_each_component, renamed)
 // address 0x407040, size 244 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.9 (checked against objdump 0x407040..0x407133)
 // evidence: types/ai.h actor.swarm (0x06)/swarm_index (0x28)/unit_index (0x18);
 //   swarm.component_count (0x02)/unit_index[16] (0x18)/component_index[16] (0x58);
 //   swarm_component (size 0x40). phase-4's "for every member of the actor's squad" is this
