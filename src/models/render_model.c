@@ -61,6 +61,7 @@ extern void model_render_parts(GBXModel *model, uint8_t *region_permutations, ra
 // TEMPORARY (2026-09-27): first-person draw diagnostics, src/interface/debug_play_diagnostics.c
 extern void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
     const float *center, int32_t early_out);
+extern void debug_fp_clip_note(const float *world, int32_t effect_type);
 
 void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t *region_permutations,
                    ColorRGB *change_colors, float *function_out_values, render_lighting *lighting,
@@ -74,6 +75,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     int16_t node;
 
     model = (GBXModel *)tag_instances[model_tag_id.index].data;
+
 
     if ((model->node_list_checksum == (int32_t)k_model_first_person_node_list_checksum) &&
         ((global_scenario->flags & 1) != 0)) { // Scenario.flags bit 0 (cortana_hack); this is
@@ -184,6 +186,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     if (flags == 8) {
         debug_fp_render_model_note(*(uint32_t *)&model_tag_id, pixels, lod, (const float *)node_matrices,
             (const float *)bounding_center, 0); // TEMPORARY first-person diagnostics
+        debug_fp_clip_note(node_matrices ? (const float *)node_matrices + 10 : 0, effect->type);
     }
     model_render_parts(model, region_permutations, (rasterizer_node_matrices *)&context.node_matrices,
                         lod, forced_shader_permutation, flags);

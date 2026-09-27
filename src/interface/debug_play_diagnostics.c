@@ -141,3 +141,31 @@ void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, c
         }
     }
 }
+
+// TEMPORARY (2026-09-27): clip-space position of a world point through the CURRENT rasterizer view (0x7c1290,
+// 4 rows of 3) and projection (0x7c13c0, 4x4) -- the same pair chimera__rasterizer_set_frustum_z_func uploads as
+// c0..c3 -- plus the effect type (1 = active camouflage path) and the camera near/far.
+static int32_t debug_fp_clip_count;
+
+void debug_fp_clip_note(const float *world, int32_t effect_type)
+{
+    const float *view = (const float *)0x007c1290;
+    const float *projection = (const float *)0x007c13c0;
+    float v[3], clip[4];
+    int32_t i;
+
+    if ((debug_fp_clip_count++ % 90) != 0 || world == 0) {
+        return;
+    }
+    for (i = 0; i < 3; i++) {
+        v[i] = world[0] * view[0 * 3 + i] + world[1] * view[1 * 3 + i] + world[2] * view[2 * 3 + i] + view[3 * 3 + i];
+    }
+    for (i = 0; i < 4; i++) {
+        clip[i] = v[0] * projection[0 * 4 + i] + v[1] * projection[1 * 4 + i] + v[2] * projection[2 * 4 + i] +
+                  projection[3 * 4 + i];
+    }
+    standalone_log("DIAG fpclip effect_type=%d view=(%.3f %.3f %.3f) clip=(%.3f %.3f %.3f %.3f) ndc=(%.3f %.3f %.3f) "
+                   "proj22=%.5f proj32=%.5f", effect_type, v[0], v[1], v[2], clip[0], clip[1], clip[2], clip[3],
+        clip[3] != 0.0f ? clip[0] / clip[3] : 0.0f, clip[3] != 0.0f ? clip[1] / clip[3] : 0.0f,
+        clip[3] != 0.0f ? clip[2] / clip[3] : 0.0f, projection[2 * 4 + 2], projection[3 * 4 + 2]);
+}
