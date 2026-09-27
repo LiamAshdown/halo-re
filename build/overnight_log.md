@@ -1927,3 +1927,15 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - The final 19 missing campaign hs evaluators (scratchpad/gen_hs_wrappers5.py, 6.py): unit_has_weapon_readied, script_screen_effect_set_value, set_gamma, rasterizer_fixed_function_ambient (grey 0xFFvvvvvv), object_set_ranged_attack_inhibited (+0x107 bit 1), object_set_melee_attack_inhibited (+0x106 bit 0x80), numeric_countdown_timer_set / _stop, device_group_change_only_once_more_set, camera_set_dead (director mode 3), ai_teleport_to_starting_location, ai_follow_distance, ai_conversation_line, ai_allegiance_broken, unit_solo_player_integrated_night_vision_is_active, breakable_surfaces_reset, player_action_test_jump, game_safe_to_save, fast_setup_network_server.
 - Campaign hs coverage: every hs function the campaign scripts call now has C, except inspect (a debug print of a value, hs internal) and play_update_history (MP debug; its callee player_update_history_play_local_player's C lacks the stack byte argument). Unlisted callbacks 609 -> 535 this session.
 - Relink: left unresolved 1, traps 128.
+
+## 2026-09-27 AI pathfinding fix (runtime trace, user present)
+- FIXED: the a10 cryo tech never walked to the panel. Chain: moving_1_3 atom 3 -> actor_movement_set_destination_point
+  -> action_resolve -> path_find_run = 1 but path_find_reconstruct_path = 0 -> ai_navigate_around_obstacles = 0 ->
+  ai_search_step: the edge result reached the origin on the target surface, but ai_search_add_node returned -1. Its
+  ancestor walk rejected same point + SAME side; the binary (0x43b5fc jne) rejects same point + DIFFERENT side.
+  Every AI path in the game failed (actors completed go_to orders on the spot).
+- Verified against the binary on the way: path_find_reconstruct_path, path_find_hash_lookup_vertex,
+  ai_navigate_around_obstacles, ai_search_step, ai_search_evaluate_edge_cost (its 'distance'/'base_cost' params are
+  really radius/length), path_find_trace_cluster_boundary_from_vertex, collision_bsp_surface_clip_line_2d,
+  path_find_heights_are_close, decal_plane_solve_third_axis, actor_build_path_find_request, path_find_push_start_node.
+- OPEN: a10 panel lens flares still not flashing (next).
