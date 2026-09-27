@@ -1,44 +1,52 @@
 // lens_flare_render_all  (Ghidra: decal_render_active_list, misnamed; renamed per
 // out/phase4/rasterizer_types_notes.md's lens flare misattribution table)
 // address 0x513cf0, size 2147 bytes
-// name confidence: 0.55  rewrite confidence: 0.25 (largest and most register-lossy function in
-//   this session's range; see the UNSURE notes below)
-// evidence: for every active lens_flare_instance belonging to the current render window with a
-//   positive occlusion sample count and nonzero alpha/visibility, projects it (view-space depth
-//   against LensFlare.near/far_fade_distance, a rotation angle via lens_flare_compute_rotation,
-//   three clamped falloff factors from the frustum forward/left/up basis) and, for each of its
-//   LensFlareReflection entries (LensFlare.reflections @+0xc4, stride 0x80 -- see
-//   types/tags.h), computes a lerped brightness/radius/color from the reflection's visibility
-//   byte and submits a screen space quad via rasterizer_lens_flare_quad_add. Finishes by
-//   flushing the sprite batches, ending the D3D scene and, on supported hardware, issuing a
-//   fresh occlusion query per still-eligible flare via FUN_00525ab0.
-// register convention: none recognized -- purely global driven.
-// UNSURE, throughout, and more than usually load-bearing here: several calls in this function
-//   are shown by Ghidra with a return value that is never stored anywhere visible
-//   (color_channel_real_to_byte(fVar2), color_pack_argb_from_real(&local_80), and
-//   vector3d_normalize_with_length() itself) and rasterizer_lens_flare_quad_add is called with
-//   only 2 of what is almost certainly more real arguments (a lens_flare_vertex-shaped block).
-//   This is preserved as literally as possible: the "lost" calls are kept, in order, as bare
-//   calls whose result is genuinely discarded here (most likely their true destination is a
-//   stack slot inside the same vertex block that quad_add reads, which Ghidra did not resolve),
-//   and quad_add is declared exactly as it is called at this site. This function needs a
-//   disassembly-based pass before its reflection draw loop can be trusted; the outer gating,
-//   depth/fade projection and the vertex position math are on firmer ground (every operand
-//   there maps onto a named struct field).
+// name confidence: 0.55  rewrite confidence: 0.85
+// REWRITTEN from the disassembly (0x513cf0..0x514552), raw offsets throughout. The draft dropped
+//   the reflection colour (color_channel_real_to_byte / color_pack_argb_from_real results), the
+//   specular, the scale pair and the rotation of every quad, called rasterizer_lens_flare_quad_add
+//   with 2 of its 5 arguments and called set_current_key / set_vertex_specular without prototypes,
+//   so no lens flare (the a10 tutorial panel lights among them) drew correctly.
+// Per instance of the current window with occlusion samples, a nonzero alpha byte (+0x1b) and
+//   reflections:
+//   d = position - camera, depth = d . forward, off = 2 (forward * depth - d) (the mirror offset
+//   along which reflections are spread); depth is halved without occlusion queries.
+//   brightness = visibility byte / 255 * near-fade clamp((depth - def+0x1c) / (def+0x18 -
+//   def+0x1c)) (1 when def+0x1c <= 0) * alpha byte / 255.
+//   rotation = lens_flare_compute_rotation(ESI flare, DI def+0x80) * def+0x84; angle =
+//   atan2(d . window+0xa4, d . window+0xb0) in degrees.
+//   inv = 1 / (def+0x8 - def+0xc) (0 when equal), bias = -inv * def+0xc; after normalizing d the
+//   four falloff factors are 1, clamp(bias - (forward . n) inv), clamp(bias - (n . d) inv) and
+//   clamp((forward . d) inv + bias), n the unpacked direction (+0x10).
+//   Per reflection (0x80 bytes at def+0xc8): brightness lerp(+0x34, +0x38, intensity) *
+//   falloff[+0x3c] * base (reflection 0 replaces base); radius lerp(+0x28, +0x2c); colour: the
+//   instance colour with the brightness as alpha when the tint (+0x40..+0x4c) is all zero
+//   (specular 1), otherwise the tint with the brightness as alpha, optionally animated by
+//   periodic function +0x72 (period +0x74, phase +0x78) lerping alpha +0x50..+0x60 and colour
+//   +0x54..+0x64 (specular = +0x40). Rotation +0x20 (+ the flare rotation and the def+0xa0/+0xa4
+//   scale on reflection 0; flag 1 adds the angle), flag 4 scales the radius by (visibility + 1) /
+//   2, flag 2 by the depth. Position = flare position + off * +0x1c. set_current_key(EAX def+0x2c,
+//   ECX 0, stack +0x04) failing ends the flare; then the specular, blend mode 0x746fbc (2 for flag
+//   8 on a second-window flare) and quad_add(EAX scale, EBX colour, position, radius, rotation in
+//   radians).
+// register convention: none -- purely global driven.
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 
-extern uint8_t unknown_006893ff;    // 0x006893ff UNSURE: console/debug toggle, owner module unclear
+extern uint8_t unknown_006893ff;    // 0x006893ff lens flares enabled
 extern uint8_t lens_flare_occlusion_queries_supported; // 0x006e1dc0
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 extern lens_flare_instance lens_flare_instances[0x400]; // 0x006ce818
 extern int32_t lens_flare_instance_count;   // 0x0071d134
-extern rasterizer_frame_time rasterizer_time; // 0x007c1200
+extern rasterizer_frame_time rasterizer_time; // 0x007c1200, the frame time as a double at +0
 extern void *rasterizer_device;             // 0x0071d174
-extern void *rasterizer_effect_pool_scratch; // 0x0071d278, UNSURE: an effect/COM object being ended here
+extern void *rasterizer_effect_pool_scratch; // 0x0071d278, the active effect, ended here
+extern int16_t unknown_00746fbc;            // 0x00746fbc lens flare quad blend mode (0 or 2)
+extern uint8_t unknown_0069c68a;            // 0x0069c68a
+extern uint8_t unknown_00689426;            // 0x00689426
 
 // blam-cc: stack -> (z_near, z_far) as raw float bits
 extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
@@ -47,229 +55,215 @@ extern void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t fl
 // blam-cc: AX -> mode
 extern void rasterizer_set_shader_stage_config(int16_t mode);       // 0x519200
 extern void rasterizer_lens_flare_batch_flush_all(void); // 0x536c80
-extern uint8_t *lens_flare_get_visibility_byte(lens_flare_instance *flare); // 0x5134f0
-extern real_vector3d *vector3d_unpack_normal_11_11_10(real_vector3d *out, uint32_t packed); // 0x513400
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, UNSURE: argument at this call site
+extern uint8_t *lens_flare_get_visibility_byte(lens_flare_instance *flare); // 0x5134f0, ECX
+extern real_vector3d *vector3d_unpack_normal_11_11_10(real_vector3d *out, uint32_t packed); // 0x513400, EAX out, ECX packed
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 // blam-cc: ESI -> flare, DI -> mode
 extern float lens_flare_compute_rotation(lens_flare_instance *flare, int16_t mode); // 0x513540
-extern double fpatan(double y, double x); // x87 FPATAN, atan2(y, x)
-extern uint8_t color_channel_real_to_byte(float channel); // 0x5132b0, UNSURE: return unused at this call site
+extern double fpatan(double y, double x); // x87 FPATAN, atan2(y, x) (harness/x87_shims.c)
+extern uint8_t color_channel_real_to_byte(float channel); // 0x5132b0, cdecl
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
 // blam-cc: AX -> type, stack -> input
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0
-extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900, UNSURE: return unused at this call site
-extern void rasterizer_lens_flare_quad_add(real_point3d *position, float radius); // 0x537550, UNSURE: likely more real arguments
+extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
+extern uint32_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index,
+    int16_t bitmap_index); // 0x5120f0, EAX, ECX, stack
+extern void rasterizer_lens_flare_set_vertex_specular(float intensity); // 0x512120, stack
+extern void rasterizer_lens_flare_quad_add(const float *scale, uint32_t diffuse, const real_point3d *position,
+    float radius, float rotation_radians); // 0x537550, EAX scale, EBX diffuse, stack
 // blam-cc: EAX -> instance
 extern void rasterizer_sun_glow_render(lens_flare_instance *instance); // 0x525ab0
 
-// Draws every active lens flare's reflections as screen space quads (see the file header for
-// the significant UNSURE caveats on the per reflection body).
+static float lens_flare_clamp01(float x)
+{
+    if (!(x >= 0.0f)) {
+        return 0.0f;
+    }
+    if (x > 1.0f) {
+        return 1.0f;
+    }
+    return x;
+}
+
 void lens_flare_render_all(void)
 {
-    int32_t i;
-    int32_t j;
+    uint8_t *window = (uint8_t *)&rasterizer_window;
+    const float *camera = (const float *)(window + 0x08);  // 0x7c1228
+    const float *forward = (const float *)(window + 0x14); // 0x7c1234
+    const float *axis_a = (const float *)(window + 0xa4);  // 0x7c12c4
+    const float *axis_b = (const float *)(window + 0xb0);  // 0x7c12d0
+    int16_t i;
 
-    if (unknown_006893ff == 0 || rasterizer_window.type != 1 || lens_flare_instance_count <= 0) {
+    if (unknown_006893ff == 0 || *(int16_t *)window != 1 || lens_flare_instance_count <= 0) {
         return;
     }
-
     if (lens_flare_occlusion_queries_supported != 1) {
-        chimera__rasterizer_set_frustum_z_func(0x3d000200, 0x45800000); // 0.03125f, 4096.0f (0x513d2b pushes both)
+        chimera__rasterizer_set_frustum_z_func(0x3d000200, 0x45800000);
     }
-    rasterizer_lens_flare_batching_select_mode(5, 0); // 0x513d3d: xor ecx,ecx; mov eax,5
+    rasterizer_lens_flare_batching_select_mode(5, 0);
 
     for (i = 0; i < lens_flare_instance_count; i++) {
-        lens_flare_instance *flare = &lens_flare_instances[i];
-        uint8_t *visibility_byte = lens_flare_get_visibility_byte(flare);
-        real_vector3d unpack_scratch;
-        real_vector3d *direction = vector3d_unpack_normal_11_11_10(&unpack_scratch, flare->packed_direction);
-        LensFlare *definition;
-        float view_x, view_y, view_z;
-        float depth;
-        float perp_i, perp_j, perp_k;
-        uint8_t alpha_byte;
-        uint8_t visibility_value;
-        float fade;
-        float falloff[7]; // local_50[0..6]
-        float rotation_degrees;
-        float inv_radius_span;
-        float base_falloff;
-        int32_t reflection_count;
+        uint8_t *instance = (uint8_t *)&lens_flare_instances[i];
+        uint8_t *visibility_byte = lens_flare_get_visibility_byte((lens_flare_instance *)instance);
+        real_vector3d unpacked;
+        real_vector3d normal;
+        uint8_t *definition;
+        uint8_t alpha;
+        real_point3d position;
+        real_vector3d d;
+        float depth, off[3], visibility, fade, base, rotation, angle, span, inv, bias, falloff[4];
+        float intensity;
+        int16_t j;
 
-        if ((flare->window_flags & 0x7f) != rasterizer_window.window_index) {
+        normal = *vector3d_unpack_normal_11_11_10(&unpacked, *(uint32_t *)(instance + 0x10));
+        if ((int16_t)(instance[0x22] & 0x7f) != *(int16_t *)(window + 2)) {
             continue;
         }
-
-        definition = (LensFlare *)flare->definition;
-        reflection_count = definition->reflections.count;
-        if (reflection_count <= 0) {
+        definition = *(uint8_t **)instance;
+        if (*(int32_t *)(instance + 0x24) <= 0) {
             continue;
         }
-        if (flare->sample_count <= 0) {
-            continue;
-        }
-        alpha_byte = ((uint8_t *)&flare->color)[3]; // color's alpha byte (0xAARRGGBB)
-        if (alpha_byte == 0) {
+        alpha = instance[0x1b];
+        if (alpha == 0 || *(int32_t *)(definition + 0xc4) <= 0) {
             continue;
         }
 
-        view_x = flare->position.x - rasterizer_window.camera.position.x;
-        view_y = flare->position.y - rasterizer_window.camera.position.y;
-        view_z = flare->position.z - rasterizer_window.camera.position.z;
-        depth = view_x * rasterizer_window.camera.forward.i + rasterizer_window.camera.forward.j * view_y +
-                rasterizer_window.camera.forward.k * view_z;
-        perp_i = rasterizer_window.camera.forward.i * depth - view_x;
-        perp_j = rasterizer_window.camera.forward.j * depth - view_y;
-        perp_k = rasterizer_window.camera.forward.k * depth - view_z;
+        position = *(real_point3d *)(instance + 0x04);
+        d.i = position.x - camera[0];
+        d.j = position.y - camera[1];
+        d.k = position.z - camera[2];
+        depth = forward[2] * d.k + forward[1] * d.j + d.i * forward[0];
+        off[0] = (forward[0] * depth - d.i) * 2.0f;
+        off[1] = (forward[1] * depth - d.j) * 2.0f;
+        off[2] = (forward[2] * depth - d.k) * 2.0f;
         if (lens_flare_occlusion_queries_supported == 0) {
             depth = depth * 0.5f;
         }
 
-        visibility_value = *visibility_byte;
-        if (definition->near_fade_distance <= 0.0f) {
-            fade = 1.0f;
-        } else {
-            float t = (depth - definition->near_fade_distance) /
-                      (definition->far_fade_distance - definition->near_fade_distance);
-            if (t < 0.0f) {
-                fade = 0.0f;
-            } else if (t > 1.0f) {
+        visibility = (float)*visibility_byte * 0.003921569f;
+        {
+            float near_distance = *(float *)(definition + 0x1c);
+            float far_distance = *(float *)(definition + 0x18);
+
+            if (!(near_distance > 0.0f)) {
                 fade = 1.0f;
             } else {
-                fade = t;
+                float t = (depth - near_distance) / (far_distance - near_distance);
+
+                if (!(t >= 0.0f)) {
+                    fade = 0.0f;
+                } else if (t > 1.0f) {
+                    fade = 1.0f;
+                } else {
+                    fade = t;
+                }
             }
         }
+        base = visibility * fade * (float)alpha * 0.003921569f;
 
-        base_falloff = (float)alpha_byte * (float)visibility_value * 0.003921569f * fade * 0.003921569f;
+        rotation = lens_flare_compute_rotation((lens_flare_instance *)instance, *(int16_t *)(definition + 0x80)) *
+                   *(float *)(definition + 0x84);
+        angle = (float)fpatan((double)(axis_a[2] * d.k + axis_a[1] * d.j + d.i * axis_a[0]),
+                              (double)(axis_b[2] * d.k + axis_b[1] * d.j + d.i * axis_b[0])) * 57.29578f;
 
-        rotation_degrees = (float)(lens_flare_compute_rotation(flare, (int16_t)definition->rotation_function) *
-                                   definition->rotation_function_scale); // DI = LensFlare +0x80 (0x513f22)
-        falloff[6] = rotation_degrees;
-        (void)fpatan; // used inside lens_flare_compute_rotation's own family; kept for parity with the pack
+        span = *(float *)(definition + 0x08) - *(float *)(definition + 0x0c);
+        inv = (span != 0.0f) ? 1.0f / span : 0.0f;
+        bias = -(inv * *(float *)(definition + 0x0c));
+        vector3d_normalize_with_length(&d);
+        falloff[0] = 1.0f;
+        falloff[1] = lens_flare_clamp01(bias - (forward[2] * normal.k + forward[1] * normal.j + normal.i * forward[0]) * inv);
+        falloff[2] = lens_flare_clamp01(bias - (normal.k * d.k + normal.j * d.j + normal.i * d.i) * inv);
+        falloff[3] = lens_flare_clamp01((forward[2] * d.k + forward[1] * d.j + d.i * forward[0]) * inv + bias);
 
-        inv_radius_span = definition->cos_falloff_angle - definition->cos_cutoff_angle; // UNSURE: field names guessed from struct order
-        inv_radius_span = (inv_radius_span == 0.0f) ? 0.0f : 1.0f / inv_radius_span;
-        {
-            float base = -(inv_radius_span * definition->cos_cutoff_angle);
-            real_vector3d perp;
-            float t;
-
-            perp.i = perp_i; perp.j = perp_j; perp.k = perp_k;
-            vector3d_normalize_with_length(&perp); // UNSURE: return (length) unused
-            perp_i = perp.i; perp_j = perp.j; perp_k = perp.k;
-
-            falloff[0] = 1.0f;
-
-            t = base - (direction->i * rasterizer_window.camera.forward.i +
-                        rasterizer_window.camera.forward.j * direction->j +
-                        rasterizer_window.camera.forward.k * direction->k) * inv_radius_span;
-            falloff[1] = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
-
-            t = base - (direction->i * view_x + direction->j * view_y + direction->k * view_z) * inv_radius_span;
-            falloff[2] = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
-
-            t = (view_x * rasterizer_window.camera.forward.i + rasterizer_window.camera.forward.j * view_y +
-                 rasterizer_window.camera.forward.k * view_z) * inv_radius_span + base;
-            falloff[3] = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
-        }
-
-        if (base_falloff <= 0.0f) {
+        if (!(base > 0.0f)) {
             continue;
         }
+        intensity = (float)instance[0x23] * 0.003921569f;
 
-        {
-            uint8_t intensity = flare->intensity;
-            LensFlareReflection *reflections = (LensFlareReflection *)definition->reflections.pointer;
+        for (j = 0; j < *(int32_t *)(definition + 0xc4); j++) {
+            uint8_t *reflection = *(uint8_t **)(definition + 0xc8) + (int32_t)j * 0x80;
+            float r34 = *(float *)(reflection + 0x34);
+            float brightness = ((*(float *)(reflection + 0x38) - r34) * intensity + r34) *
+                               falloff[*(int16_t *)(reflection + 0x3c)] * base;
+            float r28, radius, specular, reflection_rotation, scale[2];
+            uint32_t colour;
+            real_point3d vertex;
+            uint16_t flags;
 
-            for (j = 0; j < reflection_count; j++) {
-                LensFlareReflection *r = &reflections[j];
-                float brightness = r->brightness[0] +
-                                    (r->brightness[1] - r->brightness[0]) * (float)intensity * 0.003921569f;
-                brightness = brightness * falloff[r->brightness_scaled_by] * base_falloff; // UNSURE index type
-                float radius;
-                float alpha, red, green, blue;
-                uint32_t packed_color;
-                float vx, vy, vz;
-
-                if (j == 0) {
-                    base_falloff = brightness;
-                }
-                if (brightness <= 0.0f) {
-                    continue;
-                }
-
-                radius = r->radius[0] + (r->radius[1] - r->radius[0]) * (float)intensity * 0.003921569f;
-
-                if (r->tint_color.alpha == 0.0f && r->tint_color.red == 0.0f &&
-                    r->tint_color.green == 0.0f && r->tint_color.blue == 0.0f) {
-                    color_channel_real_to_byte(brightness); // UNSURE: return unused
-                    packed_color = 0x3f800000; // UNSURE: raw float 1.0 bit pattern, not an ARGB dword
-                } else {
-                    alpha = r->tint_color.alpha;
-                    red = r->tint_color.red;
-                    green = r->tint_color.green;
-                    blue = r->tint_color.blue;
-                    if (r->animation_function > 1) {
-                        // UNSURE: the two operands of the period division (puVar18+0x3c and
-                        // puVar18+0x3a) and the two lerp bounds (puVar18+0x28, +0x30) land past
-                        // the confidently typed prefix of LensFlareReflection; kept as raw byte
-                        // offsets off the reflection record rather than guessed field names.
-                        uint8_t *raw = (uint8_t *)r;
-                        ColorRGB interpolated;
-                        float phase = (float)periodic_function_evaluate((periodic_function_t)r->animation_function,   // AX = +0x72 (0x51425e)
-                            (*(float *)(raw + 0x78) + rasterizer_time.time) / *(float *)(raw + 0x74));
-                        float lerp_factor = phase * *(float *)(raw + 0x60) + (1.0f - phase) * *(float *)(raw + 0x50);
-                        // 0x514294: EAX = reflection +0x64, ECX = +0x54, stack (dest, byte +0x70 & 3, phase)
-                        color_interpolate((ColorRGB *)(raw + 0x64), (ColorRGB *)(raw + 0x54), &interpolated, raw[0x70] & 3, phase);
-                        alpha = lerp_factor * alpha;
-                        red = red * interpolated.red;
-                        green = green * interpolated.green;
-                        blue = blue * interpolated.blue;
-                    }
-                    {
-                        ColorARGB c;
-                        c.alpha = alpha; c.red = red; c.green = green; c.blue = blue;
-                        color_pack_argb_from_real(&c); // UNSURE: return unused
-                    }
-                    packed_color = *(uint32_t *)&r->tint_color.alpha; // UNSURE: local_70 = raw tint_color dword
-                }
-
-                if (j == 0) {
-                    falloff[4] = definition->horizontal_scale;
-                    falloff[5] = definition->vertical_scale;
-                } else {
-                    falloff[4] = 1.0f;
-                    falloff[5] = 1.0f;
-                }
-                if ((r->flags & 4) != 0) {
-                    radius = ((float)visibility_value * 0.003921569f + 1.0f) * radius * 0.5f;
-                }
-                if ((r->flags & 2) != 0) {
-                    radius = radius * depth;
-                }
-
-                vx = (perp_i + perp_i) * r->position + flare->position.x;
-                vy = (perp_j + perp_j) * r->position + flare->position.y;
-                vz = (perp_k + perp_k) * r->position + flare->position.z;
-
-                (void)packed_color; // UNSURE: destination not resolved -- see file header
-
-                // UNSURE: FUN_005120f0 (visibility test?) and FUN_00512120 (occlusion query
-                // begin?) are outside this session's range and are called here with no visible
-                // arguments; FUN_005120f0 returning nonzero breaks the reflection loop.
-                extern uint8_t rasterizer_lens_flare_set_current_key(void);
-                extern void rasterizer_lens_flare_set_vertex_specular(void);
-                if (rasterizer_lens_flare_set_current_key() != 0) {
-                    break;
-                }
-                rasterizer_lens_flare_set_vertex_specular();
-
-                {
-                    real_point3d vertex_position;
-                    vertex_position.x = vx; vertex_position.y = vy; vertex_position.z = vz;
-                    rasterizer_lens_flare_quad_add(&vertex_position, radius);
-                }
+            if (j == 0) {
+                base = brightness;
             }
+            if (!(brightness > 0.0f)) {
+                continue;
+            }
+            r28 = *(float *)(reflection + 0x28);
+            radius = (*(float *)(reflection + 0x2c) - r28) * intensity + r28;
+
+            if (*(float *)(reflection + 0x40) == 0.0f && *(float *)(reflection + 0x44) == 0.0f &&
+                *(float *)(reflection + 0x48) == 0.0f && *(float *)(reflection + 0x4c) == 0.0f) {
+                colour = ((uint32_t)color_channel_real_to_byte(brightness) << 24) |
+                         (*(uint32_t *)(instance + 0x18) & 0xffffff);
+                specular = 1.0f;
+            } else {
+                ColorARGB tint;
+
+                tint.alpha = brightness;
+                tint.red = *(float *)(reflection + 0x44);
+                tint.green = *(float *)(reflection + 0x48);
+                tint.blue = *(float *)(reflection + 0x4c);
+                if (*(int16_t *)(reflection + 0x72) > 1) {
+                    ColorRGB animated;
+                    float t = (float)periodic_function_evaluate(
+                        (periodic_function_t)*(int16_t *)(reflection + 0x72),
+                        ((double)*(float *)(reflection + 0x78) + *(double *)&rasterizer_time) /
+                            (double)*(float *)(reflection + 0x74));
+
+                    color_interpolate((ColorRGB *)(reflection + 0x64), (ColorRGB *)(reflection + 0x54), &animated,
+                                      reflection[0x70] & 3, t);
+                    tint.alpha = ((1.0f - t) * *(float *)(reflection + 0x50) + t * *(float *)(reflection + 0x60)) *
+                                 tint.alpha;
+                    tint.red = tint.red * animated.red;
+                    tint.green = tint.green * animated.green;
+                    tint.blue = tint.blue * animated.blue;
+                }
+                colour = color_pack_argb_from_real(&tint);
+                specular = *(float *)(reflection + 0x40);
+            }
+
+            if (j == 0) {
+                reflection_rotation = rotation + *(float *)(reflection + 0x20);
+                scale[0] = *(float *)(definition + 0xa0);
+                scale[1] = *(float *)(definition + 0xa4);
+            } else {
+                reflection_rotation = *(float *)(reflection + 0x20);
+                scale[0] = 1.0f;
+                scale[1] = 1.0f;
+            }
+            flags = *(uint16_t *)reflection;
+            if ((flags & 1) != 0) {
+                reflection_rotation = reflection_rotation + angle;
+            }
+            if ((flags & 4) != 0) {
+                radius = (visibility + 1.0f) * radius * 0.5f;
+            }
+            if ((flags & 2) != 0) {
+                radius = radius * depth;
+            }
+            {
+                float along = *(float *)(reflection + 0x1c);
+
+                vertex.x = off[0] * along + position.x;
+                vertex.y = off[1] * along + position.y;
+                vertex.z = off[2] * along + position.z;
+            }
+
+            if (rasterizer_lens_flare_set_current_key(*(int32_t *)(definition + 0x2c), 0,
+                                                      (int16_t)*(uint16_t *)(reflection + 0x04)) != 0) {
+                break; // 0x5143fa: the rest of this flare is skipped
+            }
+            rasterizer_lens_flare_set_vertex_specular(specular);
+            unknown_00746fbc = ((flags & 8) != 0 && (instance[0x22] & 0x80) != 0) ? 2 : 0;
+            rasterizer_lens_flare_quad_add(scale, colour, &vertex, radius, reflection_rotation * 0.017453292f);
         }
     }
 
@@ -287,21 +281,18 @@ void lens_flare_render_all(void)
     rasterizer_effect_pool_scratch = 0;
     {
         void **device_vtable = *(void ***)rasterizer_device;
-        ((void (__stdcall *)(void *, int32_t))device_vtable[0x164 / 4])(rasterizer_device, 0); // SetFVF(0)
+        ((void (__stdcall *)(void *, int32_t))device_vtable[0x164 / 4])(rasterizer_device, 0);
     }
 
-    {
-        extern uint8_t unknown_0069c68a; // 0x0069c68a, rasterizer_caps_flag_68a per types/rasterizer.h
-        extern uint8_t unknown_00689426; // 0x00689426, console/debug toggle range per types/rasterizer.h
-        if (unknown_0069c68a == 0 && unknown_00689426 != 0) {
-            for (i = 0; i < lens_flare_instance_count; i++) {
-                lens_flare_instance *flare = &lens_flare_instances[i];
-                if (flare->sample_count > 0 && (flare->window_flags & 0x7f) == rasterizer_window.window_index) {
-                    LensFlare *definition = (LensFlare *)flare->definition;
-                    if (*(uint32_t *)&definition->occlusion_radius == 0x42480000 || // UNSURE: literal radius sentinel
-                        (((uint8_t *)definition)[0x30] & 1) != 0) {                  // UNSURE: flags byte at +0x30
-                        rasterizer_sun_glow_render(flare); // EAX = instance (0x514535)
-                    }
+    if (unknown_0069c68a == 0 && unknown_00689426 != 0) {
+        for (i = 0; i < lens_flare_instance_count; i++) {
+            uint8_t *instance = (uint8_t *)&lens_flare_instances[i];
+
+            if (*(int32_t *)(instance + 0x24) > 0 && (int16_t)(instance[0x22] & 0x7f) == *(int16_t *)(window + 2)) {
+                uint8_t *definition = *(uint8_t **)instance;
+
+                if (*(uint32_t *)(definition + 0x10) == 0x42480000 || (definition[0x30] & 1) != 0) {
+                    rasterizer_sun_glow_render((lens_flare_instance *)instance); // EAX = instance (0x514535)
                 }
             }
         }

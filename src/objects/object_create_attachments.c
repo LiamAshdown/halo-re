@@ -3,7 +3,7 @@
 // name confidence: 0.85 (already carries this name from an earlier phase; matches
 //   functions.md's summary: "Creates the runtime instance for every attachment (light/
 //   looping-sound/effect/contrail/particle) defined on an object's type")
-// rewrite confidence: 0.45
+// rewrite confidence: 0.9 (VERIFIED against 0x4f9750: all five attachment types (argument registers, primary/secondary/change-colour indices minus one, flags 0x100/0x400, type and handle arrays))
 // evidence: types/objects.h object (attachment_types 0x144, attachment_handles 0x14c,
 //   object_attachment_type enum, flags 0x10); types/tags.h Object.attachments (TagReflexive),
 //   ObjectAttachment (type TagDependency, marker TagString, primary_scale 0x30,

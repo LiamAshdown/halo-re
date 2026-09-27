@@ -1857,3 +1857,11 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - Harmless: flexible-array sizes (hs_function_definition, heap), actor_iterator_state and ai_communication_record trailing size, and networking (MP).
 - Also: chimera__draw_16/8_bit_text glyph texel scale (previous entry).
 - Relink: left unresolved 1, traps 128.
+
+## Static loop: a10 tutorial panel lights (user report: "shouldn't the lights be flashing")
+- Script (scratchpad/hsdecomp.py, a new s-expression dumper for scenario scripts): tutorial_looking_targeted / test_looking_cycle turn on all five panel flags at once. Each test_looking_cycle_<dir> swaps looking_panel_<dir>_success for looking_panel_<dir> and waits for objects_can_see_object. So all five lit at once is expected.
+- scratchpad/objnames.py: the panels are scenery "scenery\light lens flare\light lens flare yellow" (green for _success), placement flag 1 (not automatic). scratchpad/tagatt.py: each has one light attachment at marker "smoker" whose primary scale is object function 1, and the light carries the lens flare. So the flash is a lens flare driven by the object function.
+- Verified along the way, no change: scenario_objects_place and object_new_from_scenario_placement (the not-automatic flag and the 0x6b8cbc gate in game_start_new_map); object_update (gating, light attachment refresh, flag/offset asserts); object_for_each_light_attachment; object_light_recompute_transform (transform only); object_create_attachments (0.45 -> 0.9, all five types).
+- lens_flare_render_all (0x513cf0): REWRITTEN (0.25 -> 0.85, raw offsets). The draft discarded each reflection's colour and specular, never passed the scale pair, colour or rotation, called rasterizer_lens_flare_quad_add with 2 of 5 arguments, and called set_current_key / set_vertex_specular without prototypes. Every lens flare in the game drew with garbage.
+- OPEN (runtime): do the panel flares now show and pulse? If not, next are the light's function-driven intensity (object_lights_update_all 0.8) and the flare visibility and occlusion path (lens_flare_update_visibility 0.45, lens_flare_update_samples 0.4). Also OPEN: the cryo tech standing off to the right instead of in front of the panel during the look test (user screenshot).
+- Relink: left unresolved 1, traps 128.
