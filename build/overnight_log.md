@@ -1230,3 +1230,22 @@ every AI caller of it sat in low-confidence drafts. All rewritten from objdump, 
 OPEN: whether the cryo tech is hidden this way needs the user's runtime check (no boot while they are out).
 OPEN: the command-list / think callers of 0x408920 (0x40b029) and the ai_go_to_vehicle evaluators are unlisted
   callbacks (traps if reached).
+
+## 2026-09-27 (loop, static only) -- ai_command_list atoms rewritten (drives the a10 crew)
+The a10 cryo techs are scripted with ai_command_list (tutorial_setup / tutorial_introduction / tutorial_looking
+...). The atoms run through actor_mode_obey_process -> actor_squad_action_list_process (0x406e30, checked) ->
+execute / is_complete / reset_entry. All three were low-confidence drafts with dropped register arguments:
+- 0x405520 actor_squad_action_execute REWRITTEN (all 28 atoms). Draft bugs: "go to" returned 0 on success and
+  cancelled movement for a garbage actor; "look" atoms (4, 23-25) called actor_begin_vocalization without the
+  actor and set the timer from its return value; animation mode wrote aim +0x00 (not +0x02); move-in-direction
+  kept an unnormalized vector; the vehicle atom's object iterator was scrambled; teleport, recording, script,
+  grenade and vocalize atoms had missing register arguments.
+- 0x4066d0 actor_squad_action_is_complete REWRITTEN. Draft bugs: "go to and face" compared the facing against
+  the raw offset (so an actor could stop before turning or never finish), no position fetch for another unit's
+  move-in-direction, shoot timer from the atom instead of the variant +0x84.
+- 0x406c50 reset_entry: the animate atom's biped flag cleanup now gets its unit (was object_try_and_get(1)).
+- Checked, confidence raised: biped_update_idle_basis, biped_apply_idle_fidget, unit_apply_scale_change (really
+  the scripted kill / vitality set), actor_squad_action_list_process.
+- Hidden-bit audit: besides the seat state (0x565787) and set-visible at creation, only weapon holsters and
+  player release set object +0x10 bit 0; all match. So a unit vanishing without deletion needs either a seat
+  entry or a bad transform / position -- the teleport / move atoms above are the prime static suspects.
