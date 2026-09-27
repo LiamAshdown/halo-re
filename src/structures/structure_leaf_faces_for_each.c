@@ -1,6 +1,6 @@
 // structure_leaf_faces_for_each  (Ghidra: FUN_00552de0; named here)
 // address 0x552de0, size 629 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x552de0..0x553055 (both callback argument orders, the unaligned breakable bitmask at +1).)
 // evidence: disassembly of the two callers resolved here (structure_picked_polygon_draw
 //   0x5528f0, and the three "debug draw surfaces in box" siblings 0x552980/0x552a60/0x552b40)
 //   shows the two implicit registers Ghidra's decompilation left unnamed: ECX is the

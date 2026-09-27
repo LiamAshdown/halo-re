@@ -1,6 +1,6 @@
 // path_find_push_start_node  (Ghidra: path_find_push_start_node, already named)
 // address 0x43a760, size 321 bytes
-// name confidence: 0.5   rewrite confidence: 0.35
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x43a760..0x43a8a0 (ESI context).)
 // evidence: types/ai.h path_find_context.start_position(+0x14, rejects z below -1000.0,
 //   confirmed by this function)/start_vertex_id(+0x20)/have_goal(+0x4c)/best_cost(+0x6c)/
 //   unknown_70/best_position(+0x74)/best_node(+0x68)/node_count(+0x80)/nodes(+0x84)/
