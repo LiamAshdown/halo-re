@@ -998,3 +998,57 @@ OPEN:
 - vehicle_update (0x570ee0) is a draft: unit_update_steering_deviation_effects is called with only the
   object (0x57162f also passes EAX = a frame array and ECX = a direction), unit_update_marker_skid_effects
   and unit_update_ground_contact_counter lack their arguments. Rewrite from objdump before driving.
+- objects_recompute_cluster_membership (0x4f7570) rewritten: the draft passed bsp3d_node_find_leaf its
+  arguments out of order, so re-linked objects (bipeds after a load) landed in bogus clusters and were
+  never collected for rendering (debugger trace: 3 NPC bipeds updating, none reaching render_object).
+- OPEN: bsp3d_node_find_leaf is declared (void) and its result misread in ai_broadcast_communication_event,
+  camera_observer_find_best_target, game_engine_reattach_player_unit_unused, hs_damage_apply_at_location,
+  hs_damage_apply_with_sound, unit_find_placement_position -- each needs a rewrite of the surrounding code.
+- OPEN: scratchpad/call_arity.py lists ~1360 calls whose argument count differs from the C definition
+  (none in stable callers); work through by module, hot paths first.
+
+## 2026-09-27 overnight: a10 crewmen AI
+The two near crewmen (actors e362/e363, units e3f8/e3f9) were being put to sleep every tick and the AI crashed
+in a chain of drafts that called helpers without their register arguments. Now all five bipeds update every
+tick for 300 s with no crash (the only fault left is keystone.dll during the forced shutdown).
+Fixed/rewritten (all from objdump):
+- dormant flag: actor_update_squad_link_state, actor_toggle_active_state, actor_squad_react_to_grenade passed the
+  inverted BL to actor_set_units_active (renamed its parameter `dormant`; STABLE, code unchanged).
+- actor index salt: 8 loops over actor_iterator_next derived a bare index from the pointer; now use
+  iterator.actor_index (the "is this me" checks failed, so actors perceived their own unit).
+- perception: actor_target_evaluate_squad_link, actor_find_or_allocate_prop, actor_init_prop_from_object (teams),
+  actor_target_data_refresh (calls), actor_evaluate_engagement_reachability (AX/CX clusters, ESI/EDI points; 7
+  callers), 0x41bb30 perception range test (720 bytes, 6 stack args), actor_danger_update_reaction,
+  unit_add_marker_relative_offset (+3 callers), actor_consider_combat_mode, unit_get_weapon_marker_indices.
+- movement: actor_update_movement_destination (fight process), actor_select/claim_firing_position (path context
+  argument), actor_movement_set_destination_firing_position, the guard/uncover/avoid process procs
+  (0x4049d0, 0x408300, 0x4017b0), actor_check_melee_target_reachable, actor_find_best_firing_position calls,
+  actor_firing_position_near_point, path_find_compute_heuristic (vertex id), path_find_reconstruct_path,
+  path_find_find_unobstructed_ancestor.
+- new: fight mode tick/update (0x403540, 0x4035b0), crew type update, alert mode procs.
+- actor_update_activation_state called the mode's enter proc with no arguments; it is the +0x10 tick proc.
+- teams: ai_allegiance's worker (0x433ba0) dropped both teams; 9 callers of teams_are_enemies /
+  team_pair_flag_test passed no teams (incl. object_apply_damage and the LOS damage friendly-fire test).
+- units: melee start (0x569a20/0x569b30), begin_throw_grenade and scripted action animation dropped the
+  direction pointer (ECX to 0x5704d0); actor_apply_queued_look_to_unit rebuilt the unit_control_data.
+- STABLE touched: actor_get_threat_weapon_object_index now reads the variant tag (+0x5c) like the binary
+  (the stable version read +0x58); actor_set_units_active parameter renamed only.
+OPEN:
+- Crew hostility explained: CONTINUE restores the profile checkpoint, and the real profile's savegame.bin had been
+  overwritten by earlier standalone runs (01:11 and 05:15 today) with a state carrying the old broken ai_allegiance
+  entry (0,0,...). The 2026-09-24 backup (build/profile_backup/Halo_2026-09-26, the original game's save) has a
+  proper player/human override (1,2, threshold 5, 300 ticks) but marked hostile, so crew vs player hostility is the
+  saved state, not a code bug. mission_a10 had run ai_allegiance before that checkpoint (thread 0x4f resumes inside
+  the cinematic_skip `if`).
+- PROFILE: test runs now use `-path build/standalone/profile_sandbox` (a copy of the backup) via
+  scratchpad/cdb_auto.sh, so they never write the real profile. The real profile (Documents/My Games/Halo) still
+  holds the saves written by the earlier standalone runs; restore it from the backup if the original save is wanted
+  (not done automatically). Launching halo_rebuilt.exe by hand without -path writes the real profile.
+- ai_notify_actors_of_encounter_state_change (STABLE) still derives a bare actor index from the pointer.
+- ai_communication_broadcast: the teams_are_enemies locals at 0x42d7ac ([esp+0x14], [esp+0x4c]) are mapped to
+  self/other_team_packed by name only; the 0x42ba80 call there pushes (esi, edi, [esp+0x54]) which does not
+  match the C argument order -- verify.
+- unit_detach_from_parent (0x570140) is a fragment of the MISSING 0x570000; 0x402679 and 0x47c2e0 (melee
+  starts) and 0x404cb4 (a dormant call) are inside unwritten functions.
+- 17 AI files still carry SIGNATURE-CONFLICT externs (grep SIGNATURE-CONFLICT); 420 (void)-extern calls to
+  functions that take arguments remain (scratchpad/voidext.py).
