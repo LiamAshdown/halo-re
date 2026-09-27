@@ -1,6 +1,6 @@
 // ai_search_add_node  (Ghidra: ai_search_add_node, renamed)
 // address 0x43b5a0, size 483 bytes
-// name confidence: 0.45  rewrite confidence: 0.85
+// name confidence: 0.45  rewrite confidence: 0.9 (VERIFIED against objdump 0x43b5a0..0x43b782; FIXED the ancestor walk: the binary rejects a node when an ancestor has the same point_id but a DIFFERENT side (jne at 0x43b5fc) and keeps walking when the side matches -- the C had it inverted, so every search result node (point -1, side 0, same as the root) was refused and every AI path failed (runtime trace a10 cryo tech))
 // REWRITTEN from objdump 0x43b5a0..0x43b782. EDI = context, BX = the parent node (or -1); stack: position (2D),
 //   surface index (stored at +0x08, typed z in types/ai.h), point_id, side, base cost. Refused (-1) past 0x80 nodes. With a parent, the chain of ancestors that share
 //   the point id is walked: the same point on the same side is a duplicate (-1). At the first ancestor with
@@ -44,7 +44,7 @@ int16_t ai_search_add_node(ai_search_context *context, int16_t parent, real_poin
             if (ancestor->point_id != point_id) {
                 break;
             }
-            if (ancestor->side == side) {
+            if (ancestor->side != side) { // 0x43b5f9: cmp [ecx+0x1a],al; jne reject (was inverted)
                 return -1;
             }
             walk = ancestor->parent;
