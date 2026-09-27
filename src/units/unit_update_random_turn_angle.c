@@ -1,7 +1,7 @@
 // unit_update_random_turn_angle  (Ghidra: FUN_00570840; renamed from the phase2 proposal)
 // address 0x570840, size 644 bytes
 // name confidence: 0.45 (phase2 proposal at 0.45, matches functions.md summary)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.9 (checked against objdump 0x570840..0x570ac3)
 // evidence: types/units.h unit_data.idle_turn_angle (0x414), .idle_turn_offset (0x418),
 //   .actor_index (0x1f4, decimal 500); math.h global_forward3d_pointer (0x00696718); companion
 //   function unit_initialize_random_turn_angle (0x570650, this batch) uses the same fields and
@@ -23,7 +23,8 @@ extern data_array *object_data; // 0x008603b0
 extern random_seed random_seed_global;   // 0x00719cd0
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 
-extern int8_t actor_resolve_wander_or_look_direction(void); // 0x4287a0, UNSURE: actor-side predicate, no traced args
+extern uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, real_vector3d *out_direction); // 0x4287a0, EAX, ECX
+extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern double cos(double x); // fcos
 extern double sin(double x); // fsin
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,
@@ -40,7 +41,8 @@ void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axi
     float pitch_low, pitch_high;
     float delta;
 
-    if (unit->actor_index == k_datum_index_none || actor_resolve_wander_or_look_direction() == 0) {
+    // 0x570867: EAX = the unit's actor, ECX = out (the unit's desired facing, EDI)
+    if (unit->actor_index == k_datum_index_none || actor_resolve_wander_or_look_direction(unit->actor_index, out_axis) == 0) {
         *out_axis = *global_forward3d_pointer;
     } else {
         is_actor_controlled = 1;
@@ -96,7 +98,9 @@ void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axi
     {
         float c = (float)cos((double)unit->idle_turn_angle);
         float s = (float)sin((double)unit->idle_turn_angle);
-        vector3d_rotate_about_axis(&obj->forward, out_axis, s, c);
+        // 0x570a94: EAX = out (EDI), ECX = *global_up3d_pointer -- the draft rotated the OBJECT's forward vector
+        //   about out, bending the unit's orientation every tick
+        vector3d_rotate_about_axis(out_axis, global_up3d_pointer, s, c);
     }
 }
 

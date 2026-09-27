@@ -1,7 +1,7 @@
 // unit_commit_speech  (Ghidra: unit_commit_speech)
 // address 0x560f20, size 264 bytes
 // name confidence: 0.4 (renamed from phase2's "unit_set_animation_state"; the body is entirely
-//   about the dialogue/speech queue, not animation state)   rewrite confidence: 0.35
+//   about the dialogue/speech queue, not animation state)   rewrite confidence: 0.9 (checked against objdump 0x560f20..0x561027)
 // evidence: types/units.h unit_data.current_speech/.pending_speech (unit_speech, 0x30 bytes,
 //   at 0x388/0x3b8), .speech_started/.speech_lipsync_stopped/.speech_finished (0x3f4/0x3f5/
 //   0x3f6), .speech_delay_ticks/.speech_duration_ticks/.speech_lipsync_ticks/.speech_tail_ticks
@@ -29,7 +29,7 @@ int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    if ((obj->vitality_flags & _object_health_frozen_bit) == 0 || mode == 10) {
+    if ((obj->vitality_flags & _object_health_frozen_bit) == 0 || source->priority == 10) { // 0x560f42: the SPEECH priority (word at ESI), not the mode
         if (mode > 1) {
             unit->current_speech = *source;
 
