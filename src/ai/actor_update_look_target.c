@@ -1,6 +1,8 @@
 // actor_update_look_target  (Ghidra: actor_update_look_target, renamed)
 // address 0x415480, size 3896 bytes
 // name confidence: 0.3   rewrite confidence: 0.25 (LEAST VERIFIED function in this module --
+// FIXED 2026-09-27: the body-turn / aim-follow block at 0x415fb6..0x41609a was missing (added after the look
+//   selection; unit_is_in_busy_animation_state takes the unit in ECX). The rest is still unverified.
 // read the UNSURE block below before trusting any single branch)
 // evidence: ai_02.json's evidence for this address: "Reads actor look-mode field at +0x6dc,
 // branches on unit posture/vehicle seat (+0x6a==3) selecting different unit orientation
@@ -68,7 +70,7 @@ extern float *actor_get_idle_facing_range(datum_index actor_index); // 0x4150f0,
 extern int32_t actor_look_get_wait_ticks(int16_t mode, uint32_t flags, float *deviation_table); // 0x415150, this module
 extern uint8_t actor_reset_queued_look_vector(datum_index actor_index); // 0x417ae0, this module
 extern uint8_t actor_update_facing_change_timer(datum_index actor_index); // 0x423670, not this module, UNSURE signature (called with no visible args)
-extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index); // 0x569c90, not yet rewritten
+extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX = the unit
 extern double cos(double x); // FCOS
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
 
@@ -460,6 +462,30 @@ void actor_update_look_target(datum_index actor_index)
                 }
             look_scheduled:;
             }
+        }
+
+        // 0x415fb6..0x41609a (missing from the draft): an actor standing on its own feet, not driving and not in
+        //   a busy animation, whose new look direction (+0x5b0) left the aiming cone of its current one (+0x5a4)
+        //   but not of its body facing -- or, with a weapon, whose aim point (+0x5bc) left the looking lane of
+        //   the current look but not of the body -- must turn its body (+0x591). Without a weapon the aim point
+        //   simply follows the look direction.
+        if (self->unknown_504 == 0 && self->unknown_505 == 0 && !unit_is_in_busy_animation_state(self->unit_index) &&
+            self->active_unit_index == (datum_index)k_datum_index_none) {
+            if (point3d_within_horizontal_cone(&self->position_cache_b, &self->position_cache_a, aiming_cos_threshold) &&
+                !point3d_within_horizontal_cone(&self->position_cache_b, (real_point3d *)&self->facing,
+                                                aiming_cos_threshold)) {
+                self->unknown_591 = 1;
+            } else if (has_weapon_or_forced &&
+                       actor_point_in_directional_lane(&self->position_cache_c, &self->position_cache_b,
+                                                       &self->position_cache_a, looking_cos_threshold, side_thresholds) &&
+                       !actor_point_in_directional_lane(&self->position_cache_c, &self->position_cache_b,
+                                                        (real_point3d *)&self->facing, looking_cos_threshold,
+                                                        side_thresholds)) {
+                self->unknown_591 = 1;
+            }
+        }
+        if (!has_weapon_or_forced) {
+            self->position_cache_c = self->position_cache_b;
         }
     }
 
