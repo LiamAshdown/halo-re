@@ -67,7 +67,7 @@ extern uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datu
                                           uint8_t require_trust, uint8_t use_aiming_deviation, uint8_t force_fallback); // 0x414d00, this module
 extern void actor_look_randomize_direction(datum_index actor_index, float *deviation_table, real_vector3d *base_direction); // 0x414f50, this module
 extern float *actor_get_idle_facing_range(datum_index actor_index); // 0x4150f0, this module
-extern int32_t actor_look_get_wait_ticks(int16_t mode, uint32_t flags, float *deviation_table); // 0x415150, this module
+extern int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table); // 0x415150, EAX, stack, EDI
 extern uint8_t actor_reset_queued_look_vector(datum_index actor_index); // 0x417ae0, this module
 extern uint8_t actor_update_facing_change_timer(datum_index actor_index); // 0x423670, not this module, UNSURE signature (called with no visible args)
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX = the unit
@@ -380,7 +380,7 @@ void actor_update_look_target(datum_index actor_index)
                 } else {
                     if (self->unknown_55d != 0 && !allow_flag) {
                         self->unknown_55c = 1;
-                        self->unknown_564 = actor_look_get_wait_ticks(2, 1, idle_range);
+                        self->unknown_564 = actor_look_get_wait_ticks(actor_index, 2, 1, idle_range);
                         *(real_point3d *)&self->unknown_56e[2] = self->position_cache_b; // 0x570/0x574/0x578
                         self->unknown_56c = 4;
                     }
@@ -423,13 +423,13 @@ void actor_update_look_target(datum_index actor_index)
                 look_committed:
                     if (started_new && bVar20) {
                         self->unknown_55e[1] = 1; // 0x55f
-                        (*(int32_t *)self->unknown_568) = actor_look_get_wait_ticks(2, self->unknown_55e[0], idle_range);
+                        (*(int32_t *)self->unknown_568) = actor_look_get_wait_ticks(actor_index, 2, self->unknown_55e[0], idle_range);
                         // copies the whole 16-byte {code,pad,point} record at self+0x56c/0x570
                         // to self+0x57c/0x580 (four undefined4 copies in the original)
                         *(int16_t *)&self->unknown_56e[14] = self->unknown_56c;              // 0x57c = 0x56c
                         *(real_point3d *)&self->unknown_56e[18] = *(real_point3d *)&self->unknown_56e[2]; // 0x580.. = 0x570..
                         if ((uint8_t)priority != 0) {
-                            (*(int32_t *)&self->unknown_55e[2]) = actor_look_get_wait_ticks(0, self->unknown_55e[0], idle_range);
+                            (*(int32_t *)&self->unknown_55e[2]) = actor_look_get_wait_ticks(actor_index, 0, self->unknown_55e[0], idle_range);
                         }
                     }
                 }

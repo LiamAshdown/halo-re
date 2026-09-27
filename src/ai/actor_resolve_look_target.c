@@ -43,7 +43,7 @@ extern uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t 
                                                 actor_recognition_scan_result *out_result, uint8_t *out_in_front); // 0x414a90, this module
 extern uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float yaw_max, float pitch_min, float pitch_max, real_vector3d *base_direction, uint8_t check_obstruction, real_point3d *out); // 0x415260, this module,
                                                      // blam-cc: stack x6, ESI -> base_direction, BL -> check_obstruction
-extern int32_t actor_look_get_wait_ticks(int16_t mode, uint32_t flags, float *deviation_table); // 0x415150, this module,
+extern int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table); // 0x415150, EAX, stack, EDI
                                           // blam-cc: stack -> mode, stack -> flags, EDI -> deviation_table
 
 // blam-cc: EAX -> preferred_direction, stack -> actor_index, stack -> deviation_table,
@@ -108,7 +108,7 @@ uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index
         }
     }
 
-    wait_ticks = actor_look_get_wait_ticks((use_aiming_deviation == 0) + 1, out_in_front, deviation_table);
+    wait_ticks = actor_look_get_wait_ticks(actor_index, (use_aiming_deviation == 0) + 1, out_in_front, deviation_table);
     self->unknown_564 = wait_ticks;
     if (wait_ticks == 0) {
         return (uint8_t)out_in_front;

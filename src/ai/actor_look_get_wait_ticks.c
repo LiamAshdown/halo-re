@@ -1,6 +1,6 @@
 // actor_look_get_wait_ticks  (Ghidra: actor_look_get_wait_ticks, already named)
 // address 0x415150, size 267 bytes
-// name confidence: 0.5   rewrite confidence: 0.5
+// name confidence: 0.5   rewrite confidence: 0.9
 // evidence: phase-4 summary matches directly; picks one of three float pairs out of a
 // caller-supplied table by mode, randomizes (or defaults to 0.5) between them, scales by the
 // threat's weapon tag float at +0x410 and an optional 1.5x bonus, then converts to ticks at
@@ -8,7 +8,9 @@
 // register convention: reconstructed from objdump -d -M intel over 0x415150..0x41525a.
 // mode and flags are genuine stack parameters (Ghidra found both); the float table pointer
 // is EDI, an implicit register argument Ghidra rendered as unaff_EDI.
-// blam-cc: stack -> mode, stack -> flags, EDI -> deviation_table
+// blam-cc: EAX -> actor_index, stack -> mode, stack -> flags, EDI -> deviation_table
+// FIXED (objdump 0x415150): EAX is the actor, whose threat weapon (0x4282c0, then its tag) scales the wait by
+//   Weapon +0x410; the draft had no actor and called a different helper without operands.
 // UNSURE: flags is a 4-byte union -- its bit pattern is used both as a float (the fallback
 // value when mode selects neither of the three real pairs) and as a plain byte (the 1.5x
 // bonus flag); reinterpreted via a pointer cast to match exactly what the disassembly reads,
@@ -25,13 +27,16 @@
 
 extern uint32_t random_seed_global; // 0x00719cd0
 
-extern void *actor_get_threat_weapon_definition(void); // 0x40f970, this module
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
+extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0, EAX
+extern int32_t fistp_round(float x); // harness/x87_shims.c
 
 // blam-cc: stack -> mode, stack -> flags, EDI -> deviation_table
 // mode 0/1/2 select deviation_table[0..1]/[2..3]/[4..5]; any other mode falls back to using
 // flags (reinterpreted as a float) as both ends of the pair, which collapses the random step
 // below to always return 0.5.
-int32_t actor_look_get_wait_ticks(int16_t mode, uint32_t flags, float *deviation_table)
+int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table)
 {
     float lo, hi;
     float fraction;
@@ -70,7 +75,12 @@ int32_t actor_look_get_wait_ticks(int16_t mode, uint32_t flags, float *deviation
         fraction = 0.5f;
     }
 
-    weapon_definition = actor_get_threat_weapon_definition();
+    {
+        datum_index weapon = actor_get_threat_weapon_object_index(actor_index);
+
+        weapon_definition = weapon == k_datum_index_none ? 0 :
+            tag_instances[*(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data & 0xffff].data;
+    }
     if (weapon_definition != 0 && 0.0f < *(float *)((uint8_t *)weapon_definition + 0x410)) {
         fraction = fraction * *(float *)((uint8_t *)weapon_definition + 0x410);
     }
@@ -80,7 +90,7 @@ int32_t actor_look_get_wait_ticks(int16_t mode, uint32_t flags, float *deviation
     }
 
     ticks = fraction * 30.0f;
-    result = (int32_t)(ticks + 0.5f); // ROUND(), matches this module's other 30.0-tick conversions
+    result = fistp_round(ticks); // 0x415248 fistp
     if (result < 2) {
         result = 1;
     }

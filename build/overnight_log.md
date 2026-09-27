@@ -1596,3 +1596,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   tail call tidied (EAX = self); actor_delete / damage_apply_area_effect / ai_accumulate_repeated_event extras are
   harmless (first argument right, cdecl).
 - unit_initialize_random_turn_angle (flee enter / tick): actor_resolve_wander_or_look_direction gets (actor, scratch).
+- actor_look_get_wait_ticks 0x415150 (0.5 -> 0.9): takes the actor (EAX) for the threat-weapon (+0x410) wait scale; the
+  draft had no actor and called a different helper argless; fistp rounding. Its 5 call sites (resolve_look_target,
+  look_randomize_direction, update_look_target x3) pass the actor.
+- actor_link_to_unit_cluster: team stamp gets (encounter EAX, unit ECX).
