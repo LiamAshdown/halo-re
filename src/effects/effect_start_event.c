@@ -2,7 +2,7 @@
 // refers to this address directly: "effect_start_event 0x451660 and effect_update; event_duration
 // is random_real_range_seeded(EffectEvent.duration_bounds)")
 // address 0x451660, size 172 bytes
-// name confidence: 0.5   rewrite confidence: 0.55
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump 0x451660..0x45170b; seed choice FIXED)
 // evidence: types/effects.h effect (flags, event_index 0x4e, event_time 0x50, event_duration
 // 0x54); types/tags.h Effect.events, EffectEvent.delay_bounds (0x08); src/memory/datum_get.c is
 // byte-for-byte the same validate-index-and-salt check this function opens with.
@@ -23,6 +23,7 @@
 extern data_array *effect_data;     // 0x0087abdc
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global; // 0x00719cd0
+extern random_seed effect_random_seed; // 0x00719cd4
 
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680,
     // blam-cc: EDX -> handle, ESI -> array
@@ -43,8 +44,9 @@ void effect_start_event(datum_index effect_handle, int16_t event_index)
             self->flags = self->flags & ~_effect_event_started_bit;
             self->event_index = event_index;
             self->event_time = 0.0f;
-            self->event_duration = random_real_range_seeded(&random_seed_global,
-                event->delay_bounds[0], event->delay_bounds[1]);
+            // FIXED (0x4516e7..0x4516f1): tag flag 4 selects the global seed, otherwise the effect seed
+            self->event_duration = random_real_range_seeded((tag->flags & 4) != 0 ? &random_seed_global
+                : &effect_random_seed, event->delay_bounds[0], event->delay_bounds[1]);
         }
     }
 }

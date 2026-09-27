@@ -2,7 +2,7 @@
 // misattribution table: "0x451500 particle_system_new -> effect_new -- and its two arguments are
 // reversed: argument 1 is the effe tag index, not an object index")
 // address 0x451500, size 246 bytes
-// name confidence: 0.5   rewrite confidence: 0.55
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump 0x451500..0x4515f5 (event 0 is xor edi,edi))
 // evidence: types/effects.h effect (definition_index 0x04, creator_object_index 0x40,
 // first_person_weapon_index 0x4c, flags); types/tags.h Effect (flags EffectFlags bit 2
 // must_be_deterministic_pc, events TagReflexive at 0x34).

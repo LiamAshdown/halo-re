@@ -3,7 +3,7 @@
 // optionally rotated by a random angle about a given axis, for a particle system's spawn
 // parameters")
 // address 0x451310, size 309 bytes
-// name confidence: 0.4   rewrite confidence: 0.5 (raised by the phase-4 integration pass: the
+// name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump 0x451310..0x451444; property roll bits FIXED) (raised by the phase-4 integration pass: the
 // signature below is now read off Ghidra's own nine recognised stack parameters instead of
 // being reconstructed, which resolves the conflict the effect_spawn_particles.c rewrite flagged)
 // evidence: types/effects.h effect (a_scale 0x44, b_scale 0x48); src/math/vector3d_rotate_about_axis.c
@@ -49,8 +49,8 @@ void effect_random_velocity_vector(effect *self, random_seed *seed, real_vector3
     real_vector3d *out_direction, real_vector3d *out_velocity, real min, real max, real angle_max,
     uint32_t a_bitset, uint8_t b_bitset)
 {
-    real magnitude = effect_property_random_value(0, self, 0, 0, seed, min, max); // UNSURE, see
-        // file header
+    // FIXED (0x451319..0x451332): ESI / EDI carry this function's a_bitset / b_bitset into the property roll
+    real magnitude = effect_property_random_value(0, self, a_bitset, b_bitset, seed, min, max);
     real angle = angle_max;
 
     *out_direction = *direction;

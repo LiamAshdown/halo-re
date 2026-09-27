@@ -3,7 +3,7 @@
 // object_marker.transform straight in, whose source pointer is pre-incremented by two shorts
 // before the first store and therefore starts at object_marker.transform (+0x04)")
 // address 0x4517d0, size 117 bytes
-// name confidence: 0.55   rewrite confidence: 0.55
+// name confidence: 0.55   rewrite confidence: 0.9 (VERIFIED against objdump 0x4517d0..0x451844)
 // evidence: types/effects.h effect_location_marker (marker_index 0x02, next_marker 0x04,
 // transform 0x08) and effect.location_markers[32] (0x5c); types/objects.h object_marker
 // (node_index 0x00, transform 0x04).

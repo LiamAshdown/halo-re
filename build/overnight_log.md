@@ -1765,3 +1765,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - player_effect_set_camera_shake verified 0.9.
 - player_effect_build_screen_flash (0x457000) verified 0.9. Scripted fades use transition type 5, player flashes use their own type (flash +0x14), flash ticks count down by the tick length, and scripted ticks reset only for a real local player.
 - Verified 0.9: player_effect_apply_at_object (blam-cc corrected: stack tag, ESI origin, player index always 0), effect_new_at_texture_coordinate.
+- Effect lifecycle fixes:
+  - effect_stop starts loop_stop_event + 1 (the draft replayed the loop stop index itself).
+  - effect_start_event picks the global seed only for tag flag 4, otherwise the effect seed.
+  - effect_random_velocity_vector passes its a/b bitsets into the property roll (they were zeros).
+- Verified 0.9: effect_new, effect_marker_new.

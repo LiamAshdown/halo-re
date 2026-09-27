@@ -1,7 +1,7 @@
 // effect_stop  (Ghidra: FUN_00450b20; named per out/phase4/effects_types_notes.md, which refers
 // to this address directly: "effect_stop 0x450b20 (bits 2, 3, 5)")
 // address 0x450b20, size 189 bytes
-// name confidence: 0.35   rewrite confidence: 0.5
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump 0x450b20..0x450bd8; stop event + 1 FIXED)
 // evidence: types/effects.h effect_flags (_effect_looping_bit, _effect_stopping_bit,
 // _effect_finished_bit, _effect_stop_immediately_bit) and effect (0x02 flags); types/tags.h
 // Effect (loop_stop_event 0x06, events TagReflexive 0x34); src/memory/datum_get.c is the same
@@ -52,7 +52,7 @@ void effect_stop(datum_index effect_handle, uint8_t stop_immediately)
             return;
         }
 
-        effect_start_event(effect_handle, tag->loop_stop_event);
+        effect_start_event(effect_handle, (int16_t)(tag->loop_stop_event + 1)); // FIXED (0x450bba): EDI = loop_stop_event + 1
         self->flags = self->flags | _effect_stopping_bit;
     }
 }
