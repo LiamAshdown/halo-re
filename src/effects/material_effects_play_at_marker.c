@@ -2,7 +2,7 @@
 //   that reference this address opaquely, e.g. src/items/item_update.c, keep calling it
 //   FUN_00453490 -- this file is the real definition)
 // address 0x453490, size 287 bytes
-// name confidence: 0.5   rewrite confidence: 0.4
+// name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump 0x453490..0x4535ae)
 // evidence: types/tags.h MaterialEffects { TagReflexive effects; } (0x8c) ->
 //   MaterialEffectsMaterialEffect { TagReflexive materials; } (0x1c) ->
 //   MaterialEffectsMaterialEffectMaterial { TagDependency effect; TagDependency sound; } (0x30):

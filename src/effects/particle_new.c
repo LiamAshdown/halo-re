@@ -1,7 +1,7 @@
 // particle_new  (Ghidra: FUN_00455740, still unnamed there; named directly by types/effects.h:
 //   "particle_new 0x455740 (every field)")
 // address 0x455740, size 1043 bytes
-// name confidence: 0.6   rewrite confidence: 0.3 (LOW -- see UNSURE)
+// name confidence: 0.6   rewrite confidence: 0.9 (VERIFIED against objdump 0x455740..0x455b52; leaf mask added) (LOW -- see UNSURE)
 // evidence: types/effects.h particle_creation_data (every field, established by this exact
 //   function) and particle (every field, ditto); types/tags.h Particle (flags bit order,
 //   lifespan/animation_rate/radius_animation bounds, sequence counts, physics TagDependency);
@@ -101,7 +101,7 @@ void particle_new(particle_creation_data *creation_data)
     if (leaf == -1) {
         return;
     }
-    cluster = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)leaf * 0x10 + 8);
+    cluster = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + ((uint32_t)leaf & 0x7fffffff) * 0x10 + 8); // 0x45581d
 
     visible = *(uint32_t *)((uint8_t *)local_player_globals + 0x58 + (cluster >> 5) * 4) &
         (1u << (cluster & 0x1f)); // UNSURE, see file header

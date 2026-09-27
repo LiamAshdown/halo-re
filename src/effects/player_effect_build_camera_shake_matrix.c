@@ -2,7 +2,7 @@
 //   directly by types/effects.h: "player_effect_build_camera_shake_matrix 0x457390 does the same
 //   [as player_effect_build_screen_flash] for the shake")
 // address 0x457390, size 1295 bytes
-// name confidence: 0.5   rewrite confidence: 0.2 (LOW-rigor best-effort pass, matching
+// name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN from objdump 0x457390..0x45789e) (LOW-rigor best-effort pass, matching
 //   src/effects/player_effect_build_screen_flash.c's own precedent for this sibling function:
 //   several offsets below have no established field name and are kept raw)
 // evidence: types/effects.h player_effect_globals (scripted_shake_flags +0x120, ..._ticks
@@ -41,174 +41,154 @@ extern random_seed effect_random_seed;                         // 0x00719cd4
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b,
     real_matrix4x3 *out); // 0x00696664, math module
 
+extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern double cos(double x);
 extern double sin(double x);
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *a, real_vector3d *b); // 0x4052c0
 extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle,
                                        real cos_angle); // 0x4cb880
 extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll); // 0x4cba10
-extern real transition_function_evaluate(int16_t type, real phase); // 0x4ccac0, math module;
-                                    // UNSURE: type argument dropped by Ghidra, kept as 0
-extern real periodic_function_evaluate(int16_t type, double phase); // 0x4cc9b0, math module; FIXED: the phase is a double (the definition's type; a float here pushed 4 of the 8 bytes);
-                                    // UNSURE: type argument dropped by Ghidra, kept as 0
+extern real transition_function_evaluate(int16_t type, real phase); // 0x4ccac0, CX type, stack phase
+extern real periodic_function_evaluate(int16_t type, double phase); // 0x4cc9b0, AX type, stack phase (a double)
 extern void player_effect_random_shake_offset(real_matrix4x3 *out, real magnitude, real angle); // 0x457280,
                                     // this module
 
+static real shake_random_signed(void)
+{
+    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+    return (real)(int32_t)(effect_random_seed >> 16) * 1.5259022e-05f * 2.0f - 1.0f;
+}
+
+// REWRITTEN from objdump. Scripted shake (globals +0x120 bit 0): identity, then while ticks (+0x11c) remain,
+//   t = intensity * (bit 1 ? ticks / duration : 1 - ticks / duration) and ticks count down; once they run out
+//   with bit 1 set the shake ends (bit 0 cleared). The rotation comes from euler angles with random +-1 draws
+//   times the translation amplitudes (+0x10c..+0x114) and t, and the position from three more draws times
+//   +0x104 / +0x100 / +0x108. Per player (stride 0xec): while +0xe0 ticks remain (or bit 1 of +0xe8 forces full),
+//   t = transition(+0x54, 1 - (+0x50 - ticks) / +0x50) * +0x68, the matrix rotates about cross(+0x00, up) by
+//   t * +0x58 and is placed at t * +0x0c + t * +0x5c * (+0x00). Otherwise it's identity. While +0xe2 ticks remain
+//   (or bit 2 forces full), a second matrix gets t2 = transition(+0x88, 1 - (+0x84 - ticks) / +0x84) * +0xac,
+//   w = (periodic(+0xa0, (+0x84 - ticks) / +0xa4) * +0xa8 + 1 - +0xa8) * t2, and two random shake offsets:
+//   (w * +0x8c + +0xd4, w * +0x90 + +0xd8), then (w * +0x8c, w * +0x90), both clamped at 0. The +0xdc timer
+//   clears +0xcc..+0xd8 once it passes 0, and out = out * second. The draft cleared the wrong scripted bit, used
+//   transition/periodic type 0 with the wrong phases and fields, and overwrote the placed position.
 void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_player_index)
-    // blam-cc: stack -> out, in_CX -> local_player_index
+    // blam-cc: stack -> out, CX -> local_player_index
 {
     player_effect_globals *globals = player_effect_globals_pointer;
+    uint8_t *g = (uint8_t *)globals;
+    int16_t dt;
 
     if (local_player_index == -1) {
         return;
     }
-
-    if ((globals->scripted_shake_flags & 1) != 0) {
-        real t = globals->scripted_shake_intensity;
+    if ((*(uint8_t *)(g + 0x120) & 1) != 0) {
+        real t = *(real *)(g + 0x118);
+        int16_t ticks = *(int16_t *)(g + 0x11c);
 
         *out = *k_render_identity_matrix_ptr;
+        if (ticks > 0) {
+            real fraction = (real)(int32_t)ticks / (real)(int32_t)*(int16_t *)(g + 0x11e);
 
-        if (globals->scripted_shake_ticks < 1) {
-            if ((globals->scripted_shake_flags & 2) != 0) {
-                globals->scripted_shake_flags &= ~(uint32_t)2;
+            if ((*(uint8_t *)(g + 0x120) & 2) == 0) {
+                fraction = 1.0f - fraction;
             }
-        } else {
-            if ((globals->scripted_shake_flags & 2) == 0) {
-                t = 1.0f - (real)globals->scripted_shake_ticks / (real)globals->scripted_shake_duration;
-            } else {
-                t = (real)globals->scripted_shake_ticks / (real)globals->scripted_shake_duration;
-            }
-            t = t * globals->scripted_shake_intensity;
-            globals->scripted_shake_ticks =
-                globals->scripted_shake_ticks - *(int16_t *)((uint8_t *)game_time + 0x10);
+            t = fraction * t;
+            *(int16_t *)(g + 0x11c) = (int16_t)(ticks - *(int16_t *)((uint8_t *)game_time + 0x10));
+        } else if ((*(uint32_t *)(g + 0x120) & 2) != 0) {
+            *(uint32_t *)(g + 0x120) &= ~(uint32_t)1;
         }
-
-        if ((globals->scripted_shake_flags & 1) == 0) {
+        if ((*(uint8_t *)(g + 0x120) & 1) == 0) {
             return;
         }
-
-        t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
-
-        // Three advances per block, and the ORDER matters: the original pairs the LAST draw
-        // with the first argument and the FIRST draw with the last. The conversion is unsigned
-        // -- `(float)(seed >> 0x10) * 1.5259022e-05` -- so the fraction is in [0, 1) and the
-        // `(x + x) - 1` below maps it onto [-1, 1). An earlier draft of this file cast the
-        // shifted word to int16_t first, which halves the range and makes it signed, and paired
-        // the draws with the wrong axes.
-        {
-            real draw1, draw2, draw3;
-
-            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            draw1 = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
-            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            draw2 = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
-            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            draw3 = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
-
-            matrix4x3_from_euler_angles(out,
-                ((draw3 + draw3) - 1.0f) * globals->scripted_shake_translation[0] * t,
-                ((draw2 + draw2) - 1.0f) * globals->scripted_shake_translation[1] * t,
-                ((draw1 + draw1) - 1.0f) * globals->scripted_shake_translation[2] * t); // UNSURE,
-                                    // see file header
+        if (!(t >= 0.0f)) {
+            t = 0.0f;
+        } else if (!(t <= 1.0f)) {
+            t = 1.0f;
         }
         {
-            real draw1, draw2, draw3;
+            real a1 = shake_random_signed();
+            real a2 = shake_random_signed();
+            real a3 = shake_random_signed();
 
-            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            draw1 = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
-            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            draw2 = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
-            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            draw3 = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
+            matrix4x3_from_euler_angles(out, a3 * *(real *)(g + 0x10c) * t, a2 * *(real *)(g + 0x110) * t,
+                a1 * *(real *)(g + 0x114) * t);
+        }
+        {
+            real b4 = shake_random_signed();
+            real b5 = shake_random_signed();
+            real b6 = shake_random_signed();
 
-            // The raw offsets are +0x104, +0x100, +0x108 in that order, i.e. rotation[1],
-            // rotation[0], rotation[2] -- NOT [0], [1], [2].
-            out->position.x = ((draw3 + draw3) - 1.0f) * globals->scripted_shake_rotation[1] * t;
-            out->position.y = ((draw2 + draw2) - 1.0f) * globals->scripted_shake_rotation[0] * t;
-            out->position.z = ((draw1 + draw1) - 1.0f) * globals->scripted_shake_rotation[2] * t;
-                                    // UNSURE, see file header
+            out->position.x = b6 * *(real *)(g + 0x104) * t;
+            out->position.y = b5 * *(real *)(g + 0x100) * t;
+            out->position.z = b4 * *(real *)(g + 0x108) * t;
         }
         return;
     }
 
     {
-        uint8_t *self = (uint8_t *)&globals->players[local_player_index];
-        real_matrix4x3 *base;
+        uint8_t *self = g + (int32_t)local_player_index * 0xec;
+        int16_t ticks = *(int16_t *)(self + 0xe0);
         real t;
-        uint8_t inactive = *(int16_t *)(self + 0xe0) < 1; // UNSURE, see file header
 
-        if (inactive) {
-            if ((*(uint32_t *)(self + 0xe8) & 2) == 0) {
-                *out = *k_render_identity_matrix_ptr;
-                *(uint16_t *)(self + 0xe2) = *(uint16_t *)(self + 0xe2) -
-                    *(int16_t *)((uint8_t *)game_time + 0x10);
-                goto write_scale_and_check_impulse;
-            }
-            t = 1.0f;
+        if (ticks <= 0 && (self[0xe8] & 2) == 0) {
+            *out = *k_render_identity_matrix_ptr;
         } else {
-            if ((*(uint32_t *)(self + 0xe8) & 2) != 0) {
+            real_vector3d axis;
+            real angle;
+            real k;
+            real_matrix4x3 rotation;
+
+            if ((self[0xe8] & 2) != 0) {
                 t = 1.0f;
             } else {
-                real duration = *(real *)(self + 0x9c); // player_camera_shake.duration, 0x84+0x18
-                t = transition_function_evaluate(0, duration);
+                real duration = *(real *)(self + 0x50);
+
+                t = transition_function_evaluate(*(int16_t *)(self + 0x54),
+                    1.0f - (duration - (real)(int32_t)ticks) / duration) * *(real *)(self + 0x68);
             }
+            self[0xe8] &= 0xfd;
+            vector3d_cross_product(&axis, (real_vector3d *)self, global_up3d_pointer);
+            angle = t * *(real *)(self + 0x58);
+            matrix4x3_from_axis_angle(&rotation, &axis, (real)sin((double)angle), (real)cos((double)angle));
+            k = t * *(real *)(self + 0x5c);
+            rotation.position.x = t * *(real *)(self + 0x0c) + k * *(real *)(self + 0x00);
+            rotation.position.y = t * *(real *)(self + 0x10) + k * *(real *)(self + 0x04);
+            rotation.position.z = t * *(real *)(self + 0x14) + k * *(real *)(self + 0x08);
+            *(int16_t *)(self + 0xe0) = (int16_t)(*(int16_t *)(self + 0xe0) - *(int16_t *)((uint8_t *)game_time + 0x10));
+            *out = rotation;
         }
 
-        {
-            real_vector3d axis;
+        ticks = *(int16_t *)(self + 0xe2);
+        if (ticks > 0 || (self[0xe8] & 4) != 0) {
+            real_matrix4x3 second = *k_render_identity_matrix_ptr;
+            real t2;
+            real w;
+            real a;
+            real b;
 
-            *(uint8_t *)(self + 0xe8) = *(uint8_t *)(self + 0xe8) & ~(uint8_t)2; // UNSURE bit clear
-            vector3d_cross_product(&axis, (real_vector3d *)self, (real_vector3d *)(self + 0x0c)); // UNSURE,
-                                    // see file header
-            {
-                real angle = t * *(real *)(self + 0xa0); // player_camera_shake.unknown_20, 0x84+0x1c
-                real cos_angle = (real)cos((double)angle);
-                real sin_angle = (real)sin((double)angle);
-                real_matrix4x3 rotation;
+            if ((self[0xe8] & 4) != 0) {
+                t2 = 1.0f;
+            } else {
+                real duration = *(real *)(self + 0x84);
 
-                matrix4x3_from_axis_angle(&rotation, &axis, sin_angle, cos_angle);
-                base = &rotation;
-
-                out->position.x = t * *(real *)(self + 0xa4) + axis.i * angle * *(real *)(self + 0x88);
-                out->position.y = t * *(real *)(self + 0xa8) + axis.j * angle * *(real *)(self + 0x8c);
-                *(uint16_t *)(self + 0xe0) = *(uint16_t *)(self + 0xe0) -
-                    *(int16_t *)((uint8_t *)game_time + 0x10);
-                out->position.z = t * *(real *)(self + 0xac) + axis.k * angle * *(real *)(self + 0x90); // UNSURE
-                *out = *base;
+                t2 = transition_function_evaluate((int16_t)*(uint16_t *)(self + 0x88),
+                    1.0f - (duration - (real)(int32_t)ticks) / duration) * *(real *)(self + 0xac);
             }
-        }
-    }
-
-write_scale_and_check_impulse:
-    if (0 < *(int16_t *)((uint8_t *)&globals->players[local_player_index] + 0xe2) ||
-        (*(uint32_t *)((uint8_t *)&globals->players[local_player_index] + 0xe8) & 4) != 0) {
-        uint8_t *self = (uint8_t *)&globals->players[local_player_index];
-        real_matrix4x3 second = *k_render_identity_matrix_ptr;
-        real t;
-
-        if ((*(uint32_t *)(self + 0xe8) & 4) == 0) {
-            t = transition_function_evaluate(0, *(real *)(self + 0xd8)); // player_camera_shake.intensity
-        } else {
-            t = 1.0f;
-        }
-
-        {
-            int16_t ticks = *(int16_t *)(self + 0xe2);
-            real wobble = periodic_function_evaluate(0,
-                (*(real *)(self + 0x9c) - (real)ticks) / *(real *)(self + 0xac));
-            real weighted = ((1.0f - t) + wobble * t) * t; // UNSURE, see file header
-            real translate_magnitude = weighted * *(real *)(self + 0xa0);
-            real rotate_magnitude = weighted * *(real *)(self + 0xa4);
-
-            translate_magnitude = (translate_magnitude < 0.0f) ? 0.0f : translate_magnitude;
-            rotate_magnitude = (rotate_magnitude < 0.0f) ? 0.0f : rotate_magnitude;
-
-            *(uint32_t *)(self + 0xe8) = *(uint32_t *)(self + 0xe8) & ~(uint32_t)4;
-            player_effect_random_shake_offset(&second,
-                translate_magnitude + *(real *)(self + 0xd4), rotate_magnitude + *(real *)(self + 0xd8));
-
-            *(int16_t *)(self + 0xdc) = *(int16_t *)(self + 0xdc) +
-                *(int16_t *)((uint8_t *)game_time + 0x10);
+            w = periodic_function_evaluate(*(int16_t *)(self + 0xa0),
+                (double)((*(real *)(self + 0x84) - (real)(int32_t)*(int16_t *)(self + 0xe2)) / *(real *)(self + 0xa4)));
+            w = (w * *(real *)(self + 0xa8) + (1.0f - *(real *)(self + 0xa8))) * t2;
+            a = w * *(real *)(self + 0x8c);
+            if (!(a > 0.0f)) {
+                a = 0.0f;
+            }
+            b = w * *(real *)(self + 0x90);
+            if (!(b > 0.0f)) {
+                b = 0.0f;
+            }
+            self[0xe8] &= 0xfb;
+            player_effect_random_shake_offset(&second, a + *(real *)(self + 0xd4), b + *(real *)(self + 0xd8));
+            dt = *(int16_t *)((uint8_t *)game_time + 0x10);
+            *(int16_t *)(self + 0xdc) = (int16_t)(*(int16_t *)(self + 0xdc) + dt);
             if (*(int16_t *)(self + 0xdc) > 0) {
                 *(int16_t *)(self + 0xdc) = 0;
                 *(real *)(self + 0xcc) = 0.0f;
@@ -216,13 +196,10 @@ write_scale_and_check_impulse:
                 *(real *)(self + 0xd4) = 0.0f;
                 *(real *)(self + 0xd8) = 0.0f;
             }
+            player_effect_random_shake_offset(&second, a, b);
+            *(int16_t *)(self + 0xe2) = (int16_t)(*(int16_t *)(self + 0xe2) - dt);
+            matrix4x3_multiply_procedure(out, &second, out);
         }
-
-        player_effect_random_shake_offset(&second,
-            *(real *)(self + 0xd4), *(real *)(self + 0xd8));
-        *(int16_t *)(self + 0xe2) = *(int16_t *)(self + 0xe2) -
-            *(int16_t *)((uint8_t *)game_time + 0x10);
-        matrix4x3_multiply_procedure(out, &second, out);
     }
 }
 

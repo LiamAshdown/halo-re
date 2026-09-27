@@ -4,7 +4,7 @@
 //   helper player_effect_build_camera_shake_matrix 0x457390 uses to build a random rotation +
 //   translation offset matrix)
 // address 0x457280, size 262 bytes
-// name confidence: 0.3 (LOW -- own name is a guess)   rewrite confidence: 0.3 (LOW -- see UNSURE)
+// name confidence: 0.3 (LOW -- own name is a guess)   rewrite confidence: 0.9 (VERIFIED against objdump 0x457280..0x457385) (LOW -- see UNSURE)
 // evidence: src/math/vector3d_randomize_direction.c establishes sphere_point_table /
 //   sphere_point_table_count (0x006b7af4 / 0x006b7af8); types/math.h real_matrix4x3.position
 //   (+0x28) matches the three floats this function writes at +0x28/+0x2c/+0x30;
