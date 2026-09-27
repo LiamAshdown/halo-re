@@ -2177,3 +2177,4 @@ Relinked: unresolved 1, traps 127.
   compare), rasterizer_decals_draw_cluster (1/255 is a double), decal_and_font_system_reset (warning fixed).
   Relinked: unresolved 1, traps 127.
 - cache_allocate_block (0x4d1840) rewritten cleanly from objdump -> 0.85 (ring of gap windows, LRU, overlap eviction, link); cache_evict_entry verified -> 0.85. Both now carry every decal allocation. Relinked OK.
+- hud_text_message_queue_update_and_draw (0x4a3e30, scrolling text widget) rewritten -> 0.85: new lines are queued at the running bottom (EBX), not at y = string index; elapsed = (uint32)dms * 0.08. hud_text_message_queue_add verified -> 0.85.

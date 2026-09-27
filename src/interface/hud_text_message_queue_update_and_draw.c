@@ -1,20 +1,14 @@
-// hud_text_message_queue_update_and_draw  (Ghidra: hud_text_message_queue_update_and_draw,
-// already named)
-// address 0x4a3e30, size 716 bytes, callers=0 in this build
-// name confidence: 0.5   rewrite confidence: 0.15
-// evidence: matches the given name; functions.md: "Updates message timers/removes expired
-// entries, pulls in new messages, and draws the remaining HUD text message queue." Reuses
-// hud_text_message_queue/hud_text_message_time_base (this session) and
-// widget_instance_close_and_restore_previous (0x49c3e0, this session).
-// register convention: cdecl, the one recognized stack parameter (widget).
-// UNSURE (significant): the elapsed-time value fed to __ftol (`iVar6`) is computed from a float
-// expression Ghidra's decompile drops entirely (only the truncated integer result survives);
-// modeled as "current time in ms minus hud_text_message_time_base", the only reading consistent
-// with hud_text_message_time_base being overwritten with the new absolute time immediately after.
-// The string-list lookup at tag+0xf8 is read as UIWidgetDefinition::text_label_unicode_strings_list
-// per the struct's own field order; its double-dereference (`**(int**)...`) is preserved as
-// "that tag's own strings.count". growable_array_remove_element's signature is a best guess (no
-// established precedent found elsewhere in the module this session).
+// hud_text_message_queue_update_and_draw  (Ghidra: hud_text_message_queue_update_and_draw, already named)
+// address 0x4a3e30, size 716 bytes, callers=0 in this build (a widget procedure: the scrolling text list)
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN 2026-09-27 (static loop) from objdump 0x4a3e30..0x4a4103. The queue entries scroll upwards: the
+// elapsed wall time since the last update (QueryPerformanceCounter in ms, as unsigned) times 0.08 px/ms is taken
+// off every entry's top (+0x0c) and bottom (+0x10); entries whose bottom passes 0x32 are removed. While the last
+// bottom is at most 0x1ae, the widget's next string is appended below it (hud_text_message_queue_add: EAX text,
+// EBX the running bottom, stack the string index, or L"<missing string>"; returns the entry height). The draft passed the string index as
+// the position, so every line was stacked at y = index. At the end of the list the widget either wraps or (cycle
+// state set) closes once the queue has drained. Each entry is drawn clipped to {0x32, 0, 0x1ae, 0x280}.
+// blam-cc: stack -> widget
 
 #include "tags.h"
 #include "memory.h"
@@ -29,135 +23,121 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t hud_text_message_time_base; // 0x0071922c
 extern growable_array hud_text_message_queue; // 0x006b37e8
-extern uint8_t hud_text_message_cycle_state_00719230; // 0x00719230, TYPES-GAP
+extern int32_t hud_text_message_cycle_state_00719230; // 0x00719230, compared as a dword
 extern ColorARGB *hud_text_message_hold_color;   // 0x006851f4, a POINTER (0x4a4056 loads then derefs it)
 extern ColorARGB *hud_text_message_normal_color; // 0x00685200, a POINTER (0x4a404a)
 extern int32_t hud_text_draw_font_006e472c;         // 0x006e472c, TYPES-GAP
 extern ColorARGB hud_text_draw_color_006e4738;       // 0x006e4738, TYPES-GAP
 extern uint32_t hud_text_draw_flags_006e4734;        // 0x006e4734, TYPES-GAP
 extern int32_t hud_text_draw_unknown_006e4730;        // 0x006e4730, TYPES-GAP
+extern uint16_t missing_string_text[];               // 0x00671fac, L"<missing string>"
 
 extern int QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
-extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0
-extern int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag); // 0x4a3d90
-extern void growable_array_remove_element(growable_array *array, int32_t index); // 0x4cf890, UNSURE signature
+extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, EAX
+extern int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag);
+    // 0x4a3d90, EAX text, EBX top (the running bottom), stack string index; returns the entry height
+extern void growable_array_remove_element(growable_array *array, uint32_t index); // 0x4cf890, ESI, EDI
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
-    uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text); // 0x514ab0, EAX clip, ECX dest rect, stack (0, 0, text) // 0x514ab0
+    uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text); // 0x514ab0, EAX clip, ECX dest
 
-// Ages every HUD text message, deletes any that have run past their duration, pulls in new
-// messages from the widget's string-list tag until the per-update time budget (0x1af ms) is
-// spent, then draws whatever remains.
 uint32_t hud_text_message_queue_update_and_draw(widget_instance *widget)
 {
     UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
     UnicodeStringList *strings =
         (UnicodeStringList *)tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
-    int32_t string_count = strings->strings.count;
-    int32_t remaining = 0x1ae;
-    int32_t message_index = -1;
+    int32_t string_count = strings->strings.count;  // esp+0x20
+    int32_t bottom = 0x1ae;                         // esp+0x14
+    int32_t message_index = -1;                     // ebp
     large_integer counter;
     int32_t now_ms;
     int32_t elapsed;
 
     QueryPerformanceCounter(&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-    elapsed = (int32_t)((float)now_ms - (float)hud_text_message_time_base); // see file header
+    // 0x4a3eb5..0x4a3ed1: fild of the difference, +2^32 when negative (unsigned), * 0.08 (0x673038), __ftol
+    elapsed = (int32_t)(long long)((double)(uint32_t)(now_ms - hud_text_message_time_base) * (double)0.08f);
 
-    if (elapsed == 0) {
-        goto after_expiry;
-    }
+    if (elapsed != 0) {
+        hud_text_message_time_base = now_ms;
 
-    hud_text_message_time_base = now_ms;
+        if (hud_text_message_queue.count > 0) {
+            int32_t i;
 
-    if (hud_text_message_queue.count > 0) {
-        int32_t i = 0;
-        int32_t byte_offset = 0;
+            for (i = 0; i < hud_text_message_queue.count; i++) {
+                hud_text_message *entry = &((hud_text_message *)hud_text_message_queue.data)[i];
 
-        while (i < hud_text_message_queue.count) {
-            hud_text_message *entry = (hud_text_message *)((uint8_t *)hud_text_message_queue.data + byte_offset);
-
-            message_index = entry->unknown_04;
-            remaining = entry->end_time - elapsed;
-            entry->start_time = entry->start_time - elapsed;
-            entry->end_time = remaining;
-            if (remaining < 0x32) {
-                growable_array_remove_element(&hud_text_message_queue, byte_offset / 0x14);
-                i = i - 1;
-                byte_offset = byte_offset - 0x14;
+                message_index = entry->unknown_04;
+                entry->start_time = entry->start_time - elapsed; // top
+                entry->end_time = entry->end_time - elapsed;     // bottom
+                bottom = entry->end_time;
+                if (bottom < 0x32) {
+                    growable_array_remove_element(&hud_text_message_queue, (uint32_t)i);
+                    i--;
+                }
             }
-            i = i + 1;
-            byte_offset = byte_offset + 0x14;
+            if (bottom > 0x1ae) {
+                goto draw;
+            }
         }
-        if (remaining > 0x1ae) {
-            goto after_expiry;
-        }
-    }
 
-    for (;;) {
-        message_index = message_index + 1;
-        if (message_index >= string_count) {
-            if (hud_text_message_cycle_state_00719230 != 0) {
-                if (hud_text_message_queue.count < 1) {
+        do {
+            uint16_t *text = missing_string_text;
+
+            message_index++;
+            if (message_index >= string_count) {
+                if (hud_text_message_cycle_state_00719230 != 0) {
+                    if (hud_text_message_queue.count > 0) {
+                        goto draw;
+                    }
                     hud_text_message_cycle_state_00719230 = 2;
                     widget_instance_close_and_restore_previous(widget);
                     return 1;
                 }
-                goto after_expiry;
+                message_index = 0;
             }
-            message_index = 0;
-        }
 
-        if (tag->text_label_unicode_strings_list.tag_id.index != 0xffff) {
-            if (message_index >= 0 && message_index < strings->strings.count) {
-                UnicodeStringListString *entry = (UnicodeStringListString *)strings->strings.pointer + message_index;
-                uint32_t size = entry->string.size;
+            if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffff) {
+                UnicodeStringList *list =
+                    (UnicodeStringList *)tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
 
-                if ((int32_t)size > 0) {
-                    *(uint16_t *)((uint8_t *)entry->string.pointer - 2 + (size & 0xfffffffe)) = 0;
+                if ((int16_t)message_index >= 0 && (int16_t)message_index < (int32_t)list->strings.count) {
+                    UnicodeStringListString *string =
+                        &((UnicodeStringListString *)list->strings.pointer)[(int16_t)message_index];
+                    int32_t size = (int32_t)string->string.size;
+
+                    if (size > 0) {
+                        text = (uint16_t *)string->string.pointer;
+                        text[((uint32_t)size >> 1) - 1] = 0;
+                    }
                 }
             }
-        }
-        {
-            UnicodeStringListString *entry = (UnicodeStringListString *)strings->strings.pointer + message_index;
-            int32_t duration = hud_text_message_queue_add((uint16_t *)entry->string.pointer, message_index, 0);
-
-            remaining = remaining + duration;
-        }
-        if (remaining >= 0x1af) {
-            break;
-        }
+            bottom += hud_text_message_queue_add(text, bottom, message_index);
+        } while (bottom <= 0x1ae);
     }
 
-after_expiry:
+draw:
     if (hud_text_message_queue.count > 0) {
+        Rectangle2D clip;
+        Rectangle2D dest;
         int32_t i;
-        int32_t byte_offset = 0;
 
+        clip.top = 0x32;
+        clip.left = 0;
+        clip.bottom = 0x1ae;
+        clip.right = 0x280;
+        dest.left = 0;
+        dest.right = 0x280;
         for (i = 0; i < hud_text_message_queue.count; i++) {
-            hud_text_message *entry = (hud_text_message *)((uint8_t *)hud_text_message_queue.data + byte_offset);
-            ColorARGB *palette = hud_text_message_normal_color; // default: 0x00685200
+            hud_text_message *entry = &((hud_text_message *)hud_text_message_queue.data)[i];
+            ColorARGB *color = (entry->hold == 1) ? hud_text_message_normal_color : hud_text_message_hold_color;
 
-            if (entry->hold != 1) {
-                palette = hud_text_message_hold_color; // override: 0x006851f4
-            }
-
-            hud_text_draw_font_006e472c = *(int32_t *)((uint8_t *)tag + 0x108); // UNSURE: raw tag offset
-            hud_text_draw_color_006e4738 = *palette;
-            hud_text_draw_flags_006e4734 = 0x0002ffff; // low16 0xffff, high16 2, see file header
+            dest.bottom = (int16_t)entry->end_time;
+            dest.top = (int16_t)entry->start_time;
+            hud_text_draw_font_006e472c = *(int32_t *)((uint8_t *)tag + 0x108);
+            hud_text_draw_color_006e4738 = *color;
+            hud_text_draw_flags_006e4734 = 0x0002ffff; // WORD 0x6e4734 = -1, WORD 0x6e4736 = 2
             hud_text_draw_unknown_006e4730 = 0;
-            {
-                // 0x4a3ff4..0x4a4015 / 0x4a4036..0x4a404f: EAX = &clip {0x32, 0, 0x1ae, 0x280}, ECX = &dest
-                // {(int16_t)entry +0x0c, 0, (int16_t)entry +0x10, 0x280} (the binary reads these two dwords as words)
-                Rectangle2D clip = { 0x32, 0, 0x1ae, 0x280 };
-                Rectangle2D dest;
-
-                dest.top = *(int16_t *)((uint8_t *)entry + 0x0c);
-                dest.left = 0;
-                dest.bottom = *(int16_t *)((uint8_t *)entry + 0x10);
-                dest.right = 0x280;
-                chimera__draw_16_bit_text(&clip, (int32_t *)&dest, 0, 0, (const int16_t *)entry->text);
-            }
-            byte_offset = byte_offset + 0x14;
+            chimera__draw_16_bit_text(&clip, (int32_t *)&dest, 0, 0, (const int16_t *)entry->text);
         }
     }
     return 1;
