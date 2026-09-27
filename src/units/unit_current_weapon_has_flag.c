@@ -1,6 +1,6 @@
 // unit_current_weapon_has_flag  (Ghidra: unit_current_weapon_has_flag)
 // address 0x565b60, size 126 bytes
-// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.3
+// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.85 (verified against objdump)
 // evidence: types/units.h unit_data.zoom_level (0x320), .current_weapon_index (0x2f2),
 //   .weapons[4] (0x2f8); types/objects.h object.definition_tag (0x000).
 // register convention: unit index in ECX.

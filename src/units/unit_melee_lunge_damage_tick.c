@@ -1,22 +1,17 @@
-// unit_melee_lunge_damage_tick  (Ghidra: FUN_0056fc80; renamed from the phase2 proposal)
-// address 0x56fc80, size 192 bytes
-// name confidence: 0.35 (phase2 proposal at 0.35, matches functions.md summary)
-// rewrite confidence: 0.2 -- the swept-plane collision test (object_collision_context_test_segment / matrix4x3_transform_plane)
-//   is reproduced with Ghidra's own locals; only the object/unit fields and the damage_data
-//   record are translated to named struct members.
-// evidence: types/units.h unit_data.melee_state (0x289, ==4 the "lunge" sub-state),
-//   .melee_damage_countdown (0x28a); types/objects.h object.parent_object (0x11c),
-//   .forward (0x074), .name_index (0x0b8); types/tags.h Unit.melee_damage (tag_id at absolute
-//   0x294); the damage_data field mapping follows the same offset pattern established in
-//   unit_cause_melee_damage.c and unit_melee_attack_scan.c (team_index from name_index,
-//   responsible_player from controlling_player, direction from object.forward).
-// register convention: unit object index in EAX (param_1).
-//   // blam-cc: EAX -> unit_index
-// UNSURE: object_apply_damage's final parameter is a plain flags dword everywhere else in this
-//   module, but here it is a real_vector3d* (or NULL) at the call site; reproduced as a raw
-//   uint32_t cast of the pointer rather than widening the shared prototype.
-// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
-// reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
+// unit_melee_lunge_damage_tick  (Ghidra: FUN_0056fc80)
+// address 0x56fc80, size 700 bytes
+// name confidence: 0.35   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x56fc80..0x56ff3b (the draft had the callees' arguments guessed and the damage data
+//   responsible player wrong). Stack: unit. Only while the unit is in melee state 4 (+0x289), attached to an
+//   object (+0x11c, the one being hit) and its tag has melee damage (+0x294). When the countdown (+0x28a) is 0 and
+//   that object has collision (0x504e10, EDI object, ECX context), a 0.2 * forward segment centred on the unit
+//   is tested against it (0x504f60, flags 3); a hit gives the hit point and the hit surface plane (the node
+//   matrix applied to the collision plane, 0x4cbf10, flipped when the record says so). Damage data: the melee
+//   damage, the unit as responsible object with its player (+0x218) and team (+0xb8), blend 1/30, multiplier 1,
+//   no cluster / material; a hit adds epicentre = origin = the hit point, direction = forward, flag 2, and
+//   restarts the countdown at 10. object_apply_damage(dd, object, node, region, material, &plane) -- or
+//   (dd, object, -1, -1, -1, 0) without a hit -- then the countdown is decremented.
+// blam-cc: stack -> unit_index
 
 #include "tags.h"
 #include "memory.h"
@@ -24,104 +19,84 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include <string.h>
+#include <stdint.h>
+#include "physics.h"
 
-extern data_array *object_data;      // 0x008603b0
-extern tag_instance *tag_instances;  // 0x0087bc14
+extern data_array *object_data;     // 0x008603b0
+extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
-extern int8_t object_collision_context_build(void); // 0x504e10, collision module
-extern int8_t object_collision_context_test_segment(real_plane3d *out_plane, int32_t mask, real_point3d *origin,
-                            real_vector3d *delta, void *out_record); // 0x504f60, UNSURE signature
-extern void matrix4x3_transform_plane(void); // 0x4cbf10, UNSURE: register args  // real signature (matrix4x3_transform_plane.c): void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); Ghidra recovered 0 of 3 args at this call site
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
-                                 int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
+extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context); // 0x504e10, EDI, ECX
+extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags,
+    real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result); // 0x504f60, stack
+extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); // 0x4cbf10, EAX, ECX, EDX
+extern void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int16_t param_4,
+    int16_t param_5, uint32_t param_6); // 0x4ee5e0, stack
 
-// Applies a periodic melee/lunge damage tick while the unit is in melee sub-state 4 and attached
-// to a parent object, using a swept collision-plane test along the unit's own forward direction
-// to decide whether to apply a directional impulse alongside the damage.
 void unit_melee_lunge_damage_tick(uint32_t unit_index)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t hit_valid = 0;
-    real_vector3d sweep_dir = {0};
-    real_point3d hit_point = {0};
-    int16_t record_field0 = 0, record_field1 = 0, record_field2 = 0;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    datum_index target = *(datum_index *)(obj + 0x11c);
+    uint8_t hit = 0;
+    real_plane3d plane;                     // L14: first the sweep vector, then the hit surface plane
+    real_point3d start;
+    real_point3d hit_point;
+    object_collision_context context;
+    object_node_collision_result record;
+    damage_data dd;
 
-    if (unit->melee_state != 4 || obj->parent_object == k_datum_index_none ||
-        *(int32_t *)&tag->melee_damage.tag_id == -1) {
+    if (obj[0x289] != 4 || target == k_datum_index_none || *(datum_index *)(tag + 0x294) == k_datum_index_none) {
         return;
     }
-
-    if (unit->melee_damage_countdown == 0 && object_collision_context_build() != 0) {
-        real_point3d start;
-        real_plane3d plane;
-        uint8_t record[16]; // UNSURE: object_collision_context_test_segment's out_record layout; fStack_418 is its
-                             // fraction field at +0x1c relative to this buffer's start
-        int16_t plane_sign; // iStack_40c after matrix4x3_transform_plane
-
+    if (obj[0x28a] == 0 && object_collision_context_build(target, &context)) {
         object_get_position(&start, unit_index);
-        sweep_dir.i = obj->forward.i * 0.2f;
-        sweep_dir.j = obj->forward.j * 0.2f;
-        sweep_dir.k = obj->forward.k * 0.2f;
-        start.x -= sweep_dir.i * 0.5f;
-        start.y -= sweep_dir.j * 0.5f;
-        start.z -= sweep_dir.k * 0.5f;
+        plane.normal.i = *(float *)(obj + 0x74) * 0.2f;
+        plane.normal.j = *(float *)(obj + 0x78) * 0.2f;
+        plane.normal.k = *(float *)(obj + 0x7c) * 0.2f;
+        start.x -= plane.normal.i * 0.5f;
+        start.y -= plane.normal.j * 0.5f;
+        start.z -= plane.normal.k * 0.5f;
+        if (object_collision_context_test_segment(&context, 3, &start, &plane.normal, &record)) {
+            float fraction = *(float *)((uint8_t *)&record + 0x08);
 
-        if (object_collision_context_test_segment(&plane, 3, &start, &sweep_dir, record) != 0) {
-            float fraction = *(float *)(record + 0x08); // fStack_418
-            hit_point.x = sweep_dir.i * fraction + start.x;
-            hit_point.y = sweep_dir.j * fraction + start.y;
-            hit_point.z = sweep_dir.k * fraction + start.z;
-            record_field0 = *(int16_t *)(record + 0x00); // local_420
-            record_field1 = *(int16_t *)(record + 0x02); // uStack_41e
-            record_field2 = *(int16_t *)(record + 0x04); // uStack_41c
-            matrix4x3_transform_plane(); // UNSURE: writes iStack_40c's sign via register(s)
-            plane_sign = *(int16_t *)((uint8_t *)&plane + 0x0c); // UNSURE: raw offset placeholder
-            if (plane_sign < 0) {
-                sweep_dir.i = -sweep_dir.i;
-                sweep_dir.j = -sweep_dir.j;
-                sweep_dir.k = -sweep_dir.k;
+            hit_point.x = plane.normal.i * fraction + start.x;
+            hit_point.y = plane.normal.j * fraction + start.y;
+            hit_point.z = plane.normal.k * fraction + start.z;
+            matrix4x3_transform_plane(&plane,
+                (real_matrix4x3 *)((uint8_t *)context.nodes + record.node_index * 0x34),
+                *(real_plane3d **)((uint8_t *)&record + 0x0c));
+            if (*(int32_t *)((uint8_t *)&record + 0x14) < 0) {
+                plane.normal.i = -plane.normal.i;
+                plane.normal.j = -plane.normal.j;
+                plane.normal.k = -plane.normal.k;
+                plane.d = -plane.d;
             }
-            hit_valid = 1;
+            hit = 1;
         }
     }
-
-    {
-        damage_data dd = {0};
-        int16_t p3, p4, p5;
-        real_vector3d *impulse;
-
-        dd.damage_effect_tag = *(datum_index *)&tag->melee_damage.tag_id;
-        dd.flags = 0;
-        dd.team_index = (int16_t)obj->owner_team;
-        *(int16_t *)&dd.location_cluster_index = -1;
-        dd.responsible_player = obj->owner_team; // UNSURE, see unit_cause_melee_damage.c note
-        dd.responsible_object = unit_index;
-        dd.random_blend = 0.033333335f;
-        dd.multiplier = 1.0f;
-        dd.material_type = -1;
-
-        if (hit_valid) {
-            dd.epicentre = hit_point;
-            dd.origin = hit_point;
-            dd.direction = *(real_vector3d *)&obj->forward;
-            dd.flags |= 2;
-            unit->melee_damage_countdown = 10;
-            // p3/p4/p5 are the three int16 fields object_collision_context_test_segment wrote into its out_record,
-            // read back here as the object_apply_damage node/coordinate hint arguments.
-            p3 = record_field0; p4 = record_field1; p5 = record_field2;
-            impulse = &sweep_dir;
-        } else {
-            p3 = -1; p4 = -1; p5 = -1;
-            impulse = 0;
-        }
-
-        object_apply_damage(&dd, obj->parent_object, p3, p4, p5, (uint32_t)impulse);
+    memset(&dd, 0, sizeof(dd));
+    dd.damage_effect_tag = *(datum_index *)(tag + 0x294);
+    dd.material_type = -1;
+    dd.location_cluster_index = -1;
+    dd.multiplier = 1.0f;
+    dd.responsible_object = unit_index;
+    dd.team_index = *(int16_t *)(obj + 0xb8);
+    dd.responsible_player = *(datum_index *)(obj + 0x218);
+    dd.random_blend = 0.033333335f;
+    if (hit) {
+        dd.epicentre = hit_point;
+        dd.origin = hit_point;
+        dd.direction = *(real_vector3d *)(obj + 0x74);
+        dd.flags |= 2;
+        obj[0x28a] = 10;
+        object_apply_damage(&dd, *(datum_index *)(obj + 0x11c), record.node_index, record.region_index,
+            *(int16_t *)((uint8_t *)&record + 0x1a), (uint32_t)(uintptr_t)&plane);
+    } else {
+        object_apply_damage(&dd, *(datum_index *)(obj + 0x11c), -1, -1, -1, 0);
     }
-
-    unit->melee_damage_countdown -= 1;
+    obj[0x28a]--;
 }
 
 #if 0
