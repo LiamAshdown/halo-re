@@ -1706,3 +1706,6 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - unit_detach_from_parent: unit_try_ready_weapon(unit, 1, 0).
   - unit_build_seat_occupant_zone_list: object_list_reference_add(list, child).
   - unit_find_best_seat_to_enter: actor_check_vehicle_target_available(unit, occupant actor, 0).
+- object_physics_handle_nearby_object_impacts (0x508a10) REWRITTEN (0.3 -> 0.9). Impact damage now gets (&self collision context, biped) and the mass-point overlap gets (&self physics context, &other context). The draft passed throwaway scratch buffers, a crash path when vehicles touch bipeds.
+- projectile_response: the two on-object impact effects now get (projectile, effect tag, hit object, node, 5, names, positions, frames, scale, fade, 0, 0); the draft dropped the three register arguments, so bullet-impact effects on objects spawned from garbage. vector3d_randomize_direction(velocity, velocity, &seed, 0, noise); the draft passed (0, noise).
+- contrail_advance callers (object_delete_attachments, projectile_detonate) now pass the contrail handle (EDI). weapon_transfer_ammunition plays the pickup sound (EDX = tag +0x49c).

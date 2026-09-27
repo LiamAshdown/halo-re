@@ -82,7 +82,7 @@ extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
     uint32_t ignore_object_index); // 0x4f7b70, stack, ECX
     // see file header
-extern void contrail_advance(int32_t kind, real elapsed_seconds); // 0x44ca60, foreign module.
+extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time); // 0x44ca60, EDI, stack
     // blam-cc: EDI -> the contrail attachment handle
     // obj->attachment_handles[proj->contrail_attachment_index], reloaded at 0x4c089b immediately
     // before the call. Same declaration as src/projectiles/projectile_update.c, whose 0x4bea4b
@@ -190,7 +190,9 @@ void projectile_detonate(uint32_t object_index, char first_collision, real remai
         if (first_collision != 0 && proj->contrail_attachment_index != -1 &&
             obj->attachment_handles[proj->contrail_attachment_index] != (datum_index)k_datum_index_none) {
             object_recalculate_bounding_radius(object_index);
-            contrail_advance(0, (1.0f - remaining_tick_fraction) * 0.033333335f);
+            // FIXED (0x4c0895..0x4c08ad): EDI = the contrail attachment handle
+            contrail_advance(obj->attachment_handles[proj->contrail_attachment_index], 0,
+                (1.0f - remaining_tick_fraction) * 0.033333335f);
         }
     }
 

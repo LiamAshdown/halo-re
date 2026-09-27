@@ -78,10 +78,12 @@ extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3
     real_vector3d *v, real_vector3d *perp_out); // 0x4cda90, src/math/vector3d_project_onto_axis.c
     // blam-cc: ECX -> parallel_out, EDX -> axis, ESI -> v, EDI -> perp_out
 extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
-extern void vector3d_randomize_direction(real_vector3d *out, real spread); // 0x4cd1b0
-extern void effect_new_on_object_with_node_table(int16_t marker_index, int32_t kind, char **labels, void *position_block,
-    void *direction_block, real fade_in, real fade_out, int32_t param_8, int32_t param_9); // 0x450870,
-    // effect/decal spawn on an object's marker; opaque, out of range
+extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, void *seed,
+    real lo, real hi); // 0x4cd1b0, EAX, EBX, EDI, stack
+extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index,
+    datum_index definition_index, datum_index object_index, uint16_t node_index,
+    uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale,
+    real b_scale, const void *color, const void *tint_source); // 0x450870, EAX, ECX, EDX, stack x9
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *param_3, int32_t kind,
     char **labels, void *position_block, void *direction_block, real fade_in, real fade_out,
     int32_t param_10, int32_t param_11, int32_t param_12); // 0x450980, world-position effect
@@ -311,7 +313,10 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
     }
 
     if (response->angular_noise != 0.0f) {
-        vector3d_randomize_direction(0, response->angular_noise);
+        // FIXED (objdump 0x4bf9fe..0x4bfa11): EAX = EBX = the velocity (ESI), EDI = &random_seed_global, stack = (0,
+        //   angular_noise). The draft passed (0, noise).
+        vector3d_randomize_direction((real_point3d *)velocity, velocity, &random_seed_global, 0.0f,
+            response->angular_noise);
     }
     {
         // vector3d_normalize_with_length RETURNS the pre-normalization length, and that length is
@@ -394,7 +399,12 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
 
         if (0.008333334f < alignment_score) {
             if (hit->type == _collision_result_type_object) {
-                effect_new_on_object_with_node_table(hit->node_index, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0);
+                // FIXED (objdump 0x4bfdd6..0x4bfdfa): EAX = the projectile, ECX = the response effect, EDX = the hit object,
+                //   then (node, 5, names, positions, coordinate system, scale, fade, 0, 0). The draft dropped the three
+                //   register arguments.
+                effect_new_on_object_with_node_table(projectile_index, response_effect_tag, hit->object_index,
+                    (uint16_t)hit->node_index, 5, (uint32_t)projectile_effect_coordinate_system_names, (uint32_t)positions,
+                    (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0);
             } else {
                 effect_new_with_color(response_effect_tag, projectile_index, 0, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }
@@ -402,7 +412,10 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         if ((pd->flags & _projectile_at_rest_bit) == 0 &&
             ((pd->flags & _projectile_hit_ground_bit) != 0 || response_type == projectileresponse_attach)) {
             if (hit->type == _collision_result_type_object) {
-                effect_new_on_object_with_node_table(hit->node_index, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0);
+                // FIXED (objdump 0x4bfe4b..0x4bfe82): ECX = the tag's detonation_started effect (+0x200)
+                effect_new_on_object_with_node_table(projectile_index, *(uint32_t *)&tag->detonation_started.tag_id,
+                    hit->object_index, (uint16_t)hit->node_index, 5, (uint32_t)projectile_effect_coordinate_system_names,
+                    (uint32_t)positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0);
             } else {
                 effect_new_with_color(*(uint32_t *)&tag->detonation_started.tag_id, projectile_index, 0, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }

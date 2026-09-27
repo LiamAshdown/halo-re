@@ -30,7 +30,7 @@ extern void light_delete(datum_index light_handle); // 0x4f0bd0, ESI -> light_ha
 extern void datum_delete(data_array *array, datum_index handle); // memory module
 extern void effect_delete(datum_index handle); // 0x450be0, foreign module
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310, established
-extern void contrail_advance(int32_t a, int32_t b); // 0x44ca60, foreign module, UNSURE: args guessed from the literal (1,0) at this call site
+extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time); // 0x44ca60, EDI, stack
 
 void object_delete_attachments(uint32_t object_index) // blam-cc: EBX -> object_index
 {
@@ -57,7 +57,7 @@ void object_delete_attachments(uint32_t object_index) // blam-cc: EBX -> object_
                     break;
                 case _object_attachment_type_contrail:
                     object_recalculate_bounding_radius(object_index);
-                    contrail_advance(1, 0);
+                    contrail_advance(handle, 1, 0.0f); // FIXED: EDI = the attachment handle (0x4f99a0)
                     break;
                 case _object_attachment_type_particle_system: {
                     // UNSURE: inlined hash-table-style unlink into unknown_data_0087abd4

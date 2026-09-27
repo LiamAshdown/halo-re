@@ -1,7 +1,7 @@
 // object_physics_handle_nearby_object_impacts  (Ghidra: FUN_00508a10; renamed per
 //   out/phase4/physics_functions.md summary and out/phase4/physics_types_notes.md section 5)
 // address 0x508a10, size 351 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
+// name confidence: 0.4   rewrite confidence: 0.9 (REWRITTEN from objdump 0x508a10..0x508b6e)
 // evidence: out/phase4/physics_functions.md ("Finds objects near a physics/antenna object and
 //   dispatches per-object collision handling (impact damage or vertex-pair resolution) for each
 //   one found"); types/objects.h object_header.type (+0x03), object.vitality_flags
@@ -35,64 +35,57 @@ extern uint8_t object_collision_context_build(uint32_t object_index, object_coll
     // assumed still live from this function's own parameter
 extern uint8_t object_physics_context_build(uint32_t object_index,
     object_physics_context *out_context); // 0x5074b0, this module
-extern void object_physics_check_impact_damage(void *scratch, uint32_t candidate_object_index); // 0x508b70, this
-                                                                           // module (higher half)
-extern void object_physics_resolve_mass_point_overlap(void *scratch); // 0x5090c0, this module (higher half); UNSURE args,
-                                          // see file header
-
-// Finds up to 0x800 nearby objects (search_mask 1, type mask bipeds+vehicles) around
+extern uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); // 0x508b70, stack
+extern uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, object_physics_context *other); // 0x5090c0, EDX, stack
 // object_index's collision-model bounding sphere and, for each: if it is a non-frozen biped,
 // runs object_physics_check_impact_damage (impact damage); if it is a vehicle other than object_index itself and both
 // objects build valid object_physics_contexts, runs object_physics_resolve_mass_point_overlap (vertex-pair repulsion) -- but
 // only once per pair, when candidate_index < object_index, or when the candidate is at rest, or
 // when local_2074's UNRESOLVED condition holds (see file header).
+// REWRITTEN from objdump. Every biped (type 0) or, when the object has a collision context, vehicle (type 1) near the
+//   object is handled. A biped without the +0x106 bit 2 gets object_physics_check_impact_damage(&self collision
+//   context, biped). Another vehicle whose physics context builds gets
+//   object_physics_resolve_mass_point_overlap(EDX = &self physics context, &its context), but only once per pair:
+//   when its index is lower, or it is at rest, or its physics definition's first float (radius) is positive.
+//   The draft handed both callees throwaway scratch buffers instead of the contexts.
 void object_physics_handle_nearby_object_impacts(uint32_t object_index)
 {
     object_collision_context self_collision_context;
     object_physics_context self_physics_context;
     uint8_t has_collision_context;
-    uint8_t has_physics_context;
     datum_index candidates[0x800];
-    uint16_t count;
-    uint16_t i;
+    int16_t count;
+    int16_t i;
+    uint32_t self_slot = object_index & 0xffff;
 
     has_collision_context = object_collision_context_build(object_index, &self_collision_context);
-    has_physics_context = object_physics_context_build(object_index, &self_physics_context);
-
-    if (!has_physics_context) {
+    if (!object_physics_context_build(object_index, &self_physics_context)) {
         return;
     }
 
     {
         object *self = ((object_header *)object_data->data)[object_index & 0xffff].data;
-        uint32_t type_mask = (has_collision_context != 0) + 2;
 
-        count = object_find_in_sphere(1, type_mask, &self->location_leaf_index,
+        count = (int16_t)object_find_in_sphere(1, (uint32_t)(has_collision_context != 0) + 2, &self->location_leaf_index,
             &self->bounding_center, self->bounding_radius, candidates, 0x800);
     }
 
     for (i = 0; i < count; i++) {
         uint32_t candidate_index = candidates[i];
         object_header *header = &((object_header *)object_data->data)[candidate_index & 0xffff];
-        uint8_t type = header->type;
 
-        if (type == 0) {
-            object *candidate = header->data;
-            if ((candidate->vitality_flags & _object_health_frozen_bit) == 0) {
-                uint8_t scratch[16]; // UNSURE size/shape, see file header
-                object_physics_check_impact_damage(scratch, candidate_index);
+        if (header->type == 0) {
+            if ((*(uint16_t *)((uint8_t *)header->data + 0x106) & 4) == 0) {
+                object_physics_check_impact_damage((uint32_t *)&self_collision_context, candidate_index);
             }
-        } else if (type == 1 && candidate_index != object_index) {
+        } else if (header->type == 1 && candidate_index != object_index) {
             object_physics_context candidate_context;
 
             if (object_physics_context_build(candidate_index, &candidate_context)) {
-                object *candidate = header->data;
-                float unresolved_gate = 0.0f; // UNSURE: local_2074, see file header
-
-                if ((candidate_index & 0xffff) < (object_index & 0xffff) ||
-                    (candidate->flags & _object_at_rest_bit) != 0 || 0.0f < unresolved_gate) {
-                    uint8_t scratch[4]; // UNSURE size/shape, see file header
-                    object_physics_resolve_mass_point_overlap(scratch);
+                if ((candidate_index & 0xffff) < self_slot ||
+                    (header->data->flags & _object_at_rest_bit) != 0 ||
+                    *(float *)candidate_context.definition > 0.0f) {
+                    object_physics_resolve_mass_point_overlap(&self_physics_context, &candidate_context);
                 }
             }
         }

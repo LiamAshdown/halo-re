@@ -24,7 +24,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void sound_start_unspatialized(float gain); // 0x543dd0, outside this module, plays the pickup sound
+extern datum_index sound_start_unspatialized(datum_index definition_index, float scale); // 0x543dd0, EDX, stack
 extern void equipment_definition_play_pickup_sound(uint32_t equipment_tag_id); // 0x4bbbd0
 extern void object_delete(uint32_t object_index); // 0x4f5bd0
 extern void object_delete_unparented(datum_index object_index); // 0x4f5aa0
@@ -78,7 +78,8 @@ uint32_t weapon_transfer_ammunition(datum_index target_item_index, datum_index s
                         *source_rounds_unloaded = *source_rounds_unloaded - moved;
                         if (*(datum_index *)&target_tag->pickup_sound.tag_id != (datum_index)0xffffffff &&
                             requesting_player_index != -1) {
-                            sound_start_unspatialized(1.0f);
+                            // FIXED: EDX = the pickup sound (tag +0x49c, 0x4c26ff)
+                            sound_start_unspatialized(*(datum_index *)&target_tag->pickup_sound.tag_id, 1.0f);
                         }
                         if (*source_rounds_unloaded == 0) {
                             object_delete(source_item_index);
