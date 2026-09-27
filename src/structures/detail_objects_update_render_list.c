@@ -1,6 +1,6 @@
 // detail_objects_update_render_list  (Ghidra: FUN_005522d0; named here)
 // address 0x5522d0, size 1066 bytes
-// name confidence: 0.6   rewrite confidence: 0.4
+// name confidence: 0.6   rewrite confidence: 0.85
 // evidence: types/structures.h's detail objects section (detail_object_frame, detail_object_batch,
 //   detail_object_layer_batches, detail_object_render_list, detail_object_globals) is derived
 //   directly from this function's arithmetic; disassembly (objdump -d -M intel bin/halo.exe,
@@ -11,18 +11,11 @@
 //   3-field lexicographic bracket, not just a 2-field (x,y) one.
 // register convention: none (void); this function reads only tag data and the global camera
 //   block.
-// UNSURE (major): the per-axis "packed dword, decrement each iteration" scan variables
-//   (Ghidra's local_88/local_60/local_4c and the cell_z field local_80) are preserved with their
-//   exact literal arithmetic rather than restructured into an obviously-equivalent nested loop,
-//   because one detail does not obviously simplify: local_80 (the search key's cell_z field) is
-//   read for the very first lower_bound call before this function's decompilation shows it being
-//   assigned anything (it is only ever written via `local_80 = (short)local_90` where local_90 is
-//   *also* not yet assigned at that point, then mutated by -1/+3/reset every inner iteration
-//   afterward). This looks like the original relies on incidental leftover stack content for the
-//   very first search of the very first (x,y) cell of the sweep -- kept exactly rather than
-//   "fixed" to a plausible default, per the no-invented-behaviour rule. Everything from the second
-//   inner iteration onward is well-defined (the reset to the base cell_z at the end of each inner
-//   iteration is what fixes it for every subsequent call).
+// REWRITTEN 2026-09-28 against objdump 0x5522d0..0x552700: the draft's "UNSURE (major)" was a real bug --
+//   0x552421 stores the camera cell z into the search key's z word before the sweep, so the first
+//   lower_bound searches z-1 like every later one; the draft read an uninitialized local there and
+//   could skip the first (x+1, y+1) cell's detail objects. Everything else (3x3 sweep from +1 down,
+//   |dz| <= 1, 27 batches x 32 layers, 1/255 offset_z, default z reference at +0xa420) matches.
 // UNSURE: rasterizer_detail_objects_begin (called with no visible arguments -- possibly a "begin detail object frame"
 //   marker) is not examined.
 // reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
@@ -83,7 +76,7 @@ void detail_objects_update_render_list(void)
             uint32_t layers_used = 0; // OR of every visited cell's valid_layers_flags
             int32_t layer;
             int32_t x_scan, y_scan_base, y_scan;
-            int32_t z_key; // UNSURE: see file header -- first read before being meaningfully set
+            int32_t z_key = cell_z; // 0x552421: the key's z word (esp+0x20) starts at the camera cell's z
             int32_t dx, dy;
 
             for (layer = 0; layer < k_maximum_detail_object_layers; layer = layer + 1) {

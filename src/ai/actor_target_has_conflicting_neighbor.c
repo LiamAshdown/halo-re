@@ -1,6 +1,6 @@
 // actor_target_has_conflicting_neighbor  (Ghidra: actor_target_has_conflicting_neighbor; named from out/phase2/results/ai_02.json)
 // address 0x41f410, size 311 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x41f410..0x41f546 (6.25 horizontal, |dz| < 1.5 double, facing dot > 0.5 summed z,y,x; kinds 2..5; returns BL).)
 // evidence: out/phase2/results/ai_02.json -- walks the actor's own prop (target-data) linked
 //   list looking for another entry that shares the same tracked object or owning actor, or
 //   whose position is within 2.5 units horizontally / 1.5 vertically and facing similarly (dot
@@ -58,9 +58,9 @@ uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_ind
                    dy = target->last_known_position.y - other->last_known_position.y,
                    dx * dx + dy * dy < 6.25f) &&
                   fabs_f(other->last_known_position.z - target->last_known_position.z) < 1.5f) &&
-                 (0.5f < other->unknown_e0.x * target->unknown_e0.x +
+                 (0.5f < other->unknown_e0.z * target->unknown_e0.z +
                          other->unknown_e0.y * target->unknown_e0.y +
-                         other->unknown_e0.z * target->unknown_e0.z))) {
+                         other->unknown_e0.x * target->unknown_e0.x))) { // 0x41f503: summed z, y, x
                 conflict = 1;
             }
         }
