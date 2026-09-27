@@ -1,6 +1,6 @@
 // actor_replace_object_reference  (Ghidra: actor_replace_object_reference, already named)
 // address 0x428470, size 469 bytes
-// name confidence: 0.55   rewrite confidence: 0.3
+// name confidence: 0.55   rewrite confidence: 0.85 (REWRITTEN 2026-09-27 static loop against objdump 0x428470..0x42864d: active movement (not secondary action) field, 3-argument mode proc; offsets probed)
 // evidence: types/ai.h actor.target_unit_index(0x270)/target_combat_status(0x268)/
 //   unknown_60c/unknown_610/unknown_6b4/look_at_unknown_2f4(0x2f4)/unknown_30c/
 //   search_unknown_340(0x340)/unknown_3ac/unknown_3a8/unknown_1d0/unknown_1e8/unknown_1e4/
@@ -83,12 +83,14 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
         }
     }
 
-    if (self->secondary_action == 5 && *(uint32_t *)((uint8_t *)self + 0x470) == old_reference) { // UNSURE offset
+    // 0x428551..0x428577: the ACTIVE movement action (type +0x46c == 5, object +0x470). FIXED 2026-09-27: the draft
+    // tested and cleared secondary_action (+0x418), so dropping a reference wiped the actor's queued secondary action.
+    if (self->active_movement.type == 5 && *(uint32_t *)((uint8_t *)self + 0x470) == old_reference) {
         if (new_reference == 0xffffffff) {
-            self->secondary_action = 0;
+            self->active_movement.type = 0;
             self->active_movement.extra = 0xffffffff; // offset 0x480
         } else {
-            *(uint32_t *)((uint8_t *)self + 0x470) = new_reference; // UNSURE offset
+            *(uint32_t *)((uint8_t *)self + 0x470) = new_reference;
         }
     }
 
@@ -114,12 +116,12 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
     }
 
     {
-        // UNSURE: a fourth per-mode procedure slot at actor_mode_definitions[mode]+0x20,
-        // inside that struct's unnamed unknown_1c[28] padding; no other function in this
-        // module reads it.
+        // 0x428623..0x42864a: the mode's replace-reference procedure (definition +0x20: 0x404300 flee, 0x405270 guard,
+        // 0x402f00 converse) is called with (actor, old_reference, new_reference) -- push esi / push edi / push ecx.
+        // FIXED 2026-09-27: the draft passed only the actor, so those procedures compared and wrote garbage.
         uint32_t proc = *(uint32_t *)((uint8_t *)&actor_mode_definitions[self->mode] + 0x20);
         if (proc != 0) {
-            ((void (*)(datum_index))proc)(actor_index);
+            ((void (*)(datum_index, datum_index, datum_index))proc)(actor_index, old_reference, new_reference);
         }
     }
 }

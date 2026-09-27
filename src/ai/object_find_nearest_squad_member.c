@@ -1,6 +1,6 @@
 // object_find_nearest_squad_member  (Ghidra: object_find_nearest_squad_member; named from out/phase2/results/ai_02.json)
 // address 0x41c2c0, size 492 bytes
-// name confidence: 0.45   rewrite confidence: 0.3
+// name confidence: 0.45   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x41c2c0..0x41c4ab; swarm unit / component arrays un-swapped; 0.36 / 2.25 constants)
 // evidence: out/phase2/results/ai_02.json -- searches either a linked-object list
 //   (actor.cluster_unit_index, chained through object+0x1fc, when the actor has no swarm) or a
 //   swarm's member array (when it does) for the object nearest a caller point, applying a
@@ -90,15 +90,17 @@ datum_index object_find_nearest_squad_member(datum_index actor_index, void *refe
     group = (swarm *)((uint8_t *)swarm_data->data + (swarm_index & 0xffff) * sizeof(swarm));
     if (0 < group->component_count) {
         for (i = 0; i < group->component_count; i++) {
+            // 0x41c336..0x41c342: the component RECORD comes from component_index (+0x58); the unit index (+0x18) is
+            // what is excluded, returned and stamped. FIXED 2026-09-27: the draft had the two arrays swapped.
             component = (swarm_component *)((uint8_t *)swarm_component_data->data +
-                                            (group->unit_index[i] & 0xffff) * sizeof(swarm_component));
+                                            (group->component_index[i] & 0xffff) * sizeof(swarm_component));
             dx = rx - component->position.x;
             dy = ry - component->position.y;
             dz = rz - component->position.z;
             dist_sq = dx * dx + dy * dy + dz * dz;
 
             if ((*((uint8_t *)component + 2) & 2) == 0) {
-                if (group->component_index[i] == exclude_index) {
+                if (group->unit_index[i] == exclude_index) {
                     dist_sq = dist_sq * 0.36f;
                 }
             } else {
@@ -106,12 +108,12 @@ datum_index object_find_nearest_squad_member(datum_index actor_index, void *refe
             }
 
             if (dist_sq < best_dist) {
-                best = group->component_index[i];
+                best = group->unit_index[i];
                 best_dist = dist_sq;
             }
 
             if (stamp_group != 0) {
-                stamp_target = ((object_header *)object_data->data)[group->component_index[i] & 0xffff].data;
+                stamp_target = ((object_header *)object_data->data)[group->unit_index[i] & 0xffff].data;
                 if (stamp_target->cluster_stamp != object_cluster_stamp) {
                     stamp_target->cluster_stamp = object_cluster_stamp;
                 }
