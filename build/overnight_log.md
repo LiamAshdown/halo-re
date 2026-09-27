@@ -1994,3 +1994,27 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   same 3-arg draw call (networking debug overlay, skipped).
 - NEW C: the five missing firing-position rule procs, trapped once the AI started choosing positions:
   rejection rows 0x4124c0, 0x412570 and scoring rows 0x411840, 0x411980, 0x411b60 (unlisted pointers 535 -> 530).
+
+## 2026-09-27 play-test fixes (user present)
+- Crashes fixed as the user reached them: contrail_age_points / flag_cloth_update dropped point_physics_tick's ESI
+  velocity (every argument shifted); ui_widget_text_from_hud_objective (0x4a6770) was a missing UI data input
+  (21 more entries of the table 0x00692b18 are still MISSING, mostly multiplayer/settings screens -- OPEN);
+  decal_place called texture_cache_get(0) (now the real bitmap; decals are SKIPPED after the texture check until
+  decal_place, 0.15, is rewritten -- OPEN); first_person_weapon_interface_tick_reset used Weapon +0 instead of the
+  predicted resources at +0x4e4; first_person_weapon_update_animation_controls had animation/model swapped;
+  first_person_weapon_update_lighting passed 0x7f7fffff as the lighting object; camera_observer_find_best_target
+  called bsp3d_node_find_leaf with no arguments and read leaves through the scenario pointer.
+- Friendly marines attacking the player, two causes, both FIXED: team_pair_override_add passed BL = 1 to
+  team_pair_set (BL = 0 allies, 1 breaks) so (ai_allegiance player human) made the teams enemies, and
+  team_pair_override_remove had the inverse; actor_init_prop_from_object wrote the tracked object's team to
+  prop +0x16 instead of +0x12 (types/ai.h's object_type), so actor_target_relationship_think re-judged the player
+  hostile every tick and alliance changes never reached the player prop.
+- First-person gun drawn at the eye / off screen, FIXED: first_person_weapon_interface_initialize built both node
+  match tables from (weapon tag, animation graph); the binary maps the animation graph (+0x478) onto the hands
+  model (globals +0x180 -> +0xc) and the weapon first-person model (+0x468). Verified on the way: set_state (plus a
+  blend test fix), update_state, update_active_state, the animation_controls pose/overlay/build chain,
+  hud_meter_permute_node_records, hud_meter_find_matching_elements, animation_overlay_frame_orientations.
+- core_save / core_load wired through main_loop (core.bin); launch with -console (scratchpad/cdb_play_console.sh).
+- New checkers: scratchpad/callcount.py (call sites whose argument count differs from the definition; 279 sites,
+  mostly networking -- OPEN queue for the static loop), scratchpad/alret_scan.py (byte-returning functions typed
+  32-bit), scratchpad/protofilter.py.
