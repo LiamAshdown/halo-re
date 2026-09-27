@@ -20,7 +20,7 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern char *s_no_weapon_label;      // 0x0065512c, UNSURE exact text
+extern char s_no_weapon_label[];      // 0x0065512c, UNSURE exact text FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0

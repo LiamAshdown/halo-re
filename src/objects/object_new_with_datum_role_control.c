@@ -57,7 +57,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 extern int32_t object_cluster_stamp; // 0x008603cc
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern char *out_of_objects_error_prefix; // 0x0065efec, the printf-style error tag argument
+extern char out_of_objects_error_prefix[]; // 0x0065efec, the printf-style error tag argument FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 extern uint8_t object_new_server_broadcast_gate; // 0x0071c2c0, UNSURE: foreign global
 extern int16_t network_game_mode; // 0x00719720 (also used in this batch's
                                                      //   scenario_objects_place)

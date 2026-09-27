@@ -1891,3 +1891,10 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - actor_probe_step_direction (0x417e50): FIXED (0.4 -> 0.9). Variant 4 had the random side swapped: a roll <= 0x8000 takes (j, -i) with index 1.
 - network_index_cache_remove (0x4e9d40, EAX container, ESI key) callers: the container is the ADDRESS 0x6870d8 (mov eax,imm; its dword is 0xd, followed by the name "object_index"). object_delete_by_pooled_node_id, object_delete_unparented, projectile_detonation_message_apply and projectile_send_detonation passed the dword's value (0xd, so the callee would read [0x65]). unit_exit_vehicle_seat (0x568120, really the player unit release) passed the unit as the container. All five fixed; unit_apply_damage_effects already used the array (address) form.
 - Relink: left unresolved 1, traps 128.
+- New scanner scratchpad/addrscan.py finds pointer-typed externs (extern T *x; // 0xADDR) whose owning function only uses the address as an immediate (push / mov reg,imm), meaning a static object whose ADDRESS is the argument, while the C loads the dword stored there. Real hits, all FIXED (declared as arrays):
+  - player_help_screen_select_by_name: the 10 player_help_name_* strings. strstr(name, <first 4 string bytes as a pointer>) could crash or mis-select, reached through display_scenario_help, which the a10 look tutorial calls.
+  - out_of_objects_error_prefix (object_new_with_datum_role_control) and console_error_category_objects (objects_garbage_collection): console error-log category strings.
+  - s_no_weapon_label (unit_check_weapon_use_permission, unit_pickup_weapon).
+  - projectile_create_from_network: network_index_cache_insert_if_free container (MP).
+  False positives: actor_data (a coincidental 'or eax,imm'). Networking-module hits were left alone (MP).
+- Relink: left unresolved 1, traps 128.

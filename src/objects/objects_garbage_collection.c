@@ -38,7 +38,7 @@ extern memory_pool *object_memory_pool; // 0x006b8cb4
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern uint8_t *game_time; // 0x006f1d6c, tick at +0xc
 extern void *ai_gc_callback_table; // 0x0065ddd0, UNSURE: see file header
-extern void *console_error_category_objects; // 0x0065efec, UNSURE: a console category tag
+extern char console_error_category_objects[]; // 0x0065efec, UNSURE: a console category tag FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 
 extern void block_list_compact(memory_pool *arena); // 0x4d1eb0, EBX (the object pool at all three sites)
     // takes `memory_pool *arena`; Ghidra models no argument at the call sites in this file,

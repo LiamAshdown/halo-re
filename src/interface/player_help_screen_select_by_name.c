@@ -28,16 +28,16 @@ extern datum_index current_profile_tag_index; // 0x0069e8d4, UNSURE name
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t profile_slot_id[]; // 0x00714dde, per types/interface.h globals list (profile_slot_id[])
 
-extern char *player_help_name_a10; // 0x00669a5c
-extern char *player_help_name_a30; // 0x00669a58
-extern char *player_help_name_a50; // 0x00669a54
-extern char *player_help_name_b30; // 0x00669a50
-extern char *player_help_name_b40; // 0x00669a4c
-extern char *player_help_name_c10; // 0x00669a48
-extern char *player_help_name_c20; // 0x00669a44
-extern char *player_help_name_c40; // 0x00669a40
-extern char *player_help_name_d20; // 0x00669a3c
-extern char *player_help_name_d40; // 0x00669a38
+extern char player_help_name_a10[]; // 0x00669a5c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_a30[]; // 0x00669a58 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_a50[]; // 0x00669a54 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_b30[]; // 0x00669a50 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_b40[]; // 0x00669a4c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_c10[]; // 0x00669a48 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_c20[]; // 0x00669a44 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_c40[]; // 0x00669a40 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_d20[]; // 0x00669a3c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char player_help_name_d40[]; // 0x00669a38 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 
 extern char *_strncpy(char *dest, const char *source, uint32_t count);
 extern int32_t _tolower(int32_t c);

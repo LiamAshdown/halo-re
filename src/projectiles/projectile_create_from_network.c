@@ -117,7 +117,7 @@ void projectile_create_from_network(void *incoming_record)
         return;
     }
 
-    network_index_cache_insert_if_free(object_pooled_node_globals_006870d8, new_object_index, decoded.object_hash);
+    network_index_cache_insert_if_free(&object_pooled_node_globals_006870d8, new_object_index, decoded.object_hash);
 
     obj = ((object_header *)object_data->data)[new_object_index & 0xffff].data;
     proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
