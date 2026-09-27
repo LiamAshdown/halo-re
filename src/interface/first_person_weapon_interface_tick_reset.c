@@ -42,7 +42,7 @@ void first_person_weapon_interface_tick_reset(int16_t local_player_index)
                                                              (uint16_t)fp->weapon_index * 0xc);
         char *weapon_tag_data =
             (char *)tag_instances[(uint16_t)(*(uint32_t *)weapon_object)].data;
-        predicted_resource_list_touch((TagReflexive *)(weapon_tag_data + 0)); // UNSURE offset
+        predicted_resource_list_touch((TagReflexive *)(weapon_tag_data + 0x4e4)); // 0x494326: Weapon predicted resources
     }
     fp->shutdown_countdown = 0x1e;
 }
