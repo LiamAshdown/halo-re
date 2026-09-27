@@ -30,7 +30,7 @@ extern void rasterizer_ksml_ui_shutdown(void); // 0x5198a0 (this session)
 extern void rasterizer_dynamic_geometry_dispose(void); // 0x51bcd0 (already in tree)
 extern void chimera__rasterizer_dispose_free_memory(void); // 0x515430 (this session)
 extern void font_glyph_cache_clear_all(void); // 0x514cb0 (this session)
-extern void bitmap_data_free(void); // 0x43f880, UNSURE arguments
+extern void bitmap_data_free(BitmapData *bitmap_data); // 0x43f880, ESI
 extern void rasterizer_dx9_shaders_release_all(void); // 0x530090
 extern void rasterizer_render_target_dispose(void); // 0x52cc50, outside this session's range
 extern void chimera__registry_check_3(void); // 0x5226c0
@@ -59,7 +59,7 @@ void __cdecl rasterizer_shutdown(void)
 
     if (g_font_glyph_cache.initialized != 0) {
         font_glyph_cache_clear_all();
-        bitmap_data_free(); // UNSURE arguments
+        bitmap_data_free((BitmapData *)g_font_glyph_cache.atlas); // 0x51848c: ESI = the atlas (0x006d8834)
         g_font_glyph_cache.initialized = 0;
     }
 

@@ -79,11 +79,11 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
     real cos_angle); // 0x4cd820, v in EAX, axis in ECX
 extern void object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index,
     mass_point_state *mass_point, PhysicsMassPoint *definition); // 0x507ac0, this module
-extern float scenario_location_water_surface_distance(void); // 0x53ee00, scenario module: water depth; UNSURE args
+extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); // 0x53ee00, EAX location, EDI point
 extern float real_inverse_lerp_clamped(float value, float ref_k0, float ref_k1); // 0x507430, misattributed
     // math helper, not rewritten in this batch
 extern void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale,
-    float perpendicular_scale, float *friction); // 0x507c00, this module
+    float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); // 0x507c00, stack, EDI friction, ECX forward, EDX up
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index,
     collision_result *result); // 0x505880, this module (higher half)
@@ -232,7 +232,8 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
         mp->velocity_k = velocity.k;
 
         object_physics_mass_point_resolve_ground_contact(object_index, mp, mp_def);
-        mp->water_depth = scenario_location_water_surface_distance(); // UNSURE args
+        mp->water_depth = scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
+            (real_point3d *)&mp->position_x); // EAX mass point +0x34, EDI +0x04
 
         if (0.0f < mp->ground_depth) {
             float tangential_speed = mp->resting_plane_i * mp->velocity_i + mp->resting_plane_j * mp->velocity_j +
@@ -277,8 +278,15 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                 mp->ground_friction_force[2] += push_k * scale;
             }
 
-            object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
-                mp_def->friction_perpendicular_scale, mp->ground_friction_force);
+            if (mp->material_type == 0x1f) { // 0x50a605: material 0x1f blends at an eighth of both scales
+                object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale * 0.125f,
+                    mp_def->friction_perpendicular_scale * 0.125f, mp->ground_friction_force,
+                    (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
+            } else {
+                object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
+                    mp_def->friction_perpendicular_scale, mp->ground_friction_force,
+                    (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
+            }
         }
 
         mp->flags = (mp->velocity_i * mp->velocity_i + mp->velocity_j * mp->velocity_j +
@@ -329,7 +337,8 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
             }
 
             object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
-                mp_def->friction_perpendicular_scale, mp->water_friction_force);
+                mp_def->friction_perpendicular_scale, mp->water_friction_force,
+                (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
             if (powered_def != 0 && (powered_def->flags & 0x08) != 0 && powered_state->water_lift != 0.0f) {
                 float lift = (float)fabs((double)(mp->velocity_i * mp->forward_i + mp->forward_j * mp->velocity_j +
@@ -355,7 +364,8 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
             }
         }
         object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
-            mp_def->friction_perpendicular_scale, mp->air_friction_force);
+            mp_def->friction_perpendicular_scale, mp->air_friction_force,
+                (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
         if (powered_def != 0 && (powered_def->flags & 0x10) != 0 && powered_state->air_lift != 0.0f) {
             float lift = (float)fabs((double)(mp->velocity_i * mp->forward_i + mp->forward_j * mp->velocity_j +

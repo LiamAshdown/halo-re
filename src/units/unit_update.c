@@ -281,8 +281,8 @@ uint8_t unit_update(uint32_t unit_index) // blam-cc: param_1 (EAX) -> unit_index
                 }
                 float sum = unit->unknown_37c + delta;
                 unit->unknown_37c = sum;
-                if (sum > 1.0f) {
-                    unit->unknown_37c = 0.0f;
+                if (sum > 1.0f) { // 0x562a08: clamps to 1.0 (the draft reset it to 0.0)
+                    unit->unknown_37c = 1.0f;
                     unit->unknown_422 = 0;
                 }
             }

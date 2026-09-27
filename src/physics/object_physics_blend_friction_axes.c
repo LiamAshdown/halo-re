@@ -1,6 +1,6 @@
 // object_physics_blend_friction_axes  (Ghidra: FUN_00507c00; renamed)
 // address 0x507c00, size 188 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: types/physics.h mass_point_state's nine-float friction triple comment ("the nine-
 //   float layout 0x00507c00 expects: the blended result first, then the two candidate axes it
 //   mixes, chosen by PhysicsMassPoint.friction_type and scaled by friction_parallel_scale and
@@ -19,28 +19,30 @@
 //   ones it cannot verify; the friction_type == 2 and == 3 branches are therefore not fully
 //   reconstructed, only their control flow is.
 
+// REWRITTEN from objdump 0x507c00..0x507cbb (the draft had no axis inputs and skipped type 1).
+// blam-cc: stack -> friction_type, parallel_scale, perpendicular_scale; EDI -> friction;
+//   ECX -> forward, EDX -> up (every caller passes mass point +0x10 / +0x28, e.g. 0x50830a)
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
 
-extern void vector3d_cross_product(real_vector3d *out); // 0x4052c0, math module; the two
-    // operands arrive in registers, only the output pointer is on the stack (symbols/functions.txt)
-extern void vector3d_project_onto_unit_axis(void); // 0x4cda30, math module; UNSURE args, see header
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
+extern void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v,
+    real_vector3d *perp_out); // 0x4cda30, EAX, ECX, EDX, ESI
 
-// Chooses and scales two candidate friction axes into friction[3..5] (parallel) and
-// friction[6..8] (perpendicular) according to friction_type, then blends them by
-// parallel_scale/perpendicular_scale into friction[0..2]:
-//   0: candidate1 = the caller-seeded reference vector (friction[0..2] as it was on entry),
-//      candidate2 = zero.
-//   1: candidates left exactly as the caller already set them (no computation here).
-//   2: candidate1 from vector3d_cross_product, then candidate2 from
-//      vector3d_project_onto_unit_axis (both UNSURE, see file header).
-//   3: candidate2 from vector3d_project_onto_unit_axis only.
-//   anything else: candidates left as-is, same as case 1.
+// friction[0..2] holds the force on entry. Type 0 keeps it all parallel (friction[3..5]) with no
+// perpendicular part and returns without blending. Types 1, 2 and 3 split it against an axis --
+// the forward, cross(forward, up), or the up -- into parallel (friction[3..5]) and perpendicular
+// (friction[6..8]) parts; any other type keeps whatever the caller left there. The parts are then
+// scaled and summed back into friction[0..2].
 void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale,
-    float perpendicular_scale, float *friction)
+    float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up)
 {
+    real_vector3d cross;
+    real_vector3d *axis = 0;
+
     if (friction_type == 0) {
         friction[3] = friction[0];
         friction[4] = friction[1];
@@ -50,17 +52,19 @@ void object_physics_blend_friction_axes(int16_t friction_type, float parallel_sc
         friction[8] = 0.0f;
         return;
     }
-
-    if (friction_type != 1) {
-        if (friction_type == 2) {
-            vector3d_cross_product((real_vector3d *)&friction[3]); // UNSURE: operands are registers
-        } else if (friction_type != 3) {
-            goto blend;
-        }
-        vector3d_project_onto_unit_axis(); // UNSURE args, writes candidate2 (friction[6..8])
+    if (friction_type == 1) {
+        axis = forward;
+    } else if (friction_type == 2) {
+        vector3d_cross_product(&cross, forward, up);
+        axis = &cross;
+    } else if (friction_type == 3) {
+        axis = up;
+    }
+    if (axis != 0) {
+        vector3d_project_onto_unit_axis((real_vector3d *)&friction[3], axis, (real_vector3d *)friction,
+            (real_vector3d *)&friction[6]);
     }
 
-blend:
     friction[3] = parallel_scale * friction[3];
     friction[4] = parallel_scale * friction[4];
     friction[5] = parallel_scale * friction[5];
