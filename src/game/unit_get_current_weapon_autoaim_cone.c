@@ -2,7 +2,7 @@
 // "player_get_camera_frustum_extents" (symbols/review_queue.txt) does not match the fields
 // actually read, see evidence below)
 // address 0x459e80, size 240 bytes
-// name confidence: 0.35   rewrite confidence: 0.45
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x459e80..0x459f6f; weapon tag offsets probed)
 // evidence: types/tags.h Item (size 0x308, confirming tag_data+0x308 is the first Weapon-only
 //   field, weapon_flags) and Weapon (zoom_levels/zoom_magnification_range/autoaim_angle/
 //   autoaim_range/magnetism_angle/magnetism_range/deviation_angle laid out contiguously right

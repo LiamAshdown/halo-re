@@ -1,7 +1,7 @@
 // camera_observer_find_best_target  (Ghidra: FUN_00459a00, already named per symbols/functions.txt
 // via a later merge; kept)
 // address 0x459a00, size 270 bytes
-// name confidence: 0.35   rewrite confidence: 0.6
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x459a00..0x459b0d: generate / qsort (0x45a4a0) / validity loop)
 // evidence: types/game.h observer_target_candidate (0x38 bytes, 64-slot 0xe00-byte stack array,
 //   matching the qsort element width and array size here exactly); camera_observer_target_compare
 //   (0x45a4a0) is the qsort comparator; camera_observer_target_is_valid (0x459dd0) is the final
