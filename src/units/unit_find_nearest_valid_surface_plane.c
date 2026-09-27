@@ -1,6 +1,6 @@
 // unit_find_nearest_valid_surface_plane  (Ghidra: unit_find_nearest_valid_surface_plane)
 // address 0x560630, size 446 bytes
-// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.15
+// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.9
 // evidence: types/units.h biped_data.ground_surface_index/.ground_normal/.unknown_520
 //   (0x4d8/0x514/0x520), and the comment "0x560630 found" on ground_surface_index; also writes
 //   object.up (0x80, "puVar1+0x80/0x84/0x88" here matches the current up-vector unit_update_up_vector
@@ -26,76 +26,80 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "physics.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t global_structure_collision_bsp[]; // 0x00746f98, DAT_00746f98, UNSURE shape (collision/BSP module)
-extern int32_t bsp_cluster_index_006b8d78;  // 0x006b8d78, UNSURE
-extern int32_t global_structure_bsp_index;     // 0x0069e8d8, UNSURE
+extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
+extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
+extern int16_t global_structure_bsp_index; // 0x0069e8d8
 
-extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height, float *pill_radius_out); // 0x55a2e0, collision pill height + radius
-extern uint8_t collision_bsp_query_sphere_init(int32_t leaf_key, float *out_direction, float radius); // 0x501980, UNSURE signature
+extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
+    float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
+extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count,
+    collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center,
+    float radius); // 0x501980, EAX, ECX, ESI, stack
 
-void unit_find_nearest_valid_surface_plane(uint32_t unit_index) // blam-cc: in_ECX -> unit_index
+// REWRITTEN from objdump 0x560630..0x5607ef. ECX: unit (biped_create calls it for bipeds with tag +0x2f4 bit 6).
+//   Gathers the structure surfaces within the unit's pill radius + 0.05 of its position (0x501980, up to 0x100),
+//   picks the one whose plane (negated for a sign-bit plane index) has the smallest signed distance to the
+//   position, and stores the surface (+0x4d8), its plane (+0x514) and the normal as the unit's up (+0x80). The
+//   draft called the pill query and the sphere query with the wrong operands.
+void unit_find_nearest_valid_surface_plane(uint32_t unit_index) // blam-cc: ECX -> unit_index
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data; // [esp+0x2c]
+    ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;                          // edi
+    real_point3d position;                  // [esp+0x30]
+    float pill_height;                      // [esp+0x20]
+    float pill_radius;                      // [esp+0xc]
+    collision_bsp_sphere_result result;     // [esp+0x4c]
+    real_plane3d best_plane;                // esi, ebx, edi, [esp+0x48]
+    float best_distance = 3.4028235e+38f;   // [esp+0x28]
+    int32_t best_surface = -1;              // [esp+0xc]
+    uint8_t *surfaces;
+    uint8_t *planes;
+    int16_t i;
 
-    float position[3]; // UNSURE: local_103c, populated by unit_get_crouch_height_offset
-    float pill_radius = 0.0f;            // the EBX-carried second output; the caller's sink for
-                                         // it is not visible in this decompilation
-    // ECX -> object index, EBX -> pill_radius_out; Ghidra bound only the stack
-    // argument, which is the 2nd parameter.
-    unit_get_crouch_height_offset(unit_index, position, &pill_radius);
+    unit_get_crouch_height_offset(&position, unit_index, &pill_height, &pill_radius);
+    if (!(uint8_t)collision_bsp_query_sphere_init(bsp, 0x100, &result,
+            breakable_surface_state->active[global_structure_bsp_index], &position, pill_radius + 0.05f)) {
+        return;
+    }
+    if (result.surface_count <= 0) {
+        return;
+    }
+    surfaces = *(uint8_t **)((uint8_t *)bsp + 0x40);
+    planes = *(uint8_t **)((uint8_t *)bsp + 0x10);
+    for (i = 0; (int32_t)i < result.surface_count; i++) {
+        int32_t surface = result.surfaces[i];
+        int32_t plane_reference = *(int32_t *)(surfaces + surface * 0xc);
+        float *plane = (float *)(planes + (plane_reference & 0x7fffffff) * 0x10);
+        real_plane3d candidate;
+        float distance;
 
-    float direction[4]; // UNSURE: local_1050.. (the +0.05 radius bias applies to direction[0])
-    int32_t candidates[1026];  // UNSURE: aiStack_100c
-    int32_t candidate_count = 0; // UNSURE: never visibly initialized in the decompile, see file header
-
-    if (collision_bsp_query_sphere_init(global_structure_bsp_index * 0x20 + 1 + bsp_cluster_index_006b8d78, direction,
-                      direction[0] + 0.05f)) {
-        float best_index = -1.0f; // local_1050 sentinel "-NAN"
-        float best_score = 3.4028235e+38f;
-        real_vector3d best_normal = {0}; // .i=plane.x, .j=plane.y, .k=plane.z
-        float best_d = 0.0f;             // plane.d
-
-        for (int32_t i = 0; i < candidate_count; i++) {
-            int32_t plane_index = *(int32_t *)(*(uint8_t **)(global_structure_collision_bsp + 0x40) + candidates[i] * 0xc);
-            float *plane = (float *)(*(uint8_t **)(global_structure_collision_bsp + 0x10) + plane_index * 0x10);
-            real_vector3d normal;
-            float d;
-            if (plane_index < 0) {
-                normal.i = -plane[0];
-                normal.j = -plane[1];
-                normal.k = -plane[2];
-                d = -plane[3];
-            } else {
-                normal.i = plane[0];
-                normal.j = plane[1];
-                normal.k = plane[2];
-                d = plane[3];
-            }
-            float score = (direction[2] * normal.j + direction[1] * normal.k + direction[3] * normal.i) - d;
-            if (score < best_score) {
-                best_d = d;
-                best_normal.j = normal.j;
-                best_normal.i = normal.i;
-                best_normal.k = normal.k;
-                best_index = (float)candidates[i];
-                best_score = score;
-            }
+        if (plane_reference < 0) {
+            candidate.normal.i = -plane[0];
+            candidate.normal.j = -plane[1];
+            candidate.normal.k = -plane[2];
+            candidate.d = -plane[3];
+        } else {
+            candidate.normal.i = plane[0];
+            candidate.normal.j = plane[1];
+            candidate.normal.k = plane[2];
+            candidate.d = plane[3];
         }
-
-        if (best_index != -1.0f) { // UNSURE: see file header on the -NAN sentinel comparison
-            *(float *)&biped->ground_surface_index = best_index; // UNSURE: see file header
-            biped->ground_normal.i = best_normal.i;
-            biped->ground_normal.j = best_normal.j;
-            obj->up.i = best_normal.i;
-            biped->ground_normal.k = best_normal.k;
-            obj->up.j = best_normal.j;
-            biped->unknown_520 = *(uint32_t *)&best_d;
-            obj->up.k = best_normal.k;
+        distance = position.x * candidate.normal.i + position.z * candidate.normal.k + position.y * candidate.normal.j - candidate.d;
+        if (distance < best_distance) {
+            best_plane = candidate;
+            best_surface = surface;
+            best_distance = distance;
         }
     }
+    if (best_surface == -1) {
+        return;
+    }
+    *(int32_t *)(obj + 0x4d8) = best_surface;
+    *(real_plane3d *)(obj + 0x514) = best_plane;
+    *(real_vector3d *)(obj + 0x80) = best_plane.normal;
 }
 
 #if 0

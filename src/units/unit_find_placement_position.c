@@ -1,22 +1,18 @@
 // unit_find_placement_position  (Ghidra: unit_find_placement_position, renamed)
 // address 0x55a500, size 1299 bytes
-// name confidence: 0.35   rewrite confidence: 0.25
-// evidence: object.nodes-basis fields at 0x74/0x78.../0x88 (forward/up, objects.h); Biped
-//   collision_radius (0x42c, types/tags.h -- NOT crouch_transition_time, which is 0x408; an
-//   earlier revision of this file used the wrong name) matches unit_get_crouch_height_offset's own
-//   usage; global_up3d indirect pointer 0x00696720 (see the ground-adjust cluster's notes).
-//   Every other callee here (FUN_005013a0, object_collision_context_build, FUN_005050b0, FUN_00506040,
-//   FUN_00507170, FUN_00401a20, FUN_0053e780) is an unresolved collision/physics-module
-//   function; their argument buffers are preserved with Ghidra's own byte layout rather than
-//   invented structs.
-// register convention: object index (candidate A) in EAX (default when param_1 is -1), a
-//   direction pointer in EDX; param_1..param_7 are Ghidra-recognized stack parameters.
-//   // blam-cc: EAX -> object_index_a (only used when param_1 == -1), EDX -> reference_direction,
-//   //           stack -> anchor_object, orientation_object, out_position, radius, grid_mode,
-//   //                    scale_by_prior, radius_from_prior
-// UNSURE: the whole scatter-candidate collision test (the FUN_005013a0/507170/506040/5050b0/
-//   401a20 chain) is preserved as opaque calls with the exact arguments Ghidra shows; this
-//   rewrite does not claim to know what each one validates.
+// name confidence: 0.35   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x55a500..0x55aa12. Stack: (unit, reference object, out_position, radius, grid_mode,
+//   skip_reposition, scale_radius); EDX: an optional start point (else the unit's position). EAX is not read.
+//   With no unit the reference object stands in for the pill / tag lookups (and nothing is moved). Candidates:
+//   the 27-entry offset table 0x65e660 in the unit's forward / side / up frame (grid_mode) or its first 18 in
+//   world axes, scaled by radius (times the pill radius with scale_radius). A candidate must be inside the
+//   structure (leaf with a cluster), get a clear pill position (0x507170), not hit the structure along the pill
+//   (0x506040), nor the reference object's collision (0x5050b0) and see the reference object's centre both ways
+//   (0x401a20, a hit only on the other object). The winner, lowered by the biped's collision radius (+0x42c)
+//   unless tag +0x2f4 bit 3, becomes the unit's position (relinked into its leaf unless skip_reposition) and
+//   *out_position. The draft called six of these helpers with missing operands.
+// blam-cc: stack -> anchor_object, orientation_object, out_position, radius, grid_mode, skip_reposition,
+//   scale_radius; EDX -> reference_direction (a start point)
 
 #include "tags.h"
 #include "memory.h"
@@ -25,179 +21,163 @@
 #include "objects.h"
 #include "units.h"
 #include "projectiles.h" // collision_result
+#include "physics.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_structure_bsp; // UNSURE global, 0x00746f9c
 extern real_vector3d *global_up3d_pointer; // 0x00696720
-extern real_vector3d unit_placement_candidate_offsets[]; // 0x0065e660/64/68 interleaved as 3 floats per candidate; UNSURE bound
+extern ModelCollisionGeometryBSP *placement_collision_bsp_root; // 0x00746f90
+extern uint8_t *placement_structure_bsp_bytes; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
+extern real_vector3d placement_offset_table[27]; // 0x0065e660
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
-    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
-
-extern void *memcpy(void *dst, const void *src, uint32_t n);
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
-extern void unit_get_crouch_height_offset(uint32_t object_index, float *pill_height,
-                                           float *pill_radius); // 0x55a2e0
-extern int32_t bsp3d_node_find_leaf(void);                                            // UNSURE module
-extern int8_t object_collision_context_build(void);                                             // 0x504e10, collision module
-extern char object_collision_context_test_pill(void *a, real_point3d *b, real_vector3d *c, float d, void *scratch);  // UNSURE
-extern char collision_test_movement_pill(void *a, real_point3d *position, float radius);      // UNSURE
-extern char physics_point_find_clear_position(void *a, float b, float c, float d, uint32_t object_index, real_point3d *out); // UNSURE
+extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
+    float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
+extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context); // 0x504e10, EDI, ECX
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
+extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_position, float sample_radius,
+    float x_margin, float y_margin, uint32_t exclude_object_index, real_point3d *out_position); // 0x507170, ESI, stack
+extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta,
+    collision_result *result); // 0x506040, stack, EDI, ESI
+extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin,
+    real_vector3d *delta, float radius_scale, object_node_collision_result *out_result); // 0x5050b0
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
-    uint32_t flags, uint32_t exclude_object_index, collision_result *result); // 0x401a20, src/physics;
-    // blam-cc: EAX origin, ECX target, stack (flags, exclude_object_index, result)
-extern void scenario_location_from_point(void);                                               // UNSURE module
+    uint32_t flags, uint32_t exclude_object_index, collision_result *result); // 0x401a20, EAX, ECX, stack
+extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); // 0x53e780, ESI, EDX
+extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
+extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
+    bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack
 
-// Searches a small scatter pattern of candidate positions around an object for a spot free of
-// collision, repositioning the object (or writing the result through out_position) at the first
-// one that validates. See file header: most of the candidate-testing chain is preserved as
-// opaque calls to other, not-yet-processed modules.
-uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object,
-                                       real_point3d *out_position, float radius, char grid_mode,
-                                       char skip_reposition, char scale_radius,
-                                       uint32_t object_index_a, real_vector3d *reference_direction)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+
+uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object, real_point3d *out_position,
+                                      float radius, char grid_mode, char skip_reposition, char scale_radius,
+                                      uint32_t object_index_a, real_vector3d *reference_direction)
 {
-    object *reference;
-    real_vector3d up_default;
-    real_point3d basis_x, basis_y, basis_z, scaled_up;
-    real_point3d scatter_reference;
-    int32_t max_candidates;
-    int32_t i;
-    char found = 0;
-    void *creation_snapshot[3] = {0}; // UNSURE: DAT_006e4d08-style buffer captured from orientation_object
+    uint8_t found = 0;                          // [esp+0x12]
+    uint8_t borrowed_anchor = 0;                // [esp+0x13]
+    real_point3d center;                        // [esp+0x5c] the reference object's bounding centre
+    real_point3d base;                          // [esp+0x30]
+    real_point3d scratch;                       // [esp+0x50] (the pill query's position when a start point is given)
+    float pill_height;                          // [esp+0x24]
+    float pill_radius;                          // [esp+0x28]
+    uint32_t flags;                             // [esp+0x2c]
+    int16_t count;                              // [esp+0x4c]
+    real_vector3d side;                         // [esp+0x40]
+    real_vector3d vertical;                     // [esp+0x50]
+    object_collision_context context;           // [esp+0x70]
+    collision_result segment_result;            // [esp+0x80]
+    collision_result pill_result;               // [esp+0xd0]
+    object_node_collision_result context_result; // [esp+0x120]
+    bsp_leaf_reference location;                // [esp+0x68]
+    uint8_t *unit;                              // ebp
+    uint8_t *tag;
+    int16_t i;
 
-    if (anchor_object == k_datum_index_none && orientation_object == k_datum_index_none) {
-        return 0;
+    (void)object_index_a;
+    if (anchor_object == k_datum_index_none) {
+        if (orientation_object == k_datum_index_none) {
+            return 0;
+        }
     }
-    if (anchor_object != k_datum_index_none && orientation_object == k_datum_index_none) {
-        goto have_reference;
+    if (orientation_object != k_datum_index_none) {
+        center = *(real_point3d *)(OBJECT_DATA(orientation_object) + 0xa0);
     }
-    // 0x55a50f..0x55a564: the centre is captured whenever orientation_object is valid (the
-    // earlier rewrite captured it only when anchor_object was none)
+    if (anchor_object == k_datum_index_none) {
+        anchor_object = orientation_object;
+        borrowed_anchor = 1;
+    }
+    unit = OBJECT_DATA(anchor_object);
+    tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    flags = (*(uint32_t *)(tag + 0x2f4) & 0x20) ? 0xc2a0 : 0x20c3a0;
+    if (reference_direction != 0) {
+        base = *(real_point3d *)reference_direction;
+        unit_get_crouch_height_offset(&scratch, anchor_object, &pill_height, &pill_radius);
+    } else {
+        unit_get_crouch_height_offset(&base, anchor_object, &pill_height, &pill_radius);
+    }
+    if (borrowed_anchor) {
+        anchor_object = k_datum_index_none;
+    }
+    count = grid_mode ? 27 : 18;
+    if (orientation_object != k_datum_index_none) {
+        object_collision_context_build(orientation_object, &context);
+    }
     {
-        object *orientation_obj = ((object_header *)object_data->data)[orientation_object & 0xffff].data;
-        // UNSURE: preserved literally -- captures orientation_object's 0xa0/0xa4/0xa8 floats
-        memcpy(creation_snapshot, (uint8_t *)orientation_obj + 0xa0, sizeof(creation_snapshot));
+        real_vector3d *f = (real_vector3d *)(unit + 0x74);
+        real_vector3d *u = (real_vector3d *)(unit + 0x80);
+
+        side.i = u->k * f->j - f->k * u->j;
+        side.j = f->k * u->i - u->k * f->i;
+        side.k = u->j * f->i - u->i * f->j;
+        vector3d_normalize_with_length(&side);
     }
+    vertical.i = pill_height * global_up3d_pointer->i;
+    vertical.j = pill_height * global_up3d_pointer->j;
+    vertical.k = pill_height * global_up3d_pointer->k;
+    if (scale_radius) {
+        radius = pill_radius * radius;
+    }
+    for (i = 0; i < count && !found; i++) {
+        real_vector3d *offset = &placement_offset_table[i];
+        real_point3d point;                     // [esp+0x14]
+        int32_t leaf;
 
-have_reference:
-    {
-        int use_orientation_as_reference = (anchor_object == k_datum_index_none);
-        uint32_t reference_index = use_orientation_as_reference ? orientation_object : anchor_object;
-        reference = ((object_header *)object_data->data)[reference_index & 0xffff].data;
+        if (grid_mode) {
+            real_vector3d *f = (real_vector3d *)(unit + 0x74);
+            real_vector3d *u = (real_vector3d *)(unit + 0x80);
+            float a = radius * offset->i;
+            float b = radius * offset->j;
+            float c = radius * offset->k;
 
-        {
-            Biped *tag = (Biped *)tag_instances[reference->definition_tag & 0xffff].data;
-            void *collision_context = (void *)(uint32_t)((-(uint32_t)((tag->biped_flags & 0x20) != 0) & 0xffdfff00) + 0x20c3a0); // UNSURE
-
-            if (reference_direction != 0) {
-                scatter_reference.x = reference_direction->i;
-                scatter_reference.y = reference_direction->j;
-                scatter_reference.z = reference_direction->k;
+            point.x = a * f->i + base.x + side.i * b + c * u->i;
+            point.y = a * f->j + base.y + side.j * b + c * u->j;
+            point.z = a * f->k + base.z + side.k * b + c * u->k;
+        } else {
+            point.x = radius * offset->i + base.x;
+            point.y = radius * offset->j + base.y;
+            point.z = radius * offset->k + base.z;
+        }
+        leaf = (int32_t)bsp3d_node_find_leaf(0, placement_collision_bsp_root, &point);
+        if (leaf == -1) {
+            continue;
+        }
+        if (*(int16_t *)(*(uint8_t **)(placement_structure_bsp_bytes + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8) == -1) {
+            continue;
+        }
+        if (!physics_point_find_clear_position(flags, &point, pill_radius + pill_radius, pill_height, pill_radius,
+                anchor_object, &point)) {
+            continue;
+        }
+        if (collision_test_movement_pill(flags, &point, pill_radius, &vertical, &pill_result)) {
+            continue;
+        }
+        if (orientation_object != k_datum_index_none) {
+            if (object_collision_context_test_pill(&context, &point, &vertical, pill_radius, &context_result)) {
+                continue;
             }
-
-            {
-                float pill_height, pill_radius;
-                unit_get_crouch_height_offset(reference_index, &pill_height, &pill_radius);
-
-                if (use_orientation_as_reference) reference_index = k_datum_index_none;
-                max_candidates = 0x1b - (((grid_mode != 0) - 1) & 9);
-                if (orientation_object != k_datum_index_none) object_collision_context_build();
-
-                basis_x.x = reference->up.k * reference->forward.j - reference->forward.k * reference->up.j;
-                basis_x.y = reference->forward.k * reference->up.i - reference->up.k * reference->forward.i;
-                basis_x.z = reference->up.j * reference->forward.i - reference->forward.j * reference->up.i;
-                basis_y = basis_x;
-                {
-                    real_vector3d normalized = *(real_vector3d *)&basis_y;
-                    vector3d_normalize_with_length(&normalized);
-                }
-                scaled_up.x = pill_height * global_up3d_pointer->i;
-                scaled_up.y = pill_height * global_up3d_pointer->j;
-                scaled_up.z = pill_height * global_up3d_pointer->k;
-
-                if (scale_radius != 0) {
-                    radius = pill_radius * radius; // UNSURE: local_520, see file header
-                }
-
-                for (i = 0; i < max_candidates && !found; i++) {
-                    real_vector3d *offset = &unit_placement_candidate_offsets[i];
-                    real_point3d candidate;
-
-                    if (grid_mode == 0) {
-                        candidate.x = radius * offset->i + scatter_reference.x;
-                        candidate.y = radius * offset->j + scatter_reference.y;
-                        candidate.z = radius * offset->k + scatter_reference.z;
-                    } else {
-                        float fx = radius * offset->i;
-                        float fy = radius * offset->j;
-                        float fz = radius * offset->k;
-                        candidate.x = fz * reference->up.i + basis_x.x * fy + fx * reference->forward.i + scatter_reference.x;
-                        candidate.y = fz * reference->up.j + basis_x.y * fy + fx * reference->forward.j + scatter_reference.y;
-                        candidate.z = fz * reference->up.k + basis_x.z * fy + fx * reference->forward.k + scatter_reference.z;
-                    }
-
-                    {
-                        int32_t marker = bsp3d_node_find_leaf();
-                        if (marker != -1 && *(int16_t *)(marker * 0x10 + 8 + *(int32_t *)(global_structure_bsp + 0xe4)) != -1) {
-                            if (physics_point_find_clear_position(collision_context, radius + radius, pill_height,
-                                              radius, reference_index, &candidate)) {
-                                if (!collision_test_movement_pill(collision_context, &candidate, radius)) {
-                                    char ok = 1;
-                                    if (orientation_object != k_datum_index_none) {
-                                        uint8_t plane_scratch[16];
-                                        uint8_t collision_scratch[1064];
-                                        collision_result sweep; // [esp+0x80]
-                                        ok = !object_collision_context_test_pill(collision_context, &candidate,
-                                                            (real_vector3d *)creation_snapshot, pill_height,
-                                                            collision_scratch);
-                                        if (ok) {
-                                            // 0x55a8d4..0x55a936 (orphan pass 4 review, was two opaque FUN_00401a20
-                                            // calls): sweep candidate -> orientation_object's captured centre
-                                            // excluding the reference, then back excluding orientation_object;
-                                            // each hit must be the other object. The origin is EAX, the target ECX.
-                                            // UNSURE: the asm excludes the stack slot [esp+0x54c], which holds
-                                            // orientation_object when anchor_object was none (0x55a572), while
-                                            // this C clears reference_index to none in that case.
-                                            char r1 = (char)collision_test_movement_segment_between_points(&candidate,
-                                                (real_point3d *)creation_snapshot, (uint32_t)collision_context,
-                                                reference_index, &sweep);
-                                            ok = (r1 == 0) || ((uint32_t)sweep.object_index == orientation_object);
-                                            if (ok) {
-                                                char r2 = (char)collision_test_movement_segment_between_points(
-                                                    (real_point3d *)creation_snapshot, &candidate,
-                                                    (uint32_t)collision_context, orientation_object, &sweep);
-                                                ok = (r2 == 0) || ((uint32_t)sweep.object_index == reference_index);
-                                            }
-                                        }
-                                    }
-                                    if (ok) {
-                                        Biped *tag = (Biped *)tag_instances[reference->definition_tag & 0xffff].data;
-                                        scenario_location_from_point();
-                                        if ((tag->biped_flags & 8) == 0) {
-                                            candidate.z -= tag->collision_radius;
-                                        }
-                                        if (reference_index != k_datum_index_none && skip_reposition == 0) {
-                                            reference->position = candidate;
-                                            object_recalculate_bounding_radius_recursive(reference_index);
-                                            // 0x55a9b5: ESI = candidate, EDI = reference, stack = the leaf the
-                                            // argless scenario_location_from_point above fills ([esp+0x68]); OPEN
-                                            object_set_position_and_relink(&candidate, reference_index, 0);
-                                        }
-                                        if (out_position != 0) {
-                                            *out_position = candidate;
-                                        }
-                                        found = 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            if (collision_test_movement_segment_between_points(&point, &center, flags, anchor_object, &segment_result) &&
+                segment_result.object_index != orientation_object) {
+                continue;
+            }
+            if (collision_test_movement_segment_between_points(&center, &point, flags, orientation_object, &segment_result) &&
+                segment_result.object_index != anchor_object) {
+                continue;
             }
         }
+        scenario_location_from_point(&location, &point);
+        if (!(*(uint32_t *)(tag + 0x2f4) & 0x8)) {
+            point.z = point.z - *(float *)(tag + 0x42c);
+        }
+        if (anchor_object != k_datum_index_none && !skip_reposition) {
+            *(real_point3d *)(unit + 0x5c) = point;
+            object_recalculate_bounding_radius_recursive(anchor_object);
+            object_set_position_and_relink(&point, anchor_object, &location);
+        }
+        if (out_position != 0) {
+            *out_position = point;
+        }
+        found = 1;
     }
     return found;
 }

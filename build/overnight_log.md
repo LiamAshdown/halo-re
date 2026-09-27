@@ -1486,3 +1486,18 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   gameplay ones left: weather_instance_count 0x6b0ae0 (int32 vs word), 0x71973c in main_switch_structure_bsp (int32
   vs byte), 0x689450 object_compute_level_of_detail_pixels (int32 vs word), 0x7196d8 game_state_load_checkpoint
   (uint16 vs dword).
+- Unit placement chain (vehicle exit / seat detach / biped_update / script detach-and-place):
+  - unit_reset_orientation_and_find_position 0x55add0 REWRITTEN (0.5 -> 0.95): takes EDI = the seat parent (all 14
+    callers load it) and places around it: 27-point grid at 2x pill radius, then the parent's bounding centre /
+    radius. The draft passed zeros (radius 0, no grid, no parent). All 13 C callers now pass the parent.
+  - unit_find_placement_position 0x55a500 REWRITTEN (0.25 -> 0.9): offset table 0x65e660 in the unit frame or world
+    axes; leaf / clear-position / pill / reference-object pill / two-way segment checks; relink with the scenario
+    location (closes the OPEN "should pass its leaf to the relink").
+  - collision_test_movement_pill 0x506040 REWRITTEN (0.4 -> 0.9): radius is its 3rd stack argument; query gets all
+    6 operands; last leaf goes to +0xc (the draft overwrote the first).
+  - unit_find_nearest_valid_surface_plane 0x560630 REWRITTEN (0.15 -> 0.9; from biped_create for tag +0x2f4 bit 6).
+  - unit_propagate_position_delta_to_children 0x570cb0: object_set_position_and_recalculate gets (position, unit).
+- OPEN: player_attach_unit_to_parent 0x475c60 (0.25, 1096 bytes; called by hs detach-and-place and the BSP-switch
+  player reattach) is garbled -- argless seat/weapon calls, reads the driver field as the parent. Stopgap: passes
+  `driver` to the placement reset. Same for game_engine_reattach_player_unit_unused. REWRITE NEXT.
+- OPEN (MP): unit_spawn_with_starting_weapons 0x572110 (network game action) set_position argless.

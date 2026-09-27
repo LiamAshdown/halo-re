@@ -2,7 +2,7 @@
 //   proposal)
 // address 0x570cb0, size 184 bytes
 // name confidence: 0.4 (phase2 proposal at 0.4, matches functions.md summary)
-// rewrite confidence: 0.45
+// rewrite confidence: 0.95
 // evidence: types/objects.h object.position (0x05c), .type (0x0b4), .next_object (0x114),
 //   .first_child_object (0x118); types/units.h unit_data.unknown_34c (0x34c, "a cached point
 //   and its per-frame delta"); callee object_set_position_and_recalculate (0x4f52c0).
@@ -21,7 +21,7 @@
 
 extern data_array *object_data; // 0x008603b0
 
-extern void object_set_position_and_recalculate(uint32_t object_index); // 0x4f52c0, UNSURE args  // real signature (object_set_position_and_recalculate.c): void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index); Ghidra recovered 1 of 2 args at this call site
+extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index); // 0x4f52c0, ESI, EDI
 
 // Propagates the unit's positional movement delta (new_position - its current position) to any
 // attached child bipeds/vehicles, updating their cached relative offsets (unknown_34c), then
@@ -48,7 +48,8 @@ void unit_propagate_position_delta_to_children(real_point3d *new_position, uint3
         child = child_obj->next_object;
     }
 
-    object_set_position_and_recalculate(unit_index);
+    // 0x570d5c: ESI = new_position (kept from EAX), EDI = the unit (kept from ECX); the draft passed only the unit
+    object_set_position_and_recalculate(new_position, unit_index);
 }
 
 #if 0

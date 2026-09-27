@@ -48,7 +48,7 @@ extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
     int32_t invoke_callback); // 0x4f9a20, EAX, stack
 extern void unit_recalculate_position(uint32_t object_index); // 0x558eb0, EAX
-extern void unit_reset_orientation_and_find_position(uint32_t object_index); // 0x55add0
+extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index); // 0x55add0, stack, EDI
 extern void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); // 0x55b7c0, EAX, stack
 extern void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *state); // 0x55cfd0
 extern void biped_check_evade_reaction(uint32_t object_index); // 0x55e190
@@ -154,7 +154,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     }
     *(real_point3d *)(self + *(int16_t *)(self + 0x1ea) + 0x10) = default_translation;
     if (*(int16_t *)(self + 0xb4) == 0) {
-        unit_reset_orientation_and_find_position(object_index);
+        unit_reset_orientation_and_find_position(object_index, vehicle_index); // EDI = the seat parent
     }
     object_recalculate_bounding_radius_recursive(object_index);
     if (unit_all_seats_unoccupied(vehicle_index) == 1) {

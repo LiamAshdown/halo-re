@@ -42,7 +42,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
     int32_t invoke_callback); // 0x4f9a20, EAX, stack
-extern void unit_reset_orientation_and_find_position(uint32_t object_index); // 0x55add0
+extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index); // 0x55add0, stack, EDI
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
     uint8_t test_only); // 0x5651e0, EAX, stack
 extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
@@ -133,7 +133,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     }
     *(real_point3d *)(self + *(int16_t *)(self + 0x1ea) + 0x10) = default_translation;
     if (*(int16_t *)(self + 0xb4) == 0) {
-        unit_reset_orientation_and_find_position(object_index);
+        unit_reset_orientation_and_find_position(object_index, vehicle_index); // EDI = the seat parent
     }
     object_recalculate_bounding_radius_recursive(object_index);
     if (unit_all_seats_unoccupied(vehicle_index) == 1) {

@@ -45,7 +45,7 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern void object_reset_velocity_and_wake(uint32_t object_index); // 0x4f5160
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
 extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset); // 0x475c60
-extern void unit_reset_orientation_and_find_position(uint32_t object_index); // 0x55add0
+extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index); // 0x55add0, stack, EDI
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); // 0x4f9a20
 extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
@@ -138,7 +138,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
         unit = OBJ(object_index);
         *(real_vector3d *)(unit + *(int16_t *)(unit + 0x1ea) + 0x10) = root_offset;
         if (*(int16_t *)(unit + 0xb4) == 0) {
-            unit_reset_orientation_and_find_position(object_index);
+            unit_reset_orientation_and_find_position(object_index, parent_index); // EDI = the seat parent
         }
         object_recalculate_bounding_radius_recursive(object_index);
         if (unit_all_seats_unoccupied(parent_index) == 1) {

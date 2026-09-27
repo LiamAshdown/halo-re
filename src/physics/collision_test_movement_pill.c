@@ -1,7 +1,7 @@
 // collision_test_movement_pill  (Ghidra: FUN_00506040; renamed -- structure-BSP-only sibling of
 //   collision_test_movement_segment, sweeping a sphere/pill instead of a point)
 // address 0x506040, size 371 bytes
-// name confidence: 0.35   rewrite confidence: 0.4
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: types/physics.h collision_bsp_pill_result (0x420: t@0x00, plane_i/j/k/d@0x04-0x13,
 //   surface_index@0x14, material_index@0x1a, leaf_count@0x1c, leaves@0x20) matches the seven
 //   Ghidra locals local_420..local_404[] byte for byte, the same way
@@ -16,7 +16,7 @@
 //   other source) -> flags, stack -> origin; unaff_ESI -> result (collision_result *, out
 //   parameter), unaff_EDI -> delta (real_vector3d *). No radius is visible anywhere in this
 //   function's own body.
-//   // blam-cc: EAX -> flags, ESI -> result, EDI -> delta, stack -> origin
+//   // blam-cc: stack -> flags, origin, radius; EDI -> delta; ESI -> result
 // UNSURE: collision_bsp_query_pill_init is called here with only ONE visible argument (origin). A pill query
 //   needs at least bsp, delta, radius, flags and a result pointer besides; the same "argument
 //   already live in a register from an earlier instruction, so the compiler never reloads it"
@@ -39,72 +39,78 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
-    real_point3d *point); // 0x5013a0, this module (lower half)
-// blam-cc: UNSURE which registers besides the visible origin are actually read; see file header
-extern uint8_t collision_bsp_query_pill_init(real_point3d *origin, collision_bsp_pill_result *out_result); // 0x502730
+    real_point3d *point); // 0x5013a0, EAX, ECX, EDX
+extern uint8_t collision_bsp_query_pill_init(ModelCollisionGeometryBSP *bsp, collision_bsp_pill_result *result,
+    real_point3d *origin, real_vector3d *delta, float radius, float max_fraction); // 0x502730, EAX, ECX, stack
+extern ModelCollisionGeometryBSP *pill_structure_collision_bsp; // 0x00746f98
+extern ModelCollisionGeometryBSP *pill_structure_collision_bsp_root; // 0x00746f90
+extern uint8_t *pill_structure_bsp_bytes; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
 
-// Sweeps a sphere/pill from origin along delta (delta comes in via the still-live EDI register,
-// not a visible parameter) through the structure BSP only -- no water-plane test, no nearby-object
-// walk, and no post-hit unstick loop, unlike collision_test_movement_segment. When
-// _collision_test_flag_structure_bsp (flags bit 0x20) is set and the pill query found a surface,
-// applies it to *result; either way resolves and stores the touched leaves' clusters, then the
-// final resting point's own leaf/cluster.
-uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, real_vector3d *delta,
+static int16_t pill_leaf_cluster(int32_t leaf)
+{
+    if (leaf == -1) {
+        return -1;
+    }
+    return *(int16_t *)(*(uint8_t **)(pill_structure_bsp_bytes + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
+}
+
+// REWRITTEN from objdump 0x506040..0x5061b2. Stack: (flags, origin, radius); EDI: delta; ESI: result. Sweeps a pill
+//   of the radius from origin along delta through the structure BSP (0x502730, max fraction FLT_MAX). With flags
+//   0x20 a contact becomes a BSP hit (type 2): plane +0x24, material +0x34 / +0x4e, surface +0x44, plane index -1.
+//   The first / last touched leaves (and clusters) go to +0x4 / +0xc; t is 1 without a hit; the end point (+0x18)
+//   and its leaf (+0xc, cluster +0x10) follow. The draft had no radius, called the query with 2 of 6 operands and
+//   stored the last leaf over the first.
+// blam-cc: stack -> flags, origin, radius; EDI -> delta; ESI -> result
+uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta,
     collision_result *result)
 {
-    uint8_t hit = 0;
-    collision_bsp_pill_result pill_result;
-    uint8_t found_surface;
-    bsp_leaf_reference *last_leaf_ref = (bsp_leaf_reference *)&result->leaf;
-    int32_t final_leaf;
+    uint8_t *r = (uint8_t *)result;
+    collision_bsp_pill_result pill;     // [esp+0x8]
+    uint8_t hit = 0;                    // bl
+    int32_t leaf;
+    uint32_t flt_max_bits = 0x7f7fffff;
 
-    result->type = -1;
-    result->t = 0x7f7fffff; // FLT_MAX
-
-    found_surface = collision_bsp_query_pill_init(origin, &pill_result);
-    result->t = pill_result.t;
-    if (found_surface && (flags & 0x20) != 0) {
-        result->plane.normal.i = pill_result.plane_i;
-        result->plane.normal.j = pill_result.plane_j;
-        result->plane.normal.k = pill_result.plane_k;
-        result->plane.d = pill_result.plane_d;
-        result->surface_flags = 0;
-        result->breakable_surface_index = 0;
-        result->type = 2;
-        result->material_type = pill_result.material_index;
-        result->plane_index = pill_result.surface_index;
-        result->collision_material_index = pill_result.material_index;
-        hit = 1;
+    *(int16_t *)r = -1;
+    *(uint32_t *)(r + 0x14) = 0x7f7fffff;
+    if (collision_bsp_query_pill_init(pill_structure_collision_bsp, &pill, origin, delta, radius,
+            *(float *)&flt_max_bits)) {
+        *(float *)(r + 0x14) = pill.t;
+        if (flags & 0x20) {
+            *(float *)(r + 0x24) = pill.plane_i;
+            *(float *)(r + 0x28) = pill.plane_j;
+            *(float *)(r + 0x2c) = pill.plane_k;
+            *(float *)(r + 0x30) = pill.plane_d;
+            r[0x4c] = 0;
+            r[0x4d] = 0;
+            *(int16_t *)r = 2;
+            *(int16_t *)(r + 0x34) = pill.material_index;
+            *(int32_t *)(r + 0x44) = pill.surface_index;
+            *(int32_t *)(r + 0x48) = -1;
+            *(int16_t *)(r + 0x4e) = pill.material_index;
+            hit = 1;
+        }
     }
-
-    if (pill_result.leaf_count > 0) {
-        int32_t first_leaf = pill_result.leaves[0];
-        int32_t last_leaf = pill_result.leaves[pill_result.leaf_count - 1];
-
-        result->leaf.leaf_index = first_leaf;
-        result->leaf.cluster_index = (first_leaf == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[first_leaf].cluster;
-
-        last_leaf_ref->leaf_index = last_leaf;
-        last_leaf_ref->cluster_index = (last_leaf == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[last_leaf].cluster;
+    if (pill.leaf_count > 0) {
+        *(int32_t *)(r + 0x4) = pill.leaves[0];
+        *(int16_t *)(r + 0x8) = pill_leaf_cluster(pill.leaves[0]);
+        leaf = pill.leaves[pill.leaf_count - 1];
+        *(int32_t *)(r + 0xc) = leaf;
+        *(int16_t *)(r + 0x10) = pill_leaf_cluster(leaf);
     }
-
-    if (hit == 0) {
-        result->t = 1.0f;
+    if (!hit) {
+        *(float *)(r + 0x14) = 1.0f;
     }
-    result->point.x = result->t * delta->i + origin->x;
-    result->point.y = result->t * delta->j + origin->y;
-    result->point.z = result->t * delta->k + origin->z;
+    {
+        float t = *(float *)(r + 0x14);
+        real_point3d *point = (real_point3d *)(r + 0x18);
 
-    final_leaf = bsp3d_node_find_leaf(0, global_structure_collision_bsp, &result->point);
-    last_leaf_ref->leaf_index = final_leaf;
-    if (final_leaf == -1) {
-        last_leaf_ref->cluster_index = -1;
-        return hit;
+        point->x = t * delta->i + origin->x;
+        point->y = t * delta->j + origin->y;
+        point->z = t * delta->k + origin->z;
+        leaf = (int32_t)bsp3d_node_find_leaf(0, pill_structure_collision_bsp_root, point);
     }
-    last_leaf_ref->cluster_index =
-        ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[final_leaf].cluster;
+    *(int32_t *)(r + 0xc) = leaf;
+    *(int16_t *)(r + 0x10) = pill_leaf_cluster(leaf);
     return hit;
 }
 
