@@ -52,7 +52,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern uint32_t unknown_00746280_block[0x343]; // 0x00746280, a block (mov edi,0x746280; rep stos), not a pointer
 extern uint8_t *cache_file_slot_table; // 0x006b0b80
 
-extern void decal_clear_flags(void);              // UNSURE module
+extern void decal_clear_flags(uint8_t clear_object_attached); // 0x44e220, BL
 extern void particle_systems_delete_all(void);              // UNSURE module
 extern void update_queues_dispose(void);      // 0x472b00
 extern void hs_scripts_free(void);             // 0x4832b0
@@ -90,7 +90,7 @@ void game_stop_current_map(void)
         weather_particle_pool_ptr->valid = 0;
     }
     if (unknown_0071d1c0 != 0) {
-        decal_clear_flags();
+        decal_clear_flags(1); // FIXED: BL = 1 (0x45b3f9)
         cache_flush((cache *)unknown_0071d1c0); // objdump 0x45b3ef: ESI = DAT_0071d1c0
     }
     unknown_0087abe4->valid = 0;

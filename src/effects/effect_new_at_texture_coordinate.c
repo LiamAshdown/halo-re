@@ -29,7 +29,7 @@ extern const ColorRGB *default_effect_color_pointer; // 0x00686b04, UNSURE, see 
 
 extern datum_index effect_new(datum_index definition_index, datum_index creator_object_index,
     uint8_t force_create); // 0x451500, this module
-extern int16_t local_player_index_for_object(void); // 0x4926f0, outside this batch; resolves first_person_weapon_index
+extern int32_t local_player_index_for_object(datum_index object_index); // 0x4926f0, ESI
 extern void effect_rebuild_markers(effect *self,
     int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t)); // 0x451710, this module
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name,
@@ -50,7 +50,7 @@ datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum
         int i;
 
         self->object_index = object_index;
-        self->first_person_weapon_index = local_player_index_for_object();
+        self->first_person_weapon_index = (int16_t)local_player_index_for_object(object_index); // FIXED: ESI = the object (0x450709)
         self->unknown_08 = u;
         self->unknown_0a = v;
         self->change_color_index = change_color_index;

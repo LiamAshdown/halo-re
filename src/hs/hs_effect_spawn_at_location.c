@@ -2,7 +2,7 @@
 // address 0x488870, size 113 bytes
 // name confidence: 0.4 (out/phase4/hs_functions.md: "Spawns a visual effect positioned and
 //   oriented at a scenario location (flag/camera point) table entry")
-// rewrite confidence: 0.4
+// rewrite confidence: 0.9 (VERIFIED against objdump)
 // evidence: the location_index * 0x5c + Scenario+0x4e8 addressing matches Scenario::cutscene_flags
 //   exactly, as in hs_object_detach_and_place_at_location.c.
 // register convention: location index in AX (in_AX). Effect reference as the recognized stack

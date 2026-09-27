@@ -1,7 +1,7 @@
 // player_effect_set_camera_impulse  (Ghidra: FUN_004579b0, still unnamed there; named directly
 //   by out/phase4/effects_types_notes.md: "player_effect_set_camera_impulse 0x4579b0")
 // address 0x4579b0, size 925 bytes
-// name confidence: 0.5   rewrite confidence: 0.15 (VERY LOW -- see UNSURE)
+// name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN from objdump 0x4579b0..0x457d4c)
 // evidence: types/effects.h player_effect.impulse (player_camera_impulse, +0x50), impulse_ticks
 //   (+0xe0), flags (_player_effect_camera_impulse_bit); player_camera_impulse (duration +0x00,
 //   magnitude_minimum/_maximum +0x10/+0x14, intensity +0x18); this module's
@@ -51,91 +51,107 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *a, real_ve
 extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,
                                         real cos_angle); // 0x4cd820
-extern void game_engine_update_local_player_look(real angle_a, real angle_b); // 0x472160, UNSURE signature, see file header
-extern void player_compute_view_forward_vector(void); // 0x473d70, UNSURE signature (elsewhere: unit, out yaw/pitch),
-                                    // see file header
+extern void game_engine_update_local_player_look(int16_t local_player_index, real yaw_delta, real pitch_delta); // 0x472160, AX, stack
+extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward); // 0x473d70, EAX, ECX, ESI
+extern uint8_t *player_globals_0087a478; // 0x0087a478, +0x04 local_players[0]
 
 // Replaces a local player's active camera impulse with a new one built from `descriptor` and
 // `direction` when the new one out-prioritizes (or has run longer than) the current one, then
 // always feeds a second, independent computation into game_engine_update_local_player_look.
+// REWRITTEN from objdump. Raw offsets into player_effect: +0x00 impulse direction, +0x0c impulse rotation, +0x50 the
+//   13-float impulse copied from the descriptor (+0x50 duration in ticks, +0x60/+0x64 magnitude min/max, +0x68
+//   intensity), +0xe0 ticks, +0xe8 flags.
+//   A new impulse replaces the running one when it outlasts it, is stronger, or is as strong and longer. Its
+//   direction is the angle between the (x, y, 0) damage direction and the player's (pitch, yaw) look vector, both
+//   normalized copies (the caller's vector is left alone). The rotation axis is up x direction, rotated about the
+//   direction by a random angle and scaled by a random magnitude in [min, max].
+//   In all cases the look is then nudged: game_engine_update_local_player_look(player, (left . direction) * s,
+//   (forward . direction) * s), with s = descriptor[8] * blend(descriptor[9]) and forward/left from
+//   player_compute_view_forward_vector. The draft normalized the caller's direction in place, used the wrong
+//   magnitude slots and cross/rotate operands, and called both tail helpers without arguments.
 void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_index,
     real *descriptor, real *direction, real intensity_falloff, real duration_scale)
-    // blam-cc: unaff_EBX, stack, stack, stack, stack, stack
+    // blam-cc: EBX -> self, stack -> local_player_index, descriptor, direction, intensity_falloff, duration_scale
 {
+    uint8_t *fx = (uint8_t *)self;
+    real *impulse = (real *)(fx + 0x50);
+    real_vector3d *impulse_direction = (real_vector3d *)(fx + 0x00);
+    real_vector3d *impulse_rotation = (real_vector3d *)(fx + 0x0c);
+    real_vector3d *up = (real_vector3d *)k_camera_axis_table; // [0x696720]: the global up vector
+    real duration_ticks = duration_scale * 30.0f;
+    real ticks = (real)*(int16_t *)(fx + 0xe0);
     real blended = (1.0f - descriptor[6]) * intensity_falloff + descriptor[6];
-    real *impulse = (real *)&self->impulse; // player_camera_impulse, +0x50
+    real *look_globals = (real *)((uint8_t *)game_control_globals + local_player_index * 0x40);
 
-    if ((real)self->impulse_ticks < impulse[0] || self->impulse.intensity < blended ||
-        (self->impulse.intensity <= blended &&
-         (real)self->impulse_ticks < duration_scale * 30.0f * descriptor[0])) {
-        real dir_x = direction[0], dir_y = direction[1];
-        real pitch = *(real *)((uint8_t *)game_control_globals + local_player_index * 0x40 + 0x1c);
-        real yaw = *(real *)((uint8_t *)game_control_globals + local_player_index * 0x40 + 0x20);
-        real cos_yaw = (real)cos((double)yaw);
-        real look_z = 0.0f;
-        real look_x = (real)cos((double)pitch) * cos_yaw;
-        real look_y = (real)sin((double)pitch) * cos_yaw;
+    if (impulse[0] > ticks || blended > *(real *)(fx + 0x68) ||
+        (!(blended < *(real *)(fx + 0x68)) && duration_ticks * descriptor[0] > ticks)) {
+        real_vector3d flat_direction;
+        real_vector3d look;
+        real a = look_globals[7]; // +0x1c
+        real b = look_globals[8]; // +0x20
 
-        vector3d_normalize_with_length((real_vector3d *)direction);
-        vector3d_normalize_with_length((real_vector3d *)&look_x); // UNSURE: 2D vector normalized
-                                    // through the 3D routine with z forced to 0, matching the raw
-                                    // code's own length checks below
+        flat_direction.i = direction[0];
+        flat_direction.j = direction[1];
+        flat_direction.k = 0.0f;
+        vector3d_normalize_with_length(&flat_direction);
+        look.i = (real)cos((double)a) * (real)cos((double)b);
+        look.j = (real)sin((double)a) * (real)cos((double)b);
+        look.k = 0.0f;
+        vector3d_normalize_with_length(&look);
 
-        if ((real)fabs((double)(dir_x * dir_x + dir_y * dir_y + 0.0f - 1.0f)) < 0.0001f &&
-            (real)fabs((double)(look_x * look_x + look_y * look_y + 0.0f - 1.0f)) < 0.0001f) {
-            real angle;
+        if ((real)fabs((double)(flat_direction.i * flat_direction.i + flat_direction.j * flat_direction.j +
+                                flat_direction.k * flat_direction.k - 1.0f)) < 9.9999997e-05 &&
+            (real)fabs((double)(look.i * look.i + look.j * look.j + look.k * look.k - 1.0f)) < 9.9999997e-05) {
+            real angle = vector2d_angle_between((real_vector2d *)&flat_direction, (real_vector2d *)&look);
+            real magnitude;
+            real random_angle;
             int i;
-
-            {
-                real_vector2d a, b;
-                a.i = dir_x; a.j = dir_y;
-                b.i = look_x; b.j = look_y;
-                angle = vector2d_angle_between(&a, &b);
-            }
 
             for (i = 0; i < 13; i++) {
                 impulse[i] = descriptor[i];
             }
-            impulse[0] = duration_scale * 30.0f * impulse[0];
-            self->impulse.intensity = blended;
-            self->impulse_ticks = (int16_t)impulse[0];
+            impulse[0] = duration_ticks * impulse[0];
+            *(real *)(fx + 0x68) = blended;
+            *(int16_t *)(fx + 0xe0) = (int16_t)(int32_t)impulse[0];
 
-            self->impulse_direction.k = 0.0f;
-            self->impulse_direction.i = (real)cos((double)angle);
-            self->impulse_direction.j = (real)sin((double)angle);
+            impulse_direction->k = 0.0f;
+            impulse_direction->i = (real)cos((double)angle);
+            impulse_direction->j = (real)sin((double)angle);
 
-            {
-                real random_magnitude, random_angle;
-                real_vector3d axis;
+            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+            magnitude = (real)(int32_t)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
+                (*(real *)(fx + 0x64) - *(real *)(fx + 0x60)) + *(real *)(fx + 0x60);
+            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+            random_angle = (real)(int32_t)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
 
-                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                // Unsigned: the raw code is (float)(seed >> 0x10) * 1.5259022e-05, so the
-                // fraction is in [0, 1). An earlier draft cast the shifted word to int16_t.
-                random_magnitude = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
-                    (impulse[6] - impulse[5]) + impulse[5]; // magnitude_maximum(0x18)-minimum(0x14)
-                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                random_angle = (real)(effect_random_seed >> k_random_value_shift) *
-                    1.5259022e-05f * 6.2831855f;
-
-                vector3d_cross_product(&axis, &self->impulse_direction, (real_vector3d *)&look_x); // UNSURE
-                vector3d_normalize_with_length(&axis);
-                vector3d_rotate_about_axis(&self->impulse_rotation, &axis,
-                    (real)sin((double)random_angle), (real)cos((double)random_angle));
-
-                self->impulse_rotation.i = random_magnitude * self->impulse_rotation.i;
-                self->impulse_rotation.j = random_magnitude * self->impulse_rotation.j;
-                self->impulse_rotation.k = random_magnitude * self->impulse_rotation.k;
-            }
-
-            self->flags |= _player_effect_camera_impulse_bit;
+            vector3d_cross_product(impulse_rotation, up, impulse_direction);
+            vector3d_normalize_with_length(impulse_rotation);
+            vector3d_rotate_about_axis(impulse_rotation, impulse_direction, (real)sin((double)random_angle),
+                (real)cos((double)random_angle));
+            impulse_rotation->i = magnitude * impulse_rotation->i;
+            impulse_rotation->j = magnitude * impulse_rotation->j;
+            impulse_rotation->k = magnitude * impulse_rotation->k;
+            *(uint8_t *)(fx + 0xe8) |= 2;
         }
     }
 
     {
         real blended_b = (1.0f - descriptor[9]) * intensity_falloff + descriptor[9];
+        datum_index player_handle = (local_player_index != -1 && local_player_index < 1) ?
+            *(datum_index *)(player_globals_0087a478 + 4 + local_player_index * 4) : (datum_index)k_datum_index_none;
+        real_vector3d forward;
+        real_vector3d left;
+        real yaw_delta;
+        real pitch_delta;
 
-        player_compute_view_forward_vector(); // UNSURE, see file header
-        game_engine_update_local_player_look(blended_b, blended); // UNSURE argument order/roles, see file header
+        player_compute_view_forward_vector(player_handle, &look_globals[7], &forward);
+        left.i = forward.k * up->j - forward.j * up->k;
+        left.j = forward.i * up->k - forward.k * up->i;
+        left.k = forward.j * up->i - forward.i * up->j;
+        yaw_delta = (left.j * direction[1] + left.k * direction[2] + left.i * direction[0]) * descriptor[8] * blended_b;
+        pitch_delta = (forward.j * direction[1] + forward.i * direction[0] + forward.k * direction[2]) * descriptor[8] *
+            blended_b;
+        game_engine_update_local_player_look(local_player_index, yaw_delta, pitch_delta);
     }
 }
 

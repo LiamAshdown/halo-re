@@ -17,7 +17,8 @@
 #include "items.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint32_t effect_new_at_texture_coordinate(int32_t a1, int32_t a2); // 0x4506d0, outside this module, UNSURE signature
+extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index,
+    int16_t change_color_index, int16_t u, int16_t v); // 0x4506d0, EAX, EDX, CX, stack
 
 uint32_t weapon_stop_object_effect(datum_index item_index, datum_index tag_id)
 {
@@ -32,7 +33,8 @@ uint32_t weapon_stop_object_effect(datum_index item_index, datum_index tag_id)
         item_index = item_obj->parent_object;
     }
     if (item_index != (datum_index)0xffffffff) {
-        return effect_new_at_texture_coordinate(-1, -1);
+        // FIXED (objdump 0x4c48de..0x4c48e7): EAX = the effect tag, EDX = the (root) item, CX = -1, stack = (-1, -1)
+        return effect_new_at_texture_coordinate(tag_id, item_index, -1, -1, -1);
     }
     return 0xffffffff;
 }
