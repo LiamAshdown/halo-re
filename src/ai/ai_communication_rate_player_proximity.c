@@ -1,6 +1,6 @@
 // ai_communication_rate_player_proximity  (Ghidra: ai_communication_rate_player_proximity; named for this rewrite)
 // address 0x4303f0, size 965 bytes
-// name confidence: 0.45   rewrite confidence: 0.45
+// name confidence: 0.45   rewrite confidence: 0.85
 // evidence: the function iterates player_data (0x0087a480, the array every other file in
 // this repo calls `player_data`) and scores each live player's unit by distance from the
 // object passed in EBX, so the phase-4 one-line summary ("desirability/weight based on
@@ -29,6 +29,10 @@
 #include "units.h"
 #include "ai.h"
 #include <stdint.h>
+// REWRITTEN 2026-09-28 against objdump 0x4303f0..0x4307b4: when either root cluster is -1 the original
+//   skips only the PVS test and still traces the segment (the draft dropped the player entirely);
+//   distance and facing sums follow the original z, y, x order. Everything else matched.
+
 
 extern data_array *player_data;    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern data_array *object_data;    // 0x008603b0
@@ -105,7 +109,7 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
                 dx = self_position.x - player_position.x;
                 dy = self_position.y - player_position.y;
                 dz = self_position.z - player_position.z;
-                distance_squared = dx * dx + dy * dy + dz * dz;
+                distance_squared = dz * dz + dy * dy + dx * dx; // 0x430506: summed z, y, x
                 if (distance_squared < 900.0f) {
                     line_of_sight_clear = 0;
                     if (require_line_of_sight != 0) {
@@ -132,9 +136,9 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
                         }
                         player_cluster = *(int16_t *)((uint8_t *)((object_header *)object_data->data)
                                                           [previous & 0xffff].data + 0x9c);
-                        if (self_cluster == -1 || player_cluster == -1) {
-                            goto advance;
-                        }
+                        // 0x4305bf: an unknown cluster on either end skips only the PVS test (je 0x430613),
+                        // not the player -- the segment trace below still decides line of sight.
+                        if (self_cluster != -1 && player_cluster != -1) {
                         // ScenarioStructureBSP.clusters.count (+0x134) and
                         // .cluster_data.pointer (+0x14c, the row-major cluster visibility
                         // bitmap); the row stride is ceil(count/32) dwords. Same access as
@@ -145,6 +149,7 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
                                   ((int32_t)player_cluster >> 5)] &
                              (1u << ((uint8_t)player_cluster & 0x1f))) == 0) {
                             goto advance;
+                        }
                         }
                         to_self.i = dx;
                         to_self.j = dy;
@@ -171,9 +176,9 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
                         if (0.0001f < distance) {
                             player_object = ((object_header *)object_data->data)
                                                 [player_unit & 0xffff].data;
-                            facing = (((unit_data *)player_object)->aiming_vector.i * dx +
+                            facing = (((unit_data *)player_object)->aiming_vector.k * dz +
                                       ((unit_data *)player_object)->aiming_vector.j * dy +
-                                      ((unit_data *)player_object)->aiming_vector.k * dz) / distance;
+                                      ((unit_data *)player_object)->aiming_vector.i * dx) / distance; // 0x4306f3
                             if (0.70710677f < facing) {
                                 score = (0.7f - (1.0f - facing) * 3.4142134f * 0.35f) + score;
                             }
