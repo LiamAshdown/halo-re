@@ -1,6 +1,6 @@
 // camera_observer_target_compare  (Ghidra: FUN_0045a4a0; renamed per symbols/review_queue.txt)
 // address 0x45a4a0, size 142 bytes
-// name confidence: 0.4   rewrite confidence: 0.8
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x45a4a0..0x45a52d)
 // evidence: types/game.h observer_target_candidate (0x38 bytes: object 0x00, point 0x04,
 //   offset 0x10, direction 0x1c, distance 0x28, angle 0x2c, weight_primary 0x30,
 //   weight_secondary 0x34); the dword indices below (0xc,0xd,0xa,0xb,0) match those byte

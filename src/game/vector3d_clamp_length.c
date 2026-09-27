@@ -1,6 +1,6 @@
 // vector3d_clamp_length  (Ghidra: vector3d_clamp_length, already named)
 // address 0x459300, size 83 bytes
-// name confidence: 0.8   rewrite confidence: 0.75
+// name confidence: 0.8   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x459300..0x459352)
 // evidence: math_functions-style helper; scales a vector down to a maximum length. All 3
 //   call sites (0x455401, 0x4c5678-ish and 0x4c6080-ish, grep of out/halo_decompiled.c) invoke
 //   this as a bare statement and never use its return value.

@@ -1,6 +1,6 @@
 // distance_falloff_fraction  (Ghidra: FUN_00459360; renamed per symbols/review_queue.txt)
 // address 0x459360, size 78 bytes
-// name confidence: 0.3   rewrite confidence: 0.7
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x459360..0x4593ad)
 // evidence: symbols/review_queue.txt 0x459360 "returns 0 if param_1>=param_2, 1 if param_1 is
 //   below half of param_2, else linearly interpolates between half and full range"; used by
 //   camera_observer_target_score (0x459b10) to turn a raw distance or angle into a 0..1 weight
