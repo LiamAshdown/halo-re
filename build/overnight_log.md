@@ -1583,3 +1583,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   index on the unit. Bad animation index -> bad node matrices -> a unit that stops rendering: CANDIDATE for the
   vanishing cryo tech (he gestures while talking).
 - unit_scripted_action_animation_exists verified (0.9).
+- unit_snap_to_min_ground_height 0x55ecf0 REWRITTEN (0.3 -> 0.9; really the biped jump launch, from biped_update):
+  jump speed along up, AI requested velocity (0x417fa0 with all 5 operands -- the draft passed 2), airborne flag,
+  jump sound triggers.
+- unit_pick_and_ready_next_weapon: the slot finder gets the unit (EAX); the draft dropped it (runs on every seat exit).
+- unit_pickup_weapon verified (0.9; index zero-extended like the binary).

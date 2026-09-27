@@ -1,5 +1,5 @@
 // unit_pickup_weapon  (Ghidra: FUN_0056d400)
-// address 0x56d400, size 519 bytes, name confidence 0.4, rewrite confidence 0.2
+// address 0x56d400, size 519 bytes, name confidence 0.4, rewrite confidence 0.9 (verified against objdump 0x56d400..0x56d606)
 // functions.md: "Handles a unit picking up a nearby weapon object into a free inventory slot,
 // updating attachment/physics state and optionally switching to it immediately."
 // evidence: types/units.h unit_data.weapons[4] (0x2f8), .weapon_ready_ticks[4] (0x308),
@@ -92,7 +92,8 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
                         unit->desired_weapon_index = slot;
                         return 1;
                     }
-                    unit->desired_weapon_index = unit_find_next_zone_permitted_weapon_slot(unit_index, unit->current_weapon_index, 0); // 0x56d5df: EAX unit
+                    unit->desired_weapon_index = unit_find_next_zone_permitted_weapon_slot(unit_index,
+                        (int32_t)(uint16_t)unit->current_weapon_index, 0); // 0x56d5d8: EAX unit, the index zero-extended
                     return 1;
                 }
             }
