@@ -1,7 +1,8 @@
 // ui_build_level_select_list_coop  (Ghidra: FUN_0049cc80, renamed)
 // renamed from FUN_0049cc80 in the naming pass
 // address 0x49cc80, size 318 bytes, sole caller is ui_build_level_select_list (this session)
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x49cc80..0x49cdc5;
+//   fixed the two scan calls (ECX type, EDX profile, ESI level) and the "next level" unlock tests)
 // evidence: functions.md: "Builds the same level-selection list as ui_build_level_select_list,
 // but treats a level as unlocked if either player's (single or co-op) progress buffer has
 // unlocked it." Copies two 0x1ffc-byte profile-shaped records (0x00712dd8 and 0x00714ddc) through
@@ -35,7 +36,8 @@ extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];       // 0x00714ddc,
 extern campaign_level_entry known_campaign_levels_00692acc[10]; // 0x00692acc, TYPES-GAP
 extern int16_t known_solo_level_index_00712f00;                    // 0x00712f00, TYPES-GAP
 
-extern void player_profile_scan_campaign_progress(void); // 0x539e00, foreign (profile module), UNSURE
+extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profile,
+    int16_t *out_level); // 0x539e00, ECX out_type, EDX profile, ESI out_level
 
 // Populates the level-selection widget's list from BOTH players' progress buffers, marking a
 // level's flag bits set if either buffer's per-level byte has them set.
@@ -43,6 +45,8 @@ void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, voi
 {
     uint8_t profile_copy_a[0x2000]; // see file header re the local_4000/abStack_3ee2 overlay
     uint8_t profile_copy_b[0x2000]; // see file header re the local_2004/abStack_1ee6 overlay
+    int16_t level_a = 0, type_a = 0;  // [esp+0x10] / [esp+0x14]
+    int16_t level_b = 0, type_b = 0;  // [esp+0x12] / [esp+0x16]
     int32_t i;
 
     (void)param_2;
@@ -53,19 +57,22 @@ void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, voi
     memcpy(profile_copy_a, profile_globals_block,
            sizeof(profile_copy_a) < sizeof(profile_globals_block) ? sizeof(profile_copy_a)
                                                                     : sizeof(profile_globals_block));
-    player_profile_scan_campaign_progress();
+    // 0x49ccb1..0x49ccbd: ECX = &type, EDX = the profile copy, ESI = &level (read back at 0x49cce9).
+    player_profile_scan_campaign_progress(&type_a, profile_copy_a, &level_a);
     memcpy(profile_copy_b, coop_profile_globals_block_00714ddc,
            sizeof(profile_copy_b) < sizeof(coop_profile_globals_block_00714ddc)
                ? sizeof(profile_copy_b)
                : sizeof(coop_profile_globals_block_00714ddc));
-    player_profile_scan_campaign_progress();
+    player_profile_scan_campaign_progress(&type_b, profile_copy_b, &level_b); // 0x49ccd5..0x49cce4
 
     for (i = 0; i < 10; i++) {
         uint8_t flag_a = profile_copy_a[0x11e + i];
         uint8_t flag_b = profile_copy_b[0x11e + i];
 
         level_select_entries[i].path = known_campaign_levels_00692acc[i].path;
-        if (flag_a != 0 || flag_b != 0 || i == 0) {
+        // 0x49cd00..0x49cd36: unlocked if either profile has the level, is one past either profile's last level,
+        // or it is the first level. (The draft dropped the "next level" tests.)
+        if (flag_a != 0 || i == level_a + 1 || flag_b != 0 || i == level_b + 1 || i == 0) {
             uint32_t flags = (uint32_t)(uint8_t)(flag_b | flag_a);
 
             level_select_entries[i].flag_bit1 = (uint8_t)((flags >> 1) & 1);

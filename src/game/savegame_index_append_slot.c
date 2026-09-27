@@ -1,6 +1,6 @@
 // savegame_index_append_slot  (Ghidra: FUN_0053e300; renamed, no established name)
 // address 0x53e300, size 276 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.85
 // evidence: shares the file_reference reset preamble with the sibling savegame_index_read_slot.c
 //   / savegame_index_write_slot.c (this batch); the size check `size / 0x206 < 999` caps the
 //   index at 999 records before appending a new one at the current end and reporting the new
@@ -25,10 +25,10 @@ extern file_reference savegame_directory_file_reference; // 0x00721330
 extern network_mutex_record *savegame_index_mutex; // 0x00721440, networking.h record; +0x00 is the HANDLE
 
 extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0
-extern uint8_t file_reference_close(void); // 0x555890
-extern uint8_t file_reference_seek(void); // 0x5558f0
+extern uint8_t file_reference_close(file_reference *reference); // 0x555890, ESI ref
+extern uint8_t file_reference_seek(int32_t offset, file_reference *reference); // 0x5558f0, EAX offset, ECX ref
 extern uint32_t file_reference_get_size(file_reference *reference); // 0x555950
-extern uint8_t file_reference_write(void); // 0x555a90
+extern uint8_t file_reference_write(file_reference *reference, const void *buffer, uint32_t size); // 0x555a90, EDX ref, ECX buffer, ESI size
 extern void path_append_component(char *destination, const char *component); // 0x555ec0
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
 extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
@@ -46,7 +46,10 @@ extern uint32_t ReleaseMutex(void *handle); // Win32
 // If the index file has fewer than 999 records, seeks to the end and writes a new record
 // (source elided, same as savegame_index_write_slot), reporting the new record's slot number
 // through `*out_slot_count`. Returns 1 on success, 0 otherwise.
-uint8_t savegame_index_append_slot(uint32_t unused, uint32_t *out_slot_count)
+// FIXED 2026-09-27 (static loop) from objdump 0x53e300..0x53e40d: the first stack argument ([esp+0x14] at 0x53e3be)
+// is the 0x206-byte entry appended at record index size / 0x206 (must be < 999); the draft named it "unused" and
+// called seek / write / close with no arguments, so creating a profile never registered it in the index.
+uint8_t savegame_index_append_slot(const void *entry, uint32_t *out_slot_count)
 {
     uint8_t result = 0;
     uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
@@ -76,12 +79,13 @@ uint8_t savegame_index_append_slot(uint32_t unused, uint32_t *out_slot_count)
     if (file_reference_open(&savegame_directory_file_reference, 2) != 0) {
         uint32_t size = file_reference_get_size(&savegame_directory_file_reference);
         if (size / 0x206 < 999) {
-            if (file_reference_seek() != 0 && file_reference_write() != 0) {
+            if (file_reference_seek((int32_t)(size / 0x206) * 0x206, &savegame_directory_file_reference) != 0 &&
+                file_reference_write(&savegame_directory_file_reference, entry, 0x206) != 0) {
                 result = 1;
                 *out_slot_count = size / 0x206;
             }
         }
-        if (file_reference_close() == 0) {
+        if (file_reference_close(&savegame_directory_file_reference) == 0) {
             result = 0;
         }
     }

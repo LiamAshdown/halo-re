@@ -1,6 +1,6 @@
 // savegame_index_write_slot  (Ghidra: FUN_0053e1f0; renamed, no established name)
 // address 0x53e1f0, size 267 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.85
 // evidence: identical shape to the sibling savegame_index_read_slot.c (this batch), open mode 2
 //   (write) and file_reference_write in place of mode 1 / file_reference_read; record size 0x206
 //   per out/phase4/game_types_notes.md.
@@ -24,10 +24,10 @@ extern file_reference savegame_directory_file_reference; // 0x00721330
 extern network_mutex_record *savegame_index_mutex; // 0x00721440, networking.h record; +0x00 is the HANDLE
 
 extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0
-extern uint8_t file_reference_close(void); // 0x555890
-extern uint8_t file_reference_seek(void); // 0x5558f0
+extern uint8_t file_reference_close(file_reference *reference); // 0x555890, ESI ref
+extern uint8_t file_reference_seek(int32_t offset, file_reference *reference); // 0x5558f0, EAX offset, ECX ref
 extern uint32_t file_reference_get_size(file_reference *reference); // 0x555950
-extern uint8_t file_reference_write(void); // 0x555a90, UNSURE args elided
+extern uint8_t file_reference_write(file_reference *reference, const void *buffer, uint32_t size); // 0x555a90, EDX ref, ECX buffer, ESI size
 extern void path_append_component(char *destination, const char *component); // 0x555ec0
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
 extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
@@ -43,7 +43,10 @@ extern uint32_t ReleaseMutex(void *handle); // Win32
 
 // As savegame_index_read_slot, but opens the index file for writing and writes `slot`'s record
 // instead of reading it.
-uint8_t savegame_index_write_slot(uint16_t slot)
+// FIXED 2026-09-27 (static loop) from objdump 0x53e1f0..0x53e2fa: the second stack argument ([esp+0x14] at
+// 0x53e2ae) is the 0x206-byte index entry written at slot * 0x206; the draft had no entry parameter and called
+// seek / write / close with no arguments, so a profile rename never reached the index file.
+uint8_t savegame_index_write_slot(uint16_t slot, const void *entry)
 {
     uint8_t result = 0;
     uint32_t wait_result = WaitForSingleObject(savegame_index_mutex->handle, 5000);
@@ -73,14 +76,14 @@ uint8_t savegame_index_write_slot(uint16_t slot)
     if (file_reference_open(&savegame_directory_file_reference, 2) != 0) {
         uint32_t size = file_reference_get_size(&savegame_directory_file_reference);
         if ((uint32_t)slot * 0x206 + 0x206 <= size) {
-            if (file_reference_seek() != 0) {
+            if (file_reference_seek((int32_t)slot * 0x206, &savegame_directory_file_reference) != 0) {
                 result = 1;
-                if (file_reference_write() == 0) {
+                if (file_reference_write(&savegame_directory_file_reference, entry, 0x206) == 0) {
                     result = 0;
                 }
             }
         }
-        if (file_reference_close() == 0) {
+        if (file_reference_close(&savegame_directory_file_reference) == 0) {
             result = 0;
         }
     }

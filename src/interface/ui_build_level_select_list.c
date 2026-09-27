@@ -1,7 +1,8 @@
 // ui_build_level_select_list  (Ghidra: ui_build_level_select_list, already named)
 // address 0x49c8f0, size 892 bytes, callers=0 in this build (dead code, kept per task rules --
 // not listed as misattributed by out/phase4/interface_types_notes.md)
-// name confidence: 0.75   rewrite confidence: 0.2
+// name confidence: 0.75   rewrite confidence: 0.6 (2026-09-27 static loop: the two register-argument calls
+//   and the unlock test were fixed from objdump 0x49c93a..0x49ca69; the rest is not re-verified)
 // evidence: matches the given name; functions.md: "Populates the level-selection widget's list
 // with up to ten playable campaign levels (localized name, level index, current-selection flag)
 // based on the player's unlock progress." ui_build_level_select_list_coop (0x49cc80, this session's range) is the
@@ -63,8 +64,10 @@ extern uint8_t quit_confirm_error_is_error;                       // 0x00718fb1
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, void *param_3); // 0x49cc80
 extern int32_t growable_array_add_element(growable_array *array); // 0x4cf810
-extern uint8_t game_state_read_checkpoint_summary(void); // 0x538320, foreign (profile module), UNSURE
-extern void player_profile_scan_campaign_progress(void);    // 0x539e00, foreign (profile module), UNSURE
+extern uint8_t game_state_read_checkpoint_summary(uint8_t *corrupt_flag, int16_t *out_difficulty,
+    char *out_scenario_name); // 0x538320, EAX corrupt_flag, ESI out_difficulty, EDI out_scenario_name
+extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profile,
+    int16_t *out_level); // 0x539e00, ECX out_type, EDX profile, ESI out_level
 extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
 extern void _wcscpy(uint16_t *dest, const uint16_t *src);
 extern int32_t __stricmp(const char *a, const char *b);
@@ -79,6 +82,8 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
 {
     datum_index string_list_tag;
     uint8_t profile_copy[0x2000]; // see file header: covers Ghidra's local_2008 + acStack_1eea
+    int16_t scan_type = 0;        // [esp+0x10]
+    int16_t scan_level = 0;       // [esp+0x14]
     int32_t i;
 
     if (local_player_count > 1) {
@@ -92,14 +97,18 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
 
     if (current_profile_index != level_select_cached_profile_index_00692af8) {
         memset(level_select_current_path_00719068, 0, sizeof(level_select_current_path_00719068));
-        level_select_flags_0071916b = game_state_read_checkpoint_summary();
+        // 0x49c97d..0x49c991: EAX = &0x0071916c, ESI = &0x00719168, EDI = the path buffer 0x00719068.
+        level_select_flags_0071916b = game_state_read_checkpoint_summary(&level_select_flags_0071916c,
+            &level_select_frame_00719168, level_select_current_path_00719068);
         level_select_cached_profile_index_00692af8 = current_profile_index;
     }
 
     memcpy(profile_copy, profile_globals_block, sizeof(profile_copy) < sizeof(profile_globals_block)
                                                      ? sizeof(profile_copy)
                                                      : sizeof(profile_globals_block));
-    player_profile_scan_campaign_progress();
+    // 0x49c9ac..0x49c9b8: ECX = &out_type, EDX = the profile copy, ESI = &out_level (the loop's "last level + 1"
+    // unlock test at 0x49ca69 reads out_level, not 0x00712f00).
+    player_profile_scan_campaign_progress(&scan_type, profile_copy, &scan_level);
 
     ui_lists[0].element_size = 0x10;
     ui_lists[1].element_size = 0x10;
@@ -131,7 +140,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
 
         level_select_entries[i].path = known_campaign_levels_00692acc[i].path;
 
-        if (profile_copy[0x11e + i] != 0 || i == known_solo_level_index_00712f00 + 1 || i == 0) {
+        if (profile_copy[0x11e + i] != 0 || i == scan_level + 1 || i == 0) {
             uint32_t flags = (uint32_t)(uint8_t)profile_copy[0x11e + i];
 
             level_select_entries[i].flag_bit1 = (uint8_t)((flags >> 1) & 1);

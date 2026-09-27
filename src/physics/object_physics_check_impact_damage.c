@@ -1,6 +1,8 @@
 // object_physics_check_impact_damage  (Ghidra: FUN_00508b70; renamed)
 // address 0x508b70, size 1355 bytes
-// name confidence: 0.4   rewrite confidence: 0.35 -- raised from 0.2 by the phase-4 integration
+// name confidence: 0.4   rewrite confidence: 0.85 -- VERIFIED 2026-09-27 (static loop) against objdump
+//   0x508b70..0x5090ba end to end (every local, push order and constant: 0.5, 1/64, 0.8, 0.1, 1/15,
+//   1/900, -1.0); the only defect left was the test_point call (fixed below). Earlier history: raised from 0.2 by the phase-4 integration
 //   pass, which re-derived the whole body line by line against `python tools/pack.py 0x508b70`
 //   and corrected eight places where the first rewrite had drifted:
 //     - local_aca0/9c/98 (the impulse vector) and local_ac94 (a scratch float) had been fused,
@@ -73,9 +75,8 @@ extern float k_impact_damage_scale_table[]; // 0x0069c54c, indexed by material t
 
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
     float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
-extern uint8_t object_collision_context_test_point(real_point3d *out_point); // 0x504e90, this module (lower half);
-                                                       // UNSURE args, object_index assumed still
-                                                       // live from this function's own param_1
+extern uint32_t object_collision_context_test_point(object_collision_context *context,
+    real_point3d *point); // 0x504e90, EBX context, stack point
 extern uint8_t object_collision_context_gather_sphere_shapes(void *context,
     real_point3d *origin, float radius_scale, float margin, float thickness,
     physics_model *model); // 0x505200, this module; param_1 is this function's own param_1, the
@@ -118,7 +119,10 @@ uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t
     //   (pill height), EBX = &sample[1] (pill radius). The draft passed only the buffer.
     unit_get_crouch_height_offset(contact_point, candidate_object_index, &sample[0], &sample[1]);
 
-    if (!object_collision_context_test_point(contact_point)) {
+    // FIXED 2026-09-27 (static loop): 0x508b9e..0x508bad is `mov ebx,[arg1] / push &contact / call 0x504e90` --
+    // EBX = the caller's collision context, the point on the stack. The draft passed only the point, so the callee
+    // used the point as the context and read a garbage point.
+    if (!object_collision_context_test_point((object_collision_context *)self_object_index, contact_point)) {
         physics_model model;
         physics_model_contact contact;
         float sphere_radius;           // local_ac94 in its first role

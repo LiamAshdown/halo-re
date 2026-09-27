@@ -1,7 +1,7 @@
 // object_collision_context_test_point  (Ghidra: FUN_00504e90, still unnamed there; phase-2
 // guessed object_nodes_test_bsp_leaf)
 // address 0x504e90, size 202 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85
 // evidence: out/phase4/physics_functions.md ("Checks whether all of an object's collision nodes
 //   resolve to a valid BSP leaf, i.e. are not embedded outside the world's collision geometry.");
 //   types/physics.h object_collision_context (object_index, definition, region_permutations,
@@ -16,7 +16,7 @@
 //   (real_point3d *, the query point; never read directly in this function's own body -- it
 //   only survives, untouched, into the matrix4x3_inverse_transform_point call at the bottom of
 //   the loop, which is why Ghidra shows no "in_ESI" here at all). No stack parameters.
-//   // blam-cc: EBX -> context, ESI -> point
+//   // blam-cc: EBX -> context, stack -> point (0x504f1b `mov esi,[esp+0x24]`)
 // UNSURE: the local_point scratch matrix4x3_inverse_transform_point/bsp3d_node_find_leaf share
 //   is likewise invisible in Ghidra's own decompile (no local ever named for it); reconstructed
 //   from the identical local-buffer pattern the three sibling per-node-loop functions in this
@@ -38,7 +38,7 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 // all (the bsp3d_node_find_leaf "solid" sentinel, as opposed to an ordinary leaf) -- meaning
 // the point is embedded in that node's collision geometry. Nodes whose region has no active
 // permutation, or whose active BSP is empty, are skipped.
-// blam-cc: EBX -> context, ESI -> point
+// blam-cc: EBX -> context, stack -> point (0x504f1b `mov esi,[esp+0x24]`)
 uint32_t object_collision_context_test_point(object_collision_context *context, real_point3d *point)
 {
     ModelCollisionGeometry *definition = context->definition;
@@ -51,7 +51,9 @@ uint32_t object_collision_context_test_point(object_collision_context *context, 
         if (node->region != 0xffff) {
             uint8_t permutation = context->region_permutations[node->region];
 
-            if (permutation != 0xff && node->bsps.count > 0) {
+            // 0x504edb..0x504ee4: `movzx dx,byte / cmp dx,0xffff` can never match, so a 0xff permutation is NOT
+            // skipped -- it is clamped to the last bsp like any other out-of-range index. (The draft skipped it.)
+            if (node->bsps.count > 0) {
                 int32_t bsp_index = permutation;
                 ModelCollisionGeometryBSP *bsps = (ModelCollisionGeometryBSP *)node->bsps.pointer;
                 ModelCollisionGeometryBSP *bsp;
