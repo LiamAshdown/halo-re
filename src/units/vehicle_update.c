@@ -17,8 +17,8 @@
 //   are held inside the altitude band (0x746f9c +0x10 / +0x14); at rest the recoil decays. Tag flag 0x40
 //   damages the riders on hard landings (matg +0x18c). Then the animation state machine and the "~blur"
 //   permutation (|forward speed| >= tag +0x318). Returns 1.
-// OPEN: vehicle_calculate_turret_controls / steering_wheel / lean (types 0..2) also receive a buffer in EDI /
-//   ESI (esp+0x88) that their C signatures do not take.
+// FIXED: vehicle_calculate_turret_controls / steering_wheel / lean (types 0..2) receive the [esp+0x88] buffer
+//   (node_output, the powered mass points) in EDI / ESI; it is now their third parameter.
 // blam-cc: stack -> object_index
 
 #include "tags.h"
@@ -52,9 +52,9 @@ extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); // 0x56cc80,
 extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step); // 0x50b460, EDX, ECX
 extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target,
                                                  float rate); // 0x50b2f0, ESI, EDX, stack
-extern void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2); // 0x572b60 (+ EDI)
-extern void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_2); // 0x572cd0 (+ EDI)
-extern void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2); // 0x572df0 (+ ESI)
+extern void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2, float *powered_states); // 0x572b60, stack + EDI
+extern void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_2, float *powered_states); // 0x572cd0, stack + EDI
+extern void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2, float *powered_states); // 0x572df0, stack + ESI
 extern void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_transform); // 0x573100
 extern void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint8_t *node_output,
                                                  uint8_t *contact_points); // 0x5734d0
@@ -236,9 +236,9 @@ uint32_t vehicle_update(uint32_t object_index)
             // 0x571505: run the physics
             b = *(real_vector3d *)(obj + 0x68);
             switch (*(int16_t *)(tag + 0x2f4)) {
-            case 0: vehicle_calculate_turret_controls(object_index, contact_points); break;
-            case 1: vehicle_calculate_steering_wheel_controls(object_index, contact_points); break;
-            case 2: vehicle_calculate_lean_controls(object_index, contact_points); break;
+            case 0: vehicle_calculate_turret_controls(object_index, contact_points, (float *)node_output); break; // EDI = [esp+0x88]
+            case 1: vehicle_calculate_steering_wheel_controls(object_index, contact_points, (float *)node_output); break;
+            case 2: vehicle_calculate_lean_controls(object_index, contact_points, (float *)node_output); break; // ESI = [esp+0x88]
             case 3: vehicle_calculate_ground_lean_controls(object_index, contact_points); break;
             case 4: vehicle_calculate_wing_flex_controls(object_index, angle, node_output, contact_points); break;
             case 5: vehicle_calculate_mounted_controls_dispatch(object_index, contact_points, node_output); break;

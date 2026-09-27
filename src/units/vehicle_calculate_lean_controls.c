@@ -2,7 +2,7 @@
 // address 0x572df0, size 779 bytes
 // name confidence: 0.35 (phase2 proposal at 0.35, matches functions.md summary; dispatched from
 //   vehicle_update's case 2)
-// rewrite confidence: 0.15 -- the output record (unaff_ESI) is entirely register-resident with
+// rewrite confidence: 0.85 (REWRITTEN from objdump 0x572df0..0x5730fa) -- the output record (unaff_ESI) is entirely register-resident with
 //   no traceable origin, so its dozen-plus field writes are reproduced at their literal byte
 //   offsets rather than through a named struct.
 // evidence: types/units.h vehicle_data.turning_velocity (0x4dc); types/objects.h object.velocity
@@ -27,79 +27,108 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_vector3d *global_up3d_pointer; // 0x00696720
-
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
-                                    real_vector3d *stack_operand); // 0x4052c0
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,
-                                        real cos_angle); // 0x4cd820
-extern real vector3d_angle_between_4cd4f0(void); // 0x4cd4f0, UNSURE signature  // real signature (vector3d_angle_between_4cd4f0.c): real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); Ghidra recovered 0 of 2 args at this call site
-extern void object_physics_tick(uint32_t unit_index, uint32_t param_2, void *transform,
-                          uint32_t param_4, uint32_t param_5); // 0x507840, UNSURE signature
+extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points,
+    real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
+extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
+extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
 extern double fabs(double x);
 
-// Computes a lean/tilt rotation control transform for a vehicle-type unit based on its current
-// angular velocity, only when the supporting object's physics type is 3; otherwise dispatches
-// generically.
-// UNSURE: reproduced only partially; see the file header.
-void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2)
+// REWRITTEN from objdump. Physics tag +0x68 != 3: object_physics_tick(unit, 0, contacts, 0, 0). Otherwise the ESI
+//   powered-mass-point buffer (vehicle_update [esp+0x88]) gets the drive: +0x04 forward speed, +0x0c/+0x6c 0.003,
+//   +0x24/+0x28 sin/cos of turn * 0.5 * (1 - min(|speed| * 2.5, 1)), +0x88/+0xe8 1.0, +0xcc 0.005, the rest 0.
+//   The roll torque about the forward axis comes from the angle between the unit's up and the target up
+//   (world up minus its forward component, rotated about forward by 2pi * ((velocity x forward) . world up)),
+//   signed by the side of (forward x up), sqrt-shaped, minus the current forward spin, clamped to +-0.01396 and
+//   scaled by physics +0x50. object_physics_tick(unit, ESI, contacts, &zero, &torque) then runs. The draft
+//   called every helper without arguments and had no buffer.
+// blam-cc: stack -> unit_index, param_2 (contact points); ESI -> powered_states
+void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2, float *powered_states)
 {
-    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
-    uint8_t *out_record = 0; // UNSURE: stands in for unaff_ESI; see file header
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)(tag + 0x8c) & 0xffff].data;
+    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
+    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
+    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
+    real_vector3d *world_up = global_up3d_pointer;
+    uint8_t *ps = (uint8_t *)powered_states;
+    real_vector3d zero_force;
+    real_vector3d torque;
+    real speed_factor, half_turn, steer;
 
-    if (*(int32_t *)(physics_tag + 0x68) != 3) {
+    if (*(int32_t *)(physics + 0x68) != 3) {
         object_physics_tick(unit_index, 0, param_2, 0, 0);
         return;
     }
 
-    {
-        double speed = fabs(sqrt((double)(obj->velocity.k * obj->velocity.k +
-                                          obj->velocity.j * obj->velocity.j +
-                                          obj->velocity.i * obj->velocity.i)) * 2.5);
-        vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
-        double lean_fraction = (speed > 1.0) ? 1.0 : speed;
-        double half_angle = (1.0 - lean_fraction) * (double)(vehicle->turning_velocity * 0.5f);
-
-        *(float *)(out_record + 4) = vehicle->forward_velocity;
-        *(uint32_t *)(out_record + 0xc) = 0x3b449ba6;
-        *(uint32_t *)(out_record + 0x1c) = 0;
-        *(uint32_t *)(out_record + 0x20) = 0;
-        *(float *)(out_record + 0x24) = (float)sin(half_angle);
-        *(float *)(out_record + 0x28) = (float)cos(half_angle);
-        *(uint32_t *)(out_record + 0x6c) = 0x3b449ba6;
-        *(uint32_t *)(out_record + 0x7c) = 0;
-        *(uint32_t *)(out_record + 0x80) = 0;
-        *(uint32_t *)(out_record + 0x84) = 0;
-        *(uint32_t *)(out_record + 0x88) = 0x3f800000;
-        *(uint32_t *)(out_record + 0xcc) = 0x3ba3d70a;
-        *(uint32_t *)(out_record + 0xe8) = 0x3f800000;
-        *(uint32_t *)(out_record + 0xdc) = 0;
-        *(uint32_t *)(out_record + 0xe0) = 0;
-        *(uint32_t *)(out_record + 0xe4) = 0;
+    speed_factor = (real)fabs((double)((real)sqrt((double)(velocity->i * velocity->i + velocity->j * velocity->j +
+        velocity->k * velocity->k)) * 2.5f));
+    half_turn = *(real *)(obj + 0x4dc) * 0.5f;
+    if (!(speed_factor <= 1.0f)) {
+        speed_factor = 1.0f;
     }
+    steer = (1.0f - speed_factor) * half_turn;
+    *(real *)(ps + 0x04) = *(real *)(obj + 0x4d4);
+    *(uint32_t *)(ps + 0x0c) = 0x3b449ba6; // 0.003
+    *(real *)(ps + 0x1c) = 0.0f;
+    *(real *)(ps + 0x20) = 0.0f;
+    *(real *)(ps + 0x24) = (real)sin((double)steer);
+    *(real *)(ps + 0x28) = (real)cos((double)steer);
+    *(uint32_t *)(ps + 0x6c) = 0x3b449ba6;
+    *(real *)(ps + 0x7c) = 0.0f;
+    *(real *)(ps + 0x80) = 0.0f;
+    *(real *)(ps + 0x84) = 0.0f;
+    *(real *)(ps + 0x88) = 1.0f;
+    *(uint32_t *)(ps + 0xcc) = 0x3ba3d70a; // 0.005
+    *(real *)(ps + 0xe8) = 1.0f;
+    *(real *)(ps + 0xdc) = 0.0f;
+    *(real *)(ps + 0xe0) = 0.0f;
+    *(real *)(ps + 0xe4) = 0.0f;
+    zero_force.i = 0.0f;
+    zero_force.j = 0.0f;
+    zero_force.k = 0.0f;
 
-    {
-        real_vector3d axis = obj->angular_velocity;
-        real length = vector3d_normalize_with_length(&axis);
-        if (length != 0.0f) {
-            real_vector3d unused1, unused2;
-            float angle;
+    torque.i = -forward->k * forward->i + world_up->i;
+    torque.j = -forward->k * forward->j + world_up->j;
+    torque.k = -forward->k * forward->k + world_up->k;
+    if (vector3d_normalize_with_length(&torque) == 0.0f) {
+        torque.i = 0.0f;
+        torque.j = 0.0f;
+        torque.k = 0.0f;
+    } else {
+        real_vector3d side;
+        real_vector3d slip;
+        real angle, spin, w;
+        int32_t sign;
 
-            vector3d_cross_product(&unused1, &obj->up, &axis); // UNSURE operand order/use
-            vector3d_cross_product(&unused2, &obj->forward, &axis); // UNSURE operand order/use
-            angle = (unused2.i * global_up3d_pointer->i + unused2.j * global_up3d_pointer->j +
-                     unused2.k * global_up3d_pointer->k) * 6.2831855f;
-            vector3d_rotate_about_axis(&axis, &axis, (real)sin((double)angle), (real)cos((double)angle)); // UNSURE args
-            vector3d_angle_between_4cd4f0();
+        vector3d_cross_product(&side, forward, up);
+        vector3d_cross_product(&slip, velocity, forward);
+        angle = (slip.i * world_up->i + slip.j * world_up->j + slip.k * world_up->k) * 6.2831855f;
+        vector3d_rotate_about_axis(&torque, forward, (real)sin((double)angle), (real)cos((double)angle));
+        angle = vector3d_angle_between_4cd4f0(up, &torque);
+        if (side.k * torque.k + side.j * torque.j + side.i * torque.i > 0.0f) {
+            angle = -angle;
         }
+        spin = forward->k * angular_velocity->k + forward->j * angular_velocity->j + forward->i * angular_velocity->i;
+        sign = (angle == 0.0f) ? 0 : (angle >= 0.0f ? 1 : -1);
+        w = (real)sqrt(fabs((double)angle) * 0.027925269678235054) * (real)sign - spin;
+        if (!(w >= -0.013962635f)) {
+            w = -0.013962635f;
+        } else if (!(w <= 0.013962635f)) {
+            w = 0.013962635f;
+        }
+        w = w * *(real *)(physics + 0x50);
+        torque.i = w * forward->i;
+        torque.j = w * forward->j;
+        torque.k = w * forward->k;
     }
-
-    object_physics_tick(unit_index, 0, out_record, 0, 0);
+    object_physics_tick(unit_index, powered_states, param_2, &zero_force, &torque);
 }
 
 #if 0

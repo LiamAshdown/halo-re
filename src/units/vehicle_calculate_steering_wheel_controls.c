@@ -3,7 +3,7 @@
 // address 0x572cd0, size 288 bytes
 // name confidence: 0.4 (phase2 proposal at 0.4, matches functions.md summary; dispatched from
 //   vehicle_update's case 1)
-// rewrite confidence: 0.3
+// rewrite confidence: 0.9 (VERIFIED against objdump; EDI buffer FIXED)
 // evidence: types/units.h vehicle_data.wheel_rotation (0x4e0, "0x572cd0 accumulates
 //   forward_velocity into it and wraps it at wheel_circumference"), .forward_velocity (0x4d4),
 //   .turning_velocity (0x4dc); types/tags.h Vehicle.wheel_circumference (0x310); parallel
@@ -34,13 +34,16 @@ extern double sin(double x);
 // unit each tick: accumulates and wraps the wheel-rotation angle, then either dispatches
 // generically or writes a pair of scalar+quaternion blocks (rotated by half the turning angle
 // about a fixed axis) when the supporting object's physics type is 2.
-void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_2)
+// FIXED (objdump 0x572d6e..0x572dc7): EDI is the caller's powered-mass-point buffer; with physics type 2 it gets the
+//   drive/steer entries and object_physics_tick(unit, EDI, contacts, 0, 0) runs. The draft wrote through NULL.
+// blam-cc: stack -> unit_index, param_2 (contact points); EDI -> powered_states
+void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_2, float *powered_states)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
-    float *out_transform = 0; // UNSURE: stands in for unaff_EDI; see vehicle_calculate_turret_controls.c
+    float *out_transform = powered_states; // EDI
     float wrapped;
 
     vehicle->wheel_rotation = vehicle->forward_velocity + vehicle->wheel_rotation;
@@ -71,7 +74,7 @@ void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_
         out_transform[0x21] = -s;
         out_transform[0x22] = c;
     }
-    object_physics_tick(unit_index, 0, out_transform, 0, 0);
+    object_physics_tick(unit_index, (uint32_t)out_transform, param_2, 0, 0);
 }
 
 #if 0

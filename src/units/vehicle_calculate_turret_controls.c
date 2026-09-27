@@ -2,7 +2,7 @@
 // address 0x572b60, size 361 bytes
 // name confidence: 0.4 (phase2 proposal at 0.4, matches functions.md summary; dispatched from
 //   vehicle_update's case 0)
-// rewrite confidence: 0.25
+// rewrite confidence: 0.9 (VERIFIED against objdump; EDI buffer FIXED)
 // evidence: types/units.h vehicle_data.forward_velocity (0x4d4), .turning_velocity (0x4dc),
 //   .left_wheel_rotation/.right_wheel_rotation (0x4e4/0x4e8); types/tags.h Vehicle.wheel_circumference
 //   (0x310); the physics.tag_id-at-0x8c idiom (here indexing a SECOND tag_instances lookup, so
@@ -35,12 +35,16 @@ extern void object_physics_tick(uint32_t unit_index, uint32_t param_2, void *tra
 // tick, accumulating and wrapping left/right wheel-rotation-shaped angle accumulators, and
 // dispatches to object_physics_tick -- either generically, or (when the supporting object's physics
 // type is 2) by writing a pair of scalar+identity-quaternion blocks directly into out_transform.
-void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2)
+// FIXED (objdump 0x572c62..0x572ca0): EDI is the caller's powered-mass-point buffer (vehicle_update [esp+0x88]);
+//   with physics type 2 its two entries get the left/right drive and object_physics_tick(unit, EDI, contacts, 0,
+//   0) runs. The draft wrote through a NULL stand-in and passed it as the contact buffer.
+// blam-cc: stack -> unit_index, param_2 (contact points); EDI -> powered_states
+void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2, float *powered_states)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
-    float *out_transform = 0; // UNSURE: stands in for unaff_EDI; see file header
+    float *out_transform = powered_states; // EDI
     float forward = vehicle->forward_velocity;
     float turning = vehicle->turning_velocity;
     uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
@@ -75,7 +79,7 @@ void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2)
     out_transform[0x20] = 0.0f;
     out_transform[0x21] = 0.0f;
     out_transform[0x22] = 1.0f;
-    object_physics_tick(unit_index, 0, out_transform, 0, 0);
+    object_physics_tick(unit_index, (uint32_t)out_transform, param_2, 0, 0);
 }
 
 #if 0

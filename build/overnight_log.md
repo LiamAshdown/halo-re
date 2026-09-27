@@ -1720,3 +1720,7 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
   - The first crash was not a code bug: scratchpad/cdb_child.txt still held hard-coded breakpoints from the vanish-tracing session, which after the relinks landed mid-instruction (privileged instruction in update_client_queue_apply_tick). They are removed (the old copy is kept as scratchpad/cdb_child_trace_old.txt).
   - The real crash was vehicle_update -> vehicle_calculate_ground_lean_controls (type 3, a vehicle in the menu scene), whose math helpers were all called without arguments. Game-state cursor at the crash: 0x3fd68c of 0x400000, so the pool fix does not overflow.
 - vehicle_calculate_ground_lean_controls (0x573100) REWRITTEN from objdump (0.1 -> 0.85): lean easing, desired basis from the facing, side-slip rotation, the axis-angle torque from the basis difference, forward/up force, then object_physics_tick(obj, 0, contacts, &F, &T) and the thruster effects.
+- Vehicle solvers, types 0..2:
+  - turret and steering_wheel: VERIFIED except that the EDI powered-mass-point buffer (vehicle_update [esp+0x88]) was a NULL stand-in written through and passed as the contact buffer. It is now a real parameter, and object_physics_tick gets (unit, buffer, contacts, 0, 0) (0.9).
+  - vehicle_calculate_lean_controls (0x572df0, type 2): REWRITTEN (0.15 -> 0.85). Drive/steer entries in the ESI buffer, then the roll-correcting torque about forward.
+  - vehicle_update passes node_output as the third argument.
