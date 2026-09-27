@@ -1,6 +1,6 @@
 // biped_trigger_on_velocity_threshold  (Ghidra: biped_trigger_on_velocity_threshold, renamed)
 // address 0x55ec20, size 109 bytes
-// name confidence: 0.3   rewrite confidence: 0.5
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x55ec20..0x55ec8c)
 // evidence: biped_data.unknown_502 (types/units.h), object.velocity (0x068, objects.h).
 // blam-cc: EAX -> object_index
 // FIXED (register inputs, objdump): this file had no blam-cc note at all; EAX carries

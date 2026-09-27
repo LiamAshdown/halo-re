@@ -1,6 +1,6 @@
 // effect_marker_environment_probe  (Ghidra: FUN_004533b0, still unnamed there)
 // address 0x4533b0, size 222 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.9 (VERIFIED against objdump 0x4533b0..0x45348d; index order FIXED)
 // evidence: types/tags.h TagReflexive (count at +0, pointer at +4) matches the single bounds
 //   check against the tag's own data; types/math.h global_down3d_pointer-shaped constant at
 //   0x0069672c (documented in types/projectiles.h as "the constant 'down' vector"); the call to
@@ -73,7 +73,9 @@ void effect_marker_environment_probe(uint32_t definition_index, int16_t location
 
             // 0x45346a..0x453480: EAX = definition, EDX = &result.point, EDI = &result.plane (its normal),
             // push location_index, material_type, &result.leaf, and this function's second stack argument
-            material_effects_play_at_marker(definition_index, material_type, location_index,
+            // FIXED: the first stack argument (the callee's effect-type index) is ESI = location_index and the
+            //   second (the material) is the surface material; the draft swapped them.
+            material_effects_play_at_marker(definition_index, location_index, material_type,
                                              (uint32_t *)&result.leaf, sound_param, &result.point,
                                              (real_vector3d *)&result.plane);
         }

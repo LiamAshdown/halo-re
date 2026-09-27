@@ -1,7 +1,7 @@
 // unit_update_footstep_and_idle_triggers  (Ghidra: unit_update_footstep_and_idle_triggers)
 // address 0x560410, size 359 bytes
 // name confidence: 0.3 (renamed from the phase2 candidate "unit_update_vehicle_seat_reaction";
-//   see UNSURE below)   rewrite confidence: 0.35
+//   see UNSURE below)   rewrite confidence: 0.9 (VERIFIED against objdump 0x560410..0x560576; idle counter reset FIXED)
 // evidence: types/objects.h object.animation_graph/animation_index/animation_frame (0xcc/0xd0/
 //   0xd2); types/tags.h ModelAnimationsAnimation (stride 0xb4, left_foot_frame_index at +0x40,
 //   right_foot_frame_index at +0x41); types/units.h unit_data.animation_state (0x2a3),
@@ -91,6 +91,7 @@ idle_timeout:
         }
         unit_fire_animation_sound_trigger(unit_index, 3, 0);
         unit_fire_animation_sound_trigger(unit_index, 3, 1);
+        biped->unknown_503 = 0; // FIXED (0x56056d): the counter restarts after the idle trigger fires
     } else if (biped->movement_state == 1) {
         biped->unknown_503 = 1;
         return;

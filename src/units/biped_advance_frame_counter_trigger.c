@@ -1,6 +1,6 @@
 // biped_advance_frame_counter_trigger  (Ghidra: biped_advance_frame_counter_trigger, renamed)
 // address 0x55eb90, size 143 bytes
-// name confidence: 0.3   rewrite confidence: 0.4
+// name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x55eb90..0x55ec1e)
 // evidence: biped_data.unknown_4d0/unknown_4d1/unknown_508 (types/units.h, see
 //   biped_update_animation_frame_trigger); 0x006f187c is a globals structure whose +9 byte gates
 //   several trigger paths (UNSURE, not named elsewhere in this batch).

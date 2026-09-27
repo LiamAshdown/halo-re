@@ -1,6 +1,6 @@
 // unit_fire_animation_sound_trigger  (Ghidra: unit_fire_animation_sound_trigger)
 // address 0x560590, size 153 bytes
-// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.35
+// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.9 (VERIFIED against objdump 0x560590..0x560628)
 // evidence: types/units.h k_unit_object_size chain; types/tags.h Biped.footsteps (TagDependency
 //   at 0x38c, tag_id at +0xc = object 0x398) and Biped.contact_point (TagReflexive at 0x4e8,
 //   count at +0x0). object.definition_tag (0x000) resolves through tag_instances to the Biped

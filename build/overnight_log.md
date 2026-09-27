@@ -1772,3 +1772,8 @@ NEXT: the actor TYPE table (0x6853b8 -> 0x20-byte records: name, ..., +0x14 upda
 - Verified 0.9: effect_new, effect_marker_new.
 - particle_next_sequence (0x455e60) FIXED: leaving the initial state falls straight into the looping pick in the same call. The draft's `else if` skipped it, so any particle without initial sequences got sequence -1 and was impacted (deleted) at its first pick, meaning such particles vanished at spawn.
 - Verified 0.9: particle_advance_animation, particle_advance_frame.
+- Footstep and material effect chain:
+  - effect_marker_environment_probe (0x4533b0) had its effect-type and surface-material indices swapped (ESI is the first stack argument).
+  - unit_update_footstep_and_idle_triggers now resets the idle counter after the idle trigger fires; it had retriggered every tick.
+  - Verified 0.9: unit_fire_animation_sound_trigger, biped_advance_frame_counter_trigger, biped_trigger_on_velocity_threshold.
+- Verified 0.9: particles_update, particle_update_physics_default.

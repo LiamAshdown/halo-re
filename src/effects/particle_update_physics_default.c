@@ -1,7 +1,7 @@
 // particle_update_physics_default  (Ghidra: no function created; the phase-4 types agent carved
 //   a placeholder "missed_455350" from the .rdata dispatch-table evidence)
 // address 0x455350, size 369 bytes
-// name confidence 0.6, rewrite confidence 0.55
+// name confidence 0.6, rewrite confidence 0.9 (VERIFIED against objdump 0x455350..0x4554c0)
 // evidence: out/phase4/effects_types_notes.md section 2: the one-entry `.rdata` table at
 //   0x00657450 lists 0x455350 as entry [0], "particle update physics, default". particle_system_
 //   update.c (0x4544f0, already rewritten) calls this table with the exact signature used below:

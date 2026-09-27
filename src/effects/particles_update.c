@@ -3,7 +3,7 @@
 //   or deletes each one", matching types/effects.h's own citation "particles_update 0x455b60
 //   (last_update_tick, age)")
 // address 0x455b60, size 272 bytes
-// name confidence: 0.6   rewrite confidence: 0.55
+// name confidence: 0.6   rewrite confidence: 0.9 (VERIFIED against objdump 0x455b60..0x455c7d)
 // evidence: types/effects.h particle.last_update_tick (+0x10, "a particle more than 0x10 ticks
 //   stale is deleted instead of updated"), age (+0x14), lifespan (+0x18); types/tags.h
 //   Particle.final_sequence_count.
