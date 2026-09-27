@@ -1,6 +1,6 @@
 // encounter_redistribute_squads_toward_targets  (Ghidra: encounter_redistribute_squads_toward_targets, renamed)
 // address 0x4394a0, size 2235 bytes
-// name confidence: 0.35  rewrite confidence: 0.15
+// name confidence: 0.35  rewrite confidence: 0.7 (calls and unassigned-list tail verified against objdump; second movement reset FIXED; squad scoring middle not re-derived)
 // evidence: types/ai.h encounter (unknown_62 target mode, unknown_64 explicit target,
 //   unknown_68 leash distance -- see UNSURE), encounter_squad_state, encounter_platoon_state,
 //   actor (body_position +0x12c, next_in_encounter +0x2c, squad_index +0x3a, platoon_index
@@ -404,6 +404,13 @@ have_targets:
                                     ai_globals_ptr->unknown_08 = next_actor;
                                     member->unknown_09 = 1;
                                     *(uint16_t *)&member->unknown_10 = -(uint16_t)(member->active != 0) & 0x5a;
+                                    // FIXED (0x439d05..0x439d31): the firing position and a type 3 / 4 movement are
+                                    //   reset again before the mode callback
+                                    member->firing_position_index = (int16_t)0xffff;
+                                    if ((member->active_movement.type == 3) || (member->active_movement.type == 4)) {
+                                        member->active_movement.type = 0;
+                                        member->active_movement.extra = 0xffffffff;
+                                    }
                                     {
                                         void (*dispatch)(datum_index) = *(void (**)(datum_index))
                                             ((uint8_t *)&ai_actor_mode_dispatch_table + member->mode * 0x38);
