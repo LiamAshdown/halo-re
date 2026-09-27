@@ -3,7 +3,7 @@
 // review fix (phase 4 math gate): the first draft returned 1 on dot == threshold and on a NaN
 //   dot, and let a NaN length through; the binary's `test ah,0x41 / jne` exits on <= and on
 //   unordered, so both late tests are now written as !(x > y).
-// name confidence: 0.4   rewrite confidence: 0.75
+// name confidence: 0.4   rewrite confidence: 0.95 (VERIFIED against objdump 0x414910..0x41498f)
 // evidence: out/functions.csv / out/phase4/math_functions.md do not cover this address (it is
 //   one of the four large-function-session leftovers this pass was assigned); out/phase2/ai/
 //   01.md's decompile (module=ai (0.8), but the body touches no actor state whatsoever -- two

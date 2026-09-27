@@ -1,6 +1,6 @@
 // actor_point_in_directional_lane  (Ghidra: actor_point_in_directional_lane, renamed)
 // address 0x414990, size 255 bytes
-// name confidence: 0.35  rewrite confidence: 0.4
+// name confidence: 0.35  rewrite confidence: 0.9 (VERIFIED against objdump; in-place axis normalize FIXED)
 // evidence: phase-4 summary "tests whether one point lies within a directional lane/cone
 // relative to another point and forward direction, using per-side angular thresholds"; the
 // only caller in this address range (0x414bd0..0x414c85, inside the not-yet-named function at
@@ -30,6 +30,7 @@
 #include "ai.h"
 
 extern double sqrt(double x); // FSQRT
+extern double fabs(double x);
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
 
 // blam-cc: EAX -> to_point, ECX -> forward, EDX -> cone_axis, stack -> min_cos_threshold,
@@ -39,43 +40,39 @@ extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vecto
 // min_cos_threshold; cone_axis itself must have a usable length (normalized in place here,
 // its new direction unused); and the dot of normalized to_point with forward must reach
 // whichever of side_thresholds[0]/[1] the sign of to_point x forward selects.
+// FIXED (objdump 0x414990..0x414a8e): the 2D FORWARD is copied and the copy normalized (0x414a1f); the draft
+//   normalized cone_axis in place, rewriting the caller's facing cache on every call. Rejections are `<=`.
 uint8_t actor_point_in_directional_lane(real_point3d *to_point, real_point3d *forward, real_point3d *cone_axis,
                                          float min_cos_threshold, float side_thresholds[2])
 {
-    float ax, ay;
+    real_vector2d point;
+    real_vector2d facing;
     float length;
-    float dot_axis;
-    float axis_length;
-    float dot_forward;
+    float inverse;
     float cross;
-    float threshold;
 
-    ax = to_point->x;
-    ay = to_point->y;
-    length = (float)sqrt((double)(ay * ay + ax * ax));
-    if (length < 0.0001f) {
+    point.i = to_point->x;
+    point.j = to_point->y;
+    facing.i = forward->x;
+    facing.j = forward->y;
+    length = (float)sqrt((double)(point.i * point.i + point.j * point.j));
+    if ((float)fabs((double)length) < 0.0001f) {
         return 0;
     }
-    ax = ax * (1.0f / length);
-    ay = ay * (1.0f / length);
-
-    // UNSURE: Ghidra re-checks length (the same sqrt result, always >= 0) against 0.0 here;
-    // it is unreachable given the 0.0001f check above and is kept only as a control-flow note.
-
-    dot_axis = ax * cone_axis->x + ay * cone_axis->y;
-    if (dot_axis < min_cos_threshold) {
+    inverse = 1.0f / length;
+    point.i = point.i * inverse;
+    point.j = point.j * inverse;
+    if (!(length > 0.0f)) {
         return 0;
     }
-
-    axis_length = vector2d_normalize_with_length((real_vector2d *)cone_axis);
-    if (axis_length < 0.0f) {
+    if (!(point.j * cone_axis->y + point.i * cone_axis->x > min_cos_threshold)) {
         return 0;
     }
-
-    dot_forward = forward->y * ay + forward->x * ax;
-    cross = ax * forward->y - forward->x * ay;
-    threshold = side_thresholds[(cross > 0.0f) ? 1 : 0];
-    if (dot_forward < threshold) {
+    if (!(vector2d_normalize_with_length(&facing) > 0.0f)) {
+        return 0;
+    }
+    cross = point.i * facing.j - facing.i * point.j;
+    if (!(facing.i * point.i + facing.j * point.j > side_thresholds[cross > 0.0f ? 1 : 0])) {
         return 0;
     }
     return 1;

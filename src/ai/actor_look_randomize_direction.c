@@ -1,6 +1,6 @@
 // actor_look_randomize_direction  (Ghidra: actor_look_randomize_direction, renamed)
 // address 0x414f50, size 401 bytes
-// name confidence: 0.35  rewrite confidence: 0.35
+// name confidence: 0.35  rewrite confidence: 0.9 (VERIFIED against objdump 0x414f50..0x4150e0; record target and BL FIXED)
 // evidence: phase-4 summary "picks a new random gaze/look direction constrained to the
 // unit's aim cone and arms the look timer for the actor"; the only caller (0x415480) only
 // reaches this function when actor.unknown_568 (the wait-tick timer this function itself
@@ -46,7 +46,6 @@ void actor_look_randomize_direction(datum_index actor_index, float *deviation_ta
     actor *self;
     Actor *definition;
     uint32_t out_in_front;
-    actor_recognition_scan_result scan_result;
     float yaw_max, pitch_max;
     float delta_l, delta_r;
     float yaw_min;
@@ -58,7 +57,10 @@ void actor_look_randomize_direction(datum_index actor_index, float *deviation_ta
     out_in_front = 0;
     self->unknown_55e[1] = 0; // self+0x55f
 
-    if (!actor_select_facing_target_prop(actor_index, 0, 0, &scan_result, (uint8_t *)&out_in_front)) {
+    // FIXED (0x414f7d..0x414fa8): the facing target lands in the actor's own look record (+0x57c), which
+    //   actor_update_look_target resolves next; the draft wrote it into a local
+    if (!actor_select_facing_target_prop(actor_index, 0, 0, (actor_recognition_scan_result *)((uint8_t *)self + 0x57c),
+            (uint8_t *)&out_in_front)) {
         yaw_max = (definition->maximum_looking_deviation.yaw <= definition->idle_looking_range.yaw)
                       ? definition->maximum_looking_deviation.yaw
                       : definition->idle_looking_range.yaw;
@@ -83,7 +85,7 @@ void actor_look_randomize_direction(datum_index actor_index, float *deviation_ta
         }
 
         if (!actor_look_pick_random_point_in_cone(&self->aim_origin, yaw_min, yaw_max, -pitch_max, pitch_max,
-                                                    base_direction, 1, &look_point)) {
+                                                    base_direction, 0, &look_point)) { // BL = 0 (xor bl,bl at 0x41507e)
             return;
         }
         *(real_point3d *)&self->unknown_56e[18] = look_point; // self+0x580

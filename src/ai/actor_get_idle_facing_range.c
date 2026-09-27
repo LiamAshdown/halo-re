@@ -1,6 +1,6 @@
 // actor_get_idle_facing_range  (Ghidra: actor_get_idle_facing_range, renamed)
 // address 0x4150f0, size 84 bytes
-// name confidence: 0.4   rewrite confidence: 0.55
+// name confidence: 0.4   rewrite confidence: 0.95 (VERIFIED against objdump 0x4150f0..0x415143)
 // evidence: phase-4 summary "returns a pointer into the actor's unit structure holding the
 // aim-pitch limit pair appropriate for the actor's current posture" -- actually returns a
 // pointer into the actor's Actor tag data: the three candidate offsets (0xdc, 0xf4, 0x10c)

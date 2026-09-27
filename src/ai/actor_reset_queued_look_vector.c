@@ -1,6 +1,6 @@
 // actor_reset_queued_look_vector  (Ghidra: actor_reset_queued_look_vector, renamed)
 // address 0x417ae0, size 139 bytes
-// name confidence: 0.35  rewrite confidence: 0.45
+// name confidence: 0.35  rewrite confidence: 0.9 (VERIFIED against objdump 0x417ae0..0x417b6a)
 // evidence: only touches actor.secondary_action (0x418), actor.queued_look_vector (0x6e0,
 // which actor_snapshot_orientation also seeds from the same global_origin3d_pointer) and
 // actor.unknown_6ec (which actor_snapshot_orientation also sets to 0xffff); gated on there

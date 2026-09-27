@@ -1,6 +1,6 @@
 // actor_resolve_look_target  (Ghidra: actor_resolve_look_target, renamed)
 // address 0x414d00, size 580 bytes
-// name confidence: 0.35  rewrite confidence: 0.35
+// name confidence: 0.35  rewrite confidence: 0.9 (VERIFIED against objdump 0x414d00..0x414f43; record target and horizontal aim FIXED)
 // evidence: the only caller (0x415480, the module's central look/aim update, not rewritten
 // in this pass) passes &actor.position_cache_a or &actor.position_cache_b as the register
 // vector argument; this function either accepts the recognized prop actor_select_facing_
@@ -54,7 +54,6 @@ uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index
     actor *self;
     Actor *definition;
     uint32_t out_in_front;
-    actor_recognition_scan_result scan_result;
     real_vector3d direction;
     float yaw_half;
     float pitch_half;
@@ -67,7 +66,9 @@ uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index
     self->unknown_55c = 0;
 
     if (force_fallback ||
-        actor_select_facing_target_prop(actor_index, require_trust, use_aiming_deviation, &scan_result, (uint8_t *)&out_in_front) == 0) {
+        actor_select_facing_target_prop(actor_index, require_trust, use_aiming_deviation,
+            (actor_recognition_scan_result *)((uint8_t *)self + 0x56c), (uint8_t *)&out_in_front) == 0) {
+        // FIXED (0x414d4f..0x414d67): the facing target is written into the actor's look record +0x56c
         direction.i = preferred_direction->x;
         direction.j = preferred_direction->y;
         direction.k = preferred_direction->z;
@@ -91,6 +92,7 @@ uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index
                               ? definition->maximum_aiming_deviation.pitch
                               : definition->idle_aiming_range.pitch;
 
+            direction.k = 0.0f; // FIXED (0x414dff): the aim search is centred on the HORIZONTAL direction
             if (vector3d_normalize_with_length(&direction) == 0.0f) {
                 direction = *global_forward3d_pointer;
             }

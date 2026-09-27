@@ -1,6 +1,6 @@
 // actor_look_pick_random_point_in_cone  (Ghidra: actor_look_pick_random_point_in_cone, already named)
 // address 0x415260, size 540 bytes
-// name confidence: 0.55  rewrite confidence: 0.4
+// name confidence: 0.55  rewrite confidence: 0.9 (VERIFIED against objdump 0x415260..0x41547b)
 // evidence: phase-4 summary matches directly. Builds a "right" axis perpendicular to the
 // caller-supplied base_direction (falling back to a global right-axis constant when that
 // direction is near-vertical), then up to 10 times: picks a random yaw in [yaw_min,yaw_max]
