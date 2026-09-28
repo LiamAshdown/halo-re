@@ -86,6 +86,11 @@ typedef struct SBKeyValuePair {
 int KeyValCompareKeyA(const void *elem1, const void *elem2);
 int KeyValHashKeyA(const void *elem, int num_buckets);
 void SBRefStrFree(void *elem);
-HashTable SBRefStrHash(void);
+HashTable SBRefStrHash(void *slist);
+const char *SBRefStr(void *slist, const char *str);
+void SBReleaseStr(void *slist, const char *str);
+int NTSLengthSB(const char *buf, int len);
+void SBServerKeyValFree(void *elem);
+typedef void (*SBListCallBackFn)(void *slist, int reason, void *server, void *instance);
 
 #endif

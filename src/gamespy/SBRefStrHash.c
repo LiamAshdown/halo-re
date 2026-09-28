@@ -9,8 +9,9 @@
 
 __declspec(thread) HashTable g_SBRefStrList;
 
-HashTable SBRefStrHash(void)
+HashTable SBRefStrHash(void *slist)
 {
+    (void)slist;
     if (g_SBRefStrList == 0) {
         g_SBRefStrList = TableNew2(sizeof(SBKeyValuePair), 500, 4, KeyValHashKeyA, KeyValCompareKeyA, SBRefStrFree);
     }
