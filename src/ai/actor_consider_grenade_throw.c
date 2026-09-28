@@ -43,7 +43,7 @@ uint8_t actor_consider_grenade_throw(datum_index actor_index)
     if (self->unknown_6a0 != 0) {
         return 1;
     }
-    if (ai_globals_ptr->unknown_3b4 == 0 || variant->grenade_stimulus == -1 ||
+    if (ai_globals_ptr->grenades_enabled == 0 || variant->grenade_stimulus == -1 ||
         variant->minimum_enemy_count == -1) {
         return 0;
     }

@@ -25,7 +25,7 @@
 #include "objects.h"
 #include <string.h>
 
-extern uint8_t *ai_globals_ptr;     // 0x00880354
+extern ai_globals *ai_globals_ptr;
 extern data_array *object_data;    // 0x008603b0
 extern data_array *prop_data;      // 0x008802c0
 extern data_array *encounter_data; // 0x008802c8
@@ -95,7 +95,7 @@ void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t st
         }
     }
     object_get_position(&source_position, source_unit_index);
-    if (ai_globals_ptr[0x1]) {
+    if (ai_globals_ptr->actors_valid) {
         iterator.filter_array = encounter_data;
         iterator.unknown_04 = 0;
         iterator.cursor = -1;

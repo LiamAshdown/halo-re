@@ -13,6 +13,8 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern ai_globals *ai_globals_ptr;       // 0x00880354
 extern data_array *actor_data;           // 0x00880360
@@ -35,7 +37,7 @@ void ai_reset_for_new_map(void)
     g->initialized = 1;
     g->unknown_02 = 1;
     g->unknown_08 = (datum_index)k_datum_index_none;
-    g->unknown_3b4 = 1;
+    g->grenades_enabled = 1;
     g->communication_valid = 1;
     g->unknown_14 = (datum_index)k_datum_index_none;
     g->unknown_18 = (datum_index)k_datum_index_none;

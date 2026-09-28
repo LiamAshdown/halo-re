@@ -22,7 +22,7 @@
 
 extern data_array *actor_data;   // 0x00880360
 extern data_array *prop_data;    // 0x008802c0
-extern uint8_t *ai_globals_ptr;  // 0x00880354
+extern ai_globals *ai_globals_ptr;
 
 extern uint8_t actor_validate_grenade_ally_candidate(datum_index candidate_actor, uint8_t caller_type_flag); // 0x40e4a0, ECX, BL
 extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
@@ -76,7 +76,7 @@ int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_s
 
         ai_reference_actor_iterator_init_cursor(*(int32_t *)(self + 0x34), cursor);
         candidate = cursor[2];
-        while (ai_globals_ptr[0x1] && candidate != k_datum_index_none) {
+        while (ai_globals_ptr->actors_valid && candidate != k_datum_index_none) {
             uint8_t *other = ACTOR(candidate);
             datum_index unit = *(datum_index *)(other + 0x18);
             datum_index current = candidate;

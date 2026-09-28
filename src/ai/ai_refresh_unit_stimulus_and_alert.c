@@ -21,7 +21,7 @@
 #include "game.h"
 #include "ai.h"
 
-extern uint8_t *ai_globals_ptr;      // 0x00880354
+extern ai_globals *ai_globals_ptr;
 extern data_array *object_data;      // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c
 
@@ -38,7 +38,7 @@ void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priori
     uint8_t *obj;
     int32_t now;
 
-    if (!ai_globals_ptr[0x1] || object_index == k_datum_index_none || priority <= 0) {
+    if (!ai_globals_ptr->actors_valid || object_index == k_datum_index_none || priority <= 0) {
         return;
     }
     obj = OBJECT_DATA(object_index);

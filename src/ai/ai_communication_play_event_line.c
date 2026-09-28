@@ -24,7 +24,7 @@
 extern data_array *object_data;      // 0x008603b0
 extern data_array *actor_data;       // 0x00880360
 extern data_array *encounter_data;   // 0x008802c8
-extern uint8_t *ai_globals_ptr;      // 0x00880354
+extern ai_globals *ai_globals_ptr;
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int32_t ai_communication_quiet_until_tick; // 0x00725204
 extern int16_t ai_communication_class_priority[]; // 0x006558c4
@@ -60,7 +60,7 @@ void ai_communication_play_event_line(datum_index object_index, int16_t event_id
     uint8_t *row = ai_communication_event_definitions;
     int32_t row_index = 0;              // [esp+0x10]
 
-    if (!ai_globals_ptr[0x10] || event_id == -1) {
+    if (!ai_globals_ptr->communication_valid || event_id == -1) {
         return;
     }
     for (; *(int16_t *)row != -1; row += 0x24, row_index++) {

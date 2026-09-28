@@ -24,7 +24,7 @@
 #include "physics.h"
 #include <stdint.h>
 
-extern uint8_t *ai_globals_ptr;     // 0x00880354
+extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data; // 0x008802c8
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern uint8_t *global_structure_bsp; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
@@ -56,7 +56,7 @@ void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t
     location.leaf_index = leaf;
     location.cluster_index = leaf == -1 ? -1 :
         *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
-    if (ai_globals_ptr[0x1]) {
+    if (ai_globals_ptr->actors_valid) {
         iterator.filter_array = encounter_data;
         iterator.unknown_04 = 0;
         iterator.cursor = -1;

@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
+#include "ai.h"
 
 extern void *recorded_animations; // 0x006b0a10, TYPES-GAP (data_array*)
 extern uint32_t rasterizer_globals_data; // TYPES-GAP
@@ -29,7 +32,7 @@ extern data_array *prop_data; // TYPES-GAP
 extern data_array *actor_data; // TYPES-GAP
 extern data_array *swarm_data; // TYPES-GAP
 extern data_array *swarm_component_data; // TYPES-GAP
-extern uint8_t *ai_globals_ptr;    // TYPES-GAP, byte+1 cleared (not a data_array valid flag)
+extern ai_globals *ai_globals_ptr;
 extern data_array *weather_particle_data; // 0x0087abcc
 extern uint32_t rasterizer_decal_vertex_cache_handle; // TYPES-GAP
 extern data_array *decal_data; // TYPES-GAP
@@ -83,7 +86,7 @@ void game_stop_current_map(void)
     actor_data->valid = 0;
     swarm_data->valid = 0;
     swarm_component_data->valid = 0;
-    ai_globals_ptr[1] = 0;
+    ai_globals_ptr->actors_valid = 0;
     particle_systems_delete_all();
 
     if (weather_particle_data->valid != 0) {

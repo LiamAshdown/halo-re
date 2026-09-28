@@ -1001,9 +1001,10 @@ typedef struct ai_globals {
     int16_t unknown_130;              // 0x130 ai_reset_for_new_map zeroes it
     int16_t unknown_132;              // 0x132 ai_reset_for_new_map zeroes it
     uint8_t unknown_134[0x280];       // 0x134 ai_reset_for_new_map zeroes 0xa0 dwords from here
-    uint8_t unknown_3b4;              // 0x3b4 ai_reset_for_new_map sets it
+    uint8_t grenades_enabled;         // 0x3b4 the ai_grenades script command; actors only throw while set
+                                     //       (actor_attempt_grenade_throw); ai_reset_for_new_map sets it
     uint8_t unknown_3b5;              // 0x3b5
-    int16_t unknown_3b6;              // 0x3b6 0x435900 uses it as the per-object record table count
+    int16_t object_record_count;      // 0x3b6 0x435900 uses it as the per-object record table count
     uint8_t unknown_3b8[56];          // 0x3b8
     int32_t unknown_3f0;              // 0x3f0 ai_communication_record_line_played
     uint8_t unknown_3f4[6];           // 0x3f4

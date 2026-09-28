@@ -22,7 +22,7 @@ extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0
-extern uint8_t *ai_globals_ptr;     // 0x00880354
+extern ai_globals *ai_globals_ptr;
 
 extern real random_real(void); // 0x4019f0
 extern real random_real_range(real min, real max); // 0x401050
@@ -96,7 +96,7 @@ void actor_attempt_grenade_throw(datum_index actor_index)
     unit = OBJECT_DATA(*(datum_index *)(a + 0x18));
     weapon = *(int16_t *)(unit + 0x2f2) != -1 ? *(datum_index *)(unit + 0x2f8 + *(int16_t *)(unit + 0x2f2) * 4)
                                               : k_datum_index_none;
-    if (!ai_globals_ptr[0x3b4] || roll < *(float *)(variant + 0x1d4)) {
+    if (!ai_globals_ptr->grenades_enabled || roll < *(float *)(variant + 0x1d4)) {
         *(int16_t *)(unit + 0x31e) = 0;
     }
     if (weapon != k_datum_index_none) {

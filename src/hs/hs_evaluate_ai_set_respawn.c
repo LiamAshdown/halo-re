@@ -12,12 +12,15 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
+#include "units.h"
+#include "ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
-extern uint8_t *ai_globals_ptr; // 0x00880354 (ai_globals *; +0 enabled, +1 encounters live)
+extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data; // 0x008802c8
 extern uint8_t encounter_activate(datum_index encounter_index); // 0x437710, blam-cc: ECX
 
@@ -28,7 +31,7 @@ void hs_evaluate_ai_set_respawn(int16_t function_index, uint32_t thread_index, c
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if (arguments[0] != -1 && ai_globals_ptr[1] != 0) {
+        if (arguments[0] != -1 && ai_globals_ptr->actors_valid != 0) {
             uint32_t index = (uint32_t)arguments[0] & 0xffff;
             uint8_t *encounter = (uint8_t *)encounter_data->data + index * 0x6c;
 

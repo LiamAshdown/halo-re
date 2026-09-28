@@ -41,7 +41,7 @@
 extern data_array *object_data;    // 0x008603b0
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *prop_data;      // 0x008802c0
-extern uint8_t *ai_globals_ptr;    // 0x00880354
+extern ai_globals *ai_globals_ptr;
 extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data; // 0x006b0b84
 extern uint8_t ai_communication_lines[]; // 0x00655aa0, 0x28-byte rows
@@ -95,7 +95,7 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
     if (*(datum_index *)(obj + 0x11c) != k_datum_index_none) {
         location = OBJECT_DATA(object_get_root_object_index(object_index)) + 0x98;
     }
-    if (!ai_globals_ptr[0x1]) {
+    if (!ai_globals_ptr->actors_valid) {
         return; // the binary walks an uninitialised iterator here
     }
     memset(&iterator, 0, sizeof(iterator));
