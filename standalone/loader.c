@@ -18,6 +18,13 @@
 #include <string.h>
 #include "standalone_tables.h"
 
+/* The Halo install folder: the maps, the third-party DLLs (binkw32, vorbisfile) and the game's working directory.
+   Override at build time: cl /DHALO_FOLDER="\"D:\\Games\\Halo\"", or cmake -DHALO_FOLDER=D:/Games/Halo. */
+#ifndef HALO_FOLDER
+#define HALO_FOLDER "C:\\Program Files (x86)\\Microsoft Games\\Halo"
+#endif
+const char standalone_halo_folder[] = HALO_FOLDER;
+
 #define RESERVE_BASE 0x400000
 #define RESERVE_END  0x891000
 

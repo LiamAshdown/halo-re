@@ -4,8 +4,8 @@
 ; data image (standalone/image/*.asm) back to 0x63a000.., so every global the C declares, e.g.
 ;     extern data_array *player_data; // 0x0087a480
 ; is the absolute symbol below. Standard C cannot give a variable a fixed address, so they live here; the link
-; (tools/gen_standalone_link.py) assembles this file like any other source. New globals are added by
-; tools/update_globals.py (it merges what the link had to resolve from address comments); --check compares the
+; (tools/gen_standalone_link.py, CMakeLists.txt) assembles this file like any other source. New globals are added
+; by tools/update_globals.py (from the address comments of what a link left unresolved); --check compares the
 ; address comments in src/ with this file. Sorted by symbol.
 
 .386

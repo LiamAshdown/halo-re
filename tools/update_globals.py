@@ -5,16 +5,16 @@ The standalone exe keeps the game's data at its original addresses (the loader c
 global such as `extern data_array *player_data;` is the absolute symbol `_player_data EQU 087A480h`. Those symbols are
 committed source in standalone/globals.asm, which tools/gen_standalone_link.py assembles and links like any object.
 
-When new C references a global that is not in the file yet, the link still resolves it from the declaration's address
-comment (`// 0x0087a480`) and prints how many it had to; this tool then adds them:
-  python tools/update_globals.py          merge the globals the last link resolved (build/standalone/resolve.asm)
+When new C references a global that is not in the file yet, the link fails with it unresolved; this tool adds each
+such global at the address its declaration's comment gives (`// 0x0087a480`):
+  python tools/update_globals.py          add the globals the last link left unresolved (build/standalone/link.log)
   python tools/update_globals.py --check  compare every address comment on a data declaration in src/ with the file
 """
 import os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GLOBALS = os.path.join(ROOT, "standalone", "globals.asm")
-RESOLVE = os.path.join(ROOT, "build", "standalone", "resolve.asm")
+LINK_LOG = os.path.join(ROOT, "build", "standalone", "link.log")
 EQU = re.compile(r"^(\S+) EQU 0*([0-9A-Fa-f]+)h\s*$", re.M)
 
 HEADER = """; standalone/globals.asm -- the engine globals the C uses at their fixed original addresses.
@@ -23,8 +23,8 @@ HEADER = """; standalone/globals.asm -- the engine globals the C uses at their f
 ; data image (standalone/image/*.asm) back to 0x63a000.., so every global the C declares, e.g.
 ;     extern data_array *player_data; // 0x0087a480
 ; is the absolute symbol below. Standard C cannot give a variable a fixed address, so they live here; the link
-; (tools/gen_standalone_link.py) assembles this file like any other source. New globals are added by
-; tools/update_globals.py (it merges what the link had to resolve from address comments); --check compares the
+; (tools/gen_standalone_link.py, CMakeLists.txt) assembles this file like any other source. New globals are added
+; by tools/update_globals.py (from the address comments of what a link left unresolved); --check compares the
 ; address comments in src/ with this file. Sorted by symbol.
 
 .386
@@ -65,15 +65,37 @@ def check():
     return bad
 
 
+def unresolved_globals():
+    """the unresolved data symbols in the last link, at their declarations' address comments"""
+    sys.path.insert(0, os.path.join(ROOT, "harness"))
+    import gen_link as gl
+    addr, kind = gl.extern_map()
+    out = {}
+    log = open(LINK_LOG, encoding="utf-8", errors="replace").read() if os.path.exists(LINK_LOG) else ""
+    for s in sorted(set(re.findall(r"unresolved external symbol (_\w+)", log))):
+        n = s[1:]
+        m = re.fullmatch(r"(?:PTR_)?DAT_([0-9a-fA-F]{8})", n)
+        if m:
+            out[s] = int(m.group(1), 16)
+        elif n in addr and addr[n] and kind.get(n) == "data":
+            if len(addr[n]) > 1:
+                print("%s: address comments disagree (%s); fix the C first" % (s, ", ".join("0x%x" % a for a in addr[n])))
+                continue
+            out[s] = next(iter(addr[n]))
+        else:
+            print("%s: not a global with an address comment (a missing function or declaration?)" % s)
+    return out
+
+
 def main():
     if "--check" in sys.argv:
         sys.exit(1 if check() else 0)
     have = read_equ(GLOBALS)
-    new = read_equ(RESOLVE)
+    new = unresolved_globals()
     added = {k: v for k, v in new.items() if k not in have}
     changed = {k: (have[k], v) for k, v in new.items() if k in have and have[k] != v}
     for k, (old, a) in sorted(changed.items()):
-        print("CONFLICT %s: globals.asm 0x%x, this link 0x%x (left as is; fix the C or the file)" % (k, old, a))
+        print("CONFLICT %s: globals.asm 0x%x, address comment 0x%x (left as is; fix the C or the file)" % (k, old, a))
     have.update(added)
     write(have)
     print("%d globals in %s (%d added)" % (len(have), os.path.relpath(GLOBALS, ROOT), len(added)))
