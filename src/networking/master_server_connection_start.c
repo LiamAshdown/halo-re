@@ -31,7 +31,7 @@ extern int32_t master_server_last_result;       // 0x007196a4
 extern int32_t mutex_create(network_mutex_record **out_handle); // 0x440510, this module
 extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
                                        network_thread_record **out_handle); // 0x440460, this module
-extern void sig__setup_master_server_connection_sig(void); // thread entry point, foreign/unresolved
+extern uint32_t __stdcall sig__setup_master_server_connection_sig(void *parameter); // 0x4b5f80, the thread routine
 extern int32_t CloseHandle(void *object); // Win32
 
 // Resets the master-server request state, creates the server-list mutex, and starts the
