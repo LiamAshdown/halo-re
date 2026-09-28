@@ -15,12 +15,15 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern game_variant game_engine_pending_variant; // 0x0087aa80
 extern game_variant game_engine_active_variant;  // 0x0087ab20
 extern int32_t cached_network_engine_index;      // 0x0087aab0, UNSURE identity
 extern uint8_t *network_session;                    // 0x0071c2d4
-extern uint8_t *network_client;                     // 0x0071c2d8
+extern network_client_globals *network_client;
 
 extern uint16_t unknown_00719754; // UNSURE identity/owning module
 extern uint8_t unknown_0071973c;  // UNSURE identity/owning module; written as a BYTE

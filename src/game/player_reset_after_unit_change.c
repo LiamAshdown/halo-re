@@ -27,13 +27,16 @@
 #include "game.h"
 #include <string.h>
 #include <stdint.h>
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern data_array *player_data;                             // 0x0087a480
 extern player_control_globals *player_control_globals_ptr;  // 0x006b145c
 extern player_globals *local_player_globals;                // 0x0087a478
 extern int16_t network_game_mode;                            // 0x00719720
 extern data_array *update_server_queues;                     // 0x006f1d90
-extern uint8_t *network_client;                               // 0x0071c2d8
+extern network_client_globals *network_client;
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern void player_remove(datum_index player_handle); // this batch, 0x473bb0, blam-cc: EAX -> player_handle
@@ -107,8 +110,8 @@ void player_reset_after_unit_change(uint32_t player_index)
     // 0x474f42: a LOCAL player frees the client's history queues; a non-local one on a client clears its cursors.
     // FIXED 2026-09-28: the draft had the two branches swapped.
     if (plr->local_player_index != -1) {
-        if (network_client != (uint8_t *)0) {
-            player_update_history_free_all(*(void **)(network_client + 0xf48));
+        if (network_client != 0) {
+            player_update_history_free_all(*(void **)&network_client->update_history);
         }
     } else if (network_game_mode == 1) {
         plr->update_history.queue.read_index = 0;

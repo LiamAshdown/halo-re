@@ -18,13 +18,14 @@
 #include "units.h"
 #include "game.h"
 #include <string.h>
+#include "networking.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *player_data;      // 0x0087a480
 extern int16_t game_connection_role; // 0x00719720: 1 = client
 extern game_time_globals *game_time; // 0x006f1d6c
-extern uint8_t *network_client;      // 0x0071c2d8, +0xf48 the prediction history
+extern network_client_globals *network_client;
 
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)
@@ -178,7 +179,7 @@ uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_obje
 
                 if (*(int16_t *)player != 0 && (salt == 0 || *(int16_t *)player == salt) &&
                     *(int16_t *)(player + 2) != -1 && network_client != 0) {
-                    player_update_history_free_all(*(void **)(network_client + 0xf48));
+                    player_update_history_free_all(*(void **)&network_client->update_history);
                 }
             }
         }

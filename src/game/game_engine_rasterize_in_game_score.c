@@ -61,6 +61,8 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#include "units.h"
+#include "networking.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant;            // 0x006f1c88 (::teams at 0x006f1cbc)
@@ -68,7 +70,7 @@ extern data_array *player_data;                     // 0x0087a480
 extern data_array *object_headers;                  // 0x008603b0
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern uint8_t *network_session;                    // 0x0071c2d4
-extern uint8_t *network_client;                     // 0x0071c2d8
+extern network_client_globals *network_client;
 extern wchar_t empty_string;                        // 0x00660c34
 extern uint8_t *unknown_00873d40; // UNSURE: a globals-tag-like color/font source
 extern const ColorARGB *global_white_argb; // 0x006851fc -> 0x00655138 = {1,1,1,1} (.data)
@@ -303,10 +305,10 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
         char *address_text;
 
         if (network_session == (uint8_t *)0) {
-            if (network_client == (uint8_t *)0) {
+            if (network_client == 0) {
                 return;
             }
-            if (**(int32_t **)(network_client + 0xadc) == 0 ||
+            if (**(int32_t **)&network_client->channel == 0 ||
                 network_channel_get_remote_address() != 0) {
                 // UNSURE: this zeroes an unrelated local scratch block in the original; omitted
                 // here since nothing downstream reads it.

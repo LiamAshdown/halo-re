@@ -28,6 +28,7 @@
 #include "units.h"
 #include "game.h"
 #include <string.h>
+#include "networking.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
@@ -36,7 +37,7 @@ extern Scenario *global_scenario;            // 0x00746f8c
 extern tag_instance *tag_instances;          // 0x0087bc14
 extern int16_t network_game_mode;            // 0x00719720
 extern game_time_globals *game_time;         // 0x006f1d6c
-extern uint8_t *network_client;              // 0x0071c2d8
+extern network_client_globals *network_client;
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
@@ -225,8 +226,8 @@ void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t tar
                         player *plr = (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)index * player_data->size);
                         int16_t salt = (int16_t)(controlling_player >> 16);
                         if (plr->identifier != 0 && (salt == 0 || plr->identifier == salt) &&
-                            plr->local_player_index == -1 && network_client != (uint8_t *)0) {
-                            player_update_history_free_all(*(void **)(network_client + 0xf48));
+                            plr->local_player_index == -1 && network_client != 0) {
+                            player_update_history_free_all(*(void **)&network_client->update_history);
                         }
                     }
                 }

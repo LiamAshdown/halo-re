@@ -45,13 +45,14 @@
 #include "units.h"
 #include "game.h"
 #include <wchar.h>
+#include "networking.h"
 
 extern data_array *player_data;      // 0x0087a480
 extern Scenario *global_scenario;    // 0x00746f8c
 extern data_array *object_headers;   // 0x008603b0
 extern int32_t teleport_message_cooldown; // 0x006f1d2c, UNSURE identity
 extern wchar_t empty_string;          // 0x00660c34
-extern uint8_t *network_client;          // 0x0071c2d8
+extern network_client_globals *network_client;
 
 // UNSURE: the following ten globals feed a constant-filled struct passed to player_effect_set_screen_flash_for_player; their
 // true meanings are not established anywhere in this batch's evidence.
@@ -249,7 +250,7 @@ void game_engine_update_teleporter(uint32_t player_index)
 
                 if ((unit_object->network_role == 1 || unit_object->network_role == 2) &&
                     p->local_player_index != -1 && network_client != 0) {
-                    player_update_history_free_all(*(void **)((uint8_t *)network_client + 0xf48));
+                    player_update_history_free_all(*(void **)&network_client->update_history);
                     return;
                 }
             }

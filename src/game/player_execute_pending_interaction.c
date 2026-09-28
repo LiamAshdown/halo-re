@@ -20,11 +20,12 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "networking.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_headers; // 0x008603b0
 extern int16_t network_game_mode;  // 0x00719720
-extern uint8_t *network_client;    // 0x0071c2d8
+extern network_client_globals *network_client;
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern game_time_globals *game_time; // 0x006f1d6c
 
@@ -94,7 +95,7 @@ uint8_t player_execute_pending_interaction(uint32_t player_index)
             if (network_game_mode == 1) {
                 if (*(int16_t *)(record + 0x2) != -1) {
                     if (network_client != 0) {
-                        player_update_history_free_all(*(void **)(network_client + 0xf48));
+                        player_update_history_free_all(*(void **)&network_client->update_history);
                     }
                 } else {
                     *(int32_t *)(record + 0x180) = 0;

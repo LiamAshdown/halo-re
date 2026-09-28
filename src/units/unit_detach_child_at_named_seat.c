@@ -17,13 +17,14 @@
 #include "units.h"
 #include <string.h>
 #include <string.h>
+#include "networking.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480
 extern int16_t game_connection_role; // 0x00719720: 1 = client
 extern game_time_globals *game_time; // 0x006f1d6c
-extern uint8_t *network_client;      // 0x0071c2d8, +0xf48 the prediction history
+extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle; // 0x006893cc
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
@@ -194,7 +195,7 @@ static void biped_free_local_player_history(uint8_t *self)
         return;
     }
     if (network_client != 0) {
-        player_update_history_free_all(*(void **)(network_client + 0xf48));
+        player_update_history_free_all(*(void **)&network_client->update_history);
     }
 }
 

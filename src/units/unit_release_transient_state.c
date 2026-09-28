@@ -23,6 +23,7 @@
 #include "objects.h"
 #include "units.h"
 #include <stdint.h>
+#include "networking.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,7 +31,7 @@ extern data_array *player_data;     // 0x0087a480
 extern data_array *actor_data;      // 0x00880360
 extern int16_t game_connection_role; // 0x00719720: 1 = client
 extern game_time_globals *game_time; // 0x006f1d6c
-extern uint8_t *network_client;      // 0x0071c2d8, +0xf48 the prediction history
+extern network_client_globals *network_client;
 extern uint32_t random_seed_global;  // 0x00719cd0
 
 extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, ECX, stack
@@ -180,7 +181,7 @@ static void biped_free_local_player_history(uint8_t *self)
         return;
     }
     if (network_client != 0) {
-        player_update_history_free_all(*(void **)(network_client + 0xf48));
+        player_update_history_free_all(*(void **)&network_client->update_history);
     }
 }
 

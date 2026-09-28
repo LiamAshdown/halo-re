@@ -18,6 +18,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
@@ -29,7 +33,7 @@ extern int32_t game_variant_history_current; // 0x00687b18
 extern void game_engine_apply_current_custom_variant(void); // 0x463b90
 extern void game_engine_sync_variant_defaults(void); // 0x45fc80
 extern int16_t network_game_mode; // 0x00719720
-extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
+extern network_client_globals *network_client;
 extern void *network_session_create(void); // 0x4d8a80, blam-cc: EAX -> client
 extern uint8_t network_host_handoff_requested; // 0x0071c2de
 extern void network_client_globals_dispose(void); // 0x4dde70
@@ -51,7 +55,7 @@ uint8_t ui_event_49d480(widget_instance *widget, int16_t *event, uint8_t *out_ha
         }
     }
     if (ok != 0 && network_client == 0) {
-        network_client = (uint8_t *)network_session_create();
+        network_client = (network_client_globals *)network_session_create();
         if (network_client != 0) {
             network_host_handoff_requested = 0;
         }

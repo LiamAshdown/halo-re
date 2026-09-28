@@ -20,8 +20,12 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
-extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
+extern network_client_globals *network_client;
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
 extern char network_player_entry_validate(void *entry); // 0x4de9f0, blam-cc: EAX -> entry
 extern char network_session_info_packet_send(const uint32_t *source, void *client); // 0x4d9050, blam-cc: EAX source, stack client
@@ -36,7 +40,7 @@ extern uint8_t unknown_0071c2dd; // 0x0071c2dd, UNSURE identity
 
 uint8_t ui_event_4a1790(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *client = network_client;
+    uint8_t *client = (uint8_t *)network_client; // still addressed by byte offset below
     uint8_t *found = 0;
     int32_t count = 0;
     int16_t key;

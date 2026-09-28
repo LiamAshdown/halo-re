@@ -14,15 +14,19 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
-extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
+extern network_client_globals *network_client;
 extern char network_player_entry_validate(void *entry); // 0x4de9f0, blam-cc: EAX -> entry
 extern int32_t network_staged_message_commit(void *client, int16_t value); // 0x4da250, blam-cc: ECX client,
     // AX value (its C still takes only the client and ignores AX: OPEN, networking phase)
 
 uint8_t ui_event_4a15e0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *client = network_client;
+    uint8_t *client = (uint8_t *)network_client; // still addressed by byte offset below
     int32_t i;
 
     if (client == 0) {
