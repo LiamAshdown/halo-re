@@ -2,6 +2,7 @@
 // already named)
 // address 0x478770, size 172 bytes
 // name confidence: 0.5   rewrite confidence: 0.5
+// FIXED 2026-09-28: unit_data begins at object +0x1f4 (k_unit_data_offset) and its field offsets are absolute; the draft cast the object pointer itself, so unit fields landed 0x1f4 bytes low (e.g. flags at object +0x10).
 // evidence: VERIFIED against the disassembly (objdump -d -M intel --start-address=0x478770
 //   --stop-address=0x478820): types/units.h unit_data::aiming_vector (0x23c);
 //   types/objects.h object::bounding_center/bounding_radius (0x0a0/0x0ac);
@@ -48,8 +49,8 @@ void player_check_assassination_opportunity(uint32_t player_index, uint32_t cand
     unit_get_camera_position(p->unit, &camera_position);
 
     if (ray_intersects_sphere_test(&candidate->bounding_center, &camera_position,
-            &((unit_data *)unit)->aiming_vector, candidate->bounding_radius)) {
-        if (device_frontfacing(candidate_object, &((unit_data *)unit)->aiming_vector)) {
+            &((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector, candidate->bounding_radius)) {
+        if (device_frontfacing(candidate_object, &((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector)) {
             if (device_can_change_position(candidate_object)) {
                 player_set_pending_interaction_action(10, (int16_t)0xffff, player_index, candidate_object);
             }

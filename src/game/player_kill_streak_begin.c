@@ -2,6 +2,7 @@
 // player_add_kill_streak.c (this batch) the first time a streak slot is touched)
 // address 0x479d90, size 67 bytes
 // name confidence: 0.3   rewrite confidence: 0.6
+// FIXED 2026-09-28: unit_data begins at object +0x1f4 (k_unit_data_offset) and its field offsets are absolute; the draft cast the object pointer itself, so unit fields landed 0x1f4 bytes low (e.g. flags at object +0x10).
 // evidence: VERIFIED against the disassembly (objdump -d -M intel --start-address=0x479ba0
 //   --stop-address=0x479ca0), which shows the caller doing `mov eax,ebx; push ebp; call
 //   0x479d90` (EAX = the same player handle player_add_kill_streak.c received, `ebp` = slot);
@@ -26,7 +27,7 @@ extern data_array *object_headers; // 0x008603b0
 void player_kill_streak_begin(int16_t slot, uint32_t player_handle)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    unit_data *unit = (unit_data *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
+    unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data + k_unit_data_offset);
 
     if (slot == 0) {
         unit->flags = unit->flags | _unit_flag_unknown_10;

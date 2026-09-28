@@ -76,7 +76,8 @@ datum_index player_spawn_starting_profile_weapon(TagDependency *weapon_dependenc
         }
 
         if (new_object != (datum_index)0xffffffff) {
-            weapon_data *weapon = (weapon_data *)((object_header *)object_headers->data)[new_object & 0xffff].data;
+            weapon_data *weapon = (weapon_data *)((uint8_t *)((object_header *)object_headers->data)[new_object & 0xffff].data +
+                k_item_extension_offset); // weapon_data starts at object +0x22c (0x4778a0 writes +0x2b6)
             weapon->magazines[0].rounds_unloaded = *(int16_t *)((uint8_t *)weapon_dependency + 0x12);
             weapon->magazines[0].rounds_loaded = *(int16_t *)((uint8_t *)weapon_dependency + 0x10);
         }

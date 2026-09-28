@@ -3,6 +3,7 @@
 // multiplayer engine is loaded)
 // address 0x479de0, size 58 bytes
 // name confidence: 0.3   rewrite confidence: 0.6
+// FIXED 2026-09-28: unit_data begins at object +0x1f4 (k_unit_data_offset) and its field offsets are absolute; the draft cast the object pointer itself, so unit fields landed 0x1f4 bytes low (e.g. flags at object +0x10).
 // evidence: VERIFIED against the disassembly (same call site as player_kill_streak_begin.c:
 //   `mov eax,ebx; push ebp; call 0x479de0`); types/units.h unit_flags (bit 0x20, unnamed there
 //   -- kept as a raw flag literal since no header names it).
@@ -27,7 +28,7 @@ void player_kill_streak_continue(int16_t slot, uint32_t player_handle)
 {
     if (slot == 0) {
         player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-        unit_data *unit = (unit_data *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
+        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data + k_unit_data_offset);
         unit->flags = unit->flags | 0x20; // UNSURE: bit identity, see header note
     }
 }

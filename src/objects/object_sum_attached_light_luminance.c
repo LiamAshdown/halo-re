@@ -3,7 +3,7 @@
 // name confidence: 0.45 (still FUN_004f1b30 in Ghidra; named from out/phase4/objects_functions.md's
 // summary: "Recursively computes an object's total perceptual-luminance across its own visible
 // regions plus every attached child/sibling object")
-// rewrite confidence: 0.45
+// rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4f1b30..0x4f1c11 (type byte 0 = light, child +0x118 then sibling +0x114; luma summed b, g, r).)
 // evidence: types/objects.h object.attachment_types (0x144), object.attachment_handles (0x14c),
 // object.first_child_object (0x118), object.next_object (0x114); types/tags.h Object.attachments
 // (TagReflexive count at 0x140). The per-light accumulated colour at light+0x14/0x18/0x1c is the
@@ -37,9 +37,9 @@ real object_sum_attached_light_luminance(uint32_t object_index)
             obj->attachment_handles[i] != (datum_index)0xffffffff) {
             light *l = &((light *)light_data->data)[obj->attachment_handles[i] & 0xffff];
 
-            total = *(float *)((uint8_t *)l + 0x14) * 0.299f +
-                    *(float *)((uint8_t *)l + 0x18) * 0.587f +
-                    *(float *)((uint8_t *)l + 0x1c) * 0.114f + total;
+            total = (*(float *)((uint8_t *)l + 0x1c) * 0.114f +
+                     *(float *)((uint8_t *)l + 0x18) * 0.587f +
+                     *(float *)((uint8_t *)l + 0x14) * 0.299f) + total; // 0x4f1ba2: b, g, r
         }
     }
 

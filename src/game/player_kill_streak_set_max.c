@@ -2,6 +2,7 @@
 // described in out/phase4/game_types_notes.md as 0x479ba0/0x479ca0/0x479d10)
 // address 0x479ca0, size 99 bytes
 // name confidence: 0.4   rewrite confidence: 0.6
+// FIXED 2026-09-28: unit_data begins at object +0x1f4 (k_unit_data_offset) and its field offsets are absolute; the draft cast the object pointer itself, so unit fields landed 0x1f4 bytes low (e.g. flags at object +0x10).
 // evidence: VERIFIED against the disassembly (objdump -d -M intel --start-address=0x479ca0
 //   --stop-address=0x479d10): EAX is the player index, ESI (Ghidra's `unaff_SI`) the candidate
 //   value, and `slot` the one stack parameter. types/game.h player::kill_streak (0x68);
@@ -30,7 +31,7 @@ void player_kill_streak_set_max(int16_t slot, uint32_t player_index, int16_t val
     int16_t *streak = &p->kill_streak[slot];
 
     if (*streak == 0 && slot == 0) {
-        unit_data *unit = (unit_data *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
+        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data + k_unit_data_offset);
         unit->flags = unit->flags | _unit_flag_unknown_10;
         unit->unknown_422 = slot;
     }

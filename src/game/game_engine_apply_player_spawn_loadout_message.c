@@ -103,7 +103,7 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t pl
                         p->team_index = (int8_t)message.team;
                         unit_obj->owner_linkage = (uint32_t)owner_handle;
                         unit_obj->owner_team = (int16_t)p->team;
-                        ((unit_data *)unit_obj)->controlling_player = owner_handle;
+                        ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->controlling_player = owner_handle;
                         unit_refresh_targeting_flag_and_weapons(new_unit, 1); // CL = 1
 
                         if (p->local_player_index == -1) {
@@ -139,7 +139,7 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t pl
                             // argument at all for this call
 
                         {
-                            unit_data *unit = (unit_data *)unit_obj;
+                            unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset); // unit_data starts at object +0x1f4
                             int32_t i;
                             for (i = 0; i < 4; i++) {
                                 if (message.weapon_pooled_ids[i] == 0 ||

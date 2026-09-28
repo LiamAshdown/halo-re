@@ -3,7 +3,8 @@
 //   particle systems, and is called only from the dead particle_system_resolve_local_players
 //   0x454080)
 // address 0x453a10, size 249 bytes
-// name confidence: 0.3   rewrite confidence: 0.85 (REWRITTEN 2026-09-28 against objdump 0x453a10..0x453b08: the live test is the header's data pointer (+0x08), not cluster_index (+0x04) read as a dword.)
+// name confidence: 0.3   rewrite confidence: 0.85 (REWRITTEN 2026-09-28 against objdump 0x453a10..0x453b08: the live test is the header's data pointer (+0x08), not cluster_index (+0x04) read as a dword; the unit
+//   fields are object +0x2f2/+0x2f8, i.e. unit_data at k_unit_data_offset (the draft cast the object itself).)
 // evidence: types/game.h player (local_player_index +0x02, unit +0x34); types/units.h unit
 //   (current_weapon_index +0x2f2, weapons[4] +0x2f8); types/objects.h object_header (type +0x03,
 //   size 0x0c, data +0x08), object_type_mask (_object_mask_biped | _object_mask_vehicle == 3).
@@ -63,7 +64,8 @@ int32_t player_weapon_locality_for_object(datum_index weapon_object_index)
                         ((1 << (header->type & 0x1f)) & 3) != 0 &&
                         header->data != 0) {
                         unit_data *held_unit =
-                            (unit_data *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+                            (unit_data *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data +
+                                          k_unit_data_offset); // unit_data starts at object +0x1f4 (0x453ab1: +0x2f2)
                         int16_t current_weapon = held_unit->current_weapon_index;
                         datum_index current_weapon_object = (datum_index)0xffffffff;
 

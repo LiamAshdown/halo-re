@@ -2,6 +2,7 @@
 // described in out/phase4/game_types_notes.md as 0x479ba0/0x479ca0/0x479d10)
 // address 0x479d10, size 121 bytes
 // name confidence: 0.4   rewrite confidence: 0.55
+// FIXED 2026-09-28: unit_data begins at object +0x1f4 (k_unit_data_offset) and its field offsets are absolute; the draft cast the object pointer itself, so unit fields landed 0x1f4 bytes low (e.g. flags at object +0x10).
 // evidence: types/game.h player::kill_streak[2] (0x68), player::unit (0x34); types/units.h
 //   unit_flags::_unit_flag_unknown_10.
 // register convention: a player index in EAX (in_EAX); no stack parameters.
@@ -31,7 +32,7 @@ void player_kill_streak_tick(uint32_t player_index)
         if (0 < p->kill_streak[slot]) {
             p->kill_streak[slot] = p->kill_streak[slot] - 1;
             if (p->kill_streak[slot] == 0 && slot == 0) {
-                unit_data *unit = (unit_data *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
+                unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data + k_unit_data_offset);
                 unit->flags = unit->flags & ~_unit_flag_unknown_10;
             }
         }

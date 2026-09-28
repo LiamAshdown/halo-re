@@ -176,9 +176,9 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
                         if (0.0001f < distance) {
                             player_object = ((object_header *)object_data->data)
                                                 [player_unit & 0xffff].data;
-                            facing = (((unit_data *)player_object)->aiming_vector.k * dz +
-                                      ((unit_data *)player_object)->aiming_vector.j * dy +
-                                      ((unit_data *)player_object)->aiming_vector.i * dx) / distance; // 0x4306f3
+                            facing = (((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.k * dz +
+                                      ((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.j * dy +
+                                      ((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.i * dx) / distance; // 0x4306f3
                             if (0.70710677f < facing) {
                                 score = (0.7f - (1.0f - facing) * 3.4142134f * 0.35f) + score;
                             }

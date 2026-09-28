@@ -3,6 +3,7 @@
 // also sets object flag 0x10 and stamps the streak method into unit+0x422")
 // address 0x479ba0, size 255 bytes
 // name confidence: 0.4   rewrite confidence: 0.4
+// FIXED 2026-09-28: unit_data begins at object +0x1f4 (k_unit_data_offset) and its field offsets are absolute; the draft cast the object pointer itself, so unit fields landed 0x1f4 bytes low (e.g. flags at object +0x10).
 // evidence: out/phase4/game_types_notes.md (player struct notes); types/game.h
 //   player::kill_streak[2] (0x68); types/units.h unit_flags::_unit_flag_unknown_10 (0x10),
 //   unit::unknown_422; types/memory.h data_array (maximum_count 0x20, size 0x22, data 0x34);
@@ -74,7 +75,7 @@ uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_han
     }
     if (slot == 0) {
         object *unit = object_try_and_get(p->unit, 3);
-        if (unit == 0 || (((unit_data *)unit)->flags & _unit_flag_unknown_10) != 0) {
+        if (unit == 0 || (((unit_data *)((uint8_t *)unit + k_unit_data_offset))->flags & _unit_flag_unknown_10) != 0) {
             return 0;
         }
     }

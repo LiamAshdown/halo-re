@@ -4,7 +4,7 @@
 // 0x00505200 ... 0x00504e10 fails when the Object tag has no collision_model, that is when tag
 // offset 0x7c is -1.")
 // address 0x504e10, size 117 bytes
-// name confidence: 0.5   rewrite confidence: 0.45
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x504e10..0x504e84.)
 // evidence: out/phase4/physics_types_notes.md section 2 (object_collision_context field map,
 //   confirmed against this function's own stores) and section 4 (Object tag +0x7c
 //   collision_model tag id); types/tags.h Object.collision_model (a TagDependency starting at
