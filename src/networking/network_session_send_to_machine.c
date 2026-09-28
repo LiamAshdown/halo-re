@@ -2,19 +2,19 @@
 // address 0x4e1930, size 137 bytes
 // name confidence: 0.5   rewrite confidence: 0.3
 // evidence: out/phase4/networking_functions.md: "Sends a prepared packet to the single machine
-// identified by id, skipping machines that are in the process of disconnecting." param_1+0x3c4
+// identified by id, skipping machines that are in the process of disconnecting." status_bit+0x3c4
 // matches network_server_globals::machines[0].machine_id; the found machine's channel is
 // checked against ::connected (+0xa98) exactly as in every other send path in this batch.
 // register convention: EAX = machine_id (int32_t), ESI = server (network_server_globals *),
-// stack = param_1 (unused), data, param_3 (unused), reliable, unknown_a, force (char),
+// stack = status_bit (unused), data, body_bit_count (unused), reliable, unknown_a, force (char),
 // priority.
 // blam-cc: EAX -> machine_id, ESI -> server, stack -> (unused, data, unused, reliable,
 // unknown_a, force, priority)
-// UNSURE: param_1 and param_3 are genuinely unused stack parameters in the original (only
+// UNSURE: status_bit and body_bit_count are genuinely unused stack parameters in the original (only
 // param_2, param_4, param_5, param_7 are forwarded to network_channel_queue_message, plus a literal 1 in
-// param_3's slot). This batch's other files that call this function pass their arguments
+// body_bit_count's slot). This batch's other files that call this function pass their arguments
 // positionally as if `machine_id` were an ordinary leading stack argument (matching how every
-// call site's constant literal doubles as both the discarded param_1 and, presumably, EAX);
+// call site's constant literal doubles as both the discarded status_bit and, presumably, EAX);
 // that mismatch with this function's own true ABI is a known inconsistency in this batch, not
 // resolved here.
 // UNSURE: network_channel_queue_message's real parameter meaning is inferred purely from this call site.
@@ -31,10 +31,10 @@ extern char network_channel_queue_message(network_channel *channel, uint32_t hea
 // Finds the machine slot whose machine_id matches `machine_id` and, if it has a live channel
 // that is either connected or `force` is set, forwards the send through network_channel_queue_message.
 // FIXED (objdump 0x4e1930..0x4e19b8): the send is skipped only when the channel's flag at +0xa98 is 1 AND force is 0
-// (the draft had that inverted); the queue call is (EDI channel, EBX = param_3 bits, stack data, &status, 1, reliable,
-// unknown_a) with status = (param_1 != 0); the result is AL -- 0, or the queue's result when a message was queued.
+// (the draft had that inverted); the queue call is (EDI channel, EBX = body_bit_count bits, stack data, &status, 1, reliable,
+// unknown_a) with status = (status_bit != 0); the result is AL -- 0, or the queue's result when a message was queued.
 uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server,
-    uint32_t param_1, void *data, uint32_t param_3, uint32_t reliable, uint32_t unknown_a,
+    uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a,
     char force, uint32_t priority)
 {
     int32_t i;
@@ -48,9 +48,9 @@ uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globa
             if (channel == 0 || (channel->connected == 1 && force == 0)) {
                 return 0;
             }
-            status = (uint8_t)(param_1 != 0);
+            status = (uint8_t)(status_bit != 0);
             return (uint8_t)network_channel_queue_message(channel, (uint32_t)data, (uint32_t)&status, 1,
-                                                          (char)reliable, (char)unknown_a, (int32_t)param_3);
+                                                          (char)reliable, (char)unknown_a, (int32_t)body_bit_count);
         }
     }
     return 0;

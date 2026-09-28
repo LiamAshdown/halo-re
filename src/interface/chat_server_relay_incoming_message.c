@@ -44,8 +44,8 @@ extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern int32_t network_object_owner_team_index_desired(void *obj); // 0x4e0cf0, EAX
 extern int32_t message_delta_encode_message(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX, EDX
-extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t param_1,
-    void *data, uint32_t param_3, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); // 0x4e1930, EAX, ESI, stack
+extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit,
+    void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); // 0x4e1930, EAX, ESI, stack
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit,
     void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused); // 0x4e1a80, EAX, ECX, stack
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI

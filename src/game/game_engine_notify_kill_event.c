@@ -32,8 +32,8 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // EDX -> destination size, then the seven stack arguments. Returns the encoded bit
     // length in EAX. `fields` is a pointer TO a pointer to the field block -- see below.
-extern uint32_t network_session_send_to_machine(int32_t machine_id, void *server, uint32_t param_1, void *data,
-    uint32_t param_3, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); // 0x4e1930, EAX machine, ESI server
+extern uint32_t network_session_send_to_machine(int32_t machine_id, void *server, uint32_t status_bit, void *data,
+    uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); // 0x4e1930, EAX machine, ESI server
 
 // blam-cc: EAX -> player_index, ECX -> hash_key, stack -> message_type, subject
 // Encodes and broadcasts a networked event 0x18 (kill notification) carrying `message_type` and

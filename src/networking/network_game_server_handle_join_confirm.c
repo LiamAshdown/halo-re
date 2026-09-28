@@ -15,7 +15,7 @@
 #include <wchar.h>
 
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, blam-cc: EAX type, EDX payload
-extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t param_1, void *data,
+extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data,
     uint32_t bits, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); // 0x4e1930, blam-cc: EAX machine_id, ESI server
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group, void *decoded_body,

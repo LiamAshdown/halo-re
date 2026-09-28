@@ -43,7 +43,7 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern network_server_globals *network_server;
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server,
-    uint32_t param_1, void *data, uint32_t param_3, uint32_t reliable, uint32_t unknown_a,
+    uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a,
     char force, uint32_t priority); // 0x4e1930, EAX, ESI, stack
 
 void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index)
