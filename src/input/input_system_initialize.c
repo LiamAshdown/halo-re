@@ -35,6 +35,10 @@ extern int32_t joystick_slot_devices[4];    // 0x006b2ce8
 // slot = -1), registers the (non-Ghidra) EnumDevices callback at 0x491d70 for attached game
 // controllers unless -nojoystick was passed, and resets the neutral joystick state and the
 // slot-to-device map.
+// FIXED 2026-09-28 (retail-independence loop): the EnumDevices callback is the C input_enumerate_gamepad_callback,
+// not the literal retail address 0x491d70 (original code the standalone cannot run).
+extern int32_t __stdcall input_enumerate_gamepad_callback(const di_device_instance *instance, void *reference); // 0x491d70
+
 uint32_t input_system_initialize(void)
 {
     int32_t i;
@@ -65,7 +69,7 @@ uint32_t input_system_initialize(void)
 
     if (nojoystick == 0) {
         ((idirectinput8_enumdevices_proc)(*(void ***)direct_input)[4])(direct_input, 4,
-            (void *)0x491d70, (void *)0, 1); // EnumDevices, DI8DEVCLASS_GAMECTRL, DIEDFL_ATTACHEDONLY
+            (void *)input_enumerate_gamepad_callback, (void *)0, 1); // EnumDevices, DI8DEVCLASS_GAMECTRL, DIEDFL_ATTACHEDONLY
     }
 
     memset(&joystick_neutral_state, 0, sizeof(joystick_neutral_state));

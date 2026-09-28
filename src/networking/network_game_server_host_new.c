@@ -19,6 +19,10 @@
 #include "networking.h"
 #include <string.h>
 
+// FIXED 2026-09-28 (retail-independence loop): the session's message callback is the C
+// network_session_reject_pending_connection_callback, not the literal retail address 0x4e1410.
+extern int32_t network_session_reject_pending_connection_callback(void *unused, int32_t reject_code); // 0x4e1410
+
 extern network_server_globals network_server_storage; // 0x00861340
 extern uint8_t network_session_active2;                // 0x0071c2ec, UNSURE name; "network_server_active" per header
 extern int32_t unknown_00699f44;                       // 0x00699f44, UNSURE identity
@@ -55,7 +59,7 @@ void *network_game_server_host_new(void)
         host->flags = host->flags | 2;
         host->unknown_004 = 0;
         network_game_session_reset(&host->session);
-        host->session.message_callback = (void *)0x4e1410; // matches header's "stores 0x004e1410 here"
+        host->session.message_callback = (void *)network_session_reject_pending_connection_callback; // 0x4e1410
         host->session.unknown_19e = unknown_00696564;
         *(int32_t *)((uint8_t *)host + 0x3b0) = -1; // UNSURE: lands within session.unknown_3a2[10]
         for (i = 0; i < 16; i++) {
