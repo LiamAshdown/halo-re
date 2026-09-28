@@ -2250,3 +2250,15 @@ Relinked: unresolved 1, traps 127.
 - VERIFIED: object_physics_context_build, object_get_node_local_transform, object_update (dispatch path),
   vehicle_calculate_mounted_controls_dispatch call roles.
 - OPEN (runtime, user): banshee flip; general vehicle handling should now be closer to retail (torque sign).
+
+## retail-independence loop
+### iteration 1 (2026-09-28) -- commits e2e418f..b110bac, relinked (0 unresolved, 127 direct traps)
+- New tool: scripts/DecompileAt.java + scratchpad/ghidra_decompile_at.sh (headless, read-only) decompiles functions
+  Ghidra never created (table-only callbacks). All 622 missing addresses -> scratchpad/missing_decomp.c (0 failures).
+  Use it as the skeleton, then recover register args / x87 orders from the disassembly.
+- Written: 8 AI dialogue conditions (0x42f4f0..0x42f7f0), actor type updates hunter/sentinel/engineer/flood/
+  flood carrier/infection (b30+ blockers), infection swarm update 0x424c20 (4 KB).
+- Missing functions: 639 -> 624 (stored pointers 512 -> 497; AI now 0).
+- NEXT: breakable-surface shatter 0x500090 (decompiled skeleton in scratchpad/bsce_decomp.c, asm in
+  scratchpad/bsce.asm; CRT floor 0x623e40 / ceil 0x6267f0), water 0x5358b0/0x535fd0, rasterizer LABs, then UI.
+- Build-time independence: not started. Run-time independence: not started.
