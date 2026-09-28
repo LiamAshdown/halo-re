@@ -115,7 +115,7 @@ extern int32_t tag_lookup(const char *path); // foreign, tags module
 extern uint16_t *text_string_list_get_string(int32_t tag_index, int32_t string_index); // foreign, see UNSURE
 
 // blam-cc: list-panel widget as param_1
-int32_t join_game_server_browser_tick(network_ui_widget *param_1)
+int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
 {
     network_ui_widget *password_panel;
     int32_t clicked;
@@ -164,7 +164,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
                 return 1;
             }
         } else if (DAT_007193be != 0) {
-            password_panel = param_1->parent->first_child->next_sibling->next_sibling->next_sibling;
+            password_panel = browser_widget->parent->first_child->next_sibling->next_sibling->next_sibling;
             password_panel->visible = 1;
             password_panel->hidden = 0;
             password_panel->parent->selected_child = password_panel;
@@ -210,8 +210,8 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
         }
     }
 
-    list_container = param_1->first_child->first_child;
-    sort_widget = param_1->first_child->next_sibling;
+    list_container = browser_widget->first_child->first_child;
+    sort_widget = browser_widget->first_child->next_sibling;
     up_arrow = sort_widget->next_sibling;
     w_iter = up_arrow->next_sibling;
     for (i = 0; i < 0xf; i++) {
@@ -228,7 +228,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
     w17->hidden = 1;
     sort_widget->first_child->highlight_flag = 1;
 
-    if (param_1->selected_child == status_group) {
+    if (browser_widget->selected_child == status_group) {
         if (status_group->selected_child == 0) {
             status_group->selected_child = status_group->first_child;
         }
@@ -238,7 +238,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
             w_iter->highlight_flag = 0;
         }
     }
-    if (param_1->selected_child == sort_widget) {
+    if (browser_widget->selected_child == sort_widget) {
         if (sort_widget->selected_child == 0) {
             sort_widget->selected_child = sort_widget->first_child;
         }
@@ -246,7 +246,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
         sort_widget->selected_child = 0;
     }
     w_iter = list_container->parent;
-    if (param_1->selected_child == w_iter && w_iter->selected_child == 0) {
+    if (browser_widget->selected_child == w_iter && w_iter->selected_child == 0) {
         w_iter->selected_child = list_container;
     }
     // UNSURE: this call is bare in the original (no visible EAX); `sort_widget` is the closest
@@ -324,7 +324,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
             *(uint32_t *)&status_leaf->alpha = 0x3f800000;
         }
 
-        w_iter = param_1->status_root->first_child;
+        w_iter = browser_widget->status_root->first_child;
         if (bVar11) {
             label = heap_reallocate(0, 0x40, &widget_memory_pool);
             w_iter->label_text = (wchar_t *)label;
@@ -420,7 +420,7 @@ scroll_fade_settled:
         down_arrow->first_child->highlight_flag = 1;
     }
 
-    password_panel = param_1->parent->first_child->next_sibling->next_sibling->next_sibling;
+    password_panel = browser_widget->parent->first_child->next_sibling->next_sibling->next_sibling;
     switch (master_server_last_result) {
     case 1:
     case 2:
