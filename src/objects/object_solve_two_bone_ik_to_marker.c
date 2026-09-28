@@ -12,12 +12,12 @@
 //   this batch), matrix4x3_inverse (0x4cb7a0), matrix4x3_multiply (0x4cc0d0),
 //   model_ik_solve_two_bone (0x4d6440).
 // register convention: object index in ECX; four further values are plain STACK parameters
-//   (Ghidra's param_1/param_2/param_3/param_4: a marker name, then a second object index and
+//   (Ghidra's param_1/marker_b_object_index/marker_b_name/param_4: a marker name, then a second object index and
 //   marker name pair reused verbatim for the second get_node_local_transform call, then a node
 //   array base pointer). Confirmed against objdump -d -M intel bin/halo.exe 0x4f6d60..: the
 //   entry reads ecx directly (no stack fetch for the object index) while every other input
 //   comes from [ebp+0x8]/[ebp+0xc]/[ebp+0x10]/[ebp+0x14].
-//   // blam-cc: ECX -> object_index, stack -> marker_a_name, param_2, param_3, node_base
+//   // blam-cc: ECX -> object_index, stack -> marker_a_name, marker_b_object_index, marker_b_name, node_base
 // UNSURE: this file calls object_get_node_local_transform (0x4f6080) exactly as this function's
 //   own disassembly passes its arguments -- ALL FOUR on the stack, object index included. That
 //   contradicts the EAX/ECX/EDX register convention claimed in that function's own file header
@@ -47,8 +47,8 @@ extern void model_ik_solve_two_bone(real_matrix4x3 *target, uint8_t *bone_c, uin
     uint8_t *bone_a); // 0x4d6440, UNSURE: parameter names guessed from the call order below
 
 void object_solve_two_bone_ik_to_marker(uint32_t object_index, char *marker_a_name,
-    uint32_t param_2, char *param_3, uint8_t *node_base)
-    // blam-cc: ECX -> object_index, stack -> marker_a_name, param_2, param_3, node_base
+    uint32_t marker_b_object_index, char *marker_b_name, uint8_t *node_base)
+    // blam-cc: ECX -> object_index, stack -> marker_a_name, marker_b_object_index, marker_b_name, node_base
     // (param_4 in Ghidra's own signature is renamed node_base; param_1 is marker_a_name)
 {
     Object *definition = (Object *)tag_instances[
@@ -62,10 +62,10 @@ void object_solve_two_bone_ik_to_marker(uint32_t object_index, char *marker_a_na
     if (object_get_node_local_transform(object_index, marker_a_name, &marker_a, 1) == 0) {
         return;
     }
-    // UNSURE: preserved exactly -- the second call passes this function's own param_2 and
-    // param_3 as the object index and marker name, NOT the object index used above. This
-    // matches the compiled code, which calls FUN_004f6080(param_2,param_3,local_78,1) verbatim.
-    if (object_get_node_local_transform(param_2, param_3, &marker_b, 1) == 0) {
+    // UNSURE: preserved exactly -- the second call passes this function's own marker_b_object_index and
+    // marker_b_name as the object index and marker name, NOT the object index used above. This
+    // matches the compiled code, which calls FUN_004f6080(marker_b_object_index,marker_b_name,local_78,1) verbatim.
+    if (object_get_node_local_transform(marker_b_object_index, marker_b_name, &marker_b, 1) == 0) {
         return;
     }
 
