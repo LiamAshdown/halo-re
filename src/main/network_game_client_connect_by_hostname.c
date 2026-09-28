@@ -41,10 +41,10 @@ extern int16_t network_join_error_code; // 0x00718fa4, foreign (interface module
 extern void network_dispatch_initialize(void); // 0x4414c0, foreign (networking module)
 extern char network_hostname_resolve_with_timeout(char *hostname); // 0x4c8370, this module
 extern uint8_t network_game_client_connect_to_address_async(char *address, char *password); // 0x4c8500, this module
-extern void *gethostbyname(const char *name);
-extern char *inet_ntoa(uint32_t addr); // Winsock, struct in_addr passed by value as uint32
+extern void *__stdcall gethostbyname(const char *name);
+extern char *__stdcall inet_ntoa(uint32_t addr); // Winsock, struct in_addr passed by value as uint32
 extern char *strchr(const char *string, int character); // CRT strchr (0x6257e0: the MSVC asm strchr)
-extern void *GlobalFree(void *handle);
+extern void *__stdcall GlobalFree(void *handle);
 
 // Resolves host_port_string (a "host" or "host:port" string, GlobalAlloc'd by the caller) and
 // stages the result for the main loop to connect to: on success, formats the resolved dotted

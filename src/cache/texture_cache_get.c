@@ -47,9 +47,9 @@ extern cache_io_request *cache_io_requests; // 0x006ac4a0
 extern int64_t performance_frequency;      // 0x006ac8f8/0x006ac8fc
 extern int32_t frame_watchdog_time;        // 0x0072520c
 
-extern void *GlobalFree(void *memory);                          // 0x0063a0bc IAT
-extern int32_t QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
-extern void Sleep(uint32_t milliseconds);                    // 0x0063a29c IAT
+extern void *__stdcall GlobalFree(void *memory);                          // 0x0063a0bc IAT
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
+extern void __stdcall Sleep(uint32_t milliseconds);                    // 0x0063a29c IAT
 extern void console_print_va(const char *format, ...);       // 0x4c6920
 
 extern uint32_t texture_cache_page_allocate(BitmapData *bitmap, uint8_t priority); // this module, texture_cache_page_allocate.c

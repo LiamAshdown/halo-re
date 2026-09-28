@@ -20,8 +20,8 @@
 extern uint8_t console_win32_attached; // 0x006b2f18
 extern void *console_input_handle;     // 0x006b2dcc, win32 console input handle (not otherwise named)
 
-extern int32_t GetNumberOfConsoleInputEvents(void *console_input, uint32_t *events);
-extern int32_t ReadConsoleInputA(void *console_input, win32_input_record *buffer,
+extern int32_t __stdcall GetNumberOfConsoleInputEvents(void *console_input, uint32_t *events);
+extern int32_t __stdcall ReadConsoleInputA(void *console_input, win32_input_record *buffer,
                                   uint32_t length, uint32_t *events_read);
 extern void input_record_windows_key_message(int32_t key_or_char, int32_t message); // 0x490d10, input module
 // blam-cc: EAX -> key_or_char, ECX -> message (0x100 WM_KEYDOWN, 0x102 WM_CHAR, 0x104

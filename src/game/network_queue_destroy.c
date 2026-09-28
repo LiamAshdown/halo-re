@@ -13,7 +13,7 @@
 #include "math.h"
 #include "game.h"
 
-extern void *GlobalFree(void *block); // Win32
+extern void *__stdcall GlobalFree(void *block); // Win32
 
 // blam-cc: ESI -> queue
 void network_queue_destroy(circular_queue *queue)

@@ -21,9 +21,9 @@ extern char console_window_title[0x20];  // 0x006b2dd8
 extern void *console_output_handle;      // 0x006b2dd0
 
 extern uint32_t strlen(const char *s);
-extern int32_t GetConsoleScreenBufferInfo(void *console_output,
+extern int32_t __stdcall GetConsoleScreenBufferInfo(void *console_output,
                                            win32_console_screen_buffer_info *info);
-extern int32_t SetConsoleCursorPosition(void *console_output, win32_coord position);
+extern int32_t __stdcall SetConsoleCursorPosition(void *console_output, win32_coord position);
 
 // Places the win32 console caret over the input line: column is the window-title length plus
 // the console's edit cursor, clamped to the buffer width; row is always the last row.

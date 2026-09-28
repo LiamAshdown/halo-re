@@ -24,8 +24,8 @@
 #include "game.h"
 #include "networking.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern uint32_t GetTickCount(void);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern uint32_t __stdcall GetTickCount(void);
 
 extern network_channel_list *network_channel_list_new(int16_t requested_capacity); // 0x441960, this module
 extern int32_t network_channel_list_add(network_receive_queue *entry, network_channel_list *list); // 0x441a40, this module

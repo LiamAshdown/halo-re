@@ -39,7 +39,7 @@ extern void network_index_cache_remove(void *table, datum_index player_handle); 
     // not in this batch; blam-cc: EAX -> table, ESI -> player_handle; UNSURE full behavior
 extern int32_t game_engine_player_profile_cache_find(datum_index player_handle); // this module,
     // 0x466e80, blam-cc: ESI -> player_handle
-extern void *GlobalFree(void *handle); // Win32
+extern void *__stdcall GlobalFree(void *handle); // Win32
 
 // Deletes this player's slot out of update_client_queues, and -- only while hosting -- also
 // frees update_server_queues's matching slot's queue storage and deletes that slot too (both

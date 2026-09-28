@@ -29,8 +29,8 @@ extern char game_state_core_directory[0x100]; // 0x006e2efc
 extern uint8_t game_state_write_in_progress; // 0x006e3000
 extern void *game_state_write_event; // 0x006e2ffc
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *CreateEventA(void *security_attributes, int32_t manual_reset, int32_t initial_state, const char *name);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall CreateEventA(void *security_attributes, int32_t manual_reset, int32_t initial_state, const char *name);
 extern int __snprintf(char *dest, uint32_t count, const char *format, ...);
 extern uint32_t __beginthread(void (*start_address)(void *), uint32_t stack_size, void *arg_list);
 extern void game_state_save_thread_proc(void); // 0x538980

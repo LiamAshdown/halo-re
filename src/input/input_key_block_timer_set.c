@@ -20,7 +20,7 @@ extern key_block_timer key_block_timers[k_input_key_block_timer_count]; // 0x006
 extern int16_t system_keys[k_input_system_key_count];                   // 0x0068e40c
 extern input_abstraction_globals input_globals;                         // 0x00710328
 extern int64_t performance_frequency;                                   // 0x006ac8f8/0x006ac8fc
-extern int32_t QueryPerformanceCounter(large_integer *counter);         // 0x0063a0ac IAT
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);         // 0x0063a0ac IAT
 
 // blam-cc: key in EDI, duration_ms on the stack
 // Schedules key to read as up (via input_get_key_state) for duration_ms milliseconds: reuses a

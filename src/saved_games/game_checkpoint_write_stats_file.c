@@ -29,7 +29,7 @@ extern int16_t campaign_level_find_index_for_path(char *scenario_name); // 0x4c8
 extern void *_fopen(const char *path, char *mode); // 0x624186, fopen-shaped wrapper
 extern int32_t _fprintf(void *stream, const char *format, ...);
 extern void _fclose(void *file); // _fclose
-extern uint32_t GetLocalTime(win32_systemtime *time); // Win32
+extern uint32_t __stdcall GetLocalTime(win32_systemtime *time); // Win32
 extern uint32_t strlen(const char *str);
 extern char *strcpy(char *dest, const char *source);
 

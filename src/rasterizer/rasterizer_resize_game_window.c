@@ -28,11 +28,11 @@ extern int16_t unknown_0069c63c; // 0x0069c63c UNSURE
 extern int32_t unknown_0069c648;                                    // 0x0069c648 UNSURE
 extern int32_t unknown_0069c64c;                                    // 0x0069c64c UNSURE
 
-extern void *GetDesktopWindow(void);
-extern int32_t GetWindowRect(void *hwnd, win32_rect *rect);
-extern int32_t AdjustWindowRect(win32_rect *rect, uint32_t style, int32_t menu);
-extern int32_t MoveWindow(void *hwnd, int32_t x, int32_t y, int32_t w, int32_t h, int32_t repaint);
-extern int32_t ShowWindow(void *hwnd, int32_t cmd_show);
+extern void *__stdcall GetDesktopWindow(void);
+extern int32_t __stdcall GetWindowRect(void *hwnd, win32_rect *rect);
+extern int32_t __stdcall AdjustWindowRect(win32_rect *rect, uint32_t style, int32_t menu);
+extern int32_t __stdcall MoveWindow(void *hwnd, int32_t x, int32_t y, int32_t w, int32_t h, int32_t repaint);
+extern int32_t __stdcall ShowWindow(void *hwnd, int32_t cmd_show);
 
 // blam-cc: EAX -> height, ECX -> width
 // Repositions/resizes the game window to a centered `width` by `height` client area if that

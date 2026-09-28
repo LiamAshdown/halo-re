@@ -20,7 +20,7 @@ extern uint8_t network_channel_service_backoff_bypass; // 0x0071c2c8
 extern int32_t unknown_00697ed8; // 0x00697ed8, UNSURE identity
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t network_game_mode; // 0x00719720
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 extern char network_channel_listen_service(network_channel *channel, network_channel **out_new_child); // 0x4dd4e0

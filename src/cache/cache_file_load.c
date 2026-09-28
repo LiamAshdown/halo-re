@@ -32,9 +32,9 @@ extern void model_load_vertex_buffers(cache_file_tag_header *header); // blam-cc
     // (out/phase4/cache_types_notes.md item 2); 0x442d10
 extern char *strrchr(const char *str, int ch); // 00623bc0 _strrchr
 extern uint32_t strlen(const char *str);
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *GlobalFree(void *memory);
-extern void Sleep(uint32_t milliseconds);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalFree(void *memory);
+extern void __stdcall Sleep(uint32_t milliseconds);
 
 extern uint8_t cache_file_loaded;                  // 0x006a8150
 extern cache_file_header cache_file_current_header; // 0x006a8154

@@ -21,7 +21,7 @@ extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 extern network_mutex_record *savegame_index_mutex; // 0x00721440
 extern uint8_t saved_game_files_initialized; // 0x00721446
 
-extern int32_t CloseHandle(void *object); // Win32
+extern int32_t __stdcall CloseHandle(void *object); // Win32
 extern void player_profile_verify_thread_wait_and_clear(void); // 0x539a40, outside this batch
 extern void control_profile_variant_write_wait_and_clear(void); // 0x53bae0, this module
 

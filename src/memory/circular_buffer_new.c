@@ -15,7 +15,7 @@
 #include "tags.h"
 #include "memory.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 // blam-cc: name as the recognized parameter, requested size in EAX
 // Allocates and initializes a new circular_buffer with capacity requested_size + 1 (one slot is

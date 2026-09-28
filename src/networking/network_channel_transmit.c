@@ -24,7 +24,7 @@
 #include "networking.h"
 #include <string.h>
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_pending_connection_count; // 0x006f16d0, UNSURE: reused here per globals list
 

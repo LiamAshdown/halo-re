@@ -13,7 +13,7 @@
 #include "math.h"
 #include "game.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t size); // Win32
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t size); // Win32
 
 // blam-cc: ESI -> queue
 void vehicle_update_queue_create(circular_queue *queue)

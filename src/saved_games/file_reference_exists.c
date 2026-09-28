@@ -20,8 +20,8 @@
 extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
 extern void saved_games_report_last_error(void); // 0x556170, this module
 
-extern uint32_t GetFileAttributesA(const char *path); // Win32
-extern uint32_t GetLastError(void); // Win32
+extern uint32_t __stdcall GetFileAttributesA(const char *path); // Win32
+extern uint32_t __stdcall GetLastError(void); // Win32
 
 // blam-cc: EAX -> ref
 // Returns 1 if ref's full path currently exists on disk, 0 otherwise. Reports the Win32 error

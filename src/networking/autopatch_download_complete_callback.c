@@ -16,7 +16,7 @@
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 // Completion callback for an asynchronous download/read: on success, copies the received data
 // into a heap buffer (unless the slot's close-requested flag is set) and marks the matching pool

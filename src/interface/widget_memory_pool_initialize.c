@@ -29,7 +29,7 @@ extern int16_t quit_confirm_error_string_index;      // 0x00718fac, first word o
 extern ui_pending_error ui_pending_error_alternate; // 0x00718fb2
 extern ui_pending_error ui_pending_errors[4];       // 0x00718fb6
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 // Allocates the widget system's 0x20000 byte heap arena, re-derives its heap header (clearing
 // and restoring base/size/unknown_00/maximum_blocks around a full header wipe, then

@@ -32,7 +32,7 @@
 extern int32_t input_device_count;    // 0x006b1844
 extern input_device input_devices[8]; // 0x006b1868
 
-extern int32_t StringFromGUID2(const input_guid *guid, uint16_t *out, int32_t max_chars); // OLE32 IAT
+extern int32_t __stdcall StringFromGUID2(const input_guid *guid, uint16_t *out, int32_t max_chars); // OLE32 IAT
 extern void console_printf_verbose(ColorARGB *color, char *format, ...); // interface module, 0x496a80
 
 // Debug/test routine: logs "<index>) deviceid <guid> - <name>" for every registered input

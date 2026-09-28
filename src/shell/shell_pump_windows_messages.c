@@ -16,9 +16,9 @@ extern void *keystone_module;                  // 0x00721e9c
 extern void *shell_window;                     // 0x007461c4
 extern keystone_translate_accelerator_fn keystone_translate_accelerator; // 0x00721eb0
 
-extern int32_t PeekMessageA(void *message, void *hwnd, uint32_t filter_min, uint32_t filter_max, uint32_t remove);
-extern void TranslateMessage(void *message);
-extern void DispatchMessageA(void *message);
+extern int32_t __stdcall PeekMessageA(void *message, void *hwnd, uint32_t filter_min, uint32_t filter_max, uint32_t remove);
+extern void __stdcall TranslateMessage(void *message);
+extern void __stdcall DispatchMessageA(void *message);
 
 // Drains the Win32 message queue each frame, routing messages through the Keystone UI
 // accelerator translator when the UI library is loaded and otherwise through the normal

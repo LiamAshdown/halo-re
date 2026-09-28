@@ -16,7 +16,7 @@
 extern uint8_t message_delta_parameters_enabled;      // 0x0071cfa8
 extern int32_t message_delta_parameter_count;         // 0x0071cfb0
 extern message_delta_parameter message_delta_parameters[]; // 0x006b86c0
-extern void *GlobalFree(void *mem);
+extern void *__stdcall GlobalFree(void *mem);
 
 // Frees every GlobalAlloc'd name string in the dynamic-parameters registration table (only
 // while the parameters protocol is enabled) and resets the registration count to zero.

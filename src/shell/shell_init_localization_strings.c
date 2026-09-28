@@ -18,19 +18,19 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *LoadLibraryA(const char *file_name);   // import 0x63a0a0
-extern int32_t GetCurrentDirectoryA(uint32_t buffer_capacity, char *buffer); // import 0x63a14c
-extern int32_t MessageBoxA(void *owner, const char *text, const char *caption, uint32_t type); // import 0x63a370
-extern void ExitProcess(uint32_t exit_code); // import 0x63a2c8
-extern int32_t RegOpenKeyExA(void *key, const char *subkey, uint32_t reserved, uint32_t desired_access,
+extern void *__stdcall LoadLibraryA(const char *file_name);   // import 0x63a0a0
+extern int32_t __stdcall GetCurrentDirectoryA(uint32_t buffer_capacity, char *buffer); // import 0x63a14c
+extern int32_t __stdcall MessageBoxA(void *owner, const char *text, const char *caption, uint32_t type); // import 0x63a370
+extern void __stdcall ExitProcess(uint32_t exit_code); // import 0x63a2c8
+extern int32_t __stdcall RegOpenKeyExA(void *key, const char *subkey, uint32_t reserved, uint32_t desired_access,
                               void **result_key); // import 0x63a014
-extern int32_t RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type, uint8_t *data,
+extern int32_t __stdcall RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type, uint8_t *data,
                                  uint32_t *data_size); // import 0x63a018
-extern int32_t RegCloseKey(void *key); // import 0x63a010
+extern int32_t __stdcall RegCloseKey(void *key); // import 0x63a010
 extern int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32_t buffer_capacity, void *module,
                                            char *buffer); // 0x57e110
-extern int32_t LoadStringA(void *instance, uint32_t id, char *buffer, int32_t buffer_capacity); // import 0x63a328
-extern uint32_t GetTickCount(void); // import 0x63a0d0
+extern int32_t __stdcall LoadStringA(void *instance, uint32_t id, char *buffer, int32_t buffer_capacity); // import 0x63a328
+extern uint32_t __stdcall GetTickCount(void); // import 0x63a0d0
 extern char *strcat(char *dst, const char *src); // CRT, statically linked
 
 extern void *strings_module;          // 0x00722bb8

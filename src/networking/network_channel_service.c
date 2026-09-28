@@ -42,7 +42,7 @@ char network_channel_service(network_channel *channel, int32_t timeout_ms, netwo
     {
         // QueryPerformanceCounter-derived milliseconds, matching the pattern used throughout
         // this module (see network_channel_record_timestamp.c for the canonical form).
-        extern int32_t QueryPerformanceCounter(large_integer *counter);
+        extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
         extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
         large_integer counter;
         QueryPerformanceCounter(&counter);

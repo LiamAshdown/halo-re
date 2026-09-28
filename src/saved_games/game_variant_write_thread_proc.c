@@ -36,8 +36,8 @@ extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, th
 extern uint8_t player_profile_rename(int32_t handle, uint16_t *new_name); // 0x53ce80, this module, blam-cc: EAX handle
 extern uint8_t saved_game_delete_by_handle(int32_t handle); // 0x53c960, this module
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
-extern uint32_t WaitForSingleObject(void *object, uint32_t milliseconds); // Win32
-extern int32_t ReleaseMutex(void *mutex); // Win32
+extern uint32_t __stdcall WaitForSingleObject(void *object, uint32_t milliseconds); // Win32
+extern int32_t __stdcall ReleaseMutex(void *mutex); // Win32
 
 // blam-cc: one stack argument (request)
 // Waits on saved_game_files_mutex, then opens request->handle's saved-game file, crcs and writes

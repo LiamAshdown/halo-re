@@ -21,7 +21,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int16_t network_join_error_code; // 0x00718fa4, WORD-sized
 extern int32_t network_signal_quality_glyph(void); // 0x440610, not in this batch

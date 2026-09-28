@@ -40,7 +40,7 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern player_profile player_profile_cache[16]; // 0x006b0b88
 extern int32_t player_profile_cache_count; // 0x006f1d34
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, blam-cc: EAX -> entry
     // blam-cc: EAX -> entry; 0x4de9f0, other module. The EAX convention is pinned by
     // network_server_check_machine_timeout (0x4e0f80 `mov eax,esi` / 0x4e102b

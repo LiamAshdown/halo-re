@@ -18,11 +18,11 @@
 extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
 extern void saved_games_report_last_error(void); // 0x556170, this module
 
-extern void *CreateFileA(const char *path, uint32_t desired_access, uint32_t share_mode,
+extern void *__stdcall CreateFileA(const char *path, uint32_t desired_access, uint32_t share_mode,
     void *security_attributes, uint32_t creation_disposition, uint32_t flags_and_attributes,
     void *template_file); // Win32
-extern uint32_t SetFilePointer(void *file, int32_t distance, int32_t *distance_high, uint32_t method); // Win32
-extern int32_t CloseHandle(void *object); // Win32
+extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, int32_t *distance_high, uint32_t method); // Win32
+extern int32_t __stdcall CloseHandle(void *object); // Win32
 
 // blam-cc: reference record in ESI; open-mode flags as the one stack argument
 // Opens ref's full path with CreateFileA (share mode FILE_SHARE_READ, OPEN_ALWAYS,

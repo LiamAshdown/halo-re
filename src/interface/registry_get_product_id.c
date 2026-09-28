@@ -20,10 +20,10 @@ typedef long LSTATUS;
 #define KEY_WOW64_32KEY 0x0200
 #define KEY_READ_32 0x00020019 // matches the literal 0x20019 used here
 
-extern LSTATUS RegOpenKeyExA(HKEY key, const char *subkey, DWORD options, DWORD sam, HKEY *result);
-extern LSTATUS RegQueryValueExA(HKEY key, const char *value_name, DWORD *reserved, DWORD *type,
+extern LSTATUS __stdcall RegOpenKeyExA(HKEY key, const char *subkey, DWORD options, DWORD sam, HKEY *result);
+extern LSTATUS __stdcall RegQueryValueExA(HKEY key, const char *value_name, DWORD *reserved, DWORD *type,
                                  uint8_t *data, DWORD *data_size);
-extern LSTATUS RegCloseKey(HKEY key);
+extern LSTATUS __stdcall RegCloseKey(HKEY key);
 
 extern uint8_t product_id_read;      // 0x00719340, set once the registry lookup has run
 extern uint32_t cached_product_id;   // 0x00719344, the 4 byte "PID" value

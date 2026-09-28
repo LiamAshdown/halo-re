@@ -16,13 +16,13 @@
 extern uint8_t console_win32_attached;  // 0x006b2f18
 extern void *console_output_handle;     // 0x006b2dd0
 
-extern int32_t GetConsoleScreenBufferInfo(void *console_output,
+extern int32_t __stdcall GetConsoleScreenBufferInfo(void *console_output,
                                            win32_console_screen_buffer_info *info);
-extern int32_t SetConsoleCursorPosition(void *console_output, win32_coord position);
-extern int32_t FillConsoleOutputCharacterA(void *console_output, char character,
+extern int32_t __stdcall SetConsoleCursorPosition(void *console_output, win32_coord position);
+extern int32_t __stdcall FillConsoleOutputCharacterA(void *console_output, char character,
                                             uint32_t length, win32_coord write_coord,
                                             uint32_t *chars_written);
-extern int32_t FillConsoleOutputAttribute(void *console_output, uint16_t attributes,
+extern int32_t __stdcall FillConsoleOutputAttribute(void *console_output, uint16_t attributes,
                                            uint32_t length, win32_coord write_coord,
                                            uint32_t *chars_written);
 

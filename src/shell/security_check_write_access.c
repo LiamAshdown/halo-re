@@ -25,26 +25,26 @@ extern void os_platform_identify(void);        // 0x005427e0
 extern void security_check_cleanup(void *descriptor, void *acl, void *sid, void *thread_token,
                                     void *impersonation_token);                // 0x00542a80
 
-extern void *GetCurrentThread(void);
-extern void *GetCurrentProcess(void);
-extern int32_t OpenThreadToken(void *thread, uint32_t desired_access, int32_t open_as_self, void **token);
-extern int32_t OpenProcessToken(void *process, uint32_t desired_access, void **token);
-extern uint32_t GetLastError(void);
-extern int32_t DuplicateToken(void *token, int32_t impersonation_level, void **new_token);
-extern int32_t AllocateAndInitializeSid(sid_identifier_authority *authority, uint8_t sub_authority_count,
+extern void *__stdcall GetCurrentThread(void);
+extern void *__stdcall GetCurrentProcess(void);
+extern int32_t __stdcall OpenThreadToken(void *thread, uint32_t desired_access, int32_t open_as_self, void **token);
+extern int32_t __stdcall OpenProcessToken(void *process, uint32_t desired_access, void **token);
+extern uint32_t __stdcall GetLastError(void);
+extern int32_t __stdcall DuplicateToken(void *token, int32_t impersonation_level, void **new_token);
+extern int32_t __stdcall AllocateAndInitializeSid(sid_identifier_authority *authority, uint8_t sub_authority_count,
                                          uint32_t sub_authority0, uint32_t sub_authority1, uint32_t sub_authority2,
                                          uint32_t sub_authority3, uint32_t sub_authority4, uint32_t sub_authority5,
                                          uint32_t sub_authority6, uint32_t sub_authority7, void **sid);
-extern void *LocalAlloc(uint32_t flags, uint32_t size);
-extern int32_t InitializeSecurityDescriptor(void *descriptor, uint32_t revision);
-extern uint32_t GetLengthSid(void *sid);
-extern int32_t InitializeAcl(void *acl, uint32_t size, uint32_t revision);
-extern int32_t AddAccessAllowedAce(void *acl, uint32_t revision, uint32_t access_mask, void *sid);
-extern int32_t SetSecurityDescriptorDacl(void *descriptor, int32_t present, void *dacl, int32_t defaulted);
-extern void SetSecurityDescriptorGroup(void *descriptor, void *group, int32_t defaulted);
-extern void SetSecurityDescriptorOwner(void *descriptor, void *owner, int32_t defaulted);
-extern int32_t IsValidSecurityDescriptor(void *descriptor);
-extern int32_t AccessCheck(void *descriptor, void *token, uint32_t desired_access, generic_mapping *mapping,
+extern void *__stdcall LocalAlloc(uint32_t flags, uint32_t size);
+extern int32_t __stdcall InitializeSecurityDescriptor(void *descriptor, uint32_t revision);
+extern uint32_t __stdcall GetLengthSid(void *sid);
+extern int32_t __stdcall InitializeAcl(void *acl, uint32_t size, uint32_t revision);
+extern int32_t __stdcall AddAccessAllowedAce(void *acl, uint32_t revision, uint32_t access_mask, void *sid);
+extern int32_t __stdcall SetSecurityDescriptorDacl(void *descriptor, int32_t present, void *dacl, int32_t defaulted);
+extern void __stdcall SetSecurityDescriptorGroup(void *descriptor, void *group, int32_t defaulted);
+extern void __stdcall SetSecurityDescriptorOwner(void *descriptor, void *owner, int32_t defaulted);
+extern int32_t __stdcall IsValidSecurityDescriptor(void *descriptor);
+extern int32_t __stdcall AccessCheck(void *descriptor, void *token, uint32_t desired_access, generic_mapping *mapping,
                             void *privilege_set, uint32_t *privilege_set_length, uint32_t *granted_access,
                             int32_t *access_status);
 

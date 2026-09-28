@@ -21,11 +21,11 @@
 #include "tags.h"
 #include "cache.h"
 
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // 0x0063a310 IAT
-extern void SetEvent(void *event); // 0x0063a294 IAT
-extern void GetSystemTime(system_time *out_time); // 0x0063a2d0 IAT
-extern void SystemTimeToFileTime(system_time *in_time, file_time *out_time); // 0x0063a2e8 IAT
-extern void SetFileTime(void *file, file_time *creation, file_time *last_access,
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // 0x0063a310 IAT
+extern void __stdcall SetEvent(void *event); // 0x0063a294 IAT
+extern void __stdcall GetSystemTime(system_time *out_time); // 0x0063a2d0 IAT
+extern void __stdcall SystemTimeToFileTime(system_time *in_time, file_time *out_time); // 0x0063a2e8 IAT
+extern void __stdcall SetFileTime(void *file, file_time *creation, file_time *last_access,
     file_time *last_write); // 0x0063a2dc IAT
 
 extern void cache_file_slot_read_header(int32_t slot_index); // blam-cc: EAX; this module, 0x4435e0

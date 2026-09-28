@@ -25,7 +25,7 @@ extern uint32_t file_enumeration_flags_value; // 0x0069fa58
 extern void *file_enumeration_handles[8]; // 0x0069fb60
 extern char file_enumeration_path[0x100]; // 0x0069fa60
 
-extern int32_t FindClose(void *handle); // Win32
+extern int32_t __stdcall FindClose(void *handle); // Win32
 
 // blam-cc: plain stack arguments (flags, ref)
 // Closes any find handles still open from a previous (possibly recursive) enumeration up to and

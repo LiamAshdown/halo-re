@@ -73,9 +73,9 @@ extern int16_t quit_confirm_error_unknown_ae;   // 0x00718fae
 extern uint8_t quit_confirm_error_modal;        // 0x00718fb0
 extern uint8_t quit_confirm_error_is_error;     // 0x00718fb1
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
-extern int32_t GetExitCodeThread(void *thread, uint32_t *exit_code);
-extern int32_t CloseHandle(void *handle);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall GetExitCodeThread(void *thread, uint32_t *exit_code);
+extern int32_t __stdcall CloseHandle(void *handle);
 extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error); // 0x498f20
 extern uint8_t ui_check_for_pause_game(void); // 0x49c1a0
 extern void virtual_keyboard_process_input(void); // 0x4a8be0

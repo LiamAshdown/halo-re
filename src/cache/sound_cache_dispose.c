@@ -21,7 +21,7 @@ extern void *sound_decode_buffer;       // 0x006f17ec
 extern int32_t sound_decode_buffer_size; // 0x006f17f0
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void *GlobalFree(void *memory); // 0x0063a0bc IAT
+extern void *__stdcall GlobalFree(void *memory); // 0x0063a0bc IAT
 
 extern void sound_permutation_release_page(SoundPermutation *permutation); // this module, sound_permutation_release_page.c
 

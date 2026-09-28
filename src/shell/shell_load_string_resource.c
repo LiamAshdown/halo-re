@@ -19,10 +19,10 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *FindResourceExA(void *module, const char *type, const char *name, uint16_t language); // import 0x63a30c
-extern void *LoadResource(void *module, void *resource_info);                                       // import 0x63a18c
-extern void *LockResource(void *resource_data);                                                     // import 0x63a190
-extern int32_t WideCharToMultiByte(uint32_t code_page, uint32_t flags, const uint16_t *wide_str, int32_t wide_len,
+extern void *__stdcall FindResourceExA(void *module, const char *type, const char *name, uint16_t language); // import 0x63a30c
+extern void *__stdcall LoadResource(void *module, void *resource_info);                                       // import 0x63a18c
+extern void *__stdcall LockResource(void *resource_data);                                                     // import 0x63a190
+extern int32_t __stdcall WideCharToMultiByte(uint32_t code_page, uint32_t flags, const uint16_t *wide_str, int32_t wide_len,
                                     char *multi_byte_str, int32_t multi_byte_capacity, const char *default_char,
                                     int32_t *used_default_char); // import 0x63a184
 

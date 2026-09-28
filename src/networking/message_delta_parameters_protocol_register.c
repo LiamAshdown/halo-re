@@ -25,7 +25,7 @@ extern uint8_t message_delta_parameters_enabled;              // 0x0071cfa8
 extern int32_t message_delta_parameter_count;                 // 0x0071cfb0
 extern message_delta_parameter message_delta_parameters[];    // 0x006b86c0
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 extern char *strdup(const char *s);
 extern int32_t strlen(const char *s);
 extern void *memcpy(void *dest, const void *src, int32_t count);

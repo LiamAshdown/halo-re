@@ -15,8 +15,8 @@
 #include "tags.h"
 #include "cache.h"
 
-extern void CloseHandle(void *object);
-extern void *GlobalFree(void *memory);
+extern void __stdcall CloseHandle(void *object);
+extern void *__stdcall GlobalFree(void *memory);
 
 extern void cache_io_wait_all_requests(void); // this module, 0x4432b0
 

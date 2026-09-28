@@ -17,7 +17,7 @@
 
 extern uint8_t checkpoint_sort_newest_first; // 0x0069e7e8
 
-extern int32_t CompareFileTime(const uint32_t *time1, const uint32_t *time2); // Win32
+extern int32_t __stdcall CompareFileTime(const uint32_t *time1, const uint32_t *time2); // Win32
 
 int32_t saved_game_checkpoint_compare(const checkpoint_file_entry *a, const checkpoint_file_entry *b)
 {

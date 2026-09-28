@@ -17,7 +17,7 @@
 #include "saved_games.h"
 
 extern void saved_games_report_last_error(void); // 0x556170, this module
-extern uint32_t GetFileSize(void *file, uint32_t *file_size_high); // Win32
+extern uint32_t __stdcall GetFileSize(void *file, uint32_t *file_size_high); // Win32
 
 // blam-cc: EAX -> ref
 // Returns the size in bytes of ref's open handle, or 0xffffffff on failure (after reporting the

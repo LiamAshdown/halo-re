@@ -25,7 +25,7 @@ extern int32_t network_buffer_pair_pool_unknown_element_flag; // 0x006b85a8, set
 extern int32_t network_buffer_pair_pool_count; // 0x006b85ac
 extern network_buffer_pair *network_buffer_pair_pool_data; // 0x006b85b0
 
-extern void *GlobalFree(void *mem);
+extern void *__stdcall GlobalFree(void *mem);
 
 // Frees both allocations of every entry in the pool, then resets the pool to empty (count and
 // the unknown flag both -1, data pointer freed and cleared).

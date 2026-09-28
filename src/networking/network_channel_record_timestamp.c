@@ -11,7 +11,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 void network_channel_record_timestamp(network_channel *channel)

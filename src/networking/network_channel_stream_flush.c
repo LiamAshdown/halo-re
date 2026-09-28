@@ -36,7 +36,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint32_t GetTickCount(void);
+extern uint32_t __stdcall GetTickCount(void);
 extern int32_t network_bit_chunk_size; // 0x0071c2cc
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 extern int32_t FUN_006146b0(int32_t socket, uint8_t *buffer, int32_t byte_count, int32_t mode); // foreign, GameSpy/transport library

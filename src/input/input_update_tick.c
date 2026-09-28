@@ -27,7 +27,7 @@ extern input_abstraction_globals input_globals; // 0x00710328
 extern uint32_t input_menu_exit_deadline;                     // 0x00712918
 extern int16_t system_keys[k_input_system_key_count];         // 0x0068e40c
 extern int64_t performance_frequency;                         // 0x006ac8f8/0x006ac8fc
-extern int32_t QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
 
 extern uint8_t input_get_key_state(int16_t key_index);        // 0x00490b50, blam-cc: CX -> key
 extern void input_key_block_timers_expire(void);              // 0x00490ca0

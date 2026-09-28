@@ -14,8 +14,8 @@ extern void *cache_io_thread;  // 0x006ac49c, 0x4000-byte stack
 extern int32_t os_platform;    // 0x00721ef0
 
 extern void os_platform_identify(void); // 0x5427e0
-extern void *CreateEventA(void *security_attributes, int32_t manual_reset, int32_t initial_state, char *name); // 0x0063a288 IAT
-extern void *CreateThread(void *security_attributes, uint32_t stack_size, void *start_address, void *parameter, uint32_t creation_flags, uint32_t *thread_id); // 0x0063a2f0 IAT
+extern void *__stdcall CreateEventA(void *security_attributes, int32_t manual_reset, int32_t initial_state, char *name); // 0x0063a288 IAT
+extern void *__stdcall CreateThread(void *security_attributes, uint32_t stack_size, void *start_address, void *parameter, uint32_t creation_flags, uint32_t *thread_id); // 0x0063a2f0 IAT
 
 extern uint32_t cache_io_thread_proc_sync(void *unused);  // this module, cache_io_thread_proc_sync.c
 extern uint32_t cache_io_thread_proc_async(void *unused); // this module, cache_io_thread_proc_async.c

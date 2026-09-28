@@ -19,7 +19,7 @@
 extern void hs_compile(int32_t source_length, char *source_text, char **error_message, int32_t *error_offset); // 0x00485770, this batch
 extern void data_delete_all(data_array *array); // 0x004d0580
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
-extern void *GlobalFree(void *memory); // EXTERNAL kernel32
+extern void *__stdcall GlobalFree(void *memory); // EXTERNAL kernel32
 
 extern Scenario *global_scenario;              // 0x00746f8c
 extern uint8_t hs_compiling;                   // 0x006b14b8

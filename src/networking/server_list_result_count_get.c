@@ -15,8 +15,8 @@ extern network_thread_record *server_list_thread; // 0x007196ac
 extern network_mutex_record *server_list_mutex; // 0x007196a8
 extern server_list_globals server_list;         // 0x007196bc
 
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
-extern int32_t ReleaseMutex(void *handle);                              // Win32
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
+extern int32_t __stdcall ReleaseMutex(void *handle);                              // Win32
 
 // Thread-safely reads server_list.result_count, returning 0 if the mutex could not be acquired.
 uint32_t server_list_result_count_get(void)

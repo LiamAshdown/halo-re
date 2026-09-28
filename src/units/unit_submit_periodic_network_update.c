@@ -45,7 +45,7 @@ extern int32_t message_delta_encode_message(int32_t is_delta, int32_t definition
                                              void *changed, void *fields, void *types,
                                              int32_t count, char flag);         // 0x4ec940
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern int32_t QueryPerformanceCounter(large_integer *counter);                  // 0x0063a0ac IAT
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);                  // 0x0063a0ac IAT
 extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
 extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
 

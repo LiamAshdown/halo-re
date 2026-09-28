@@ -14,8 +14,8 @@
 
 extern uint8_t network_hostname_ready; // 0x006f14cc
 
-extern int32_t gethostname(char *name, int32_t buffer_length);
-extern void ExitThread(uint32_t exit_code);
+extern int32_t __stdcall gethostname(char *name, int32_t buffer_length);
+extern void __stdcall ExitThread(uint32_t exit_code);
 
 void network_hostname_thread_proc(char *hostname_buffer)
 {

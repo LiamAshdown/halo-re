@@ -30,8 +30,8 @@ extern char file_open_mode_w[];          // 0x0065ff44, likely "w"
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void cache_build_status_bitmap(struct cache *self, uint8_t *bitmap); // 0x4d1ca0
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
-extern void *GlobalFree(void *memory); // 0x0063a0bc IAT
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
+extern void *__stdcall GlobalFree(void *memory); // 0x0063a0bc IAT
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 extern uint32_t _fwrite(const void *buffer, uint32_t size, uint32_t count, void *file); // 0x6243e9 _fwrite
 extern void _fclose(void *file); // _fclose

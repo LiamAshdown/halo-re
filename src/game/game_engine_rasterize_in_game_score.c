@@ -104,7 +104,7 @@ extern void ui_draw_filled_rectangle(void); // 0x449780, not in this batch; UNSU
 extern uint8_t unit_find_weapon_index_by_flag(int32_t unknown_0); // 0x570520, not in this batch; UNSURE exact meaning
 extern char *network_address_to_string(void); // 0x440570, not in this batch; UNSURE exact args
 extern int16_t network_channel_get_remote_address(void); // 0x441ce0, not in this batch; UNSURE exact args
-extern char *inet_ntoa(uint32_t addr); // Winsock
+extern char *__stdcall inet_ntoa(uint32_t addr); // Winsock
 
 // FIXED 2026-09-28: both inputs are stack arguments (0x4656ad reads the player at +4, 0x4656da and 0x465739 the
 //   opacity at +8); the earlier version took the player from EAX, the opacity one slot late and the result

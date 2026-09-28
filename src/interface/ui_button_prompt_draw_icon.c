@@ -27,7 +27,7 @@
 extern Globals *global_globals;       // 0x00746fa0
 extern int64_t performance_frequency; // 0x006ac8f8 (LowPart) .. 0x006ac8fc (HighPart), LARGE_INTEGER
 
-extern int32_t QueryPerformanceCounter(int64_t *counter);
+extern int32_t __stdcall QueryPerformanceCounter(int64_t *counter);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset); // 0x4ab8d0, blam-cc: EAX frame_index
 

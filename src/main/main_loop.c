@@ -100,7 +100,7 @@ extern int32_t rasterizer_present_counter_low;              // 0x0069c648, forei
 extern int32_t rasterizer_present_counter_high;             // 0x0069c64c
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, foreign (render)
 
-extern uint32_t QueryPerformanceCounter(int64_t *counter);                  // import 0x63a0ac
+extern uint32_t __stdcall QueryPerformanceCounter(int64_t *counter);                  // import 0x63a0ac
 extern void __stdcall GetLocalTime(void *system_time);                      // import 0x63a10c
 extern uint32_t __stdcall MsgWaitForMultipleObjects(uint32_t count, const void *handles,
     int32_t wait_all, uint32_t milliseconds, uint32_t wake_mask);           // import 0x63a40c

@@ -12,7 +12,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern void *GlobalFree(void *memory);
+extern void *__stdcall GlobalFree(void *memory);
 
 // Frees every node of a player_update_history's linked list and clears its head/tail.
 void player_update_history_free_all(player_update_history *history)

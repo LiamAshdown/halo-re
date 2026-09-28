@@ -28,7 +28,7 @@ extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, th
 extern datum_index hs_compile_expression(char *text, uint32_t length, char **error_message, char **error_offset); // 0x00485540, this batch
 extern void hs_evaluate_expression(datum_index node_index); // 0x0048a250, outside this batch's assigned range
 extern void data_delete_all(data_array *array); // 0x004d0580
-extern void *GlobalFree(void *memory); // EXTERNAL kernel32
+extern void *__stdcall GlobalFree(void *memory); // EXTERNAL kernel32
 extern char hs_rebuild_source(void); // 0x00483e20, this batch
 extern char hs_compile_source(void); // 0x00484090, this batch
 extern void hs_scripts_free(void); // 0x004832b0, this batch

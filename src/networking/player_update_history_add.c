@@ -38,7 +38,7 @@
 extern data_array *object_data; // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
     const char *format, ...); // this module, 0x4e5ea0
 extern uint8_t player_unit_has_parent(datum_index player_handle);

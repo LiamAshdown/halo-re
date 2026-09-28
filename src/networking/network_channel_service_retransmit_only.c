@@ -14,7 +14,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 extern void network_channel_scan_retransmit_timeouts(network_channel *channel); // 0x4dd9d0, this batch
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch

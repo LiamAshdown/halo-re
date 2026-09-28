@@ -19,7 +19,7 @@ extern int32_t DAT_006953fc; // see UNSURE, a millisecond deadline
 extern uint8_t DAT_00719488; // see UNSURE
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 // blam-cc: __cdecl, no arguments
 void master_server_list_refresh_request(void)

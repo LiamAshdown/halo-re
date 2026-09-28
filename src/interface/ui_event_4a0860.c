@@ -32,7 +32,7 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"
 extern uint32_t growable_array_add_element(growable_array *array); // 0x4cf810, blam-cc: ESI array
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
 
 uint8_t ui_event_4a0860(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

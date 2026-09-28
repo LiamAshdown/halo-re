@@ -28,8 +28,8 @@ extern int16_t pending_difficulty; // 0x00696564
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
-extern void *FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
-extern int32_t FindClose(void *find_handle); // Win32
+extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
+extern int32_t __stdcall FindClose(void *find_handle); // Win32
 extern int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *name,
     int32_t *out_game_time, win32_systemtime *out_time); // 0x538c60
 extern void main_queue_map_change(char *map_name); // 0x4c8740, blam-cc: EAX -> map_name

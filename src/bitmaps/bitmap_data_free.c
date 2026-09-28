@@ -19,7 +19,7 @@
 
 extern struct cache *texture_cache; // 0x006ac540
 extern void cache_evict_entry(datum_index handle, struct cache *self); // 0x4d1c20, memory module
-extern void *GlobalFree(void *memory); // 0x0063a0bc IAT
+extern void *__stdcall GlobalFree(void *memory); // 0x0063a0bc IAT
 
 // blam-cc: ESI -> bitmap_data
 void bitmap_data_free(BitmapData *bitmap_data)

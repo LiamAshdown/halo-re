@@ -41,7 +41,7 @@ extern uint8_t quit_confirm_error_modal;        // 0x00718fb0
 extern uint8_t quit_confirm_error_is_error;     // 0x00718fb1
 
 extern void keystone_library_unload(void); // 0x542cf0, UNSURE module
-extern void ExitProcess(uint32_t exit_code);
+extern void __stdcall ExitProcess(uint32_t exit_code);
 
 // Either force-quits the process immediately (unloading the keystone/DRM library first) when
 // ui_force_quit is set, or arms a "are you sure you want to quit" confirmation prompt: the

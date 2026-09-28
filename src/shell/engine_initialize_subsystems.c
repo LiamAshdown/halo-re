@@ -46,10 +46,10 @@ extern uint8_t console_debug_flag_5;          // 0x0087ac05
 extern uint8_t debug_log_level;               // 0x0087ac06 (R01; mov BYTE PTR ds:0x87ac06,bl at 0x540fac)
 extern uint16_t console_debug_word_8;         // 0x0087ac08 (16 bit store, mov word [0x87ac08],bx at 0x540fcc)
 
-extern void *LoadLibraryA(const char *file_name);
-extern void *GetProcAddress(void *module, const char *proc_name);
-extern uint32_t QueryPerformanceFrequency(large_integer *frequency);
-extern uint32_t timeBeginPeriod(uint32_t period_ms);
+extern void *__stdcall LoadLibraryA(const char *file_name);
+extern void *__stdcall GetProcAddress(void *module, const char *proc_name);
+extern uint32_t __stdcall QueryPerformanceFrequency(large_integer *frequency);
+extern uint32_t __stdcall timeBeginPeriod(uint32_t period_ms);
 
 extern uint8_t data_file_open(void);                    // 0x00442840
 extern void directory_create_recursive(char *path);     // 0x00449250

@@ -24,7 +24,7 @@ extern int16_t character_to_key[0x80];            // 0x0065bc58
 extern int16_t key_event_count;                   // 0x006b16fc
 extern ui_key_event key_events[k_input_key_event_capacity]; // 0x006b16fe
 
-extern int16_t GetKeyState(int32_t virtual_key); // 0x0063a41c IAT
+extern int16_t __stdcall GetKeyState(int32_t virtual_key); // 0x0063a41c IAT
 
 // blam-cc: wparam in EAX, message in ECX
 // Records one WM_KEYDOWN/WM_SYSKEYDOWN or WM_CHAR/WM_SYSCHAR message, with the current

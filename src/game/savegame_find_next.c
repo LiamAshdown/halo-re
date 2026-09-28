@@ -24,7 +24,7 @@
 extern char *user_save_path_default; // 0x00721f28
 extern char *user_save_path_lookup(uint32_t user_id); // this batch, 0x5516a0
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX dst, EDI capacity, EBX source
-extern uint32_t FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
+extern uint32_t __stdcall FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
 
 // blam-cc: EAX -> find_data, ECX -> handle
 // If `handle` is registered (its root_path is not the default sentinel) and FindNextFileA

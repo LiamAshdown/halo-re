@@ -20,14 +20,14 @@ extern char *shell_instance_mutex_names[9];  // 0x0069eab8
 extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x0057ea70
 extern void _exit(int32_t code);
 
-extern int32_t GetVersionExA(os_version_info_a *info);
-extern void *CreateMutexA(void *security_attributes, int32_t initial_owner, const char *name);
-extern uint32_t GetLastError(void);
-extern void CloseHandle(void *handle);
-extern void *FindWindowA(const char *class_name, const char *window_name);
-extern int32_t GetWindowPlacement(void *hwnd, window_placement *placement);
-extern int32_t SetForegroundWindow(void *hwnd);
-extern int32_t ShowWindow(void *hwnd, int32_t cmd);
+extern int32_t __stdcall GetVersionExA(os_version_info_a *info);
+extern void *__stdcall CreateMutexA(void *security_attributes, int32_t initial_owner, const char *name);
+extern uint32_t __stdcall GetLastError(void);
+extern void __stdcall CloseHandle(void *handle);
+extern void *__stdcall FindWindowA(const char *class_name, const char *window_name);
+extern int32_t __stdcall GetWindowPlacement(void *hwnd, window_placement *placement);
+extern int32_t __stdcall SetForegroundWindow(void *hwnd);
+extern int32_t __stdcall ShowWindow(void *hwnd, int32_t cmd);
 
 // Enforces a single running instance of Halo by taking a named mutex; if another copy already
 // holds it, brings that window to the foreground and terminates the current process.

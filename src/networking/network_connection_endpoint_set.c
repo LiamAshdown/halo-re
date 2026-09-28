@@ -24,8 +24,8 @@
 #include "game.h"
 #include "networking.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *GlobalFree(void *memory); // Win32
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalFree(void *memory); // Win32
 
 
 int32_t network_connection_endpoint_set(const uint32_t *source, network_client_globals *connection)

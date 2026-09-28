@@ -29,9 +29,9 @@
 #include "tags.h"
 #include "cache.h"
 
-extern uint32_t SleepEx(uint32_t milliseconds, int32_t alertable); // 0x0063a290 IAT
-extern void SetLastError(uint32_t error_code);                     // 0x0063a280 IAT
-extern uint32_t GetLastError(void);                                // 0x0063a284 IAT
+extern uint32_t __stdcall SleepEx(uint32_t milliseconds, int32_t alertable); // 0x0063a290 IAT
+extern void __stdcall SetLastError(uint32_t error_code);                     // 0x0063a280 IAT
+extern uint32_t __stdcall GetLastError(void);                                // 0x0063a284 IAT
 
 // The Win32 ReadFileEx signature, as this function calls it through the pointer it is handed.
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read,

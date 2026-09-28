@@ -49,8 +49,8 @@ extern int32_t FUN_006171d0(void *engine, int32_t flag, uint32_t address, uint16
 extern int32_t FUN_006171a0(void *engine, int32_t flag, int32_t unused_a, void *buffer,
                               int32_t buffer_length, int32_t unused_b); // foreign
 extern int32_t FUN_00617290(void *engine, void *server_record, int32_t flag_a, int32_t flag_b); // foreign
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
-extern int32_t ReleaseMutex(void *handle); // Win32
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
+extern int32_t __stdcall ReleaseMutex(void *handle); // Win32
 
 // blam-cc: __cdecl, no arguments
 void master_server_process_pending_requests(void)

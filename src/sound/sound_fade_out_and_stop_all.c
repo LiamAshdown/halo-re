@@ -39,7 +39,7 @@ extern void sound_schedule_gain_fade(datum_index fade_in_handle, int16_t fade_cu
 extern void sound_idle_update(void); // 0x549960
 extern void sound_stop_all(void); // 0x54adb0
 extern void data_delete_all(data_array *array); // 0x4d0580
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 static int32_t sound_fade_now_ms(void)
 {

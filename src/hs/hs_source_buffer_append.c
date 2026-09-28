@@ -13,9 +13,9 @@
 #include "memory.h"
 #include "hs.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // EXTERNAL kernel32
-extern void *GlobalReAlloc(void *mem, uint32_t bytes, uint32_t flags); // EXTERNAL kernel32
-extern void *GlobalFree(void *memory); // EXTERNAL kernel32
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // EXTERNAL kernel32
+extern void *__stdcall GlobalReAlloc(void *mem, uint32_t bytes, uint32_t flags); // EXTERNAL kernel32
+extern void *__stdcall GlobalFree(void *memory); // EXTERNAL kernel32
 
 extern char *hs_compiled_source;          // 0x006b14c0
 extern int32_t hs_compiled_source_length; // 0x006b14bc

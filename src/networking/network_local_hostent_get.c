@@ -20,12 +20,12 @@ extern char network_local_hostname_buffer[0x100]; // 0x006a4040
 extern uint8_t network_hostname_ready;             // 0x006f14cc
 
 extern void network_hostname_thread_proc(char *hostname_buffer); // 0x441510, this module
-extern void *CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
+extern void *__stdcall CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
                            void *parameter, uint32_t creation_flags, uint32_t *thread_id);
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms);
-extern int32_t TerminateThread(void *thread, uint32_t exit_code);
-extern int32_t CloseHandle(void *object); // Win32
-extern void *gethostbyname(const char *name);
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms);
+extern int32_t __stdcall TerminateThread(void *thread, uint32_t exit_code);
+extern int32_t __stdcall CloseHandle(void *object); // Win32
+extern void *__stdcall gethostbyname(const char *name);
 
 int network_local_hostent_get(void **out_hostent)
 {

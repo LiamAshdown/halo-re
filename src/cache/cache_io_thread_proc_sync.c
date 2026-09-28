@@ -19,9 +19,9 @@ extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern data_file sounds_data_file;               // 0x006ac4a8
 extern data_file bitmaps_data_file;              // 0x006ac4e8
 
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // 0x0063a310 IAT
-extern uint32_t SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // 0x0063a2b0 IAT
-extern int32_t ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // 0x0063a310 IAT
+extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // 0x0063a2b0 IAT
+extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
 
 // blam-cc: unused CreateThread parameter
 // Background IO thread procedure that services queued cache-file read requests using blocking

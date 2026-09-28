@@ -11,13 +11,13 @@
 #include "math.h"
 #include "rasterizer.h"
 
-extern void *CreateFileA(const char *path, uint32_t access, uint32_t share, void *security,
+extern void *__stdcall CreateFileA(const char *path, uint32_t access, uint32_t share, void *security,
                           uint32_t creation, uint32_t flags, void *template_file); // Win32
-extern uint32_t GetFileSize(void *file, uint32_t *high); // Win32
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // Win32
-extern int32_t ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // Win32
-extern int32_t CloseHandle(void *file); // Win32
-extern void *GlobalFree(void *mem); // Win32
+extern uint32_t __stdcall GetFileSize(void *file, uint32_t *high); // Win32
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // Win32
+extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // Win32
+extern int32_t __stdcall CloseHandle(void *file); // Win32
+extern void *__stdcall GlobalFree(void *mem); // Win32
 
 extern uint8_t rasterizer_resource_file_verify_signature(uint8_t *buffer, uint32_t size); // 0x519980 (this session)
 

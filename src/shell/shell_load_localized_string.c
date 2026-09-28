@@ -22,7 +22,7 @@
 
 extern int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32_t buffer_capacity, void *module,
                                            char *buffer); // 0x57e110
-extern int32_t LoadStringA(void *instance, uint32_t id, char *buffer, int32_t buffer_capacity); // import 0x63a328
+extern int32_t __stdcall LoadStringA(void *instance, uint32_t id, char *buffer, int32_t buffer_capacity); // import 0x63a328
 extern uint32_t shell_language_id; // 0x0069ff20
 
 // Loads a localized UI string for resource id `id`: tries shell_load_string_resource in the

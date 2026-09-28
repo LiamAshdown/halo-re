@@ -31,15 +31,15 @@ extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_
 extern char *strcpy(char *dest, const char *source);
 extern uint32_t strlen(const char *str);
 extern void *memset(void *dest, int32_t value, uint32_t count);
-extern void *CreateFileA(const char *path, uint32_t access, uint32_t share_mode,
+extern void *__stdcall CreateFileA(const char *path, uint32_t access, uint32_t share_mode,
     void *security_attributes, uint32_t creation_disposition, uint32_t flags, void *template_file); // Win32
-extern uint32_t GetFileSize(void *file, uint32_t *high); // Win32
-extern uint32_t WriteFile(void *file, const void *buffer, uint32_t bytes_to_write,
+extern uint32_t __stdcall GetFileSize(void *file, uint32_t *high); // Win32
+extern uint32_t __stdcall WriteFile(void *file, const void *buffer, uint32_t bytes_to_write,
     uint32_t *bytes_written, void *overlapped); // Win32
-extern uint32_t SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
-extern uint32_t SetEndOfFile(void *file); // Win32
-extern uint32_t DeleteFileA(const char *path); // Win32
-extern uint32_t CloseHandle(void *handle); // Win32
+extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
+extern uint32_t __stdcall SetEndOfFile(void *file); // Win32
+extern uint32_t __stdcall DeleteFileA(const char *path); // Win32
+extern uint32_t __stdcall CloseHandle(void *handle); // Win32
 
 // Opens (creating and pre-sizing to k_game_state_file_size if necessary) the savegame.bin file
 // under either the caller-supplied directory (name) or, when name is NULL, the current player

@@ -28,29 +28,29 @@ extern void *shell_module_handle;                                   // 0x00722bb
 extern void *rasterizer_window_icon_bitmap; // 0x0071d188, HBITMAP
 extern void *rasterizer_window_icon_dc;     // 0x0071d184, HDC
 
-extern void *LoadIconA(void *hinstance, const char *name);
-extern void *LoadCursorA(void *hinstance, const char *name);
-extern int32_t RegisterClassExA(win32_wndclassexa *wc);
-extern void *GetDesktopWindow(void);
-extern int32_t GetWindowRect(void *hwnd, win32_rect *rect);
-extern int32_t AdjustWindowRect(win32_rect *rect, uint32_t style, int32_t menu);
-extern void *CreateWindowExA(uint32_t ex_style, const char *class_name, const char *title, uint32_t style,
+extern void *__stdcall LoadIconA(void *hinstance, const char *name);
+extern void *__stdcall LoadCursorA(void *hinstance, const char *name);
+extern int32_t __stdcall RegisterClassExA(win32_wndclassexa *wc);
+extern void *__stdcall GetDesktopWindow(void);
+extern int32_t __stdcall GetWindowRect(void *hwnd, win32_rect *rect);
+extern int32_t __stdcall AdjustWindowRect(win32_rect *rect, uint32_t style, int32_t menu);
+extern void *__stdcall CreateWindowExA(uint32_t ex_style, const char *class_name, const char *title, uint32_t style,
                               int32_t x, int32_t y, int32_t w, int32_t h, void *parent, void *menu,
                               void *hinstance, void *param);
-extern uint32_t GetLastError(void);
-extern uint32_t FormatMessageA(uint32_t flags, const void *source, uint32_t message_id, uint32_t language_id,
+extern uint32_t __stdcall GetLastError(void);
+extern uint32_t __stdcall FormatMessageA(uint32_t flags, const void *source, uint32_t message_id, uint32_t language_id,
                                 char **buffer, uint32_t size, void *arguments);
-extern int32_t MessageBoxA(void *hwnd, const char *text, const char *caption, uint32_t type);
-extern int32_t UnregisterClassA(const char *class_name, void *hinstance);
-extern void *LocalFree(void *mem);
-extern void *LoadBitmapA(void *hinstance, const char *name);
-extern void *GetDC(void *hwnd);
-extern void *CreateCompatibleDC(void *hdc);
-extern void *SelectObject(void *hdc, void *object);
-extern int32_t SetForegroundWindow(void *hwnd);
-extern int32_t SetActiveWindow(void *hwnd);
-extern void *SetFocus(void *hwnd);
-extern int32_t ShowWindow(void *hwnd, int32_t cmd_show);
+extern int32_t __stdcall MessageBoxA(void *hwnd, const char *text, const char *caption, uint32_t type);
+extern int32_t __stdcall UnregisterClassA(const char *class_name, void *hinstance);
+extern void *__stdcall LocalFree(void *mem);
+extern void *__stdcall LoadBitmapA(void *hinstance, const char *name);
+extern void *__stdcall GetDC(void *hwnd);
+extern void *__stdcall CreateCompatibleDC(void *hdc);
+extern void *__stdcall SelectObject(void *hdc, void *object);
+extern int32_t __stdcall SetForegroundWindow(void *hwnd);
+extern int32_t __stdcall SetActiveWindow(void *hwnd);
+extern void *__stdcall SetFocus(void *hwnd);
+extern int32_t __stdcall ShowWindow(void *hwnd, int32_t cmd_show);
 
 // blam-cc: EAX -> height, unaff_EBX -> width
 // Registers the game window class and creates/centers a `width` by `height` window on the

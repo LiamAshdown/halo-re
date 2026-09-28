@@ -42,7 +42,7 @@ extern double cursor_sensitivity_curve_bias;  // 0x00672af8, UNSURE: shared addi
 
 extern void interface_update_for_resolution_change(int32_t new_cursor_x, int32_t new_cursor_y); // 0x497250
 extern int32_t __ftol(double x); // 0x6391b4, MSVC float-to-long (truncating)
-extern int32_t GetCursorPos(win32_point *point);
+extern int32_t __stdcall GetCursorPos(win32_point *point);
 
 // blam-cc: no register-passed arguments
 // Per-frame cursor position update: either reads the real OS cursor and turns it into a delta

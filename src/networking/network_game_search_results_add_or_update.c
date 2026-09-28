@@ -24,7 +24,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 

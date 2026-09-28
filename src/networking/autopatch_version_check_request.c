@@ -22,7 +22,7 @@ extern uint32_t registry_get_dist_id(void);    // 0x577760, this module
 extern int32_t FUN_0061c260(int32_t request_type, char *version, uint32_t dist_id,
                              void *callback, int32_t a5, int32_t a6); // foreign, UNSURE
 extern void LAB_005777d0(void); // UNSURE: the request-completion callback
-extern void Sleep(uint32_t milliseconds);
+extern void __stdcall Sleep(uint32_t milliseconds);
 
 // Thread that waits for proxy setup and then sends the current game version and distribution id
 // to check for an update; clears the "check succeeded" flag if the version string is empty or

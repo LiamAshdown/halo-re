@@ -22,7 +22,7 @@
 #include "math.h"
 #include "cseries.h"
 
-extern int QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
+extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformanceFrequency()
                                        // result, owned by this module (see types/cseries.h)
 

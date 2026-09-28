@@ -23,7 +23,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern void network_channel_reliable_pool_store(network_channel *channel, void *message, uint8_t *out_flag,

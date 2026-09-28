@@ -23,7 +23,7 @@ extern void structure_bsp_dispose_material_vertex_buffers(
     // this module, 0x4431a0 (Ghidra: FUN_004431a0)
 extern void model_dispose_vertex_buffers(void); // Ghidra: FUN_00442f00, misattributed name
     // (out/phase4/cache_types_notes.md item 2); this module, 0x442f00
-extern void CloseHandle(void *object);
+extern void __stdcall CloseHandle(void *object);
 
 extern uint8_t cache_file_loaded;                  // 0x006a8150
 extern int16_t cache_file_index;                    // 0x006ac494

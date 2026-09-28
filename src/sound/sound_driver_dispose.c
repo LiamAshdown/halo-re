@@ -30,7 +30,7 @@ extern void *directsound;                    // 0x0074610c
 extern uint8_t directsound_initialized;      // 0x007252e0
 
 extern void free(void *block); // 0x6277e8, CRT free
-extern void *GetActiveWindow(void); // import 0x0063a424
+extern void *__stdcall GetActiveWindow(void); // import 0x0063a424
 
 // Releases every directsound_channel's buffer and 3D-buffer interfaces, shuts down and frees the
 // global EAX sound effects object, releases the listener and primary buffer, restores the

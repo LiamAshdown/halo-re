@@ -17,7 +17,7 @@ extern network_thread_record *server_list_thread; // 0x007196ac, the worker reco
     // network_thread_create parks here (push 0x7196ac at 0x4b601e); NULL until it starts
 extern network_mutex_record *server_list_mutex; // 0x007196a8
 
-extern int32_t ReleaseMutex(void *handle); // Win32
+extern int32_t __stdcall ReleaseMutex(void *handle); // Win32
 
 void server_list_mutex_unlock(server_list_globals **list_slot)
 {

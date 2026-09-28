@@ -14,7 +14,7 @@
 #include "cache.h"
 
 extern int32_t printf(const char *format, ...); // 0x62427c _printf
-extern int32_t ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
+extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
 
 // blam-cc: data_file pointer in ESI (unaff_ESI), expected_file_id as the recognized stack parameter
 // Reads and validates the 16-byte on-disk header of an opened data file (bitmaps.map/sounds.map)

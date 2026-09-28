@@ -15,7 +15,7 @@
 
 extern void *rasterizer_scratch_memory;      // 0x0071d13c
 extern uint32_t rasterizer_scratch_memory_used; // 0x0071d140
-extern void *GlobalFree(void *mem); // Win32
+extern void *__stdcall GlobalFree(void *mem); // Win32
 extern font_glyph_cache g_font_glyph_cache; // 0x006d8828, see font_glyph_cache_clear_all.c
 extern void *rasterizer_device;   // 0x0071d174
 extern void *rasterizer_detail_object_vertex_buffer; // 0x0071d1c8
@@ -34,10 +34,10 @@ extern void bitmap_data_free(BitmapData *bitmap_data); // 0x43f880, ESI
 extern void rasterizer_dx9_shaders_release_all(void); // 0x530090
 extern void rasterizer_render_target_dispose(void); // 0x52cc50, outside this session's range
 extern void chimera__registry_check_3(void); // 0x5226c0
-extern int32_t ReleaseDC(void *hwnd, void *hdc); // Win32
-extern int32_t DeleteObject(void *object); // Win32
-extern int32_t ShowWindow(void *hwnd, int32_t cmd_show); // Win32
-extern int32_t DestroyWindow(void *hwnd); // Win32
+extern int32_t __stdcall ReleaseDC(void *hwnd, void *hdc); // Win32
+extern int32_t __stdcall DeleteObject(void *object); // Win32
+extern int32_t __stdcall ShowWindow(void *hwnd, int32_t cmd_show); // Win32
+extern int32_t __stdcall DestroyWindow(void *hwnd); // Win32
 
 // Full rasterizer teardown: releases every cached D3D resource, destroys the window, and
 // releases the Direct3D device and Direct3D9 object.

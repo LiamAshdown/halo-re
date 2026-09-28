@@ -10,7 +10,7 @@
 #include "tags.h"
 #include "cache.h"
 
-extern void Sleep(uint32_t milliseconds);
+extern void __stdcall Sleep(uint32_t milliseconds);
 
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 

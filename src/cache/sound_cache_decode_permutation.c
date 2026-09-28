@@ -25,8 +25,8 @@
 extern int32_t sound_decode_buffer_size; // 0x006f17f0
 extern void *sound_decode_buffer;        // 0x006f17ec
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
-extern void *GlobalFree(void *memory);                     // 0x0063a0bc IAT
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
+extern void *__stdcall GlobalFree(void *memory);                     // 0x0063a0bc IAT
 
 // UNSURE: see file header note above. The second argument is a plain dereference of
 // permutation->samples's first field (structurally TagDataOffset::size), not the struct's

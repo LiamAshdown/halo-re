@@ -22,7 +22,7 @@
 #include "tags.h"
 #include "cache.h"
 
-extern uint32_t SleepEx(uint32_t milliseconds, int32_t alertable); // 0x0063a290 IAT
+extern uint32_t __stdcall SleepEx(uint32_t milliseconds, int32_t alertable); // 0x0063a290 IAT
 
 // blam-cc: flag in ESI
 // Blocks the calling thread in an alertable wait until `*flag` is set by an IO completion APC.

@@ -23,9 +23,9 @@
 #include "saved_games.h"
 
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
-extern void *FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
-extern int32_t FindClose(void *find_handle); // Win32
-extern int32_t CopyFileA(const char *existing_path, const char *new_path, int32_t fail_if_exists); // Win32
+extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
+extern int32_t __stdcall FindClose(void *find_handle); // Win32
+extern int32_t __stdcall CopyFileA(const char *existing_path, const char *new_path, int32_t fail_if_exists); // Win32
 
 // blam-cc: source_directory in ESI, source_name in EDI, then the recognized stack parameter
 // (target_name)

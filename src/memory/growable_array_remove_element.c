@@ -10,9 +10,9 @@
 #include "memory.h"
 
 extern void *memmove(void *dst, const void *src, uint32_t count); // 006236f0 _memmove
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *GlobalReAlloc(void *mem, uint32_t bytes, uint32_t flags);
-extern void *GlobalFree(void *mem);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalReAlloc(void *mem, uint32_t bytes, uint32_t flags);
+extern void *__stdcall GlobalFree(void *mem);
 
 #define GMEM_MOVEABLE 0x0002
 

@@ -20,7 +20,7 @@
 #include "math.h"
 #include "game.h"
 
-extern void *QueryPerformanceCounter(void *out); // Win32
+extern void *__stdcall QueryPerformanceCounter(void *out); // Win32
 extern data_array *update_server_queues;          // 0x006f1d90
 extern int32_t update_server_tick;                 // 0x006f1d8c
 extern update_record update_server_history[32];     // 0x006f1d94

@@ -26,9 +26,9 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *LocalFree(void *memory);
-extern void *CloseHandle(void *handle);
-extern void *FreeSid(void *sid);
+extern void *__stdcall LocalFree(void *memory);
+extern void *__stdcall CloseHandle(void *handle);
+extern void *__stdcall FreeSid(void *sid);
 
 // Releases the SID, ACL/security-descriptor buffer, and token handles allocated inside
 // security_check_write_access, each compared against `sentinel` (always NULL on the known path)

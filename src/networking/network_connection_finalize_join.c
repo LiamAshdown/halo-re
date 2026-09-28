@@ -54,7 +54,7 @@ extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern void *network_summary_log_file;           // 0x006a6140, FILE *
 extern char network_build_string[];              // 0x00719879
 extern int32_t _fprintf(void *stream, const char *format, ...);
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int16_t network_game_mode; // 0x00719720
 extern char network_game_scenario_load_request(network_game_session *session); // 0x4de6d0

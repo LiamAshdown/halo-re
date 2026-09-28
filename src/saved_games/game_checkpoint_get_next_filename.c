@@ -25,8 +25,8 @@
 #include "saved_games.h"
 
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
-extern void *FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
-extern int32_t FindClose(void *find_handle); // Win32
+extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
+extern int32_t __stdcall FindClose(void *find_handle); // Win32
 extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first,
     checkpoint_enumerate_proc callback, void *user_data); // 0x538e70
 extern uint8_t game_checkpoint_reclaim_slot_callback(int32_t index, const char *name, int32_t level_index,

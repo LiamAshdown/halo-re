@@ -26,9 +26,9 @@ extern int32_t rasterizer_config_shader_version; // 0x00722b64 config pixel shad
 extern const char *rasterizer_shader_file_name;                       // 0x00722bbc
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 
-extern uint32_t GetThreadLocale(void);          // Win32
-extern int32_t SetThreadLocale(uint32_t locale); // Win32
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // Win32
+extern uint32_t __stdcall GetThreadLocale(void);          // Win32
+extern int32_t __stdcall SetThreadLocale(uint32_t locale); // Win32
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // Win32
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern uint8_t rasterizer_dx9_pixel_shaders_load_all(void); // 0x52fa00
 extern int32_t D3DXCreateEffectPool(void **out_pool); // 0x583ddc

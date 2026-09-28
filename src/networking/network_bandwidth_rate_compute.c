@@ -26,7 +26,7 @@
 #include "networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 // Reinterprets a possibly-wrapped int32 millisecond/byte counter as unsigned, the way this
 // function's disassembly does with an explicit "add 2^32 if negative" after the float convert.

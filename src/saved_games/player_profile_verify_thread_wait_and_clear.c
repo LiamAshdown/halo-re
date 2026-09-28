@@ -20,8 +20,8 @@
 extern network_thread_record *player_profile_thread; // 0x0072127c
 extern saved_player_profile default_player_profile; // 0x0071d280
 
-extern uint32_t GetExitCodeThread(void *thread, uint32_t *exit_code); // Win32
-extern uint32_t CloseHandle(void *handle); // Win32
+extern uint32_t __stdcall GetExitCodeThread(void *thread, uint32_t *exit_code); // Win32
+extern uint32_t __stdcall CloseHandle(void *handle); // Win32
 
 void player_profile_verify_thread_wait_and_clear(void)
 {

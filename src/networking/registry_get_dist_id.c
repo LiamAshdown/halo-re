@@ -11,11 +11,11 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t RegOpenKeyExA(void *key, const char *subkey, uint32_t options, uint32_t sam,
+extern int32_t __stdcall RegOpenKeyExA(void *key, const char *subkey, uint32_t options, uint32_t sam,
                               void **result);
-extern int32_t RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type,
+extern int32_t __stdcall RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type,
                                  uint8_t *data, uint32_t *data_size);
-extern int32_t RegCloseKey(void *key);
+extern int32_t __stdcall RegCloseKey(void *key);
 
 // Reads the installed game's "DistID" (distribution/channel id) DWORD value from the registry.
 // Returns 0 if the key or value could not be read.

@@ -38,7 +38,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint16_t decimal_format_006607a0[]; // 0x006607a0, L"%d"
 
 extern uint8_t network_game_search_entry_is_fresh(const uint8_t *entry); // 0x4da770, blam-cc: ESI entry; reads entry+0x12d and a QPC age
-extern int QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
+extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
 extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550

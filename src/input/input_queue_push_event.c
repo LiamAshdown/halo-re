@@ -21,7 +21,7 @@
 
 extern input_event_queue event_queue;                    // 0x00712cc0
 extern int64_t performance_frequency;                           // 0x006ac8f8/0x006ac8fc
-extern int32_t QueryPerformanceCounter(large_integer *counter);  // 0x0063a0ac IAT
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);  // 0x0063a0ac IAT
 extern void *memmove(void *dst, const void *src, uint32_t count); // 0x006236f0 _memmove
 
 // blam-cc: queue index in EAX, record pointer in EDI

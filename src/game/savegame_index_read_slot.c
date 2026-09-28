@@ -33,8 +33,8 @@ extern uint32_t file_reference_get_size(file_reference *reference); // 0x555950
 extern uint8_t file_reference_read(file_reference *ref, void *buffer, uint32_t size); // 0x555a20, EDX ref, ECX buffer, ESI size
 extern void path_append_component(char *destination, const char *component); // 0x555ec0
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
-extern uint32_t ReleaseMutex(void *handle); // Win32
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
+extern uint32_t __stdcall ReleaseMutex(void *handle); // Win32
 // CORRECTED by review: the four path/file_reference helpers above were declared argument-less
 // because Ghidra elides their register arguments. savegame_index_file_exists.c's own objdump
 // pass pins them for the whole family:

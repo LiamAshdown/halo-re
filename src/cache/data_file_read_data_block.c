@@ -11,9 +11,9 @@
 #include "cache.h"
 
 extern int32_t printf(const char *format, ...); // 0x62427c _printf
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
-extern uint32_t SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // 0x0063a2b0 IAT
-extern int32_t ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
+extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // 0x0063a2b0 IAT
+extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
 
 // blam-cc: data_file pointer in ESI (unaff_ESI)
 // Reads a data file's raw payload block (bitmap/sound data, from data_offset up to

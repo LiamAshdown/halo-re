@@ -29,9 +29,9 @@
 #include "game.h"
 #include "networking.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *GlobalFree(void *memory); // Win32
-extern void *GlobalReAlloc(void *memory, uint32_t bytes, uint32_t flags);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalFree(void *memory); // Win32
+extern void *__stdcall GlobalReAlloc(void *memory, uint32_t bytes, uint32_t flags);
 
 extern uint8_t server_browser_server_passes_filter(void *server_record); // 0x4b7080, this module
 

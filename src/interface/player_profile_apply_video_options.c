@@ -58,8 +58,8 @@ extern uint8_t particle_systems_enabled;     // 0x0069c566
 extern int32_t rasterizer_gamma;             // 0x0071d1e0
 extern struct cache *texture_cache;          // 0x006ac540
 
-extern void *GetDesktopWindow(void);
-extern int32_t GetWindowRect(void *window, win32_rect *rect);
+extern void *__stdcall GetDesktopWindow(void);
+extern int32_t __stdcall GetWindowRect(void *window, win32_rect *rect);
 extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested); // 0x515d10, blam-cc: EDI -> requested
 extern void rasterizer_build_present_parameters(void *dest, rasterizer_display_mode *source); // 0x515fc0,
     // blam-cc: EAX -> source, stack -> dest

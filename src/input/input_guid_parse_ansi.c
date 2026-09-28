@@ -17,7 +17,7 @@
 #include "saved_games.h"
 #include "input.h"
 
-extern int32_t CLSIDFromString(uint16_t *wide_string, input_guid *out_guid); // 0x63a440 IAT
+extern int32_t __stdcall CLSIDFromString(uint16_t *wide_string, input_guid *out_guid); // 0x63a440 IAT
 
 // blam-cc: ansi string in ESI
 // Widens ansi (up to 0x26 characters; longer strings are truncated to 0x26, matching the

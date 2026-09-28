@@ -31,12 +31,12 @@
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern uint8_t checkpoint_sort_newest_first; // 0x0069e7e8
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern uint32_t GlobalFree(void *memory);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern uint32_t __stdcall GlobalFree(void *memory);
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
-extern void *FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
-extern uint32_t FindNextFileA(void *find_handle, win32_find_dataa *find_data); // Win32
-extern int32_t FindClose(void *find_handle); // Win32
+extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
+extern uint32_t __stdcall FindNextFileA(void *find_handle, win32_find_dataa *find_data); // Win32
+extern int32_t __stdcall FindClose(void *find_handle); // Win32
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
 extern char *strchr(const char *str, int32_t ch); // 0x6257e0, CRT strrchr-shaped, not this module
 extern char *strstr(const char *haystack, const char *needle); // 0x625430, CRT strstr-shaped, not this module

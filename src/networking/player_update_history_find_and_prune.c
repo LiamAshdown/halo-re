@@ -12,7 +12,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern void *GlobalFree(void *memory);
+extern void *__stdcall GlobalFree(void *memory);
 
 // Walks history's linked list looking for the node whose update_id equals target_id. If prune
 // is set and a match is found, frees every node from the head through the match (inclusive) and

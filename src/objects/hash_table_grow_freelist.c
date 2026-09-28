@@ -20,7 +20,7 @@
 #include "math.h"
 #include "objects.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 void hash_table_grow_freelist(hash_table *table)
 {

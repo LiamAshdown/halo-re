@@ -11,7 +11,7 @@
 #include "tags.h"
 #include "memory.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 extern char *strncpy(char *dst, const char *src, uint32_t count); // 00623a90 _strncpy
 
 // blam-cc: element size in EBX, then the recognized stack parameters (name, maximum_count)

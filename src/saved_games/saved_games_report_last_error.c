@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern uint32_t GetLastError(void); // Win32
-extern int32_t FormatMessageA(uint32_t flags, const void *source, uint32_t message_id,
+extern uint32_t __stdcall GetLastError(void); // Win32
+extern int32_t __stdcall FormatMessageA(uint32_t flags, const void *source, uint32_t message_id,
     uint32_t language_id, char *buffer, uint32_t size, void *arguments); // Win32
-extern void SetLastError(uint32_t error_code); // Win32
+extern void __stdcall SetLastError(uint32_t error_code); // Win32
 
 // blam-cc: no arguments
 // Formats the current Win32 last-error code into a discarded 0x800-byte scratch buffer (the

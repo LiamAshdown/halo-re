@@ -31,7 +31,7 @@ extern void console_draw_input_line(void);                 // 0x4970a0
 extern char *_strncpy(char *dest, const char *source, uint32_t count);
 extern uint32_t strlen(const char *s);
 extern void string_replace_all_in_place(char *buffer, char *search, char *replacement); // 0x496df0
-extern int32_t WriteConsoleA(void *console_output, const void *buffer, uint32_t chars_to_write,
+extern int32_t __stdcall WriteConsoleA(void *console_output, const void *buffer, uint32_t chars_to_write,
                               uint32_t *chars_written, void *reserved);
 
 // blam-cc: EAX -> text

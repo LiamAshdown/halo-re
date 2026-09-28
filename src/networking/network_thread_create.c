@@ -16,11 +16,11 @@
 
 extern network_thread_record network_thread_table[k_network_thread_table_count]; // 0x006f0cb0
 
-extern void *CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
+extern void *__stdcall CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
                            void *parameter, uint32_t creation_flags, uint32_t *thread_id);
-extern int32_t SetThreadPriority(void *thread, int32_t priority);
-extern uint32_t ResumeThread(void *thread);
-extern int32_t CloseHandle(void *object); // Win32
+extern int32_t __stdcall SetThreadPriority(void *thread, int32_t priority);
+extern uint32_t __stdcall ResumeThread(void *thread);
+extern int32_t __stdcall CloseHandle(void *object); // Win32
 
 // Finds a free slot in the static worker-thread table, creates a suspended thread with a
 // 0x4000-byte stack, applies a priority derived from the low bits of flags (bit1 set ->

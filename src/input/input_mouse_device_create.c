@@ -26,7 +26,7 @@ extern input_guid guid_sys_mouse; // 0x0064e25c, GUID_SysMouse
 extern di_data_format c_dfDIMouse2; // 0x0064e1e4
 extern void *shell_window;      // 0x007461c4, HWND
 
-extern int32_t GetSystemMetrics(int32_t index); // 0x0063a428 IAT
+extern int32_t __stdcall GetSystemMetrics(int32_t index); // 0x0063a428 IAT
 extern void input_error_log_once(int32_t error_code, char *description, ...); // this module, 0x492150
 
 

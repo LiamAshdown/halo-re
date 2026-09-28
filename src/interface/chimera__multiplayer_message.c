@@ -31,7 +31,7 @@ extern chat_gui_set_property_int_fn chat_gui_set_property_int; // 0x00721ee8
 extern chat_gui_finalize_fn chat_gui_finalize;  // 0x00721ed0
 extern chat_gui_release_fn chat_gui_release;    // 0x00721ec8
 
-extern int32_t QueryPerformanceCounter(int64_t *count);
+extern int32_t __stdcall QueryPerformanceCounter(int64_t *count);
 extern uint32_t hud_chat_listbox_remove_oldest(void); // 0x4ab240
 
 // Appends a new line of text to the on-screen chat/message listbox GUI control, evicting the

@@ -24,8 +24,8 @@ extern variant_write_request variant_write_request_state; // 0x00721288 (0x29-dw
                                                             // reaches through variant_write_thread
                                                             // and the low word of default_game_variant_count)
 
-extern int32_t GetExitCodeThread(void *thread, uint32_t *exit_code); // Win32
-extern int32_t CloseHandle(void *object); // Win32
+extern int32_t __stdcall GetExitCodeThread(void *thread, uint32_t *exit_code); // Win32
+extern int32_t __stdcall CloseHandle(void *object); // Win32
 
 // blam-cc: no arguments
 // Blocks until the asynchronous game-variant writer thread (if any) has exited, closes its

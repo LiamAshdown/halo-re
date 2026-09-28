@@ -16,7 +16,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern void *GlobalFree(void *memory);
+extern void *__stdcall GlobalFree(void *memory);
 
 // Frees every node of history's linked list and then the history container itself.
 void player_update_history_destroy(player_update_history *history)

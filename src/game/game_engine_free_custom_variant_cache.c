@@ -18,7 +18,7 @@ extern uint32_t game_variant_history_count;              // 0x00687b10
 extern uint32_t game_variant_history_capacity;            // 0x00687b14
 extern int32_t game_variant_history_current;              // 0x00687b18
 
-extern void *GlobalFree(void *handle); // Win32
+extern void *__stdcall GlobalFree(void *handle); // Win32
 
 void game_engine_free_custom_variant_cache(void)
 {

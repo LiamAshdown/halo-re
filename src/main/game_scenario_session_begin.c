@@ -50,7 +50,7 @@ extern char scenario_load(char *scenario_path); // 0x53e6a0, foreign (game modul
     // blam-cc: EAX -> scenario_path (0x4c961d mov eax,ebp; the callee hands EAX to 0x442290)
 extern void game_state_load_checkpoint(void);    // 0x538280, foreign (game module)
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210, foreign (math module)
-extern uint32_t QueryPerformanceCounter(int64_t *counter);
+extern uint32_t __stdcall QueryPerformanceCounter(int64_t *counter);
 extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
 
 // Loads a scenario per `request`, seeds the game timer and pending-pause bookkeeping, and (on

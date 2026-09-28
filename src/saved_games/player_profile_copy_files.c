@@ -32,10 +32,10 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern int32_t CopyFileA(const char *existing_path, const char *new_path, int32_t fail_if_exists); // Win32
-extern void *FindFirstFileA(const char *path, win32_find_dataa *out_data); // Win32
-extern int32_t FindNextFileA(void *handle, win32_find_dataa *out_data); // Win32
-extern int32_t FindClose(void *handle); // Win32
+extern int32_t __stdcall CopyFileA(const char *existing_path, const char *new_path, int32_t fail_if_exists); // Win32
+extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *out_data); // Win32
+extern int32_t __stdcall FindNextFileA(void *handle, win32_find_dataa *out_data); // Win32
+extern int32_t __stdcall FindClose(void *handle); // Win32
 extern int32_t __snprintf(char *buffer, uint32_t count, const char *format, ...); // CRT
 extern char *_strrchr(char *s, int32_t c); // CRT
 

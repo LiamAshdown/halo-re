@@ -25,7 +25,7 @@
 #include "networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0
 extern void network_channel_reliable_pool_store(network_channel *channel, uint16_t *packet, uint8_t *reliable_flag,
     int32_t priority); // 0x4dcdb0, this module, fuller signature in network_channel_queue_message.c

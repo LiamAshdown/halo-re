@@ -10,7 +10,7 @@
 #include "tags.h"
 #include "math.h"
 
-extern int QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
+extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformanceFrequency() result, owned by the timing/system module
 
 extern int rand(void); // 0x006240cf _rand

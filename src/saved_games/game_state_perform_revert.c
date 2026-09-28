@@ -29,7 +29,7 @@ extern uint8_t unknown_0071974f; // 0x0071974f, UNSURE
 extern uint8_t game_state_write_in_progress; // 0x006e3000
 extern game_state_proc game_state_revert_proc; // 0x0069e7b0
 
-extern void Sleep(uint32_t milliseconds);
+extern void __stdcall Sleep(uint32_t milliseconds);
 extern uint8_t game_state_read_persistent_storage(void); // 0x539330, bool in AL (result unused here)
 extern void game_state_dispatch_load_callbacks(void); // 0x537f70
 

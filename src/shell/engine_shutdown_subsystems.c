@@ -32,7 +32,7 @@ extern void *external_00686b58;      // GlobalFree'd if non-null, then cleared
 extern void *external_00686b5c;      // GlobalFree'd if non-null, then cleared
 extern uint32_t external_00686b54;   // cleared to 0
 
-extern void *GlobalFree(void *handle);
+extern void *__stdcall GlobalFree(void *handle);
 extern uint32_t __stdcall timeEndPeriod(uint32_t period_ms); // winmm, delay-load slot 0x0069ffdc
 
 extern void cache_file_unload(void);                     // 0x00442430

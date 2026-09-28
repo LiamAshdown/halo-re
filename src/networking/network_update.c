@@ -28,7 +28,7 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the tim
 extern void network_connection_stats_log_tick(void); // 0x440d80, this module
 extern void FUN_00614540(int32_t socket); // foreign GameSpy transport call, "pump" a channel
 extern void gamespy_think_all(void);          // 0x6154f0, GameSpy
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 uint32_t network_update(void)
 {

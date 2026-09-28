@@ -20,7 +20,7 @@
 
 extern main_frame_rate_average frame_rate_average_data; // 0x00719ab0
 
-extern uint32_t QueryPerformanceCounter(int64_t *counter); // import 0x63a0ac
+extern uint32_t __stdcall QueryPerformanceCounter(int64_t *counter); // import 0x63a0ac
 extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
 
 // Returns the mean of the first `count` recorded frame times (or 1 ms if none have been recorded

@@ -18,8 +18,8 @@
 extern void *hostname_resolve_result;      // 0x00719b6c, this module; struct hostent * from gethostbyname
 extern int32_t hostname_resolve_complete;  // 0x00719b68, this module; set once the lookup returns
 
-extern void *gethostbyname(const char *name);
-extern void ExitThread(uint32_t exit_code);
+extern void *__stdcall gethostbyname(const char *name);
+extern void __stdcall ExitThread(uint32_t exit_code);
 
 // blam-cc: hostname as the recognized parameter (__stdcall thread proc)
 uint32_t network_hostname_resolve_thread_proc(char *hostname)

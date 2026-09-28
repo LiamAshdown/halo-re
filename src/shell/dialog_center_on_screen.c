@@ -16,7 +16,7 @@
 extern int32_t __stdcall GetWindowRect(void *hwnd, win32_rect *rect);   // import 0x63a414
 extern void *__stdcall GetDesktopWindow(void);                        // import 0x63a418
 extern int32_t __stdcall GetClientRect(void *hwnd, win32_rect *rect);   // import 0x63a3b4
-extern int32_t MoveWindow(void *hwnd, int32_t x, int32_t y, int32_t width, int32_t height, int32_t repaint);
+extern int32_t __stdcall MoveWindow(void *hwnd, int32_t x, int32_t y, int32_t width, int32_t height, int32_t repaint);
 
 // WM_INITDIALOG handler snippet that centers the given dialog/window over the desktop.
 int32_t __stdcall dialog_center_on_screen(void *hwnd, uint32_t message, uint32_t wparam, int32_t lparam)

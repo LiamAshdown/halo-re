@@ -36,7 +36,7 @@ extern SoundEnvironment sound_environment;          // 0x0072525c
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words]; // 0x00746160
 extern int64_t performance_frequency;               // 0x006ac8f8/0x006ac8fc, see src/sound/sound_update_clock.c
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index

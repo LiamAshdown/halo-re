@@ -20,10 +20,10 @@ extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern void *game_state_open_persistent_storage(char *name); // 0x5398e0
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
-extern uint32_t SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
-extern uint32_t ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // Win32
-extern uint32_t DeleteFileA(const char *path); // Win32
-extern uint32_t CloseHandle(void *handle); // Win32
+extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
+extern uint32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // Win32
+extern uint32_t __stdcall DeleteFileA(const char *path); // Win32
+extern uint32_t __stdcall CloseHandle(void *handle); // Win32
 
 // blam-cc: size in EAX, then the recognized stack parameter (buffer)
 // Opens the current profile's savegame.bin and reads size bytes from its start into buffer.

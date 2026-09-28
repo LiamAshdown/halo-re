@@ -31,10 +31,10 @@ extern uint8_t game_state_write_completed; // 0x006e2df5
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
-extern uint32_t Sleep(uint32_t milliseconds);
-extern uint32_t SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
-extern uint32_t WriteFile(void *file, const void *buffer, uint32_t bytes_to_write, uint32_t *bytes_written, void *overlapped); // Win32
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
+extern uint32_t __stdcall Sleep(uint32_t milliseconds);
+extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
+extern uint32_t __stdcall WriteFile(void *file, const void *buffer, uint32_t bytes_to_write, uint32_t *bytes_written, void *overlapped); // Win32
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
 extern void game_state_write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, int32_t header_size, int32_t total_size); // 0x539710
 extern void game_checkpoint_write_stats_file(char *scenario_name, int32_t difficulty); // 0x538b70
 extern uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_name, char *target_name); // 0x5387e0

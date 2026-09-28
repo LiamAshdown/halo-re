@@ -21,7 +21,7 @@
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern int16_t cache_file_index;                                  // 0x006ac494, -1 when none open
 
-extern int32_t CompareFileTime(file_time *a, file_time *b); // 0x0063a2e0 IAT
+extern int32_t __stdcall CompareFileTime(file_time *a, file_time *b); // 0x0063a2e0 IAT
 
 // Per-slot size limit used by cache_file_find_oldest_slot: 0x18000000 for slots 0-1,
 // 0x02300000 for slot 2, 0x08000000 for slots 3-5 (see types/cache.h

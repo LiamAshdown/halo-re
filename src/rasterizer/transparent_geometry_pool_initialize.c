@@ -14,7 +14,7 @@
 #include "math.h"
 #include "rasterizer.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // Win32
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // Win32
 extern transparent_geometry_group *transparent_geometry_groups;           // 0x0071d14c
 extern transparent_geometry_group *transparent_geometry_groups_secondary; // 0x0071d150
 extern int32_t transparent_geometry_group_count;           // 0x0071d154

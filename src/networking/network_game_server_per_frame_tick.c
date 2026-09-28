@@ -27,7 +27,7 @@
 #include "networking.h"
 
 extern void update_server_push_player_tick_history(void); // other module (UNSURE)
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern void game_engine_tick(void); // other module, already named
 extern char network_game_session_finalize_and_add_player(network_player_entry *entry,
     network_server_globals *server, network_machine *machine); // 0x4df840, this batch

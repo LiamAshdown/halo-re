@@ -17,7 +17,7 @@
 #include "tags.h"
 #include "cache.h"
 
-extern void SetEvent(void *event);
+extern void __stdcall SetEvent(void *event);
 
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 extern void *cache_io_event;                // 0x006ac498

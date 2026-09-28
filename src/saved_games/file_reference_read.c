@@ -16,9 +16,9 @@
 #include "saved_games.h"
 
 extern void saved_games_report_last_error(void); // 0x556170, this module
-extern int32_t ReadFile(void *file, void *buffer, uint32_t size, uint32_t *bytes_transferred,
+extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t size, uint32_t *bytes_transferred,
     void *overlapped); // Win32
-extern void SetLastError(uint32_t error_code); // Win32
+extern void __stdcall SetLastError(uint32_t error_code); // Win32
 
 // blam-cc: ref in EDX, buffer in ECX, size in ESI
 // Reads exactly size bytes from ref's open handle into buffer. Fails (ERROR_HANDLE_EOF, 0x26)

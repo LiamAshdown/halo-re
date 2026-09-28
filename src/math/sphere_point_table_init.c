@@ -10,8 +10,8 @@
 #include "tags.h"
 #include "math.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *GlobalFree(void *block);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalFree(void *block);
 extern uint32_t random_seed_generate(void); // 0x4cd070
 extern sphere_mesh *sphere_mesh_generate(int16_t subdivisions); // 0x4ca4b0, blam-cc: subdivisions in EAX
 

@@ -23,11 +23,11 @@
 
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, ESI dest, EDI source, stack capacity
 extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
-extern void *FindFirstFileA(const char *pattern, win32_find_dataa *out_data); // Win32
-extern uint32_t FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
-extern uint32_t FindClose(void *find_handle); // Win32
-extern uint32_t DeleteFileA(const char *path); // Win32
-extern uint32_t RemoveDirectoryA(const char *path); // Win32
+extern void *__stdcall FindFirstFileA(const char *pattern, win32_find_dataa *out_data); // Win32
+extern uint32_t __stdcall FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
+extern uint32_t __stdcall FindClose(void *find_handle); // Win32
+extern uint32_t __stdcall DeleteFileA(const char *path); // Win32
+extern uint32_t __stdcall RemoveDirectoryA(const char *path); // Win32
 
 // blam-cc: EAX -> save_game_name, ECX -> root_path
 // Deletes every file directly under "<root_path>\<name>\" (skipping dotfiles and an entry

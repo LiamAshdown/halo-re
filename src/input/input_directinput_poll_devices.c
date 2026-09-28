@@ -43,7 +43,7 @@ extern void *joystick_devices[8];              // 0x006b1848
 extern joystick_state joystick_states[4];      // 0x006b2a68
 extern joystick_state joystick_neutral_state;  // 0x006b2cf8
 
-extern int32_t GetAsyncKeyState(int32_t virtual_key); // 0x0063a420 IAT
+extern int32_t __stdcall GetAsyncKeyState(int32_t virtual_key); // 0x0063a420 IAT
 extern void input_error_log_once(int32_t error_code, char *description, ...); // this module, 0x492150
 extern void input_mouse_state_process(mouse_state *dest, di_mouse_state2 *raw); // this module, 0x491bc0,
     // blam-cc: dest on the stack, raw in ECX

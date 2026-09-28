@@ -50,7 +50,7 @@
 
 extern char *strrchr(const char *str, int ch); // 00623bc0 _strrchr
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
-extern void *CreateFileA(const char *path, uint32_t access, uint32_t share, void *security,
+extern void *__stdcall CreateFileA(const char *path, uint32_t access, uint32_t share, void *security,
     uint32_t creation_disposition, uint32_t flags, void *template_file);
 extern void os_platform_identify(void); // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70

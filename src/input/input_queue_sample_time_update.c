@@ -19,7 +19,7 @@
 
 extern uint32_t input_queue_sample_time;                      // 0x00712c34
 extern int64_t performance_frequency;                          // 0x006ac8f8/0x006ac8fc
-extern int32_t QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
 
 // Refreshes input_queue_sample_time from QueryPerformanceCounter. Nothing in this image reads
 // the value back.

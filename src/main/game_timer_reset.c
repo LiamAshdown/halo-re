@@ -17,7 +17,7 @@
 extern main_globals main_globals_data; // 0x00719700
 extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
 
-extern uint32_t QueryPerformanceCounter(int64_t *counter);
+extern uint32_t __stdcall QueryPerformanceCounter(int64_t *counter);
 
 // Re-baselines the frame-timing globals (frame and render counters, plus frame_time_ms) to the
 // current high-resolution timestamp.

@@ -26,8 +26,8 @@ extern network_mutex_record *server_list_mutex; // 0x007196a8
 extern server_list_globals server_list;         // 0x007196bc
 extern int32_t server_browser_query_elapsed_ms; // 0x007196c8, UNSURE: see file header
 
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
-extern int32_t ReleaseMutex(void *handle);                              // Win32
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
+extern int32_t __stdcall ReleaseMutex(void *handle);                              // Win32
 
 void server_list_result_reset(uint8_t *entry)
 {

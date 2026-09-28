@@ -28,7 +28,7 @@
 #include "cache.h"
 
 extern char *strrchr(const char *str, int ch); // 00623bc0 _strrchr
-extern void SetThreadPriority(void *thread, int32_t priority);
+extern void __stdcall SetThreadPriority(void *thread, int32_t priority);
 extern void interface_handle_quit_request(void); // 0x499170
 
 extern int16_t cache_file_find_slot_by_name(char *name); // blam-cc: EDI; 0x443770

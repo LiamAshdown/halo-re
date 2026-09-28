@@ -26,12 +26,12 @@ extern int32_t autopatch_download_active_count;           // 0x007227c8, UNSURE:
 extern void FUN_0061bd00(void); // foreign, UNSURE
 
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
-extern void *CreateMutexA(void *security_attributes, int32_t initial_owner, const char *name);
-extern void *CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
+extern void *__stdcall CreateMutexA(void *security_attributes, int32_t initial_owner, const char *name);
+extern void *__stdcall CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
                            void *parameter, uint32_t creation_flags, uint32_t *thread_id);
-extern int32_t SetThreadPriority(void *thread, int32_t priority);
-extern uint32_t ResumeThread(void *thread);
-extern int32_t CloseHandle(void *object);
+extern int32_t __stdcall SetThreadPriority(void *thread, int32_t priority);
+extern uint32_t __stdcall ResumeThread(void *thread);
+extern int32_t __stdcall CloseHandle(void *object);
 extern uint32_t autopatch_download_worker_thread(void); // 0x576b80, this module
 
 // Initializes the two-slot asynchronous download table, then inline-allocates a named mutex

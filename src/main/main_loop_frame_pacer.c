@@ -27,9 +27,9 @@ extern uint8_t *cinematic_globals;     // 0x006f187c, foreign, TYPES-GAP
 extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
 extern uint8_t unknown_00710301;       // TYPES-GAP, UNSURE identity
 
-extern uint32_t QueryPerformanceCounter(int64_t *counter);
-extern uint32_t QueryPerformanceFrequency(int64_t *frequency);
-extern void Sleep(uint32_t milliseconds);
+extern uint32_t __stdcall QueryPerformanceCounter(int64_t *counter);
+extern uint32_t __stdcall QueryPerformanceFrequency(int64_t *frequency);
+extern void __stdcall Sleep(uint32_t milliseconds);
 
 // Paces the main loop to roughly 30 FPS: while capturing isn't running and either the video
 // options' frame limiter is on or a cinematic is active, busy-waits (sleeping 10ms at a time

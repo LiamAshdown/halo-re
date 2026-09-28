@@ -19,7 +19,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern void *GlobalFree(void *memory);
+extern void *__stdcall GlobalFree(void *memory);
 
 extern void network_receive_queue_free(network_receive_queue *queue, int32_t connection_id,
     int16_t connection_key); // 0x441c80, this module

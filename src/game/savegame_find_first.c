@@ -32,9 +32,9 @@
 extern int32_t user_save_path_register(uint32_t user_id, char *path); // this batch, 0x551650
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX dst, EDI capacity, EBX source
 extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
-extern void *FindFirstFileA(const char *pattern, win32_find_dataa *out_data); // Win32
-extern uint32_t FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
-extern uint32_t FindClose(void *find_handle); // Win32
+extern void *__stdcall FindFirstFileA(const char *pattern, win32_find_dataa *out_data); // Win32
+extern uint32_t __stdcall FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
+extern uint32_t __stdcall FindClose(void *find_handle); // Win32
 
 // blam-cc: EAX -> find_data, stack -> root_path
 // Starts a directory enumeration under `root_path`, registers the resulting handle against

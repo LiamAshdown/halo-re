@@ -27,8 +27,8 @@
 #include "networking.h"
 #include <string.h>
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *GlobalFree(void *memory);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalFree(void *memory);
 
 // Scans the pool for a free (pending == 0) slot already large enough for both requested
 // capacities; if one exists, returns its index without doing anything else. Otherwise grows the

@@ -71,7 +71,7 @@ extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profi
 extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
 extern void _wcscpy(uint16_t *dest, const uint16_t *src);
 extern int32_t __stricmp(const char *a, const char *b);
-extern void *GlobalAlloc(uint32_t flags, uint32_t size);
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t size);
 
 // Builds the campaign level-selection list. If more than one known level exists, delegates
 // entirely to the co-op variant ui_build_level_select_list_coop. Otherwise rebuilds the 10-slot known-level table

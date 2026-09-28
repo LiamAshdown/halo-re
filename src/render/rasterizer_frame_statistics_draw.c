@@ -61,7 +61,7 @@ extern float hud_text_draw_color_b;               // 0x006e4744
 extern int16_t hud_text_draw_background_mode;     // 0x006e4748
 extern int16_t hud_text_draw_tab_stops[6];        // 0x006e474a UNSURE name
 
-extern int32_t QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
 extern uint8_t input_get_key_state(int16_t key_index); // 0x490b50, input; blam-cc: ECX
 extern void rasterizer_frame_statistics_graph_init(void); // 0x512700, this module (fg_init)
 extern void fg_add_sample(int32_t index, float sample);   // 0x512d90, this module;

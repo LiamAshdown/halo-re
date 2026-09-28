@@ -20,9 +20,9 @@ extern void *game_state_persistent_storage; // 0x006e2df8
 extern uint32_t game_state_size; // 0x006e2df0
 extern uint8_t *game_state_snapshot_source; // 0x006e2dec
 
-extern void Sleep(uint32_t milliseconds);
-extern uint32_t SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
-extern uint32_t ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // Win32
+extern void __stdcall Sleep(uint32_t milliseconds);
+extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
+extern uint32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // Win32
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 
 uint8_t game_state_read_persistent_storage(void)

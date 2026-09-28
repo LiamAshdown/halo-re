@@ -17,7 +17,7 @@
 
 extern input_event_queue event_queue;                    // 0x00712cc0
 extern int64_t performance_frequency;                           // 0x006ac8f8/0x006ac8fc
-extern int32_t QueryPerformanceCounter(large_integer *counter);  // 0x0063a0ac IAT
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);  // 0x0063a0ac IAT
 
 // Zeroes the whole input event queue block, seeds its start_time and last_event_time from
 // QueryPerformanceCounter, then enables it.

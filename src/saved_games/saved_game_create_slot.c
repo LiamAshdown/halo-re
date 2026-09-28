@@ -63,7 +63,7 @@ extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
 extern int32_t __snprintf(char *buffer, uint32_t count, const char *format, ...); // CRT
 extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
-extern int32_t CloseHandle(void *object); // Win32
+extern int32_t __stdcall CloseHandle(void *object); // Win32
 
 // blam-cc: __cdecl, plain stack arguments (type, name)
 // Registers a new saved-game (type 0: blam.sav) or playlist (type 1: blam.lst) slot named

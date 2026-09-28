@@ -28,10 +28,10 @@ extern int32_t master_server_connection_last_tick_ms_0072520c; // 0x0072520c, se
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 
 extern void sound_idle_update(void); // foreign, outside this session's range
-extern int32_t GetExitCodeThread(void *thread, uint32_t *exit_code);
-extern void Sleep(uint32_t milliseconds);
-extern int32_t QueryPerformanceCounter(large_integer *counter);
-extern int32_t CloseHandle(void *object); // Win32
+extern int32_t __stdcall GetExitCodeThread(void *thread, uint32_t *exit_code);
+extern void __stdcall Sleep(uint32_t milliseconds);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall CloseHandle(void *object); // Win32
 
 // blam-cc: __cdecl, no arguments
 // Polls the master-server connection thread every 20ms until it exits, pumping FUN_00549960

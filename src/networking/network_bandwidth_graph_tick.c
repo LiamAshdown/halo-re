@@ -20,7 +20,7 @@
 #include "networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 extern void network_bandwidth_graph_new_sample(network_bandwidth_graph *graph); // 0x4d8430, this batch
 

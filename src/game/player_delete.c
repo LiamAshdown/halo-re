@@ -42,7 +42,7 @@ extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, bl
     // EDX -> handle
 extern uint32_t network_machine_clear_flag_by_id(network_server_globals *server, int32_t machine_id); // 0x4e0b90,
     // EDX server, EDI machine_id
-extern void *GlobalFree(void *handle); // Win32
+extern void *__stdcall GlobalFree(void *handle); // Win32
 
 // Notifies the active game engine that this player's object is going away, then -- only while
 // this machine is a network client (mode 1) -- tears down the player's incoming update-history

@@ -12,7 +12,7 @@
 
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 extern void *rasterizer_effect_pool;                                  // 0x0071d254
-extern void *GlobalFree(void *mem); // Win32
+extern void *__stdcall GlobalFree(void *mem); // Win32
 
 static void free_constant_handles(int first, int last)
 {

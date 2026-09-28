@@ -24,7 +24,7 @@ extern void *texture_cache_memory;        // 0x006ac550, VirtualAlloc'd elsewher
 extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370
 extern void cache_new(char *name, struct cache *self, int32_t block_count, int32_t block_shift,
     int16_t maximum_count, void *release_procedure, void *in_use_procedure); // 0x4d1750
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
 
 extern void texture_cache_entry_release(void); // 0x444730, outside this module
 extern void texture_cache_entry_in_use(void);  // 0x444700, outside this module

@@ -22,17 +22,17 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t RegOpenKeyExA(void *key, const char *subkey, uint32_t reserved, uint32_t desired_access,
+extern int32_t __stdcall RegOpenKeyExA(void *key, const char *subkey, uint32_t reserved, uint32_t desired_access,
                               void **result_key); // import 0x63a014
-extern int32_t RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type, uint8_t *data,
+extern int32_t __stdcall RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type, uint8_t *data,
                                  uint32_t *data_size); // import 0x63a018
-extern int32_t RegCreateKeyExA(void *key, const char *subkey, uint32_t reserved, char *class_name, uint32_t options,
+extern int32_t __stdcall RegCreateKeyExA(void *key, const char *subkey, uint32_t reserved, char *class_name, uint32_t options,
                                 uint32_t desired_access, void *security_attributes, void **result_key,
                                 uint32_t *disposition); // import 0x63a008
-extern int32_t RegSetValueExA(void *key, const char *value_name, uint32_t reserved, uint32_t type,
+extern int32_t __stdcall RegSetValueExA(void *key, const char *value_name, uint32_t reserved, uint32_t type,
                                const uint8_t *data, uint32_t data_size); // import 0x63a00c
-extern int32_t RegCloseKey(void *key); // import 0x63a010
-extern uint32_t GetFileAttributesA(const char *path); // import 0x63a0b4
+extern int32_t __stdcall RegCloseKey(void *key); // import 0x63a010
+extern uint32_t __stdcall GetFileAttributesA(const char *path); // import 0x63a0b4
 
 extern char *shell_module_path; // 0x006a32e8, UNSURE: see file header
 

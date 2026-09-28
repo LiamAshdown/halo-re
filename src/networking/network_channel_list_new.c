@@ -13,8 +13,8 @@
 #include "game.h"
 #include "networking.h"
 
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *GlobalFree(void *memory); // Win32
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
+extern void *__stdcall GlobalFree(void *memory); // Win32
 
 // blam-cc: requested capacity in AX (in_AX, low 16 bits of EAX)
 // Allocates a network_channel_list and its parallel dedup array (GMEM_ZEROINIT, requested

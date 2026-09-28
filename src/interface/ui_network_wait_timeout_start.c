@@ -17,7 +17,7 @@ extern int32_t ui_network_wait_start_time; // 0x006927c4, -1 when no wait is run
 extern int64_t performance_frequency;      // 0x006ac8f8/0x006ac8fc
 extern uint8_t ui_network_wait_active;     // 0x00718fcd
 
-extern int QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
+extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 
 // If no wait is currently timed, samples the performance counter and converts it to milliseconds
 // as the new wait start time. Always marks the wait as active.

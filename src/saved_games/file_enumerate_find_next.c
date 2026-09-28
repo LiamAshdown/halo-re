@@ -35,9 +35,9 @@ extern void path_append_component(char *destination, const char *component); // 
 extern void path_remove_last_component(char *path); // 0x555f80, this module
 extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
 
-extern void *FindFirstFileA(const char *path, win32_find_dataa *out_data); // Win32
-extern int32_t FindNextFileA(void *handle, win32_find_dataa *out_data); // Win32
-extern int32_t FindClose(void *handle); // Win32
+extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *out_data); // Win32
+extern int32_t __stdcall FindNextFileA(void *handle, win32_find_dataa *out_data); // Win32
+extern int32_t __stdcall FindClose(void *handle); // Win32
 
 // blam-cc: plain stack arguments (out_entry, out_write_time)
 // Advances the (possibly recursive) enumeration started by file_enumerate_start and returns the

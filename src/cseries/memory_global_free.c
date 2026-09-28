@@ -10,7 +10,7 @@
 #include "tags.h"
 #include "cseries.h"
 
-extern void *GlobalFree(void *handle); // Win32, 0x0063a0bc import thunk
+extern void *__stdcall GlobalFree(void *handle); // Win32, 0x0063a0bc import thunk
 
 // Thin wrapper freeing a block previously returned by memory_global_alloc via GlobalFree.
 void *memory_global_free(void *handle)

@@ -13,8 +13,8 @@
 #include "tags.h"
 #include "cache.h"
 
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // 0x0063a310 IAT
-extern void SetEvent(void *event); // 0x0063a294 IAT
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // 0x0063a310 IAT
+extern void __stdcall SetEvent(void *event); // 0x0063a294 IAT
 
 extern map_download_state *map_download; // 0x006869c0
 

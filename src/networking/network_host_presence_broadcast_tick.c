@@ -25,7 +25,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern char cache_file_request_map(int32_t unknown); // 0x442640, UNSURE argument
 extern char network_build_string[]; // 0x00719879

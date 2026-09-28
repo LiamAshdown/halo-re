@@ -12,7 +12,7 @@
 #include "shell.h"
 
 extern int32_t os_platform_value; // 0x00721ef0, UNSURE: named os_platform_value not os_platform -- shell.h's os_platform enum typedef occupies that identifier in the same C namespace, so the documented global name does not compile as written
-extern int32_t GetVersionExA(os_version_info_a *info);
+extern int32_t __stdcall GetVersionExA(os_version_info_a *info);
 
 // Queries GetVersionExA and caches a small platform-family code (Win9x vs WinNT vs other) into
 // os_platform for later feature gating.

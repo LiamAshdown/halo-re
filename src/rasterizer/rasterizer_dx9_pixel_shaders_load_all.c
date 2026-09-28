@@ -13,7 +13,7 @@
 #include "rasterizer.h"
 
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
-extern void *GlobalFree(void *mem); // Win32
+extern void *__stdcall GlobalFree(void *mem); // Win32
 
 // blam-cc: ECX -> path, stack -> (out_buffer, out_size)
 extern uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, const char *path); // 0x5199f0

@@ -33,7 +33,7 @@ extern data_array *texture_cache_entries;  // 0x006ac538
 
 extern datum_index cache_allocate_block(struct cache *self, uint32_t requested_bytes); // 0x4d1840
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array); // 0x4d03d0
-extern void *GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
+extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
 
 // blam-cc: bitmap in EAX; outside this module, UNSURE (see file header note)
 extern uint32_t bitmap_compute_texture_data_size(BitmapData *bitmap); // 0x5146c0

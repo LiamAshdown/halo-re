@@ -20,10 +20,10 @@ extern char game_state_persistent_storage_path[0x100]; // 0x006e2dfc
 extern void *game_state_persistent_storage; // 0x006e2df8
 extern uint8_t game_state_persistent_storage_created; // 0x006e2df4
 
-extern void *CreateFileA(const char *path, uint32_t access, uint32_t share_mode,
+extern void *__stdcall CreateFileA(const char *path, uint32_t access, uint32_t share_mode,
     void *security_attributes, uint32_t creation_disposition, uint32_t flags, void *template_file); // Win32
-extern uint32_t SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
-extern uint32_t SetEndOfFile(void *file); // Win32
+extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // Win32
+extern uint32_t __stdcall SetEndOfFile(void *file); // Win32
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 
 void game_state_create_persistent_storage_file(void)

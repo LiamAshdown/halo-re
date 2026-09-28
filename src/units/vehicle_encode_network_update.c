@@ -73,7 +73,7 @@ extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, blam
 extern int32_t message_delta_encode_message(void *buffer, int32_t bit_budget, int32_t flag,
     int32_t message_type, void *changed, void *items, void *types, int32_t count,
     char force_changed); // 0x4ec940, blam-cc: EAX buffer, EDX bit_budget, rest on the stack
-extern int32_t QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
 extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
 extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
 

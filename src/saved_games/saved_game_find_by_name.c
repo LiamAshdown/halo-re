@@ -37,8 +37,8 @@ extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, th
 extern uint32_t savegame_slot_handle_pack(uint32_t slot_index, uint32_t type_nibble, uint8_t flag_bit_30,
     uint8_t flag_bit_31); // 0x53e630, FUN_0053e630 (src/game); blam-cc: EAX slot, ECX type, DL bit 30, stack byte bit 31
 extern int32_t __strnicmp(const char *a, const char *b, uint32_t count); // CRT
-extern uint32_t WaitForSingleObject(void *object, uint32_t milliseconds); // Win32
-extern int32_t ReleaseMutex(void *mutex); // Win32
+extern uint32_t __stdcall WaitForSingleObject(void *object, uint32_t milliseconds); // Win32
+extern int32_t __stdcall ReleaseMutex(void *mutex); // Win32
 
 // blam-cc: plain stack arguments (name, type)
 // Under both module mutexes, opens the save-game index file and scans every entry for one whose

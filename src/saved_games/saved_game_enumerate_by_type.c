@@ -39,8 +39,8 @@ extern uint32_t savegame_slot_handle_pack(uint32_t slot_index, uint32_t type_nib
 extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size); // 0x555a20, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
 
-extern uint32_t WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
-extern int32_t ReleaseMutex(void *handle); // Win32
+extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
+extern int32_t __stdcall ReleaseMutex(void *handle); // Win32
 
 // blam-cc: EBX -> capacity_and_count, stack -> type, out_handles, builtin_only
 // Rebuilds the saved-game index first if it is marked dirty, then scans up to *capacity_and_count

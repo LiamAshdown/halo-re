@@ -27,7 +27,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t QueryPerformanceCounter(large_integer *counter);
+extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_channel_service_close_if_disconnected(network_channel *channel); // 0x4dd3f0
 extern network_server_globals *network_server; // 0x0071c2d4

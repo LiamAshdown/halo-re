@@ -44,10 +44,10 @@ extern void os_platform_identify(void);                            // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern int32_t sprintf(char *buffer, const char *format, ...);     // 0x623693 _sprintf
 
-extern void GetFileTime(void *file, file_time *last_write, void *last_access, void *creation); // 0x0063a2d4 IAT
+extern void __stdcall GetFileTime(void *file, file_time *last_write, void *last_access, void *creation); // 0x0063a2d4 IAT
 extern void *ReadFileEx_exref;  // 0x0063a27c IAT slot holding ReadFileEx, passed by value
-extern uint32_t SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // 0x0063a2b0 IAT
-extern int32_t ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
+extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // 0x0063a2b0 IAT
+extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
 
 // blam-cc: request in ESI, size in EBX, offset in EDX, completion_routine in EDI (the three
 // named stack arguments are all Ghidra shows); 0x442c70, outside this module

@@ -32,8 +32,8 @@ extern int32_t network_initialized_at_ms;  // 0x006f14c0, UNSURE
 
 extern int network_local_hostent_get(void **out_hostent); // 0x441540, this module
 extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
-extern int32_t WSAStartup(uint16_t version_requested, void *wsa_data);
-extern void *CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
+extern int32_t __stdcall WSAStartup(uint16_t version_requested, void *wsa_data);
+extern void *__stdcall CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
                            void *parameter, uint32_t creation_flags, uint32_t *thread_id);
 extern void join_game_server_browser_tick(void); // foreign module (autopatch, > 0x4b80f0)
 
