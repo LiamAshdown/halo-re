@@ -18,6 +18,7 @@
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found.
 
+#include "vorbisfile.h"
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
@@ -25,10 +26,6 @@
 
 extern void sound_ogg_error_to_string(int32_t vorbis_error_code); // 0x544f70
 
-extern int32_t ov_read(void *vorbis_file, char *buffer, int32_t length, int32_t bigendian_p,
-    int32_t word_size, int32_t is_signed, int32_t *bitstream_index); // 0x6144f0, libvorbisfile
-extern void ov_clear(void *vorbis_file); // 0x614510, libvorbisfile
-extern int32_t ov_crosslap(void *old_vorbis_file, void *new_vorbis_file); // 0x614520, libvorbisfile
 
 // blam-cc: EDI -> decoder, stack -> (buffer, size, want_crosslap)
 // Decodes up to `size` bytes of PCM from the decoder's currently active Ogg Vorbis file into

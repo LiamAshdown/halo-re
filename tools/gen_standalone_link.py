@@ -215,13 +215,32 @@ def image_source():
     return objs, ["/ALTERNATENAME:halo_code_%06x=%s" % (a, s) for a, s in sorted(bound.items())]
 
 
+# third-party DLLs in the Halo folder without an import library: made from standalone/libs/*.def and delay-loaded, so
+# the DLL is loaded at the first call, from the folder the loader's SetDllDirectory names
+THIRD_PARTY_DLLS = ["binkw32", "vorbisfile"]
+
+
+def third_party_import_libs():
+    libs = []
+    for name in THIRD_PARTY_DLLS:
+        out = os.path.join(OUT, name + ".lib")
+        r = subprocess.run([gl.tool("lib"), "/nologo", "/machine:x86", "/def:" + os.path.join(SA, "libs", name + ".def"),
+                            "/out:" + out], capture_output=True, text=True, env=gl.env, errors="replace")
+        if r.returncode:
+            print(r.stdout[-2000:])
+            raise SystemExit("import library failed: " + name)
+        libs.append(out)
+    return libs + ["delayimp.lib"] + ["/DELAYLOAD:%s.dll" % n for n in THIRD_PARTY_DLLS]
+
+
 def link(objs, force):
     rsp = os.path.join(OUT, "objs.rsp")
     open(rsp, "w").write("\n".join(['"%s"' % o for o in objs] + LINK_OPTIONS))
     cmd = [gl.tool("link"), "/nologo", "/MACHINE:X86", "/SUBSYSTEM:WINDOWS", "/FIXED", "/BASE:0x%x" % BASE,
            "/SAFESEH:NO", "/OPT:NOREF", "/OPT:NOICF", "/LARGEADDRESSAWARE:NO", "/NODEFAULTLIB:msvcrt.lib",
            "/LIBPATH:" + DXSDK_LIB, "/OUT:" + EXE, "/MAP:" + os.path.join(OUT, "halo_rebuilt.map"), "@" + rsp] + \
-          (["/FORCE:UNRESOLVED"] if force else []) + gl.SYS_LIBS + EXTRA_LIBS + ["libcmt.lib", "libvcruntime.lib", "libucrt.lib"]
+          (["/FORCE:UNRESOLVED"] if force else []) + gl.SYS_LIBS + EXTRA_LIBS + third_party_import_libs() + \
+          ["libcmt.lib", "libvcruntime.lib", "libucrt.lib"]
     r = subprocess.run(cmd, capture_output=True, text=True, env=gl.env, errors="replace")
     open(os.path.join(OUT, "link.log"), "w").write(r.stdout)
     return r.returncode, sorted(set(re.findall(r"unresolved external symbol (\S+)", r.stdout)))

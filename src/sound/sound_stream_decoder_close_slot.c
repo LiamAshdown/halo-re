@@ -17,11 +17,11 @@
 // data pointers (+0x5b0 / +0x5c0), not their sizes as the draft had it; otherwise confirmed.
 // AL = crosslap flag from sound_channel_fill_pcm_data.
 
+#include "vorbisfile.h"
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
 
-extern void ov_clear(void *vorbis_file); // 0x614510, libvorbisfile
 
 static void sound_stream_decoder_clear_ogg_vorbis_file(void *vorbis_file)
 {

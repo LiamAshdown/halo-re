@@ -19,6 +19,7 @@
 // Note: when GetRenderTarget fails the original releases the render target slot (still NULL
 //   unless D3D wrote it) and leaks the offscreen surface (0x43ed87 -> 0x43eff5). Kept verbatim.
 
+#include "bink.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -33,21 +34,11 @@ extern int32_t movie_playback_abort;       // 0x007196d4, UNSURE owner (see head
 extern void *rasterizer_device;            // 0x0071d174, IDirect3DDevice9
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern uint8_t rasterizer_device_lost;     // 0x007c10b0
-extern uint32_t __stdcall BinkOpenDirectSound(uint32_t param); // import 0x6a0050 (its address is handed to BinkSetSoundSystem)
 
 extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters); // 0x515d90, foreign (rasterizer); stack arg
 extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); // 0x518180, foreign (rasterizer)
     // blam-cc: EAX -> tile, stack -> bitmap
 
-extern int32_t __stdcall BinkSetSoundSystem(void *open, uint32_t param);                 // import 0x6a006c
-extern bink_movie_prefix *__stdcall BinkOpen(const char *name, uint32_t flags);           // import 0x6a0064
-extern void __stdcall BinkClose(bink_movie_prefix *bink);                                 // import 0x6a0068
-extern int32_t __stdcall BinkPause(bink_movie_prefix *bink, int32_t pause);               // import 0x6a0058
-extern int32_t __stdcall BinkWait(bink_movie_prefix *bink);                               // import 0x6a0060
-extern int32_t __stdcall BinkDoFrame(bink_movie_prefix *bink);                            // import 0x6a0070
-extern void __stdcall BinkNextFrame(bink_movie_prefix *bink);                             // import 0x6a005c
-extern int32_t __stdcall BinkCopyToBuffer(bink_movie_prefix *bink, void *dest, int32_t dest_pitch,
-    uint32_t dest_height, uint32_t dest_x, uint32_t dest_y, uint32_t flags);             // import 0x6a0054
 
 typedef int32_t (__stdcall *d3d_test_cooperative_level_fn)(void *device);
 typedef int32_t (__stdcall *d3d_create_offscreen_plain_surface_fn)(void *device, uint32_t width,

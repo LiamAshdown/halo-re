@@ -18,6 +18,7 @@
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found.
 
+#include "vorbisfile.h"
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
@@ -27,8 +28,6 @@ extern int32_t ov_seek_thunk(sound_ogg_memory_file *file, uint32_t offset_low, i
 extern int32_t ov_close_thunk(sound_ogg_memory_file *file); // 0x544dc0
 extern int32_t ov_tell_thunk(sound_ogg_memory_file *file); // 0x544de0
 
-extern int32_t ov_open_callbacks(void *datasource, void *vorbis_file, char *initial, int32_t initial_bytes,
-    void *read_func, void *seek_func, void *close_func, void *tell_func); // 0x614500, libvorbisfile
 
 // blam-cc: ESI -> decoder, stack -> (data, size)
 // Opens an Ogg Vorbis decode stream over an in-memory buffer, using whichever of the decoder's
