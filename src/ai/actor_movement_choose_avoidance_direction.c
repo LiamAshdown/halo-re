@@ -93,8 +93,8 @@ void actor_movement_choose_avoidance_direction(uint32_t actor_index, real_vector
     context.collision_bsp = global_structure_collision_bsp;
     context.unit_index = unit_index;
     object_get_position(&context.position, unit_index);
-    context.forward = *(real_vector3d *)(obj + 0x74);
-    context.up = *(real_vector3d *)(obj + 0x80);
+    context.forward = *(real_vector3d *)&((object *)obj)->forward.i;
+    context.up = *(real_vector3d *)&((object *)obj)->up.i;
     // 0x4194c8: left = up x forward
     context.left.i = context.forward.k * context.up.j - context.up.k * context.forward.j;
     context.left.j = context.up.k * context.forward.i - context.up.i * context.forward.k;
@@ -186,9 +186,9 @@ void actor_movement_choose_avoidance_direction(uint32_t actor_index, real_vector
 
     // 0x4198e6: while moving, the directions against the sideways motion lose weight
     {
-        float vx = *(float *)(obj + 0x8c);
-        float vy = *(float *)(obj + 0x90);
-        float vz = *(float *)(obj + 0x94);
+        float vx = ((object *)obj)->angular_velocity.i;
+        float vy = ((object *)obj)->angular_velocity.j;
+        float vz = ((object *)obj)->angular_velocity.k;
         float speed = (float)sqrt(vx * vx + vy * vy + vz * vz);
 
         if (speed > 0.02f) {
@@ -291,9 +291,9 @@ void actor_movement_choose_avoidance_direction(uint32_t actor_index, real_vector
         if (held != -1 && held < 90) {
             turn_around = 1;
         } else {
-            float vx = *(float *)(obj + 0x8c);
-            float vy = *(float *)(obj + 0x90);
-            float vz = *(float *)(obj + 0x94);
+            float vx = ((object *)obj)->angular_velocity.i;
+            float vy = ((object *)obj)->angular_velocity.j;
+            float vz = ((object *)obj)->angular_velocity.k;
 
             if (vx * vx + vy * vy + vz * vz > 0.0025f) {
                 turn_around = (uint8_t)(delta > 2.0f && best_weight > 2.0f);

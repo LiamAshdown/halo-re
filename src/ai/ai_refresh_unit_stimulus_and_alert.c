@@ -48,10 +48,10 @@ void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priori
     }
     *(int32_t *)(obj + 0x220) = now;
     *(int16_t *)(obj + 0x21c) = stimulus_value;
-    if (*(int16_t *)(obj + 0xb4) == 1) {
+    if (((object *)obj)->type == 1) {
         datum_index child;
 
-        for (child = *(datum_index *)(obj + 0x118); child != k_datum_index_none;) {
+        for (child = ((object *)obj)->first_child_object; child != k_datum_index_none;) {
             uint8_t *c = OBJECT_DATA(child);
 
             if (*(int16_t *)(c + 0xb4) == 0) {
@@ -59,7 +59,7 @@ void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priori
             }
             child = *(datum_index *)(c + 0x114);
         }
-    } else if (*(int16_t *)(obj + 0xb4) == 0) {
+    } else if (((object *)obj)->type == 0) {
         ai_alert_actors_in_grenade_radius(object_index, stimulus_value, priority);
     }
 }

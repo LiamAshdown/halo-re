@@ -61,15 +61,15 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
     float taken;
     uint8_t unscaled = 0;
 
-    if ((*geometry & 0x40) && *(int16_t *)(obj + 0xb4) == 1 && *(datum_index *)(obj + 0x324) == k_datum_index_none) {
+    if ((*geometry & 0x40) && ((object *)obj)->type == 1 && *(datum_index *)(obj + 0x324) == k_datum_index_none) {
         body = 0.0f;
     }
-    if (current_game_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && *(int16_t *)(obj + 0xb8) == 1) {
+    if (current_game_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && ((object *)obj)->owner_team == 1) {
         unscaled = 1;
     }
-    maximum = *(float *)(obj + 0xd8);
+    maximum = ((object *)obj)->maximum_body_vitality;
     if (!unscaled) {
-        maximum = weapon_get_zoom_fov_resolved(1, *(int16_t *)(obj + 0xb8)) * maximum;
+        maximum = weapon_get_zoom_fov_resolved(1, ((object *)obj)->owner_team) * maximum;
     }
     inverse_maximum = (maximum > 0.0f) ? 1.0f / maximum : 0.0f;
     value = body;
@@ -93,7 +93,7 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
             uint32_t effect_flags = *(uint32_t *)(effect_block + 0x4);
 
             if (effect_flags & 2) {
-                if (!(current_game_engine == 0 && *(int16_t *)(obj + 0xb4) == 0 &&
+                if (!(current_game_engine == 0 && ((object *)obj)->type == 0 &&
                       *(datum_index *)(obj + 0x218) != k_datum_index_none)) {
                     if (is_local == 1) {
                         *vitality = 0.0f;
@@ -118,7 +118,7 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
     if ((int16_t)region_index != -1) {
         int32_t region = (int16_t)region_index;
 
-        if ((*(uint16_t *)(obj + 0x174) & (1u << (region & 0x1f))) == 0) {
+        if ((((object *)obj)->destroyed_region_flags & (1u << (region & 0x1f))) == 0) {
             uint8_t *region_block = *(uint8_t **)(geometry + 0x244) + region * 0x54;
             uint8_t region_damage = (uint8_t)(int32_t)(taken * 255.0f + (int32_t)obj[0x178 + region]);
 
@@ -132,25 +132,25 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
     }
 bookkeeping:
     {
-        float current = taken + *(float *)(obj + 0xec);
+        float current = taken + ((object *)obj)->current_body_damage;
         float recent;
 
-        *(int32_t *)(obj + 0x100) = 0;
-        *(float *)(obj + 0xec) = current;
-        recent = taken + *(float *)(obj + 0xf8);
-        *(float *)(obj + 0xf8) = recent;
+        ((object *)obj)->body_damage_ticks = 0;
+        ((object *)obj)->current_body_damage = current;
+        recent = taken + ((object *)obj)->recent_body_damage;
+        ((object *)obj)->recent_body_damage = recent;
         if (current > 1.0f) {
-            *(float *)(obj + 0xec) = 1.0f;
+            ((object *)obj)->current_body_damage = 1.0f;
         }
         if (recent > 1.0f) {
-            *(float *)(obj + 0xf8) = 1.0f;
+            ((object *)obj)->recent_body_damage = 1.0f;
         }
     }
     if (g_0087abc0 && *vitality < 0.0f && ((1u << (obj[0xb4] & 0x1f)) & 3)) {
         if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
             *vitality = 0.0f;
-        } else if (*(int16_t *)(obj + 0xb4) == 1) {
-            datum_index child = *(datum_index *)(obj + 0x118);
+        } else if (((object *)obj)->type == 1) {
+            datum_index child = ((object *)obj)->first_child_object;
 
             while (child != k_datum_index_none) {
                 uint8_t *child_obj = (uint8_t *)((object_header *)object_data->data)[child & 0xffff].data;
@@ -165,7 +165,7 @@ bookkeeping:
         }
     }
     if (is_local == 1) {
-        float absolute = weapon_get_zoom_fov_resolved(1, *(int16_t *)(obj + 0xb8)) * *(float *)(obj + 0xd8) *
+        float absolute = weapon_get_zoom_fov_resolved(1, ((object *)obj)->owner_team) * ((object *)obj)->maximum_body_vitality *
             *vitality;
         float destroyed = *(float *)(geometry + 0xb8);
 

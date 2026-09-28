@@ -64,7 +64,7 @@ void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, ui
         direction = dd->direction;
         direction.k = direction.k + 0.45f;
         vector3d_normalize_with_length(&direction);
-        type = *(int16_t *)(obj + 0xb4);
+        type = ((object *)obj)->type;
         scale = *(float *)(object_tag + 0x20) * *(float *)(effect + 0x1f4) * 0.033333335f;
         impulse.i = direction.i * scale;
         impulse.j = direction.j * scale;
@@ -81,7 +81,7 @@ void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, ui
                         impulse.j = impulse.j + impulse.j;
                         impulse.k = impulse.k + impulse.k;
                     }
-                    if (*(int32_t *)(obj + 0x4) != 1 || unit_any_flagged_seat_occupied(target_index) == 1) {
+                    if (((object *)obj)->network_role != 1 || unit_any_flagged_seat_occupied(target_index) == 1) {
                         unit_apply_impulse_to_seat(target_index, &impulse);
                     }
                 }
@@ -97,10 +97,10 @@ void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, ui
                 (*(uint8_t *)(obj + 0x1f4) & 8) == 0) {
                 significant = 1;
             }
-            if (*(int32_t *)(obj + 0x4) == 0 && significant == 1) {
+            if (((object *)obj)->network_role == 0 && significant == 1) {
                 object_queue_pickup_denied_event(*(void **)&scale, (int32_t)target_index, (uint32_t *)&direction);
             }
-            role = *(int32_t *)(obj + 0x4);
+            role = ((object *)obj)->network_role;
             if (role == 0 || role == 3 || !significant) {
                 item_accelerate(target_index, &impulse,
                     (uint8_t)((dd->random_blend > 0.5f && (*(uint8_t *)(effect + 0x1c8) & 0x20)) ? 1 : 0));

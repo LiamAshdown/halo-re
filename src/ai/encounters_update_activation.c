@@ -95,7 +95,7 @@ void encounters_update_activation(void)
                 do {
                     root_index = object_index;
                     obj = ((object_header *)object_data->data)[root_index & 0xffff].data;
-                    object_index = *(datum_index *)((uint8_t *)obj + 0x11c);
+                    object_index = ((object *)obj)->parent_object;
                 } while (object_index != (datum_index)k_datum_index_none);
             }
             obj = ((object_header *)object_data->data)[root_index & 0xffff].data;

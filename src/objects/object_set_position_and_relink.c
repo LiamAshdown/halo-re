@@ -29,7 +29,7 @@ void object_set_position_and_relink(real_point3d *position, uint32_t object_inde
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
     object_unlink_cluster_or_notify_parent(object_index);
-    *(real_point3d *)((uint8_t *)obj + 0x5c) = *position;
+    *(real_point3d *)&((object *)obj)->position.x = *position;
     object_set_cluster_and_parent(object_index, location);
 }
 

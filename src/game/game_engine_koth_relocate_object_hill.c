@@ -41,7 +41,7 @@ void game_engine_koth_relocate_object_hill(uint32_t object_index)
         object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
         real_point3d discarded_position;
 
-        game_engine_koth_find_marker_position(&discarded_position, *(int16_t *)((uint8_t *)obj + 0xb8));
+        game_engine_koth_find_marker_position(&discarded_position, ((object *)obj)->owner_team);
 
         if (game_engine_variant.unknown_90 < 3) {
             game_engine_queue_multiplayer_sound(0x1e, 0xffffffff, 1); // 0x46c1fd..0x46c207

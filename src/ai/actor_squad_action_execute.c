@@ -403,10 +403,10 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
             uint8_t *obj = OBJECT_DATA(check_object_index);
 
             // 0x405c70: translational velocity (+0x68) along the forward vector (+0x74)
-            moving_forward = (uint8_t)(*(datum_index *)(obj + 0x11c) == k_datum_index_none &&
-                                       *(float *)(obj + 0x70) * *(float *)(obj + 0x7c) +
-                                       *(float *)(obj + 0x6c) * *(float *)(obj + 0x78) +
-                                       *(float *)(obj + 0x74) * *(float *)(obj + 0x68) > 0.06666667f);
+            moving_forward = (uint8_t)(((object *)obj)->parent_object == k_datum_index_none &&
+                                       ((object *)obj)->velocity.k * ((object *)obj)->forward.k +
+                                       ((object *)obj)->velocity.j * ((object *)obj)->forward.j +
+                                       ((object *)obj)->forward.i * ((object *)obj)->velocity.i > 0.06666667f);
         }
         *(int16_t *)(state + 0x2) = 0x3c;
         *(int16_t *)(state + 0x8) = moving_forward ? 0 : 10;

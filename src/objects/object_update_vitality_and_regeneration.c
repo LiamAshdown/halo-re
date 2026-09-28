@@ -100,7 +100,7 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
                 *vitality_flags &= 0xdf9f;
             }
             obj[0x107] &= 0xef;
-            if (*(float *)(obj + 0xdc) > 0.0f && (*vitality_flags & 4) == 0) {
+            if (((object *)obj)->maximum_shield_vitality > 0.0f && (*vitality_flags & 4) == 0) {
                 uint16_t current = *vitality_flags;
 
                 if (current & 0x10) {
@@ -125,10 +125,10 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
                         hud_unit_meter_apply_predictive_damage(player_index, 0.00074074074f);
                     }
                 } else if (*shield < 1.0f) {
-                    int16_t stun = *(int16_t *)(obj + 0x104);
+                    int16_t stun = ((object *)obj)->shield_stun_ticks;
 
                     if (stun == 0) {
-                        float rate = weapon_get_zoom_fov_resolved(3, *(int16_t *)(obj + 0xb8)) *
+                        float rate = weapon_get_zoom_fov_resolved(3, ((object *)obj)->owner_team) *
                             *(float *)(geometry + 0x1c0);
                         float value;
 
@@ -144,8 +144,8 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
                             *shield = 1.0f;
                             *vitality_flags &= 0xefff;
                         }
-                    } else if (*(int32_t *)(obj + 0x4) == 3 || *(int32_t *)(obj + 0x4) == 0) {
-                        *(int16_t *)(obj + 0x104) = (int16_t)(stun - 1);
+                    } else if (((object *)obj)->network_role == 3 || ((object *)obj)->network_role == 0) {
+                        ((object *)obj)->shield_stun_ticks = (int16_t)(stun - 1);
                     }
                 }
             }
@@ -153,7 +153,7 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
             object_decay_damage_timer((int32_t *)(obj + 0xfc), (float *)(obj + 0xe8), (float *)(obj + 0xf4));
         }
     }
-    if (*(int16_t *)(obj + 0xb4) == 0 && *(int32_t *)(obj + 0x4) == 0) {
+    if (((object *)obj)->type == 0 && ((object *)obj)->network_role == 0) {
         uint8_t *object = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
 
         if ((uint32_t)(*(int16_t *)(object + 0x104) > 0) != (uint32_t)object[0x538]) {

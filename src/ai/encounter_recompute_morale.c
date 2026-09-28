@@ -127,7 +127,7 @@ void encounter_recompute_morale(datum_index encounter_index)
             sample = (float)(int32_t)weight / (float)(int32_t)a->unknown_20;
         } else {
             obj = ((object_header *)object_data->data)[a->unit_index & 0xffff].data;
-            sample = *(float *)((uint8_t *)obj + 0xe0);
+            sample = ((object *)obj)->body_vitality;
             weight = 1;
         }
 

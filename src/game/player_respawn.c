@@ -83,11 +83,11 @@ static void player_respawn_drop_lights(datum_index object_index)
     if (*(int32_t *)(tag + 0x34) == -1) {
         return;
     }
-    if (*(uint8_t *)(obj + 0x10) & 1) {
+    if (*(uint8_t *)&((object *)obj)->flags & 1) {
         object_for_each_light_attachment(object_index, 0, 1);
     }
     if (*(int32_t *)(tag + 0x34) != -1) {
-        *(uint32_t *)(obj + 0x10) &= ~1u;
+        ((object *)obj)->flags &= ~1u;
         header = (uint8_t *)object_data->data + (object_index & 0xffff) * 0xc; // reloaded at 0x478085
         header[2] |= 2;
     }

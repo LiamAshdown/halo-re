@@ -53,11 +53,11 @@ uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d 
     real_vector3d delta;
     collision_result hit;
 
-    delta.i = *(float *)(obj + 0x5c) - target_position->x;
-    delta.j = *(float *)(obj + 0x60) - target_position->y;
-    delta.k = *(float *)(obj + 0x64) - target_position->z;
+    delta.i = ((object *)obj)->position.x - target_position->x;
+    delta.j = ((object *)obj)->position.y - target_position->y;
+    delta.k = ((object *)obj)->position.z - target_position->z;
     if (!collision_test_movement_segment(0x1000e9, target_position, &delta, ignore_object_index, &hit) &&
-        *(int16_t *)(obj + 0x9c) != -1) {
+        ((object *)obj)->location_cluster_index != -1) {
         return 1;
     }
     if (hit.leaf.cluster_index == -1) {
@@ -65,7 +65,7 @@ uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d 
     }
     object_unlink_cluster_or_notify_parent(object_index);
     obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    *(real_point3d *)(obj + 0x5c) = hit.point;
+    *(real_point3d *)&((object *)obj)->position.x = hit.point;
     object_set_cluster_and_parent(object_index, &hit.leaf);
     object_recalculate_bounding_radius(object_index);
     return 1;

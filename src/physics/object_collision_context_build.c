@@ -50,7 +50,7 @@ uint8_t object_collision_context_build(uint32_t object_index, object_collision_c
         out_context->definition =
             tag_instances[object_tag->collision_model.tag_id.index & 0xffff].data;
         out_context->region_permutations = (uint8_t *)obj + 0x180;
-        out_context->nodes = (uint8_t *)obj + *(int16_t *)((uint8_t *)obj + 0x1f2);
+        out_context->nodes = (uint8_t *)obj + ((object *)obj)->nodes.offset;
         return 1;
     }
     return 0;

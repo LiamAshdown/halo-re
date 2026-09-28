@@ -41,7 +41,7 @@ extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_po
 void game_engine_ctf_reset_team_return_credit(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    int16_t team = *(int16_t *)((uint8_t *)obj + 0xb8); // UNSURE: name_index/team_index conflict
+    int16_t team = ((object *)obj)->owner_team; // UNSURE: name_index/team_index conflict
 
     ctf_team_return_credit_active[team] = 0;
     ctf_team_return_credit_ticks[team] = 0;

@@ -52,7 +52,7 @@ void encounters_note_hostile_object(datum_index object_index)
     // into team_pair_globals.enemy_bits, both operands range-checked against 0..9) only
     // makes sense for a team. Accessed raw rather than resolving the cross-module conflict
     // here. See the open questions in src/ai/README.md.
-    object_team = *(int16_t *)((uint8_t *)obj + 0xb8);
+    object_team = ((object *)obj)->owner_team;
     if (object_team == -1) {
         return;
     }
@@ -76,7 +76,7 @@ void encounters_note_hostile_object(datum_index object_index)
             return;
         }
 
-        object_team = *(int16_t *)((uint8_t *)obj + 0xb8);
+        object_team = ((object *)obj)->owner_team;
         encounter_team = enc->team;
         if (current_game_engine == 0) {
             hostile = 0;

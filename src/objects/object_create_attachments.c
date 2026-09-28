@@ -75,13 +75,13 @@ void object_create_attachments(uint32_t object_index)
         case 0:
             handle = light_new_attached(tag, object_index, i, first_scale, change_color);
             if (handle != k_datum_index_none) {
-                *(uint32_t *)(obj + 0x10) |= 0x100;
+                ((object *)obj)->flags |= 0x100;
             }
             break;
         case 1:
             handle = looping_sound_new(object_index, tag, (char *)(attachment + 0x10), first_scale);
             if (handle != k_datum_index_none) {
-                *(uint32_t *)(obj + 0x10) |= 0x400;
+                ((object *)obj)->flags |= 0x400;
             }
             break;
         case 2:

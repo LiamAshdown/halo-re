@@ -82,7 +82,7 @@ void game_engine_cleanup_dropped_objects(void)
     obj = object_iterator_next(&iterator);
     while (obj != 0) {
         if (900 < *(int16_t *)((uint8_t *)obj + 0xbc) &&
-            (*(uint8_t *)((uint8_t *)obj + 0x106) & 4) != 0) {
+            (*(uint8_t *)&((object *)obj)->vitality_flags & 4) != 0) {
             if (obj->network_role == 0) {
                 object_delete_unparented(iterator.handle);
             } else if (obj->network_role == 3) {

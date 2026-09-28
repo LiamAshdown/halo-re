@@ -35,7 +35,7 @@ void object_set_position_and_recalculate(real_point3d *position, uint32_t object
     bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, position); // 0x4f52c3 mov ecx,ds:0x746f90 / mov edx,esi / xor eax,eax
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_unlink_cluster_or_notify_parent(object_index);
-    *(real_point3d *)((uint8_t *)obj + 0x5c) = *position;
+    *(real_point3d *)&((object *)obj)->position.x = *position;
     object_set_cluster_and_parent(object_index, 0); // UNSURE: flag argument not visible here
     object_recalculate_bounding_radius(object_index);
 }

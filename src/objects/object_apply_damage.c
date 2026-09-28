@@ -334,7 +334,7 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
         *(datum_index *)record.unknown_00 = id;
         record.shield_damage_dealt = 0.0f;
         record.depleted_this_call = 0;
-        if (*(int32_t *)(obj + 0x4) == 3 || *(int32_t *)(obj + 0x4) == 0) {
+        if (((object *)obj)->network_role == 3 || ((object *)obj)->network_role == 0) {
             apply_state = 1;
         } else {
             player *responsible = player_try_get(dd->responsible_player);
@@ -378,7 +378,7 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
             notify_flags = 0x20;
         }
         if (dd->team_index != -1) {
-            int16_t team = *(int16_t *)(obj + 0xb8);
+            int16_t team = ((object *)obj)->owner_team;
 
             if (current_game_engine != 0) {
                 if (team == dd->team_index) {
@@ -406,12 +406,12 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
             kill = 1;
         }
         if (target_is_local == 1 && kill && (obj[0x106] & 4) == 0 && (!friendly || body_allowed)) {
-            *(float *)(obj + 0xe0) = 0.0f;
+            ((object *)obj)->body_vitality = 0.0f;
             object_set_health_frozen_flag(id);
             notify_flags |= 0x41;
         }
         if ((dd->flags & 0x20) == 0 && (*(uint32_t *)(effect_block + 0x4) & 0x200) == 0 &&
-            *(float *)(obj + 0xdc) > 0.0f && (!friendly || shield_allowed) && (i == 0 || (*geometry & 1))) {
+            ((object *)obj)->maximum_shield_vitality > 0.0f && (!friendly || shield_allowed) && (i == 0 || (*geometry & 1))) {
             object_apply_shield_damage(id, geometry, material, effect_block, &notify_flags, &shield_damage, &amount,
                 target_is_local, apply_state, &record);
         }
@@ -429,9 +429,9 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
         if (!reported && (shield_damage > 0.0001f || body_damage > 0.0001f)) {
             if (shield_damage > body_damage) {
                 dd->material_type = *(int16_t *)(geometry + 0xd2);
-                dd->unknown_48 = *(uint32_t *)(obj + 0xe4);
+                dd->unknown_48 = *(uint32_t *)&((object *)obj)->shield_vitality;
             } else {
-                float vitality = *(float *)(obj + 0xe0);
+                float vitality = ((object *)obj)->body_vitality;
 
                 if (vitality < 0.0f) {
                     vitality = 0.0f;
@@ -443,7 +443,7 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
             reported = 1;
         }
         object_notify_pickup_or_refresh_probe(id, dd->responsible_player);
-        if (shield_damage > 0.0f && *(int16_t *)(obj + 0xb4) == 0) {
+        if (shield_damage > 0.0f && ((object *)obj)->type == 0) {
             obj[0x122] = 1;
         }
 notify:

@@ -55,7 +55,7 @@ void object_apply_shield_damage(uint32_t target_index, uint8_t *geometry, uint8_
 
     record->shield_damage_dealt = 0.0f;
     record->depleted_this_call = 0;
-    if (current_game_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && *(int16_t *)(obj + 0xb8) == 1) {
+    if (current_game_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && ((object *)obj)->owner_team == 1) {
         unscaled = 1;
     }
     if (!(*shield > 0.0f)) {
@@ -66,9 +66,9 @@ void object_apply_shield_damage(uint32_t target_index, uint8_t *geometry, uint8_
         *shield = 0.0f;
         goto stun;
     }
-    maximum = *(float *)(obj + 0xdc);
+    maximum = ((object *)obj)->maximum_shield_vitality;
     if (!unscaled) {
-        maximum = weapon_get_zoom_fov_resolved(2, *(int16_t *)(obj + 0xb8)) * maximum;
+        maximum = weapon_get_zoom_fov_resolved(2, ((object *)obj)->owner_team) * maximum;
     }
     inverse_maximum = (maximum > 0.0f) ? 1.0f / maximum : 0.0f;
     if ((*notify_flags & 0x10) == 0 || (*geometry & 4) == 0) {
@@ -137,17 +137,17 @@ void object_apply_shield_damage(uint32_t target_index, uint8_t *geometry, uint8_
         float fraction = (*remaining_damage - passthrough) * inverse_maximum;
         float recent;
 
-        *(int32_t *)(obj + 0xfc) = 0;
+        ((object *)obj)->shield_damage_ticks = 0;
         if ((*vitality_flags & 8) == 0) {
-            *(float *)(obj + 0xe8) = 1.0f;
+            ((object *)obj)->current_shield_damage = 1.0f;
         }
-        recent = fraction + *(float *)(obj + 0xf4);
-        *(float *)(obj + 0xf4) = recent;
-        if (*(float *)(obj + 0xe8) > 1.0f) {
-            *(float *)(obj + 0xe8) = 1.0f;
+        recent = fraction + ((object *)obj)->recent_shield_damage;
+        ((object *)obj)->recent_shield_damage = recent;
+        if (((object *)obj)->current_shield_damage > 1.0f) {
+            ((object *)obj)->current_shield_damage = 1.0f;
         }
         if (recent > 1.0f) {
-            *(float *)(obj + 0xf4) = 1.0f;
+            ((object *)obj)->recent_shield_damage = 1.0f;
         }
         record->shield_damage_dealt = fraction;
     }
@@ -157,7 +157,7 @@ local_stun:
     }
 stun:
     if (!(to_shield < *(float *)(geometry + 0x108)) || *shield == 0.0f) {
-        *(int16_t *)(obj + 0x104) = (int16_t)(int32_t)(*(float *)(geometry + 0x10c) * 30.0f);
+        ((object *)obj)->shield_stun_ticks = (int16_t)(int32_t)(*(float *)(geometry + 0x10c) * 30.0f);
     }
 done:
     *shield_damage_out = to_shield;

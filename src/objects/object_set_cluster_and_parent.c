@@ -87,7 +87,7 @@ void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *lo
             obj->location_leaf_index = location->leaf_index;
             // The original stores the whole dword at object+0x9c, which covers
             // location_cluster_index and the int16 after it; kept as the 32-bit write.
-            *(int32_t *)((uint8_t *)obj + 0x9c) = *(int32_t *)&location->cluster_index;
+            *(int32_t *)&((object *)obj)->location_cluster_index = *(int32_t *)&location->cluster_index;
             header->cluster_index = location->cluster_index;
             obj->flags &= ~(uint32_t)_object_outside_map_bit;
         }

@@ -85,14 +85,14 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
         return;
     }
     obj = OBJECT_DATA(object_index);
-    object_team = *(int16_t *)(obj + 0xb8);
+    object_team = ((object *)obj)->owner_team;
     location = obj + 0x98;
     object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
     position = marker.node_transform.position;
     if (row != -1 && *(int16_t *)(ai_communication_lines + row * 0x28 + 0x2) >= 4) {
         gate = 3;
     }
-    if (*(datum_index *)(obj + 0x11c) != k_datum_index_none) {
+    if (((object *)obj)->parent_object != k_datum_index_none) {
         location = OBJECT_DATA(object_get_root_object_index(object_index)) + 0x98;
     }
     if (!ai_globals_ptr->actors_valid) {
