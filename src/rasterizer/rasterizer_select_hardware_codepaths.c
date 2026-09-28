@@ -31,9 +31,12 @@ extern void rasterizer_shader_environment_select_draw_functions(void); // 0x52b6
 extern void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51f3e0
 extern void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51dc50
 extern void function_do_nothing(void);  // 0x44ad80
-// 0x51fd80, 0x51fad0, 0x51e8f0, 0x51e570 and 0x51e2a0 are functions Ghidra never defined (they are
-//   only referenced by these immediate stores); see src/rasterizer/README.md, known gaps.
-extern uint8_t LAB_0051fd80, LAB_0051fad0, LAB_0051e8f0, LAB_0051e570;
+// 0x51fd80, 0x51fad0, 0x51e8f0, 0x51e570 and 0x51e2a0 are functions Ghidra never defined (they are only
+//   referenced by these immediate stores); all have C now (2026-09-28).
+extern void rasterizer_shader_environment_self_illumination_draw_single_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51fd80
+extern void rasterizer_shader_environment_self_illumination_draw_two_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51fad0
+extern void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51e8f0
+extern void rasterizer_shader_environment_lightmap_draw_two_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51e570
 extern void rasterizer_shader_environment_lightmap_draw(void); // 0x51e2a0
 extern void rasterizer_water_draw_fixed_function(transparent_geometry_group *group); // 0x5358b0
 extern void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group);   // 0x535fd0
@@ -44,9 +47,9 @@ extern void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group
 void __cdecl rasterizer_select_hardware_codepaths(void)
 {
     if (rasterizer_caps.max_streams < 2) {
-        unknown_007c048c = &LAB_0051fd80;
+        unknown_007c048c = (void *)rasterizer_shader_environment_self_illumination_draw_single_stream;
     } else {
-        unknown_007c048c = &LAB_0051fad0;
+        unknown_007c048c = (void *)rasterizer_shader_environment_self_illumination_draw_two_stream;
         if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
             unknown_007c048c = (void *)rasterizer_shader_environment_self_illumination_draw;
         }
@@ -56,13 +59,13 @@ void __cdecl rasterizer_select_hardware_codepaths(void)
     rasterizer_shader_environment_select_draw_functions();
 
     if (rasterizer_caps.max_streams < 2) { // UNSURE: re-read, see file header
-        unknown_007c0490 = &LAB_0051e8f0;
+        unknown_007c0490 = (void *)rasterizer_shader_environment_lightmap_draw_single_stream;
         if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
             unknown_007c0494 = (void *)rasterizer_light_cone_draw;
             goto set_vertex_buffer_slot;
         }
     } else {
-        unknown_007c0490 = &LAB_0051e570;
+        unknown_007c0490 = (void *)rasterizer_shader_environment_lightmap_draw_two_stream;
         if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
             unknown_007c0490 = (void *)rasterizer_shader_environment_lightmap_draw; // 0x51e2a0
             if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
