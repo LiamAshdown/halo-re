@@ -2448,3 +2448,13 @@ Relinked: unresolved 1, traps 127.
   (so they never counted as traps); 0x577e40 (the player key callback, C name network_session_host_dispatch_message)
   models 3 of its 4 arguments. NEXT: write those five, fix host_start and 0x577e40; then qr2 heartbeat/think
   (0x616680..0x616ff0), SB query engine, GT2 core, ghttp/autopatch, 0x441060/0x4410b0, the '?' names.
+### iteration 10 (2026-09-28) -- commits 5cab844..ec67403, relinked (0 unresolved, traps 34 -> 29)
+- networking: the host's six qr2 callbacks from the binary (server key 0x5779c0 with the Halo key set, player key
+  0x577e40 rewritten with 4 args, team key 0x577f40, key list 0x577fb0, count 0x5780c0, add error 0x578100);
+  network_session_host_start rewritten to pass them (it passed NULL for five). Game socket query callback 0x4410b0.
+- gamespy: qr2 heartbeat / scheduler / state change / shutdown / think; gt2CreateSocket with its connection table
+  callbacks, gti2FreeConnection, gti2FreeSocket.
+- Left (29): GT2 core (think 0x614540, connect 0x6145a0, send 0x6146b0, close 0x614710, close socket 0x614860,
+  accept/reject 0x61ce80/0x61cee0 and their graph 0x618xxx..0x61dxxx), ServerBrowser API + SB query engine
+  (0x616eb0..0x617290, 0x61e5b0..0x6202b0), ghttp/autopatch (0x61bd00..0x61c260, 0x620520..0x623110, 0x576a70),
+  0x441060 (needs gt2CloseAllConnections), and the five '?' names.
