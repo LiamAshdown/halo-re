@@ -787,6 +787,22 @@ typedef struct vehicle_data {
     uint8_t unknown_5b2[0xe];           // 0x5b2 untouched by this module
 } vehicle_data;                         // size 0xf4 (object 0x4cc .. 0x5c0)
 
+#ifdef HALO_TYPES_OBJECTS_H
+// Biped and vehicle objects as one struct each: object header, unit_data, then the type's own data.
+typedef struct biped_object {
+    object base;                        // 0x000
+    unit_data unit;                     // 0x1f4
+    biped_data biped;                   // 0x4cc
+} biped_object;
+typedef struct vehicle_object {
+    object base;                        // 0x000
+    unit_data unit;                     // 0x1f4
+    vehicle_data vehicle;               // 0x4cc
+} vehicle_object;
+typedef char biped_object_biped_at_4cc[offsetof(biped_object, biped) == 0x4cc ? 1 : -1];
+typedef char vehicle_object_vehicle_at_4cc[offsetof(vehicle_object, vehicle) == 0x4cc ? 1 : -1];
+#endif
+
 // ---------------------------------------------------------------------------
 // unit-side records that are not part of an object extension
 // ---------------------------------------------------------------------------

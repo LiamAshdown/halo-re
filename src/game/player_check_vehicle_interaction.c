@@ -48,8 +48,8 @@ void player_check_vehicle_interaction(uint32_t player_index, uint32_t candidate_
         double flip_threshold = cos(1.5707963705062866 - (double)player_control[0].minimum_angle_for_vehicle_flipping);
 
         if ((double)vehicle->up.k <= flip_threshold) {
-            if ((*(uint8_t *)((uint8_t *)vehicle + 0x4cc) & 0x10) == 0 &&
-                *(int32_t *)((uint8_t *)vehicle + 0x324) == -1) {
+            if ((*(uint8_t *)&((vehicle_object *)vehicle)->vehicle.flags & 0x10) == 0 &&
+                *(int32_t *)&((vehicle_object *)vehicle)->unit.driver_unit_index == -1) {
                 // FIXED (0x47875f): EBX = the vehicle (ebp), the flip target; the draft passed -1
                 player_set_pending_interaction_action(0xb, (int16_t)0xffff, player_index, candidate_object);
             }

@@ -112,20 +112,20 @@ void unit_network_create_update_apply(void *incoming_record)
     }
     network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)biped_index);
     biped = (uint8_t *)((object_header *)object_data->data)[biped_index & 0xffff].data;
-    *(uint32_t *)(biped + 0x530) = message.body_vitality;
-    *(real *)(biped + 0x534) = message.shield_vitality;
+    *(uint32_t *)&((biped_object *)biped)->biped.network_body_vitality = message.body_vitality;
+    ((biped_object *)biped)->biped.network_shield_vitality = message.shield_vitality;
     biped[0x538] = message.shield_stunned;
     memcpy(biped + 0x52c, message.grenade_counts, 2);
-    ((unit_object *)biped)->base.shield_vitality = *(real *)(biped + 0x534) * 3.0f;   // shield vitality (0x672c3c = 3.0)
+    ((unit_object *)biped)->base.shield_vitality = ((biped_object *)biped)->biped.network_shield_vitality * 3.0f;   // shield vitality (0x672c3c = 3.0)
     biped[0x527] = message.update_sequence;
-    *(uint32_t *)&((unit_object *)biped)->base.body_vitality = *(uint32_t *)(biped + 0x530);  // body vitality
+    *(uint32_t *)&((unit_object *)biped)->base.body_vitality = *(uint32_t *)&((biped_object *)biped)->biped.network_body_vitality;  // body vitality
     ((unit_object *)biped)->unit.saved_control.zoom_level = (int16_t)((unit_object *)biped)->unit.desired_zoom_level;
     biped[0x526] = 1;
     biped[0x528] = 0;
     biped[0x475] = 1;
     ((unit_object *)biped)->base.shield_stun_ticks = biped[0x538] == 1;
     memcpy(biped + 0x4ac, biped + 0x494, 12);
-    *(int16_t *)(biped + 0x31e) = *(int16_t *)(biped + 0x52c);
+    *(int16_t *)(biped + 0x31e) = ((biped_object *)biped)->biped.network_grenade_counts;
     if (message.flag_80000 != 0) {
         ((unit_object *)biped)->unit.flags |= 0x80000;
     } else {

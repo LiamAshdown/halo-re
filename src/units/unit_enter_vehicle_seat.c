@@ -118,7 +118,7 @@ uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uin
         uint8_t *vehicle = (uint8_t *)object_try_and_get(vehicle_index, 2);
 
         if (vehicle != 0) {
-            *(int32_t *)(vehicle + 0x5ac) = -1;
+            ((vehicle_object *)vehicle)->vehicle.network_update_tick = -1;
         }
     }
     return 1;

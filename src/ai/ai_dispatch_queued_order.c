@@ -18,6 +18,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *prop_data; // 0x008802c0
 

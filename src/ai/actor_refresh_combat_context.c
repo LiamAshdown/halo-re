@@ -261,7 +261,7 @@ void actor_refresh_combat_context(datum_index actor_index)
         if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
             unit_get_forward_vector_or_marker_normal(A_I32(0x18), (real_vector3d *)(self + 0x180));
         } else {
-            *(real_vector3d *)(self + 0x180) = *(real_vector3d *)(vehicle + 0x23c);
+            *(real_vector3d *)(self + 0x180) = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;
         }
     } else {
         *(real_vector3d *)(self + 0x180) = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;

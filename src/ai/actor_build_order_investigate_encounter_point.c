@@ -16,6 +16,7 @@
 #include "ai.h"
 #include "objects.h"
 #include <string.h>
+#include "units.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
@@ -43,7 +44,7 @@ uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicle_index, ui
         return 0;
     }
     vehicle = (uint8_t *)((object_header *)object_data->data)[vehicle_index & 0xffff].data;
-    if (*(float *)(vehicle + 0x88) < 0.5f || (vehicle[0x106] & 4) != 0) {
+    if (((vehicle_object *)vehicle)->base.up.k < 0.5f || (vehicle[0x106] & 4) != 0) {
         return 0;
     }
     *(datum_index *)(order + 0x0) = vehicle_index;

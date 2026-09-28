@@ -17,6 +17,7 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#include "units.h"
 
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,

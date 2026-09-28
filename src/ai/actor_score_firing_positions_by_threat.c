@@ -22,6 +22,7 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#include "units.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
@@ -193,14 +194,14 @@ next_candidate:
         if (distance_squared < 0.0001f || distance_squared >= 900.0f) {
             continue;
         }
-        cosine = (dx * *(float *)((uint8_t *)vehicle + 0x74) +
-                  dy * *(float *)((uint8_t *)vehicle + 0x78) +
-                  dz * *(float *)((uint8_t *)vehicle + 0x7c)) / (float)sqrt((double)distance_squared);
+        cosine = (dx * ((vehicle_object *)vehicle)->base.forward.i +
+                  dy * ((vehicle_object *)vehicle)->base.forward.j +
+                  dz * ((vehicle_object *)vehicle)->base.forward.k) / (float)sqrt((double)distance_squared);
 
         if ((query->unknown_46 == 0 &&
-             *(float *)((uint8_t *)vehicle + 0x70) * *(float *)((uint8_t *)vehicle + 0x70) +
-             *(float *)((uint8_t *)vehicle + 0x6c) * *(float *)((uint8_t *)vehicle + 0x6c) +
-             *(float *)((uint8_t *)vehicle + 0x68) * *(float *)((uint8_t *)vehicle + 0x68) <=
+             ((vehicle_object *)vehicle)->base.velocity.k * ((vehicle_object *)vehicle)->base.velocity.k +
+             ((vehicle_object *)vehicle)->base.velocity.j * ((vehicle_object *)vehicle)->base.velocity.j +
+             ((vehicle_object *)vehicle)->base.velocity.i * ((vehicle_object *)vehicle)->base.velocity.i <=
                  0.0069444445f) ||
             distance_squared >= 64.0f || cosine >= 0.70710677f ||
             (c->rejected = 1, query->collect_all != 0)) {

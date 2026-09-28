@@ -17,6 +17,7 @@
 #include "objects.h"
 #include "ai.h"
 #include <string.h>
+#include "units.h"
 
 extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern data_array *object_data;     // 0x008603b0
@@ -52,10 +53,10 @@ void ai_process_vehicle_entry_queue(void)
             memset(&request, 0, 0x1c);
             *(int16_t *)((uint8_t *)&request + 0x1a) = -1;
             vehicle = OBJECT_DATA(vehicle_index);
-            if (*(datum_index *)(vehicle + 0x11c) == k_datum_index_none) {
-                request.position = *(real_point3d *)(vehicle + 0x5c);
+            if (((vehicle_object *)vehicle)->base.parent_object == k_datum_index_none) {
+                request.position = *(real_point3d *)&((vehicle_object *)vehicle)->base.position.x;
             } else {
-                uint8_t *parent = OBJECT_DATA(*(datum_index *)(vehicle + 0x11c));
+                uint8_t *parent = OBJECT_DATA(((vehicle_object *)vehicle)->base.parent_object);
 
                 matrix4x3_transform_point(&request.position, (real_point3d *)(vehicle + 0x5c),
                     (real_matrix4x3 *)(parent + *(int16_t *)(parent + 0x1f2) + (int8_t)vehicle[0x120] * 0x34));

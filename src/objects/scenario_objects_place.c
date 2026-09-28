@@ -123,7 +123,7 @@ void scenario_objects_place(uint8_t *scenario)
             object = object_new_from_scenario_placement(placement, palette);
             if (object != k_datum_index_none && type == _object_type_vehicle) {
                 uint8_t *vehicle = *(uint8_t **)((uint8_t *)object_data->data + (object & 0xffff) * 0xc + 8);
-                *(int16_t *)(vehicle + 0x5b0) = i;
+                ((vehicle_object *)vehicle)->vehicle.cinematic_facing_index = i;
             }
             objects_garbage_collection();
         }

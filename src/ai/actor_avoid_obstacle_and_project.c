@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "physics.h"
+#include "units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *object_data;      // 0x008603b0
@@ -55,8 +56,8 @@ uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index ve
     real_vector3d delta;
 
     if ((vehicle_tag[0x17c] & 0x10) == 0) {
-        real_point3d center = *(real_point3d *)(vehicle + 0xa0);
-        float radius = *(float *)(vehicle + 0xac);
+        real_point3d center = *(real_point3d *)&((vehicle_object *)vehicle)->base.bounding_center.x;
+        float radius = ((vehicle_object *)vehicle)->base.bounding_radius;
         float ax = ((actor *)act)->body_position.x;
         float ay = ((actor *)act)->body_position.y;
         real_point3d *target_pointer;

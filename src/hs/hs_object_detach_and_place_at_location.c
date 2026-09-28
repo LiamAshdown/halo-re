@@ -146,7 +146,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
             uint8_t *vehicle = (uint8_t *)object_try_and_get(parent_index, 2);
 
             if (vehicle != 0) {
-                *(int32_t *)(vehicle + 0x5ac) = game_time->game_time;
+                ((vehicle_object *)vehicle)->vehicle.network_update_tick = game_time->game_time;
             }
         }
         unit = OBJ(object_index);

@@ -81,7 +81,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
     model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (*(datum_index *)(vehicle + 0x324) == object_index && vehicle[0x2a3] != 0x25 &&
+    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
         *(datum_index *)(self + 0x11c) != k_datum_index_none) {
         unit_try_set_animation_state(*(datum_index *)(self + 0x11c), 0x25);
     }
@@ -120,11 +120,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     }
     *(int16_t *)(self + 0x2f0) = -1;
     self[0x2a7] = 2;
-    if (*(datum_index *)(vehicle + 0x324) == object_index) {
-        *(datum_index *)(vehicle + 0x324) = k_datum_index_none;
+    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index) {
+        ((vehicle_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
-    if (*(datum_index *)(vehicle + 0x328) == object_index) {
-        *(datum_index *)(vehicle + 0x328) = k_datum_index_none;
+    if (((vehicle_object *)vehicle)->unit.gunner_unit_index == object_index) {
+        ((vehicle_object *)vehicle)->unit.gunner_unit_index = k_datum_index_none;
     }
     unit_recompute_seat_occupants(vehicle_index);
     unit_pick_and_ready_next_weapon(object_index);

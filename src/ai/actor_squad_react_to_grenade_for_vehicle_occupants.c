@@ -53,7 +53,7 @@ void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_obje
     if (vehicle == 0) {
         return;
     }
-    occupant_index = *(datum_index *)(vehicle + 0x324);
+    occupant_index = ((vehicle_object *)vehicle)->unit.driver_unit_index;
     if (occupant_index == k_datum_index_none) {
         occupant_index = vehicle_object_index;
     }

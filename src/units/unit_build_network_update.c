@@ -104,8 +104,8 @@ int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t
     record.flag_80000 = (uint8_t)((((unit_object *)biped)->unit.flags >> 0x13) & 1);
     record.scalar_344 = *(uint32_t *)(biped + 0x344);
     record.update_sequence = biped[0x527];
-    record.body_vitality = *(uint32_t *)(biped + 0x530);
-    record.shield_vitality = *(uint32_t *)(biped + 0x534);
+    record.body_vitality = *(uint32_t *)&((biped_object *)biped)->biped.network_body_vitality;
+    record.shield_vitality = *(uint32_t *)&((biped_object *)biped)->biped.network_shield_vitality;
     record.shield_stunned = biped[0x538];
     memcpy(record.grenade_counts, biped + 0x52c, 2);
     record.zero_8c = 0;
