@@ -12,8 +12,8 @@ Without the variable the tools read halo.exe as before and refresh the frozen co
                             module); the C symbol is attached at build time from src/ headers
   game_crt.json             game CRT function names -> addresses (from out/functions.json's library matches)
   code_address_ret.json     original address -> bytes its first ret pops, for code_address_ thunks
-halo_image.bin (the retail data image the loader maps at run time) is not written in no-retail mode; replacing it is
-retail-independence step 3.
+halo_image.bin (the retail image, now only a reference for tools/verify_image_source.py) is not written in no-retail
+mode; the exe carries its data image as standalone/image/*.asm (written once by the retail-only tools/gen_image_source.py).
 """
 import builtins, io, os, subprocess
 

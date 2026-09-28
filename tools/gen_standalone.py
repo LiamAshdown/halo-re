@@ -3,7 +3,9 @@
 The hybrid standalone plan: our exe is linked away from 0x400000 (it runs no original code), and at start-up a small
 loader maps halo.exe's .rdata/.data/.bss back at their original addresses, so every global our C references by
 absolute address (gen_link's EQU symbols) stays valid. This stage writes:
-  build/standalone/halo_image.bin      .rdata, the initialised part of .data, .tls and .rsrc, back to back
+  build/standalone/halo_image.bin      (retail runs only) .text, .rdata, .data, .tls and .rsrc raw bytes, back to back:
+                                       only tools/verify_image_source.py reads it; the exe links its data image
+                                       from standalone/image/ (tools/gen_image_source.py)
   build/standalone/layout.json         where each piece goes (virtual address, raw size, virtual size)
   build/standalone/code_pointers.json  every dword in .rdata/.data equal to a known function start, with the C
                                        symbol that replaces it (or why there is none yet)
