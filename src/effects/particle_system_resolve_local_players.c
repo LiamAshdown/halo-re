@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "structures.h"
+#include "objects.h"
+#include "units.h"
+#include "effects.h"
 
 extern data_array *particle_system_data;               // 0x0087abd4
 extern data_array *particle_system_particle_data;      // 0x0087abd8
@@ -43,17 +46,17 @@ void particle_system_resolve_local_players(void)
     for (handle = datum_next(-1, particle_system_data); handle != k_datum_index_none;
          handle = datum_next((int16_t)handle, particle_system_data)) {
         uint8_t *system = (uint8_t *)particle_system_data->data + (handle & 0xffff) * 0x158;
-        uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)(system + 8) & 0xffff].data;
+        uint8_t *definition = (uint8_t *)tag_instances[((particle_system *)system)->definition_index & 0xffff].data;
         int32_t type_index;
 
-        if (*(datum_index *)(system + 0xc) != k_datum_index_none) {
-            object_get_root_location((int32_t *)(system + 0x18), *(datum_index *)(system + 0xc));
+        if (((particle_system *)system)->object_index != k_datum_index_none) {
+            object_get_root_location((int32_t *)(system + 0x18), ((particle_system *)system)->object_index);
         } else {
             uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(system + 0x20));
             int16_t cluster = particle_leaf_cluster(leaf);
 
-            *(uint32_t *)(system + 0x18) = leaf;
-            *(int16_t *)(system + 0x1c) = cluster;
+            *(uint32_t *)&((particle_system *)system)->location.leaf_index = leaf;
+            ((particle_system *)system)->location.cluster_index = cluster;
             if (cluster == -1) {
                 particle_system_delete(handle);
                 continue;
@@ -67,13 +70,13 @@ void particle_system_resolve_local_players(void)
                 uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(particle + 0x1c));
                 int16_t cluster = particle_leaf_cluster(leaf);
 
-                *(uint32_t *)(particle + 0x14) = leaf;
-                *(int16_t *)(particle + 0x18) = cluster;
+                *(uint32_t *)&((particle_system_particle *)particle)->location.leaf_index = leaf;
+                ((particle_system_particle *)particle)->location.cluster_index = cluster;
                 if (cluster == -1) {
                     datum_index doomed = *link;
 
                     datum_delete(particle_system_particle_data, doomed);
-                    *link = *(datum_index *)(particle + 4);
+                    *link = ((particle_system_particle *)particle)->next_particle;
                 } else {
                     link = (datum_index *)(particle + 4);
                 }

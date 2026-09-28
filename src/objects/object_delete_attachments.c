@@ -20,6 +20,8 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
+#include "effects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -63,8 +65,8 @@ void object_delete_attachments(uint32_t object_index) // blam-cc: EBX -> object_
                     // UNSURE: inlined hash-table-style unlink into particle_system_data
                     // (stride 0x158), preserved as raw offsets; see file header.
                     uint8_t *entry = (uint8_t *)particle_system_data->data + (handle & 0xffff) * 0x158;
-                    *(uint32_t *)(entry + 4) &= ~1u;
-                    *(int32_t *)(entry + 0xc) = -1;
+                    ((particle_system *)entry)->flags &= ~1u;
+                    *(int32_t *)&((particle_system *)entry)->object_index = -1;
                     break;
                 }
             }

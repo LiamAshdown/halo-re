@@ -54,6 +54,20 @@ def resolve(struct, off, pre, depth=0):
     return None
 
 
+CHAIN = ["tags.h", "math.h", "memory.h", "objects.h", "units.h"]
+
+
+def ensure_includes(live, header):
+    """the view's header (and the ones types headers rely on) after the file's existing includes"""
+    need = CHAIN[:CHAIN.index(header) + 1] if header in CHAIN else CHAIN + ([header] if header else [])
+    add = [h for h in need if '#include "%s"' % h not in live]
+    inc = re.findall(r"^#include[^\n]*\n", live, re.M)
+    if not add or not inc:
+        return live
+    k = live.rindex(inc[-1]) + len(inc[-1])
+    return live[:k] + "".join('#include "%s"\n' % h for h in add) + live[k:]
+
+
 def main():
     argv = sys.argv[1:]
     if "--pre" in argv:
@@ -98,7 +112,7 @@ def main():
             total += n_file
             changed.append((os.path.relpath(f, ROOT), n_file))
             if not dry:
-                open(f, "w", encoding="utf-8", newline="\n").write(live + rest)
+                open(f, "w", encoding="utf-8", newline="\n").write(ensure_includes(live, header_of(struct)) + rest)
     for f, n in changed:
         print("%4d  %s" % (n, f))
     print("%d accesses in %d files" % (total, len(changed)))

@@ -24,6 +24,7 @@
 #include "units.h"
 #include <stdint.h>
 #include "networking.h"
+#include "ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -200,8 +201,8 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
             datum_index actor_index = ((unit_object *)obj)->unit.actor_index;
             uint8_t *actor_record = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
 
-            *(int16_t *)(obj + 0x334) = *(int16_t *)(actor_record + 0x34);
-            *(int16_t *)(obj + 0x336) = *(int16_t *)(actor_record + 0x3a);
+            *(int16_t *)(obj + 0x334) = *(int16_t *)&((actor *)actor_record)->encounter_index;
+            *(int16_t *)(obj + 0x336) = ((actor *)actor_record)->squad_index;
             actor_attempt_grenade_throw(actor_index);
             ((unit_object *)obj)->unit.actor_index = k_datum_index_none;
         }
@@ -209,8 +210,8 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
             datum_index swarm_index = ((unit_object *)obj)->unit.swarm_actor_index;
             uint8_t *actor_record = (uint8_t *)actor_data->data + (swarm_index & 0xffff) * 0x724;
 
-            *(int16_t *)(obj + 0x334) = *(int16_t *)(actor_record + 0x34);
-            *(int16_t *)(obj + 0x336) = *(int16_t *)(actor_record + 0x3a);
+            *(int16_t *)(obj + 0x334) = *(int16_t *)&((actor *)actor_record)->encounter_index;
+            *(int16_t *)(obj + 0x336) = ((actor *)actor_record)->squad_index;
             actor_release_from_cluster_or_delete(swarm_index, unit_index);
             ((unit_object *)obj)->unit.swarm_actor_index = k_datum_index_none;
         }

@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "objects.h"
+#include "units.h"
+#include "effects.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern data_array *decal_data;                                      // 0x0087abe4
@@ -83,7 +86,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
     decal_index = decal_grid_block[rasterizer_decal_layer * 0x200 + cluster_index];
     while (decal_index != 0xffffffff) {
         uint8_t *decal = (uint8_t *)decal_data->data + (decal_index & 0xffff) * 0x38;
-        uint32_t definition_tag = *(uint32_t *)(decal + 0x2c);
+        uint32_t definition_tag = *(uint32_t *)&((struct decal *)decal)->definition_index;
         uint8_t *definition = (uint8_t *)tag_instances[definition_tag & 0xffff].data + 0xbc;
         int16_t type = *(int16_t *)(definition + 4);
 
@@ -102,8 +105,8 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
             data_array *blocks = *(data_array **)(cache + 0x3c);
             uint32_t first_offset = *(uint32_t *)((uint8_t *)blocks->data + (decal_index & 0xffff) * 0x1c + 8)
                                     << (*(uint32_t *)(cache + 0x2c) & 0x1f);
-            uint32_t color = *(uint32_t *)(decal + 0x24);
-            uint32_t alpha = (*(uint8_t *)(decal + 0x28) * (color >> 24) + 0x7f) >> 8;
+            uint32_t color = ((struct decal *)decal)->color;
+            uint32_t alpha = (((struct decal *)decal)->alpha * (color >> 24) + 0x7f) >> 8;
             int32_t primitive_count;
             int32_t first_vertex;
             int8_t frame;
@@ -171,7 +174,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
             }
 
             // quads were expanded to six vertices each: first vertex = (offset / 16) * 1.5
-            primitive_count = *(int16_t *)(decal + 0x2a) * 2;
+            primitive_count = ((struct decal *)decal)->triangle_count * 2;
             first_vertex = (int32_t)(long long)((double)(first_offset >> 4) * 1.5);
 
             frame = *(int8_t *)(decal + 0x1b);
@@ -214,7 +217,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
                 succeeded = 0;
             }
         }
-        decal_index = *(uint32_t *)(decal + 0x34);
+        decal_index = *(uint32_t *)&((struct decal *)decal)->next_decal;
     }
 }
 

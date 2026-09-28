@@ -20,6 +20,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "sound.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0, UNSURE name (elsewhere network_predicted_globals)
 
@@ -46,14 +49,14 @@ void hud_unit_sounds_play(uint32_t active_mask, const TagReflexive *sounds, int3
                         handle = datum_new(game_looping_sound_data);
                         if (handle != (datum_index)-1) {
                             uint8_t *element = (uint8_t *)game_looping_sound_data->data + (handle & 0xffff) * 0x34;
-                            *(int32_t *)(element + 0x10) = -1;
-                            *(datum_index *)(element + 0x0c) = tag;
-                            *(int16_t *)(element + 0x02) = 2;
-                            *(int32_t *)(element + 0x04) = 0;
-                            *(int16_t *)(element + 0x18) = -1;
-                            *(int32_t *)(element + 0x14) = -1;
-                            *(uint32_t *)(element + 0x04) |= 1;
-                            *(float *)(element + 0x08) = sound->scale;
+                            *(int32_t *)&((game_looping_sound *)element)->object_index = -1;
+                            ((game_looping_sound *)element)->definition_index = tag;
+                            ((game_looping_sound *)element)->state = 2;
+                            *(int32_t *)&((game_looping_sound *)element)->flags = 0;
+                            ((game_looping_sound *)element)->function_index = -1;
+                            ((game_looping_sound *)element)->last_update = -1;
+                            ((game_looping_sound *)element)->flags |= 1;
+                            ((game_looping_sound *)element)->scale = sound->scale;
                         }
                     }
                     handles[i] = (int32_t)handle;
@@ -73,7 +76,7 @@ void hud_unit_sounds_play(uint32_t active_mask, const TagReflexive *sounds, int3
         } else if (handles[i] != -1) {
             if (is_looping) {
                 uint8_t *element = (uint8_t *)game_looping_sound_data->data + (handles[i] & 0xffff) * 0x34;
-                *(uint32_t *)(element + 0x04) |= 2;
+                ((game_looping_sound *)element)->flags |= 2;
             }
             handles[i] = -1;
             *playing &= (uint16_t)~(1u << i);

@@ -18,6 +18,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *actor_data;      // 0x00880360
@@ -48,15 +49,15 @@ void unit_release_transient_state_and_detach(uint32_t unit_index, uint8_t is_lig
         }
         if (unit->actor_index != k_datum_index_none) {
             uint8_t *actor_rec = (uint8_t *)actor_data->data + (unit->actor_index & 0xffff) * 0x724;
-            *(int16_t *)((uint8_t *)self_obj + 0x334) = *(int16_t *)(actor_rec + 0x34); // object +0x334, not unit_data +0x334
-            *(int16_t *)((uint8_t *)self_obj + 0x336) = *(int16_t *)(actor_rec + 0x3a);
+            *(int16_t *)((uint8_t *)self_obj + 0x334) = *(int16_t *)&((actor *)actor_rec)->encounter_index; // object +0x334, not unit_data +0x334
+            *(int16_t *)((uint8_t *)self_obj + 0x336) = ((actor *)actor_rec)->squad_index;
             actor_attempt_grenade_throw(unit->actor_index);
             unit->actor_index = k_datum_index_none;
         }
         if (unit->swarm_actor_index != k_datum_index_none) {
             uint8_t *actor_rec = (uint8_t *)actor_data->data + (unit->swarm_actor_index & 0xffff) * 0x724;
-            *(int16_t *)((uint8_t *)self_obj + 0x334) = *(int16_t *)(actor_rec + 0x34); // object +0x334, not unit_data +0x334
-            *(int16_t *)((uint8_t *)self_obj + 0x336) = *(int16_t *)(actor_rec + 0x3a);
+            *(int16_t *)((uint8_t *)self_obj + 0x334) = *(int16_t *)&((actor *)actor_rec)->encounter_index; // object +0x334, not unit_data +0x334
+            *(int16_t *)((uint8_t *)self_obj + 0x336) = ((actor *)actor_rec)->squad_index;
             actor_release_from_cluster_or_delete(unit->swarm_actor_index, unit_index); // 0x568d69: EAX swarm actor, stack unit
             unit->swarm_actor_index = k_datum_index_none;
         }
