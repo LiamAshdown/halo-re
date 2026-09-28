@@ -112,6 +112,8 @@ def generate(specs):
         inc = '#include "tags.h"\n#include "memory.h"\n#include "math.h"\n#include "cache.h"\n#include "interface.h"\n'
         if 'd3d_' in body or 'rasterizer_display_mode' in body:
             inc += '#include "rasterizer.h"\n'
+        if '_wto' in body:
+            inc += '#include <stdlib.h>\n'
         if 'memset' in body or 'memcpy' in body:
             inc += '#include <string.h>\n'
         if 'wcs' in body:
