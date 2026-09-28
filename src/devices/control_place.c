@@ -13,6 +13,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "devices.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -28,14 +29,15 @@ extern void device_new(uint32_t object_index, void *placement); // 0x44bf90, bla
 
 void control_place(datum_index object_index, uint8_t *placement)
 {
-    uint8_t *object = object_get(object_index);
+    uint8_t *obj = object_get(object_index);
 
     device_new(object_index, placement + 0x28);
     if ((placement[0x30] & 1) != 0) {
-        *(uint32_t *)(object + 0x214) |= 1;
+        ((device_object *)obj)->device.type_flags |= 1;
     }
     if ((placement[0x30] & 0x10) != 0) {
-        *(uint32_t *)(object + 0x214) |= 2;
+        ((device_object *)obj)->device.type_flags |= 2;
     }
-    *(int16_t *)(object + 0x218) = (int16_t)(*(int16_t *)(placement + 0x34) - 1);
+    ((control_object *)obj)->control.custom_name_index =
+        (int16_t)(((ScenarioControl *)placement)->custom_control_name - 1);
 }

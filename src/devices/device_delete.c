@@ -14,6 +14,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "devices.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -29,13 +30,13 @@ extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, bl
 
 void device_delete(datum_index object_index)
 {
-    uint8_t *object = object_get(object_index);
-    int16_t group = *(int16_t *)(object + 0x1f8);
+    uint8_t *obj = object_get(object_index);
+    int16_t group = ((device_object *)obj)->device.power_group;
 
     if (group != -1 && (((uint8_t *)device_groups->data)[(uint16_t)group * 8 + 2] & 4) != 0) {
         datum_delete(device_groups, (datum_index)(int32_t)group);
     }
-    group = *(int16_t *)(object + 0x204);
+    group = ((device_object *)obj)->device.position_group;
     if (group != -1 && (((uint8_t *)device_groups->data)[(uint16_t)group * 8 + 2] & 4) != 0) {
         datum_delete(device_groups, (datum_index)(int32_t)group);
     }

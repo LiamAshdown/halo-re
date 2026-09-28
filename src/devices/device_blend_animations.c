@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "models.h"
+#include "devices.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,30 +31,31 @@ extern void animation_overlay_frame_orientations(ModelAnimationsAnimation *anima
 
 void device_blend_animations(datum_index object_index, real_orientation *orientations)
 {
-    uint8_t *obj = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    uint8_t *device_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(device_tag + 0x44) & 0xffff].data;
-    uint8_t *entry;
+    device_object *obj = *(device_object **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    Device *device_tag = (Device *)tag_instances[obj->base.definition_tag & 0xffff].data;
+    ModelAnimations *graph =
+        (ModelAnimations *)tag_instances[*(datum_index *)&device_tag->base.animation_graph.tag_id & 0xffff].data;
+    ModelAnimationsDeviceAnimations *entry;
     uint8_t *animations;
     int32_t count;
     int16_t *indices;
 
-    if (*(int32_t *)(graph + 0x30) == 0) {
+    if (graph->devices.count == 0) {
         return;
     }
-    entry = *(uint8_t **)(graph + 0x34);
+    entry = (ModelAnimationsDeviceAnimations *)graph->devices.pointer;
     if (entry == 0) {
         return;
     }
-    animations = *(uint8_t **)(graph + 0x78);
-    count = *(int32_t *)(entry + 0x54);
-    indices = *(int16_t **)(entry + 0x58);
+    animations = (uint8_t *)graph->animations.pointer;
+    count = (int32_t)entry->animations.count;
+    indices = (int16_t *)entry->animations.pointer;
 
     if (count > 0 && indices[0] != -1) {
         ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(animations + indices[0] * 0xb4);
-        double position = (*(uint32_t *)(obj + 0x1f4) & 1) ? 1.0 - *(float *)(obj + 0x208) : *(float *)(obj + 0x208);
-        uint32_t tag_flags = *(uint32_t *)(device_tag + 0x17c);
-        int32_t frames = *(int16_t *)((uint8_t *)animation + 0x22);
+        double position = (obj->device.flags & 1) ? 1.0 - obj->device.position : obj->device.position;
+        uint32_t tag_flags = device_tag->device_flags;  // bit 0 position_loops, bit 1 position_not_interpolated
+        int32_t frames = (int16_t)animation->frame_count;
         float frame;
 
         if ((tag_flags & 1) == 0) {
@@ -68,9 +70,9 @@ void device_blend_animations(datum_index object_index, real_orientation *orienta
     }
     if (count > 1 && indices[1] != -1) {
         ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(animations + indices[1] * 0xb4);
-        int32_t frames = *(int16_t *)((uint8_t *)animation + 0x22);
+        int32_t frames = (int16_t)animation->frame_count;
 
         animation_overlay_interpolated_frame_orientations(animation,
-            (float)((double)frames * *(float *)(obj + 0x1fc)), orientations);
+            (float)((double)frames * obj->device.power), orientations);
     }
 }

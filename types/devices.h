@@ -88,6 +88,7 @@
 // Note on sizes: like types/memory.h, structs holding pointers only measure to the
 // documented size under a 32-bit data organization.
 
+#include <stddef.h> // offsetof
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
@@ -246,7 +247,8 @@ typedef struct device_machine_data {
 // object + 0x1f4 for object type 8. Total object size 0x21c, from the "control" row.
 typedef struct device_control_data {
     device_data device;             // 0x1f4 type_flags holds device_control_flags
-    uint32_t unknown_218;           // 0x218 no function in this module touches it
+    int16_t custom_name_index;      // 0x218 ScenarioControl custom_control_name - 1 (control_place)
+    int16_t unknown_21a;            // 0x21a
 } device_control_data;              // size 0x28, object + 0x1f4 .. 0x21c
 
 // object + 0x1f4 for object type 9. Total object size 0x22c, from the "light_fixture" row.
@@ -257,6 +259,18 @@ typedef struct device_light_fixture_data {
     device_data device;             // 0x1f4 type_flags unused
     uint8_t unknown_218[0x14];      // 0x218 .. 0x22c
 } device_light_fixture_data;        // size 0x38, object + 0x1f4 .. 0x22c
+
+// A device object as one struct: the common object header (types/objects.h, 0x1f4 bytes) followed
+// by the device part, so a field is one fixed offset from the object like the original code uses.
+typedef struct device_object {
+    object base;                    // 0x000
+    device_data device;             // 0x1f4
+} device_object;
+typedef struct control_object {
+    object base;                    // 0x000
+    device_control_data control;    // 0x1f4
+} control_object;
+typedef char device_object_device_at_1f4[offsetof(device_object, device) == 0x1f4 ? 1 : -1];
 
 // ---------------------------------------------------------------------------
 // globals owned by this module

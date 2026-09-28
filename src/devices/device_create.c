@@ -13,6 +13,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "devices.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -25,10 +26,10 @@ static uint8_t *object_get(datum_index object_index)
 
 uint8_t device_create(datum_index object_index)
 {
-    uint8_t *object = object_get(object_index);
+    uint8_t *obj = object_get(object_index);
 
-    *(int16_t *)(object + 0x204) = -1;
-    *(int16_t *)(object + 0x1f8) = -1;
-    *(uint32_t *)(object + 0x10) |= 0x40000;
+    ((device_object *)obj)->device.position_group = -1;
+    ((device_object *)obj)->device.power_group = -1;
+    ((device_object *)obj)->base.flags |= 0x40000;
     return 1;
 }

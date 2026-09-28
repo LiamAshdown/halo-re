@@ -24,6 +24,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "objects.h"
 #include "devices.h"
 
 extern Scenario *global_scenario; // 0x00746f8c, the Scenario tag data; same spelling as the
