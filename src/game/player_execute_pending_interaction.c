@@ -56,18 +56,18 @@ extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t
 uint8_t player_execute_pending_interaction(uint32_t player_index)
 {
     uint8_t *record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
-    datum_index unit_index = *(datum_index *)(record + 0x34);
+    datum_index unit_index = ((player *)record)->unit;
     uint8_t *unit = OBJECT_DATA(unit_index);
-    datum_index target_index = *(datum_index *)(record + 0x24);
-    uint16_t seat = *(uint16_t *)(record + 0x2a);
+    datum_index target_index = ((player *)record)->interaction_object;
+    uint16_t seat = *(uint16_t *)&((player *)record)->interaction_seat;
     uint8_t handled = 0;
 
-    switch (*(int16_t *)(record + 0x28)) {
+    switch (((player *)record)->interaction_type) {
     case 5:
         unit_clear_selected_equipment(unit_index);
         if (unit_try_select_equipment(unit_index, target_index, 0)) {
             hud_post_item_message(0, (int32_t)*(datum_index *)OBJECT_DATA(target_index), 0,
-                *(int16_t *)(record + 0x2), (int8_t)record[0x64]);
+                ((player *)record)->local_player_index, (int8_t)record[0x64]);
         }
         break;
     case 8:
@@ -80,28 +80,28 @@ uint8_t player_execute_pending_interaction(uint32_t player_index)
         }
         if (network_game_mode == 1 && !unit_seat_is_occupied_by_other(unit_index, (int16_t)seat, target_index,
                                                                       &occupant)) {
-            datum_index self_index = *(datum_index *)(record + 0x34);
+            datum_index self_index = ((player *)record)->unit;
             uint8_t *self = (uint8_t *)object_try_and_get(self_index, 3);
 
             if (self != 0 && self[0x2a3] == 0x1b) {
                 unit_detach_from_seat(self_index, 1, 1, 0);
             }
         }
-        if (unit_seat_is_occupied_by_other(*(datum_index *)(record + 0x34), (int16_t)*(uint16_t *)(record + 0x2a),
-                                           *(datum_index *)(record + 0x24), &occupant)) {
-            unit_enter_vehicle_seat(*(datum_index *)(record + 0x24), (int16_t)*(uint16_t *)(record + 0x2a),
-                *(datum_index *)(record + 0x34));
+        if (unit_seat_is_occupied_by_other(((player *)record)->unit, (int16_t)*(uint16_t *)&((player *)record)->interaction_seat,
+                                           ((player *)record)->interaction_object, &occupant)) {
+            unit_enter_vehicle_seat(((player *)record)->interaction_object, (int16_t)*(uint16_t *)&((player *)record)->interaction_seat,
+                ((player *)record)->unit);
             handled = 1;
             if (network_game_mode == 1) {
-                if (*(int16_t *)(record + 0x2) != -1) {
+                if (((player *)record)->local_player_index != -1) {
                     if (network_client != 0) {
                         player_update_history_free_all(*(void **)&network_client->update_history);
                     }
                 } else {
-                    *(int32_t *)(record + 0x180) = 0;
-                    *(int32_t *)(record + 0x17c) = 0;
-                    *(int32_t *)(record + 0x1e0) = 0;
-                    *(int32_t *)(record + 0x1dc) = 0;
+                    ((player *)record)->position_updates.read_index = 0;
+                    ((player *)record)->position_updates.write_index = 0;
+                    ((player *)record)->vehicle_updates.read_index = 0;
+                    ((player *)record)->vehicle_updates.write_index = 0;
                 }
             }
             goto notify;
@@ -110,7 +110,7 @@ uint8_t player_execute_pending_interaction(uint32_t player_index)
             *(datum_index *)(OBJECT_DATA(occupant) + 0x1f4) == k_datum_index_none) {
             return 0;
         }
-        actor_check_vehicle_target_available(*(datum_index *)(record + 0x34),
+        actor_check_vehicle_target_available(((player *)record)->unit,
             *(datum_index *)(OBJECT_DATA(occupant) + 0x1f4), 1);
         break;
     }
@@ -131,7 +131,7 @@ uint8_t player_execute_pending_interaction(uint32_t player_index)
             real_point3d *target_position =
                 (real_point3d *)((uint8_t *)object_get_world_matrix(target_index, &target_matrix) + 0x28);
             real_point3d *unit_position =
-                (real_point3d *)((uint8_t *)object_get_world_matrix(*(datum_index *)(record + 0x34), &unit_matrix) + 0x28);
+                (real_point3d *)((uint8_t *)object_get_world_matrix(((player *)record)->unit, &unit_matrix) + 0x28);
             real_vector3d side;
 
             side.i = target_position->x - unit_position->x;
@@ -152,8 +152,8 @@ uint8_t player_execute_pending_interaction(uint32_t player_index)
     handled = 1;
 notify:
     if (((unit_object *)unit)->base.network_role == 0) {
-        game_engine_notify_player_interaction(player_index, *(datum_index *)(record + 0x24), 0,
-            *(uint16_t *)(record + 0x28), *(uint16_t *)(record + 0x2a), -1);
+        game_engine_notify_player_interaction(player_index, ((player *)record)->interaction_object, 0,
+            *(uint16_t *)&((player *)record)->interaction_type, *(uint16_t *)&((player *)record)->interaction_seat, -1);
     }
     return handled;
 }

@@ -86,7 +86,7 @@ static void particle_build_state_sprite(uint8_t *type, uint8_t *state_definition
 void particle_system_render(datum_index particle_system_handle)
 {
     uint8_t *system = (uint8_t *)particle_system_data->data + (particle_system_handle & 0xffff) * 0x158;
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)(system + 8) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)tag_instances[((particle_system *)system)->definition_index & 0xffff].data;
     int16_t type_index;
 
     for (type_index = 0; type_index < *(int32_t *)(definition + 0x5c); type_index++) {
@@ -185,7 +185,7 @@ void particle_system_render(datum_index particle_system_handle)
                     drawn[2] = color[2];
                     drawn[3] = color[3];
                     if (*(int16_t *)(current + 0xe2) == 0) {
-                        drawn[1] *= *(float *)(system + 0x48);
+                        drawn[1] *= *(float *)&((particle_system *)system)->ambient_color;
                         drawn[2] *= *(float *)(system + 0x4c);
                         drawn[3] *= *(float *)(system + 0x50);
                     }
@@ -198,7 +198,7 @@ void particle_system_render(datum_index particle_system_handle)
                     drawn[2] = color[2];
                     drawn[3] = color[3];
                     if (*(int16_t *)(current + 0xe2) == 0) {
-                        drawn[1] *= *(float *)(system + 0x48);
+                        drawn[1] *= *(float *)&((particle_system *)system)->ambient_color;
                         drawn[2] *= *(float *)(system + 0x4c);
                         drawn[3] *= *(float *)(system + 0x50);
                     }

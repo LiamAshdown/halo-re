@@ -32,12 +32,12 @@ extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t
 uint8_t player_execute_weapon_drop_interaction(uint32_t player_index)
 {
     uint8_t *record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
-    datum_index unit_index = *(datum_index *)(record + 0x34);
+    datum_index unit_index = ((player *)record)->unit;
     uint8_t *unit = OBJECT_DATA(unit_index);
     datum_index held_weapon = k_datum_index_none;
     uint8_t result = 0;
 
-    switch (*(int16_t *)(record + 0x28)) {
+    switch (((player *)record)->interaction_type) {
     case 6: {
         uint8_t *current = OBJECT_DATA(unit_index);
         int16_t slot = *(int16_t *)(current + 0x2f2);
@@ -47,9 +47,9 @@ uint8_t player_execute_weapon_drop_interaction(uint32_t player_index)
             held_weapon = *(datum_index *)(current + 0x2f8 + slot * 4);
         }
         if (unit_drop_current_weapon(unit_index, 1) &&
-            unit_pickup_weapon(1, *(datum_index *)(record + 0x24), unit_index)) {
-            hud_add_item_message(*(int16_t *)(record + 0x2),
-                (int32_t)*(datum_index *)OBJECT_DATA(*(datum_index *)(record + 0x24)), 0, 0);
+            unit_pickup_weapon(1, ((player *)record)->interaction_object, unit_index)) {
+            hud_add_item_message(((player *)record)->local_player_index,
+                (int32_t)*(datum_index *)OBJECT_DATA(((player *)record)->interaction_object), 0, 0);
             unit_invalidate_local_player_zoom_level(unit_index);
             picked_up = 1;
         }
@@ -60,18 +60,18 @@ uint8_t player_execute_weapon_drop_interaction(uint32_t player_index)
         break;
     }
     case 7:
-        if (!unit_pickup_weapon(1, *(datum_index *)(record + 0x24), unit_index)) {
+        if (!unit_pickup_weapon(1, ((player *)record)->interaction_object, unit_index)) {
             return 0;
         }
-        hud_add_item_message(*(int16_t *)(record + 0x2),
-            (int32_t)*(datum_index *)OBJECT_DATA(*(datum_index *)(record + 0x24)), 0, 0);
+        hud_add_item_message(((player *)record)->local_player_index,
+            (int32_t)*(datum_index *)OBJECT_DATA(((player *)record)->interaction_object), 0, 0);
         break;
     default:
         return 0;
     }
     if (((unit_object *)unit)->base.network_role == 0) {
-        game_engine_notify_player_interaction(player_index, *(datum_index *)(record + 0x24), 1,
-            *(uint16_t *)(record + 0x28), *(uint16_t *)(record + 0x2a), (int32_t)held_weapon);
+        game_engine_notify_player_interaction(player_index, ((player *)record)->interaction_object, 1,
+            *(uint16_t *)&((player *)record)->interaction_type, *(uint16_t *)&((player *)record)->interaction_seat, (int32_t)held_weapon);
     }
     return result;
 }

@@ -86,13 +86,13 @@ int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, in
         }
         for (prop_index = ((actor *)a)->first_prop; prop_index != k_datum_index_none;) {
             uint8_t *pr = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
-            int16_t kind = *(int16_t *)(pr + 0x24);
+            int16_t kind = ((prop *)pr)->kind;
 
-            prop_index = *(datum_index *)(pr + 0x8);
+            prop_index = ((prop *)pr)->next_in_actor;
             if (kind >= 2 && kind <= 3) {
-                float dx = pos[0] - *(float *)(pr + 0xbc);
-                float dy = pos[1] - *(float *)(pr + 0xc0);
-                float dz = pos[2] - *(float *)(pr + 0xc4);
+                float dx = pos[0] - ((prop *)pr)->last_known_position.x;
+                float dy = pos[1] - ((prop *)pr)->last_known_position.y;
+                float dz = pos[2] - ((prop *)pr)->last_known_position.z;
 
                 if (!(dz * dz + dy * dy + dx * dx >= 0.25f)) {
                     occupied = 1;

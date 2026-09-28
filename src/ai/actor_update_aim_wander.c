@@ -141,7 +141,7 @@ void actor_update_aim_wander(datum_index actor_index)
     // the (possibly bombarded) target
     if (((ActorVariant *)variant)->bombardment_range > 0.0f && *(int16_t *)(a + 0x60c) == 1) {
         uint8_t *prop = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x610) & 0xffff) * 0x138;
-        int16_t kind = *(int16_t *)(prop + 0x24);
+        int16_t kind = ((struct prop *)prop)->kind;
 
         bombard = (kind < 2 || kind > 3 || *(int16_t *)(prop + 0x32) == 0) ? 1 : 0;
     }
@@ -237,7 +237,7 @@ void actor_update_aim_wander(datum_index actor_index)
             uint8_t *prop = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x610) & 0xffff) * 0x138;
 
             prop_flag = prop[0x61];
-            object = *(datum_index *)(prop + 0x18);
+            object = ((struct prop *)prop)->object_index;
         }
         if (a[0x378] != 0) {
             code = 0x1c;

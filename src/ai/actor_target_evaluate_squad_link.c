@@ -113,7 +113,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
 
     unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
     controlled = ((unit_object *)unit)->unit.controlling_player != k_datum_index_none;
-    enemies = teams_are_enemies(((unit_object *)unit)->base.owner_team, *(int16_t *)(self + 0x3e));
+    enemies = teams_are_enemies(((unit_object *)unit)->base.owner_team, ((actor *)self)->team);
     if ((unit[0x106] & 4) != 0 && *(int16_t *)(unit + 0x420) == 0) {
         int32_t fired = *(int32_t *)(unit + 0x41c);
 
@@ -146,7 +146,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
             return;
         }
         if (firing) {
-            datum_index encounter_index = *(datum_index *)(self + 0x34);
+            datum_index encounter_index = ((actor *)self)->encounter_index;
 
             if (encounter_index == k_datum_index_none) {
                 goto check_radius;
@@ -209,7 +209,7 @@ check_radius:
                 return;
             }
             limit = 16.0f;
-            if (!enemies && *(int16_t *)(self + 0x6a) < 3) {
+            if (!enemies && ((actor *)self)->awareness_level < 3) {
                 limit = 64.0f;
             }
             if (!(distance_squared < limit)) {
@@ -268,35 +268,35 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
     if (!(radius + 10.0f > distance)) {
         return;
     }
-    if (*(int16_t *)(self + 0x280) >= 2) {
-        if (*(int16_t *)(self + 0x280) != 2 || *(datum_index *)(self + 0x28c) == object_index ||
-            !(distance < *(float *)(self + 0x2d4))) {
+    if (((actor *)self)->danger_type >= 2) {
+        if (((actor *)self)->danger_type != 2 || ((actor *)self)->danger_object_index == object_index ||
+            !(distance < ((actor *)self)->danger_unknown_2d4)) {
             return;
         }
     }
     memset(self + 0x280, 0, 0x6c);
-    *(int16_t *)(self + 0x280) = 2;
-    *(datum_index *)(self + 0x28c) = object_index;
-    *(float *)(self + 0x294) = radius;
-    *(real_point3d *)(self + 0x298) = position;
-    *(real_vector3d *)(self + 0x2a4) = *(real_vector3d *)&((struct object *)object)->velocity.i;
-    *(int16_t *)(self + 0x284) = 0x1e;
+    ((actor *)self)->danger_type = 2;
+    ((actor *)self)->danger_object_index = object_index;
+    ((actor *)self)->danger_unknown_294 = radius;
+    *(real_point3d *)&((actor *)self)->danger_unknown_298 = position;
+    *(real_vector3d *)&((actor *)self)->danger_unknown_2a4 = *(real_vector3d *)&((struct object *)object)->velocity.i;
+    ((actor *)self)->danger_unknown_284 = 0x1e;
     self[0x286] = 0;
-    *(int16_t *)(self + 0x282) = 0;
+    ((actor *)self)->danger_unknown_282 = 0;
     owner = ((struct object *)object)->creator_object;
     if (owner != k_datum_index_none) {
         uint8_t *owner_object = (uint8_t *)object_try_and_get(owner, 0xffffffff);
 
         if (owner_object != 0 && ((1u << owner_object[0xb4]) & 3) != 0) {
             owner_unit = owner;
-            if (*(datum_index *)(self + 0x18) != k_datum_index_none && owner == *(datum_index *)(self + 0x18)) {
-                *(int16_t *)(self + 0x282) = 2;
-            } else if (!teams_are_enemies(((struct object *)object)->owner_team, *(int16_t *)(self + 0x3e))) {
-                *(int16_t *)(self + 0x282) = 1;
+            if (((actor *)self)->unit_index != k_datum_index_none && owner == ((actor *)self)->unit_index) {
+                ((actor *)self)->danger_unknown_282 = 2;
+            } else if (!teams_are_enemies(((struct object *)object)->owner_team, ((actor *)self)->team)) {
+                ((actor *)self)->danger_unknown_282 = 1;
             }
         }
     }
-    *(datum_index *)(self + 0x290) = owner_unit;
+    *(datum_index *)&((actor *)self)->danger_unknown_290 = owner_unit;
 }
 
 void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, int16_t *candidates_a,

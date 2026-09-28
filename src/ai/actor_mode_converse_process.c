@@ -44,7 +44,7 @@ uint8_t actor_mode_converse_process(datum_index actor_index)
     }
     if (!act[0xa1]) {
         uint8_t *p = (uint8_t *)prop_data->data + (partner & 0xffff) * 0x138;
-        float distance = *(float *)(p + 0x11c);
+        float distance = ((prop *)p)->distance;
 
         if ((*(int16_t *)(p + 0x32) >= 2 && distance < *(float *)(act + 0xa4)) || distance < 0.7f) {
             act[0xa1] = 1;

@@ -102,8 +102,8 @@ static uint8_t *tag_data(datum_index tag)
 // elements of 0x48 with the marker name at +0x10), or NULL
 static const char *light_owner_marker_name(uint8_t *light)
 {
-    uint8_t *owner_tag = tag_data(*(datum_index *)object_data_get(*(datum_index *)(light + 0x2c)));
-    int16_t index = *(int16_t *)(light + 0x5c);
+    uint8_t *owner_tag = tag_data(*(datum_index *)object_data_get(((struct light *)light)->owner_object));
+    int16_t index = ((struct light *)light)->marker_index;
 
     if (index >= 0 && index < *(int32_t *)(owner_tag + 0x140)) {
         return (const char *)(*(uint8_t **)(owner_tag + 0x144) + index * 0x48 + 0x10);
@@ -125,13 +125,13 @@ void object_lights_update_all(void)
 
         light[2] &= ~8;
         *(int32_t *)(light + 8) = -1;
-        if (*(int32_t *)(light + 0x58) != -1) {
-            float age = (float)(tick - *(int32_t *)(light + 0x58));
-            if (!(age <= *(float *)(tag_data(*(datum_index *)(light + 4)) + 0xf4))) {
+        if (((struct light *)light)->marker_link != -1) {
+            float age = (float)(tick - ((struct light *)light)->marker_link);
+            if (!(age <= *(float *)(tag_data(((struct light *)light)->definition_tag) + 0xf4))) {
                 cluster_reference_remove_all(handle, (datum_index *)(light + 0x10), &light_cluster_first);
                 datum_delete(light_data, handle);
             }
-        } else if (object_try_and_get(*(datum_index *)(light + 0x2c), 0xffffffff) != 0) {
+        } else if (object_try_and_get(((struct light *)light)->owner_object, 0xffffffff) != 0) {
             if ((light[2] & 2) != 0) {
                 cluster_reference_remove_all(handle, (datum_index *)(light + 0x10), &light_cluster_first);
                 light[2] &= ~4;
@@ -157,8 +157,8 @@ void object_lights_update_all(void)
     for (i = 0; i < light_active_list_count; i++) {
         datum_index light_handle = light_active_list[i];
         uint8_t *light = (uint8_t *)light_data->data + (light_handle & 0xffff) * 0x7c;
-        uint8_t *tag = tag_data(*(datum_index *)(light + 4));
-        datum_index owner_handle = *(datum_index *)(light + 0x2c);
+        uint8_t *tag = tag_data(((struct light *)light)->definition_tag);
+        datum_index owner_handle = ((struct light *)light)->owner_object;
         uint8_t *owner = 0;
         float dim = 1.0f;
         float t;
@@ -176,16 +176,16 @@ void object_lights_update_all(void)
             }
         }
 
-        if (*(int32_t *)(light + 0x58) == -1) {
-            int16_t function_index = *(int16_t *)(light + 0x5e);
-            int16_t color_index = *(int16_t *)(light + 0x60);
+        if (((struct light *)light)->marker_link == -1) {
+            int16_t function_index = ((struct light *)light)->marker_index_secondary;
+            int16_t color_index = *(int16_t *)&((struct light *)light)->local_position.x;
             void *tint;
 
             t = function_index == -1 ? 1.0f : *(float *)(object_data_get(owner_handle) + 0x134 + function_index * 4);
             tint = color_index == -1 ? (void *)global_white_color : (void *)(owner + 0x1b8 + color_index * 12);
             color_interpolate_argb_with_tint(*(uint32_t *)(tag + 0x34), tag + 0x48, color, tint, tag + 0x38, t);
         } else {
-            float phase = (float)(tick - *(int32_t *)(light + 0x58)) / *(float *)(tag + 0xf4);
+            float phase = (float)(tick - ((struct light *)light)->marker_link) / *(float *)(tag + 0xf4);
             t = (1.0f - transition_function_evaluate(*(int16_t *)(tag + 0xfa), phase)) * *(float *)(light + 0x78);
             color_interpolate(tag + 0x4c, tag + 0x3c, color, *(uint32_t *)(tag + 0x34), t);
         }
@@ -201,7 +201,7 @@ void object_lights_update_all(void)
             }
             root_object = object_data_get(root);
             if (((1 << root_object[0xb4]) & 3) != 0 && !(*(float *)(root_object + 0x37c) <= 0.0f) &&
-                (tag_data(*(datum_index *)(light + 4))[0] & 0x20) == 0) {
+                (tag_data(((struct light *)light)->definition_tag)[0] & 0x20) == 0) {
                 dim = 1.0f - *(float *)(root_object + 0x37c);
                 color[0] *= dim;
                 color[1] *= dim;
@@ -215,18 +215,18 @@ void object_lights_update_all(void)
         if ((light[2] & 1) != 0) {
             float intensity = ((1.0f - t) * *(float *)(tag + 8) + t * *(float *)(tag + 0xc)) * *(float *)(tag + 4);
 
-            *(float *)(light + 0x54) = intensity;
+            ((struct light *)light)->radius = intensity;
             if (intensity != 0.0f) {
                 rasterizer_light record;
                 int32_t slot = -1;
 
-                record.definition = (uint32_t)tag_data(*(datum_index *)(light + 4));
-                record.position = *(real_point3d *)(light + 0x30);
-                record.forward = *(real_vector3d *)(light + 0x3c);
-                record.up = *(real_vector3d *)(light + 0x48);
+                record.definition = (uint32_t)tag_data(((struct light *)light)->definition_tag);
+                record.position = *(real_point3d *)&((struct light *)light)->position.x;
+                record.forward = *(real_vector3d *)&((struct light *)light)->direction.i;
+                record.up = *(real_vector3d *)&((struct light *)light)->up.i;
                 record.color = *(ColorRGB *)color;
                 record.radius = intensity;
-                if (*(int32_t *)(light + 0x58) == -1) {
+                if (((struct light *)light)->marker_link == -1) {
                     if ((tag[0] & 0x10) != 0) {
                         first_person_weapon_center_flashlight(owner_handle, &record.position, &record.forward, &record.up);
                         light[2] |= 8;
@@ -246,7 +246,7 @@ void object_lights_update_all(void)
                 light_transient_count_or_queue = (int16_t)(slot + 1);
             }
         } else {
-            *(float *)(light + 0x54) = *(float *)(tag + 4);
+            ((struct light *)light)->radius = *(float *)(tag + 4);
         }
 
         if (*(datum_index *)(tag + 0xb8) != k_datum_index_none) {
@@ -263,7 +263,7 @@ void object_lights_update_all(void)
             flare.visibility_high = (int16_t)light_handle;
             flare.object_index = salt == -1 ? 0 : salt;
             flare.sample_count = 0;
-            if (*(int32_t *)(light + 0x58) == -1) {
+            if (((struct light *)light)->marker_link == -1) {
                 object_marker markers[8];
                 const char *marker_name = light_owner_marker_name(light);
                 int16_t count = 0;
@@ -287,7 +287,7 @@ void object_lights_update_all(void)
                     lens_flare_add_instance(&flare);
                 }
             } else {
-                flare.position = *(real_point3d *)(light + 0x30);
+                flare.position = *(real_point3d *)&((struct light *)light)->position.x;
                 flare.packed_direction = vector3d_pack_normal_11_11_10((real_vector3d *)(light + 0x3c));
                 flare.packed_up = vector3d_pack_normal_11_11_10((real_vector3d *)(light + 0x48));
                 flare.visibility_low = 0;

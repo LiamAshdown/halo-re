@@ -102,9 +102,9 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
     }
     for (prop_index = ((actor *)act)->first_prop; prop_index != k_datum_index_none;) {
         uint8_t *prop = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
-        datum_index other_index = *(datum_index *)(prop + 0x1c);
+        datum_index other_index = ((struct prop *)prop)->owner_actor_index;
 
-        prop_index = *(datum_index *)(prop + 0x8);
+        prop_index = ((struct prop *)prop)->next_in_actor;
         if (prop[0x60] == 0 && other_index != k_datum_index_none) {
             uint8_t *other = actor_try_get(other_index);
 

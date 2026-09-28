@@ -81,12 +81,12 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
         uint8_t *goal = (uint8_t *)candidate.position;
         static path_find_context target_context;
 
-        if (*(int16_t *)(target + 0x24) >= 2 && *(int16_t *)(target + 0x24) <= 3) {
+        if (((prop *)target)->kind >= 2 && ((prop *)target)->kind <= 3) {
             actor_target_get_relationship_object(prop_index);
         }
-        ignore_object = *(uint32_t *)(target + 0x110);
+        ignore_object = *(uint32_t *)&((prop *)target)->relationship_object_index;
         if (ignore_object == 0xffffffff) {
-            ignore_object = *(uint32_t *)(target + 0x18);
+            ignore_object = *(uint32_t *)&((prop *)target)->object_index;
         }
         actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
         memset(request, 0, sizeof(request));
@@ -95,8 +95,8 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
         request[2] = ignore_object;
         request[3] = *(uint32_t *)&((struct actor *)actor)->unit_index;                 // the actor's unit
         ((uint8_t *)request)[0x10] = 1;                           // have start
-        *(real_point3d *)&request[5] = *(real_point3d *)(target + 0xf0);
-        request[8] = *(uint32_t *)(target + 0xec);
+        *(real_point3d *)&request[5] = *(real_point3d *)&((prop *)target)->ground_position.x;
+        request[8] = *(uint32_t *)&((prop *)target)->path_surface_index;
         memset(&target_context, 0, sizeof(target_context));
         target_context.structure_bsp = (uint32_t)global_structure_bsp;
         memcpy(&target_context, request, sizeof(request));

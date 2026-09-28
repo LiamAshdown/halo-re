@@ -52,6 +52,6 @@ void actor_mode_uncover_enter(datum_index actor_index)
         *(int16_t *)(act + 0x6e) < 3) {
         uint8_t *target = (uint8_t *)prop_data->data + (((actor *)act)->target_unit_index & 0xffff) * 0x138;
 
-        ai_communication_broadcast(0x15, ((actor *)act)->unit_index, *(datum_index *)(target + 0x18), -1, -1, -1, 0);
+        ai_communication_broadcast(0x15, ((actor *)act)->unit_index, ((prop *)target)->object_index, -1, -1, -1, 0);
     }
 }

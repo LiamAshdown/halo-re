@@ -51,7 +51,7 @@ uint8_t actor_mode_wait_process(datum_index actor_index)
         act[0x9c] = 1;
         if (*(datum_index *)(act + 0x1d0) != k_datum_index_none) {
             uint8_t *ally = (uint8_t *)prop_data->data + (*(datum_index *)(act + 0x1d0) & 0xffff) * 0x138;
-            float distance = *(float *)(ally + 0x11c);
+            float distance = ((prop *)ally)->distance;
             uint8_t follow;
 
             if (act[0x9e] && !act[0xa0]) {

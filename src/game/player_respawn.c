@@ -97,8 +97,8 @@ void player_respawn(uint32_t player_index)
 {
     uint8_t *p = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
 
-    if (current_game_engine == 0 && *(int16_t *)(p + 2) != -1) {
-        datum_index *slot = (datum_index *)&local_player_globals->local_player_units[*(int16_t *)(p + 2)];
+    if (current_game_engine == 0 && ((player *)p)->local_player_index != -1) {
+        datum_index *slot = (datum_index *)&local_player_globals->local_player_units[((player *)p)->local_player_index];
         datum_index existing_unit = *slot;
 
         *slot = k_datum_index_none;
@@ -114,7 +114,7 @@ void player_respawn(uint32_t player_index)
                 }
                 object_mark_pending_delete(existing_unit);
                 player_respawn_drop_lights(existing_unit);
-                local_player_set_controlled_unit(existing_unit, *(int16_t *)(p + 2));
+                local_player_set_controlled_unit(existing_unit, ((player *)p)->local_player_index);
                 if (held_weapon != k_datum_index_none) {
                     player_respawn_drop_lights(held_weapon);
                 }
@@ -170,24 +170,24 @@ void player_respawn(uint32_t player_index)
         }
         p = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
         ((unit_object *)unit)->base.owner_linkage = player_index;
-        ((unit_object *)unit)->base.owner_team = *(int16_t *)(p + 0x20);
+        ((unit_object *)unit)->base.owner_team = *(int16_t *)&((player *)p)->team;
         *(uint32_t *)&((unit_object *)unit)->unit.controlling_player = player_index;
-        *(datum_index *)(p + 0x34) = new_unit;
+        ((player *)p)->unit = new_unit;
         unit_refresh_targeting_flag_and_weapons(new_unit, 1);
-        if (*(int16_t *)(p + 2) != -1) {
-            game_engine_init_player_look_state_from_object(new_unit, *(int16_t *)(p + 2));
+        if (((player *)p)->local_player_index != -1) {
+            game_engine_init_player_look_state_from_object(new_unit, ((player *)p)->local_player_index);
         }
         if (current_game_engine == 0) {
             int32_t profile_count = *(int32_t *)&global_scenario->player_starting_profile.count;
 
-            if (profile_count > 1 && *(int16_t *)(p + 0xae) > 0) {
-                unit_apply_starting_profile(1, *(datum_index *)(p + 0x34), 1);
+            if (profile_count > 1 && ((player *)p)->deaths > 0) {
+                unit_apply_starting_profile(1, ((player *)p)->unit, 1);
             } else if (profile_count != 0) {
-                unit_apply_starting_profile(0, *(datum_index *)(p + 0x34), 1);
+                unit_apply_starting_profile(0, ((player *)p)->unit, 1);
             }
         }
         if (network_game_mode == 2) {
-            int32_t team = *(int32_t *)(p + 0x20);
+            int32_t team = ((player *)p)->team;
             int32_t encoded_bits;
 
             game_engine_apply_player_grenade_counts(player_index);
@@ -206,10 +206,10 @@ void player_respawn(uint32_t player_index)
 reset_player_state:
     p = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
     *(uint32_t *)(p + 0x68) = 0;
-    *(uint16_t *)(p + 0x28) = 0;
-    *(datum_index *)(p + 0x24) = k_datum_index_none;
-    if (*(int16_t *)(p + 2) != -1) {
-        observer_new(&observers[*(int16_t *)(p + 2)]);
+    *(uint16_t *)&((player *)p)->interaction_type = 0;
+    ((player *)p)->interaction_object = k_datum_index_none;
+    if (((player *)p)->local_player_index != -1) {
+        observer_new(&observers[((player *)p)->local_player_index]);
     }
 }
 

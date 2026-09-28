@@ -53,10 +53,10 @@ extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t
 void player_check_vehicle_boarding_interaction(uint32_t player_index, uint32_t candidate_object)
 {
     uint8_t *record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
-    datum_index unit_index = *(datum_index *)(record + 0x34);
+    datum_index unit_index = ((player *)record)->unit;
     uint8_t *unit = OBJECT_DATA(unit_index);
     uint8_t *item = OBJECT_DATA(candidate_object);
-    int16_t local_player_index = *(int16_t *)(record + 0x2);
+    int16_t local_player_index = ((player *)record)->local_player_index;
     int8_t machine = (int8_t)record[0x64];
     uint8_t *equipment;
     uint8_t *weapon;

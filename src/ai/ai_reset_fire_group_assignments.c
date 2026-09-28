@@ -164,7 +164,7 @@ void ai_reset_fire_group_assignments(void)
         if (encounter[0xd] == 0 || *(int16_t *)(encounter + 0x2a) <= 0) {
             continue;
         }
-        next = *(datum_index *)(encounter + 0x14);
+        next = ((struct encounter *)encounter)->first_actor;
         while (ai_globals_ptr[1] != 0 && next != k_datum_index_none) {
             uint8_t *actor;
             uint8_t carry;
@@ -207,7 +207,7 @@ void ai_reset_fire_group_assignments(void)
             actor_movement_action_cancel(actor_index);
         }
         encounter = (uint8_t *)encounter_data->data + (e & 0xffff) * 0x6c;
-        *(int16_t *)(encounter + 0xe) = 0;
+        ((struct encounter *)encounter)->activation_delay = 0;
         encounter_deactivate((datum_index)(int32_t)e);
     }
 

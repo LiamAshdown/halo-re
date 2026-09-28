@@ -34,13 +34,13 @@ uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3
 
     if (*(datum_index *)(a + 0x6b4) != k_datum_index_none) {
         uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x6b4) & 0xffff) * 0x138;
-        int16_t kind = *(int16_t *)(p + 0x24);
+        int16_t kind = ((prop *)p)->kind;
 
         if (kind >= 2 && kind <= 3) {
-            target_object = *(datum_index *)(p + 0x18);
+            target_object = ((prop *)p)->object_index;
         }
         if (kind < 0 || kind > 1) {
-            real_point3d point = *(real_point3d *)(p + 0xbc);   // [esp+0x1c]
+            real_point3d point = *(real_point3d *)&((prop *)p)->last_known_position.x;   // [esp+0x1c]
 
             point.z += 0.2f;
             actor_validate_grenade_impact_point(actor_index, &point);

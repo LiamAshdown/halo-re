@@ -62,9 +62,9 @@ extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterato
 uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
 {
     uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    const uint8_t *variant = (const uint8_t *)tag_instances[*(uint32_t *)(self + 0x5c) & 0xffff].data;
+    const uint8_t *variant = (const uint8_t *)tag_instances[*(uint32_t *)&((actor *)self)->actor_variant_tag & 0xffff].data;
     const uint8_t *def = (const uint8_t *)actor_get_actor_definition(actor_index);
-    uint32_t unit_index = *(uint32_t *)(self + 0x18);
+    uint32_t unit_index = *(uint32_t *)&((actor *)self)->unit_index;
     const uint8_t *unit;
     const uint8_t *target = 0;
     uint8_t decision;
@@ -73,15 +73,15 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
     if (!unit_is_in_busy_animation_state(unit_index) && self[0x4a8] == 0) {
         goto return_true;
     }
-    if (*(int16_t *)(self + 0x6a) < 3) {
+    if (((actor *)self)->awareness_level < 3) {
         goto return_true;
     }
     if (*(int16_t *)(self + 0x6e) < 5) {
         goto return_false;
     }
     unit = (const uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    if (*(uint32_t *)(self + 0x270) != 0xffffffff) {
-        target = (const uint8_t *)prop_data->data + (*(uint32_t *)(self + 0x270) & 0xffff) * 0x138;
+    if (*(uint32_t *)&((actor *)self)->target_unit_index != 0xffffffff) {
+        target = (const uint8_t *)prop_data->data + (*(uint32_t *)&((actor *)self)->target_unit_index & 0xffff) * 0x138;
     }
     if (unit[0x2a3] == 0x17 && self[0x378] == 0) {
         goto return_true;
@@ -99,7 +99,7 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
     if (self[0x378] != 0) {
         goto return_false;
     }
-    if (*(int16_t *)(self + 0x6c) == 10 &&
+    if (((actor *)self)->mode == 10 &&
         (*(int16_t *)(self + 0xa0) == 2 || *(int16_t *)(self + 0xa0) == 3)) {
         goto return_false;
     }
@@ -126,7 +126,7 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
         } else if ((variant[0] & 8) != 0 && (int8_t)self[0x245] > 0) {
             // 0x424278: no -1 check on +0x270 here; the binary indexes the prop array directly
             const uint8_t *axis_prop = (const uint8_t *)prop_data->data +
-                (*(uint32_t *)(self + 0x270) & 0xffff) * 0x138;
+                (*(uint32_t *)&((actor *)self)->target_unit_index & 0xffff) * 0x138;
             actor_prop_iterator iterator;
             uint32_t cursor;
             int32_t ahead = 0, level = 0, behind = 0;
@@ -155,9 +155,9 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
                 if (other[0x362] == 0) {
                     continue;
                 }
-                dot = (*(const float *)(other + 0x134) - *(const float *)(self + 0x134)) * *(const float *)(axis_prop + 0xe8) +
-                      (*(const float *)(other + 0x130) - *(const float *)(self + 0x130)) * *(const float *)(axis_prop + 0xe4) +
-                      (*(const float *)(other + 0x12c) - *(const float *)(self + 0x12c)) * *(const float *)(axis_prop + 0xe0);
+                dot = (*(const float *)(other + 0x134) - ((actor *)self)->body_position.z) * *(const float *)(axis_prop + 0xe8) +
+                      (*(const float *)(other + 0x130) - ((actor *)self)->body_position.y) * *(const float *)(axis_prop + 0xe4) +
+                      (*(const float *)(other + 0x12c) - ((actor *)self)->body_position.x) * *(const float *)(axis_prop + 0xe0);
                 if (dot > 1.4f) {
                     ahead++;
                 } else if (dot >= -1.4f) {
@@ -187,7 +187,7 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
         float roll;
 
         if ((int8_t)self[0x200] > 0) {
-            uint32_t cursor = *(uint32_t *)(self + 0x50);
+            uint32_t cursor = *(uint32_t *)&((actor *)self)->first_prop;
             int16_t without = 0, with = 0;
 
             while (cursor != 0xffffffff) {
@@ -205,7 +205,7 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
                     continue;
                 }
                 other = (const uint8_t *)actor_data->data + (owner & 0xffff) * 0x724;
-                if (*(const int16_t *)(other + 0x4) != *(const int16_t *)(self + 0x4) ||
+                if (*(const int16_t *)(other + 0x4) != ((actor *)self)->type ||
                     *(const int16_t *)(other + 0x6e) < 5) {
                     continue;
                 }

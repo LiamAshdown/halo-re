@@ -66,7 +66,7 @@ uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold)
     if (D(0x2f4) != 0xffffffff) {
         uint8_t *prop = (uint8_t *)prop_data->data + (D(0x2f4) & 0xffff) * 0x138;
 
-        object = *(datum_index *)(prop + 0x18);
+        object = ((struct prop *)prop)->object_index;
         reason = (prop[0x60] != 0) + 2;
     }
     ai_communication_broadcast(0x29, D(0x18), object, reason, 0xffffffff, 0xffffffff, 0);

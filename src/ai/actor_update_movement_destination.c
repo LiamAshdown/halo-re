@@ -94,7 +94,7 @@ uint8_t actor_update_movement_destination(uint32_t actor_index)
                 if (A_D(0x270) != 0xffffffff) {
                     uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & 0xffff) * 0x138;
 
-                    drop = *(float *)(target + 0x11c) < *(float *)(definition + 0xa0);
+                    drop = ((prop *)target)->distance < *(float *)(definition + 0xa0);
                 }
             } else {
                 drop = !at_position;
@@ -148,7 +148,7 @@ uint8_t actor_update_movement_destination(uint32_t actor_index)
         uint8_t engaged = 1;
 
         if (actor_has_unshielded_threat_weapon(actor_index)) {
-            if (*(float *)(target + 0x11c) < A_F(0x608)) {
+            if (((prop *)target)->distance < A_F(0x608)) {
                 engaged = 0;
             } else if (A_D(0x34) != 0xffffffff && A_W(0x3b8) != -1) {
                 real_point3d *held = actor_held_firing_position(actor);

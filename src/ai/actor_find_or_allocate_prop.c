@@ -43,7 +43,7 @@ enum {
 static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uint8_t *p, float distance_squared,
     uint8_t *far_out)
 {
-    datum_index owner_index = *(datum_index *)(p + 0x1c);
+    datum_index owner_index = ((prop *)p)->owner_actor_index;
     float radius = *(float *)(p + 0x20);
     int16_t pinned_ticks = *(int16_t *)(p + 0x6a);
     int16_t since_fired = *(int16_t *)(p + 0x76);
@@ -66,11 +66,11 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         return k_prop_admit_drop;
     }
     if (p[0x127] != 0) {
-        datum_index encounter_index = *(datum_index *)(self + 0x34);
+        datum_index encounter_index = ((actor *)self)->encounter_index;
 
         if (encounter_index != k_datum_index_none) {
             uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c;
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(p + 0x18) & 0xffff].data;
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[((prop *)p)->object_index & 0xffff].data;
             int32_t reference = *(int32_t *)(encounter + 0x58);
             uint8_t counts = 1;
             uint8_t calm;
@@ -108,7 +108,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
                 return k_prop_admit_drop;
             }
             limit = 16.0f;
-            if (!enemy && *(int16_t *)(self + 0x6a) < 3) {
+            if (!enemy && ((actor *)self)->awareness_level < 3) {
                 limit = 64.0f;
             }
             return distance_squared < limit ? k_prop_admit_keep : k_prop_admit_drop;
@@ -132,7 +132,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
 datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind)
 {
     uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    datum_index cursor = *(datum_index *)(self + 0x50);
+    datum_index cursor = ((actor *)self)->first_prop;
     datum_index drop_choice = k_datum_index_none;
     datum_index far_choice = k_datum_index_none;
     float drop_distance = 3.4028234663852886e+38f;
@@ -143,12 +143,12 @@ datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object
     while (cursor != k_datum_index_none) {
         datum_index current = cursor;
         uint8_t *p = (uint8_t *)prop_data->data + (cursor & 0xffff) * 0x138;
-        int16_t prop_kind = *(int16_t *)(p + 0x24);
-        float distance = *(float *)(p + 0x11c);
+        int16_t prop_kind = ((prop *)p)->kind;
+        float distance = ((prop *)p)->distance;
         uint8_t far_flag;
 
-        cursor = *(datum_index *)(p + 0x08);
-        if ((prop_kind >= 4 && prop_kind <= 5) || *(datum_index *)(p + 0x0c) != k_datum_index_none) {
+        cursor = ((prop *)p)->next_in_actor;
+        if ((prop_kind >= 4 && prop_kind <= 5) || ((prop *)p)->pair_index != k_datum_index_none) {
             continue;
         }
         if (actor_prop_still_admitted(actor_index, self, p, distance * distance, &far_flag) == k_prop_admit_keep) {
