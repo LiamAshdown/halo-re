@@ -144,10 +144,16 @@ def main():
         # 0x679e50, 0x679f38, 0x67a6b8, 0x67a7a0, 0x67c1e8 ...); the shorts 0x0000 0x0057 at 0x679d54 equal the
         # entry 0x570000 (2026-09-28)
         (0x679600, 0x67d000),
+        # DIDATAFORMAT at 0x0064dfdc (pushed at 0x491930 for SetDataFormat): its rgodf field 0x64dff0 points at the
+        # DIOBJECTDATAFORMAT array the linker placed in .text at 0x613400 -- data, which the loader maps with .text
+        # (2026-09-28)
+        (0x64dff0, 0x64dff4),
     ]
     funcs = {int(f["addr"], 16): f for f in json.load(open(os.path.join(ROOT, "out", "functions.json")))}
     library_ranges = sorted((int(f["addr"], 16), int(f["addr"], 16) + (f.get("size") or 0))
                             for f in funcs.values() if f.get("lib") or f.get("fid"))
+
+    function_starts = sorted(funcs)
 
     def inside_library_function(v):
         i = bisect.bisect_right(library_ranges, (v, 0xffffffff)) - 1
@@ -188,6 +194,15 @@ def main():
                 f = {"name": "unlisted_%06x" % v}
             m = mods.get("%x" % v, {})
             module = m.get("module", "?") if isinstance(m, dict) else m
+            if module in ("?", "") and v not in funcs and not r:
+                # an entry Ghidra never split off inherits a library module from the function it follows, e.g.
+                # unlisted_5c0ba0 in the D3DX vtable 0x646bc0 right after FUN_005c0b45 (lib:d3dx) (2026-09-28)
+                i = bisect.bisect_right(function_starts, v) - 1
+                if i >= 0:
+                    pm = mods.get("%x" % function_starts[i], {})
+                    pmodule = pm.get("module", "?") if isinstance(pm, dict) else pm
+                    if isinstance(pmodule, str) and pmodule.startswith("lib"):
+                        module = pmodule
             if f and (f.get("lib") or f.get("fid")):
                 module = "lib:crt" if module in ("?", "") else module
             entry = {"slot": va, "target": v, "name": (r or f)["name"], "module": module}
