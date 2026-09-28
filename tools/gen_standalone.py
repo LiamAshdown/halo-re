@@ -15,6 +15,9 @@ a false positive, which is why the report lists every target by name for review.
 Usage: python tools/gen_standalone.py"""
 import bisect, os, re, sys, json, glob, struct, collections
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import retail_guard as rg   # HALO_NO_RETAIL=1: build from standalone/frozen/ only
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "build", "standalone")
 EXE = os.path.join(ROOT, "bin", "halo.exe")
@@ -103,8 +106,8 @@ def rewritten_functions():
     return by_addr
 
 
-def main():
-    os.makedirs(OUT, exist_ok=True)
+def extract_retail():
+    """reads bin/halo.exe and out/functions.json: writes halo_image.bin and refreshes the frozen build inputs"""
     exe = open(EXE, "rb").read()
     base, dirs, sections = pe_layout(exe)
     off, u32, cstr = reader(exe, base, sections)
@@ -130,11 +133,9 @@ def main():
               "tls_section": {"va": sec[".tls"]["va"], "virtual": sec[".tls"]["vsize"]} if ".tls" in sec else None,
               "resources": {"va": sec[".rsrc"]["va"], "size": sec[".rsrc"]["vsize"]} if ".rsrc" in sec else None,
               "reserve": {"from": rdata["va"], "to": max(s["va"] + s["vsize"] for s in sections)}}
-    json.dump(layout, open(os.path.join(OUT, "layout.json"), "w"), indent=1)
 
     # ---- import slots the loader fills
     slots = imports(exe, base, dirs, u32, cstr)
-    json.dump(slots, open(os.path.join(OUT, "imports.json"), "w"), indent=1)
     slot_set = {s["slot"] for s in slots}
 
     # ---- code pointers stored in data
@@ -170,7 +171,7 @@ def main():
     mods = json.load(open(os.path.join(ROOT, "modules.json")))
     rewritten = rewritten_functions()
     text = sec[".text"]
-    pointers = []
+    pointer_slots = []
     for s in (rdata, data):
         for o in range(0, s["rsize"] - 3, 4):
             va = s["va"] + o
@@ -217,15 +218,44 @@ def main():
                         module = pmodule
             if f and (f.get("lib") or f.get("fid")):
                 module = "lib:crt" if module in ("?", "") else module
-            entry = {"slot": va, "target": v, "name": (r or f)["name"], "module": module}
-            if r:
-                entry["c_symbol"] = r["name"]
-            pointers.append(entry)
+            # the retail name (the rewrite's name only for an entry Ghidra never listed); the C symbol is attached at
+            # build time from src/, so renaming or adding C never needs the retail image
+            pointer_slots.append({"slot": va, "target": v, "name": (f or r)["name"], "module": module})
+
+    rg.write_frozen("layout.json", layout)
+    rg.write_frozen("imports.json", slots)
+    rg.write_frozen("code_pointer_slots.json", pointer_slots)
+    rg.write_frozen("game_crt.json", {x["name"].lstrip("_"): int(x["addr"], 16) for x in funcs.values()
+                                      if x.get("lib") or x.get("fid")})
+
+
+def main():
+    os.makedirs(OUT, exist_ok=True)
+    if not rg.NO_RETAIL:
+        extract_retail()
+    # from here on only committed files: standalone/frozen/ and src/
+    layout = rg.read_frozen("layout.json")
+    slots = rg.read_frozen("imports.json")
+    json.dump(layout, open(os.path.join(OUT, "layout.json"), "w"), indent=1)
+    json.dump(slots, open(os.path.join(OUT, "imports.json"), "w"), indent=1)
+    rewritten = rewritten_functions()
+    pointers = []
+    for p in rg.read_frozen("code_pointer_slots.json"):
+        entry = dict(p)
+        r = rewritten.get(p["target"])
+        if r:
+            entry["name"] = r["name"]
+            entry["c_symbol"] = r["name"]
+        pointers.append(entry)
+    pointers.sort(key=lambda p: p["slot"])
     json.dump(pointers, open(os.path.join(OUT, "code_pointers.json"), "w"), indent=1)
     # every rewritten function by its original address: the loader redirects a jump into original .text (a constant
     # function address a stable rewrite still passes, e.g. structure_picked_polygon_draw's callbacks) to its C.
     entries = [{"addr": a, "c_symbol": r["name"], "module": r["module"]} for a, r in sorted(rewritten.items())]
     json.dump(entries, open(os.path.join(OUT, "code_entries.json"), "w"), indent=1)
+    piece = {p["name"]: p for p in layout["pieces"]}
+    rdata = {"rsize": piece[".rdata"]["raw"], "va": piece[".rdata"]["va"]}
+    data = {"rsize": piece[".data"]["raw"], "vsize": piece[".data"]["virtual"], "va": piece[".data"]["va"]}
 
     # ---- report
     by_kind = collections.Counter()

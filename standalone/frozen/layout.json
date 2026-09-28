@@ -1,0 +1,54 @@
+{
+ "entry": 6455046,
+ "image_base": 4194304,
+ "pieces": [
+  {
+   "blob_offset": 0,
+   "name": ".text",
+   "raw": 2330624,
+   "va": 4198400,
+   "virtual": 2327958
+  },
+  {
+   "blob_offset": 2330624,
+   "name": ".rdata",
+   "raw": 245760,
+   "va": 6529024,
+   "virtual": 243646
+  },
+  {
+   "blob_offset": 2576384,
+   "name": ".data",
+   "raw": 176128,
+   "va": 6774784,
+   "virtual": 2139804
+  },
+  {
+   "blob_offset": 2752512,
+   "name": ".tls",
+   "raw": 4096,
+   "va": 8916992,
+   "virtual": 9
+  },
+  {
+   "blob_offset": 2756608,
+   "name": ".rsrc",
+   "raw": 61440,
+   "va": 8921088,
+   "virtual": 60912
+  }
+ ],
+ "reserve": {
+  "from": 6529024,
+  "to": 8982000
+ },
+ "resources": {
+  "size": 60912,
+  "va": 8921088
+ },
+ "tls_directory": 6615060,
+ "tls_section": {
+  "va": 8916992,
+  "virtual": 9
+ }
+}

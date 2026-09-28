@@ -16,6 +16,8 @@ import os, re, sys, glob, json, subprocess, collections
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "harness"))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import retail_guard as rg   # HALO_NO_RETAIL=1: build from standalone/frozen/ only
 import gen_link as gl
 
 OUT = os.path.join(ROOT, "build", "standalone")
@@ -90,28 +92,38 @@ def import_map():
 
 
 def d3dx_sizes():
-    """stdcall argument bytes of the SDK's D3DX exports (halo.exe linked an older D3DX statically)"""
-    cache = os.path.join(OUT, "d3dx_sizes.json")
-    if os.path.exists(cache):
-        return json.load(open(cache))
+    """stdcall argument bytes of the SDK's D3DX exports (halo.exe linked an older D3DX statically); frozen in
+    standalone/frozen/d3dx_sizes.json so the build needs neither the SDK library listing nor a local cache"""
+    if os.path.exists(rg.frozen_path("d3dx_sizes.json")):
+        return rg.read_frozen("d3dx_sizes.json")
     r = subprocess.run([gl.tool("dumpbin"), "/nologo", "/linkermember:1", os.path.join(DXSDK_LIB, "d3dx9.lib")],
                        capture_output=True, text=True, env=gl.env, errors="replace")
     sizes = {}
     for m in re.finditer(r"(?<![\w@])_(D3DX\w*)@(\d+)", r.stdout):
         sizes.setdefault(m.group(1), int(m.group(2)))
-    json.dump(sizes, open(cache, "w"))
+    rg.write_frozen("d3dx_sizes.json", sizes)
     return sizes
 
 
 def original_ret_bytes(address):
-    """bytes a function at an original address pops on return (the immediate of its first ret), None if not found"""
+    """bytes a function at an original address pops on return (the immediate of its first ret), None if not found.
+    Answers come from standalone/frozen/code_address_ret.json; only a retail build (no HALO_NO_RETAIL) disassembles
+    bin/halo.exe for an address not frozen yet, and adds it."""
+    frozen = rg.read_frozen("code_address_ret.json") if os.path.exists(rg.frozen_path("code_address_ret.json")) else {}
+    key = "0x%06x" % address
+    if key in frozen:
+        return frozen[key]
+    if rg.NO_RETAIL:
+        return None
     r = subprocess.run(["objdump", "-d", "-M", "intel", "--start-address=0x%x" % address,
                         "--stop-address=0x%x" % (address + 0x4000), os.path.join(ROOT, "bin", "halo.exe")],
                        capture_output=True, text=True, errors="replace")
     for line in r.stdout.split("\n"):
         m = re.search(r"\tret\s*(0x[0-9a-f]+)?\s*$", line)
         if m:
-            return int(m.group(1), 16) if m.group(1) else 0
+            frozen[key] = int(m.group(1), 16) if m.group(1) else 0
+            rg.write_frozen("code_address_ret.json", frozen)
+            return frozen[key]
     return None
 
 
@@ -246,7 +258,10 @@ def main():
     imps, imp_by_slot = import_map()
     sizes = gl.stdcall_sizes()
     dx_sizes = d3dx_sizes()
-    crt = gl.game_crt()
+    # game CRT functions by name (Ghidra's library matches, frozen by gen_standalone.py), plus two it never matched
+    crt = rg.read_frozen("game_crt.json")
+    crt.setdefault("fopen", 0x624186)
+    crt.setdefault("wcscpy", 0x625bba)
     code = [".386", ".model flat", "option casemap:none", "EXTERN _standalone_missing_function:PROC", ".code"]
     data_eq, strings, report, left, traps = [], [], collections.Counter(), [], []
     externs = set()

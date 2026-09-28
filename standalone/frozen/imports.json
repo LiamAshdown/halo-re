@@ -1,0 +1,1938 @@
+[
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetProcAddress",
+  "slot": 6529176
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "VirtualAlloc",
+  "slot": 6529180
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "LoadLibraryA",
+  "slot": 6529184
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GlobalMemoryStatus",
+  "slot": 6529188
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetErrorMode",
+  "slot": 6529192
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "QueryPerformanceCounter",
+  "slot": 6529196
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GlobalAlloc",
+  "slot": 6529200
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetFileAttributesA",
+  "slot": 6529204
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CreateDirectoryA",
+  "slot": 6529208
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GlobalFree",
+  "slot": 6529212
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "QueryPerformanceFrequency",
+  "slot": 6529216
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetCurrentProcessId",
+  "slot": 6529220
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GlobalReAlloc",
+  "slot": 6529224
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetCurrentThread",
+  "slot": 6529228
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetTickCount",
+  "slot": 6529232
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FillConsoleOutputCharacterA",
+  "slot": 6529236
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetNumberOfConsoleInputEvents",
+  "slot": 6529240
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "WriteConsoleOutputCharacterA",
+  "slot": 6529244
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "ReadConsoleInputA",
+  "slot": 6529248
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetConsoleCursorPosition",
+  "slot": 6529252
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetStdHandle",
+  "slot": 6529256
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "WriteConsoleA",
+  "slot": 6529260
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetConsoleScreenBufferInfo",
+  "slot": 6529264
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetConsoleCursorInfo",
+  "slot": 6529268
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FillConsoleOutputAttribute",
+  "slot": 6529272
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetConsoleCursorInfo",
+  "slot": 6529276
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetTimeFormatA",
+  "slot": 6529280
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetDateFormatA",
+  "slot": 6529284
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "VirtualQuery",
+  "slot": 6529288
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetLocalTime",
+  "slot": 6529292
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetModuleFileNameA",
+  "slot": 6529296
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FormatMessageA",
+  "slot": 6529300
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "LocalFree",
+  "slot": 6529304
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetThreadLocale",
+  "slot": 6529308
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetThreadLocale",
+  "slot": 6529312
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FindFirstFileA",
+  "slot": 6529316
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CopyFileA",
+  "slot": 6529320
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FindClose",
+  "slot": 6529324
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FindNextFileA",
+  "slot": 6529328
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "DeleteFileA",
+  "slot": 6529332
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetDiskFreeSpaceExA",
+  "slot": 6529336
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GlobalLock",
+  "slot": 6529340
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetACP",
+  "slot": 6529344
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GlobalUnlock",
+  "slot": 6529348
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "LocalAlloc",
+  "slot": 6529352
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetCurrentDirectoryA",
+  "slot": 6529356
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetVersionExA",
+  "slot": 6529360
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetTempPathA",
+  "slot": 6529364
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetPriorityClass",
+  "slot": 6529368
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetPriorityClass",
+  "slot": 6529372
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CreateProcessA",
+  "slot": 6529376
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "TerminateProcess",
+  "slot": 6529380
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "MultiByteToWideChar",
+  "slot": 6529384
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetModuleHandleA",
+  "slot": 6529388
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetCurrentThreadId",
+  "slot": 6529392
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "DuplicateHandle",
+  "slot": 6529396
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "RemoveDirectoryA",
+  "slot": 6529400
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetFileAttributesExA",
+  "slot": 6529404
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetFileAttributesA",
+  "slot": 6529408
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "WideCharToMultiByte",
+  "slot": 6529412
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetThreadPriority",
+  "slot": 6529416
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "LoadResource",
+  "slot": 6529420
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "LockResource",
+  "slot": 6529424
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CreateFileW",
+  "slot": 6529428
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "VirtualFree",
+  "slot": 6529432
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FindResourceA",
+  "slot": 6529436
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FindResourceW",
+  "slot": 6529440
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetSystemInfo",
+  "slot": 6529444
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "IsProcessorFeaturePresent",
+  "slot": 6529448
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "lstrcmpiA",
+  "slot": 6529452
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetFullPathNameA",
+  "slot": 6529456
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "HeapAlloc",
+  "slot": 6529460
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetProcessHeap",
+  "slot": 6529464
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "HeapFree",
+  "slot": 6529468
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetLocaleInfoW",
+  "slot": 6529472
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "IsBadCodePtr",
+  "slot": 6529476
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "IsBadReadPtr",
+  "slot": 6529480
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetUnhandledExceptionFilter",
+  "slot": 6529484
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "IsBadWritePtr",
+  "slot": 6529488
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "HeapCreate",
+  "slot": 6529492
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "HeapDestroy",
+  "slot": 6529496
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetEnvironmentStringsW",
+  "slot": 6529500
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FreeEnvironmentStringsW",
+  "slot": 6529504
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetEnvironmentStrings",
+  "slot": 6529508
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FreeEnvironmentStringsA",
+  "slot": 6529512
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetStdHandle",
+  "slot": 6529516
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CompareStringW",
+  "slot": 6529520
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CompareStringA",
+  "slot": 6529524
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetStringTypeW",
+  "slot": 6529528
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetStringTypeA",
+  "slot": 6529532
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "IsValidCodePage",
+  "slot": 6529536
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "IsValidLocale",
+  "slot": 6529540
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetEnvironmentVariableA",
+  "slot": 6529544
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "EnumSystemLocalesA",
+  "slot": 6529548
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetLocaleInfoA",
+  "slot": 6529552
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetUserDefaultLCID",
+  "slot": 6529556
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "UnhandledExceptionFilter",
+  "slot": 6529560
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetCPInfo",
+  "slot": 6529564
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetOEMCP",
+  "slot": 6529568
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetTimeZoneInformation",
+  "slot": 6529572
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "HeapSize",
+  "slot": 6529576
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "LCMapStringW",
+  "slot": 6529580
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "LCMapStringA",
+  "slot": 6529584
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "TlsGetValue",
+  "slot": 6529588
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "TlsSetValue",
+  "slot": 6529592
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "TlsFree",
+  "slot": 6529596
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "TlsAlloc",
+  "slot": 6529600
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetFileType",
+  "slot": 6529604
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetHandleCount",
+  "slot": 6529608
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FlushFileBuffers",
+  "slot": 6529612
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "HeapReAlloc",
+  "slot": 6529616
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "RtlUnwind",
+  "slot": 6529620
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetCommandLineA",
+  "slot": 6529624
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetStartupInfoA",
+  "slot": 6529628
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetSystemTimeAsFileTime",
+  "slot": 6529632
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "RaiseException",
+  "slot": 6529636
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "InterlockedExchange",
+  "slot": 6529640
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "LeaveCriticalSection",
+  "slot": 6529644
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "EnterCriticalSection",
+  "slot": 6529648
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "DeleteCriticalSection",
+  "slot": 6529652
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "InitializeCriticalSection",
+  "slot": 6529656
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "ReadFileEx",
+  "slot": 6529660
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetLastError",
+  "slot": 6529664
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetLastError",
+  "slot": 6529668
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CreateEventA",
+  "slot": 6529672
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "WaitForSingleObjectEx",
+  "slot": 6529676
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SleepEx",
+  "slot": 6529680
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetEvent",
+  "slot": 6529684
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "VirtualProtect",
+  "slot": 6529688
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "Sleep",
+  "slot": 6529692
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CreateFileMappingA",
+  "slot": 6529696
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetEndOfFile",
+  "slot": 6529700
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "UnmapViewOfFile",
+  "slot": 6529704
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "MapViewOfFile",
+  "slot": 6529708
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetFilePointer",
+  "slot": 6529712
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetFileSize",
+  "slot": 6529716
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CreateFileA",
+  "slot": 6529720
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "ExitThread",
+  "slot": 6529724
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetCurrentProcess",
+  "slot": 6529728
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FreeLibrary",
+  "slot": 6529732
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "ExitProcess",
+  "slot": 6529736
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "WriteFile",
+  "slot": 6529740
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetSystemTime",
+  "slot": 6529744
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetFileTime",
+  "slot": 6529748
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "ReadFile",
+  "slot": 6529752
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetFileTime",
+  "slot": 6529756
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CompareFileTime",
+  "slot": 6529760
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SizeofResource",
+  "slot": 6529764
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SystemTimeToFileTime",
+  "slot": 6529768
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "TerminateThread",
+  "slot": 6529772
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CreateThread",
+  "slot": 6529776
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "ResumeThread",
+  "slot": 6529780
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CloseHandle",
+  "slot": 6529784
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "ReleaseMutex",
+  "slot": 6529788
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "CreateMutexA",
+  "slot": 6529792
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "GetExitCodeThread",
+  "slot": 6529796
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "SetThreadPriority",
+  "slot": 6529800
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "FindResourceExA",
+  "slot": 6529804
+ },
+ {
+  "delay": false,
+  "dll": "KERNEL32.dll",
+  "name": "WaitForSingleObject",
+  "slot": 6529808
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetPropA",
+  "slot": 6529828
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "LoadStringA",
+  "slot": 6529832
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetParent",
+  "slot": 6529836
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "RemovePropA",
+  "slot": 6529840
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SendMessageA",
+  "slot": 6529844
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "PtInRect",
+  "slot": 6529848
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetCapture",
+  "slot": 6529852
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetPropA",
+  "slot": 6529856
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "InvalidateRect",
+  "slot": 6529860
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetWindowLongA",
+  "slot": 6529864
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetDlgItem",
+  "slot": 6529868
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetCapture",
+  "slot": 6529872
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "IsDlgButtonChecked",
+  "slot": 6529876
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "ReleaseCapture",
+  "slot": 6529880
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetWindowTextA",
+  "slot": 6529884
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "EnableWindow",
+  "slot": 6529888
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "DispatchMessageA",
+  "slot": 6529892
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "PeekMessageA",
+  "slot": 6529896
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "TranslateMessage",
+  "slot": 6529900
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "MessageBoxA",
+  "slot": 6529904
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "LoadCursorA",
+  "slot": 6529908
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetCursor",
+  "slot": 6529912
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "ClientToScreen",
+  "slot": 6529916
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "EndDialog",
+  "slot": 6529920
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "CallWindowProcA",
+  "slot": 6529924
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "DialogBoxIndirectParamA",
+  "slot": 6529928
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "DialogBoxParamA",
+  "slot": 6529932
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetDlgItemTextA",
+  "slot": 6529936
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "CreateDialogIndirectParamA",
+  "slot": 6529940
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetWindowPos",
+  "slot": 6529944
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetWindowPlacement",
+  "slot": 6529948
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "FindWindowA",
+  "slot": 6529952
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "CloseClipboard",
+  "slot": 6529956
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "PostQuitMessage",
+  "slot": 6529960
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "IsClipboardFormatAvailable",
+  "slot": 6529964
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "wsprintfA",
+  "slot": 6529968
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetClientRect",
+  "slot": 6529972
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetDoubleClickTime",
+  "slot": 6529976
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetForegroundWindow",
+  "slot": 6529980
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetClipboardData",
+  "slot": 6529984
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "DefWindowProcA",
+  "slot": 6529988
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "OpenClipboard",
+  "slot": 6529992
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "ValidateRect",
+  "slot": 6529996
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "DestroyWindow",
+  "slot": 6530000
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetActiveWindow",
+  "slot": 6530004
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "RegisterClassExA",
+  "slot": 6530008
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetForegroundWindow",
+  "slot": 6530012
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "LoadBitmapA",
+  "slot": 6530016
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "LoadIconA",
+  "slot": 6530020
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetFocus",
+  "slot": 6530024
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetDC",
+  "slot": 6530028
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "ShowCursor",
+  "slot": 6530032
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "SetWindowLongA",
+  "slot": 6530036
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "UnregisterClassA",
+  "slot": 6530040
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "ReleaseDC",
+  "slot": 6530044
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "ShowWindow",
+  "slot": 6530048
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "AdjustWindowRect",
+  "slot": 6530052
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "MoveWindow",
+  "slot": 6530056
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "MsgWaitForMultipleObjects",
+  "slot": 6530060
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetCursorPos",
+  "slot": 6530064
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetWindowRect",
+  "slot": 6530068
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetDesktopWindow",
+  "slot": 6530072
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetKeyState",
+  "slot": 6530076
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetAsyncKeyState",
+  "slot": 6530080
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetActiveWindow",
+  "slot": 6530084
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "GetSystemMetrics",
+  "slot": 6530088
+ },
+ {
+  "delay": false,
+  "dll": "USER32.dll",
+  "name": "CreateWindowExA",
+  "slot": 6530092
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "CreateFontIndirectA",
+  "slot": 6529132
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "StretchBlt",
+  "slot": 6529136
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "GetObjectA",
+  "slot": 6529140
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "GetDeviceGammaRamp",
+  "slot": 6529144
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "SetDeviceGammaRamp",
+  "slot": 6529148
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "GetDeviceCaps",
+  "slot": 6529152
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "DeleteObject",
+  "slot": 6529156
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "SelectObject",
+  "slot": 6529160
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "CreateCompatibleDC",
+  "slot": 6529164
+ },
+ {
+  "delay": false,
+  "dll": "GDI32.dll",
+  "name": "SetTextColor",
+  "slot": 6529168
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "SetSecurityDescriptorGroup",
+  "slot": 6529024
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "OpenProcessToken",
+  "slot": 6529028
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "RegCreateKeyExA",
+  "slot": 6529032
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "RegSetValueExA",
+  "slot": 6529036
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "RegCloseKey",
+  "slot": 6529040
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "RegOpenKeyExA",
+  "slot": 6529044
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "RegQueryValueExA",
+  "slot": 6529048
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "AccessCheck",
+  "slot": 6529052
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "DuplicateToken",
+  "slot": 6529056
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "InitializeSecurityDescriptor",
+  "slot": 6529060
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "SetSecurityDescriptorDacl",
+  "slot": 6529064
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "InitializeAcl",
+  "slot": 6529068
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "AllocateAndInitializeSid",
+  "slot": 6529072
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "SetSecurityDescriptorOwner",
+  "slot": 6529076
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "AddAccessAllowedAce",
+  "slot": 6529080
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "FreeSid",
+  "slot": 6529084
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "IsValidSecurityDescriptor",
+  "slot": 6529088
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "GetLengthSid",
+  "slot": 6529092
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "CryptGetHashParam",
+  "slot": 6529096
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "CryptReleaseContext",
+  "slot": 6529100
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "CryptAcquireContextA",
+  "slot": 6529104
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "CryptCreateHash",
+  "slot": 6529108
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "CryptDestroyHash",
+  "slot": 6529112
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "CryptHashData",
+  "slot": 6529116
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "RegOpenKeyA",
+  "slot": 6529120
+ },
+ {
+  "delay": false,
+  "dll": "ADVAPI32.dll",
+  "name": "OpenThreadToken",
+  "slot": 6529124
+ },
+ {
+  "delay": false,
+  "dll": "ole32.dll",
+  "name": "CoCreateInstance",
+  "slot": 6530100
+ },
+ {
+  "delay": false,
+  "dll": "ole32.dll",
+  "name": "CoInitialize",
+  "slot": 6530104
+ },
+ {
+  "delay": false,
+  "dll": "ole32.dll",
+  "name": "StringFromGUID2",
+  "slot": 6530108
+ },
+ {
+  "delay": false,
+  "dll": "ole32.dll",
+  "name": "CLSIDFromString",
+  "slot": 6530112
+ },
+ {
+  "delay": false,
+  "dll": "ole32.dll",
+  "name": "CoUninitialize",
+  "slot": 6530116
+ },
+ {
+  "delay": false,
+  "dll": "OLEAUT32.dll",
+  "name": "#9",
+  "slot": 6529816
+ },
+ {
+  "delay": false,
+  "dll": "OLEAUT32.dll",
+  "name": "#8",
+  "slot": 6529820
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#23",
+  "slot": 6946788
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#17",
+  "slot": 6946792
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#111",
+  "slot": 6946796
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#57",
+  "slot": 6946800
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#115",
+  "slot": 6946804
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#52",
+  "slot": 6946808
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#11",
+  "slot": 6946812
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#21",
+  "slot": 6946816
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#12",
+  "slot": 6946820
+ },
+ {
+  "delay": true,
+  "dll": "WS2_32.dll",
+  "module_handle_slot": 6946976,
+  "name": "#20",
+  "slot": 6946824
+ },
+ {
+  "delay": true,
+  "dll": "DSOUND.dll",
+  "module_handle_slot": 6956168,
+  "name": "#9",
+  "slot": 6946736
+ },
+ {
+  "delay": true,
+  "dll": "WINMM.dll",
+  "module_handle_slot": 6956172,
+  "name": "timeBeginPeriod",
+  "slot": 6946776
+ },
+ {
+  "delay": true,
+  "dll": "WINMM.dll",
+  "module_handle_slot": 6956172,
+  "name": "timeEndPeriod",
+  "slot": 6946780
+ },
+ {
+  "delay": true,
+  "dll": "vorbisfile.dll",
+  "module_handle_slot": 6956176,
+  "name": "ov_open_callbacks",
+  "slot": 6946936
+ },
+ {
+  "delay": true,
+  "dll": "vorbisfile.dll",
+  "module_handle_slot": 6956176,
+  "name": "ov_read",
+  "slot": 6946940
+ },
+ {
+  "delay": true,
+  "dll": "vorbisfile.dll",
+  "module_handle_slot": 6956176,
+  "name": "ov_clear",
+  "slot": 6946944
+ },
+ {
+  "delay": true,
+  "dll": "vorbisfile.dll",
+  "module_handle_slot": 6956176,
+  "name": "ov_crosslap",
+  "slot": 6946948
+ },
+ {
+  "delay": true,
+  "dll": "SHELL32.dll",
+  "module_handle_slot": 6959776,
+  "name": "ShellExecuteA",
+  "slot": 6946744
+ },
+ {
+  "delay": true,
+  "dll": "binkw32.dll",
+  "module_handle_slot": 6961368,
+  "name": "_BinkOpenDirectSound@4",
+  "slot": 6946896
+ },
+ {
+  "delay": true,
+  "dll": "binkw32.dll",
+  "module_handle_slot": 6961368,
+  "name": "_BinkCopyToBuffer@28",
+  "slot": 6946900
+ },
+ {
+  "delay": true,
+  "dll": "binkw32.dll",
+  "module_handle_slot": 6961368,
+  "name": "_BinkPause@8",
+  "slot": 6946904
+ },
+ {
+  "delay": true,
+  "dll": "binkw32.dll",
+  "module_handle_slot": 6961368,
+  "name": "_BinkNextFrame@4",
+  "slot": 6946908
+ },
+ {
+  "delay": true,
+  "dll": "binkw32.dll",
+  "module_handle_slot": 6961368,
+  "name": "_BinkWait@4",
+  "slot": 6946912
+ },
+ {
+  "delay": true,
+  "dll": "binkw32.dll",
+  "module_handle_slot": 6961368,
+  "name": "_BinkOpen@8",
+  "slot": 6946916
+ },
+ {
+  "delay": true,
+  "dll": "binkw32.dll",
+  "module_handle_slot": 6961368,
+  "name": "_BinkClose@4",
+  "slot": 6946920
+ },
+ {
+  "delay": true,
+  "dll": "binkw32.dll",
+  "module_handle_slot": 6961368,
+  "name": "_BinkSetSoundSystem@8",
+  "slot": 6946924
+ },
+ {
+  "delay": true,
+  "dll": "binkw32.dll",
+  "module_handle_slot": 6961368,
+  "name": "_BinkDoFrame@4",
+  "slot": 6946928
+ },
+ {
+  "delay": true,
+  "dll": "WININET.dll",
+  "module_handle_slot": 6961372,
+  "name": "InternetQueryOptionA",
+  "slot": 6946768
+ },
+ {
+  "delay": true,
+  "dll": "VERSION.dll",
+  "module_handle_slot": 6961376,
+  "name": "GetFileVersionInfoSizeA",
+  "slot": 6946752
+ },
+ {
+  "delay": true,
+  "dll": "VERSION.dll",
+  "module_handle_slot": 6961376,
+  "name": "VerQueryValueA",
+  "slot": 6946756
+ },
+ {
+  "delay": true,
+  "dll": "VERSION.dll",
+  "module_handle_slot": 6961376,
+  "name": "GetFileVersionInfoA",
+  "slot": 6946760
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#18",
+  "slot": 6946832
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#2",
+  "slot": 6946836
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#3",
+  "slot": 6946840
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#151",
+  "slot": 6946844
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#6",
+  "slot": 6946848
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#9",
+  "slot": 6946852
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#15",
+  "slot": 6946856
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#8",
+  "slot": 6946860
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#116",
+  "slot": 6946864
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#12",
+  "slot": 6946868
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#19",
+  "slot": 6946872
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#16",
+  "slot": 6946876
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#22",
+  "slot": 6946880
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#4",
+  "slot": 6946884
+ },
+ {
+  "delay": true,
+  "dll": "WSOCK32.dll",
+  "module_handle_slot": 6961380,
+  "name": "#14",
+  "slot": 6946888
+ }
+]
