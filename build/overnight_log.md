@@ -2421,3 +2421,19 @@ Relinked: unresolved 1, traps 127.
 - NEXT: natneg (NNBeginNegotiationWithSocket 0x614f30 and its engine), qr2 core (0x616340 qr2_init..), SB query
   engine / serverbrowsing (0x61e5b0..0x6202b0), GT2 core (0x619b90 think, 0x61c3e0..), gcdkey (0x61aa50), ghttp
   (0x620520..0x623110), then game-side network_channel_gap_*, autopatch callbacks, the '?' names.
+### iteration 8 (2026-09-28) -- commits f7ef7c6..7b2e3ff, relinked (0 unresolved, traps 61 -> 41)
+- gamespy: qr2_buffer_add_int, gt2Listen, gt2SetReceiveDump, gcd_getkeyhash, gcd_compute_response (MD5 already in
+  cseries), ServerBrowserState/Count/GetServer/public ip, ghttpSetProxy; the whole gcdkey server (16 functions).
+- networking callbacks written: 0x441f30 (GT2 connection callback), 0x5777d0 (autopatch check result), 0x4ba660
+  (server browser list callback), 0x5760a0 (CD key result).
+- REWRITTEN (register-lost end to end, found while wiring gcd_authenticate_user): the host join path -- the message
+  dispatcher's join cases, join request handler 0x4e21d0 (reason codes 0/6/1/2/3 and the accept packet), join
+  confirm 0x4e2400, network_join_request_reset_state 0x4e0ab0 (really: the CD key check of a joining machine),
+  0x575ff0 (really: gcd_authenticate_user + ban check), network_server_notify_or_resend_challenge 0x4e0af0 (its stack
+  server was dropped; payload = the reason).
+- OPEN (important): src/networking has many C-to-C calls with lost or invented register arguments (its README even
+  accepts "signature disagreements"); e.g. network_game_process_incoming_message still calls most handlers with no
+  arguments. Multiplayer needs a networking call audit (every extern's arity/order vs the callee's definition and the
+  binary call site) -- after the traps are gone.
+- NEXT: natneg (0x614ab0..0x615360), qr2 core (0x615600..0x616340), SB query engine, GT2 core, ghttp/autopatch
+  (0x61bd00..0x61c260, 0x620520..0x623110), then 0x441020/0x441040/0x441060/0x4410b0/0x441200 and the '?' names.
