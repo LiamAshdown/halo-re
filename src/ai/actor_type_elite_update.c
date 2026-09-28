@@ -97,10 +97,10 @@ void actor_type_elite_update(datum_index actor_index)
 
             if (limit > *(float *)(act + 0x1bc)) {
                 act[0xa4] = 1;
-                *(int16_t *)(act + 0xa8) = 30;
+                ((struct actor *)act)->mode_data.flee.panic = 30;
             } else {
                 act[0xa4] = 0;
-                *(int16_t *)(act + 0xa8) = 0;
+                ((struct actor *)act)->mode_data.flee.panic = 0;
             }
         }
         actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);

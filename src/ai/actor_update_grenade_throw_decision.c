@@ -35,7 +35,7 @@ uint8_t actor_update_grenade_throw_decision(datum_index actor_index)
     int16_t mode = ((actor *)act)->mode;
     uint8_t result = 0;
 
-    if (((actor *)act)->target_combat_status < 5 || (mode == 4 && *(int16_t *)(act + 0xa8) > 0)) {
+    if (((actor *)act)->target_combat_status < 5 || (mode == 4 && ((struct actor *)act)->mode_data.flee.panic > 0)) {
         act[0x6a0] = 0;
         return 0;
     }
@@ -46,7 +46,7 @@ uint8_t actor_update_grenade_throw_decision(datum_index actor_index)
         }
         break;
     case 2:
-        if (PROP(((actor *)act)->target_unit_index)[0x14] || (mode == 4 && *(int16_t *)(act + 0xa8) == 0)) {
+        if (PROP(((actor *)act)->target_unit_index)[0x14] || (mode == 4 && ((struct actor *)act)->mode_data.flee.panic == 0)) {
             result = actor_consider_grenade_throw(actor_index);
         }
         break;

@@ -90,7 +90,7 @@ void actor_type_grunt_update(datum_index actor_index)
         actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4: // flee: a grunt that can panic (+0x247) panics for real unless its flee kind is a grenade throw
-        if (panics && *(int16_t *)(act + 0xa8) > 0 && !actor_order_code_is_grenade_throw(*(int16_t *)(act + 0xa8))) {
+        if (panics && ((struct actor *)act)->mode_data.flee.panic > 0 && !actor_order_code_is_grenade_throw(((struct actor *)act)->mode_data.flee.panic)) {
             act[0xab] = 1;
         }
         if (act[0xaa]) {
@@ -100,7 +100,7 @@ void actor_type_grunt_update(datum_index actor_index)
         if (actor_flee_look_away(actor_index)) {
             return;
         }
-        if (*(int16_t *)(act + 0xa8) == 0 && *(int16_t *)(act + 0x6e) >= 5) {
+        if (((struct actor *)act)->mode_data.flee.panic == 0 && *(int16_t *)(act + 0x6e) >= 5) {
             actor_consider_grenade_throw(actor_index);
         }
         return;

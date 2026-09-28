@@ -29,7 +29,7 @@ uint8_t ai_dialogue_condition_42f650(datum_index object_index, uint32_t param_2,
     uint8_t *actor = ACTOR(actor_index);
     uint8_t result = (uint8_t)(*(int16_t *)(actor + 0x6e) >= 7);
 
-    if (result && ((struct actor *)actor)->mode == 4 && *(int16_t *)(actor + 0xa8) > 0) {
+    if (result && ((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {
         result = 0;
     }
     return result;

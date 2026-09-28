@@ -50,7 +50,7 @@ uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
     uint8_t order[k_actor_mode_data_size];
     real_point3d position;
 
-    if ((mode == 4 && *(int16_t *)(act + 0xa8) > 0) || mode == 11) {
+    if ((mode == 4 && ((struct actor *)act)->mode_data.flee.panic > 0) || mode == 11) {
         return 0;
     }
     if (*(int32_t *)(act + 0x384) != -1 && *(int32_t *)(act + 0x384) + 45 >= now) {

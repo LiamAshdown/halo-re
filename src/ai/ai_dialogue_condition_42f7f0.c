@@ -31,7 +31,7 @@ uint8_t ai_dialogue_condition_42f7f0(datum_index object_index, uint32_t param_2,
     if (*(int16_t *)(actor + 0x6e) < 7) {
         return 0;
     }
-    if (((struct actor *)actor)->mode == 4 && *(int16_t *)(actor + 0xa8) > 0) {
+    if (((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {
         return 0;
     }
     return (uint8_t)(((struct actor *)actor)->type == 0);
