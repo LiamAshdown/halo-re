@@ -38,6 +38,10 @@
 // (0x4bc250) is one of Ghidra's misses, so nothing in the export writes them.
 // reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
 
+// FIXED 2026-09-28 (networking call audit): message_delta_decode_compound_field / _forced / _staged take the
+// decode context first (EAX) and the destination second (ECX); the calls here had the context missing or the two
+// swapped.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -54,8 +58,8 @@ extern uint8_t *network_message_table_b; // 0x00687558, same shape (src/units sp
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0, out = stack_operand x ecx_operand
-extern uint8_t message_delta_decode_compound_field(void *out_record); // 0x4ec590, networking; out_record in ECX
-extern int32_t message_delta_decode_compound_field_staged(void);                // 0x4ec670, networking; drops the message
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 extern void network_index_cache_insert_if_free(int32_t object_hash); // 0x4e9cd0, networking; see file header
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 extern void object_set_position_and_recalculate(real_point3d *position, datum_index object_index); // 0x4f52c0
@@ -78,10 +82,10 @@ void equipment_create_from_creation_message(void *incoming_record)
 
     // The mode word sits behind two indirections; nonzero means "not a create for us".
     if (*(int32_t *)*(int32_t **)incoming_record != 0) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(incoming_record);
         return;
     }
-    if (message_delta_decode_compound_field(&decoded) != 1) { // the original tests == 1, not merely non-zero
+    if (message_delta_decode_compound_field(incoming_record, &decoded) != 1) { // the original tests == 1, not merely non-zero
         return;
     }
 

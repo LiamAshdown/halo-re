@@ -38,6 +38,10 @@
 //   (_object_needs_cluster_update_bit) instead of _object_at_rest_bit.
 // reconciled: R26 object +0x18/+0x1c/+0x44/+0x48 raw writes -> network_position_valid/network_position/network_velocity_valid/network_velocity
 
+// FIXED 2026-09-28 (networking call audit): message_delta_decode_compound_field / _forced / _staged take the
+// decode context first (EAX) and the destination second (ECX); the calls here had the context missing or the two
+// swapped.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -52,11 +56,11 @@ extern double sqrt(double x); // declared locally, as in weapon_apply_network_up
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0,
     // blam-cc: ECX -> object_index, stack -> type_mask
-extern int32_t message_delta_decode_compound_field_staged(void); // 0x4ec670, networking; drops the message
-extern uint8_t message_delta_decode_compound_field_forced(void *out_state, void *baseline_state, uint32_t *update_record,
-                            int32_t param); // 0x4ec600, networking; delta decode.
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
+extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination,
+    int32_t changed_offset, uint8_t force); // 0x4ec600, EAX context, ECX destination, EDX baseline, stack force
     // blam-cc: ECX -> out_state, EDX -> baseline_state, EAX -> update_record, stack -> 0
-extern uint8_t message_delta_decode_compound_field(void *out_state, uint32_t *update_record); // 0x4ec590, networking;
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
     // full/creation decode. blam-cc: ECX -> out_state, EAX -> update_record
 extern void object_set_position_and_recalculate(real_point3d *position, datum_index object_index); // 0x4f52c0,
     // blam-cc: ESI -> position, EDI -> object_index
@@ -71,7 +75,7 @@ void equipment_apply_network_update(datum_index item_index, uint32_t *update_rec
 
     obj = object_try_and_get(item_index, _object_mask_equipment);
     if (obj == 0) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(update_record);
         return;
     }
     ed = (equipment_data *)((uint8_t *)obj + k_item_extension_offset);
@@ -81,7 +85,7 @@ void equipment_apply_network_update(datum_index item_index, uint32_t *update_rec
         (header->baseline_index != ed->network_baseline_index ||
          (header->sequence <= ed->network_sequence &&
           (int)((uint32_t)(header->sequence - ed->network_sequence) + 0xff) > 0x1d))) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(update_record);
         return;
     }
 
@@ -90,8 +94,8 @@ void equipment_apply_network_update(datum_index item_index, uint32_t *update_rec
 
     {
         uint8_t accept = (*(int32_t *)update_record[0] == 1)
-                             ? message_delta_decode_compound_field_forced(&decoded, &ed->network_state, update_record, 0)
-                             : message_delta_decode_compound_field(&decoded, update_record);
+                             ? message_delta_decode_compound_field_forced(update_record, &decoded, (int32_t)&ed->network_state, 0)
+                             : message_delta_decode_compound_field(update_record, &decoded);
         if (accept != 0) {
             ed->network_sequence = header->sequence;
             obj->flags |= _object_took_network_update_bit;

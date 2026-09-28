@@ -24,6 +24,10 @@
 //   (`mov eax,ds:0x696714 ... mov [esi+0x68],...`) rather than a literal zero store; preserved
 //   as an explicit real_vector3d zero-assign since the effect is identical.
 
+// FIXED 2026-09-28 (networking call audit): message_delta_decode_compound_field / _forced / _staged take the
+// decode context first (EAX) and the destination second (ECX); the calls here had the context missing or the two
+// swapped.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -35,11 +39,11 @@ extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t *object_pooled_node_globals; // 0x00687130
 
-extern uint8_t message_delta_decode_compound_field(void *out_state, void *incoming_record); // 0x4ec590, networking;
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
     // decodes the message body into out_state.
     // blam-cc: ECX -> out_state, EAX -> incoming_record (0x4ec590 opens with
     // `mov edi,[eax]` and passes ECX straight through to 0x4ed1d0)
-extern int32_t message_delta_decode_compound_field_staged(void); // 0x4ec670, networking; drops the message
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index); // 0x4f6440
 extern real random_real_range(real min, real max); // 0x401050, math module
@@ -62,10 +66,10 @@ void projectile_attach_apply(void *incoming_record)
     object *self, *parent;
 
     if (*(int32_t *)*(int32_t **)incoming_record != 0) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(incoming_record);
         return;
     }
-    if (message_delta_decode_compound_field(&decoded, incoming_record) == 0) {
+    if (message_delta_decode_compound_field(incoming_record, &decoded) == 0) {
         return;
     }
 

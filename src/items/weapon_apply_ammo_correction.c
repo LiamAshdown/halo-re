@@ -36,6 +36,10 @@
 // it. It is a dead compare in the shipped code (the reload state is overwritten unconditionally
 // two instructions later), so it is not reproduced as a condition here.
 
+// FIXED 2026-09-28 (networking call audit): message_delta_decode_compound_field / _forced / _staged take the
+// decode context first (EAX) and the destination second (ECX); the calls here had the context missing or the two
+// swapped.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -43,8 +47,8 @@
 #include "items.h"
 
 extern uint8_t *object_pooled_node_globals; // 0x00687130, see weapon_add_ammunition.c
-extern uint8_t message_delta_decode_compound_field(void *out_record); // 0x4ec590, networking; out_record in ECX
-extern int32_t message_delta_decode_compound_field_staged(void);                // 0x4ec670, networking; drops the message
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 
 // Applies a host-confirmed ammo correction to one magazine, forces it into the chamber-pending
@@ -58,10 +62,10 @@ void weapon_apply_ammo_correction(void **message_record)
     datum_index item_index;
 
     if (*(int32_t *)*message_record != 0) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(message_record);
         return;
     }
-    if ((int8_t)message_delta_decode_compound_field(&decoded) == 0) {
+    if ((int8_t)message_delta_decode_compound_field(message_record, &decoded) == 0) {
         return;
     }
 

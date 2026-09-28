@@ -25,6 +25,10 @@
 //   as weapon_create_from_creation_message's incoming_record.
 // blam-cc: EAX -> incoming_record
 
+// FIXED 2026-09-28 (networking call audit): message_delta_decode_compound_field / _forced / _staged take the
+// decode context first (EAX) and the destination second (ECX); the calls here had the context missing or the two
+// swapped.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -36,12 +40,12 @@ extern uint8_t *object_pooled_node_globals; // 0x00687130
 extern void *object_pooled_node_globals_006870d8; // 0x006870d8, see
     // src/objects/object_delete_by_pooled_node_id.c
 
-extern uint8_t message_delta_decode_compound_field(void *out_state, void *incoming_record); // 0x4ec590, networking;
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
     // decodes the message body into out_state.
     // blam-cc: ECX -> out_state, EAX -> incoming_record (0x4ec590 opens with
     // `mov edi,[eax]` and passes ECX straight through to 0x4ed1d0). Returns nonzero (tested
     // here as != 0, not == 1) when a message was decoded.
-extern int32_t message_delta_decode_compound_field_staged(void); // 0x4ec670, networking; drops the message
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 extern void network_index_cache_remove(void *globals, uint32_t object_index); // 0x4e9d40, opaque, out of range
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_set_position_and_recalculate(real_point3d *position, datum_index object_index); // 0x4f52c0
@@ -66,10 +70,10 @@ void projectile_detonation_message_apply(void *incoming_record)
 
     // The mode word sits behind two indirections; nonzero means "not for us".
     if (*(int32_t *)*(int32_t **)incoming_record != 0) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(incoming_record);
         return;
     }
-    if (message_delta_decode_compound_field(&decoded, incoming_record) == 0 || decoded.object_hash == 0) {
+    if (message_delta_decode_compound_field(incoming_record, &decoded) == 0 || decoded.object_hash == 0) {
         return;
     }
 

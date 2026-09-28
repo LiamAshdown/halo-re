@@ -38,6 +38,10 @@
 //   (0x4c11da `lea ecx,[ebp+0x5c]`), EAX = the decoded position (`lea eax,[esp+0x10]`).
 // reconciled: R26 object +0x18/+0x1c/+0x44/+0x48 raw writes -> network_position_valid/network_position/network_velocity_valid/network_velocity
 
+// FIXED 2026-09-28 (networking call audit): message_delta_decode_compound_field / _forced / _staged take the
+// decode context first (EAX) and the destination second (ECX); the calls here had the context missing or the two
+// swapped.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -49,11 +53,11 @@ extern real projectile_network_update_position_tolerance; // 0x00696140
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0, math module
-extern int32_t message_delta_decode_compound_field_staged(void); // 0x4ec670, networking; drops the message
-extern uint8_t message_delta_decode_compound_field_forced(void *out_state, void *baseline_state, uint32_t *update_record,
-                            int32_t param); // 0x4ec600, networking; delta decode.
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
+extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination,
+    int32_t changed_offset, uint8_t force); // 0x4ec600, EAX context, ECX destination, EDX baseline, stack force
     // blam-cc: ECX -> out_state, EDX -> baseline_state, EAX -> update_record, stack -> 0
-extern uint8_t message_delta_decode_compound_field(void *out_state, void *incoming_record); // 0x4ec590, networking;
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
     // decodes the message body into out_state.
     // blam-cc: ECX -> out_state, EAX -> incoming_record (0x4ec590 opens with
     // `mov edi,[eax]` and passes ECX straight through to 0x4ed1d0). This is the full/creation
@@ -69,7 +73,7 @@ void projectile_apply_network_update(datum_index projectile_index, uint32_t *upd
 
     obj = object_try_and_get(projectile_index, _object_mask_projectile);
     if (obj == 0) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(update_record);
         return;
     }
     proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
@@ -79,7 +83,7 @@ void projectile_apply_network_update(datum_index projectile_index, uint32_t *upd
         (header->baseline_index != proj->network_baseline_index ||
          (header->sequence <= proj->network_sequence &&
           (int)((uint32_t)(header->sequence - proj->network_sequence) + 0xff) > 0x1d))) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(update_record);
         return;
     }
 
@@ -88,8 +92,8 @@ void projectile_apply_network_update(datum_index projectile_index, uint32_t *upd
 
     {
         uint8_t accept = (*(int32_t *)update_record[0] == 1)
-                             ? message_delta_decode_compound_field_forced(&decoded, &proj->network_state, update_record, 0)
-                             : message_delta_decode_compound_field(&decoded, update_record);
+                             ? message_delta_decode_compound_field_forced(update_record, &decoded, (int32_t)&proj->network_state, 0)
+                             : message_delta_decode_compound_field(update_record, &decoded);
         if (accept != 0) {
             proj->network_sequence = header->sequence;
             obj->flags |= _object_took_network_update_bit;

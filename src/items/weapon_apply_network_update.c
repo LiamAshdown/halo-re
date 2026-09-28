@@ -30,6 +30,10 @@
 // snapshot. The dx/dy/dz temporaries below reproduce the real behaviour, not Ghidra's.
 // reconciled: R26 object +0x18/+0x1c/+0x44/+0x48 raw writes -> network_position_valid/network_position/network_velocity_valid/network_velocity
 
+// FIXED 2026-09-28 (networking call audit): message_delta_decode_compound_field / _forced / _staged take the
+// decode context first (EAX) and the destination second (ECX); the calls here had the context missing or the two
+// swapped.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -45,9 +49,10 @@ extern real weapon_network_update_position_tolerance; // 0x00696550
 extern double sqrt(double x);
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern int32_t message_delta_decode_compound_field_staged(void); // 0x4ec670, outside this module, UNSURE signature (reject path)
-extern uint8_t message_delta_decode_compound_field_forced(int32_t param); // 0x4ec600, outside this module, UNSURE signature
-extern uint8_t message_delta_decode_compound_field(void *out_record); // 0x4ec590, networking; out_record in ECX
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
+extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination,
+    int32_t changed_offset, uint8_t force); // 0x4ec600, EAX context, ECX destination, EDX baseline, stack force
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
     // (see src/items/weapon_predict_ammo.c for the resolved convention). UNSURE: this call
     // site sets up no ECX of its own, so it is passed as 0 here.
 extern void object_set_position_and_recalculate(real_point3d *position, datum_index object_index); // 0x4f52c0
@@ -67,7 +72,7 @@ void weapon_apply_network_update(datum_index item_index, uint32_t *update_record
 
     item_obj = object_try_and_get(item_index, _object_mask_weapon);
     if (item_obj == 0) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(update_record);
         return;
     }
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
@@ -77,16 +82,16 @@ void weapon_apply_network_update(datum_index item_index, uint32_t *update_record
         (header->baseline_index != wd->network_baseline_index ||
          (header->sequence <= wd->network_sequence &&
           (int)((uint32_t)(header->sequence - wd->network_sequence) + 0xff) > 0x1d))) {
-        message_delta_decode_compound_field_staged();
+        message_delta_decode_compound_field_staged(update_record);
         return;
     }
 
     snapshot = wd->network_state; // 11-dword block copy, see file header
 
     if (*(int32_t *)update_record[0] == 1) {
-        accept = message_delta_decode_compound_field_forced(0);
+        accept = message_delta_decode_compound_field_forced(update_record, &snapshot, (int32_t)&wd->network_state, 0);
     } else {
-        accept = message_delta_decode_compound_field(0);
+        accept = message_delta_decode_compound_field(update_record, &snapshot);
     }
 
     if (accept != 0) {

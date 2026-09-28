@@ -38,6 +38,10 @@
 // object_try_and_get, or the object pointer when network_role != 1); that is reproduced below
 // rather than normalised to a single value, because one caller may be reading it.
 
+// FIXED 2026-09-28 (networking call audit): message_delta_decode_compound_field / _forced / _staged take the
+// decode context first (EAX) and the destination second (ECX); the calls here had the context missing or the two
+// swapped.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -46,8 +50,8 @@
 
 extern uint8_t *object_pooled_node_globals; // 0x00687130, not owned by this module; the
     // variable's value is the table root, and +0x28 off it is the hash -> datum_index array
-extern uint8_t message_delta_decode_compound_field(void *out_record); // 0x4ec590, networking; out_record in ECX
-extern int32_t message_delta_decode_compound_field_staged(void);             // 0x4ec670, networking; drops the message
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0,
     // object_index in ECX, type_mask on the stack
 
@@ -63,9 +67,9 @@ int32_t weapon_add_ammunition(void **message_record)
     int16_t *rounds_unloaded;
 
     if (*(int32_t *)*message_record != 0) {
-        return message_delta_decode_compound_field_staged();
+        return message_delta_decode_compound_field_staged(message_record);
     }
-    if ((int8_t)message_delta_decode_compound_field(&decoded) == 0) {
+    if ((int8_t)message_delta_decode_compound_field(message_record, &decoded) == 0) {
         return 0; // UNSURE: the original leaves message_delta_decode_compound_field's own EAX here
     }
 

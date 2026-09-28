@@ -14,6 +14,10 @@
 //   object_type_override_call_0x70_release_node; offsets kept raw. UNSURE: message_delta_decode_compound_field and
 //   message_delta_decode_compound_field_staged are unexamined outside this batch; their argument lists are not visible here.
 
+// FIXED 2026-09-28 (networking call audit): message_delta_decode_compound_field / _forced / _staged take the
+// decode context first (EAX) and the destination second (ECX); the calls here had the context missing or the two
+// swapped.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,8 +27,8 @@ extern data_array *object_data; // 0x008603b0
 extern uint8_t *object_pooled_node_globals; // 0x00687130, see object_type_override_call_0x70_release_node.c
 extern void *object_pooled_node_globals_006870d8; // 0x006870d8, UNSURE: network_index_cache_remove's EAX operand
 
-extern uint8_t message_delta_decode_compound_field_staged(void **context); // 0x4ec670, UNSURE: unexamined
-extern int8_t message_delta_decode_compound_field(void *globals, void *out_value); // 0x4ec590, UNSURE: unexamined; validates engine-state preconditions
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
 extern void network_index_cache_remove(void *globals, uint32_t object_index); // 0x4e9d40.
     // Resolved from `objdump -d -M intel bin/halo.exe`: both call sites in this module set
     // EAX to the literal 0x006870d8 and ESI to the object index immediately before the call
@@ -46,7 +50,7 @@ void object_delete_by_pooled_node_id(int32_t **record, uint32_t pooled_node_id)
     int32_t node_table;
 
     if (**record != 0) {
-        message_delta_decode_compound_field_staged(0); // UNSURE: see file header
+        message_delta_decode_compound_field_staged(record); // UNSURE: see file header
         return;
     }
 
