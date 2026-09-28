@@ -24,8 +24,8 @@ extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
 
-extern uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *param_1,
-    float range, real_point3d *point, int32_t param_4, float *speed, void *param_6, real_vector3d *out_velocity,
+extern uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *origin,
+    float range, real_point3d *point, int32_t max_time, float *speed, void *out_time_or_fraction, real_vector3d *out_velocity,
     float *out_gravity); // 0x410980, AX, ESI, stack
 extern uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index,
     real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index,
@@ -36,7 +36,7 @@ extern uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocit
 //   +0x6a8, target prop +0x6b4, excluded object +0x6b8, direction +0x6bc, speed +0x6c8, +0x6a1 cleared. The draft
 //   called both helpers without their register operands.
 // blam-cc: EBX -> actor_index, stack -> point, target_prop, exclude_object
-uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t param_3)
+uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t exclude_object_index)
 {
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
     uint8_t *variant = (uint8_t *)tag_instances[((actor *)a)->actor_variant_tag & 0xffff].data;
@@ -52,14 +52,14 @@ uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point,
                                            &velocity, &gravity)) {
         return 0;
     }
-    if (!actor_grenade_parabolic_path_clear(&velocity, actor_index, &origin, flight_time, gravity, param_3,
+    if (!actor_grenade_parabolic_path_clear(&velocity, actor_index, &origin, flight_time, gravity, exclude_object_index,
                                             (uint8_t)(((actor *)a)->active_unit_index != k_datum_index_none))) {
         return 0;
     }
     *(real_point3d *)&((actor *)a)->grenade_impact_point.x = *point;
     *(uint32_t *)(a + 0x6b4) = object_handle;
     *(real_vector3d *)&((actor *)a)->grenade_unknown_6bc = direction;
-    *(uint32_t *)(a + 0x6b8) = param_3;
+    *(uint32_t *)(a + 0x6b8) = exclude_object_index;
     ((actor *)a)->grenade_unknown_6c8 = speed;
     a[0x6a1] = 0;
     return 1;

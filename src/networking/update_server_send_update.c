@@ -71,7 +71,7 @@ extern char player_update_history_add(void *update_history, uint32_t *values); /
 extern void *message_delta_encode_single_value(void *definition, void *dest, uint32_t *values, uint8_t *history_byte,
     int32_t max_bits, int32_t flags, int32_t unknown); // 0x4ec450, outside this batch, elided args
 
-char update_server_send_update(uint32_t *param_1, char param_2)
+char update_server_send_update(uint32_t *tick_count, char param_2)
 {
     char result;
     char flush_ok;
@@ -106,7 +106,7 @@ char update_server_send_update(uint32_t *param_1, char param_2)
         player_id = local_player_globals->maximum_count; // UNSURE: +0xc read as a word, see header
         memcpy(control, update_client_staged, sizeof(control));
         history_byte = 0;
-        if ((int32_t)param_1 > 0 && param_2 == 0) {
+        if ((int32_t)tick_count > 0 && param_2 == 0) {
             checksum = player_data;
             (void)checksum;
             iterator.data = 0; iterator.next_index = 0; iterator.index = 0; // UNSURE: elided iterator source
@@ -121,7 +121,7 @@ char update_server_send_update(uint32_t *param_1, char param_2)
             }
         }
         if (network_game_mode == 1) {
-            flush_ok = player_update_history_add(network_client->update_history, param_1);
+            flush_ok = player_update_history_add(network_client->update_history, tick_count);
             if (flush_ok != 1) {
                 update_client_stage_entry();
                 ui_network_wait_timeout_start();
@@ -173,7 +173,7 @@ char update_server_send_update(uint32_t *param_1, char param_2)
             result = flush_ok;
             if (flush_ok != 0) {
                 player_update_history_log_write(1, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
-                    game_time->game_time, (int32_t)history_byte, (int32_t)(uintptr_t)param_1);
+                    game_time->game_time, (int32_t)history_byte, (int32_t)(uintptr_t)tick_count);
                     // REVIEW PASS 2026-09-20: 0x66c404 is the format string, not a
                     // trailing flag -- objdump of .rdata at 0x66c404 reads
                     // "[%d]: Sent update [%d], [%d] ticks." and Ghidra pushes it first
@@ -183,7 +183,7 @@ char update_server_send_update(uint32_t *param_1, char param_2)
             }
         } else {
             network_machine *machine = network_machine_find_by_id(network_server, player_id);
-            network_game_client_apply_position_update(machine, control[0], param_1, network_client); // UNSURE
+            network_game_client_apply_position_update(machine, control[0], tick_count, network_client); // UNSURE
         }
         memcpy(record, control, sizeof(record) < sizeof(control) ? sizeof(record) : sizeof(control));
         if (history_byte == 0) {

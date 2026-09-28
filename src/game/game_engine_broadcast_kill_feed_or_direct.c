@@ -39,9 +39,9 @@ extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t
 // `param_1` (or -1 when `param_1` is itself -1) as chimera__kill_feed's own extra argument, and
 // both are gated on `broadcast_enabled`, which doubles as chimera__kill_feed's message_type.
 void game_engine_broadcast_kill_feed_or_direct(datum_index recipient_or_all, int32_t broadcast_enabled,
-    char broadcast, int32_t param_1, datum_index subject)
+    char broadcast, int32_t hash_key, datum_index subject)
 {
-    int32_t forwarded_param_1 = (param_1 == -1) ? -1 : param_1;
+    int32_t forwarded_param_1 = (hash_key == -1) ? -1 : hash_key;
 
     if (recipient_or_all == (datum_index)0xffffffff) {
         data_iterator iter;
@@ -61,7 +61,7 @@ void game_engine_broadcast_kill_feed_or_direct(datum_index recipient_or_all, int
             element = data_iterator_next(&iter);
         }
     } else if (broadcast_enabled != -1) {
-        chimera__kill_feed(recipient_or_all, param_1, broadcast_enabled, subject, broadcast);
+        chimera__kill_feed(recipient_or_all, hash_key, broadcast_enabled, subject, broadcast);
     }
 }
 

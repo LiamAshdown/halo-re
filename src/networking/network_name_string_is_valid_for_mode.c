@@ -25,7 +25,7 @@ extern uint8_t ui_wide_string_has_non_whitespace(void); // foreign, UNSURE shape
 // Checks that every character of `name` is renderable in the small UI font and, for mode 3
 // (UNSURE: player-name entry), that the name is non-empty and does not begin with a space or
 // byte 0xa0. For mode 1 (UNSURE: server-name entry), additionally requires FUN_004a8b10 to pass.
-uint8_t network_name_string_is_valid_for_mode(char *name, void *param_2, int32_t mode)
+uint8_t network_name_string_is_valid_for_mode(char *name, void *character, int32_t mode)
 {
     uint8_t ok = 1;
     int32_t len;
@@ -41,7 +41,7 @@ uint8_t network_name_string_is_valid_for_mode(char *name, void *param_2, int32_t
     }
     for (i = 0; i < len; i = i + 1) {
         uint8_t ch = (uint8_t)name[i];
-        if (ch < ' ' || ch == 0xff || text_get_character_metrics(ch) == 0 || virtual_keyboard_character_is_legal(ch, param_2) == 0) {
+        if (ch < ' ' || ch == 0xff || text_get_character_metrics(ch) == 0 || virtual_keyboard_character_is_legal(ch, character) == 0) {
             ok = 0;
             break;
         }

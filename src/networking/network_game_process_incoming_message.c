@@ -60,7 +60,7 @@ extern uint32_t network_game_message_handle_build_version(network_server_globals
     uint8_t *record, int32_t length); // 0x4e2630
 extern uint32_t network_game_server_handle_info_request(network_server_globals *server, network_machine *machine,
     uint8_t *record, int32_t length); // 0x4e2700
-extern void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet, void *param_3, void *object); // 0x4dff70, stack
+extern void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet, void *tick_count, void *object); // 0x4dff70, stack
 extern uint32_t network_game_client_handle_map_data(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2790
 extern uint32_t network_game_client_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2810
 extern uint32_t network_game_client_handle_retry_schedule(network_server_globals *server, network_machine *machine,

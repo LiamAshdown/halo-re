@@ -39,8 +39,8 @@ extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in
 // gravity term for that projectile. Returns 0 when the type has no projectile or the solver
 // fails.
 uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction,
-                                          void *param_1, float range, real_point3d *point,
-                                          int32_t param_4, float *speed, void *param_6,
+                                          void *origin, float range, real_point3d *point,
+                                          int32_t max_time, float *speed, void *out_time_or_fraction,
                                           real_vector3d *out_velocity, float *out_gravity)
 {
     uint8_t *entry;
@@ -69,8 +69,8 @@ uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *d
     // byte for "used the straight-line solver". Stack args 2, 4, 5 and 9 are zero.
     used_straight_line = 0;
     if (projectile_get_aiming_vector(point, &range, (Projectile *)projectile_definition,
-            (real_point3d *)param_1, 0, (real *)(uintptr_t)param_4, 0, 0, direction, speed,
-            (real *)param_6, 0, &used_straight_line) == 0) {
+            (real_point3d *)origin, 0, (real *)(uintptr_t)max_time, 0, 0, direction, speed,
+            (real *)out_time_or_fraction, 0, &used_straight_line) == 0) {
         return 0;
     }
 

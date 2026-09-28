@@ -30,7 +30,7 @@ extern uint32_t color_real_to_argb_pack(float alpha, real_vector3d *color); // 0
 extern uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction); // 0x5132d0, ESI
 
 void light_transient_add(datum_index light_tag, real_vector3d *color, real_point3d *position,
-    uint32_t param_2, uint32_t param_3, float intensity)
+    uint32_t direction, uint32_t param_3, float intensity)
 {
     if (light_transient_count < k_maximum_transient_lights &&
         (color->i != 0.0f || color->j != 0.0f || color->k != 0.0f)) {
@@ -41,7 +41,7 @@ void light_transient_add(datum_index light_tag, real_vector3d *color, real_point
         slot->definition = tag_instances[light_tag & 0xffff].data;
         slot->position = *position;
         // 0x4f16a4: ESI = the second and third stack arguments (the light's forward and up)
-        slot->unknown_10 = vector3d_pack_normal_11_11_10((real_vector3d *)param_2);
+        slot->unknown_10 = vector3d_pack_normal_11_11_10((real_vector3d *)direction);
         slot->unknown_14 = vector3d_pack_normal_11_11_10((real_vector3d *)param_3);
         slot->unknown_22 = render_window_index;
         slot->unknown_1e = -1;

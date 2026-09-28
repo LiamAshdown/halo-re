@@ -36,7 +36,7 @@ extern void update_server_queue_push_history(int16_t machine_index, int32_t tick
 // packet's tick is not older than the last one recorded in `state`, its delta-item count is 0
 // or 1, and `state`'s machine-index slot resolves (through machine_to_player and player_data)
 // to a player that currently has a live unit.
-void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet, void *param_3, void *object)
+void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet, void *tick_count, void *object)
 {
     int16_t delta_count;
     uint32_t delta[16];
@@ -74,7 +74,7 @@ void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet,
 
     // 0x4e0017..0x4e0028: AX = the state's machine word (+0xc), EDX = the third stack argument, then the
     // delta record and the fourth stack argument
-    update_server_queue_push_history(*(int16_t *)(state + 0xc), (int32_t)param_3, delta,
+    update_server_queue_push_history(*(int16_t *)(state + 0xc), (int32_t)tick_count, delta,
         (uint32_t)object);
     *(uint32_t *)(state + 4) = *packet & 0x7fffffff;
     for (i = 0; i < 8; i = i + 1) {
