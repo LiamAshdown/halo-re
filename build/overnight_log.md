@@ -2323,3 +2323,32 @@ Relinked: unresolved 1, traps 127.
   scratchpad/condense.py, scratchpad/hsprocs.py.
 - Stored pointers now: game 90, networking 86, shell 28, units 2, main 1, hs 1, memory 1. Direct traps 117.
 - NEXT: shell / cseries / saved_games (shell 28 stored + 26 direct, cseries 7, saved_games 2), then the '?' names.
+- (iteration 4, continued) shell/saved_games/cseries round, commits ..HEAD. Direct traps 117 -> 95:
+  * 17 config.txt presence-flag setters (0x57d120..0x57d220).
+  * hwreq C++ helpers: tree_splice_insert (0x57c390, std::_Tree::_Insert) and tree_erase_one (0x57c820, erase),
+    hwreq_map_find, hwreq_property_set_map_index (operator[]), hwreq_property_set_apply, std exception what() and
+    the out_of_range / length_error copy constructors (__fastcall = the CRT's thiscall; gen_standalone_link now
+    binds __fastcall rewrites as @name@N), CRT std::exception copy-ctor / dtor (0x627dd2 / 0x627e1c).
+    FIXES: tree_splice_insert also takes the tree (EDI) and parent (ECX) -- tree_hint_insert_unique /
+    tree_insert_unique pass them now, and the hinted insert's predecessor case tests predecessor->right (was
+    hint->left); tree_insert_unique's parent is the undecremented descent node.
+  * gen_standalone: DIDATAFORMAT slot 0x64dff0 is data (DirectInput object formats in .text 0x613400); unsplit
+    table entries inherit a library module (D3DX vtable entry 0x5c0ba0, zlib deflate 0x4d2870, 3 CRT labels);
+    DEAD_CODE_POINTER_SLOTS lists the six catch(...) funclets of the retail hwreq C++ frames.
+  * gen_standalone_link: only objects whose source exists are linked (12 stale objects -> nine console_window_*
+    '?' traps gone).
+  * saved_games path_split_components (0x556000) / path_build_full (0x5560d0); hs_rebuild_source rewritten with the
+    file helpers' register arguments (it called them with none) and its comparator bound
+    (file_reference_compare_full_path, was the unbound file_reference_compare_by_name).
+  * objects_dump_memory opened its file with mode 0 instead of "a+b" (fixed); waypoint isnan = (x != x);
+    bitmap_data_block delete proc (0x43f010); last three hs evaluators (unit_kill_silent, unit_set_emotion_animation,
+    vehicle_driver). ai_object_list_initialize_shield_stun_thresholds takes floats by value (fixed).
+  OPEN: hwreq_length_error_destruct / hwreq_out_of_range_destruct (ThrowInfo unwind procs) are cdecl but the CRT
+    would call them thiscall (only on a thrown exception, which is fatal in the C build anyway).
+  OPEN: '?' names left are networking C with lost register arguments (item_add_ammunition in
+    network_game_action_apply, network_df0e0_broadcast, network_player_entry_is_valid, network_player_table_remove,
+    sig__setup_master_server_connection_sig) -- networking phase. GameSpy SDK (0x614000..0x61e000) traps also go
+    there (they were counted as shell/cseries).
+- Stored pointers now: game 87 (the five MP engines' callbacks, mapped by scratchpad/engine_slots.py), networking 83,
+  units 2, hs 1 (0x48b150). Direct traps 95.
+- NEXT: the 87 MP game engine callbacks (ctf, king, oddball, race, slayer; cdecl, signatures from the slot callers).
