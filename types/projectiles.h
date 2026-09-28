@@ -98,6 +98,7 @@
 // Note on sizes: like types/memory.h, structs holding datum handles measure to the documented
 // size under a 32-bit data organization.
 
+#include <stddef.h> // offsetof
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
@@ -364,6 +365,14 @@ typedef struct projectile_data {
     projectile_network_state last_update_state;  // 0x298 the most recent state accepted from the
                                      //       network, ending exactly on object_size 0x2b0
 } projectile_data;                   // size 0xbc at object 0x1f4, fixed by the type row
+
+// A projectile object as one struct: the common object header (types/objects.h) followed by
+// projectile_data, so a field is one fixed offset from the object like the original code uses.
+typedef struct projectile_object {
+    object base;                        // 0x000
+    projectile_data projectile;         // 0x1f4
+} projectile_object;
+typedef char projectile_object_projectile_at_1f4[offsetof(projectile_object, projectile) == 0x1f4 ? 1 : -1];
 
 // ---------------------------------------------------------------------------
 // collision_result  (the 0x50-byte record the collision module fills)

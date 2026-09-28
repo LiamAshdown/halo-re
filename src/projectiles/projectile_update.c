@@ -77,8 +77,8 @@ static void projectile_raise_state(uint32_t projectile_index, int16_t state)
 {
     uint8_t *o = OBJECT_DATA(projectile_index);
 
-    if (*(int16_t *)(o + 0x230) < state) {
-        *(int16_t *)(o + 0x230) = state;
+    if (((projectile_object *)o)->projectile.state < state) {
+        ((projectile_object *)o)->projectile.state = state;
     }
 }
 
@@ -97,25 +97,25 @@ int projectile_update(uint32_t projectile_index)
     memset(&hit, 0, sizeof(hit));
 
     // 0x4bdc3d: a non-tracer round drops its contrail
-    if (!(*(uint32_t *)(obj + 0x22c) & 2) && *(int32_t *)(obj + 0x23c) != -1) {
-        int32_t slot = *(int32_t *)(obj + 0x23c);
+    if (!(((projectile_object *)obj)->projectile.flags & 2) && ((projectile_object *)obj)->projectile.contrail_attachment_index != -1) {
+        int32_t slot = ((projectile_object *)obj)->projectile.contrail_attachment_index;
 
-        if (*(datum_index *)(obj + 0x14c + slot * 4) != k_datum_index_none) {
-            contrail_delete(*(datum_index *)(obj + 0x14c + slot * 4));
+        if (((projectile_object *)obj)->base.attachment_handles[slot] != k_datum_index_none) {
+            contrail_delete(((projectile_object *)obj)->base.attachment_handles[slot]);
         }
-        *(datum_index *)(obj + 0x14c + *(int32_t *)(obj + 0x23c) * 4) = k_datum_index_none;
-        *(int32_t *)(obj + 0x23c) = -1;
+        *(datum_index *)(obj + 0x14c + ((projectile_object *)obj)->projectile.contrail_attachment_index * 4) = k_datum_index_none;
+        ((projectile_object *)obj)->projectile.contrail_attachment_index = -1;
     }
     F(obj, 0x248) += F(obj, 0x24c); // arming
     F(obj, 0x254) = F(obj, 0x258) + F(obj, 0x254); // deceleration delay
     {
-        int16_t starts = *(int16_t *)(tag + 0x180);
-        uint8_t condition = (starts == 1 || starts == 2) ? (uint8_t)((*(uint32_t *)(obj + 0x22c) >> 4) & 1) : 1;
-        uint32_t flags = *(uint32_t *)(obj + 0x22c);
+        int16_t starts = ((Projectile *)tag)->detonation_timer_starts;
+        uint8_t condition = (starts == 1 || starts == 2) ? (uint8_t)((((projectile_object *)obj)->projectile.flags >> 4) & 1) : 1;
+        uint32_t flags = ((projectile_object *)obj)->projectile.flags;
 
         if ((flags & 0x20) || (flags & 8) || condition) {
             if (!(flags & 0x20)) {
-                *(uint32_t *)(obj + 0x22c) = flags | 0x20;
+                ((projectile_object *)obj)->projectile.flags = flags | 0x20;
             }
             F(obj, 0x240) = F(obj, 0x244) + F(obj, 0x240);
             if (!(F(obj, 0x240) < 1.0f)) {
@@ -126,7 +126,7 @@ int projectile_update(uint32_t projectile_index)
     projectile_update_function_values(projectile_index);
 
     for (;;) {
-        int16_t state = *(int16_t *)(obj + 0x230);
+        int16_t state = ((projectile_object *)obj)->projectile.state;
         real_vector3d vel;          // [esp+0x20], the velocity carried out of this step
         real_vector3d step;         // [esp+0x5c], this step's displacement per tick
         real_point3d swept;         // [esp+0x68]
@@ -143,8 +143,8 @@ int projectile_update(uint32_t projectile_index)
         if (state != 0 && !(state == 1 && F(obj, 0x24c) != 0.0f && F(obj, 0x248) < 1.0f)) {
             break;
         }
-        if ((*(uint32_t *)(obj + 0x22c) & 8) || (*(uint32_t *)(obj + 0x10) & 0x20) ||
-            *(datum_index *)(obj + 0x11c) != k_datum_index_none) {
+        if ((((projectile_object *)obj)->projectile.flags & 8) || (((projectile_object *)obj)->base.flags & 0x20) ||
+            ((projectile_object *)obj)->base.parent_object != k_datum_index_none) {
             break;
         }
         vel = *velocity;
@@ -152,13 +152,13 @@ int projectile_update(uint32_t projectile_index)
         speed_after = speed;
         average_speed = speed;
         step = vel;
-        shooter = *(datum_index *)(obj + 0x234);
+        shooter = ((projectile_object *)obj)->projectile.ignore_object_index;
 
         // 0x4bde1c: homing toward the tracked object's eye, wandering as it closes in
-        if (*(datum_index *)(obj + 0x238) != k_datum_index_none && F(tag, 0x1ec) > 0.0f) {
-            datum_index tracked_index = *(datum_index *)(obj + 0x238);
+        if (((projectile_object *)obj)->projectile.tracked_object_index != k_datum_index_none && ((Projectile *)tag)->guided_angular_velocity > 0.0f) {
+            datum_index tracked_index = ((projectile_object *)obj)->projectile.tracked_object_index;
             uint8_t *tracked = OBJECT_DATA(tracked_index);
-            real turn = F(tag, 0x1ec) * 0.033333335f;   // [esp+0x1c]
+            real turn = ((Projectile *)tag)->guided_angular_velocity * 0.033333335f;   // [esp+0x1c]
             real fade;                                  // [esp+0x30]
             real distance;
             real_point3d target;                        // [esp+0x74]
@@ -267,7 +267,7 @@ int projectile_update(uint32_t projectile_index)
         }
 
         // 0x4be32d: gravity
-        gravity = global_gravity * ((*(uint32_t *)(obj + 0x10) & 0x10) ? F(tag, 0x1d8) : F(tag, 0x1cc));
+        gravity = global_gravity * ((((projectile_object *)obj)->base.flags & 0x10) ? ((Projectile *)tag)->water_gravity_scale : ((Projectile *)tag)->air_gravity_scale);
         vel.k = vel_k - gravity * remaining;
         step_k = step.k - gravity * remaining * 0.5f;
 
@@ -292,7 +292,7 @@ int projectile_update(uint32_t projectile_index)
 
             if (collisions == 10) {
                 projectile_raise_state(projectile_index, 1);
-            } else if (*(int16_t *)(obj + 0x230) != 2) {
+            } else if (((projectile_object *)obj)->projectile.state != 2) {
                 collision_attempted = 1;
                 hit_something = projectile_collision_test(projectile_index, &swept, &hit);
             }
@@ -312,13 +312,13 @@ int projectile_update(uint32_t projectile_index)
                     vel.k *= ratio;
                 }
                 if (hit.plane.normal.k > 0.3f) {
-                    *(uint32_t *)(obj + 0x22c) |= 4;
+                    ((projectile_object *)obj)->projectile.flags |= 4;
                 }
-                *(datum_index *)(obj + 0x234) = k_datum_index_none;
+                ((projectile_object *)obj)->projectile.ignore_object_index = k_datum_index_none;
                 projectile_response(projectile_index, &hit, &swept, &vel);
                 collisions++;
-                ai_accumulate_repeated_event(projectile_index, &hit.point, 1, *(int16_t *)(tag + 0x182), 1);
-                if (*(uint32_t *)(obj + 0x22c) & 8) {
+                ai_accumulate_repeated_event(projectile_index, &hit.point, 1, ((Projectile *)tag)->impact_noise, 1);
+                if (((projectile_object *)obj)->projectile.flags & 8) {
                     goto next_step;
                 }
             } else {
@@ -337,14 +337,14 @@ int projectile_update(uint32_t projectile_index)
             moved.j = swept.y - F(obj, 0x60);
             moved.k = swept.z - F(obj, 0x64);
             F(obj, 0x250) = (real)sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + F(obj, 0x250);
-            if (!flyby_played && *(datum_index *)(tag + 0x210) != k_datum_index_none &&
+            if (!flyby_played && *(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id != k_datum_index_none &&
                 *(datum_index *)(local_player_globals + 0x4) != k_datum_index_none) {
                 datum_index player = *(datum_index *)(local_player_globals + 0x4);
                 datum_index listener = *(datum_index *)((uint8_t *)player_data->data + (player & 0xffff) * 0x200 + 0x34);
 
                 if (listener != k_datum_index_none && listener != shooter) {
                     real_point3d *center = (real_point3d *)(OBJECT_DATA(listener) + 0xa0);
-                    real radius = sound_definition_maximum_distance(*(datum_index *)(tag + 0x210));
+                    real radius = sound_definition_maximum_distance(*(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id);
                     real_vector3d to_listener;  // [esp+0xa4]
                     real_vector3d projected;    // [esp+0xb0]
                     real_vector3d perpendicular; // [esp+0x98]
@@ -367,7 +367,7 @@ int projectile_update(uint32_t projectile_index)
                         *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
                         placement.leaf_index = *(int32_t *)&hit.leaf;
                         *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
-                        sound_start_at_location(*(datum_index *)(tag + 0x210), &placement, 1.0f);
+                        sound_start_at_location(*(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id, &placement, 1.0f);
                         flyby_played = 1;
                     }
                 }
@@ -375,7 +375,7 @@ int projectile_update(uint32_t projectile_index)
         }
 
         // 0x4be809: orientation
-        if ((*(uint32_t *)(tag + 0x17c) & 1) &&
+        if ((((Projectile *)tag)->projectile_flags & 1) &&
             (velocity->i != 0.0f || velocity->j != 0.0f || velocity->k != 0.0f)) {
             real_vector3d direction = *velocity;
 
@@ -391,7 +391,7 @@ int projectile_update(uint32_t projectile_index)
                 }
             }
             vector3d_rotate_about_axis(up, forward, F(obj, 0x270), F(obj, 0x274));
-        } else if (*(uint32_t *)(obj + 0x22c) & 1) {
+        } else if (((projectile_object *)obj)->projectile.flags & 1) {
             real_vector3d *axis = (real_vector3d *)(obj + 0x264);
             real_vector3d side;
 
@@ -405,13 +405,13 @@ int projectile_update(uint32_t projectile_index)
 
         // 0x4be99b: commit the step
         object_unlink_cluster_or_notify_parent(projectile_index);
-        *(real_point3d *)(obj + 0x5c) = swept;
+        ((projectile_object *)obj)->base.position = swept;
         object_set_cluster_and_parent(projectile_index, &hit.leaf);
         *velocity = vel;
-        if (remaining != 0.0f && collisions != 0 && *(int32_t *)(obj + 0x23c) != -1 &&
-            *(datum_index *)(obj + 0x14c + *(int32_t *)(obj + 0x23c) * 4) != k_datum_index_none) {
+        if (remaining != 0.0f && collisions != 0 && ((projectile_object *)obj)->projectile.contrail_attachment_index != -1 &&
+            *(datum_index *)(obj + 0x14c + ((projectile_object *)obj)->projectile.contrail_attachment_index * 4) != k_datum_index_none) {
             object_recalculate_bounding_radius(projectile_index);
-            contrail_advance(*(datum_index *)(obj + 0x14c + *(int32_t *)(obj + 0x23c) * 4), 0,
+            contrail_advance(*(datum_index *)(obj + 0x14c + ((projectile_object *)obj)->projectile.contrail_attachment_index * 4), 0,
                              (1.0f - remaining) * 0.033333335f);
         }
     next_step:
@@ -421,15 +421,15 @@ int projectile_update(uint32_t projectile_index)
     }
 
     // 0x4bea68: detonate / vanish
-    switch (*(int16_t *)(obj + 0x230)) {
+    switch (((projectile_object *)obj)->projectile.state) {
     case 1:
         if (F(obj, 0x24c) != 0.0f && F(obj, 0x248) < 1.0f) {
             return 1;
         }
-        if (*(int32_t *)(obj + 0x4) == 1) {
+        if (((projectile_object *)obj)->base.network_role == 1) {
             return 1;
         }
-        if (*(int32_t *)(obj + 0x4) == 0 && obj[0x278] == 1) {
+        if (((projectile_object *)obj)->base.network_role == 0 && obj[0x278] == 1) {
             projectile_send_detonation(projectile_index);
         }
         projectile_detonate(projectile_index, (char)(collisions == 0), remaining);

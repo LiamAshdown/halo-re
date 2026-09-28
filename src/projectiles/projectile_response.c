@@ -84,9 +84,9 @@ extern datum_index effect_new_on_object_with_node_table(datum_index creator_obje
     datum_index definition_index, datum_index object_index, uint16_t node_index,
     uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale,
     real b_scale, const void *color, const void *tint_source); // 0x450870, EAX, ECX, EDX, stack x9
-extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *param_3, int32_t kind,
+extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind,
     char **labels, void *position_block, void *direction_block, real fade_in, real fade_out,
-    int32_t param_10, int32_t param_11, int32_t param_12); // 0x450980, world-position effect
+    int32_t color, int32_t tint_source, int32_t force_create); // 0x450980, world-position effect
     // spawn, established 12-argument form, see src/projectiles/projectile_detonate.c
 extern void breakable_surface_apply_damage(damage_data *request, uint32_t packed_leaf_and_flags,
                          int32_t surface_index); // 0x4ffde0, breakable-surface damage; opaque,

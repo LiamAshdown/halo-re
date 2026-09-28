@@ -95,9 +95,9 @@ extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d 
     // same `lea` the preceding effect_new_with_color call used for its position block) / object_index.
     // Same declaration as src/projectiles/projectile_update.c, which passes kind = 1 and
     // tag->impact_noise.
-extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *param_3, int32_t kind,
+extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind,
     char **labels, void *position_block, void *direction_block, real fade_in, real fade_out,
-    int32_t param_10, int32_t param_11, int32_t param_12); // 0x450980, established 12-argument
+    int32_t color, int32_t tint_source, int32_t force_create); // 0x450980, established 12-argument
     // form, see src/hs/hs_effect_spawn_at_location.c; identical to the declaration in
     // src/projectiles/projectile_response.c
 
