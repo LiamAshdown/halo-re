@@ -2509,3 +2509,20 @@ Relinked: unresolved 1, traps 127.
   1 of 8; the biped siblings unit_build_network_update / unit_apply_network_health_update model their
   message_delta calls and object index wrongly -- the vehicle versions written today show the real shapes).
 - NEXT: step 2 (build-time independence).
+
+## Iteration 14 (2026-09-28) -- retail-independence STEP 2 DONE (build-time independence)
+- traps before/after: 0 / 0; unresolved 0.
+- tools/retail_guard.py: HALO_NO_RETAIL=1 wraps open()/io.open()/subprocess so any read of halo.exe or
+  out/functions.json aborts the build. Without it the generators re-extract from bin/halo.exe and refresh
+  standalone/frozen/ (committed): layout.json, imports.json (315 slots), code_pointer_slots.json (3064 slots with
+  retail name + module; C symbols attached at build time from src/ headers), game_crt.json, code_address_ret.json,
+  d3dx_sizes.json.
+- gen_standalone.py split into extract_retail() + a frozen-only main(); gen_standalone_link.py reads the CRT map,
+  ret bytes and D3DX sizes from frozen/.
+- Verified: HALO_NO_RETAIL=1 gen_standalone + gen_standalone_link -> 0 unresolved, 0 traps; layout/imports/
+  code_pointers/code_entries JSON, report, code_pointers.asm, resolve.asm, standalone_tables.c and link_report
+  identical to the retail run; halo_rebuilt.exe differs only in the 2 PE timestamp bytes. msvc_build units under
+  the guard: 260 ok, 0 failed.
+- Caveats: a NEW code_address_ thunk needs one retail run (or a hand entry in code_address_ret.json); a new C
+  function at an address not in code_pointer_slots.json gets no data pointer until a retail refresh.
+- NEXT: step 3 (image source replacing halo_image.bin). OPEN: networking call audit (iteration 13).
