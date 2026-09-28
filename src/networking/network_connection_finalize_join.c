@@ -59,7 +59,7 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int16_t network_game_mode; // 0x00719720
 extern char network_game_scenario_load_request(network_game_session *session); // 0x4de6d0
 extern data_array *player_data; // 0x0087a480
-extern uint8_t *local_player_globals; // 0x0087a478, UNSURE name; flat base address
+extern player_globals *local_player_globals; // 0x0087a478
 extern int32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0
 extern char network_player_entry_validate(void); // 0x4de9f0, UNSURE argument (none visible here); not in this batch
 extern int32_t data_packet_group_encode_packet(uint8_t *buffer, uint32_t *capacity,
@@ -134,7 +134,7 @@ int32_t network_connection_finalize_join(uint16_t *connection)
         uVar8 = (uint32_t)player_data_iterator_advance((int8_t)*((uint8_t *)puVar7 + 0xcd5));
         sVar9 = (int16_t)(int8_t)*((uint8_t *)puVar7 + 0xcd3);
         if (-1 < (int8_t)*((uint8_t *)puVar7 + 0xcd3) && sVar9 < 1) {
-            puVar2 = (uint32_t *)(local_player_globals + 4 + sVar9 * 4);
+            puVar2 = (uint32_t *)&local_player_globals->local_players[sVar9];
             uVar3 = *puVar2;
             if (uVar3 != 0xffffffff) {
                 *(uint16_t *)((uVar3 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)player_data + 0x34)) = 0xffff;

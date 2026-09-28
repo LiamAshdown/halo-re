@@ -22,9 +22,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "game.h"
 
 extern data_array *object_data;   // 0x008603b0
-extern uint8_t *local_player_globals; // 0x0087a478, count at +0xc, handles from +0x4
+extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;   // 0x0087a480, stride 0x200
 
 extern object * object_iterator_next(object_iterator *iterator); // 0x4f6f20
@@ -41,13 +42,13 @@ uint8_t unit_is_area_clear_of_fast_objects(void)
     int16_t slot = -1;
     uint8_t result = 1;
 
-    if (*(int32_t *)(local_player_globals + 4) != -1) {
+    if (*(int32_t *)local_player_globals->local_players != -1) {
         slot = 0;
     }
 
     while (slot != -1) {
         if (slot >= 0 && slot < 1) {
-            uint32_t player_handle = *(uint32_t *)(local_player_globals + 4 + slot * 4);
+            uint32_t player_handle = *(uint32_t *)&local_player_globals->local_players[slot];
             if (player_handle != 0xffffffff) {
                 uint32_t unit_handle = *(uint32_t *)((uint8_t *)player_data->data +
                                                       (player_handle & 0xffff) * 0x200 + 0x34);
@@ -60,7 +61,7 @@ uint8_t unit_is_area_clear_of_fast_objects(void)
                 }
             }
         }
-        slot = (*(int32_t *)(local_player_globals + 4) != -1 && slot < 0) ? 0 : -1;
+        slot = (*(int32_t *)local_player_globals->local_players != -1 && slot < 0) ? 0 : -1;
     }
 
     if (tracked_count != 0) {

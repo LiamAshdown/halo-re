@@ -28,7 +28,7 @@ extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *player_data;      // 0x0087a480
 extern Scenario *global_scenario;    // 0x00746f8c
 extern Globals *global_globals;
-extern uint8_t *local_player_globals; // 0x0087a478
+extern player_globals *local_player_globals; // 0x0087a478
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern real_vector3d *global_origin3d_pointer; // 0x00696714
@@ -166,7 +166,7 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
         datum_index effect = *(datum_index *)((uint8_t *)global_globals->player_information.pointer + 0xc4);
 
         if (effect != k_datum_index_none) {
-            game_engine_build_visible_cluster_bitmask((uint32_t *)(local_player_globals + 0x18), 0);
+            game_engine_build_visible_cluster_bitmask((uint32_t *)local_player_globals->cluster_pvs, 0);
             effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
         }
     }

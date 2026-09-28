@@ -36,6 +36,8 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "units.h"
+#include "game.h"
 
 extern int32_t *player_control_globals_ptr; // 0x006b145c, UNSURE: foreign module (player look/aim
                                     // globals); stride 0x40, +0x1c pitch, +0x20 yaw
@@ -53,7 +55,7 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
                                         real cos_angle); // 0x4cd820
 extern void game_engine_update_local_player_look(int16_t local_player_index, real yaw_delta, real pitch_delta); // 0x472160, AX, stack
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward); // 0x473d70, EAX, ECX, ESI
-extern uint8_t *local_player_globals; // 0x0087a478, +0x04 local_players[0]
+extern player_globals *local_player_globals; // 0x0087a478
 
 // Replaces a local player's active camera impulse with a new one built from `descriptor` and
 // `direction` when the new one out-prioritizes (or has run longer than) the current one, then
@@ -138,7 +140,7 @@ void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_
     {
         real blended_b = (1.0f - descriptor[9]) * intensity_falloff + descriptor[9];
         datum_index player_handle = (local_player_index != -1 && local_player_index < 1) ?
-            *(datum_index *)(local_player_globals + 4 + local_player_index * 4) : (datum_index)k_datum_index_none;
+            *(datum_index *)&local_player_globals->local_players[local_player_index] : (datum_index)k_datum_index_none;
         real_vector3d forward;
         real_vector3d left;
         real yaw_delta;

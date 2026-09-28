@@ -19,12 +19,14 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#include "units.h"
+#include "game.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *local_player_globals; // 0x0087a478, +0x18 a bitset of players
+extern player_globals *local_player_globals; // 0x0087a478
 
 extern real random_real_range(real min, real max);          // 0x401050
 extern real random_real(void);                                // 0x4019f0
@@ -199,7 +201,7 @@ void actor_update_firing_state(datum_index actor_index)
             if (W(p, 0x100) != -1) {
                 int32_t bit = W(p, 0x100);
 
-                a[0x624] = (uint8_t)!(*(uint32_t *)(local_player_globals + 0x18 + (bit >> 5) * 4) & (1u << (bit & 0x1f)));
+                a[0x624] = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
             }
         } else {
             *(real_point3d *)(a + 0x62c) = *(real_point3d *)(a + 0x610);

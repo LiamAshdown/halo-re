@@ -33,7 +33,7 @@ void players_dispose(void)
     local_player_globals->local_players[0] = (datum_index)-1;
     local_player_globals->local_player_units[0] = (datum_index)-1;
     local_player_globals->unknown_00 = (datum_index)-1;
-    local_player_globals->unknown_11 = 0;
+    local_player_globals->input_disabled = 0;
     local_player_globals->respawn_stagger = 0;
     local_player_globals->no_player_has_a_unit = 0;
     local_player_globals->unknown_12 = -1;

@@ -19,10 +19,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "game.h"
 
 extern data_array *actor_data;          // 0x00880360
 extern data_array *object_data;         // 0x008603b0
-extern uint8_t *local_player_globals;   // 0x0087a478
+extern player_globals *local_player_globals; // 0x0087a478
 extern const uint8_t actor_control_animation_state_table[]; // 0x006558b8, 2 bytes per entry, the first used
 
 extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
@@ -49,7 +50,7 @@ void actor_apply_queued_look_to_unit(datum_index actor_index)
     control.aiming_vector = *(real_vector3d *)(actor + 0x708);
     control.looking_vector = *(real_vector3d *)(actor + 0x714);
 
-    if (*(uint32_t *)(unit + 0x218) != 0xffffffff && local_player_globals[0x11] == 0) {
+    if (*(uint32_t *)(unit + 0x218) != 0xffffffff && local_player_globals->input_disabled == 0) {
         return;
     }
     if (actor[0x07] != 0) {

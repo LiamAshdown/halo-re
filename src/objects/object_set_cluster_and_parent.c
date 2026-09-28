@@ -28,9 +28,11 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *local_player_globals; // 0x0087a478, see objects_update.c
+extern player_globals *local_player_globals; // 0x0087a478
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern ScenarioStructureBSP *global_structure_bsp;
                                            //   this is the same DAT_00746f9c base object_update
@@ -102,7 +104,7 @@ void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *lo
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             int16_t cluster = header->cluster_index;
             if (cluster == -1 ||
-                (*(uint32_t *)(local_player_globals + 0x18 + (cluster >> 5) * 4) &
+                (*(uint32_t *)&local_player_globals->cluster_pvs[(cluster >> 5)] &
                  (1u << (cluster & 0x1f))) == 0) {
                 if ((obj->flags & _object_connected_to_map_bit) != 0) {
                     object_delete(object_index);

@@ -32,7 +32,7 @@
 extern data_array *object_data;        // 0x008603b0
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern game_time_globals *game_time;   // 0x006f1d6c
-extern uint8_t *local_player_globals;  // 0x0087a478, +0x4 the first local player
+extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;        // 0x0087a480
 extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern game_main_globals *main_game_globals; // 0x006b0b80
@@ -338,8 +338,8 @@ int projectile_update(uint32_t projectile_index)
             moved.k = swept.z - F(obj, 0x64);
             F(obj, 0x250) = (real)sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + F(obj, 0x250);
             if (!flyby_played && *(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id != k_datum_index_none &&
-                *(datum_index *)(local_player_globals + 0x4) != k_datum_index_none) {
-                datum_index player = *(datum_index *)(local_player_globals + 0x4);
+                *(datum_index *)local_player_globals->local_players != k_datum_index_none) {
+                datum_index player = *(datum_index *)local_player_globals->local_players;
                 datum_index listener = *(datum_index *)((uint8_t *)player_data->data + (player & 0xffff) * 0x200 + 0x34);
 
                 if (listener != k_datum_index_none && listener != shooter) {

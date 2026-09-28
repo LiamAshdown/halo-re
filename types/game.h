@@ -589,12 +589,16 @@ typedef struct player_globals {
                                        //      spread across frames
     uint8_t no_player_has_a_unit;      // 0x10 0x474e10 sets 1 then clears it if any player
                                        //      still has a unit
-    uint8_t unknown_11;                // 0x11
+    uint8_t input_disabled;            // 0x11 player_enable_input(false) and cinematics set it; player
+                                       //      updates skip local input while it is set
     int16_t unknown_12;                // 0x12 seeded to -1
     int16_t mode;                      // 0x14 written with 0 and with 3
     uint8_t unknown_16;                // 0x16
-    uint8_t unknown_17[0x98 - 0x17];   // 0x17 zeroed by players_dispose, never read
+    uint8_t unknown_17;                // 0x17
+    uint32_t cluster_pvs[0x20];        // 0x18 a bit per structure cluster the local players can see
+                                       //      (game_engine_build_visible_cluster_bitmask fills it)
 } player_globals;                      // size 0x98
+typedef char player_globals_size[sizeof(player_globals) == 0x98 ? 1 : -1];
 
 // ---------------------------------------------------------------------------
 // local_player_control  (0x40 bytes)

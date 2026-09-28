@@ -35,7 +35,7 @@ extern uint8_t *ai_globals_ptr;  // 0x00880354
 extern Scenario *global_scenario;
 extern uint8_t *team_pair_data;     // 0x006b0b84
 extern game_engine_definition *current_game_engine;
-extern uint8_t *local_player_globals; // 0x0087a478
+extern player_globals *local_player_globals; // 0x0087a478
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x427c90, ECX, stack
@@ -120,7 +120,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
         }
         cluster = *(int16_t *)(OBJ(root) + 0x9c);
         if (cluster == -1 ||
-            (*(uint32_t *)(local_player_globals + 0x18 + (cluster >> 5) * 4) & (1u << (cluster & 0x1f))) == 0) {
+            (*(uint32_t *)&local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
             hidden_units[hidden++] = unit_index;
         }
     }

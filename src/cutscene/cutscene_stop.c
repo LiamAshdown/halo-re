@@ -48,7 +48,7 @@ void cutscene_stop(void)
     }
 
     cinematic_globals_ptr->show_letterbox = 0;
-    local_player_globals->unknown_11 = 0;
+    local_player_globals->input_disabled = 0;
     ai_globals_ptr->communication_valid = 1;
 
     effects = cinematic_screen_effect_state;

@@ -38,7 +38,7 @@
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern data_array *object_data; // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c, UNSURE: foreign module, +0xc is the current tick
-extern uint8_t *local_player_globals; // 0x0087a478, UNSURE: foreign module, +0x18 is the pvs bits
+extern player_globals *local_player_globals; // 0x0087a478
 extern ScenarioStructureBSP *global_structure_bsp;
                                               //   live cluster count
 extern uint8_t *main_game_globals; // 0x006b0b80, UNSURE: foreign module, +0x2 is a
@@ -74,7 +74,7 @@ void objects_update(void)
         globals->cluster_pvs_previous[i] = globals->cluster_pvs_current[i];
     }
     for (i = 0; i < word_count; i++) {
-        globals->cluster_pvs_current[i] = *(uint32_t *)(local_player_globals + 0x18 + i * 4);
+        globals->cluster_pvs_current[i] = *(uint32_t *)&local_player_globals->cluster_pvs[i];
     }
 
     changed = 0;

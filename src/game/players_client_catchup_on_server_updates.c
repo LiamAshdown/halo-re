@@ -175,7 +175,7 @@ void players_client_catchup_on_server_updates(void)
                             ctrl.grenade_index = -1;
                             ctrl.zoom_level = -1;
 
-                            if (local_player_globals->unknown_11 == 0) {
+                            if (local_player_globals->input_disabled == 0) {
                                 player_compute_view_forward_vector(iter.index, (real *)&record[1],
                                                                     &ctrl.facing_vector); // UNSURE record layout
                             } else if (unit->swarm_actor_index == (datum_index)-1 &&

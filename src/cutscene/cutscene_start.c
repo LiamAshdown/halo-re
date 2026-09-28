@@ -38,7 +38,7 @@ void cutscene_start(void)
     }
     sound_set_music_gain(1.0f);
 
-    local_player_globals->unknown_11 = 1;
+    local_player_globals->input_disabled = 1;
     ai_globals_ptr->communication_valid = 0;
 
     cinematic_globals_ptr->show_letterbox = 1;

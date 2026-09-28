@@ -11,7 +11,7 @@
 //   2 in the image) or their references_remaining add up to more than
 //   server_maximum_pending_client_update_ticks (0x006887b8, 6), replays one more tick of it:
 //   pops the head record (the inline copy of player_update_queue_pop_current @0x479fb0), turns
-//   its player_action into a unit_control_data (or, when local_player_globals->unknown_11 is
+//   its player_action into a unit_control_data (or, when local_player_globals->input_disabled is
 //   set, one seeded from the unit's own desired vectors if no actor or swarm owns it), applies
 //   it (unit_apply_control_block @0x5639f0) and runs one simulation step of the unit: its
 //   parent's object_update when player_unit_has_parent and network_client_vehicle_ack_enabled,
@@ -131,7 +131,7 @@ void players_server_catchup_on_client_updates(void)
                 continue;
             }
 
-            if (local_player_globals->unknown_11 == 0) {
+            if (local_player_globals->input_disabled == 0) {
                 if (unit->current_weapon_index != -1) {
                     datum_index weapon_index = unit->weapons[unit->current_weapon_index];
                     if (weapon_index != (datum_index)-1) {

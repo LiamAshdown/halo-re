@@ -176,7 +176,7 @@ void game_engine_players_update_server(void)
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
             if ((unit->flags & 0x40) != 0) { // UNSURE: unnamed unit_flags bit 6
-                if (local_player_globals->unknown_11 == 0) {
+                if (local_player_globals->input_disabled == 0) {
                     // Operates on action->control_flags in place, exactly as the disassembly
                     // re-reads it after the first OR (rather than shadowing it in a local).
                     if ((action->control_flags & _unit_control_flag_action) != 0 &&

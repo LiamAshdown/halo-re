@@ -152,7 +152,7 @@ void game_engine_players_update_client(void)
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
             if ((unit->flags & 0x40) != 0) { // UNSURE: unnamed unit_flags bit 6
-                if (local_player_globals->unknown_11 == 0) {
+                if (local_player_globals->input_disabled == 0) {
                     unit_control_data ctrl;
 
                     if ((current_action.control_flags & 0x80) != 0 &&

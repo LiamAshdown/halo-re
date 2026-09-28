@@ -31,7 +31,7 @@
 
 extern data_array *player_data;                     // 0x0087a480
 extern data_array *object_data;                     // 0x008603b0
-extern uint8_t *local_player_globals;               // 0x0087a478
+extern player_globals *local_player_globals; // 0x0087a478
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern int16_t network_game_mode;                   // 0x00719720
 extern Globals *global_globals;
@@ -98,7 +98,7 @@ void player_respawn(uint32_t player_index)
     uint8_t *p = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
 
     if (current_game_engine == 0 && *(int16_t *)(p + 2) != -1) {
-        datum_index *slot = (datum_index *)(local_player_globals + 8 + *(int16_t *)(p + 2) * 4);
+        datum_index *slot = (datum_index *)&local_player_globals->local_player_units[*(int16_t *)(p + 2)];
         datum_index existing_unit = *slot;
 
         *slot = k_datum_index_none;
