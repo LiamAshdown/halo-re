@@ -1,16 +1,8 @@
-// unit_build_network_update  (Ghidra: unit_build_network_update, renamed)
-// address 0x55aed0, size 563 bytes
-// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN; was 0.3)
-// evidence: every local this function packs matches a documented object/unit_data/biped_data
-//   field exactly by offset: object.definition_tag/name_index/owner_linkage/position/velocity/
-//   forward/up (objects.h), unit_data.flags bit 0x80000 (0x204, types/units.h), biped_data
-//   network_update_sequence/network_body_vitality/network_shield_vitality/
-//   network_shield_stunned/network_grenade_counts (0x527/0x530/0x534/0x538/0x52c,
-//   types/units.h). message_delta_encode_message's signature and calling style follow the
-//   sibling file src/units/unit_broadcast_state_change_event.c (same module, 0x566c00), written
-//   in this module's earlier session.
-// reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)
-// reconciled: R29 object/object_placement_data.name_index -> owner_team (int16 team at 0xb8 / 0x14)
+p = "C:\\Users\\Liam-\\halo-re\\src\\units\\unit_build_network_update.c"
+t = open(p, encoding="utf-8").read()
+inc = t.index("#include")
+cut = t.index("\n#if 0")
+head = t[:inc].rstrip("\n") + '''
 // REWRITTEN 2026-09-28 (networking call audit) from the disassembly 0x55aed0..0x55b103: the biped creation encoder
 // (biped type +0x64 hook; network action 0x1d), the counterpart of vehicle_encode_network_create 0x571f20 and the
 // exact inverse of unit_network_create_update_apply 0x55b110. Arguments (object index, buffer, bit budget); the 0x8c
@@ -20,7 +12,15 @@
 // body / shield vitality +0x530 / +0x534, stunned +0x538 -- is encoded with message_delta_encode_message (EAX buffer,
 // EDX budget; type 0x1d, one item) and its bit count returned. The previous C packed an invented layout and passed
 // the encoder neither buffer nor budget.
-
+'''
+head = head.replace("rewrite confidence: ", "rewrite confidence: 0.85 (REWRITTEN; was ", 1)
+lines = head.split("\n")
+for i, l in enumerate(lines):
+    if "(REWRITTEN; was " in l:
+        lines[i] = l + ")"
+        break
+head = "\n".join(lines)
+body = '''
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -111,115 +111,6 @@ int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t
     record.zero_8c = 0;
     return message_delta_encode_message(buffer, bit_budget, 0, 0x1d, 0, &item, 0, 1, 0);
 }
-
-#if 0
-Original Ghidra decompilation (0x55aed0):
-
-void FUN_0055aed0(uint param_1)
-
-{
-  undefined4 *puVar1;
-  int iVar2;
-  int iVar3;
-  undefined4 *local_94;
-  undefined4 local_90;
-  int local_8c;
-  undefined2 local_88;
-  int local_84;
-  int local_80;
-  undefined4 local_7c;
-  undefined4 local_78;
-  undefined4 local_74;
-  undefined4 local_70;
-  undefined4 local_6c;
-  undefined4 local_68;
-  undefined4 local_64;
-  undefined4 local_60;
-  undefined4 local_5c;
-  undefined4 local_58;
-  undefined4 local_54;
-  undefined4 local_50;
-  undefined4 local_4c;
-  undefined4 local_48;
-  undefined4 local_44;
-  undefined4 local_40;
-  undefined4 local_3c;
-  undefined4 local_38;
-  undefined4 local_34;
-  undefined4 local_30;
-  undefined4 local_2c;
-  undefined4 local_28;
-  undefined4 local_24;
-  undefined4 local_20;
-  byte local_1c;
-  undefined4 local_18;
-  undefined1 local_14;
-  undefined2 local_13;
-  undefined4 local_10;
-  undefined4 local_c;
-  undefined1 local_8;
-  undefined4 local_4;
-
-  iVar3 = 0;
-  puVar1 = *(undefined4 **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (param_1 & 0xffff) * 0xc);
-  if (param_1 != 0xffffffff) {
-    iVar3 = hash_table_get();
-  }
-  iVar2 = 0;
-  if (puVar1[0x31] != -1) {
-    iVar2 = hash_table_get();
-    if (iVar2 == -1) {
-      iVar2 = 0;
-    }
-  }
-  local_84 = 0;
-  if (puVar1[0x30] != -1) {
-    local_84 = hash_table_get();
-    if (local_84 == -1) {
-      local_84 = 0;
-    }
-  }
-  if (iVar3 == -1) {
-    iVar3 = FUN_004e9c20(param_1);
-  }
-  local_90 = *puVar1;
-  local_88 = *(undefined2 *)(puVar1 + 0x2e);
-  local_70 = puVar1[0x1d];
-  local_6c = puVar1[0x1e];
-  local_68 = puVar1[0x1f];
-  local_64 = puVar1[0x20];
-  local_60 = puVar1[0x21];
-  local_5c = puVar1[0x22];
-  local_7c = puVar1[0x17];
-  local_78 = puVar1[0x18];
-  local_74 = puVar1[0x19];
-  local_58 = puVar1[0x1a];
-  local_54 = puVar1[0x1b];
-  local_50 = puVar1[0x1c];
-  local_4c = puVar1[0x62];
-  local_48 = puVar1[99];
-  local_44 = puVar1[100];
-  local_40 = puVar1[0x65];
-  local_3c = puVar1[0x66];
-  local_38 = puVar1[0x67];
-  local_34 = puVar1[0x68];
-  local_30 = puVar1[0x69];
-  local_2c = puVar1[0x6a];
-  local_28 = puVar1[0x6b];
-  local_24 = puVar1[0x6c];
-  local_20 = puVar1[0x6d];
-  local_1c = (byte)((uint)puVar1[0x81] >> 0x13) & 1;
-  local_18 = puVar1[0xd1];
-  local_14 = *(undefined1 *)((int)puVar1 + 0x527);
-  local_10 = puVar1[0x14c];
-  local_c = puVar1[0x14d];
-  local_8 = *(undefined1 *)(puVar1 + 0x14e);
-  local_13 = *(undefined2 *)(puVar1 + 0x14b);
-  local_94 = &local_90;
-  local_4 = 0;
-  local_8c = iVar3;
-  local_80 = iVar2;
-  message_delta_encode_message(0,0x1d,0,&local_94,0,1,'\0');
-  return;
-}
-#endif
+'''
+open(p, "w", encoding="utf-8", newline="\n").write(head + body + t[cut:])
+print("ok")
