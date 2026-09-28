@@ -17,6 +17,10 @@
 //   iteration regardless).
 //   // blam-cc: ECX -> object_list_header_handle, stack -> (override_max_body_vitality, override_max_shield_vitality)
 // UNSURE: EAX (the current object index in the walk) is not shown as object_initialize_shield_stun_thresholds's
+// FIXED 2026-09-28 (retail-independence loop): the two overrides are float VALUES on the stack, not pointers --
+//   objdump 0x561b05..0x561b3c copies them into two locals and passes their addresses (ESI body, EDI
+//   shield) to object_initialize_shield_stun_thresholds; the only caller, hs units_set_maximum_vitality
+//   (0x47c060), pushes the evaluated real arguments.
 //   first argument anywhere in Ghidra's decompile of this function (it has none); this rewrite
 //   forwards it because object_initialize_shield_stun_thresholds's own established signature
 //   requires EAX = object_index and it is the only live candidate register at the call site,
@@ -39,7 +43,7 @@ extern void object_initialize_shield_stun_thresholds(uint32_t object_index,
     float *override_max_body_vitality, float *override_max_shield_vitality); // 0x4ed440, objects module
 
 void ai_object_list_initialize_shield_stun_thresholds(datum_index object_list_header_handle,
-    float *override_max_body_vitality, float *override_max_shield_vitality)
+    float override_max_body_vitality, float override_max_shield_vitality)
 {
     datum_index node_index = (datum_index)k_datum_index_none;
     datum_index object_index = (datum_index)k_datum_index_none;
@@ -62,7 +66,7 @@ void ai_object_list_initialize_shield_stun_thresholds(datum_index object_list_he
         object_header *entry = &((object_header *)object_data->data)[(int16_t)object_index & 0xffff];
         if ((entry->data->vitality_flags & _object_health_frozen_bit) == 0) {
             object_initialize_shield_stun_thresholds((uint32_t)object_index,
-                override_max_body_vitality, override_max_shield_vitality);
+                &override_max_body_vitality, &override_max_shield_vitality);
         }
 
         if (node_index == (datum_index)k_datum_index_none) {
