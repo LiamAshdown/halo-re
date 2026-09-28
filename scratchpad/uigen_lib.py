@@ -63,6 +63,8 @@ LIST_DATA = ('static void *list_item_data(int16_t index)\n{\n'
 FIRST_LIST = ('static widget_instance *first_list_child(widget_instance *widget)\n{\n'
               '    widget_instance *child = widget->first_child;\n\n'
               '    while (child != 0 && child->widget_type != 2) {\n        child = child->next_sibling;\n    }\n    return child;\n}\n')
+GAME2 = ('    uint8_t *game = network_server_pointer != 0 ? (uint8_t *)network_server_pointer + 8\n'
+         '                  : network_client != 0 ? network_client + 0xb14 : 0;\n')
 ROOT_CLOSE = ('    root = widget;\n    while (root->parent != 0) {\n        root = root->parent;\n    }\n'
               '    widget_close(root);\n    *out_handled = 1;\n')
 QUIT_ERR = ('        quit_confirm_error_string_index = %s;\n        quit_confirm_error_unknown_ae = -1;\n'
@@ -110,7 +112,7 @@ def generate(specs):
         inc = '#include "tags.h"\n#include "memory.h"\n#include "math.h"\n#include "cache.h"\n#include "interface.h"\n'
         if 'memset' in body or 'memcpy' in body:
             inc += '#include <string.h>\n'
-        if 'wcsncpy' in body:
+        if 'wcs' in body:
             inc += '#include <wchar.h>\n'
         if 'sprintf' in body:
             inc += '#include <stdio.h>\n'
@@ -121,3 +123,11 @@ def generate(specs):
         open(p, 'w', encoding='utf-8').write(src)
         n += 1
     print('wrote', n)
+
+
+def load_ext(path):
+    """Merge the first EXT.update({...}) block of another generator script."""
+    t = open(path, encoding='utf-8').read()
+    i = t.index('EXT.update({')
+    j = t.index('\n})\n', i) + 3
+    exec(t[i:j], globals())
