@@ -34,7 +34,7 @@
 extern data_array *object_data; // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t g_0087abc0;      // 0x0087abc0, the deathless-player cheat
-extern uint8_t *main_game_globals; // 0x006b0b80, +0x0e difficulty
+extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
@@ -76,7 +76,7 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
     if (*notify_flags & 0x10) {
         value = (1.0f - *(float *)(geometry + 0x44)) * body;
         if (*notify_flags & 0x20) {
-            real multiplier = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e));
+            real multiplier = weapon_get_zoom_fov(0, main_game_globals->difficulty);
 
             if (multiplier > 0.0f) {
                 value = value / multiplier;

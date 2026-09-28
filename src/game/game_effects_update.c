@@ -10,7 +10,7 @@
 #include "math.h"
 #include "game.h"
 
-extern uint8_t *cache_file_slot_table; // 0x006b0b80, TYPES-GAP (byte+2 = slow-motion flag)
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern game_time_globals *game_time;   // 0x006f1d6c
 extern real chimera_contrail_scale;    // 0x007c1208, TYPES-GAP
 
@@ -30,7 +30,7 @@ void game_effects_update(real delta_time)
     int16_t ticks_this_frame;
     real tick_delta_time;
 
-    scale = (cache_file_slot_table[2] == 0) ? 1.0f : 0.5f;
+    scale = (main_game_globals->players_are_double_speed == 0) ? 1.0f : 0.5f;
     ticks_this_frame = game_time->ticks_this_frame;
     tick_delta_time = (real)ticks_this_frame * scale * 0.033333335f;
     delta_time = scale * delta_time;

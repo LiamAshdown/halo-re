@@ -2,7 +2,9 @@
 (dumpbin /disasm, with relocation targets) of a module's objects before and after.
   python tools/objdiff.py snapshot <module>   copy build/obj/<module>/*.obj to build/objsnap/<module>/
   (edit src/<module>, then python tools/msvc_build.py <module>)
-  python tools/objdiff.py compare <module>    list every object whose code differs from the snapshot; exit 1 if any
+  python tools/objdiff.py compare <module> [old=new ...]
+                                              list every object whose code differs from the snapshot (after the
+                                              symbol renames old=new); exit 1 if any
 A difference is not automatically wrong (a corrected signedness can change a compare), but each one must be checked
 against the original function before it is kept."""
 import glob, os, re, shutil, subprocess, sys
@@ -19,13 +21,22 @@ def disasm(obj):
                        env=gl.env, errors="replace")
     lines = [l for l in r.stdout.splitlines() if l.strip() and not l.startswith("Dump of file")
              and not re.match(r"\s*File Type:", l)]
-    return "\n".join(lines)
+    # compiler-numbered labels ($SG string literals, $LN local labels) shift when a header grows: not a code change
+    return re.sub(r"\$(SG|LN)\d+", r"$\1", "\n".join(lines))
+
+
+def renamed(text, renames):
+    for a, b in renames:
+        text = re.sub(r"\b_%s\b" % re.escape(a), "_" + b, text)
+    return text
 
 
 def main():
-    if len(sys.argv) != 3 or sys.argv[1] not in ("snapshot", "compare"):
+    if len(sys.argv) < 3 or sys.argv[1] not in ("snapshot", "compare"):
         raise SystemExit(__doc__)
     mod = sys.argv[2]
+    # symbol renames made by the edit (old=new): applied to the snapshot's disassembly before comparing
+    renames = [a.split("=", 1) for a in sys.argv[3:] if "=" in a]
     src, snap = os.path.join(ROOT, "build", "obj", mod), os.path.join(SNAP, mod)
     if sys.argv[1] == "snapshot":
         shutil.rmtree(snap, ignore_errors=True)
@@ -37,7 +48,7 @@ def main():
         new = os.path.join(src, os.path.basename(old))
         if not os.path.exists(new):
             diff.append(os.path.basename(old) + " (object gone)")
-        elif open(old, "rb").read() == open(new, "rb").read() or disasm(old) == disasm(new):
+        elif open(old, "rb").read() == open(new, "rb").read() or renamed(disasm(old), renames) == disasm(new):
             same += 1
         else:
             diff.append(os.path.basename(old))

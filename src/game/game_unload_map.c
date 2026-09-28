@@ -16,7 +16,7 @@
 #include "scenario.h"
 
 extern uint8_t download_in_progress;   // 0x006ac470
-extern uint8_t *cache_file_slot_table; // 0x006b0b80, TYPES-GAP
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94, scenario.h
 extern uint32_t unknown_0069e8d4; // TYPES-GAP
 extern uint16_t unknown_0069e8d8; // TYPES-GAP
@@ -42,11 +42,11 @@ void game_unload_map(void)
     int16_t status;
 
     if (download_in_progress != 0) {
-        cache_file_slot_table[3] = 1;
+        main_game_globals->map_loading_in_progress = 1;
         do {
-            // objdump 0x45afd0..0x45afd8: EAX = cache_file_slot_table + 4, the float the
+            // objdump 0x45afd0..0x45afd8: EAX = main_game_globals + 4, the float the
             // download poll writes its progress into; ECX is never set at this call site.
-            status = cache_file_download_status_get((float *)(cache_file_slot_table + 4), 0);
+            status = cache_file_download_status_get(&main_game_globals->map_load_progress, 0);
             render_pregame_view_initialize();
             movie_capture_frame_export();
         } while (status == 0);
@@ -56,7 +56,7 @@ void game_unload_map(void)
         }
         cache_file_download_finish();
     }
-    if (*cache_file_slot_table != 0) {
+    if (main_game_globals->map_loaded != 0) {
         cache_file_unload();
         global_scenario_game_globals->structure_bsp_index = -1; // WORD +0x00
         unknown_0069e8d4 = 0xffffffff;
@@ -66,7 +66,7 @@ void game_unload_map(void)
         unknown_00746f98 = (void *)0;
         unknown_00746f90 = (void *)0;
         global_globals = (Globals *)0;
-        *cache_file_slot_table = 0;
+        main_game_globals->map_loaded = 0;
     }
 }
 

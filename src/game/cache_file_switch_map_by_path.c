@@ -21,7 +21,7 @@
 
 extern uint8_t download_in_progress;   // 0x006ac470
 extern char *download_error_path;      // 0x00722bbc
-extern uint8_t *cache_file_slot_table; // 0x006b0b80, TYPES-GAP (byte 0=active, byte 3=flag, dword+4=float)
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern uint32_t unknown_00719979; // TYPES-GAP
 extern uint32_t unknown_00719774; // TYPES-GAP
 extern int32_t unknown_006894b8;  // TYPES-GAP
@@ -46,7 +46,7 @@ extern void shell_display_fatal_error_dialog(uint32_t a, uint32_t b, uint32_t c)
 void cache_file_switch_map_by_path(char *path, uint8_t apply_state)
     // blam-cc: EAX -> path, EBX -> apply_state
 {
-    int32_t slot_table;
+    game_main_globals *globals;
     int16_t slot;
 
     strrchr(path, 0x5c);
@@ -74,12 +74,12 @@ void cache_file_switch_map_by_path(char *path, uint8_t apply_state)
                 goto open_by_name;
             }
         }
-        slot_table = (int32_t)cache_file_slot_table;
+        globals = main_game_globals;
         if (apply_state == 0) {
             return;
         }
-        cache_file_slot_table[3] = 0;
-        *(uint32_t *)(slot_table + 4) = 0x3f800000;
+        main_game_globals->map_loading_in_progress = 0;
+        *(uint32_t *)&globals->map_load_progress = 0x3f800000; // 1.0f, stored as its bits like the original
     }
 
     if (apply_state != 0) {

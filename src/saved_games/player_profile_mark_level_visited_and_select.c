@@ -6,7 +6,7 @@
 // profile before saving." abStack_1eea sits 0x11e bytes above local_2008 in Ghidra's frame,
 // matching saved_player_profile::campaign_progress (offset 0x11e, 10 bytes, "per level, bit n
 // set = finished on difficulty n" per types/saved_games.h); the difficulty byte comes from
-// cache_file_slot_table+0xe, matching game_state_build_header's own read of the same field.
+// main_game_globals+0xe, matching game_state_build_header's own read of the same field.
 // register convention: __cdecl; local_player_index is the recognized stack parameter.
 // Phase 4 review: the tail call to player_profile_load (0x495970) passes local_player_index in
 // AX and &profile in EDX plus the handle on the stack (objdump 0x539dd8..0x539de3), matching
@@ -25,7 +25,7 @@
 #include "saved_games.h"
 
 extern char unknown_00719779[]; // 0x00719779, UNSURE: current scenario/level name buffer
-extern uint8_t *cache_file_slot_table; // 0x006b0b80, opaque here; +0x0e is difficulty
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8
 
 extern int16_t campaign_level_find_index_for_path(char *scenario_name); // 0x4c8b90, not in this module; one stack argument, campaign level index or -1
@@ -40,7 +40,7 @@ void player_profile_mark_level_visited_and_select(int16_t local_player_index)
     saved_player_profile profile;
 
     current_level = campaign_level_find_index_for_path(unknown_00719779);
-    difficulty = *(int16_t *)(cache_file_slot_table + 0xe);
+    difficulty = main_game_globals->difficulty;
 
     if (local_player_index < 0 || 1 <= local_player_index) {
         return;

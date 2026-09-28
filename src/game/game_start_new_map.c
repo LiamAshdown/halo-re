@@ -23,7 +23,7 @@
 #include "scenario.h"
 #include "camera.h"
 
-extern uint8_t *cache_file_slot_table; // 0x006b0b80, TYPES-GAP (dword+0x10 seeds the RNG)
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t player_profile_cache_initialized;     // 0x006f1d38
@@ -100,7 +100,7 @@ void game_start_new_map(void)
     uint32_t *dst;
     uint8_t *record;
 
-    random_seed_global = *(random_seed *)(cache_file_slot_table + 0x10);
+    random_seed_global = main_game_globals->random_seed;
 
     if (current_game_engine != (game_engine_definition *)0) {
         if (current_game_engine->dispose != (void *)0) {
@@ -256,7 +256,7 @@ void game_start_new_map(void)
     *((uint8_t *)recorded_animations_pool_ptr + 0x24) = 1;
     data_delete_all(recorded_animations_pool_ptr);
 
-    *(cache_file_slot_table + 1) = 1;
+    main_game_globals->active = 1;
     *unknown_006b8cbc = 1;
     scenario_objects_place(global_scenario);
     *unknown_006b8cbc = 0;

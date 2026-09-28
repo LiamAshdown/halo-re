@@ -50,7 +50,7 @@ extern data_array *effect_location_pool_ptr; // 0x0087abe0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time; // 0x006f1d6c
 extern uint32_t unknown_00746280_block[0x343]; // 0x00746280, a block (mov edi,0x746280; rep stos), not a pointer
-extern uint8_t *cache_file_slot_table; // 0x006b0b80
+extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern void decal_clear_flags(uint8_t clear_object_attached); // 0x44e220, BL
 extern void particle_systems_delete_all(void);              // UNSURE module
@@ -132,7 +132,7 @@ void game_stop_current_map(void)
     }
 
     widget_close_all();
-    cache_file_slot_table[1] = 0;
+    main_game_globals->active = 0;
 }
 
 #if 0

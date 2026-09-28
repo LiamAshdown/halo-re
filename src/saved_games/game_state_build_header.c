@@ -25,7 +25,7 @@ extern int32_t game_state_revert_time; // 0x006e2ddc
 extern datum_index global_scenario_index; // 0x0069e8d4
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t local_player_count; // 0x006894b8
-extern uint8_t *cache_file_slot_table; // 0x006b0b80, opaque here; +0x0e is difficulty (see src/ai, src/game)
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern uint32_t cache_file_current_header_crc32; // 0x006a81b8
 extern uint32_t game_state_crc; // 0x006e2dd4
 
@@ -63,7 +63,7 @@ void game_state_build_header(void)
     header->build_version[12] = '1'; header->build_version[13] = '\0';
 
     header->local_player_count = local_player_count;
-    header->difficulty = *(int16_t *)(cache_file_slot_table + 0xe);
+    header->difficulty = main_game_globals->difficulty;
     header->map_checksum = cache_file_current_header_crc32;
     header->allocation_checksum = game_state_crc;
 }

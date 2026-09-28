@@ -31,7 +31,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
-extern uint8_t *main_game_globals; // 0x006b0b80, +0x0e difficulty
+extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
@@ -94,7 +94,7 @@ void object_apply_shield_damage(uint32_t target_index, uint8_t *geometry, uint8_
         }
         passthrough = passthrough - to_shield;
         if ((*notify_flags & 0x10) && (*notify_flags & 0x20)) {
-            real multiplier = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e));
+            real multiplier = weapon_get_zoom_fov(0, main_game_globals->difficulty);
 
             if (multiplier > 0.0f) {
                 to_shield = to_shield / multiplier;

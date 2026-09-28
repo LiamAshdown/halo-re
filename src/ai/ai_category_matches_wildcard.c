@@ -11,8 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "game.h"
 
-extern uint8_t *main_game_globals; // 0x006b0b80 game globals *, +0x0e difficulty
+extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09,
     int16_t threshold, int16_t timer_reset, uint8_t unknown_0c); // 0x45be50, EAX, stack
@@ -39,7 +40,7 @@ void ai_category_matches_wildcard(int16_t category, int16_t other_category)
         other = team_a;
     }
     if (other == 2 || other == 5) {
-        timer = k_forgiveness_ticks[*(int16_t *)(main_game_globals + 0xe) & 3];
+        timer = k_forgiveness_ticks[main_game_globals->difficulty & 3];
         human = other == 2;
         betrayable = 1;
         threshold = 5;

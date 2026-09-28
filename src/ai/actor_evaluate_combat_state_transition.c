@@ -27,7 +27,7 @@ extern data_array *object_data;      // 0x008603b0
 extern data_array *prop_data;        // 0x008802c0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
-extern uint8_t *main_game_globals;   // 0x006b0b80, +0x0e difficulty
+extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
 extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3); // 0x40dd50
@@ -91,7 +91,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
             float base_delay;
             float delay;
             float range;
-            int16_t difficulty = (int16_t)*(uint16_t *)(main_game_globals + 0xe);
+            int16_t difficulty = (int16_t)(uint16_t)main_game_globals->difficulty;
 
             if (!actor_has_unshielded_threat_weapon(actor_index) && !(*(uint32_t *)actor_tag & 0x20000)) {
                 wide = 1;

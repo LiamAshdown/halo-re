@@ -10,11 +10,12 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "game.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *cache_file_slot_table; // 0x006b0b80
+extern game_main_globals *main_game_globals; // 0x006b0b80
 
 void hs_evaluate_game_difficulty_get_real(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)*(uint16_t *)(cache_file_slot_table + 0xe), thread_index);
+    hs_thread_return((int32_t)(uint16_t)main_game_globals->difficulty, thread_index);
 }

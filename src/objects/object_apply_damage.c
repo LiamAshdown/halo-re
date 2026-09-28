@@ -41,7 +41,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t *g_006b0b84;         // 0x006b0b84, +0xa4: the ten-team friend bitfield (team_a * 10 + team_b)
-extern uint8_t *main_game_globals;  // 0x006b0b80, +0x0e difficulty
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern uint8_t g_0087abc5;          // 0x0087abc5, cheat: screen effects for unowned units too
 extern uint8_t g_0087abc7;          // 0x0087abc7, cheat: player damage kills outright
 extern ModelCollisionGeometryMaterial default_collision_material; // 0x006b8c68
@@ -166,7 +166,7 @@ void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int
         int16_t team = dd->team_index;
 
         if (team < 0 || team >= 10 || !teams_are_friends(team * 10 + 1)) {
-            amount = weapon_get_zoom_fov(0, *(int16_t *)(main_game_globals + 0x0e)) * amount;
+            amount = weapon_get_zoom_fov(0, main_game_globals->difficulty) * amount;
             difficulty_scaled = 1;
         }
     }

@@ -7,7 +7,7 @@ import glob, os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OFFSET = re.compile(r"\*\s*\(\s*[\w ]+\*+\s*\)\s*\(?\s*\(?[\w\->.\[\]]+\)?\s*\+\s*(?:0x[0-9a-fA-F]+|\d+)\s*\)")
 NAMES = re.compile(r"\b(?:param_\d+|local_[0-9a-f]+|[a-z]{1,3}Var\d+|(?:in|extraout|unaff)_[A-Z][A-Za-z0-9_]*)\b")
-TYPES = re.compile(r"\b(?:uint|ushort|uchar|byte|dword|word|ulonglong|longlong|undefined\d?)\b")
+TYPES = re.compile(r"\b(?:uint|ushort|uchar|byte|dword|word|ulonglong|longlong|undefined\d?)\b(?=\s*[\w*(])")
 
 
 def live(text):

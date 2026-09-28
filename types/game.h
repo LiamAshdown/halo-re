@@ -53,7 +53,29 @@
 // Unicode: the engine stores player and variant names as UTF-16. There is no wchar_t for
 // Ghidra CParser here, so they are declared as uint16_t arrays.
 
+#include <stddef.h> // offsetof
 #pragma pack(push, 1)
+
+// ---------------------------------------------------------------------------
+// game_main_globals (0x006b0b80 main_game_globals points at it): whether a map is loaded and
+// the game running, the double-speed flag, map load progress, and the options the current game
+// was started with. Offsets from the uses in src/game (game_start_new_map, game_unload_map,
+// cache_file_switch_map_by_path, game_simulate_tick) and the difficulty reads across src/;
+// the same layout OpenSauce documents for Custom Edition (s_game_globals).
+// ---------------------------------------------------------------------------
+typedef struct game_main_globals {
+    uint8_t map_loaded;                 // 0x00 cleared by game_unload_map
+    uint8_t active;                     // 0x01 set by game_start_new_map, cleared by game_stop_current_map
+    uint8_t players_are_double_speed;   // 0x02 60Hz ticks (game_simulate_tick), half-rate effects
+    uint8_t map_loading_in_progress;    // 0x03
+    float map_load_progress;            // 0x04 cache_file_download_status_get, 1.0 when done
+    int32_t unknown_08;                 // 0x08 start of the game options block
+    int16_t unknown_0c;                 // 0x0c
+    int16_t difficulty;                 // 0x0e
+    uint32_t random_seed;               // 0x10 copied into random_seed_global at game start
+} game_main_globals;                    // (only the fields above are known; used through a pointer)
+typedef char game_main_globals_difficulty_at_0e[offsetof(game_main_globals, difficulty) == 0x0e ? 1 : -1];
+typedef char game_main_globals_random_seed_at_10[offsetof(game_main_globals, random_seed) == 0x10 ? 1 : -1];
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
 

@@ -258,8 +258,6 @@ PUBLIC _cache_file_index
 _cache_file_index EQU 06AC494h
 PUBLIC _cache_file_loaded
 _cache_file_loaded EQU 06A8150h
-PUBLIC _cache_file_slot_table
-_cache_file_slot_table EQU 06B0B80h
 PUBLIC _cache_file_slots
 _cache_file_slots EQU 06A9428h
 PUBLIC _cache_io_event

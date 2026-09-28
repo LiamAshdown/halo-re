@@ -45,7 +45,7 @@
 // 0x006f1d7d gates the whole magnetism / aim-assist block; 0x006f1d80 is a 0-or-1 look-rate
 // doubler and 0x006f1d7f makes holding the zoom button (digital button 11) invert it.
 // UNSURE: 0x006b0b80 is declared with the name the other game-module files that touch it use
-// (cache_file_slot_table); its byte +2 is read here exactly as game_effects_update.c reads it, as
+// (main_game_globals); its byte +2 is read here exactly as game_effects_update.c reads it, as
 // a slow-motion flag, and it halves the magnetism rate.
 // UNSURE: object + 0x22c bit 0 is weapon_data::flags bit 0 (types/items.h); what that flag means
 // is not established, only that setting it suppresses the primary trigger on a network client.
@@ -67,7 +67,7 @@ extern player_control_globals *player_control_globals_ptr;   // 0x006b145c
 extern game_time_globals *game_time;                         // 0x006f1d6c
 extern Globals *global_globals;                              // 0x00746fa0
 extern int16_t network_game_mode;                            // 0x00719720 (tested as a word here)
-extern uint8_t *cache_file_slot_table;                       // 0x006b0b80, byte +2 slow-motion flag
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern local_player_input_state local_player_input_states[k_maximum_local_players]; // 0x00712498
 
 extern real look_yaw_rate_setting[k_maximum_local_players];   // 0x006f1d74, degrees per second
@@ -320,7 +320,7 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
                 if (adhesion < 0.0f) { adhesion = 0.0f; } else if (adhesion > 1.0f) { adhesion = 1.0f; }
                 adhesion = adhesion * control->aim_assist_weight;
 
-                if (cache_file_slot_table[2] != 0) {
+                if (main_game_globals->players_are_double_speed != 0) {
                     time_scale = time_scale * 0.5f;
                 }
                 magnetism_yaw = look_yaw_pitch_rate[0] * time_scale;

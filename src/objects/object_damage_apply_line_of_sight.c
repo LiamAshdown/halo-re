@@ -19,10 +19,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "game.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *main_game_globals;  // 0x006b0b80, +0x0e the difficulty
+extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
@@ -123,7 +124,7 @@ void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index
             if (((1u << (target[0xb4] & 0x1f)) & 3) &&
                 (*(uint32_t *)(TAG_DATA(*(datum_index *)target) + 0x17c) & 0x80000) &&
                 target_index != dd->responsible_object) {
-                real scale = weapon_get_zoom_fov(8, *(int16_t *)(main_game_globals + 0xe));
+                real scale = weapon_get_zoom_fov(8, main_game_globals->difficulty);
 
                 apply = 1;
                 if ((scale > 0.0f || (flags & 0x400)) && (dd->flags & 0x40)) {

@@ -8,7 +8,7 @@
 //   (0x00719720); types/units.h's own note that 0x006ef910 (the AI update-stagger record) is
 //   "owned and reset" by this address; game_engine_flag_local_player_units (0x45b590),
 //   team_pair_overrides_tick (0x45bcf0), game_engine_tick (0x45ff30), hs_runtime_update
-//   (0x48a1a0), all already named elsewhere in this module; cache_file_slot_table (0x006b0b80,
+//   (0x48a1a0), all already named elsewhere in this module; main_game_globals (0x006b0b80,
 //   byte+2 slow-motion flag, same global game_effects_update.c already declares).
 // register convention: __cdecl; the recognized stack parameter gates one call
 //   (FUN_004768c0) below.
@@ -32,7 +32,7 @@ extern uint8_t DAT_0087ab18;                 // 0x0087ab18, UNSURE: "simulation 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 extern ai_update_stagger_state *ai_update_stagger; // 0x006ef910
 extern int16_t network_game_mode;            // 0x00719720
-extern uint8_t *cache_file_slot_table;        // 0x006b0b80, TYPES-GAP (byte+2 = slow-motion flag)
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern int32_t hs_thread_recursion_depth;    // 0x00719ccc, UNSURE name (incremented/decremented around FUN_004923d0)
 extern int32_t unknown_00699f44;             // 0x00699f44, TYPES-GAP: message queue count
 extern uint8_t unknown_00699f40[];           // 0x00699f40, TYPES-GAP: message queue buffer
@@ -92,7 +92,7 @@ void game_simulate_tick(uint32_t predict_pass)
 
 after_role_update:
     {
-        float seconds_per_tick = (cache_file_slot_table[2] == 0) ? 0.033333335f : 0.016666668f; // UNSURE: see header
+        float seconds_per_tick = (main_game_globals->players_are_double_speed == 0) ? 0.033333335f : 0.016666668f; // UNSURE: see header
         effects_update_all(seconds_per_tick);
     }
 

@@ -35,7 +35,7 @@ extern game_time_globals *game_time;   // 0x006f1d6c
 extern uint8_t *local_player_globals;  // 0x0087a478, +0x4 the first local player
 extern data_array *player_data;        // 0x0087a480
 extern real_vector3d *global_origin3d_pointer; // 0x00696714
-extern uint8_t *main_game_globals;     // 0x006b0b80, +0x0e the difficulty
+extern game_main_globals *main_game_globals; // 0x006b0b80
 extern float global_gravity;           // 0x0069c52c
 
 extern void contrail_delete(datum_index attachment_handle); // 0x44cad0
@@ -170,7 +170,7 @@ int projectile_update(uint32_t projectile_index)
             real angle_b;
 
             if (((1u << (tracked[0xb4] & 0x1f)) & 3) && *(datum_index *)(tracked + 0x218) != k_datum_index_none) {
-                turn *= weapon_get_zoom_fov(0x13, *(int16_t *)(main_game_globals + 0xe));
+                turn *= weapon_get_zoom_fov(0x13, main_game_globals->difficulty);
             }
             {
                 real dx = F(obj, 0xa0) - F(tracked, 0xa0);

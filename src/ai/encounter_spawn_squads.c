@@ -28,10 +28,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "game.h"
 
 extern ai_globals *ai_global_data;   // 0x00880354
 extern Scenario *global_scenario;    // 0x00746f8c
-extern uint8_t *cache_file_slot_table; // 0x006b0b80, same global the rest of src/ai declares under
+extern game_main_globals *main_game_globals; // 0x006b0b80
                                        //   this name; the int16 at +0x0e is the difficulty level (0..3)
 extern data_array *encounter_data;   // 0x008802c8
 extern uint32_t random_seed_global;  // 0x00719cd0
@@ -77,7 +78,7 @@ void encounter_spawn_squads(datum_index encounter_index, int16_t platoon_filter,
 
                 leader_chance = 0;
                 spawn_count = 0;
-                switch (*(int16_t *)(cache_file_slot_table + 0x0e)) {
+                switch (main_game_globals->difficulty) {
                 case 0:
                 case 1:
                     spawn_count = (int32_t)(uint16_t)squad->normal_diff_count;
