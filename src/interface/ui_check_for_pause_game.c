@@ -27,11 +27,13 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern network_server_globals *network_server; // 0x0071c2d4
 extern game_time_globals *game_time; // 0x006f1d6c (types/game.h)
-extern uint8_t *cinematic_globals; // 0x006f187c, byte +9 tested elsewhere
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern int16_t network_game_mode;                    // 0x00719720
 extern uint8_t ui_split_screen;                       // 0x00718fc9
 extern int32_t ui_pause_pending_count_00718fa0;       // 0x00718fa0, TYPES-GAP
@@ -65,7 +67,7 @@ uint32_t ui_check_for_pause_game(void)
 
     if (game_time->initialized == 0 ||
         (game_time->active == 0 && game_time->paused == 0) ||
-        cinematic_globals[9] != 0 ||
+        cinematic_globals_ptr->in_progress != 0 ||
         network_game_mode == 3 || ui_split_screen != 0 || ui_pause_pending_count_00718fa0 != 0 ||
         (player_control_globals_ptr->action_flags_latched >> 3 & 1) != 0 || unknown_006b3858 != 0 ||
         unknown_007127d1 != 1) {

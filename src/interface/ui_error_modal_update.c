@@ -26,10 +26,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value; // 0x0087aa10, types/game.h
-extern uint8_t *cinematic_globals; // 0x006f187c, UNSURE name; a pointer (objdump 0x4a9a57 loads it), byte +9 tested
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern uint8_t widget_memory_pool_valid; // 0x00718fc2
 extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern player_globals *local_player_globals; // 0x0087a478
@@ -48,7 +50,7 @@ void ui_error_modal_update(void)
     int16_t player_count_field;
 
     if ((current_game_engine == (void *)0 || (int32_t)game_engine_state_value < 2 || (int32_t)game_engine_state_value > 3) &&
-        cinematic_globals[9] == 0) {
+        cinematic_globals_ptr->in_progress == 0) {
         if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
             strstr(ui_root_widget[0]->name, "error_modal");
         }

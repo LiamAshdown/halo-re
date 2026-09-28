@@ -11,12 +11,14 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *cinematic_globals_ptr; // 0x006f187c
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern uint8_t *game_time; // 0x006f1d6c
 
 void hs_evaluate_cinematic_show_letterbox(int16_t function_index, uint32_t thread_index, char first)
@@ -28,9 +30,9 @@ void hs_evaluate_cinematic_show_letterbox(int16_t function_index, uint32_t threa
     if (arguments != 0) {
     uint8_t show = *(uint8_t *)&arguments[0];
 
-    cinematic_globals_ptr[8] = show;
+    cinematic_globals_ptr->show_letterbox = show;
     if (show) {
-        *(int32_t *)(cinematic_globals_ptr + 4) = *(int32_t *)(game_time + 0xc);
+        cinematic_globals_ptr->letterbox_last_tick = *(int32_t *)(game_time + 0xc);
     }
     hs_thread_return(0, thread_index);
     }

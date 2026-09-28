@@ -34,6 +34,8 @@
 #include "render.h"
 #include "structures.h"
 #include "game.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern render_fog render_fog_state;                  // 0x007c32f4, this module (named
                                                      // render_fog_state; a variable cannot share
@@ -49,7 +51,7 @@ extern game_engine_state game_engine_state_value;    // 0x0087aa10, game module 
                                                      // src/game/game_engine_begin_end_game_sequence.c)
 extern player_globals *local_player_globals;         // 0x0087a478, game module
 
-extern uint8_t *cinematic_globals; // 0x006f187c, UNSURE name (matches
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
     // src/interface/hud_messaging_update.c and others); byte +9 is a "cinematic playing" flag
     // tested here alongside the multiplayer-round and local-player-count checks
 
@@ -175,7 +177,7 @@ void render_player_frame(Point2DInt *screenshot_tile, render_view *view) // blam
     attempt_mirror = 1;
     if (!(current_game_engine != 0 && game_engine_state_value >= _game_engine_state_ended &&
           game_engine_state_value <= _game_engine_state_post_game)) {
-        if (cinematic_globals[9] == 0) {
+        if (cinematic_globals_ptr->in_progress == 0) {
             int16_t local_player_count = local_player_globals->local_player_count;
             if (local_player_count == 1 && local_player_count != 1) {
                 attempt_mirror = 0; // never reachable; see the UNSURE note above

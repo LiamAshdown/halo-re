@@ -5,7 +5,7 @@
 // (types/main.h): frame_counter_low/high (0x000/0x004), frame_time_overflow (0x018),
 // frame_delta_time (0x01c), game_connection (0x020), movie_frame_bitmap (0x024),
 // movie_frame_delta_time (0x034), frame_time_ms (0x008). game_time_force_single_tick
-// (0x007196d8), unknown_006894ba (0x006894ba) and cinematic_globals (0x006f187c) reuse
+// (0x007196d8), unknown_006894ba (0x006894ba) and cinematic_globals_ptr (0x006f187c) reuse
 // established names from types/main.h and other modules. performance_counter_frequency
 // (0x006ac8f8) reuses this module's own game_timer_reset.c naming.
 // register convention: cdecl, no parameters.
@@ -20,11 +20,13 @@
 #include "math.h"
 #include "interface.h"
 #include "main.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern main_globals main_globals_data; // 0x00719700
 extern int32_t game_time_force_single_tick; // 0x007196d8, foreign (main-owned global per main.h)
 extern uint8_t unknown_006894ba;       // 0x006894ba, foreign (interface module)
-extern uint8_t *cinematic_globals;     // 0x006f187c, foreign, TYPES-GAP
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
 extern uint8_t unknown_00710301;       // TYPES-GAP, UNSURE identity
 
@@ -46,7 +48,7 @@ void main_loop_frame_pacer(void)
     float delta;
 
     pacing = (game_time_force_single_tick == 0 &&
-              (unknown_006894ba != 0 || cinematic_globals[9] != 0))
+              (unknown_006894ba != 0 || cinematic_globals_ptr->in_progress != 0))
                  ? 1
                  : 0;
 
@@ -74,7 +76,7 @@ void main_loop_frame_pacer(void)
             elapsed_seconds = 0.0;
         }
 
-        if (main_globals_data.game_connection != 0 || cinematic_globals[9] != 0) {
+        if (main_globals_data.game_connection != 0 || cinematic_globals_ptr->in_progress != 0) {
             goto apply;
         }
         if (unknown_00710301 == 0) {

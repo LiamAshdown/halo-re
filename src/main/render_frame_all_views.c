@@ -10,7 +10,7 @@
 // observers[1].camera (0x006ac6d0 = observers base 0x006ac65c + offsetof(observer, camera)=0x74,
 // types/camera.h) supplies the observer_camera* for a resolved local_player_index.
 // current_game_engine/game_engine_state_value/local_player_globals/widget_memory_pool_valid/
-// ui_root_widget/cinematic_globals reuse src/interface/ui_error_modal_update.c's names.
+// ui_root_widget/cinematic_globals_ptr reuse src/interface/ui_error_modal_update.c's names.
 // screenshots (0x007196e0) reuses src/shell/shell_winmain.c's name; render_frame (Ghidra:
 // render_views_draw_all) reuses src/render/render_frame.c's renamed signature.
 // register convention: cdecl, two ordinary float stack parameters (time_since_tick,
@@ -40,6 +40,8 @@
 #include "input.h"
 #include "main.h"
 #include <string.h>
+#include "units.h"
+#include "cutscene.h"
 
 extern int32_t player_effect_reentry_count; // 0x00719ccc, foreign (effects module)
 extern main_globals main_globals_data;      // 0x00719700
@@ -50,7 +52,7 @@ extern game_engine_state game_engine_state_value;   // 0x0087aa10, foreign (game
 extern player_globals *local_player_globals;        // 0x0087a478, foreign (game module)
 extern uint8_t widget_memory_pool_valid;            // 0x00718fc2, foreign (interface module)
 extern widget_instance *ui_root_widget[1];          // 0x00718f94, foreign (interface module)
-extern uint8_t *cinematic_globals;                  // 0x006f187c, foreign, TYPES-GAP
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern observer observers[1];                       // 0x006ac65c, foreign (camera module)
 extern uint8_t render_view_local_player_sticky;     // 0x0068943c, TYPES-GAP, UNSURE identity
 extern int32_t screenshots;                         // 0x007196e0, foreign (shell module)
@@ -103,7 +105,7 @@ void render_frame_all_views(float time_since_tick, float time_since_frame)
     if (widget_memory_pool_valid != 0 && ui_root_widget[0] != 0) {
         strstr(ui_root_widget[0]->name, "error_modal");
     }
-    if (showing_results || cinematic_globals[9] != 0) {
+    if (showing_results || cinematic_globals_ptr->in_progress != 0) {
         view_count = 1;
     }
 

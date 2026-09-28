@@ -21,9 +21,11 @@
 #include "math.h"
 #include "objects.h"
 #include "rasterizer.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern data_array *object_data;                                  // 0x008603b0
-extern uint8_t *cinematic_globals;    // 0x006f187c UNSURE name (as src/render/render_player_frame.c); byte +9
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern int32_t unknown_00689450;      // 0x00689450 UNSURE: video detail setting, forced to 2 (high)
 extern render_frustum render_frustum_global; // 0x007c3168, this module (named render_frustum_global;
                                              // a variable cannot share the render_frustum typedef's
@@ -32,7 +34,7 @@ extern render_frustum render_frustum_global; // 0x007c3168, this module (named r
 // Projects an object's bounding sphere to an approximate on-screen pixel radius, used by
 // object_render_state_refresh (0x50f270) to pick the cached-lighting refresh interval. Objects
 // flagged with the (unnamed) 0x400000 bit are exempt from the detail falloff while
-// cinematic_globals[9] is set, and always report the maximum size.
+// cinematic_globals_ptr->in_progress is set, and always report the maximum size.
 real object_compute_level_of_detail_pixels(datum_index object_index)
 {
     object *obj;
@@ -41,7 +43,7 @@ real object_compute_level_of_detail_pixels(datum_index object_index)
 
     obj = ((object_header *)object_data->data)[(uint16_t)object_index].data;
 
-    if (cinematic_globals[9] != 0 && (obj->flags & 0x400000) != 0) {
+    if (cinematic_globals_ptr->in_progress != 0 && (obj->flags & 0x400000) != 0) {
         return 3.4028235e+38f; // UNSURE: FLT_MAX, object exempt from LOD falloff
     }
 

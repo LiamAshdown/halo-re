@@ -11,10 +11,12 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern float cinematic_saved_music_gain; // 0x00686b60
-extern uint8_t *cinematic_globals_ptr; // 0x006f187c
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern void sound_set_music_gain(float gain); // 0x548680
 
 void hs_evaluate_cinematic_skip_stop_internal(int16_t function_index, uint32_t thread_index, char first)
@@ -23,6 +25,6 @@ void hs_evaluate_cinematic_skip_stop_internal(int16_t function_index, uint32_t t
         sound_set_music_gain(cinematic_saved_music_gain);
         cinematic_saved_music_gain = -1.0f;
     }
-    cinematic_globals_ptr[0xa] = 0;
+    cinematic_globals_ptr->skip_in_progress = 0;
     hs_thread_return(0, thread_index);
 }

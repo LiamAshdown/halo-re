@@ -50,6 +50,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h> // uintptr_t
+#include "units.h"
+#include "cutscene.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -60,7 +62,7 @@ extern int32_t game_time_force_single_tick;                 // 0x007196d8, -time
 extern uint8_t main_unknown_696570;                         // 0x00696570
 extern int64_t performance_counter_frequency;               // 0x006ac8f8, foreign (math module)
 extern game_time_globals *game_time;                        // 0x006f1d6c, foreign (game module)
-extern uint8_t *cinematic_globals;                          // 0x006f187c, foreign, TYPES-GAP (+0x09, +0x0a bytes)
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern data_array *player_data;                             // 0x0087a480, foreign (game module)
 extern data_array *object_data;                             // 0x008603b0, foreign (objects module)
 extern input_abstraction_globals input_globals;             // 0x00710328, foreign (input module)
@@ -297,7 +299,7 @@ void main_loop(void)
             campaign_level_advance();
         }
         if (main_globals_data.respawn_coop_players != 0 && game_time->paused == 0 &&
-            cinematic_globals[9] == 0) {
+            cinematic_globals_ptr->in_progress == 0) {
             previous_frames = main_globals_data.respawn_coop_frames;
             main_globals_data.respawn_coop_frames = (int16_t)(previous_frames + 1);
             if (previous_frames > k_main_respawn_delay_frames &&
@@ -324,7 +326,7 @@ void main_loop(void)
             main_globals_data.revert_map = 0;
         }
         if (main_globals_data.revert_map_if_allowed != 0) {
-            if (game_state_write_in_progress == 0 && cinematic_globals[0x0a] != 0) {
+            if (game_state_write_in_progress == 0 && cinematic_globals_ptr->skip_in_progress != 0) {
                 game_state_perform_revert();
                 ui_pause_pending_count_00718fa0 = 0x1e;
                 main_globals_data.revert_map = 0;
@@ -465,7 +467,7 @@ void main_loop(void)
             main_globals_data.last_activity_time_ms =
                 (int32_t)((counter * 1000) / performance_counter_frequency);
         } else if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0) &&
-                   game_time->paused == 0 && cinematic_globals[9] != 0) {
+                   game_time->paused == 0 && cinematic_globals_ptr->in_progress != 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             main_globals_data.last_gameplay_time_ms =
                 (int32_t)((counter * 1000) / performance_counter_frequency);

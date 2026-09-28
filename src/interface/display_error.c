@@ -23,8 +23,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "units.h"
+#include "cutscene.h"
 
-extern uint8_t *cinematic_globals; // 0x006f187c, TYPES-GAP, UNSURE name; byte +9 tested
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern ui_pending_error ui_pending_errors[4]; // 0x00718fb6
 extern player_globals *local_player_globals;  // 0x0087a478 (types/game.h)
 extern uint8_t ui_split_screen;               // 0x00718fc9
@@ -54,7 +56,7 @@ void display_error(int16_t error_string_index, int32_t player_index, uint8_t mod
     datum_index history_source;
     widget_instance *dialog;
 
-    if (cinematic_globals[9] != 0) {
+    if (cinematic_globals_ptr->in_progress != 0) {
         int32_t index = (slot == -1) ? 0 : slot;
 
         if (ui_pending_errors[index].error_string_index != -1) {

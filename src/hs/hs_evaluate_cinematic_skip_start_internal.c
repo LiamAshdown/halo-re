@@ -10,12 +10,14 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *cinematic_globals_ptr; // 0x006f187c
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 
 void hs_evaluate_cinematic_skip_start_internal(int16_t function_index, uint32_t thread_index, char first)
 {
-    cinematic_globals_ptr[0xa] = 1;
+    cinematic_globals_ptr->skip_in_progress = 1;
     hs_thread_return(0, thread_index);
 }

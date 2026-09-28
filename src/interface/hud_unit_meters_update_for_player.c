@@ -21,6 +21,8 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern player_globals *local_player_globals;   // 0x0087a478
 extern data_array *player_data;                // 0x0087a480
@@ -28,7 +30,7 @@ extern data_array *object_data; // 0x008603b0
 extern game_time_globals *game_time;           // 0x006f1d6c
 extern hud_unit_meter_globals *hud_unit_meters; // 0x0071942c
 extern hud_globals_flags *hud_flags;           // 0x00719420
-extern uint8_t *cinematic_globals; // 0x006f187c, UNSURE name; byte +9 suppresses HUD messages
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 
 extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled); // 0x4afee0, blam-cc: EAX player
 
@@ -84,7 +86,7 @@ void hud_unit_meters_update_for_player(int16_t local_player_index)
         }
     }
 
-    if (cinematic_globals[9] != 0 && local_player_index != -1 && local_player_index < 1) {
+    if (cinematic_globals_ptr->in_progress != 0 && local_player_index != -1 && local_player_index < 1) {
         player_index = local_player_globals->local_players[local_player_index];
         if (player_index != (datum_index)-1) {
             hud_unit_sounds_update((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200),

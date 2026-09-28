@@ -9,14 +9,16 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "units.h"
+#include "cutscene.h"
 
-extern uint8_t *cinematic_globals_ptr; // 0x006f187c
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 
 extern void scenario_objects_place_for_structure_bsp(uint8_t place); // 0x4f4880, stack -> place
 
 void scenario_objects_place_for_structure_bsp_on_activate(void)
 {
-    if (cinematic_globals_ptr[9] == 0 || cinematic_globals_ptr[0xb] == 0) {
+    if (cinematic_globals_ptr->in_progress == 0 || cinematic_globals_ptr->suppress_bsp_object_creation == 0) {
         scenario_objects_place_for_structure_bsp(1);
     }
 }

@@ -5,7 +5,7 @@
 // viewports should currently be rendered (normally 1)"). Every global here is already named by
 // src/interface/ui_error_modal_update.c, which contains the IDENTICAL leading condition
 // (`DAT_006f1d20 == 0 || DAT_0087aa10 < 2 || DAT_0087aa10 > 3`) over the same
-// current_game_engine / game_engine_state_value globals: cinematic_globals (0x006f187c, byte +9)
+// current_game_engine / game_engine_state_value globals: cinematic_globals_ptr (0x006f187c, byte +9)
 // and local_player_globals (0x0087a478, player_globals*, local_player_count at +0xc, the local player
 // count per out/phase4/main_types_notes.md).
 // register convention: no register-passed arguments (Ghidra recognizes none).
@@ -19,10 +19,12 @@
 #include "game.h"
 #include "networking.h"
 #include "main.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20, foreign
 extern game_engine_state game_engine_state_value;   // 0x0087aa10, foreign (game module)
-extern uint8_t *cinematic_globals;                  // 0x006f187c, foreign, TYPES-GAP
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern player_globals *local_player_globals;        // 0x0087a478, foreign (game module)
 
 // Returns the number of local split-screen viewports to render this frame: normally 1, but the
@@ -36,7 +38,7 @@ int render_local_view_count(void)
 
     if ((current_game_engine == 0 || (int32_t)game_engine_state_value < 2 ||
          (int32_t)game_engine_state_value > 3) &&
-        cinematic_globals[9] == 0) {
+        cinematic_globals_ptr->in_progress == 0) {
         local_player_count_field = local_player_globals->local_player_count;
         if (local_player_count_field > 0 && local_player_count_field < 2) {
             return local_player_count_field;

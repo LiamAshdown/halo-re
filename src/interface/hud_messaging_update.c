@@ -35,8 +35,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "units.h"
+#include "cutscene.h"
 
-extern uint8_t *cinematic_globals; // 0x006f187c, UNSURE name; byte +9 suppresses HUD messages
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern player_globals *local_player_globals;   // 0x0087a478
 extern HUDGlobals *hud_messaging_parameters; // 0x00873d40, pointer to the HUDGlobals messaging block
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
@@ -145,7 +147,7 @@ void hud_messaging_update(int16_t local_player_index)
     uint8_t action_shown;
     int32_t now;
 
-    if (cinematic_globals[9] != 0 || local_player_index == -1) {
+    if (cinematic_globals_ptr->in_progress != 0 || local_player_index == -1) {
         return;
     }
     player_index = local_player_index < 1 ? local_player_globals->local_players[local_player_index]

@@ -418,8 +418,6 @@ PUBLIC _chimera_loading_screen_cleanup_gate
 _chimera_loading_screen_cleanup_gate EQU 07124A1h
 PUBLIC _cinematic_fade_globals
 _cinematic_fade_globals EQU 06F1884h
-PUBLIC _cinematic_globals
-_cinematic_globals EQU 06F187Ch
 PUBLIC _cinematic_globals_ptr
 _cinematic_globals_ptr EQU 06F187Ch
 PUBLIC _cinematic_saved_music_gain

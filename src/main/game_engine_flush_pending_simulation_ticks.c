@@ -5,7 +5,7 @@
 // evidence: matches the given name exactly; out/phase4/main_functions.md summary ("Runs a fixed
 // number of queued simulation ticks back-to-back at a fixed 30Hz timestep, used to fast-forward
 // the simulation"). 0x0071976e/0x0071976c are main_globals.skip_tick_count/skip_ticks
-// (types/main.h, offsets 0x06e/0x06c). game_time (0x006f1d6c) and cinematic_globals (0x006f187c)
+// (types/main.h, offsets 0x06e/0x06c). game_time (0x006f1d6c) and cinematic_globals_ptr (0x006f187c)
 // reuse src/interface/display_error.c and src/interface/ui_error_modal_update.c's names;
 // game_time->speed (0x18) matches types/game.h's own field exactly ("time scale; forced to 1.0
 // in any networked game").
@@ -18,10 +18,12 @@
 #include "interface.h"
 #include "game.h"
 #include "main.h"
+#include "units.h"
+#include "cutscene.h"
 
 extern main_globals main_globals_data; // 0x00719700
 extern game_time_globals *game_time;   // 0x006f1d6c, foreign (game module)
-extern uint8_t *cinematic_globals;     // 0x006f187c, foreign, TYPES-GAP
+extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 
 extern void game_engine_advance_simulation_ticks(float dt); // 0x470bf0, foreign (game module)
 
@@ -31,7 +33,7 @@ extern void game_engine_advance_simulation_ticks(float dt); // 0x470bf0, foreign
 // tick count and the pending flag.
 void game_engine_flush_pending_simulation_ticks(void)
 {
-    if (main_globals_data.skip_tick_count != 0 && cinematic_globals[9] != 0) {
+    if (main_globals_data.skip_tick_count != 0 && cinematic_globals_ptr->in_progress != 0) {
         float saved_speed = (main_globals_data.game_connection == 1 || main_globals_data.game_connection == 2)
                                  ? 1.0f
                                  : game_time->speed;
