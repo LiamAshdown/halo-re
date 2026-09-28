@@ -1,7 +1,7 @@
 // network_game_message_decode_dispatch  (Ghidra: network_game_message_decode_dispatch, already
 // named)
 // address 0x4db6b0, size 336 bytes
-// name confidence: 0.5   rewrite confidence: 0.3
+// name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN; was 0.3)
 // evidence: out/phase4/networking_functions.md summary ("The central switch that dispatches a
 // decoded incoming network-game message to the correct per-type handler based on a type byte in
 // the packet").
@@ -17,94 +17,72 @@
 // whatever registers are already live -- the most honest representation of what this specific
 // function's machine code actually does, at the cost of not type-checking the handlers'
 // individually-reconstructed parameter lists against each other.
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x4db6b0..0x4db800, jump tables
+// 0x4db84c / 0x4db800): the client arrives in EAX, the record in EDX, its length in EDI and the sender address on
+// the stack. A record whose first word has low bits 0 and bits 2-3 == 3 is dispatched on its last byte; every
+// handler gets (client, record, length, sender) -- the binary passes the client in EAX only to those that read it,
+// and the record in EDX to the first two -- and its result is returned (1 for anything else). The previous C
+// called all eighteen handlers with no arguments.
 
 #include "tags.h"
 #include "memory.h"
+#include <string.h>
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
+typedef int32_t (*network_game_message_handler_proc)(network_client_globals *client, const void *record,
+    int32_t record_length, const uint32_t *sender);
 
-extern char network_game_client_decode_beacon_reply(network_client_globals *client, const uint8_t *buffer); // 0x4db9a0
-extern char network_game_client_decode_pong_reply(network_client_globals *client, const uint8_t *buffer);   // 0x4dba20
-extern int32_t network_game_decode_settings_request(network_client_globals *client, const uint8_t *buffer,
-    void *capacity, const int32_t *expected_sequence); // 0x4dbc00
-extern int32_t network_game_client_decode_join_accepted(network_client_globals *client, const uint8_t *buffer,
-    void *capacity, const int32_t **expected_sequence); // 0x4dbcc0
-extern int32_t network_game_client_decode_connect_rejected(network_client_globals *client, const uint8_t *buffer,
-    void *capacity, const uint32_t **expected_sequence); // 0x4dbd40
-extern int32_t network_game_client_decode_join_complete(network_client_globals *client, const uint8_t *buffer,
-    void *capacity, const uint32_t **expected_sequence); // 0x4dbdc0
-extern int32_t network_game_client_decode_settings_or_ack(network_client_globals *client, const uint8_t *buffer,
-    void *capacity, const int32_t *expected_sequence); // 0x4dbe50
-extern int32_t network_game_client_decode_player_config_value(network_client_globals *client,
-    const uint8_t *buffer, void *capacity, int32_t *expected_sequence); // 0x4dbf30
-extern int32_t network_game_client_decode_and_discard_join_message(network_client_globals *client,
-    const uint8_t *buffer, void *capacity, int32_t *expected_sequence); // 0x4dbfb0
-extern int32_t network_game_client_decode_and_discard_ingame_message(network_client_globals *client,
-    const uint8_t *buffer, void *capacity, int32_t *expected_sequence); // 0x4dc020
-extern int32_t network_game_client_decode_join_finalize_message(uint16_t *client, const uint8_t *buffer,
-    void *capacity, int32_t *expected_sequence); // 0x4dc090
-extern int32_t network_game_client_decode_join_finalize_ack(network_client_globals *client, const uint8_t *buffer,
-    void *capacity, int32_t *expected_sequence); // 0x4dc120
-extern char network_game_client_decode_state_update_chunk(network_client_globals *client,
-    uint8_t *param_1, int16_t *param_2, int32_t *param_3); // 0x4dc190, already rewritten (by a
-    // separate pass) with a 4-parameter reconstruction that likewise cannot be satisfied here.
-extern char network_game_client_decode_player_join_chunk(void); // 0x4dc240, outside this task's range
-extern char network_game_client_decode_player_slot_chunk(void); // 0x4dc2e0, outside this task's range
-extern char network_game_client_decode_sync_complete(void); // 0x4dc3a0, outside this task's range
-extern char network_game_message_decode_replicated_command(void); // 0x4dc410, outside this task's range
-extern char network_game_message_decode_ingame_notification(void); // 0x4dc4b0, outside this task's range
+extern int32_t network_game_client_decode_beacon_reply(); // 0x4db9a0, EAX client, EDX record, stack length
+extern int32_t network_game_client_decode_pong_reply(); // 0x4dba20, EAX client, EDX record, stack length, sender
+extern int32_t network_game_decode_settings_request(); // 0x4dbc00
+extern int32_t network_game_client_decode_join_accepted(); // 0x4dbcc0
+extern int32_t network_game_client_decode_connect_rejected(); // 0x4dbd40, EAX client
+extern int32_t network_game_client_decode_join_complete(); // 0x4dbdc0
+extern int32_t network_game_client_decode_settings_or_ack(); // 0x4dbe50
+extern int32_t network_game_client_decode_player_config_value(); // 0x4dbf30
+extern int32_t network_game_client_decode_and_discard_join_message(); // 0x4dbfb0
+extern int32_t network_game_client_decode_and_discard_ingame_message(); // 0x4dc020
+extern int32_t network_game_client_decode_join_finalize_message(); // 0x4dc090
+extern int32_t network_game_client_decode_join_finalize_ack(); // 0x4dc120
+extern int32_t network_game_client_decode_state_update_chunk(); // 0x4dc190, EAX client
+extern int32_t network_game_client_decode_player_join_chunk(); // 0x4dc240, EAX client
+extern int32_t network_game_client_decode_player_slot_chunk(); // 0x4dc2e0
+extern int32_t network_game_client_decode_sync_complete(); // 0x4dc3a0
+extern int32_t network_game_message_decode_replicated_command(); // 0x4dc410, EAX client
+extern int32_t network_game_message_decode_ingame_notification(); // 0x4dc4b0
 
-// blam-cc: EDX -> record, EDI -> record_length
-char network_game_message_decode_dispatch(uint16_t *record, int32_t record_length)
+char network_game_message_decode_dispatch(network_client_globals *client, uint16_t *record, int32_t record_length,
+    const uint32_t *sender)
 {
-    char result;
-    uint8_t type_byte;
+    network_game_message_handler_proc handler;
 
-    result = 1;
-    if ((*record & 3) == 0 && ((*record >> 2) & 3) == 3) {
-        type_byte = *((uint8_t *)record + record_length - 1);
-        switch (type_byte) {
-        case 2:
-            return ((network_game_message_handler)network_game_client_decode_beacon_reply)();
-        case 3:
-            return ((network_game_message_handler)network_game_client_decode_pong_reply)();
-        case 4:
-            return (char)((int32_t (*)(void))network_game_decode_settings_request)();
-        case 5:
-            return (char)((int32_t (*)(void))network_game_client_decode_join_accepted)();
-        case 6:
-            return (char)((int32_t (*)(void))network_game_client_decode_connect_rejected)();
-        case 7:
-            return (char)((int32_t (*)(void))network_game_client_decode_join_complete)();
-        case 8:
-            return (char)((int32_t (*)(void))network_game_client_decode_settings_or_ack)();
-        case 9:
-            return (char)((int32_t (*)(void))network_game_client_decode_player_config_value)();
-        case 10:
-            return (char)((int32_t (*)(void))network_game_client_decode_join_finalize_message)();
-        case 0xb:
-            return (char)((int32_t (*)(void))network_game_client_decode_join_finalize_ack)();
-        case 0xc:
-            return (char)((int32_t (*)(void))network_game_client_decode_and_discard_join_message)();
-        case 0xd:
-            return (char)((int32_t (*)(void))network_game_client_decode_and_discard_ingame_message)();
-        case 0x16:
-            return ((network_game_message_handler)network_game_client_decode_state_update_chunk)();
-        case 0x17:
-            return network_game_client_decode_player_join_chunk();
-        case 0x18:
-            return network_game_client_decode_player_slot_chunk();
-        case 0x19:
-            return network_game_client_decode_sync_complete();
-        case 0x21:
-            return network_game_message_decode_replicated_command();
-        case 0x22:
-            return network_game_message_decode_ingame_notification();
-        }
+    if ((*record & 3) != 0 || ((*record >> 2) & 3) != 3) {
+        return 1;
     }
-    return result;
+    switch (*((uint8_t *)record + record_length - 1)) {
+    case 0x02: handler = (network_game_message_handler_proc)network_game_client_decode_beacon_reply; break;
+    case 0x03: handler = (network_game_message_handler_proc)network_game_client_decode_pong_reply; break;
+    case 0x04: handler = (network_game_message_handler_proc)network_game_decode_settings_request; break;
+    case 0x05: handler = (network_game_message_handler_proc)network_game_client_decode_join_accepted; break;
+    case 0x06: handler = (network_game_message_handler_proc)network_game_client_decode_connect_rejected; break;
+    case 0x07: handler = (network_game_message_handler_proc)network_game_client_decode_join_complete; break;
+    case 0x08: handler = (network_game_message_handler_proc)network_game_client_decode_settings_or_ack; break;
+    case 0x09: handler = (network_game_message_handler_proc)network_game_client_decode_player_config_value; break;
+    case 0x0a: handler = (network_game_message_handler_proc)network_game_client_decode_join_finalize_message; break;
+    case 0x0b: handler = (network_game_message_handler_proc)network_game_client_decode_join_finalize_ack; break;
+    case 0x0c: handler = (network_game_message_handler_proc)network_game_client_decode_and_discard_join_message; break;
+    case 0x0d: handler = (network_game_message_handler_proc)network_game_client_decode_and_discard_ingame_message; break;
+    case 0x16: handler = (network_game_message_handler_proc)network_game_client_decode_state_update_chunk; break;
+    case 0x17: handler = (network_game_message_handler_proc)network_game_client_decode_player_join_chunk; break;
+    case 0x18: handler = (network_game_message_handler_proc)network_game_client_decode_player_slot_chunk; break;
+    case 0x19: handler = (network_game_message_handler_proc)network_game_client_decode_sync_complete; break;
+    case 0x21: handler = (network_game_message_handler_proc)network_game_message_decode_replicated_command; break;
+    case 0x22: handler = (network_game_message_handler_proc)network_game_message_decode_ingame_notification; break;
+    default: return 1;
+    }
+    return (char)handler(client, record, record_length, sender);
 }
 
 #if 0

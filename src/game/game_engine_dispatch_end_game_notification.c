@@ -33,8 +33,12 @@ extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670
 // If `event` validates (a foreign check via message_delta_decode_compound_field, which may also rewrite `stage`),
 // dispatches to the matching end-of-game countdown stage handler (1, 2 or 3); otherwise forwards
 // `event` to message_delta_decode_compound_field_staged. UNSURE: see header.
-void game_engine_dispatch_end_game_notification(void *event, int32_t stage)
+// FIXED 2026-09-28 (networking call audit): the stage is the decoded value (a stack slot, 0x467230 push ecx), not
+// an ECX argument -- the dispatcher's ECX there is only its own scratch.
+void game_engine_dispatch_end_game_notification(void *event)
 {
+    int32_t stage;
+
     if (**(int32_t **)event != 0) {
         message_delta_decode_compound_field_staged(event);
         return;

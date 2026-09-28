@@ -1,7 +1,7 @@
 // network_game_action_queue_drain  (Ghidra: FUN_004db870; renamed, no prior name)
 // address 0x4db870, size 303 bytes
-// name confidence: 0.4   rewrite confidence: 0.2 (LOW -- several unresolved data-flow gaps; see
-// UNSURE notes)
+// name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN; was 0.2 (LOW -- several unresolved data-flow gaps; see
+// UNSURE notes))
 // evidence: out/phase4/networking_functions.md summary ("Drains and applies a bounded run of
 // queued network-game actions, one per iteration, via the action dispatcher"). Ghidra's own
 // decompile carries a "Restarted to delay deadcode elimination for space: stack" warning.
@@ -24,6 +24,14 @@
 // cluster (client + a fresh decode_result for the guard; a fresh scratch "action" record,
 // mirroring network_game_action_apply's own established EAX->action_entry convention, for the
 // other two).
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x4db870..0x4db99f): the arguments are
+// the client, the item's bit stream and the sender address (not a bound and a sequence). The channel's remote
+// address (client +0xadc, 0x4dd390) must match the sender; then a 0x34-byte decode state is begun on the stream
+// (message_delta_decode_begin: EAX state, EDI stream) and the decode context is built: context[0] = the state,
+// context[1..16] zero, context[0x11] = a zeroed 0x80-byte action record. Each message_delta_decode_array_field
+// (EAX context) that succeeds is applied (network_game_action_apply: EAX context, ECX client); the state's +0x18
+// counts them; the run continues only while both state flags +0x1c/+0x1d came back 1, and ends with 1 once the
+// count passes the state's +0x08. Any other end notifies dropped machines (EBX client) and returns 0.
 
 #include "tags.h"
 #include "memory.h"
@@ -32,66 +40,53 @@
 #include "game.h"
 #include "networking.h"
 
+extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, EAX, ECX
+extern int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream); // 0x4ec490, EAX, EDI
+extern int32_t message_delta_decode_array_field(void **context); // 0x4ec510, EAX
+extern void network_game_action_apply(void **context, network_client_globals *client); // 0x4da320, EAX, ECX
+extern void network_disconnect_notify_dropped_machines(network_client_globals *client); // 0x4d9340, EBX
 
-extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
-extern char message_delta_decode_begin(void); // 0x4ec490, not in this batch
-extern char message_delta_decode_array_field(void); // 0x4ec510, UNSURE argument; not in this batch
-extern void network_game_action_apply(int32_t **action_entry); // 0x4da320, this batch
-extern void network_disconnect_notify_dropped_machines(network_client_globals *client); // 0x4d9340
-
-// blam-cc: stack -> client, bound, expected_sequence
-char network_game_action_queue_drain(network_client_globals *client, int32_t bound,
-                                      const int32_t *expected_sequence)
+char network_game_action_queue_drain(network_client_globals *client, bit_stream *stream, const uint32_t *sender)
 {
-    network_resolved_address sender;
-    char result;
-    char ok;
-    uint32_t decoded_item[16];
-    uint8_t action_record[132];
-    int32_t *action_entry;
-    char type_flag_a, type_flag_b;
-    int32_t applied_count;
-    int32_t i;
+    network_resolved_address remote;
+    union {
+        message_delta_decode_state state;
+        uint8_t bytes[0x34];
+    } state;
+    uint8_t record[0x80];
+    void *context[0x12];
+    char result = 0;
 
-    network_channel_remote_address_or_default(client->channel, &sender);
-    if (sender.address.ipv4 == *expected_sequence && (ok = message_delta_decode_begin(), ok != 0)) {
-        memset(action_record, 0, sizeof(action_record));
-        memset(decoded_item, 0, sizeof(decoded_item));
-        action_entry = (int32_t *)action_record;
-        applied_count = 0;
+    network_channel_remote_address_or_default(client->channel, &remote);
+    if (*(uint32_t *)&remote == *sender && (char)message_delta_decode_begin(&state.state, stream) != 0) {
+        memset(record, 0, sizeof(record));
+        memset(&context[1], 0, 0x40);
+        context[0] = &state;
+        context[0x11] = record;
+        state.bytes[0x1d] = 0;
+        state.bytes[0x1c] = 0;
+        for (;;) {
+            uint8_t *current;
 
-        while (1) {
-            type_flag_a = 0;
-            type_flag_b = 0;
-            ok = message_delta_decode_array_field(); // UNSURE argument
-            if (ok == 0) {
+            if ((char)message_delta_decode_array_field(context) == 0) {
                 result = 0;
-                goto tail;
+                break;
             }
-            network_game_action_apply((int32_t **)&action_entry); // UNSURE argument
-            if (type_flag_b == 1 && type_flag_a == 1) {
-                result = 1;
-            } else {
-                result = 0;
-            }
-            applied_count = applied_count + 1;
-            memset(decoded_item, 0, sizeof(decoded_item));
-            type_flag_b = 0;
-            type_flag_a = 0;
+            network_game_action_apply(context, client);
+            current = (uint8_t *)context[0];
+            result = current[0x1c] == 1 && current[0x1d] == 1;
+            ++*(int32_t *)(current + 0x18);
+            memset(&context[1], 0, 0x40);
+            current[0x1c] = 0;
+            current[0x1d] = 0;
             if (result != 1) {
                 break;
             }
-            if (bound < applied_count) {
-                return 1;
+            if (*(int32_t *)(current + 0x18) > *(int32_t *)(current + 0x08)) {
+                return result;
             }
         }
-        if (result != 0) {
-            return result;
-        }
-    } else {
-        result = 0;
     }
-tail:
     network_disconnect_notify_dropped_machines(client);
     return result;
 }

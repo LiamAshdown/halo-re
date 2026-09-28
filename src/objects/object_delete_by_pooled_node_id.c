@@ -41,9 +41,12 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // call site in this file.
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0, this batch
 
-void object_delete_by_pooled_node_id(int32_t **record, uint32_t pooled_node_id)
-    // blam-cc: EAX -> record, ECX -> pooled_node_id
+// FIXED 2026-09-28 (networking call audit): the pooled node id is the decoded value (the slot 0x4f5b50 push ecx
+// reserves), not an ECX argument.
+void object_delete_by_pooled_node_id(int32_t **record)
+    // blam-cc: EAX -> record
 {
+    uint32_t pooled_node_id;
     char preconditions_ok;
     uint32_t object_index;
     object_header *header;

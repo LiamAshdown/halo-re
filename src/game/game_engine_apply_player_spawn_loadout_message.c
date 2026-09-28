@@ -50,7 +50,7 @@ extern void game_engine_init_player_look_state_from_object(datum_index unit, int
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle,
     uint8_t reset_stats); // 0x473c50, already rewritten
 extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0x4613c0
-extern void unit_pickup_weapon(datum_index unit_handle, uint8_t is_primary); // 0x56d400, units module;
+extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index); // 0x56d400, stack mode, EAX weapon, ECX unit
 extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack vehicle, seat
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle); // this batch, 0x479ba0
 
@@ -59,8 +59,13 @@ extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t pla
 // non-local player, its state timers), applies a starting profile in single player, applies
 // grenade counts, wires up the four weapon inventory slots and desired weapon, optionally seats
 // the unit in a vehicle, and applies any queued kill-streak deltas.
-// blam-cc: EAX -> envelope, stack -> player_handle
-void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t player_handle)
+// blam-cc: EAX -> envelope
+// FIXED 2026-09-28 (networking call audit, from the disassembly 0x477c70..0x477e95): there is no player_handle
+// argument -- the player is the message's first field looked up in the player key table (0x687558 +0x28, EBX),
+// the same handle the unit's owner fields, the grenade counts (0x4613c0, EAX) and the kill streaks (0x479ba0, EBX)
+// get. The key tables are indexed through the pointer at +0x28 (the C added 0x28 to the table's own address), and
+// each known weapon is picked up with unit_pickup_weapon(0, weapon, unit) (0x477ded: EAX weapon, ECX unit, stack 0).
+void game_engine_apply_player_spawn_loadout_message(void **envelope)
 {
     struct {
         int32_t machine_id;
@@ -84,17 +89,17 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t pl
 
     {
         datum_index owner_handle = (datum_index)0xffffffff;
+        uint32_t player_handle;
         if (message.machine_id != 0) {
-            owner_handle = *(datum_index *)((uint8_t *)machine_table + 0x28 + message.machine_id * 4);
-            // UNSURE: offset arithmetic mirrors machine_table's own established +0x28 array
-            // shape; see header note.
+            owner_handle = (datum_index)(*(int32_t **)(machine_table + 0x28))[message.machine_id];
         }
+        player_handle = (uint32_t)owner_handle;
 
         {
             player *p = (player *)datum_get(player_handle, player_data); // UNSURE: array argument
             if (p != 0 && message.unit_pooled_id != 0) {
-                datum_index new_unit = *(datum_index *)((uint8_t *)object_pooled_node_globals + 0x28 +
-                    message.unit_pooled_id * 4);
+                datum_index new_unit = (datum_index)(*(int32_t **)(object_pooled_node_globals + 0x28))[
+                    message.unit_pooled_id];
                 if (new_unit != (datum_index)0xffffffff) {
                     object *unit_obj = object_try_and_get(new_unit, 3);
                     if (unit_obj != 0) {
@@ -134,21 +139,19 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t pl
                         p->kill_streak[1] = 0;
                         p->interaction_type = 0;
                         p->interaction_object = (datum_index)0xffffffff;
-                        game_engine_apply_player_grenade_counts(player_handle); // UNSURE:
-                            // could plausibly be owner_handle instead; Ghidra shows no visible
-                            // argument at all for this call
+                        game_engine_apply_player_grenade_counts(player_handle); // 0x477db2: EAX = the player handle
 
                         {
                             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset); // unit_data starts at object +0x1f4
                             int32_t i;
                             for (i = 0; i < 4; i++) {
-                                if (message.weapon_pooled_ids[i] == 0 ||
-                                    *(datum_index *)((uint8_t *)object_pooled_node_globals + 0x28 +
-                                        message.weapon_pooled_ids[i] * 4) == (datum_index)0xffffffff) {
+                                int32_t weapon = message.weapon_pooled_ids[i] != 0
+                                    ? (*(int32_t **)(object_pooled_node_globals + 0x28))[message.weapon_pooled_ids[i]]
+                                    : -1;
+                                if (weapon == -1) {
                                     unit->weapons[i] = (datum_index)0xffffffff;
                                 } else {
-                                    unit_pickup_weapon(new_unit, 0); // UNSURE: no explicit weapons[i]
-                                        // store in this branch, see header note
+                                    unit_pickup_weapon(0, (uint32_t)weapon, new_unit);
                                 }
                             }
                             unit->current_weapon_index = -1;
@@ -156,8 +159,8 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope, uint32_t pl
                         }
 
                         if (message.seat_vehicle_pooled_id != -1 && message.seat_vehicle_pooled_id != 0) {
-                            datum_index vehicle = *(datum_index *)((uint8_t *)object_pooled_node_globals +
-                                0x28 + message.seat_vehicle_pooled_id * 4);
+                            datum_index vehicle = (datum_index)(*(int32_t **)(object_pooled_node_globals + 0x28))[
+                                message.seat_vehicle_pooled_id];
                             if (vehicle != (datum_index)0xffffffff) {
                                 unit_enter_vehicle_seat(vehicle, (int16_t)message.seat_number, p->unit); // 0x477e4b: EAX = player +0x34
                             }

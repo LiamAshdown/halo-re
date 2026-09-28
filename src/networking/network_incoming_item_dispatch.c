@@ -1,6 +1,6 @@
 // network_incoming_item_dispatch  (Ghidra: FUN_004db630; renamed, no prior name)
 // address 0x4db630, size 121 bytes
-// name confidence: 0.4   rewrite confidence: 0.4
+// name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN; was 0.4)
 // evidence: out/phase4/networking_functions.md summary ("Dispatches a single incoming queue
 // entry either to the queued-game-action applier or to the network-message decode switch,
 // depending on an entry-type flag").
@@ -18,31 +18,39 @@
 // objdump 0x4db680-0x4db68b (movzx edi,[eax]; mov edx,eax; shr edi,4).
 // UNSURE: the real return value on the `param_2 == 0` failure path is `param_2 & 0xffffff00`
 // (always 0, since param_2 is already 0 there); modeled directly as 0.
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x4db630..0x4db6a9): the item's stream
+// arrives in ECX and the sender address in ESI. A game-action item (flag 1) goes to
+// network_game_action_queue_drain(client, stream, sender); a message item (flag 0) is read into a local 0x1000-byte
+// buffer (network_message_read_sized_buffer: EDI buffer, EBX stream, capacity 0xfff) and handed to
+// network_game_message_decode_dispatch with the client (EAX), the record (EDX), its length (the first word >> 4,
+// EDI) and the sender (stack).
 
 #include "tags.h"
 #include "memory.h"
+#include <string.h>
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern char network_game_action_queue_drain(network_client_globals *client, int32_t bound,
-    const int32_t *expected_sequence); // 0x4db870, this batch
-    // UNSURE: `bound` reconstructed as 0; not recoverable at this call site (unflagged register).
-extern uint16_t *network_message_read_sized_buffer(int32_t unknown); // 0x4de420, not in this batch; returns a record pointer
-extern char network_game_message_decode_dispatch(uint16_t *record, int32_t record_length); // 0x4db6b0, this batch; blam-cc: EDX -> record, EDI -> record_length
+extern char network_game_action_queue_drain(network_client_globals *client, bit_stream *stream,
+    const uint32_t *sender); // 0x4db870, stack
+extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream); // 0x4de420, EDI, stack, EBX
+extern char network_game_message_decode_dispatch(network_client_globals *client, uint16_t *record,
+    int32_t record_length, const uint32_t *sender); // 0x4db6b0, EAX, EDX, EDI, stack
 
-// blam-cc: stack -> client, item_flag, ESI -> expected_sequence
-int32_t network_incoming_item_dispatch(network_client_globals *client, uint32_t item_flag,
-    const int32_t *expected_sequence)
+char network_incoming_item_dispatch(network_client_globals *client, uint32_t item_flag, bit_stream *stream,
+    const uint32_t *sender)
 {
+    uint16_t buffer[0x800];
+
     if (item_flag == 1) {
-        return network_game_action_queue_drain(client, 0, expected_sequence);
+        return network_game_action_queue_drain(client, stream, sender);
     }
     if (item_flag == 0) {
-        uint16_t *record = network_message_read_sized_buffer(0xfff);
+        uint16_t *record = network_message_read_sized_buffer(buffer, 0xfff, stream);
+
         if (record != 0) {
-            int32_t record_length = (int32_t)(uint16_t)(*record >> 4);
-            return network_game_message_decode_dispatch(record, record_length);
+            return network_game_message_decode_dispatch(client, record, *record >> 4, sender);
         }
     }
     return 0;

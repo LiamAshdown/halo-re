@@ -24,24 +24,27 @@ extern Globals *global_globals; // 0x00746fa0
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590
 extern void message_delta_decode_compound_field_staged(void *event);                       // 0x4ec670
-extern void sound_start_unspatialized(float volume);                      // 0x543dd0, UNSURE exact identity
+extern datum_index sound_start_unspatialized(datum_index definition_index, float scale); // 0x543dd0, EDX definition, stack scale
 
 // blam-cc: EAX -> event, ECX -> sound_index
 // If `event` validates, and the map has multiplayer sound information, and `sound_index` names
 // a GlobalsSound entry with a real tag reference, plays that sound locally at full volume.
 // Otherwise forwards `event` to message_delta_decode_compound_field_staged.
-void game_engine_handle_sound_status_event(void *event, int32_t sound_index)
+// FIXED 2026-09-28 (networking call audit, from the disassembly 0x46bca0..0x46bcf4): the sound index is the decoded
+// value itself (there is no ECX argument), and the sound's tag (+0xc of its 0x10-byte entry) goes to
+// sound_start_unspatialized in EDX.
+void game_engine_handle_sound_status_event(void *event)
 {
     if (*(int32_t *)*(void **)event == 0) {
-        int32_t scratch;
-        if (message_delta_decode_compound_field(event, &scratch) != 0) {
+        int32_t sound_index;
+        if (message_delta_decode_compound_field(event, &sound_index) != 0) {
             GlobalsMultiplayerInformation *mp_info =
                 (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
             if (mp_info != (GlobalsMultiplayerInformation *)0 &&
                 sound_index < (int32_t)mp_info->sounds.count) {
                 uint8_t *sound = (uint8_t *)mp_info->sounds.pointer + sound_index * 0x10;
                 if (sound != (uint8_t *)0 && *(int32_t *)(sound + 0xc) != -1) {
-                    sound_start_unspatialized(1.0f);
+                    sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
                 }
             }
         }

@@ -25,7 +25,7 @@ extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680; UNSURE array argument
 extern uint8_t player_execute_pending_interaction(uint32_t handle); // this batch, 0x4793a0
-extern uint8_t player_swap_to_weapon(uint32_t handle); // this batch, 0x479240
+extern uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon); // 0x479240, EAX player, stack weapon
 
 // blam-cc: EAX -> envelope
 // Decodes an incoming interaction message, resolves the target player (join_key) and its
@@ -34,7 +34,11 @@ extern uint8_t player_swap_to_weapon(uint32_t handle); // this batch, 0x479240
 // with a second, independently resolved handle. Returns 0 on any failure (invalid player,
 // unresolved interaction object when one was expected, or the dispatched handler's own
 // failure), otherwise the dispatched handler's result.
-uint8_t game_engine_apply_player_interaction_message(void **envelope, datum_index join_key)
+// FIXED 2026-09-28 (networking call audit, from the disassembly 0x478f10..0x478fe8): there is no join_key argument
+// -- the player is the message's first field through the player key table (0x687558 +0x28, EBP); the key tables
+// are indexed through the pointer at +0x28 (the C added 0x28 to the table's own address); and the swap path passes
+// the player too (player_swap_to_weapon: EAX player, stack weapon).
+uint8_t game_engine_apply_player_interaction_message(void **envelope)
 {
     struct {
         int32_t machine_id;
@@ -56,11 +60,11 @@ uint8_t game_engine_apply_player_interaction_message(void **envelope, datum_inde
     {
         uint32_t primary_handle = 0xffffffff;
         if (message.machine_id != 0) {
-            primary_handle = *(uint32_t *)((uint8_t *)machine_table + 0x28 + message.machine_id * 4);
+            primary_handle = (uint32_t)(*(int32_t **)(machine_table + 0x28))[message.machine_id];
         }
 
         {
-            player *p = (player *)datum_get(join_key, player_data); // UNSURE: array argument
+            player *p = (player *)datum_get((datum_index)primary_handle, player_data); // 0x478f4d: EDX handle, ESI players
             if (p == 0) {
                 return 0;
             }
@@ -70,12 +74,12 @@ uint8_t game_engine_apply_player_interaction_message(void **envelope, datum_inde
                 uint32_t secondary_handle = 0xffffffff;
 
                 if (message.interaction_pooled_id != 0) {
-                    interaction_object = *(datum_index *)((uint8_t *)object_pooled_node_globals + 0x28 +
-                        message.interaction_pooled_id * 4);
+                    interaction_object = (datum_index)(*(int32_t **)(object_pooled_node_globals + 0x28))[
+                        message.interaction_pooled_id];
                 }
                 if (message.secondary_pooled_id != 0) {
-                    secondary_handle = *(uint32_t *)((uint8_t *)object_pooled_node_globals + 0x28 +
-                        message.secondary_pooled_id * 4);
+                    secondary_handle = (uint32_t)(*(int32_t **)(object_pooled_node_globals + 0x28))[
+                        message.secondary_pooled_id];
                 }
 
                 if (interaction_object == (datum_index)0xffffffff && message.interaction_pooled_id != -1) {
@@ -92,7 +96,7 @@ uint8_t game_engine_apply_player_interaction_message(void **envelope, datum_inde
                 if (message.use_secondary_mode == 0) {
                     return player_execute_pending_interaction(primary_handle);
                 }
-                return player_swap_to_weapon(secondary_handle);
+                return player_swap_to_weapon(primary_handle, (datum_index)secondary_handle);
             }
         }
     }
