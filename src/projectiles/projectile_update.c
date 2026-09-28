@@ -15,6 +15,9 @@
 //   (+0x264 axis, +0x270 / +0x274 sin/cos), commit and contrail. Then detonate (state 1, armed) and delete.
 // blam-cc: stack -> projectile_index
 
+// FIXED 2026-09-28: global_origin3d_pointer here is the global at its address comment, global_zero_vector3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,7 +34,7 @@ extern tag_instance *tag_instances;    // 0x0087bc14
 extern game_time_globals *game_time;   // 0x006f1d6c
 extern uint8_t *local_player_globals;  // 0x0087a478, +0x4 the first local player
 extern data_array *player_data;        // 0x0087a480
-extern real_vector3d *global_zero_vector3d_pointer; // 0x00696714
+extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern uint8_t *main_game_globals;     // 0x006b0b80, +0x0e the difficulty
 extern float global_gravity;           // 0x0069c52c
 
@@ -361,7 +364,7 @@ int projectile_update(uint32_t projectile_index)
                         placement.position.z = center->z - perpendicular.k;
                         *(real_vector3d *)&placement.forward = moved;
                         vector3d_normalize_with_length((real_vector3d *)&placement.forward);
-                        *(real_vector3d *)&placement.velocity = *global_zero_vector3d_pointer;
+                        *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
                         placement.leaf_index = *(int32_t *)&hit.leaf;
                         *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
                         sound_start_at_location(*(datum_index *)(tag + 0x210), &placement, 1.0f);

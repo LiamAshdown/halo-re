@@ -10,6 +10,9 @@
 //   dropped; 1.
 // blam-cc: stack -> widget, event, out_handled (cdecl); returns AL
 
+// FIXED 2026-09-28: DAT_00695420 here is the global at its address comment, server_browser_join_target (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -25,7 +28,7 @@ extern int32_t server_list_block_capacity;                // 0x007196c4
 extern int32_t server_browser_query_elapsed_ms;           // 0x007196c8
 extern uint8_t server_browser_player_ticker[0x1c];        // 0x006b5e58
 extern uint8_t server_browser_variant_ticker[0x1c];       // 0x006b5e74
-extern int32_t server_browser_join_target;                // 0x00695420
+extern int32_t DAT_00695420;                // 0x00695420
 extern int32_t saved_game_profile_index;                  // 0x00714dd4
 extern int32_t selected_saved_item;                       // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc];           // 0x00714e80
@@ -78,7 +81,7 @@ uint8_t server_browser_closed_event(widget_instance *widget, int16_t *event, uin
     ticker_text_buffer_reset(server_browser_variant_ticker);
     autopatch_download_pool_shutdown();
     profile = saved_game_profile_index;
-    server_browser_join_target = -1;
+    DAT_00695420 = -1;
     if (profile == -1) {
         return 1;
     }

@@ -11,6 +11,9 @@
 //   +0x4d4), gets matching look angles and the globals' teleport effect. The draft lacked the point argument.
 // blam-cc: stack -> player_index, target_object, point
 
+// FIXED 2026-09-28: global_origin3d_pointer here is the global at its address comment, global_zero_vector3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,7 +31,7 @@ extern uint8_t *global_globals_bytes; // 0x00746fa0 (+0x174 -> +0xc4 the telepor
 extern uint8_t *local_player_globals_bytes; // 0x0087a478
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern real_vector3d *global_up3d_pointer; // 0x00696720
-extern real_vector3d *global_zero_vector3d_pointer; // 0x00696714
+extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern uint32_t random_seed_global; // 0x00719cd0
 extern real_point3d *random_point_table; // 0x006b7af4, a POINTER
 extern int16_t random_point_table_count; // 0x006b7af8
@@ -130,7 +133,7 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
         player_release_unit_and_reset(player_index, (int32_t)target_object);
         return 0;
     }
-    *(real_vector3d *)(unit + 0x68) = *global_zero_vector3d_pointer;
+    *(real_vector3d *)(unit + 0x68) = *global_origin3d_pointer;
     if (target_object == k_datum_index_none) {
         return placed;
     }

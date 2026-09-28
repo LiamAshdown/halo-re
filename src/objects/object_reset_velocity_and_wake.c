@@ -11,6 +11,9 @@
 //   real_vector3d the two fields are both set from); callee
 //   object_type_definitions_notify_0x50 (0x4f4330, this batch).
 
+// FIXED 2026-09-28: global_origin3d_pointer here is the global at its address comment, global_zero_vector3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +22,7 @@
 extern data_array *object_data; // 0x008603b0
 // FIXED 2026-09-27 (static loop): 0x00696714 holds a POINTER to (0,0,0); 0x4f5169..0x4f51a3 copy [ptr]. The
 // draft copied the pointer bits themselves into the velocities.
-extern real_vector3d *global_zero_vector3d_pointer; // 0x00696714
+extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern void object_type_definitions_notify_0x50(uint32_t object_index); // 0x4f4330, this batch
 
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
@@ -28,8 +31,8 @@ void object_reset_velocity_and_wake(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
-    obj->velocity = *global_zero_vector3d_pointer;
-    obj->angular_velocity = *global_zero_vector3d_pointer;
+    obj->velocity = *global_origin3d_pointer;
+    obj->angular_velocity = *global_origin3d_pointer;
     obj->flags &= ~(uint32_t)_object_at_rest_bit;
     object_type_definitions_notify_0x50(object_index);
 }

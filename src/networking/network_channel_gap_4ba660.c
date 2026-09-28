@@ -9,11 +9,14 @@
 //   names it.)
 // blam-cc: cdecl (a serverbrowsing callback)
 
+// FIXED 2026-09-28: DAT_00719488 here is the global at its address comment, server_browser_query_pending (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "tags.h"
 
 typedef struct server_list_globals server_list_globals;
 extern uint8_t server_browser_initialized;       // 0x00719470
-extern uint8_t server_browser_query_pending;     // 0x00719488, UNSURE name
+extern uint8_t DAT_00719488;     // 0x00719488, UNSURE name
 extern int32_t server_browser_query_elapsed_ms;  // 0x007196c8
 extern int32_t server_browser_selected_index;    // 0x006953f4
 extern int32_t server_browser_selection_valid;   // 0x0071947c, UNSURE name
@@ -66,10 +69,10 @@ void network_channel_gap_4ba660(void *sb, uint32_t reason, void *server, void *i
         }
         return;
     default:
-        if (server_browser_query_pending != 0) {
+        if (DAT_00719488 != 0) {
             server_browser_query_elapsed_ms = 9999;
         }
-        server_browser_query_pending = 0;
+        DAT_00719488 = 0;
         return;
     }
 }

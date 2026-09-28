@@ -12,6 +12,9 @@
 // register convention: `in_ECX` unresolved by Ghidra; ECX -> glow_handle per the call site.
 // blam-cc: ECX -> glow_handle
 
+// FIXED 2026-09-28: global_zero_vector3d_pointer here is the global at its address comment, global_origin3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,7 +26,7 @@
 
 extern data_array *glow_data; // 0x008603a0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern real_point3d *global_origin3d_pointer; // 0x006966f8
+extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern uint8_t glow_sprite_shader[]; // 0x0069e940
 
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode,
@@ -60,7 +63,7 @@ void glow_render(datum_index glow_handle /*ECX*/) // blam-cc: ECX -> glow_handle
     data.shader = (uint32_t)glow_sprite_shader;
     data.sprite_count = 0;
     data.flags = 4;
-    data.centroid = *global_origin3d_pointer;
+    data.centroid = *global_zero_vector3d_pointer;
     data.group_count = 0;
     for (particle = *(uint8_t **)(entry + 0x250); particle != 0; particle = *(uint8_t **)(particle + 0x5c)) {
         build_sprite(&data, 0, 0, 0, (real_point3d *)(particle + 0x2c),

@@ -13,6 +13,9 @@
 //   scale 0..2; nothing to do gives zero.
 // blam-cc: stack -> (actor_index, desired, out_direction, out_scale)
 
+// FIXED 2026-09-28: global_origin3d_pointer here is the global at its address comment, global_zero_point3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,7 +28,7 @@ extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern uint32_t global_structure_bsp_value; // 0x00746f9c
 extern uint32_t global_structure_collision_bsp_value; // 0x00746f98
-extern const real_vector3d *global_zero_point3d_pointer; // 0x00696714
+extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
 extern double sqrt(double x);
 extern double fabs(double x);
@@ -51,7 +54,7 @@ void actor_movement_choose_avoidance_direction(uint32_t actor_index, real_vector
                                                float *out_scale)
 {
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    const real_vector3d *zero = global_zero_point3d_pointer;
+    const real_vector3d *zero = global_origin3d_pointer;
     real_vector3d result = *zero;
     float out = 0.0f;
     datum_index unit_index = *(datum_index *)(act + 0x158);

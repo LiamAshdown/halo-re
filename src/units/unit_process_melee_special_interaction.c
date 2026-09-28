@@ -13,6 +13,9 @@
 // blam-cc: EAX -> attacker_index, stack -> target_index, node_pair, region_pair, material, contact_point,
 //   contact_plane, contact_leaf
 
+// FIXED 2026-09-28: global_origin3d_pointer here is the global at its address comment, global_zero_vector3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,7 +26,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern real_vector3d *global_zero_vector3d_pointer; // 0x00696714
+extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern real_vector3d *global_forward3d_pointer;     // 0x00696718
 extern real_vector3d *global_up3d_pointer;          // 0x00696720
 
@@ -78,8 +81,8 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
         real_vector3d *up = (real_vector3d *)(attacker + 0x80);
         real_vector3d left;
 
-        *(real_vector3d *)(attacker + 0x68) = *global_zero_vector3d_pointer;
-        *(real_vector3d *)(attacker + 0x8c) = *global_zero_vector3d_pointer;
+        *(real_vector3d *)(attacker + 0x68) = *global_origin3d_pointer;
+        *(real_vector3d *)(attacker + 0x8c) = *global_origin3d_pointer;
         *forward = contact_plane->normal;
         forward->i = -forward->i;
         forward->j = -forward->j;

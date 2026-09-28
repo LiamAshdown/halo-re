@@ -12,6 +12,9 @@
 //   (0x4173a0). The aim is then turned towards the facing by at most the rate limits (held turn at +0x594).
 // blam-cc: EAX -> cached_axis, ECX -> keep_z, stack -> the 15 parameters in order
 
+// FIXED 2026-09-28: global_origin3d_pointer here is the global at its address comment, global_zero_point3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,7 +26,7 @@
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void *global_structure_bsp;  // 0x00746f9c
-extern const real_vector3d *global_zero_point3d_pointer; // 0x00696714
+extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
 extern double acos(double x); // 0x628140, CRT
 extern double sqrt(double x);
@@ -212,7 +215,7 @@ void actor_movement_apply_steering(
         }
     }
 
-    heading = *global_zero_point3d_pointer;
+    heading = *global_origin3d_pointer;
     if (take_step) {
         switch (chosen_axis) { // 0x418a24
         case 0: heading.i = 1.0f; break;

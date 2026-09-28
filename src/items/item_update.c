@@ -13,6 +13,9 @@
 //   the held time.
 // blam-cc: stack -> item_index
 
+// FIXED 2026-09-28: global_origin3d_pointer here is the global at its address comment, global_zero_vector3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,7 +35,7 @@ extern void *current_game_engine;      // 0x006f1d20
 extern int16_t game_connection_role;   // 0x00719720
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern uint8_t *global_structure_collision_bsp; // 0x00746f98, +0x40 the surfaces (0xc each)
-extern real_vector3d *global_zero_vector3d_pointer; // 0x00696714
+extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern real_vector3d *global_forward3d_pointer;     // 0x00696718
 extern real_vector3d *global_up3d_pointer;          // 0x00696720
 extern real_vector3d *global_down3d_pointer;        // 0x0069672c
@@ -141,7 +144,7 @@ uint8_t item_update(uint32_t item_index)
 
                     *(real_point3d *)&placement.position = target;
                     *(real_vector3d *)&placement.forward = hit.plane.normal;
-                    *(real_vector3d *)&placement.velocity = *global_zero_vector3d_pointer;
+                    *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
                     placement.leaf_index = *(int32_t *)(obj + 0x98);
                     *(int32_t *)&placement.cluster_index = *(int32_t *)(obj + 0x9c);
                     sound_start_at_location(*(datum_index *)(tag + 0x264), &placement, speed_factor);
