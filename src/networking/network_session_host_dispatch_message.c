@@ -1,77 +1,61 @@
-// network_session_host_dispatch_message  (Ghidra: FUN_00577e40; named per this rewrite)
+// network_session_host_dispatch_message  (Ghidra: FUN_00577e40; the qr2 player key callback)
 // address 0x577e40, size 241 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
-// evidence: out/phase4/networking_functions.md summary: "Validates an incoming network message's
-// sender against a machine table and dispatches it to a type-specific or generic handler,
-// replying with an error string if invalid." Registered as the message-handler callback in
-// network_session_host_start (0x577850).
-// register convention: the three __cdecl stack parameters Ghidra recognized.
-// UNSURE: the exact shape of the "machine table" record read through DAT_0087a480 (a table
-// header: count at +0x20, stride at +0x22, base pointer at +0x34) is not attested anywhere else
-// in this module and is not declared as a type; accessed here via raw offsets. FUN_0045c6f0
-// (identifies the sender), FUN_00557950 and the two FUN_006155xx/FUN_006166xx GameSpy-shaped
-// reply helpers are foreign.
-// reconciled: R04 0x006f1d20 void * network_game_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
+// name confidence: 0.6   rewrite confidence: 0.85
+// REWRITTEN 2026-09-28 from objdump 0x577e40..0x577f30: the qr2 player key callback (key, index, buffer, user
+//   data); the earlier version modeled three arguments. The player at that active index (validated: index in range,
+//   live, salt 0 or matching) has key 0x15 its name (at most 0x40 characters, ASCII) and 0x19 its team; the game
+//   engine's +0xa0 hook answers other keys; anything unanswered is empty. (Name kept.)
+// blam-cc: cdecl (a qr2 player key callback)
 
 #include "tags.h"
-#include "memory.h"
-#include "math.h"
-#include "game.h"
-#include "networking.h"
+#include <string.h>
+#include <wchar.h>
 
-extern uint8_t *network_session_machine_table; // 0x0087a480, UNSURE layout, see file header
-extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern char *network_session_generic_error_string; // 0x0065512c, UNSURE
+extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
+extern void FUN_00615590(void *buffer, const char *value); // 0x615590 qr2_buffer_add
+extern void FUN_00616640(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
+extern void FUN_00615560(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
+typedef struct data_array data_array;
+extern uint8_t *player_data_raw; // 0x0087a480 (data_array *)
+extern uint32_t players_get_active_by_index(int32_t index); // 0x45c6f0, blam-cc: EAX index
+extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950
 
-extern int32_t players_get_active_by_index(void); // foreign, identifies the sender (index in low word, salt in high word)
-extern char *string_convert_unicode_to_ascii(int32_t id); // foreign, UNSURE
-extern void FUN_00615590(void *reply_target, void *text); // foreign, UNSURE
-extern void FUN_00616640(void *reply_target, int32_t value); // foreign, UNSURE
-
-// Validates an incoming network message's sender against the machine table and dispatches it to
-// a type-specific handler (message type 0x15 replies with a formatted string, 0x19 replies with a
-// stored value) or, failing that, to the generic ownership-handoff callback; replies with a
-// generic error string if the sender could not be validated.
-void network_session_host_dispatch_message(int32_t message_type, int32_t param_2, void *reply_target)
+void network_session_host_dispatch_message(int32_t key_id, int32_t index, void *buffer, void *user_data)
 {
-    int32_t sender = players_get_active_by_index();
+    uint32_t handle = players_get_active_by_index(index);
+    int16_t player_index = (int16_t)handle;
+    int16_t salt = (int16_t)(handle >> 16);
+    uint8_t *player;
 
-    if (sender != -1) {
-        int16_t index = (int16_t)sender;
-        if (index >= 0 && index < *(int16_t *)(network_session_machine_table + 0x20)) {
-            uint8_t *entry = network_session_machine_table +
-                             (int32_t)(*(int16_t *)(network_session_machine_table + 0x22)) * index +
-                             *(int32_t *)(network_session_machine_table + 0x34);
-            int16_t entry_salt = *(int16_t *)entry;
-            int16_t sender_salt = (int16_t)((uint32_t)sender >> 16);
+    (void)user_data;
+    if (handle == 0xffffffff || player_index < 0 || player_index >= *(int16_t *)(player_data_raw + 0x20)) {
+        FUN_00615590(buffer, "");
+        return;
+    }
+    player = *(uint8_t **)(player_data_raw + 0x34) + player_index * *(int16_t *)(player_data_raw + 0x22);
+    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt)) {
+        FUN_00615590(buffer, "");
+        return;
+    }
+    if (key_id == 0x15) {
+        uint8_t name[0x40];
 
-            if (entry_salt != 0 && (sender_salt == 0 || entry_salt == sender_salt)) {
-                if (message_type == 0x15) {
-                    char text[64];
-                    int32_t i;
-                    for (i = 0; i < 64; i++) {
-                        text[i] = 0;
-                    }
-                    FUN_00615590(reply_target, string_convert_unicode_to_ascii(0x40));
-                    (void)text;
-                    return;
-                }
-                if (message_type == 0x19) {
-                    FUN_00616640(reply_target, *(int32_t *)(entry + 0x40));
-                    return;
-                }
-                if (current_game_engine != 0 &&
-                    *(void **)((uint8_t *)current_game_engine + 0xa0) != 0) {
-                    typedef char (*handoff_fn)(int32_t, int32_t, void *);
-                    handoff_fn handoff = *(handoff_fn *)((uint8_t *)current_game_engine + 0xa0);
-                    if (handoff(message_type, param_2, reply_target) != 0) {
-                        return;
-                    }
-                }
-            }
+        memset(name, 0, sizeof(name));
+        FUN_00615590(buffer, (const char *)string_convert_unicode_to_ascii(name, (uint16_t *)(player + 4), 0x40));
+        return;
+    }
+    if (key_id == 0x19) {
+        FUN_00616640(buffer, *(int32_t *)(player + 0x20));
+        return;
+    }
+    if (current_game_engine != 0) {
+        uint8_t (*hook)(int32_t, int32_t, void *) = *(uint8_t (**)(int32_t, int32_t, void *))((uint8_t *)current_game_engine + 0xa0);
+
+        if (hook != 0 && hook(key_id, index, buffer) != 0) {
+            return;
         }
     }
-    FUN_00615590(reply_target, network_session_generic_error_string);
+    FUN_00615590(buffer, "");
 }
 
 #if 0

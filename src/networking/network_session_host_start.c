@@ -1,62 +1,53 @@
-// network_session_host_start  (Ghidra: FUN_00577850; named per this rewrite)
+// network_session_host_start  (Ghidra: FUN_00577850)
 // address 0x577850, size 159 bytes
-// name confidence: 0.45   rewrite confidence: 0.25
-// evidence: out/phase4/networking_functions.md summary: "Opens the network channel layer and
-// creates a network channel/session object configured with the previously-set host info and a
-// set of message-handler callbacks." Its own teardown counterpart (0x5778f0) and per-frame
-// update (0x577940) are named to match in this rewrite.
-// register convention: the __cdecl stack parameter Ghidra recognized (param_1); everything else
-// is a foreign (GameSpy-shaped) call whose arguments Ghidra elided.
-// UNSURE: nearly every callee here (gamespy_array_length, FUN_00616340, FUN_00615530, FUN_0061b6d0) is
-// foreign vendor-library glue outside this module; their argument lists are transcribed exactly
-// as decompiled (which is very likely incomplete -- Ghidra shows no arguments for several calls
-// that clearly need them), so this file carries an unusually high uncertainty even by this
-// module's standards.
+// name confidence: 0.6   rewrite confidence: 0.85
+// REWRITTEN 2026-09-28 from objdump 0x577850..0x5778ee: disposes the old session, opens the channels and starts
+//   query/report on the game socket's SOCKET (0x6175f0) with the port, game name and secret key strings, the public
+//   flag byte, natneg on, the six host callbacks (the earlier version passed NULL for five of them and the player key
+//   callback in the wrong slot) and the argument as user data; registers the natneg callback, and initializes the CD
+//   key server with game id 0x319 on the same record. Returns qr2_init_socketA's result.
+// blam-cc: cdecl
 
 #include "tags.h"
-#include "memory.h"
-#include "math.h"
-#include "game.h"
-#include "networking.h"
+#include <string.h>
+#include <wchar.h>
 
-extern int32_t network_game_socket;                        // 0x006f14c4
-extern void *network_session_host_object;                   // 0x00722a20
-extern int32_t network_session_start_game_type;              // 0x007227b8
-extern char network_session_start_host_name[];                // 0x00722798
-extern char network_session_start_map_name[];                  // 0x007227a0
-extern uint32_t network_session_host_flags;                    // 0x0069fe00, UNSURE
-extern int32_t network_console_connection_id;                  // 0x0069fdfc, UNSURE: shared with sv_ban / host_dispose
-
-extern void network_session_host_dispose(void);              // 0x5778f0, this module
-extern void network_channels_open(void);                     // 0x441300, this module
+extern int32_t network_game_socket;                    // 0x006f14c4 (GT2Socket; its first dword is the SOCKET)
+extern void *network_session_host_object;               // 0x00722a20
+extern int32_t network_session_start_game_type;          // 0x007227b8 (passed as the query port)
+extern char network_session_start_host_name[];           // 0x00722798 (the qr2 game name)
+extern char network_session_start_map_name[];            // 0x007227a0 (the qr2 secret key)
+extern uint8_t network_session_host_flags_byte;          // 0x0069fe00
+extern int32_t network_console_connection_id;            // 0x0069fdfc (the CD key game id)
+extern void network_session_host_dispose(void);          // 0x5778f0
+extern void network_channels_open(void);                 // 0x441300
+extern int32_t FUN_00616340(void **qrec_out, uint32_t socket, int32_t port, const char *gamename, const char *secret_key,
+    int32_t ispublic, int32_t natnegotiate, void *server_key, void *player_key, void *team_key, void *key_list, void *count,
+    void *adderror, void *userdata); // 0x616340 qr2_init_socketA
+extern void FUN_00615530(void *qrec, void *callback); // 0x615530 qr2_register_natneg_callback
+extern void FUN_0061b6d0(void *qrec, int32_t game_id, int32_t use_network); // 0x61b6d0 gcd_init_qr2
 extern void network_session_host_natneg_callback(int32_t cookie); // 0x578160
-extern int32_t gamespy_array_length(int32_t socket);                  // foreign, UNSURE
-extern void *FUN_00616340(void **object, int32_t query_result, int32_t game_type, void *host_name,
-                           void *map_name, uint32_t flags, int32_t a7, void *cb1, void *cb2,
-                           void *cb3, void *cb4, void *cb5, void *cb6, int32_t param_1); // foreign, UNSURE
-extern void FUN_00615530(void *object, void *callback); // foreign, UNSURE
-extern void FUN_0061b6d0(void *object, int32_t message_type, uint32_t flags); // foreign, UNSURE
-extern void network_session_host_dispatch_message(int32_t message_type, int32_t param_2, void *reply_target); // 0x577e40, this module
+extern void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *user_data); // 0x5779c0
+extern void network_session_host_dispatch_message(int32_t key_id, int32_t index, void *buffer, void *user_data); // 0x577e40
+extern void network_session_host_qr2_team_key(int32_t key_id, int32_t index, void *buffer, void *user_data); // 0x577f40
+extern void network_session_host_qr2_key_list(int32_t key_type, void *keybuffer, void *user_data); // 0x577fb0
+extern int32_t network_session_host_qr2_count(int32_t key_type, void *user_data); // 0x5780c0
+extern void network_session_host_qr2_add_error(int32_t error, char *message, void *user_data); // 0x578100
 
-// Opens the network channel layer and creates the GameSpy-shaped session object configured with
-// the previously-set host info (network_session_host_start_info_set) and a set of
-// message-handler callbacks, one of which is network_session_host_dispatch_message.
-void *network_session_host_start(int32_t param_1)
+int32_t network_session_host_start(void *user_data)
 {
-    void *result;
+    int32_t result;
 
     network_session_host_dispose();
     network_channels_open();
-    result = (void *)gamespy_array_length(network_game_socket);
-    result = FUN_00616340(&network_session_host_object, (int32_t)(long)result,
-                           network_session_start_game_type, network_session_start_host_name,
-                           network_session_start_map_name, network_session_host_flags, 1,
-                           (void *)0, (void *)network_session_host_dispatch_message, (void *)0, (void *)0, (void *)0,
-                           (void *)0, param_1);
-    // FIXED 2026-09-28: 0x5778b5 registers 0x578160 (network_session_host_natneg_callback), not NULL.
+    result = FUN_00616340(&network_session_host_object, *(uint32_t *)network_game_socket, network_session_start_game_type,
+        network_session_start_host_name, network_session_start_map_name, network_session_host_flags_byte, 1,
+        (void *)network_session_host_qr2_server_key, (void *)network_session_host_dispatch_message,
+        (void *)network_session_host_qr2_team_key, (void *)network_session_host_qr2_key_list,
+        (void *)network_session_host_qr2_count, (void *)network_session_host_qr2_add_error, user_data);
     FUN_00615530(network_session_host_object, (void *)network_session_host_natneg_callback);
     network_console_connection_id = 0x319;
-    FUN_0061b6d0(network_session_host_object, 0x319, network_session_host_flags);
+    FUN_0061b6d0(network_session_host_object, 0x319, network_session_host_flags_byte);
     return result;
 }
 
