@@ -92,12 +92,12 @@ uint8_t item_update(uint32_t item_index)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[item_index & 0xffff].data;
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;   // [esp+0x28]
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    real_vector3d *forward = &((item_object *)obj)->base.forward;
+    real_vector3d *up = &((item_object *)obj)->base.up;
 
-    if ((*(uint32_t *)(obj + 0x10) & 0x800) && *(datum_index *)(obj + 0x11c) == k_datum_index_none) {
+    if ((((item_object *)obj)->base.flags & 0x800) && ((item_object *)obj)->base.parent_object == k_datum_index_none) {
         // 0x4bc621: items that must stay upright are stood back up
-        if ((*(uint32_t *)(tag + 0x17c) & 1) && !(fabs(F(obj, 0x88) - 1.0f) < 9.999999747378752e-05)) {
+        if ((((Item *)tag)->item_flags & 1) && !(fabs(((item_object *)obj)->base.up.k - 1.0f) < 9.999999747378752e-05)) {
             real_vector3d side;
 
             *up = *global_up3d_pointer;
@@ -108,20 +108,20 @@ uint8_t item_update(uint32_t item_index)
             }
         }
 
-        if (!(*(uint32_t *)(obj + 0x10) & 0x20)) {
+        if (!(((item_object *)obj)->base.flags & 0x20)) {
             // 0x4bc6c4: moving
-            real_vector3d velocity = *(real_vector3d *)(obj + 0x68);   // [esp+0x1c]
+            real_vector3d velocity = ((item_object *)obj)->base.velocity;   // [esp+0x1c]
             real_point3d target;                                      // [esp+0xc]
             collision_result hit;                                     // [esp+0x30]
 
-            if (!(*(uint32_t *)(tag + 0x17c) & 4)) {
+            if (!(((Item *)tag)->item_flags & 4)) {
                 velocity.k -= global_gravity;
             }
-            target.x = velocity.i + F(obj, 0x5c);
-            target.y = velocity.j + F(obj, 0x60);
-            target.z = velocity.k + F(obj, 0x64);
-            if (collision_test_movement_segment_between_points((real_point3d *)(obj + 0x5c), &target, 0x1ff3e9,
-                                                               *(datum_index *)(obj + 0x200), &hit)) {
+            target.x = ((item_object *)obj)->base.position.x + velocity.i;
+            target.y = ((item_object *)obj)->base.position.y + velocity.j;
+            target.z = ((item_object *)obj)->base.position.z + velocity.k;
+            if (collision_test_movement_segment_between_points(&((item_object *)obj)->base.position, &target, 0x1ff3e9,
+                                                               ((item_object *)obj)->item.ignore_object_index, &hit)) {
                 real speed_factor;                                    // [esp+0x18]
                 int16_t hit_type = *(int16_t *)&hit;
 
@@ -134,20 +134,20 @@ uint8_t item_update(uint32_t item_index)
                 } else if (!(speed_factor <= 1.0f)) {
                     speed_factor = 1.0f;
                 }
-                if (*(datum_index *)(tag + 0x254) != k_datum_index_none && any_local_player_within_10_units(&hit.point)) {
-                    material_effects_play_at_marker(*(datum_index *)(tag + 0x254), 8, *(int16_t *)&hit.material_type,
+                if (*(datum_index *)&((Item *)tag)->material_effects.tag_id != k_datum_index_none && any_local_player_within_10_units(&hit.point)) {
+                    material_effects_play_at_marker(*(datum_index *)&((Item *)tag)->material_effects.tag_id, 8, *(int16_t *)&hit.material_type,
                                                     (uint32_t *)&hit.leaf, *(uint32_t *)&speed_factor, &hit.point,
                                                     &hit.plane.normal);
                 }
-                if (*(datum_index *)(tag + 0x264) != k_datum_index_none) {
+                if (*(datum_index *)&((Item *)tag)->collision_sound.tag_id != k_datum_index_none) {
                     sound_placement placement;                        // [esp+0xa0]
 
                     *(real_point3d *)&placement.position = target;
                     *(real_vector3d *)&placement.forward = hit.plane.normal;
                     *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
-                    placement.leaf_index = *(int32_t *)(obj + 0x98);
-                    *(int32_t *)&placement.cluster_index = *(int32_t *)(obj + 0x9c);
-                    sound_start_at_location(*(datum_index *)(tag + 0x264), &placement, speed_factor);
+                    placement.leaf_index = ((item_object *)obj)->base.location_leaf_index;
+                    *(int32_t *)&placement.cluster_index = *(int32_t *)&((item_object *)obj)->base.location_cluster_index;
+                    sound_start_at_location(*(datum_index *)&((Item *)tag)->collision_sound.tag_id, &placement, speed_factor);
                 }
                 if ((hit_type == 2 ||
                      (hit_type == 3 &&
@@ -160,31 +160,31 @@ uint8_t item_update(uint32_t item_index)
 
                     target = hit.point;
                     item_align_to_normal_and_point(&target, item_index, &hit.plane.normal, &hit.point);
-                    spin = hit.plane.normal.j * F(obj, 0x90) + hit.plane.normal.k * F(obj, 0x94) +
-                           hit.plane.normal.i * F(obj, 0x8c);
+                    spin = ((item_object *)obj)->base.angular_velocity.j * hit.plane.normal.j + ((item_object *)obj)->base.angular_velocity.k * hit.plane.normal.k +
+                           ((item_object *)obj)->base.angular_velocity.i * hit.plane.normal.i;
                     velocity.i = 0.0f;
                     velocity.j = 0.0f;
                     velocity.k = 0.0f;
-                    F(obj, 0x8c) = hit.plane.normal.i * spin;
-                    F(obj, 0x90) = hit.plane.normal.j * spin;
-                    F(obj, 0x94) = spin * hit.plane.normal.k;
-                    if (current_game_engine == 0 && *(datum_index *)(obj + 0xc0) == k_datum_index_none) {
+                    ((item_object *)obj)->base.angular_velocity.i = hit.plane.normal.i * spin;
+                    ((item_object *)obj)->base.angular_velocity.j = hit.plane.normal.j * spin;
+                    ((item_object *)obj)->base.angular_velocity.k = spin * hit.plane.normal.k;
+                    if (current_game_engine == 0 && (datum_index)((item_object *)obj)->base.owner_linkage == k_datum_index_none) {
                         object_list_membership_set(item_index, 1);
                     }
-                    *(uint32_t *)(obj + 0x10) |= 0x20;
+                    ((item_object *)obj)->base.flags |= 0x20;
                     if (hit_type != 2) {
-                        *(uint32_t *)(obj + 0x1f4) |= 0x10;
-                        *(datum_index *)(obj + 0x208) = hit.object_index;
+                        ((item_object *)obj)->item.flags |= 0x10;
+                        ((item_object *)obj)->item.resting_object_index = hit.object_index;
                         matrix4x3_inverse_transform_point(object_get_node_marker_address(hit.object_index, 0),
-                                                          (real_point3d *)(obj + 0x20c), &hit.point);
+                                                          &((item_object *)obj)->item.contact_point, &hit.point);
                     } else {
-                        *(uint32_t *)(obj + 0x1f4) |= 8;
-                        *(int16_t *)(obj + 0x1fa) = *(int16_t *)((uint8_t *)&hit + 0x44);
-                        *(int16_t *)(obj + 0x1fc) = global_structure_bsp_index;
+                        ((item_object *)obj)->item.flags |= 8;
+                        ((item_object *)obj)->item.resting_surface_index = *(int16_t *)((uint8_t *)&hit + 0x44);
+                        ((item_object *)obj)->item.resting_bsp_index = global_structure_bsp_index;
                     }
-                    *(real_vector3d *)(obj + 0x218) = hit.plane.normal;
+                    ((item_object *)obj)->item.rotation_axis = hit.plane.normal;
                     item_compute_rotation(item_index);
-                    *(datum_index *)(obj + 0x200) = k_datum_index_none;
+                    ((item_object *)obj)->item.ignore_object_index = k_datum_index_none;
                 } else {
                     // 0x4bca89: bounce off (at most 1.5 off an object)
                     real impulse = hit.plane.normal.i * velocity.i * -1.4f - hit.plane.normal.j * velocity.j * 1.4f -
@@ -206,51 +206,51 @@ uint8_t item_update(uint32_t item_index)
                 }
             }
             // 0x4bcb78
-            *(real_vector3d *)(obj + 0x68) = velocity;
+            ((item_object *)obj)->base.velocity = velocity;
             object_set_position_and_relink(&target, item_index, &hit.leaf);
-        } else if (!(*(uint32_t *)(tag + 0x17c) & 4)) {
+        } else if (!(((Item *)tag)->item_flags & 4)) {
             // 0x4bcbb7: resting; fall when the support goes away
             object_marker marker;                                     // [esp+0x30]
-            uint32_t flags = *(uint32_t *)(obj + 0x1f4);
+            uint32_t flags = ((item_object *)obj)->item.flags;
 
             object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1);
-            if ((flags & 8) && *(int16_t *)(obj + 0x1fa) != -1 && *(int16_t *)(obj + 0x1fc) == global_structure_bsp_index) {
-                uint8_t *surface = *(uint8_t **)(global_structure_collision_bsp + 0x40) + *(int16_t *)(obj + 0x1fa) * 0xc;
+            if ((flags & 8) && ((item_object *)obj)->item.resting_surface_index != -1 && ((item_object *)obj)->item.resting_bsp_index == global_structure_bsp_index) {
+                uint8_t *surface = *(uint8_t **)(global_structure_collision_bsp + 0x40) + ((item_object *)obj)->item.resting_surface_index * 0xc;
 
                 if ((surface[8] & 8) && !breakable_surface_is_intact((int16_t)surface[9])) {
-                    *(uint32_t *)(obj + 0x1f4) = flags & ~8u;
-                    *(int16_t *)(obj + 0x1fa) = -1;
+                    ((item_object *)obj)->item.flags = flags & ~8u;
+                    ((item_object *)obj)->item.resting_surface_index = -1;
                     item_start_falling(item_index);
                 }
             } else if (flags & 0x10) {
-                datum_index support = *(datum_index *)(obj + 0x208);
+                datum_index support = ((item_object *)obj)->item.resting_object_index;
 
                 if (object_try_and_get(support, 0xffffffff) != 0) {
                     real_point3d contact;
 
-                    matrix4x3_transform_point(&contact, (real_point3d *)(obj + 0x20c),
+                    matrix4x3_transform_point(&contact, &((item_object *)obj)->item.contact_point,
                                               object_get_node_marker_address(support, 0));
-                    item_align_to_normal_and_point(0, item_index, (real_vector3d *)(obj + 0x218), &contact);
+                    item_align_to_normal_and_point(0, item_index, &((item_object *)obj)->item.rotation_axis, &contact);
                 } else {
-                    *(uint32_t *)(obj + 0x1f4) = flags & ~0x10u;
+                    ((item_object *)obj)->item.flags = flags & ~0x10u;
                     item_start_falling(item_index);
                 }
             }
-            F(obj, 0x8c) *= 0.9f;
-            F(obj, 0x90) *= 0.9f;
-            F(obj, 0x94) *= 0.9f;
+            ((item_object *)obj)->base.angular_velocity.i *= 0.9f;
+            ((item_object *)obj)->base.angular_velocity.j *= 0.9f;
+            ((item_object *)obj)->base.angular_velocity.k *= 0.9f;
             item_compute_rotation(item_index);
         }
 
         // 0x4bcd4c: tumble
-        if (*(uint32_t *)(obj + 0x1f4) & 4) {
-            real_vector3d *axis = (real_vector3d *)(obj + 0x218);
-            real sin_angle = F(obj, 0x224);
-            real cos_angle = F(obj, 0x228);
+        if (((item_object *)obj)->item.flags & 4) {
+            real_vector3d *axis = &((item_object *)obj)->item.rotation_axis;
+            real sin_angle = ((item_object *)obj)->item.rotation_sine;
+            real cos_angle = ((item_object *)obj)->item.rotation_cosine;
             object_marker marker;                                     // [esp+0xd8]
             real_vector3d side;                                       // [esp+0x1c]
 
-            if (game_connection_role == 0 && (*(uint32_t *)(obj + 0x10) & 0x20) &&
+            if (game_connection_role == 0 && (((item_object *)obj)->base.flags & 0x20) &&
                 (int16_t)object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1)) {
                 // resting: turn the ground point's frame and move the item so the point stays put
                 real_matrix4x3 frame = marker.node_transform;         // [esp+0xa0]
@@ -275,15 +275,15 @@ uint8_t item_update(uint32_t item_index)
     }
 
     // 0x4bceea: the detonation countdown, and the held time
-    if (*(int16_t *)(obj + 0x1f8) > 0) {
-        *(int16_t *)(obj + 0x1f8) -= 1;
-        if (*(int16_t *)(obj + 0x1f8) == 0) {
-            effect_new_on_object(item_index, *(datum_index *)(tag + 0x304), item_index, -1, 0.0f, 0.0f, 0, 0);
+    if (((item_object *)obj)->item.detonation_countdown > 0) {
+        ((item_object *)obj)->item.detonation_countdown -= 1;
+        if (((item_object *)obj)->item.detonation_countdown == 0) {
+            effect_new_on_object(item_index, *(datum_index *)&((Item *)tag)->detonation_effect.tag_id, item_index, -1, 0.0f, 0.0f, 0, 0);
             object_delete(item_index);
         }
     }
-    if (*(uint32_t *)(obj + 0x1f4) & 1) {
-        *(int32_t *)(obj + 0x204) = game_time->game_time;
+    if (((item_object *)obj)->item.flags & 1) {
+        ((item_object *)obj)->item.held_game_time = game_time->game_time;
     }
     return 1;
 }

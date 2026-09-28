@@ -99,6 +99,7 @@
 // Note on sizes: like types/memory.h, structs holding datum handles measure to the documented
 // size under a 32-bit data organization.
 
+#include <stddef.h> // offsetof
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
@@ -212,6 +213,14 @@ typedef struct item_data {
     float rotation_sine;             // 0x224 sin(|angular velocity|), 0.0 when the axis is void
     float rotation_cosine;           // 0x228 cos(|angular velocity|), 1.0 when the axis is void
 } item_data;                         // size 0x38 (object 0x1f4 .. 0x22c)
+
+// An item object as one struct: the common object header (types/objects.h) followed by item_data,
+// so a field is one fixed offset from the object like the original code uses.
+typedef struct item_object {
+    object base;                        // 0x000
+    item_data item;                     // 0x1f4
+} item_object;
+typedef char item_object_item_at_1f4[offsetof(item_object, item) == 0x1f4 ? 1 : -1];
 
 // ---------------------------------------------------------------------------
 // garbage_data  (object 0x22c .. 0x244)

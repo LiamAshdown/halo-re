@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+#include "objects.h"
 #include "items.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14

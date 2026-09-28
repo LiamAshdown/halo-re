@@ -14,6 +14,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "objects.h"
 #include "items.h"
 #include "game.h"
 #include "networking.h"

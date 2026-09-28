@@ -16,6 +16,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "objects.h"
 #include "items.h"
 
 extern real k_weapon_zoom_fov_maximum; // 0x00672ea0
