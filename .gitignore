@@ -22,3 +22,5 @@ scratchpad_pack/
 *.pkl
 build/
 harness/gen/
+cmake-build-*/
+.idea/
