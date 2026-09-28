@@ -98,19 +98,19 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
         return;
     }
 
-    reflection_type = *(const uint16_t *)(raw + 0x2d2);
+    reflection_type = *(uint16_t *)&((struct ShaderEnvironment *)raw)->reflection_type;
     if (reflection_type == 0 || reflection_type == 2) {
         if ((raw[0x28] & 2) != 0) {
             reflection_type = 1;
         }
-        if (*(const uint32_t *)(raw + 0x134) == 0xffffffff) {
+        if (*(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id == 0xffffffff) {
             reflection_type = 1;
         }
     }
     if ((raw[0x2d0] & 1) == 0) {                                // not a dynamic mirror
         return;
     }
-    if (!(*(const float *)(raw + 0x2f4) > 0.0f) && !(*(const float *)(raw + 0x2f8) > 0.0f)) {
+    if (!(((struct ShaderEnvironment *)raw)->perpendicular_brightness > 0.0f) && !(((struct ShaderEnvironment *)raw)->parallel_brightness > 0.0f)) {
         return;
     }
 
@@ -137,7 +137,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
                                                      (void *)rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
     normalization_tag = *(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id;
-    bump_map_tag = *(const uint32_t *)(raw + 0x134);
+    bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     if (bump_map_tag == 0xffffffff) {
         chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 2, 0, effect_slot);
     } else {
@@ -177,7 +177,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     ((d3dx_effect_set_texture_fn)(*(void ***)effect)[0xd0 / 4])(effect, effect_slot->texture_handles[3],
                                                                 (void *)rasterizer_render_targets[2].texture);
 
-    constants[0] = *(const float *)(raw + 0x138);
+    constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
     constants[1] = *(const float *)(raw + 0x13c);
     constants[2] = 320.0f;
     constants[3] = 240.0f;
@@ -196,14 +196,14 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     vectors[1] = real_negate_pinned(rasterizer_window.camera.forward.j);
     vectors[2] = real_negate_pinned(rasterizer_window.camera.forward.k);
     vectors[3] = (raw[0x28] & 2) != 0 ? -1.0f : 0.0f;
-    vectors[4] = *(const float *)(raw + 0x2a8);                 // perpendicular color, brightness
+    vectors[4] = *(float *)&((struct ShaderEnvironment *)raw)->perpendicular_color;                 // perpendicular color, brightness
     vectors[5] = *(const float *)(raw + 0x2ac);
     vectors[6] = *(const float *)(raw + 0x2b0);
-    vectors[7] = *(const float *)(raw + 0x2f4);
-    vectors[8] = *(const float *)(raw + 0x2b4);                 // parallel color, brightness
+    vectors[7] = ((struct ShaderEnvironment *)raw)->perpendicular_brightness;
+    vectors[8] = *(float *)&((struct ShaderEnvironment *)raw)->parallel_color;                 // parallel color, brightness
     vectors[9] = *(const float *)(raw + 0x2b8);
     vectors[10] = *(const float *)(raw + 0x2bc);
-    vectors[11] = *(const float *)(raw + 0x2f8);
+    vectors[11] = ((struct ShaderEnvironment *)raw)->parallel_brightness;
     if (effect_slot->constant_handles != 0) {
         const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
 

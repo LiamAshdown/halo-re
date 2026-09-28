@@ -54,26 +54,26 @@ void rasterizer_shader_environment_lightmap_draw_two_stream(const ShaderEnvironm
     if (console_debug_toggle_6893f4 == 0) {
         return;
     }
-    effect_index = (int16_t)((uint16_t)(((uint16_t)(*(uint16_t *)(raw + 0x2a) * 3) + *(uint16_t *)(raw + 0xb0)) * 3) +
-        *(uint16_t *)(raw + 0xf4) + 5);
+    effect_index = (int16_t)((uint16_t)(((uint16_t)(*(uint16_t *)&((struct ShaderEnvironment *)raw)->shader_environment_type * 3) + *(uint16_t *)&((struct ShaderEnvironment *)raw)->detail_map_function) * 3) +
+        *(uint16_t *)&((struct ShaderEnvironment *)raw)->micro_detail_map_function + 5);
     if (rasterizer_effects[effect_index].effect == 0) {
         return;
     }
 
-    base_size = chimera__rasterizer_set_texture(*(uint32_t *)(raw + 0x94), 0, 0, 1, frame);
+    base_size = chimera__rasterizer_set_texture(*(uint32_t *)&((struct ShaderEnvironment *)raw)->base_map.tag_id, 0, 0, 1, frame);
     base_width = base_size[0];
     base_height = base_size[1];
     ((d3d_call1_fn)DEVICE_CALL(0x170))(rasterizer_device, 0);
     ((d3d_call1_fn)DEVICE_CALL(0x15c))(rasterizer_device, (uint32_t)rasterizer_vertex_declarations[12].declaration);
     ((d3d_call1_fn)DEVICE_CALL(0x1ac))(rasterizer_device, 0);
 
-    if (*(int32_t *)(raw + 0xc4) != -1) {
-        int16_t *detail_size = chimera__rasterizer_set_texture(*(uint32_t *)(raw + 0xc4), 1, 0, 2, frame);
+    if (*(int32_t *)&((struct ShaderEnvironment *)raw)->primary_detail_map.tag_id != -1) {
+        int16_t *detail_size = chimera__rasterizer_set_texture(*(uint32_t *)&((struct ShaderEnvironment *)raw)->primary_detail_map.tag_id, 1, 0, 2, frame);
         float matrix[16];
 
         memset(matrix, 0, sizeof matrix);
-        matrix[0] = (float)(int32_t)base_width / (float)(int32_t)detail_size[0] * *(float *)(raw + 0xb4);
-        matrix[5] = (float)(int32_t)base_height / (float)(int32_t)detail_size[1] * *(float *)(raw + 0xb4);
+        matrix[0] = (float)(int32_t)base_width / (float)(int32_t)detail_size[0] * ((struct ShaderEnvironment *)raw)->primary_detail_map_scale;
+        matrix[5] = (float)(int32_t)base_height / (float)(int32_t)detail_size[1] * ((struct ShaderEnvironment *)raw)->primary_detail_map_scale;
         matrix[10] = 1.0f;
         matrix[15] = 1.0f;
         set_texture_stage_state(1, 0x18, 2); // D3DTSS_TEXTURETRANSFORMFLAGS = COUNT2

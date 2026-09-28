@@ -122,7 +122,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, 0xf,
                                               (raw[0x28] & 1) != 0 && console_debug_toggle_68941c != 0 ? 1 : 0);
 
-    map_tag = *(const uint32_t *)(raw + 0x260);
+    map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->map.tag_id;
     if (map_tag == 0xffffffff) {
         effect_index = (int16_t)(2 + (unknown_006e0a04 != 0 ? 1 : 0));
     } else {
@@ -138,7 +138,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     ((d3d_set_pointer_fn)device_vtable()[0x170 / 4])(rasterizer_device, (void *)rasterizer_vertex_shaders[13].shader);
 
     // stage 0: the bump map (none for specular masks), or entry 3 of the default 2D bitmap
-    bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(const uint32_t *)(raw + 0x134);
+    bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     bump_bitmap = 0;
     if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;

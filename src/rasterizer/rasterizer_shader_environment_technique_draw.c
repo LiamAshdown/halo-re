@@ -65,14 +65,14 @@ void rasterizer_shader_environment_technique_draw(rasterizer_vertex_buffer *vert
         render_force_flag != 0 || rasterizer_environment_lightmap_missing != 0) {
         return;
     }
-    if (!(*(const float *)(raw + 0x2f4) > 0.0f) && !(*(const float *)(raw + 0x2f8) > 0.0f)) {
+    if (!(((struct ShaderEnvironment *)raw)->perpendicular_brightness > 0.0f) && !(((struct ShaderEnvironment *)raw)->parallel_brightness > 0.0f)) {
         return;
     }
-    if (!(*(const float *)(raw + 0x2d4) < 1.0f)) {             // lightmap_brightness_scale
+    if (!(((struct ShaderEnvironment *)raw)->lightmap_brightness_scale < 1.0f)) {             // lightmap_brightness_scale
         return;
     }
 
-    constants[0] = *(const float *)(raw + 0x138);
+    constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
     constants[1] = *(const float *)(raw + 0x13c);
     constants[2] = 1.0f;
     constants[3] = 1.0f;
@@ -94,7 +94,7 @@ void rasterizer_shader_environment_technique_draw(rasterizer_vertex_buffer *vert
         return;
     }
     effect = (void *)effect_slot->effect;
-    scale[0] = *(const float *)(raw + 0x2d4);
+    scale[0] = ((struct ShaderEnvironment *)raw)->lightmap_brightness_scale;
     scale[1] = scale[0];
     scale[2] = scale[0];
     scale[3] = scale[0];

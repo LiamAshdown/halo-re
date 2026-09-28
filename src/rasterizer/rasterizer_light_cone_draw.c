@@ -76,7 +76,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     }
 
     // stage 0: the bump map (unless it is a specular mask), or entry 3 of the default 2D bitmap
-    bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(const uint32_t *)(raw + 0x134);
+    bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
@@ -105,7 +105,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
         rasterizer_bound_bitmap_size_b[1] = (int16_t)bump_bitmap->height;
     }
 
-    constants[0] = *(const float *)(raw + 0x138);
+    constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
     constants[1] = *(const float *)(raw + 0x13c);
     constants[2] = 1.0f;
     constants[3] = 1.0f;
@@ -120,7 +120,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, shader);
     ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xa, constants, 3);
 
-    color[0] = *(const float *)(raw + 0x10c);                   // material_color
+    color[0] = *(float *)&((struct ShaderEnvironment *)raw)->material_color;                   // material_color
     color[1] = *(const float *)(raw + 0x110);
     color[2] = *(const float *)(raw + 0x114);
     color[3] = 1.0f;

@@ -59,14 +59,14 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     ((d3d_call2_fn)DEVICE_CALL(0xe4))(rasterizer_device, 0xf, (raw[0x28] & 1) != 0 && console_debug_toggle_68941c != 0);
     ((d3d_call1_fn)DEVICE_CALL(0x170))(rasterizer_device, 0);
     // 0x51fb1d: texture factor 0xffRRGGBB from the primary self-illumination colour (+0x10c), __ftol truncating
-    colour = 0xffffff00u | (uint32_t)(int32_t)(*(float *)(raw + 0x10c) * 255.0f);
+    colour = 0xffffff00u | (uint32_t)(int32_t)(*(float *)&((struct ShaderEnvironment *)raw)->material_color * 255.0f);
     colour = (colour << 8) | ((uint32_t)(int32_t)(*(float *)(raw + 0x110) * 255.0f) & 0xff);
     colour = (colour << 8) | ((uint32_t)(int32_t)(*(float *)(raw + 0x114) * 255.0f) & 0xff);
     ((d3d_call2_fn)DEVICE_CALL(0xe4))(rasterizer_device, 0x3c, colour);
 
     // stage 0: the self-illumination map (+0x134, frame modulo its bitmap count) unless tag flag 2, else the
     // rasterizer globals' +0xb8 bitmap 3
-    self_illumination = (raw[0x28] & 2) ? k_datum_index_none : *(datum_index *)(raw + 0x134);
+    self_illumination = (raw[0x28] & 2) ? k_datum_index_none : *(datum_index *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     if (console_debug_toggle_689409 != 0 && self_illumination != k_datum_index_none) {
         int32_t count = *(int32_t *)((uint8_t *)tag_instances[self_illumination & 0xffff].data + 0x60);
 

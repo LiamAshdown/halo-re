@@ -87,10 +87,10 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
         rasterizer_lightmap_bitmap_missing != 0 || rasterizer_caps.pixel_shader_version < 0xffff0104) {
         return;
     }
-    if (!(*(const float *)(raw + 0x290) > 0.0f)) {
+    if (!(((struct ShaderEnvironment *)raw)->brightness > 0.0f)) {
         return;
     }
-    specular_flags = *(const uint16_t *)(raw + 0x27c);
+    specular_flags = *(uint16_t *)&((struct ShaderEnvironment *)raw)->specular_flags;
     if ((specular_flags & 4) == 0) {                            // lightmap_is_specular
         return;
     }
@@ -106,7 +106,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
                                                      (void *)rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
     // stage 0: bump map frame, or entry 3 of the default 2D bitmap
-    bump_map_tag = *(const uint32_t *)(raw + 0x134);
+    bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     bump_bitmap = 0;
     if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
@@ -146,7 +146,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 2, 0, effect_slot);
     chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 3, 0, effect_slot);
 
-    constants[0] = *(const float *)(raw + 0x138);
+    constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
     constants[1] = *(const float *)(raw + 0x13c);
     constants[2] = 1.0f;
     constants[3] = 1.0f;
@@ -162,15 +162,15 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xa, constants, 3);
 
     // pixel shader c0..c2; the fourth vector (the specular exponent) is filled but not uploaded
-    pixel_constants[0] = *(const float *)(raw + 0x290);         // brightness
+    pixel_constants[0] = ((struct ShaderEnvironment *)raw)->brightness;         // brightness
     pixel_constants[1] = pixel_constants[0];
     pixel_constants[2] = pixel_constants[0];
     pixel_constants[3] = pixel_constants[0];
-    pixel_constants[4] = *(const float *)(raw + 0x2a8);         // perpendicular color
+    pixel_constants[4] = *(float *)&((struct ShaderEnvironment *)raw)->perpendicular_color;         // perpendicular color
     pixel_constants[5] = *(const float *)(raw + 0x2ac);
     pixel_constants[6] = *(const float *)(raw + 0x2b0);
     pixel_constants[7] = 1.0f;
-    pixel_constants[8] = *(const float *)(raw + 0x2b4);         // parallel color
+    pixel_constants[8] = *(float *)&((struct ShaderEnvironment *)raw)->parallel_color;         // parallel color
     pixel_constants[9] = *(const float *)(raw + 0x2b8);
     pixel_constants[10] = *(const float *)(raw + 0x2bc);
     pixel_constants[11] = 1.0f;

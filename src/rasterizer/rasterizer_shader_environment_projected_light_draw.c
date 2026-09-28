@@ -125,7 +125,7 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
         rasterizer_caps.pixel_shader_version < 0xffff0104) {
         return;
     }
-    if (!(*(const float *)(raw + 0x290) > 0.0f) || !(rasterizer_projected_light_luminance > 0.0f)) {
+    if (!(((struct ShaderEnvironment *)raw)->brightness > 0.0f) || !(rasterizer_projected_light_luminance > 0.0f)) {
         return;
     }
     effect_slot = (raw[0x28] & 2) != 0 ? &rasterizer_effects[40] : &rasterizer_effects[41];
@@ -141,7 +141,7 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
         (void *)rasterizer_vertex_shaders[effect_slot->vertex_shader_index + rasterizer_projected_light_shader_variant].shader);
     ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, (const float *)&rasterizer_projected_light, 5);
 
-    rasterizer_bind_bump_map(*(const uint32_t *)(raw + 0x134), frame, effect_slot);
+    rasterizer_bind_bump_map(*(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id, frame, effect_slot);
     if (rasterizer_projected_light_has_cube_map == 1) {
         rasterizer_resolve_and_cache_submap_b(rasterizer_projected_light_cube_map, 2, 1, 1, 0, effect_slot);
     } else {
@@ -152,7 +152,7 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
     chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 3, 0, effect_slot);
 
     // c10: bump map scale xy; c11/c12: the animated bump transform [1 0 0 u] [0 1 0 v]
-    constants[0] = *(const float *)(raw + 0x138);
+    constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
     constants[1] = *(const float *)(raw + 0x13c);
     constants[2] = 1.0f;
     constants[3] = 1.0f;
@@ -169,19 +169,19 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
 
     if (effect_slot->constant_handles != 0) {
         const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
-        float light = rasterizer_projected_light_luminance * *(const float *)(raw + 0x290);
+        float light = rasterizer_projected_light_luminance * ((struct ShaderEnvironment *)raw)->brightness;
 
         vector[0] = light;
         vector[1] = light;
         vector[2] = light;
         vector[3] = light;
         ((d3dx_effect_set_vector_fn)(*(void ***)effect)[0x88 / 4])(effect, handles[0], vector);
-        vector[0] = *(const float *)(raw + 0x2a8);              // perpendicular color
+        vector[0] = *(float *)&((struct ShaderEnvironment *)raw)->perpendicular_color;              // perpendicular color
         vector[1] = *(const float *)(raw + 0x2ac);
         vector[2] = *(const float *)(raw + 0x2b0);
         vector[3] = 1.0f;
         ((d3dx_effect_set_vector_fn)(*(void ***)effect)[0x88 / 4])(effect, handles[1], vector);
-        vector[0] = *(const float *)(raw + 0x2b4);              // parallel color
+        vector[0] = *(float *)&((struct ShaderEnvironment *)raw)->parallel_color;              // parallel color
         vector[1] = *(const float *)(raw + 0x2b8);
         vector[2] = *(const float *)(raw + 0x2bc);
         vector[3] = 1.0f;

@@ -105,19 +105,19 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
     }
 
     // bumped types fall back to the flat cube map without a usable bump map
-    reflection_type = *(const uint16_t *)(raw + 0x2d2);
+    reflection_type = *(uint16_t *)&((struct ShaderEnvironment *)raw)->reflection_type;
     if (reflection_type == 0 || reflection_type == 2) {
         if ((raw[0x28] & 2) != 0) {
             reflection_type = 1;
         }
-        if (*(const uint32_t *)(raw + 0x134) == 0xffffffff) {
+        if (*(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id == 0xffffffff) {
             reflection_type = 1;
         }
     }
-    if (!(*(const float *)(raw + 0x2f4) > 0.0f) && !(*(const float *)(raw + 0x2f8) > 0.0f)) {
+    if (!(((struct ShaderEnvironment *)raw)->perpendicular_brightness > 0.0f) && !(((struct ShaderEnvironment *)raw)->parallel_brightness > 0.0f)) {
         return;
     }
-    if (*(const uint32_t *)(raw + 0x330) == 0xffffffff) {
+    if (*(uint32_t *)&((struct ShaderEnvironment *)raw)->reflection_cube_map.tag_id == 0xffffffff) {
         return;
     }
 
@@ -144,7 +144,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
                                                      (void *)rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
     // stage 0: the bump map frame, or entry 3 of the default 2D bitmap
-    bump_map_tag = *(const uint32_t *)(raw + 0x134);
+    bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     bump_bitmap = 0;
     if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
@@ -175,11 +175,11 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
     }
     chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 1, 0, effect_slot);
     chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 2, 0, effect_slot);
-    rasterizer_resolve_and_cache_submap_b(*(const uint32_t *)(raw + 0x330), 2, 3, 0, frame, effect_slot);
+    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&((struct ShaderEnvironment *)raw)->reflection_cube_map.tag_id, 2, 3, 0, frame, effect_slot);
 
     // c10: bump map scale xy and the 320x240 reference size; c11/c12: the animated bump map
     // transform rows [1 0 0 u] [0 1 0 v]
-    constants[0] = *(const float *)(raw + 0x138);
+    constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
     constants[1] = *(const float *)(raw + 0x13c);
     constants[2] = 320.0f;
     constants[3] = 240.0f;
@@ -203,16 +203,16 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
         vector[3] = 0.0f;
         ((d3dx_effect_set_vector_fn)(*(void ***)effect)[0x88 / 4])(effect, handles[0], vector);
 
-        vector[0] = *(const float *)(raw + 0x2a8);              // perpendicular color
+        vector[0] = *(float *)&((struct ShaderEnvironment *)raw)->perpendicular_color;              // perpendicular color
         vector[1] = *(const float *)(raw + 0x2ac);
         vector[2] = *(const float *)(raw + 0x2b0);
-        vector[3] = *(const float *)(raw + 0x2f4);              // perpendicular brightness
+        vector[3] = ((struct ShaderEnvironment *)raw)->perpendicular_brightness;              // perpendicular brightness
         ((d3dx_effect_set_vector_fn)(*(void ***)effect)[0x88 / 4])(effect, handles[1], vector);
 
-        vector[0] = *(const float *)(raw + 0x2b4);              // parallel color
+        vector[0] = *(float *)&((struct ShaderEnvironment *)raw)->parallel_color;              // parallel color
         vector[1] = *(const float *)(raw + 0x2b8);
         vector[2] = *(const float *)(raw + 0x2bc);
-        vector[3] = *(const float *)(raw + 0x2f8);              // parallel brightness
+        vector[3] = ((struct ShaderEnvironment *)raw)->parallel_brightness;              // parallel brightness
         ((d3dx_effect_set_vector_fn)(*(void ***)effect)[0x88 / 4])(effect, handles[2], vector);
     }
 
