@@ -26,16 +26,16 @@ extern data_array *object_headers; // 0x008603b0
 
 extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index); // 0x56dcd0
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);          // 0x56dec0
-extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index,
-    datum_index forwarded_flag_object_index, real_point3d *forwarded_position); // 0x468840, this batch
+extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index); // 0x468840, blam-cc: EAX object_index
 
-// blam-cc: EAX -> player_index, EBX -> forwarded_flag_object_index, EDI -> forwarded_position
+// FIXED 2026-09-28: 0x4688f8 hands 0x468840 its own first stack argument (the flag object; 0x468a20 pushes it),
+//   not forwarded registers.
+// blam-cc: EAX -> player_index, stack -> flag_object_index
 // Looks up the player's controlled unit; if that unit's object has network_role 0, dispatches
 // scripted event 0x1b for it, then always drops its current weapon (forced) and resets its
 // team's flag-return credit (game_engine_ctf_reset_team_return_credit.c, forwarding
 // flag_object_index/position through, see UNSURE).
-void game_engine_ctf_player_drop_flag(uint32_t player_index,
-    datum_index forwarded_flag_object_index, real_point3d *forwarded_position)
+void game_engine_ctf_player_drop_flag(uint32_t player_index, datum_index flag_object_index)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
     uint32_t unit_index = (uint32_t)p->unit;
@@ -45,7 +45,7 @@ void game_engine_ctf_player_drop_flag(uint32_t player_index,
         unit_dispatch_scripted_event_1b(1, unit_index);
     }
     unit_drop_current_weapon(unit_index, 1);
-    game_engine_ctf_reset_team_return_credit(unit_index, forwarded_flag_object_index, forwarded_position);
+    game_engine_ctf_reset_team_return_credit(flag_object_index);
 }
 
 #if 0

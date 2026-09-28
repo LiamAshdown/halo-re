@@ -1,6 +1,6 @@
 // game_engine_ctf_reset_team_return_credit  (Ghidra: FUN_00468840; named per its summary)
 // address 0x468840, size 101 bytes
-// name confidence: 0.45   rewrite confidence: 0.4
+// name confidence: 0.45   rewrite confidence: 0.8
 // evidence: out/phase4/game_functions.md ("Resets a team's flag-return credit tracking and, if
 //   a flag object exists for that team, clears its carrier state and updates its flag bits");
 //   types/objects.h object.flags (_object_changed_bit 0x04000000); ctf_flag_object_clear_carrier
@@ -31,13 +31,14 @@ extern real_point3d *ctf_team_flag_stand_position[2]; // 0x006b0e88
 
 extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *position); // 0x4666c0
 
-// blam-cc: EAX -> object_index, EBX -> forwarded_flag_object_index, EDI -> forwarded_position
+// FIXED 2026-09-28: 0x46884a copies the object handle into EBX and 0x468877 loads EDI with the team's flag stand
+//   before the call to ctf_flag_object_clear_carrier, so neither is a forwarded input; the object is the flag.
+// blam-cc: EAX -> object_index
 // Reads the object's team (object + 0xb8, see UNSURE above), clears that team's flag-return
 // credit tracking, and, if that team currently has a live flag object, clears its carrier state
 // (forwarding flag_object_index/position through to ctf_flag_object_clear_carrier), clears an
 // equipment-runtime bit, and marks the flag object changed for network sync.
-void game_engine_ctf_reset_team_return_credit(uint32_t object_index,
-    datum_index forwarded_flag_object_index, real_point3d *forwarded_position)
+void game_engine_ctf_reset_team_return_credit(uint32_t object_index)
 {
     object *obj = ((object_header *)object_headers->data)[object_index & 0xffff].data;
     int16_t team = *(int16_t *)((uint8_t *)obj + 0xb8); // UNSURE: name_index/team_index conflict
@@ -48,7 +49,7 @@ void game_engine_ctf_reset_team_return_credit(uint32_t object_index,
     if (ctf_team_flag_stand_position[team] != (real_point3d *)0) {
         uint32_t *unknown_22c = (uint32_t *)((uint8_t *)obj + 0x22c); // UNSURE: equipment_data+0x00
 
-        ctf_flag_object_clear_carrier(forwarded_flag_object_index, forwarded_position);
+        ctf_flag_object_clear_carrier(object_index, ctf_team_flag_stand_position[team]);
         *unknown_22c &= 0xffffffbf;
         obj->flags |= _object_changed_bit;
     }

@@ -33,8 +33,7 @@ extern int32_t ctf_team_return_credit_ticks[2];  // 0x006b0ea8
 extern uint8_t game_engine_is_inactive(void); // 0x461610
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
     int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject); // 0x460c10
-extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index,
-    datum_index forwarded_flag_object_index, real_point3d *forwarded_position); // 0x468840, this batch
+extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index); // 0x468840, this batch
 extern void game_engine_ctf_notify_flag_carried_throttled(void); // 0x4689e0, this batch
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 
@@ -66,7 +65,7 @@ uint8_t game_engine_ctf_player_flag_tick(uint32_t flag_handle, uint32_t player_i
                         game_engine_queue_multiplayer_sound(p->team != 0 ? 9 : 0xc, 0xffffffff, 1); // 0x46988d..0x46989f
                     }
                 }
-                game_engine_ctf_reset_team_return_credit(player_index, (datum_index)0xffffffff, (real_point3d *)0); // UNSURE forwarded args
+                game_engine_ctf_reset_team_return_credit(flag_handle); // FIXED 2026-09-28: 0x4698a7 loads EAX from the first argument
                 return 0;
             }
             if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) != 0) {
