@@ -17,7 +17,7 @@ import os, re, sys, glob, json, subprocess, collections
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "harness"))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
-import retail_guard as rg   # HALO_NO_RETAIL=1: build from standalone/frozen/ only
+import retail_guard as rg   # the build reads standalone/frozen/, never the retail binary
 import gen_link as gl
 
 OUT = os.path.join(ROOT, "build", "standalone")
@@ -109,25 +109,11 @@ def d3dx_sizes():
 
 
 def original_ret_bytes(address):
-    """bytes a function at an original address pops on return (the immediate of its first ret), None if not found.
-    Answers come from standalone/frozen/code_address_ret.json; only a retail build (no HALO_NO_RETAIL) disassembles
-    bin/halo.exe for an address not frozen yet, and adds it."""
-    frozen = rg.read_frozen("code_address_ret.json") if os.path.exists(rg.frozen_path("code_address_ret.json")) else {}
-    key = "0x%06x" % address
-    if key in frozen:
-        return frozen[key]
-    if rg.NO_RETAIL:
+    """bytes a function at an original address pops on return (the immediate of its first ret), None if not known.
+    Answers come from the committed standalone/frozen/code_address_ret.json (tools/freeze_retail_inputs.py)."""
+    if not os.path.exists(rg.frozen_path("code_address_ret.json")):
         return None
-    r = subprocess.run(["objdump", "-d", "-M", "intel", "--start-address=0x%x" % address,
-                        "--stop-address=0x%x" % (address + 0x4000), os.path.join(ROOT, "bin", "halo.exe")],
-                       capture_output=True, text=True, errors="replace")
-    for line in r.stdout.split("\n"):
-        m = re.search(r"\tret\s*(0x[0-9a-f]+)?\s*$", line)
-        if m:
-            frozen[key] = int(m.group(1), 16) if m.group(1) else 0
-            rg.write_frozen("code_address_ret.json", frozen)
-            return frozen[key]
-    return None
+    return rg.read_frozen("code_address_ret.json").get("0x%06x" % address)
 
 
 def stdcall_definitions():
@@ -260,6 +246,7 @@ def assemble(src, obj):
 
 
 def main():
+    rg.forbid_retail()
     os.makedirs(OUT, exist_ok=True)
     write_tables()
     extra = [compile_c(os.path.join(SA, "loader.c"), os.path.join(OUT, "loader.obj"), [SA]),
@@ -328,7 +315,8 @@ def main():
             target = "_%s@%d" % (fn, std_defs[fn]) if fn in std_defs else "_" + fn
             externs.add(target)
             if ret_n is None:
-                left.append((s, "code address: original function end not found")); continue
+                left.append((s, "code address: no ret byte count in standalone/frozen/code_address_ret.json "
+                                "(tools/freeze_retail_inputs.py)")); continue
             if fn in std_defs and std_defs[fn] != ret_n:
                 left.append((s, "code address: C is __stdcall@%d but the original returns %d" % (std_defs[fn], ret_n)))
                 continue

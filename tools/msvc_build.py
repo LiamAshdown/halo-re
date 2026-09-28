@@ -19,6 +19,8 @@ def msvc_env():
     return env
 
 def main():
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import retail_guard; retail_guard.forbid_retail()   # the build never reads the retail binary
     args = sys.argv[1:]; jobs = os.cpu_count() or 4
     if "-j" in args: i = args.index("-j"); jobs = int(args[i + 1]); del args[i:i + 2]
     env = msvc_env()

@@ -12,12 +12,13 @@ Pieces: all of .rdata, the initialised part of .data (the zero tail is the reser
 Nothing of .text: it is original code, and the ranges the C once read as data are gone (see TEXT_DATA). It stays
 reserved, zero and not executable in the standalone.
 Import slots keep their retail contents (hint/name RVAs); the loader overwrites them.
-Usage: python tools/gen_image_source.py   (reads bin/halo.exe; refuses under HALO_NO_RETAIL=1)"""
+Usage: python tools/gen_image_source.py   (a maintenance tool like tools/freeze_retail_inputs.py: reads
+bin/halo.exe; never part of a build)"""
 import json, os, struct, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import retail_guard as rg
-from gen_standalone import EXE, pe_layout
+from freeze_retail_inputs import EXE, pe_layout
 
 ROOT = rg.ROOT
 IMAGE = os.path.join(ROOT, "standalone", "image")
@@ -82,8 +83,6 @@ def emit_piece(label, va, data, pointers, names):
 
 
 def main():
-    if rg.NO_RETAIL:
-        raise SystemExit("gen_image_source.py reads bin/halo.exe; run it without HALO_NO_RETAIL")
     exe = open(EXE, "rb").read()
     base, dirs, sections = pe_layout(exe)
     sec = {s["name"]: s for s in sections}
