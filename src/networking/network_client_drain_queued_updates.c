@@ -2,7 +2,7 @@
 // the name src/networking/network_channel_dispatch_bitstream_unit.c's own extern already chose
 // for this address)
 // address 0x4e1f40, size 288 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN; was 0.25)
 // evidence: out/phase4/networking_functions.md: "Drains the client's queued network-game
 // update messages, applying each one according to its message-type tag."
 // register convention: EBX = machine (network_machine *, implicit passthrough -- needed only
@@ -23,82 +23,76 @@
 // called with zero visible arguments; FUN_004aabd0, FUN_00470810 and
 // network_server_handle_rcon_request are likewise called with fewer arguments than a real
 // implementation would need. All are declared and called exactly as Ghidra shows.
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x4e1f40..0x4e2060, jump tables 0x4e2078 /
+// 0x4e2060): the host twin of network_game_action_queue_drain. Arguments: the item's stream in ECX, then (server,
+// machine) on the stack. A 0x34-byte decode state is begun on the stream (EAX state, EDI stream) and the decode
+// context built (context[0] the state, [1..16] zero, [0x11] a 0x80-byte record); each decoded item of type 0xd
+// (network_game_client_apply_received_update: EBX machine, stack server, context), 0xf (chat_server_relay_incoming_
+// message: EAX context, stack machine), 0x1a (game_engine_update_lead_change_state: EAX context, stack machine),
+// 0x34 (network_game_message_handle_ping_timestamp: EAX context, stack server) or 0x36
+// (network_server_handle_rcon_request: EAX machine, EDX context) is applied; the run continues while both state
+// flags +0x1c/+0x1d came back 1 and the count (+0x18) has not passed +0x08. Returns the last result.
 
 #include "tags.h"
 #include "memory.h"
+#include <string.h>
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#include <string.h>
 
-extern char message_delta_decode_begin(void);   // 0x4ec490, message-delta family, outside this batch
-extern char message_delta_decode_array_field(void);   // 0x4ec510, message-delta family, outside this batch
-extern void network_game_client_apply_received_update(network_machine *machine, uint32_t param_1,
-    void **message); // 0x4e0280, prior batch
-extern void chat_server_relay_incoming_message(void *param_2);   // foreign (UNSURE)
-extern void game_engine_update_lead_change_state(void *param_2);   // foreign (UNSURE)
-extern void network_server_handle_rcon_request(void); // 0x4e4f00, other module, already named
+extern int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream); // 0x4ec490, EAX, EDI
+extern int32_t message_delta_decode_array_field(void **context); // 0x4ec510, EAX
+extern void network_game_client_apply_received_update(network_machine *machine, uint32_t param_1, void **message); // 0x4e0280
+extern void chat_server_relay_incoming_message(void **context, network_machine *machine); // 0x4aabd0
+extern void game_engine_update_lead_change_state(void **envelope, uint8_t *message); // 0x470810
+extern uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_server_globals *param_1); // 0x4e20b0
+extern void network_server_handle_rcon_request(network_player_entry *client, void *message); // 0x4e4f00
 
-// blam-cc: EBX -> machine, stack -> param_1, param_2
-// While message_delta_decode_begin reports readiness, repeatedly decodes the next queued update
-// (message_delta_decode_array_field) into a fixed scratch record and dispatches it by message type, then advances
-// the processed-item counter and clears the record's two continuation flags. Stops once either
-// flag is clear or the processed count exceeds the record's own item-count field.
-void network_client_drain_queued_updates(network_machine *machine, network_server_globals *param_1, void *param_2)
+char network_client_drain_queued_updates(network_server_globals *server, network_machine *machine, bit_stream *stream)
 {
-    message_delta_decode_state record;
-    char more;
-    void *message_ptr;
+    union {
+        message_delta_decode_state state;
+        uint8_t bytes[0x34];
+    } state;
+    uint8_t record[0x80];
+    void *context[0x12];
+    char result;
 
-    if (message_delta_decode_begin() != 1) {
-        return;
+    result = (char)message_delta_decode_begin(&state.state, stream);
+    if (result != 1) {
+        return result;
     }
+    memset(&context[1], 0, 0x40);
+    context[0] = &state;
+    context[0x11] = record;
+    state.bytes[0x1d] = 0;
+    state.bytes[0x1c] = 0;
+    for (;;) {
+        uint8_t *current;
 
-    memset(&record, 0, sizeof(record));
-
-    do {
-        more = message_delta_decode_array_field();
-        if (more == 0) {
-            break;
+        if ((char)message_delta_decode_array_field(context) == 0) {
+            return 0;
         }
-
-        message_ptr = &record;
-        switch (record.message_type) {
-        case 0x0d:
-            network_game_client_apply_received_update(machine, (uint32_t)(uintptr_t)param_1, (void **)&message_ptr);
-            break;
-        case 0x0f:
-            chat_server_relay_incoming_message(param_2);
-            break;
-        case 0x1a:
-            game_engine_update_lead_change_state(param_2);
-            break;
-        case 0x34:
-            (void)param_1; // network_game_message_handle_ping_timestamp's own `message` argument
-                            // is implicit EAX, not this record; called argument-less here,
-                            // matching Ghidra literally (see that file's own UNSURE note)
-            break;
-        case 0x36:
-            network_server_handle_rcon_request();
-            break;
+        current = (uint8_t *)context[0];
+        switch (*(int32_t *)(current + 4)) {
+        case 0x0d: network_game_client_apply_received_update(machine, (uint32_t)server, context); break;
+        case 0x0f: chat_server_relay_incoming_message(context, machine); break;
+        case 0x1a: game_engine_update_lead_change_state(context, (uint8_t *)machine); break;
+        case 0x34: network_game_message_handle_ping_timestamp((int32_t **)context, server); break;
+        case 0x36: network_server_handle_rcon_request((network_player_entry *)machine, context); break;
         }
-
-        {
-            char continue_ok = (record.more_items == 1 && record.changed == 1) ? 1 : 0;
-            record.processed_count = record.processed_count + 1;
-            memset(&record, 0, sizeof(record)); // UNSURE: Ghidra re-zeroes the whole 16-dword
-                                                 // scratch here, but this would also clear the
-                                                 // counters just updated above; preserved
-                                                 // literally (see #if 0 block) even though it
-                                                 // looks like it defeats the loop's own bound
-                                                 // check on the next iteration.
-            record.more_items = 0;
-            record.changed = 0;
-            if (!continue_ok) {
-                break;
-            }
+        result = current[0x1c] == 1 && current[0x1d] == 1;
+        ++*(int32_t *)(current + 0x18);
+        memset(&context[1], 0, 0x40);
+        current[0x1c] = 0;
+        current[0x1d] = 0;
+        if (result != 1) {
+            return result;
         }
-    } while (record.processed_count <= record.item_count);
+        if (*(int32_t *)((uint8_t *)context[0] + 0x18) > *(int32_t *)((uint8_t *)context[0] + 0x08)) {
+            return result;
+        }
+    }
 }
 
 #if 0

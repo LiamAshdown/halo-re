@@ -1,6 +1,6 @@
 // network_channel_dispatch_bitstream_unit  (Ghidra: FUN_004e18b0, unnamed)
 // address 0x4e18b0, size 119 bytes
-// name confidence: 0.4   rewrite confidence: 0.45
+// name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN; was 0.45)
 // evidence: out/phase4/networking_functions.md: "Small dispatcher used while draining a
 // channel's bitstream, routing each unit to either the queued-message processor or the
 // incoming-packet decoder." network_game_process_incoming_message is already named and in
@@ -16,40 +16,42 @@
 // -- only one stack slot (`unit`) is ever read (0x4e18ba/0x4e18c5) -- and that this function
 // discarded FUN_004de420's return value instead of forwarding it as `record`/`length` the way
 // network_game_process_incoming_message's own verified convention requires; both are fixed below.
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x4e18b0..0x4e1927): besides (server, unit)
+// on the stack it takes the item's stream in ECX and the machine in ESI. A game-action item (1) drains through
+// network_client_drain_queued_updates (ECX stream; stack server, machine); a message item (0) is read into a local
+// 0x1000-byte buffer (EDI buffer, EBX stream, capacity 0xfff) and handed to network_game_process_incoming_message
+// (EAX length = first word >> 4, ECX machine, EDX record, stack server). The previous C passed the unit flag as the
+// server and no stream.
 
 #include "tags.h"
 #include "memory.h"
+#include <string.h>
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#include <stdint.h>
 
-extern uint16_t *network_message_read_sized_buffer(int32_t timeout_ms); // other module (UNSURE); returns a record pointer, not char
+extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream); // 0x4de420, EDI, stack, EBX
 extern uint32_t network_game_process_incoming_message(int32_t length, network_machine *machine,
-    uint16_t *record, network_server_globals *server); // 0x4e1c60, this batch; blam-cc: EAX -> length, ECX -> machine, EDX -> record, stack -> server
-extern uint32_t network_client_drain_queued_updates(network_machine *machine,
-    network_server_globals *param_1, void *param_2); // 0x4e1f40, this batch; blam-cc: EBX -> machine, stack -> param_1, param_2
+    uint16_t *record, network_server_globals *server); // 0x4e1c60, EAX, ECX, EDX, stack
+extern char network_client_drain_queued_updates(network_server_globals *server, network_machine *machine,
+    bit_stream *stream); // 0x4e1f40, stack, stack, ECX
 
-// unit == 1 drains the queued-update processor; unit == 0 checks a readiness gate
-// (FUN_004de420) and, if ready, decodes one incoming network-game message. Any other value (or
-// an unready gate) returns 0.
-uint32_t network_channel_dispatch_bitstream_unit(network_machine *machine, uint32_t unit)
+char network_channel_dispatch_bitstream_unit(network_server_globals *server, uint32_t unit, bit_stream *stream,
+    network_machine *machine)
 {
+    uint16_t buffer[0x800];
+
     if (unit == 1) {
-        // UNSURE: network_client_drain_queued_updates also needs EBX -> machine, which this
-        // function has no live input for (not flagged by the checker); left unset.
-        return network_client_drain_queued_updates(0, (network_server_globals *)(uintptr_t)unit,
-            machine);
+        return network_client_drain_queued_updates(server, machine, stream);
     }
     if (unit == 0) {
-        uint16_t *record = network_message_read_sized_buffer(0xfff);
+        uint16_t *record = network_message_read_sized_buffer(buffer, 0xfff, stream);
+
         if (record != 0) {
-            int32_t length = (int32_t)(uint16_t)(*record >> 4);
-            return network_game_process_incoming_message(length, machine, record,
-                (network_server_globals *)(uintptr_t)unit);
+            return (char)network_game_process_incoming_message(*record >> 4, machine, record, server);
         }
     }
-    return unit & 0xffffff00;
+    return 0;
 }
 
 #if 0

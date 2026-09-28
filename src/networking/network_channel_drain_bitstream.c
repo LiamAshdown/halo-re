@@ -1,6 +1,6 @@
 // network_channel_drain_bitstream  (Ghidra: FUN_004e1290, unnamed)
 // address 0x4e1290, size 375 bytes
-// name confidence: 0.4   rewrite confidence: 0.25
+// name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN; was 0.25)
 // evidence: out/phase4/networking_functions.md: "Drains a shared bitstream buffer one bit at a
 // time, dispatching each bit through FUN_004e18b0 as part of connecting a new machine."
 // *param_2 (machine->channel) and channel->incoming (channel+0xc) match
@@ -21,104 +21,92 @@
 // by address reuse with that same file; no declared type exists for it in types/networking.h.
 // UNSURE: FUN_004dcf10's 5th (24-byte) output parameter is unused after the call in this
 // function and is not otherwise interpreted here.
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x4e1290..0x4e1407): the host twin of
+// network_game_process_incoming_messages. While the machine's channel (machine +0) has queued data, each item is
+// read (network_channel_incoming_read_item, max 0x80000 bits in EAX) into 0x861de0 and walked as a local bit stream;
+// each leading bit goes to network_channel_dispatch_bitstream_unit(server, bit) with the stream (ECX) and the
+// machine (ESI). A failed read, or a dispatch returning 0, ends the drain with 0; an empty queue returns 1.
 
 #include "tags.h"
 #include "memory.h"
+#include <string.h>
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern uint8_t network_incoming_message_scratch[0x510]; // 0x00861de0, shared scratch buffer
-    // (sized from k_network_channel_stream_bits/8, see
-    // network_game_process_incoming_messages.c)
-extern char network_channel_incoming_read_item(network_channel *channel, uint8_t *scratch,
-    uint32_t *start_bit, uint32_t *bit_count, void *out_item); // 0x4dcf10, other module
-extern char network_channel_dispatch_bitstream_unit(network_server_globals *server, uint32_t bit); // 0x4e18b0, this batch
+extern uint8_t network_incoming_message_scratch[0x510]; // 0x00861de0, UNSURE size
+extern int32_t network_channel_incoming_read_item(network_channel *channel, uint8_t *destination,
+    int32_t *out_bit_offset, int32_t *out_remaining_bits, s_network_address *out_address,
+    int32_t max_item_bits); // 0x4dcf10, stack x5, EAX max bits
+extern char network_channel_dispatch_bitstream_unit(network_server_globals *server, uint32_t unit, bit_stream *stream,
+    network_machine *machine); // 0x4e18b0, stack, stack, ECX, ESI
 
-// While machine->channel has queued incoming ring-buffer data, reads one length-prefixed item
-// at a time into network_incoming_message_scratch and walks it bit by bit, dispatching each
-// bit through network_channel_dispatch_bitstream_unit, until an item is exhausted (down to 7
-// or fewer trailing bits) or a dispatch fails.
+typedef struct network_item_stream {
+    bit_stream stream;             // 0x00
+    uint32_t bit_count;            // 0x18
+} network_item_stream;
+
 char network_channel_drain_bitstream(network_server_globals *server, network_machine *machine)
 {
-    char ok;
+    char result = 1;
 
-    do {
-        network_channel *channel;
-        circular_buffer *incoming;
-        int32_t pending;
-        uint32_t start_bit;
-        uint32_t bit_count;
-        uint8_t item_out[24];
-        uint32_t bit_cursor;
-        uint32_t byte_cursor;
-        uint32_t end_bit;
-        uint32_t cur_bit;
-        uint32_t cur_byte;
-        uint32_t cur_end;
-        uint32_t cur_start;
-        uint32_t remaining;
+    for (;;) {
+        network_channel *channel = *(network_channel **)machine;
+        circular_buffer *incoming = channel->incoming;
+        int32_t available;
+        int32_t bit_offset = 0;
+        int32_t bit_count = 0;
+        uint32_t sender[6];
+        network_item_stream s;
 
-        channel = machine->channel;
-        if (channel == 0) {
+        if (incoming == 0) {
             return 1;
         }
-        incoming = channel->incoming;
-        pending = incoming->write_cursor - incoming->read_cursor;
-        if (pending < 0) {
-            pending = pending + incoming->capacity;
+        available = incoming->write_cursor - incoming->read_cursor;
+        if (available < 0) {
+            available += incoming->capacity;
         }
-        if (pending == 0) {
+        if (available == 0) {
             return 1;
         }
-
-        start_bit = 0;
-        bit_count = 0;
-        ok = network_channel_incoming_read_item(channel, network_incoming_message_scratch,
-                                                 &start_bit, &bit_count, item_out);
-        if (ok == 0) {
+        result = (char)network_channel_incoming_read_item(channel, network_incoming_message_scratch, &bit_offset,
+                                                          &bit_count, (s_network_address *)sender, 0x80000);
+        if (result == 0) {
             return 0;
         }
+        s.stream.unknown_00 = 1;
+        s.stream.data = network_incoming_message_scratch;
+        s.stream.first_bit = (uint32_t)bit_offset;
+        s.stream.byte_cursor = (uint32_t)bit_offset >> 3;
+        s.stream.bit_cursor = (uint32_t)bit_offset & 7;
+        s.stream.last_bit = (uint32_t)(bit_count + bit_offset - 1);
+        s.bit_count = (uint32_t)bit_count;
+        if (result == 1) {
+            do {
+                uint32_t position = s.stream.byte_cursor * 8 + s.stream.bit_cursor;
+                uint32_t next;
+                uint8_t item_flag;
 
-        bit_cursor = start_bit & 7;
-        byte_cursor = start_bit >> 3;
-        end_bit = bit_count - 1 + start_bit;
-        remaining = bit_count;
-        cur_bit = bit_cursor;
-        cur_byte = byte_cursor;
-        cur_end = end_bit;
-        cur_start = start_bit;
-
-        while (ok == 1 && (int32_t)((cur_start - cur_byte * 8 - cur_bit) + remaining) > 7) {
-            char have_bit;
-            uint32_t bit_value;
-            uint32_t abs_pos;
-
-            have_bit = 0;
-            bit_value = 0;
-            abs_pos = cur_byte * 8 + cur_bit;
-            if (cur_start <= abs_pos && abs_pos <= cur_end) {
-                bit_value = (uint32_t)((network_incoming_message_scratch[cur_byte] >> (cur_bit & 0x1f)) & 1);
-                abs_pos = abs_pos + 1;
-                if ((cur_start <= abs_pos && abs_pos <= cur_end) || abs_pos == cur_end + 1) {
-                    cur_bit = abs_pos & 7;
-                    cur_byte = abs_pos >> 3;
-                    bit_cursor = cur_bit;
-                    byte_cursor = cur_byte;
+                if (s.stream.first_bit - s.stream.byte_cursor * 8 - s.stream.bit_cursor + (uint32_t)bit_count < 8) {
+                    break;
                 }
-                have_bit = 1;
-            }
-            ok = 0;
-            if (have_bit) {
-                ok = network_channel_dispatch_bitstream_unit((network_server_globals *)server, bit_value);
-                cur_bit = bit_cursor;
-                cur_byte = byte_cursor;
-                cur_end = end_bit;
-                cur_start = start_bit;
-            }
+                if (position < s.stream.first_bit || position > s.stream.last_bit) {
+                    result = 0;
+                    break;
+                }
+                item_flag = (uint8_t)((s.stream.data[s.stream.byte_cursor] >> s.stream.bit_cursor) & 1);
+                next = position + 1;
+                if ((next >= s.stream.first_bit && next <= s.stream.last_bit) || next == s.stream.last_bit + 1) {
+                    s.stream.byte_cursor = next >> 3;
+                    s.stream.bit_cursor = next & 7;
+                }
+                result = network_channel_dispatch_bitstream_unit(server, item_flag, &s.stream, machine);
+            } while (result == 1);
         }
-    } while (ok != 0);
-    return 0;
+        if (result == 0) {
+            return 0;
+        }
+    }
 }
 
 #if 0
