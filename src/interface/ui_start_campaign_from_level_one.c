@@ -7,9 +7,9 @@
 // difficulty/option index if valid, or reporting an error and falling back to single-player mode
 // if not." types/game.h names 0x00719720 network_game_mode; player_profile_subsystem_initialize.c
 // names 0x00714dde profile_slot_id.
-// register convention: cdecl, both recognized stack parameters (param_1 unused, param_2 an
+// register convention: cdecl, both recognized stack parameters (widget unused, event an
 // options/difficulty record this function reads a single int16 out of at offset +2).
-// UNSURE: param_2's real type was not resolved (no caller in this session; the function itself is
+// UNSURE: event's real type was not resolved (no caller in this session; the function itself is
 // unreachable). The validation loop's exact intent (walking joystick_slot_devices[] at 0x006b2ce8,
 // while an entry is -1 or matches the requested index) is preserved with `goto` rather than
 // restructured, since the two-label control flow (a shared error path reached from two different
@@ -47,12 +47,12 @@ extern void saved_game_last_profile_clear(char *name);     // 0x53d220
 // Validates the requested difficulty/option index (when more than one is configured), then starts
 // a new campaign game at the first level; reports error 0x13 and forces single-option mode if the
 // requested index is not valid.
-uint32_t ui_start_campaign_from_level_one(void *param_1, int16_t *param_2)
+uint32_t ui_start_campaign_from_level_one(void *widget, int16_t *event)
 {
-    int16_t requested_index = *(int16_t *)((uint8_t *)param_2 + 2); // UNSURE: param_2's real shape
+    int16_t requested_index = *(int16_t *)((uint8_t *)event + 2); // UNSURE: event's real shape
     int16_t i;
 
-    (void)param_1;
+    (void)widget;
 
     if (local_player_count >= 2) {
         i = 0;

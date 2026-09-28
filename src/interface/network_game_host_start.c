@@ -30,7 +30,7 @@ extern uint8_t network_server_host_valid;  // 0x0071c2dd, UNSURE
 extern int16_t network_game_mode; // 0x00719720, types/game.h: 0 local, 1 client, 2 host (word access)
 extern game_variant game_variant_saved_default; // 0x00714de0
 extern uint8_t game_variant_saved_default_valid; // 0x00714e78
-extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, UNSURE: caller's param_3
+extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, UNSURE: caller's disconnect_timeout_flag
 extern network_client_globals *network_client; // 0x0071c2d8, UNSURE
 extern uint8_t network_host_handoff_requested;            // 0x0071c2de, UNSURE
 extern int32_t game_variant_history_current;            // 0x00687b18, UNSURE
@@ -58,7 +58,7 @@ extern void game_engine_sync_variant_defaults(void); // 0x45fc80, UNSURE
 // widget opens successfully, creates the host and network session; on success, applies the
 // current custom variant and enters server mode (network_game_mode = 2). On any failure past
 // that point, tears the host back down and falls back to a "not connected" status.
-void network_game_host_start(char *map_name, char *variant_name, uint8_t param_3)
+void network_game_host_start(char *map_name, char *variant_name, uint8_t disconnect_timeout_flag)
 {
     widget_instance *widget;
     game_variant variant;
@@ -83,7 +83,7 @@ void network_game_host_start(char *map_name, char *variant_name, uint8_t param_3
         (datum_index)0xffffffff, -1);
     if (widget != (widget_instance *)0) {
         game_engine_ensure_variant_history_has_entry();
-        network_disconnect_timeout_flag = param_3;
+        network_disconnect_timeout_flag = disconnect_timeout_flag;
         if (network_game_server_host_create() != 0) {
             network_client = network_session_create();
             if (network_client != (void *)0) {

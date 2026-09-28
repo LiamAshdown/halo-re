@@ -50,7 +50,7 @@ void display_error(int16_t error_string_index, int32_t player_index, uint8_t mod
     int16_t slot = (int16_t)player_index;
     int16_t active_player;  // Ghidra's sVar5
     int16_t player_count = 0; // Ghidra's sVar7
-    uint8_t bVar2 = 1;
+    uint8_t half_screen = 1;
     char *tag_path;
     widget_instance *root;
     datum_index history_source;
@@ -83,7 +83,7 @@ void display_error(int16_t error_string_index, int32_t player_index, uint8_t mod
             do {
                 if (active_player == slot && player_count > 0) {
                     matched_index = player_index;
-                    bVar2 = 0;
+                    half_screen = 0;
                 }
                 player_count = player_count + 1;
                 active_player = (local_player_globals->local_players[0] != (datum_index)-1 && active_player < 0)
@@ -113,7 +113,7 @@ void display_error(int16_t error_string_index, int32_t player_index, uint8_t mod
                                  : "ui\\shell\\error\\error_modal_halfscreen";
         break;
     case 3:
-        if (!bVar2) {
+        if (!half_screen) {
             tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_qtrscreen"
                                      : "ui\\shell\\error\\error_modal_qtrscreen";
         } else if (modal == 0) {

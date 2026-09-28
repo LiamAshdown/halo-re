@@ -11,7 +11,7 @@
 // zeroed by network_channel_table_initialize, not otherwise resolved) does not cover -- flagged
 // UNSURE rather than reinterpreting the header's fields.
 // register convention: __cdecl, three recognized parameters.
-// UNSURE: param_1 is never read anywhere in this function's body; forwarded here only because
+// UNSURE: unused is never read anywhere in this function's body; forwarded here only because
 // network_game_start_new_server_from_profile.c (this batch) passes it through. UNSURE: the
 // server+0x008..+0x086 wide-name write described above; also +0x9d5, which this function clears
 // but which falls inside network_server_globals::unknown_9bc (no individual field name).
@@ -58,7 +58,7 @@ extern void widget_close_all(void); // foreign
 // and (if not already present) the shared client/session globals, applies default UI/engine
 // state, switches network_game_mode to host (2), and writes name/password into the new server.
 // Returns 1 on success, 0 on any failure (each of which also tears the partial state back down).
-uint8_t network_game_start_new_server_with_name_and_password(uint32_t param_1, uint16_t *name,
+uint8_t network_game_start_new_server_with_name_and_password(uint32_t unused, uint16_t *name,
     uint16_t *password)
 {
     uint8_t ok;

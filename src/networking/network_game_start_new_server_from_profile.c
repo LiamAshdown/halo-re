@@ -22,7 +22,7 @@ extern int32_t saved_player_profile_slots_handle; // 0x00714dd4, -1 == not yet b
 extern uint32_t profile_globals_block[0x7ff]; // 0x00712dd8
 
 extern void player_profile_set_default_server_options(void *dest); // foreign, builds a default profile in place, UNSURE shape
-extern void network_game_start_new_server_with_name_and_password(uint32_t param_1,
+extern void network_game_start_new_server_with_name_and_password(uint32_t unused,
     uint16_t *name, uint16_t *password); // this batch, 0x4e4150
 
 // Builds (or copies the cached) default server profile into one 0x1ffc-byte scratch buffer, then
