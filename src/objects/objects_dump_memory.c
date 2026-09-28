@@ -28,7 +28,9 @@
 #include "math.h"
 #include "objects.h"
 
-extern void *fopen_00624186(const char *path, void *mode_or_flags); // 0x624186, UNSURE: see file header
+extern void *fopen(const char *path, const char *mode); // 0x624186 _fopen
+// FIXED 2026-09-28 (retail-independence loop): the second fopen argument is the mode "a+b" (0x00660144, pushed at
+//   0x4fa66d); the earlier 0 would crash in the CRT, and fopen_00624186 bound to nothing (a direct trap).
 extern int32_t _fprintf(void *file, const char *format, ...); // 0x623de2
 extern void _fclose(void *file); // 0x6241e5
 extern void qsort(void *base, int32_t count, int32_t stride,
@@ -112,7 +114,7 @@ void objects_dump_memory(void)
     qsort(by_type, k_maximum_object_types, sizeof(object_memory_dump_record), (int (*)(const void *, const void *))object_dump_compare_by_total_size);
 
     {
-        void *file = fopen_00624186("object_memory.txt", 0);
+        void *file = fopen("object_memory.txt", "a+b"); // 0x0066e850, 0x00660144
         if (file != 0) {
             float fraction;
 

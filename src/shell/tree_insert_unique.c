@@ -43,8 +43,8 @@ typedef struct hwreq_tree_insert_result {
 extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos,
     const char *s, uint32_t n2); // 0x57ce10, same pass
 extern void tree_iterator_decrement(hwreq_map_node **iterator); // 0x57cd40, same pass
-extern hwreq_map_node *tree_splice_insert(hwreq_map_node **parent_holder, uint8_t insert_as_left,
-    const hwreq_map_value_type *value); // 0x57c390, UNSURE: signature guessed, not this pass
+extern hwreq_map_node **tree_splice_insert(msvc_std_map *tree, hwreq_map_node *parent, hwreq_map_node **result_holder,
+    uint8_t insert_as_left, const hwreq_map_value_type *value); // 0x57c390, blam-cc: EDI tree, ECX parent, stack rest
 
 static int32_t compare_key_to_node(const msvc_std_string *search_key, const hwreq_map_node *node)
 {
@@ -56,6 +56,7 @@ void tree_insert_unique(msvc_std_map *tree, hwreq_tree_insert_result *result, co
 {
     hwreq_map_node *head = (hwreq_map_node *)tree->head;
     hwreq_map_node *parent = head;
+    hwreq_map_node *where;
     uint8_t went_left = 1;
 
     {
@@ -69,9 +70,12 @@ void tree_insert_unique(msvc_std_map *tree, hwreq_tree_insert_result *result, co
         }
     }
 
+    where = parent; // FIXED 2026-09-28: the insertion parent is the descent node (EBX at 0x57c283 / 0x57c2da);
+                    //   only the comparison uses the decremented copy
     if (went_left) {
         if (parent == (hwreq_map_node *)head->left) {
-            hwreq_map_node *inserted = tree_splice_insert(&parent, 1, value);
+            hwreq_map_node *holder;
+            hwreq_map_node *inserted = *tree_splice_insert(tree, where, &holder, 1, value);
             result->node = inserted;
             result->inserted = 1;
             return;
@@ -84,7 +88,8 @@ void tree_insert_unique(msvc_std_map *tree, hwreq_tree_insert_result *result, co
         // the search key with candidate as "this" (opposite of the descent loop's operand
         // order); string_compare(node, ..., search) < 0 means node < search, i.e.
         // compare_key_to_node(search, node) > 0. Preserved with that equivalence.
-        hwreq_map_node *inserted = tree_splice_insert(&parent, went_left, value);
+        hwreq_map_node *holder;
+        hwreq_map_node *inserted = *tree_splice_insert(tree, where, &holder, went_left, value);
         result->node = inserted;
         result->inserted = 1;
         return;

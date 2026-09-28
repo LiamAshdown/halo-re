@@ -149,6 +149,15 @@ def main():
         # (2026-09-28)
         (0x64dff0, 0x64dff4),
     ]
+    # Code pointers that are real but can never be followed in the standalone. catch(...) handler addresses in the
+    # __CxxFrameHandler HandlerType arrays of the retail hwreq C++ functions (std::map / std::vector helpers at
+    # 0x57bf00..0x57cf00): the CRT only reaches them while unwinding through those retail frames, and their C versions
+    # register no EH frames. They are EBP-based funclets of the parent frame (e.g. 0x57c743 reads [ebp+0x8]), so they
+    # cannot have C of their own. (2026-09-28)
+    DEAD_CODE_POINTER_SLOTS = {
+        0x673648: 0x57c7e2, 0x673658: 0x57c743, 0x6736e8: 0x57ccc4, 0x6737d0: 0x57ced1,
+        0x673990: 0x57bfec, 0x6739a0: 0x57c0a8,
+    }
     funcs = {int(f["addr"], 16): f for f in json.load(open(os.path.join(ROOT, "out", "functions.json")))}
     library_ranges = sorted((int(f["addr"], 16), int(f["addr"], 16) + (f.get("size") or 0))
                             for f in funcs.values() if f.get("lib") or f.get("fid"))
@@ -168,6 +177,9 @@ def main():
             if va in slot_set:
                 continue
             if any(lo <= va < hi for lo, hi in NOT_CODE_POINTER_RANGES):
+                continue
+            if va in DEAD_CODE_POINTER_SLOTS:
+                assert struct.unpack_from("<I", exe, s["raw"] + o)[0] == DEAD_CODE_POINTER_SLOTS[va]
                 continue
             v = struct.unpack_from("<I", exe, s["raw"] + o)[0]
             if not (text["va"] <= v < text["va"] + text["vsize"]):

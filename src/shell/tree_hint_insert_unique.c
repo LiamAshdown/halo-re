@@ -32,8 +32,8 @@ typedef struct hwreq_map_value_type {
     uint32_t value;
 } hwreq_map_value_type; // size 0x20, see tree_node_allocate.c
 
-extern hwreq_map_node *tree_splice_insert(hwreq_map_node **result_holder, uint8_t insert_as_left,
-    const hwreq_map_value_type *value); // 0x57c390, UNSURE: signature guessed, not this pass
+extern hwreq_map_node **tree_splice_insert(msvc_std_map *tree, hwreq_map_node *parent, hwreq_map_node **result_holder,
+    uint8_t insert_as_left, const hwreq_map_value_type *value); // 0x57c390, blam-cc: EDI tree, ECX parent, stack rest
 extern uint8_t hwreq_map_key_less_than(const msvc_std_string *this, const msvc_std_string *other); // 0x57bbd0, same pass
 extern void tree_iterator_decrement(hwreq_map_node **iterator); // 0x57cd40, same pass
 extern void tree_iterator_increment(hwreq_map_node **iterator); // 0x57c5e0, same pass
@@ -42,6 +42,11 @@ extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t
 extern void tree_insert_unique(msvc_std_map *tree, void *result, const hwreq_map_value_type *value); // 0x57c1a0, same pass
 
 // blam-cc: EAX -> tree, ESI -> result_holder, EBX -> value, stack -> hint
+// FIXED 2026-09-28 (retail-independence loop): tree_splice_insert also takes the tree (EDI) and the parent (ECX); per
+//   objdump 0x57ba50..0x57bbbe the parent is the head for an empty tree, the hint before begin(), the rightmost node
+//   after the end, and in the neighbour cases the predecessor (when ITS right child is nil, as a right child) or the
+//   hint (left), resp. the hint (when its right child is nil, as a right child) or the successor (left). The old
+//   predecessor case tested hint->left instead of predecessor->right.
 hwreq_map_node *tree_hint_insert_unique(msvc_std_map *tree, hwreq_map_node **result_holder,
                                          hwreq_map_node *hint, const hwreq_map_value_type *value)
 {
@@ -49,51 +54,48 @@ hwreq_map_node *tree_hint_insert_unique(msvc_std_map *tree, hwreq_map_node **res
     const msvc_std_string *value_key = &value->key;
 
     if (tree->size == 0) {
-        return tree_splice_insert(result_holder, 1, value);
+        return *tree_splice_insert(tree, head, result_holder, 1, value);
     }
 
     if (hint == (hwreq_map_node *)head->left) { // hint == begin(): try inserting before the first element
         const char *hint_data = (hint->key.capacity < 0x10) ? hint->key.buffer.inline_buffer : (const char *)hint->key.buffer.heap_buffer;
         if (string_compare(value_key, value_key->size, 0, hint_data, hint->key.size) < 0) {
-            return tree_splice_insert(result_holder, 1, value);
+            return *tree_splice_insert(tree, hint, result_holder, 1, value);
         }
         goto full_search;
     }
 
-    if (hint != head) { // hint is an ordinary node, not end()
-        if (hwreq_map_key_less_than(value_key, &hint->key)) {
-            // value < *hint: try the predecessor of hint
-            hwreq_map_node *predecessor = hint;
-            tree_iterator_decrement(&predecessor);
-            if (hwreq_map_key_less_than(&predecessor->key, value_key)) {
-                if (((hwreq_map_node *)hint->left)->is_nil != 0) {
-                    return tree_splice_insert(result_holder, 0, value);
-                }
-                return tree_splice_insert(result_holder, 1, value);
-            }
-        } else if (hwreq_map_key_less_than(&hint->key, value_key)) {
-            // *hint < value: try the successor of hint
-            hwreq_map_node *successor = hint;
-            tree_iterator_increment(&successor);
-            if (successor == head || hwreq_map_key_less_than(value_key, &successor->key)) {
-                if (((hwreq_map_node *)hint->right)->is_nil == 0) {
-                    return tree_splice_insert(result_holder, 1, value);
-                }
-                return tree_splice_insert(result_holder, 0, value);
-            }
+    if (hint == head) { // hint == end(): try inserting after the last element
+        if (hwreq_map_key_less_than(&((hwreq_map_node *)head->right)->key, value_key)) {
+            return *tree_splice_insert(tree, (hwreq_map_node *)head->right, result_holder, 0, value);
         }
         goto full_search;
     }
 
-    // hint == end(): try inserting after the last element.
-    if (hwreq_map_key_less_than(&((hwreq_map_node *)head->right)->key, value_key)) {
-        return tree_splice_insert(result_holder, 0, value);
+    if (hwreq_map_key_less_than(value_key, &hint->key)) {
+        // value < *hint: try just after the predecessor of hint
+        hwreq_map_node *predecessor = hint;
+        tree_iterator_decrement(&predecessor);
+        if (hwreq_map_key_less_than(&predecessor->key, value_key)) {
+            if (((hwreq_map_node *)predecessor->right)->is_nil != 0) {
+                return *tree_splice_insert(tree, predecessor, result_holder, 0, value);
+            }
+            return *tree_splice_insert(tree, hint, result_holder, 1, value);
+        }
+    } else if (hwreq_map_key_less_than(&hint->key, value_key)) {
+        // *hint < value: try just before the successor of hint
+        hwreq_map_node *successor = hint;
+        tree_iterator_increment(&successor);
+        if (successor == head || hwreq_map_key_less_than(value_key, &successor->key)) {
+            if (((hwreq_map_node *)hint->right)->is_nil != 0) {
+                return *tree_splice_insert(tree, hint, result_holder, 0, value);
+            }
+            return *tree_splice_insert(tree, successor, result_holder, 1, value);
+        }
     }
 
 full_search:
     {
-        // UNSURE: original passes a small local buffer directly to tree_insert_unique and only
-        // copies its first field out; the result-pair shape is opaque here.
         uint8_t local_result[8];
         tree_insert_unique(tree, local_result, value);
         *result_holder = *(hwreq_map_node **)local_result;
