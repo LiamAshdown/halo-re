@@ -2312,3 +2312,14 @@ Relinked: unresolved 1, traps 127.
 - Remaining stored pointers: hs 142, game 90, networking 86, shell 28, units 2, main 1, memory 1.
 - NEXT: hs parse procs (0x487530, 0x484ea0, 0x484600, 0x484db0, 0x484b40, 0x485280, 0x485310, 0x4853c0, 0x4854f0),
   then hs evaluators.
+- (iteration 4, continued) hs: the 9 parse procs (begin, cond, and/or, + - * / min max, sleep, sleep_until, wake,
+  unit, the rcon/sv_* string family) and all 132 missing evaluate handlers (scratchpad/hsgen_lib.py +
+  gen_hs_eval1/2.py; the three orphan records ai_attach_units / ai_detach_units / ai_magically_see_units are not in
+  hs_function_definitions but still had stored evaluate pointers). hs stored pointers 142 -> 1 (0x48b150, the
+  scenario script syntax byte-swap callback -- needs 0x4cfd50 too; cache work).
+  FIX: ai_object_list_initialize_shield_stun_thresholds (0x561ab0) takes its two overrides by value (objdump
+  0x561b05..0x561b3c), not as pointers.
+  Tools: scratchpad/annot.py (annotates a dump with repo names/signatures and hs record signatures),
+  scratchpad/condense.py, scratchpad/hsprocs.py.
+- Stored pointers now: game 90, networking 86, shell 28, units 2, main 1, hs 1, memory 1. Direct traps 117.
+- NEXT: shell / cseries / saved_games (shell 28 stored + 26 direct, cseries 7, saved_games 2), then the '?' names.
