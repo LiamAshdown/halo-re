@@ -67,7 +67,7 @@ def main():
             print("skip %s %s: stride 0x%x, struct size %s" % (struct, var, stride, hex(size) if size else "?"))
             continue
         cmd = [sys.executable, os.path.join(ROOT, "tools", "type_access.py"), struct, header, var] + sorted(files) + \
-              ["--pre", "memory.h,objects.h,units.h"] + (["--dry"] if "--dry" in sys.argv else [])
+              ["--pre", "memory.h,objects.h,units.h"] + (["--dry"] if "--dry" in sys.argv else []) + (["--allow-unknown"] if "--allow-unknown" in sys.argv else [])
         out = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT).stdout.strip().splitlines()
         print("%-20s %-10s %s" % (struct, var, out[-1] if out else "?"))
 

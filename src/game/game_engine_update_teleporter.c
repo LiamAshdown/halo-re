@@ -180,7 +180,7 @@ void game_engine_update_teleporter(uint32_t player_index)
                         if (controller != (datum_index)0xffffffff) {
                             player *other = (player *)((uint8_t *)player_data->data +
                                 (controller & 0xffff) * sizeof(player));
-                            *(uint8_t *)((uint8_t *)other + 0xd4) = 1;      // UNSURE offset
+                            ((struct player *)other)->unknown_d4 = 1;      // UNSURE offset
                             *(int32_t *)((uint8_t *)other + 0xcc) =
                                 *(int32_t *)((uint8_t *)other + 0xcc) + 1;   // UNSURE offset
                         }

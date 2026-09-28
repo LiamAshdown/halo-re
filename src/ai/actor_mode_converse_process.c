@@ -14,6 +14,7 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -46,7 +47,7 @@ uint8_t actor_mode_converse_process(datum_index actor_index)
         uint8_t *p = (uint8_t *)prop_data->data + (partner & 0xffff) * 0x138;
         float distance = ((prop *)p)->distance;
 
-        if ((*(int16_t *)(p + 0x32) >= 2 && distance < ((struct actor *)act)->mode_data.converse.approach_distance) || distance < 0.7f) {
+        if ((((struct prop *)p)->unknown_32 >= 2 && distance < ((struct actor *)act)->mode_data.converse.approach_distance) || distance < 0.7f) {
             act[0xa1] = 1;
         }
     }

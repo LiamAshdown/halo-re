@@ -502,7 +502,7 @@ void actor_movement_update(datum_index actor_index)
     }
 
     // Save this tick's secondary-action record for the next one.
-    *(uint32_t *)(actor_base + 0x6ec) = *(uint32_t *)&((struct actor *)actor_base)->secondary_action;
+    *(uint32_t *)&((struct actor *)actor_base)->unknown_6ec = *(uint32_t *)&((struct actor *)actor_base)->secondary_action;
     *(uint32_t *)(actor_base + 0x6f0) = *(uint32_t *)(actor_base + 0x41c);
     *(uint32_t *)(actor_base + 0x6f4) = *(uint32_t *)(actor_base + 0x420);
 }

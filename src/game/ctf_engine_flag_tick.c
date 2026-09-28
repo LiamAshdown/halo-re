@@ -173,8 +173,8 @@ notify_teams:
             if (local_player_globals->local_players[0] != (datum_index)0xffffffff) {
                 player *lp = (player *)((uint8_t *)player_data->data +
                     ((uint32_t)local_player_globals->local_players[0] & 0xffff) * sizeof(player));
-                *(int32_t *)((uint8_t *)lp + 0x74) = (ctf_active_team == (uint8_t)lp->team) ? 0x31 : 0x30;
-                *(int32_t *)((uint8_t *)lp + 0x78) = 0;
+                *(int32_t *)&((struct player *)lp)->unknown_74 = (ctf_active_team == (uint8_t)lp->team) ? 0x31 : 0x30;
+                *(int32_t *)&((struct player *)lp)->unknown_78 = 0;
             }
         }
         // else: no auto-return configured; falls straight through to the shared tail below

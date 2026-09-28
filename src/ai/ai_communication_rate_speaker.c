@@ -41,6 +41,7 @@
 #include "objects.h"
 #include "ai.h"
 #include <stdint.h>
+#include "units.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
@@ -180,13 +181,13 @@ float ai_communication_rate_speaker(datum_index actor_index, datum_index object_
                             // Both of these are read as int16 by the original even though
                             // types/ai.h declares prop.unknown_34 as an int32.
                             if (allow_unreachable == 0 &&
-                                *(int16_t *)((uint8_t *)p + 0x34) < 2 &&
+                                *(int16_t *)&((struct prop *)p)->unknown_34 < 2 &&
                                 *(int16_t *)((uint8_t *)p + 0x36) < 2) {
-                                if (*(uint8_t *)((uint8_t *)p + 0x132) == 0) {
+                                if (((struct prop *)p)->unknown_132 == 0) {
                                     reach_mode = (int32_t)*(int8_t *)&p->unknown_120;
                                 }
                                 // 0x42fe54..0x42fe76: BX = the prop's +0x38 status, range class from 0x41be10
-                                reach = actor_dispatch_look_handler_by_posture(*(int16_t *)((uint8_t *)p + 0x38),
+                                reach = actor_dispatch_look_handler_by_posture(((struct prop *)p)->unknown_38,
                                                      actor_index, &a->aim_origin, (uint8_t *)p + 0x104,
                                                      (uint8_t)reach_mode, 1,
                                                      actor_target_get_priority_class(actor_index, prop_index));

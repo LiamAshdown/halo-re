@@ -72,12 +72,12 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = parent->first_child;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        *(int32_t *)(variant + 0x84) = selection;
+        ((struct game_variant *)variant)->unknown_84 = selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        *(int32_t *)(variant + 0x88) = selection;
+        ((struct game_variant *)variant)->unknown_88 = selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -87,7 +87,7 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 2) {
-        *(int32_t *)(variant + 0x8c) = selection;
+        ((struct game_variant *)variant)->unknown_8c = selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -97,7 +97,7 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 0xf) {
-        *(int32_t *)(variant + 0x90) = selection + 1;
+        ((struct game_variant *)variant)->unknown_90 = selection + 1;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -111,7 +111,7 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     selection = first_list_child(group->next_sibling)->selection_index;
     if (selection >= 0 && selection <= 6) {
-        *(int32_t *)(variant + 0x78) = times[selection];
+        ((struct game_variant *)variant)->unknown_78 = times[selection];
     }
     widget_history_pop(parent->controller_index);
     return 1;

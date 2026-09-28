@@ -95,7 +95,7 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
             if (movement_done != 0) {
                 // 0x4293b7: the ACTIVE movement action's type (+0x46c), not the secondary action (+0x418)
                 if (self->active_movement.type == 3) {
-                    if (self->mode == 6 && enc != 0 && *(int16_t *)((uint8_t *)enc + 0x62) == 1) {
+                    if (self->mode == 6 && enc != 0 && ((struct encounter *)enc)->unknown_62 == 1) {
                         return 1;
                     }
                 } else if (self->active_movement.type == 5) {

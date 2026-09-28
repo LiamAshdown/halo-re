@@ -203,21 +203,21 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
         int16_t remapped;
 
         actor_index = ((struct actor *)raw)->next_in_encounter;
-        if ((*(uint32_t *)(raw + 0x30) & 0xffff) != source_index) {
+        if ((*(uint32_t *)&((struct actor *)raw)->unknown_30 & 0xffff) != source_index) {
             continue;
         }
-        squad_index = *(int16_t *)(raw + 0x38);
+        squad_index = ((struct actor *)raw)->unknown_38;
         remapped = remap[squad_index];
         if (remapped == -1 || (merging_into_self && remapped == squad_index)) {
             continue;
         }
-        *(uint32_t *)(raw + 0x30) = target_index;
-        *(int16_t *)(raw + 0x38) = remapped;
+        *(uint32_t *)&((struct actor *)raw)->unknown_30 = target_index;
+        ((struct actor *)raw)->unknown_38 = remapped;
         if (merging_into_self || *(int16_t *)&((struct ScenarioEncounter *)target_definition)->precomputed_bsp_index != global_structure_bsp_index) {
             continue;
         }
         ai_actor_unlink_from_unassigned_list(current);
-        encounter_add_actor(*(int16_t *)(raw + 0x38), current, *(datum_index *)(raw + 0x30), 1);
+        encounter_add_actor(((struct actor *)raw)->unknown_38, current, ((struct actor *)raw)->unknown_30, 1);
     }
 
     // 5.

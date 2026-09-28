@@ -21,6 +21,8 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h>
+#include "objects.h"
+#include "units.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp;                         // 0x00746f9c
@@ -53,7 +55,7 @@ uint8_t ai_navigate_around_obstacles(path_find_context *context, int16_t count, 
     path_find_request *request = (path_find_request *)context;
     ModelCollisionGeometryBSP *collision_bsp = global_structure_collision_bsp;
     float radius = (request->pathfinding_radius > 0.2f) ? request->pathfinding_radius : 0.2f;
-    uint8_t *cache = *(uint8_t **)((uint8_t *)context + 0x48);
+    uint8_t *cache = *(uint8_t **)&((struct path_find_context *)context)->unknown_48;
     ai_search_obstacle_list local_obstacles;
     ai_search_context local_search;
     path_find_waypoint path[0x80];

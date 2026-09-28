@@ -51,12 +51,12 @@ void game_engine_ctf_on_flag_captured(uint32_t flag_index)
 
     *(int16_t *)&((struct player *)p)->objective_time = elapsed;
     if (*(int16_t *)((uint8_t *)p + 0xc6) != 0) {
-        if (elapsed <= *(int16_t *)((uint8_t *)p + 200)) {
+        if (elapsed <= ((struct player *)p)->unknown_c8) {
             new_record = 1;
-            *(int16_t *)((uint8_t *)p + 200) = elapsed;
+            ((struct player *)p)->unknown_c8 = elapsed;
         }
     } else {
-        *(int16_t *)((uint8_t *)p + 200) = elapsed;
+        ((struct player *)p)->unknown_c8 = elapsed;
     }
 
     *(int16_t *)((uint8_t *)p + 0xc6) += 1;

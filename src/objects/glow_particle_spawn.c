@@ -68,7 +68,7 @@ glow_particle *glow_particle_spawn(glow *entry /*EBX*/) // blam-cc: EBX -> entry
                 *(float *)(pb + 0x3c) = 0.0f;
                 *(float *)(pb + 0x40) = 1.0f;
             } else if (velocity_mode == 1) {
-                uint8_t *marker = (uint8_t *)entry + *(int16_t *)(pb + 2) * 0x6c + 0x5c;
+                uint8_t *marker = (uint8_t *)entry + ((struct glow_particle *)pb)->unknown_02 * 0x6c + 0x5c;
                 *(float *)(pb + 0x38) = *(float *)marker;
                 *(float *)(pb + 0x3c) = *(float *)(marker + 4);
                 *(float *)(pb + 0x40) = *(float *)(marker + 8);

@@ -55,7 +55,7 @@ void object_lights_gather_nearest(int16_t cluster_index, uint32_t self_object_in
         light *entry = (light *)light_data->data + (chain_index & 0xffff);
 
         if (entry->creation_tick != light_frame_counter) {
-            if (*(int32_t *)((uint8_t *)entry + 8) != -1) {
+            if (*(int32_t *)&((struct light *)entry)->unknown_08 != -1) {
                 int eligible;
                 if (entry->owner_object != self_object_index) {
                     eligible = 1;

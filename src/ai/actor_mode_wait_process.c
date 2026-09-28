@@ -57,7 +57,7 @@ uint8_t actor_mode_wait_process(datum_index actor_index)
 
             if (act[0x9e] && !act[0xa0]) {
                 follow = 1;
-            } else if (*(int16_t *)(ally + 0x32) < 2 || !(distance < 8.0f)) {
+            } else if (((struct prop *)ally)->unknown_32 < 2 || !(distance < 8.0f)) {
                 follow = 0; // stays done
                 goto decided;
             } else {

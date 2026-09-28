@@ -30,6 +30,7 @@
 #include "objects.h"
 #include "networking.h"
 #include <stdint.h>
+#include "units.h"
 
 extern data_array *player_data; // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
@@ -124,7 +125,7 @@ void build_remote_player_transform_update(uint32_t player_index, player_action *
                         machine_id_slot = (int16_t *)((uint8_t *)network_server + 0x3c4);
                         for (i = 0; i < 0x10; i = i + 1) {
                             if (machine_id_slot[i * 0x30] ==
-                                (int16_t)*(char *)((uint8_t *)candidate + 100)) {
+                                (int16_t)*(char *)&((struct player *)candidate)->unknown_64) {
                                 machine = (network_machine *)((uint8_t *)network_server + 0x3b8 +
                                     i * 0x60);
                                 if (((*(uint16_t *)((uint8_t *)machine + 0xe) >> 1 & 1) != 0) &&

@@ -85,7 +85,7 @@ uint8_t ui_event_49e5d0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     selection = first_list_child(group->next_sibling)->selection_index;
     if (selection >= 0 && selection <= 6) {
-        *(int32_t *)(variant + 0x78) = times[selection];
+        ((struct game_variant *)variant)->unknown_78 = times[selection];
     }
     widget_history_pop(parent->controller_index);
     return 1;

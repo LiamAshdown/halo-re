@@ -149,7 +149,7 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
             uint32_t firing[0x18]; // [esp+0x44]
 
             actor_get_firing_positions(actor_index, firing, &position);
-            if ((int16_t)actor_target_hearing_check(location, (int16_t)*(uint16_t *)((uint8_t *)p + 0x38), actor_index,
+            if ((int16_t)actor_target_hearing_check(location, (int16_t)*(uint16_t *)&((struct prop *)p)->unknown_38, actor_index,
                                            firing, gate, &position) >= 2) {
                 actor_dispatch_squad_order(prop_index, (const actor_squad_order_header *)order, actor_index);
                 ai_dispatch_queued_order((ai_queued_order *)order, prop_index, actor_index);

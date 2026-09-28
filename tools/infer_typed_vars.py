@@ -27,7 +27,7 @@ def main():
     total = 0
     for (t, v), files in sorted(groups.items()):
         cmd = [sys.executable, os.path.join(ROOT, "tools", "type_access.py"), t, ta.header_of(t), v] + sorted(files) + \
-              ["--pre", "memory.h,objects.h,units.h"] + (["--dry"] if dry else [])
+              ["--pre", "memory.h,objects.h,units.h"] + (["--dry"] if dry else []) + (["--allow-unknown"] if "--allow-unknown" in sys.argv else [])
         out = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT).stdout.strip().splitlines()
         last = out[-1] if out else "?"
         n = int(last.split()[0]) if last[:1].isdigit() else 0

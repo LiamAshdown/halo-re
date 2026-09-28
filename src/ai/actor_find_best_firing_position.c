@@ -173,19 +173,19 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
             query->target_unknown_640 = ((struct prop *)target)->cluster_index;
             query->target_distance = target->distance;
             query->target_prop_index = prop_index;
-            query->target_aim_position = *(real_point3d *)((uint8_t *)target + 0x104);
+            query->target_aim_position = *(real_point3d *)&((struct prop *)target)->unknown_104;
             query->target_relationship_object = target->relationship_object_index;
             query->target_unknown_658 = target->unknown_20;
 
-            if (query->unknown_41 == 0 || *(int32_t *)((uint8_t *)target + 0x8c) == -1) {
-                query->target_lead_position = *(real_point3d *)((uint8_t *)target + 0x104);
+            if (query->unknown_41 == 0 || ((struct prop *)target)->unknown_8c == -1) {
+                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->unknown_104;
             } else {
-                query->target_lead_position = *(real_point3d *)((uint8_t *)target + 0x90);
+                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->unknown_90;
             }
 
             if (target->kind > 3 && target->kind < 6) {
                 query->have_target_vault_point = 1;
-                query->target_vault_point = *(real_point3d *)((uint8_t *)target + 0x40);
+                query->target_vault_point = *(real_point3d *)&((struct prop *)target)->unknown_40;
             }
 
             query->target_is_large = (uint8_t)(query->goal_kind == 4 || query->goal_kind == 6);

@@ -98,15 +98,15 @@ datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum
         return_state = *(uint16_t *)(squad + 0x26);
         start_active = (char)((*(uint32_t *)(encounter + 0x20) >> 4) & 1);
     }
-    if (*(const int16_t *)(request + 0x16) > 0) {
-        initial_state = *(const uint16_t *)(request + 0x16);
+    if (((struct actor_placement_request *)request)->unknown_16 > 0) {
+        initial_state = *(uint16_t *)&((struct actor_placement_request *)request)->unknown_16;
     }
     if (*(const int16_t *)(request + 0x14) > 0) {
         return_state = *(const uint16_t *)(request + 0x14);
     }
     result = actor_new_and_attach_to_unit(swarm, unit_index, variant_tag, encounter_index, squad_index, 0,
         k_datum_index_none, start_active, initial_state, (int16_t)return_state, *(const uint16_t *)(request + 0x1a),
-        (uint8_t)*(const int8_t *)(request + 0x12));
+        (uint8_t)*(int8_t *)&((struct actor_placement_request *)request)->unknown_12);
     if (result == k_datum_index_none) {
         int32_t kind = *(int32_t *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data + 0x4);
 

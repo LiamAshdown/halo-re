@@ -22,6 +22,7 @@
 #include "cache.h"
 #include "objects.h"
 #include <string.h>
+#include "units.h"
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *prop_data;      // 0x008802c0
@@ -44,9 +45,9 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
     uint8_t *far_out)
 {
     datum_index owner_index = ((prop *)p)->owner_actor_index;
-    float radius = *(float *)(p + 0x20);
-    int16_t pinned_ticks = *(int16_t *)(p + 0x6a);
-    int16_t since_fired = *(int16_t *)(p + 0x76);
+    float radius = ((struct prop *)p)->unknown_20;
+    int16_t pinned_ticks = ((struct prop *)p)->unknown_6a;
+    int16_t since_fired = ((struct prop *)p)->unknown_76;
     uint8_t *owner = 0;
 
     *far_out = 0;
@@ -71,12 +72,12 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         if (encounter_index != k_datum_index_none) {
             uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c;
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[((prop *)p)->object_index & 0xffff].data;
-            int32_t reference = *(int32_t *)(encounter + 0x58);
+            int32_t reference = ((struct encounter *)encounter)->unknown_58;
             uint8_t counts = 1;
             uint8_t calm;
 
-            if (!(reference > *(int32_t *)(self + 0x3a0))) {
-                reference = *(int32_t *)(self + 0x3a0);
+            if (!(reference > *(int32_t *)&((struct actor *)self)->unknown_3a0)) {
+                reference = *(int32_t *)&((struct actor *)self)->unknown_3a0;
             }
             if (reference != -1) {
                 int32_t fired = *(int32_t *)(unit + 0x41c);
@@ -119,7 +120,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         *far_out = distance_squared > 36.0f;
         return k_prop_admit_keep;
     }
-    if (*(int16_t *)(self + 0x6e) >= 4) {
+    if (((struct actor *)self)->unknown_6e >= 4) {
         *far_out = 1;
     } else if (self[0x1cc] == 0) {
         *far_out = distance_squared > 16.0f;

@@ -144,7 +144,7 @@ void actor_update_aim_wander(datum_index actor_index)
         uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->unknown_610 & 0xffff) * 0x138;
         int16_t kind = ((struct prop *)prop)->kind;
 
-        bombard = (kind < 2 || kind > 3 || *(int16_t *)(prop + 0x32) == 0) ? 1 : 0;
+        bombard = (kind < 2 || kind > 3 || ((struct prop *)prop)->unknown_32 == 0) ? 1 : 0;
     }
     target = *(real_point3d *)&((actor *)a)->wander_unknown_62c;
     if (bombard) {

@@ -187,7 +187,7 @@ void object_lights_update_all(void)
             color_interpolate_argb_with_tint(*(uint32_t *)(tag + 0x34), tag + 0x48, color, tint, tag + 0x38, t);
         } else {
             float phase = (float)(tick - ((struct light *)light)->marker_link) / *(float *)(tag + 0xf4);
-            t = (1.0f - transition_function_evaluate(*(int16_t *)(tag + 0xfa), phase)) * *(float *)(light + 0x78);
+            t = (1.0f - transition_function_evaluate(*(int16_t *)(tag + 0xfa), phase)) * *(float *)&((struct light *)light)->unknown_78;
             color_interpolate(tag + 0x4c, tag + 0x3c, color, *(uint32_t *)(tag + 0x34), t);
         }
 

@@ -199,7 +199,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
                                      (uint8_t)*(int16_t *)((uint8_t *)owner_enc + 0x3a));
                         } else if (team_kind == 2) {
                             match = (self->unknown_1d6[4] ==
-                                     (uint8_t)*(int16_t *)((uint8_t *)owner_enc + 0x3c));
+                                     (uint8_t)*(int16_t *)&((struct encounter *)owner_enc)->unknown_3c);
                         } else if (team_kind != 0) {
                             match = 0;
                         }
@@ -419,9 +419,9 @@ after_engage:
                     p->unknown_12a = (p->unknown_32 == 0 && result > 0);
                     p->unknown_32 = result;
                     if (result != 0) {
-                        p->unknown_90 = *(uint32_t *)((uint8_t *)p + 0x104);
-                        p->unknown_94 = *(uint32_t *)((uint8_t *)p + 0x108);
-                        p->unknown_98 = *(uint32_t *)((uint8_t *)p + 0x10c);
+                        p->unknown_90 = ((struct prop *)p)->unknown_104;
+                        p->unknown_94 = ((struct prop *)p)->unknown_108;
+                        p->unknown_98 = ((struct prop *)p)->unknown_10c;
                         p->unknown_8c = tick;
                     }
                 }
@@ -430,14 +430,14 @@ after_engage:
             // writes independent int16 halves at +0x34 and +0x36 (see file header).
             if (enc == (encounter *)0 || enc->unknown_41 == 0) {
                 if (p->unknown_66 == 1 || p->unknown_66 == 2) {
-                    *(int16_t *)((uint8_t *)p + 0x34) = 3;
+                    *(int16_t *)&((struct prop *)p)->unknown_34 = 3;
                 } else {
-                    *(int16_t *)((uint8_t *)p + 0x34) =
+                    *(int16_t *)&((struct prop *)p)->unknown_34 =
                         actor_target_hearing_check((uint8_t *)p + 0xfc, p->unknown_38, actor_index,
                                                     scratch, /*gate=UNSURE-tag-word*/ 0, &p->last_known_position);
                 }
             } else {
-                *(int16_t *)((uint8_t *)p + 0x34) = 0;
+                *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
             }
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
             if (p->unknown_66 == 0) {
@@ -450,7 +450,7 @@ after_engage:
                 *(int16_t *)((uint8_t *)p + 0x36) = v;
             }
             {
-                int16_t a = *(int16_t *)((uint8_t *)p + 0x34);
+                int16_t a = *(int16_t *)&((struct prop *)p)->unknown_34;
                 int16_t b = *(int16_t *)((uint8_t *)p + 0x36);
                 int16_t best = (a <= b) ? b : a;
                 int16_t chosen = p->unknown_32;
@@ -465,7 +465,7 @@ after_engage:
         } else {
             p->unknown_30 = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            *(int16_t *)((uint8_t *)p + 0x34) = 0;
+            *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
             p->unknown_32 = 0;
         }
 
@@ -494,13 +494,13 @@ after_engage:
         if (p->unknown_133 || team_gate) {
             p->unknown_30 = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            *(int16_t *)((uint8_t *)p + 0x34) = 0;
+            *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
             p->unknown_32 = 0;
         } else {
             int16_t result = actor_dispatch_look_handler_by_posture(p->unknown_38, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                            p->unknown_120, 1, 2);
             p->unknown_32 = result;
-            *(int16_t *)((uint8_t *)p + 0x34) = 0;
+            *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
             p->unknown_30 = result;
         }

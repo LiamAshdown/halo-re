@@ -60,19 +60,19 @@ void game_engine_server_update_player_positions(void)
                 object *position_source;
 
                 *((uint8_t *)unit_obj + 0x4b8) = 0;
-                *(int32_t *)((uint8_t *)plr + 0xf4) = *(int32_t *)((uint8_t *)unit_obj + 0x4bc);
+                *(int32_t *)&((struct player *)plr)->unknown_f4 = *(int32_t *)((uint8_t *)unit_obj + 0x4bc);
 
                 position_source = unit_obj;
                 if (unit_obj->parent_object != (datum_index)-1) {
                     position_source = ((object_header *)object_data->data)[unit_obj->parent_object & 0xffff].data;
                 }
-                *(float *)((uint8_t *)plr + 0xf8) = position_source->position.x;
+                *(float *)&((struct player *)plr)->unknown_f8 = position_source->position.x;
                 *(float *)((uint8_t *)plr + 0xfc) = position_source->position.y;
                 *(float *)((uint8_t *)plr + 0x100) = position_source->position.z;
 
                 if (plr->local_player_index == -1) {
-                    int32_t value = *(int32_t *)((uint8_t *)plr + 0xf4);
-                    float pos_x = *(float *)((uint8_t *)plr + 0xf8);
+                    int32_t value = *(int32_t *)&((struct player *)plr)->unknown_f4;
+                    float pos_x = *(float *)&((struct player *)plr)->unknown_f8;
                     float pos_y = *(float *)((uint8_t *)plr + 0xfc);
                     float pos_z = *(float *)((uint8_t *)plr + 0x100);
                     unsigned long ticks = GetTickCount();

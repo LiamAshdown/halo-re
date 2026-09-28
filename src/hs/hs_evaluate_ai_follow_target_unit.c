@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
+#include "units.h"
+#include "ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
@@ -29,10 +32,10 @@ void hs_evaluate_ai_follow_target_unit(int16_t function_index, uint32_t thread_i
             uint8_t *encounter = (uint8_t *)encounter_data->data + ((uint32_t)arguments[0] & 0xffff) * 0x6c;
 
             if (arguments[1] == -1) {
-                *(int16_t *)(encounter + 0x62) = 0;
+                ((struct encounter *)encounter)->unknown_62 = 0;
             } else {
-                *(int16_t *)(encounter + 0x62) = 2;
-                *(int32_t *)(encounter + 0x64) = arguments[1];
+                ((struct encounter *)encounter)->unknown_62 = 2;
+                ((struct encounter *)encounter)->unknown_64 = arguments[1];
             }
         }
         hs_thread_return(0, thread_index);

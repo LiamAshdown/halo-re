@@ -177,7 +177,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
             primitive_count = ((struct decal *)decal)->triangle_count * 2;
             first_vertex = (int32_t)(long long)((double)(first_offset >> 4) * 1.5);
 
-            frame = *(int8_t *)(decal + 0x1b);
+            frame = *(int8_t *)&((struct decal *)decal)->unknown_1b;
             if (rasterizer_decal_bitmap_tag != *(uint32_t *)(definition + 0x28) ||
                 rasterizer_decal_bitmap_frame != (int16_t)frame) {
                 rasterizer_decal_bitmap_tag = *(uint32_t *)(definition + 0x28);

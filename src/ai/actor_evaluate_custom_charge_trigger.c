@@ -25,6 +25,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -76,7 +77,7 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
     if (((actor *)self)->awareness_level < 3) {
         goto return_true;
     }
-    if (*(int16_t *)(self + 0x6e) < 5) {
+    if (((struct actor *)self)->unknown_6e < 5) {
         goto return_false;
     }
     unit = (const uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;

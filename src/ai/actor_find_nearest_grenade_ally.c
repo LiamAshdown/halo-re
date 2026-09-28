@@ -112,7 +112,7 @@ int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_s
             }
         }
     }
-    *(datum_index *)(self + 0x1d0) = best;
+    ((struct actor *)self)->unknown_1d0 = best;
     return seen;
 }
 
