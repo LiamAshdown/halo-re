@@ -52,9 +52,9 @@ extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); // 0x56cc80,
 extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step); // 0x50b460, EDX, ECX
 extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target,
                                                  float rate); // 0x50b2f0, ESI, EDX, stack
-extern void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2, float *powered_states); // 0x572b60, stack + EDI
-extern void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_2, float *powered_states); // 0x572cd0, stack + EDI
-extern void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2, float *powered_states); // 0x572df0, stack + ESI
+extern void vehicle_calculate_turret_controls(uint32_t unit_index, void *mass_points, float *powered_states); // 0x572b60, stack + EDI
+extern void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *mass_points, float *powered_states); // 0x572cd0, stack + EDI
+extern void vehicle_calculate_lean_controls(uint32_t unit_index, void *mass_points, float *powered_states); // 0x572df0, stack + ESI
 extern void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_transform); // 0x573100
 extern void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint8_t *node_output,
                                                  uint8_t *contact_points); // 0x5734d0

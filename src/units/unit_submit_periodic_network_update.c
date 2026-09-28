@@ -56,7 +56,7 @@ extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
 // Advances the per-biped delta sequence counter on success (wrapping at -1) and clears the
 // pending-resend byte either way.
 int32_t unit_submit_periodic_network_update(int32_t hash_key, uint32_t param_2, uint32_t param_3,
-                                             int32_t param_4)
+                                             int32_t update_type)
 {
     // object_try_and_get takes the object index in ECX and the type mask on the stack
     // (src/objects spells it that way and its disassembly note confirms it), so Ghidra's
@@ -100,7 +100,7 @@ int32_t unit_submit_periodic_network_update(int32_t hash_key, uint32_t param_2, 
         update_sequence = biped->network_update_sequence;
         delta_sequence = biped->network_delta_sequence;
         shield_recharging = (char)obj->unknown_122;
-        is_delta = (uint8_t)(param_4 == 0);
+        is_delta = (uint8_t)(update_type == 0);
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         timestamp_milliseconds = __alldiv(__allmul(counter.parts.low_part, counter.parts.high_part,
@@ -111,7 +111,7 @@ int32_t unit_submit_periodic_network_update(int32_t hash_key, uint32_t param_2, 
         definition_index = (int32_t)object_type_definitions[obj->type]->network_delta_message_type;
         obj->unknown_122 = 0;
 
-        if (param_4 == 1) {
+        if (update_type == 1) {
             if (shield_recharging == 1) {
                 shield_fraction = obj->shield_vitality * 0.33333334f;
             } else {

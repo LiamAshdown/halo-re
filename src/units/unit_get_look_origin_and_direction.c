@@ -35,7 +35,7 @@ extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_
 // unit_get_crouch_height_offset to derive a height-based origin and a proportional offset along
 // global_up3d as the direction. Always echoes the Biped tag's marker/graph index (offset 0x458,
 // UNSURE) through param_2.
-void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *param_2,
+void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *out_autoaim_width,
                                          real_vector3d *out_direction, real_point3d *out_origin)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
@@ -53,14 +53,14 @@ void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *param_2
             out_direction->i = global_origin3d_pointer->x; // UNSURE: zero vector, see file header
             out_direction->j = global_origin3d_pointer->y;
             out_direction->k = global_origin3d_pointer->z;
-            *param_2 = *(uint32_t *)&tag->autoaim_width; // tag + 0x458
+            *out_autoaim_width = *(uint32_t *)&tag->autoaim_width; // tag + 0x458
             return;
         }
         *out_origin = pelvis->position;
         out_direction->i = head->position.x - pelvis->position.x;
         out_direction->j = head->position.y - pelvis->position.y;
         out_direction->k = head->position.z - pelvis->position.z;
-        *param_2 = *(uint32_t *)&tag->autoaim_width; // tag + 0x458
+        *out_autoaim_width = *(uint32_t *)&tag->autoaim_width; // tag + 0x458
         return;
     }
 
@@ -75,7 +75,7 @@ void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *param_2
         out_direction->j = pill_height * global_up3d_pointer->j;
         out_direction->k = pill_height * global_up3d_pointer->k;
     }
-    *param_2 = *(uint32_t *)&tag->autoaim_width; // tag + 0x458
+    *out_autoaim_width = *(uint32_t *)&tag->autoaim_width; // tag + 0x458
 }
 
 #if 0

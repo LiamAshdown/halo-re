@@ -47,7 +47,7 @@ extern double fabs(double x);
 //   scaled by physics +0x50. object_physics_tick(unit, ESI, contacts, &zero, &torque) then runs. The draft
 //   called every helper without arguments and had no buffer.
 // blam-cc: stack -> unit_index, param_2 (contact points); ESI -> powered_states
-void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2, float *powered_states)
+void vehicle_calculate_lean_controls(uint32_t unit_index, void *mass_points, float *powered_states)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
@@ -63,7 +63,7 @@ void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2, float *
     real speed_factor, half_turn, steer;
 
     if (*(int32_t *)(physics + 0x68) != 3) {
-        object_physics_tick(unit_index, 0, param_2, 0, 0);
+        object_physics_tick(unit_index, 0, mass_points, 0, 0);
         return;
     }
 
@@ -128,7 +128,7 @@ void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2, float *
         torque.j = w * forward->j;
         torque.k = w * forward->k;
     }
-    object_physics_tick(unit_index, powered_states, param_2, &zero_force, &torque);
+    object_physics_tick(unit_index, powered_states, mass_points, &zero_force, &torque);
 }
 
 #if 0

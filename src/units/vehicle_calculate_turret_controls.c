@@ -39,7 +39,7 @@ extern void object_physics_tick(uint32_t unit_index, uint32_t powered_states, vo
 //   with physics type 2 its two entries get the left/right drive and object_physics_tick(unit, EDI, contacts, 0,
 //   0) runs. The draft wrote through a NULL stand-in and passed it as the contact buffer.
 // blam-cc: stack -> unit_index, param_2 (contact points); EDI -> powered_states
-void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2, float *powered_states)
+void vehicle_calculate_turret_controls(uint32_t unit_index, void *mass_points, float *powered_states)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
@@ -65,7 +65,7 @@ void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2, float
     }
 
     if (*(int32_t *)(physics_tag + 0x68) != 2) {
-        object_physics_tick(unit_index, 0, param_2, 0, 0);
+        object_physics_tick(unit_index, 0, mass_points, 0, 0);
         return;
     }
 
@@ -79,7 +79,7 @@ void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2, float
     out_transform[0x20] = 0.0f;
     out_transform[0x21] = 0.0f;
     out_transform[0x22] = 1.0f;
-    object_physics_tick(unit_index, (uint32_t)out_transform, param_2, 0, 0);
+    object_physics_tick(unit_index, (uint32_t)out_transform, mass_points, 0, 0);
 }
 
 #if 0

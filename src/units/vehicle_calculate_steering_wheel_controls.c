@@ -37,7 +37,7 @@ extern double sin(double x);
 // FIXED (objdump 0x572d6e..0x572dc7): EDI is the caller's powered-mass-point buffer; with physics type 2 it gets the
 //   drive/steer entries and object_physics_tick(unit, EDI, contacts, 0, 0) runs. The draft wrote through NULL.
 // blam-cc: stack -> unit_index, param_2 (contact points); EDI -> powered_states
-void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_2, float *powered_states)
+void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *mass_points, float *powered_states)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
@@ -54,7 +54,7 @@ void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_
     }
 
     if (*(int32_t *)(physics_tag + 0x68) != 2) {
-        object_physics_tick(unit_index, 0, param_2, 0, 0);
+        object_physics_tick(unit_index, 0, mass_points, 0, 0);
         return;
     }
 
@@ -74,7 +74,7 @@ void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *param_
         out_transform[0x21] = -s;
         out_transform[0x22] = c;
     }
-    object_physics_tick(unit_index, (uint32_t)out_transform, param_2, 0, 0);
+    object_physics_tick(unit_index, (uint32_t)out_transform, mass_points, 0, 0);
 }
 
 #if 0
