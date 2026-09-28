@@ -13,6 +13,12 @@
 // register convention: team_index as the recognized parameter (param_1).
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
+// FIXED 2026-09-28 (send-path audit, from the disassembly): network_channel_stream_flush takes the channel's
+// stream (ESI, channel +0x10), the channel and the mode (the C passed the channel as the stream). The two
+// bit_stream_write_bits_chunked calls write into
+// the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (1: a game action) from a local, then
+// the encoded bits from network_message_scratch 0x871de0; the C passed placeholders or dropped the arguments.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,8 +37,8 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern uint8_t network_channel_stream_flush(uint8_t *session, int32_t unknown); // 0x4ddb60
-extern void bit_stream_write_bits_chunked(uint32_t value_or_count); // 0x4cf8f0, UNSURE: elided second argument
+extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, ESI stream (channel +0x10), stack channel, mode
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 
 // Encodes a chat message and, for every connected machine whose player is on team_index (or
 // every machine if team_index is -1), queues the message length and payload bits into that
@@ -77,11 +83,11 @@ void chat_queue_team_message(int32_t team_index)
                             (encoded_bits + 1 <= (*(int32_t *)(session + 0x24) +
                                                    *(int32_t *)(session + 0x1c) * -8) -
                                                       *(int32_t *)(session + 0x20) + 1 ||
-                             network_channel_stream_flush(session, 1) != 0)) {
+                             network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
                             *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
-                            bit_stream_write_bits_chunked(1);
+                            { uint32_t item_flag = 1; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
                             session[0x2c] = 0;
-                            bit_stream_write_bits_chunked((uint32_t)encoded_bits);
+                            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
                             session[0x2c] = 0;
                         }
                         break;

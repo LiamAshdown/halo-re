@@ -16,10 +16,17 @@
 // player's team_index_desired byte, or 0xff if there is no local player).
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; the separate write-only iter_signature local is folded into it
 
+// FIXED 2026-09-28 (send-path audit, from the disassembly): network_channel_stream_flush takes the channel's
+// stream (ESI, channel +0x10), the channel and the mode (the C passed the channel as the stream). The two
+// bit_stream_write_bits_chunked calls write into
+// the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (1: a game action) from a local, then
+// the encoded bits from network_message_scratch 0x871de0; the C passed placeholders or dropped the arguments.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "networking.h"
 #include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -34,9 +41,8 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // the seven stack arguments (see game_engine_notify_kill_event.c)
-extern char network_channel_stream_flush(uint8_t *session, int32_t unknown); // 0x4ddb60, not in this batch
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,
-    bit_stream *stream); // 0x4cf8f0, blam-cc: value in EDX, stream in ESI
+extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, ESI stream (channel +0x10), stack channel, mode
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 
 // blam-cc: stack -> broadcast
 // While a multiplayer engine is loaded and teams are enabled, encodes network event 0x1a with
@@ -48,10 +54,11 @@ void game_engine_send_team_allegiance_message(char broadcast)
     data_iterator player_iter;
     void *player_element;
     uint8_t team_index_desired = 0xff;
-    uint8_t local_team_byte;      // Ghidra's local_1c: the field message_delta_encode_message reads
-    uint8_t local_broadcast_byte; // Ghidra's local_1b, immediately after it in memory
-    uint8_t *fields_ptr;          // Ghidra's local_18 = &local_team_byte
-    int32_t fields_pad;           // Ghidra's local_14 = 0
+    struct {
+        uint8_t team;             // 0x00 the local player's desired team (0x47055d: BL)
+        uint8_t broadcast;        // 0x01 the argument (0x470548: AL)
+    } record;                     // one 2-byte record: the encoder reads both from one address
+    void *fields_ptr[2];          // [0] = &record, [1] = 0
     int32_t encoded_bits;
 
     if (current_game_engine == 0 || !game_engine_teams_enabled_flag) {
@@ -71,33 +78,29 @@ void game_engine_send_team_allegiance_message(char broadcast)
         player_element = data_iterator_next(&player_iter);
     }
 
-    local_broadcast_byte = (uint8_t)broadcast;
-    fields_ptr = &local_team_byte;
-    fields_pad = 0;
-    local_team_byte = team_index_desired;
-    (void)local_broadcast_byte;
-    (void)fields_pad;
+    record.broadcast = (uint8_t)broadcast;
+    record.team = team_index_desired;
+    fields_ptr[0] = &record;
+    fields_ptr[1] = 0;
 
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, (void **)&fields_ptr, 0, 1, 0);
+    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, fields_ptr, 0, 1, 0);
     if (encoded_bits > 0) {
         uint8_t *session = *(uint8_t **)(network_session_ptr_0071c2d8 + 0xadc);
 
         if ((*(uint8_t *)(session + 0xa8c) & 1) == 0 &&
             (encoded_bits + 1 <= (*(int32_t *)(session + 0x24) -
                 *(int32_t *)(session + 0x1c) * 8 - *(int32_t *)(session + 0x20)) + 1 ||
-             network_channel_stream_flush(session, 1) != 0)) {
+             network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
             // UNSURE: bit_stream_write_bits_chunked's value/stream registers (EDX/ESI, per its own
             // established signature) are not reloaded anywhere in this function's own body
             // between the two calls or before them -- they must already be live from inside
             // message_delta_encode_message's own return sequence. Not independently recoverable
             // from this pack; left as unaff_-style uninitialized locals rather than invented.
-            uint32_t unaff_write_value;
-            bit_stream *unaff_write_stream;
 
             *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
-            bit_stream_write_bits_chunked(1, unaff_write_value, unaff_write_stream);
+            { uint32_t item_flag = 1; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
             *(uint8_t *)(session + 0x2c) = 0;
-            bit_stream_write_bits_chunked(encoded_bits, unaff_write_value, unaff_write_stream);
+            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
             *(uint8_t *)(session + 0x2c) = 0;
         }
     }

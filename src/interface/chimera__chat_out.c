@@ -17,6 +17,12 @@
 // byte), unlike its struct-pointer usage in the established caller.
 // register convention: __cdecl, channel as the recognized parameter.
 
+// FIXED 2026-09-28 (send-path audit, from the disassembly): network_channel_stream_flush takes the channel's
+// stream (ESI, channel +0x10), the channel and the mode (the C passed the channel as the stream). The two
+// bit_stream_write_bits_chunked calls write into
+// the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (1: a game action) from a local, then
+// the encoded bits from network_message_scratch 0x871de0; the C passed placeholders or dropped the arguments.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,8 +36,8 @@ extern network_client_globals *network_client; // 0x0071c2d8, UNSURE: pointer to
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern uint8_t network_channel_stream_flush(uint8_t *session, int32_t unknown); // 0x4ddb60, UNSURE signature
-extern void bit_stream_write_bits_chunked(uint32_t value_or_count); // 0x4cf8f0, UNSURE: elided second argument
+extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, ESI stream (channel +0x10), stack channel, mode
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 
 // Encodes a chat text message (type 0xf) for the given channel and, if the session's outgoing
 // buffer has room (or can be flushed to make room), queues its length and payload bits for
@@ -46,11 +52,11 @@ void chimera__chat_out(uint8_t channel)
         if ((session[0xa8c] & 1) == 0 &&
             (encoded_bits + 1 <= (*(int32_t *)(session + 0x24) + *(int32_t *)(session + 0x1c) * -8) -
                                       *(int32_t *)(session + 0x20) + 1 ||
-             network_channel_stream_flush(session, 1) != 0)) {
+             network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
             *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
-            bit_stream_write_bits_chunked(1);
+            { uint32_t item_flag = 1; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
             session[0x2c] = 0;
-            bit_stream_write_bits_chunked((uint32_t)encoded_bits);
+            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
             session[0x2c] = 0;
         }
     }

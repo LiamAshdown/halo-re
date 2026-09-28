@@ -1,6 +1,6 @@
 // network_game_server_send_message_to_all_machines  (Ghidra: already named)
 // address 0x4e4e30, size 192 bytes
-// name confidence: 0.7   rewrite confidence: 0.35
+// name confidence: 0.7   rewrite confidence: n/a (FRAGMENT)
 // evidence: out/phase4/networking_functions.md ("Server-side helper that queues a formatted
 // text message for broadcast to all connected client machines"); shares the exact
 // free-space/send-budget/empty-flag sequence with rcon_send_request.c (this batch), which is
@@ -16,53 +16,13 @@
 // UNSURE: which of first_string/second_string is the sender name vs. the message text; both are
 // simply copied verbatim into the two message fields. UNSURE: EDX's role (see above).
 
-#include "tags.h"
-#include "memory.h"
-#include "math.h"
-#include "game.h"
-#include "networking.h"
-#include <string.h>
-
-extern network_client_globals *network_client; // 0x0071c2d8
-
-extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern uint8_t network_channel_stream_flush(network_channel *channel, int32_t mode); // this module (earlier batch), 0x4ddb60
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,
-    bit_stream *stream); // 0x4cf8f0, memory module (src/memory/bit_stream_write_bits_chunked.c);
-    // UNSURE: only the bit count is visible at the call sites below, the value and the stream
-    // operand are in registers Ghidra dropped, so both are passed as 0 here.
-
-// Copies first_string and second_string into the two-field message body, encodes it as message
-// type 0x36 and, budget permitting, appends it to network_client's outgoing channel stream.
-void network_game_server_send_message_to_all_machines(char *first_string, int32_t unsure_offset,
-    char *second_string) // blam-cc: EAX -> first_string, EDX -> unsure_offset (unused), EDI -> second_string
-{
-    char first_buf[16]; // UNSURE: exact size; Ghidra's own stack frame for this batch of copies
-    char second_buf[16]; // is not otherwise recovered
-    void *fields[3];
-    int32_t encoded_bits;
-
-    strcpy(first_buf, first_string);
-    strcpy(second_buf, second_string);
-    fields[0] = second_buf;
-    fields[1] = 0;
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x36, 0, fields, 0, 1, 0);
-    if (0 < encoded_bits) {
-        network_channel *channel = network_client->channel;
-        int32_t free_bits = channel->outgoing.stream.last_bit -
-            channel->outgoing.stream.byte_cursor * 8 - channel->outgoing.stream.bit_cursor + 1;
-        if ((channel->flags & 1) == 0 &&
-            (encoded_bits + 1 <= free_bits || network_channel_stream_flush(channel, 1) != 0)) {
-            channel->send_budget = channel->send_budget + encoded_bits + 1;
-            bit_stream_write_bits_chunked(1, 0, 0); // UNSURE: value/stream elided
-            channel->outgoing.empty = 0;
-            bit_stream_write_bits_chunked(encoded_bits, 0, 0); // UNSURE: value/stream elided
-            channel->outgoing.empty = 0;
-        }
-    }
-}
+// FIXED 2026-09-28 (send-path audit, from the disassembly): the two bit_stream_write_bits_chunked calls write into
+// the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (1: a game action) from a local, then
+// the encoded bits from network_message_scratch 0x871de0; the C passed placeholders or dropped the arguments.
+// FRAGMENT (2026-09-28, from the disassembly): 0x4e4e30 is not a function -- it is the loop label of the first string
+// copy inside rcon_send_request (0x4e4dc0..0x4e4ef8; `jne 0x4e4e30` at 0x4e4e38), which is why nothing calls it.
+// rcon_send_request.c covers the whole range; nothing is translated here, so the standalone link gives it no code
+// entry.
 
 #if 0
 Original Ghidra decompilation (0x4e4e30), from tools/pack.py 0x4e4e30:

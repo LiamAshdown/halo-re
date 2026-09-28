@@ -28,6 +28,10 @@
 // below), DAT_006894a2, FUN_004cf8f0 and the exact meaning of the packed word returned by
 // network_message_block_build (`(*result >> 4) * 8` as a bit length) are not independently confirmed.
 
+// FIXED 2026-09-28 (send-path audit, from the disassembly): the two bit_stream_write_bits_chunked calls write into
+// the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
+// the encoded bits from encoded_buffer; the C passed placeholders or dropped the arguments.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -42,7 +46,7 @@ extern uint16_t *network_message_block_build(uint32_t size); // 0x440350, this m
     // just-encoded message into a newly allocated buffer; see this module's very first
     // function for the closest available context)
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
-extern void bit_stream_write_bits_chunked(int32_t bit_count); // other module (UNSURE)
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 
 // Stamps `machine`'s short name and a snapshot of the server's name/game-data block, encodes
 // them as a type-4 "game info" message, and queues the encoded bits onto machine->channel's
@@ -104,9 +108,9 @@ char network_server_build_game_info_packet(network_server_globals *server, netwo
                         }
                     }
                     channel->send_budget = channel->send_budget + bit_len + 1;
-                    bit_stream_write_bits_chunked(1);
+                    { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
                     channel->outgoing.empty = 0;
-                    bit_stream_write_bits_chunked(bit_len);
+                    bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(encoded_buffer), bit_len);
                     channel->outgoing.empty = 0;
                 }
                 return result;

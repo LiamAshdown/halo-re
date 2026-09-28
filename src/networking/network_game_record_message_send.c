@@ -21,6 +21,10 @@
 // `lea esi,[channel+0x10]` (channel->outgoing), `push <channel>`, `push 1` -- e.g. 0x4d9108,
 // 0x4d9698, 0x4d9791, 0x4d9bcd, 0x4da0af, 0x4da2b4, 0x4dae96, 0x4dce68 and 0x4de254.
 
+// FIXED 2026-09-28 (send-path audit, from the disassembly): the two bit_stream_write_bits_chunked calls write into
+// the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
+// the encoded bits from record; the C passed placeholders or dropped the arguments.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,8 +36,7 @@ extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int16_t **capaci
 extern uint16_t network_challenge_packet_block[]; // 0x006b7f98, the reused message block
 extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length); // 0x440350, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,
-    bit_stream *stream); // 0x4cf8f0, blam-cc: value in EDX, stream in ESI
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 
 // blam-cc: EDX -> source, stack -> client
 int32_t network_game_record_message_send(network_client_globals *client, const uint32_t *source)
@@ -86,13 +89,11 @@ int32_t network_game_record_message_send(network_client_globals *client, const u
             }
         }
         {
-            uint32_t unaff_write_value;
-            bit_stream *unaff_write_stream;
 
             *(int32_t *)(channel + 0xa80) = *(int32_t *)(channel + 0xa80) + total_bits;
-            bit_stream_write_bits_chunked(1, unaff_write_value, unaff_write_stream);
+            { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
             *(uint8_t *)(channel + 0x2c) = 0;
-            bit_stream_write_bits_chunked(bits_to_send, unaff_write_value, unaff_write_stream);
+            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(record), bits_to_send);
             *(uint8_t *)(channel + 0x2c) = 0;
         }
     }

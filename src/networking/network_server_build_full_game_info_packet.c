@@ -16,6 +16,10 @@
 // UNSURE: bit 0x10 of network_machine::flags (the "answered" mark) is not one of the
 // enumerated network_machine_flags values.
 
+// FIXED 2026-09-28 (send-path audit, from the disassembly): the two bit_stream_write_bits_chunked calls write into
+// the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
+// the encoded bits from encoded_buffer; the C passed placeholders or dropped the arguments.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,7 +29,7 @@
 extern char data_packet_group_encode_packet(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type); // 0x4d0ae0
 extern uint16_t *network_message_block_build(uint32_t size); // 0x440350, this module (UNSURE)
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60
-extern void bit_stream_write_bits_chunked(int32_t bit_count); // other module (UNSURE)
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 
 // Encodes a type-7 "full game info" message into a 0x600-byte scratch record, then -- unless
 // machine's channel already reports connected -- queues it onto that channel's outgoing
@@ -74,9 +78,9 @@ char network_server_build_full_game_info_packet(network_machine *machine)
                 }
             }
             channel->send_budget = channel->send_budget + total_bits;
-            bit_stream_write_bits_chunked(1);
+            { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
             channel->outgoing.empty = 0;
-            bit_stream_write_bits_chunked(bit_len);
+            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(encoded_buffer), bit_len);
             channel->outgoing.empty = 0;
             ok = network_channel_stream_flush(&channel->outgoing, channel, 1);
         } else {

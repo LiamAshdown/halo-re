@@ -1,6 +1,6 @@
 // rcon_send_request  (Ghidra: rcon_send_request, already named)
-// address 0x4e4dc0, size 112 bytes
-// name confidence: 0.6   rewrite confidence: 0.45
+// address 0x4e4dc0, size 304 bytes (0x4e4dc0..0x4e4ef8; was recorded as 112, see the FIXED note)
+// name confidence: 0.6   rewrite confidence: 0.85
 // evidence: out/phase4/networking_functions.md; the "ERROR: Maximum rcon %s length" strings;
 // this batch's rcon.c disassembly (objdump -d -M intel) shows the call site setting EAX to the
 // rebuilt command buffer and ECX to the original password argument right before the call.
@@ -25,49 +25,58 @@ extern network_client_globals *network_client; // 0x0071c2d8
 
 extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
-extern int32_t message_delta_encode_message(int32_t a, int32_t message_type, int32_t b,
-    void *fields, int32_t c, int32_t d, char e); // this module (later batch), 0x4ec940, UNSURE shape
-extern uint8_t network_channel_stream_flush(network_channel *channel, int32_t mode); // this module (earlier batch), 0x4ddb60
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value,
-    bit_stream *stream); // 0x4cf8f0, memory module (src/memory/bit_stream_write_bits_chunked.c);
-    // UNSURE: only the bit count is visible at the call sites below, the value and the stream
-    // operand are in registers Ghidra dropped, so both are passed as 0 here.
+extern int32_t message_delta_encode_message(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type,
+    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX, EDX
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, ESI stream (channel +0x10), stack channel, mode
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 
-// Builds and transmits an rcon-request message containing `password` and `command` to the
-// server, after validating both fit their maximum lengths (8 and 64 characters).
+// FIXED 2026-09-28 (send-path audit, from the disassembly 0x4e4dc0..0x4e4ef8 -- the function is 0x130 bytes; the
+// "function" at 0x4e4e30 is the loop label of its first string copy): the password and the command are copied into
+// ONE record {password[9], command[0x41]} which is encoded (message type 0x36, one item) into the network scratch
+// 0x871de0, then written to the client channel's outgoing stream as a game-action item (flag 1). The C encoded two
+// separate arrays through a malformed call and wrote placeholders.
+typedef struct rcon_request_record {
+    char password[9];              // 0x00
+    char command[0x41];            // 0x09
+} rcon_request_record;
+
 void rcon_send_request(char *command, char *password) // blam-cc: EAX -> command, ECX -> password
 {
-    char password_buf[9];
-    char command_buf[68];
-    void *fields[2];
+    rcon_request_record record;
+    void *items[2];
     int32_t encoded_bits;
 
-    if (8 < (int32_t)strlen(password)) {
+    if (strlen(password) > 8) {
         chimera__console_out((ColorARGB *)console_color_006851fc, "ERROR: Maximum rcon password length is %d characters", 8);
         return;
     }
-    if ((int32_t)strlen(command) < 0x41) {
-        strcpy(password_buf, password);
-        strcpy(command_buf, command);
-        fields[0] = password_buf;
-        fields[1] = 0;
-        encoded_bits = message_delta_encode_message(0, 0x36, 0, fields, 0, 1, 0);
-        if (0 < encoded_bits) {
-            network_channel *channel = network_client->channel;
-            int32_t free_bits = channel->outgoing.stream.last_bit -
-                channel->outgoing.stream.byte_cursor * 8 - channel->outgoing.stream.bit_cursor + 1;
-            if ((channel->flags & 1) == 0 &&
-                (encoded_bits + 1 <= free_bits || network_channel_stream_flush(channel, 1) != 0)) {
-                channel->send_budget = channel->send_budget + encoded_bits + 1;
-                bit_stream_write_bits_chunked(1, 0, 0); // UNSURE: value/stream elided
-                channel->outgoing.empty = 0;
-                bit_stream_write_bits_chunked(encoded_bits, 0, 0); // UNSURE: value/stream elided
-                channel->outgoing.empty = 0;
-            }
-        }
+    if (strlen(command) > 0x40) {
+        chimera__console_out((ColorARGB *)console_color_006851fc, "ERROR: Maximum rcon command length is %d characters", 0x40);
         return;
     }
-    chimera__console_out((ColorARGB *)console_color_006851fc, "ERROR: Maximum rcon command length is %d characters", 0x40);
+    strcpy(record.password, password);
+    strcpy(record.command, command);
+    items[0] = &record;
+    items[1] = 0;
+    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x36, 0, items, 0, 1, 0);
+    if (encoded_bits > 0) {
+        network_channel *channel = network_client->channel;
+        bit_stream *stream = (bit_stream *)((uint8_t *)channel + 0x10);
+        int32_t free_bits = channel->outgoing.stream.last_bit -
+            channel->outgoing.stream.byte_cursor * 8 - channel->outgoing.stream.bit_cursor + 1;
+
+        if ((channel->flags & 1) == 0 &&
+            (encoded_bits + 1 <= free_bits || network_channel_stream_flush((network_channel_stream *)((uint8_t *)channel + 0x10), (network_channel *)channel, 1) != 0)) {
+            uint32_t item_flag = 1;
+
+            channel->send_budget = channel->send_budget + encoded_bits + 1;
+            bit_stream_write_bits_chunked(stream, &item_flag, 1);
+            channel->outgoing.empty = 0;
+            bit_stream_write_bits_chunked(stream, (const uint32_t *)network_message_scratch, encoded_bits);
+            channel->outgoing.empty = 0;
+        }
+    }
 }
 
 #if 0

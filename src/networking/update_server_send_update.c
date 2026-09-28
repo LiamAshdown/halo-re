@@ -23,6 +23,10 @@
 // types/game.h); called here with whatever arguments Ghidra shows, which is often none.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
+// FIXED 2026-09-28 (send-path audit, from the disassembly 0x4de1ed..0x4de26e): the room check and both writes use
+// the channel's outgoing stream (+0x10), not the retransmit stream (+0x544): the 1-bit item flag (1, a game action)
+// and then the encoded bits from the network scratch 0x871de0; the C wrote placeholders into the wrong stream.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -55,7 +59,8 @@ extern void update_server_dispose(void); // 0x472b70, outside this batch
 extern void update_client_stage_entry(void); // 0x473090, outside this batch
 extern void ui_network_wait_timeout_check(void); // 0x49c7b0, outside this batch
 extern void ui_network_wait_timeout_start(void); // 0x49c810, outside this batch
-extern int32_t bit_stream_write_bits_chunked(int32_t total_bit_count, uint32_t value, bit_stream *stream); // 0x4cf8f0, memory module
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
 extern void network_game_client_apply_position_update(void *record, uint8_t history_byte, uint32_t *values, network_client_globals *client); // 0x4dff70, this batch, elided args
@@ -142,8 +147,8 @@ char update_server_send_update(uint32_t *param_1, char param_2)
             update_server_pending_flush = 0;
             result = 1;
             if ((channel->flags & 1) == 0) {
-                max_bits = (channel->retransmit.stream.last_bit - channel->retransmit.stream.byte_cursor * 8) -
-                           channel->retransmit.stream.bit_cursor + 1;
+                max_bits = (channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8) -
+                           channel->outgoing.stream.bit_cursor + 1;
                 if (max_bits < (int32_t)(uintptr_t)encoded + 1) {
                     flush_ok = network_channel_stream_flush(&channel->outgoing, channel, 1);
                     if (flush_ok == 0) {
@@ -151,10 +156,15 @@ char update_server_send_update(uint32_t *param_1, char param_2)
                     }
                 }
                 channel->send_budget = channel->send_budget + (int32_t)(uintptr_t)encoded + 1;
-                bit_stream_write_bits_chunked(1, 0, &channel->retransmit.stream); // UNSURE: elided args
-                channel->retransmit.empty = 0;
-                bit_stream_write_bits_chunked(1, (uint32_t)(uintptr_t)encoded, &channel->retransmit.stream); // UNSURE
-                channel->retransmit.empty = 0;
+                {
+                    uint32_t item_flag = 1;
+
+                    bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
+                    channel->outgoing.empty = 0;
+                    bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)network_message_scratch,
+                                                  (int32_t)(uintptr_t)encoded);
+                    channel->outgoing.empty = 0;
+                }
                 flush_ok = network_channel_stream_flush(&channel->outgoing, channel, 1);
             } else {
                 flush_ok = 1;
