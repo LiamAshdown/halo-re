@@ -30,9 +30,7 @@ extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, owned by the
                                     // breakable_surfaces both land on named ScenarioStructureBSP
                                     // fields, confirming it is the tag data pointer itself).
 extern tag_instance *tag_instances;             // 0x0087bc14
-extern void physics_point_spawn_contact_effect(uint16_t surface_index, damage_data *damage,
-    int32_t collision_surface_index); // 0x500090, effects module, see
-                                    // breakable_surface_apply_damage.c
+extern void breakable_surface_shatter(uint16_t surface_index, damage_data *damage, int32_t collision_surface_index); // 0x500090
 
 void breakable_surface_damage_in_blast_radius(damage_data *damage)
 {
@@ -63,7 +61,7 @@ void breakable_surface_damage_in_blast_radius(damage_data *damage)
                         breakable_surface_state->health[global_structure_bsp_index][index] = 0.0f;
                         breakable_surface_state->active[global_structure_bsp_index][index >> 5] &=
                             ~(1u << (index & 0x1f));
-                        physics_point_spawn_contact_effect((uint16_t)surface_index, damage,
+                        breakable_surface_shatter((uint16_t)surface_index, damage,
                                                             surface->collision_surface_index);
                     }
                 }

@@ -34,12 +34,7 @@ extern real random_real_range(real min, real max); // 0x401050
 extern GlobalsMaterial *globals_material_get(int16_t material_type); // 0x53e7c0, scenario/globals
                                     // module, not physics; resolves Globals.materials[type], or
                                     // a fallback record when the type is out of range.
-extern void physics_point_spawn_contact_effect(uint16_t surface_index, damage_data *damage,
-    int32_t collision_surface_index); // 0x500090, an effects-module function misattributed to
-                                    // physics (out/phase4/physics_types_notes.md); not rewritten
-                                    // here.
-
-// blam-cc: EBX -> damage, stack -> (surface_index, collision_surface_index)
+extern void breakable_surface_shatter(uint16_t surface_index, damage_data *damage, int32_t collision_surface_index); // 0x500090
 // FIXED (objdump 0x4fff02): the second stack argument ([esp+0x14]) is passed through as the third
 //   argument of 0x500090; projectile_response and unit_melee_attack_scan both push it.
 void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index)
@@ -85,7 +80,7 @@ void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, 
                     // the analogous context pointer is the second argument); the third
                     // (collision_surface_index there) has no equivalent value visible in this
                     // function and is passed as 0 pending confirmation from the effects module.
-                    physics_point_spawn_contact_effect((uint16_t)index, damage, collision_surface_index);
+                    breakable_surface_shatter((uint16_t)index, damage, collision_surface_index);
                 }
             }
         }
