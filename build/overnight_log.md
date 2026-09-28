@@ -2458,3 +2458,25 @@ Relinked: unresolved 1, traps 127.
   accept/reject 0x61ce80/0x61cee0 and their graph 0x618xxx..0x61dxxx), ServerBrowser API + SB query engine
   (0x616eb0..0x617290, 0x61e5b0..0x6202b0), ghttp/autopatch (0x61bd00..0x61c260, 0x620520..0x623110, 0x576a70),
   0x441060 (needs gt2CloseAllConnections), and the five '?' names.
+### iteration 11 (2026-09-28) -- commits b3e36a2..f673f35, relinked (0 unresolved, traps 29 -> 8)
+- gamespy: the GT2 transport (~90 functions, src/gamespy/gt2.h): Halo's GT2 is modified -- the handshake swaps
+  Diffie-Hellman style keys (16-byte big numbers, generator "3", modulus "10001", random 16-hex-digit private
+  exponent; gt2_bignum_*), and every data message gets a CRC32 appended and is TEA-encrypted with the shared key
+  (tea_encrypt_block/buffer written next to the existing decrypt pair in src/cseries). Sockets, connections,
+  callbacks, reliable delivery (serials, acks, nacks, resends, out-of-order buffering), gt2Connect/Send/Think/
+  Accept/Reject/Close*. NOTE: gti2Send appends 4 bytes PAST the caller's message and encrypts in place.
+- gamespy: the ServerBrowser (~50 functions, src/gamespy/sb.h): browser API, query engine, master list protocol
+  (crypt header, key list, popular values, server records), push/ad-hoc messages, LAN broadcast, GOA card cipher.
+  Master server string in this build: "s1.ms01.hosthpc.com":28910. FIXED SBIsNullServer (compared the address of
+  the null-server pointer 0x6a27f8 instead of its value).
+- networking: socket error callback 0x441060; the master-server thread 0x4b5f80 (sig__setup_master_server_connection
+  _sig, __stdcall; its creator's extern fixed); '?' names bound: item_add_ammunition -> weapon_add_ammunition(EAX
+  action entry), network_player_entry_is_valid -> network_player_entry_validate 0x4de9f0, network_df0e0_broadcast ->
+  network_game_settings_broadcast_send 0x4df0e0 (server, entry), network_player_table_remove ->
+  network_player_entry_remove 0x4de640 (EBX = server session, then client session per call site).
+- NAMING NOTE: 0x614850 (our gt2SetSendDump) stores +0x28 = the RECEIVE dump, 0x61e550 (gt2SetReceiveDump) +0x24 =
+  the SEND dump (and is ICF-shared with SBEngineSetPublicIP). Behaviour is right; only the names are swapped.
+- Left (8): ghttp / autopatch (0x61bd00, 0x61bd40, 0x61bd80, 0x61bef0, 0x61c020, 0x61c030, 0x61c260 and their graph
+  0x6208a0..0x622e10, ~69 functions) and 0x576a70.
+- OPEN (unchanged): the networking C-to-C call audit (e.g. network_game_action_apply calls ~45 handlers with no args;
+  the binary passes EAX = the action entry and ESI; network_channel_attempt_connect calls gt2Connect with 1 of 8 args).
