@@ -8,9 +8,9 @@ bin/halo.exe as assembler source, so neither halo.exe nor a halo_image.bin is ne
                                  rewrite of that function (/ALTERNATENAME in tools/gen_standalone_link.py), so the
                                  linker relocates it and the loader patches nothing
   standalone/image/pieces.json   name, original address, size and label of every piece, for the loader's table
-Pieces: all of .rdata, the initialised part of .data (the zero tail is the reserve's own zero fill), .tls and .rsrc, and
-from .text only what is read as data -- the DIOBJECTDATAFORMAT array the linker put at 0x613400 (256 x 16 bytes; its
-DIDATAFORMAT at 0x64dfdc points there). The rest of .text is original code and stays zero (and not executable) in the standalone.
+Pieces: all of .rdata, the initialised part of .data (the zero tail is the reserve's own zero fill), .tls and .rsrc.
+Nothing of .text: it is original code, and the ranges the C once read as data are gone (see TEXT_DATA). It stays
+reserved, zero and not executable in the standalone.
 Import slots keep their retail contents (hint/name RVAs); the loader overwrites them.
 Usage: python tools/gen_image_source.py   (reads bin/halo.exe; refuses under HALO_NO_RETAIL=1)"""
 import json, os, struct, sys
@@ -23,9 +23,9 @@ ROOT = rg.ROOT
 IMAGE = os.path.join(ROOT, "standalone", "image")
 
 # (label, first address, end address) of the .text ranges the standalone reads as data
-TEXT_DATA = [
-    ("text_00613400", 0x613400, 0x614400),   # DIOBJECTDATAFORMAT[256] for SetDataFormat (DIDATAFORMAT 0x64dfdc)
-]
+# (none: the DIOBJECTDATAFORMAT[256] at 0x613400 behind the retail c_dfDIKeyboard 0x64dfdc was the last one, and the C
+# takes c_dfDIKeyboard / c_dfDIMouse2 from dinput8.lib; the switch table at 0x4a0268 became a C switch)
+TEXT_DATA = []
 
 
 def hexnum(v):
