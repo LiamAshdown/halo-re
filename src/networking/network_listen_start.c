@@ -20,7 +20,7 @@
 
 extern int32_t network_game_socket; // 0x006f14c4
 
-extern void FUN_00614810(int32_t socket); // foreign, GameSpy library
+extern void FUN_00614810(int32_t socket, void *data); // 0x614810 gt2SetSocketData (socket +0x30)
 extern int32_t thunk_FUN_0061c660(int32_t socket, void *callback); // foreign, GameSpy library // foreign, GameSpy library
 extern void network_listen_connection_request_handler(int32_t listen_handle, int32_t reply_socket,
                                                          uint32_t remote_address, uint32_t remote_port_raw,
@@ -33,7 +33,7 @@ uint32_t network_listen_start(network_receive_queue *queue)
     uint32_t result;
 
     queue->data_ready = 1;
-    FUN_00614810(network_game_socket);
+    FUN_00614810(network_game_socket, queue); // FIXED 2026-09-28: 0x442179 also pushes ESI (the queue) as the socket data
     queue->flags = queue->flags | 2;
     result = thunk_FUN_0061c660(network_game_socket, (void *)network_listen_connection_request_handler);
     queue->last_error = 0;
