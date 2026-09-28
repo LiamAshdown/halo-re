@@ -24,26 +24,27 @@ extern double fabs(double x); // x87 FABS
 
 // If both profiles still have a live ramp (not already in the dead zone), extends whichever one
 // finishes sooner so both profiles run for the same total duration.
-void bounded_ramp_profile_synchronize(uint8_t *profile_a, uint8_t *profile_b, real max_acceleration)
+void bounded_ramp_profile_synchronize(bounded_ramp_profile *profile_a, bounded_ramp_profile *profile_b,
+                                      real max_acceleration)
 {
     real duration_a, duration_b, extra;
-    uint8_t *shorter;
+    bounded_ramp_profile *shorter;
     real cruise_velocity, adjusted_duration, term, radicand;
 
-    if (profile_a[0] != 0 || profile_b[0] != 0) {
+    if (profile_a->within_dead_zone != 0 || profile_b->within_dead_zone != 0) {
         return;
     }
 
-    duration_a = *(real *)(profile_a + 0x1c) + *(real *)(profile_a + 0x14) + *(real *)(profile_a + 0x10);
-    duration_b = *(real *)(profile_b + 0x1c) + *(real *)(profile_b + 0x14) + *(real *)(profile_b + 0x10);
+    duration_a = profile_a->phase3_duration + profile_a->phase2_duration + profile_a->phase1_duration;
+    duration_b = profile_b->phase3_duration + profile_b->phase2_duration + profile_b->phase1_duration;
 
     // 0x56486f..0x5648c1, written as the x87 tests read (`> 0` / `<`), so a NaN takes the
     // "not this profile" branch exactly as the original does.
-    if (*(real *)(profile_a + 0x10) > 0.0f && duration_a < duration_b) {
+    if (profile_a->phase1_duration > 0.0f && duration_a < duration_b) {
         extra = duration_b - duration_a;
         shorter = profile_a;
     } else {
-        if (!(*(real *)(profile_b + 0x10) > 0.0f && duration_b < duration_a)) {
+        if (!(profile_b->phase1_duration > 0.0f && duration_b < duration_a)) {
             return;
         }
         extra = duration_a - duration_b;
@@ -54,26 +55,26 @@ void bounded_ramp_profile_synchronize(uint8_t *profile_a, uint8_t *profile_b, re
         return;
     }
 
-    term = (extra + *(real *)(shorter + 0x14)) * max_acceleration;
+    term = (extra + shorter->phase2_duration) * max_acceleration;
     radicand = term * term -
-        -extra * (real)fabs((double)(*(real *)(shorter + 0x10) * *(real *)(shorter + 0x0c) +
-                                      *(real *)(shorter + 0x08))) * max_acceleration * 4.0f;
+        -extra * (real)fabs((double)(shorter->phase1_duration * shorter->phase1_acceleration +
+                                      shorter->start_velocity)) * max_acceleration * 4.0f;
     adjusted_duration = ((real)sqrt((double)radicand) - term) / (max_acceleration + max_acceleration);
 
     // min(+0x10, +0x1c) as 0x56490b..0x56491d computes it: +0x10 unless it is greater
-    cruise_velocity = *(real *)(shorter + 0x10) > *(real *)(shorter + 0x1c) ?
-        *(real *)(shorter + 0x1c) : *(real *)(shorter + 0x10);
+    cruise_velocity = shorter->phase1_duration > shorter->phase3_duration ?
+        shorter->phase3_duration : shorter->phase1_duration;
     if (cruise_velocity < adjusted_duration) {
         adjusted_duration = cruise_velocity;
     }
 
     if (0.0f < adjusted_duration) {
-        real new_start_velocity = (*(real *)(shorter + 0x10) - adjusted_duration) * *(real *)(shorter + 0x0c) +
-            *(real *)(shorter + 0x08);
-        *(real *)(shorter + 0x10) = *(real *)(shorter + 0x10) - adjusted_duration;
-        *(real *)(shorter + 0x1c) = *(real *)(shorter + 0x1c) - adjusted_duration;
-        *(real *)(shorter + 0x14) =
-            ((new_start_velocity + new_start_velocity + adjusted_duration * *(real *)(shorter + 0x0c)) *
+        real new_start_velocity = (shorter->phase1_duration - adjusted_duration) * shorter->phase1_acceleration +
+            shorter->start_velocity;
+        shorter->phase1_duration = shorter->phase1_duration - adjusted_duration;
+        shorter->phase3_duration = shorter->phase3_duration - adjusted_duration;
+        shorter->phase2_duration =
+            ((new_start_velocity + new_start_velocity + adjusted_duration * shorter->phase1_acceleration) *
              adjusted_duration) / new_start_velocity;
     }
 }

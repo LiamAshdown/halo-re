@@ -48,7 +48,7 @@ extern data_array *player_data;     // 0x0087a480
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b,
-    real param_1, real param_2, real param_3, real param_4); // 0x4cef90, math module
+    real radius, real max_distance, real sin_max_angle, real cos_max_angle); // 0x4cef90, math module
 extern uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index object,
     observer_target_candidate *out, real_point3d *reference_position); // 0x459b10, EAX facing, ECX object, ESI out,
     // stack (cone, reference_position)

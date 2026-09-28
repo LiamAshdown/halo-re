@@ -22,7 +22,7 @@
 // *out_velocity. Returns nonzero once `time` has run past every phase in the profile (i.e. the
 // ramp has finished and the caller has reached its target); while the profile is already in the
 // dead zone (within_dead_zone != 0) it returns that same flag unchanged.
-uint8_t bounded_ramp_profile_evaluate(uint8_t *profile, real time, real start_position,
+uint8_t bounded_ramp_profile_evaluate(bounded_ramp_profile *profile, real time, real start_position,
                                        real *out_position, real start_velocity, real *out_velocity)
 {
     uint8_t coasting;
@@ -30,37 +30,37 @@ uint8_t bounded_ramp_profile_evaluate(uint8_t *profile, real time, real start_po
     real velocity;
     real phase_time;
 
-    coasting = profile[0];
+    coasting = profile->within_dead_zone;
     position = start_position;
     velocity = start_velocity;
 
     if (coasting == 0 && 0.0f < time) {
-        if (0.0f < *(real *)(profile + 0x10)) {
+        if (0.0f < profile->phase1_duration) {
             phase_time = time;
-            if (*(real *)(profile + 0x10) < time) {
-                phase_time = *(real *)(profile + 0x10);
+            if (profile->phase1_duration < time) {
+                phase_time = profile->phase1_duration;
             }
-            position = (phase_time * *(real *)(profile + 0x0c) * 0.5f + start_velocity) * phase_time + position;
-            velocity = phase_time * *(real *)(profile + 0x0c) + start_velocity;
+            position = (phase_time * profile->phase1_acceleration * 0.5f + start_velocity) * phase_time + position;
+            velocity = phase_time * profile->phase1_acceleration + start_velocity;
             time = time - phase_time;
         }
         if (0.0f < time) {
-            if (0.0f < *(real *)(profile + 0x14)) {
+            if (0.0f < profile->phase2_duration) {
                 phase_time = time;
-                if (*(real *)(profile + 0x14) < time) {
-                    phase_time = *(real *)(profile + 0x14);
+                if (profile->phase2_duration < time) {
+                    phase_time = profile->phase2_duration;
                 }
                 position = velocity * phase_time + position;
                 time = time - phase_time;
             }
             if (0.0f < time) {
-                if (0.0f < *(real *)(profile + 0x1c)) {
+                if (0.0f < profile->phase3_duration) {
                     phase_time = time;
-                    if (*(real *)(profile + 0x1c) < time) {
-                        phase_time = *(real *)(profile + 0x1c);
+                    if (profile->phase3_duration < time) {
+                        phase_time = profile->phase3_duration;
                     }
-                    position = (phase_time * *(real *)(profile + 0x18) * 0.5f + velocity) * phase_time + position;
-                    velocity = phase_time * *(real *)(profile + 0x18) + velocity;
+                    position = (phase_time * profile->phase3_acceleration * 0.5f + velocity) * phase_time + position;
+                    velocity = phase_time * profile->phase3_acceleration + velocity;
                     time = time - phase_time;
                 }
                 if (0.0f < time) {

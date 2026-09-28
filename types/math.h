@@ -87,6 +87,23 @@ typedef struct real_plane3d {
     float d;                   // 0x0c distance along the normal
 } real_plane3d;                // size 0x10
 
+// bounded_ramp_profile: a three-phase (accelerate / coast / decelerate) motion profile bounded by
+// a maximum velocity and acceleration. bounded_ramp_profile_build (0x564580) fills it,
+// bounded_ramp_profile_evaluate (0x564990) samples it, bounded_ramp_profile_synchronize
+// (0x564840) stretches two of them to the same duration. Field names are inferred from that
+// arithmetic (see src/math/bounded_ramp_profile_build.c).
+typedef struct bounded_ramp_profile {
+    uint8_t within_dead_zone;           // 0x00 error and velocity already below 0.001: no ramp
+    uint8_t unknown_01[3];              // 0x01
+    real start_position;                // 0x04 the position error
+    real start_velocity;                // 0x08
+    real phase1_acceleration;           // 0x0c
+    real phase1_duration;               // 0x10
+    real phase2_duration;               // 0x14 constant-velocity coast
+    real phase3_acceleration;           // 0x18
+    real phase3_duration;               // 0x1c
+} bounded_ramp_profile;                 // size 0x20
+
 // quaternion_normalize @0x4cdb20 writes {0,0,0,1} for a degenerate quaternion,
 // which fixes element 3 as the scalar part.
 typedef struct real_quaternion {

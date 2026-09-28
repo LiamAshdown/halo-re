@@ -38,18 +38,18 @@
 #include "tags.h"
 #include "math.h"
 
-uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b, real param_1, real param_2, real param_3, real param_4)
+uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b, real radius, real max_distance, real sin_max_angle, real cos_max_angle)
 {
     real dx = point_b->x - point_a->x;
     real dy = point_b->y - point_a->y;
     real dz = point_b->z - point_a->z;
     real projection = dy * axis->j + dz * axis->k + dx * axis->i;
 
-    if (-param_1 <= projection) {
-        real upper = param_1 + param_2;
+    if (-radius <= projection) {
+        real upper = radius + max_distance;
         if (upper >= projection) {
-            real lhs = param_1 * param_1 + (param_1 * param_3 + param_1 * param_3 + projection) * projection;
-            real rhs = (dx * dx + dy * dy + dz * dz) * param_4 * param_4;
+            real lhs = radius * radius + (radius * sin_max_angle + radius * sin_max_angle + projection) * projection;
+            real rhs = (dx * dx + dy * dy + dz * dz) * cos_max_angle * cos_max_angle;
             if (rhs <= lhs) {
                 return 1;
             }

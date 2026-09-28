@@ -45,7 +45,7 @@ extern double fabs(double x); // x87 FABS
 // carries a point at initial_velocity, offset by -position_error, back to 0 and brings it to
 // rest. Recurses once on a sign flip so the forward-moving case only needs to be solved once.
 void bounded_ramp_profile_build(real position_error, real initial_velocity, real max_velocity,
-                                 real max_acceleration, uint8_t *profile)
+                                 real max_acceleration, bounded_ramp_profile *profile)
 {
     real half_v_over_a;
     real reach; // position_error plus the distance covered while coasting to a stop at initial_velocity
@@ -55,29 +55,29 @@ void bounded_ramp_profile_build(real position_error, real initial_velocity, real
     real root_1, root_2;
     uint8_t moving_forward; // CL in the original: initial_velocity > 0 (a NaN counts as not forward)
 
-    *(real *)(profile + 0x04) = position_error;
-    *(real *)(profile + 0x08) = initial_velocity;
+    profile->start_position = position_error;
+    profile->start_velocity = initial_velocity;
 
     if ((real)fabs((double)position_error) < 0.001f && (real)fabs((double)initial_velocity) < 0.001f) {
-        profile[0] = 1;
-        *(uint32_t *)(profile + 0x0c) = 0;
-        *(uint32_t *)(profile + 0x10) = 0;
-        *(uint32_t *)(profile + 0x14) = 0;
-        *(uint32_t *)(profile + 0x18) = 0;
-        *(uint32_t *)(profile + 0x1c) = 0;
+        profile->within_dead_zone = 1;
+        *(uint32_t *)&profile->phase1_acceleration = 0;
+        *(uint32_t *)&profile->phase1_duration = 0;
+        *(uint32_t *)&profile->phase2_duration = 0;
+        *(uint32_t *)&profile->phase3_acceleration = 0;
+        *(uint32_t *)&profile->phase3_duration = 0;
         return;
     }
-    profile[0] = 0;
+    profile->within_dead_zone = 0;
 
     half_v_over_a = (real)fabs((double)initial_velocity) / max_acceleration;
     moving_forward = (uint8_t)(initial_velocity > 0.0f);
     if (half_v_over_a * 0.5f * initial_velocity * 0.5f + position_error < 0.0f) {
         // Moving the wrong way: solve the mirrored problem and negate the result.
         bounded_ramp_profile_build(-position_error, -initial_velocity, max_velocity, max_acceleration, profile);
-        *(real *)(profile + 0x04) = -*(real *)(profile + 0x04);
-        *(real *)(profile + 0x08) = -*(real *)(profile + 0x08);
-        *(real *)(profile + 0x0c) = -*(real *)(profile + 0x0c);
-        *(real *)(profile + 0x18) = -*(real *)(profile + 0x18);
+        profile->start_position = -profile->start_position;
+        profile->start_velocity = -profile->start_velocity;
+        profile->phase1_acceleration = -profile->phase1_acceleration;
+        profile->phase3_acceleration = -profile->phase3_acceleration;
         return;
     }
 
@@ -85,12 +85,12 @@ void bounded_ramp_profile_build(real position_error, real initial_velocity, real
     if (reach < 0.0f) {
         // Already carrying enough velocity to overshoot while just coasting to a stop: the whole
         // profile is a single deceleration with no accel or cruise phase.
-        *(uint32_t *)(profile + 0x0c) = 0;
-        *(uint32_t *)(profile + 0x10) = 0;
-        *(uint32_t *)(profile + 0x14) = 0;
+        *(uint32_t *)&profile->phase1_acceleration = 0;
+        *(uint32_t *)&profile->phase1_duration = 0;
+        *(uint32_t *)&profile->phase2_duration = 0;
         accel_time = (initial_velocity * initial_velocity) / (position_error + position_error);
-        *(real *)(profile + 0x18) = accel_time;
-        *(real *)(profile + 0x1c) = -(initial_velocity / accel_time);
+        profile->phase3_acceleration = accel_time;
+        profile->phase3_duration = -(initial_velocity / accel_time);
         return;
     }
 
@@ -129,26 +129,26 @@ void bounded_ramp_profile_build(real position_error, real initial_velocity, real
     max_velocity = end_velocity;
 
 have_accel_time:
-    *(real *)(profile + 0x0c) = -max_acceleration;
-    *(real *)(profile + 0x18) = max_acceleration;
+    profile->phase1_acceleration = -max_acceleration;
+    profile->phase3_acceleration = max_acceleration;
     if (!moving_forward) {
-        *(real *)(profile + 0x10) = max_velocity;
+        profile->phase1_duration = max_velocity;
         half_v_over_a = max_velocity + half_v_over_a;
     } else {
-        *(real *)(profile + 0x10) = max_velocity + half_v_over_a;
+        profile->phase1_duration = max_velocity + half_v_over_a;
         half_v_over_a = max_velocity;
     }
-    *(real *)(profile + 0x1c) = half_v_over_a;
+    profile->phase3_duration = half_v_over_a;
 
     if (max_velocity < end_velocity) {
-        real coast_velocity = -max_acceleration * *(real *)(profile + 0x10) + initial_velocity;
+        real coast_velocity = -max_acceleration * profile->phase1_duration + initial_velocity;
         real coast_time = end_velocity - max_velocity;
         real term = coast_time * coast_velocity;
-        *(real *)(profile + 0x14) =
+        profile->phase2_duration =
             ((term + term) - coast_time * coast_time * max_acceleration) / coast_velocity;
         return;
     }
-    *(uint32_t *)(profile + 0x14) = 0;
+    *(uint32_t *)&profile->phase2_duration = 0;
 }
 
 #if 0
