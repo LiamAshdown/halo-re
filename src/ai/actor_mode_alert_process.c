@@ -24,7 +24,7 @@
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_scenario;    // 0x00746f8c
+extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -72,7 +72,7 @@ uint8_t actor_mode_alert_process(uint32_t actor_index)
         return 0;
     }
     if (D(0x34) != 0xffffffff) {
-        uint8_t *encounter = *(uint8_t **)(global_scenario + 0x430) + (D(0x34) & 0xffff) * 0xb0;
+        uint8_t *encounter = (uint8_t *)global_scenario->encounters.pointer + (D(0x34) & 0xffff) * 0xb0;
         uint8_t *squad = *(uint8_t **)(encounter + 0x84) + W(0x3a) * 0xe8;
         int16_t next = W(0xa4);
 

@@ -11,12 +11,13 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *object_globals_pointer; // 0x006b8cbc
+extern object_globals *object_globals_pointer;
 
 void hs_evaluate_object_pvs_set_object(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -28,10 +29,10 @@ void hs_evaluate_object_pvs_set_object(int16_t function_index, uint32_t thread_i
     datum_index object_index = (datum_index)arguments[0];
 
     if (object_index == k_datum_index_none) {
-        *(int16_t *)(object_globals_pointer + 0x90) = 0;
+        object_globals_pointer->ambient_cluster_mode = 0;
     } else {
-        *(datum_index *)(object_globals_pointer + 0x94) = object_index;
-        *(int16_t *)(object_globals_pointer + 0x90) = 1;
+        *(datum_index *)&object_globals_pointer->ambient_cluster_index = object_index;
+        object_globals_pointer->ambient_cluster_mode = 1;
     }
     hs_thread_return(0, thread_index);
     }

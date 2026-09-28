@@ -24,7 +24,7 @@ extern void *current_game_engine; // 0x006f1d20
 extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
-extern uint8_t *global_scenario; // 0x00746f8c (+0x354 / +0x358 the 0x34 byte netgame equipment, +0x37c the starting locations)
+extern Scenario *global_scenario;
 extern uint32_t random_seed_global; // 0x00719cd0
 extern real_point3d *ctf_team_flag_stand_position[2]; // 0x006b0e88 (the ctf globals start here, 13 dwords)
 extern datum_index ctf_team_flag_object[2]; // 0x006b0e90
@@ -71,7 +71,7 @@ uint8_t game_engine_ctf_initialize_for_new_game(void)
         slot = game_engine_variant.ctf_option_7c != 0 ? (team + 1) % 2 : team;
         ctf_team_flag_stand_position[slot] = 0;
         if (index != -1) {
-            ctf_team_flag_stand_position[slot] = (real_point3d *)(*(uint8_t **)(global_scenario + 0x37c) + index * 0x94);
+            ctf_team_flag_stand_position[slot] = (real_point3d *)((uint8_t *)global_scenario->netgame_flags.pointer + index * 0x94);
         }
     }
     if (network_game_mode == 2) {
@@ -106,14 +106,14 @@ uint8_t game_engine_ctf_initialize_for_new_game(void)
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     }
     ctf_flag_capture_limit_006b0ea0 = game_engine_variant.score_limit;
-    count = *(int16_t *)(global_scenario + 0x354);
+    count = *(int16_t *)&global_scenario->player_starting_locations.count;
     for (i = 0; i < count; i++) {
         uint8_t *equipment = (uint8_t *)0;
         int16_t type;
         uint8_t belongs;
 
-        if (i >= 0 && i < *(int32_t *)(global_scenario + 0x354)) {
-            equipment = *(uint8_t **)(global_scenario + 0x358) + i * 0x34;
+        if (i >= 0 && i < *(int32_t *)&global_scenario->player_starting_locations.count) {
+            equipment = (uint8_t *)global_scenario->player_starting_locations.pointer + i * 0x34;
         }
         type = *(int16_t *)(equipment + 0x10);
         if (type != 0 && type != 1) {

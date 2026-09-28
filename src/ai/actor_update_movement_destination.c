@@ -28,7 +28,7 @@ extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_scenario;    // 0x00746f8c
+extern Scenario *global_scenario;
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
 extern real random_real_range(real min, real max); // 0x401050
@@ -53,7 +53,7 @@ extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620,
 
 static real_point3d *actor_held_firing_position(uint8_t *actor)
 {
-    uint8_t *encounter = *(uint8_t **)(global_scenario + 0x430) + (A_D(0x34) & 0xffff) * 0xb0;
+    uint8_t *encounter = (uint8_t *)global_scenario->encounters.pointer + (A_D(0x34) & 0xffff) * 0xb0;
 
     return (real_point3d *)(*(uint8_t **)(encounter + 0x9c) + A_W(0x3b8) * 0x18);
 }

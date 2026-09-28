@@ -16,7 +16,7 @@
 #include "cache.h"
 #include "interface.h"
 
-extern uint8_t *hud_messaging; // 0x006b3a40
+extern hud_messaging_globals *hud_messaging;
 extern Scenario *global_scenario; // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool; // 0x006926c4
@@ -24,7 +24,7 @@ extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); 
 
 void ui_widget_text_from_hud_objective(widget_instance *widget)
 {
-    uint8_t *entry = *(uint8_t **)(hud_messaging + 0x470);
+    uint8_t *entry = *(uint8_t **)&hud_messaging->objective_text;
     uint8_t *text_tag;
     uint16_t *text;
     int32_t length;

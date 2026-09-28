@@ -15,12 +15,12 @@
 #include "game.h"
 
 extern data_array *object_data;  // 0x008603b0
-extern uint8_t *global_scenario; // 0x00746f8c
+extern Scenario *global_scenario;
 
 void actor_obey_member_enter(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index,
     void *component_record, int32_t secondary_record, uint32_t callback_extra)
 {
-    uint8_t *list = *(uint8_t **)(global_scenario + 0x43c) + (int16_t)command_list_index * 0x60;
+    uint8_t *list = (uint8_t *)global_scenario->command_lists.pointer + (int16_t)command_list_index * 0x60;
 
     (void)actor_index;
     (void)component_record;

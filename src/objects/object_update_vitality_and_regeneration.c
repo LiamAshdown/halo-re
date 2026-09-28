@@ -27,7 +27,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_globals;     // 0x00746fa0, +0x18c -> +0x1c the kill damage effect
+extern Globals *global_globals;
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index,
@@ -81,7 +81,7 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
             uint16_t kill_request = (uint16_t)(flags & 0x2000);
 
             if (kill_request || (flags & 0x60)) {
-                datum_index effect = *(datum_index *)(*(uint8_t **)(global_globals + 0x18c) + 0x1c);
+                datum_index effect = *(datum_index *)((uint8_t *)global_globals->falling_damage.pointer + 0x1c);
 
                 if ((flags & 4) == 0 && effect != k_datum_index_none) {
                     damage_data dd;

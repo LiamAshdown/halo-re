@@ -34,8 +34,8 @@ extern data_array *object_data;                     // 0x008603b0
 extern uint8_t *local_player_globals;               // 0x0087a478
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern int16_t network_game_mode;                   // 0x00719720
-extern uint8_t *global_globals;                     // 0x00746fa0
-extern uint8_t *global_scenario;                    // 0x00746f8c
+extern Globals *global_globals;
+extern Scenario *global_scenario;
 extern const real_vector3d *global_up3d_pointer;    // 0x00696720
 extern uint8_t shared_hud_text_draw_state;          // 0x00871de0
 extern tag_instance *tag_instances;                 // 0x0087bc14
@@ -139,13 +139,13 @@ void player_respawn(uint32_t player_index)
         if (location_index == -1) {
             goto reset_player_state;
         }
-        unit_tag = *(datum_index *)(*(uint8_t **)(global_globals + 0x174) + 0xc);
+        unit_tag = *(datum_index *)((uint8_t *)global_globals->player_information.pointer + 0xc);
         if (unit_tag == k_datum_index_none) {
             goto reset_player_state;
         }
         location = game_get_player_starting_location(location_index);
         if (current_game_engine != 0) {
-            unit_tag = *(datum_index *)(*(uint8_t **)(global_globals + 0x168) + 0x1c);
+            unit_tag = *(datum_index *)((uint8_t *)global_globals->multiplayer_information.pointer + 0x1c);
         }
         object_placement_data_initialize(&placement, unit_tag, k_datum_index_none);
         placement.position = *(real_point3d *)location;
@@ -178,7 +178,7 @@ void player_respawn(uint32_t player_index)
             game_engine_init_player_look_state_from_object(new_unit, *(int16_t *)(p + 2));
         }
         if (current_game_engine == 0) {
-            int32_t profile_count = *(int32_t *)(global_scenario + 0x348);
+            int32_t profile_count = *(int32_t *)&global_scenario->player_starting_profile.count;
 
             if (profile_count > 1 && *(int16_t *)(p + 0xae) > 0) {
                 unit_apply_starting_profile(1, *(datum_index *)(p + 0x34), 1);

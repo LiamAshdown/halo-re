@@ -16,7 +16,7 @@
 #include <wchar.h>
 #include <string.h>
 
-extern uint8_t *global_scenario; // 0x00746f8c (Scenario *; +0x378 count / +0x37c elements of the 0x94 byte player starting locations)
+extern Scenario *global_scenario;
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
 extern int32_t king_team_hill_seconds_network[16]; // 0x0087a7e0
 extern int16_t game_engine_recent_location_count; // 0x006b106c
@@ -36,8 +36,8 @@ uint8_t game_engine_king_initialize_for_new_game(void)
     memset(king_bucket_credit_ticks, 0, 0x6b * 4);
     memset(king_team_hill_seconds_network, 0, 0x6b * 4);
     game_engine_recent_location_count = 0;
-    for (i = 0; i < *(int32_t *)(global_scenario + 0x378); i++) {
-        uint8_t *location = *(uint8_t **)(global_scenario + 0x37c) + i * 0x94;
+    for (i = 0; i < *(int32_t *)&global_scenario->netgame_flags.count; i++) {
+        uint8_t *location = (uint8_t *)global_scenario->netgame_flags.pointer + i * 0x94;
         int16_t k;
 
         if (*(int16_t *)(location + 0x10) != 8) {
@@ -53,7 +53,7 @@ uint8_t game_engine_king_initialize_for_new_game(void)
             count++;
         }
     }
-    if (*(int32_t *)(global_scenario + 0x378) > 0) {
+    if (*(int32_t *)&global_scenario->netgame_flags.count > 0) {
         game_engine_recent_location_count = count;
     }
     king_starting_location_type = 0;

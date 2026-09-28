@@ -11,13 +11,16 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *player_control_globals_ptr; // 0x006b145c
+extern player_control_globals *player_control_globals_ptr;
 
 void hs_evaluate_player_action_test_back(int16_t function_index, uint32_t thread_index, char first)
 {
-    *(uint32_t *)(player_control_globals_ptr + 4) |= 8;
-    *(uint32_t *)(player_control_globals_ptr + 8) |= 8;
+    player_control_globals_ptr->action_flags_latched |= 8;
+    player_control_globals_ptr->action_flags_edge |= 8;
     hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 3) & 1), thread_index);
 }

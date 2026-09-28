@@ -10,12 +10,13 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "interface.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *hud_messaging; // 0x006b3a40
+extern hud_messaging_globals *hud_messaging;
 
 void hs_evaluate_hud_set_timer_warning_time(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -26,7 +27,7 @@ void hs_evaluate_hud_set_timer_warning_time(int16_t function_index, uint32_t thr
     if (arguments != 0) {
     uint16_t seconds = (uint16_t)(*(uint16_t *)&arguments[0] * 0x3c + *(uint16_t *)&arguments[1]);
 
-    *(uint16_t *)(hud_messaging + 0x47e) = (uint16_t)((uint32_t)seconds * 0x1e);
+    *(uint16_t *)&hud_messaging->timer_warning_ticks = (uint16_t)((uint32_t)seconds * 0x1e);
     hs_thread_return(0, thread_index);
     }
 }

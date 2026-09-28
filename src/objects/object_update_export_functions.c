@@ -23,7 +23,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_scenario; // 0x00746f8c
+extern Scenario *global_scenario;
 extern real random_real(void); // 0x4019f0
 extern float angle_delta_wrapped(float from, float to); // 0x470d10
 extern double fpatan(double y, double x); // x87 FPATAN: atan(y / x) with the quadrant of (x, y)
@@ -66,7 +66,7 @@ void object_update_export_functions(datum_index object_index)
                 value = *output; // near vertical (or NaN): unchanged
             } else {
                 float yaw = (float)fpatan(forward[0], forward[1]);
-                value = angle_delta_wrapped(*(float *)(global_scenario + 0x4c), yaw) * 0.15915494f + 0.5f;
+                value = angle_delta_wrapped(global_scenario->local_north, yaw) * 0.15915494f + 0.5f;
                 value = value >= 0.0f ? clamp_to_one(value) : 0.0f;
             }
             break;

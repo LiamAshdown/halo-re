@@ -11,12 +11,15 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *player_control_globals_ptr; // 0x006b145c
+extern player_control_globals *player_control_globals_ptr;
 
 void hs_evaluate_player_camera_control(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -28,9 +31,9 @@ void hs_evaluate_player_camera_control(int16_t function_index, uint32_t thread_i
     uint8_t enable = *(uint8_t *)&arguments[0];
 
     if (enable) {
-        *(uint32_t *)(player_control_globals_ptr + 0xc) &= 0xfffffffe;
+        player_control_globals_ptr->flags &= 0xfffffffe;
     } else {
-        *(uint32_t *)(player_control_globals_ptr + 0xc) |= 1;
+        player_control_globals_ptr->flags |= 1;
     }
     hs_thread_return((int32_t)enable, thread_index);
     }

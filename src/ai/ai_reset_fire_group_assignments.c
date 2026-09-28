@@ -32,7 +32,7 @@ extern data_array *prop_data;        // 0x008802c0
 extern data_array *swarm_data;       // 0x0088035c
 extern data_array *object_data;      // 0x008603b0
 extern uint8_t *ai_globals_ptr_raw;  // 0x00880354
-extern uint8_t *global_scenario;     // 0x00746f8c
+extern Scenario *global_scenario;
 extern uint8_t *team_pair_table;     // 0x006b0b84
 extern void *current_game_engine;    // 0x006f1d20
 extern uint8_t *local_player_globals; // 0x0087a478
@@ -153,7 +153,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
 
 void ai_reset_fire_group_assignments(void)
 {
-    int32_t encounter_count = *(int32_t *)(global_scenario + 0x42c);
+    int32_t encounter_count = *(int32_t *)&global_scenario->encounters.count;
     int16_t e;
     datum_index actor_index;
 

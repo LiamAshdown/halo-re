@@ -18,7 +18,7 @@
 #include "game.h"
 
 extern data_array *actor_data;       // 0x00880360
-extern uint8_t *global_scenario;     // 0x00746f8c
+extern Scenario *global_scenario;
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback,
@@ -35,7 +35,7 @@ uint8_t actor_mode_obey_process(uint32_t actor_index)
     actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)actor_squad_action_list_process,
         (uint32_t)&still_running, (uint16_t *)mode_data);
     if (still_running && mode_data[5] == 0) {
-        uint8_t *list = *(uint8_t **)(global_scenario + 0x43c) + *(int16_t *)mode_data * 0x60;
+        uint8_t *list = (uint8_t *)global_scenario->command_lists.pointer + *(int16_t *)mode_data * 0x60;
         int mark = 1;
 
         if ((list[0x20] & 0x10) && actor[0x15c] != 0) {

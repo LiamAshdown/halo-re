@@ -20,8 +20,8 @@ extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
 extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
-extern uint8_t *global_scenario; // 0x00746f8c
-extern uint8_t *global_globals; // 0x00746fa0 (Globals *; +0x168 the multiplayer information)
+extern Scenario *global_scenario;
+extern Globals *global_globals;
 extern int32_t race_used_locations[8]; // 0x006b139c, the starting locations given a vehicle so far
 extern int32_t race_used_location_count; // 0x006b13bc
 extern uint32_t race_vehicle_counts[4]; // 0x006b13c0, custom vehicle set: warthogs, ghosts, rocket warthogs, the sixth vehicle
@@ -39,7 +39,7 @@ extern double sin(double x); // C runtime
 static datum_index race_pick_vehicle_tag(int32_t index)
 {
     uint32_t vehicle_set = game_engine_variant.vehicle_set;
-    uint8_t *information = *(uint8_t **)(global_globals + 0x168);
+    uint8_t *information = (uint8_t *)global_globals->multiplayer_information.pointer;
     uint8_t *vehicles = *(uint8_t **)(information + 0x24);
     datum_index tag = 0xffffffff;
 
@@ -122,7 +122,7 @@ static void race_spawn_next_vehicle(datum_index player_index)
     }
     race_used_locations[count] = location_index;
     race_used_location_count = count + 1;
-    location = *(uint8_t **)(global_scenario + 0x37c) + location_index * 0x94;
+    location = (uint8_t *)global_scenario->netgame_flags.pointer + location_index * 0x94;
     tag = race_pick_vehicle_tag(count);
     if (tag == 0xffffffff) {
         return;

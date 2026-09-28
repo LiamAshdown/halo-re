@@ -30,7 +30,7 @@
 extern player_globals *local_player_globals;            // 0x0087a478
 extern data_array *player_data;                         // 0x0087a480
 extern data_array *object_data;                         // 0x008603b0
-extern uint8_t *global_scenario;                        // 0x00746f8c
+extern Scenario *global_scenario;
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern ScenarioStructureBSP *global_structure_bsp;
 
@@ -75,9 +75,9 @@ void players_structure_bsp_switch_regroup(void)
         return;
     }
 
-    flag_index = *(int16_t *)(*(uint8_t **)(global_scenario + 0x3a0) + volume * 8 + 6);
+    flag_index = *(int16_t *)((uint8_t *)global_scenario->bsp_switch_trigger_volumes.pointer + volume * 8 + 6);
     if (flag_index != -1) {
-        target = *(real_point3d *)(*(uint8_t **)(global_scenario + 0x4e8) + flag_index * 0x5c + 0x24);
+        target = *(real_point3d *)((uint8_t *)global_scenario->cutscene_flags.pointer + flag_index * 0x5c + 0x24);
         offset = 0.0f;
         while (object_collision_test_cluster_group(0x4029, &target, 0xffffffff)) {
             double sum;
@@ -111,7 +111,7 @@ void players_structure_bsp_switch_regroup(void)
             continue;
         }
         unit_object = (uint8_t *)((object_header *)object_data->data)[entry->unit & 0xffff].data;
-        trigger_volume = *(int16_t *)(*(uint8_t **)(global_scenario + 0x3a0) + local_player_globals->unknown_12 * 8);
+        trigger_volume = *(int16_t *)((uint8_t *)global_scenario->bsp_switch_trigger_volumes.pointer + local_player_globals->unknown_12 * 8);
         if (!scenario_trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
             continue;
         }

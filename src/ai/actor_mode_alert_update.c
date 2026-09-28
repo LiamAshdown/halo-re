@@ -16,7 +16,7 @@
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_scenario;    // 0x00746f8c
+extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))

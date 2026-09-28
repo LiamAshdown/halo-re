@@ -18,7 +18,7 @@
 extern ai_globals *ai_global_data;          // 0x00880354
 extern data_array *actor_data;              // 0x00880360
 extern int16_t global_structure_bsp_index;  // 0x0069e8d8
-extern uint8_t *global_scenario;            // 0x00746f8c
+extern Scenario *global_scenario;
 
 extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, EDI
 extern void encounter_add_actor(int16_t squad_index, datum_index actor_index, datum_index encounter_index,
@@ -35,7 +35,7 @@ void ai_unassigned_actors_attach_to_structure_bsp(void)
         datum_index next = entry->next_in_encounter;
 
         if (encounter_index != k_datum_index_none &&
-            *(int16_t *)(*(uint8_t **)(global_scenario + 0x430) + (encounter_index & 0xffff) * 0xb0 + 0x7e) ==
+            *(int16_t *)((uint8_t *)global_scenario->encounters.pointer + (encounter_index & 0xffff) * 0xb0 + 0x7e) ==
                 bsp_index) {
             ai_actor_unlink_from_unassigned_list(actor_index);
             encounter_add_actor(entry->unknown_38, actor_index, entry->unknown_30, 1);

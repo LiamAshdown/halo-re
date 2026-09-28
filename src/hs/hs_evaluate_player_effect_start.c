@@ -12,12 +12,14 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
+#include "effects.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *player_effect_globals_pointer; // 0x006f1884
+extern player_effect_globals *player_effect_globals_pointer;
 extern long lrint(double x);
 
 void hs_evaluate_player_effect_start(int16_t function_index, uint32_t thread_index, char first)
@@ -30,10 +32,10 @@ void hs_evaluate_player_effect_start(int16_t function_index, uint32_t thread_ind
     float scaled = *(float *)&arguments[1] * 30.0f;
     int16_t ticks = (int16_t)lrint((double)scaled);
 
-    *(int32_t *)(player_effect_globals_pointer + 0x118) = arguments[0];
-    *(int16_t *)(player_effect_globals_pointer + 0x11c) = ticks;
-    *(int16_t *)(player_effect_globals_pointer + 0x11e) = ticks;
-    *(uint32_t *)(player_effect_globals_pointer + 0x120) = (*(uint32_t *)(player_effect_globals_pointer + 0x120) & 0xfffffffd) | 1;
+    *(int32_t *)&player_effect_globals_pointer->scripted_shake_intensity = arguments[0];
+    player_effect_globals_pointer->scripted_shake_ticks = ticks;
+    player_effect_globals_pointer->scripted_shake_duration = ticks;
+    player_effect_globals_pointer->scripted_shake_flags = (player_effect_globals_pointer->scripted_shake_flags & 0xfffffffd) | 1;
     hs_thread_return(0, thread_index);
     }
 }

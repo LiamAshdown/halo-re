@@ -27,7 +27,7 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern uint8_t *global_scenario;     // 0x00746f8c
+extern Scenario *global_scenario;
 extern data_array *player_data;      // 0x0087a480
 extern int16_t game_connection_role; // 0x00719720 (1 = client)
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -200,7 +200,7 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
     if (object_index == k_datum_index_none) {
         return;
     }
-    flag = *(uint8_t **)(global_scenario + 0x4e8) + location_index * 0x5c;
+    flag = (uint8_t *)global_scenario->cutscene_flags.pointer + location_index * 0x5c;
     placed = OBJ(object_index);
 
     if (detach_from_parent && *(datum_index *)(placed + 0x11c) != k_datum_index_none) {

@@ -42,7 +42,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern uint8_t *network_client;      // 0x0071c2d8, +0xf48 the prediction history
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t is_dedicated_server_flag; // 0x00724a44
-extern uint8_t *global_globals;      // 0x00746fa0, +0x174 the damage shake block
+extern Globals *global_globals;
 extern uint8_t network_index_cache_container[]; // 0x006870d8
 
 extern real random_real_range(real min, real max); // 0x401050
@@ -424,7 +424,7 @@ local_reactions:
     // 0x567f73: player screen shake
     if (*(datum_index *)(obj + 0x218) != k_datum_index_none && *(float *)(effect_block + 0x20) > 0.0f &&
         (current_game_engine != 0 || is_dedicated_server_flag)) {
-        uint8_t *shake = *(uint8_t **)(global_globals + 0x174);
+        uint8_t *shake = (uint8_t *)global_globals->player_information.pointer;
         float step = dd->random_blend * *(float *)(effect_block + 0x20);
         float cap = *(float *)(effect_block + 0x24) * dd->random_blend;
         int16_t add;

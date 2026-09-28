@@ -10,9 +10,12 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *player_control_globals_ptr; // 0x006b145c
+extern player_control_globals *player_control_globals_ptr;
 
 void hs_evaluate_player_action_test_look_relative_left(int16_t function_index, uint32_t thread_index, char first)
 {
