@@ -2625,3 +2625,17 @@ Relinked: unresolved 1, traps 127.
 - Networking call audit: all OPEN items from iterations 13/17/18 closed except the register pass-through of
   network_game_server_handle_client_join (passed 0, UNSURE).
 - NEXT: long tail -- promote image regions to typed C; re-audit other modules with scratchpad/audit_calls.py.
+
+## Iteration 20 (2026-09-28) -- send path; prototype re-audit started
+- traps before/after: 0 / 0; unresolved 0 (HALO_NO_RETAIL=1); image verify identical.
+- tools/check_prototypes.py re-run: 525 extern declarations disagree with their definition (scratchpad/
+  proto_by_callee.py groups them by callee); now 502. Biggest remaining: networking 200, game 132, interface 39.
+- Send path fixed from the disassembly (16 senders + update_server_send_update + rcon): each writes a 1-bit item flag
+  (1 game action / 0 message record) and the encoded bits into the channel's outgoing stream (channel +0x10) with
+  bit_stream_write_bits_chunked(EAX stream, ECX values, stack bits) -- the C passed placeholders in the wrong order;
+  network_channel_stream_flush takes the stream (ESI) too; update_server wrote into the retransmit stream (+0x544).
+- rcon_send_request is 304 bytes (0x4e4e30 "network_game_server_send_message_to_all_machines" is its copy-loop
+  label -> documented fragment, no code entry); rcon and team-allegiance encode one contiguous record.
+- NEXT: continue the prototype mismatches -- data_packet_group_encode_packet (9 callers declare 4 params, the
+  definition has 10: check 0x4d0ae0's real convention), network_session_send_to_machine (7 vs 9),
+  gamespy_array_length, tag_lookup, then game/ and interface/.
