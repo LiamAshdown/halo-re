@@ -4,9 +4,9 @@
 
 typedef struct standalone_piece {
     const char *name;
-    unsigned long va;
-    unsigned long blob_offset;
-    unsigned long raw_size;
+    unsigned long va;                 /* original address */
+    const void *source;               /* the piece in our exe (standalone/image/<name>.asm) */
+    unsigned long size;
 } standalone_piece;
 
 typedef struct standalone_import {
@@ -16,11 +16,6 @@ typedef struct standalone_import {
     unsigned short ordinal;
     unsigned long module_handle_slot; /* delay-load: where the module handle is cached, else 0 */
 } standalone_import;
-
-typedef struct standalone_code_pointer {
-    unsigned long slot;               /* dword in .rdata/.data that held an original function address */
-    void *target;                     /* our C function */
-} standalone_code_pointer;
 
 extern const standalone_piece standalone_pieces[];
 extern const int standalone_piece_count;
@@ -33,8 +28,6 @@ typedef struct standalone_code_entry {
 
 extern const standalone_code_entry standalone_code_entries[];
 extern const int standalone_code_entry_count;
-extern const standalone_code_pointer standalone_code_pointers[];
-extern const int standalone_code_pointer_count;
 extern const char standalone_halo_folder[];
 
 #endif

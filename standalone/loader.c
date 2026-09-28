@@ -4,9 +4,10 @@
    data sections back where they were:
      1. The first instance starts a suspended copy of itself and reserves 0x400000..0x891000 in it before its
         loader initialises (the same trick harness/difftest_main.c uses), so no heap or DLL can land there.
-     2. The child commits the range, copies halo_image.bin (the .rdata/.data/.tls/.rsrc raw bytes written by
-        tools/gen_standalone.py) to the recorded addresses, fills both import tables (normal and delay-load) with
-        GetProcAddress, and writes our C functions' addresses into every code pointer stored in that data.
+     2. The child commits the range, copies the data image linked into this exe (standalone/image/*.asm: .rdata,
+        initialised .data, .tls, .rsrc and the few .text ranges read as data; every code pointer in it is already
+        our C function's address, relocated by the linker) to the original addresses, and fills both import tables
+        (normal and delay-load) with GetProcAddress.
      3. It changes to the Halo install folder (maps\, binkw32.dll, vorbis.dll live there) and calls the rewritten
         shell_winmain, as the original CRT entry did.
    A call to a function we have no C for lands in standalone_missing_function (the trap stubs in
@@ -212,10 +213,6 @@ static int run_reserved_child(void)
 
 static int map_image(void)
 {
-    char path[MAX_PATH];
-    FILE *f;
-    long size;
-    unsigned char *blob;
     DWORD old_protect;
     int i;
 
@@ -224,31 +221,10 @@ static int map_image(void)
                  GetLastError());
         return 0;
     }
-    _snprintf(path, sizeof path, "%s\\halo_image.bin", g_exe_dir);
-    f = fopen(path, "rb");
-    if (!f) {
-        log_line("cannot open %s", path);
-        return 0;
-    }
-    fseek(f, 0, SEEK_END);
-    size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    blob = (unsigned char *)malloc(size);
-    if (!blob || fread(blob, 1, size, f) != (size_t)size) {
-        log_line("cannot read %s", path);
-        fclose(f);
-        return 0;
-    }
-    fclose(f);
     for (i = 0; i < standalone_piece_count; i++) {
         const standalone_piece *p = &standalone_pieces[i];
-        if (p->blob_offset + p->raw_size > (unsigned long)size) {
-            log_line("halo_image.bin is shorter than %s needs", p->name);
-            return 0;
-        }
-        memcpy((void *)p->va, blob + p->blob_offset, p->raw_size);   /* the rest of the committed range stays zero */
+        memcpy((void *)p->va, p->source, p->size);   /* the rest of the committed range stays zero */
     }
-    free(blob);
     /* nothing in the range is code any more: without execute permission a jump into original code faults at once
        (DEP is on for this exe: /NXCOMPAT) and log_exception names the address */
     VirtualProtect((void *)RESERVE_BASE, RESERVE_END - RESERVE_BASE, PAGE_READWRITE, &old_protect);
@@ -312,15 +288,6 @@ static void fill_imports(void)
         if (im->module_handle_slot && h) *(HMODULE *)im->module_handle_slot = h;
     }
     log_line("filled %d import slots (%d unresolved)", standalone_import_count, missing);
-}
-
-static void fix_code_pointers(void)
-{
-    int i;
-    for (i = 0; i < standalone_code_pointer_count; i++) {
-        *(void **)standalone_code_pointers[i].slot = standalone_code_pointers[i].target;
-    }
-    log_line("redirected %d code pointers to C", standalone_code_pointer_count);
 }
 
 /* The original CRT startup (mainCRTStartup) set some of its own globals before WinMain; the rewritten C reads
@@ -449,7 +416,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, i
     preload_system_dinput8();
     SetDllDirectoryA(standalone_halo_folder);
     fill_imports();
-    fix_code_pointers();
     emulate_crt_startup();
     if (!SetCurrentDirectoryA(standalone_halo_folder)) {
         log_line("cannot change to the Halo folder %s", standalone_halo_folder);

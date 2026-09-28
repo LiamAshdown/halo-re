@@ -34,14 +34,17 @@ def c_string(s):
 
 
 def write_tables():
-    layout = json.load(open(os.path.join(OUT, "layout.json")))
+    pieces = json.load(open(os.path.join(SA, "image", "pieces.json")))
     imports = json.load(open(os.path.join(OUT, "imports.json")))
     lines = ['#include "standalone_tables.h"', "",
-             "const char standalone_halo_folder[] = %s;" % c_string(HALO_FOLDER), "",
-             "const standalone_piece standalone_pieces[] = {"]
-    for p in layout["pieces"]:
-        lines.append("    { %s, 0x%08xUL, 0x%08xUL, 0x%08xUL }," % (c_string(p["name"]), p["va"], p["blob_offset"], p["raw"]))
-    lines += ["};", "const int standalone_piece_count = %d;" % len(layout["pieces"]), "",
+             "const char standalone_halo_folder[] = %s;" % c_string(HALO_FOLDER), ""]
+    # the data image the loader copies to the original addresses (standalone/image/<label>.asm)
+    lines += ["extern const unsigned char halo_image_%s[];" % p["label"] for p in pieces]
+    lines += ["", "const standalone_piece standalone_pieces[] = {"]
+    for p in pieces:
+        lines.append("    { %s, 0x%08xUL, halo_image_%s, 0x%08xUL }," % (c_string(p["label"]), p["va"], p["label"],
+                                                                       p["size"]))
+    lines += ["};", "const int standalone_piece_count = %d;" % len(pieces), "",
               "const standalone_import standalone_imports[] = {"]
     for s in imports:
         if s["name"].startswith("#"):
@@ -164,21 +167,18 @@ def c_symbol(n, std, fast):
 
 
 def code_pointer_asm():
-    """the table of (slot, our function) as data, in MASM so decorated names work"""
+    """the named traps for library code pointers without C, and the table of (original address, our function) the
+    loader redirects jumps into original .text with, in MASM so decorated names work. (The code pointers themselves
+    are relocations in the image source: image_source() binds them.)"""
     ptrs = json.load(open(os.path.join(OUT, "code_pointers.json")))
     std = stdcall_definitions()
     fast = fastcall_definitions()
-    ext, rows, names, traps = [], [], set(), []
+    ext, names, traps = [], set(), []
     for p in ptrs:
-        if "c_symbol" in p:
-            n = p["c_symbol"]
-            sym = c_symbol(n, std, fast)
-            names.add(sym)
-        else:
+        if "c_symbol" not in p:
             sym = "cp_trap_%06x" % p["target"]
             if sym not in {x[0] for x in traps}:
                 traps.append((sym, p["name"]))
-        rows.append("    dd 0%Xh, %s" % (p["slot"], sym))
     # (original address, our function) for every rewritten function whose object was built, sorted by address
     entry_rows = []
     for e in json.load(open(os.path.join(OUT, "code_entries.json"))):
@@ -195,7 +195,7 @@ def code_pointer_asm():
     for sym, name in traps:
         stubs += ["PUBLIC %s" % sym, "%s:" % sym, "    push offset %s_name" % sym, "    call _standalone_missing_function"]
         strs.append('%s_name db "%s (stored code pointer)", 0' % (sym, name))
-    return ext + stubs + strs, rows, entry_rows
+    return ext + stubs + strs, entry_rows
 
 
 # extra linker options (the image source's /ALTERNATENAME bindings), written into the response file
@@ -255,11 +255,9 @@ def main():
              compile_c(os.path.join(ROOT, "harness", "x87_shims.c"), os.path.join(OUT, "x87_shims.obj")),
              compile_c(os.path.join(SA, "d3dx_compat.c"), os.path.join(OUT, "d3dx_compat.obj"),
                        [SA, os.path.join(os.path.dirname(DXSDK_LIB), "..", "Include")])]
-    ext, rows, entry_rows = code_pointer_asm()
+    ext, entry_rows = code_pointer_asm()
     pointer_asm = [".386", ".model flat", "option casemap:none"] + ext + [
-        ".const", "PUBLIC _standalone_code_pointers", "PUBLIC _standalone_code_pointer_count",
-        "_standalone_code_pointer_count dd %d" % len(rows), "_standalone_code_pointers LABEL DWORD"] + rows + [
-        "PUBLIC _standalone_code_entries", "PUBLIC _standalone_code_entry_count",
+        ".const", "PUBLIC _standalone_code_entries", "PUBLIC _standalone_code_entry_count",
         "_standalone_code_entry_count dd %d" % len(entry_rows), "_standalone_code_entries LABEL DWORD"] + entry_rows + [
         "END", ""]
     open(os.path.join(OUT, "code_pointers.asm"), "w").write("\n".join(pointer_asm))
