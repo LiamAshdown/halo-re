@@ -28,7 +28,7 @@
 #include "main.h"
 #include <wchar.h>
 
-extern uint8_t *hud_globals_tag_data;      // 0x0071941c, foreign, TYPES-GAP (see UNSURE above)
+extern HUDGlobals *hud_globals_tag_data;   // 0x0071941c, foreign (the hud globals tag)
 extern uint8_t *hud_messaging;             // 0x006b3a40, foreign (interface module), TYPES-GAP
 extern main_globals main_globals_data;     // 0x00719700
 
@@ -42,7 +42,7 @@ extern void chimera__hud_message(int16_t local_player_index, const wchar_t *text
 
 // Performs the queued structure BSP switch, resets switch_structure_bsp_index, clears a small
 // per-message "active" byte in each of 4 stride-0x8c hud_messaging entries, and if a HUD message
-// id is queued (hud_globals_tag_data + 0x3da != -1), fetches and displays it (for local player 0 when one exists).
+// id is queued (hud_globals_tag_data->loading_end_text != -1), fetches and displays it (for local player 0 when one exists).
 void main_switch_structure_bsp_and_notify(void)
 {
     int16_t message_id;
@@ -52,7 +52,7 @@ void main_switch_structure_bsp_and_notify(void)
     scenario_structure_bsp_switch(main_globals_data.switch_structure_bsp_index);
     main_globals_data.switch_structure_bsp_index = -1;
 
-    message_id = *(int16_t *)(hud_globals_tag_data + 0x3da);
+    message_id = (int16_t)hud_globals_tag_data->loading_end_text;
 
     entry = hud_messaging + 0x82;
     for (i = 4; i != 0; i--) {

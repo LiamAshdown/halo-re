@@ -554,10 +554,10 @@ void main_loop(void)
                             "[%d]: Update [%d] ([%d]): ([%f] [%f] [%f]), ([%f] [%f]), ([%f] [%f])\n",
                             game_time->game_time, update_history->tail->update_id,
                             update_history->tail->tick_count,
-                            (double)*(float *)(unit + 0x5c), (double)*(float *)(unit + 0x60),
-                            (double)*(float *)(unit + 0x64), (double)*(float *)(unit + 0x278),
-                            (double)*(float *)(unit + 0x27c), (double)*(float *)(unit + 0x68),
-                            (double)*(float *)(unit + 0x6c));
+                            (double)((object *)unit)->position.x, (double)((object *)unit)->position.y,
+                            (double)((object *)unit)->position.z, (double)((unit_data *)(unit + k_unit_data_offset))->throttle.i,
+                            (double)((unit_data *)(unit + k_unit_data_offset))->throttle.j, (double)((object *)unit)->velocity.i,
+                            (double)((object *)unit)->velocity.j);
                     }
                     break;
                 }
