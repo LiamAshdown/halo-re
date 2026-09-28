@@ -32,10 +32,10 @@ extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reactio
 
 // object_type_definition "unit" row, +0x40 column ("region damage"). Unless the unit is already
 // dead, dispatches reaction animation 4 when damage response flag 0x200 is set, otherwise 3.
-void unit_region_damage_reaction(uint32_t object_index, uint32_t param_2, uint32_t flags)
+void unit_region_damage_reaction(uint32_t object_index, uint32_t unused, uint32_t flags)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    (void)param_2;
+    (void)unused;
 
     if ((obj->vitality_flags & 4) == 0) {
         unit_dispatch_reaction_animation((int32_t)object_index, (int16_t)(((flags & 0x200) != 0) + 3));

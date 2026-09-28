@@ -54,8 +54,8 @@ extern int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3
 extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
     float radius); // 0x417910, EAX, stack
 extern void actor_movement_actions_cancel(datum_index actor_index); // 0x417a30, EAX
-extern uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t param_1,
-    uint32_t param_2, int16_t *out_frame_count, int16_t *out_key_frame_index); // 0x5642c0, ECX, AL, stack, EBX, EDI
+extern uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t out_dx_to_key_frame,
+    uint32_t out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index); // 0x5642c0, ECX, AL, stack, EBX, EDI
 
 uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_mode, actor_combat_consideration *out)
 {

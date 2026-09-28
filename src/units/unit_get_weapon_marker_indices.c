@@ -27,8 +27,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, float *dx_to_key_frame, float *dx_total); // 0x4d4850, ECX, stack
 
-uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t param_1,
-                                        uint32_t param_2, int16_t *out_frame_count,
+uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t out_dx_to_key_frame,
+                                        uint32_t out_dx_total, int16_t *out_frame_count,
                                         int16_t *out_key_frame_index) // blam-cc: see file header
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
@@ -54,7 +54,7 @@ uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternat
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + animation_index * 0xb4);
 
-    animation_get_frame_info_distance(anim, (float *)param_1, (float *)param_2); // 0x56435e: ECX = the animation
+    animation_get_frame_info_distance(anim, (float *)out_dx_to_key_frame, (float *)out_dx_total); // 0x56435e: ECX = the animation
 
     if (out_key_frame_index != 0) {
         *out_key_frame_index = anim->key_frame_index;
