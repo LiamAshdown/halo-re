@@ -1,23 +1,8 @@
-// unit_apply_network_control_update  (Ghidra: unit_apply_network_control_update)
-// address 0x566c90, size 322 bytes
-// name confidence: 0.35 (phase2 candidate)   rewrite confidence: 0.85 (REWRITTEN below; earlier: 0.1)
-// evidence: types/objects.h object.vitality_flags (0x106, _object_health_frozen_bit),
-//   .body_vitality/.shield_vitality (0xe0/0xe4), .network_role (0x004),
-//   unit_data.controlling_player (0x218); object_try_and_get (type mask 3 = unit).
-// register convention: an incoming packet/record pointer in EAX.
-//   // blam-cc: in_EAX -> packet
-// UNSURE: this function is almost entirely unrecoverable from the decompilation. The bulk of
-//   its body reconstructs five call arguments to unit_update_stance_and_jump (outside this batch's address
-//   range) via heavily overlapping `CONCAT13(x,CONCAT12(y,CONCAT11(z,w)))` byte windows shifted
-//   one byte apart -- a pattern typical of unpacking bit-packed (not byte-aligned) fields out of
-//   a small local buffer, most likely filled earlier by bit_stream reads this pack does not
-//   include. Reconstructing the real field boundaries would require the network message tag
-//   definition for whatever packet type this is, which is outside this batch's evidence.
-//   Rather than invent plausible-looking field values, the packet is passed through as an
-//   opaque buffer and the five unit_update_stance_and_jump arguments are left as raw sub-windows of it,
-//   clearly marked. The dispatch structure (the outer `if (*(int *)*packet == 0)`, the three
-//   object_try_and_get/datum_get side effects, and the trailing network_index_cache_remove call) are
-//   reproduced faithfully; the payload interpretation is not.
+p = "C:\\Users\\Liam-\\halo-re\\src\\units\\unit_apply_network_control_update.c"
+t = open(p, encoding="utf-8").read()
+cut = t.index("\n#if 0")
+inc = t.index("#include")
+head = t[:inc].rstrip("\n") + '''
 // REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x566c90..0x566dd0): the message decodes
 // (0x4ec590, EAX context, ECX destination) into a 0x24-byte record (below). The unit (pooled-node key +0x00) has its
 // health frozen (+0x106 |= 4) and body/shield vitality zeroed; when +0x04 is 1 the ten-argument
@@ -26,7 +11,8 @@
 // at +0x2c; unit_release_transient_state_and_detach(unit, +0x06); the object's +0x04 becomes 3; and unless the
 // header's bit 8 is set the unit leaves the network index cache (0x6870d8). The previous C decoded into nothing,
 // looked up object index 3 instead of the unit, and passed overlapping byte windows.
-
+'''
+body = '''
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -110,71 +96,8 @@ void unit_apply_network_control_update(unit_network_control_packet *packet) // b
         network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
     }
 }
-
-#if 0
-Original Ghidra decompilation (0x566c90):
-
-void FUN_00566c90(void)
-
-{
-  uint uVar1;
-  char cVar2;
-  undefined4 *in_EAX;
-  int iVar3;
-  int local_24;
-  char local_20;
-  undefined1 local_1f;
-  undefined1 uStack_1e;
-  undefined1 uStack_1d;
-  undefined1 uStack_1c;
-  undefined1 uStack_1b;
-  char cStack_1a;
-  undefined1 uStack_19;
-  undefined4 uStack_18;
-  undefined4 local_14;
-  undefined1 local_10 [8];
-  undefined4 local_8;
-
-  if (*(int *)*in_EAX == 0) {
-    cVar2 = FUN_004ec590();
-    if (((cVar2 != '\0') && (local_24 != 0)) &&
-       (uVar1 = *(uint *)(*(int *)(PTR_DAT_00687130 + 0x28) + local_24 * 4), uVar1 != 0xffffffff)) {
-      iVar3 = object_try_and_get(3);
-      if (iVar3 != 0) {
-        *(byte *)(iVar3 + 0x106) = *(byte *)(iVar3 + 0x106) | 4;
-        *(undefined4 *)(iVar3 + 0xe0) = 0;
-        *(undefined4 *)(iVar3 + 0xe4) = 0;
-      }
-      if (local_20 == '\x01') {
-        FUN_00566de0(uVar1,CONCAT13(uStack_1c,CONCAT12(uStack_1d,CONCAT11(uStack_1e,local_1f))),
-                     CONCAT13(uStack_1b,CONCAT12(uStack_1c,CONCAT11(uStack_1d,uStack_1e))),
-                     CONCAT13(cStack_1a,CONCAT12(uStack_1b,CONCAT11(uStack_1c,uStack_1d))),
-                     CONCAT13(uStack_19,CONCAT12(cStack_1a,CONCAT11(uStack_1b,uStack_1c))),
-                     CONCAT13((undefined1)uStack_18,
-                              CONCAT12(uStack_19,CONCAT11(cStack_1a,uStack_1b))),local_14,uStack_18,
-                     -(uint)(cStack_1a != '\x01') & (uint)local_10,1);
-      }
-      iVar3 = object_try_and_get(3);
-      if ((iVar3 != 0) && (*(int *)(iVar3 + 0x218) != -1)) {
-        iVar3 = datum_get();
-        if (iVar3 != 0) {
-          *(undefined4 *)(iVar3 + 0x2c) = local_8;
-        }
-      }
-      FUN_00568cb0(uVar1,CONCAT13(uStack_1b,CONCAT12(uStack_1c,CONCAT11(uStack_1d,uStack_1e))));
-      iVar3 = object_try_and_get(3);
-      if (iVar3 != 0) {
-        *(undefined4 *)(iVar3 + 4) = 3;
-      }
-      if ((*(byte *)(*(int *)(DAT_008603b0 + 0x34) + 2 + (uVar1 & 0xffff) * 0xc) & 8) == 0) {
-        FUN_004e9d40();
-        return;
-      }
-    }
-  }
-  else {
-    FUN_004ec670();
-  }
-  return;
-}
-#endif
+'''
+t = head + body + t[cut:]
+t = t.replace("rewrite confidence: ", "rewrite confidence: 0.85 (REWRITTEN below; earlier: ", 1) if "rewrite confidence: 0.85" not in t[:600] else t
+open(p, "w", encoding="utf-8", newline="\n").write(t)
+print("ok")
