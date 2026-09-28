@@ -10,6 +10,7 @@
 //   processed model elements into declarations[15].fvf (+4), next to the literal FVFs 0x144 / 0x1c4
 //   of declarations 17 / 18. The element arrays are typed d3d_vertex_element9 (types/rasterizer.h).
 
+#include "d3d.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -40,7 +41,6 @@ extern const d3d_vertex_element9 vertex_elements_screen_transformed_lit_specular
 extern const d3d_vertex_element9 vertex_elements_environment_single_stream_ff[]; // 0x0065e358 (declaration 19, conditional)
 
 typedef int32_t (__stdcall *d3d_create_vertex_declaration_fn)(void *device, const void *elements, void **out_declaration);
-extern int32_t D3DXFVFFromDeclarator(const d3d_vertex_element9 *elements, uint32_t *out_fvf); // 0x583dca D3DX
 
 // Creates the full set of Direct3D vertex declarations (and their per-format stride/usage
 // constants) used by every geometry draw path in the rasterizer, returning false if any creation
@@ -140,7 +140,8 @@ uint8_t rasterizer_dx9_vertex_declarations_create(void)
     rasterizer_vertex_declarations[17].usage = 0x208;
     rasterizer_vertex_declarations[18].usage = 0x208;
 
-    D3DXFVFFromDeclarator(vertex_elements_model_processed, &rasterizer_vertex_declarations[15].fvf);
+    D3DXFVFFromDeclarator((const D3DVERTEXELEMENT9 *)vertex_elements_model_processed,
+        (DWORD *)&rasterizer_vertex_declarations[15].fvf);
 
     rasterizer_vertex_declarations[17].fvf = 0x144;
     rasterizer_vertex_declarations[18].fvf = 0x1c4;

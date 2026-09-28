@@ -16,6 +16,7 @@
 //   the same unexplained global as rasterizer_dx9_shaders_init_effect.c's `unknown_00722b60`
 //   sibling (see that file); named the same way here.
 
+#include "d3d.h"
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
@@ -29,7 +30,6 @@ extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effec
 
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern uint8_t rasterizer_dx9_pixel_shaders_load_all(void); // 0x52fa00
-extern int32_t D3DXCreateEffectPool(void **out_pool); // 0x583ddc
 
 typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, void *parent, const char *name);
 
@@ -60,7 +60,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     rasterizer_effect_defines[1].name = 0;
     rasterizer_effect_defines[1].definition = 0;
 
-    hr = D3DXCreateEffectPool(&rasterizer_effect_pool);
+    hr = D3DXCreateEffectPool((LPD3DXEFFECTPOOL *)&rasterizer_effect_pool);
     if (hr < 0) {
         success = 0;
     } else {

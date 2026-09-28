@@ -26,7 +26,7 @@ EXE = os.path.join(OUT, "halo_rebuilt.exe")
 BASE = 0x10000000
 HALO_FOLDER = sys.argv[1] if len(sys.argv) > 1 else r"C:\Program Files (x86)\Microsoft Games\Halo"
 DXSDK_LIB = r"C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86"
-EXTRA_LIBS = ["d3d9.lib", "d3dx9.lib", "legacy_stdio_definitions.lib"]
+EXTRA_LIBS = ["d3d9.lib", "d3dx9.lib", "legacy_stdio_definitions.lib", "wininet.lib"]
 
 
 def c_string(s):

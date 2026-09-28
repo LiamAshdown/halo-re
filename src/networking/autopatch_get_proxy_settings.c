@@ -27,6 +27,7 @@
 
 #include "crt.h"
 #include "win32.h"
+#include <wininet.h>
 #include <ctype.h>
 #include "tags.h"
 #include "memory.h"
@@ -61,8 +62,6 @@ typedef int32_t (__stdcall *winhttp_close_handle_proc)(void *handle);
 
 extern char autopatch_proxy_server[0x100]; // 0x007227d0, 0x007228cf is its last byte
 
-extern int32_t InternetQueryOptionA(void *internet, uint32_t option, void *buffer,
-    uint32_t *buffer_length); // 0x0069ffd0 wininet delay-load slot
 
 static const uint16_t k_agent_halopc[] = { 'H', 'a', 'l', 'o', 'P', 'C', 0 }; // 0x6720d0
 static const uint16_t k_bungie_url[] = { 'h', 't', 't', 'p', ':', '/', '/', 'w', 'w', 'w', '.',

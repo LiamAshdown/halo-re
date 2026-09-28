@@ -8,7 +8,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VCVARS = r"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat"
 CACHE = os.path.join(ROOT, "build", "msvc_env.json")
 # /TC C, /W3, /Zi-free, /Od keeps a 1:1 shape for debugging in the harness; /GS- /Oy- like a 2004 build; /J not used (char is signed)
+DXSDK_INCLUDE = r"C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include"
 CFLAGS = ["/nologo", "/c", "/TC", "/W3", "/Od", "/GS-", "/Oy-", "/Gy", "/wd4996", "/I", os.path.join(ROOT, "types"),
+          "/I", DXSDK_INCLUDE,
           "/FI" + os.path.join(ROOT, "harness", "msvc_compat.h")]
 
 def msvc_env():

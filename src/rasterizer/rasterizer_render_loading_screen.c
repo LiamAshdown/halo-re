@@ -16,6 +16,7 @@
 //   render_target, NULL, D3DTEXF_NONE), made twice around the present; FUN_0057f80c is D3DXLoadSurfaceFromResourceA;
 //   the fallback's 0x3f800000 is Clear's Z (1.0), the color is 0 (black).
 
+#include "d3d.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -36,9 +37,6 @@ typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 // D3DXLoadSurfaceFromResourceA, statically linked D3DX at 0x57f80c: (dest surface, dest palette, dest rect, module,
 // resource, src rect, filter, color key, src info). objdump 0x57f80c..: finds the resource, then loads it from memory
 // with the last four arguments passed through. The standalone build takes it from the DirectX SDK's d3dx9.lib.
-extern int32_t D3DXLoadSurfaceFromResourceA(void *surface, void *palette, void *dest_rect, uint32_t module,
-                                            uint32_t resource, void *source_rect, uint32_t filter, uint32_t color_key,
-                                            void *source_info); // 0x57f80c
 // blam-cc: EAX -> tile, stack -> bitmap
 extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); // 0x518180
 
@@ -61,7 +59,7 @@ void rasterizer_render_loading_screen(int32_t mode)
         hr = ((d3d_create_offscreen_surface_fn)vtable[0x90 / 4])(rasterizer_device, 0x280, 0x1e0,
             0x16 /* D3DFMT_X8R8G8B8 */, 0 /* D3DPOOL_DEFAULT */, &splash, 0); // CreateOffscreenPlainSurface
         if (hr >= 0) {
-            hr = D3DXLoadSurfaceFromResourceA(splash, 0, 0, (uint32_t)shell_module_handle, 0x86 /* MAKEINTRESOURCE */, 0,
+            hr = D3DXLoadSurfaceFromResourceA((LPDIRECT3DSURFACE9)splash, 0, 0, (HMODULE)shell_module_handle, MAKEINTRESOURCEA(0x86), 0,
                                               0xffffffff /* D3DX_DEFAULT */, 0, 0);
             if (hr >= 0) {
                 vtable = *(void ***)rasterizer_device;
