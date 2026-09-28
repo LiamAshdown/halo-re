@@ -5,7 +5,7 @@
 // sibling, same 0xe8/0xec/0xf0/0xf4 sequence-tracking fields and resend-interval gate);
 // types/objects.h object_header/object; types/projectiles.h network-records section ("Every
 // object handle is run through hash_table_get against the object network-id table at
-// PTR_DAT_00687130 + 0x0c first, and a lookup that returns -1 is written as 0" -- object_pooled_node_globals
+// PTR_DAT_00687130 + 0x0c first, and a lookup that returns -1 is written as 0" -- object_network_id_table
 // is this batch's own established name for PTR_DAT_00687130, from src/items/equipment_build_creation_message.c);
 // types/networking.h local_player_vehicle_update_ack, types/game.h vehicle_update_body.
 // register convention: EDI -> plr; the caller-owned out_changed byte is the one stack parameter
@@ -28,7 +28,7 @@
 #include "networking.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern network_id_table *object_network_id_table; // 0x00687130
 extern int32_t network_vehicle_ack_resend_interval_ms; // 0x00689488
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 
@@ -68,7 +68,7 @@ int32_t build_local_player_vehicle_update(uint8_t *out_changed, player *plr)
     vehicle_obj = ((object_header *)object_data->data)[parent_object & 0xffff].data;
     network_hash = 0;
     if (parent_object != (datum_index)-1) {
-        network_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c),
+        network_hash = hash_table_get(&object_network_id_table->id_to_index,
             parent_object);
         if (network_hash == -1) {
             network_hash = 0;

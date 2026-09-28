@@ -33,26 +33,46 @@ def renamed(text, renames):
 
 
 def index_folded(text):
-    """the code with /Od's constant-index computations folded away: p[3] on a byte pointer compiles to
-    mov r,1 / imul r2,r,3 (or shl) / [base+r2], p->field to [base+3]. Registers are renamed and jump targets
-    dropped (both shift when the index computation goes), displacements of [a+b] and [a+N] forms are erased,
-    so what is left compared is the instruction sequence, operand widths and every memory access's base"""
+    """the code with /Od's constant-index computations folded: p[3] on a byte pointer compiles to
+    mov r,1 / imul r2,r,3 (or shl r,n) / [base+r2], p->field to [base+3]. The folded constant is
+    computed and substituted, so [base+r2] with r2 = 3 compares equal to [base+3] and nothing else;
+    registers are renamed and jump targets dropped (both shift when the computation goes)."""
     ins = []
     for line in text.splitlines():
         m = re.match(r"\s*[0-9A-F]{8}: (?:[0-9A-F]{2} )+\s*(\S+)\s*(.*)", line)
         if m:
-            ins.append((m.group(1), m.group(2)))
-    out, skip = [], set()
+            ins.append([m.group(1), m.group(2)])
+    skip = set()
     for i in range(len(ins) - 1):
-        # mov r,1 followed by imul r2,r,N or shl r,N: the constant index, gone once it is a field
-        m = re.fullmatch(r"(e[a-d]x|e[sd]i),1", ins[i][1]) if ins[i][0] == "mov" else None
-        if m and ins[i + 1][0] in ("imul", "shl") and m.group(1) in ins[i + 1][1]:
-            skip.update((i, i + 1))
+        m = re.fullmatch(r"(e[a-d]x|e[sd]i),([0-9A-F]+)h?", ins[i][1]) if ins[i][0] == "mov" else None
+        if not m:
+            continue
+        reg, value = m.group(1), int(m.group(2), 16)
+        op2, args2 = ins[i + 1]
+        m2 = re.fullmatch(r"(e[a-d]x|e[sd]i),%s,([0-9A-F]+)h?" % reg, args2) if op2 == "imul" else None
+        m3 = re.fullmatch(r"%s,([0-9A-F]+)h?" % reg, args2) if op2 == "shl" else None
+        if m2:
+            dest, folded = m2.group(1), value * int(m2.group(2), 16)
+        elif m3:
+            dest, folded = reg, value << int(m3.group(1), 16)
+        else:
+            continue
+        # the next use of dest as an index: [base+dest] -> [base+folded]
+        for j in range(i + 2, min(i + 6, len(ins))):
+            if re.search(r"\[(\w+)\+%s\]" % dest, ins[j][1]):
+                ins[j][1] = re.sub(r"\[(\w+)\+%s\]" % dest,
+                                   lambda mm: "[%s+%Xh]" % (mm.group(1), folded) if folded else "[%s]" % mm.group(1),
+                                   ins[j][1])
+                skip.update((i, i + 1))
+                break
+    out = []
     for i, (op, args) in enumerate(ins):
         if i in skip:
             continue
+        args = re.sub(r"\[(\w+)\+0h\]", r"[\1]", args)
+        args = re.sub(r"\[(\w+)\+([0-9A-F]+)h\]", lambda mm: "[%s+%Xh]" % (mm.group(1), int(mm.group(2), 16)), args)
+        args = re.sub(r"\[(\w+)\+([0-9A-F]+)\]", lambda mm: "[%s+%Xh]" % (mm.group(1), int(mm.group(2), 16)), args)
         args = re.sub(r"\be?[a-d][xlh]\b|\be[sd]i\b", "R", args)
-        args = re.sub(r"\[R\+R\]|\[R\+[0-9A-F]+h?\]|\[R\]", "[R+X]", args)
         if op.startswith("j") or op == "call":
             args = re.sub(r"^[0-9A-F]{8}$", "T", args)
         out.append(op + " " + args)

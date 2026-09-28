@@ -3,7 +3,7 @@
 // name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.85
 // REWRITTEN from objdump 0x566c00..0x566c80 and its two callers (0x5680e5, 0x5681de), which both copy a 0x20
 //   byte unit_state_change_record onto the stack (rep movs): the record arrives BY VALUE. Its unit is replaced
-//   by the network id (object_pooled_node_globals +0x0c, 0 when unknown) and the record itself, as the one
+//   by the network id (object_network_id_table +0x0c, 0 when unknown) and the record itself, as the one
 //   item {&record, 0}, is encoded as message 0xc and broadcast (0x4e1a80, reliable, priority 3).
 // blam-cc: stack -> record (by value)
 
@@ -14,7 +14,7 @@
 #include "objects.h"
 #include "units.h"
 
-extern uint8_t *network_message_table; // 0x00687130, object_pooled_node_globals
+extern uint8_t *network_message_table; // 0x00687130, object_network_id_table
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, ESI table, ECX key
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0

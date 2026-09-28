@@ -21,7 +21,7 @@
 #include "math.h"
 #include "objects.h"
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130, UNSURE: not owned by this module
+extern network_id_table *object_network_id_table; // 0x00687130
 
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value); // UNSURE: out of range, 0x4ec590
 extern uint8_t message_delta_decode_compound_field_staged(void **context); // UNSURE: zero visible args; out of range, 0x4ec670
@@ -49,7 +49,7 @@ void object_apply_shield_charge_and_notify(void **param_1)
     }
 
     if (local_c != 0) {
-        int32_t effect = (*(int32_t **)(object_pooled_node_globals + 0x28))[local_c]; // UNSURE: array base at +0x28
+        int32_t effect = ((int32_t *)object_network_id_table->handles)[local_c]; // UNSURE: array base at +0x28
 
         if (effect != -1) {
             object *target = object_try_and_get(effect, _object_mask_unit);

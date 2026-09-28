@@ -33,7 +33,7 @@
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
-extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
+extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -74,7 +74,7 @@ void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_ke
     fields.mode = mode;
     fields.edi_hash = 0;
     if (edi_key != 0xffffffff) {
-        fields.edi_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)edi_key); // 0x47902a..0x479034
+        fields.edi_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)edi_key); // 0x47902a..0x479034
         if (fields.edi_hash == -1) {
             fields.edi_hash = 0;
         }
@@ -83,7 +83,7 @@ void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_ke
     fields.low_secondary_key = (int16_t)interaction_seat;
     fields.secondary_hash = 0;
     if (secondary_key != -1) {
-        fields.secondary_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)secondary_key); // 0x479050..0x479064: EBP is the 4th stack dword
+        fields.secondary_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)secondary_key); // 0x479050..0x479064: EBP is the 4th stack dword
         if (fields.secondary_hash == -1) {
             fields.secondary_hash = 0;
         }

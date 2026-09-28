@@ -20,7 +20,7 @@
 
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, UNSURE
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern network_id_table *object_network_id_table; // 0x00687130
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // UNSURE: zero visible args; this module, 0x4f05e0 (skipped
     // as library/non-objects code, but still a valid callee here)
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
@@ -48,7 +48,7 @@ void object_queue_pickup_denied_event(void *param_1, int32_t key, uint32_t *sour
 
     block.looked_up = 0;
     if (key != -1) {
-        block.looked_up = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), key);
+        block.looked_up = hash_table_get(&object_network_id_table->id_to_index, key);
     }
     block.source1 = source[1];
     block.source0 = source[0];

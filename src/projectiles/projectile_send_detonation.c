@@ -6,7 +6,7 @@
 //   message 0x30, then forces object.network_role = 3"; types/projectiles.h
 //   projectile_detonation_message (size 0x10, object_hash + position) and
 //   k_message_projectile_detonation = 0x30. The hash_table_get / message_delta_encode_message /
-//   network_session_broadcast_to_flagged sequence and the object_pooled_node_globals name follow the precedent in
+//   network_session_broadcast_to_flagged sequence and the object_network_id_table name follow the precedent in
 //   src/items/weapon_notify_ammo_pickup.c; the network_index_cache_remove(globals, object_index) signature
 //   follows src/objects/object_delete_by_pooled_node_id.c, and 0x006870d8 (this function's own
 //   "globals referenced" list) matches that call's globals argument exactly.
@@ -18,7 +18,7 @@
 #include "projectiles.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
 extern void *object_pooled_node_globals_006870d8; // 0x006870d8, see
     // src/objects/object_delete_by_pooled_node_id.c
@@ -48,7 +48,7 @@ void projectile_send_detonation(datum_index projectile_index)
 
     message.object_hash = 0;
     if (projectile_index != (datum_index)0xffffffff) {
-        message.object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), projectile_index);
+        message.object_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
     }
     message.position = obj->position;
 

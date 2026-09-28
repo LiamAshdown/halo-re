@@ -40,6 +40,7 @@
 // Note on sizes: like types/memory.h, structs holding pointers only measure to the documented
 // size under a 32-bit data organization.
 
+#include <stddef.h> // offsetof
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
@@ -706,6 +707,17 @@ typedef struct hash_table {
     hash_node *freelist;            // 0x10
     hash_node_block *blocks;        // 0x14
 } hash_table;                       // size 0x18
+
+// network_id_table: the networked-object and remote-player id tables (0x00687130 and 0x00687558).
+// id_to_index maps a network id to an index (hash_table_get), handles[] turns a network id
+// into the local datum handle (types/projectiles.h, types/networking.h describe the users).
+typedef struct network_id_table {
+    uint8_t unknown_00[0x0c];           // 0x00
+    hash_table id_to_index;             // 0x0c
+    uint32_t unknown_24;                // 0x24
+    datum_index *handles;               // 0x28 indexed by network id
+} network_id_table;
+typedef char network_id_table_handles_at_28[offsetof(network_id_table, handles) == 0x28 ? 1 : -1];
 
 // ---------------------------------------------------------------------------
 // light  (element of the lights data_array at 0x00860b14, stride 0x7c, fixed by the

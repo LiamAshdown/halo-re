@@ -24,7 +24,7 @@
 #include "objects.h"
 #include "items.h"
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130, not owned by this module; the
+extern network_id_table *object_network_id_table; // 0x00687130
     // variable's value is the table root, and +0x0c off it is the hash_table this function hashes
     // an object datum_index through (objdump 0x4bbcb9: mov esi,ds:0x687130 / add esi,0xc)
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
@@ -78,7 +78,7 @@ int32_t weapon_build_network_update(uint32_t item_index, uint32_t unused_arg2,
 
         header.item_hash = 0;
         if (item_index != (uint32_t)k_datum_index_none) {
-            header.item_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), item_index);
+            header.item_hash = hash_table_get(&object_network_id_table->id_to_index, item_index);
             if (header.item_hash == -1) {
                 header.item_hash = 0;
             }

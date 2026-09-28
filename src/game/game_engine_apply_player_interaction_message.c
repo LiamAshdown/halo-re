@@ -3,7 +3,7 @@
 // address 0x478f10, size 221 bytes
 // name confidence: 0.3   rewrite confidence: 0.3
 // evidence: the same "envelope" shape as game_engine_apply_player_join_message.c (this batch);
-//   `machine_table` and `object_pooled_node_globals` (both already named elsewhere in this
+//   `machine_table` and `object_network_id_table` (both already named elsewhere in this
 //   module) resolve a machine id and a pooled node id respectively; types/game.h
 //   player::interaction_type/interaction_object/interaction_seat (0x28/0x24/0x2a) are written
 //   directly here, matching player_set_pending_interaction_action's own field set (this batch).
@@ -16,9 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
 
 extern uint8_t *machine_table;               // 0x00687558, +0x28 array, stride 4
-extern uint8_t *object_pooled_node_globals;  // 0x00687130, +0x28 array, stride 4
+extern network_id_table *object_network_id_table; // 0x00687130
 extern data_array *player_data;              // 0x0087a480
 
 extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670
@@ -74,11 +75,11 @@ uint8_t game_engine_apply_player_interaction_message(void **envelope)
                 uint32_t secondary_handle = 0xffffffff;
 
                 if (message.interaction_pooled_id != 0) {
-                    interaction_object = (datum_index)(*(int32_t **)(object_pooled_node_globals + 0x28))[
+                    interaction_object = (datum_index)((int32_t *)object_network_id_table->handles)[
                         message.interaction_pooled_id];
                 }
                 if (message.secondary_pooled_id != 0) {
-                    secondary_handle = (uint32_t)(*(int32_t **)(object_pooled_node_globals + 0x28))[
+                    secondary_handle = (uint32_t)((int32_t *)object_network_id_table->handles)[
                         message.secondary_pooled_id];
                 }
 

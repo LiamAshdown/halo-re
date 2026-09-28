@@ -6,7 +6,7 @@
 //   message is staged (0x4ec670); otherwise it is decoded (0x4ec590) into {tag, object network id, flags,
 //   direction, blend, amount} and the first player with a local index gets
 //   player_effect_mark_damage_direction(player, {tag, flags, object}, &direction, blend, amount), the network id
-//   mapped back to an object through object_pooled_node_globals +0x28 (-1 for id 0).
+//   mapped back to an object through object_network_id_table +0x28 (-1 for id 0).
 // blam-cc: EAX -> context
 
 #include "tags.h"
@@ -18,7 +18,7 @@
 #include <string.h>
 
 extern data_array *player_data; // 0x0087a480
-extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern network_id_table *object_network_id_table; // 0x00687130
 
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination); // 0x4ec590, EAX, ECX
 extern uint8_t message_delta_decode_compound_field_staged(void **context); // 0x4ec670, EAX
@@ -50,7 +50,7 @@ void player_effect_mark_damage_direction_dispatch(void **context)
         if (record->local_player_index != -1) {
             dd.damage_effect_tag = fields[0];
             dd.responsible_object = (fields[1] != 0) ?
-                (*(datum_index **)(object_pooled_node_globals + 0x28))[fields[1]] : k_datum_index_none;
+                object_network_id_table->handles[fields[1]] : k_datum_index_none;
             dd.flags = fields[2];
             player_effect_mark_damage_direction(iterator.index, &dd, (const real_vector3d *)&fields[3],
                 *(float *)&fields[6], *(float *)&fields[7]);

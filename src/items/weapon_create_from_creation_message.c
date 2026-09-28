@@ -26,10 +26,10 @@
 // on a field types/items.h already documents. So message_delta_decode_compound_field takes its destination in ECX (it
 // is not the no-argument predicate the decompilation suggests) and the message below is a real
 // struct rather than a row of zero placeholders. The hash -> datum_index resolution through
-// object_pooled_node_globals + 0x28 is the same idiom as
+// object_network_id_table + 0x28 is the same idiom as
 // src/objects/object_apply_linked_impulse.c and the four ammo handlers in this module.
 // UNSURE: network_index_cache_insert_if_free (0x4e9cd0) is the networking hash-table insert. It takes the table root
-// in EAX (0x4c5d61 loads the literal 0x6870d8 -- note this is object_pooled_node_globals + 8,
+// in EAX (0x4c5d61 loads the literal 0x6870d8 -- note this is object_network_id_table + 8,
 // a different sub-table from the +0x28 one read above), the new object's datum_index in ECX and
 // the message's object_hash on the stack; only the stack argument is expressible here.
 // UNSURE: the forward/up basis. The record carries forward at B+0x24 and up at B+0x30, but the
@@ -50,11 +50,11 @@
 #include "items.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *object_pooled_node_globals;  // 0x00687130, not owned by this module; the
+extern network_id_table *object_network_id_table; // 0x00687130
     // variable's value is the table root and +0x28 off it is the hash -> datum_index array that
     // resolves weapon_creation_message.parent_hash into object_placement_data.role
-extern uint8_t *network_message_table_b; // 0x00687558, same shape (src/units spells
-    // this one network_message_table_b too; the name is UNSURE in both places); resolves
+extern network_id_table *player_network_id_table; // 0x00687558
+    // this one player_network_id_table too; the name is UNSURE in both places); resolves
     // weapon_creation_message.owner_hash into object_placement_data.owner_linkage. UNSURE name.
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
@@ -99,11 +99,11 @@ void weapon_create_from_creation_message(void *incoming_record)
 
     role_material = 0xffffffff;
     if (decoded.parent_hash != 0) {
-        role_material = (*(uint32_t **)(object_pooled_node_globals + 0x28))[decoded.parent_hash];
+        role_material = ((uint32_t *)object_network_id_table->handles)[decoded.parent_hash];
     }
     owner_material = 0xffffffff;
     if (decoded.owner_hash != 0) {
-        owner_material = (*(uint32_t **)(network_message_table_b + 0x28))[decoded.owner_hash];
+        owner_material = ((uint32_t *)player_network_id_table->handles)[decoded.owner_hash];
     }
 
     zero = (uint8_t *)&placement; // the `rep stos` of 0x22 dwords at 0x4c5cb8

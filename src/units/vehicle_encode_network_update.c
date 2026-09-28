@@ -14,7 +14,7 @@
 //     0x00871de0, the budget 0x7ff8 and a "send the full baseline" flag. That fixes all four
 //     stack parameters below.
 //   - objdump 0x5724d0..0x5726dc for everything else: object_try_and_get(ECX = vehicle_index,
-//     mask 2 = vehicle); hash_table_get(ESI = object_pooled_node_globals + 0xc, ECX =
+//     mask 2 = vehicle); hash_table_get(ESI = object_network_id_table + 0xc, ECX =
 //     vehicle_index) (the object network-id table, as in
 //     src/networking/build_local_player_vehicle_update.c); QueryPerformanceCounter * 1000 /
 //     the performance frequency at 0x006ac8f8 for a millisecond timestamp;
@@ -64,7 +64,7 @@ typedef struct vehicle_network_update_baseline {
 } vehicle_network_update_baseline; // size 0x40
 
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
-extern uint8_t *object_pooled_node_globals;         // 0x00687130, object network-id hash_table at +0x0c
+extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t network_client_vehicle_ack_enabled;  // 0x006894a1
 extern int64_t performance_frequency;               // 0x006ac8f8/0x006ac8fc
 
@@ -110,7 +110,7 @@ int32_t vehicle_encode_network_update(datum_index vehicle_index, void *buffer, i
 
     key = 0;
     if (vehicle_index != (datum_index)0xffffffff) {
-        key = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)vehicle_index);
+        key = hash_table_get(&object_network_id_table->id_to_index, (int32_t)vehicle_index);
         if (key == -1) {
             key = 0;
         }

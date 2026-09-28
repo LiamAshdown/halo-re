@@ -16,7 +16,7 @@
 #include "math.h"
 #include "objects.h"
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130, UNSURE: not owned by this module
+extern network_id_table *object_network_id_table; // 0x00687130
 
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value); // UNSURE: out of range, 0x4ec590
 extern uint8_t message_delta_decode_compound_field_staged(void **context); // UNSURE: zero visible args; out of range, 0x4ec670
@@ -33,7 +33,7 @@ void object_apply_linked_impulse(void **param_1)
     }
 
     if (message_delta_decode_compound_field(param_1, &local_14) != 0 && local_14 != 0 &&
-        (*(int32_t **)(object_pooled_node_globals + 0x28))[local_14] != -1) { // UNSURE: array base at +0x28
+        ((int32_t *)object_network_id_table->handles)[local_14] != -1) { // UNSURE: array base at +0x28
         real_vector3d impulse;
 
         impulse.i = local_c * local_10;

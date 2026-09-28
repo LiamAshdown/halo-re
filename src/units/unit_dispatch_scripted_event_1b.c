@@ -16,7 +16,7 @@ extern data_array *object_data; // 0x008603b0
 extern uint8_t event9_target;   // 0x00871de0, shared with unit_dispatch_scripted_event_9.c
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
-extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
+extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
@@ -28,7 +28,7 @@ void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index) //
 {
     int32_t unit_hash = 0;
     if (unit_index != 0xffffffff) {
-        unit_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)unit_index);
+        unit_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)unit_index);
         if (unit_hash == -1) {
             unit_hash = 0;
         }
@@ -43,7 +43,7 @@ void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index) //
 
     int32_t weapon_hash = 0;
     if (current_weapon != k_datum_index_none) {
-        weapon_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)current_weapon);
+        weapon_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)current_weapon);
         if (weapon_hash == -1) {
             weapon_hash = 0;
         }

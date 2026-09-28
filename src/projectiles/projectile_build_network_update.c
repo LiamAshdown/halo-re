@@ -25,7 +25,7 @@
 #include "objects.h"
 #include "projectiles.h"
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130, +0x0c off it is the hash_table this
+extern network_id_table *object_network_id_table; // 0x00687130
     // function hashes the projectile's own datum_index through
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
@@ -69,7 +69,7 @@ int32_t projectile_build_network_update(uint32_t projectile_index, uint32_t unus
 
         header.projectile_hash = 0;
         if (projectile_index != (uint32_t)k_datum_index_none) {
-            header.projectile_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), projectile_index);
+            header.projectile_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
             if (header.projectile_hash == -1) {
                 header.projectile_hash = 0;
             }

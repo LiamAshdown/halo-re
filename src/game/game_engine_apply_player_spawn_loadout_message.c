@@ -6,7 +6,7 @@
 // evidence: out/phase4/game_functions.md; the same "envelope" shape as
 //   game_engine_apply_player_join_message.c (this batch); `machine_table` (0x00687558+0x28,
 //   already named in src/game/game_engine_handle_kill_feed_network_event.c) resolves a machine
-//   id to a handle; `object_pooled_node_globals` (0x00687130+0x28, already named across
+//   id to a handle; `object_network_id_table` (0x00687130+0x28, already named across
 //   src/objects/*.c and src/items/*.c) resolves a pooled node id to an object index;
 //   types/game.h player (team 0x20, team_index 0x66, unit 0x34, local_player_index 0x02, deaths
 //   0xae, kill_streak 0x68, interaction_type 0x28, interaction_object 0x24); types/objects.h
@@ -35,7 +35,7 @@
 #include "game.h"
 
 extern uint8_t *machine_table;               // 0x00687558, +0x28 array, stride 4
-extern uint8_t *object_pooled_node_globals;  // 0x00687130, +0x28 array, stride 4
+extern network_id_table *object_network_id_table; // 0x00687130
 extern Scenario *global_scenario;            // 0x00746f8c
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *object_headers;           // 0x008603b0
@@ -98,7 +98,7 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope)
         {
             player *p = (player *)datum_get(player_handle, player_data); // UNSURE: array argument
             if (p != 0 && message.unit_pooled_id != 0) {
-                datum_index new_unit = (datum_index)(*(int32_t **)(object_pooled_node_globals + 0x28))[
+                datum_index new_unit = (datum_index)((int32_t *)object_network_id_table->handles)[
                     message.unit_pooled_id];
                 if (new_unit != (datum_index)0xffffffff) {
                     object *unit_obj = object_try_and_get(new_unit, 3);
@@ -146,7 +146,7 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope)
                             int32_t i;
                             for (i = 0; i < 4; i++) {
                                 int32_t weapon = message.weapon_pooled_ids[i] != 0
-                                    ? (*(int32_t **)(object_pooled_node_globals + 0x28))[message.weapon_pooled_ids[i]]
+                                    ? ((int32_t *)object_network_id_table->handles)[message.weapon_pooled_ids[i]]
                                     : -1;
                                 if (weapon == -1) {
                                     unit->weapons[i] = (datum_index)0xffffffff;
@@ -159,7 +159,7 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope)
                         }
 
                         if (message.seat_vehicle_pooled_id != -1 && message.seat_vehicle_pooled_id != 0) {
-                            datum_index vehicle = (datum_index)(*(int32_t **)(object_pooled_node_globals + 0x28))[
+                            datum_index vehicle = (datum_index)((int32_t *)object_network_id_table->handles)[
                                 message.seat_vehicle_pooled_id];
                             if (vehicle != (datum_index)0xffffffff) {
                                 unit_enter_vehicle_seat(vehicle, (int16_t)message.seat_number, p->unit); // 0x477e4b: EAX = player +0x34

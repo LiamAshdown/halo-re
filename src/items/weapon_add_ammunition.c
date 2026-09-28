@@ -26,7 +26,7 @@
 //     4c355a: mov ecx,DWORD PTR [ecx+eax*4]
 //     4c355d: push 0x4 / call 0x4f6ec0     ; object_try_and_get(ECX = index, mask = weapon)
 // So: message_delta_decode_compound_field takes the destination record in ECX (it is not the no-argument predicate the
-// decompilation suggests), the hash is resolved through object_pooled_node_globals + 0x28
+// decompilation suggests), the hash is resolved through object_network_id_table + 0x28
 // exactly as src/objects/object_apply_linked_impulse.c already spells it, and the stack buffer
 // is a message record types/items.h already describes. Ghidra's un-assigned `local_*` shorts are
 // that buffer's fields, so they are named here instead of left as zero placeholders.
@@ -48,7 +48,7 @@
 #include "objects.h"
 #include "items.h"
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130, not owned by this module; the
+extern network_id_table *object_network_id_table; // 0x00687130
     // variable's value is the table root, and +0x28 off it is the hash -> datum_index array
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
@@ -75,7 +75,7 @@ int32_t weapon_add_ammunition(void **message_record)
 
     item_index = (datum_index)0xffffffff;
     if (decoded.object_hash != 0) {
-        item_index = (*(datum_index **)(object_pooled_node_globals + 0x28))[decoded.object_hash];
+        item_index = object_network_id_table->handles[decoded.object_hash];
     }
 
     item_obj = object_try_and_get(item_index, _object_mask_weapon);

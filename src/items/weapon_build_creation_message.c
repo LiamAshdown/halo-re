@@ -5,7 +5,7 @@
 // evidence: types/items.h weapon_creation_message (every field, confirmed field-by-field
 //   against the byte offsets below), weapon_network_state (position/velocity/age),
 //   weapon_data.magazines[].rounds_loaded; types/objects.h object.definition_tag/name_index/
-//   owner_linkage/unknown_0c4/forward/up; global hash_table at object_pooled_node_globals+0x0c.
+//   owner_linkage/unknown_0c4/forward/up; global hash_table at object_network_id_table+0x0c.
 // register convention: item index in the first Ghidra-recognized parameter; the last
 // (object_flags) is the fourth. The middle two parameters are never read in the decompiled
 // body and are preserved only for call-site compatibility.
@@ -22,10 +22,10 @@
 #include "objects.h"
 #include "items.h"
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130, not owned by this module; the
+extern network_id_table *object_network_id_table; // 0x00687130
     // variable's value is the table root, and +0x0c off it is the hash_table this function hashes
     // an object datum_index through (objdump 0x4bbcb9: mov esi,ds:0x687130 / add esi,0xc)
-extern uint8_t *network_message_table_b;   // 0x00687558, the parallel table the owner_linkage
+extern network_id_table *player_network_id_table; // 0x00687558
     // handle is hashed through; src/units spells it the same way. UNSURE name in both places.
 extern data_array *object_data;     // 0x008603b0
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module.
@@ -58,14 +58,14 @@ void weapon_build_creation_message(datum_index item_index, uint32_t unused_param
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     if (item_index != (datum_index)0xffffffff) {
-        object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), item_index);
+        object_hash = hash_table_get(&object_network_id_table->id_to_index, item_index);
     }
     if (item_obj->creator_object != (uint32_t)0xffffffff) {
-        parent_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), item_obj->creator_object);
+        parent_hash = hash_table_get(&object_network_id_table->id_to_index, item_obj->creator_object);
         if (parent_hash == -1) parent_hash = 0;
     }
     if (item_obj->owner_linkage != (uint32_t)0xffffffff) {
-        owner_hash = hash_table_get((hash_table *)(network_message_table_b + 0x0c), item_obj->owner_linkage);
+        owner_hash = hash_table_get(&player_network_id_table->id_to_index, item_obj->owner_linkage);
         if (owner_hash == -1) owner_hash = 0;
     }
     if (object_hash == -1) {

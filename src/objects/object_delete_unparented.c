@@ -21,7 +21,7 @@
 extern data_array *object_data; // 0x008603b0
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, see object_new_with_datum_role_control.c
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern network_id_table *object_network_id_table; // 0x00687130
 extern void *object_pooled_node_globals_006870d8; // 0x006870d8, UNSURE: network_index_cache_remove's EAX operand
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module; UNSURE: key inferred
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
@@ -47,7 +47,7 @@ void object_delete_unparented(uint32_t object_index) // blam-cc: EDI -> object_i
     int32_t encoded_length;
 
     if (object_index != k_datum_index_none) {
-        looked_up = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), object_index);
+        looked_up = hash_table_get(&object_network_id_table->id_to_index, object_index);
             // table in ESI, key in ECX (verified against the body at 0x4f05e0)
         if (looked_up == -1) {
             looked_up = 0;

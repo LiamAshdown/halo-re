@@ -2962,8 +2962,6 @@ PUBLIC _network_message_scratch
 _network_message_scratch EQU 0871DE0h
 PUBLIC _network_message_table
 _network_message_table EQU 0687130h
-PUBLIC _network_message_table_b
-_network_message_table_b EQU 0687558h
 PUBLIC _network_mutex_name_counter
 _network_mutex_name_counter EQU 06F0CACh
 PUBLIC _network_mutex_table
@@ -3214,12 +3212,12 @@ PUBLIC _object_name_list
 _object_name_list EQU 06B8CB8h
 PUBLIC _object_names_to_objects
 _object_names_to_objects EQU 06B8CB8h
+PUBLIC _object_network_id_table
+_object_network_id_table EQU 0687130h
 PUBLIC _object_network_message_scratch
 _object_network_message_scratch EQU 0871DE0h
 PUBLIC _object_new_server_broadcast_gate
 _object_new_server_broadcast_gate EQU 071C2C0h
-PUBLIC _object_pooled_node_globals
-_object_pooled_node_globals EQU 0687130h
 PUBLIC _object_pooled_node_globals_006870d8
 _object_pooled_node_globals_006870d8 EQU 06870D8h
 PUBLIC _object_random_seed
@@ -3384,6 +3382,8 @@ PUBLIC _player_help_name_d20
 _player_help_name_d20 EQU 0669A3Ch
 PUBLIC _player_help_name_d40
 _player_help_name_d40 EQU 0669A38h
+PUBLIC _player_network_id_table
+_player_network_id_table EQU 0687558h
 PUBLIC _player_placement_ring
 _player_placement_ring EQU 06574C0h
 PUBLIC _player_profile_cache

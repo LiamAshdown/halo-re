@@ -30,7 +30,7 @@
 #include <string.h>
 
 extern data_array *object_data;                    // 0x008603b0
-extern uint8_t *object_pooled_node_globals;        // 0x00687130, network-id hash_table at +0x0c
+extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t *machine_table;                     // 0x00687558, hash_table at +0x0c
 extern uint8_t network_object_index_cache[];       // 0x006870d8
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, ESI table, ECX key
@@ -66,7 +66,7 @@ typedef struct biped_network_create_record {
 int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t bit_budget)
 {
     uint8_t *biped = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    hash_table *keys = (hash_table *)(object_pooled_node_globals + 0xc);
+    hash_table *keys = &object_network_id_table->id_to_index;
     biped_network_create_record record;
     void *item = &record;
     int32_t key = 0;

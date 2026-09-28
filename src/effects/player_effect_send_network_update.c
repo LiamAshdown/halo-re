@@ -19,7 +19,7 @@
 
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
-extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
+extern network_id_table *object_network_id_table; // 0x00687130
 extern network_server_globals *network_session; // 0x0071c2d4
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, ESI table, ECX key
@@ -49,7 +49,7 @@ void player_effect_send_network_update(datum_index player_handle, const real_vec
     fields[0] = dd->damage_effect_tag;
     fields[1] = 0;
     if (dd->responsible_object != (datum_index)0xffffffff) {
-        fields[1] = (uint32_t)hash_table_get((hash_table *)(object_pooled_node_globals + 0xc),
+        fields[1] = (uint32_t)hash_table_get(&object_network_id_table->id_to_index,
             (int32_t)dd->responsible_object);
         if (fields[1] == 0xffffffff) {
             fields[1] = 0;

@@ -37,7 +37,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern network_id_table *object_network_id_table; // 0x00687130
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
     // decodes the message body into out_state.
@@ -75,11 +75,11 @@ void projectile_attach_apply(void *incoming_record)
 
     projectile_handle = (datum_index)0xffffffff;
     if (decoded.object_hash != 0) {
-        projectile_handle = (*(datum_index **)(object_pooled_node_globals + 0x28))[decoded.object_hash];
+        projectile_handle = object_network_id_table->handles[decoded.object_hash];
     }
     parent_handle = (datum_index)0xffffffff;
     if (decoded.parent_hash != 0) {
-        parent_handle = (*(datum_index **)(object_pooled_node_globals + 0x28))[decoded.parent_hash];
+        parent_handle = object_network_id_table->handles[decoded.parent_hash];
     }
 
     self = object_try_and_get(projectile_handle, _object_mask_projectile);

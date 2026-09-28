@@ -19,7 +19,7 @@
 #include "math.h"
 #include "objects.h"
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130, UNSURE: layout unknown, +0x28 read here
+extern network_id_table *object_network_id_table; // 0x00687130
 extern void object_type_override_call_0x70(uint32_t object_index, uint32_t edi_argument,
     uint32_t stack_argument); // this module, 0x4f4620; UNSURE: none of the three are visible here // 0x4f4620
 
@@ -32,7 +32,7 @@ void object_type_override_call_0x70_release_node(int32_t *record, uint32_t param
     int32_t next = -1;
 
     if (node != 0) {
-        next = *(int32_t *)(*(int32_t *)(object_pooled_node_globals + 0x28) + node * 4);
+        next = ((int32_t *)object_network_id_table->handles)[node];
     }
     **slot = next;
     object_type_override_call_0x70(0, 0, 0); // UNSURE: original passes param_1 through, unused by the callee

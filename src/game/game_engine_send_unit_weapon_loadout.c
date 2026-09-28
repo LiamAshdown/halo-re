@@ -9,7 +9,7 @@
 //   `(handle & 0xffff) * sizeof(player) + player_data` used throughout this module; the
 //   already-rewritten game_engine_notify_kill_event.c / game_engine_koth_broadcast_hill_times.c
 //   establish the message_delta_encode_message / network_session_send_to_machine /
-//   network_session_broadcast_to_flagged broadcast-or-unicast shape reused verbatim here. `object_pooled_node_globals`
+//   network_session_broadcast_to_flagged broadcast-or-unicast shape reused verbatim here. `object_network_id_table`
 //   (0x00687130) is the same foreign, not-owned-by-this-module byte pointer already declared in
 //   src/objects/*.c and src/items/*.c; the inline open-hash-bucket walk at +0xc/+0x10/+0x14 is
 //   this function's own (no other rewritten file in the repository indexes those particular
@@ -17,7 +17,7 @@
 // register convention: the unit object's index in EAX (in_EAX); `player_handle`, `value` and
 //   `machine_index` are this function's own three stack parameters.
 //   // blam-cc: EAX -> unit_index, stack -> player_handle, value, machine_index
-// UNSURE: the exact identity/shape of the hash table object_pooled_node_globals+0xc/+0x10/+0x14
+// UNSURE: the exact identity/shape of the hash table object_network_id_table+0xc/+0x10/+0x14
 //   points into (kept as raw offsets with the struct-shaped access it compiles to); hash_table_
 //   get's real argument list (elided by Ghidra at all three of its call sites here, same as
 //   every other call site of it in this module).
@@ -31,7 +31,7 @@
 
 extern data_array *object_headers;      // 0x008603b0
 extern data_array *player_data;         // 0x0087a480
-extern uint8_t *object_pooled_node_globals; // 0x00687130, not owned by this module
+extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
@@ -47,14 +47,14 @@ extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1,
     uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6); // 0x4e1930
 
 // UNSURE: manual open-hash lookup mirroring hash_table_get's own chained-bucket walk, inlined
-// by the compiler against object_pooled_node_globals' own (unnamed) hash table sub-structure.
+// by the compiler against object_network_id_table' own (unnamed) hash table sub-structure.
 static int32_t pooled_node_hash_lookup(int32_t key)
 {
     int32_t result = 0;
-    if (*(uint8_t *)(object_pooled_node_globals + 0xc) == 1) {
+    if (object_network_id_table->id_to_index.initialized == 1) {
         int32_t magnitude = (key < 0) ? -key : key;
-        int32_t bucket_count = *(int32_t *)(object_pooled_node_globals + 0x10);
-        int32_t *bucket_table = *(int32_t **)(object_pooled_node_globals + 0x14);
+        int32_t bucket_count = object_network_id_table->id_to_index.bucket_count;
+        int32_t *bucket_table = (int32_t *)object_network_id_table->id_to_index.buckets;
         int32_t *node = *(int32_t **)((uint8_t *)bucket_table + 4 + (magnitude % bucket_count) * 8);
         result = -1;
         while (node != 0) {
@@ -111,7 +111,7 @@ void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index playe
 
     fields.unit_hash = 0;
     if (unit_index != 0xffffffff) {
-        fields.unit_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)unit_index); // 0x477ac9..0x477ad6 (ECX = EBX)
+        fields.unit_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)unit_index); // 0x477ac9..0x477ad6 (ECX = EBX)
         if (fields.unit_hash == -1) {
             fields.unit_hash = 0;
         }
@@ -121,7 +121,7 @@ void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index playe
 
     fields.parent_hash = 0;
     if (obj->parent_object != (datum_index)0xffffffff) {
-        fields.parent_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)obj->parent_object); // 0x477aee..0x477b04
+        fields.parent_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)obj->parent_object); // 0x477aee..0x477b04
         if (fields.parent_hash == -1) {
             fields.parent_hash = 0;
         }

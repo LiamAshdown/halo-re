@@ -24,7 +24,7 @@
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *object_pooled_node_globals; // 0x00687130, see object_type_override_call_0x70_release_node.c
+extern network_id_table *object_network_id_table; // 0x00687130
 extern void *object_pooled_node_globals_006870d8; // 0x006870d8, UNSURE: network_index_cache_remove's EAX operand
 
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
@@ -60,7 +60,7 @@ void object_delete_by_pooled_node_id(int32_t **record)
     preconditions_ok = message_delta_decode_compound_field(record, &pooled_node_id);
         // 0x4f5b58 lea ecx,[esp] -- ECX is the out slot, EAX the globals pointer
     if (preconditions_ok != 0 && pooled_node_id != 0) {
-        node_table = *(int32_t *)(object_pooled_node_globals + 0x28);
+        node_table = (int32_t)object_network_id_table->handles;
         object_index = *(uint32_t *)(node_table + pooled_node_id * 4);
         if (object_index != 0xffffffff) {
             header = (object_header *)object_data->data + (object_index & 0xffff);

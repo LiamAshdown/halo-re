@@ -7,7 +7,7 @@
 // hash-indexed object-to-network-index cache; the underlying hash_table, types/objects.h, is
 // generic and owned by another module, but the eviction cursor behaviour here is local); the
 // sibling functions in this file group confirm the wrapper's hash_table is embedded at +0xc
-// (matching object_pooled_node_globals/remote_player_index_remap_table's own +0xc convention).
+// (matching object_network_id_table/remote_player_index_remap_table's own +0xc convention).
 // register convention: EAX -> container (whose +0x58 holds the cache pointer), stack -> key.
 //   // blam-cc: EAX -> container, stack -> key
 // UNSURE: hash_table_set_or_remove's real signature; called here with only the evicted slot index

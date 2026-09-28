@@ -34,7 +34,7 @@
 #include <string.h>
 
 extern data_array *object_data;                    // 0x008603b0
-extern uint8_t *object_pooled_node_globals;        // 0x00687130, +0x28: network key -> object index
+extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t *machine_table;                     // 0x00687558, +0x28: machine key -> index
 extern uint8_t network_object_index_cache[];       // 0x006870d8
 
@@ -91,7 +91,7 @@ void unit_network_create_update_apply(void *incoming_record)
     vector3d_normalize_with_length(&message.forward);
     vector3d_normalize_with_length(&message.up);
     if (message.creator_key != 0) {
-        creator = (*(int32_t **)(object_pooled_node_globals + 0x28))[message.creator_key];
+        creator = ((int32_t *)object_network_id_table->handles)[message.creator_key];
     }
     if (message.machine_key != 0) {
         machine = (*(int32_t **)(machine_table + 0x28))[message.machine_key];

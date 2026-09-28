@@ -20,7 +20,7 @@
 #include "objects.h" // hash_table
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
-extern uint8_t *object_pooled_node_globals; // 0x00687130, the object network-id hash_table sits at +0x0c
+extern network_id_table *object_network_id_table; // 0x00687130
 extern int32_t network_index_cache_find_or_allocate_slot(int32_t machine_id); // 0x4e9c20, not in this batch; UNSURE signature
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -50,7 +50,7 @@ void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t param_1,
 
     fields.slot = 0;
     if (machine_id != -1) {
-        fields.slot = hash_table_get((hash_table *)(object_pooled_node_globals + 0xc), (int32_t)machine_id); // 0x45f855..0x45f864
+        fields.slot = hash_table_get(&object_network_id_table->id_to_index, (int32_t)machine_id); // 0x45f855..0x45f864
     }
     if (fields.slot == -1) {
         fields.slot = network_index_cache_find_or_allocate_slot(machine_id);

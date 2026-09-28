@@ -11,7 +11,7 @@
 //   k_message_projectile_detonation = 0x30; out/phase4/projectiles_types_notes.md "the
 //   receiver is 0x4bdb40, which sets role 3, repositions the object, runs projectile_detonate,
 //   raises the state and deletes it." The hash -> handle resolution through
-//   object_pooled_node_globals + 0x28, the object_header.flags delete-pending test and the
+//   object_network_id_table + 0x28, the object_header.flags delete-pending test and the
 //   network_index_cache_remove(&object_pooled_node_globals_006870d8, object_index) call are byte-for-byte the // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
 //   same sequence as src/objects/object_delete_by_pooled_node_id.c, which is where those two
 //   externs and object_try_and_get's (index in ECX, mask on stack) convention come from.
@@ -36,7 +36,7 @@
 #include "projectiles.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern network_id_table *object_network_id_table; // 0x00687130
 extern void *object_pooled_node_globals_006870d8; // 0x006870d8, see
     // src/objects/object_delete_by_pooled_node_id.c
 
@@ -77,7 +77,7 @@ void projectile_detonation_message_apply(void *incoming_record)
         return;
     }
 
-    projectile_index = (*(datum_index **)(object_pooled_node_globals + 0x28))[decoded.object_hash];
+    projectile_index = object_network_id_table->handles[decoded.object_hash];
     if (projectile_index == (datum_index)0xffffffff) {
         return;
     }

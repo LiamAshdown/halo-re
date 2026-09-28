@@ -25,9 +25,9 @@
 #include "objects.h"
 #include "projectiles.h"
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130, +0x0c off it is the hash_table this
+extern network_id_table *object_network_id_table; // 0x00687130
     // function hashes the projectile's own datum_index through
-extern uint8_t *network_message_table_b; // 0x00687558, the parallel table object.owner_linkage
+extern network_id_table *player_network_id_table; // 0x00687558
     // is hashed through
 extern data_array *object_data; // 0x008603b0
 
@@ -47,16 +47,16 @@ int32_t projectile_send_creation(uint32_t projectile_index)
     void *message_ptr;
 
     if (projectile_index != 0xffffffff) {
-        projectile_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), projectile_index);
+        projectile_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
     }
     if (obj->creator_object != 0xffffffff) {
-        creating_object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), obj->creator_object);
+        creating_object_hash = hash_table_get(&object_network_id_table->id_to_index, obj->creator_object);
         if (creating_object_hash == -1) {
             creating_object_hash = 0;
         }
     }
     if (obj->owner_linkage != 0xffffffff) {
-        owner_hash = hash_table_get((hash_table *)(network_message_table_b + 0x0c), obj->owner_linkage);
+        owner_hash = hash_table_get(&player_network_id_table->id_to_index, obj->owner_linkage);
         if (owner_hash == -1) {
             owner_hash = 0;
         }

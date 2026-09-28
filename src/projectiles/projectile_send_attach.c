@@ -21,7 +21,7 @@
 #include "objects.h"
 #include "projectiles.h"
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
@@ -43,14 +43,14 @@ void projectile_send_attach(datum_index projectile_index, datum_index parent_obj
 
     message.object_hash = 0;
     if (projectile_index != (datum_index)0xffffffff) {
-        message.object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), projectile_index);
+        message.object_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
         }
     }
     message.parent_hash = 0;
     if (parent_object_index != (datum_index)0xffffffff) {
-        message.parent_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), parent_object_index);
+        message.parent_hash = hash_table_get(&object_network_id_table->id_to_index, parent_object_index);
         if (message.parent_hash == -1) {
             message.parent_hash = 0;
         }

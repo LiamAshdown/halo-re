@@ -38,10 +38,10 @@
 extern data_array *object_data; // 0x008603b0
 extern void *object_pooled_node_globals_006870d8; // 0x006870d8, the object hash/pooled-node
     // globals block; same global src/objects/object_delete_by_pooled_node_id.c uses
-extern uint8_t *object_pooled_node_globals; // 0x00687130, +0x28 off it is the hash -> datum_index
+extern network_id_table *object_network_id_table; // 0x00687130
     // array that resolves projectile_creation_message.creating_object_hash into
     // object_placement_data.role
-extern uint8_t *network_message_table_b; // 0x00687558, same shape; resolves
+extern network_id_table *player_network_id_table; // 0x00687558
     // projectile_creation_message.owner_hash into object_placement_data.owner_linkage
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
@@ -95,11 +95,11 @@ void projectile_create_from_network(void *incoming_record)
 
     role_material = 0xffffffff;
     if (decoded.creating_object_hash != 0) {
-        role_material = (*(uint32_t **)(object_pooled_node_globals + 0x28))[decoded.creating_object_hash];
+        role_material = ((uint32_t *)object_network_id_table->handles)[decoded.creating_object_hash];
     }
     owner_material = 0xffffffff;
     if (decoded.owner_hash != 0) {
-        owner_material = (*(uint32_t **)(network_message_table_b + 0x28))[decoded.owner_hash];
+        owner_material = ((uint32_t *)player_network_id_table->handles)[decoded.owner_hash];
     }
 
     zero = (uint8_t *)&placement; // the `rep stos` of 0x22 dwords

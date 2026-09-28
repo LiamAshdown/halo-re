@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_functions.md ("Builds or resends a cached vehicle-transform
 // update (message 0x29) for a given object record."); types/game.h player_action (0x20 bytes,
 // matches the 8-dword copy from unaff_EBX); types/projectiles.h network-records section
-// (hash_table_get against object_pooled_node_globals+0x0c, -1 written as 0).
+// (hash_table_get against object_network_id_table+0x0c, -1 written as 0).
 // register convention: EBX -> control (a player_action-shaped control record), ECX -> network_key
 // (the object's raw datum index, hashed for its network id), stack -> cache, update_id, flags,
 // is_full.
@@ -32,7 +32,7 @@
 extern double sin(double x); // FSIN
 extern double cos(double x); // FCOS
 
-extern uint8_t *object_pooled_node_globals; // 0x00687130 (this batch calls the +0xc hash table
+extern network_id_table *object_network_id_table; // 0x00687130
     // through this global elsewhere; this function's own hash table pointer, PTR_DAT_00687558,
     // is a different global and is declared separately below)
 extern void *remote_player_index_remap_table; // 0x00687558, see types/networking.h

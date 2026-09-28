@@ -15,7 +15,7 @@
 #include "items.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *object_pooled_node_globals; // 0x00687130
+extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
@@ -39,7 +39,7 @@ void weapon_notify_reload_step(datum_index item_index, int16_t magazine_index)
 
     message.object_hash = 0;
     if (item_index != (datum_index)0xffffffff) {
-        message.object_hash = hash_table_get((hash_table *)(object_pooled_node_globals + 0x0c), item_index);
+        message.object_hash = hash_table_get(&object_network_id_table->id_to_index, item_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
         }

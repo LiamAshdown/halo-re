@@ -24,7 +24,7 @@
 // on a field types/items.h already documents. So message_delta_decode_compound_field takes its destination in ECX (it
 // is not the no-argument predicate the decompilation suggests) and the message below is a real
 // struct rather than a row of zero placeholders. The hash -> datum_index resolution through
-// object_pooled_node_globals + 0x28 is the same idiom as
+// object_network_id_table + 0x28 is the same idiom as
 // src/objects/object_apply_linked_impulse.c and the four ammo handlers in this module.
 // (this function is 0x4bbe20; the buffer base is `lea ecx,[esp+0x18]` at 0x4bbe36.)
 // UNSURE: network_index_cache_insert_if_free (0x4e9cd0) is the networking hash-table insert. It takes the table root
@@ -49,11 +49,11 @@
 #include "items.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *object_pooled_node_globals;  // 0x00687130, not owned by this module; +0x28 off
+extern network_id_table *object_network_id_table; // 0x00687130
     // its value is the hash -> datum_index array that resolves
     // equipment_creation_message.parent_hash into object_placement_data.role
-extern uint8_t *network_message_table_b; // 0x00687558, same shape (src/units spells
-    // this one network_message_table_b too; the name is UNSURE in both places); resolves
+extern network_id_table *player_network_id_table; // 0x00687558
+    // this one player_network_id_table too; the name is UNSURE in both places); resolves
     // equipment_creation_message.owner_hash into object_placement_data.owner_linkage. UNSURE name.
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
@@ -98,11 +98,11 @@ void equipment_create_from_creation_message(void *incoming_record)
 
     role_material = 0xffffffff;
     if (decoded.parent_hash != 0) {
-        role_material = (*(uint32_t **)(object_pooled_node_globals + 0x28))[decoded.parent_hash];
+        role_material = ((uint32_t *)object_network_id_table->handles)[decoded.parent_hash];
     }
     owner_material = 0xffffffff;
     if (decoded.owner_hash != 0) {
-        owner_material = (*(uint32_t **)(network_message_table_b + 0x28))[decoded.owner_hash];
+        owner_material = ((uint32_t *)player_network_id_table->handles)[decoded.owner_hash];
     }
 
     zero = (uint8_t *)&placement; // the `rep stos` of 0x22 dwords at 0x4bbecb
