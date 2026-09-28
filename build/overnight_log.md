@@ -2272,3 +2272,18 @@ Relinked: unresolved 1, traps 127.
   scratchpad/cdb_trace.sh for unattended boots. a10 under cdb for 120 s: no trap/exception, but the player unit
   never appeared (still in the opening), so the new water code was not exercised. OPEN (runtime): water in play.
 - NEXT: rasterizer LAB_0051e570/0051e8f0/0051fad0/0051fd80 + FUN_005276c0/00527ae0, units callbacks, then UI.
+### iteration 3 (2026-09-28) -- commits ..a726eda, 37fe76b, relinked (0 unresolved, 119 direct traps)
+- Rasterizer: environment lightmap single/two stream (0x51e8f0/0x51e570), self-illumination two/single stream
+  (0x51fad0/0x51fd80), environment draw single stream / fixed function (0x5276c0/0x527ae0); wired into
+  select_hardware_codepaths / select_draw_functions. Rasterizer traps now 0. Direct traps 125 -> 119.
+- gen_standalone.py: NOT_CODE_POINTER_RANGES [(0x679600, 0x67d000)] -- a data table there produced a false
+  code-pointer (commit 115260f).
+- Units: biped/vehicle is_old_enough (0x55b780/0x572a30), biped/vehicle network_baseline_take (0x55b3d0/0x572410).
+  DEFERRED to networking: vehicle 0x571f20 (send creation) and 0x5726e0 (apply update).
+- Interface: 42 small ui_event handlers (ui_event_function_table 0x6927d0) + 6 game_data_input callbacks
+  (0x692b18: 0x4a4c70/0x4a6e50/0x4a7300/0x4a7340/0x4a7350/0x4a73d0), all < 64 bytes, from objdump
+  (scratchpad/dump_group.py MODULE MAXSIZE [MINSIZE], scratchpad/gen_ui_small.py). Interface stored pointers
+  142 -> 94. Note: 0x4a10f0 passes a zero-extended word to network_client_rejoin_check, whose C takes int8_t.
+- Stored pointers without C: hs 142, interface 94, game 90, networking 86, shell 28, units 2, main 1, memory 1.
+- NEXT: interface handlers 64..160 bytes (46), then the larger ones (50), then the hs parse procs.
+- Build-time independence: not started. Run-time independence: not started.
