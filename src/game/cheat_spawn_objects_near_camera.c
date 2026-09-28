@@ -1,6 +1,6 @@
 // cheat_spawn_objects_near_camera  (Ghidra: cheat_spawn_objects_near_camera, already named)
 // address 0x45a800, size 441 bytes
-// name confidence: 0.5   rewrite confidence: 0.25
+// name confidence: 0.5   rewrite confidence: 0.85
 // evidence: types/objects.h object_placement_data (0x88 bytes: position 0x18, up 0x40); the
 //   struct writes at local_70/6c/68 (position) and local_48/44/40 (up) land exactly on those
 //   fields relative to a base at local_88.
@@ -40,53 +40,62 @@ extern void object_placement_data_initialize(object_placement_data *placement,
     datum_index definition_tag, datum_index role); // 0x4f53a0, canonical form (src/items)
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 
-// Spawns up to `count` object tags from `tag_array` at positions offset 1.5 units in front of
-// the debug-selected camera object and 0.8 units above it, oriented to match the camera's up
-// vector and facing yaw.
+extern data_array *player_data; // 0x0087a480, records 0x200 bytes, unit at +0x34
+
+// REWRITTEN 2026-09-28 from objdump 0x45a800..0x45a9b8. 0x45a7a0 returns a PLAYER index (the first player with a
+//   unit); the position and basis come from that player's unit (player +0x34). The draft passed the player index
+//   to object_get_position as if it were an object, so the cheats spawned relative to a garbage object.
+//   Object k of `count` is placed 1.5 units out at yaw + (k - count/2) * min(2 pi / count, pi / 8), yaw being
+//   atan2(forward.i, forward.j) (the original's fpatan operand order), 0.8 above the unit's origin, with the
+//   unit's forward and up; role 3, or 0 for a network client (game mode 2) when the object type definition's
+//   +0x10 is not -1.
 void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
 {
-    uint32_t camera_object;
-    real_point3d camera_position;
-    real_vector3d camera_forward;
-    real_vector3d camera_up;
-    uint16_t remaining;
-    TagDependency *record;
-    datum_index tag_handle;
-    real yaw;
-    object_placement_data placement;
-    uint32_t role;
+    uint32_t player_index = cheat_get_target_object_index();
+    datum_index unit;
+    real_point3d unit_position;  // esp+0x18
+    real_vector3d unit_forward;  // esp+0x0c
+    real_vector3d unit_up;       // esp+0x24
+    int32_t i;
 
-    camera_object = cheat_get_target_object_index();
-    if (camera_object != 0xffffffff) {
-        object_get_position(&camera_position, camera_object);      // UNSURE: object index elided by Ghidra
-        object_get_orientation(&camera_forward, camera_object, &camera_up); // UNSURE: object index elided by Ghidra
+    if (player_index == 0xffffffff) {
+        return;
+    }
+    unit = *(datum_index *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 0x34);
+    object_get_position(&unit_position, unit);
+    object_get_orientation(&unit_forward, unit, &unit_up);
 
-        if (0 < count) {
-            remaining = count;
-            record = &tag_array[0]; // matches Ghidra's `(int *)(tag_array + 0xc)`:
-                                     // TagDependency::tag_id already sits at byte offset 0xc
-            do {
-                tag_handle = *(datum_index *)&record->tag_id;
-                if (tag_handle != k_datum_index_none) {
-                    yaw = (real)atan2((double)camera_forward.i, (double)camera_forward.j); // UNSURE operand order
-                    object_placement_data_initialize(&placement, tag_handle, k_datum_index_none); // UNSURE args
-                    placement.up = camera_up;
-                    role = 3;
-                    placement.position.x = (real)cos((double)yaw) * 1.5f + camera_position.x; // UNSURE axis mapping
-                    placement.position.y = (real)sin((double)yaw) * 1.5f + camera_position.y; // UNSURE axis mapping
-                    placement.position.z = camera_position.z + 0.8f;
-                    if (network_game_mode == 2) {
-                        Object *tag = (Object *)tag_instances[placement.definition_tag & 0xffff].data;
-                        if (*(int32_t *)((uint8_t *)object_type_role_table[tag->object_type] + 0x10) != -1) { // TYPES-GAP
-                            role = 0;
-                        }
-                    }
-                    object_new_with_datum_role_control(&placement, role);
-                }
-                record = record + 1; // matches Ghidra's `local_b4 = local_b4 + 4` (4 ints == sizeof(TagDependency))
-                remaining = remaining - 1;
-            } while (remaining != 0);
+    for (i = 0; i < (int32_t)(uint16_t)count; i++) {
+        datum_index tag_handle = *(datum_index *)&tag_array[i].tag_id;
+        object_placement_data placement;
+        float spacing;
+        float angle;
+        uint32_t role;
+
+        if (tag_handle == k_datum_index_none) {
+            continue;
         }
+        spacing = 6.2831855f / (float)(int32_t)count;
+        if (!(spacing <= 0.39269909f)) {
+            spacing = 0.39269909f;
+        }
+        angle = (float)atan2((double)unit_forward.i, (double)unit_forward.j) +
+            (float)(i - (int32_t)count / 2) * spacing;
+        object_placement_data_initialize(&placement, tag_handle, k_datum_index_none);
+        placement.forward = unit_forward;
+        placement.up = unit_up;
+        role = 3;
+        placement.position.x = (float)cos((double)angle) * 1.5f + unit_position.x;
+        placement.position.y = (float)sin((double)angle) * 1.5f + unit_position.y;
+        placement.position.z = unit_position.z + 0.8f;
+        if (network_game_mode == 2) {
+            int16_t object_type = *(int16_t *)tag_instances[placement.definition_tag & 0xffff].data;
+
+            if (*(int32_t *)((uint8_t *)object_type_role_table[object_type] + 0x10) != -1) {
+                role = 0;
+            }
+        }
+        object_new_with_datum_role_control(&placement, role);
     }
 }
 
