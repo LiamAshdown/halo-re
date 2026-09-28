@@ -1,6 +1,6 @@
 // game_engine_broadcast_kill_feed_to_team  (Ghidra: FUN_00460ba0; renamed per its summary)
 // address 0x460ba0, size 101 bytes
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.85
 // evidence: out/phase4/game_functions.md ("Broadcasts a kill-feed message to every entry in the
 // current data iteration that belongs to a given group/team id"); types/game.h player::team
 // (+0x20); types/memory.h data_iterator; the identical explicit `data_iterator iter` idiom
@@ -31,12 +31,11 @@ extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
     datum_index subject, char broadcast); // 0x460a30, this batch
 
-// blam-cc: unaff_ESI -> broadcast_enabled, unaff_EBX -> ebx_broadcast, stack -> team
-// Walks every in-use player and, for each one on `team`, broadcasts a kill-feed message to it
-// (recipient = that player's own handle) while `broadcast_enabled` holds.
-void game_engine_broadcast_kill_feed_to_team(int32_t broadcast_enabled, int32_t team,
-    uint32_t forwarded_message_type, datum_index forwarded_subject, char forwarded_broadcast,
-    int32_t ebx_broadcast) // UNSURE: forwarded_message_type/forwarded_subject/forwarded_broadcast
+// FIXED 2026-09-28 from objdump 0x460ba0..0x460c04: ESI is the message type (players are skipped when it is -1),
+//   BL the broadcast byte, and each matching player gets chimera__kill_feed(recipient, recipient, message, -1, BL)
+//   (0x460be1..0x460bea); the earlier version treated ESI as an enable flag and forwarded invented arguments.
+// blam-cc: ESI -> message_type, BL -> broadcast, stack -> team
+void game_engine_broadcast_kill_feed_to_team(int32_t message_type, int32_t team, uint8_t broadcast)
 {
     data_iterator iter;
     void *element;
@@ -49,9 +48,9 @@ void game_engine_broadcast_kill_feed_to_team(int32_t broadcast_enabled, int32_t 
     element = data_iterator_next(&iter);
     while (element != 0) {
         player *p = (player *)element;
-        if (p->team == team && broadcast_enabled != -1) {
-            chimera__kill_feed(iter.index, 0xffffffff, forwarded_message_type, forwarded_subject,
-                (char)ebx_broadcast);
+
+        if (p->team == team && message_type != -1) {
+            chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message_type, 0xffffffff, (char)broadcast);
         }
         element = data_iterator_next(&iter);
     }
