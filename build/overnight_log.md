@@ -2295,3 +2295,10 @@ Relinked: unresolved 1, traps 127.
   pass (declared there as a second argument). 0x4a44f0 (checkpoint list open) needs its row callback 0x4a4280
   (0x266 bytes, GetDateFormatA/GetTimeFormatA, only referenced from 0x4a44f0) -- do both together.
 - NEXT: the 50 large interface handlers (>= 160 bytes, incl. 0x4a44f0 + 0x4a4280), then hs parse procs.
+### iteration 4 (2026-09-28) -- commits ..c5e923d.., relinked (0 unresolved, 117 direct traps)
+- 33 large (165..471 byte) interface handlers written from objdump via scratchpad/gen_ui_big{A..F}.py (shared
+  scratchpad/uigen_lib.py: first_list_child, list_item_id, PROFILE/VARIANT selectors, load_ext). Interface stored
+  pointers 51 -> 18. Findings: both ui_event dispatchers (0x497c9a, 0x49a4be) load ECX with the table index, so a
+  handler returning the entry ECX's high byte (0x4a2f10) always returns 0; 0x4a3b70 is game_data_input[58].
+- Remaining interface: 0x49d8b0 0x49e300 0x49e5d0 0x49e7e0 0x49ea50 0x49edc0 0x49f030 0x49f680 0x49fad0 0x49fd30
+  0x4a02a0 0x4a1dc0 0x4a3540 0x4a44f0(+0x4a4280) 0x4a5740 0x4a6fa0 0x4a7880 0x4bb360 (477..906 bytes).
