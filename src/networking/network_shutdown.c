@@ -6,9 +6,9 @@
 // clears the initialized flag"); reuses every network_connection_statistics field name from
 // out/phase4/networking_types_notes.md, confirming connection_id/connection_key double as an
 // IPv4 address and port pair here (they are fed straight into the same address-formatting
-// call, FUN_006148b0, that network_channels_open.c uses for socket addresses).
+// call, gt2AddressToString, that network_channels_open.c uses for socket addresses).
 // register convention: __cdecl, no arguments.
-// UNSURE: FUN_00614860 is shown with zero visible arguments at both call sites here, but
+// UNSURE: gt2CloseSocket is shown with zero visible arguments at both call sites here, but
 // src/networking/network_channels_close.c's decompile of the same callee shows one socket
 // argument; the value being tested by the surrounding `if` is passed explicitly here to match.
 
@@ -30,8 +30,8 @@ extern int32_t network_initialized_at_ms;      // 0x006f14c0
 extern int32_t network_connection_stats_count; // 0x006f14bc
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count]; // 0x0087bec0
 
-extern void FUN_00614860(int32_t socket); // foreign GameSpy transport call, closes a socket
-extern void FUN_006148b0(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
+extern void gt2CloseSocket(int32_t socket); // foreign GameSpy transport call, closes a socket
+extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
     // 0x16-byte address record (stride confirmed by the imul esi,esi,0x16 at 0x6148c8) // foreign
 extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
 
@@ -51,11 +51,11 @@ int32_t network_shutdown(void)
         return 0xfffffffb;
     }
     if (network_query_socket != 0) {
-        FUN_00614860(network_query_socket);
+        gt2CloseSocket(network_query_socket);
         network_query_socket = 0;
     }
     if (network_game_socket != 0) {
-        FUN_00614860(network_game_socket);
+        gt2CloseSocket(network_game_socket);
         network_game_socket = 0;
     }
     if (network_summary_log_file != 0) {
@@ -75,7 +75,7 @@ int32_t network_shutdown(void)
                 connection_duration_ms = connection_duration_ms +
                     (now - network_connection_stats[i].active_since_ms);
             }
-            FUN_006148b0((uint32_t)network_connection_stats[i].connection_id,
+            gt2AddressToString((uint32_t)network_connection_stats[i].connection_id,
                          (uint16_t)network_connection_stats[i].connection_key, address_buf);
             // FIXED in the review pass: Ghidra dropped the sixth (%f) argument entirely,
             // because the binary does not push it -- it stores the x87 result straight into

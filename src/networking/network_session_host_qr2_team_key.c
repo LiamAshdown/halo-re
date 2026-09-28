@@ -11,9 +11,9 @@
 #include <wchar.h>
 
 extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
-extern void FUN_00615590(void *buffer, const char *value); // 0x615590 qr2_buffer_add
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
-extern void FUN_00615560(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
+extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
+extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
 
 void network_session_host_qr2_team_key(int32_t key_id, int32_t index, void *buffer, void *user_data)
 {
@@ -26,8 +26,8 @@ void network_session_host_qr2_team_key(int32_t key_id, int32_t index, void *buff
         }
     }
     if (key_id == 0x1c) {
-        FUN_00615590(buffer, index == 1 ? "Blue" : "Red");
+        qr2_buffer_add(buffer, index == 1 ? "Blue" : "Red");
         return;
     }
-    FUN_00615590(buffer, "");
+    qr2_buffer_add(buffer, "");
 }

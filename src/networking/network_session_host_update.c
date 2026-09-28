@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_functions.md summary: "Periodic per-frame update for the
 // network channel/session object: flushes it on timeout or close request, then pumps it."
 // register convention: no register-passed arguments.
-// UNSURE: FUN_00449210 (a tick/timer read), FUN_00616c00 and FUN_00616cb0 (foreign,
+// UNSURE: FUN_00449210 (a tick/timer read), qr2_send_statechanged and qr2_think (foreign,
 // GameSpy-shaped, argument lists elided).
 
 #include "tags.h"
@@ -19,8 +19,8 @@ extern uint8_t network_session_host_closing; // 0x00722a1c, UNSURE
 extern int32_t network_session_host_last_tick; // 0x00722a24, UNSURE
 
 extern int32_t time_query_performance_counter_ms(void); // foreign/other module, UNSURE: a tick counter read
-extern void FUN_00616c00(void *object); // foreign, UNSURE
-extern void FUN_00616cb0(void *object); // foreign, UNSURE
+extern void qr2_send_statechanged(void *object); // foreign, UNSURE
+extern void qr2_think(void *object); // foreign, UNSURE
 
 // Periodic per-frame update for the network channel/session object: flushes it on timeout (1000+
 // ticks since the last flush) or on a pending close request, then pumps it either way.
@@ -31,12 +31,12 @@ void network_session_host_update(void)
             int32_t now = time_query_performance_counter_ms();
             if (network_session_host_state == 2 || (uint32_t)(now - network_session_host_last_tick) > 999) {
                 network_session_host_closing = (network_session_host_state == 2);
-                FUN_00616c00(network_session_host_object);
+                qr2_send_statechanged(network_session_host_object);
                 network_session_host_state = 0;
                 network_session_host_last_tick = now;
             }
         }
-        FUN_00616cb0(network_session_host_object);
+        qr2_think(network_session_host_object);
         network_session_host_closing = 0;
     }
 }

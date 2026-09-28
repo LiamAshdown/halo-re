@@ -18,7 +18,7 @@
 extern uint8_t autopatch_proxy_ready; // 0x007228d0
 
 extern void *autopatch_get_proxy_settings(void); // 0x576f40, out of this rewrite's scope
-extern void thunk_FUN_00622050(void *proxy_settings); // foreign WinInet/WinHTTP setup, UNSURE
+extern void ghttpSetProxy(void *proxy_settings); // foreign WinInet/WinHTTP setup, UNSURE
 
 // Detects and installs the proxy configuration used by the autopatch HTTP client, then signals
 // it is ready.
@@ -28,7 +28,7 @@ uint32_t __stdcall autopatch_proxy_initialize(void *parameter)
 {
     (void)parameter;
     void *settings = autopatch_get_proxy_settings();
-    thunk_FUN_00622050(settings);
+    ghttpSetProxy(settings);
     autopatch_proxy_ready = 1;
     return 0;
 }

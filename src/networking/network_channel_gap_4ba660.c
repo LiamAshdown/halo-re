@@ -20,8 +20,8 @@ extern uint8_t DAT_00719488;     // 0x00719488, UNSURE name
 extern int32_t server_browser_query_elapsed_ms;  // 0x007196c8
 extern int32_t server_browser_selected_index;    // 0x006953f4
 extern int32_t server_browser_selection_valid;   // 0x0071947c, UNSURE name
-extern int32_t FUN_006175c0(void *server); // 0x6175c0 SBServerHasBasicKeys
-extern int32_t FUN_006175d0(void *server); // 0x6175d0 SBServerHasFullKeys
+extern int32_t SBServerHasBasicKeys(void *server); // 0x6175c0 SBServerHasBasicKeys
+extern int32_t SBServerHasFullKeys(void *server); // 0x6175d0 SBServerHasFullKeys
 extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms); // 0x4ba760
 extern int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array); // 0x4ba8a0
 extern void server_list_mutex_unlock(server_list_globals **list_slot); // 0x4ba7a0
@@ -40,7 +40,7 @@ void network_channel_gap_4ba660(void *sb, uint32_t reason, void *server, void *i
     }
     switch (reason) {
     case 0:
-        if (FUN_006175c0(server) == 0 && FUN_006175d0(server) == 0) {
+        if (SBServerHasBasicKeys(server) == 0 && SBServerHasFullKeys(server) == 0) {
             return;
         }
         // fall through

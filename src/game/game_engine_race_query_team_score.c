@@ -13,13 +13,13 @@
 #include <wchar.h>
 
 extern int32_t game_engine_bucket_scores[16]; // 0x006b1318
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
 
 uint8_t game_engine_race_query_team_score(int32_t key, int32_t team, void *buffer)
 {
     if (key != 0x1d) {
         return 0;
     }
-    FUN_00616640(buffer, game_engine_bucket_scores[team]);
+    qr2_buffer_add_int(buffer, game_engine_bucket_scores[team]);
     return 1;
 }

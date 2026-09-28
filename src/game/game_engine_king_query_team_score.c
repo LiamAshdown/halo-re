@@ -13,13 +13,13 @@
 #include <wchar.h>
 
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
 
 uint8_t game_engine_king_query_team_score(int32_t key, int32_t team, void *buffer)
 {
     if (key != 0x1d) {
         return 0;
     }
-    FUN_00616640(buffer, king_bucket_credit_ticks[team]);
+    qr2_buffer_add_int(buffer, king_bucket_credit_ticks[team]);
     return 1;
 }

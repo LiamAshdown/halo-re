@@ -3,20 +3,20 @@
 // name confidence: 0.4   rewrite confidence: 0.35
 // evidence: out/phase4/networking_functions.md: "Register-based (ESI=connection object) helper
 // that computes an unsent byte length from a bit-position ring buffer, flushes it through
-// FUN_006146b0 (a socket/channel send), then advances the connection." The `stream+8/+0xc/+0x10/
+// gt2Send (a socket/channel send), then advances the connection." The `stream+8/+0xc/+0x10/
 // +0x14` fields match bit_stream's first_bit/byte_cursor/bit_cursor/last_bit, and `stream+0x1c`/
 // `stream+0x1d` match network_channel_stream's empty flag and inline data buffer exactly, so ESI
 // is a network_channel_stream* -- one of channel->in or channel->out depending on the caller
 // (unresolvable from this function's own body; see each caller for which one it intends).
 // channel->send_budget (+0xa80) and budget_base_tick (+0xa84) match types/networking.h.
-// UNSURE: FUN_006146b0's own signature is inferred purely from this call site: (socket,
+// UNSURE: gt2Send's own signature is inferred purely from this call site: (socket,
 // buffer, byte_count, mode). `local_c[2]`/the final `0 < local_c[2]` return is preserved as a
-// success flag set only when FUN_006146b0 reports a positive byte count.
-// FIXED: Ghidra's decompile never captures FUN_006146b0's return value (`iVar3`, the loop's own
+// success flag set only when gt2Send reports a positive byte count.
+// FIXED: Ghidra's decompile never captures gt2Send's return value (`iVar3`, the loop's own
 // exit condition, is left literally unmodified inside the loop body), which would make the
 // `while (iVar3 == -4)` retry either never repeat or loop forever depending on the initial byte
 // count -- clearly not the intended "retry on a transient socket error" behavior the summary
-// describes. This rewrite assigns FUN_006146b0's result back to `byte_count` each iteration,
+// describes. This rewrite assigns gt2Send's result back to `byte_count` each iteration,
 // which is the only reading that makes the loop terminate sensibly.
 // register/parameter convention: ESI -> stream (elided). blam-cc: ESI -> stream, stack ->
 // channel, mode
@@ -39,7 +39,7 @@
 
 extern int32_t network_bit_chunk_size; // 0x0071c2cc
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
-extern int32_t FUN_006146b0(int32_t socket, uint8_t *buffer, int32_t byte_count, int32_t mode); // foreign, GameSpy/transport library
+extern int32_t gt2Send(int32_t socket, uint8_t *buffer, int32_t byte_count, int32_t mode); // foreign, GameSpy/transport library
 
 // blam-cc: ESI -> stream
 char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode)
@@ -72,7 +72,7 @@ char network_channel_stream_flush(network_channel_stream *stream, network_channe
                     break;
                 }
                 send_mode = mode != 0;
-                byte_count = FUN_006146b0(channel->endpoint->socket, (uint8_t *)stream + 0x1d,
+                byte_count = gt2Send(channel->endpoint->socket, (uint8_t *)stream + 0x1d,
                     byte_count, send_mode);
                 if (byte_count > 0) {
                     success = 1;

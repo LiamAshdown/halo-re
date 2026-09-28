@@ -13,13 +13,13 @@
 #include <wchar.h>
 
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
 
 uint8_t game_engine_ctf_query_team_score(int32_t key, int32_t team, void *buffer)
 {
     if (key != 0x1d) {
         return 0;
     }
-    FUN_00616640(buffer, ctf_team_flag_touch_count[team]);
+    qr2_buffer_add_int(buffer, ctf_team_flag_touch_count[team]);
     return 1;
 }

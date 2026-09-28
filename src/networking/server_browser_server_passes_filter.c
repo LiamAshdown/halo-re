@@ -3,8 +3,8 @@
 // address 0x4b7080, size 716 bytes
 // name confidence: 0.5   rewrite confidence: 0.3
 // evidence: out/phase4/networking_types_notes.md "server browser" section: this is its entire
-// evidence base for the GameSpy accessors (FUN_00617490 string, FUN_006174d0 bool, FUN_00617aa0
-// ping, FUN_00617c10 int) and for server_browser_filters (0x0071948b..0x00719490);
+// evidence base for the GameSpy accessors (SBServerGetStringValue string, SBServerGetBoolValue bool, SBServerGetPing
+// ping, SBServerGetIntValue int) and for server_browser_filters (0x0071948b..0x00719490);
 // server_browser_ping_limits (0x00695400) and server_browser_allow_password/_empty/_full
 // (0x006953f9/fa/fb) and server_browser_require_valid_entry (0x006953f0) match exactly. The
 // nine key strings referenced (numplayers, maxplayers, password, dedicated, game_classic,
@@ -14,7 +14,7 @@
 // visible arguments in Ghidra's own decompile (entry and, where applicable, the key string are
 // both invisible register pass-throughs) -- reconstructed explicitly from the key-string/call
 // ordering match above.
-// UNSURE: FUN_00617aa0 (ping) and the six-times-repeated FUN_00617c10 (numplayers then
+// UNSURE: SBServerGetPing (ping) and the six-times-repeated SBServerGetIntValue (numplayers then
 // maxplayers) calls are each called 2-3 times in a row with identical arguments (a bounds
 // check, then a re-fetch of the real value); kept as repeated calls exactly as decompiled
 // rather than collapsed into one.
@@ -48,10 +48,10 @@ extern uint8_t server_browser_filter_teamplay;       // 0x0071948f
 extern uint8_t server_browser_filter_allow_unknown_map; // 0x0071948d
 
 extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; entry validity check
-extern int32_t FUN_00617aa0(void *entry); // foreign, GameSpy library; ping accessor, no key
-extern int32_t FUN_00617c10(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library; int accessor
-extern int32_t FUN_006174d0(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library; bool accessor
-extern char *FUN_00617490(void *entry, const char *key, const char *default_value); // foreign, GameSpy library; string accessor
+extern int32_t SBServerGetPing(void *entry); // foreign, GameSpy library; ping accessor, no key
+extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library; int accessor
+extern int32_t SBServerGetBoolValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library; bool accessor
+extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library; string accessor
 extern uint8_t autopatch_version_string_is_outdated(const char *gamever); // 0x5781c0, outside this
     // session's range; returns its answer in AL, which is all Ghidra's `cVar1` reads here
 extern int32_t map_list_find_known_map_index(const char *mapname); // foreign, outside this session's range
@@ -81,48 +81,48 @@ uint8_t server_browser_server_passes_filter(void *entry)
         return 0;
     }
 
-    probe = FUN_00617aa0(entry);
+    probe = SBServerGetPing(entry);
     maxplayers = -1;
     if (probe < -1) {
         ping = -1;
     } else {
-        probe = FUN_00617aa0(entry);
+        probe = SBServerGetPing(entry);
         if (probe < 10000) {
-            ping = FUN_00617aa0(entry);
+            ping = SBServerGetPing(entry);
         } else {
             ping = 9999;
         }
     }
 
-    probe = FUN_00617c10(entry, "numplayers", 0);
+    probe = SBServerGetIntValue(entry, "numplayers", 0);
     if (probe < -1) {
         numplayers = -1;
     } else {
-        probe = FUN_00617c10(entry, "numplayers", 0);
+        probe = SBServerGetIntValue(entry, "numplayers", 0);
         if (probe < 0x11) {
-            numplayers = FUN_00617c10(entry, "numplayers", 0);
+            numplayers = SBServerGetIntValue(entry, "numplayers", 0);
         } else {
             numplayers = 0x10;
         }
     }
 
-    probe = FUN_00617c10(entry, "maxplayers", 0);
+    probe = SBServerGetIntValue(entry, "maxplayers", 0);
     if (-2 < probe) {
-        probe = FUN_00617c10(entry, "maxplayers", 0);
+        probe = SBServerGetIntValue(entry, "maxplayers", 0);
         if (probe < 0x11) {
-            maxplayers = FUN_00617c10(entry, "maxplayers", 0);
+            maxplayers = SBServerGetIntValue(entry, "maxplayers", 0);
         } else {
             maxplayers = 0x10;
         }
     }
 
-    has_password = FUN_006174d0(entry, "password", 0);
-    is_dedicated = FUN_006174d0(entry, "dedicated", 0);
-    is_classic = FUN_006174d0(entry, "game_classic", 0);
-    gametype_name = FUN_00617490(entry, "gametype", "");
-    mapname = FUN_00617490(entry, "mapname", "");
-    is_teamplay = FUN_006174d0(entry, "teamplay", 0);
-    gamever = FUN_00617490(entry, "gamever", "");
+    has_password = SBServerGetBoolValue(entry, "password", 0);
+    is_dedicated = SBServerGetBoolValue(entry, "dedicated", 0);
+    is_classic = SBServerGetBoolValue(entry, "game_classic", 0);
+    gametype_name = SBServerGetStringValue(entry, "gametype", "");
+    mapname = SBServerGetStringValue(entry, "mapname", "");
+    is_teamplay = SBServerGetBoolValue(entry, "teamplay", 0);
+    gamever = SBServerGetStringValue(entry, "gamever", "");
     version_outdated = autopatch_version_string_is_outdated(gamever);
 
     if (0x270e < ping) {

@@ -12,7 +12,7 @@
 // field into one 4-byte store whose upper 16 bits come from an uninitialized stack local
 // (`local_c`); only the port itself is meaningful; the garbage that lands in the padding is not
 // reproduced here.
-// UNSURE: the `if (local_1c != 0)` guard on the second thunk_FUN_0061cee0 call is unreachable
+// UNSURE: the `if (local_1c != 0)` guard on the second gt2Reject call is unreachable
 // on the success path (local_1c is never set to nonzero there) but is kept exactly as
 // decompiled rather than removed.
 
@@ -25,9 +25,9 @@
 extern int32_t network_pending_connection_count; // 0x006f16d0
 extern network_pending_connection network_pending_connections[k_network_pending_connection_count]; // 0x0087bc20
 
-extern void thunk_FUN_0061cee0(int32_t socket, void *buffer, int32_t length); // foreign, GameSpy library; send reply
-extern void FUN_00614820(int32_t listen_handle); // foreign, GameSpy library
-extern void FUN_006148b0(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
+extern void gt2Reject(int32_t socket, void *buffer, int32_t length); // foreign, GameSpy library; send reply
+extern void gt2GetSocketData(int32_t listen_handle); // foreign, GameSpy library
+extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
     // 0x16-byte address record (stride confirmed by the imul esi,esi,0x16 at 0x6148c8) // foreign
 
 // Refuses a new request once 30 are already queued, or if the payload is missing/too short
@@ -45,7 +45,7 @@ void network_listen_connection_request_handler(int32_t listen_handle, int32_t re
     reply_code = 0;
     if (k_network_pending_connection_count < network_pending_connection_count) {
         reply_code = k_network_listen_error_queue_full;
-        thunk_FUN_0061cee0(reply_socket, &reply_code, 4);
+        gt2Reject(reply_socket, &reply_code, 4);
         return;
     }
     if (payload != 0 && 3 < payload_length) {
@@ -57,15 +57,15 @@ void network_listen_connection_request_handler(int32_t listen_handle, int32_t re
         network_pending_connections[index].remote_port = (uint16_t)remote_port_raw;
         network_pending_connections[index].first_payload_word = first_payload_word;
         network_pending_connection_count = network_pending_connection_count + 1;
-        FUN_00614820(listen_handle);
-        FUN_006148b0(remote_address, (uint16_t)remote_port_raw, address_buf);
+        gt2GetSocketData(listen_handle);
+        gt2AddressToString(remote_address, (uint16_t)remote_port_raw, address_buf);
         if (reply_code != 0) {
-            thunk_FUN_0061cee0(reply_socket, &reply_code, 4);
+            gt2Reject(reply_socket, &reply_code, 4);
         }
         return;
     }
     reply_code = k_network_listen_error_bad_payload;
-    thunk_FUN_0061cee0(reply_socket, &reply_code, 4);
+    gt2Reject(reply_socket, &reply_code, 4);
 }
 
 #if 0

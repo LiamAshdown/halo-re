@@ -14,9 +14,9 @@
 #include <wchar.h>
 
 extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
-extern void FUN_00615590(void *buffer, const char *value); // 0x615590 qr2_buffer_add
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
-extern void FUN_00615560(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
+extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
+extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
 extern uint8_t *network_server;            // 0x0071c2d4
 extern char network_qr2_text[0x100];         // 0x00722a28
 extern uint8_t network_session_host_closing; // 0x00722a1c
@@ -50,77 +50,77 @@ void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *use
         }
     }
     if (server == 0) {
-        FUN_00615590(buffer, "");
+        qr2_buffer_add(buffer, "");
         return;
     }
     switch (key_id) {
     case 1:
         if (wcslen((const wchar_t *)(server + 8)) == 0) {
-            FUN_00615590(buffer, "HALO SERVER");
+            qr2_buffer_add(buffer, "HALO SERVER");
         } else {
-            FUN_00615590(buffer, (const char *)string_convert_unicode_to_ascii((uint8_t *)network_qr2_text, (uint16_t *)(server + 8), 0x100));
+            qr2_buffer_add(buffer, (const char *)string_convert_unicode_to_ascii((uint8_t *)network_qr2_text, (uint16_t *)(server + 8), 0x100));
         }
         return;
     case 3:
         autopatch_current_version_string_get(network_qr2_text);
-        FUN_00615590(buffer, network_qr2_text);
+        qr2_buffer_add(buffer, network_qr2_text);
         return;
     case 5: {
         char name[0x100];
 
         _splitpath((const char *)(server + 0x8c), 0, 0, name, 0);
-        FUN_00615590(buffer, name);
+        qr2_buffer_add(buffer, name);
         return;
     }
     case 6: {
         static const char *const names[5] = { "CTF", "Slayer", "Oddball", "King", "Race" };
 
-        FUN_00615590(buffer, game_type >= 1 && game_type <= 5 ? names[game_type - 1] : "");
+        qr2_buffer_add(buffer, game_type >= 1 && game_type <= 5 ? names[game_type - 1] : "");
         return;
     }
     case 7:
-        FUN_00615590(buffer, (const char *)string_convert_unicode_to_ascii((uint8_t *)network_qr2_text,
+        qr2_buffer_add(buffer, (const char *)string_convert_unicode_to_ascii((uint8_t *)network_qr2_text,
             (uint16_t *)game_engine_variant_bytes, 0x100));
         return;
     case 8:
-        FUN_00616640(buffer, current_game_engine != 0 ? players_active_count() : 0);
+        qr2_buffer_add_int(buffer, current_game_engine != 0 ? players_active_count() : 0);
         return;
     case 10: {
         int8_t maximum = (int8_t)server[0x1a5];
 
-        FUN_00616640(buffer, maximum > 1 ? maximum : 1);
+        qr2_buffer_add_int(buffer, maximum > 1 ? maximum : 1);
         return;
     }
     case 11:
-        FUN_00615590(buffer, network_session_host_closing != 0 ? "exiting" : "openplaying");
+        qr2_buffer_add(buffer, network_session_host_closing != 0 ? "exiting" : "openplaying");
         return;
     case 12:
-        FUN_00616640(buffer, game_engine_get_teams_enabled() != 0);
+        qr2_buffer_add_int(buffer, game_engine_get_teams_enabled() != 0);
         return;
     case 13:
-        FUN_00616640(buffer, game_engine_variant_score_limit);
+        qr2_buffer_add_int(buffer, game_engine_variant_score_limit);
         return;
     case 19:
-        FUN_00616640(buffer, network_server_password_is_set(server) != 0);
+        qr2_buffer_add_int(buffer, network_server_password_is_set(server) != 0);
         return;
     case 0x33:
-        FUN_00616640(buffer, (server[6] >> 2) & 1);
+        qr2_buffer_add_int(buffer, (server[6] >> 2) & 1);
         return;
     case 0x34:
-        FUN_00615590(buffer, server_browser_custom_options_pack(game_engine_variant_bytes + 0x34));
+        qr2_buffer_add(buffer, server_browser_custom_options_pack(game_engine_variant_bytes + 0x34));
         return;
     case 0x35:
         switch (game_type) {
-        case 1: FUN_00616640(buffer, (int32_t)server_browser_gametype1_flags_pack(options)); return;
-        case 2: FUN_00616640(buffer, (int32_t)server_browser_gametype2_flags_pack(options)); return;
-        case 3: FUN_00616640(buffer, (int32_t)server_browser_gametype3_flags_pack(options)); return;
-        case 4: FUN_00616640(buffer, (options[0] != 0 ? 8 : 0) | 4); return;
-        case 5: FUN_00616640(buffer, (int32_t)server_browser_gametype5_flags_pack((int32_t *)options)); return;
+        case 1: qr2_buffer_add_int(buffer, (int32_t)server_browser_gametype1_flags_pack(options)); return;
+        case 2: qr2_buffer_add_int(buffer, (int32_t)server_browser_gametype2_flags_pack(options)); return;
+        case 3: qr2_buffer_add_int(buffer, (int32_t)server_browser_gametype3_flags_pack(options)); return;
+        case 4: qr2_buffer_add_int(buffer, (options[0] != 0 ? 8 : 0) | 4); return;
+        case 5: qr2_buffer_add_int(buffer, (int32_t)server_browser_gametype5_flags_pack((int32_t *)options)); return;
         }
         break;
     case 0x36:
-        FUN_00616640(buffer, (motion_sensor_override_value & 0x80) != 0);
+        qr2_buffer_add_int(buffer, (motion_sensor_override_value & 0x80) != 0);
         return;
     }
-    FUN_00615590(buffer, "");
+    qr2_buffer_add(buffer, "");
 }

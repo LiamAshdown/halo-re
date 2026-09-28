@@ -7,7 +7,7 @@
 // turns "pop the most recent" into `network_pending_connections[count - 1]`; the queue fields
 // written (+0x00 socket, +0x0c flags bit0) match network_receive_queue.
 // register convention: __cdecl, no arguments.
-// UNSURE: the accept-configuration record passed to thunk_FUN_0061ce80 is a 4-dword stack
+// UNSURE: the accept-configuration record passed to gt2Accept is a 4-dword stack
 // record (result code, receive callback, two more code pointers); one of those two pointers
 // (LAB_00441f30) is a raw code address in the unlifted gap between network_channel_receive_
 // callback's end and network_channel_attempt_connect's start, and the other (FUN_0044ad80) is
@@ -29,15 +29,15 @@
 extern int32_t network_pending_connection_count; // 0x006f16d0
 extern network_pending_connection network_pending_connections[k_network_pending_connection_count]; // 0x0087bc20
 
-// network_listen_accept_config is the stack-only record passed to thunk_FUN_0061ce80;
+// network_listen_accept_config is the stack-only record passed to gt2Accept;
 // it now lives in types/networking.h (folded from this file during the review pass).
 
 extern void network_channel_gap_441f30(void); // raw code address, see UNSURE
 extern void function_do_nothing(void); // 0x44ad80
 
-extern int32_t thunk_FUN_0061ce80(int32_t reply_socket, network_listen_accept_config *config); // foreign, GameSpy library
+extern int32_t gt2Accept(int32_t reply_socket, network_listen_accept_config *config); // foreign, GameSpy library
 extern network_receive_queue *network_receive_queue_new(void); // 0x441bf0, this module
-extern void FUN_00614830(int32_t socket, network_receive_queue *queue); // foreign, GameSpy library // foreign, GameSpy library
+extern void gt2SetConnectionData(int32_t socket, network_receive_queue *queue); // foreign, GameSpy library // foreign, GameSpy library
 extern void network_channel_receive_callback(void *handle, uint8_t *data, int32_t length); // 0x441ed0, this module
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue); // 0x441ce0, this module
 extern char *network_address_to_string(s_network_address *addr); // 0x440570, this module
@@ -63,12 +63,12 @@ network_receive_queue *network_listen_accept_pending_connection(void)
         config.receive_callback = (void *)network_channel_receive_callback;
         config.error_callback = (void *)network_channel_gap_441f30;
         config.connect_callback = (void *)function_do_nothing;
-        accepted = thunk_FUN_0061ce80(entry->reply_socket, &config);
+        accepted = gt2Accept(entry->reply_socket, &config);
         if (accepted == 1) {
             queue = network_receive_queue_new();
             if (queue != 0) {
                 queue->socket = entry->reply_socket;
-                FUN_00614830(entry->reply_socket, queue);
+                gt2SetConnectionData(entry->reply_socket, queue);
                 queue->flags = queue->flags | 1;
                 network_channel_get_remote_address(&remote_address, queue);
                 network_address_to_string(&remote_address);

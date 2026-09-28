@@ -26,7 +26,7 @@ extern uint8_t network_session_active2; // 0x0071c2ec, UNSURE name
 extern void *master_server_object; // 0x00722a20
 extern int32_t master_server_state; // 0x00722a18
 
-extern void FUN_0061b3f0(int32_t connection_id); // outside this batch, foreign
+extern void gcd_disconnect_all(int32_t connection_id); // outside this batch, foreign
 extern void message_delta_parameters_protocol_dump_to_config_file(void); // 0x4ec330, outside this batch
 extern void network_stats_summary_log_write(void); // 0x440820, this module
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
@@ -37,8 +37,8 @@ extern char network_session_broadcast_to_all(network_server_globals *server, int
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
 extern void network_channel_delete(network_channel *channel); // 0x4dcae0, this batch
 extern void network_session_host_update(void); // 0x577940, outside this batch
-extern void FUN_0061b760(void); // outside this batch, foreign
-extern void FUN_00616c40(void *object); // outside this batch, foreign
+extern void gcd_shutdown(void); // outside this batch, foreign
+extern void qr2_shutdown(void *object); // outside this batch, foreign
 
 void network_game_server_host_dispose(network_server_globals *host)
 {
@@ -48,7 +48,7 @@ void network_game_server_host_dispose(network_server_globals *host)
     int32_t message_type;
     uint32_t challenge_payload[4]; // UNSURE: the caller-frame scratch EDX points at
 
-    FUN_0061b3f0(unknown_0069fdfc);
+    gcd_disconnect_all(unknown_0069fdfc);
     if (((*(uint8_t *)((uint8_t *)host + 6) >> 2) & 1) != 0) {
         message_delta_parameters_protocol_dump_to_config_file();
         network_stats_summary_log_write();
@@ -84,8 +84,8 @@ void network_game_server_host_dispose(network_server_globals *host)
         }
         network_session_host_update();
         unknown_0069fdfc = -1;
-        FUN_0061b760();
-        FUN_00616c40(master_server_object);
+        gcd_shutdown();
+        qr2_shutdown(master_server_object);
         master_server_object = 0;
     }
 }

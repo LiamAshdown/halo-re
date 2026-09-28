@@ -11,7 +11,7 @@
 // register convention: entry-pointer-pointer `a` in EAX (in_EAX), entry-pointer-pointer `b` in
 // ECX (in_ECX) -- this is a private helper, not itself registered as a qsort comparator, so it
 // does not need qsort's (const void *, const void *) stack convention.
-// UNSURE: FUN_00617490's return value (the raw "mapname" string) and map_list_get_friendly_
+// UNSURE: SBServerGetStringValue's return value (the raw "mapname" string) and map_list_get_friendly_
 // level_name's map-name input are both shown with no visible argument at this call site;
 // reconstructed as an EAX pass-through between the two calls, matching this module's
 // established pattern for chained foreign calls.
@@ -29,7 +29,7 @@
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8, see UNSURE
 
-extern char *FUN_00617490(void *entry, const char *key, const char *default_value); // foreign, GameSpy library
+extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library
 extern void map_list_get_friendly_level_name(const char *map_name, wchar_t out_buffer[0x20]); // foreign, outside this session's range
 extern int32_t _wcscmp(const wchar_t *a, const wchar_t *b);
 
@@ -48,8 +48,8 @@ int32_t server_list_compare_by_mapname(void **a, void **b)
     entry_b = *b;
     memset(friendly_b, 0, sizeof(friendly_b));
     memset(friendly_a, 0, sizeof(friendly_a));
-    map_name_a = FUN_00617490(entry_a, "mapname", "");
-    map_name_b = FUN_00617490(entry_b, "mapname", "");
+    map_name_a = SBServerGetStringValue(entry_a, "mapname", "");
+    map_name_b = SBServerGetStringValue(entry_b, "mapname", "");
     map_list_get_friendly_level_name(map_name_a, friendly_a);
     map_list_get_friendly_level_name(map_name_b, friendly_b);
     result = _wcscmp(friendly_a, friendly_b);

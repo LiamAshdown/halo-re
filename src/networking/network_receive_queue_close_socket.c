@@ -18,9 +18,9 @@
 #include "networking.h"
 
 extern int32_t network_game_socket; // 0x006f14c4
-extern int32_t thunk_FUN_0061c660(int32_t socket, void *callback); // foreign, GameSpy library // foreign, GameSpy library
-extern int32_t FUN_006147a0(int32_t socket); // foreign, GameSpy library
-extern void FUN_00614710(int32_t socket); // foreign, GameSpy library
+extern int32_t gt2Listen(int32_t socket, void *callback); // foreign, GameSpy library // foreign, GameSpy library
+extern int32_t gt2GetConnectionState(int32_t socket); // foreign, GameSpy library
+extern void gt2CloseConnectionHard(int32_t socket); // foreign, GameSpy library
 
 // blam-cc: receive-queue pointer in ESI (unaff_ESI)
 // If the queue was flagged data_ready and the main game socket is open, unregisters that
@@ -31,12 +31,12 @@ void network_receive_queue_close_socket(network_receive_queue *queue)
     int32_t state;
 
     if ((int8_t)queue->data_ready == 1 && network_game_socket != 0) {
-        thunk_FUN_0061c660(network_game_socket, 0);
+        gt2Listen(network_game_socket, 0);
     }
     if (queue->socket != 0) {
-        state = FUN_006147a0(queue->socket);
+        state = gt2GetConnectionState(queue->socket);
         if (state == 1 || state == 0) {
-            FUN_00614710(queue->socket);
+            gt2CloseConnectionHard(queue->socket);
         }
     }
     queue->socket = 0;

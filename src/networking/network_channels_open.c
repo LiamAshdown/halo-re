@@ -5,7 +5,7 @@
 // plain)" section names network_game_socket (0x006f14c4), network_query_socket (0x006f14c8),
 // network_local_address (0x006869b0) and network_channels_open_ok (0x006869be) directly.
 // register convention: __cdecl, no arguments.
-// UNSURE: every callee here (thunk_FUN_0061c3e0, FUN_00614800/850/8b0, FUN_0061e550) is
+// UNSURE: every callee here (gt2CreateSocket, gt2SetUnrecognizedMessageCallback/850/8b0, gt2SetSendDump) is
 // foreign GameSpy transport library code (see the "server browser" note in
 // networking_types_notes.md: those objects are deliberately not declared as Blam types), so
 // their real signatures are not recovered -- only the observed argument count/shape is kept.
@@ -31,13 +31,13 @@ extern uint32_t network_game_port;     // 0x00698208
 extern uint32_t network_query_port;    // 0x0069820c
 
 // Foreign GameSpy transport calls; see UNSURE note above.
-extern void FUN_006148b0(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
+extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
     // 0x16-byte address record (stride confirmed by the imul esi,esi,0x16 at 0x6148c8)
-extern int32_t thunk_FUN_0061c3e0(int32_t *socket_out, uint8_t address_buffer[24], int32_t unused_a,
+extern int32_t gt2CreateSocket(int32_t *socket_out, uint8_t address_buffer[24], int32_t unused_a,
                                    int32_t unused_b, void *receive_callback);
-extern void FUN_0061e550(int32_t socket, void *callback); // error callback?
-extern void FUN_00614850(int32_t socket, void *callback); // UNSURE
-extern void FUN_00614800(int32_t socket, void *callback); // UNSURE
+extern void gt2SetSendDump(int32_t socket, void *callback); // error callback?
+extern void gt2SetReceiveDump(int32_t socket, void *callback); // UNSURE
+extern void gt2SetUnrecognizedMessageCallback(int32_t socket, void *callback); // UNSURE
 
 // Callback trampolines in the unlifted gap before this function; see UNSURE note above.
 extern void network_channel_gap_441020(void);
@@ -58,37 +58,37 @@ void network_channels_open(void)
                       network_local_address >> 0x18;
     network_channels_open_ok = 1;
 
-    FUN_006148b0(swapped_address, (uint16_t)network_game_port, game_address_buf);
-    FUN_006148b0(swapped_address, (uint16_t)network_query_port, query_address_buf);
+    gt2AddressToString(swapped_address, (uint16_t)network_game_port, game_address_buf);
+    gt2AddressToString(swapped_address, (uint16_t)network_query_port, query_address_buf);
 
     if (network_game_socket == 0) {
-        result = thunk_FUN_0061c3e0(&network_game_socket, game_address_buf, 0, 0,
+        result = gt2CreateSocket(&network_game_socket, game_address_buf, 0, 0,
                                      network_channel_gap_441060);
         if (result == 0) {
-            FUN_0061e550(network_game_socket, network_channel_gap_441020);
-            FUN_00614850(network_game_socket, network_channel_gap_441040);
-            FUN_00614800(network_game_socket, network_channel_gap_4410b0);
+            gt2SetSendDump(network_game_socket, network_channel_gap_441020);
+            gt2SetReceiveDump(network_game_socket, network_channel_gap_441040);
+            gt2SetUnrecognizedMessageCallback(network_game_socket, network_channel_gap_4410b0);
         } else {
             network_channels_open_ok = 0;
         }
     }
 
     if (network_query_socket == 0 && network_channels_open_ok == 1) {
-        result = thunk_FUN_0061c3e0(&network_query_socket, query_address_buf, 0, 0,
+        result = gt2CreateSocket(&network_query_socket, query_address_buf, 0, 0,
                                      network_channel_gap_441060);
         if (result != 0) {
             network_query_port = 0;
-            FUN_006148b0(swapped_address, 0, query_address_buf);
-            result = thunk_FUN_0061c3e0(&network_query_socket, query_address_buf, 0, 0,
+            gt2AddressToString(swapped_address, 0, query_address_buf);
+            result = gt2CreateSocket(&network_query_socket, query_address_buf, 0, 0,
                                          network_channel_gap_441060);
             if (result != 0) {
                 network_channels_open_ok = 0;
                 return;
             }
         }
-        FUN_0061e550(network_query_socket, network_channel_gap_441020);
-        FUN_00614850(network_query_socket, network_channel_gap_441040);
-        FUN_00614800(network_query_socket, network_channel_gap_441200);
+        gt2SetSendDump(network_query_socket, network_channel_gap_441020);
+        gt2SetReceiveDump(network_query_socket, network_channel_gap_441040);
+        gt2SetUnrecognizedMessageCallback(network_query_socket, network_channel_gap_441200);
     }
 }
 

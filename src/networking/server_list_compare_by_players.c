@@ -1,5 +1,5 @@
 // server_list_compare_by_players  (not a Ghidra function; a server browser qsort comparator returned by
-//   server_browser_sort_comparator_select; no C existed, so it trapped as FUN_004b6e70)
+//   server_browser_sort_comparator_select; no C existed, so it trapped as server_list_compare_by_players)
 // address 0x4b6e70, size 169 bytes
 // name confidence: 0.7   rewrite confidence: 0.85
 // WRITTEN 2026-09-28 from objdump 0x4b6e70..0x4b6f18: numplayers (0x0066b0a4), then maxplayers (0x0066b098) -- the
@@ -11,8 +11,8 @@
 #include "tags.h"
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
-extern const char *FUN_00617490(void *server, const char *key, const char *default_value); // 0x617490 SBServerGetStringValue
-extern int32_t FUN_00617c10(void *server, const char *key, int32_t default_value); // 0x617c10 SBServerGetIntValue
+extern const char *SBServerGetStringValue(void *server, const char *key, const char *default_value); // 0x617490 SBServerGetStringValue
+extern int32_t SBServerGetIntValue(void *server, const char *key, int32_t default_value); // 0x617c10 SBServerGetIntValue
 extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 // the final tie-break on the element addresses, in the sort direction
@@ -27,8 +27,8 @@ static int32_t address_order(const void *a, const void *b)
 // _stricmp of one string key of the two servers, in the sort direction
 static int32_t key_order(const void *a, const void *b, const char *key)
 {
-    const char *string_b = FUN_00617490(*(void **)b, key, "");
-    const char *string_a = FUN_00617490(*(void **)a, key, "");
+    const char *string_b = SBServerGetStringValue(*(void **)b, key, "");
+    const char *string_a = SBServerGetStringValue(*(void **)a, key, "");
     int32_t result = __stricmp(string_a, string_b);
 
     return server_browser_sort_ascending != 0 ? result : -result;
@@ -40,10 +40,10 @@ int32_t server_list_compare_by_players(const void *a, const void *b)
 {
     void *server_a = *(void **)a;
     void *server_b = *(void **)b;
-    int32_t players_a = FUN_00617c10(server_a, "numplayers", 0);
-    int32_t players_b = FUN_00617c10(server_b, "numplayers", 0);
-    int32_t maximum_a = FUN_00617c10(server_a, "maxplayers", 0);
-    int32_t maximum_b = FUN_00617c10(server_b, "maxplayers", 0);
+    int32_t players_a = SBServerGetIntValue(server_a, "numplayers", 0);
+    int32_t players_b = SBServerGetIntValue(server_b, "numplayers", 0);
+    int32_t maximum_a = SBServerGetIntValue(server_a, "maxplayers", 0);
+    int32_t maximum_b = SBServerGetIntValue(server_b, "maxplayers", 0);
     int32_t result;
 
     if (players_a != players_b) {

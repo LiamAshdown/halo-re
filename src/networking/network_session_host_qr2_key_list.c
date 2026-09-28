@@ -11,9 +11,9 @@
 #include <wchar.h>
 
 extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
-extern void FUN_00615590(void *buffer, const char *value); // 0x615590 qr2_buffer_add
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
-extern void FUN_00615560(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
+extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
+extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
 
 void network_session_host_qr2_key_list(int32_t key_type, void *keybuffer, void *user_data)
 {
@@ -25,24 +25,24 @@ void network_session_host_qr2_key_list(int32_t key_type, void *keybuffer, void *
         static const int32_t in_game[8] = { 0x36, 8, 6, 12, 7, 13, 0x34, 0x35 };
 
         for (i = 0; i < 8; i++) {
-            FUN_00615560(keybuffer, always[i]);
+            qr2_keybuffer_add(keybuffer, always[i]);
         }
         if (current_game_engine != 0) {
             for (i = 0; i < 8; i++) {
-                FUN_00615560(keybuffer, in_game[i]);
+                qr2_keybuffer_add(keybuffer, in_game[i]);
             }
         }
     } else if (key_type == 1) {
         if (current_game_engine != 0) {
-            FUN_00615560(keybuffer, 0x15);
-            FUN_00615560(keybuffer, 0x16);
-            FUN_00615560(keybuffer, 0x18);
-            FUN_00615560(keybuffer, 0x19);
+            qr2_keybuffer_add(keybuffer, 0x15);
+            qr2_keybuffer_add(keybuffer, 0x16);
+            qr2_keybuffer_add(keybuffer, 0x18);
+            qr2_keybuffer_add(keybuffer, 0x19);
         }
     } else if (key_type == 2) {
         if (current_game_engine != 0) {
-            FUN_00615560(keybuffer, 0x1c);
-            FUN_00615560(keybuffer, 0x1d);
+            qr2_keybuffer_add(keybuffer, 0x1c);
+            qr2_keybuffer_add(keybuffer, 0x1d);
         }
     }
 }

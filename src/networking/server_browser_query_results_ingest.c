@@ -26,8 +26,8 @@
 // as taking the enumerated record handle and `&server_list` respectively, matching how
 // both callees are defined elsewhere in this batch.
 // UNSURE: `master_server_query_engine`, `server_browser_initialized` and
-// `server_browser_query_pending` are named from behavior only; FUN_00617020/FUN_00617030/
-// FUN_006175c0 are GameSpy library accessors outside this batch's address range.
+// `server_browser_query_pending` are named from behavior only; ServerBrowserGetServer/ServerBrowserCount/
+// SBServerHasBasicKeys are GameSpy library accessors outside this batch's address range.
 
 #include "tags.h"
 #include "memory.h"
@@ -46,24 +46,24 @@ extern void server_list_reset(uint8_t *entry); // 0x4b65f0, outside this batch; 
 extern int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array); // 0x4ba8a0, this batch
 extern void server_browser_result_array_sort(server_list_globals *array); // 0x4ba9c0, this batch
 
-extern int32_t FUN_00617020(void *query_engine, int32_t index); // 0x617020, GameSpy: enumerate result at index
-extern int32_t FUN_00617030(void *engine); // foreign, GameSpy library: result count                // 0x617030, GameSpy: result count
-extern int32_t FUN_006175c0(int32_t record);                    // 0x6175c0, GameSpy: record validity check
+extern int32_t ServerBrowserGetServer(void *query_engine, int32_t index); // 0x617020, GameSpy: enumerate result at index
+extern int32_t ServerBrowserCount(void *engine); // foreign, GameSpy library: result count                // 0x617030, GameSpy: result count
+extern int32_t SBServerHasBasicKeys(int32_t record);                    // 0x6175c0, GameSpy: record validity check
 
 // blam-cc: EAX -> list
 void server_browser_query_results_ingest(server_list_globals *list)
 {
     if (server_browser_initialized != 0 && master_server_query_engine != 0) {
-        int32_t result_count = FUN_00617030(master_server_query_engine);
+        int32_t result_count = ServerBrowserCount(master_server_query_engine);
         int32_t i = 0;
 
         server_list_reset((uint8_t *)list);
 
         if (0 < result_count) {
             do {
-                int32_t record = FUN_00617020(master_server_query_engine, i);
+                int32_t record = ServerBrowserGetServer(master_server_query_engine, i);
 
-                if (FUN_006175c0(record) != 0) {
+                if (SBServerHasBasicKeys(record) != 0) {
                     dynamic_pointer_array_add_unique((void *)(intptr_t)record, list);
                 }
                 i = i + 1;

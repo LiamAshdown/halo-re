@@ -7,7 +7,7 @@
 // server_list_result_reset.c's own UNSURE-named global exactly (both set it to 9999 on an
 // abandoned attempt); master_server_list_refresh_request is this module's own rewrite.
 // register convention: __cdecl, no arguments.
-// UNSURE: FUN_00616ff0/FUN_00617030 are foreign GameSpy library calls (connection-state query
+// UNSURE: ServerBrowserState/ServerBrowserCount are foreign GameSpy library calls (connection-state query
 // and connect-attempt trigger, respectively, going by their observed use); real names/full
 // signatures not recovered.
 
@@ -22,8 +22,8 @@ extern uint32_t master_server_request_flags; // 0x0071969c
 extern uint8_t DAT_00719488; // see master_server_list_refresh_request.c UNSURE
 extern int32_t server_browser_query_elapsed_ms; // 0x007196c8
 
-extern int32_t FUN_00616ff0(void *engine); // foreign, GameSpy library; connection state
-extern int32_t FUN_00617030(void *engine); // foreign, GameSpy library: result count // foreign, GameSpy library; start/poll connect attempt
+extern int32_t ServerBrowserState(void *engine); // foreign, GameSpy library; connection state
+extern int32_t ServerBrowserCount(void *engine); // foreign, GameSpy library: result count // foreign, GameSpy library; start/poll connect attempt
 extern void master_server_list_refresh_request(void); // 0x4b6660, this module
 
 // blam-cc: __cdecl, no arguments
@@ -37,9 +37,9 @@ void master_server_ensure_list_connection(void)
     int32_t connect_result;
 
     if (master_server_query_engine != 0) {
-        state = FUN_00616ff0(master_server_query_engine);
+        state = ServerBrowserState(master_server_query_engine);
         if (state != 2 && state != 1) {
-            connect_result = FUN_00617030(master_server_query_engine);
+            connect_result = ServerBrowserCount(master_server_query_engine);
             if (connect_result < 1) {
                 master_server_list_refresh_request();
                 return;

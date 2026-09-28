@@ -6,8 +6,7 @@
 #ifndef HALO_GAMESPY_H
 #define HALO_GAMESPY_H
 
-#define WIN32_LEAN_AND_MEAN
-#include <winsock.h>
+#include "win32.h"   /* the Windows SDK (winsock2 / windows.h), shared with the game code */
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

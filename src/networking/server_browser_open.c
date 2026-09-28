@@ -24,7 +24,7 @@
 // shown with fewer visible arguments than their own files' documented signatures require;
 // reconstructed with the most plausible buffer (this function's own locals / the shared
 // DAT_00719498 ticker-label buffer) and flagged individually below.
-// UNSURE: FUN_00616eb0 (master-server query engine constructor, 8 arguments) and LAB_004ba660
+// UNSURE: ServerBrowserNew (master-server query engine constructor, 8 arguments) and LAB_004ba660
 // (a callback address outside this session's range) are declared only by observed shape.
 
 #include "tags.h"
@@ -37,8 +37,8 @@
 
 extern uint8_t server_browser_initialized;      // 0x00719470
 extern void *master_server_query_engine;        // 0x0071946c
-extern uint8_t DAT_00722798[];                  // FUN_00616eb0 argument, see UNSURE
-extern uint8_t DAT_007227a0[];                  // FUN_00616eb0 argument, see UNSURE
+extern uint8_t DAT_00722798[];                  // ServerBrowserNew argument, see UNSURE
+extern uint8_t DAT_007227a0[];                  // ServerBrowserNew argument, see UNSURE
 extern uint8_t server_browser_join_requested;   // 0x00719491
 extern void *server_browser_join_target;        // 0x00719450
 extern uint8_t server_browser_join_target_has_password; // 0x00719454
@@ -77,7 +77,7 @@ extern uint8_t DAT_00719488;
 
 extern void network_channels_open(void); // 0x441300, this module
 extern int32_t master_server_connection_start(void); // 0x4b6000, this module
-extern void *FUN_00616eb0(void *a, void *b, void *c, int32_t d, int32_t e, int32_t f,
+extern void *ServerBrowserNew(void *a, void *b, void *c, int32_t d, int32_t e, int32_t f,
                            void *callback, int32_t h); // foreign, GameSpy library
 extern void network_channel_gap_4ba660(void); // callback, outside this session's range
 extern void autopatch_download_pool_initialize(void); // 0x576c30, outside this session's range
@@ -111,7 +111,7 @@ int32_t server_browser_open(network_ui_widget *root)
     network_channels_open();
     if (server_browser_initialized == 0 && master_server_connection_start() == 0) {
         server_browser_join_requested = 1;
-        master_server_query_engine = FUN_00616eb0(&DAT_00722798, &DAT_00722798, &DAT_007227a0, 0,
+        master_server_query_engine = ServerBrowserNew(&DAT_00722798, &DAT_00722798, &DAT_007227a0, 0,
                                                     10, 1, (void *)network_channel_gap_4ba660, 0);
     }
     server_browser_join_target = 0;

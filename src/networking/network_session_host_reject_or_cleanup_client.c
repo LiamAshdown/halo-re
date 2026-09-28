@@ -18,11 +18,11 @@
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t network_cd_key_game_id; // 0x0069fdfc
-extern void FUN_0061b110(int32_t game_id, int32_t local_id, uint32_t ip, const char *challenge, const char *response,
+extern void gcd_authenticate_user(int32_t game_id, int32_t local_id, uint32_t ip, const char *challenge, const char *response,
     void *callback, void *instance); // 0x61b110 gcd_authenticate_user
-extern const char *FUN_0061aa50(int32_t game_id, int32_t local_id); // 0x61aa50 gcd_getkeyhash
-extern void FUN_0061b350(int32_t game_id, int32_t local_id); // 0x61b350 gcd_disconnect_user
-extern void FUN_0061b3f0(int32_t game_id); // 0x61b3f0 gcd_disconnect_all
+extern const char *gcd_getkeyhash(int32_t game_id, int32_t local_id); // 0x61aa50 gcd_getkeyhash
+extern void gcd_disconnect_user(int32_t game_id, int32_t local_id); // 0x61b350 gcd_disconnect_user
+extern void gcd_disconnect_all(int32_t game_id); // 0x61b3f0 gcd_disconnect_all
 extern uint8_t ban_list_check_and_reject_player(char *key); // 0x4e3820, blam-cc: EDI key
 extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine,
     network_server_globals *server); // 0x4e0af0
@@ -35,8 +35,8 @@ uint8_t network_session_host_reject_or_cleanup_client(const char *response, cons
     network_machine *machine = 0;
     int32_t i;
 
-    FUN_0061b110(network_cd_key_game_id, local_id, ip, challenge, response, (void *)network_session_host_cd_key_callback, 0);
-    if (ban_list_check_and_reject_player((char *)FUN_0061aa50(network_cd_key_game_id, local_id)) == 0) {
+    gcd_authenticate_user(network_cd_key_game_id, local_id, ip, challenge, response, (void *)network_session_host_cd_key_callback, 0);
+    if (ban_list_check_and_reject_player((char *)gcd_getkeyhash(network_cd_key_game_id, local_id)) == 0) {
         return 1;
     }
     server = network_server;
@@ -48,9 +48,9 @@ uint8_t network_session_host_reject_or_cleanup_client(const char *response, cons
     }
     network_server_notify_or_resend_challenge(6, machine, server);
     if (local_id == -1) {
-        FUN_0061b3f0(network_cd_key_game_id);
+        gcd_disconnect_all(network_cd_key_game_id);
     } else {
-        FUN_0061b350(network_cd_key_game_id, local_id);
+        gcd_disconnect_user(network_cd_key_game_id, local_id);
     }
     return 0;
 }

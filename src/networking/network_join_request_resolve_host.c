@@ -5,9 +5,9 @@
 // evidence: out/phase4/networking_functions.md summary ("Resolves the host/IP for a pending
 // 'join server' request and either connects immediately or kicks off an asynchronous hostname
 // resolution"); out/phase2/results/networking_01.json evidence ("reads a pending connect
-// request (DAT_00719450), retrieves hostname/IP fields via FUN_006175e0/00617640/00617650,
+// request (DAT_00719450), retrieves hostname/IP fields via SBServerGetPublicAddress/00617640/00617650,
 // compares packed address bytes, formats \"%s:%d\" via sprintf, and either connects directly
-// via network_game_client_connect_to_address or starts an async resolve with FUN_00614f30 passing callbacks FUN_0044ad80
+// via network_game_client_connect_to_address or starts an async resolve with NNBeginNegotiationWithSocket passing callbacks FUN_0044ad80
 // and network_join_hostname_resolved_callback (0x4ba270), setting the connect state
 // DAT_00718f8c=4"); the packed-address comparison mirrors
 // src/networking/network_channel_get_remote_address.c's identical gamespy_array_length-based idiom;
@@ -29,7 +29,7 @@
 // two-argument prototype directly (each function file's extern declarations are independent,
 // per this project's one-file-per-function model), rather than editing the already-committed
 // file; out of scope for this batch, but worth a follow-up pass over 0x4ba270's declaration.
-// UNSURE: the three `local_5c` byte-copy loops (inlined strcpy of FUN_006175e0/00617640/
+// UNSURE: the three `local_5c` byte-copy loops (inlined strcpy of SBServerGetPublicAddress/00617640/
 // 00617040's results) write into a local buffer that is never read again anywhere in the
 // function -- apparently dead, but preserved for fidelity exactly as
 // network_join_hostname_resolved_callback.c preserves its own similarly dead local buffer.
@@ -72,25 +72,25 @@ extern int32_t interface_loading_screen_unknown_6b2f68; // 0x006b2f68
 
 // Foreign GameSpy library accessors against server_browser_join_target (see
 // out/phase4/networking_types_notes.md: GameSpy SDK objects are deliberately not typed here).
-extern uint32_t FUN_00617600(int32_t handle); // port
-extern char *FUN_006175e0(int32_t handle);    // hostname/address string
-extern uint32_t FUN_00617650(int32_t handle); // alternate/"connect" port
-extern char *FUN_00617640(int32_t handle);    // alternate/"connect" address string
-extern int32_t FUN_00617620(int32_t handle);  // has-resolved-address flag
-extern int32_t FUN_00617630(int32_t handle);  // hostname-already-resolved flag
+extern uint32_t SBServerGetPublicQueryPort(int32_t handle); // port
+extern char *SBServerGetPublicAddress(int32_t handle);    // hostname/address string
+extern uint32_t SBServerGetPrivateQueryPort(int32_t handle); // alternate/"connect" port
+extern char *SBServerGetPrivateAddress(int32_t handle);    // alternate/"connect" address string
+extern int32_t SBServerHasPrivateAddress(int32_t handle);  // has-resolved-address flag
+extern int32_t SBServerDirectConnect(int32_t handle);  // hostname-already-resolved flag
 extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // address byte source, same idiom as
     // network_channel_get_remote_address.c's identical-named foreign accessor
 // Foreign GameSpy library accessors against master_server_query_engine.
-extern char *FUN_00617040(void *handle);      // hostname/address string
-extern uint32_t FUN_00617060(void *handle);   // address byte source
+extern char *ServerBrowserGetMyPublicIP(void *handle);      // hostname/address string
+extern uint32_t ServerBrowserGetMyPublicIPAddr(void *handle);   // address byte source
 
 extern void network_channels_open(void); // 0x441300, this module (declared void: see UNSURE)
 extern int32_t network_random_offset(int32_t base); // 0x4403b0, this module
-extern void FUN_00616f50(void *handle, char *hostname, uint32_t port, int32_t request_id); // foreign, GameSpy library
+extern void ServerBrowserSendNatNegotiateCookieToServer(void *handle, char *hostname, uint32_t port, int32_t request_id); // foreign, GameSpy library
 extern void network_join_hostname_resolved_callback(int32_t resolve_failed, uint32_t unused,
     uint8_t *hostent); // 0x4ba270, this module
 extern void function_do_nothing(void); // 0x44ad80
-extern int32_t FUN_00614f30(int32_t hostname, int32_t request_id, int32_t one,
+extern int32_t NNBeginNegotiationWithSocket(int32_t hostname, int32_t request_id, int32_t one,
     void (*progress_callback)(void), void (*complete_callback)(int32_t, uint32_t, uint8_t *),
     int32_t zero); // foreign, GameSpy library async hostname resolve
 // blam-cc: EAX -> address_string (0x4dc790 strcpy's it out of EAX), stack -> the wide
@@ -107,16 +107,16 @@ uint32_t network_join_request_resolve_host(void)
     char *string_result;
     uint32_t port = 0;
 
-    string_result = FUN_006175e0((int32_t)(uintptr_t)server_browser_join_target);
+    string_result = SBServerGetPublicAddress((int32_t)(uintptr_t)server_browser_join_target);
     if (string_result != 0) {
         strcpy(dead_scratch, string_result);
     }
-    FUN_00617650((int32_t)(uintptr_t)server_browser_join_target);
-    string_result = FUN_00617640((int32_t)(uintptr_t)server_browser_join_target);
+    SBServerGetPrivateQueryPort((int32_t)(uintptr_t)server_browser_join_target);
+    string_result = SBServerGetPrivateAddress((int32_t)(uintptr_t)server_browser_join_target);
     if (string_result != 0) {
         strcpy(dead_scratch, string_result);
     }
-    string_result = FUN_00617040(master_server_query_engine);
+    string_result = ServerBrowserGetMyPublicIP(master_server_query_engine);
     if (string_result != 0) {
         strcpy(dead_scratch, string_result);
     }
@@ -126,30 +126,30 @@ uint32_t network_join_request_resolve_host(void)
         int32_t byte_d; uint32_t byte_e; uint32_t byte_f;
         int32_t has_resolved_address;
 
-        port = FUN_00617600((int32_t)(uintptr_t)server_browser_join_target);
+        port = SBServerGetPublicQueryPort((int32_t)(uintptr_t)server_browser_join_target);
         byte_a = gamespy_array_length((int32_t)(uintptr_t)server_browser_join_target);
         gamespy_array_length((int32_t)(uintptr_t)server_browser_join_target); // discarded, kept for fidelity
         byte_b = gamespy_array_length((int32_t)(uintptr_t)server_browser_join_target);
         byte_c = gamespy_array_length((int32_t)(uintptr_t)server_browser_join_target);
-        FUN_00617060(master_server_query_engine); // discarded, kept for fidelity
-        byte_d = FUN_00617060(master_server_query_engine);
-        byte_e = FUN_00617060(master_server_query_engine);
-        byte_f = FUN_00617060(master_server_query_engine);
-        has_resolved_address = FUN_00617620((int32_t)(uintptr_t)server_browser_join_target);
+        ServerBrowserGetMyPublicIPAddr(master_server_query_engine); // discarded, kept for fidelity
+        byte_d = ServerBrowserGetMyPublicIPAddr(master_server_query_engine);
+        byte_e = ServerBrowserGetMyPublicIPAddr(master_server_query_engine);
+        byte_f = ServerBrowserGetMyPublicIPAddr(master_server_query_engine);
+        has_resolved_address = SBServerHasPrivateAddress((int32_t)(uintptr_t)server_browser_join_target);
 
         if (has_resolved_address == 0 ||
             (((byte_a & 0xff0000) >> 8 | (uint32_t)((byte_b << 0x10) | (byte_c & 0xff00)) << 8) !=
              ((uint32_t)((byte_d << 0x10) | (byte_e & 0xff00)) << 8 | ((byte_f >> 8) & 0xff00)))) {
-            if (FUN_00617630((int32_t)(uintptr_t)server_browser_join_target) == 0) {
+            if (SBServerDirectConnect((int32_t)(uintptr_t)server_browser_join_target) == 0) {
                 needs_async_resolve = 1;
             } else {
-                strncpy(host_buffer, FUN_006175e0((int32_t)(uintptr_t)server_browser_join_target), 0x18);
+                strncpy(host_buffer, SBServerGetPublicAddress((int32_t)(uintptr_t)server_browser_join_target), 0x18);
                 host_buffer[0x18] = 0;
             }
         } else {
-            strncpy(host_buffer, FUN_00617640((int32_t)(uintptr_t)server_browser_join_target), 0x18);
+            strncpy(host_buffer, SBServerGetPrivateAddress((int32_t)(uintptr_t)server_browser_join_target), 0x18);
             host_buffer[0x18] = 0;
-            port = FUN_00617650((int32_t)(uintptr_t)server_browser_join_target);
+            port = SBServerGetPrivateQueryPort((int32_t)(uintptr_t)server_browser_join_target);
         }
     }
 
@@ -182,13 +182,13 @@ uint32_t network_join_request_resolve_host(void)
     {
         uint32_t resolve_handle = gamespy_array_length(network_game_socket); // see file header: same
             // accessor used elsewhere for address bytes, here against the game socket itself
-        char *hostname = FUN_006175e0((int32_t)(uintptr_t)server_browser_join_target);
-        uint32_t resolve_port = FUN_00617600((int32_t)(uintptr_t)server_browser_join_target);
+        char *hostname = SBServerGetPublicAddress((int32_t)(uintptr_t)server_browser_join_target);
+        uint32_t resolve_port = SBServerGetPublicQueryPort((int32_t)(uintptr_t)server_browser_join_target);
         int32_t request_id = network_random_offset(10000);
         uint32_t result;
 
-        FUN_00616f50(master_server_query_engine, hostname, resolve_port, request_id);
-        result = FUN_00614f30((int32_t)resolve_handle, request_id, 1, function_do_nothing,
+        ServerBrowserSendNatNegotiateCookieToServer(master_server_query_engine, hostname, resolve_port, request_id);
+        result = NNBeginNegotiationWithSocket((int32_t)resolve_handle, request_id, 1, function_do_nothing,
             network_join_hostname_resolved_callback, 0);
         server_browser_join_target = 0;
         if (result == 0) {

@@ -6,11 +6,11 @@
 // current sort direction"); mirrors server_list_compare_by_mapname.c's entry-pointer-pointer
 // (EAX/ECX) convention for the same array-of-entry-pointers shape.
 // register convention: entry-pointer-pointer `a` in EAX (in_EAX), `b` in ECX (in_ECX), key
-// string in EDX -- Ghidra shows FUN_00617490 called with only one visible argument at each call
+// string in EDX -- Ghidra shows SBServerGetStringValue called with only one visible argument at each call
 // site (the entry), confirming (per the module summary) that the key itself is a parameter of
 // this function, not a literal, forwarded unchanged into both accessor calls.
-// UNSURE: FUN_00617490's default-value argument is not visible at either call site; assumed to
-// be an empty string, matching this module's other FUN_00617490 call sites.
+// UNSURE: SBServerGetStringValue's default-value argument is not visible at either call site; assumed to
+// be an empty string, matching this module's other SBServerGetStringValue call sites.
 
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +20,7 @@
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 
-extern char *FUN_00617490(void *entry, const char *key, const char *default_value); // foreign, GameSpy library
+extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library
 extern int32_t __stricmp(const char *a, const char *b);
 
 // blam-cc: entry-pointer-pointer `a` in EAX (in_EAX), `b` in ECX (in_ECX), key string in EDX
@@ -30,8 +30,8 @@ int32_t server_list_compare_by_string_key(void **a, void **b, const char *key)
     char *string_a;
     int32_t result;
 
-    string_b = FUN_00617490(*b, key, "");
-    string_a = FUN_00617490(*a, key, "");
+    string_b = SBServerGetStringValue(*b, key, "");
+    string_a = SBServerGetStringValue(*a, key, "");
     result = __stricmp(string_a, string_b);
     if (server_browser_sort_ascending == 0) {
         result = -result;

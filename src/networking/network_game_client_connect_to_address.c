@@ -8,7 +8,7 @@
 // (saved into EBX at entry, in_EAX in Ghidra's decompile); the four inet_addr() calls per branch
 // are the same "call an accessor four times with the same argument and reassemble a byte-swapped
 // 32-bit value via mask/shift" pattern already documented in
-// network_channel_get_remote_address.c (there for gamespy_array_length/FUN_006147e0), reused verbatim
+// network_channel_get_remote_address.c (there for gamespy_array_length/gt2GetLocalIP), reused verbatim
 // here for inet_addr. The result, together with size = k_network_address_size_ipv4 and a port
 // (parsed after ':' when present via network_address_parse_port... actually _atol directly here,
 // or network_game_socket_port when address_string has no ':'), is written to a local

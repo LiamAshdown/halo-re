@@ -15,7 +15,7 @@
 extern data_array *player_data; // 0x0087a480
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX handle, ESI array
 extern uint32_t players_get_active_by_index(int32_t index); // 0x45c6f0, blam-cc: EAX
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
 
 uint8_t game_engine_ctf_query_player_score(int32_t key, int32_t index, void *buffer)
 {
@@ -24,6 +24,6 @@ uint8_t game_engine_ctf_query_player_score(int32_t key, int32_t index, void *buf
     if (player == 0 || key != 0x16) {
         return 0;
     }
-    FUN_00616640(buffer, *(int16_t *)(player + 0xc8));
+    qr2_buffer_add_int(buffer, *(int16_t *)(player + 0xc8));
     return 1;
 }

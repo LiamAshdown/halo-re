@@ -3,7 +3,7 @@
 // name confidence: 0.55   rewrite confidence: 0.75
 // evidence: out/phase4/networking_types_notes.md "ban_list_entry" section: "0x4e35c0 passes the
 // 12-character name from FUN_00557950 as the first argument and the 32-character identifier
-// from FUN_0061aa50 as the second"; ban_list_entry (name[13]/cd_key_hash[33]).
+// from gcd_getkeyhash as the second"; ban_list_entry (name[13]/cd_key_hash[33]).
 // register convention: __cdecl (Ghidra recognized both parameters).
 // UNSURE: growable_array_add_element (src/memory/growable_array_add_element.c) takes its array
 // pointer in ESI; ban_list_get_or_add_entry's own disassembly was not independently re-checked

@@ -8,8 +8,8 @@
 
 #include "tags.h"
 
-extern uint16_t FUN_006148a0(uint16_t value); // 0x6148a0 gt2NetworkToHostShort
-extern char *FUN_006148b0(uint32_t ip, uint16_t port, char *string); // 0x6148b0 gt2AddressToString
+extern uint16_t gt2NetworkToHostShort(uint16_t value); // 0x6148a0 gt2NetworkToHostShort
+extern char *gt2AddressToString(uint32_t ip, uint16_t port, char *string); // 0x6148b0 gt2AddressToString
 
 void network_session_host_natneg_completed(int32_t result, uint32_t socket, const uint8_t *remote_address, void *user_data)
 {
@@ -18,6 +18,6 @@ void network_session_host_natneg_completed(int32_t result, uint32_t socket, cons
     (void)socket;
     (void)user_data;
     if (result == 0) {
-        FUN_006148b0(*(const uint32_t *)(remote_address + 4), FUN_006148a0(*(const uint16_t *)(remote_address + 2)), text);
+        gt2AddressToString(*(const uint32_t *)(remote_address + 4), gt2NetworkToHostShort(*(const uint16_t *)(remote_address + 2)), text);
     }
 }

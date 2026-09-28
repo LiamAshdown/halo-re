@@ -25,7 +25,7 @@
 //    text), 6 -> 3 (text, progress), 7 -> 4, 8 -> 6 when network_game_mode is 2 else 5 (with
 //    subtext), 9 -> 8 (with subtext).
 // UNSURE: the 0x719754/0x719757/0x71973c/0x719a79/0x719a7a/0x719a9a/0x71c2de bytes belong to the
-// chat and network-join code and are kept under neutral names; FUN_00614fc0 is foreign.
+// chat and network-join code and are kept under neutral names; NNCancel is foreign.
 
 #include "tags.h"
 #include "memory.h"
@@ -67,7 +67,7 @@ extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, .
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text); // 0x514ab0; blam-cc: EAX -> zero, ECX -> bounds
 extern void chat_close(void); // 0x4aa900
-extern void FUN_00614fc0(datum_index tag); // 0x614fc0, UNSURE signature
+extern void NNCancel(datum_index tag); // 0x614fc0, UNSURE signature
 
 // Per-frame progress-screen driver.
 void chimera__do_show_loading_screen(void)
@@ -125,7 +125,7 @@ void chimera__do_show_loading_screen(void)
             return;
         case 4:
             if (progress_screen_tag != (datum_index)-1) {
-                FUN_00614fc0(progress_screen_tag);
+                NNCancel(progress_screen_tag);
                 progress_screen_tag = (datum_index)-1;
                 split_screen_quit_prompt_string = 0xffff;
                 split_screen_quit_prompt_unknown_71973c = 0;

@@ -16,7 +16,7 @@
 extern data_array *player_data; // 0x0087a480
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX handle, ESI array
 extern uint32_t players_get_active_by_index(int32_t index); // 0x45c6f0, blam-cc: EAX
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
 extern int32_t slayer_team_score[16]; // 0x006b13d8
 extern int32_t slayer_player_score[16]; // 0x006b1418
 extern int32_t slayer_unknown_0087a4a0[16]; // 0x0087a4a0, UNSURE
@@ -30,6 +30,6 @@ uint8_t game_engine_slayer_query_player_score(int32_t key, int32_t index, void *
     if (player == 0 || key != 0x16) {
         return 0;
     }
-    FUN_00616640(buffer, slayer_player_score[handle & 0xffff]);
+    qr2_buffer_add_int(buffer, slayer_player_score[handle & 0xffff]);
     return 1;
 }

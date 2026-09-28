@@ -20,7 +20,7 @@
 //     the failure result is the int16_t -16, not the int32_t 0xfff0 an earlier draft returned.
 //     types/networking.h now carries it as k_network_error_connect_failed.
 //   - 0x00718fa4 is accessed with WORD PTR (cmp .,0xffff / mov .,0x7), so it is an int16_t.
-//   - FUN_00614830 takes two arguments here as well: 0x441fe6 is
+//   - gt2SetConnectionData takes two arguments here as well: 0x441fe6 is
 //     mov eax,[esi]; push esi; push eax, i.e. (queue->socket, queue), matching
 //     network_listen_accept_pending_connection.c's call site.
 

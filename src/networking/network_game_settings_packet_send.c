@@ -27,7 +27,7 @@
 // past the end of the struct. Preserved as a raw read at that fixed address (very likely landing
 // on whatever global the original linker placed immediately after `network_client_storage`),
 // not folded into any named field.
-// UNSURE: `FUN_00617c70` (0x617c70, GameSpy-adjacent range, not in this batch) and the globals
+// UNSURE: `gcd_compute_response` (0x617c70, GameSpy-adjacent range, not in this batch) and the globals
 // `DAT_007461a8` / `DAT_00712dd8` (a large template table) / `DAT_0068e688` are not declared in
 // types/networking.h; named generically below.
 // UNSURE: the byte-at-a-time strcmp-shaped loop's sign convention (`(1-less)-(less!=0)`) is
@@ -55,7 +55,7 @@ extern int32_t join_ui_state; // 0x00718f8c, per network_client_state_dispatch.c
 extern int32_t some_global_0068e688; // 0x0068e688, UNSURE name
 extern void *game_variant_description_template_source; // 0x007461a8, UNSURE name/type
 extern uint8_t game_variant_description_template[0x1ffc]; // 0x00712dd8, UNSURE name/size (0x7ff dwords)
-extern void FUN_00617c70(void *a, void *request, uint8_t *out); // 0x617c70, not in this batch
+extern void gcd_compute_response(void *a, void *request, uint8_t *out); // 0x617c70, not in this batch
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
@@ -136,7 +136,7 @@ compare_done:
     _wcsncpy((wchar_t *)(frame + 0x10), (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
     frame[0x6b] = *((uint8_t *)client + 0xf4c); // UNSURE: one byte past the struct; see file header
     *(uint16_t *)(frame + 0x20) = 0;
-    FUN_00617c70(game_variant_description_template_source, (void *)request, frame + 0x22);
+    gcd_compute_response(game_variant_description_template_source, (void *)request, frame + 0x22);
 
     // The big, likely-mis-sized copy; see file header.
     for (i = 0; i < 0x1ffc; i = i + 1) {

@@ -12,9 +12,9 @@
 #include <wchar.h>
 
 extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
-extern void FUN_00615590(void *buffer, const char *value); // 0x615590 qr2_buffer_add
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
-extern void FUN_00615560(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
+extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
+extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
 typedef struct data_array data_array;
 extern uint8_t *player_data_raw; // 0x0087a480 (data_array *)
 extern uint32_t players_get_active_by_index(int32_t index); // 0x45c6f0, blam-cc: EAX index
@@ -29,23 +29,23 @@ void network_session_host_dispatch_message(int32_t key_id, int32_t index, void *
 
     (void)user_data;
     if (handle == 0xffffffff || player_index < 0 || player_index >= *(int16_t *)(player_data_raw + 0x20)) {
-        FUN_00615590(buffer, "");
+        qr2_buffer_add(buffer, "");
         return;
     }
     player = *(uint8_t **)(player_data_raw + 0x34) + player_index * *(int16_t *)(player_data_raw + 0x22);
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt)) {
-        FUN_00615590(buffer, "");
+        qr2_buffer_add(buffer, "");
         return;
     }
     if (key_id == 0x15) {
         uint8_t name[0x40];
 
         memset(name, 0, sizeof(name));
-        FUN_00615590(buffer, (const char *)string_convert_unicode_to_ascii(name, (uint16_t *)(player + 4), 0x40));
+        qr2_buffer_add(buffer, (const char *)string_convert_unicode_to_ascii(name, (uint16_t *)(player + 4), 0x40));
         return;
     }
     if (key_id == 0x19) {
-        FUN_00616640(buffer, *(int32_t *)(player + 0x20));
+        qr2_buffer_add_int(buffer, *(int32_t *)(player + 0x20));
         return;
     }
     if (current_game_engine != 0) {
@@ -55,7 +55,7 @@ void network_session_host_dispatch_message(int32_t key_id, int32_t index, void *
             return;
         }
     }
-    FUN_00615590(buffer, "");
+    qr2_buffer_add(buffer, "");
 }
 
 #if 0

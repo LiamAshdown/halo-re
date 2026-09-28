@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_functions.md summary: "Tears down the network channel/session
 // object created by network_session_host_start, if one exists."
 // register convention: no register-passed arguments.
-// UNSURE: FUN_0061b760/FUN_00616c40 are foreign (GameSpy-shaped) calls whose argument lists
+// UNSURE: gcd_shutdown/qr2_shutdown are foreign (GameSpy-shaped) calls whose argument lists
 // Ghidra elided entirely.
 
 #include "tags.h"
@@ -18,8 +18,8 @@ extern int32_t network_session_host_state; // 0x00722a18, UNSURE
 extern int32_t network_console_connection_id; // 0x0069fdfc
 
 extern void network_session_host_update(void); // 0x577940, this module
-extern void FUN_0061b760(void); // foreign, UNSURE
-extern void FUN_00616c40(void *object); // foreign, UNSURE
+extern void gcd_shutdown(void); // foreign, UNSURE
+extern void qr2_shutdown(void *object); // foreign, UNSURE
 
 // Tears down the network channel/session object created by network_session_host_start, if one
 // exists.
@@ -31,8 +31,8 @@ void network_session_host_dispose(void)
         }
         network_session_host_update();
         network_console_connection_id = -1;
-        FUN_0061b760();
-        FUN_00616c40(network_session_host_object);
+        gcd_shutdown();
+        qr2_shutdown(network_session_host_object);
         network_session_host_object = 0;
     }
 }

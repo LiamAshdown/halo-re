@@ -32,8 +32,8 @@
 #include <wchar.h>
 
 
-extern int32_t FUN_00617c10(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
-extern char *FUN_00617490(void *entry, const char *key, const char *default_value); // foreign, GameSpy library, string accessor
+extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
+extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library, string accessor
 // blam-cc: EAX -> dest, EDI -> dest capacity in BYTES, EBX -> ASCII source.
 // Widens an ASCII string into dest and returns dest, or NULL when it does not fit.
 extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source); // 0x557990
@@ -56,10 +56,10 @@ int32_t server_browser_selected_variant_description_build(void *entry)
 
     ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
     if (entry != 0) {
-        variant_name = FUN_00617490(entry, "gamevariant", "");
-        fraglimit = FUN_00617c10(entry, "fraglimit", 0);
-        game_flags = FUN_00617490(entry, "game_flags", "");
-        player_flags = FUN_00617490(entry, "player_flags", "");
+        variant_name = SBServerGetStringValue(entry, "gamevariant", "");
+        fraglimit = SBServerGetIntValue(entry, "fraglimit", 0);
+        game_flags = SBServerGetStringValue(entry, "game_flags", "");
+        player_flags = SBServerGetStringValue(entry, "player_flags", "");
         if (variant_name != 0 && fraglimit != 0) {
             // FIXED in the review pass: 0x4b755a/0x4b756b set EAX to the two stack scratch
             // buffers and EDI to 0x800 before each call; an earlier draft passed only the

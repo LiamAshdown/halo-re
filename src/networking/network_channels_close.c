@@ -15,16 +15,16 @@
 extern int32_t network_game_socket;  // 0x006f14c4
 extern int32_t network_query_socket; // 0x006f14c8
 
-extern void FUN_00614860(int32_t socket); // foreign GameSpy transport call, closes a socket
+extern void gt2CloseSocket(int32_t socket); // foreign GameSpy transport call, closes a socket
 
 void network_channels_close(void)
 {
     if (network_query_socket != 0) {
-        FUN_00614860(network_query_socket);
+        gt2CloseSocket(network_query_socket);
         network_query_socket = 0;
     }
     if (network_game_socket != 0) {
-        FUN_00614860(network_game_socket);
+        gt2CloseSocket(network_game_socket);
         network_game_socket = 0;
     }
 }

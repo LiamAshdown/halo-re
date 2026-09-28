@@ -23,9 +23,9 @@ extern uint8_t server_browser_sort_column; // 0x00719489, UNSURE name (see file 
 
 extern int32_t server_list_scroll_clamp(const void *, const void *); // 0x4b7360-adjacent, outside this batch
 extern int32_t server_list_compare_by_ping_then_hostname(const void *, const void *);     // outside this batch
-extern int32_t FUN_004b6fb0(const void *, const void *); // 0x4b6fb0, outside this batch, UNSURE name
-extern int32_t FUN_004b6e70(const void *, const void *); // 0x4b6e70, outside this batch, UNSURE name
-extern int32_t FUN_004b6cd0(const void *, const void *); // 0x4b6cd0, outside this batch, UNSURE name
+extern int32_t server_list_compare_by_gametype(const void *, const void *); // 0x4b6fb0, outside this batch, UNSURE name
+extern int32_t server_list_compare_by_players(const void *, const void *); // 0x4b6e70, outside this batch, UNSURE name
+extern int32_t server_list_compare_by_hostname(const void *, const void *); // 0x4b6cd0, outside this batch, UNSURE name
 
 // blam-cc: no register inputs
 server_browser_sort_comparator server_browser_sort_comparator_select(void)
@@ -34,13 +34,13 @@ server_browser_sort_comparator server_browser_sort_comparator_select(void)
     case 1:
         return server_list_scroll_clamp;
     case 2:
-        return FUN_004b6fb0;
+        return server_list_compare_by_gametype;
     case 3:
         return server_list_compare_by_ping_then_hostname;
     case 4:
-        return FUN_004b6e70;
+        return server_list_compare_by_players;
     default:
-        return FUN_004b6cd0;
+        return server_list_compare_by_hostname;
     }
 }
 

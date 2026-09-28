@@ -16,13 +16,13 @@ extern int32_t slayer_team_score[16]; // 0x006b13d8
 extern int32_t slayer_player_score[16]; // 0x006b1418
 extern int32_t slayer_unknown_0087a4a0[16]; // 0x0087a4a0, UNSURE
 extern int32_t slayer_unknown_0087a4e0[16]; // 0x0087a4e0, UNSURE
-extern void FUN_00616640(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
+extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
 
 uint8_t game_engine_slayer_query_team_score(int32_t key, int32_t team, void *buffer)
 {
     if (key != 0x1d) {
         return 0;
     }
-    FUN_00616640(buffer, slayer_team_score[team]);
+    qr2_buffer_add_int(buffer, slayer_team_score[team]);
     return 1;
 }

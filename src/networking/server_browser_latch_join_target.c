@@ -5,7 +5,7 @@
 // server-list entry as the join target, prompting for a password first if the server requires
 // one"); server_list_mutex/server_list_thread/server_list (types/networking.h) match
 // DAT_007196a8/ac/bc/c0; the "password" string key matches the GameSpy bool accessor
-// FUN_006174d0 that networking_types_notes.md's "server browser" section documents.
+// SBServerGetBoolValue that networking_types_notes.md's "server browser" section documents.
 // register convention: __cdecl, no arguments.
 // UNSURE: DAT_00719491 (a "join requested" gate, guessed name), DAT_00719450 (the latched
 // entry pointer), DAT_00719454 (the has-password result) and DAT_00719410 have no documented
@@ -30,7 +30,7 @@ extern uint8_t server_browser_join_target_has_password; // 0x00719454, see UNSUR
 extern int32_t DAT_00719410;                    // see UNSURE
 extern uint32_t master_server_request_flags;    // 0x0071969c
 
-extern int32_t FUN_006174d0(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library
+extern int32_t SBServerGetBoolValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library
 extern void virtual_keyboard_open(int32_t screen_id, int32_t field_id); // foreign, outside this session's range
 
 // blam-cc: __cdecl, no arguments
@@ -49,7 +49,7 @@ void server_browser_latch_join_target(void)
         server_browser_join_target =
             *(void **)((uint8_t *)&server_list + server_browser_selected_index * 4);
         server_browser_join_target_has_password =
-            FUN_006174d0(server_browser_join_target, "password", 0);
+            SBServerGetBoolValue(server_browser_join_target, "password", 0);
         if (server_browser_join_target_has_password != 0) {
             virtual_keyboard_open(0x12, 0xc);
             DAT_00719410 = 0;

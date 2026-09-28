@@ -13,7 +13,7 @@
 // behaved correctly at the one call site that checked it.
 // register convention: out s_network_address * in ESI (unaff_ESI), network_receive_queue * in
 // EDI (unaff_EDI).
-// UNSURE: gamespy_array_length/FUN_006147e0 are each called four times with the identical argument and
+// UNSURE: gamespy_array_length/gt2GetLocalIP are each called four times with the identical argument and
 // their four results are combined with a mask/shift expression that is algebraically a full
 // 32-bit byte-swap of a single such call's result (consistent with converting a network-order
 // GameSpy address into this struct's host-order-high-byte-first layout) -- kept as four
@@ -28,11 +28,11 @@
 
 extern int32_t network_game_socket; // 0x006f14c4
 
-extern int32_t FUN_006147a0(int32_t socket); // foreign, GameSpy library; connection state
+extern int32_t gt2GetConnectionState(int32_t socket); // foreign, GameSpy library; connection state
 extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; address byte source
-extern uint16_t FUN_006147d0(int32_t object); // 0x6147d0: returns the uint16 at object+0x04 in AX // foreign, GameSpy library; port
-extern uint32_t FUN_006147e0(int32_t socket); // foreign, GameSpy library; fallback address byte source
-extern uint16_t FUN_006147f0(int32_t socket); // foreign, GameSpy library; fallback port
+extern uint16_t gt2GetRemotePort(int32_t object); // 0x6147d0: returns the uint16 at object+0x04 in AX // foreign, GameSpy library; port
+extern uint32_t gt2GetLocalIP(int32_t socket); // foreign, GameSpy library; fallback address byte source
+extern uint16_t gt2GetLocalPort(int32_t socket); // foreign, GameSpy library; fallback port
 
 // blam-cc: out address in ESI (unaff_ESI), receive-queue pointer in EDI (unaff_EDI)
 // Fills `address` from `queue`'s own socket if it has one and is connected (state 1);
@@ -48,7 +48,7 @@ int16_t network_channel_get_remote_address(s_network_address *address, network_r
     uint32_t byte3;
 
     if (queue->socket != 0) {
-        state = FUN_006147a0(queue->socket);
+        state = gt2GetConnectionState(queue->socket);
         if (state == 1) {
             byte0 = gamespy_array_length(queue->socket);
             byte1 = gamespy_array_length(queue->socket);
@@ -56,20 +56,20 @@ int16_t network_channel_get_remote_address(s_network_address *address, network_r
             byte3 = gamespy_array_length(queue->socket);
             address->ipv4 = ((byte0 & 0xff0000 | byte1 >> 0x10) >> 8) |
                             ((byte2 << 0x10 | byte3 & 0xff00) << 8);
-            address->port = FUN_006147d0(queue->socket);
+            address->port = gt2GetRemotePort(queue->socket);
             address->size = k_network_address_size_ipv4;
             queue->last_error = 0;
             return 0;
         }
     }
     if (network_game_socket != 0) {
-        byte0 = FUN_006147e0(network_game_socket);
-        byte1 = FUN_006147e0(network_game_socket);
-        byte2 = FUN_006147e0(network_game_socket);
-        byte3 = FUN_006147e0(network_game_socket);
+        byte0 = gt2GetLocalIP(network_game_socket);
+        byte1 = gt2GetLocalIP(network_game_socket);
+        byte2 = gt2GetLocalIP(network_game_socket);
+        byte3 = gt2GetLocalIP(network_game_socket);
         address->ipv4 = ((byte0 & 0xff0000 | byte1 >> 0x10) >> 8) |
                         ((byte2 << 0x10 | byte3 & 0xff00) << 8);
-        address->port = FUN_006147f0(network_game_socket);
+        address->port = gt2GetLocalPort(network_game_socket);
         address->size = k_network_address_size_ipv4;
         queue->last_error = 0;
         return 0;

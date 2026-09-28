@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_types_notes.md "ban_list_entry" and "network_channel"
 // (rcon/console connection id 0x0069fdfc) sections; types/networking.h sv_ban_penalty_seconds.
 // Disassembly (objdump -d -M intel) pins the register convention: `mov ebx,ecx` at entry, then
-// `push eax; push ecx=[0x69fdfc]; call FUN_0061aa50` (cdecl pushes reversed: FUN_0061aa50's
+// `push eax; push ecx=[0x69fdfc]; call gcd_getkeyhash` (cdecl pushes reversed: gcd_getkeyhash's
 // first argument is the connection id global, second is the caller's own incoming EAX), and the
 // caller (sv_ban.c, this batch) does `mov eax,[edi+0x5c]` (a network_machine field this batch
 // does not otherwise resolve) then `push ebx` (the found network_player_entry*) immediately
@@ -14,7 +14,7 @@
 // the escalating penalty table), stack -> target_player.
 //   // blam-cc: EAX -> identity_lookup_key, ECX -> duration_override_seconds, stack -> target_player
 // UNSURE: identity_lookup_key's real meaning -- it is network_machine->unknown_5c (not resolved
-// by this batch) forwarded straight through to the foreign FUN_0061aa50 (< this module's start),
+// by this batch) forwarded straight through to the foreign gcd_getkeyhash (< this module's start),
 // which this rewrite treats as "resolve a CD-key hash string for this connection". UNSURE:
 // FUN_00557950's exact semantics (this batch does not resolve it); disassembly shows it takes
 // the destination buffer in ESI, the player record in EDI (the stack argument here, forwarded
@@ -31,7 +31,7 @@
 extern int32_t rcon_connection_id; // 0x0069fdfc, "the rcon/console connection id" (networking.h)
 extern int32_t sv_ban_penalty_seconds[4]; // 0x00699574
 
-extern char *FUN_0061aa50(int32_t connection_id, int32_t identity_lookup_key); // foreign (< this module), CD-key hash lookup
+extern char *gcd_getkeyhash(int32_t connection_id, int32_t identity_lookup_key); // foreign (< this module), CD-key hash lookup
 extern void string_convert_unicode_to_ascii(char *dest, network_player_entry *player, int32_t dest_size);
     // foreign (this module, later batch), blam-cc: ESI -> dest, EDI -> player, stack -> dest_size
 extern void network_banlist_load(void);  // this module, 0x4e3160 (excluded from this batch)
@@ -56,7 +56,7 @@ uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_ov
     char time_buf[32];
     char date_buf[32];
 
-    cd_key_hash = FUN_0061aa50(rcon_connection_id, identity_lookup_key);
+    cd_key_hash = gcd_getkeyhash(rcon_connection_id, identity_lookup_key);
     if (cd_key_hash == 0 || *cd_key_hash == 0) {
         return 1;
     }

@@ -9,12 +9,12 @@
 // UNSURE: `hostent` is read only by raw offset (+0x02 a 16-bit field, +0x04 a 32-bit field),
 // matching a Winsock `hostent`-shaped async-resolve buffer (h_addrtype-ish / first address
 // dword), but nothing in this batch confirms the real type; declared as a raw byte pointer.
-// UNSURE: the resolved address FUN_006148b0 builds into the stack buffer is never read again in
+// UNSURE: the resolved address gt2AddressToString builds into the stack buffer is never read again in
 // this function -- the actual connect call below it always uses one of two persistent globals
 // instead. Preserved exactly as decompiled; this may be dead code in the retail build or a
 // buffer Ghidra mismatched, not "improved" per the task's no-invented-behaviour rule.
 // UNSURE: `network_join_error_code`, `network_join_error_flags` and
-// `network_join_target_address` are named from behavior only; FUN_006148a0/FUN_006148b0 are
+// `network_join_target_address` are named from behavior only; gt2NetworkToHostShort/gt2AddressToString are
 // unnamed network glue functions outside this batch's address range.
 
 #include "tags.h"
@@ -32,13 +32,13 @@ extern uint8_t network_join_error_flags[4];     // 0x00719754: word 0xffff at +0
 // hostname/password string. Both call sites in this module and the one at 0x4c86ea agree.
 extern uint32_t network_game_client_connect_to_address(char *address_string,
                                                         uint16_t *target_string); // 0x4dc790
-extern uint32_t FUN_006148a0(int16_t value);                                  // outside this batch
-extern void FUN_006148b0(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
+extern uint32_t gt2NetworkToHostShort(int16_t value);                                  // outside this batch
+extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
     // 0x16-byte address record (stride confirmed by the imul esi,esi,0x16 at 0x6148c8)  // outside this batch
 
 void network_join_hostname_resolved_callback(int32_t resolve_failed, uint32_t unused, uint8_t *hostent)
 {
-    char resolved_address[22]; // the 0x16-byte record FUN_006148b0 formats; FIXED in the review
+    char resolved_address[22]; // the 0x16-byte record gt2AddressToString formats; FIXED in the review
                                // pass: it is not dead, it is the EAX argument of the connect
                                // call below (lea eax,[esp+0x4] at 0x4ba2c5 is this buffer)
 
@@ -46,9 +46,9 @@ void network_join_hostname_resolved_callback(int32_t resolve_failed, uint32_t un
 
     if (hostent != 0) {
         uint32_t address = *(uint32_t *)(hostent + 4);
-        uint32_t port = FUN_006148a0(*(int16_t *)(hostent + 2));
+        uint32_t port = gt2NetworkToHostShort(*(int16_t *)(hostent + 2));
 
-        FUN_006148b0(address, port, resolved_address);
+        gt2AddressToString(address, port, resolved_address);
     }
 
     if (resolve_failed == 0) {

@@ -10,12 +10,12 @@
 #include "tags.h"
 
 typedef struct network_receive_queue network_receive_queue;
-extern void *FUN_00614840(void *connection); // 0x614840 gt2GetConnectionData
+extern void *gt2GetConnectionData(void *connection); // 0x614840 gt2GetConnectionData
 extern void network_receive_queue_close_socket(network_receive_queue *queue); // 0x442040, blam-cc: ESI queue
 
 void network_channel_gap_441f30(void *connection)
 {
-    uint8_t *queue = (uint8_t *)FUN_00614840(connection);
+    uint8_t *queue = (uint8_t *)gt2GetConnectionData(connection);
 
     if (queue != 0) {
         queue[0x05] = 1;

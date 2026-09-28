@@ -7,7 +7,7 @@
 // hs_autocomplete_procedures entries whose bit is set in `category_mask` (the 0x12 loop bound
 // matches k_hs_autocomplete_procedures's documented size), then sorts and returns the results.
 // The comparator (0x617340) is third-party gamespy SDK code (module=lib:gamespy in
-// modules.json), not part of this module, and is left as FUN_00617340.
+// modules.json), not part of this module, and is left as KeyValCompareKeyA.
 // register convention: category_mask and results are recognized directly by Ghidra; prefix,
 // maximum_count and gametype_mask are unrecognized (in_EAX/in_CX/in_DX), which by the blam-cc
 // convention are the first three register slots, EAX, ECX (CX), EDX (DX).
@@ -17,7 +17,7 @@
 #include "hs.h"
 #include <stdlib.h>
 
-extern void FUN_00617340(const void *a, const void *b); // 0x00617340, lib:gamespy, not this module
+extern void KeyValCompareKeyA(const void *a, const void *b); // 0x00617340, lib:gamespy, not this module
 extern void hs_enumerate_special_form_names(void); // 0x00483840, this batch (table entry only)
 extern void hs_autocomplete_add_startup(void); // 0x00483860, this batch (table entry only)
 
@@ -58,7 +58,7 @@ int16_t hs_autocomplete_gather(uint32_t category_mask, char **results, char *pre
         procedure = procedure + 1;
         remaining = remaining - 1;
     } while (remaining != 0);
-    qsort(results, (size_t)hs_autocomplete_count, 4, (int (*)(const void *, const void *))FUN_00617340);
+    qsort(results, (size_t)hs_autocomplete_count, 4, (int (*)(const void *, const void *))KeyValCompareKeyA);
     hs_autocomplete_results = 0;
     return hs_autocomplete_count;
 }

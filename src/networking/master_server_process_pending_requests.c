@@ -19,7 +19,7 @@
 // result points at, is declared here as `server_browser_selected_index`; the "server
 // browser" note in networking_types_notes.md explicitly lists the sort/scroll/selection
 // globals as unresolved, and this may be one of them.
-// UNSURE: FUN_00616f80/fa0/fc0, FUN_006171a0/d0 and FUN_00617290 are foreign GameSpy library
+// UNSURE: ServerBrowserThink/fa0/fc0, ServerBrowserUpdate/d0 and ServerBrowserAuxUpdateServer are foreign GameSpy library
 // calls; only their observed argument shapes are kept, not real names or full signatures.
 
 #include "win32.h"
@@ -43,13 +43,13 @@ extern int32_t server_browser_selected_index; // 0x006953f4, see UNSURE
 extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms); // 0x4ba760, this module
 extern void server_list_reset(void); // 0x4b65f0, this module
 
-extern void FUN_00616fa0(void *engine); // foreign, GameSpy library
-extern int32_t FUN_00616f80(void *engine); // foreign, GameSpy library
-extern void FUN_00616fc0(void *engine); // foreign, GameSpy library
-extern int32_t FUN_006171d0(void *engine, int32_t flag, uint32_t address, uint16_t port); // foreign
-extern int32_t FUN_006171a0(void *engine, int32_t flag, int32_t unused_a, void *buffer,
+extern void ServerBrowserHalt(void *engine); // foreign, GameSpy library
+extern int32_t ServerBrowserThink(void *engine); // foreign, GameSpy library
+extern void ServerBrowserClear(void *engine); // foreign, GameSpy library
+extern int32_t ServerBrowserLANUpdate(void *engine, int32_t flag, uint32_t address, uint16_t port); // foreign
+extern int32_t ServerBrowserUpdate(void *engine, int32_t flag, int32_t unused_a, void *buffer,
                               int32_t buffer_length, int32_t unused_b); // foreign
-extern int32_t FUN_00617290(void *engine, void *server_record, int32_t flag_a, int32_t flag_b); // foreign
+extern int32_t ServerBrowserAuxUpdateServer(void *engine, void *server_record, int32_t flag_a, int32_t flag_b); // foreign
 
 // blam-cc: __cdecl, no arguments
 void master_server_process_pending_requests(void)
@@ -65,9 +65,9 @@ void master_server_process_pending_requests(void)
     if (master_server_query_engine != 0) {
         last_result = 0;
         if ((flags & 4) != 0) {
-            FUN_00616fa0(master_server_query_engine);
+            ServerBrowserHalt(master_server_query_engine);
         }
-        master_server_last_result = FUN_00616f80(master_server_query_engine);
+        master_server_last_result = ServerBrowserThink(master_server_query_engine);
         if ((flags & 0x10) != 0) {
             if (server_list_thread == 0 ||
                 (wait_result = WaitForSingleObject(server_list_mutex->handle, 100),
@@ -78,7 +78,7 @@ void master_server_process_pending_requests(void)
                     i = 0;
                     if (0 < server_list.result_count) {
                         do {
-                            last_result = FUN_00617290(master_server_query_engine,
+                            last_result = ServerBrowserAuxUpdateServer(master_server_query_engine,
                                                         server_list.list[i], 1, 1);
                             if (last_result != 0) {
                                 break;
@@ -99,16 +99,16 @@ void master_server_process_pending_requests(void)
             if (server_list_thread == 0 ||
                 (wait_result = WaitForSingleObject(server_list_mutex->handle, 100),
                  wait_result == 0) || wait_result == 0x80) {
-                FUN_00616fc0(master_server_query_engine);
+                ServerBrowserClear(master_server_query_engine);
                 server_list_reset();
                 if (server_list_thread != 0) {
                     ReleaseMutex(server_list_mutex->handle);
                 }
                 if (server_browser_require_valid_entry == 0) {
-                    last_result = FUN_006171d0(master_server_query_engine, 1, DAT_007227b8,
+                    last_result = ServerBrowserLANUpdate(master_server_query_engine, 1, DAT_007227b8,
                                                 (uint16_t)DAT_007227b8);
                 } else {
-                    last_result = FUN_006171a0(master_server_query_engine, 1, 0, DAT_00695424, 10, 0);
+                    last_result = ServerBrowserUpdate(master_server_query_engine, 1, 0, DAT_00695424, 10, 0);
                 }
             } else {
                 master_server_request_flags = master_server_request_flags | 0x10;
@@ -120,7 +120,7 @@ void master_server_process_pending_requests(void)
             if (locked == 0) {
                 master_server_request_flags = master_server_request_flags | 0x20;
             } else {
-                last_result = FUN_00617290(master_server_query_engine,
+                last_result = ServerBrowserAuxUpdateServer(master_server_query_engine,
                                             locked->list[index], 1, 1);
                 if (server_list_thread != 0) {
                     ReleaseMutex(server_list_mutex->handle);

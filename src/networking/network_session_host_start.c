@@ -21,11 +21,11 @@ extern uint8_t network_session_host_flags_byte;          // 0x0069fe00
 extern int32_t network_console_connection_id;            // 0x0069fdfc (the CD key game id)
 extern void network_session_host_dispose(void);          // 0x5778f0
 extern void network_channels_open(void);                 // 0x441300
-extern int32_t FUN_00616340(void **qrec_out, uint32_t socket, int32_t port, const char *gamename, const char *secret_key,
+extern int32_t qr2_init_socketA(void **qrec_out, uint32_t socket, int32_t port, const char *gamename, const char *secret_key,
     int32_t ispublic, int32_t natnegotiate, void *server_key, void *player_key, void *team_key, void *key_list, void *count,
     void *adderror, void *userdata); // 0x616340 qr2_init_socketA
-extern void FUN_00615530(void *qrec, void *callback); // 0x615530 qr2_register_natneg_callback
-extern void FUN_0061b6d0(void *qrec, int32_t game_id, int32_t use_network); // 0x61b6d0 gcd_init_qr2
+extern void qr2_register_natneg_callback(void *qrec, void *callback); // 0x615530 qr2_register_natneg_callback
+extern void gcd_init_qr2(void *qrec, int32_t game_id, int32_t use_network); // 0x61b6d0 gcd_init_qr2
 extern void network_session_host_natneg_callback(int32_t cookie); // 0x578160
 extern void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *user_data); // 0x5779c0
 extern void network_session_host_dispatch_message(int32_t key_id, int32_t index, void *buffer, void *user_data); // 0x577e40
@@ -40,14 +40,14 @@ int32_t network_session_host_start(void *user_data)
 
     network_session_host_dispose();
     network_channels_open();
-    result = FUN_00616340(&network_session_host_object, *(uint32_t *)network_game_socket, network_session_start_game_type,
+    result = qr2_init_socketA(&network_session_host_object, *(uint32_t *)network_game_socket, network_session_start_game_type,
         network_session_start_host_name, network_session_start_map_name, network_session_host_flags_byte, 1,
         (void *)network_session_host_qr2_server_key, (void *)network_session_host_dispatch_message,
         (void *)network_session_host_qr2_team_key, (void *)network_session_host_qr2_key_list,
         (void *)network_session_host_qr2_count, (void *)network_session_host_qr2_add_error, user_data);
-    FUN_00615530(network_session_host_object, (void *)network_session_host_natneg_callback);
+    qr2_register_natneg_callback(network_session_host_object, (void *)network_session_host_natneg_callback);
     network_console_connection_id = 0x319;
-    FUN_0061b6d0(network_session_host_object, 0x319, network_session_host_flags_byte);
+    gcd_init_qr2(network_session_host_object, 0x319, network_session_host_flags_byte);
     return result;
 }
 

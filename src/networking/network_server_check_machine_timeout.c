@@ -28,7 +28,7 @@
 // UNSURE: FUN_004de640 is called a second time, conditionally, immediately after the first
 // call already removed the same entry -- transcribed exactly as decompiled even though this
 // looks redundant.
-// UNSURE: DAT_0069fdfc ("the rcon/console connection id") and FUN_0061b350/FUN_0061b3f0 are
+// UNSURE: DAT_0069fdfc ("the rcon/console connection id") and gcd_disconnect_user/gcd_disconnect_all are
 // GameSpy-adjacent library calls with no further-established signatures here.
 // UNSURE: the wraparound-aware timeout test (`uVar2 <= uVar1`, etc., on timer_14/timer_18
 // against the current millisecond clock) is preserved exactly as decompiled without
@@ -58,8 +58,8 @@ extern uint32_t network_player_entry_remove(network_player_entry *key, network_g
     // blam-cc: EAX -> key, EBX -> session; 0x4de640. 0x4e105f passes the server session (EBX = server + 8),
     // 0x4e108a the client's (EBX = network_client + 0xb14).
 extern void network_channel_remove_child(network_channel *channel); // other module (UNSURE)
-extern void FUN_0061b350(int32_t id, int32_t value); // GameSpy library (UNSURE)
-extern void FUN_0061b3f0(int32_t id); // GameSpy library (UNSURE)
+extern void gcd_disconnect_user(int32_t id, int32_t value); // GameSpy library (UNSURE)
+extern void gcd_disconnect_all(int32_t id); // GameSpy library (UNSURE)
 extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -143,9 +143,9 @@ not_timed_out:
                     *(int32_t *)((uint8_t *)machine + 0x52) = 0;
                     *(int32_t *)((uint8_t *)machine + 0x56) = 0;
                     if (machine->unknown_5c == -1) {
-                        FUN_0061b3f0(network_rcon_connection_id);
+                        gcd_disconnect_all(network_rcon_connection_id);
                     } else {
-                        FUN_0061b350(network_rcon_connection_id, machine->unknown_5c);
+                        gcd_disconnect_user(network_rcon_connection_id, machine->unknown_5c);
                     }
                     machine->unknown_50 = 0;
                     machine->unknown_51 = 0;

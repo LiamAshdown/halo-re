@@ -1,5 +1,5 @@
 // server_list_compare_by_hostname  (not a Ghidra function; a server browser qsort comparator returned by
-//   server_browser_sort_comparator_select; no C existed, so it trapped as FUN_004b6cd0)
+//   server_browser_sort_comparator_select; no C existed, so it trapped as server_list_compare_by_hostname)
 // address 0x4b6cd0, size 193 bytes
 // name confidence: 0.7   rewrite confidence: 0.85
 // WRITTEN 2026-09-28 from objdump 0x4b6cd0..0x4b6d90: hostname (0x0066b0d4), then gametype (0x0066b0c0), then the
@@ -9,8 +9,8 @@
 #include "tags.h"
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
-extern const char *FUN_00617490(void *server, const char *key, const char *default_value); // 0x617490 SBServerGetStringValue
-extern int32_t FUN_00617c10(void *server, const char *key, int32_t default_value); // 0x617c10 SBServerGetIntValue
+extern const char *SBServerGetStringValue(void *server, const char *key, const char *default_value); // 0x617490 SBServerGetStringValue
+extern int32_t SBServerGetIntValue(void *server, const char *key, int32_t default_value); // 0x617c10 SBServerGetIntValue
 extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 // the final tie-break on the element addresses, in the sort direction
@@ -25,8 +25,8 @@ static int32_t address_order(const void *a, const void *b)
 // _stricmp of one string key of the two servers, in the sort direction
 static int32_t key_order(const void *a, const void *b, const char *key)
 {
-    const char *string_b = FUN_00617490(*(void **)b, key, "");
-    const char *string_a = FUN_00617490(*(void **)a, key, "");
+    const char *string_b = SBServerGetStringValue(*(void **)b, key, "");
+    const char *string_a = SBServerGetStringValue(*(void **)a, key, "");
     int32_t result = __stricmp(string_a, string_b);
 
     return server_browser_sort_ascending != 0 ? result : -result;

@@ -9,7 +9,7 @@
 // folded into plain int64_t arithmetic here for the same reason).
 // register convention: __cdecl, no arguments.
 // UNSURE: DAT_006869bf is not documented anywhere in networking_types_notes.md; named here
-// only from its one-shot clear-if-set shape. FUN_00614540 (channel pump) and gamespy_think_all are
+// only from its one-shot clear-if-set shape. gt2Think (channel pump) and gamespy_think_all are
 // foreign GameSpy transport calls; the final `& 0xffff0000` return mask is preserved literally
 // without a guess at its meaning.
 
@@ -27,7 +27,7 @@ extern int32_t network_query_socket;         // 0x006f14c8
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 
 extern void network_connection_stats_log_tick(void); // 0x440d80, this module
-extern void FUN_00614540(int32_t socket); // foreign GameSpy transport call, "pump" a channel
+extern void gt2Think(int32_t socket); // foreign GameSpy transport call, "pump" a channel
 extern void gamespy_think_all(void);          // 0x6154f0, GameSpy
 
 uint32_t network_update(void)
@@ -43,10 +43,10 @@ uint32_t network_update(void)
     }
     network_connection_stats_log_tick();
     if (network_game_socket != 0) {
-        FUN_00614540(network_game_socket);
+        gt2Think(network_game_socket);
     }
     if (network_query_socket != 0) {
-        FUN_00614540(network_query_socket);
+        gt2Think(network_query_socket);
     }
     gamespy_think_all();
     return 0; // 0x44194a: xor ax,ax (the high word is left over; both callers ignore the result)

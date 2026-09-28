@@ -6,7 +6,7 @@
 // the worker thread to stop via autopatch_download_active_count, waits for it to exit, then
 // closes both the thread and mutex handles autopatch_download_pool_initialize created.
 // register convention: no register-passed arguments.
-// UNSURE: FUN_0061bd40 (a foreign teardown call at the end).
+// UNSURE: ghttpCleanup (a foreign teardown call at the end).
 
 #include "win32.h"
 #include "tags.h"
@@ -20,7 +20,7 @@ extern int32_t autopatch_download_active_count;              // 0x007227c8, UNSU
 extern network_thread_record *autopatch_download_thread;     // 0x007227c4
 extern network_mutex_record *autopatch_download_mutex;       // 0x007227c0
 
-extern int32_t FUN_0061bd40(void); // foreign, UNSURE
+extern int32_t ghttpCleanup(void); // foreign, UNSURE
 
 // Signals the download pool's worker thread to stop, waits for it to exit (STILL_ACTIVE ==
 // 0x103), then closes its thread and mutex handles and resets the pool table slots.
@@ -53,7 +53,7 @@ uint32_t autopatch_download_pool_shutdown(void)
     autopatch_download_thread = 0;
     autopatch_download_mutex = 0;
 
-    return (uint32_t)FUN_0061bd40() & 0xffffff00;
+    return (uint32_t)ghttpCleanup() & 0xffffff00;
 }
 
 #if 0

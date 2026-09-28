@@ -2,13 +2,13 @@
 // address 0x576e60, size 160 bytes
 // name confidence: 0.55   rewrite confidence: 0.45
 // evidence: out/phase4/networking_functions.md summary; finds a free slot (request_id == -1),
-// marks it active and starts either an HTTP-ish download (FUN_0061bd80, when local_file == 0) or
-// a local file read (FUN_0061bef0, when local_file != 0), storing the caller-visible request id
+// marks it active and starts either an HTTP-ish download (ghttpGetEx, when local_file == 0) or
+// a local file read (ghttpSaveEx, when local_file != 0), storing the caller-visible request id
 // and resetting the slot to free again on failure.
 // register convention: the URL/path as the recognized stack parameter (param_1), a local-file
 // flag in EDX (in_EDX, unresolved register read).
 // blam-cc: stack -> path, EDX -> local_file
-// UNSURE: FUN_0061bd80's and FUN_0061bef0's full argument lists (foreign, GameSpy/CRT-shaped);
+// UNSURE: ghttpGetEx's and ghttpSaveEx's full argument lists (foreign, GameSpy/CRT-shaped);
 // transcribed with the arguments Ghidra recovered plus &LAB_00576a70 and this module's own
 // completion callback.
 
@@ -20,9 +20,9 @@
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
-extern int32_t FUN_0061bd80(void *path, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6,
+extern int32_t ghttpGetEx(void *path, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6,
                              int32_t a7, void *progress_callback, void *complete_callback, int32_t a8); // foreign, UNSURE
-extern int32_t FUN_0061bef0(void *url, void *filename, void *headers, void *post, int32_t throttle, int32_t blocking,
+extern int32_t ghttpSaveEx(void *url, void *filename, void *headers, void *post, int32_t throttle, int32_t blocking,
                              void *progress_callback, void *complete_callback, void *param); // 0x61bef0 ghttpSaveEx
 extern void autopatch_download_progress_callback(int32_t request, int32_t state, const char *buffer,
     int32_t buffer_length, int32_t bytes_received, int32_t total_size, void *param); // 0x576a70
@@ -50,13 +50,13 @@ int32_t autopatch_download_start(void *path, int32_t local_file)
 
     autopatch_download_slots[slot_index].state = k_autopatch_download_active;
     if (local_file == 0) {
-        request_id = FUN_0061bd80(path, 0, 0, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
+        request_id = ghttpGetEx(path, 0, 0, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
                                    (void *)autopatch_download_complete_callback, 0);
         autopatch_download_slots[slot_index].local_file = 0;
     } else {
         // FIXED 2026-09-28 (0x576eb3): EDX is the file to save into, passed on to ghttpSaveEx with the same
         // progress / completion callbacks as the download.
-        request_id = FUN_0061bef0(path, (void *)local_file, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
+        request_id = ghttpSaveEx(path, (void *)local_file, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
                                   (void *)autopatch_download_complete_callback, 0);
         autopatch_download_slots[slot_index].local_file = 1;
     }

@@ -88,10 +88,10 @@ extern void master_server_process_pending_requests(void); // 0x4b5d70, this modu
 extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms); // 0x4ba760, this module
 extern void server_browser_result_array_sort(void); // foreign, outside this session's range
 extern void server_browser_query_results_ingest(void); // 0x4baae0, outside this session's range
-extern int32_t FUN_006175d0(void *entry); // foreign, GameSpy library
+extern int32_t SBServerHasFullKeys(void *entry); // foreign, GameSpy library
 extern void server_browser_player_list_populate(void *entry); // 0x4b73e0, this module
 extern int32_t server_browser_selected_variant_description_build(void *entry); // 0x4b74e0, this module
-extern int32_t FUN_00616ff0(void *engine); // foreign, GameSpy library
+extern int32_t ServerBrowserState(void *engine); // foreign, GameSpy library
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, memory module
 extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index); // 0x4b6160, this module, see UNSURE
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
@@ -295,7 +295,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
                         DAT_0071947c = 0;
                         server_list_reset();
                     } else {
-                        probe = FUN_006175d0(entry);
+                        probe = SBServerHasFullKeys(entry);
                         if (probe != 0) {
                             DAT_00719481 = 1;
                             server_browser_player_list_populate(entry);
@@ -310,7 +310,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
                 ReleaseMutex(server_list_mutex->handle);
             }
         }
-        engine_state = FUN_00616ff0(master_server_query_engine);
+        engine_state = ServerBrowserState(master_server_query_engine);
         if (engine_state == 2 || engine_state == 1) {
             status_sub->value = 2;
         } else {

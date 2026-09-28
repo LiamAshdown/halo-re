@@ -3,13 +3,13 @@
 // address 0x4b6da0, size 205 bytes
 // name confidence: 0.5   rewrite confidence: 0.4
 // evidence: out/phase4/networking_types_notes.md "server browser" section documents
-// FUN_00617c10 as the GameSpy int accessor and FUN_00617490 as the string accessor;
+// SBServerGetIntValue as the GameSpy int accessor and SBServerGetStringValue as the string accessor;
 // server_browser_sort_comparator_select.c already declares this function's qsort-compatible
 // (const void *, const void *) prototype.
 // register convention: __cdecl, both parameters real (Ghidra-recognized param_1/param_2) --
 // pointers to array elements (each element itself a GameSpy entry pointer), i.e. genuine qsort
 // comparator arguments.
-// UNSURE: DAT_0066b090 (the "ping" key string, inferred from FUN_00617c10's role) is not in
+// UNSURE: DAT_0066b090 (the "ping" key string, inferred from SBServerGetIntValue's role) is not in
 // this function's own literal-strings list, so it is presumably a shared key string defined
 // elsewhere; declared here as an opaque extern.
 // UNSURE: DAT_006953f8 (sort direction) matches server_list_compare_by_mapname.c's
@@ -27,8 +27,8 @@
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 extern char DAT_0066b090[]; // see UNSURE, presumably "ping"
 
-extern int32_t FUN_00617c10(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
-extern char *FUN_00617490(void *entry, const char *key, const char *default_value); // foreign, GameSpy library, string accessor
+extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
+extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library, string accessor
 extern int32_t __stricmp(const char *a, const char *b);
 
 int32_t server_list_compare_by_ping_then_hostname(void **a, void **b)
@@ -40,8 +40,8 @@ int32_t server_list_compare_by_ping_then_hostname(void **a, void **b)
     char *hostname_b;
     int32_t hostname_diff;
 
-    ping_a = FUN_00617c10(*a, DAT_0066b090, 0);
-    ping_b = FUN_00617c10(*b, DAT_0066b090, 0);
+    ping_a = SBServerGetIntValue(*a, DAT_0066b090, 0);
+    ping_b = SBServerGetIntValue(*b, DAT_0066b090, 0);
     if (ping_a == 0) {
         ping_a = 9999;
     }
@@ -50,8 +50,8 @@ int32_t server_list_compare_by_ping_then_hostname(void **a, void **b)
     }
     ping_diff = ping_a - ping_b;
     if (ping_diff == 0) {
-        hostname_b = FUN_00617490(*b, "hostname", "");
-        hostname_a = FUN_00617490(*a, "hostname", "");
+        hostname_b = SBServerGetStringValue(*b, "hostname", "");
+        hostname_a = SBServerGetStringValue(*a, "hostname", "");
         hostname_diff = __stricmp(hostname_a, hostname_b);
         if (server_browser_sort_ascending == 0) {
             hostname_diff = -hostname_diff;

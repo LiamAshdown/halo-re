@@ -4,7 +4,7 @@
 // evidence: strides autopatch_download_slots[] exactly like autopatch_download_complete_callback;
 // a slot whose close-requested byte (local_file+1, offset +0x11) is set gets its data freed
 // (unless the local-file flag itself is set) and its underlying transfer canceled via
-// FUN_0061c030, then is reset to the free state (-1).
+// ghttpCancelRequest, then is reset to the free state (-1).
 // register convention: no register-passed arguments.
 
 #include "win32.h"
@@ -16,8 +16,8 @@
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
-extern void FUN_0061c020(void); // foreign, UNSURE
-extern void FUN_0061c030(int32_t request_id); // foreign, UNSURE
+extern void ghttpThink(void); // foreign, UNSURE
+extern void ghttpCancelRequest(int32_t request_id); // foreign, UNSURE
 
 // Advances/cleans up the small asynchronous download slot table and returns the count of still
 // (non-free) slots.
@@ -35,7 +35,7 @@ int32_t autopatch_download_pool_tick(void)
             if (autopatch_download_slots[i].data != 0 && autopatch_download_slots[i].local_file == 0) {
                 GlobalFree(autopatch_download_slots[i].data);
             }
-            FUN_0061c030(autopatch_download_slots[i].request_id);
+            ghttpCancelRequest(autopatch_download_slots[i].request_id);
             autopatch_download_slots[i].request_id = 0;
             autopatch_download_slots[i].state = 0;
             autopatch_download_slots[i].data = 0;
@@ -44,7 +44,7 @@ int32_t autopatch_download_pool_tick(void)
             autopatch_download_slots[i].request_id = -1;
         }
     }
-    FUN_0061c020();
+    ghttpThink();
     return active_count;
 }
 

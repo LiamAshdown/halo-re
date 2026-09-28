@@ -5,8 +5,8 @@
 // this module's own registry_get_halo_version/registry_get_dist_id, then waits for
 // autopatch_proxy_initialize to finish before sending the check.
 // register convention: no register-passed arguments.
-// UNSURE: FUN_0061c260's full argument list (a foreign HTTP-request-shaped helper; the constant
-// 0x281b and the callback &LAB_005777d0 are transcribed as-is).
+// UNSURE: ptCheckForPatch's full argument list (a foreign HTTP-request-shaped helper; the constant
+// 0x281b and the callback &autopatch_version_check_completed are transcribed as-is).
 
 #include "win32.h"
 #include "tags.h"
@@ -20,9 +20,9 @@ extern int32_t autopatch_update_check_state; // 0x0069fe04, -1 not started, 0 no
 
 extern char *registry_get_halo_version(void);  // 0x5776d0, this module
 extern uint32_t registry_get_dist_id(void);    // 0x577760, this module
-extern int32_t FUN_0061c260(int32_t request_type, char *version, uint32_t dist_id,
+extern int32_t ptCheckForPatch(int32_t request_type, char *version, uint32_t dist_id,
                              void *callback, int32_t a5, int32_t a6); // foreign, UNSURE
-extern void LAB_005777d0(void); // UNSURE: the request-completion callback
+extern void autopatch_version_check_completed(void); // UNSURE: the request-completion callback
 
 // Thread that waits for proxy setup and then sends the current game version and distribution id
 // to check for an update; clears the "check succeeded" flag if the version string is empty or
@@ -37,7 +37,7 @@ uint32_t autopatch_version_check_request(void)
     }
 
     if (version[0] == 0 ||
-        FUN_0061c260(0x281b, version, dist_id, (void *)LAB_005777d0, 1, 0) == 0) {
+        ptCheckForPatch(0x281b, version, dist_id, (void *)autopatch_version_check_completed, 1, 0) == 0) {
         autopatch_update_check_state = 0;
     }
     return 0;

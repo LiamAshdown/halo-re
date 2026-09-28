@@ -6,7 +6,7 @@
 // allocators and confirms the same offsets independently." String "mutex_%ld" confirms the
 // mutex-name format matches mutex_create's own.
 // register convention: no register-passed arguments.
-// UNSURE: FUN_0061bd00 (a foreign initialization call before the mutex/thread setup).
+// UNSURE: ghttpStartup (a foreign initialization call before the mutex/thread setup).
 
 #include "win32.h"
 #include "tags.h"
@@ -24,7 +24,7 @@ extern network_thread_record *autopatch_download_thread; // 0x007227c4
 extern uint8_t autopatch_download_pool_stop;              // 0x007227bc, set to 1 once init has run
 extern int32_t autopatch_download_active_count;           // 0x007227c8, UNSURE: used as a stop signal, see autopatch_download_worker_thread.c
 
-extern void FUN_0061bd00(void); // foreign, UNSURE
+extern void ghttpStartup(void); // foreign, UNSURE
 
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
 extern uint32_t autopatch_download_worker_thread(void); // 0x576b80, this module
@@ -50,7 +50,7 @@ uint8_t autopatch_download_pool_initialize(void)
         autopatch_download_slots[i].request_id = -1;
     }
 
-    FUN_0061bd00();
+    ghttpStartup();
 
     started = 0;
     mutex_slot = 0;

@@ -4,7 +4,7 @@
 // name confidence: 0.5   rewrite confidence: 0.55
 // evidence: out/phase4/networking_functions.md summary ("Sums the 'numplayers' key/value field
 // across all server-browser query results to compute the total number of players online");
-// types/networking.h "server browser" section names FUN_00617c10 the GameSpy int accessor.
+// types/networking.h "server browser" section names SBServerGetIntValue the GameSpy int accessor.
 // register convention: server_list_globals* in EDI (unaff_EDI, unresolved).
 //   // blam-cc: EDI -> array
 // note: this function was named dynamic_pointer_array_* before the array it walks was
@@ -14,7 +14,7 @@
 // The per-record type is the GameSpy server record, which
 // types/networking.h explicitly leaves undeclared ("the queried-server type is not recoverable
 // here and none is declared").
-// UNSURE: `FUN_00617c10` (the GameSpy int accessor) is called three times per record with
+// UNSURE: `SBServerGetIntValue` (the GameSpy int accessor) is called three times per record with
 // identical arguments; Ghidra shows no common-subexpression elimination here, so each call is
 // preserved verbatim rather than assumed to be redundant, in case the accessor has side effects.
 
@@ -26,7 +26,7 @@
 
 extern int32_t server_browser_total_players; // 0x00719474
 
-extern int32_t FUN_00617c10(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // 0x617c10, GameSpy accessor
+extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // 0x617c10, GameSpy accessor
 
 
 // blam-cc: EDI -> array
@@ -37,12 +37,12 @@ void server_browser_total_players_compute(server_list_globals *array)
     server_browser_total_players = 0;
     if (0 < array->result_count) {
         do {
-            int32_t num_players = FUN_00617c10(array->list[i], "numplayers", -1);
+            int32_t num_players = SBServerGetIntValue(array->list[i], "numplayers", -1);
 
             if (-2 < num_players) {
-                num_players = FUN_00617c10(array->list[i], "numplayers", -1);
+                num_players = SBServerGetIntValue(array->list[i], "numplayers", -1);
                 if (num_players < 0x11) {
-                    num_players = FUN_00617c10(array->list[i], "numplayers", -1);
+                    num_players = SBServerGetIntValue(array->list[i], "numplayers", -1);
                     if (num_players == -1) {
                         goto next;
                     }

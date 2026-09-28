@@ -21,13 +21,13 @@
 extern int32_t network_pending_connection_count; // 0x006f16d0
 extern network_pending_connection network_pending_connections[k_network_pending_connection_count]; // 0x0087bc20
 
-extern void thunk_FUN_0061cee0(int32_t socket, void *buffer, int32_t length); // foreign, GameSpy library; send reply
+extern void gt2Reject(int32_t socket, void *buffer, int32_t length); // foreign, GameSpy library; send reply
 
 // blam-cc: reject_code is an ordinary stack parameter, sent by address
 uint32_t network_listen_reject_pending_connection(int32_t reject_code)
 {
     if (0 < network_pending_connection_count) {
-        thunk_FUN_0061cee0(network_pending_connections[network_pending_connection_count - 1].reply_socket,
+        gt2Reject(network_pending_connections[network_pending_connection_count - 1].reply_socket,
                             &reject_code, 4);
         network_pending_connection_count = network_pending_connection_count - 1;
     }

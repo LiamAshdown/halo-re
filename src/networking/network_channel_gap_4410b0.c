@@ -13,8 +13,8 @@
 extern uint8_t network_game_receive_buffer[0x2000]; // 0x006a4140
 extern const uint8_t natneg_magic[6];               // 0x00657208
 extern void *network_session_host_object;           // 0x00722a20
-extern void FUN_00615240(char *data, int32_t len, void *fromaddr); // 0x615240 NNProcessData
-extern void FUN_00616050(void *qrec, char *query, int32_t len, void *sender); // 0x616050 qr2_parse_queryA
+extern void NNProcessData(char *data, int32_t len, void *fromaddr); // 0x615240 NNProcessData
+extern void qr2_parse_queryA(void *qrec, char *query, int32_t len, void *sender); // 0x616050 qr2_parse_queryA
 
 int32_t network_channel_gap_4410b0(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length)
 {
@@ -38,14 +38,14 @@ int32_t network_channel_gap_4410b0(void *socket, uint32_t ip, uint16_t port, con
     *(uint16_t *)(address + 2) = (uint16_t)((port >> 8) | (port << 8));
     *(uint32_t *)(address + 4) = ip;
     if (is_natneg) {
-        FUN_00615240((char *)network_game_receive_buffer, (int32_t)length, address);
+        NNProcessData((char *)network_game_receive_buffer, (int32_t)length, address);
         return 1;
     }
     if (!is_query) {
         return 0;
     }
     if (network_session_host_object != 0) {
-        FUN_00616050(network_session_host_object, (char *)network_game_receive_buffer, (int32_t)length, address);
+        qr2_parse_queryA(network_session_host_object, (char *)network_game_receive_buffer, (int32_t)length, address);
     }
     return 1;
 }

@@ -24,7 +24,7 @@
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 
 extern int32_t server_list_compare_by_mapname(void **a, void **b); // 0x4b6c20, this module
-extern char *FUN_00617490(void *entry, const char *key, const char *default_value); // foreign, GameSpy library
+extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library
 extern int32_t __stricmp(const char *a, const char *b);
 
 int32_t server_list_compare_by_mapname_then_hostname(void **a, void **b)
@@ -36,8 +36,8 @@ int32_t server_list_compare_by_mapname_then_hostname(void **a, void **b)
 
     mapname_diff = server_list_compare_by_mapname(a, b);
     if (mapname_diff == 0) {
-        hostname_b = FUN_00617490(*b, "hostname", "");
-        hostname_a = FUN_00617490(*a, "hostname", "");
+        hostname_b = SBServerGetStringValue(*b, "hostname", "");
+        hostname_a = SBServerGetStringValue(*a, "hostname", "");
         hostname_diff = __stricmp(hostname_a, hostname_b);
         if (server_browser_sort_ascending == 0) {
             hostname_diff = -hostname_diff;

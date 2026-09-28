@@ -12,7 +12,7 @@
 
 extern uint8_t network_query_receive_buffer[0x2000]; // 0x006a6148
 extern const uint8_t natneg_magic[6];                // 0x00657208
-extern void FUN_00615240(char *data, int32_t len, void *fromaddr); // 0x615240 NNProcessData
+extern void NNProcessData(char *data, int32_t len, void *fromaddr); // 0x615240 NNProcessData
 
 int32_t network_channel_gap_441200(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length)
 {
@@ -37,7 +37,7 @@ int32_t network_channel_gap_441200(void *socket, uint32_t ip, uint16_t port, con
         *(uint16_t *)(address + 0) = 2;
         *(uint16_t *)(address + 2) = (uint16_t)((port >> 8) | (port << 8));
         *(uint32_t *)(address + 4) = ip;
-        FUN_00615240((char *)network_query_receive_buffer, (int32_t)length, address);
+        NNProcessData((char *)network_query_receive_buffer, (int32_t)length, address);
         return 1;
     }
     return is_query ? 1 : 0;

@@ -27,10 +27,10 @@
 #include <wchar.h>
 #include <string.h>
 
-extern int32_t FUN_006174d0(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library, bool accessor
-extern char *FUN_00617490(void *entry, const char *key, const char *default_value); // foreign, GameSpy library, string accessor
-extern int32_t FUN_00617c10(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
-extern int32_t FUN_00617aa0(void *entry); // foreign, GameSpy library, ping accessor, no key
+extern int32_t SBServerGetBoolValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library, bool accessor
+extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library, string accessor
+extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
+extern int32_t SBServerGetPing(void *entry); // foreign, GameSpy library, ping accessor, no key
 extern void map_list_get_friendly_level_name(const char *map_name, wchar_t out_buffer[0x20]); // foreign, outside this session's range
 extern void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,
                                                const char *server_name, wchar_t *map_name,
@@ -61,41 +61,41 @@ void server_browser_list_row_gather(network_ui_widget *row, uint8_t flag, void *
     }
     if (entry != 0) {
         memset(friendly_map, 0, sizeof(friendly_map));
-        is_password = FUN_006174d0(entry, "password", 0);
-        is_dedicated = FUN_006174d0(entry, "dedicated", 0);
-        hostname = FUN_00617490(entry, "hostname", "");
-        mapname = FUN_00617490(entry, "mapname", "");
-        gametype = FUN_00617490(entry, "gametype", "");
-        is_classic = FUN_006174d0(entry, "game_classic", 0);
+        is_password = SBServerGetBoolValue(entry, "password", 0);
+        is_dedicated = SBServerGetBoolValue(entry, "dedicated", 0);
+        hostname = SBServerGetStringValue(entry, "hostname", "");
+        mapname = SBServerGetStringValue(entry, "mapname", "");
+        gametype = SBServerGetStringValue(entry, "gametype", "");
+        is_classic = SBServerGetBoolValue(entry, "game_classic", 0);
 
-        probe = FUN_00617c10(entry, "numplayers", 0);
+        probe = SBServerGetIntValue(entry, "numplayers", 0);
         count_b = 0x10;
         if (probe < -1) {
             count_a = -1;
         } else {
-            probe = FUN_00617c10(entry, "numplayers", 0);
+            probe = SBServerGetIntValue(entry, "numplayers", 0);
             if (probe < 0x11) {
-                count_a = FUN_00617c10(entry, "numplayers", 0);
+                count_a = SBServerGetIntValue(entry, "numplayers", 0);
             } else {
                 count_a = 0x10;
             }
         }
-        probe = FUN_00617c10(entry, "maxplayers", 0);
+        probe = SBServerGetIntValue(entry, "maxplayers", 0);
         if (probe < -1) {
             count_b = -1;
         } else {
-            probe = FUN_00617c10(entry, "maxplayers", 0);
+            probe = SBServerGetIntValue(entry, "maxplayers", 0);
             if (probe < 0x11) {
-                count_b = FUN_00617c10(entry, "maxplayers", 0);
+                count_b = SBServerGetIntValue(entry, "maxplayers", 0);
             }
         }
-        probe = FUN_00617aa0(entry);
+        probe = SBServerGetPing(entry);
         if (probe < 0) {
             ping = 0;
         } else {
-            probe = FUN_00617aa0(entry);
+            probe = SBServerGetPing(entry);
             if (probe < 10000) {
-                ping = FUN_00617aa0(entry);
+                ping = SBServerGetPing(entry);
             } else {
                 ping = 9999;
             }
