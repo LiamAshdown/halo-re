@@ -27,13 +27,14 @@ extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 extern void game_engine_player_profile_cache_sync_all(int32_t commit, void *callback_extra_arg); // 0x466cb0
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
-    int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject); // 0x460c10
+    int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast); // 0x460c10, blam-cc: BL broadcast
 
-// blam-cc: stack -> player_index, EAX -> team, EBX -> forwarded_commit
+// FIXED 2026-09-28: 0x46894e loads EBX = 1 itself for the profile cache sync; EBX is not an input.
+// blam-cc: stack -> player_index, EAX -> team
 // Increments the team's flag-touch counter and the player's own touch count
 // (player::unknown_c8), re-syncs the player-profile cache when hosting, queues the touch
 // announcer sound, and broadcasts a relationship-based kill-feed message about the touch.
-void game_engine_ctf_player_touch_flag(uint32_t player_index, int32_t team, int32_t forwarded_commit)
+void game_engine_ctf_player_touch_flag(uint32_t player_index, int32_t team)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
     int16_t *touch_count = (int16_t *)((uint8_t *)p + 0xc8); // player::unknown_c8
@@ -42,10 +43,10 @@ void game_engine_ctf_player_touch_flag(uint32_t player_index, int32_t team, int3
     (*touch_count)++;
 
     if (network_game_mode == 2) {
-        game_engine_player_profile_cache_sync_all(forwarded_commit, (void *)0xffffffff);
+        game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
     }
     game_engine_queue_multiplayer_sound(p->team != 0 ? 0xa : 0xd, 0xffffffff, 1); // 0x46895b..0x46896d
-    game_engine_broadcast_kill_feed_by_relationship(player_index, 0x21, 0x23, 0x22, player_index);
+    game_engine_broadcast_kill_feed_by_relationship(player_index, 0x21, 0x23, 0x22, player_index, 1); // BL = 1 at 0x46897a
 }
 
 #if 0

@@ -37,8 +37,10 @@ extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t 
 // there is no `source_player`; otherwise `message_a` or `message_b` depending on the pair's team
 // relationship (see the UNSURE note above for the exact, asymmetric rule); the id is skipped
 // when it comes out -1.
+// FIXED 2026-09-28: BL is a fifth input (a broadcast byte); 0x460ce1..0x460ce5 pushes it, the subject, the message
+//   and the recipient (EDI, also the register argument) for chimera__kill_feed.
 void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player, int32_t no_source_message,
-    int32_t message_a, int32_t message_b, uint32_t subject)
+    int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast)
 {
     data_iterator iter;
     void *element;
@@ -76,7 +78,7 @@ void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player, int
         }
 
         if (message != -1) {
-            chimera__kill_feed(iter.index, 0xffffffff, (uint32_t)message, subject, '\0'); // UNSURE: last 2 chimera__kill_feed args
+            chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message, subject, (char)broadcast);
         }
         element = data_iterator_next(&iter);
     }

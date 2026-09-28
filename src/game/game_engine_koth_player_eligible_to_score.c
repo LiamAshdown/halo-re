@@ -25,7 +25,7 @@ extern data_array *player_data;    // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (unknown_8c aliased 0x006f1d14)
 
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
-    int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject); // 0x460c10
+    int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast); // 0x460c10, blam-cc: BL broadcast
 extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit); // 0x570520
 
 uint8_t game_engine_koth_player_eligible_to_score(uint32_t object_handle, uint32_t player_index)
@@ -33,7 +33,7 @@ uint8_t game_engine_koth_player_eligible_to_score(uint32_t object_handle, uint32
     object *obj = ((object_header *)object_headers->data)[object_handle & 0xffff].data;
 
     if (game_engine_variant.unknown_8c > 0 && game_engine_variant.unknown_8c < 3) {
-        game_engine_broadcast_kill_feed_by_relationship(player_index, 0x20, 0x21, 0x22, player_index);
+        game_engine_broadcast_kill_feed_by_relationship(player_index, 0x20, 0x21, 0x22, player_index, 0); // BL = 0 at 0x46ce4e
         return 1;
     }
 
