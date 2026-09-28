@@ -29,7 +29,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern uint8_t *global_structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t global_structure_collision_bsp; // 0x00746f98, UNSURE: foreign module
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, this batch
@@ -71,7 +71,7 @@ void objects_recompute_cluster_membership(void)
 
             leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &obj->bounding_center);
             cluster = (leaf == -1) ? -1 :
-                *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             if (leaf == -1 || cluster == -1) {
                 collision_bsp_query_sphere_init((ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                     &sphere, 0, &obj->bounding_center, obj->bounding_radius);
@@ -81,7 +81,7 @@ void objects_recompute_cluster_membership(void)
                     leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &obj->position);
                 }
                 cluster = (leaf == -1) ? -1 :
-                    *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                    *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             }
 
             location.leaf_index = leaf;

@@ -41,7 +41,7 @@
 extern data_array *particle_data;   // 0x0087abd0
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern ScenarioStructureBSP *global_structure_bsp;
 extern player_globals *local_player_globals; // 0x0087a478
 extern uint8_t *first_person_weapon_globals; // 0x006b2d98, row stride 0x1ea0
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
@@ -101,7 +101,7 @@ void particle_new(particle_creation_data *creation_data)
     if (leaf == -1) {
         return;
     }
-    cluster = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + ((uint32_t)leaf & 0x7fffffff) * 0x10 + 8); // 0x45581d
+    cluster = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + ((uint32_t)leaf & 0x7fffffff) * 0x10 + 8); // 0x45581d
 
     visible = *(uint32_t *)((uint8_t *)local_player_globals + 0x58 + (cluster >> 5) * 4) &
         (1u << (cluster & 0x1f)); // UNSURE, see file header

@@ -27,7 +27,7 @@
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern uint8_t *player_globals_table; // 0x00746f8c, UNSURE: see file header, stride 0x68
-extern uint8_t *global_structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 
@@ -42,7 +42,7 @@ void objects_set_ambient_cluster_override(int16_t local_player_index) // blam-cc
             // PHASE-4 REVIEW: 0x4f7a13 `mov edx,[ecx+0xe4]` / `and eax,0x7fffffff` /
             // `shl eax,4` -- the +0xe4 slot is a pointer and the index is masked; the
             // earlier rewrite did neither.
-            int16_t cluster = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
+            int16_t cluster = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
                                            (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             if (cluster != -1) {
                 object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_override;

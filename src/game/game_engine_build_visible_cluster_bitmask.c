@@ -26,7 +26,7 @@
 #include "game.h"
 #include <stdint.h>
 
-extern void *global_structure_bsp; // 0x00746f9c, UNSURE identity, see header note
+extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *object_headers;      // 0x008603b0
 
 extern int16_t objects_get_ambient_cluster(void); // 0x4f7a50, not in this batch; UNSURE exact signature

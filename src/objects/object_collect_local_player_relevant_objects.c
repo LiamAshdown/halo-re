@@ -22,7 +22,7 @@
 #include "objects.h"
 
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern uint8_t *global_structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern int32_t object_cluster_stamp; // 0x008603cc
 extern datum_index *collideable_cluster_first; // 0x008603d0
@@ -38,7 +38,7 @@ int32_t object_collect_local_player_relevant_objects(real_point3d *point, uint8_
 {
     int32_t count = 0;
     uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);
-    uint8_t *bsp;
+    ScenarioStructureBSP *bsp;
     int16_t cluster;
     int32_t words;
     int32_t *row;
@@ -49,14 +49,14 @@ int32_t object_collect_local_player_relevant_objects(real_point3d *point, uint8_
         return 0;
     }
     bsp = global_structure_bsp;
-    cluster = *(int16_t *)(*(uint8_t **)(bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 8);
+    cluster = *(int16_t *)((uint8_t *)bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
     if (cluster == -1) {
         return 0;
     }
 
     object_globals_pointer->collecting_in_clusters = 1;
-    words = (*(int32_t *)(bsp + 0x134) + 0x1f) >> 5;
-    row = (int32_t *)(*(uint8_t **)(bsp + 0x14c)) + (int32_t)cluster * words;
+    words = ((int32_t)bsp->clusters.count + 0x1f) >> 5;
+    row = (int32_t *)((uint8_t *)bsp->cluster_data.pointer) + (int32_t)cluster * words;
     object_cluster_stamp = object_cluster_stamp + 1;
 
     word = row;
@@ -70,7 +70,7 @@ int32_t object_collect_local_player_relevant_objects(real_point3d *point, uint8_
         if (*word == 0) {
             continue;
         }
-        cluster_count = *(int32_t *)(global_structure_bsp + 0x134);
+        cluster_count = *(int32_t *)&global_structure_bsp->clusters.count;
         lo = (int16_t)(word_index << 5);
         hi = lo + 0x20;
         if (hi > cluster_count) {

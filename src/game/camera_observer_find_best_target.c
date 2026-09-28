@@ -34,7 +34,7 @@
 #include "cache.h"
 #include "game.h"
 
-extern uint8_t *global_structure_bsp; // 0x00746f9c, the leaves block pointer is at +0xe4 (0x459a1e)
+extern ScenarioStructureBSP *global_structure_bsp;
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
     // EAX/ECX/EDX register arguments and does float math (objdump 0x5013a0), none of which
@@ -75,7 +75,7 @@ char camera_observer_find_best_target(real_point3d *observer_position,
         // 0x459a1e..0x459a32: the leaf's cluster (+0x08) in the STRUCTURE bsp leaves (+0xe4, 0x10 each); the
         // draft read the table through the scenario pointer.
         start_cluster = *(int16_t *)((cluster & 0x7fffffff) * 0x10 + 8 +
-                                     *(int32_t *)(global_structure_bsp + 0xe4));
+                                     *(int32_t *)&global_structure_bsp->leaves.pointer);
         if (start_cluster != -1) {
             candidate_count = camera_observer_generate_target_candidates(
                 cone, start_cluster, observer_position, facing, exclude_object, team, 64, candidates);

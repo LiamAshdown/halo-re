@@ -49,7 +49,7 @@
 extern data_array *light_data; // 0x00860b14
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_structure_bsp; // 0x00746f9c, the render-side BSP globals block
+extern ScenarioStructureBSP *global_structure_bsp;
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
 extern datum_index *light_cluster_first; // 0x00860b20, the per-cluster light list head table;
     // FUN_00551f00 takes the ADDRESS of this descriptor in EDI (0x4f2c87 mov edi,0x860b20)
@@ -146,7 +146,7 @@ void object_light_recompute_transform(uint32_t light_index) // blam-cc: stack ->
             if (leaf_reference.leaf_index == -1) {
                 leaf_reference.cluster_index = -1;
             } else {
-                uint8_t *leaves = *(uint8_t **)(global_structure_bsp + 0xe4);
+                uint8_t *leaves = (uint8_t *)global_structure_bsp->leaves.pointer;
                 leaf_reference.cluster_index =
                     *(int16_t *)(leaves + (leaf_reference.leaf_index & 0x7fffffff) * 0x10 + 8);
             }

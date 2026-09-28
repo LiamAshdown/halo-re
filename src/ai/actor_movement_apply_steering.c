@@ -25,7 +25,7 @@
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
-extern void *global_structure_bsp;  // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
 extern double acos(double x); // 0x628140, CRT

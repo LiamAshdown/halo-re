@@ -26,7 +26,7 @@
 extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8
 extern ModelCollisionGeometryBSP *global_collision_bsp;            // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *global_structure_bsp;  // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern ScenarioStructureBSP *global_structure_bsp;
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630,
     // memory module; blam-cc: DX -> after_index, EDI -> array
@@ -56,7 +56,7 @@ void contrail_refresh_lightmap(void)
                     if (leaf == -1) {
                         point->location.cluster_index = -1;
                     } else {
-                        point->location.cluster_index = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
+                        point->location.cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
                             (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
                     }
                 }

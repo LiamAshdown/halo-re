@@ -32,7 +32,7 @@
 extern data_array *object_data; // 0x008603b0
 extern uint8_t *bsp_cluster_pvs_source; // 0x0087a478, see objects_update.c
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern uint8_t *global_structure_bsp; // 0x00746f9c, UNSURE: foreign module, +0xe4 base;
+extern ScenarioStructureBSP *global_structure_bsp;
                                            //   this is the same DAT_00746f9c base object_update
                                            //   reads at +0x134, here read at +0xe4
 
@@ -68,7 +68,7 @@ void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *lo
                 // ScenarioStructureBSPLeaf array and the leaf index is masked with 0x7fffffff
                 // before scaling -- 0x4f5cc7 `mov ecx,[edx+0xe4]` / `and eax,0x7fffffff` /
                 // `shl eax,4`. Both steps were missing from the earlier rewrite.
-                local_location.cluster_index = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
+                local_location.cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
                                                             (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             }
             local_location.leaf_index = leaf;

@@ -20,7 +20,7 @@
 
 extern data_array *effect_data;                         // 0x0087abdc
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern uint8_t *global_structure_bsp;                   // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // memory module, 0x4d0630
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode); // 0x453180
@@ -53,7 +53,7 @@ void effects_refresh_structure_locations(void)
             entry->location.cluster_index = -1;
         } else {
             entry->location.cluster_index =
-                *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 8);
+                *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
         }
     }
 }

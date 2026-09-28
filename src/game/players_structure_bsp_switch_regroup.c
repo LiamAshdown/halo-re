@@ -32,7 +32,7 @@ extern data_array *player_data;                         // 0x0087a480
 extern data_array *object_data;                         // 0x008603b0
 extern uint8_t *global_scenario;                        // 0x00746f8c
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern uint8_t *global_structure_bsp;                   // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position,
@@ -119,7 +119,7 @@ void players_structure_bsp_switch_regroup(void)
         offset = radius;
         leaf = bsp3d_node_find_leaf(0, global_collision_bsp, &probe);
         if (leaf == 0xffffffff ||
-            *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 8) == -1) {
+            *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8) == -1) {
             continue;
         }
         if (!have_flag) {

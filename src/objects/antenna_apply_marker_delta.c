@@ -36,7 +36,7 @@
 #include "objects.h"
 
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-node lookup table
+extern ScenarioStructureBSP *global_structure_bsp;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080, all four on the stack
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
@@ -69,7 +69,7 @@ void antenna_apply_marker_delta(real_vector3d *out_forward /*EAX*/, real_point3d
         if (node_index == -1) {
             node_ref->cluster_index = -1;
         } else {
-            node_ref->cluster_index = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
+            node_ref->cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
                                                  (uint32_t)(node_index & 0x7fffffff) * 0x10 + 8);
         }
     }

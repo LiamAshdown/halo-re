@@ -18,7 +18,7 @@
 #include "cache.h"
 #include "effects.h"
 
-extern uint8_t *global_structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 extern tag_instance *tag_instances;    // 0x0087bc14
 
 extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point); // 0x53ec30, EAX, EBX
@@ -36,14 +36,14 @@ uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d 
         uint32_t skip_non_water = filter_flags & 4;
         int16_t region = scenario_location_fog_region(location, skip_non_water ? (real_point3d *)0 : position);
 
-        weather_row = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0x138) + cluster * 0x68 + 8);
+        weather_row = *(int16_t *)((uint8_t *)global_structure_bsp->clusters.pointer + cluster * 0x68 + 8);
         if (region != -1) {
-            uint8_t *fog_region = *(uint8_t **)(global_structure_bsp + 0x188) + region * 0x28;
+            uint8_t *fog_region = (uint8_t *)global_structure_bsp->fog_regions.pointer + region * 0x28;
             int16_t fog = *(int16_t *)(fog_region + 0x24);
             int16_t region_weather = *(int16_t *)(fog_region + 0x26);
 
             if (fog != -1 && region_weather != -1) {
-                datum_index fog_tag = *(datum_index *)(*(uint8_t **)(global_structure_bsp + 0x194) + fog * 0x88 + 0x2c);
+                datum_index fog_tag = *(datum_index *)((uint8_t *)global_structure_bsp->fog_palette.pointer + fog * 0x88 + 0x2c);
 
                 if (fog_tag != k_datum_index_none) {
                     uint8_t *fog_data = (uint8_t *)tag_instances[fog_tag & 0xffff].data;

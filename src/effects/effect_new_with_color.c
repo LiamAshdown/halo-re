@@ -30,7 +30,7 @@
 
 extern data_array *effect_data;         // 0x0087abdc
 extern ModelCollisionGeometryBSP *global_collision_bsp;            // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *global_structure_bsp;  // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_point3d *global_origin3d_pointer; // 0x00696714 -> 0x0065c230, math module
 extern void *effect_marker_callback_context; // 0x006b0adc
 
@@ -82,7 +82,7 @@ datum_index effect_new_with_color(datum_index definition_index, datum_index crea
         leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, position);
         self->location.leaf_index = leaf;
         self->location.cluster_index = (leaf == -1) ? -1 :
-            *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+            *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
 
         if (velocity == 0) {
             // types/math.h declares this as const real_point3d *; same three floats.

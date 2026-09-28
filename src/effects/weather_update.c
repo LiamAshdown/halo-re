@@ -14,7 +14,7 @@
 #include "cache.h"
 #include "effects.h"
 
-extern uint8_t *global_structure_bsp;      // 0x00746f9c; +0x1b4 count, +0x1b8 pointer of the
+extern ScenarioStructureBSP *global_structure_bsp;
                                     // scenario's weather palette (ScenarioStructureBSPWeatherPalette)
 extern int32_t weather_frame_counter;       // 0x00746f88
 extern tag_instance *tag_instances;         // 0x0087bc14
@@ -32,9 +32,9 @@ extern double sin(double x);
 // rebuilds its wind direction vector from the Wind tag's base direction and variation bounds.
 void weather_update(void)
 {
-    int32_t palette_count = *(int32_t *)(global_structure_bsp + 0x1b4);
+    int32_t palette_count = *(int32_t *)&global_structure_bsp->weather_palette.count;
     ScenarioStructureBSPWeatherPalette *palette =
-        *(ScenarioStructureBSPWeatherPalette **)(global_structure_bsp + 0x1b8);
+        (ScenarioStructureBSPWeatherPalette *)global_structure_bsp->weather_palette.pointer;
     int32_t i;
 
     weather_frame_counter++;

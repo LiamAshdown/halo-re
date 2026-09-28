@@ -28,7 +28,7 @@ extern data_array *particle_system_data; // 0x0087abd4
 extern tag_instance *tag_instances;      // 0x0087bc14
 extern ModelCollisionGeometryBSP *global_collision_bsp;             // 0x00746f90
 extern random_seed effect_random_seed;    // 0x00719cd4
-extern uint8_t *global_structure_bsp; // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern ScenarioStructureBSP *global_structure_bsp;
     // (same name and type as the other eleven files in this module that touch it), see
                                     // src/physics/breakable_surface_damage_in_blast_radius.c
 
@@ -50,7 +50,7 @@ uint8_t particle_system_new_type_states(datum_index handle)
     leaf_index = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &system->position);
     system->location.leaf_index = leaf_index;
     system->location.cluster_index = (leaf_index == -1) ? (int16_t)0xffff :
-        *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
+        *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
                       (leaf_index & 0x7fffffff) * 0x10 + 8); // UNSURE: global_structure_bsp is
                                     // an objects/structures-module global, kept as raw offset
                                     // arithmetic here, matching the object.location_cluster

@@ -21,7 +21,7 @@
 extern data_array *particle_data;                       // 0x0087abd0
 extern uint8_t *first_person_weapon_globals;            // 0x006b2d98, stride 0x1ea0
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern uint8_t *global_structure_bsp;                   // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // memory module, 0x4d0630
 extern void datum_delete(data_array *array, datum_index index); // 0x4d0510, blam-cc: EAX -> array, EDX -> index
@@ -58,7 +58,7 @@ void particles_refresh_structure_locations(void)
         if (leaf == 0xffffffff) {
             cluster = -1;
         } else {
-            cluster = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 8);
+            cluster = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
         }
         entry->location.cluster_index = cluster;
         if (cluster == -1) {

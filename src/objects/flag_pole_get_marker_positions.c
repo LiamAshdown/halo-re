@@ -34,7 +34,7 @@
 #include "math.h"
 #include "objects.h"
 
-extern uint8_t *global_structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
@@ -75,7 +75,7 @@ void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref,
         if (node_index == -1) {
             node_ref->cluster_index = -1;
         } else {
-            node_ref->cluster_index = *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
+            node_ref->cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
                                                  (uint32_t)(node_index & 0x7fffffff) * 0x10 + 8);
         }
     }

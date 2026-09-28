@@ -36,7 +36,7 @@ extern data_array *contrail_point_data; // 0x0087abe8
 extern data_array *object_data;         // 0x008603b0
 extern tag_instance *tag_instances;     // 0x0087bc14
 extern ModelCollisionGeometryBSP *global_collision_bsp;            // 0x00746f90, passed to FUN_005013a0 in ECX
-extern uint8_t *global_structure_bsp;  // 0x00746f9c; +0xe4 is the per-leaf lookup table
+extern ScenarioStructureBSP *global_structure_bsp;
 extern random_seed effect_random_seed;  // 0x00719cd4
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, memory module; blam-cc: array in EDX
@@ -132,7 +132,7 @@ void contrail_generate_points(datum_index contrail_handle, int16_t point_count, 
                                 int32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, &point->position);
                                 point->location.leaf_index = leaf;
                                 point->location.cluster_index = (leaf == -1) ? -1 :
-                                    *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
+                                    *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
                                         (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
                             }
 
@@ -158,7 +158,7 @@ void contrail_generate_points(datum_index contrail_handle, int16_t point_count, 
                                 leaf = bsp3d_node_find_leaf(0, global_collision_bsp, &point->position);
                                 point->location.leaf_index = leaf;
                                 point->location.cluster_index = (leaf == -1) ? -1 :
-                                    *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) +
+                                    *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
                                         (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
 
                                 point->position.x = fraction * sampled_position.x + inverse_fraction * previous->position.x;

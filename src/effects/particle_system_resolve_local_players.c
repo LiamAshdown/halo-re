@@ -20,7 +20,7 @@ extern data_array *particle_system_data;               // 0x0087abd4
 extern data_array *particle_system_particle_data;      // 0x0087abd8
 extern tag_instance *tag_instances;                    // 0x0087bc14
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern uint8_t *global_structure_bsp;                   // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp;
 
 extern datum_index datum_next(int16_t index, data_array *array); // 0x4d0630, DX, EDI
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, EAX, EDX
@@ -33,7 +33,7 @@ static int16_t particle_leaf_cluster(uint32_t leaf)
     if (leaf == 0xffffffff) {
         return -1;
     }
-    return *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 8);
+    return *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
 }
 
 void particle_system_resolve_local_players(void)
