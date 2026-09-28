@@ -1,7 +1,7 @@
 // player_kill_streak_tick  (Ghidra: FUN_00479d10; renamed per the same kill-streak trio
 // described in out/phase4/game_types_notes.md as 0x479ba0/0x479ca0/0x479d10)
 // address 0x479d10, size 121 bytes
-// name confidence: 0.4   rewrite confidence: 0.55
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x479d10..0x479d88 (EAX player; two int16 counters at player +0x68; slot 0 expiry clears unit +0x204 bit 0x10).)
 // FIXED 2026-09-28: unit_data begins at object +0x1f4 (k_unit_data_offset) and its field offsets are absolute; the draft cast the object pointer itself, so unit fields landed 0x1f4 bytes low (e.g. flags at object +0x10).
 // evidence: types/game.h player::kill_streak[2] (0x68), player::unit (0x34); types/units.h
 //   unit_flags::_unit_flag_unknown_10.
