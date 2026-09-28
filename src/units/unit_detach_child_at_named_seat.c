@@ -241,7 +241,7 @@ int16_t unit_detach_child_at_named_seat(uint32_t unit_index, char *seat_marker_n
         }
         strcpy(label, (char *)(*(uint8_t **)(unit_tag + 0x2e8) + *(int16_t *)(child + 0x2f0) * 0x11c + 4));
         for (c = label; *c != 0; c++) {
-            *c = (char)_tolower((uint8_t)*c);
+            *c = (char)tolower((uint8_t)*c);
         }
         if (!any_seat && strstr(label, seat_marker_name) == 0) {
             continue;

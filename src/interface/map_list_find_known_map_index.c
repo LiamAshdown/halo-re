@@ -44,7 +44,7 @@ int32_t map_list_find_known_map_index(char *map_path)
 
     strncpy(local_path, map_path, 0x103);
     for (cursor = local_path; *cursor != '\0'; cursor++) {
-        *cursor = (char)_tolower((uint8_t)*cursor);
+        *cursor = (char)tolower((uint8_t)*cursor);
     }
 
     if (map_list_count < 1) {

@@ -21,7 +21,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t _tolower(int32_t c); // 0x624687
+extern int tolower(int c); // 0x624687 (the locale-aware tolower, not _tolower)
 extern int32_t strstr(uint8_t *lowered_label, char *name_filter); // 0x625430, UNSURE signature
 extern uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index); // 0x56cc10, UNSURE signature
 
@@ -53,7 +53,7 @@ int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_
         char *src = seats[seat_index].label.string;
         int32_t i = 0;
         do {
-            lowered[i] = (char)_tolower((uint8_t)src[i]);
+            lowered[i] = (char)tolower((uint8_t)src[i]);
             i++;
         } while (src[i - 1] != '\0');
 

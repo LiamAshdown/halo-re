@@ -60,7 +60,7 @@ void player_help_screen_select_by_name(int16_t value)
     strncpy(name, tag_instances[(int16_t)global_scenario_index].path, 0xff);
 
     for (p = name; *p != 0; p++) {
-        *p = (char)_tolower((uint8_t)*p);
+        *p = (char)tolower((uint8_t)*p);
     }
 
     if (strstr(name, player_help_name_a10) != 0) {

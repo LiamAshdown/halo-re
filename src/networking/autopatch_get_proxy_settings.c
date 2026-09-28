@@ -147,7 +147,7 @@ char *autopatch_get_proxy_settings(void)
 
     // 3. pick the http entry out of "http=host:port;https=..." or a bare "host:port" list
     for (cursor = proxy_list; *cursor != 0; cursor++) {
-        *cursor = (char)_tolower((uint8_t)*cursor);
+        *cursor = (char)tolower((uint8_t)*cursor);
     }
 
     token_count = 0;
