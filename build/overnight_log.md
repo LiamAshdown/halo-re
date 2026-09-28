@@ -2563,3 +2563,27 @@ Relinked: unresolved 1, traps 127.
   0x65c70c, gamespy's GOAGetUniqueID pointer 0x683dac -- no retail or C reference to any of them). Kept as named
   diagnostic stubs.
 - OPEN: networking call audit (iteration 13). Long tail: promote image regions to typed C.
+
+## Iteration 17 (2026-09-28) -- networking call audit, part 1 (receive path)
+- traps before/after: 0 / 0; unresolved 0 (HALO_NO_RETAIL=1); image verify identical; hooks.txt == stable (content;
+  the two differ only in CRLF, both untouched since 2026-09-26).
+- Tools: scratchpad/audit_calls.py (call-site setup vs the callee's C signature/notes), scratchpad/livein.py
+  (registers a function reads before writing), scratchpad/nga_cases.py (jump table -> handler).
+- FIXED decode prototypes: message_delta_decode_compound_field (EAX context, ECX destination), _forced (+EDX
+  baseline, stack force), _staged (EAX context) had the context missing or swapped with the destination in 12
+  item/projectile handlers + object_delete_by_pooled_node_id.
+- REWRITTEN from the disassembly (decoded into nothing / phantom parameters before): unit_dispatch_seat_exit_message
+  0x56c400, unit_scripting_set_or_drop_weapon 0x56ddb0, unit_spawn_with_starting_weapons 0x572110 (really the vehicle
+  creation receiver), unit_network_create_update_apply 0x55b110 (biped creation receiver),
+  unit_apply_network_control_update 0x566c90.
+- FIXED game handlers: spawn-loadout 0x477c70 and interaction 0x478f10 (player from the message, key tables through
+  +0x28, unit_pickup_weapon / player_swap_to_weapon args), sound-status 0x46bca0 and end-game 0x467230 (decoded
+  value, not an ECX parameter; sound tag to sound_start_unspatialized).
+- REWRITTEN the receive chain: network_game_process_incoming_messages 0x4db180 (real bit stream per item; read_item's
+  6th arg), network_incoming_item_dispatch 0x4db630, network_game_action_queue_drain 0x4db870 (client, stream,
+  sender; builds the decode context), network_game_message_decode_dispatch 0x4db6b0 (client, record, length,
+  sender to all 18 handlers), network_game_action_apply 0x4da320 (context + client to all ~48 handlers).
+- OPEN (audit part 2): decode(void) still in chat_server_relay_incoming_message and unit_apply_network_health_update;
+  message handlers 0x4dc190/0x4dc240/0x4dc2e0/0x4dc410 declare (client, uint8_t*, int16_t*, int32_t*) but receive
+  (client, record, length, sender); gt2Connect called with 1 of 8 args; unit_build_network_update; the 0x614850 /
+  0x61e550 dump-setter names.
