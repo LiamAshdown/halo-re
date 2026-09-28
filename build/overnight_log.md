@@ -2234,3 +2234,19 @@ Relinked: unresolved 1, traps 127.
   object_sum_attached_light_luminance, object_collision_context_build.
 - OPEN (runtime, user): banshee flip prompt; FP gun alpha; cryo tech; grunt accuracy. Kill-streak object-flag
   corruption fix may matter if those helpers run in campaign (check a10 coverage).
+
+## 2026-09-28 banshee flip (user: pressing E doesn't flip it) -- static, commit 2649a5b, relinked (0 unresolved, 127 traps)
+- Chain verified against the binary: player_execute_pending_interaction case 11 (vehicle +0x4cc |= 0x10, +0x4d1 dir,
+  +0x4d2 = 0; no wake call in the original either) -> vehicle_update 0x571105..0x5712d3 flip block (angular velocity
+  = axis * clamp(-2 up.k, tag +0x340..+0x344) * +-0.3 for 30 ticks, clears at-rest 0x20) -> type 5 (banshee) ->
+  0x573ee0 dispatch -> 0x573f60 hover stabiliser (radius -1) -> object_physics_tick general path.
+  Banshee physics (scratchpad/bansheephys.py): radius -1, mass 4000, 22 mass points, 2 powered.
+- object_physics_compute_mass_point_forces (0.3 -> 0.85, full decode) had FOUR real bugs:
+  torque.j = (offset x force).j NEGATED (every vehicle's per-mass-point torque about world y inverted; also in
+  object_physics_tick_single_pass); ground normal force used the mass point's mass instead of Physics.mass;
+  material friction scale gate inverted (binary: applies when Physics.mass <= 7500 -- banshee/warthog yes,
+  scorpion/pelican no); leaf lookup passed 0x746f98 instead of the collision BSP 0x746f90 (wrong leaf/cluster ->
+  wrong water depth). Plus k,j,i sum orders.
+- VERIFIED: object_physics_context_build, object_get_node_local_transform, object_update (dispatch path),
+  vehicle_calculate_mounted_controls_dispatch call roles.
+- OPEN (runtime, user): banshee flip; general vehicle handling should now be closer to retail (torque sign).
