@@ -2302,3 +2302,13 @@ Relinked: unresolved 1, traps 127.
   handler returning the entry ECX's high byte (0x4a2f10) always returns 0; 0x4a3b70 is game_data_input[58].
 - Remaining interface: 0x49d8b0 0x49e300 0x49e5d0 0x49e7e0 0x49ea50 0x49edc0 0x49f030 0x49f680 0x49fad0 0x49fd30
   0x4a02a0 0x4a1dc0 0x4a3540 0x4a44f0(+0x4a4280) 0x4a5740 0x4a6fa0 0x4a7880 0x4bb360 (477..906 bytes).
+- (iteration 4, continued) commits ..HEAD: the last 18 interface handlers (477..906 bytes) incl. the checkpoint list
+  (0x4a44f0 + its hidden row callback checkpoint_list_add_row 0x4a4280), the variant option view/commit pairs, the
+  video settings commit, the scrolling list row click (0x4a3540) and the MP lobby update (0x4a5740).
+  MILESTONE: interface stored pointers 0 (from 142). Direct traps still 117.
+  Notes: 0x4a5740 writes L"" over the .rdata literal L"?" at 0x66a80c (would fault in retail); it indexes a stack
+  array by the local player byte (only player 0 modelled). 0x4a44f0's callback was invisible to missing_by_module
+  because its only reference is an immediate inside a function with no C -- other such hidden callbacks may exist.
+- Remaining stored pointers: hs 142, game 90, networking 86, shell 28, units 2, main 1, memory 1.
+- NEXT: hs parse procs (0x487530, 0x484ea0, 0x484600, 0x484db0, 0x484b40, 0x485280, 0x485310, 0x4853c0, 0x4854f0),
+  then hs evaluators.
