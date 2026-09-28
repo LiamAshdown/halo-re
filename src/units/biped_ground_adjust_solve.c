@@ -61,7 +61,7 @@ void biped_ground_adjust_solve(uint32_t object_index, real_matrix4x3 *nodes)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
     uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(object_tag + 0x44) & 0xffff].data;
+    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
     float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
     uint8_t limit = obj[0x525];
     uint8_t iteration;
@@ -180,7 +180,7 @@ void biped_ground_adjust_solve(uint32_t object_index, real_matrix4x3 *nodes)
                 bone.j = self->y - parent->y;
                 bone.k = self->z - parent->z;
                 {
-                    uint8_t *model = (uint8_t *)tag_instances[*(datum_index *)(object_tag + 0x34) & 0xffff].data;
+                    uint8_t *model = (uint8_t *)tag_instances[*(datum_index *)&((struct Object *)object_tag)->model.tag_id & 0xffff].data;
 
                     rest_length = *(float *)(*(uint8_t **)(model + 0xbc) + node_index * 0x9c + 0x44);
                 }

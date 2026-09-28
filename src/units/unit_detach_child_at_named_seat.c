@@ -131,10 +131,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)(object_tag + 0x34) != -1 && (object[0x10] & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)(object_tag + 0x34) != -1) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
             *(uint32_t *)(object + 0x10) &= ~1u;
             OBJECT_HEADER(object_index).flags |= 2;
         }
@@ -282,11 +282,11 @@ int16_t unit_detach_child_at_named_seat(uint32_t unit_index, char *seat_marker_n
                     animation_choose_random_permutation(graph, exit_animation, 1));
                 object = OBJECT_DATA(child_index);
                 object_tag = TAG_DATA(*(datum_index *)object);
-                if (*(int32_t *)(object_tag + 0x34) != -1) {
+                if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                     if ((object[0x10] & 1) != 0) {
                         object_for_each_light_attachment(child_index, 0, 1);
                     }
-                    if (*(int32_t *)(object_tag + 0x34) != -1) {
+                    if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                         *(uint32_t *)(object + 0x10) &= ~1u;
                         OBJECT_HEADER(child_index).flags |= 2;
                     }

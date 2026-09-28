@@ -60,7 +60,7 @@ void vehicle_blend_animations(datum_index object_index, real_orientation *orient
 {
     uint8_t *obj = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
     uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    datum_index graph_tag = *(datum_index *)(vehicle_tag + 0x44);
+    datum_index graph_tag = *(datum_index *)&((struct Object *)vehicle_tag)->animation_graph.tag_id;
     uint8_t *graph;
     uint8_t *entry;
     uint8_t *animations;

@@ -24,13 +24,13 @@ uint8_t scenery_new(datum_index object_index)
 {
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
     uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
-    datum_index graph = *(datum_index *)(definition + 0x44);
+    datum_index graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
 
     if (graph != k_datum_index_none && *(int32_t *)((uint8_t *)tag_instances[graph & 0xffff].data + 0x74) > 0) {
         int16_t animation = animation_choose_random_permutation(graph, 0, 1);
         if (animation != -1) {
             *(int16_t *)(object + 0xd0) = animation;
-            *(datum_index *)(object + 0xcc) = *(datum_index *)(definition + 0x44);
+            *(datum_index *)(object + 0xcc) = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
             *(uint32_t *)(object + 0x10) |= 0x80;
         }
     }

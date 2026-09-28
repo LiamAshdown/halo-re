@@ -107,10 +107,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)(object_tag + 0x34) != -1 && (object[0x10] & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)(object_tag + 0x34) != -1) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
             ((struct object *)object)->flags &= ~1u;
             OBJECT_HEADER(object_index).flags |= 2;
         }
@@ -229,11 +229,11 @@ void ai_reference_units_exit_vehicles(uint32_t packed_reference)
                     animation_choose_random_permutation(graph, exit_animation, 1));
                 object = OBJECT_DATA(unit_index);
                 object_tag = TAG_DATA(*(datum_index *)object);
-                if (*(int32_t *)(object_tag + 0x34) != -1) {
+                if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                     if ((object[0x10] & 1) != 0) {
                         object_for_each_light_attachment(unit_index, 0, 1);
                     }
-                    if (*(int32_t *)(object_tag + 0x34) != -1) {
+                    if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                         ((struct object *)object)->flags &= ~1u;
                         OBJECT_HEADER(unit_index).flags |= 2;
                     }

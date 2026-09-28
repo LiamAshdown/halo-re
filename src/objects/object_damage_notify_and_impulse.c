@@ -56,7 +56,7 @@ void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, ui
     uint8_t *effect = (uint8_t *)tag_instances[dd->damage_effect_tag & 0xffff].data;
     int16_t type;
 
-    if (*(float *)(object_tag + 0x20) > 0.0001f) {
+    if (((struct Object *)object_tag)->acceleration_scale > 0.0001f) {
         real_vector3d direction;
         real_vector3d impulse;
         float scale;
@@ -65,7 +65,7 @@ void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, ui
         direction.k = direction.k + 0.45f;
         vector3d_normalize_with_length(&direction);
         type = ((object *)obj)->type;
-        scale = *(float *)(object_tag + 0x20) * *(float *)(effect + 0x1f4) * 0.033333335f;
+        scale = ((struct Object *)object_tag)->acceleration_scale * *(float *)(effect + 0x1f4) * 0.033333335f;
         impulse.i = direction.i * scale;
         impulse.j = direction.j * scale;
         impulse.k = scale * direction.k;

@@ -102,7 +102,7 @@ void effect_update(datum_index effect_index, real dt)
                 uint8_t *obj_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
                 int16_t i;
 
-                for (i = 0; i < *(int32_t *)(obj_tag + 0x140); i++) {
+                for (i = 0; i < *(int32_t *)&((struct Object *)obj_tag)->attachments.count; i++) {
                     if (*(datum_index *)(obj + 0x14c + i * 4) == effect_index) {
                         *(datum_index *)(obj + 0x14c + i * 4) = k_datum_index_none;
                         break;

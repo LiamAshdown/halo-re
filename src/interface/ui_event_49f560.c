@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -28,7 +31,7 @@ uint8_t ui_event_49f560(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (variant == 0) {
         return 0;
     }
-    switch (*(int32_t *)(variant + 0x30)) {
+    switch (((struct game_variant *)variant)->game_engine_index) {
     case 2:
         widget->selection_index = 2;
         break;

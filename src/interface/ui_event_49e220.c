@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -46,12 +49,12 @@ uint8_t ui_event_49e220(widget_instance *widget, int16_t *event, uint8_t *out_ha
         type = 5;
         break;
     default:
-        type = *(int32_t *)(variant + 0x30);
+        type = ((struct game_variant *)variant)->game_engine_index;
         break;
     }
-    if (type != *(int32_t *)(variant + 0x30)) {
+    if (type != ((struct game_variant *)variant)->game_engine_index) {
         memset(variant + 0x7c, 0, 0x18);
     }
-    *(int32_t *)(variant + 0x30) = type;
+    ((struct game_variant *)variant)->game_engine_index = type;
     return 1;
 }

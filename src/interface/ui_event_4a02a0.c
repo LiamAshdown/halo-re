@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -40,28 +43,28 @@ uint8_t ui_event_4a02a0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (variant == 0) {
         return 0;
     }
-    flags = *(uint32_t *)(variant + 0x38);
+    flags = ((struct game_variant *)variant)->flags;
     group = widget->first_child;
-    value = *(int32_t *)(variant + 0x50);
+    value = ((struct game_variant *)variant)->lives_per_round;
     first_list_child(group)->selection_index = (int16_t)(value == 1 ? 1 : value == 3 ? 2 : value == 5 ? 3 : 0);
     group = group->next_sibling;
-    value = (int32_t)((double)*(float *)(variant + 0x54) * -10.0); // fmul by -10.0f (0x00672da4), _ftol
+    value = (int32_t)((double)((struct game_variant *)variant)->speed_scale * -10.0); // fmul by -10.0f (0x00672da4), _ftol
     first_list_child(group)->selection_index = (int16_t)(value == -10 ? 1 : value == -15 ? 2 : value == -20 ? 3 :
         value == -30 ? 4 : value == -40 ? 5 : 0);
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)((flags >> 3) & 1);
     group = group->next_sibling;
-    value = *(int32_t *)(variant + 0x48);
+    value = ((struct game_variant *)variant)->respawn_time;
     first_list_child(group)->selection_index = (int16_t)(value == 0x96 ? 1 : value == 0x12c ? 2 : value == 0x1c2 ? 3 : 0);
     group = group->next_sibling;
-    value = *(int32_t *)(variant + 0x44);
+    value = ((struct game_variant *)variant)->respawn_time_growth;
     first_list_child(group)->selection_index = (int16_t)(value == 0x96 ? 1 : value == 0x12c ? 2 : value == 0x1c2 ? 3 : 0);
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)(variant[0x40] == 0);
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)(((flags >> 4) & 1) == 0);
     group = group->next_sibling;
-    value = *(int32_t *)(variant + 0x4c);
+    value = ((struct game_variant *)variant)->suicide_penalty;
     first_list_child(group)->selection_index = (int16_t)(value == 0x96 ? 1 : value == 0x12c ? 2 : value == 0x1c2 ? 3 : 0);
     return 1;
 }

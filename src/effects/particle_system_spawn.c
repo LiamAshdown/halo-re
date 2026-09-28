@@ -111,7 +111,7 @@ void particle_system_spawn(particle_system *system_record, int32_t type_index, f
     if (object_index != k_datum_index_none) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
         uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
-        char *marker_name = (char *)(*(uint8_t **)(object_tag + 0x144) + ((struct particle_system *)system)->attachment_index * 0x48 + 0x10);
+        char *marker_name = (char *)(*(uint8_t **)&((struct Object *)object_tag)->attachments.pointer + ((struct particle_system *)system)->attachment_index * 0x48 + 0x10);
 
         marker_count = (int16_t)object_get_node_local_transform(object_index, marker_name, markers, 8);
         object_get_root_location((int32_t *)(system + 0x18), object_index);

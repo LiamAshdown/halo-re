@@ -18,6 +18,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -79,7 +82,7 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 2) {
-        *(int32_t *)(variant + 0x80) = selection == 0 ? 1 : selection == 1 ? 0 : 2;
+        ((struct game_variant *)variant)->ctf_value_80 = selection == 0 ? 1 : selection == 1 ? 0 : 2;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -99,7 +102,7 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 4) {
-        *(int32_t *)(variant + 0x58) = lives[selection];
+        ((struct game_variant *)variant)->score_limit = lives[selection];
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;

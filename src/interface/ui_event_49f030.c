@@ -17,6 +17,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -48,12 +51,12 @@ uint8_t ui_event_49f030(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = widget->parent->parent->first_child;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        *(int32_t *)(variant + 0x50) = kills[selection];
+        ((struct game_variant *)variant)->lives_per_round = kills[selection];
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 5) {
-        *(float *)(variant + 0x54) = scales[selection];
+        ((struct game_variant *)variant)->speed_scale = scales[selection];
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -65,12 +68,12 @@ uint8_t ui_event_49f030(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        *(int32_t *)(variant + 0x48) = times[selection];
+        ((struct game_variant *)variant)->respawn_time = times[selection];
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        *(int32_t *)(variant + 0x44) = times[selection];
+        ((struct game_variant *)variant)->respawn_time_growth = times[selection];
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -88,7 +91,7 @@ uint8_t ui_event_49f030(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (group != 0) {
         selection = first_list_child(group)->selection_index;
         if (selection >= 0 && selection <= 3) {
-            *(int32_t *)(variant + 0x4c) = times[selection];
+            ((struct game_variant *)variant)->suicide_penalty = times[selection];
         }
     }
     return 1;

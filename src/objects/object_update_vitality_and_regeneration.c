@@ -73,8 +73,8 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
     uint16_t *vitality_flags = (uint16_t *)(obj + 0x106);
     float *shield = (float *)(obj + 0xe4);
 
-    if (*(datum_index *)(object_tag + 0x7c) != k_datum_index_none) {
-        uint8_t *geometry = (uint8_t *)tag_instances[*(datum_index *)(object_tag + 0x7c) & 0xffff].data;
+    if (*(datum_index *)&((struct Object *)object_tag)->collision_model.tag_id != k_datum_index_none) {
+        uint8_t *geometry = (uint8_t *)tag_instances[*(datum_index *)&((struct Object *)object_tag)->collision_model.tag_id & 0xffff].data;
 
         if (geometry != 0) {
             uint16_t flags = *vitality_flags;

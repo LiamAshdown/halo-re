@@ -18,6 +18,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -50,13 +53,13 @@ uint8_t ui_event_4a33a0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (variant == 0) {
         return 0;
     }
-    time = *(int32_t *)(variant + 0x68);
+    time = ((struct game_variant *)variant)->time_limit;
     variant_teams_enabled_0071920c = (uint8_t)(variant[0x34] != 0);
     unknown_00692b0c = 0;
-    unknown_00879f34 = *(uint32_t *)(variant + 0x60);
+    unknown_00879f34 = ((struct game_variant *)variant)->vehicle_set;
     unknown_00879f38 = *(uint32_t *)(variant + 0x64);
     unknown_00719208 = (uint32_t)time;
-    ui_controls_populate_bind_rows(widget, *(uint32_t *)(variant + 0x60));
+    ui_controls_populate_bind_rows(widget, ((struct game_variant *)variant)->vehicle_set);
     first = widget->first_child;
     first_list_child(first)->selection_index = (int16_t)(time == 0x384 ? 1 : time == 0x708 ? 2 : time == 0xa8c ? 3 :
         time == 0xe10 ? 4 : time == 0x1518 ? 5 : time == 0x2328 ? 6 : 0);

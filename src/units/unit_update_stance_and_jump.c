@@ -126,7 +126,7 @@ void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8
     if (require_still && !soft_ping && !forced) {
         return;
     }
-    graph_tag = *(datum_index *)(unit_tag + 0x44);
+    graph_tag = *(datum_index *)&((struct Object *)unit_tag)->animation_graph.tag_id;
     graph = (uint8_t *)tag_instances[graph_tag & 0xffff].data;
 
     if (!hard_ping && !forced) {

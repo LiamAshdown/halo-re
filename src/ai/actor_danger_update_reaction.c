@@ -189,7 +189,7 @@ void actor_danger_update_reaction(datum_index actor_index)
         uint8_t *location;
         int16_t status;
 
-        if (vi * vi + vj * vj + vk * vk < 4.4444445e-05f || *(float *)(tag + 4) + 10.0f < A_F(0x2d4)) {
+        if (vi * vi + vj * vj + vk * vk < 4.4444445e-05f || ((struct Object *)tag)->bounding_radius + 10.0f < A_F(0x2d4)) {
             A_W(0x280) = 0;
             break;
         }

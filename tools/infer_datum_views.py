@@ -43,6 +43,14 @@ def main():
         (r"uint8_t \*(\w+) = \*\(uint8_t \*\*\)\(\(uint8_t \*\)object_data->data \+ \([^;]*& 0xffff\) \* 0xc \+ 8\);", "object", 0x1f4),
         (r"uint8_t \*(\w+) = ACTOR\([^;]*\);", "actor", 0x724),
         (r"uint8_t \*(\w+) = TAG_DATA\(\(\(actor \*\)\w+\)->actor_definition_tag\);", "Actor", 0x4f8),
+        # an object's definition tag: every object tag starts with the Object tag (offsets below 0x17c)
+        (r"uint8_t \*(\w+) = \(uint8_t \*\)tag_instances\[\*\(datum_index \*\)(?:obj|object) & 0xffff\]\.data;", "Object", 0x17c),
+        (r"uint8_t \*(\w+) = TAG_DATA\(\*\(datum_index \*\)(?:obj|object)\);", "Object", 0x17c),
+        # the saved-item working copy: kind 0 (selected_saved_item & 0xf) is a player profile, kind 1 a game
+        # variant record (game_variant_file, whose variant is at 0)
+        (r"uint8_t \*(\w+) = \(*\(selected_saved_item & 0xf\) == 0\)* \? saved_item_working_copy : [^;]*;", "saved_player_profile", 0x1ffc),
+        (r"uint8_t \*(\w+) = \(*\(selected_saved_item & 0xf\) != 0\)* \? \(uint8_t \*\)0 : saved_item_working_copy;", "saved_player_profile", 0x1ffc),
+        (r"uint8_t \*(\w+) = \(selected_saved_item & 0xf\) == 1 \? saved_item_working_copy : 0;", "game_variant", 0x98),
     ]
     for f in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
         live = open(f, encoding="utf-8").read().split("\n#if 0")[0]

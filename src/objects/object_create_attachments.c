@@ -53,8 +53,8 @@ void object_create_attachments(uint32_t object_index)
     uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
     int16_t i;
 
-    for (i = 0; i < *(int32_t *)(definition + 0x140); i++) {
-        uint8_t *attachment = *(uint8_t **)(definition + 0x144) + i * 0x48;
+    for (i = 0; i < *(int32_t *)&((struct Object *)definition)->attachments.count; i++) {
+        uint8_t *attachment = *(uint8_t **)&((struct Object *)definition)->attachments.pointer + i * 0x48;
         datum_index tag = *(datum_index *)(attachment + 0xc);
         int16_t first_scale = (int16_t)(*(int16_t *)(attachment + 0x30) - 1);
         int16_t second_scale = (int16_t)(*(uint16_t *)(attachment + 0x32) - 1);
