@@ -16,6 +16,8 @@
 #include "ai.h"
 #include "cache.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -80,7 +82,7 @@ uint8_t actor_request_move_and_face(datum_index actor_index)
             *(int16_t *)(actor + 0xc4) = claimed;
         }
     }
-    *(int16_t *)(actor + 0x9c) = (int16_t)(int32_t)(random_real_range(*(float *)(actor_tag + 0x3b8),
+    *(int16_t *)&((struct actor *)actor)->mode_data = (int16_t)(int32_t)(random_real_range(*(float *)(actor_tag + 0x3b8),
         *(float *)(actor_tag + 0x3bc)) * 30.0f); // __ftol
     return 0;
 }

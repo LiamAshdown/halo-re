@@ -11,6 +11,7 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -21,7 +22,7 @@ void actor_mode_guard_exit(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
 
     if (act[0xa1]) {
-        *(int16_t *)(act + 0x1e4) = 0;
-        *(int32_t *)(act + 0x1e8) = -1;
+        ((struct actor *)act)->unknown_1e4 = 0;
+        *(int32_t *)&((struct actor *)act)->unknown_1e8 = -1;
     }
 }

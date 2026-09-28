@@ -17,6 +17,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -53,7 +54,7 @@ void actor_mode_flee_update(datum_index actor_index)
     } else {
         ((actor *)act)->vocalization_unknown_3e8 = 0;
     }
-    *(int16_t *)(act + 0x3fc) = 4;
+    ((struct actor *)act)->unknown_3fc = 4;
     act[0x428] = (uint8_t)(((struct actor *)act)->mode_data.flee.panic > 0);
     act[0x429] = (uint8_t)(((struct actor *)act)->mode_data.flee.panic >= 9 && ((struct actor *)act)->mode_data.flee.panic <= 12);
     act[0x426] = 1;

@@ -25,6 +25,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "game.h"
+#include "units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *encounter_data;   // 0x008802c8
@@ -57,7 +58,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
 {
     if (((struct actor *)actor)->target_unit_index != k_datum_index_none && ((struct actor *)actor)->target_combat_status >= 5) {
         uint8_t *target = PROP(((struct actor *)actor)->target_unit_index);
-        int32_t fired = *(int32_t *)(actor + 0x88);
+        int32_t fired = ((struct actor *)actor)->unknown_88;
 
         if (*(int16_t *)(target + 0x24) >= 4 && *(int16_t *)(target + 0x24) <= 5) {
             target = PROP(*(datum_index *)(target + 0xc));
@@ -180,8 +181,8 @@ void ai_reset_fire_group_assignments(void)
                 continue;
             }
             actor = ACTOR(actor_index);
-            *(int32_t *)(actor + 0x30) = e;
-            *(int16_t *)(actor + 0x38) = ((struct actor *)actor)->squad_index;
+            *(int32_t *)&((struct actor *)actor)->unknown_30 = e;
+            ((struct actor *)actor)->unknown_38 = ((struct actor *)actor)->squad_index;
             ((struct actor *)actor)->firing_position_index = -1;
             if (((struct actor *)actor)->active_movement.type == 3 || ((struct actor *)actor)->active_movement.type == 4) {
                 ((struct actor *)actor)->active_movement.type = 0;

@@ -18,6 +18,7 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -81,13 +82,13 @@ void actor_update_aim_wander(datum_index actor_index)
     }
     a[0x601] = moving;
     a[0x600] = (weapon_get_zoom_fov_resolved(0xd, team) * ((ActorVariant *)variant)->new_target_firing_pattern_time * 30.0f >
-        (float)*(int32_t *)(a + 0x61c)) ? 1 : 0;
+        (float)((struct actor *)a)->unknown_61c) ? 1 : 0;
 
     actor_select_stance_offset_pair(actor_index, variant, &burst, &scale);
 
     // the burst length
-    if (*(float *)(a + 0x458) > 0.0f) {
-        time = *(float *)(a + 0x458);
+    if (((struct actor *)a)->unknown_458 > 0.0f) {
+        time = ((struct actor *)a)->unknown_458;
     } else {
         time = aim_wander_random_fraction() * (*(float *)(burst + 0x18) - *(float *)(burst + 0x14)) +
             *(float *)(burst + 0x14);
@@ -98,7 +99,7 @@ void actor_update_aim_wander(datum_index actor_index)
             time = time * 0.6f;
         }
     }
-    *(int16_t *)(a + 0x5f4) = (int16_t)(int32_t)(time * 30.0f);
+    ((struct actor *)a)->unknown_5f4 = (int16_t)(int32_t)(time * 30.0f);
 
     // the aiming error
     error = weapon_get_zoom_fov_resolved(0xb, team) * ((ActorVariant *)variant)->projectile_error;
@@ -108,7 +109,7 @@ void actor_update_aim_wander(datum_index actor_index)
     if (a[0x1ca] != 0) {
         error = error + error + 0.017453292f;
     }
-    *(float *)(a + 0x698) = error;
+    ((struct actor *)a)->unknown_698 = error;
 
     // the damage modifier
     ((actor *)a)->perception_scale = 0.0f;
@@ -135,12 +136,12 @@ void actor_update_aim_wander(datum_index actor_index)
         if (((ActorVariant *)variant)->special_damage_modifier > 0.0f) {
             ((actor *)a)->perception_scale = ((actor *)a)->perception_scale * ((ActorVariant *)variant)->special_damage_modifier;
         }
-        *(float *)(a + 0x698) = ((ActorVariant *)variant)->special_projectile_error + *(float *)(a + 0x698);
+        ((struct actor *)a)->unknown_698 = ((ActorVariant *)variant)->special_projectile_error + ((struct actor *)a)->unknown_698;
     }
 
     // the (possibly bombarded) target
-    if (((ActorVariant *)variant)->bombardment_range > 0.0f && *(int16_t *)(a + 0x60c) == 1) {
-        uint8_t *prop = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x610) & 0xffff) * 0x138;
+    if (((ActorVariant *)variant)->bombardment_range > 0.0f && ((struct actor *)a)->unknown_60c == 1) {
+        uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->unknown_610 & 0xffff) * 0x138;
         int16_t kind = ((struct prop *)prop)->kind;
 
         bombard = (kind < 2 || kind > 3 || *(int16_t *)(prop + 0x32) == 0) ? 1 : 0;
@@ -179,8 +180,8 @@ void actor_update_aim_wander(datum_index actor_index)
     }
 
     // the burst clamp: the wander may not outrun the burst's angular rate at the target distance
-    if (*(int16_t *)(a + 0x5f4) > 0 && *(float *)(burst + 0x24) > 0.0f) {
-        float ticks = (float)(int32_t)*(int16_t *)(a + 0x5f4);
+    if (((struct actor *)a)->unknown_5f4 > 0 && *(float *)(burst + 0x24) > 0.0f) {
+        float ticks = (float)(int32_t)((struct actor *)a)->unknown_5f4;
         float sweep = ticks * *(float *)(burst + 0x24) * 0.033333335f;
         float limit;
 
@@ -192,11 +193,11 @@ void actor_update_aim_wander(datum_index actor_index)
             float limit_15 = limit * 1.5f;
 
             if (radius_a >= limit_15) {
-                *(int16_t *)(a + 0x5f4) = (int16_t)fistp_round(ticks * 1.5f);
+                ((struct actor *)a)->unknown_5f4 = (int16_t)fistp_round(ticks * 1.5f);
                 radius_b = limit_15 / radius_a * radius_b;
                 radius_a = limit_15;
             } else {
-                *(int16_t *)(a + 0x5f4) = (int16_t)fistp_round(radius_a / limit * ticks);
+                ((struct actor *)a)->unknown_5f4 = (int16_t)fistp_round(radius_a / limit * ticks);
             }
         }
     }
@@ -213,8 +214,8 @@ void actor_update_aim_wander(datum_index actor_index)
         recoil.j = -((side.j * c2 + s2 * 0.0f) * radius_b);
         recoil.k = -((side.k * c2 + s2) * radius_b);
     }
-    if (*(int16_t *)(a + 0x5f4) > 0) {
-        float per_tick = 1.0f / (float)(int32_t)*(int16_t *)(a + 0x5f4);
+    if (((struct actor *)a)->unknown_5f4 > 0) {
+        float per_tick = 1.0f / (float)(int32_t)((struct actor *)a)->unknown_5f4;
 
         recoil.i = recoil.i * per_tick;
         recoil.j = recoil.j * per_tick;
@@ -228,13 +229,13 @@ void actor_update_aim_wander(datum_index actor_index)
     ((actor *)a)->grenade_aim_direction.k = wander.k + target.z;
 
     // the firing line
-    if (*(int16_t *)(a + 0x6e) >= 7) {
+    if (((struct actor *)a)->unknown_6e >= 7) {
         uint8_t prop_flag = 0;
         datum_index object = k_datum_index_none;
         int32_t code;
 
-        if (*(int16_t *)(a + 0x60c) == 1) {
-            uint8_t *prop = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x610) & 0xffff) * 0x138;
+        if (((struct actor *)a)->unknown_60c == 1) {
+            uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->unknown_610 & 0xffff) * 0x138;
 
             prop_flag = prop[0x61];
             object = ((struct prop *)prop)->object_index;

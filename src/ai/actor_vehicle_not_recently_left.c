@@ -13,6 +13,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -27,8 +28,8 @@ uint8_t actor_vehicle_not_recently_left(datum_index actor_index, datum_index veh
 {
     uint8_t *act = ACTOR(actor_index);
 
-    if (vehicle_index != *(datum_index *)(act + 0x390)) {
+    if (vehicle_index != ((struct actor *)act)->unknown_390) {
         return 1;
     }
-    return (uint8_t)(game_time->game_time >= *(int32_t *)(act + 0x394));
+    return (uint8_t)(game_time->game_time >= *(int32_t *)&((struct actor *)act)->unknown_394);
 }

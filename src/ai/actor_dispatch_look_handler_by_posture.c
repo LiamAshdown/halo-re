@@ -19,6 +19,8 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -79,8 +81,8 @@ int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_i
 
     if (actor[6] == 0 && check_facing != 0) {
         float forward = dz * ((struct actor *)actor)->facing_unknown_18c.k + dy * ((struct actor *)actor)->facing_unknown_18c.j + dx * ((struct actor *)actor)->facing_unknown_18c.i;
-        float left = dz * *(float *)(actor + 0x1a0) + dy * *(float *)(actor + 0x19c) + dx * *(float *)(actor + 0x198);
-        float up = dz * *(float *)(actor + 0x1ac) + dy * *(float *)(actor + 0x1a8) + dx * *(float *)(actor + 0x1a4);
+        float left = dz * *(float *)(actor + 0x1a0) + dy * *(float *)&((struct actor *)actor)->unknown_19c + dx * *(float *)(actor + 0x198);
+        float up = dz * *(float *)(actor + 0x1ac) + dy * *(float *)&((struct actor *)actor)->unknown_1a8 + dx * *(float *)(actor + 0x1a4);
         float elevation = (float)atan2((double)up, sqrt((double)(left * left + forward * forward)));
 
         if (elevation > 0.5235988f || !(elevation > -0.78539819f)) {

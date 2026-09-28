@@ -15,6 +15,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -41,7 +42,7 @@ uint8_t actor_update_grenade_throw_decision(datum_index actor_index)
     }
     switch (*(int16_t *)&((ActorVariant *)variant)->grenade_stimulus) {
     case 1:
-        if (*(int16_t *)(act + 0x6e) >= 5) {
+        if (((struct actor *)act)->unknown_6e >= 5) {
             result = actor_consider_grenade_throw(actor_index);
         }
         break;

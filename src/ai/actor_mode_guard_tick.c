@@ -18,6 +18,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -42,8 +43,8 @@ void actor_mode_guard_tick(datum_index actor_index)
         if (((struct actor *)act)->mode_data.guard.countdown_00 == 0 && !act[0x160] && !act[0x6]) {
             if (act[0xa1]) {
                 actor_report_command_status(actor_index);
-                *(int16_t *)(act + 0x1e4) = 0;
-                *(int32_t *)(act + 0x1e8) = -1;
+                ((struct actor *)act)->unknown_1e4 = 0;
+                *(int32_t *)&((struct actor *)act)->unknown_1e8 = -1;
                 act[0xa1] = 0;
                 act[0xa3] = 0;
                 *(int32_t *)(act + 0xd8) = -1;
@@ -61,7 +62,7 @@ void actor_mode_guard_tick(datum_index actor_index)
         return;
     }
     if (act[0xa6]) {
-        act[0xa6] = (uint8_t)(*(int16_t *)(act + 0x3a8) > 0);
+        act[0xa6] = (uint8_t)(((struct actor *)act)->unknown_3a8 > 0);
         ambush_over = (uint8_t)(act[0xa6] == 0);
     } else {
         if (((struct actor *)act)->mode_data.guard.countdown_0c <= 0) {
@@ -78,7 +79,7 @@ void actor_mode_guard_tick(datum_index actor_index)
     act[0xa5] = 0;
     act[0xa6] = 0;
     ((struct actor *)act)->mode_data.guard.countdown_0c = 0;
-    if (*(int16_t *)(act + 0x6e) >= 2 && ((actor *)act)->unit_index != k_datum_index_none) {
+    if (((struct actor *)act)->unknown_6e >= 2 && ((actor *)act)->unit_index != k_datum_index_none) {
         ai_communication_broadcast(0x23, ((actor *)act)->unit_index, actor_get_target_prop_object_index(actor_index),
                                    -1, -1, -1, 0);
     }

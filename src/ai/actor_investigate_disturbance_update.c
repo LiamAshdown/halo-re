@@ -19,6 +19,8 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -39,16 +41,16 @@ extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_ind
 int32_t actor_investigate_disturbance_update(uint32_t actor_index)
 {
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    void *vehicle = object_try_and_get(*(datum_index *)(act + 0x9c), 2);
+    void *vehicle = object_try_and_get(*(datum_index *)&((struct actor *)act)->mode_data, 2);
 
     if (((actor *)act)->active_unit_index != k_datum_index_none) {
         act[0xa5] = 1;
     } else if (act[0xa4] == 0) {
         if (vehicle == 0) {
-            *(datum_index *)(act + 0x9c) = k_datum_index_none;
+            *(datum_index *)&((struct actor *)act)->mode_data = k_datum_index_none;
             act[0xa6] = 1;
         } else if (!actor_is_within_alert_range(act[0xa2] == 0, *(float *)(act + 0xbc), *(float *)(act + 0xc0), 0, 1,
-                                                actor_index, *(datum_index *)(act + 0x9c))) {
+                                                actor_index, *(datum_index *)&((struct actor *)act)->mode_data)) {
             act[0xa6] = 1;
         } else {
             real_point3d entry;
@@ -68,7 +70,7 @@ int32_t actor_investigate_disturbance_update(uint32_t actor_index)
                 }
             }
             if (*(int16_t *)(act + 0xaa) >= 8 ||
-                !actor_evaluate_search_node(actor_index, *(datum_index *)(act + 0x9c), *(int16_t *)(act + 0xa0), &entry,
+                !actor_evaluate_search_node(actor_index, *(datum_index *)&((struct actor *)act)->mode_data, *(int16_t *)(act + 0xa0), &entry,
                                             &direction, &hint, 0, &close, &facing, &in_front)) {
                 act[0xa6] = 1;
             } else {
@@ -83,18 +85,18 @@ int32_t actor_investigate_disturbance_update(uint32_t actor_index)
                 }
                 if (close) {
                     if (facing) {
-                        unit_enter_vehicle_seat(*(datum_index *)(act + 0x9c), *(int16_t *)(act + 0xa0),
+                        unit_enter_vehicle_seat(*(datum_index *)&((struct actor *)act)->mode_data, *(int16_t *)(act + 0xa0),
                                                 ((actor *)act)->unit_index);
                         act[0xa4] = 1;
                     } else {
                         actor_movement_action_stop(actor_index);
                     }
                 } else if (act[0x4c] != 0) {
-                    if (actor_avoid_obstacle_and_project(actor_index, *(datum_index *)(act + 0x9c), &entry, &hint,
+                    if (actor_avoid_obstacle_and_project(actor_index, *(datum_index *)&((struct actor *)act)->mode_data, &entry, &hint,
                                                          act + 0xa3, (real_point3d *)(act + 0xcc),
                                                          (int32_t *)(act + 0xe4)) &&
                         actor_movement_set_destination_point((real_point3d *)(act + 0xcc), actor_index,
-                                                             *(int32_t *)(act + 0xe4), *(datum_index *)(act + 0x9c))) {
+                                                             *(int32_t *)(act + 0xe4), *(datum_index *)&((struct actor *)act)->mode_data)) {
                         *(int16_t *)(act + 0xa8) = 0;
                     } else {
                         *(int16_t *)(act + 0xa8) += 1;

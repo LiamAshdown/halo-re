@@ -16,6 +16,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern Scenario *global_scenario;
@@ -46,7 +47,7 @@ uint8_t actor_mode_obey_process(uint32_t actor_index)
             }
         }
         if (mark) {
-            *(int32_t *)(actor + 0x94) = game_time->game_time;
+            ((struct actor *)actor)->unknown_94 = game_time->game_time;
             mode_data[5] = 1;
         }
     }

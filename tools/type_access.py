@@ -12,6 +12,9 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import type_global as tg
 
 _layouts = {}
+# --allow-unknown: also map onto unknown_XX fields (named by offset), so every use of such a field goes through it
+# and naming it later is a single rename; padding and arrays are still left alone
+ALLOW_UNKNOWN = "--allow-unknown" in sys.argv
 
 
 def header_of(struct):
@@ -37,7 +40,7 @@ def resolve(struct, off, pre, depth=0):
         end = fields[i + 1][0] if i + 1 < len(fields) else None
         if off < o or (end is not None and off >= end) or is_array:
             continue
-        if name.startswith(("_pad", "unknown", "pad")):
+        if name.startswith(("_pad", "pad")) or (name.startswith("unknown") and not ALLOW_UNKNOWN):
             return None
         rel = off - o
         base = ctype.replace("struct ", "").strip()

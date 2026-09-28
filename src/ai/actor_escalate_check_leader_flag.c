@@ -13,6 +13,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -28,7 +29,7 @@ uint8_t actor_escalate_check_leader_flag(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
 
-    if ((*(uint32_t *)actor_tag & 0x80000) == 0 || act[0x1c9] || *(int16_t *)(act + 0x6e) < 5) {
+    if ((*(uint32_t *)actor_tag & 0x80000) == 0 || act[0x1c9] || ((struct actor *)act)->unknown_6e < 5) {
         return 0;
     }
     if (*(int16_t *)(act + 0x310) <= 1) {

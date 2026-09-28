@@ -27,6 +27,8 @@
 #include "ai.h"
 #include <stddef.h>
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -70,7 +72,7 @@ void actor_update_look_target(datum_index actor_index)
     uint8_t *cache_a = a + 0x5a4;
     uint8_t *cache_b = a + 0x5b0;
     uint8_t *cache_c = a + 0x5bc;
-    int16_t look_mode = *(int16_t *)(a + 0x6dc);
+    int16_t look_mode = ((struct actor *)a)->unknown_6dc;
     uint8_t flee_look = 0;                                  // [esp+0x19]
     uint8_t aim_speed_zero;
 
@@ -117,7 +119,7 @@ void actor_update_look_target(datum_index actor_index)
         // the flee / reason source
         memset(&kind2, 0, sizeof(kind2));
         kind2.code = 2;
-        if (*(int16_t *)(a + 0x60c) > 0 && *(int16_t *)(a + 0x5f2) == 2 && a[0x456] == 0 &&
+        if (((struct actor *)a)->unknown_60c > 0 && ((struct actor *)a)->unknown_5f2 == 2 && a[0x456] == 0 &&
             actor_resolve_flee_source_point(&kind2, (real_vector3d *)&flee_point, actor_index)) {
             reason = 7;
             flee_look = 1;
@@ -285,7 +287,7 @@ void actor_update_look_target(datum_index actor_index)
         range_1 = range[1] > 0.0f;
         side_b = range[3] > 0.0f;
         in_cone = range[5] > 0.0f;
-        if (*(int16_t *)(a + 0x3fc) > 0 && !claimed && (free_aim || look_follows) &&
+        if (((struct actor *)a)->unknown_3fc > 0 && !claimed && (free_aim || look_follows) &&
             (range_1 || side_b || in_cone)) {
             resolved = 0;
             claimed = 0;
@@ -295,11 +297,11 @@ void actor_update_look_target(datum_index actor_index)
             }
             if (a[0x55c] != 0 && a[0x55d] != 0 && !free_aim) {
                 a[0x55c] = 1;
-                *(int32_t *)(a + 0x564) = actor_look_get_wait_ticks(actor_index, 2, 1, range);
+                ((struct actor *)a)->unknown_564 = actor_look_get_wait_ticks(actor_index, 2, 1, range);
                 ULT_V3(a + 0x570) = ULT_V3(cache_b);
-                *(int16_t *)(a + 0x56c) = 4;
+                ((struct actor *)a)->unknown_56c = 4;
             }
-            if (!(a[0x55c] != 0 && *(int32_t *)(a + 0x564) != 0)) {
+            if (!(a[0x55c] != 0 && ((struct actor *)a)->unknown_564 != 0)) {
                 uint8_t use_aiming;
                 uint8_t force = 0;
                 uint8_t *direction = 0;
@@ -321,7 +323,7 @@ void actor_update_look_target(datum_index actor_index)
                 }
             }
             if (a[0x55c] != 0) {
-                *(int32_t *)(a + 0x564) -= 1;
+                ((struct actor *)a)->unknown_564 -= 1;
                 if (actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x56c), (real_vector3d *)&voc_point,
                         actor_index)) {
                     if (free_aim) {
@@ -473,7 +475,7 @@ void actor_update_look_target(datum_index actor_index)
     }
 
     aim_speed_zero = 1;
-    if (!flee_look && *(int16_t *)(a + 0x3fc) != 4) {
+    if (!flee_look && ((struct actor *)a)->unknown_3fc != 4) {
         switch (((actor *)a)->vocalization_line) {
         case 3: case 6: case 10: case 11: case 12:
             break;

@@ -13,6 +13,7 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -37,6 +38,6 @@ void actor_mode_flee_tick(datum_index actor_index)
         }
     }
     if (((struct actor *)act)->mode_data.flee.panic > 0) {
-        *(int32_t *)(act + 0x39c) = game_time->game_time + 750;
+        *(int32_t *)&((struct actor *)act)->unknown_39c = game_time->game_time + 750;
     }
 }

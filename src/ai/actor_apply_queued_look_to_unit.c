@@ -37,7 +37,7 @@ void actor_apply_queued_look_to_unit(datum_index actor_index)
     uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_control_data control;
 
-    control.animation_state = (int8_t)actor_control_animation_state_table[*(int16_t *)(actor + 0x6dc) * 2];
+    control.animation_state = (int8_t)actor_control_animation_state_table[((struct actor *)actor)->unknown_6dc * 2];
     control.aiming_speed = (int8_t)actor[0x6f8];
     control.control_flags = *(uint16_t *)&((struct actor *)actor)->flags;
     control.weapon_index = -1;
@@ -58,15 +58,15 @@ void actor_apply_queued_look_to_unit(datum_index actor_index)
         actor[0x07] = 0;
     }
     unit_apply_control_block(*(uint32_t *)&((struct actor *)actor)->unit_index, &control, -1);
-    if (*(int16_t *)(actor + 0x6ec) != -1) {
-        unit_try_start_scripted_action_animation(*(uint32_t *)&((struct actor *)actor)->unit_index, *(int16_t *)(actor + 0x6ec),
+    if (((struct actor *)actor)->unknown_6ec != -1) {
+        unit_try_start_scripted_action_animation(*(uint32_t *)&((struct actor *)actor)->unit_index, ((struct actor *)actor)->unknown_6ec,
             (const real_vector2d *)(actor + 0x6f0));
     }
-    if (*(int16_t *)(actor + 0x6d4) > 0) {
+    if (((struct actor *)actor)->unknown_6d4 > 0) {
         uint8_t *object = (uint8_t *)((object_header *)object_data->data)[*(uint32_t *)&((struct actor *)actor)->unit_index & 0xffff].data;
 
-        *(int32_t *)(object + 0x210) = *(int16_t *)(actor + 0x6d4);
-        *(uint32_t *)(object + 0x214) = *(uint32_t *)(actor + 0x6d8);
+        *(int32_t *)(object + 0x210) = ((struct actor *)actor)->unknown_6d4;
+        *(uint32_t *)(object + 0x214) = ((struct actor *)actor)->unknown_6d8;
     }
 }
 

@@ -16,6 +16,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -40,7 +41,7 @@ uint8_t actor_mode_wait_process(datum_index actor_index)
     ((struct actor *)act)->mode_data.wait.unknown_03 = 0;
     actor_find_nearest_grenade_ally(actor_index, act[0x1cc]);
     if (act[0x9d]) {
-        if (*(datum_index *)(act + 0x1d0) == k_datum_index_none) {
+        if (((struct actor *)act)->unknown_1d0 == k_datum_index_none) {
             if (((struct actor *)act)->mode_data.wait.countdown_150 == 0) {
                 ((struct actor *)act)->mode_data.wait.countdown_150 = 150;
             }
@@ -49,8 +50,8 @@ uint8_t actor_mode_wait_process(datum_index actor_index)
         }
     } else {
         act[0x9c] = 1;
-        if (*(datum_index *)(act + 0x1d0) != k_datum_index_none) {
-            uint8_t *ally = (uint8_t *)prop_data->data + (*(datum_index *)(act + 0x1d0) & 0xffff) * 0x138;
+        if (((struct actor *)act)->unknown_1d0 != k_datum_index_none) {
+            uint8_t *ally = (uint8_t *)prop_data->data + (((struct actor *)act)->unknown_1d0 & 0xffff) * 0x138;
             float distance = ((prop *)ally)->distance;
             uint8_t follow;
 
@@ -78,7 +79,7 @@ decided:
     if (((struct actor *)act)->mode_data.wait.unknown_03) {
         uint8_t done = act[0x9c];
 
-        if (!actor_movement_set_destination_near_target(*(datum_index *)(act + 0x1d0), actor_index, 8.0f)) {
+        if (!actor_movement_set_destination_near_target(((struct actor *)act)->unknown_1d0, actor_index, 8.0f)) {
             act[0xa0] = 1;
         }
         return done;

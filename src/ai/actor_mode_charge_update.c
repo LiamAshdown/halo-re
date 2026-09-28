@@ -17,6 +17,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -34,10 +35,10 @@ void actor_mode_charge_update(datum_index actor_index)
     int16_t kind = ((struct actor *)act)->mode_data.charge.stage;
 
     ((actor *)act)->vocalization_unknown_3ec = 2;
-    *(int16_t *)(act + 0x3fc) = 4;
+    ((struct actor *)act)->unknown_3fc = 4;
     if ((kind == 2 || kind == 3) && act[0xa5] && !act[0x504] && !act[0x4a8]) {
         ((actor *)act)->vocalization_unknown_3e8 = 4;
-    } else if (*(int16_t *)(act + 0x6e) >= 5 && kind != 1) {
+    } else if (((struct actor *)act)->unknown_6e >= 5 && kind != 1) {
         ((actor *)act)->vocalization_unknown_3e8 = 7;
     } else {
         ((actor *)act)->vocalization_unknown_3e8 = 5;
@@ -56,10 +57,10 @@ void actor_mode_charge_update(datum_index actor_index)
         act[0x440] = 1;
         act[0x441] = (uint8_t)(*(float *)(act + 0xb8) * 0.7f > *(float *)(act + 0xbc));
         act[0x442] = 1;
-        *(int32_t *)(act + 0x444) = *(int32_t *)(act + 0xb0);
-        *(int32_t *)(act + 0x448) = *(int32_t *)(act + 0xb4);
-        *(int32_t *)(act + 0x44c) = *(int32_t *)(act + 0xb8);
-        *(int32_t *)(act + 0x450) = *(int32_t *)(act + 0xbc);
+        *(int32_t *)&((struct actor *)act)->unknown_444.i = *(int32_t *)(act + 0xb0);
+        *(int32_t *)&((struct actor *)act)->unknown_444.j = *(int32_t *)(act + 0xb4);
+        *(int32_t *)&((struct actor *)act)->unknown_44c = *(int32_t *)(act + 0xb8);
+        *(int32_t *)&((struct actor *)act)->unknown_450 = *(int32_t *)(act + 0xbc);
         act[0xa7] = 1;
         act[0xa8] = 0;
         ((struct actor *)act)->mode_data.charge.stage_start_time = game_time->game_time;

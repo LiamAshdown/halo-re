@@ -11,6 +11,7 @@
 #include "math.h"
 #include "ai.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;  // 0x00880360, 0x724-byte actors
 extern data_array *prop_data;   // 0x008802c0, 0x138-byte props
@@ -32,7 +33,7 @@ uint8_t ai_dialogue_condition_42f690(datum_index object_index, uint32_t param_2,
         return 0;
     }
     actor = ACTOR(actor_index);
-    if (*(int16_t *)(actor + 0x6e) < 7) {
+    if (((struct actor *)actor)->unknown_6e < 7) {
         return 0;
     }
     if (((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {

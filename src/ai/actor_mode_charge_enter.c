@@ -12,6 +12,7 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -25,7 +26,7 @@ void actor_mode_charge_enter(datum_index actor_index)
 
     if (((struct actor *)act)->mode_data.charge.stage == 4 &&
         *(int16_t *)((uint8_t *)actor_get_actor_definition(actor_index) + 0x156) == 3 &&
-        *(int16_t *)(act + 0x5fe) > 0) {
-        *(int16_t *)(act + 0x5fe) -= 1;
+        ((struct actor *)act)->unknown_5fe > 0) {
+        ((struct actor *)act)->unknown_5fe -= 1;
     }
 }

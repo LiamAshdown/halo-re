@@ -34,6 +34,8 @@
 #include "ai.h"
 #include <string.h>
 #include "cache.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -87,7 +89,7 @@ void actor_schedule_grenade_throw(uint32_t actor_index)
     if (*(int16_t *)request == 1 && datum_get(*(datum_index *)(request + 0x4), prop_data) == 0) {
         return;
     }
-    delay = (((actor *)a)->awareness_level < 3 || *(int16_t *)(a + 0x6e) == 0) ? 2.4f : 1.2f;
+    delay = (((actor *)a)->awareness_level < 3 || ((struct actor *)a)->unknown_6e == 0) ? 2.4f : 1.2f;
     if (*(float *)(actor_tag + 0xd4) != 0.0f || *(float *)(actor_tag + 0xd8) != 0.0f) {
         float lo = *(float *)(actor_tag + 0xd4) > 0.5f ? *(float *)(actor_tag + 0xd4) : 0.5f;
         float hi = *(float *)(actor_tag + 0xd8) > 2.0f ? 2.0f : *(float *)(actor_tag + 0xd8);

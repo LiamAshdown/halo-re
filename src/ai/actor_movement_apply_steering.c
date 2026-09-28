@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#include "units.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -110,8 +111,8 @@ void actor_movement_apply_steering(
 
             desired = *desired_direction;
             if (act[0x505]) {
-                aim = *(real_vector3d *)(act + 0x524);
-                if (*(int16_t *)(act + 0x15e) > 0) {
+                aim = *(real_vector3d *)&((struct actor *)act)->unknown_524.i;
+                if (((struct actor *)act)->unknown_15e > 0) {
                     use_scratch = 1;
                 }
             } else {
@@ -157,14 +158,14 @@ void actor_movement_apply_steering(
     }
 
     dot_facing = aim.j * facing->j + aim.k * facing->k + aim.i * facing->i;
-    if (order_failed || *(int16_t *)(act + 0x6dc) == 4) {
+    if (order_failed || ((struct actor *)act)->unknown_6dc == 4) {
         take_step = 1;
     } else {
         if (!act[0x99]) { // not flying: a portal just ahead in the stepping direction means turn tighter first
             int32_t surface;
 
             actor_update_target_lead_position(actor_index);
-            surface = *(int32_t *)(act + 0x164);
+            surface = ((struct actor *)act)->unknown_164;
             if (surface != -1 && chosen_axis >= 0 && chosen_axis <= 3) {
                 real_vector3d probe;
 

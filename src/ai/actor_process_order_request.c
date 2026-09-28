@@ -41,16 +41,16 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
     uint8_t order[k_actor_mode_data_size];
     int16_t code = (int16_t)order_code;
 
-    if (code == -1 && *(int32_t *)(act + 0x64) != -1 && *(int32_t *)(act + 0x64) + 0x2d >= game_time->game_time) {
+    if (code == -1 && ((struct actor *)act)->unknown_64 != -1 && ((struct actor *)act)->unknown_64 + 0x2d >= game_time->game_time) {
         return 0;
     }
-    *(int32_t *)(act + 0x64) = game_time->game_time;
+    ((struct actor *)act)->unknown_64 = game_time->game_time;
     if (code == -1) {
-        code = *(int16_t *)(act + 0x60);
+        code = ((struct actor *)act)->unknown_60;
         if (code != -1) {
-            *(int16_t *)(act + 0x60) = -1;
+            ((struct actor *)act)->unknown_60 = -1;
         } else {
-            code = *(int16_t *)(act + 0x62);
+            code = ((struct actor *)act)->unknown_62;
             if (code == -1) {
                 code = 0;
             }
@@ -94,8 +94,8 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
             break;
         }
         ((actor *)act)->awareness_level = 3;
-        *(int16_t *)(act + 0x72) = 2;
-        *(int16_t *)(act + 0x6e) = 2;
+        ((struct actor *)act)->unknown_72 = 2;
+        ((struct actor *)act)->unknown_6e = 2;
         if (actor_update_melee_combat_action(actor_index)) {
             break;
         }
@@ -136,7 +136,7 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
         break;
 
     case 0: case 2: case 3: case 4: case 5: case 6: case 7:
-        if (mode == 2 && *(int16_t *)(act + 0x9c) == order_code_mode_data_expect[code]) {
+        if (mode == 2 && *(int16_t *)&((struct actor *)act)->mode_data == order_code_mode_data_expect[code]) {
             break;
         }
         if (actor_build_order_default(actor_index, order_code_mode_data_expect[code], (actor_order *)order, -1)) {

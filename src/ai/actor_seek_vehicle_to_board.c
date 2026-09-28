@@ -53,10 +53,10 @@ uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
     if ((mode == 4 && ((struct actor *)act)->mode_data.flee.panic > 0) || mode == 11) {
         return 0;
     }
-    if (*(int32_t *)(act + 0x384) != -1 && *(int32_t *)(act + 0x384) + 45 >= now) {
+    if (*(int32_t *)&((struct actor *)act)->unknown_384 != -1 && *(int32_t *)&((struct actor *)act)->unknown_384 + 45 >= now) {
         return 0;
     }
-    *(int32_t *)(act + 0x384) = now;
+    *(int32_t *)&((struct actor *)act)->unknown_384 = now;
     if (*(uint32_t *)actor_tag & 0x1000) {
         datum_index prop_index = ((actor *)act)->first_prop;
 
@@ -91,7 +91,7 @@ uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
     if (best_vehicle == k_datum_index_none) {
         int16_t i;
 
-        if (*(int32_t *)(act + 0x84) < 60) {
+        if (((struct actor *)act)->unknown_84 < 60) {
             return 0;
         }
         for (i = 0; i < *(int16_t *)(ai_globals_ptr + 0x3b6); i++) {

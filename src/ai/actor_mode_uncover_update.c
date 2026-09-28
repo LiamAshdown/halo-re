@@ -15,6 +15,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -60,7 +61,7 @@ void actor_mode_uncover_update(datum_index actor_index)
             *(real_point3d *)(act + 0x3f0) = ((struct actor *)act)->mode_data.uncover.position;
         }
     }
-    *(int16_t *)(act + 0x3fc) = 3;
+    ((struct actor *)act)->unknown_3fc = 3;
     act[0x426] = act[0x9c];
     act[0x427] = act[0x9c];
     act[0x428] = 0;

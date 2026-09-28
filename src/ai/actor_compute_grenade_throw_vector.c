@@ -13,6 +13,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -32,8 +34,8 @@ uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3
     real_vector3d direction;                // [esp+0x10]
     float speed;
 
-    if (*(datum_index *)(a + 0x6b4) != k_datum_index_none) {
-        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x6b4) & 0xffff) * 0x138;
+    if (*(datum_index *)&((struct actor *)a)->unknown_6b4 != k_datum_index_none) {
+        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)&((struct actor *)a)->unknown_6b4 & 0xffff) * 0x138;
         int16_t kind = ((prop *)p)->kind;
 
         if (kind >= 2 && kind <= 3) {

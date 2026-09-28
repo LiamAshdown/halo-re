@@ -11,6 +11,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -21,12 +23,12 @@ void actor_mode_fight_update(uint32_t actor_index)
     actor[0x426] = actor[0x358];
     ((struct actor *)actor)->vocalization_unknown_3e8 = 5;
     ((struct actor *)actor)->vocalization_unknown_3ec = 2;
-    *(int16_t *)(actor + 0x3fc) = 4;
+    ((struct actor *)actor)->unknown_3fc = 4;
     actor[0x427] = 0;
     actor[0x428] = 0;
     actor[0x424] = 0;
     actor[0x425] = 0;
-    if (*(int16_t *)(actor + 0x15e) != 4 && *(int16_t *)(actor + 0x6e) >= 5) {
+    if (((struct actor *)actor)->unknown_15e != 4 && ((struct actor *)actor)->unknown_6e >= 5) {
         actor[0x454] = 1;
         ((struct actor *)actor)->vocalization_unknown_3e8 = 7;
     }

@@ -75,7 +75,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
     } else {
         target = PROP(((actor *)act)->target_unit_index);
         kind = *(int16_t *)(md + 0x4);
-        if (*(datum_index *)(act + 0x1b0) != k_datum_index_none || kind == 5 || kind == 4) {
+        if (*(datum_index *)&((struct actor *)act)->unknown_1b0 != k_datum_index_none || kind == 5 || kind == 4) {
             md[0x28] = 1;
         } else if (kind == 2 || kind == 3) {
             // 0x402034: melee kinds -- the strike range and the approach
@@ -101,7 +101,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             if (check_range && range < *(float *)(target + 0x11c)) {
                 md[0x8] = 1;
             } else {
-                *(int32_t *)(act + 0x380) = game_time->game_time;
+                *(int32_t *)&((struct actor *)act)->unknown_380 = game_time->game_time;
                 md[0x28] = 1;
                 if (check_range) {
                     if (*(int16_t *)(md + 0x4) == 2) {
@@ -122,7 +122,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             }
         } else {
             // kinds 0 / 1
-            kind = (int16_t)((actor_flags & 0x20000) && *(int16_t *)(act + 0x6e) >= 5 && !act[0x378]);
+            kind = (int16_t)((actor_flags & 0x20000) && ((struct actor *)act)->unknown_6e >= 5 && !act[0x378]);
             *(int16_t *)(md + 0x4) = kind;
             if (kind == 1) {
                 int16_t target_kind = *(int16_t *)(target + 0x38);
@@ -218,7 +218,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             if (*(int16_t *)(md + 0x4) == 3 && !md[0xb]) {
                 if (along < *(float *)(actor_tag + 0x384) && *(int16_t *)(target + 0x9c) == 0 && !target[0x130]) {
                     md[0x8] = 1;
-                    *(int32_t *)(act + 0x380) = -1;
+                    *(int32_t *)&((struct actor *)act)->unknown_380 = -1;
                 } else if (along < *(float *)(actor_tag + 0x388)) {
                     real_vector3d leap;
                     real half_gravity;
@@ -308,7 +308,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
         }
     }
     if (kind == 4 || kind == 5) {
-        *(int32_t *)(act + 0x388) = now;
+        *(int32_t *)&((struct actor *)act)->unknown_388 = now;
     }
     threshold = actor_get_consideration_wait_threshold(actor_index, *(int16_t *)(md + 0x4), (actor_combat_consideration *)md);
     *(float *)(md + 0x2c) = threshold;
@@ -337,7 +337,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
 
             if (!((current == 2 || current == 3) && (md[0xb] || md[0xc] || md[0x6])) && far_away) {
                 if (md[0x29] || !actor_movement_action_is_complete(actor_index) ||
-                    *(float *)(act + 0x4bc) > *(float *)(md + 0x2c)) {
+                    ((struct actor *)act)->unknown_4bc > *(float *)(md + 0x2c)) {
                     engaged = 1;
                 }
             }

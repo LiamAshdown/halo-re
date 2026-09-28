@@ -100,7 +100,7 @@ void actor_update_firing_state(datum_index actor_index)
     if (W(a, 0x5f6) > 0) W(a, 0x5f6) -= 1;
     if (W(a, 0x5f8) > 0) W(a, 0x5f8) -= 1;
     if (W(a, 0x5fc) > 0) W(a, 0x5fc) -= 1;
-    if (W(a, 0x60c) > 0) *(int32_t *)(a + 0x61c) += 1;
+    if (W(a, 0x60c) > 0) ((struct actor *)a)->unknown_61c += 1;
 
     // 0x40e8c5: what are we shooting at (1 a prop, 2 a point)
     if (W(a, 0x5f2) != 2) {
@@ -124,13 +124,13 @@ void actor_update_firing_state(datum_index actor_index)
             changed = 0;
         }
         if (changed) {
-            *(int32_t *)(a + 0x61c) = 0;
+            ((struct actor *)a)->unknown_61c = 0;
         }
         W(a, 0x60c) = kind;
         if (kind == 1) {
             D(a, 0x610) = D(a, 0x270);
         } else if (kind == 2) {
-            *(real_point3d *)(a + 0x610) = *(real_point3d *)(a + 0x460);
+            *(real_point3d *)&((struct actor *)a)->unknown_610 = *(real_point3d *)(a + 0x460);
         }
     }
     a[0x628] = 0;
@@ -204,11 +204,11 @@ void actor_update_firing_state(datum_index actor_index)
                 a[0x624] = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
             }
         } else {
-            *(real_point3d *)&((actor *)a)->wander_unknown_62c = *(real_point3d *)(a + 0x610);
+            *(real_point3d *)&((actor *)a)->wander_unknown_62c = *(real_point3d *)&((struct actor *)a)->unknown_610;
             F(a, 0x638) = vector3d_distance((real_point3d *)(a + 0x610), (real_point3d *)(a + 0x120));
             a[0x621] = 0;
             a[0x624] = 0;
-            if (*(int32_t *)(a + 0x61c) % 10 == 0) {
+            if (((struct actor *)a)->unknown_61c % 10 == 0) {
                 W(a, 0x626) = (int16_t)actor_evaluate_engagement_reachability(W(a, 0x148), -1,
                     (real_point3d *)(a + 0x62c), (real_point3d *)(a + 0x120), 0, 0, k_datum_index_none,
                     (uint8_t)(D(a, 0x158) != k_datum_index_none));

@@ -210,7 +210,7 @@ uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
     if (act[0x2ed]) {
         wanted = 1;
     }
-    if (act[0x160] && (*(datum_index *)(act + 0x1b0) != k_datum_index_none ||
+    if (act[0x160] && (*(datum_index *)&((struct actor *)act)->unknown_1b0 != k_datum_index_none ||
                        (((actor *)act)->danger_type == 2 && act[0x28a]))) {
         forced = 1;
     } else if (!wanted) {
@@ -266,8 +266,8 @@ uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
                     if (*(int32_t *)(rider + 0x4) == 0) {
                         unit_dispatch_scripted_event_9(0, (int32_t)rider_index);
                     }
-                    *(datum_index *)(act + 0x390) = ((actor *)act)->active_unit_index;
-                    *(int32_t *)(act + 0x394) = game_time->game_time + 180;
+                    ((struct actor *)act)->unknown_390 = ((actor *)act)->active_unit_index;
+                    *(int32_t *)&((struct actor *)act)->unknown_394 = game_time->game_time + 180;
                     result = 1;
                 }
             }

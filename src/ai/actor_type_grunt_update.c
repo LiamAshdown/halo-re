@@ -15,6 +15,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -100,7 +101,7 @@ void actor_type_grunt_update(datum_index actor_index)
         if (actor_flee_look_away(actor_index)) {
             return;
         }
-        if (((struct actor *)act)->mode_data.flee.panic == 0 && *(int16_t *)(act + 0x6e) >= 5) {
+        if (((struct actor *)act)->mode_data.flee.panic == 0 && ((struct actor *)act)->unknown_6e >= 5) {
             actor_consider_grenade_throw(actor_index);
         }
         return;

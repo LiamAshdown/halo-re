@@ -14,6 +14,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -49,7 +50,7 @@ void actor_mode_uncover_enter(datum_index actor_index)
     ((struct actor *)act)->mode_data.uncover.duration_ticks = ticks;
     ((struct actor *)act)->mode_data.uncover.remaining_ticks = ticks;
     if (((struct actor *)act)->mode_data.uncover.stage == 0 && ((actor *)act)->target_unit_index != k_datum_index_none &&
-        *(int16_t *)(act + 0x6e) < 3) {
+        ((struct actor *)act)->unknown_6e < 3) {
         uint8_t *target = (uint8_t *)prop_data->data + (((actor *)act)->target_unit_index & 0xffff) * 0x138;
 
         ai_communication_broadcast(0x15, ((actor *)act)->unit_index, ((prop *)target)->object_index, -1, -1, -1, 0);

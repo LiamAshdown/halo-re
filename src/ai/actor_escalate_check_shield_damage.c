@@ -13,6 +13,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -28,8 +29,8 @@ uint8_t actor_escalate_check_shield_damage(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
 
-    if (!act[0x2ec] || !(*(float *)(act + 0x1c0) > ((Actor *)actor_tag)->berserk_damage_amount) ||
-        !(*(float *)(act + 0x1b8) < ((Actor *)actor_tag)->berserk_damage_threshold)) {
+    if (!act[0x2ec] || !(((struct actor *)act)->unknown_1c0 > ((Actor *)actor_tag)->berserk_damage_amount) ||
+        !(((struct actor *)act)->unknown_1b8 < ((Actor *)actor_tag)->berserk_damage_threshold)) {
         return 0;
     }
     if (*(int16_t *)(act + 0x310) <= 3) {

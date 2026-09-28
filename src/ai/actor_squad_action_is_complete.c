@@ -143,7 +143,7 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
         if (check_object_index != unit_index || aim_state == 0) {
             return 1;
         }
-        if (*(int16_t *)(act + 0x60c) != 2 ||
+        if (((struct actor *)act)->unknown_60c != 2 ||
             !(vector3d_distance_squared((real_point3d *)(act + 0x610), (real_point3d *)(aim_state + 0x38)) < 0.25f)) {
             // 0x4069ec: the actor variant's burst duration (+0x84), at least 60 ticks
             int16_t ticks = (int16_t)(int32_t)(*(float *)(TAG_DATA(((actor *)act)->actor_variant_tag) + 0x84) * 30.0f);
@@ -207,9 +207,9 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
     case 0x13: // wait
         switch (entry->atom_modifier) {
         case 0:
-            return *(int16_t *)(act + 0x6e) > 0;
+            return ((struct actor *)act)->unknown_6e > 0;
         case 1:
-            return *(int16_t *)(act + 0x6e) >= 7;
+            return ((struct actor *)act)->unknown_6e >= 7;
         case 2:
             if ((state[0x4] & 8) == 0) {
                 state[0x4] |= 0x10;

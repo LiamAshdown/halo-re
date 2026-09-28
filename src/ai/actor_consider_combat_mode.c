@@ -71,7 +71,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
 
     if (mode == 5 || mode == 4) {
         ((struct actor_combat_consideration *)record)->mode = mode;
-        return *(int16_t *)(actor + 0x15e) > 1;
+        return ((struct actor *)actor)->unknown_15e > 1;
     }
     if (mode == 2) {
         uint8_t *unit;
@@ -137,7 +137,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
         }
         goto done;
     }
-    if (mode == 0 && (*(uint32_t *)actor_tag & 0x20000) != 0 && *(int16_t *)(actor + 0x6e) >= 5 && actor[0x378] == 0) {
+    if (mode == 0 && (*(uint32_t *)actor_tag & 0x20000) != 0 && ((struct actor *)actor)->unknown_6e >= 5 && actor[0x378] == 0) {
         mode = 1;
     }
 

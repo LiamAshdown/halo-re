@@ -11,6 +11,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -19,13 +21,13 @@ extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing
 void actor_mode_fight_tick(uint32_t actor_index)
 {
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    int16_t countdown = *(int16_t *)(actor + 0x9c);
+    int16_t countdown = *(int16_t *)&((struct actor *)actor)->mode_data;
 
     if (countdown <= 0 || actor[0x484] == 0) {
         return;
     }
     countdown = (int16_t)(countdown - 1);
-    *(int16_t *)(actor + 0x9c) = countdown;
+    *(int16_t *)&((struct actor *)actor)->mode_data = countdown;
     if (countdown == 0 && *(uint16_t *)&((struct actor *)actor)->firing_position_index != 0xffff && actor[0x3ba] == 0) {
         actor_push_recognition_entry(actor_index, ((struct actor *)actor)->firing_position_index, 0);
     }

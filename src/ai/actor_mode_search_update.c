@@ -15,6 +15,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -48,7 +49,7 @@ void actor_mode_search_update(datum_index actor_index)
             ((actor *)act)->vocalization_unknown_3e8 = 1;
         }
     }
-    *(int16_t *)(act + 0x3fc) = 3;
+    ((struct actor *)act)->unknown_3fc = 3;
     if (((struct actor *)act)->mode_data.search.stage == 0) {
         act[0x454] = (uint8_t)(((actor *)act)->target_combat_status >= ((actor_tag[0] & 0x10) ? 5 : 6));
     }

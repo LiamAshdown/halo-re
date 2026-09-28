@@ -14,6 +14,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -41,14 +42,14 @@ uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_re
         return 0;
     }
     grade = actor_mode_definitions[((actor *)act)->mode].combat_grade;
-    if (act[0x378] || (grade != 4 && grade != 3) || *(int16_t *)(act + 0x6e) < 2) {
+    if (act[0x378] || (grade != 4 && grade != 3) || ((struct actor *)act)->unknown_6e < 2) {
         return 0;
     }
     now = game_time->game_time;
-    if (*(int32_t *)(act + 0x370) != -1 && now < *(int32_t *)(act + 0x370) + 30) {
+    if (*(int32_t *)&((struct actor *)act)->unknown_370 != -1 && now < *(int32_t *)&((struct actor *)act)->unknown_370 + 30) {
         return 0;
     }
-    *(int32_t *)(act + 0x370) = now;
+    *(int32_t *)&((struct actor *)act)->unknown_370 = now;
     if (!actor_should_throw_grenade(actor_index, 0)) {
         return 0;
     }

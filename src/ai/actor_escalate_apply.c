@@ -14,6 +14,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -34,7 +35,7 @@ uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold)
 
     if (*(int16_t *)(act + 0x310) >= threshold && !act[0x378]) {
         actor_set_combat_alert_flag(actor_index, 1);
-        if (*(int16_t *)(act + 0x6e) >= 4) {
+        if (((struct actor *)act)->unknown_6e >= 4) {
             result = (uint8_t)actor_evaluate_combat_state_transition(actor_index);
         }
     }

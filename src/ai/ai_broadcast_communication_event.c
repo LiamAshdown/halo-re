@@ -23,6 +23,7 @@
 #include "objects.h"
 #include "physics.h"
 #include <stdint.h>
+#include "units.h"
 
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data; // 0x008802c8
@@ -70,7 +71,7 @@ void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t
         datum_index actor_index = iterator.actor_index;
         uint32_t block[14];             // [esp+0x30]
 
-        if (*(int16_t *)((uint8_t *)a + 0x6e) >= 7) {
+        if (((struct actor *)a)->unknown_6e >= 7) {
             continue;
         }
         actor_get_firing_positions(actor_index, block, point);

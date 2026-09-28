@@ -20,6 +20,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -48,7 +49,7 @@ void actor_mode_guard_update(datum_index actor_index)
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     uint32_t actor_flags = *(uint32_t *)actor_tag;
 
-    if ((actor_flags & 0x40) && *(int16_t *)(act + 0x6e) == 0) {
+    if ((actor_flags & 0x40) && ((struct actor *)act)->unknown_6e == 0) {
         act[0x426] = 1;
         act[0x427] = 1;
     } else {
@@ -56,7 +57,7 @@ void actor_mode_guard_update(datum_index actor_index)
         if (act[0xa4]) {
             act[0x426] = act[0xa6] ? (uint8_t)((actor_flags >> 23) & 1) : 1;
         } else {
-            act[0x426] = (uint8_t)((actor_flags & 0x80) && *(int16_t *)(act + 0x6e) > 0);
+            act[0x426] = (uint8_t)((actor_flags & 0x80) && ((struct actor *)act)->unknown_6e > 0);
         }
     }
     act[0x428] = 0;
@@ -117,7 +118,7 @@ void actor_mode_guard_update(datum_index actor_index)
             }
             if (act[0xa1]) {
                 actor_report_command_status(actor_index);
-                if (*(int16_t *)(act + 0x1e4) == 9 && ((struct actor *)act)->mode_data.guard.stage == 2) {
+                if (((struct actor *)act)->unknown_1e4 == 9 && ((struct actor *)act)->mode_data.guard.stage == 2) {
                     act[0xa3] = 1;
                 }
             }
@@ -140,12 +141,12 @@ void actor_mode_guard_update(datum_index actor_index)
         ((actor *)act)->vocalization_unknown_3ec = 4;
         ((actor *)act)->vocalization_unknown_3e8 = act[0xb1] ? 5 : 3;
         *(real_point3d *)(act + 0x3f0) = *(real_point3d *)(act + 0xb4);
-    } else if (*(int16_t *)(act + 0x6e) > 0 && ((actor *)act)->target_unit_index != k_datum_index_none) {
+    } else if (((struct actor *)act)->unknown_6e > 0 && ((actor *)act)->target_unit_index != k_datum_index_none) {
         ((actor *)act)->vocalization_unknown_3e8 = 3;
         ((actor *)act)->vocalization_unknown_3ec = 1;
         *(datum_index *)(act + 0x3f0) = ((actor *)act)->target_unit_index;
     } else {
         ((actor *)act)->vocalization_unknown_3e8 = 0;
     }
-    *(int16_t *)(act + 0x3fc) = *(int16_t *)(act + 0x6e) >= 4 ? 4 : 2;
+    ((struct actor *)act)->unknown_3fc = ((struct actor *)act)->unknown_6e >= 4 ? 4 : 2;
 }

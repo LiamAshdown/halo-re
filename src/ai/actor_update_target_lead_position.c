@@ -15,6 +15,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -34,7 +36,7 @@ void actor_update_target_lead_position(datum_index actor_index)
     real_point3d *point = (real_point3d *)(a + 0x168);
     datum_index vehicle;
 
-    if (*(int32_t *)(a + 0x164) != -1) {
+    if (((struct actor *)a)->unknown_164 != -1) {
         return;
     }
     *point = *(real_point3d *)&((actor *)a)->body_position.x;
@@ -43,15 +45,15 @@ void actor_update_target_lead_position(datum_index actor_index)
     }
     vehicle = ((actor *)a)->active_unit_index;
     if (vehicle != k_datum_index_none) {
-        int16_t seat_kind = *(int16_t *)(a + 0x15e);
+        int16_t seat_kind = ((struct actor *)a)->unknown_15e;
 
         if (seat_kind >= 2 && seat_kind <= 3) {
-            *(int32_t *)(a + 0x164) = unit_predict_aim_target_position(vehicle, point);
+            ((struct actor *)a)->unknown_164 = unit_predict_aim_target_position(vehicle, point);
         }
         return;
     }
     if (object_try_and_get(((actor *)a)->unit_index, 1) != 0) {
-        *(int32_t *)(a + 0x164) = (int32_t)biped_get_cached_look_at_position(((actor *)a)->unit_index, point);
+        ((struct actor *)a)->unknown_164 = (int32_t)biped_get_cached_look_at_position(((actor *)a)->unit_index, point);
     }
 }
 

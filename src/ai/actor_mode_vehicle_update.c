@@ -11,6 +11,8 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -30,7 +32,7 @@ void actor_mode_vehicle_update(datum_index actor_index)
     } else {
         ((actor *)act)->vocalization_unknown_3e8 = 0;
     }
-    *(int16_t *)(act + 0x3fc) = 4;
+    ((struct actor *)act)->unknown_3fc = 4;
     act[0x454] = 0;
     act[0x426] = 0;
     act[0x427] = 0;
