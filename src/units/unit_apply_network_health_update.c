@@ -1,6 +1,6 @@
 // unit_apply_network_health_update  (Ghidra: unit_apply_network_health_update, renamed)
 // address 0x55b5f0, size 395 bytes
-// name confidence: 0.4   rewrite confidence: 0.5
+// name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN; was 0.5)
 // evidence: biped_data.network_grenade_counts/network_body_vitality/network_shield_vitality/
 //   network_shield_stunned (0x52c/0x530/0x534/0x538) and their baseline_* mirrors (0x540/0x544/
 //   0x548/0x54c), network_update_sequence/network_delta_sequence (0x527/0x528),
@@ -22,6 +22,13 @@
 //   ones and the write-back is a deliberate revert; if they are pure predicates, the write-back
 //   is a no-op. The structure is reproduced verbatim either way -- this is the single biggest
 //   open question in the networking column and is listed for hook verification.
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x55b5f0..0x55b77b): the object is
+// object_try_and_get(object_index, 1) (the C looked up -1). The 16-byte network block +0x52c (grenade counts, body
+// vitality, shield vitality, stunned byte) is copied into a local and the message decodes INTO that local
+// (0x4ec590, or 0x4ec600 with the block as baseline for a reliable message); the previous C decoded into nothing
+// and applied the stale copy. Staleness guard, sequence bytes (+0x527/+0x528 against record +4/+5), the full-update
+// write-back (record +6), shield x3 (0x672c3c) applied when record +7 is 1, the baseline copy at +0x540 and the
+// flags are as the original.
 
 #include "tags.h"
 #include "memory.h"
@@ -29,96 +36,77 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include <string.h>
 
 extern data_array *object_data; // 0x008603b0
 
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, index in ECX, mask on the stack
-extern void message_delta_decode_compound_field_staged(void);             // 0x4ec670, UNSURE module: rejects the message
-extern uint8_t message_delta_decode_compound_field(void);             // 0x4ec590, UNSURE module: accepts an unreliable message
-extern char message_delta_decode_compound_field_forced(int32_t param_1);  // 0x4ec600, UNSURE module: accepts a reliable message
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, index in ECX, mask on the stack
+extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
+extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination,
+    int32_t changed_offset, uint8_t force); // 0x4ec600, EAX context, ECX destination, EDX baseline, stack force
+extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 
-// Applies an incoming biped health/shield/grenade network update. Rejects it when the object
-// already has a resync pending (object.flags bit 0x8000000), the record is a reliable one, and
-// the record's sequence bytes say it is not newer than what is already applied. On acceptance it
-// takes the record's delta sequence, applies the cached network block to the object's live
-// vitality fields, mirrors it into the baseline snapshot and raises the resend / baseline flags.
+typedef struct biped_network_health_block {
+    uint32_t grenade_counts;       // 0x00 (+0x52c), low word used
+    uint32_t body_vitality;        // 0x04 (+0x530)
+    real shield_vitality;          // 0x08 (+0x534)
+    uint32_t shield_stunned;       // 0x0c (+0x538), low byte used
+} biped_network_health_block;
+
 void unit_apply_network_health_update(uint32_t object_index, void *message)
 {
-    // the object the staleness guard inspects, addressed through object_data from param_1
-    object *guard_object = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    // the object every write lands on; its index is the unresolved ECX read
-    datum_index target_index = k_datum_index_none; // UNSURE: unresolved ECX read
-    object *obj = object_try_and_get(target_index, 1);
+    uint8_t *unit = (uint8_t *)object_try_and_get((datum_index)object_index, 1);
+    uint8_t *guard;
+    uint8_t *record;
+    int32_t reliable;
+    biped_network_health_block block;
+    uint8_t accepted;
+    real shield;
 
-    if (obj == 0) {
-        message_delta_decode_compound_field_staged();
+    if (unit == 0) {
+        message_delta_decode_compound_field_staged(message);
         return;
     }
+    guard = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    record = (uint8_t *)((void **)message)[0x11];
+    reliable = **(int32_t **)message == 1;
+    if ((*(uint32_t *)(guard + 0x10) & 0x8000000) != 0 && reliable) {
+        int32_t incoming = record[5];
+        int32_t current = unit[0x528];
 
-    {
-        unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-        biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-        unit_network_update_record *record =
-            (unit_network_update_record *)((void **)message)[0x11]; // +0x44
-        int32_t record_type = **(int32_t **)message;                 // *(int *)*param_2
-
-        // Reject when a resync is pending, the message is the reliable kind, and either the
-        // update sequence differs from ours, or the incoming delta sequence is not ahead of ours
-        // inside a 30-step window. Both halves are unsigned byte arithmetic widened to 32 bits;
-        // Ghidra's `(int)((uint)a - (uint)b + 0xff)` is reproduced exactly because the
-        // subtraction is what wraps.
-        if ((guard_object->flags & 0x8000000) != 0 && record_type == 1 &&
-            (record->update_sequence != (uint8_t)biped->network_update_sequence ||
-             ((uint32_t)record->delta_sequence <= (uint32_t)biped->network_delta_sequence &&
-              (int32_t)(((uint32_t)record->delta_sequence -
-                         (uint32_t)biped->network_delta_sequence) + 0xff) > 0x1d))) {
-            message_delta_decode_compound_field_staged();
+        if (record[4] != unit[0x527] || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
+            message_delta_decode_compound_field_staged(message);
             return;
         }
-
-        {
-            // read as dwords: the original moves 0x52c..0x53b four dwords at a time, so the
-            // int16/int8 fields carry their trailing pad bytes with them.
-            uint32_t cached_grenade_counts = *(uint32_t *)&biped->network_grenade_counts;
-            uint32_t cached_body_vitality  = *(uint32_t *)&biped->network_body_vitality;
-            float    cached_shield_vitality = biped->network_shield_vitality;
-            uint32_t cached_shield_stunned = *(uint32_t *)&biped->network_shield_stunned;
-            char accepted = (record_type == 1) ? message_delta_decode_compound_field_forced(0) : message_delta_decode_compound_field();
-
-            if (accepted != 0) {
-                biped->network_delta_sequence = record->delta_sequence;
-                obj->flags = obj->flags | 0x8000000;
-
-                if (record->is_full_update != 0) {
-                    biped->network_update_sequence = record->update_sequence;
-                    *(uint32_t *)&biped->network_grenade_counts = cached_grenade_counts;
-                    *(uint32_t *)&biped->network_body_vitality  = cached_body_vitality;
-                    biped->network_shield_vitality              = cached_shield_vitality;
-                    *(uint32_t *)&biped->network_shield_stunned = cached_shield_stunned;
-                }
-
-                cached_shield_vitality = cached_shield_vitality * 3.0f;
-
-                // object 0x31e is unit_data.grenade_counts[2], written as one int16 -- not the
-                // 0x31d desired_grenade_index byte next to it.
-                *(int16_t *)&unit->grenade_counts[0] = (int16_t)cached_grenade_counts;
-                *(uint32_t *)&obj->body_vitality = cached_body_vitality;
-                if (record->shield_recharging == 1) {
-                    obj->shield_vitality = cached_shield_vitality;
-                }
-
-                *(uint32_t *)&biped->baseline_grenade_counts = cached_grenade_counts;
-                *(uint32_t *)&biped->baseline_body_vitality  = cached_body_vitality;
-                biped->baseline_shield_vitality              = cached_shield_vitality;
-                *(uint32_t *)&biped->baseline_shield_stunned = cached_shield_stunned;
-
-                // the stun stamp is written as a uint16 from the LOW BYTE of the cached dword
-                obj->shield_stun_ticks = (int16_t)(uint16_t)((char)cached_shield_stunned == 1);
-                unit->unknown_475 = 1;
-                biped->network_baseline_valid = 1;
-            }
-        }
     }
+    memcpy(&block, unit + 0x52c, sizeof(block));
+    if (reliable) {
+        accepted = message_delta_decode_compound_field_forced(message, &block, (int32_t)(unit + 0x52c), 0);
+    } else {
+        accepted = message_delta_decode_compound_field(message, &block);
+    }
+    if (!accepted) {
+        return;
+    }
+    unit[0x528] = record[5];
+    *(uint32_t *)(unit + 0x10) |= 0x8000000;
+    if (record[6] != 0) {
+        unit[0x527] = record[4];
+        memcpy(unit + 0x52c, &block, sizeof(block));
+    }
+    shield = block.shield_vitality * 3.0f;
+    *(int16_t *)(unit + 0x31e) = (int16_t)block.grenade_counts;
+    *(uint32_t *)(unit + 0xe0) = block.body_vitality;
+    if (record[7] == 1) {
+        *(real *)(unit + 0xe4) = shield;
+    }
+    *(uint32_t *)(unit + 0x540) = block.grenade_counts;
+    *(uint32_t *)(unit + 0x544) = block.body_vitality;
+    *(real *)(unit + 0x548) = shield;
+    *(uint32_t *)(unit + 0x54c) = block.shield_stunned;
+    *(int16_t *)(unit + 0x104) = (uint8_t)block.shield_stunned == 1;
+    unit[0x475] = 1;
+    unit[0x53c] = 1;
 }
 
 #if 0
