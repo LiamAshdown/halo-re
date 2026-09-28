@@ -50,33 +50,33 @@ uint8_t actor_mode_search_process(datum_index actor_index)
     if (act[0x6] || !act[0x4c] || act[0x9c]) {
         return act[0x9c];
     }
-    kind = *(int16_t *)(act + 0xa4);
-    act[0x9e] = 1;
+    kind = ((struct actor *)act)->mode_data.search.stage;
+    ((struct actor *)act)->mode_data.search.reachable = 1;
     if (kind == 0 && ((actor *)act)->target_unit_index != k_datum_index_none) {
         uint8_t *target = PROP(((actor *)act)->target_unit_index);
         float radius = *(int16_t *)(target + 0x38) == 0 ? 1.7f : 0.7f;
         float distance_squared = vector3d_distance_squared((real_point3d *)(act + 0x12c), (real_point3d *)(target + 0xbc));
 
-        act[0x9e] = (uint8_t)(radius * radius > distance_squared);
-    } else if (kind == 1 && *(int16_t *)(act + 0xa6) != -1) {
-        float distance_squared = vector3d_distance_squared((real_point3d *)(act + 0x12c), (real_point3d *)(act + 0xb0));
+        ((struct actor *)act)->mode_data.search.reachable = (uint8_t)(radius * radius > distance_squared);
+    } else if (kind == 1 && ((struct actor *)act)->mode_data.search.firing_position != -1) {
+        float distance_squared = vector3d_distance_squared((real_point3d *)(act + 0x12c), &((struct actor *)act)->mode_data.search.position);
 
         if (distance_squared < 0.49f) {
-            act[0x9e] = 1;
+            ((struct actor *)act)->mode_data.search.reachable = 1;
         } else if (distance_squared > 6.25f) {
-            act[0x9e] = 0;
+            ((struct actor *)act)->mode_data.search.reachable = 0;
         } else {
             real_point3d in_view;
 
             // 0x407b33: the marker call's five stack arguments stay pushed under the reachability call's four
             unit_add_marker_relative_offset(((actor *)act)->unit_index, 1, (float *)(act + 0xb0), 0, 0, &in_view);
-            act[0x9e] = (uint8_t)(actor_evaluate_engagement_reachability(*(int16_t *)(act + 0x148), *(int16_t *)(act + 0xa8),
+            ((struct actor *)act)->mode_data.search.reachable = (uint8_t)(actor_evaluate_engagement_reachability(*(int16_t *)(act + 0x148), ((struct actor *)act)->mode_data.search.target_cluster,
                                                                          &in_view, (real_point3d *)(act + 0x120), 0, 0, -1,
                                                                          (uint8_t)(((actor *)act)->active_unit_index !=
                                                                                    k_datum_index_none)) == 0);
         }
     }
-    if (!act[0x9e] && !act[0xa1]) {
+    if (!((struct actor *)act)->mode_data.search.reachable && !act[0xa1]) {
         actor_prop_iterator iterator;
         datum_index prop_index;
         int16_t sharing = 0;
@@ -100,7 +100,7 @@ uint8_t actor_mode_search_process(datum_index actor_index)
                 }
             }
         }
-        if (!act[0xa0] && sharing >= (*(int16_t *)(act + 0xa4) != 1 ? 4 : 2)) {
+        if (!act[0xa0] && sharing >= (((struct actor *)act)->mode_data.search.stage != 1 ? 4 : 2)) {
             datum_index last_seen = -1;
 
             act[0x9c] = 1;
@@ -108,22 +108,22 @@ uint8_t actor_mode_search_process(datum_index actor_index)
                 last_seen = *(datum_index *)(PROP(((actor *)act)->target_unit_index) + 0x7c);
             }
             if (((actor *)act)->encounter_index != k_datum_index_none) {
-                ai_pursuit_note_object(actor_index, ((actor *)act)->encounter_index, *(int16_t *)(act + 0xa6), last_seen);
+                ai_pursuit_note_object(actor_index, ((actor *)act)->encounter_index, ((struct actor *)act)->mode_data.search.firing_position, last_seen);
             }
         } else if ((int16_t)close_idle > 0) {
-            act[0x9e] = 1;
+            ((struct actor *)act)->mode_data.search.reachable = 1;
         }
     }
-    if (act[0x9e]) {
+    if (((struct actor *)act)->mode_data.search.reachable) {
         actor_movement_action_stop(actor_index);
         return act[0x9c];
     }
-    kind = *(int16_t *)(act + 0xa4);
+    kind = ((struct actor *)act)->mode_data.search.stage;
     if (kind == 0) {
         ok = actor_movement_set_destination_near_target(((actor *)act)->target_unit_index, actor_index, 2.5f);
     } else if (kind == 1) {
         ((actor *)act)->firing_position_index = -1;
-        ok = actor_movement_set_destination_firing_position(actor_index, *(int16_t *)(act + 0xa6), 0);
+        ok = actor_movement_set_destination_firing_position(actor_index, ((struct actor *)act)->mode_data.search.firing_position, 0);
     } else {
         actor_movement_action_stop(actor_index);
         return act[0x9c];

@@ -42,40 +42,40 @@ void actor_mode_search_tick(datum_index actor_index)
         act[0x9f] = 1;
     } else {
         act[0x9f] = 0;
-        if ((actor_tag[0] & 2) && *(int16_t *)(act + 0xa4) == 0 && ((actor *)act)->target_combat_status == 5 &&
+        if ((actor_tag[0] & 2) && ((struct actor *)act)->mode_data.search.stage == 0 && ((actor *)act)->target_combat_status == 5 &&
             (int8_t)((uint8_t *)prop_data->data + (((actor *)act)->target_unit_index & 0xffff) * 0x138)[0x121] <= 2) {
             act[0x9f] = 1;
         }
     }
-    if (!act[0x9e]) {
+    if (!((struct actor *)act)->mode_data.search.reachable) {
         if (!act[0x504] && !act[0x6]) {
-            *(int32_t *)(act + 0xc4) += 1;
-            if (*(int32_t *)(act + 0xc4) > 120) {
+            ((struct actor *)act)->mode_data.search.elapsed_ticks += 1;
+            if (((struct actor *)act)->mode_data.search.elapsed_ticks > 120) {
                 act[0x9d] = 1;
                 act[0x9c] = 1;
             }
         }
         return;
     }
-    if (*(int32_t *)(act + 0xc0) > 0) {
-        *(int32_t *)(act + 0xc0) -= 1;
+    if (((struct actor *)act)->mode_data.search.remaining_ticks > 0) {
+        ((struct actor *)act)->mode_data.search.remaining_ticks -= 1;
     }
-    if (*(int32_t *)(act + 0xc0) == 0) {
+    if (((struct actor *)act)->mode_data.search.remaining_ticks == 0) {
         act[0x9c] = 1;
     }
     unit_index = ((actor *)act)->unit_index;
     if (unit_index == k_datum_index_none) {
         return;
     }
-    if (*(int16_t *)(act + 0xa4) == 0) {
+    if (((struct actor *)act)->mode_data.search.stage == 0) {
         if (act[0x3bd]) {
             return;
         }
-        if (act[0x9c] || *(int32_t *)(act + 0xc0) + 90 < *(int32_t *)(act + 0xbc)) {
+        if (act[0x9c] || ((struct actor *)act)->mode_data.search.remaining_ticks + 90 < ((struct actor *)act)->mode_data.search.duration_ticks) {
             ai_communication_broadcast(0xd, unit_index, actor_get_target_prop_object_index(actor_index), -1, -1, -1, 0);
             act[0x3bd] = 1;
         }
-    } else if (*(int32_t *)(act + 0xc0) == 0) {
+    } else if (((struct actor *)act)->mode_data.search.remaining_ticks == 0) {
         ai_communication_broadcast(0x12, unit_index, actor_get_target_prop_object_index(actor_index), -1, -1, -1, 0);
     }
 }

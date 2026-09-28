@@ -30,7 +30,7 @@ void actor_mode_search_enter(datum_index actor_index)
     float t;
     int32_t ticks;
 
-    if (*(int16_t *)(act + 0xa4) == 0) {
+    if (((struct actor *)act)->mode_data.search.stage == 0) {
         lo = *(float *)(actor_tag + 0x344);
         hi = *(float *)(actor_tag + 0x348);
     } else {
@@ -40,6 +40,6 @@ void actor_mode_search_enter(datum_index actor_index)
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     t = (float)(random_seed_global >> 16) * 1.5259022e-05f;
     ticks = (int32_t)(((hi - lo) * t + lo) * 30.0f);
-    *(int32_t *)(act + 0xbc) = ticks;
-    *(int32_t *)(act + 0xc0) = ticks;
+    ((struct actor *)act)->mode_data.search.duration_ticks = ticks;
+    ((struct actor *)act)->mode_data.search.remaining_ticks = ticks;
 }

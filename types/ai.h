@@ -272,12 +272,28 @@ typedef struct actor_mode_uncover_data {
 } actor_mode_uncover_data;
 typedef char actor_mode_uncover_data_remaining_at_2c[offsetof(actor_mode_uncover_data, remaining_ticks) == 0x2c ? 1 : -1];
 
+typedef struct actor_mode_search_data {
+    uint8_t unknown_00[2];              // 0x00 (0x00 is a flag the tick tests)
+    uint8_t reachable;                  // 0x02 actor_evaluate_engagement_reachability's result (process)
+    uint8_t unknown_03[5];              // 0x03
+    int16_t stage;                      // 0x08
+    int16_t firing_position;            // 0x0a the firing position searched from, -1 for none
+    int16_t target_cluster;             // 0x0c passed as actor_evaluate_engagement_reachability's target_cluster
+    uint8_t unknown_0e[6];              // 0x0e
+    real_point3d position;              // 0x14 the search position; update copies it to the destination
+    int32_t duration_ticks;             // 0x20 set on enter
+    int32_t remaining_ticks;            // 0x24 copied from duration_ticks and counted down by the tick
+    int32_t elapsed_ticks;              // 0x28 counted up by the tick; acts past 120
+} actor_mode_search_data;
+typedef char actor_mode_search_data_elapsed_at_28[offsetof(actor_mode_search_data, elapsed_ticks) == 0x28 ? 1 : -1];
+
 typedef union actor_mode_data {
     uint8_t raw[0x84];
     actor_mode_wait_data wait;
     actor_mode_flee_data flee;
     actor_mode_converse_data converse;
     actor_mode_uncover_data uncover;
+    actor_mode_search_data search;
 } actor_mode_data;                      // size 0x84
 typedef char actor_mode_data_size[sizeof(actor_mode_data) == 0x84 ? 1 : -1];
 
