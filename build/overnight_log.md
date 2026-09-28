@@ -2214,3 +2214,23 @@ Relinked: unresolved 1, traps 127.
   player_compute_view_forward_vector, structure_leaf_faces_for_each, path_find_push_start_node,
   object_get_root_parent_placement, hud_update_dispatch, actor_scan_backup_and_panic_reaction and ~20 small AI helpers
   (burst, target engagement, flank grading, grenade throw / trajectory, mode transition loop, orders, comms, search).
+
+## 2026-09-28 static loop (cont.) -- commits ea0c3eb..e3e8f06, relinked (0 unresolved, 127 traps)
+- vehicle_calculate_animation_controls REWRITTEN: selectors 0x20/0x21/0x22 (slide, ground lean, ground contact)
+  are clamped to [0,1] in the original; the draft stored them raw (negative lean leaked into vehicle anims).
+- object_lights_gather_nearest: own-object exclusion reads the LIGHT tag flags byte +0 bit 2, not Object.flags.
+- detail_objects_update_render_list: search key z seeded with the camera cell (was an uninitialized local).
+- ai_communication_rate_player_proximity: unknown cluster skips only the PVS test, the trace still runs.
+- BUG CLASS (fixed, audited tree-wide with scratchpad/unitcast.py + extcast.py): unit_data/weapon_data field
+  offsets are absolute (struct starts at object +0x1f4 / +0x22c) but 11 sites cast the object pointer itself:
+  player_weapon_locality_for_object, ai_communication_rate_player_proximity (aim vector), 
+  player_check_assassination_opportunity (device interaction aim vector read object +0x48!),
+  player_kill_streak_begin/continue/set_max/tick + player_add_kill_streak (ORed 0x10 into OBJECT flags +0x10,
+  wrote +0x22e), game_engine_apply_player_spawn_loadout_message, game_engine_send_unit_weapon_loadout,
+  player_spawn_starting_profile_weapon (magazine counts at +0x8a instead of +0x2b6).
+- verified -> 0.85: unit_is_seat_control_available, any_local_player_within_10_units, player_profile_get_flag_by_id,
+  actor_target_has_conflicting_neighbor, actor_update_awareness_level, actor_update_idle_stagger,
+  actor_update_target_combat_status, device_compute_function_values, encounter_evaluate_platoon_condition,
+  object_sum_attached_light_luminance, object_collision_context_build.
+- OPEN (runtime, user): banshee flip prompt; FP gun alpha; cryo tech; grunt accuracy. Kill-streak object-flag
+  corruption fix may matter if those helpers run in campaign (check a10 coverage).
