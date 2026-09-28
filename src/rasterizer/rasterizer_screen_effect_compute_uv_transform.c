@@ -91,7 +91,7 @@ void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t heig
     frame.pointer = 0;
     for (i = 0; i < 4; i++) {
         ((uint8_t *)&frame.hardware_texture)[i] = 0;
-        frame._pad_2c[i] = 0;
+        ((uint8_t *)&frame.pixel_base)[i] = 0;
     }
 
     mask_used = mask_bitmap != NULL && (pass > 0 || pass_count == 1 || params->convolution_type != 0);

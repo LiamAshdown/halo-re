@@ -77,7 +77,7 @@ uint8_t bitmap_group_postprocess(datum_index tag_id, uint8_t skip_hardware_textu
         entry->pixel_data_size = (uint32_t)((bit_total + ((bit_total >> 31) & 7)) >> 3);
 
         entry->pointer = (uint32_t)k_datum_index_none;
-        *(void **)entry->_pad_2c = 0;
+        entry->pixel_base = 0;
         *(void **)&entry->hardware_texture = 0;
 
         if (bitmap->type == bitmaptype_interface_bitmaps) {
@@ -91,7 +91,7 @@ uint8_t bitmap_group_postprocess(datum_index tag_id, uint8_t skip_hardware_textu
                 (int32_t)bitmap_data_calculate_pixel_data_size(entry) + pixel_data_offset) {
             success = 0;
         } else {
-            *(void **)entry->_pad_2c = (uint8_t *)bitmap->processed_pixel_data.pointer + pixel_data_offset;
+            entry->pixel_base = (uint8_t *)bitmap->processed_pixel_data.pointer + pixel_data_offset;
         }
     }
 

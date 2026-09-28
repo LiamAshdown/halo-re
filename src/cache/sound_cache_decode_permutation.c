@@ -64,17 +64,17 @@ void sound_cache_decode_permutation(SoundPermutation *permutation)
         // scratch buffer, stack = the cached compressed samples (+0x30) and their size (samples.size, +0x40).
         // FIXED: the draft passed only the two stack values.
         {
-            uint8_t *sound_tag = (uint8_t *)tag_instances[*(datum_index *)((uint8_t *)permutation + 0x3c) & 0xffff].data;
-            int16_t channel_count = (int16_t)(1 + (*(int16_t *)(sound_tag + 0x6c) == 1));
-            decode_context = *(void **)permutation->_pad_30;
+            Sound *sound_tag = (Sound *)tag_instances[*(datum_index *)&permutation->tag_id_1 & 0xffff].data;
+            int16_t channel_count = (int16_t)(1 + (sound_tag->channel_count == 1));
+            decode_context = permutation->cache_page;
             if (sound_decode_dispatch(channel_count, sound_decode_buffer, decode_context,
-                                      *(int32_t *)((uint8_t *)permutation + 0x40)) != 0) {
+                                      (int32_t)permutation->samples.size) != 0) {
                 return;
             }
         }
         {
             source = (uint8_t *)sound_decode_buffer;
-            destination = *(uint8_t **)permutation->_pad_30;
+            destination = (uint8_t *)permutation->cache_page;
 
             for (words = buffer_size >> 2; words != 0; words--) {
                 *(uint32_t *)destination = *(uint32_t *)source;

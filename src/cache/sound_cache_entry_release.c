@@ -17,10 +17,10 @@ extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, bl
 
 void sound_cache_entry_release(datum_index handle)
 {
-    uint8_t *entry = (uint8_t *)sound_cache_entries->data + (handle & 0xffff) * 0x10;
-    uint8_t *permutation = *(uint8_t **)(entry + 0xc);
+    sound_cache_entry *entry = (sound_cache_entry *)sound_cache_entries->data + (handle & 0xffff);
+    SoundPermutation *permutation = entry->permutation;
 
-    *(int32_t *)(permutation + 0x2c) = -1;
-    *(uint32_t *)(permutation + 0x30) = 0;
+    permutation->samples_pointer = (uint32_t)-1;   // the sound cache handle
+    permutation->cache_page = 0;
     datum_delete(sound_cache_entries, handle);
 }

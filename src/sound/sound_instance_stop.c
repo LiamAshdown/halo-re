@@ -64,7 +64,7 @@ static void sound_release_unused_pages(TagID tag_id)
                 if (entry->lock_count == 0) {
                     cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
                     permutation->samples_pointer = 0xffffffff;
-                    *(uint32_t *)permutation->_pad_30 = 0;
+                    permutation->cache_page = 0;
                 }
             }
         }
@@ -209,7 +209,7 @@ skip_release:
                 cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
             }
             permutation->samples_pointer = 0xffffffff;
-            *(uint32_t *)permutation->_pad_30 = 0;
+            permutation->cache_page = 0;
         }
     }
 delete_datum:

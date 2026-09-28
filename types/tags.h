@@ -943,7 +943,7 @@ typedef struct BitmapData {
     TagID bitmap_tag_id;
     uint32_t pointer;
     uint32_t hardware_texture;  // retail PC runtime: IDirect3DBaseTexture9 * (0x524173 locks it, 0x524133 tests it)
-    uint8_t _pad_2c[4];
+    void *pixel_base;  // retail PC runtime: the pixel memory (the texture cache's GlobalAlloc'd staging buffer, freed on release)
 } BitmapData;  // size 0x30
 typedef struct Bitmap {
     BitmapType_t type;
@@ -6174,8 +6174,8 @@ typedef struct SoundPermutation {
     float gain;
     SoundFormat_t format;
     uint16_t next_permutation_index;
-    uint32_t samples_pointer;
-    uint8_t _pad_30[4];
+    uint32_t samples_pointer;  // retail PC runtime: the sound cache handle, -1 when not cached
+    void *cache_page;  // retail PC runtime: the sound cache page holding the samples, 0 when none
     TagID tag_id_0;
     uint32_t buffer_size;
     TagID tag_id_1;

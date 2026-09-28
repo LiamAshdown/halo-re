@@ -121,9 +121,9 @@ void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_mi
                         } else if (bitmap_type == 2) {
                             rasterizer_bitmap_upload_cubemap_mipmaps_by_face(bitmap);
                         }
-                        if (*(void **)bitmap->_pad_2c != (void *)0) {
-                            GlobalFree(*(void **)bitmap->_pad_2c);
-                            *(void **)bitmap->_pad_2c = (void *)0;
+                        if (bitmap->pixel_base != (void *)0) {
+                            GlobalFree(bitmap->pixel_base);
+                            bitmap->pixel_base = (void *)0;
                         }
                         entry->texture = *(void **)&bitmap->hardware_texture;
                     }

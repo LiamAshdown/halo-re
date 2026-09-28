@@ -32,7 +32,7 @@ void sound_permutation_release_page(SoundPermutation *permutation)
         cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
     }
     permutation->samples_pointer = 0xffffffff;
-    *(uint32_t *)permutation->_pad_30 = 0;
+    permutation->cache_page = 0;
     return;
 }
 

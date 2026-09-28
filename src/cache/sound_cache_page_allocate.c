@@ -101,7 +101,7 @@ void sound_cache_page_allocate(SoundPermutation *permutation, uint8_t priority)
         entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data + (page_datum & 0xffff) * sizeof(sound_cache_entry));
 
         permutation->samples_pointer = page_datum;
-        *(int32_t *)permutation->_pad_30 = page_address;
+        permutation->cache_page = (void *)page_address;
         entry->permutation = permutation;
 
         completion.flag = &entry->loaded;

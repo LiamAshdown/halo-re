@@ -39,7 +39,7 @@ void *bitmap_data_get_row_address(BitmapData *bitmap_data, int16_t mip_level, in
     pixel_offset += (int32_t)x + (int32_t)width * (int32_t)y;
     bit_offset = pixel_offset * (int32_t)bitmap_format_bits_per_pixel[bitmap_data->format];
 
-    base = *(uint32_t *)bitmap_data->_pad_2c;
+    base = (uint32_t)bitmap_data->pixel_base;
     return (void *)(base + (uint32_t)((bit_offset + ((bit_offset >> 31) & 7)) >> 3));
 }
 

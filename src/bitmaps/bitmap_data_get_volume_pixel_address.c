@@ -46,7 +46,7 @@ void *bitmap_data_get_volume_pixel_address(BitmapData *bitmap_data, int16_t x, i
     voxel_offset += (int32_t)x + ((int32_t)height * (int32_t)z + (int32_t)y) * (int32_t)width;
     bit_offset = voxel_offset * (int32_t)bitmap_format_bits_per_pixel[bitmap_data->format];
 
-    base = *(uint32_t *)bitmap_data->_pad_2c;
+    base = (uint32_t)bitmap_data->pixel_base;
     return (void *)(base + (uint32_t)((bit_offset + ((bit_offset >> 31) & 7)) >> 3));
 }
 

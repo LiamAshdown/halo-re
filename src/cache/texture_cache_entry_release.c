@@ -23,31 +23,31 @@ typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
 void texture_cache_entry_release(datum_index handle)
 {
-    uint8_t *entry = (uint8_t *)texture_cache_entries->data + (handle & 0xffff) * 0x10;
-    uint8_t *bitmap;
+    texture_cache_entry *entry = (texture_cache_entry *)texture_cache_entries->data + (handle & 0xffff);
+    BitmapData *bitmap;
     void *texture;
 
-    while (((uint8_t *)texture_cache_entries->data + (handle & 0xffff) * 0x10)[4] == 0) {
+    while (((texture_cache_entry *)texture_cache_entries->data + (handle & 0xffff))->loaded == 0) {
         Sleep(0);
     }
-    bitmap = *(uint8_t **)(entry + 8);
-    *(int32_t *)(bitmap + 0x24) = -1;
-    if (*(void **)(bitmap + 0x2c) != 0) {
-        GlobalFree(*(void **)(bitmap + 0x2c));
-        *(void **)(bitmap + 0x2c) = 0;
+    bitmap = entry->bitmap;
+    bitmap->pointer = (uint32_t)-1;       // the texture cache handle
+    if (bitmap->pixel_base != 0) {
+        GlobalFree(bitmap->pixel_base);
+        bitmap->pixel_base = 0;
     }
-    bitmap = *(uint8_t **)(entry + 8);
-    if ((bitmap[0xe] & 0x80) != 0) {
-        if (*(int32_t *)(bitmap + 0x24) != -1) {
-            cache_evict_entry(*(datum_index *)(bitmap + 0x24), texture_cache);
+    bitmap = entry->bitmap;
+    if ((*(uint8_t *)&bitmap->flags & 0x80) != 0) { // flags bit 7, read as a byte like the original
+        if ((int32_t)bitmap->pointer != -1) {
+            cache_evict_entry((datum_index)bitmap->pointer, texture_cache);
         }
-        *(int32_t *)(bitmap + 0x24) = -1;
-        *(void **)(bitmap + 0x2c) = 0;
+        bitmap->pointer = (uint32_t)-1;
+        bitmap->pixel_base = 0;
     }
-    texture = *(void **)(bitmap + 0x28);
+    texture = (void *)bitmap->hardware_texture;
     if (texture != 0) {
         ((d3d_release_fn)(*(void ***)texture)[2])(texture);
-        *(void **)(bitmap + 0x28) = 0;
+        bitmap->hardware_texture = 0;
     }
     datum_delete(texture_cache_entries, handle);
 }

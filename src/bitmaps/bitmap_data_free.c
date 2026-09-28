@@ -33,7 +33,7 @@ void bitmap_data_free(BitmapData *bitmap_data)
             cache_evict_entry((datum_index)bitmap_data->pointer, texture_cache);
         }
         bitmap_data->pointer = (uint32_t)k_datum_index_none;
-        *(void **)bitmap_data->_pad_2c = 0;
+        bitmap_data->pixel_base = 0;
     }
 
     if (*(void **)&bitmap_data->hardware_texture != 0) {
@@ -44,8 +44,8 @@ void bitmap_data_free(BitmapData *bitmap_data)
     }
 
     if (bitmap_data->flags & _bitmap_data_runtime_allocated_bit) {
-        if (*(void **)bitmap_data->_pad_2c != 0) {
-            GlobalFree(*(void **)bitmap_data->_pad_2c);
+        if (bitmap_data->pixel_base != 0) {
+            GlobalFree(bitmap_data->pixel_base);
         }
         GlobalFree(bitmap_data);
     }
