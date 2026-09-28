@@ -75,7 +75,7 @@ int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t b
     uint8_t resolved;
     BitmapData *data = rasterizer_tag_bitmap(bitmap_tag_id, bitmap_type, default_index, frame, &resolved);
 
-    if (!resolved || *(int16_t *)((uint8_t *)data + 0xa) != bitmap_type) {
+    if (!resolved || *(int16_t *)&((struct BitmapData *)data)->type != bitmap_type) {
         data = rasterizer_default_bitmap(bitmap_type, default_index);
         if (data == 0) {
             return 0;

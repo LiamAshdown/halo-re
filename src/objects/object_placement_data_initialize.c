@@ -60,8 +60,8 @@ void object_placement_data_initialize(object_placement_data *placement, datum_in
         placement->owner_team = -1;
     } else {
         placement->role = role;
-        placement->owner_linkage = *(uint32_t *)((uint8_t *)current + 0xc0);
-        placement->owner_team = *(int16_t *)((uint8_t *)current + 0xb8);
+        placement->owner_linkage = ((struct object *)current)->owner_linkage;
+        placement->owner_team = ((struct object *)current)->owner_team;
     }
 
     for (i = 0; i < 4; i++) {

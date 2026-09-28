@@ -58,7 +58,7 @@ void unit_drop_grenades(uint32_t unit_index)
             if (network_game_mode == 2) {
                 Object *proj_tag = (Object *)tag_instances[placement.definition_tag & 0xffff].data;
                 object_type_definition *type_def = object_type_definitions[proj_tag->object_type];
-                if (*(int32_t *)((uint8_t *)type_def + 0x10) != -1) {
+                if (((struct object_type_definition *)type_def)->network_delta_message_type != -1) {
                     role = 0;
                 }
             }

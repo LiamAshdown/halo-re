@@ -15,6 +15,8 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
 
 extern int32_t ui_list_current; // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
@@ -32,7 +34,7 @@ static int32_t list_item_id(int16_t index)
 uint8_t ui_event_4a1180(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     widget_instance *list = widget->first_child->next_sibling;
-    int32_t id = list_item_id(*(int16_t *)((uint8_t *)list + 0x3c));
+    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)list)->text);
 
     if (id != -1) {
         profile_slot_lookup_cache_00692ac8 = ((int32_t *)list->list_items)[id];

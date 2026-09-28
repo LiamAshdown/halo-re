@@ -17,6 +17,8 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
 
 extern int32_t widget_cursor_side_of_midpoint(widget_instance *widget); // 0x4a1ff0
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
@@ -34,7 +36,7 @@ uint32_t widget_cyclable_list_nudge(widget_instance *widget)
         if (new_index == widget->selection_index) {
             goto play_and_return;
         }
-        *(int16_t *)((uint8_t *)widget + 0x42) = (int16_t)0xfffc;
+        ((struct widget_instance *)widget)->scroll_blink = (int16_t)0xfffc;
         *(int16_t *)((uint8_t *)widget + 0x54) = -1;
     } else {
         if (side != 1) {
@@ -47,7 +49,7 @@ uint32_t widget_cyclable_list_nudge(widget_instance *widget)
         if (new_index == widget->selection_index) {
             goto play_and_return;
         }
-        *(int16_t *)((uint8_t *)widget + 0x42) = 4;
+        ((struct widget_instance *)widget)->scroll_blink = 4;
         *(int16_t *)((uint8_t *)widget + 0x54) = 1;
     }
     widget->selection_index = (int16_t)new_index;

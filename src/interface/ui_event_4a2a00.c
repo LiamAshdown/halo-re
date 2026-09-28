@@ -16,6 +16,8 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern int32_t ui_list_current; // 0x00692c04
@@ -39,7 +41,7 @@ static int32_t list_item_id(int16_t index)
 uint8_t ui_event_4a2a00(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint8_t profile[0x1ffc];
-    int32_t id = list_item_id(*(int16_t *)((uint8_t *)widget + 0x3c));
+    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
     int32_t item;
 
     profile_slot_lookup_cache_00692ac8 = -1;

@@ -74,7 +74,7 @@ void unit_update_look_delta_controls(uint32_t object_index)
     } else {
         object *parent = ((object_header *)object_data->data)[obj->parent_object & 0xffff].data;
         Unit *parent_tag = (Unit *)tag_instances[parent->definition_tag & 0xffff].data;
-        UnitSeat *seat = (UnitSeat *)((uint8_t *)*(uint8_t **)((uint8_t *)parent_tag + 0x2e8) +
+        UnitSeat *seat = (UnitSeat *)((uint8_t *)*(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer +
                                        unit->vehicle_seat_index * sizeof(UnitSeat));
         object_marker marker;
         int16_t found = object_get_node_local_transform(obj->parent_object, seat->marker_name.string,

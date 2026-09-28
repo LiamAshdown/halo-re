@@ -22,6 +22,8 @@
 #include "interface.h"
 #include "saved_games.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
                                                   // (see types/interface.h player_control_settings note)
@@ -41,7 +43,7 @@ void ui_selection_list_mirror_value_build(widget_instance *widget)
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
     set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
 
-    selected_value = *(int16_t *)((uint8_t *)widget + 0x3c); // UNSURE offset, see header
+    selected_value = *(int16_t *)&((struct widget_instance *)widget)->text; // UNSURE offset, see header
     target = widget->extended_description->first_child->next_sibling->first_child;
     target->selection_index = selected_value;
     target->next_sibling->background_bitmap_frame = selected_value;

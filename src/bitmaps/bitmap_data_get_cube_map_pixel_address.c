@@ -49,7 +49,7 @@ void *bitmap_data_get_cube_map_pixel_address(BitmapData *bitmap, int32_t mip_lev
         earlier_levels_pixel_count;
     bit_offset = pixel_index * (int32_t)bitmap_format_bits_per_pixel[bitmap->format];
 
-    return *(uint8_t **)((uint8_t *)bitmap + 0x2c) + bit_offset / 8;
+    return *(uint8_t **)&((struct BitmapData *)bitmap)->pixel_base + bit_offset / 8;
 }
 
 #if 0

@@ -34,26 +34,26 @@ void glow_chain_build(glow *entry /*EAX*/) // blam-cc: EAX -> entry
         }
 
         if ((tag[0x28] & 2) != 0) {
-            *(uint32_t *)((uint8_t *)p + 0x54) |= 1;
+            ((struct glow_particle *)p)->flags |= 1;
         }
         if ((tag[0x28] & 4) != 0) {
-            uint32_t flags = *(uint32_t *)((uint8_t *)p + 0x54);
+            uint32_t flags = ((struct glow_particle *)p)->flags;
             if (alternate) {
                 flags &= ~1U;
             } else {
                 flags |= 1;
             }
             alternate = !alternate;
-            *(uint32_t *)((uint8_t *)p + 0x54) = flags;
+            ((struct glow_particle *)p)->flags = flags;
         }
 
         if (entry->first_particle == 0) {
             entry->first_particle = p;
         }
         if (prev != 0) {
-            *(glow_particle **)((uint8_t *)prev + 0x5c) = p;
+            *(glow_particle **)&((struct glow_particle *)prev)->next = p;
         }
-        *(glow_particle **)((uint8_t *)p + 0x60) = prev;
+        *(glow_particle **)&((struct glow_particle *)p)->previous = prev;
         entry->last_particle = p;
         prev = p;
     }

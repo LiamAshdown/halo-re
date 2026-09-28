@@ -34,6 +34,7 @@
 #include "structures.h"
 #include "rasterizer.h"
 #include "game.h"
+#include "units.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *light_data; // 0x00860b14
@@ -124,7 +125,7 @@ void object_lights_update_all(void)
         uint8_t *light = (uint8_t *)light_data->data + (handle & 0xffff) * 0x7c;
 
         light[2] &= ~8;
-        *(int32_t *)(light + 8) = -1;
+        *(int32_t *)&((struct rasterizer_light *)light)->position.y = -1;
         if (((struct light *)light)->marker_link != -1) {
             float age = (float)(tick - ((struct light *)light)->marker_link);
             if (!(age <= *(float *)(tag_data(((struct light *)light)->definition_tag) + 0xf4))) {
@@ -242,7 +243,7 @@ void object_lights_update_all(void)
                     rasterizer_light_count = slot + 1;
                     rasterizer_light_set(&record);
                 }
-                *(int32_t *)(light + 8) = slot;
+                *(int32_t *)&((struct rasterizer_light *)light)->position.y = slot;
                 light_transient_count_or_queue = (int16_t)(slot + 1);
             }
         } else {

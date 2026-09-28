@@ -24,6 +24,7 @@
 #include "cache.h"
 #include "ai.h"
 #include "game.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -73,9 +74,9 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
         p->object_type = ((struct object *)object)->owner_team; // 0x43e706: prop +0x12 = the object team (types/ai.h calls it object_type); the draft wrote +0x16
         // 0x43e6fb..0x43e731: CX = the object's team, DX = the actor's (+0x3e); then DX object, CX actor; then
         // BX actor, stack object
-        p->is_unit = teams_are_enemies(p->object_type, *(int16_t *)((uint8_t *)self + 0x3e));
-        p->unknown_61 = team_pair_flag_test(*(int16_t *)((uint8_t *)self + 0x3e), p->object_type);
-        p->unknown_62 = team_pair_override_get_flag(*(int16_t *)((uint8_t *)self + 0x3e), p->object_type);
+        p->is_unit = teams_are_enemies(p->object_type, ((struct actor *)self)->team);
+        p->unknown_61 = team_pair_flag_test(((struct actor *)self)->team, p->object_type);
+        p->unknown_62 = team_pair_override_get_flag(((struct actor *)self)->team, p->object_type);
 
         is_vault = (*(uint8_t *)&((struct object *)object)->vitality_flags >> 2) & 1; // 0x43e73d: the object's firing bit, not the tag's
         p->is_vault = is_vault;

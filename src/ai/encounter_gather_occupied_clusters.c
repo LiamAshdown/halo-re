@@ -132,7 +132,7 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
                             squad = &((ScenarioSquad *)
                                 ((ScenarioEncounter *)global_scenario->encounters.pointer)
                                     [a->encounter_index & 0xffff].squads.pointer)[a->squad_index];
-                            extra = *(uint32_t *)((uint8_t *)squad + 0x6c);
+                            extra = *(uint32_t *)&((struct ScenarioSquad *)squad)->pursuing;
                         }
                         zone_mask = zone_mask | extra;
                     }

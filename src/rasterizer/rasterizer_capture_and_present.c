@@ -77,7 +77,7 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
         }
         ((com_release_fn)vtable_of(surface)[2])(surface);
     }
-    if (screenshots != 0 && bitmap != NULL && *(const uint32_t *)((const uint8_t *)bitmap + 0x2c) != 0) {
+    if (screenshots != 0 && bitmap != NULL && *(uint32_t *)&((struct BitmapData *)bitmap)->pixel_base != 0) {
         int16_t top = (int16_t)(game_window_top_left & 0xffff);
         int16_t left = (int16_t)(game_window_top_left >> 16);
         int16_t bottom = (int16_t)(game_window_bottom_right & 0xffff);

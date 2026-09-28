@@ -24,6 +24,7 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#include "units.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
@@ -90,7 +91,7 @@ datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_ind
 
                 // 0x43ec21: the prop is allocated as an enemy when the object's team (+0xb8) is hostile to the actor's
                 result = actor_find_or_allocate_prop(actor_index, object_index,
-                    (char)teams_are_enemies(((struct object *)object)->owner_team, *(int16_t *)((uint8_t *)self + 0x3e)));
+                    (char)teams_are_enemies(((struct object *)object)->owner_team, ((struct actor *)self)->team));
                 if (result != (datum_index)0xffffffff) {
                     prop *p = (prop *)((uint8_t *)prop_data->data + (result & 0xffff) * sizeof(prop));
 

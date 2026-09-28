@@ -48,15 +48,15 @@ uint8_t game_engine_ctf_unit_is_flag_holder(player *p)
     if (flag_obj == (object *)0) {
         return 0;
     }
-    if (*(int32_t *)((uint8_t *)flag_obj + 0xc0) == -1) {
+    if (*(int32_t *)&((struct object *)flag_obj)->owner_linkage == -1) {
         return 0;
     }
-    carrier = (player *)datum_get((datum_index)*(uint32_t *)((uint8_t *)flag_obj + 0xc0), player_data);
+    carrier = (player *)datum_get((datum_index)((struct object *)flag_obj)->owner_linkage, player_data);
     if (carrier == (player *)0) {
         return 0;
     }
     unit_obj = object_try_and_get(carrier->unit, _object_mask_unit);
-    if (unit_obj == (object *)0 || *(int32_t *)((uint8_t *)unit_obj + 0x11c) == -1) {
+    if (unit_obj == (object *)0 || *(int32_t *)&((struct object *)unit_obj)->parent_object == -1) {
         return 0;
     }
     return 1;

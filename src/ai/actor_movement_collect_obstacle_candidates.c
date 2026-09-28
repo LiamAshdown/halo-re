@@ -87,10 +87,10 @@ void actor_movement_collect_obstacle_candidates(actor_movement_context *context)
                 tag_instances[candidate_definition->collision_model.tag_id.index].data;
             if ((int32_t)collision_model->pathfinding_spheres.count > 0) {
                 candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
-                origin_x = *(float *)((uint8_t *)candidate_object + 0xa0);
-                origin_y = *(float *)((uint8_t *)candidate_object + 0xa4);
-                origin_z = *(float *)((uint8_t *)candidate_object + 0xa8);
-                origin_top = *(float *)((uint8_t *)candidate_object + 0xac);
+                origin_x = ((struct object *)candidate_object)->bounding_center.x;
+                origin_y = ((struct object *)candidate_object)->bounding_center.y;
+                origin_z = ((struct object *)candidate_object)->bounding_center.z;
+                origin_top = ((struct object *)candidate_object)->bounding_radius;
                 extent = 0.0f;
                 // Two register arguments only; the definition in src/objects takes the object
                 // INDEX in EAX, so the cursor handle is passed rather than the object pointer.
@@ -108,7 +108,7 @@ void actor_movement_collect_obstacle_candidates(actor_movement_context *context)
                         candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
                         node_matrix = (const real_matrix4x3 *)
                             ((uint8_t *)candidate_object +
-                             (int32_t)*(int16_t *)((uint8_t *)candidate_object + 0x1f2) +
+                             (int32_t)((struct object *)candidate_object)->nodes.offset +
                              (int16_t)sphere->node * 0x34);
                         matrix4x3_transform_point(&transformed, (const real_point3d *)&sphere->center,
                                                   node_matrix);

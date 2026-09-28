@@ -60,7 +60,7 @@ void game_engine_koth_update_occupant_table(uint32_t index)
                 object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
                 uint32_t *tag_data = (uint32_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
-                    int16_t team = *(int16_t *)((uint8_t *)weapon_obj + 0xb8);
+                    int16_t team = ((struct object *)weapon_obj)->owner_team;
                     king_hill_occupant_table[team] = index;
                 }
             }

@@ -73,11 +73,11 @@ transparent_geometry_group *rasterizer_transparent_geometry_group_build(
     if (!console_debug_toggle_6893ec || !console_debug_toggle_6893ed) {
         return NULL;
     }
-    skip = (shader != NULL && *(int16_t *)(shader + 0x24) == 4 && (shader[0x28] & 8) != 0);
+    skip = (shader != NULL && *(int16_t *)&((struct Shader *)shader)->shader_type == 4 && (shader[0x28] & 8) != 0);
     if (rasterizer_active_model_mode != 1) {
         test_immediate = 1;
     } else {
-        test_immediate = (shader != NULL && *(int16_t *)(shader + 0x24) == 4 && *(int16_t *)(shader + 0x28) != 0);
+        test_immediate = (shader != NULL && *(int16_t *)&((struct Shader *)shader)->shader_type == 4 && *(int16_t *)(shader + 0x28) != 0);
     }
     if (skip) {
         if (link != NULL) {
@@ -100,7 +100,7 @@ transparent_geometry_group *rasterizer_transparent_geometry_group_build(
             goto fill;
         }
     }
-    if (rasterizer_active_model_mode == 1 && shader != NULL && *(int16_t *)(shader + 0x24) != 4) {
+    if (rasterizer_active_model_mode == 1 && shader != NULL && *(int16_t *)&((struct Shader *)shader)->shader_type != 4) {
         group = transparent_geometry_group_allocate_secondary();
     } else {
         group = transparent_geometry_group_allocate();
@@ -154,7 +154,7 @@ fill:
     group->unknown_40 = context->base_map_v_scale;
     group->previous_group_index = -1;
     group->next_group_index = -1;
-    if (rasterizer_active_model_mode == 1 && *(int16_t *)(shader + 0x24) != 4) {
+    if (rasterizer_active_model_mode == 1 && *(int16_t *)&((struct Shader *)shader)->shader_type != 4) {
         group->unknown_a0 = context->group_parameters.sort_key;  // attached to the model's key
     } else {
         group->unknown_a0 = 0;

@@ -15,6 +15,8 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
 
 extern int32_t ui_list_current;      // 0x00692c04
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
@@ -35,7 +37,7 @@ void ui_game_variant_flag_list_widget_build(widget_instance *widget)
 
     ui_list_widget_rebuild_rows(widget, (void *)ui_list_default_item_format);
 
-    combo_index = *(int16_t *)((uint8_t *)widget + 0x3c); // UNSURE offset, see ui_list_widget_rebuild_rows.c
+    combo_index = *(int16_t *)&((struct widget_instance *)widget)->text; // UNSURE offset, see ui_list_widget_rebuild_rows.c
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {
         ui_list_item *entry = (ui_list_item *)ui_lists[ui_list_current].data + combo_index;
         variant_data = entry->data;

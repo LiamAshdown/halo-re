@@ -67,8 +67,8 @@ void unit_find_nearest_valid_surface_plane(uint32_t unit_index) // blam-cc: ECX 
     if (result.surface_count <= 0) {
         return;
     }
-    surfaces = *(uint8_t **)((uint8_t *)bsp + 0x40);
-    planes = *(uint8_t **)((uint8_t *)bsp + 0x10);
+    surfaces = *(uint8_t **)&((struct ModelCollisionGeometryBSP *)bsp)->surfaces.pointer;
+    planes = *(uint8_t **)&((struct ModelCollisionGeometryBSP *)bsp)->planes.pointer;
     for (i = 0; (int32_t)i < result.surface_count; i++) {
         int32_t surface = result.surfaces[i];
         int32_t plane_reference = *(int32_t *)(surfaces + surface * 0xc);

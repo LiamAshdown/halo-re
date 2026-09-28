@@ -48,6 +48,8 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "objects.h"
+#include "units.h"
 
 extern int32_t ui_time_milliseconds;              // 0x00718f9c
 extern loading_thread_record *loading_thread;      // 0x00718fbc
@@ -243,7 +245,7 @@ shared_tail:
                 // 0x0a), the same pair widget_instance_point_in_bounds sums up the ancestor
                 // chain -- the seed offset for the recursive hit test, not widget_type.
                 widget_instance *hit = widget_instance_find_at_point(
-                    root, ui_cursor_x, ui_cursor_y, *(int32_t *)((uint8_t *)root + 0xa));
+                    root, ui_cursor_x, ui_cursor_y, *(int32_t *)&((struct widget_instance *)root)->local_x);
 
                 root = ui_root_widget[0];
                 if (hit != (widget_instance *)0 && hit->parent != (widget_instance *)0 &&

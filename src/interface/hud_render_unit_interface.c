@@ -148,14 +148,14 @@ void hud_render_unit_interface(player *p)
     }
     objects[0] = p->unit;
     {
-        int32_t last = (int32_t)*(uint32_t *)((uint8_t *)unit_tag + 0x2a8) - 1; // new_hud_interfaces count
+        int32_t last = (int32_t)((struct Unit *)unit_tag)->new_hud_interfaces.count - 1; // new_hud_interfaces count
         int32_t choice = (int16_t)(local_player_globals->local_player_count > 1);
         if (choice > last) {
             choice = last;
         }
         hud_tags[0] = (int16_t)choice < 0
             ? (datum_index)-1
-            : *(datum_index *)(*(uint8_t **)((uint8_t *)unit_tag + 0x2ac) + (int16_t)choice * 0x30 + 0xc);
+            : *(datum_index *)(*(uint8_t **)&((struct Unit *)unit_tag)->new_hud_interfaces.pointer + (int16_t)choice * 0x30 + 0xc);
     }
     count = 1;
 
@@ -181,7 +181,7 @@ void hud_render_unit_interface(player *p)
             Unit *parent_tag = (Unit *)tag_instances[*(datum_index *)parent_object & 0xffff].data;
             uint8_t split = local_player_globals->local_player_count > 1;
             TagID parent_hud = unit_get_hud_interface_tag_id(parent_tag, split);
-            uint8_t *seats = *(uint8_t **)((uint8_t *)parent_tag + 0x2e8);
+            uint8_t *seats = *(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer;
 
             if ((seats[*(int16_t *)(unit_object + 0x2f0) * 0x11c] & 4) != 0) {
                 datum_index child;

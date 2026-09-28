@@ -45,7 +45,7 @@ void object_update_change_colors(uint32_t object_index) // blam-cc: EAX -> objec
                 // 0x4f9193..0x4f91b1: EAX = the tag entry's +0x14 color, ECX = its +0x8 color, stack: the object's
                 // change color, the entry's +0x4 flags, t
                 color_interpolate((ColorRGB *)((uint8_t *)tag_color + 0x14), (ColorRGB *)((uint8_t *)tag_color + 8), out,
-                    *(uint32_t *)((uint8_t *)tag_color + 4), t);
+                    *(uint32_t *)&((struct ObjectChangeColors *)tag_color)->flags, t);
             }
             if (tag_color->darken_by != 0) {
                 float scale = *(float *)((uint8_t *)obj + 0x120 + tag_color->darken_by * 4);

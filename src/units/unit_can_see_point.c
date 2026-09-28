@@ -114,7 +114,7 @@ void unit_can_see_point(uint32_t unit_index, real_vector3d *target_direction,
                 object *weapon_obj = ((object_header *)object_data->data)[weapon_index & 0xffff].data;
                 Weapon *weapon_tag = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 weapon_response_tag = *(int32_t *)&weapon_tag->player_melee_response.tag_id;
-                secondary_damage_effect = *(int32_t *)((uint8_t *)weapon_tag + 0x3b0); // UNSURE field
+                secondary_damage_effect = *(int32_t *)&((struct Weapon *)weapon_tag)->player_melee_response.tag_id; // UNSURE field
             }
         }
         int32_t damage_effect_tag = (weapon_response_tag != -1) ? weapon_response_tag

@@ -33,7 +33,7 @@ float path_find_vertex_distance(ScenarioStructureBSP *structure_bsp, int32_t sur
     real_point3d *out_point)
 {
     ModelCollisionGeometryBSP *collision_bsp =
-        (ModelCollisionGeometryBSP *)(uintptr_t)*(uint32_t *)((uint8_t *)structure_bsp + 0xb4);
+        (ModelCollisionGeometryBSP *)(uintptr_t)((struct ScenarioStructureBSP *)structure_bsp)->collision_bsp.pointer;
     ModelCollisionGeometryBSPSurface *surfaces = (ModelCollisionGeometryBSPSurface *)(uintptr_t)collision_bsp->surfaces.pointer;
     real_plane3d *planes = (real_plane3d *)(uintptr_t)collision_bsp->planes.pointer;
     real_point2d closest;

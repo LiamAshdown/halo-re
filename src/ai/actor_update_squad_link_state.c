@@ -20,6 +20,8 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *encounter_data; // 0x008802c8
@@ -98,7 +100,7 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
                     }
                 } else if (self->active_movement.type == 5) {
                     // 0x4293c8: +0x470, the first dword after the type, holds the prop for this type
-                    prop *p = &((prop *)prop_data->data)[*(datum_index *)((uint8_t *)self + 0x470) & 0xffff];
+                    prop *p = &((prop *)prop_data->data)[*(datum_index *)&((struct actor *)self)->active_movement.destination.x & 0xffff];
                     if (p->is_parented != 0) {
                         return 1;
                     }

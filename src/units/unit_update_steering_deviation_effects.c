@@ -48,7 +48,7 @@ void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *
     uint8_t *fall_table = (uint8_t *)global_globals->falling_damage.pointer;
     int32_t impact_effect_tag = *(int32_t *)(fall_table + 0x48);
 
-    if (impact_effect_tag == -1 && *(int32_t *)((uint8_t *)tag + 0x3cc) == -1) {
+    if (impact_effect_tag == -1 && *(int32_t *)&((struct Vehicle *)tag)->crash_sound.tag_id == -1) {
         return;
     }
 
@@ -93,9 +93,9 @@ void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *
                     object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
                 }
 
-                if (*(int32_t *)((uint8_t *)tag + 0x3cc) != -1) {
+                if (*(int32_t *)&((struct Vehicle *)tag)->crash_sound.tag_id != -1) {
                     sound_start_at_object_marker(unit_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)global_forward3d_pointer,
-                    *(int32_t *)((uint8_t *)tag + 0x3cc), -1, clamped, 0); // 0x575141: ESI the unit (stack arg), ECX *0x006966f8, EAX *0x00696718, node -1
+                    *(int32_t *)&((struct Vehicle *)tag)->crash_sound.tag_id, -1, clamped, 0); // 0x575141: ESI the unit (stack arg), ECX *0x006966f8, EAX *0x00696718, node -1
                 }
             }
         }

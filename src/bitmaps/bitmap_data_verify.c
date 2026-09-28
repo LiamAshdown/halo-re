@@ -78,7 +78,7 @@ uint8_t bitmap_data_verify(BitmapData *bitmap, uint8_t require_runtime)
     }
 
     if (bitmap->format == k_bitmap_runtime_format &&
-        *(void **)((uint8_t *)bitmap + 0x2c) != 0 &&
+        *(void **)&((struct BitmapData *)bitmap)->pixel_base != 0 &&
         bitmap->mipmap_count == 0 &&
         (bitmap->flags & (_bitmap_data_compressed_bit | _bitmap_data_palettized_bit | _bitmap_data_swizzled_bit)) == 0) {
         return 1;

@@ -65,9 +65,9 @@ void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         encounter *enc = &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
         ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index); // 0x427616: EAX encounter, ECX unit
-        *(int16_t *)((uint8_t *)unit_object + 0xb8) = enc->team; // UNSURE: object+0xb8, see actor_link_to_unit_cluster
+        ((struct object *)unit_object)->owner_team = enc->team; // UNSURE: object+0xb8, see actor_link_to_unit_cluster
     }
-    self->team = *(int16_t *)((uint8_t *)unit_object + 0xb8);
+    self->team = ((struct object *)unit_object)->owner_team;
 
     if (*(int16_t *)((uint8_t *)unit_object + 0xbe) > 99) { // UNSURE offset, see file header
         self->counts_toward_encounter = 1;

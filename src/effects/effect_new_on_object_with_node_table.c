@@ -87,7 +87,7 @@ datum_index effect_new_on_object_with_node_table(datum_index creator_object_inde
 
         attach_object = ((object_header *)object_data->data)[(uint16_t)object_index].data;
         context.node_table_entry = (int16_t)context.node_index * 0x34 +
-            *(int16_t *)((uint8_t *)attach_object + 0x1f2) + (int32_t)(long)attach_object;
+            ((struct object *)attach_object)->nodes.offset + (int32_t)(long)attach_object;
 
         effect_marker_callback_context = &context;
 

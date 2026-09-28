@@ -33,7 +33,7 @@ uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap)
     texture_cache_get(bitmap, 1, 1);
     vtable = *(void ***)rasterizer_device;
     if (((d3d_set_texture_fn)vtable[0x104 / 4])(rasterizer_device, (uint32_t)(int32_t)stage,
-                                                  *(void **)((uint8_t *)bitmap + 0x28)) < 0) {
+                                                  *(void **)&((struct BitmapData *)bitmap)->hardware_texture) < 0) {
         return 0;
     }
     return 1;

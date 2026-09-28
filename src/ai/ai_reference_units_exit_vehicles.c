@@ -183,14 +183,14 @@ void ai_reference_units_exit_vehicles(uint32_t packed_reference)
     ai_reference_actor_iterator_new(packed_reference, &iterator);
     for (actor_record = ai_reference_actor_iterator_next(&iterator); actor_record != 0;
          actor_record = ai_reference_actor_iterator_next(&iterator)) {
-        datum_index unit_index = *(datum_index *)((uint8_t *)actor_record + 0x18);
+        datum_index unit_index = ((struct actor *)actor_record)->unit_index;
         int16_t index = (int16_t)unit_index;
         int16_t salt = (int16_t)(unit_index >> 16);
         uint8_t *header;
         uint8_t *self;
         datum_index vehicle_index;
 
-        if (*(datum_index *)((uint8_t *)actor_record + 0x158) == k_datum_index_none ||
+        if (((struct actor *)actor_record)->active_unit_index == k_datum_index_none ||
             unit_index == k_datum_index_none || index < 0 || index >= object_data->maximum_count) {
             continue;
         }

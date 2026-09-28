@@ -114,10 +114,10 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope)
                         if (p->local_player_index == -1) {
                             // UNSURE: raw player-record offsets, no header names these four
                             // dwords specifically as look-state timers.
-                            *(int32_t *)((uint8_t *)p + 0x180) = 0;
-                            *(int32_t *)((uint8_t *)p + 0x17c) = 0;
-                            *(int32_t *)((uint8_t *)p + 0x1e0) = 0;
-                            *(int32_t *)((uint8_t *)p + 0x1dc) = 0;
+                            ((struct player *)p)->position_updates.read_index = 0;
+                            ((struct player *)p)->position_updates.write_index = 0;
+                            ((struct player *)p)->vehicle_updates.read_index = 0;
+                            ((struct player *)p)->vehicle_updates.write_index = 0;
                         } else {
                             unit_obj->network_role = 2;
                             game_engine_init_player_look_state_from_object(new_unit, p->local_player_index);

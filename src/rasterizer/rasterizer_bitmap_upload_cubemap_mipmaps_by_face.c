@@ -55,7 +55,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
     int32_t bytes;
     void **vtable;
 
-    if (rasterizer_device == 0 || *(uint32_t *)((uint8_t *)bitmap + 0x2c) == 0 || bitmap->hardware_texture == 0) {
+    if (rasterizer_device == 0 || *(uint32_t *)&((struct BitmapData *)bitmap)->pixel_base == 0 || bitmap->hardware_texture == 0) {
         return;
     }
     max_level = (rasterizer_caps.texture_caps & 0x10000) != 0 ? bitmap->mipmap_count : 0;

@@ -56,7 +56,7 @@ void particle_creation_physics_explosion(particle_system *system, int32_t type_i
     ParticleSystemType *particle_type = (ParticleSystemType *)((uint8_t *)
         (*(uint8_t **)((uint8_t *)tag_instances[system->definition_index & 0xffff].data + 0x60)) +
         (int32_t)type_index * 0x80);
-    float *physics_constants = *(float **)((uint8_t *)particle_type + 0x60);
+    float *physics_constants = *(float **)&((struct ParticleSystemType *)particle_type)->physics_constants.pointer;
     float k0 = physics_constants[0];
     float k1 = physics_constants[1];
     float k2 = physics_constants[2];

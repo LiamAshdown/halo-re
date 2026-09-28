@@ -81,12 +81,12 @@ void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_ind
         *flash_start_time = -1;
     }
 
-    if (*(datum_index *)((uint8_t *)hud + 0x54) != (datum_index)-1) { // background bitmap
+    if (*(datum_index *)&((struct GrenadeHUDInterface *)hud)->background_interface_bitmap.tag_id != (datum_index)-1) { // background bitmap
         hud_draw_static_element(local_player_index, (uint16_t *)hud,
                                 (const hud_static_element_placement *)&hud->background_anchor_offset, flags,
                                 *flash_start_time);
     }
-    if (*(datum_index *)((uint8_t *)hud + 0xbc) != (datum_index)-1) { // total grenades background bitmap
+    if (*(datum_index *)&((struct GrenadeHUDInterface *)hud)->total_grenades_background_interface_bitmap.tag_id != (datum_index)-1) { // total grenades background bitmap
         hud_draw_static_element(local_player_index, (uint16_t *)hud,
                                 (const hud_static_element_placement *)&hud->total_grenades_background_anchor_offset,
                                 flags, *flash_start_time);

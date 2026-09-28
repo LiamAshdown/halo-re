@@ -33,14 +33,14 @@ void actor_propagate_unit_field(datum_index actor_index, int16_t value)
     if (self->swarm == 0) {
         if (self->unit_index != (datum_index)k_datum_index_none) {
             object *unit_object = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
-            *(int16_t *)((uint8_t *)unit_object + 0xb8) = value;
+            ((struct object *)unit_object)->owner_team = value;
         }
     } else if (self->swarm_index == (datum_index)k_datum_index_none) {
         datum_index unit_index = self->cluster_unit_index;
         if (unit_index != (datum_index)k_datum_index_none) {
             do {
                 object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-                *(int16_t *)((uint8_t *)unit_object + 0xb8) = value;
+                ((struct object *)unit_object)->owner_team = value;
                 unit_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc); // unit_data.swarm_next_unit_index
             } while (unit_index != (datum_index)k_datum_index_none);
         }
@@ -49,7 +49,7 @@ void actor_propagate_unit_field(datum_index actor_index, int16_t value)
         int16_t i;
         for (i = 0; i < s->component_count; i++) {
             object *unit_object = ((object_header *)object_data->data)[s->unit_index[i] & 0xffff].data;
-            *(int16_t *)((uint8_t *)unit_object + 0xb8) = value;
+            ((struct object *)unit_object)->owner_team = value;
         }
     }
 }

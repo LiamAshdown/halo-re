@@ -70,7 +70,7 @@ static void sound_looping_evict_sound_samples(Sound *tag)
                 ((sound_cache_entry *)sound_cache_entries->data)[cache_index & 0xffff].lock_count == 0) {
                 cache_evict_entry(cache_index, sound_cache);
                 permutation->samples_pointer = 0xffffffff;
-                *(uint32_t *)((uint8_t *)permutation + 0x30) = 0;
+                *(uint32_t *)&((struct SoundPermutation *)permutation)->cache_page = 0;
             }
         }
     }

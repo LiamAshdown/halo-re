@@ -102,9 +102,9 @@ void screenshot_render(render_view *views)
         bitmap->flags = 0x41;
     }
 
-    *(void **)((uint8_t *)bitmap + 0x2c) = GlobalAlloc(0, bitmap_data_calculate_pixel_data_size(bitmap));
+    *(void **)&((struct BitmapData *)bitmap)->pixel_base = GlobalAlloc(0, bitmap_data_calculate_pixel_data_size(bitmap));
 
-    if (*(void **)((uint8_t *)bitmap + 0x2c) != 0) {
+    if (*(void **)&((struct BitmapData *)bitmap)->pixel_base != 0) {
         console_print_error_va(1, "");   // AL = 1: clear the console, 0x0065512c is ""
         console_deactivate();
 

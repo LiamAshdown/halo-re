@@ -51,7 +51,7 @@ static double clamp_unit(double value)
 // Blends `animation` at `fraction` of its last frame (frame count - 1).
 static void blend_fraction(ModelAnimationsAnimation *animation, double fraction, real_orientation *orientations)
 {
-    int32_t last_frame = *(int16_t *)((uint8_t *)animation + 0x22) - 1;
+    int32_t last_frame = *(int16_t *)&((struct ModelAnimationsAnimation *)animation)->frame_count - 1;
 
     animation_overlay_interpolated_frame_orientations(animation, (float)((double)last_frame * fraction), orientations);
 }
@@ -116,7 +116,7 @@ void vehicle_blend_animations(datum_index object_index, real_orientation *orient
     if (count > 5 && indices[5] != -1) {
         ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(animations + indices[5] * 0xb4);
         double fraction = 0.0;
-        int32_t frames = *(int16_t *)((uint8_t *)animation + 0x22);
+        int32_t frames = *(int16_t *)&((struct ModelAnimationsAnimation *)animation)->frame_count;
 
         if (*(float *)(vehicle_tag + 0x310) > 0.0f) {
             fraction = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / *(float *)(vehicle_tag + 0x310);

@@ -23,6 +23,8 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60, reset to 0xff (0x1800 dwords)
@@ -104,7 +106,7 @@ uint32_t ui_build_profile_list(widget_instance *widget)
             widget->selection_index = 0;
         }
         // UNSURE: raw offsets, see the sibling level-select files' identical note.
-        *(int16_t *)((uint8_t *)widget + 0x3c) = widget->selection_index;
+        *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
         *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
     }
     return (high_bits << 8) | 1;

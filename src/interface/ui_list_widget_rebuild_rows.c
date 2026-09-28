@@ -29,6 +29,8 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "objects.h"
+#include "units.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_list_current;     // 0x00692c04
@@ -196,17 +198,17 @@ render_row: // LAB_004a8038
                         row->background_bitmap_frame = 1;
                         if (widget->focused_child == row) {
                             ColorARGB highlight;
-                            *(ColorARGB *)((uint8_t *)label + 0x44) = *ui_get_saved_pulse_color(&highlight); // text_box color override
+                            *(ColorARGB *)&((struct widget_instance *)label)->list_items = *ui_get_saved_pulse_color(&highlight); // text_box color override
                         } else {
-                            *(uint32_t *)((uint8_t *)label + 0x44) = 0;
+                            *(uint32_t *)&((struct widget_instance *)label)->list_items = 0;
                         }
                     } else {
                         if (widget->focused_child == row) {
                             ColorARGB highlight;
                             widget->selection_index = (int16_t)item_index;
-                            *(ColorARGB *)((uint8_t *)label + 0x44) = *ui_get_saved_pulse_color(&highlight);
+                            *(ColorARGB *)&((struct widget_instance *)label)->list_items = *ui_get_saved_pulse_color(&highlight);
                         } else {
-                            *(uint32_t *)((uint8_t *)label + 0x44) = 0;
+                            *(uint32_t *)&((struct widget_instance *)label)->list_items = 0;
                         }
                         row->background_bitmap_frame = 0;
                     }

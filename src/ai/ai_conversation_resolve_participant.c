@@ -154,7 +154,7 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
     }
 
     if ((int16_t)participant->use_this_object == -1) {
-        if (*(int32_t *)((uint8_t *)participant + 0x44) == -1) {
+        if (*(int32_t *)&((struct ScenarioAIConversationParticipant *)participant)->encounter_index == -1) {
             // No named object and no encounter: scan every live actor.
             if (ai_globals_ptr->actors_valid) {
                 actor_iterator.filter_array = encounter_data;
@@ -168,7 +168,7 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
             }
         } else {
             ai_reference_actor_iterator_new(
-                *(uint32_t *)((uint8_t *)participant + 0x44), &reference_iterator);
+                ((struct ScenarioAIConversationParticipant *)participant)->encounter_index, &reference_iterator);
             use_reference = 1;
         }
     } else if ((int16_t)participant->use_this_object < 0 ||
@@ -265,7 +265,7 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
                 // Any friendly actor: reject when the player is an enemy of it.
                 if (player_object != 0 &&
                     teams_are_enemies(candidate->team,
-                                      *(int16_t *)((uint8_t *)player_object + 0xb8)) != 0) {
+                                      ((struct object *)player_object)->owner_team) != 0) {
                     continue;
                 }
                 break;

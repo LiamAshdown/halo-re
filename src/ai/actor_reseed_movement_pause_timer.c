@@ -15,6 +15,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern uint32_t random_seed_global; // 0x00719cd0
@@ -42,7 +44,7 @@ void actor_reseed_movement_pause_timer(datum_index actor_index)
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     fraction = (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f;
     pause = fraction * (upper - lower) + lower;
-    pause = weapon_get_zoom_fov_resolved(0xe, *(int16_t *)((uint8_t *)self + 0x3e)) * pause;
+    pause = weapon_get_zoom_fov_resolved(0xe, ((struct actor *)self)->team) * pause;
     if (entry_b != 0 && *(float *)(entry_b + 4) != 0.0f) {
         pause = pause * *(float *)(entry_b + 4);
     }

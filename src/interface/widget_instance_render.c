@@ -92,7 +92,7 @@ void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t 
 
     if (widget->state != 0) {
         int32_t bitmap_data = bitmap_group_sequence_get_bitmap_data(
-            *(datum_index *)((uint8_t *)tag + 0x44), 0, widget->background_bitmap_frame);
+            *(datum_index *)&((struct UIWidgetDefinition *)tag)->background_bitmap.tag_id, 0, widget->background_bitmap_frame);
 
         if (bitmap_data != 0) {
             float alpha = scale;

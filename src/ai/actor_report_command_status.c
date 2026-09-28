@@ -15,6 +15,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -70,7 +72,7 @@ int32_t actor_report_command_status(uint32_t actor_index)
             if (p->is_unit == 0) {
                 target_state = 2;
             } else {
-                target_state = (team_pair_flag_test(((actor *)a)->team, *(int16_t *)((uint8_t *)p + 0x12)) != 0) + 3; // 0x404962: ECX actor team, EDX prop team
+                target_state = (team_pair_flag_test(((actor *)a)->team, ((struct prop *)p)->object_type) != 0) + 3; // 0x404962: ECX actor team, EDX prop team
             }
         }
         ai_communication_broadcast(event_code, a->unit_index, target_object, target_state, 0xffffffff, 0xffffffff, 0);

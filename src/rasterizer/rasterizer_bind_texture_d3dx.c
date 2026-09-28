@@ -33,7 +33,7 @@ uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasteriz
     texture_cache_get(bitmap, 1, 1);
     effect = (void *)effect_slot->effect;
     ((d3dx_set_texture_fn)(*(void ***)effect)[0xd0 / 4])(effect, effect_slot->texture_handles[stage],
-                                                          *(void **)((uint8_t *)bitmap + 0x28));
+                                                          *(void **)&((struct BitmapData *)bitmap)->hardware_texture);
     return 1;
 }
 

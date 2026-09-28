@@ -84,7 +84,7 @@ void unit_set_facing_from_index_table(uint32_t object_index)
         object_set_position_and_orientation(object_index, &forward, global_up3d_pointer, spawn_position);
     }
 
-    if (*(int32_t *)((uint8_t *)tag + 0x8c) == -1) { // tag->physics.tag_id
+    if (*(int32_t *)&((struct Object *)tag)->physics.tag_id == -1) { // tag->physics.tag_id
         obj->flags |= 0x20;
     } else {
         obj->flags &= ~0x20u;

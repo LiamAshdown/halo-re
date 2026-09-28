@@ -149,7 +149,7 @@ void player_respawn(uint32_t player_index)
         }
         object_placement_data_initialize(&placement, unit_tag, k_datum_index_none);
         placement.position = *(real_point3d *)location;
-        facing = *(real *)((uint8_t *)location + 0xc);
+        facing = ((struct ScenarioPlayerStartingLocation *)location)->facing;
         placement.forward.i = (real)cos(facing);
         placement.forward.j = (real)sin(facing);
         placement.forward.k = 0.0f;

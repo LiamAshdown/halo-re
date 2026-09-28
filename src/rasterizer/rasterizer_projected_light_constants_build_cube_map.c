@@ -48,16 +48,16 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
     light = &rasterizer_lights[light_index];
     definition = (Light *)(uint8_t *)light->definition;
 
-    cube_map_tag_index = *(int32_t *)((uint8_t *)definition + 0x70);
+    cube_map_tag_index = *(int32_t *)&((struct Light *)definition)->primary_cube_map.tag_id;
     if (cube_map_tag_index == -1) {
-        cube_map_tag_index = *(int32_t *)((uint8_t *)definition + 0x88);
+        cube_map_tag_index = *(int32_t *)&((struct Light *)definition)->secondary_cube_map.tag_id;
     }
 
     vector3d_cross_product(&cross_axis, &light->forward, &light->up);
     vector3d_normalize_with_length(&cross_axis);
 
     rasterizer_projected_light.position = light->position;
-    radius = *(float *)((uint8_t *)definition + 0x24) * light->radius;
+    radius = ((struct Light *)definition)->specular_radius_multiplier * light->radius;
     rasterizer_projected_light.basis[0][3] = 1.0f;
     rasterizer_projected_light.basis[1][3] = 1.0f;
     rasterizer_projected_light.basis[2][3] = 1.0f;

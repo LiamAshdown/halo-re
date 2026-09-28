@@ -16,6 +16,8 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
 
 extern uint8_t level_select_flags_0071916b; // 0x0071916b, TYPES-GAP
 extern char level_select_current_path_00719068[0x106]; // 0x00719068, TYPES-GAP
@@ -36,6 +38,6 @@ uint8_t ui_event_4a1b60(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     widget->selection_index = selection;
     widget->focused_child = child;
-    *(int16_t *)((uint8_t *)widget + 0x3c) = widget->selection_index;
+    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
     return 1;
 }

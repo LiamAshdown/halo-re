@@ -36,6 +36,8 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
 
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current;      // 0x00692c04
@@ -52,7 +54,7 @@ extern void widget_play_sound_effect(int16_t effect_id);                     // 
 // whether the cache file exists.
 uint8_t ui_map_select_confirm_choice(widget_instance *widget)
 {
-    int32_t selection = *(int16_t *)((uint8_t *)widget + 0x3c);
+    int32_t selection = *(int16_t *)&((struct widget_instance *)widget)->text;
     int32_t count = map_list_count;
     int32_t map_index = -1;
     char *path;

@@ -32,7 +32,7 @@ void ai_starting_location_derive_placement_flags(datum_index encounter_index, in
     ScenarioEncounter *encounter_definition =
         &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index & 0xffff];
     ScenarioSquad *squads = (ScenarioSquad *)encounter_definition->squads.pointer;
-    int16_t category = *(int16_t *)((uint8_t *)encounter_definition + 0x28); // UNSURE: no established field at this offset
+    int16_t category = *(int16_t *)&((struct ScenarioEncounter *)encounter_definition)->search_behavior; // UNSURE: no established field at this offset
 
     if ((*((uint8_t *)squads + starting_location_index * 0xe8 + 0x28) & 2) != 0) {
         category = 1;

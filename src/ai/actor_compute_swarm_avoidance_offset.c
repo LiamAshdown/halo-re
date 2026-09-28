@@ -65,7 +65,7 @@ void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index u
             if (s->unit_index[i] == unit_index) {
                 object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
                 swarm_component *component = &((swarm_component *)swarm_component_data->data)[s->component_index[i] & 0xffff];
-                uint16_t flags = *(uint16_t *)((uint8_t *)component + 2); // UNSURE offset
+                uint16_t flags = *(uint16_t *)&((struct swarm_component *)component)->flags; // UNSURE offset
                 datum_index target = component->unknown_14;
 
                 if ((flags & 1) == 0 || target == (datum_index)k_datum_index_none) {
@@ -76,8 +76,8 @@ void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index u
                             dir.i = unit_object->forward.i;
                             dir.j = unit_object->forward.j;
                             if (vector2d_normalize_with_length(&dir) == 0.0f) {
-                                dir.i = *(float *)((uint8_t *)unit_object + 0x80);
-                                dir.j = *(float *)((uint8_t *)unit_object + 0x84);
+                                dir.i = ((struct object *)unit_object)->up.i;
+                                dir.j = ((struct object *)unit_object)->up.j;
                                 if (vector2d_normalize_with_length(&dir) == 0.0f) {
                                     dir.i = global_forward2d_pointer->i;
                                     dir.j = global_forward2d_pointer->j;
@@ -116,7 +116,7 @@ void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index u
                         float x, y, sum_sq;
 
                         if (vector2d_normalize_with_length((real_vector2d *)&leap) == 0.0f) {
-                            leap = *(real_vector3d *)((uint8_t *)self + 0x174);
+                            leap = *(real_vector3d *)&((struct actor *)self)->facing.i;
                             if (vector2d_normalize_with_length((real_vector2d *)&leap) == 0.0f) {
                                 leap = *global_forward3d_pointer;
                             }

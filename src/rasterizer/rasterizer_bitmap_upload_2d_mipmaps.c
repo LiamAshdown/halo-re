@@ -58,7 +58,7 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
     mip_skip = rasterizer_bitmap_compute_mipmap_skip_count(bitmap, &out_width, &out_height);
 
     // UNSURE: bitmap+0x2c has no established field name in types/rasterizer.h.
-    if (rasterizer_device == 0 || *(uint32_t *)((uint8_t *)bitmap + 0x2c) == 0 ||
+    if (rasterizer_device == 0 || *(uint32_t *)&((struct BitmapData *)bitmap)->pixel_base == 0 ||
         bitmap->hardware_texture == 0) {
         return;
     }

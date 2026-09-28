@@ -14,13 +14,15 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
 
 void ui_controls_4wide_selector_refresh(widget_instance *widget)
 {
-    int16_t selection = *(int16_t *)((uint8_t *)widget + 0x3c); // UNSURE: raw offset, see the
+    int16_t selection = *(int16_t *)&((struct widget_instance *)widget)->text; // UNSURE: raw offset, see the
                                                                   // level-select files' identical note
     widget_instance *display = widget->extended_description->first_child;
     widget_instance *cursor;

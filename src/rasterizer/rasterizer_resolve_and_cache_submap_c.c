@@ -82,7 +82,7 @@ uint8_t rasterizer_resolve_and_cache_submap_c(uint32_t bitmap_tag_id, int16_t bi
             return 1;
         }
     }
-    if (!resolved || *(int16_t *)((uint8_t *)data + 0xa) != bitmap_type) {
+    if (!resolved || *(int16_t *)&((struct BitmapData *)data)->type != bitmap_type) {
         data = rasterizer_default_bitmap(bitmap_type, default_index);
         if (data == 0) {
             return 0;

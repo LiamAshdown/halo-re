@@ -21,6 +21,8 @@
 #include "cache.h"
 #include "interface.h"
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
 
 extern uint8_t *map_list; // 0x00712dcc, map_list_entry[] (0xc bytes, +0 the map path)
 extern int32_t map_list_count; // 0x00712dd0
@@ -54,7 +56,7 @@ uint8_t ui_event_49d5f0(widget_instance *widget, int16_t *event, uint8_t *out_ha
             widget->selection_index = 0;
         }
     }
-    *(int16_t *)((uint8_t *)widget + 0x3c) = widget->selection_index;
+    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
     *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
     for (i = 0; i < 3; i++) {
         ui_lists[i].element_size = 0x10;

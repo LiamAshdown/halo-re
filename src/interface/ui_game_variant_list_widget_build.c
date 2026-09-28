@@ -18,6 +18,8 @@
 #include "interface.h"
 #include "saved_games.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern int32_t ui_list_current;      // 0x00692c04
@@ -40,7 +42,7 @@ void ui_game_variant_list_widget_build(widget_instance *widget)
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
     set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
 
-    combo_index = *(int16_t *)((uint8_t *)widget + 0x3c); // UNSURE offset, see ui_list_widget_rebuild_rows.c
+    combo_index = *(int16_t *)&((struct widget_instance *)widget)->text; // UNSURE offset, see ui_list_widget_rebuild_rows.c
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {
         ui_list_item *entry = (ui_list_item *)ui_lists[ui_list_current].data + combo_index;
         variant_description = entry->data;

@@ -35,6 +35,8 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "objects.h"
+#include "units.h"
 
 extern uint8_t unknown_006893ff;    // 0x006893ff lens flares enabled
 extern uint8_t lens_flare_occlusion_queries_supported; // 0x006e1dc0
@@ -115,12 +117,12 @@ void lens_flare_render_all(void)
         float intensity;
         int16_t j;
 
-        normal = *vector3d_unpack_normal_11_11_10(&unpacked, *(uint32_t *)(instance + 0x10));
+        normal = *vector3d_unpack_normal_11_11_10(&unpacked, ((struct lens_flare_instance *)instance)->packed_direction);
         if ((int16_t)(instance[0x22] & 0x7f) != *(int16_t *)(window + 2)) {
             continue;
         }
         definition = *(uint8_t **)instance;
-        if (*(int32_t *)(instance + 0x24) <= 0) {
+        if (((struct lens_flare_instance *)instance)->sample_count <= 0) {
             continue;
         }
         alpha = instance[0x1b];
@@ -128,7 +130,7 @@ void lens_flare_render_all(void)
             continue;
         }
 
-        position = *(real_point3d *)(instance + 0x04);
+        position = *(real_point3d *)&((struct lens_flare_instance *)instance)->position.x;
         d.i = position.x - camera[0];
         d.j = position.y - camera[1];
         d.k = position.z - camera[2];
@@ -202,7 +204,7 @@ void lens_flare_render_all(void)
             if (*(float *)(reflection + 0x40) == 0.0f && *(float *)(reflection + 0x44) == 0.0f &&
                 *(float *)(reflection + 0x48) == 0.0f && *(float *)(reflection + 0x4c) == 0.0f) {
                 colour = ((uint32_t)color_channel_real_to_byte(brightness) << 24) |
-                         (*(uint32_t *)(instance + 0x18) & 0xffffff);
+                         (((struct lens_flare_instance *)instance)->color & 0xffffff);
                 specular = 1.0f;
             } else {
                 ColorARGB tint;
@@ -288,7 +290,7 @@ void lens_flare_render_all(void)
         for (i = 0; i < lens_flare_instance_count; i++) {
             uint8_t *instance = (uint8_t *)&lens_flare_instances[i];
 
-            if (*(int32_t *)(instance + 0x24) > 0 && (int16_t)(instance[0x22] & 0x7f) == *(int16_t *)(window + 2)) {
+            if (((struct lens_flare_instance *)instance)->sample_count > 0 && (int16_t)(instance[0x22] & 0x7f) == *(int16_t *)(window + 2)) {
                 uint8_t *definition = *(uint8_t **)instance;
 
                 if (*(uint32_t *)(definition + 0x10) == 0x42480000 || (definition[0x30] & 1) != 0) {

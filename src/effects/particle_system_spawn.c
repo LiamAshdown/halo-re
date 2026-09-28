@@ -143,20 +143,20 @@ void particle_system_spawn(particle_system *system_record, int32_t type_index, f
         }
         particle = (uint8_t *)particle_system_particle_data->data + (handle & 0xffff) * 0x80;
         physics = initial ? *(int16_t *)(type + 0x54) : *(int16_t *)(state + 0xb0);
-        *(int16_t *)(particle + 8) = -1;
-        *(int16_t *)(particle + 0xa) = -1;
+        ((struct particle_system_particle *)particle)->state_index = -1;
+        ((struct particle_system_particle *)particle)->next_state_index = -1;
         particle[3] = 1;
         particle[2] = 1;
-        *(float *)(particle + 0x44) = -1.0f;
-        *(float *)(particle + 0x40) = particle_roll() * 6.2831855f; // 0x672c20
+        ((struct particle_system_particle *)particle)->frame = -1.0f;
+        ((struct particle_system_particle *)particle)->rotation = particle_roll() * 6.2831855f; // 0x672c20
         effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
         marker_index = (int16_t)(((effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
         particle_creation_physics_table[physics](system_record, type_index, (particle_system_particle *)particle,
             &markers[marker_index]);
         scenario_location_from_point((bsp_leaf_reference *)(particle + 0x14), (real_point3d *)(particle + 0x1c));
-        if (*(int16_t *)(particle + 0x18) != -1) {
+        if (((struct particle_system_particle *)particle)->location.cluster_index != -1) {
             *(int16_t *)(type_state + 0x3a) += 1;
-            *(datum_index *)(particle + 4) = *(datum_index *)(type_state + 0x3c);
+            ((struct particle_system_particle *)particle)->next_particle = *(datum_index *)(type_state + 0x3c);
             *(datum_index *)(type_state + 0x3c) = handle;
         } else {
             datum_delete(particle_system_particle_data, handle);

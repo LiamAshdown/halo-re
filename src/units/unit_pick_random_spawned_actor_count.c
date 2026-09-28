@@ -42,8 +42,8 @@ int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index) // blam-cc: un
             if (0 < (int16_t)result) {
                 // FIXED (objdump 0x5685d2..0x5685eb): EBX = the tag's spawned actor (+0x258), DX = the count,
                 //   stack = (this unit, tag +0x260 * 1/30). The draft passed only the count.
-                result = actor_spawn_additional_units(*(datum_index *)((uint8_t *)unit_tag + 0x258), (int16_t)result,
-                    unit_index, *(float *)((uint8_t *)unit_tag + 0x260) * 0.033333335f);
+                result = actor_spawn_additional_units(*(datum_index *)&((struct Unit *)unit_tag)->spawned_actor.tag_id, (int16_t)result,
+                    unit_index, ((struct Unit *)unit_tag)->spawned_velocity * 0.033333335f);
             }
             unit->flags |= _unit_flag_permutation_chosen;
         }

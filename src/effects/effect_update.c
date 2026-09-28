@@ -30,6 +30,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "game.h"
+#include "units.h"
 
 extern data_array *effect_data;                    // 0x0087abdc
 extern data_array *object_data;                    // 0x008603b0
@@ -81,11 +82,11 @@ void effect_update(datum_index effect_index, real dt)
         root = *(uint8_t **)((uint8_t *)object_data->data +
             (object_get_root_object_index(object_index) & 0xffff) * 0xc + 8);
         if (*(uint32_t *)(root + 0x10) & 0x800) {
-            *(uint32_t *)((uint8_t *)self + 0x10) = *(uint32_t *)(root + 0x98);
-            *(uint32_t *)((uint8_t *)self + 0x14) = *(uint32_t *)(root + 0x9c);
+            *(uint32_t *)&((struct effect *)self)->location.leaf_index = *(uint32_t *)(root + 0x98);
+            *(uint32_t *)&((struct effect *)self)->location.cluster_index = *(uint32_t *)(root + 0x9c);
             self->velocity = *(real_vector3d *)(root + 0x68);
         } else {
-            *(int16_t *)((uint8_t *)self + 0x14) = -1;
+            ((struct effect *)self)->location.cluster_index = -1;
         }
         if (self->flags & 2) {
             if (object_function_get_value(object_index, self->unknown_08, &self->a_scale)) {
@@ -121,7 +122,7 @@ void effect_update(datum_index effect_index, real dt)
 
     // suspended while no local player sees the effect's cluster
     {
-        int16_t cluster = *(int16_t *)((uint8_t *)self + 0x14);
+        int16_t cluster = ((struct effect *)self)->location.cluster_index;
         uint8_t visible = 0;
 
         if (cluster != -1) {

@@ -36,6 +36,8 @@
 #include "interface.h"
 #include "saved_games.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern int32_t ui_list_current;                        // 0x00692c04
 extern growable_array ui_lists[3];                      // 0x006b3830
@@ -72,7 +74,7 @@ static uint8_t level_unlocked_for(int16_t player, int32_t level_id)
 
 uint8_t ui_level_select_confirm_choice(widget_instance *widget)
 {
-    int16_t list_index = *(int16_t *)((uint8_t *)widget + 0x3c); // UNSURE: raw offset, see header
+    int16_t list_index = *(int16_t *)&((struct widget_instance *)widget)->text; // UNSURE: raw offset, see header
     int32_t level_id = -1;
     uint8_t unlocked = 0;
     growable_array *list = &ui_lists[ui_list_current];

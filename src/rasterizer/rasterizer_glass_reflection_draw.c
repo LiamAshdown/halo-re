@@ -263,7 +263,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
             if (count > 0) {
                 bump_bitmap = bitmap_group_get_bitmap_data(bump_map_tag,
                                                            (int16_t)((int32_t)(int16_t)group->shader_permutation % count));
-                if (*(int16_t *)((uint8_t *)bump_bitmap + 0xa) != 0) {
+                if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
                     bump_bitmap = 0;
                 }
             }

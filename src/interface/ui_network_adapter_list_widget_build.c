@@ -17,6 +17,8 @@
 #include "interface.h"
 #include "saved_games.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern map_list_entry *map_list;                 // 0x00712dcc
@@ -44,7 +46,7 @@ void ui_network_adapter_list_widget_build(widget_instance *widget)
     target2 = target1->next_sibling;
     target3 = target2->next_sibling;
 
-    map_id = (int16_t)map_list[*(int16_t *)((uint8_t *)widget + 0x3c)].map_id; // UNSURE offset, see ui_list_widget_rebuild_rows.c
+    map_id = (int16_t)map_list[*(int16_t *)&((struct widget_instance *)widget)->text].map_id; // UNSURE offset, see ui_list_widget_rebuild_rows.c
     target1->selection_index = map_id;
     target2->background_bitmap_frame = map_id;
     target3->selection_index = map_id;

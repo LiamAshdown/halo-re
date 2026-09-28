@@ -97,10 +97,10 @@ void unit_network_create_update_apply(void *incoming_record)
         machine = (*(int32_t **)&machine_table->handles)[message.machine_key];
     }
     memset(placement, 0, sizeof(placement));
-    *(datum_index *)(placement + 0x00) = message.definition;
-    *(int32_t *)(placement + 0x08) = machine;
-    *(int32_t *)(placement + 0x0c) = creator;
-    *(int16_t *)(placement + 0x14) = message.owner_team;
+    ((struct object_placement_data *)placement)->definition_tag = message.definition;
+    *(int32_t *)&((struct object_placement_data *)placement)->owner_linkage = machine;
+    *(int32_t *)&((struct object_placement_data *)placement)->role = creator;
+    ((struct object_placement_data *)placement)->owner_team = message.owner_team;
     memcpy(placement + 0x18, &message.position, 12);
     memcpy(placement + 0x28, &message.vector_38, 12);
     memcpy(placement + 0x34, &message.forward, 12);

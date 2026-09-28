@@ -34,6 +34,8 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -249,7 +251,7 @@ void actor_update_crouch_state(datum_index actor_index)
             *countdown_360 = (int16_t)(*countdown_360 - 1);
         }
     } else {
-        actor_push_recognition_entry(actor_index, *(int16_t *)((uint8_t *)self + 0x3b8), 1); // 0x42186f
+        actor_push_recognition_entry(actor_index, ((struct actor *)self)->firing_position_index, 1); // 0x42186f
         *countdown_360 = 0x16;
     }
 

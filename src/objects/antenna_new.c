@@ -79,7 +79,7 @@ datum_index antenna_new(datum_index antenna_tag)
                             if (bitmap_data != 0) {
                                 // UNSURE: raw offsets, see file header
                                 float width = (float)*(int16_t *)((uint8_t *)bitmap_data + 4);
-                                float spacing = (float)*(int16_t *)((uint8_t *)bitmap + 0x50);
+                                float spacing = (float)*(int16_t *)&((struct Bitmap *)bitmap)->sprite_spacing;
                                 vertex->texture_scale = tag_vertex->length /
                                     (((sprite->right - sprite->left) * width - (spacing + spacing)) - 1.0f);
                             }

@@ -72,7 +72,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
 
         if (count > 0) {
             bitmap = bitmap_group_get_bitmap_data(self_illumination, (int16_t)((int32_t)frame % count));
-            if (*(int16_t *)((uint8_t *)bitmap + 0xa) != 0) {
+            if (*(int16_t *)&((struct BitmapData *)bitmap)->type != 0) {
                 bitmap = 0;
             }
         }
@@ -90,8 +90,8 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     }
     if (bitmap != 0) {
         rasterizer_bind_texture_d3d9(0, bitmap);
-        rasterizer_bound_bitmap_size_a[0] = *(int16_t *)((uint8_t *)bitmap + 0x4);
-        rasterizer_bound_bitmap_size_a[1] = *(int16_t *)((uint8_t *)bitmap + 0x6);
+        rasterizer_bound_bitmap_size_a[0] = *(int16_t *)&((struct BitmapData *)bitmap)->width;
+        rasterizer_bound_bitmap_size_a[1] = *(int16_t *)&((struct BitmapData *)bitmap)->height;
     }
 
     // stage 1: the environment lightmap, or capture surface 0

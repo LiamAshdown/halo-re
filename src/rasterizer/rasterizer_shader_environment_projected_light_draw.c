@@ -82,7 +82,7 @@ static void rasterizer_bind_bump_map(uint32_t bump_map_tag, int16_t frame, raste
 
         if (count > 0) {
             bump_bitmap = bitmap_group_get_bitmap_data(bump_map_tag, (int16_t)((int32_t)frame % count));
-            if (*(int16_t *)((uint8_t *)bump_bitmap + 0xa) != 0) {
+            if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
                 bump_bitmap = 0;
             }
         }

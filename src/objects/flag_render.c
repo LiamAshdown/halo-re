@@ -46,8 +46,8 @@ void flag_render(uint32_t *entry /*param_1, flag* */, uint32_t *submission_block
     // blam-cc: UNSURE throughout, see file header; this signature is a guess with no verified
     // call site (zero recorded callers)
 {
-    int16_t width = *(int16_t *)((uint8_t *)tag + 0xc);
-    int16_t height = *(int16_t *)((uint8_t *)tag + 0xe);
+    int16_t width = ((struct Flag *)tag)->width;
+    int16_t height = ((struct Flag *)tag)->height;
     int32_t model_context;
     void *normal_buffer;
     void *index_buffer;

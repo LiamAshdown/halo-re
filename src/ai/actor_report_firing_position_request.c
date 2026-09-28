@@ -13,6 +13,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -88,7 +90,7 @@ void actor_report_firing_position_request(datum_index actor_index,
     kind = (query->goal_kind >= 1 && query->goal_kind <= 3) ? 1 : 0;
     // 0x41224b..0x41227d: from the marker point to the query's target (+0x61c, cluster +0x640)
     candidate->request_result = (int16_t)actor_evaluate_engagement_reachability(
-        *(int16_t *)((uint8_t *)candidate->position + 0xe), *(int16_t *)((uint8_t *)query + 0x640),
+        *(int16_t *)((uint8_t *)candidate->position + 0xe), ((struct actor_firing_position_query *)query)->target_unknown_640,
         (real_point3d *)((uint8_t *)query + 0x61c), &marker_point, (int16_t)kind, 1,
         (uint32_t)query->target_relationship_object, self->active_unit_index != (datum_index)0xffffffff);
 }

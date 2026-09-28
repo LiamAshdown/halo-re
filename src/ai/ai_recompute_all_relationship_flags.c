@@ -80,7 +80,7 @@ void ai_recompute_all_relationship_flags(void)
             prop_cursor = p->next_in_actor;
 
             tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
-            object_team = *(int16_t *)((uint8_t *)tracked_object + 0xb8);
+            object_team = ((struct object *)tracked_object)->owner_team;
             p->object_type = object_team;
             actor_team = a->team;
 

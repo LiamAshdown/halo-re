@@ -23,6 +23,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;           // 0x00880360
 extern data_array *swarm_data;           // 0x0088035c
@@ -85,12 +87,12 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
 
     // 0x428551..0x428577: the ACTIVE movement action (type +0x46c == 5, object +0x470). FIXED 2026-09-27: the draft
     // tested and cleared secondary_action (+0x418), so dropping a reference wiped the actor's queued secondary action.
-    if (self->active_movement.type == 5 && *(uint32_t *)((uint8_t *)self + 0x470) == old_reference) {
+    if (self->active_movement.type == 5 && *(uint32_t *)&((struct actor *)self)->active_movement.destination.x == old_reference) {
         if (new_reference == 0xffffffff) {
             self->active_movement.type = 0;
             self->active_movement.extra = 0xffffffff; // offset 0x480
         } else {
-            *(uint32_t *)((uint8_t *)self + 0x470) = new_reference;
+            *(uint32_t *)&((struct actor *)self)->active_movement.destination.x = new_reference;
         }
     }
 

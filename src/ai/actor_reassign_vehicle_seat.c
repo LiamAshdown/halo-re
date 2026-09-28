@@ -79,8 +79,8 @@ int32_t actor_reassign_vehicle_seat(datum_index vehicle_object_index, datum_inde
     } else {
         object *occupant_obj = ((object_header *)object_data->data)[occupant & 0xffff].data;
         object *self_obj = ((object_header *)object_data->data)[self_object_index & 0xffff].data;
-        reason = teams_are_enemies(*(int16_t *)((uint8_t *)occupant_obj + 0xb8),
-                               *(int16_t *)((uint8_t *)self_obj + 0xb8)) ? 3 : 2;
+        reason = teams_are_enemies(((struct object *)occupant_obj)->owner_team,
+                               ((struct object *)self_obj)->owner_team) ? 3 : 2;
     }
 
     ai_communication_broadcast(0, self_object_index, occupant, reason, seat_selector,

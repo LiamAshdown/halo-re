@@ -38,6 +38,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -167,9 +168,9 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
             }
             query->have_target = 1;
             query->target_position = target->last_known_position;
-            query->target_surface_index = *(uint32_t *)((uint8_t *)target + 0xec);
-            query->target_surface_point = *(real_point3d *)((uint8_t *)target + 0xf0);
-            query->target_unknown_640 = *(int16_t *)((uint8_t *)target + 0x100);
+            query->target_surface_index = *(uint32_t *)&((struct prop *)target)->path_surface_index;
+            query->target_surface_point = *(real_point3d *)&((struct prop *)target)->ground_position.x;
+            query->target_unknown_640 = ((struct prop *)target)->cluster_index;
             query->target_distance = target->distance;
             query->target_prop_index = prop_index;
             query->target_aim_position = *(real_point3d *)((uint8_t *)target + 0x104);

@@ -88,7 +88,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
 
             if (2.0f <= target->distance || (bonus_a = 5, target->kind == 5)) {
                 if (target->relationship_object_index == -1) {
-                    if (target->unknown_130 == 0 || *(float *)((uint8_t *)actor_def + 0x38c) != 0.0f) {
+                    if (target->unknown_130 == 0 || ((struct Actor *)actor_def)->melee_leap_velocity != 0.0f) {
                         if (target->unknown_118 == self->unknown_15d) {
                             // FIXED (0x41fec2): beyond the melee threshold -> 2 (0x41ff0a),
                             //   within it -> 3; the old C left 0 / 5 in place for the far case
@@ -117,7 +117,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
                     // 0x41ff44 / 0x41ff5e: definition +0xa0 and +0x74
                     if (target->distance >= *(const float *)((const uint8_t *)variant_def + 0xa0)) {
                         bonus_a = 2;
-                        if (target->distance >= *(const float *)((const uint8_t *)variant_def + 0x74)) {
+                        if (target->distance >= ((struct ActorVariant *)variant_def)->maximum_firing_distance) {
                             bonus_a = 1;
                         }
                     } else {

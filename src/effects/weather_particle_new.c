@@ -102,13 +102,13 @@ datum_index weather_particle_new(int16_t instance_index, int16_t type_index)
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         // 0x4583b4: EAX = type +0x148, ECX = type +0x138, stack (particle +0x38, type +0x20, t)
         color_interpolate((ColorRGB *)((uint8_t *)type + 0x148), (ColorRGB *)((uint8_t *)type + 0x138),
-            (ColorRGB *)&p->color, *(uint32_t *)((uint8_t *)type + 0x20),
+            (ColorRGB *)&p->color, *(uint32_t *)&((struct WeatherParticleSystemParticleType *)type)->flags,
             (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f));
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         p->alpha = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) *
-            (*(real *)((uint8_t *)type + 0x144) - *(real *)((uint8_t *)type + 0x134)) +
-            *(real *)((uint8_t *)type + 0x134);
+            (*(real *)&((struct WeatherParticleSystemParticleType *)type)->color_upper_bound - *(real *)&((struct WeatherParticleSystemParticleType *)type)->color_lower_bound) +
+            *(real *)&((struct WeatherParticleSystemParticleType *)type)->color_lower_bound;
 
         p->next_particle = slot->first_particle;
         slot->particle_count += 1;

@@ -19,6 +19,8 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern int32_t ui_list_current; // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
@@ -49,7 +51,7 @@ uint8_t ui_event_49dab0(widget_instance *widget, int16_t *event, uint8_t *out_ha
 {
     uint32_t variant[0x26];
     char directory[0x100];
-    int32_t id = list_item_id(*(int16_t *)((uint8_t *)widget + 0x3c));
+    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
     int32_t item = ((int32_t *)widget->list_items)[id];
 
     if (item == -1 || item >= 0) {

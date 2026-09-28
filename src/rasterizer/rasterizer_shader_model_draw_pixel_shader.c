@@ -200,10 +200,10 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     } else {
         set_render_state(0x1c, (shader[0x28] >> 4) & 1);       // true_atmospheric_fog
     }
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0xb0), 0, 0, 1, frame, slot);   // base_map
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0xe8), 0, 1, 2, frame, slot);   // detail_map
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0xc8), 0, 2, 1, frame, slot);   // multipurpose_map
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0x170), 2, 3, 0, frame, slot);  // reflection_cube_map
+    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&((struct ShaderModel *)shader)->base_map.tag_id, 0, 0, 1, frame, slot);   // base_map
+    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&((struct ShaderModel *)shader)->detail_map.tag_id, 0, 1, 2, frame, slot);   // detail_map
+    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&((struct ShaderModel *)shader)->multipurpose_map.tag_id, 0, 2, 1, frame, slot);   // multipurpose_map
+    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&((struct ShaderModel *)shader)->reflection_cube_map.tag_id, 2, 3, 0, frame, slot);  // reflection_cube_map
 
     context = rasterizer_active_model_context;
     animated.red = 0.0f;
@@ -266,7 +266,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     }
 
     // vertex shader: 25 (0x0071d1fb), 26 (point lights), 28 (general) or 29 (no extra maps)
-    true_atmospheric_fog = *(uint16_t *)(shader + 0x28) & 0x10;
+    true_atmospheric_fog = *(uint16_t *)&((struct ShaderModel *)shader)->shader_model_flags & 0x10;
     if (true_atmospheric_fog) {
         vertex_shader = 0x1c;
     } else if (unknown_0071d1fb) {
@@ -275,12 +275,12 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         vertex_shader = 0x1a;
     } else if (context->node_count > 1) {
         vertex_shader = 0x1c;
-    } else if (*(int32_t *)(shader + 0xc8) != -1 &&
+    } else if (*(int32_t *)&((struct ShaderModel *)shader)->multipurpose_map.tag_id != -1 &&
                (model->detail_mask != 0 ||
                 animated.red != 0.0f || animated.green != 0.0f || animated.blue != 0.0f ||
                 change.red != 1.0f || change.green != 1.0f || change.blue != 1.0f)) {
         vertex_shader = 0x1c;
-    } else if (*(int32_t *)(shader + 0x170) != -1 && reflection > 0.0f) {
+    } else if (*(int32_t *)&((struct ShaderModel *)shader)->reflection_cube_map.tag_id != -1 && reflection > 0.0f) {
         vertex_shader = 0x1c;
     } else {
         vertex_shader = 0x1d;

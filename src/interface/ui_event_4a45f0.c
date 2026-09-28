@@ -15,6 +15,8 @@
 #include "cache.h"
 #include "interface.h"
 #include <stdio.h>
+#include "objects.h"
+#include "units.h"
 
 extern int32_t ui_list_current; // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
@@ -30,7 +32,7 @@ static void *list_item_data(int16_t index)
 
 uint8_t ui_event_4a45f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *data = (uint8_t *)list_item_data(*(int16_t *)((uint8_t *)widget + 0x3c));
+    uint8_t *data = (uint8_t *)list_item_data(*(int16_t *)&((struct widget_instance *)widget)->text);
     char name[0x40];
 
     sprintf(name, "checkpoints\\%s", (char *)(data + 0x48)); // format at 0x0066a4dc

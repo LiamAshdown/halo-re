@@ -111,9 +111,9 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     }
     frame = (int16_t)group->shader_permutation;
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
-        maps = (uint8_t *)(uintptr_t)*(uint32_t *)(shader + 0x64);   // maps_2_stage
+        maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_2_stage.pointer;   // maps_2_stage
     } else {
-        maps = (uint8_t *)(uintptr_t)*(uint32_t *)(shader + 0x58);   // maps_4_stage
+        maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.pointer;   // maps_4_stage
     }
     if (maps == NULL || *(uint32_t *)(maps + 0x70) == 0) {        // first map has no bitmap path
         return;
@@ -130,9 +130,9 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     }
 
     // extra layers: the same geometry drawn with each layer shader first
-    for (layer = 0; layer < *(int32_t *)(shader + 0x48); layer++) {
+    for (layer = 0; layer < *(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->extra_layers.count; layer++) {
         transparent_geometry_group copy = *group;
-        const uint8_t *layers = (const uint8_t *)(uintptr_t)*(uint32_t *)(shader + 0x4c);
+        const uint8_t *layers = (const uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->extra_layers.pointer;
         uint32_t tag_id = *(uint32_t *)(layers + layer * 0x10 + 0xc);
 
         copy.sorted_index = -1;
@@ -146,11 +146,11 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     set_render_state(0x0f, shader[0x29] & 1);              // alpha_tested
     set_render_state(0x18, 0x7f);
     set_render_state(0x1c, 0);
-    chimera__rasterizer_set_framebuffer_blend_function(*(int16_t *)(shader + 0x2c));
+    chimera__rasterizer_set_framebuffer_blend_function(*(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_blend_function);
 
     // numeric shaders pick the frame of the first map from a function value or the game timer
-    if ((int8_t)shader[0x29] < 0 && group->lighting_extra != 0 && *(int32_t *)(shader + 0x54) > 0) {
-        const uint8_t *maps_4_stage = (const uint8_t *)(uintptr_t)*(uint32_t *)(shader + 0x58);
+    if ((int8_t)shader[0x29] < 0 && group->lighting_extra != 0 && *(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.count > 0) {
+        const uint8_t *maps_4_stage = (const uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.pointer;
         const uint8_t *bitmap = (const uint8_t *)tag_instances[*(uint32_t *)(maps_4_stage + 0x78) & 0xffff].data;
         int16_t base = *(int16_t *)(bitmap + 0x60);               // Bitmap.bitmap_data.count, the digit count
 
@@ -179,18 +179,18 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
 
     // the map list of the stage count this card draws
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
-        map_count = (int16_t)*(int32_t *)(shader + 0x60);
-        maps = (uint8_t *)(uintptr_t)*(uint32_t *)(shader + 0x64);
+        map_count = (int16_t)*(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->maps_2_stage.count;
+        maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_2_stage.pointer;
     } else {
-        map_count = (int16_t)*(int32_t *)(shader + 0x54);
-        maps = (uint8_t *)(uintptr_t)*(uint32_t *)(shader + 0x58);
+        map_count = (int16_t)*(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.count;
+        maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.pointer;
     }
     for (map = 0; map < map_count; map++) {
         map_list[map] = maps + map * 0xdc;
     }
 
     // maps present: textures, sampler states, texture animation rows
-    first_map_type = *(int16_t *)(shader + 0x2a);
+    first_map_type = *(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->first_map_type;
     for (map = 0; map < map_count; map++) {
         uint8_t *entry = map_list[map];
         int16_t bitmap_type = (map != 0) ? 0 : rasterizer_extended_first_map_bitmap_types[first_map_type];
@@ -264,11 +264,11 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     }
 
     stage = (int16_t)map_count;                                   // one stage past the maps
-    if ((group->flags & 0x10) && *(int16_t *)(shader + 0x2c) == 0) {
+    if ((group->flags & 0x10) && *(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_blend_function == 0) {
         goto draw;
     }
     {
-        int16_t fade_source = *(int16_t *)(shader + 0x30);
+        int16_t fade_source = *(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_fade_source;
         int i;
 
         for (i = 0; i < 3; i++) {
@@ -297,14 +297,14 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         }
         ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 10, &fade_constants[0][0], 3);
     }
-    switch (*(int16_t *)(shader + 0x2e)) {                        // framebuffer_fade_mode
+    switch (*(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_fade_mode) {                        // framebuffer_fade_mode
     case 0: fade_argument = 0x20; break;                          // DIFFUSE | ALPHAREPLICATE
     case 1: fade_argument = 0x24; break;                          // SPECULAR | ALPHAREPLICATE
     case 2: fade_argument = 4; break;                             // SPECULAR
     default: fade_argument = (uint32_t)(uintptr_t)shader; break;  // the stack slot of the shader pointer
     }
 
-    switch (*(int16_t *)(shader + 0x2c)) {                        // framebuffer_blend_function
+    switch (*(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_blend_function) {                        // framebuffer_blend_function
     case 0:                                                       // alpha blend
         if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
             stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);

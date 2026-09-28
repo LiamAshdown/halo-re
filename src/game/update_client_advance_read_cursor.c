@@ -20,6 +20,8 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
 
 extern int32_t update_client_unknown_ea0; // 0x006f7ea0
 
@@ -46,7 +48,7 @@ void update_client_advance_read_cursor(int32_t target_tick, const uint32_t *reco
     if (target_tick > update_client_unknown_ea0) {
         for (tick = update_client_unknown_ea0 + 1; tick < target_tick; tick++) {
             update_client_queue_get_slot(tick);
-            *(uint16_t *)((uint8_t *)slot + 4) = 0xffff;
+            ((struct update_record *)slot)->player_count = 0xffff;
         }
         update_client_unknown_ea0 = target_tick;
     }

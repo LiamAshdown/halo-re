@@ -145,7 +145,7 @@ uint32_t device_machine_update(uint32_t object_index)
                     dev->device.position == 0.0f) {
                     // One-sided and fully closed: only a candidate on the front side, or one
                     // exempted by the team test below, passes.
-                    int16_t team = *(int16_t *)((uint8_t *)candidate + 0xb8); // UNSURE, see header
+                    int16_t team = ((struct object *)candidate)->owner_team; // UNSURE, see header
                     int exempt;
                     if (current_game_engine == 0) {
                         if (team < 0 || 9 < team) {

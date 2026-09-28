@@ -77,7 +77,7 @@ void hud_draw_weapon_interface(player *p)
         datum_index hud_tag;
 
         weapon_build_hud_ammo_state(weapon, &ammo);
-        hud_tag = *(datum_index *)((uint8_t *)weapon_tag + 0x48c); // Weapon hud_interface tag id
+        hud_tag = *(datum_index *)&((struct Weapon *)weapon_tag)->hud_interface.tag_id; // Weapon hud_interface tag id
         if (hud_tag != (datum_index)-1) {
             hud_weapon_crosshairs_draw(hud_tag, p, &ammo);
             hud_weapon_interface_draw_elements(hud_tag, p->local_player_index, weapon_tag, &ammo, 0, 0, 0);

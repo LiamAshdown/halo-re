@@ -16,6 +16,8 @@
 #include "cache.h"
 #include "ai.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *encounter_data;   // 0x008802c8
@@ -229,7 +231,7 @@ uint8_t actor_update_melee_combat_action(datum_index actor_index)
                         query[0x43] = (uint8_t)(D(a, 0x270) != k_datum_index_none);
                         query[0x14] = hold;
                         *(uint32_t *)query = actor_get_firing_position_group_mask(actor_index, 5, 0);
-                        *(float *)(query + 0x1c) = 20.0f;
+                        ((struct actor_firing_position_query *)query)->search_radius = 20.0f;
                         position = (int16_t)actor_find_best_firing_position(actor_index, (actor_firing_position_query *)query,
                             (actor_firing_position_candidate *)candidate, &previous_owner,
                             &path_context, &path_ok);

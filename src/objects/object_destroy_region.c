@@ -49,7 +49,7 @@ void object_destroy_region(uint32_t object_index, int32_t region_index)
             ModelCollisionGeometryRegion *region = &((ModelCollisionGeometryRegion *)geometry->regions.pointer)[region_index];
 
             // 0x4f032a..0x4f0351: EAX = the object, ECX = the region's +0x44 effect, stack: object, -1, 0..
-            effect_new_on_object(object_index, *(datum_index *)((uint8_t *)region + 0x44), object_index, -1,
+            effect_new_on_object(object_index, *(datum_index *)&((struct ModelCollisionGeometryRegion *)region)->destroyed_effect.tag_id, object_index, -1,
                 0.0f, 0.0f, 0, 0);
             object_set_permutation_by_name(object_index, "~damaged", (int16_t)region_index, 1);
 

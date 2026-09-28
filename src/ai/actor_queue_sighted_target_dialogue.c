@@ -182,7 +182,7 @@ broadcast_check:
             while (cluster_index != (datum_index)k_datum_index_none) {
                 object_header *header = &((object_header *)object_data->data)[cluster_index & 0xffff];
                 struct object *unit_object = header->data;
-                *(uint16_t *)((uint8_t *)unit_object + 0x106) |= 0x20;
+                ((struct object *)unit_object)->vitality_flags |= 0x20;
                 cluster_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc); // unit.swarm_next_unit_index
             }
         }

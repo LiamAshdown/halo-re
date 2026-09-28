@@ -52,7 +52,7 @@ datum_index object_new_from_scenario_placement(uint8_t *placement, TagReflexive 
         return k_datum_index_none;
     }
     object_placement_data_initialize(&data, tag, k_datum_index_none);
-    data.position = *(real_point3d *)(placement + 0x08);
+    data.position = *(real_point3d *)&((struct object_placement_data *)placement)->owner_linkage;
     euler_angles_to_basis_vectors((real_euler_angles3d *)(placement + 0x14), &data.up, &data.forward);
     data.permutation_group = *(int16_t *)(placement + 0x06);
     object = object_new(&data);

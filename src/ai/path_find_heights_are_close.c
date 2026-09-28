@@ -39,7 +39,7 @@ uint8_t path_find_heights_are_close(ScenarioStructureBSP *structure_bsp, real_po
     if (surface_a == -1 || surface_b == -1) {
         return 0;
     }
-    collision_bsp = (ModelCollisionGeometryBSP *)(uintptr_t)*(uint32_t *)((uint8_t *)structure_bsp + 0xb4);
+    collision_bsp = (ModelCollisionGeometryBSP *)(uintptr_t)((struct ScenarioStructureBSP *)structure_bsp)->collision_bsp.pointer;
     surfaces = (ModelCollisionGeometryBSPSurface *)(uintptr_t)collision_bsp->surfaces.pointer;
     planes = (real_plane3d *)(uintptr_t)collision_bsp->planes.pointer;
 

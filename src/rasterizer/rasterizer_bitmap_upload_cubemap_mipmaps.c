@@ -60,7 +60,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
     int32_t level_bytes, slice_bytes;
     void **vtable;
 
-    if (rasterizer_device == 0 || *(uint32_t *)((uint8_t *)bitmap + 0x2c) == 0 || bitmap->hardware_texture == 0) {
+    if (rasterizer_device == 0 || *(uint32_t *)&((struct BitmapData *)bitmap)->pixel_base == 0 || bitmap->hardware_texture == 0) {
         return;
     }
     // D3DPTEXTURECAPS_MIPVOLUMEMAP (TextureCaps bit 15): upload every mip level, else only the first

@@ -84,7 +84,7 @@ no_relationship_object:
     if (self_object_index == relationship_object_index) {
         reason = 1;
     } else if (relationship_obj != 0) {
-        reason = (teams_are_enemies(*(int16_t *)((uint8_t *)relationship_obj + 0xb8), *(int16_t *)((uint8_t *)self_obj + 0xb8)) != 0) + 2; // 0x42bf00
+        reason = (teams_are_enemies(((struct object *)relationship_obj)->owner_team, ((struct object *)self_obj)->owner_team) != 0) + 2; // 0x42bf00
     }
 
     if (suppress_vehicle_relay == 0 && reason == 2) {
@@ -100,8 +100,8 @@ no_relationship_object:
                                 event_kind, (datum_index)k_datum_index_none, 0);
 skip_broadcast:
     if (relationship_obj != 0) {
-        team_pair_override_refresh(*(int16_t *)((uint8_t *)self_obj + 0xb8),
-                                   *(int16_t *)((uint8_t *)relationship_obj + 0xb8)); // FIXED: arguments from the binary call site (the draft passed none) (0x42bf68..0x42bf7a: BX = our team, DI = the relationship object team)
+        team_pair_override_refresh(((struct object *)self_obj)->owner_team,
+                                   ((struct object *)relationship_obj)->owner_team); // FIXED: arguments from the binary call site (the draft passed none) (0x42bf68..0x42bf7a: BX = our team, DI = the relationship object team)
     }
 }
 

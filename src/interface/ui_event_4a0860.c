@@ -21,6 +21,8 @@
 #include "cache.h"
 #include "interface.h"
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
 
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current; // 0x00692c04
@@ -54,7 +56,7 @@ uint8_t ui_event_4a0860(widget_instance *widget, int16_t *event, uint8_t *out_ha
         colour = (int16_t)(colour < 0 ? 0 : colour > 0x11 ? 0x11 : colour);
         *(int16_t *)(profile + 0x11a) = colour;
         widget->selection_index = colour;
-        *(int16_t *)((uint8_t *)widget + 0x3c) = *(int16_t *)(profile + 0x11a);
+        *(int16_t *)&((struct widget_instance *)widget)->text = *(int16_t *)(profile + 0x11a);
         *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
     }
     indices = (uint8_t *)heap_reallocate(widget->list_items, 0x12, widget_memory_pool);

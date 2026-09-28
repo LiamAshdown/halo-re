@@ -102,7 +102,7 @@ void unit_record_recent_damage_and_react(uint32_t unit_index, float damage_amoun
         return;
     }
 
-    int16_t self_team = *(int16_t *)((uint8_t *)unit_obj + 0xb8); // UNSURE: object.owner_team reused as team
+    int16_t self_team = ((struct object *)unit_obj)->owner_team; // UNSURE: object.owner_team reused as team
     uint8_t hostile;
     if (current_game_engine == 0) {
         if ((self_team < 0) || (9 < self_team) || (team_index < 0) || (9 < team_index)) {

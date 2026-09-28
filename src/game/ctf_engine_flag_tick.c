@@ -96,9 +96,9 @@ void ctf_engine_flag_tick(uint32_t flag_handle, object *flag_obj)
             }
             if (ctf_flag_auto_return_ticks == 0) {
                 if ((item->flags & _item_in_inventory_bit) != 0) {
-                    if (ctf_single_flag_mode != 0 && *(int32_t *)((uint8_t *)flag_obj + 0xc0) != -1) {
+                    if (ctf_single_flag_mode != 0 && *(int32_t *)&((struct object *)flag_obj)->owner_linkage != -1) {
                         player *carrier = (player *)datum_get(
-                            (datum_index)*(uint32_t *)((uint8_t *)flag_obj + 0xc0), player_data);
+                            (datum_index)((struct object *)flag_obj)->owner_linkage, player_data);
                         if (carrier != (player *)0) {
                             object *unit_obj = object_try_and_get(carrier->unit, _object_mask_unit);
                             if (unit_obj != (object *)0) {
@@ -148,10 +148,10 @@ void ctf_engine_flag_tick(uint32_t flag_handle, object *flag_obj)
                 ctf_team_return_credit_ticks[1] = 0;
                 custom_waypoints[0] = (custom_waypoint){0};
                 custom_waypoints[1] = (custom_waypoint){0};
-                ctf_team_flag_object[team = *(int16_t *)((uint8_t *)flag_obj + 0xb8)] = (datum_index)0xffffffff;
+                ctf_team_flag_object[team = ((struct object *)flag_obj)->owner_team] = (datum_index)0xffffffff;
 
                 {
-                    uint32_t toggled = (uint32_t)(*(int16_t *)((uint8_t *)flag_obj + 0xb8) + 1) & 0x80000001;
+                    uint32_t toggled = (uint32_t)(((struct object *)flag_obj)->owner_team + 1) & 0x80000001;
                     if ((int32_t)toggled < 0) {
                         toggled = (toggled - 1 | 0xfffffffe) + 1;
                     }
@@ -161,7 +161,7 @@ void ctf_engine_flag_tick(uint32_t flag_handle, object *flag_obj)
                     flag_handle = *(uint32_t *)((uint8_t *)&ctf_team_flag_object[0] + (int16_t)toggled * 4);
                     flag_obj = ((object_header *)object_data->data)[flag_handle & 0xffff].data;
                     item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
-                    game_engine_queue_multiplayer_sound(0x25 + (*(int16_t *)((uint8_t *)flag_obj + 0xb8) != 0), 0xffffffff, 1); // 0x468e5d..0x468e79
+                    game_engine_queue_multiplayer_sound(0x25 + (((struct object *)flag_obj)->owner_team != 0), 0xffffffff, 1); // 0x468e5d..0x468e79
                     game_engine_ctf_reset_team_return_credit(flag_handle); // FIXED 2026-09-28: 0x468840 takes only EAX
                     custom_waypoints[2] = (custom_waypoint){0};
                     custom_waypoints[3] = (custom_waypoint){0};
@@ -208,7 +208,7 @@ notify_teams:
     if (flag_obj->parent_object != (datum_index)0xffffffff) {
         goto weapon_coordination;
     }
-    team = *(int16_t *)((uint8_t *)flag_obj + 0xb8);
+    team = ((struct object *)flag_obj)->owner_team;
     {
         uint32_t toggled = (uint32_t)(team + 1) & 0x80000001;
         if ((int32_t)toggled < 0) {
@@ -231,7 +231,7 @@ notify_teams:
 
 weapon_coordination:
     holder_player_index = game_engine_find_player_holding_object((datum_index)flag_handle);
-    team = *(int16_t *)((uint8_t *)flag_obj + 0xb8);
+    team = ((struct object *)flag_obj)->owner_team;
     {
         uint32_t toggled = (uint32_t)(team + 1) & 0x80000001;
         if ((int32_t)toggled < 0) {

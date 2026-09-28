@@ -42,7 +42,7 @@ void widget_new(uint32_t object_index /*EAX*/) // blam-cc: EAX -> object_index
 
         for (type = 0; type < k_maximum_widget_types; type++) {
             if (widget_type_definitions[type].group_tag == *(uint32_t *)attachment) {
-                if (*(int32_t *)((uint8_t *)attachment + 0xc) != -1) {
+                if (*(int32_t *)&((struct ObjectWidget *)attachment)->reference.tag_id != -1) {
                     datum_index handle = datum_new(widget_data);
                     if (handle != (datum_index)0xffffffff) {
                         widget *entry = &((widget *)widget_data->data)[handle & 0xffff];
@@ -55,7 +55,7 @@ void widget_new(uint32_t object_index /*EAX*/) // blam-cc: EAX -> object_index
                         } else {
                             datum_index (*new_instance)(TagID) =
                                 (datum_index (*)(TagID))widget_type_definitions[type].new_instance;
-                            datum_index instance = new_instance(*(TagID *)((uint8_t *)attachment + 0xc));
+                            datum_index instance = new_instance(((struct ObjectWidget *)attachment)->reference.tag_id);
 
                             entry->instance = instance;
                             if (instance == (datum_index)0xffffffff) {

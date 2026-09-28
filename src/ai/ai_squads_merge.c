@@ -120,7 +120,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
         if (!(state->unknown_18 > 0) && source_enc->unknown_1e[0] == 0) {
             continue;
         }
-        squad = *(uint8_t **)((uint8_t *)source_definition + 0x84) + iterator.cursor * 0xe8;
+        squad = *(uint8_t **)&((struct ScenarioEncounter *)source_definition)->squads.pointer + iterator.cursor * 0xe8;
         palette_index = *(int16_t *)(squad + 0x20);
         if (palette_index >= 0 && (int32_t)palette_index < *(int32_t *)((uint8_t *)global_scenario + 0x420)) {
             uint8_t *entry = *(uint8_t **)((uint8_t *)global_scenario + 0x424) + palette_index * 0x10;
@@ -213,7 +213,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
         }
         *(uint32_t *)(raw + 0x30) = target_index;
         *(int16_t *)(raw + 0x38) = remapped;
-        if (merging_into_self || *(int16_t *)((uint8_t *)target_definition + 0x7e) != global_structure_bsp_index) {
+        if (merging_into_self || *(int16_t *)&((struct ScenarioEncounter *)target_definition)->precomputed_bsp_index != global_structure_bsp_index) {
             continue;
         }
         ai_actor_unlink_from_unassigned_list(current);

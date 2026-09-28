@@ -30,7 +30,7 @@ uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d 
 {
     uint8_t in_water = 0;
     int16_t weather_row = -1;
-    int16_t cluster = *(int16_t *)((uint8_t *)location + 4);
+    int16_t cluster = ((struct bsp_leaf_reference *)location)->cluster_index;
 
     if (cluster != -1) {
         uint32_t skip_non_water = filter_flags & 4;

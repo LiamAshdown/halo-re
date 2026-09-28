@@ -22,6 +22,8 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
@@ -32,7 +34,7 @@ extern void input_queue_push_event(int16_t queue_index, ui_input_event *record);
 static void row_clicked(widget_instance *list, int32_t row, int32_t old_committed, uint8_t double_click)
 {
     widget_play_sound_effect(2);
-    *(int16_t *)((uint8_t *)list + 0x3c) = (int16_t)row;
+    *(int16_t *)&((struct widget_instance *)list)->text = (int16_t)row;
     if (double_click && old_committed == row) {
         ui_input_event queued;
 
@@ -48,7 +50,7 @@ uint8_t ui_event_4a3540(widget_instance *widget, int16_t *event, uint8_t *out_ha
     uint8_t *definition = (uint8_t *)tag_instances[list->definition & 0xffff].data;
     int32_t rows = *(int32_t *)(definition + 0x3e0);
     int32_t first_visible = *(int16_t *)((uint8_t *)list + 0x3e);
-    int32_t committed = *(int16_t *)((uint8_t *)list + 0x3c);
+    int32_t committed = *(int16_t *)&((struct widget_instance *)list)->text;
     widget_instance *child = list->first_child;
     uint8_t header = (uint8_t)(child != 0 && child->first_child != 0 && child->first_child->widget_type == 2);
     uint8_t double_click = 0;

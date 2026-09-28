@@ -112,7 +112,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
     }
     frame = (int16_t)group->shader_permutation;
-    maps = (uint8_t *)(uintptr_t)*(uint32_t *)(shader + 0x58);
+    maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicago *)shader)->maps.pointer;
     if (maps == NULL || *(uint32_t *)(maps + 0x70) == 0) {        // first map has no bitmap path
         return;
     }
@@ -128,9 +128,9 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
     }
 
     // extra layers: the same geometry drawn with each layer shader first
-    for (layer = 0; layer < *(int32_t *)(shader + 0x48); layer++) {
+    for (layer = 0; layer < *(int32_t *)&((struct ShaderTransparentChicago *)shader)->extra_layers.count; layer++) {
         transparent_geometry_group copy = *group;
-        const uint8_t *layers = (const uint8_t *)(uintptr_t)*(uint32_t *)(shader + 0x4c);
+        const uint8_t *layers = (const uint8_t *)(uintptr_t)((struct ShaderTransparentChicago *)shader)->extra_layers.pointer;
         uint32_t tag_id = *(uint32_t *)(layers + layer * 0x10 + 0xc);
 
         copy.sorted_index = -1;
@@ -144,10 +144,10 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
     set_render_state(0x0f, shader[0x29] & 1);              // alpha_tested
     set_render_state(0x18, 0x7f);
     set_render_state(0x1c, 0);
-    chimera__rasterizer_set_framebuffer_blend_function(*(int16_t *)(shader + 0x2c));
+    chimera__rasterizer_set_framebuffer_blend_function(*(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_blend_function);
 
     // numeric shaders pick the frame of the first map from a function value or the game timer
-    if ((int8_t)shader[0x29] < 0 && group->lighting_extra != 0 && *(int32_t *)(shader + 0x54) > 0) {
+    if ((int8_t)shader[0x29] < 0 && group->lighting_extra != 0 && *(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count > 0) {
         const uint8_t *bitmap = (const uint8_t *)tag_instances[*(uint32_t *)(maps + 0x78) & 0xffff].data;
         int16_t base = *(int16_t *)(bitmap + 0x60);               // Bitmap.bitmap_data.count, the digit count
 
@@ -175,9 +175,9 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
     }
 
     // maps 0..3: textures, sampler states, texture animation rows
-    first_map_type = *(int16_t *)(shader + 0x2a);
+    first_map_type = *(int16_t *)&((struct ShaderTransparentChicago *)shader)->first_map_type;
     for (map = 0; map < 4; map++) {
-        map_count = *(int32_t *)(shader + 0x54);
+        map_count = *(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count;
         if (map < map_count) {
             uint8_t *entry = maps + map * 0xdc;
             int16_t bitmap_type = (map != 0) ? 0 : rasterizer_first_map_bitmap_types[first_map_type];
@@ -203,7 +203,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
             set_sampler_state(map, 6, filter);
             set_sampler_state(map, 7, filter);
         }
-        map_count = *(int32_t *)(shader + 0x54);
+        map_count = *(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count;
         if (map < map_count && (map > 0 || first_map_type == 0)) {
             uint8_t *entry = maps + map * 0xdc;
             float u_scale = *(float *)(entry + 0x54);
@@ -253,12 +253,12 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         rasterizer_shader_transparent_chicago_set_texture_stages((const ShaderTransparentChicago *)shader);
     }
 
-    stage = (int16_t)*(int32_t *)(shader + 0x54);                 // one stage past the maps
-    if ((group->flags & 0x10) && *(int16_t *)(shader + 0x2c) == 0) {
+    stage = (int16_t)*(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count;                 // one stage past the maps
+    if ((group->flags & 0x10) && *(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_blend_function == 0) {
         goto draw;
     }
     {
-        int16_t fade_source = *(int16_t *)(shader + 0x30);
+        int16_t fade_source = *(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_fade_source;
         int i;
 
         for (i = 0; i < 3; i++) {
@@ -287,15 +287,15 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         }
         ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 10, &fade_constants[0][0], 3);
     }
-    switch (*(int16_t *)(shader + 0x2e)) {                        // framebuffer_fade_mode
+    switch (*(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_fade_mode) {                        // framebuffer_fade_mode
     case 0: fade_argument = 0x20; break;                          // DIFFUSE | ALPHAREPLICATE
     case 1: fade_argument = 0x24; break;                          // SPECULAR | ALPHAREPLICATE
     case 2: fade_argument = 4; break;                             // SPECULAR
     default: fade_argument = (uint32_t)(uint16_t)first_map_type; break;
     }
 
-    map_count = *(int32_t *)(shader + 0x54);
-    switch (*(int16_t *)(shader + 0x2c)) {                        // framebuffer_blend_function
+    map_count = *(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count;
+    switch (*(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_blend_function) {                        // framebuffer_blend_function
     case 0:                                                       // alpha blend
         if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
             stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);

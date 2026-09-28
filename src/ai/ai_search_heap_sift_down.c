@@ -11,11 +11,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 // blam-cc: ECX -> context, EDX -> index
 void ai_search_heap_sift_down(ai_search_context *context, int16_t index)
 {
-    int16_t count = *(int16_t *)((uint8_t *)context + 0x1430);
+    int16_t count = ((struct ai_search_context *)context)->heap_count;
     int16_t left, right, smallest;
 
     if (index < count) {

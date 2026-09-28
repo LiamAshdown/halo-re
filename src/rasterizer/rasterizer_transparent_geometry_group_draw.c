@@ -193,7 +193,7 @@ static void set_group_skinning(const transparent_geometry_group *flags_group,
 
 static int16_t shader_type_of(const uint8_t *shader)
 {
-    return *(const int16_t *)(shader + 0x24);
+    return *(int16_t *)&((struct Shader *)shader)->shader_type;
 }
 
 // shader_type 1: the particle effect block. Picks one of the effects 0x5a..0x65 from the blend
@@ -229,7 +229,7 @@ static void draw_particle_effect_shader(transparent_geometry_group *group, const
     }
 
     bitmap = (BitmapData *)(uintptr_t)group->lightmap_bitmap;
-    if (bitmap != NULL && *(uint32_t *)((uint8_t *)bitmap + 0x28) != 0) {  // hardware texture
+    if (bitmap != NULL && ((struct BitmapData *)bitmap)->hardware_texture != 0) {  // hardware texture
         uint8_t map_flags = shader[0x2e];
         uint32_t filter = (map_flags & 1) ? 1 : 2;                        // POINT when unfiltered
 

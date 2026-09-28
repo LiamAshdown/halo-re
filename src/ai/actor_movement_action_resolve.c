@@ -35,6 +35,8 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -157,11 +159,11 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
             actor_target_get_relationship_object(*(datum_index *)&self->active_movement.destination);
         }
         if (self->flying != 0) {
-            self->unknown_488 = *(real_point3d *)((uint8_t *)target + 0xc8);
+            self->unknown_488 = *(real_point3d *)&((struct prop *)target)->aim_offset.x;
         } else {
-            self->unknown_488 = *(real_point3d *)((uint8_t *)target + 0xf0);
+            self->unknown_488 = *(real_point3d *)&((struct prop *)target)->ground_position.x;
         }
-        self->unknown_494 = *(uint32_t *)((uint8_t *)target + 0xec);
+        self->unknown_494 = *(uint32_t *)&((struct prop *)target)->path_surface_index;
         self->unknown_498 = *(uint32_t *)&self->active_movement.destination.y;
         break;
 

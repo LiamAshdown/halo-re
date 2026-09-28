@@ -24,6 +24,8 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;         // 0x00880360
 extern data_array *encounter_data;     // 0x008802c8
@@ -65,7 +67,7 @@ uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
         // 0x40da35..0x40da6f: the variant's wait (seconds) times difficulty scale 0x18 for the encounter's team
         // (encounter+2), doubled when actor+0x1ca is set, then converted to ticks (x30, __ftol)
         random_wait = ((ActorVariant *)variant)->encounter_grenade_timeout *
-                      weapon_get_zoom_fov_resolved(0x18, *(int16_t *)((uint8_t *)enc + 2));
+                      weapon_get_zoom_fov_resolved(0x18, ((struct encounter *)enc)->team);
         if (self->unknown_1ca != 0) {
             random_wait = random_wait + random_wait;
         }

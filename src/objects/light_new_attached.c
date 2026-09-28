@@ -37,7 +37,7 @@ datum_index light_new_attached(datum_index light_tag, datum_index owner_object, 
     Light *tag = (Light *)tag_instances[light_tag & 0xffff].data;
     datum_index handle = (datum_index)0xffffffff;
 
-    if ((tag->flags & 1) != 0 || *(int32_t *)((uint8_t *)tag + 0xb8) != -1) { // UNSURE: +0xb8
+    if ((tag->flags & 1) != 0 || *(int32_t *)&((struct Light *)tag)->lens_flare.tag_id != -1) { // UNSURE: +0xb8
         handle = datum_new(light_data);
 
         if (handle != (datum_index)0xffffffff) {
@@ -51,9 +51,9 @@ datum_index light_new_attached(datum_index light_tag, datum_index owner_object, 
             entry->definition_tag = light_tag;
             // light+0x60 is the attached form's change_color_index; the positioned form uses the
             // same offset as local_position (see the light struct in types/objects.h).
-            *(int16_t *)((uint8_t *)entry + 0x60) = change_color_index;
+            *(int16_t *)&((struct light *)entry)->local_position.x = change_color_index;
 
-            if (always_visible == 0 && *(int32_t *)((uint8_t *)tag + 0xb8) == -1) {
+            if (always_visible == 0 && *(int32_t *)&((struct Light *)tag)->lens_flare.tag_id == -1) {
                 entry->flags = 0;
             } else {
                 entry->flags = always_visible | _light_attached_bit;

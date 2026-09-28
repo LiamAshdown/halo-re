@@ -51,7 +51,7 @@ uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, d
     }
     self = &((actor *)actor_data->data)[actor_index & 0xffff];
     // 0x42b84f: CX = the actor's team (+0x3e), DX = the vehicle's (+0xb8)
-    if (teams_are_enemies(*(int16_t *)((uint8_t *)self + 0x3e), *(int16_t *)((uint8_t *)vehicle_object + 0xb8)) != 0) {
+    if (teams_are_enemies(((struct actor *)self)->team, ((struct object *)vehicle_object)->owner_team) != 0) {
         return 0;
     }
     if (flag_pursue) {

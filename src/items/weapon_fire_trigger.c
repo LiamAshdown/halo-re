@@ -302,7 +302,7 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
                 trigger_create_projectiles(item_index, trigger_index, role);
             }
             // 0x4c456a: EDX holder, BX the trigger's +0x2e word, DI 1
-            ai_refresh_unit_stimulus_and_alert(holder_index, *(int16_t *)((uint8_t *)tag_trigger + 0x2e), 1);
+            ai_refresh_unit_stimulus_and_alert(holder_index, *(int16_t *)&((struct WeaponTrigger *)tag_trigger)->firing_noise, 1);
         }
     }
 

@@ -50,7 +50,7 @@ void item_detonation_timer_start(uint32_t object_index) // blam-cc: EAX -> objec
         Item *tag = (Item *)tag_instances[obj->definition_tag & 0xffff].data;
 
         // 0x4bd48a..0x4bd49b: EAX = the item, ECX = Item tag +0x2f4 (detonating effect), stack: the item, -1, 0..
-        effect_new_on_object(object_index, *(datum_index *)((uint8_t *)tag + 0x2f4), object_index, -1, 0.0f, 0.0f,
+        effect_new_on_object(object_index, *(datum_index *)&((struct Item *)tag)->detonating_effect.tag_id, object_index, -1, 0.0f, 0.0f,
             0, 0);
 
         item->detonation_countdown =

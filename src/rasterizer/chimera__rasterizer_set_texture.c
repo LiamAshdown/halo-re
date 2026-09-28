@@ -72,7 +72,7 @@ int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, 
     uint8_t resolved;
     BitmapData *data = rasterizer_tag_bitmap(bitmap_tag_id, bitmap_type, default_index, frame, &resolved);
 
-    if (!resolved || *(int16_t *)((uint8_t *)data + 0xa) != bitmap_type) {
+    if (!resolved || *(int16_t *)&((struct BitmapData *)data)->type != bitmap_type) {
         data = rasterizer_default_bitmap(bitmap_type, default_index);
         if (data == 0) {
             return 0;

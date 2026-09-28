@@ -31,6 +31,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#include "units.h"
 
 // sqrt/fabs are single x87 instructions (FSQRT/FABS) in the original code, which
 // Ghidra renders as the pseudo-functions SQRT()/ABS(); declared locally instead of via
@@ -141,7 +142,7 @@ uint8_t actor_danger_register_stationary_object(const float *reference, datum_in
                 if (driver_field != -1) {
                     // 0x41ec4a: CX = the driver's team, DX = the actor's
                     if (teams_are_enemies(*(int16_t *)((uint8_t *)((object_header *)object_data->data)[driver_field & 0xffff].data + 0xb8),
-                                          *(int16_t *)((uint8_t *)self + 0x3e)) == 0) {
+                                          ((struct actor *)self)->team) == 0) {
                         self->danger_unknown_282 = 1;
                     }
                 }

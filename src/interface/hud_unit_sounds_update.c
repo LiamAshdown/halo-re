@@ -61,14 +61,14 @@ void hud_unit_sounds_update(player *p, uint8_t hud_enabled)
     }
     unit_tag = (Unit *)tag_instances[*(datum_index *)unit & 0xffff].data;
     choice = (int16_t)(local_player_globals->local_player_count > 1);
-    last = (int32_t)*(uint32_t *)((uint8_t *)unit_tag + 0x2a8) - 1;
+    last = (int32_t)((struct Unit *)unit_tag)->new_hud_interfaces.count - 1;
     if (choice > last) {
         choice = last;
     }
     if ((int16_t)choice < 0) {
         return;
     }
-    hud_tag = *(datum_index *)(*(uint8_t **)((uint8_t *)unit_tag + 0x2ac) + (int16_t)choice * 0x30 + 0xc);
+    hud_tag = *(datum_index *)(*(uint8_t **)&((struct Unit *)unit_tag)->new_hud_interfaces.pointer + (int16_t)choice * 0x30 + 0xc);
     if (hud_tag == (datum_index)-1) {
         return;
     }

@@ -22,6 +22,8 @@
 #include "interface.h"
 #include <string.h>
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
 
 extern void saved_game_allocate_new_slot(uint16_t *out_name); // 0x53ca80, blam-cc: EBX out_name
 extern uint32_t saved_game_create_custom_variant(uint32_t unused, uint16_t *name); // 0x53bb50, blam-cc: ECX name too
@@ -54,7 +56,7 @@ uint8_t ui_event_4a1310(widget_instance *widget, int16_t *event, uint8_t *out_ha
         if (handle != 0xffffffff) {
             saved_item_select((int32_t)handle);
             if ((selected_saved_item & 0xf) == 1) {
-                int32_t id = ui_list_get_id(*(int16_t *)((uint8_t *)list + 0x3c));
+                int32_t id = ui_list_get_id(*(int16_t *)&((struct widget_instance *)list)->text);
                 const void *source;
                 uint8_t opened;
 

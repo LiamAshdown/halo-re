@@ -196,7 +196,7 @@ void glow_update(uint32_t object_index, glow *entry /*EDI*/) // blam-cc: stack -
     if (entry->marker_count > 1) {
         glow_particle *p;
 
-        for (p = entry->first_particle; p != 0; p = *(glow_particle **)((uint8_t *)p + 0x5c)) {
+        for (p = entry->first_particle; p != 0; p = *(glow_particle **)&((struct glow_particle *)p)->next) {
             if ((*((uint8_t *)p + 0x54) & 2) == 0) {
                 // UNSURE: Ghidra's call site shows two visible operands
                 // (DAT_007c3110 * local_2c, local_1c) against glow_particle_advance_time's own
@@ -210,7 +210,7 @@ void glow_update(uint32_t object_index, glow *entry /*EDI*/) // blam-cc: stack -
         }
 
         for (p = entry->first_particle; p != 0; ) {
-            glow_particle *next = *(glow_particle **)((uint8_t *)p + 0x5c);
+            glow_particle *next = *(glow_particle **)&((struct glow_particle *)p)->next;
 
             if ((*((uint8_t *)p + 0x54) & 2) != 0) {
                 int16_t *age = (int16_t *)((uint8_t *)p + 0x50);
@@ -231,18 +231,18 @@ void glow_update(uint32_t object_index, glow *entry /*EDI*/) // blam-cc: stack -
                 *(float *)((uint8_t *)p + 0x34) += render_time_since_frame * *(float *)((uint8_t *)p + 0x4c);
 
                 if (*lifetime < *age) {
-                    glow_particle *prev = *(glow_particle **)((uint8_t *)p + 0x60);
+                    glow_particle *prev = *(glow_particle **)&((struct glow_particle *)p)->previous;
                     if (next == 0) {
                         entry->last_particle = prev;
                     } else {
-                        *(glow_particle **)((uint8_t *)next + 0x60) = prev;
+                        *(glow_particle **)&((struct glow_particle *)next)->previous = prev;
                     }
                     if (prev == 0) {
                         entry->first_particle = next;
                     } else {
-                        *(glow_particle **)((uint8_t *)prev + 0x5c) = next;
+                        *(glow_particle **)&((struct glow_particle *)prev)->next = next;
                     }
-                    datum_delete(glow_particle_data, *(datum_index *)((uint8_t *)p + 4));
+                    datum_delete(glow_particle_data, ((struct glow_particle *)p)->handle);
                     entry->spawn_count = entry->spawn_count - 1;
                 }
             }
@@ -267,7 +267,7 @@ void glow_update(uint32_t object_index, glow *entry /*EDI*/) // blam-cc: stack -
                 entry->first_particle = spawned;
             } else {
                 *(glow_particle **)((uint8_t *)entry->last_particle + 0x5c) = spawned;
-                *(glow_particle **)((uint8_t *)spawned + 0x60) = entry->last_particle;
+                *(glow_particle **)&((struct glow_particle *)spawned)->previous = entry->last_particle;
             }
             entry->last_particle = spawned;
 

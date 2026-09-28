@@ -45,9 +45,9 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
     light = &rasterizer_lights[light_index];
     definition = (Light *)(uint8_t *)light->definition;
 
-    if (*(int32_t *)((uint8_t *)definition + 0x1c) != (int32_t)0xbf800000 &&
-        (*(int32_t *)((uint8_t *)definition + 0x70) != -1 ||
-         *(int32_t *)((uint8_t *)definition + 0x88) != -1)) {
+    if (*(int32_t *)&((struct Light *)definition)->cos_falloff_angle != (int32_t)0xbf800000 &&
+        (*(int32_t *)&((struct Light *)definition)->primary_cube_map.tag_id != -1 ||
+         *(int32_t *)&((struct Light *)definition)->secondary_cube_map.tag_id != -1)) {
         rasterizer_projected_light_shader_variant = 1;
         rasterizer_projected_light_luminance =
             light->color.red * 0.299f + light->color.green * 0.587f + light->color.blue * 0.114f;
@@ -63,7 +63,7 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
         light->color.red * 0.299f + light->color.green * 0.587f + light->color.blue * 0.114f;
 
     rasterizer_projected_light.inverse_radius =
-        1.0f / (*(float *)((uint8_t *)definition + 0x24) * light->radius) * 0.5f;
+        1.0f / (((struct Light *)definition)->specular_radius_multiplier * light->radius) * 0.5f;
 
     rasterizer_projected_light.basis[0][0] = 0.0f;
     rasterizer_projected_light.basis[0][1] = 0.0f;

@@ -43,7 +43,7 @@ int32_t sound_pcm_buffer_read(uint32_t *position, SoundPermutation *permutation,
     uint32_t requested_size, void *destination)
 {
     uint32_t remaining = permutation->buffer_size - *position;
-    uint32_t sample_pointer = *(uint32_t *)((uint8_t *)permutation + 0x30);
+    uint32_t sample_pointer = *(uint32_t *)&((struct SoundPermutation *)permutation)->cache_page;
 
     if ((int32_t)requested_size <= (int32_t)remaining) { // SIGNED: cmp ecx,eax; jg (0x545871)
         remaining = requested_size;

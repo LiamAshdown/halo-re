@@ -14,6 +14,8 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -31,7 +33,7 @@ static int32_t list_item_id(int16_t index)
 uint8_t ui_event_4a0a80(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
-    int32_t id = list_item_id(*(int16_t *)((uint8_t *)widget + 0x3c));
+    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
 
     if (profile == 0) {
         return 0;

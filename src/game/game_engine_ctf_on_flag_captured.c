@@ -22,6 +22,8 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *player_data;      // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -47,7 +49,7 @@ void game_engine_ctf_on_flag_captured(uint32_t flag_index)
     ctf_team_captured_flags_mask[flag_index & 0xffff] = 0;
     game_engine_queue_multiplayer_sound(0x2a, flag_index, 1); // 0x46de12..0x46de26, EDI still the argument
 
-    *(int16_t *)((uint8_t *)p + 0xc4) = elapsed;
+    *(int16_t *)&((struct player *)p)->objective_time = elapsed;
     if (*(int16_t *)((uint8_t *)p + 0xc6) != 0) {
         if (elapsed <= *(int16_t *)((uint8_t *)p + 200)) {
             new_record = 1;

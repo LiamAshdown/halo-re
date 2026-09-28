@@ -133,7 +133,7 @@ draw:
 
             dest.bottom = (int16_t)entry->end_time;
             dest.top = (int16_t)entry->start_time;
-            hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)tag + 0x108);
+            hud_text_draw_font_tag_id = *(int32_t *)&((struct UIWidgetDefinition *)tag)->text_font.tag_id;
             hud_text_draw_color_a = *color;
             hud_text_draw_color_or_flags = 0x0002ffff; // WORD 0x6e4734 = -1, WORD 0x6e4736 = 2
             hud_text_draw_unknown_4730 = 0;

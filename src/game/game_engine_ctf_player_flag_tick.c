@@ -20,6 +20,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *player_data;    // 0x0087a480
@@ -49,7 +50,7 @@ extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index
 uint8_t game_engine_ctf_player_flag_tick(uint32_t flag_handle, uint32_t player_index)
 {
     object *flag_obj = ((object_header *)object_data->data)[flag_handle & 0xffff].data;
-    int16_t team = *(int16_t *)((uint8_t *)flag_obj + 0xb8); // UNSURE: name_index/team_index
+    int16_t team = ((struct object *)flag_obj)->owner_team; // UNSURE: name_index/team_index
 
     if (player_index != 0xffffffff && network_game_mode == 2) {
         player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
@@ -76,7 +77,7 @@ uint8_t game_engine_ctf_player_flag_tick(uint32_t flag_handle, uint32_t player_i
 
         if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) == 0 &&
             (current_game_engine == 0 || game_engine_state_value == 0)) {
-            *(int16_t *)((uint8_t *)p + 0xc4) += 1; // UNSURE: unnamed player field
+            *(int16_t *)&((struct player *)p)->objective_time += 1; // UNSURE: unnamed player field
             if (game_engine_variant.ctf_option_7c == 0) {
                 game_engine_queue_multiplayer_sound(p->team != 0 ? 8 : 0xb, 0xffffffff, 1); // 0x4698fe..0x46990d
                 ctf_team_return_credit_active[team] = 1;

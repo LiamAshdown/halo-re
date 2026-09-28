@@ -20,6 +20,8 @@
 #include "interface.h"
 #include "saved_games.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0
@@ -40,7 +42,7 @@ void ui_profile_details_list_widget_build(widget_instance *widget)
 
     widget->extended_description->first_child->next_sibling->background_bitmap_frame = 0;
     ui_level_carousel_row_refresh(widget->extended_description->first_child->next_sibling,
-                 *(int16_t *)((uint8_t *)widget + 0x3c)); // list selection, movsx [widget+0x3c]
+                 *(int16_t *)&((struct widget_instance *)widget)->text); // list selection, movsx [widget+0x3c]
 }
 
 #if 0

@@ -61,7 +61,7 @@ void object_lights_gather_nearest(int16_t cluster_index, uint32_t self_object_in
                     eligible = 1;
                 } else {
                     // 0x4f2e79: the LIGHT's own tag (light +0x04), flags byte +0x00 bit 2 "don't light own object"
-                    uint8_t *light_tag = (uint8_t *)tag_instances[*(uint32_t *)((uint8_t *)entry + 4) & 0xffff].data;
+                    uint8_t *light_tag = (uint8_t *)tag_instances[*(uint32_t *)&((struct light *)entry)->definition_tag & 0xffff].data;
                     eligible = (light_tag[0] & 4) == 0;
                 }
 

@@ -77,9 +77,9 @@ static void set_linear_clamped_stage(uint32_t stage)
 static void bind_ripple_bitmap(uint32_t stage, uint8_t *bitmap)
 {
     texture_cache_get((BitmapData *)bitmap, 1, 1);
-    ((d3d_call2_fn)DEVICE_CALL(0x104))(rasterizer_device, stage, *(uint32_t *)(bitmap + 0x28));
-    rasterizer_bound_bitmap_size_a[0] = *(int16_t *)(bitmap + 0x4);
-    rasterizer_bound_bitmap_size_a[1] = *(int16_t *)(bitmap + 0x6);
+    ((d3d_call2_fn)DEVICE_CALL(0x104))(rasterizer_device, stage, ((struct BitmapData *)bitmap)->hardware_texture);
+    rasterizer_bound_bitmap_size_a[0] = *(int16_t *)&((struct BitmapData *)bitmap)->width;
+    rasterizer_bound_bitmap_size_a[1] = *(int16_t *)&((struct BitmapData *)bitmap)->height;
 }
 
 void rasterizer_water_update_ripple_texture(void *water_shader)
@@ -228,7 +228,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                         if (bitmap_tag != 0 && index >= 0 && index < bitmap_count) {
                             bitmap = *(uint8_t **)(bitmap_tag + 0x64) + index * 0x30;
                         }
-                        if (*(int16_t *)(bitmap + 0xa) == 0) {
+                        if (*(int16_t *)&((struct BitmapData *)bitmap)->type == 0) {
                             bind_ripple_bitmap((uint32_t)stage, bitmap);
                             bound = 1;
                         }

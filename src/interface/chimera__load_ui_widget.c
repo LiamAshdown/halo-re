@@ -97,7 +97,7 @@ widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
 
     if (controller_index == 0xffff) {
         // jump table at 0x497be0 over definition->controller_index 0..4; above 4 keeps 0xffff
-        switch (*(int16_t *)((uint8_t *)tag + 2)) {
+        switch (*(int16_t *)&((struct UIWidgetDefinition *)tag)->controller_index) {
         case 0: controller_index = 0; break;
         case 1: controller_index = 1; break;
         case 2: controller_index = 2; break;

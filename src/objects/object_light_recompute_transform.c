@@ -88,7 +88,7 @@ void object_light_recompute_transform(uint32_t light_index) // blam-cc: stack ->
 
         entry->position = marker.node_transform.position;
         entry->direction = marker.node_transform.forward;
-        *(real_vector3d *)((uint8_t *)entry + 0x48) = marker.node_transform.up;
+        *(real_vector3d *)&((struct light *)entry)->up.i = marker.node_transform.up;
     } else if (object_try_and_get(owner_object, _object_mask_all) != 0) {
         object *owner = ((object_header *)object_data->data)[owner_object & 0xffff].data;
         uint8_t *node = (uint8_t *)owner + owner->nodes.offset + entry->marker_index * 0x34;

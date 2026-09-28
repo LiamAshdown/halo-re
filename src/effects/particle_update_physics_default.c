@@ -56,7 +56,7 @@ void particle_update_physics_default(particle_system *system, int16_t type_index
             (int32_t)type_index * 0x80);
         particle_system_type_state *type_state = &system->type_states[type_index];
         ParticleSystemTypeParticleState *states = (ParticleSystemTypeParticleState *)
-            (*(uint8_t **)((uint8_t *)particle_type + 0x78));
+            (*(uint8_t **)&((struct ParticleSystemType *)particle_type)->particle_states.pointer);
         ParticleSystemTypeParticleState *state = &states[particle->state_index];
         real radius;
         PointPhysics *physics;
@@ -64,7 +64,7 @@ void particle_update_physics_default(particle_system *system, int16_t type_index
         uint32_t collision_flags;
 
         if (particle->next_state_index == -1) {
-            physics = (PointPhysics *)tag_instances[*(uint32_t *)((uint8_t *)state + 0x90) & 0xffff].data;
+            physics = (PointPhysics *)tag_instances[*(uint32_t *)&((struct ParticleSystemTypeParticleState *)state)->point_physics.tag_id & 0xffff].data;
             radius = state->radius_multiplier * type_state->radius * particle_type->radius;
         } else {
             ParticleSystemTypeParticleState *next_state = &states[particle->next_state_index];
@@ -79,8 +79,8 @@ void particle_update_physics_default(particle_system *system, int16_t type_index
             radius = ((1.0f - fraction) * next_state->radius_multiplier + fraction * state->radius_multiplier) *
                      type_state->radius * particle_type->radius;
             point_physics_interpolate(&blended,
-                (PointPhysics *)tag_instances[*(uint32_t *)((uint8_t *)state + 0x90) & 0xffff].data,
-                (PointPhysics *)tag_instances[*(uint32_t *)((uint8_t *)next_state + 0x90) & 0xffff].data,
+                (PointPhysics *)tag_instances[*(uint32_t *)&((struct ParticleSystemTypeParticleState *)state)->point_physics.tag_id & 0xffff].data,
+                (PointPhysics *)tag_instances[*(uint32_t *)&((struct ParticleSystemTypeParticleState *)next_state)->point_physics.tag_id & 0xffff].data,
                 fraction);
             physics = &blended;
         }

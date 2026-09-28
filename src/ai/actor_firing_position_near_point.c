@@ -108,7 +108,7 @@ uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *
         }
         if (self->flying == 0) {
             // 0x412b43: EAX = the firing position's surface (+0x14), EDI = the context
-            path_find_compute_heuristic(&context, *(uint32_t *)((uint8_t *)fp + 0x14), (real_point3d *)fp, &path_distance, 0, 0);
+            path_find_compute_heuristic(&context, ((struct ScenarioFiringPosition *)fp)->surface_index, (real_point3d *)fp, &path_distance, 0, 0);
             if (path_distance < 4.0f) {
                 return 1;
             }

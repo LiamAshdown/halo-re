@@ -136,8 +136,8 @@ void first_person_weapon_update_lighting(void)
                      &light_params, fp->weapon_index, 0, 8);
     }
     if (fp->device_hud_valid != 0 &&
-        *(int32_t *)((char *)first_person_interface + 0xc) != -1) {
-        uint32_t model_tag_ref = *(uint32_t *)((char *)first_person_interface + 0xc); // objdump 0x492680
+        *(int32_t *)&((struct GlobalsFirstPersonInterface *)first_person_interface)->first_person_hands.tag_id != -1) {
+        uint32_t model_tag_ref = *(uint32_t *)&((struct GlobalsFirstPersonInterface *)first_person_interface)->first_person_hands.tag_id; // objdump 0x492680
 
         hud_meter_permute_node_records(node_scratch, fp->unknown_108c, model_tag_ref,
                                         fp->device_hud_element);

@@ -36,6 +36,8 @@
 #include "interface.h"
 #include "cache.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 // TYPES-GAP: one entry of the campaign level path table at 0x00692acc (stride 8, second dword
 // always read as part of the (&table)[i*2] indexing but never itself examined here).
@@ -182,7 +184,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
 
     // UNSURE: offsets 0x3c/0x3e fall inside widget_instance::text for this widget type; preserved
     // as raw byte offsets rather than asserting a (likely wrong) field name here.
-    *(int16_t *)((uint8_t *)widget + 0x3c) = widget->selection_index;
+    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
     widget->list_items = level_select_entries;
     widget->item_count = 10;
     *(int16_t *)((uint8_t *)widget + 0x3e) = -1;

@@ -18,6 +18,8 @@
 #include "ai.h"
 #include "game.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 
 extern data_array *actor_data;       // 0x00880360
@@ -109,15 +111,15 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
         }
         if (act[0x160] == 0) {
             memset(order, 0, 0x30);
-            *(int16_t *)(order + 0x8) = -1;
+            ((struct actor_order *)order)->parameter = -1;
             *(int32_t *)(order + 0x1c) = -1;
             *(int16_t *)(order + 0xc) = 0xd;
-            *(int16_t *)(order + 0x0) = 0xb4;
+            ((struct actor_order *)order)->order_code = 0xb4;
             order[0x4] = 0;
             order[0x5] = 0;
             if (act[0x6] == 0) {
                 actor_check_melee_target_reachable(actor_index, (int16_t *)order);
-                if (*(int16_t *)(order + 0x8) != -1) {
+                if (((struct actor_order *)order)->parameter != -1) {
                     actor_set_mode(actor_index, 4, order);
                     return 1;
                 }

@@ -93,9 +93,9 @@ uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_ind
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         encounter *enc = &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
         ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index); // 0x427b33: EAX = encounter, ECX = unit
-        *(int16_t *)((uint8_t *)unit_object + 0xb8) = enc->team; // UNSURE: object+0xb8, see actor_attach_to_unit
+        ((struct object *)unit_object)->owner_team = enc->team; // UNSURE: object+0xb8, see actor_attach_to_unit
     }
-    self->team = *(int16_t *)((uint8_t *)unit_object + 0xb8);
+    self->team = ((struct object *)unit_object)->owner_team;
 
     {
         uint8_t flags_before = header->flags;

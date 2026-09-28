@@ -22,6 +22,8 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *player_data;                  // 0x0087a480
 extern uint8_t king_hill_player_in_hill[16];     // 0x006b0f40
@@ -61,7 +63,7 @@ void game_engine_koth_player_tick(uint32_t player_index)
 
         king_hill_player_in_hill[idx] = 1;
         if (hosting) {
-            *(int16_t *)((uint8_t *)p + 0xc4) += 1;
+            *(int16_t *)&((struct player *)p)->objective_time += 1;
         }
 
         if (king_bucket_last_credit_tick[p->team] < game_time->game_time && network_game_mode == 2) {

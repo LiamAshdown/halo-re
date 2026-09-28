@@ -38,7 +38,7 @@ void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvir
     if (console_debug_toggle_6893f4 == 0) {
         return;
     }
-    chimera__rasterizer_set_texture(*(uint32_t *)((uint8_t *)shader + 0x94), 0, 0, 1, frame);
+    chimera__rasterizer_set_texture(*(uint32_t *)&((struct ShaderEnvironment *)shader)->base_map.tag_id, 0, 0, 1, frame);
     ((d3d_call1_fn)DEVICE_CALL(0x170))(rasterizer_device, 0);
     ((d3d_call1_fn)DEVICE_CALL(0x15c))(rasterizer_device, (uint32_t)rasterizer_vertex_declarations[19].declaration);
     ((d3d_call1_fn)DEVICE_CALL(0x1ac))(rasterizer_device, 0);

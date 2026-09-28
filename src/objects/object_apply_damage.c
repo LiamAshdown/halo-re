@@ -350,7 +350,7 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
 
                 if (owner_record != 0) {
                     friendly = (uint8_t)(teams_are_enemies(dd->team_index,
-                        *(int16_t *)((uint8_t *)owner_record + 0x20)) == 0);
+                        *(int16_t *)&((struct player *)owner_record)->team) == 0);
                     if (friendly) {
                         switch (g_006f1cf4) {
                         case 0:

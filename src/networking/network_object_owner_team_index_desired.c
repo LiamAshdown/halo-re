@@ -32,7 +32,7 @@ int32_t network_object_owner_team_index_desired(object *obj)
     datum_index resolved;
     player *plr;
 
-    slot = *(uint16_t *)((uint8_t *)obj + 0xc);
+    slot = *(uint16_t *)&((struct object *)obj)->network_update_tick;
     if (slot != 0xffff && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)0xffffffff) {
         resolved = machine_to_player[slot];
         plr = (player *)datum_get(resolved, player_data);

@@ -22,6 +22,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -78,10 +80,10 @@ int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order)
         // 0x40466c loads EAX from actor+0x1e8 just before this call.
         actor_target_get_relationship_object(a->unknown_1e8);
         *(int16_t *)((uint8_t *)order + 0x24) = 2;
-        *(float *)((uint8_t *)order + 0x28) = *(float *)((uint8_t *)p + 0xf0);
-        *(float *)((uint8_t *)order + 0x2c) = *(float *)((uint8_t *)p + 0xf4);
-        *(float *)((uint8_t *)order + 0x30) = *(float *)((uint8_t *)p + 0xf8);
-        *(int32_t *)((uint8_t *)order + 0x34) = *(int32_t *)((uint8_t *)p + 0xec);
+        *(float *)((uint8_t *)order + 0x28) = ((struct prop *)p)->ground_position.x;
+        *(float *)((uint8_t *)order + 0x2c) = ((struct prop *)p)->ground_position.y;
+        *(float *)((uint8_t *)order + 0x30) = ((struct prop *)p)->ground_position.z;
+        *(int32_t *)((uint8_t *)order + 0x34) = ((struct prop *)p)->path_surface_index;
     }
     return 1;
 }

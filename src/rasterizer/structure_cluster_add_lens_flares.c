@@ -51,12 +51,12 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
     }
 
     bsp = global_structure_bsp;
-    cluster = (const uint8_t *)*(uint32_t *)((uint8_t *)bsp + 0x138) + cluster_index * 0x68;
+    cluster = (const uint8_t *)((struct ScenarioStructureBSP *)bsp)->clusters.pointer + cluster_index * 0x68;
     for (marker_ordinal = 0; marker_ordinal < *(const uint16_t *)(cluster + 0x42); marker_ordinal++) {
         uint32_t marker_index = *(const uint16_t *)(cluster + 0x40) + marker_ordinal;
         const ScenarioStructureBSPLensFlareMarker *marker =
-            (const ScenarioStructureBSPLensFlareMarker *)*(uint32_t *)((uint8_t *)bsp + 0x12c) + marker_index;
-        const uint8_t *palette = (const uint8_t *)*(uint32_t *)((uint8_t *)bsp + 0x120) + marker->lens_flare_index * 0x10;
+            (const ScenarioStructureBSPLensFlareMarker *)((struct ScenarioStructureBSP *)bsp)->lens_flare_markers.pointer + marker_index;
+        const uint8_t *palette = (const uint8_t *)((struct ScenarioStructureBSP *)bsp)->lens_flares.pointer + marker->lens_flare_index * 0x10;
         real_vector3d direction;
         real_vector3d up;
         lens_flare_instance candidate;

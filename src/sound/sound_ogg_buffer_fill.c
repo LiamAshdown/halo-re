@@ -43,7 +43,7 @@ extern int32_t sound_ogg_stream_read(sound_stream_decoder *decoder, char *buffer
 uint32_t sound_ogg_buffer_fill(SoundPermutation *permutation, void *destination, uint32_t requested_size,
     char *want_crosslap, sound_stream_decoder *decoder, uint32_t *bytes_filled_out)
 {
-    uint32_t sample_pointer = *(uint32_t *)((uint8_t *)permutation + 0x30);
+    uint32_t sample_pointer = *(uint32_t *)&((struct SoundPermutation *)permutation)->cache_page;
     int32_t remaining;
 
     if (sample_pointer < (uint32_t)sound_cache_memory ||

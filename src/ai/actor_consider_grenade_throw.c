@@ -18,6 +18,8 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -58,7 +60,7 @@ uint8_t actor_consider_grenade_throw(datum_index actor_index)
     {
         // 0x40dce5..0x40dd10: the throw probability is grenade_chance (+0x1a0) times difficulty scale 0x17 for
         // the actor's team (actor+0x3e); a uniform roll below it proceeds
-        float scaled = variant->grenade_chance * weapon_get_zoom_fov_resolved(0x17, *(int16_t *)((uint8_t *)self + 0x3e));
+        float scaled = variant->grenade_chance * weapon_get_zoom_fov_resolved(0x17, ((struct actor *)self)->team);
         float roll;
 
         self->unknown_6a4 = now;
