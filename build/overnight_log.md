@@ -2607,3 +2607,21 @@ Relinked: unresolved 1, traps 127.
   network_game_server_handle_client_join's register pass-throughs (object_count / BL); several callees' C carry
   parameter names that do not match what the binary passes (network_game_settings_broadcast_send's "round" is the
   server) -- behaviour kept positional.
+
+## Iteration 19 (2026-09-28) -- code-immediate callbacks; audit OPEN items closed
+- traps before/after: 0 / 0; unresolved 0 (HALO_NO_RETAIL=1); image verify identical.
+- NEW CLASS of missing functions: callbacks whose address the original passes as an immediate from code
+  (scratchpad/imm_code_refs.py + imm_code_refs_c.py; the step-1 scan only read data tables). Written from the
+  disassembly: network_channel_connected_callback 0x441e00 (GT2 connected), input_enumerate_gamepad_callback 0x491d70
+  and input_enumerate_gamepad_object_callback 0x491c50 (DirectInput EnumDevices / EnumObjects),
+  network_session_reject_pending_connection_callback 0x4e1410. input_system_initialize and
+  network_game_server_host_new stored the literal retail addresses (jumps into original code); now by name.
+  scratchpad/text_literals.py: no hex literal in C code points into retail .text (2 left are a size and 'FPS').
+  The 6 GameSpy statics the scan also lists already have C; 0x639340 is a retail EH funclet.
+- gt2Connect: network_channel_attempt_connect passes all 8 arguments (was 1), with the C callback table.
+- unit_build_network_update 0x55aed0 rewritten: the biped creation encoder, exact inverse of 0x55b110, with buffer /
+  budget / bit-count return (player_respawn updated).
+- gt2SetSendDump (0x61e550, +0x24) / gt2SetReceiveDump (0x614850, +0x28) names swapped back.
+- Networking call audit: all OPEN items from iterations 13/17/18 closed except the register pass-through of
+  network_game_server_handle_client_join (passed 0, UNSURE).
+- NEXT: long tail -- promote image regions to typed C; re-audit other modules with scratchpad/audit_calls.py.
