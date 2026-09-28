@@ -40,6 +40,7 @@ extern int16_t hs_autocomplete_gather(uint32_t category_mask, char **results, ch
 extern void console_out_printf(uint8_t clear_first, const char *format, ...); // this module, 0x4c6860
 extern char hs_compile_and_evaluate(const char *command); // 0x484400, foreign (hs module)
 extern int32_t __stricmp(const char *a, const char *b);
+extern int standalone_devmode(void); // standalone/loader.c: "-devmode" or HALO_DEVMODE
 
 // Records command_line in the command history ring (unless it is a comment: leading ';', '#' or
 // "//"), then checks that its first space-delimited word names an hs function currently allowed
@@ -80,6 +81,9 @@ char console_process_command(char *command_line, uint32_t context_flags) // blam
     console_globals_data.history_browse_index = -1;
 
     context_mask = console_command_context_mask(context_flags);
+    if (standalone_devmode()) {
+        context_mask = 0; // STANDALONE EXTENSION (not in the binary): -devmode lifts the availability filter
+    }
     match_count = hs_autocomplete_gather(0x28, out_names, command_name, 0x100, (uint16_t)context_mask);
     for (i = match_count - 1; i >= 0; i--) {
         if (__stricmp(command_name, out_names[i]) == 0) {

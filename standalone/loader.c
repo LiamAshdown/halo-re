@@ -72,6 +72,21 @@ void __cdecl standalone_missing_function(const char *name)
     TerminateProcess(GetCurrentProcess(), 3);   /* no DLL detach: some third-party DLLs crash there */
 }
 
+/* Developer mode (a standalone extension; retail 01.00.10 has no -devmode switch): lifts the console's command
+   availability filter so every script function and global (cheats included) can be run from the in-game console.
+   On with "-devmode" on the command line or HALO_DEVMODE in the environment. Read by console_process_command. */
+int standalone_devmode(void)
+{
+    static int cached = -1;
+
+    if (cached < 0) {
+        const char *line = GetCommandLineA();
+
+        cached = (line && strstr(line, "-devmode")) || GetEnvironmentVariableA("HALO_DEVMODE", NULL, 0) ? 1 : 0;
+    }
+    return cached;
+}
+
 static void unresolved_import_trap(void)
 {
     log_line("an import that could not be resolved was called");
