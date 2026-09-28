@@ -42,16 +42,14 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
     real_point3d *point); // 0x5013a0, EAX, ECX, EDX
 extern uint8_t collision_bsp_query_pill_init(ModelCollisionGeometryBSP *bsp, collision_bsp_pill_result *result,
     real_point3d *origin, real_vector3d *delta, float radius, float max_fraction); // 0x502730, EAX, ECX, stack
-extern ModelCollisionGeometryBSP *pill_structure_collision_bsp; // 0x00746f98
-extern ModelCollisionGeometryBSP *pill_structure_collision_bsp_root; // 0x00746f90
-extern uint8_t *pill_structure_bsp_bytes; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 
 static int16_t pill_leaf_cluster(int32_t leaf)
 {
     if (leaf == -1) {
         return -1;
     }
-    return *(int16_t *)(*(uint8_t **)(pill_structure_bsp_bytes + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
+    return (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
 }
 
 // REWRITTEN from objdump 0x506040..0x5061b2. Stack: (flags, origin, radius); EDI: delta; ESI: result. Sweeps a pill
@@ -64,53 +62,53 @@ static int16_t pill_leaf_cluster(int32_t leaf)
 uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta,
     collision_result *result)
 {
-    uint8_t *r = (uint8_t *)result;
+    collision_result *r = result;
     collision_bsp_pill_result pill;     // [esp+0x8]
     uint8_t hit = 0;                    // bl
     int32_t leaf;
     uint32_t flt_max_bits = 0x7f7fffff;
 
-    *(int16_t *)r = -1;
-    *(uint32_t *)(r + 0x14) = 0x7f7fffff;
-    if (collision_bsp_query_pill_init(pill_structure_collision_bsp, &pill, origin, delta, radius,
+    r->type = -1;
+    *(uint32_t *)&r->t = 0x7f7fffff; // FLT_MAX, stored as its bits
+    if (collision_bsp_query_pill_init(global_structure_collision_bsp, &pill, origin, delta, radius,
             *(float *)&flt_max_bits)) {
-        *(float *)(r + 0x14) = pill.t;
+        r->t = pill.t;
         if (flags & 0x20) {
-            *(float *)(r + 0x24) = pill.plane_i;
-            *(float *)(r + 0x28) = pill.plane_j;
-            *(float *)(r + 0x2c) = pill.plane_k;
-            *(float *)(r + 0x30) = pill.plane_d;
-            r[0x4c] = 0;
-            r[0x4d] = 0;
-            *(int16_t *)r = 2;
-            *(int16_t *)(r + 0x34) = pill.material_index;
-            *(int32_t *)(r + 0x44) = pill.surface_index;
-            *(int32_t *)(r + 0x48) = -1;
-            *(int16_t *)(r + 0x4e) = pill.material_index;
+            r->plane.normal.i = pill.plane_i;
+            r->plane.normal.j = pill.plane_j;
+            r->plane.normal.k = pill.plane_k;
+            r->plane.d = pill.plane_d;
+            r->surface_flags = 0;
+            r->breakable_surface_index = 0;
+            r->type = 2;
+            r->material_type = pill.material_index;
+            r->surface_index = pill.surface_index;
+            r->plane_index = -1;
+            r->collision_material_index = pill.material_index;
             hit = 1;
         }
     }
     if (pill.leaf_count > 0) {
-        *(int32_t *)(r + 0x4) = pill.leaves[0];
-        *(int16_t *)(r + 0x8) = pill_leaf_cluster(pill.leaves[0]);
+        r->first_leaf = pill.leaves[0];
+        r->first_cluster = pill_leaf_cluster(pill.leaves[0]);
         leaf = pill.leaves[pill.leaf_count - 1];
-        *(int32_t *)(r + 0xc) = leaf;
-        *(int16_t *)(r + 0x10) = pill_leaf_cluster(leaf);
+        r->leaf.leaf_index = leaf;
+        r->leaf.cluster_index = pill_leaf_cluster(leaf);
     }
     if (!hit) {
-        *(float *)(r + 0x14) = 1.0f;
+        r->t = 1.0f;
     }
     {
-        float t = *(float *)(r + 0x14);
-        real_point3d *point = (real_point3d *)(r + 0x18);
+        float t = r->t;
+        real_point3d *point = &r->point;
 
         point->x = t * delta->i + origin->x;
         point->y = t * delta->j + origin->y;
         point->z = t * delta->k + origin->z;
-        leaf = (int32_t)bsp3d_node_find_leaf(0, pill_structure_collision_bsp_root, point);
+        leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, point);
     }
-    *(int32_t *)(r + 0xc) = leaf;
-    *(int16_t *)(r + 0x10) = pill_leaf_cluster(leaf);
+    r->leaf.leaf_index = leaf;
+    r->leaf.cluster_index = pill_leaf_cluster(leaf);
     return hit;
 }
 

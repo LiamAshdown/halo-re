@@ -46,12 +46,12 @@ extern uint8_t object_physics_context_build(uint32_t object_index,
     object_physics_context *out_context); // 0x5074b0, EBX, EAX
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0, ECX, EDX
 extern void object_physics_compute_mass_point_forces(object_physics_context *context,
-    powered_mass_point_state *powered_states, uint32_t param_3, real_vector3d *out_force,
+    powered_mass_point_state *powered_states, uint32_t mass_points, real_vector3d *out_force,
     real_vector3d *out_torque); // 0x507cc0
 extern void object_physics_integrate_and_test_at_rest(object_physics_context *context,
     mass_point_state *mass_point_states, real_vector3d *torque, real_vector3d *force); // 0x5097e0, stack, ECX force
 extern void object_physics_handle_nearby_object_impacts(uint32_t object_index); // 0x508a10
-extern void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t param_3,
+extern void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t mass_points,
     real_vector3d *extra_force, real_vector3d *extra_torque); // 0x509e80
 
 // REWRITTEN from objdump 0x507840..0x507a36. Stack: (object, powered states, mass point states, extra force, extra
@@ -60,25 +60,25 @@ extern void object_physics_tick_single_pass(uint32_t object_index, powered_mass_
 //   mass-point forces (0x507cc0) plus the object's accumulated force / torque (+0x508 / +0x514, then cleared)
 //   plus the extras are integrated (0x5097e0: force in ECX, torque on the stack) and nearby impacts handled.
 //   The draft rebuilt the matrices from a NULL quaternion into the Physics tag's own block.
-void object_physics_tick(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t param_3,
+void object_physics_tick(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t mass_points,
     real_vector3d *extra_force, real_vector3d *extra_torque)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)(object_tag + 0x8c) & 0xffff].data; // edi
+    Object *object_tag = (Object *)tag_instances[((object *)obj)->definition_tag & 0xffff].data;
+    Physics *physics = (Physics *)tag_instances[*(datum_index *)&object_tag->physics.tag_id & 0xffff].data; // edi
     object_physics_context context;     // [esp+0x2c]
     real_vector3d torque;               // [esp+0x14]
     real_vector3d force;                // [esp+0x20]
 
-    if (*(float *)physics > 0.0f) {
-        object_physics_tick_single_pass(object_index, powered_states, param_3, extra_force, extra_torque);
+    if (physics->radius > 0.0f) {
+        object_physics_tick_single_pass(object_index, powered_states, mass_points, extra_force, extra_torque);
         return;
     }
     object_physics_context_build(object_index, &context);
-    if (powered_states != 0 && *(int32_t *)(physics + 0x68) > 0) {
+    if (powered_states != 0 && (int32_t)physics->powered_mass_points.count > 0) {
         int16_t i;
 
-        for (i = 0; (int32_t)i < *(int32_t *)(physics + 0x68); i++) {
+        for (i = 0; (int32_t)i < (int32_t)physics->powered_mass_points.count; i++) {
             uint8_t *state = (uint8_t *)powered_states + i * 0x60;
             float *m = (float *)(state + 0x2c);
             float t;
@@ -89,7 +89,7 @@ void object_physics_tick(uint32_t object_index, powered_mass_point_state *powere
             t = m[6]; m[6] = m[8]; m[8] = t;    // +0x18 <-> +0x20
         }
     }
-    object_physics_compute_mass_point_forces(&context, powered_states, param_3, &force, &torque);
+    object_physics_compute_mass_point_forces(&context, powered_states, mass_points, &force, &torque);
     obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
     force.i += *(float *)(obj + 0x508);
     force.j += *(float *)(obj + 0x50c);
@@ -108,7 +108,7 @@ void object_physics_tick(uint32_t object_index, powered_mass_point_state *powere
         torque.j += extra_torque->j;
         torque.k += extra_torque->k;
     }
-    object_physics_integrate_and_test_at_rest(&context, (mass_point_state *)param_3, &torque, &force);
+    object_physics_integrate_and_test_at_rest(&context, (mass_point_state *)mass_points, &torque, &force);
     object_physics_handle_nearby_object_impacts(object_index);
 }
 

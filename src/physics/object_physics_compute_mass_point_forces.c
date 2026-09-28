@@ -82,13 +82,13 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
 // is the runtime powered_mass_point_state array built by object_physics_tick's quaternion loop,
 // or NULL when the object has no live powered-mass-point state.
 void object_physics_compute_mass_point_forces(object_physics_context *context,
-    powered_mass_point_state *powered_states, uint32_t param_3,
+    powered_mass_point_state *powered_states, uint32_t mass_points_address,
     real_vector3d *out_force, real_vector3d *out_torque)
 {
     object *obj = ((object_header *)object_data->data)[context->object_index & 0xffff].data;
     Physics *definition = (Physics *)context->definition;
     float gravity_scale = k_physics_gravity * definition->gravity_scale;
-    mass_point_state *mass_points = (mass_point_state *)param_3;
+    mass_point_state *mass_points = (mass_point_state *)mass_points_address;
     int32_t i;
 
     out_force->i = 0.0f;

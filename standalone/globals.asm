@@ -3334,12 +3334,6 @@ PUBLIC _picked_surfaces_geometry
 _picked_surfaces_geometry EQU 06E3ADCh
 PUBLIC _picked_surfaces_valid
 _picked_surfaces_valid EQU 06E3AD8h
-PUBLIC _pill_structure_bsp_bytes
-_pill_structure_bsp_bytes EQU 0746F9Ch
-PUBLIC _pill_structure_collision_bsp
-_pill_structure_collision_bsp EQU 0746F98h
-PUBLIC _pill_structure_collision_bsp_root
-_pill_structure_collision_bsp_root EQU 0746F90h
 PUBLIC _placement_collision_bsp_root
 _placement_collision_bsp_root EQU 0746F90h
 PUBLIC _placement_offset_table
