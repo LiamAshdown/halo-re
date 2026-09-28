@@ -39,7 +39,8 @@ static void log_line(const char *fmt, ...)
     if (!g_log) {
         char path[MAX_PATH];
         _snprintf(path, sizeof path, "%s\\halo_standalone.log", g_exe_dir);
-        g_log = fopen(path, "w");
+        /* a relaunched child appends to what the first instance logged */
+        g_log = fopen(path, GetEnvironmentVariableA("HALO_STANDALONE_RELAUNCHED", NULL, 0) ? "a" : "w");
         if (!g_log) return;
     }
     va_start(ap, fmt);
@@ -191,6 +192,8 @@ static int run_reserved_child(void)
     ZeroMemory(&si, sizeof si);
     si.cb = sizeof si;
     SetEnvironmentVariableA("HALO_STANDALONE_CHILD", "1");
+    SetEnvironmentVariableA("HALO_STANDALONE_RELAUNCHED", "1");
+    if (g_log) fflush(g_log);
     if (!CreateProcessA(NULL, GetCommandLineA(), NULL, NULL, TRUE, CREATE_SUSPENDED, NULL, NULL, &si, &pi)) {
         log_line("CreateProcess failed (%lu)", GetLastError());
         return 1;
@@ -415,9 +418,38 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, i
     if (slash) *slash = 0;
 
     if (!GetEnvironmentVariableA("HALO_STANDALONE_CHILD", NULL, 0)) {
-        return run_reserved_child();
+        /* under a debugger, run in this process when the range is still free, so the debugger sees the game
+           (it does not follow the child); otherwise relaunch as usual */
+        if (IsDebuggerPresent() &&
+            VirtualAlloc((void *)RESERVE_BASE, RESERVE_END - RESERVE_BASE, MEM_RESERVE, PAGE_EXECUTE_READWRITE)) {
+            SetEnvironmentVariableA("HALO_STANDALONE_CHILD", "1");
+            log_line("halo standalone: debugger attached, running in-process");
+        } else {
+            if (IsDebuggerPresent()) {
+                MEMORY_BASIC_INFORMATION mbi;
+                DWORD error = GetLastError();
+
+                VirtualQuery((void *)RESERVE_BASE, &mbi, sizeof mbi);
+                log_line("halo standalone: debugger attached but 0x%x.. is taken (%lu; state 0x%lx, base %p, size 0x%lx, "
+                         "type 0x%lx): relaunching; the child waits for the debugger to attach", RESERVE_BASE, error,
+                         mbi.State, mbi.AllocationBase, (unsigned long)mbi.RegionSize, mbi.Type);
+                SetEnvironmentVariableA("HALO_STANDALONE_WAIT_DEBUGGER", "1");
+            }
+            return run_reserved_child();
+        }
     }
     log_line("halo standalone: child started");
+    /* the debugger of the first instance does not follow the child: HALO_STANDALONE_WAIT_DEBUGGER (set then, or by
+       hand) holds the game until one attaches to this process */
+    if (GetEnvironmentVariableA("HALO_STANDALONE_WAIT_DEBUGGER", NULL, 0) && !IsDebuggerPresent()) {
+        char text[256];
+
+        log_line("waiting for a debugger to attach to process %lu", GetCurrentProcessId());
+        fflush(g_log);
+        _snprintf(text, sizeof text, "Attach the debugger to halo_rebuilt.exe, process ID %lu "
+                  "(CLion: Run > Attach to Process), then press OK.", GetCurrentProcessId());
+        MessageBoxA(NULL, text, "halo_rebuilt: waiting for debugger", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+    }
     install_diagnostics();
     if (!map_image()) return 2;
     preload_system_dinput8();

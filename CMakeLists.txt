@@ -39,6 +39,9 @@ foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
     set(CMAKE_C_FLAGS_${config} "")
     set(CMAKE_EXE_LINKER_FLAGS_${config} "/INCREMENTAL:NO")
 endforeach()
+# Debug adds symbols only (a PDB for breakpoints; /Zi does not change the generated code)
+set(CMAKE_C_FLAGS_DEBUG "/Zi /FS")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO /DEBUG")
 
 # ---- the rewritten game functions, one file each
 file(GLOB GAME_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*/*.c")
