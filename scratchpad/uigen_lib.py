@@ -97,8 +97,10 @@ def generate(specs):
     """specs: (addr, size, note, externs, body[, helpers]) -- kind taken from the table the address sits in."""
     n = 0
     for spec in specs:
-        a, s, text, ext, body = spec[:5]
+        a, s, text, ext, code = spec[:5]
         helpers = spec[5] if len(spec) > 5 else ''
+        body = code
+        code = code + helpers  # include checks look at both
         if a in EVENT_TABLE:
             i = EVENT_TABLE[a]
             name = 'ui_event_%x' % a
@@ -110,15 +112,15 @@ def generate(specs):
             hdr = HDR_GDI % dict(a=a, i=i, s=s, slot=0x692b18 + 4 * i, note=note(a, s, text))
             sig = 'void %s(widget_instance *widget)' % name
         inc = '#include "tags.h"\n#include "memory.h"\n#include "math.h"\n#include "cache.h"\n#include "interface.h"\n'
-        if 'd3d_' in body or 'rasterizer_display_mode' in body:
+        if 'd3d_' in code or 'rasterizer_display_mode' in code:
             inc += '#include "rasterizer.h"\n'
-        if '_wto' in body:
+        if '_wto' in code:
             inc += '#include <stdlib.h>\n'
-        if 'memset' in body or 'memcpy' in body:
+        if 'memset' in code or 'memcpy' in code:
             inc += '#include <string.h>\n'
-        if 'wcs' in body:
+        if 'wcs' in code:
             inc += '#include <wchar.h>\n'
-        if 'sprintf' in body:
+        if 'sprintf' in code:
             inc += '#include <stdio.h>\n'
         ex = ''.join(EXT[e] + '\n' for e in ext)
         src = hdr + '\n' + inc + ('\n' + ex if ex else '') + ('\n' + helpers if helpers else '') + '\n' + sig + '\n{\n' + body + '}\n'
