@@ -8,13 +8,13 @@
 // (0xe8), object.recent_shield_damage (0xf4), object.vitality_flags (0x106,
 // _object_shield_depleted_bit).
 // UNSURE: message_delta_decode_compound_field is called with no visible arguments or return handling, yet the locals
-// `local_c`, `local_8` and `local_4` are read immediately afterward with no visible assignment;
+// `network_id`, `shield_damage` and `notify` are read immediately afterward with no visible assignment;
 // exactly as with object_damage_apply_line_of_sight, this means message_delta_decode_compound_field writes them through
 // implicit pointers this decompile lost. They are transcribed as literal, apparently-unwritten
 // reads. object_try_and_get's object-index argument is likewise not visible. message_delta_decode_compound_field_staged,
 // unit_update_stance_and_jump and PTR_DAT_00687130 are all outside this module.
 // register convention: a pointer-to-pointer parameter in EAX (in_EAX).
-// blam-cc: EAX=param_1
+// blam-cc: EAX=message
 
 #include "tags.h"
 #include "memory.h"
@@ -29,39 +29,39 @@ extern void object_set_shield_depleted_flag(uint32_t object_index); // this modu
 extern void object_throttled_multiplayer_sound_event(void); // this module, 0x4ee370 // this module, 0x4ee370 (object_throttled_multiplayer_sound_event)
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0; object handle in ECX, type mask on the stack. Verified against the body at
-    // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and param_1 & 1 << header->type) and against the
+    // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and message & 1 << header->type) and against the
     // call site in this file.
 extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction, uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle, int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still); // UNSURE: out of range, 0x566de0
 
-void object_apply_shield_charge_and_notify(void **param_1)
+void object_apply_shield_charge_and_notify(void **message)
 {
-    int32_t local_c;   // UNSURE: apparently written by message_delta_decode_compound_field through an implicit pointer
-    float local_8;     // UNSURE: same
-    int8_t local_4;    // UNSURE: same
+    int32_t network_id;   // UNSURE: apparently written by message_delta_decode_compound_field through an implicit pointer
+    float shield_damage;     // UNSURE: same
+    int8_t notify;    // UNSURE: same
 
-    if (*(int32_t *)*param_1 != 0) {
+    if (*(int32_t *)*message != 0) {
         message_delta_decode_compound_field_staged(0); // UNSURE: the EAX operand is not visible here
         return;
     }
 
-    if (message_delta_decode_compound_field(param_1, &local_c) == 0) {
+    if (message_delta_decode_compound_field(message, &network_id) == 0) {
         return;
     }
 
-    if (local_c != 0) {
-        int32_t effect = ((int32_t *)object_network_id_table->handles)[local_c]; // UNSURE: array base at +0x28
+    if (network_id != 0) {
+        int32_t effect = ((int32_t *)object_network_id_table->handles)[network_id]; // UNSURE: array base at +0x28
 
         if (effect != -1) {
             object *target = object_try_and_get(effect, _object_mask_unit);
             // 0x4ee514 mov ecx,edi -- the handle just tested above
 
             if (target != 0) {
-                if (0.0f < local_8) {
+                if (0.0f < shield_damage) {
                     target->shield_damage_ticks = 0;
                     if ((target->vitality_flags & _object_shield_depleted_bit) == 0) {
                         target->current_shield_damage = 1.0f;
                     }
-                    target->recent_shield_damage = local_8 + target->recent_shield_damage;
+                    target->recent_shield_damage = shield_damage + target->recent_shield_damage;
                     if (1.0f < target->current_shield_damage) {
                         target->current_shield_damage = 1.0f;
                     }
@@ -69,7 +69,7 @@ void object_apply_shield_charge_and_notify(void **param_1)
                         target->recent_shield_damage = 1.0f;
                     }
                 }
-                if (local_4 == 1) {
+                if (notify == 1) {
                     object_set_shield_depleted_flag(0); // UNSURE: object index argument not visible
                 }
                 unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, 0xffffffff, 0, 0);

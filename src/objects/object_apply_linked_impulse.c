@@ -5,11 +5,11 @@
 // it as a physics impulse")
 // rewrite confidence: 0.25
 // evidence: item_accelerate already named elsewhere; everything else in this function is UNSURE.
-// UNSURE: same pattern as object_apply_shield_charge_and_notify.c — `local_14`, and the vector
-// components `local_c/local_10/local_8/local_4` are read with no visible prior assignment,
+// UNSURE: same pattern as object_apply_shield_charge_and_notify.c — `network_id`, and the vector
+// components `direction_i/impulse_scale/direction_j/direction_k` are read with no visible prior assignment,
 // meaning message_delta_decode_compound_field writes them through implicit pointers this decompile lost.
 // register convention: a pointer-to-pointer parameter in EAX (in_EAX).
-// blam-cc: EAX=param_1
+// blam-cc: EAX=message
 
 #include "tags.h"
 #include "memory.h"
@@ -22,23 +22,23 @@ extern int8_t message_delta_decode_compound_field(void *globals, void *out_value
 extern uint8_t message_delta_decode_compound_field_staged(void **context); // UNSURE: zero visible args; out of range, 0x4ec670
 extern void item_accelerate(real_vector3d *impulse, int32_t param_2); // 0x4bd080
 
-void object_apply_linked_impulse(void **param_1)
+void object_apply_linked_impulse(void **message)
 {
-    int32_t local_14; // UNSURE: apparently written by message_delta_decode_compound_field through an implicit pointer
-    float local_10, local_c, local_8, local_4; // UNSURE: same
+    int32_t network_id; // UNSURE: apparently written by message_delta_decode_compound_field through an implicit pointer
+    float impulse_scale, direction_i, direction_j, direction_k; // UNSURE: same
 
-    if (*(int32_t *)*param_1 != 0) {
+    if (*(int32_t *)*message != 0) {
         message_delta_decode_compound_field_staged(0); // UNSURE: the EAX operand is not visible here
         return;
     }
 
-    if (message_delta_decode_compound_field(param_1, &local_14) != 0 && local_14 != 0 &&
-        ((int32_t *)object_network_id_table->handles)[local_14] != -1) { // UNSURE: array base at +0x28
+    if (message_delta_decode_compound_field(message, &network_id) != 0 && network_id != 0 &&
+        ((int32_t *)object_network_id_table->handles)[network_id] != -1) { // UNSURE: array base at +0x28
         real_vector3d impulse;
 
-        impulse.i = local_c * local_10;
-        impulse.j = local_8 * local_10;
-        impulse.k = local_4 * local_10;
+        impulse.i = direction_i * impulse_scale;
+        impulse.j = direction_j * impulse_scale;
+        impulse.k = direction_k * impulse_scale;
         item_accelerate(&impulse, 0);
     }
 }
