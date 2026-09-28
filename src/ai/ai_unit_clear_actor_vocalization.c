@@ -24,9 +24,9 @@ void ai_unit_clear_actor_vocalization(datum_index unit_index)
 
     if (unit->actor_index != (datum_index)k_datum_index_none) {
         actor *a = &((actor *)actor_data->data)[unit->actor_index & 0xffff];
-        *(int16_t *)((uint8_t *)a + 0x546) = 0;
-        *(int16_t *)((uint8_t *)a + 0x544) = 0;
-        *(int16_t *)((uint8_t *)a + 0x548) = 0;
+        ((actor *)a)->vocalization_variant = 0;
+        ((actor *)a)->vocalization_line = 0;
+        ((actor *)a)->vocalization_state = 0;
     }
 }
 

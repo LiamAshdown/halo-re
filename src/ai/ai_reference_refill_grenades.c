@@ -23,6 +23,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -52,8 +53,8 @@ void ai_reference_refill_grenades(uint32_t packed_reference)
             variant_data = (uint8_t *)tag_instances[a->actor_variant_tag & 0xffff].data;
             unit = (uint8_t *)((object_header *)object_data->data)[a->unit_index & 0xffff].data;
 
-            *(float *)(unit + 0xe0) = (*(float *)(unit + 0xd8) <= 0.0f) ? k_real_zero : k_real_one;
-            *(float *)(unit + 0xe4) = (*(float *)(unit + 0xdc) <= 0.0f) ? k_real_zero : k_real_one;
+            ((unit_object *)unit)->base.body_vitality = (((unit_object *)unit)->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
+            ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
 
             if (*(int16_t *)(variant_data + 0x180) != -1) {
                 random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
@@ -64,7 +65,7 @@ void ai_reference_refill_grenades(uint32_t packed_reference)
 
                 unit = (uint8_t *)((object_header *)object_data->data)
                     [a->unit_index & 0xffff].data;
-                current = (int16_t)*(int8_t *)(unit + 0x31c);
+                current = (int16_t)((unit_object *)unit)->unit.current_grenade_index;
                 if (current == -1) {
                     current = 0;
                 } else {
@@ -78,8 +79,8 @@ void ai_reference_refill_grenades(uint32_t packed_reference)
                     *(int8_t *)(unit + 0x31e + grenade_type) =
                         (int8_t)(*(int8_t *)(unit + 0x31e + grenade_type) +
                                  ((int8_t)rolled - (int8_t)current));
-                    *(uint8_t *)(unit + 0x31d) = (uint8_t)grenade_type;
-                    *(uint8_t *)(unit + 0x31c) = (uint8_t)grenade_type;
+                    *(uint8_t *)&((unit_object *)unit)->unit.desired_grenade_index = (uint8_t)grenade_type;
+                    *(uint8_t *)&((unit_object *)unit)->unit.current_grenade_index = (uint8_t)grenade_type;
                 }
             }
         }

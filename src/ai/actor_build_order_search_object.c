@@ -39,7 +39,7 @@ uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_i
     memset(order, 0, 0x4c);
     *(float *)(order + 0x20) = radius_a;
     *(float *)(order + 0x24) = radius_b;
-    if (*(datum_index *)(act + 0x158) != k_datum_index_none || act[0x6] != 0 || *(int16_t *)(act + 0x6c) == 9) {
+    if (((actor *)act)->active_unit_index != k_datum_index_none || act[0x6] != 0 || ((actor *)act)->mode == 9) {
         return 0;
     }
     if (!actor_is_within_alert_range(0, radius_a, radius_b, 0, 0, actor_index, vehicle_index)) {
@@ -52,7 +52,7 @@ uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_i
         return 0;
     }
     order[0x6] = 1;
-    if (!unit_seat_index_is_valid(*(datum_index *)(act + 0x18), vehicle_index, seat)) {
+    if (!unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
         return 0;
     }
     if (!actor_avoid_obstacle_and_project(actor_index, vehicle_index, &entry, &hint, 0, (real_point3d *)(order + 0x30),

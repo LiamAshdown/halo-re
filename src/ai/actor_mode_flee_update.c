@@ -35,23 +35,23 @@ void actor_mode_flee_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
     int16_t panic = *(int16_t *)(act + 0xa8);
-    datum_index target = *(datum_index *)(act + 0x270);
+    datum_index target = ((actor *)act)->target_unit_index;
     int16_t destination;
 
     if (panic > 0) {
-        *(int16_t *)(act + 0x3e8) = 6;
-        *(int16_t *)(act + 0x3ec) = 0;
+        ((actor *)act)->vocalization_unknown_3e8 = 6;
+        ((actor *)act)->vocalization_unknown_3ec = 0;
         act[0x456] = 1;
     } else if (target != k_datum_index_none && *(int16_t *)(PROP(target) + 0x32) > 0) {
-        *(int16_t *)(act + 0x3e8) = 7;
-        *(int16_t *)(act + 0x3ec) = 2;
+        ((actor *)act)->vocalization_unknown_3e8 = 7;
+        ((actor *)act)->vocalization_unknown_3ec = 2;
         act[0x454] = 1;
     } else if (*(datum_index *)(act + 0xb8) != k_datum_index_none) {
-        *(int16_t *)(act + 0x3e8) = 3;
-        *(int16_t *)(act + 0x3ec) = 1;
+        ((actor *)act)->vocalization_unknown_3e8 = 3;
+        ((actor *)act)->vocalization_unknown_3ec = 1;
         *(datum_index *)(act + 0x3f0) = *(datum_index *)(act + 0xb8);
     } else {
-        *(int16_t *)(act + 0x3e8) = 0;
+        ((actor *)act)->vocalization_unknown_3e8 = 0;
     }
     *(int16_t *)(act + 0x3fc) = 4;
     act[0x428] = (uint8_t)(*(int16_t *)(act + 0xa8) > 0);
@@ -70,14 +70,14 @@ void actor_mode_flee_update(datum_index actor_index)
         return;
     }
     if (actor_movement_set_destination_firing_position(actor_index, destination, 0)) {
-        *(int16_t *)(act + 0x3b8) = *(int16_t *)(act + 0xa4);
+        ((actor *)act)->firing_position_index = *(int16_t *)(act + 0xa4);
         act[0x3ba] = act[0xa6];
         return;
     }
-    if (*(int16_t *)(act + 0x3b8) != -1) {
-        actor_push_recognition_entry(actor_index, *(int16_t *)(act + 0x3b8), 0);
+    if (((actor *)act)->firing_position_index != -1) {
+        actor_push_recognition_entry(actor_index, ((actor *)act)->firing_position_index, 0);
         actor_movement_action_stop(actor_index);
-        *(int16_t *)(act + 0x3b8) = -1;
+        ((actor *)act)->firing_position_index = -1;
     }
     *(int16_t *)(act + 0xa4) = -1;
     act[0xa2] = 1;

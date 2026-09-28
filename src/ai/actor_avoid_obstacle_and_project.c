@@ -57,8 +57,8 @@ uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index ve
     if ((vehicle_tag[0x17c] & 0x10) == 0) {
         real_point3d center = *(real_point3d *)(vehicle + 0xa0);
         float radius = *(float *)(vehicle + 0xac);
-        float ax = *(float *)(act + 0x12c);
-        float ay = *(float *)(act + 0x130);
+        float ax = ((actor *)act)->body_position.x;
+        float ay = ((actor *)act)->body_position.y;
         real_point3d *target_pointer;
         real_point3d target;
         real_vector2d to_center;
@@ -136,7 +136,7 @@ uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index ve
         {
             float dx = point.x - ax;
             float dy = point.y - ay;
-            float dz = point.z - *(float *)(act + 0x134);
+            float dz = point.z - ((actor *)act)->body_position.z;
             float distance_squared = dz * dz + dy * dy + dx * dx;
             float distance;
             real_vector3d side;

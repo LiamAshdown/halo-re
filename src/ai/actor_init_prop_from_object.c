@@ -70,19 +70,19 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
         uint8_t *object_type = (uint8_t *)tag_instances[*(uint16_t *)object & 0xffff].data;
         uint8_t is_vault;
 
-        p->object_type = *(int16_t *)(object + 0xb8); // 0x43e706: prop +0x12 = the object team (types/ai.h calls it object_type); the draft wrote +0x16
+        p->object_type = ((struct object *)object)->owner_team; // 0x43e706: prop +0x12 = the object team (types/ai.h calls it object_type); the draft wrote +0x16
         // 0x43e6fb..0x43e731: CX = the object's team, DX = the actor's (+0x3e); then DX object, CX actor; then
         // BX actor, stack object
         p->is_unit = teams_are_enemies(p->object_type, *(int16_t *)((uint8_t *)self + 0x3e));
         p->unknown_61 = team_pair_flag_test(*(int16_t *)((uint8_t *)self + 0x3e), p->object_type);
         p->unknown_62 = team_pair_override_get_flag(*(int16_t *)((uint8_t *)self + 0x3e), p->object_type);
 
-        is_vault = (*(uint8_t *)(object + 0x106) >> 2) & 1; // 0x43e73d: the object's firing bit, not the tag's
+        is_vault = (*(uint8_t *)&((struct object *)object)->vitality_flags >> 2) & 1; // 0x43e73d: the object's firing bit, not the tag's
         p->is_vault = is_vault;
         p->unknown_20 = *(float *)(object_type + 0x284);
         p->unknown_128 = (is_vault != 0) && (*(int16_t *)(object + 0x420) == 0);
         p->unknown_76 = (is_vault != 0) ? 1000 : 0;
-        p->is_parented = *(int32_t *)(object + 0xc0) != -1;
+        p->is_parented = *(int32_t *)&((struct object *)object)->owner_linkage != -1;
 
         if (*(int32_t *)(object + 0x1f8) == -1) {
             p->owner_actor_index = *(datum_index *)(object + 0x1f4);

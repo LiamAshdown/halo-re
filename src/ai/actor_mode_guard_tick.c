@@ -78,15 +78,15 @@ void actor_mode_guard_tick(datum_index actor_index)
     act[0xa5] = 0;
     act[0xa6] = 0;
     *(int16_t *)(act + 0xa8) = 0;
-    if (*(int16_t *)(act + 0x6e) >= 2 && *(datum_index *)(act + 0x18) != k_datum_index_none) {
-        ai_communication_broadcast(0x23, *(datum_index *)(act + 0x18), actor_get_target_prop_object_index(actor_index),
+    if (*(int16_t *)(act + 0x6e) >= 2 && ((actor *)act)->unit_index != k_datum_index_none) {
+        ai_communication_broadcast(0x23, ((actor *)act)->unit_index, actor_get_target_prop_object_index(actor_index),
                                    -1, -1, -1, 0);
     }
     if (*(int16_t *)(act + 0xc0) == 3) {
         actor_push_recognition_entry(actor_index, *(int16_t *)(act + 0xc4), 0);
         *(int16_t *)(act + 0xc4) = -1;
     }
-    *(int16_t *)(act + 0x3b8) = -1;
+    ((actor *)act)->firing_position_index = -1;
     if (act[0x160]) {
         *(int16_t *)(act + 0xc0) = 1;
         return;

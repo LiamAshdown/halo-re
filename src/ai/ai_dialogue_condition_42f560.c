@@ -32,8 +32,8 @@ uint8_t ai_dialogue_condition_42f560(datum_index object_index, uint32_t param_2,
         return 0;
     }
     actor = ACTOR(actor_index);
-    if (*(int16_t *)(actor + 0x6c) == 5) {
+    if (((struct actor *)actor)->mode == 5) {
         return (uint8_t)(*(int16_t *)(actor + 0xa4) == 1);
     }
-    return (uint8_t)(*(int16_t *)(actor + 0x6c) == 7);
+    return (uint8_t)(((struct actor *)actor)->mode == 7);
 }

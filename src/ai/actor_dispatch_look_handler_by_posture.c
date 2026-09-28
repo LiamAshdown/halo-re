@@ -37,7 +37,7 @@ int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_i
     uint8_t stance_a, uint8_t check_facing, uint16_t range_class)
 {
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(actor + 0x58) & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
     uint8_t *definition;
     float *from = (float *)origin;
     float *to = (float *)target;
@@ -52,7 +52,7 @@ int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_i
         return 0;
     }
     definition = (uint8_t *)actor_get_actor_definition(actor_index);
-    base = *(float *)(actor_tag + 0x18);
+    base = ((Actor *)actor_tag)->max_vision_distance;
     if (*(float *)(definition + 0x150) > 0.0f) {
         base = *(float *)(definition + 0x150);
     }
@@ -78,7 +78,7 @@ int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_i
     }
 
     if (actor[6] == 0 && check_facing != 0) {
-        float forward = dz * *(float *)(actor + 0x194) + dy * *(float *)(actor + 0x190) + dx * *(float *)(actor + 0x18c);
+        float forward = dz * ((struct actor *)actor)->facing_unknown_18c.k + dy * ((struct actor *)actor)->facing_unknown_18c.j + dx * ((struct actor *)actor)->facing_unknown_18c.i;
         float left = dz * *(float *)(actor + 0x1a0) + dy * *(float *)(actor + 0x19c) + dx * *(float *)(actor + 0x198);
         float up = dz * *(float *)(actor + 0x1ac) + dy * *(float *)(actor + 0x1a8) + dx * *(float *)(actor + 0x1a4);
         float elevation = (float)atan2((double)up, sqrt((double)(left * left + forward * forward)));

@@ -33,14 +33,14 @@ extern uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_a
 uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_reaction, uint8_t use_alt_base)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     int16_t grade;
     int32_t now;
 
-    if (!act[0x4c] || !(*(float *)(act + 0x1bc) <= *(float *)(actor_tag + 0x2dc))) {
+    if (!act[0x4c] || !(*(float *)(act + 0x1bc) <= ((Actor *)actor_tag)->hide_shield_fraction)) {
         return 0;
     }
-    grade = actor_mode_definitions[*(int16_t *)(act + 0x6c)].combat_grade;
+    grade = actor_mode_definitions[((actor *)act)->mode].combat_grade;
     if (act[0x378] || (grade != 4 && grade != 3) || *(int16_t *)(act + 0x6e) < 2) {
         return 0;
     }
@@ -56,7 +56,7 @@ uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_re
         return 1;
     }
     if (allow_pain_reaction &&
-        actor_check_pain_reaction(*(datum_index *)(act + 0x270), use_alt_base, 4, actor_index)) {
+        actor_check_pain_reaction(((actor *)act)->target_unit_index, use_alt_base, 4, actor_index)) {
         return 1;
     }
     return 0;

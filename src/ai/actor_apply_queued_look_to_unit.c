@@ -33,37 +33,37 @@ extern uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int
 void actor_apply_queued_look_to_unit(datum_index actor_index)
 {
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint32_t unit_index = *(uint32_t *)(actor + 0x18);
+    uint32_t unit_index = *(uint32_t *)&((struct actor *)actor)->unit_index;
     uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_control_data control;
 
     control.animation_state = (int8_t)actor_control_animation_state_table[*(int16_t *)(actor + 0x6dc) * 2];
     control.aiming_speed = (int8_t)actor[0x6f8];
-    control.control_flags = *(uint16_t *)(actor + 0x6d0);
+    control.control_flags = *(uint16_t *)&((struct actor *)actor)->flags;
     control.weapon_index = -1;
     control.grenade_index = -1;
     control.zoom_level = -1;
     control.unknown_0a = 0;
-    control.throttle = *(real_vector3d *)(actor + 0x6e0);
-    control.primary_trigger = *(float *)(actor + 0x720);
-    control.facing_vector = *(real_vector3d *)(actor + 0x6fc);
-    control.aiming_vector = *(real_vector3d *)(actor + 0x708);
-    control.looking_vector = *(real_vector3d *)(actor + 0x714);
+    control.throttle = *(real_vector3d *)&((struct actor *)actor)->queued_look_vector.i;
+    control.primary_trigger = *(float *)&((struct actor *)actor)->override_target;
+    control.facing_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_facing.i;
+    control.aiming_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_unknown_708.i;
+    control.looking_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_unknown_714.i;
 
-    if (*(uint32_t *)(unit + 0x218) != 0xffffffff && local_player_globals->input_disabled == 0) {
+    if (*(uint32_t *)&((unit_object *)unit)->unit.controlling_player != 0xffffffff && local_player_globals->input_disabled == 0) {
         return;
     }
     if (actor[0x07] != 0) {
         unit_refresh_targeting_flag_and_weapons(unit_index, 1);
         actor[0x07] = 0;
     }
-    unit_apply_control_block(*(uint32_t *)(actor + 0x18), &control, -1);
+    unit_apply_control_block(*(uint32_t *)&((struct actor *)actor)->unit_index, &control, -1);
     if (*(int16_t *)(actor + 0x6ec) != -1) {
-        unit_try_start_scripted_action_animation(*(uint32_t *)(actor + 0x18), *(int16_t *)(actor + 0x6ec),
+        unit_try_start_scripted_action_animation(*(uint32_t *)&((struct actor *)actor)->unit_index, *(int16_t *)(actor + 0x6ec),
             (const real_vector2d *)(actor + 0x6f0));
     }
     if (*(int16_t *)(actor + 0x6d4) > 0) {
-        uint8_t *object = (uint8_t *)((object_header *)object_data->data)[*(uint32_t *)(actor + 0x18) & 0xffff].data;
+        uint8_t *object = (uint8_t *)((object_header *)object_data->data)[*(uint32_t *)&((struct actor *)actor)->unit_index & 0xffff].data;
 
         *(int32_t *)(object + 0x210) = *(int16_t *)(actor + 0x6d4);
         *(uint32_t *)(object + 0x214) = *(uint32_t *)(actor + 0x6d8);

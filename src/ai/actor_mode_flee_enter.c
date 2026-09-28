@@ -27,7 +27,7 @@ void actor_mode_flee_enter(datum_index actor_index)
     if (kind > 0) {
         act[0x98] = 0;
     }
-    if (*(int16_t *)(act + 0x9e) == 0 && *(datum_index *)(act + 0x18) != k_datum_index_none && kind >= 9 && kind <= 12) {
-        unit_initialize_random_turn_angle(*(datum_index *)(act + 0x18));
+    if (*(int16_t *)(act + 0x9e) == 0 && ((actor *)act)->unit_index != k_datum_index_none && kind >= 9 && kind <= 12) {
+        unit_initialize_random_turn_angle(((actor *)act)->unit_index);
     }
 }

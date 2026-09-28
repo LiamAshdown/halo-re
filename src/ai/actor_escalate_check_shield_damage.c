@@ -26,10 +26,10 @@ extern game_time_globals *game_time; // 0x006f1d6c
 uint8_t actor_escalate_check_shield_damage(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
 
-    if (!act[0x2ec] || !(*(float *)(act + 0x1c0) > *(float *)(actor_tag + 0x398)) ||
-        !(*(float *)(act + 0x1b8) < *(float *)(actor_tag + 0x39c))) {
+    if (!act[0x2ec] || !(*(float *)(act + 0x1c0) > ((Actor *)actor_tag)->berserk_damage_amount) ||
+        !(*(float *)(act + 0x1b8) < ((Actor *)actor_tag)->berserk_damage_threshold)) {
         return 0;
     }
     if (*(int16_t *)(act + 0x310) <= 3) {

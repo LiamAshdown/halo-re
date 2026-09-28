@@ -29,17 +29,17 @@ extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, E
 uint8_t actor_escalate_check_weapon_range(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     uint8_t *definition = (uint8_t *)actor_get_actor_definition(actor_index);
 
     if (*(datum_index *)(act + 0x1b0) == k_datum_index_none || *(int16_t *)(act + 0x6e) < 5) {
         return 0;
     }
-    if (!(*(float *)(PROP(*(datum_index *)(act + 0x270)) + 0x11c) < *(float *)(definition + 0x16c))) {
+    if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) < *(float *)(definition + 0x16c))) {
         return 0;
     }
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    if (!((float)(random_seed_global >> 16) * 1.5259022e-05f < *(float *)(actor_tag + 0x3a8))) {
+    if (!((float)(random_seed_global >> 16) * 1.5259022e-05f < ((Actor *)actor_tag)->berserk_grenade_chance)) {
         return 0;
     }
     if (*(int16_t *)(act + 0x310) <= 4) {

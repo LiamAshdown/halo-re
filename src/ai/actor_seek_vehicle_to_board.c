@@ -39,9 +39,9 @@ extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_dat
 uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     int32_t now = game_time->game_time;
-    int16_t mode = *(int16_t *)(act + 0x6c);
+    int16_t mode = ((actor *)act)->mode;
     float best_distance = 3.4028235e38f;
     float radius_a = 3.4028235e38f;
     float radius_b = 3.4028235e38f;
@@ -57,7 +57,7 @@ uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
     }
     *(int32_t *)(act + 0x384) = now;
     if (*(uint32_t *)actor_tag & 0x1000) {
-        datum_index prop_index = *(datum_index *)(act + 0x50);
+        datum_index prop_index = ((actor *)act)->first_prop;
 
         while (prop_index != k_datum_index_none) {
             uint8_t *p = PROP(prop_index);
@@ -109,9 +109,9 @@ uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
                 continue;
             }
             object_get_position(&position, vehicle);
-            dx = *(float *)(act + 0x12c) - position.x;
-            dy = *(float *)(act + 0x130) - position.y;
-            dz = *(float *)(act + 0x134) - position.z;
+            dx = ((actor *)act)->body_position.x - position.x;
+            dy = ((actor *)act)->body_position.y - position.y;
+            dz = ((actor *)act)->body_position.z - position.z;
             distance_squared = dz * dz + dx * dx + dy * dy;
             if (!(distance_squared < best_distance)) {
                 continue;
@@ -120,7 +120,7 @@ uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
                 continue;
             }
             if (team_mask > 0) {
-                int16_t team = *(int16_t *)(act + 0x3e);
+                int16_t team = ((actor *)act)->team;
 
                 if (team == -1 || (team_mask & (1 << team)) == 0) {
                     continue;
@@ -139,16 +139,16 @@ uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
                     if (filter == 0xffffffff) {
                         continue;
                     }
-                    match = (uint8_t)(((*(uint32_t *)(act + 0x34) ^ filter) & 0xffff) == 0);
+                    match = (uint8_t)(((*(uint32_t *)&((actor *)act)->encounter_index ^ filter) & 0xffff) == 0);
                     if (!match) {
                         continue;
                     }
                     switch (filter >> 30) {
                     case 1:
-                        match = (uint8_t)(*(int16_t *)(act + 0x3c) == (int16_t)(uint8_t)(filter >> 16));
+                        match = (uint8_t)(((actor *)act)->platoon_index == (int16_t)(uint8_t)(filter >> 16));
                         break;
                     case 2:
-                        match = (uint8_t)(*(int16_t *)(act + 0x3a) == (int16_t)(uint8_t)(filter >> 16));
+                        match = (uint8_t)(((actor *)act)->squad_index == (int16_t)(uint8_t)(filter >> 16));
                         break;
                     default:
                         break;

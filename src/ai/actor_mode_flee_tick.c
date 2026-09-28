@@ -31,9 +31,9 @@ void actor_mode_flee_tick(datum_index actor_index)
     }
     if (*(int16_t *)(act + 0x9e) > 0) {
         *(int16_t *)(act + 0x9e) -= 1;
-        if (*(int16_t *)(act + 0x9e) == 0 && *(datum_index *)(act + 0x18) != k_datum_index_none &&
+        if (*(int16_t *)(act + 0x9e) == 0 && ((actor *)act)->unit_index != k_datum_index_none &&
             *(int16_t *)(act + 0xa8) >= 9 && *(int16_t *)(act + 0xa8) <= 12) {
-            unit_initialize_random_turn_angle(*(datum_index *)(act + 0x18));
+            unit_initialize_random_turn_angle(((actor *)act)->unit_index);
         }
     }
     if (*(int16_t *)(act + 0xa8) > 0) {

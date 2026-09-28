@@ -23,14 +23,14 @@ void actor_mode_wait_update(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
 
     if (act[0x504]) {
-        *(int16_t *)(act + 0x3e8) = 3;
-        *(int16_t *)(act + 0x3ec) = 0;
+        ((actor *)act)->vocalization_unknown_3e8 = 3;
+        ((actor *)act)->vocalization_unknown_3ec = 0;
     } else if (!act[0x1cc] && *(int32_t *)(act + 0x1d0) != -1 && *(int16_t *)(act + 0xa8) > 0) {
-        *(int16_t *)(act + 0x3e8) = 5;
-        *(int16_t *)(act + 0x3ec) = 1;
+        ((actor *)act)->vocalization_unknown_3e8 = 5;
+        ((actor *)act)->vocalization_unknown_3ec = 1;
         *(int32_t *)(act + 0x3f0) = *(int32_t *)(act + 0x1d0);
     } else {
-        *(int16_t *)(act + 0x3e8) = 1;
+        ((actor *)act)->vocalization_unknown_3e8 = 1;
     }
     *(int16_t *)(act + 0x3fc) = 3;
     act[0x454] = 0;

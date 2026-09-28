@@ -37,13 +37,13 @@ void actor_mode_search_tick(datum_index actor_index)
     if (act[0x9c]) {
         return;
     }
-    actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
-    if (*(int16_t *)(actor_tag + 0x2f8) == 4) {
+    actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
+    if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4) {
         act[0x9f] = 1;
     } else {
         act[0x9f] = 0;
-        if ((actor_tag[0] & 2) && *(int16_t *)(act + 0xa4) == 0 && *(int16_t *)(act + 0x268) == 5 &&
-            (int8_t)((uint8_t *)prop_data->data + (*(datum_index *)(act + 0x270) & 0xffff) * 0x138)[0x121] <= 2) {
+        if ((actor_tag[0] & 2) && *(int16_t *)(act + 0xa4) == 0 && ((actor *)act)->target_combat_status == 5 &&
+            (int8_t)((uint8_t *)prop_data->data + (((actor *)act)->target_unit_index & 0xffff) * 0x138)[0x121] <= 2) {
             act[0x9f] = 1;
         }
     }
@@ -63,7 +63,7 @@ void actor_mode_search_tick(datum_index actor_index)
     if (*(int32_t *)(act + 0xc0) == 0) {
         act[0x9c] = 1;
     }
-    unit_index = *(datum_index *)(act + 0x18);
+    unit_index = ((actor *)act)->unit_index;
     if (unit_index == k_datum_index_none) {
         return;
     }

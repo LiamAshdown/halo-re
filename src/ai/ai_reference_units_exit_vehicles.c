@@ -111,7 +111,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)(object_tag + 0x34) != -1) {
-            *(uint32_t *)(object + 0x10) &= ~1u;
+            ((struct object *)object)->flags &= ~1u;
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -234,7 +234,7 @@ void ai_reference_units_exit_vehicles(uint32_t packed_reference)
                         object_for_each_light_attachment(unit_index, 0, 1);
                     }
                     if (*(int32_t *)(object_tag + 0x34) != -1) {
-                        *(uint32_t *)(object + 0x10) &= ~1u;
+                        ((struct object *)object)->flags &= ~1u;
                         OBJECT_HEADER(unit_index).flags |= 2;
                     }
                 }

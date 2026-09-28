@@ -48,22 +48,22 @@ uint8_t actor_evaluate_grenade_target_position(datum_index actor_index)
     uint8_t *p;
     float *facing = (float *)(a + 0x174);
 
-    if (*(datum_index *)(a + 0x158) != k_datum_index_none || *(int16_t *)(a + 0x418) != -1) {
+    if (((actor *)a)->active_unit_index != k_datum_index_none || ((actor *)a)->secondary_action != -1) {
         return 0;
     }
-    if (*(datum_index *)(a + 0x18) != k_datum_index_none && unit_is_in_busy_animation_state(*(datum_index *)(a + 0x18))) {
+    if (((actor *)a)->unit_index != k_datum_index_none && unit_is_in_busy_animation_state(((actor *)a)->unit_index)) {
         return 0;
     }
-    if (a[0x504] || *(datum_index *)(a + 0x270) == k_datum_index_none) {
+    if (a[0x504] || ((actor *)a)->target_unit_index == k_datum_index_none) {
         return 0;
     }
     unit_tag = (uint8_t *)tag_instances[*(datum_index *)((uint8_t *)((object_header *)object_data->data)
-        [*(datum_index *)(a + 0x18) & 0xffff].data) & 0xffff].data;
-    p = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x270) & 0xffff) * 0x138;
+        [((actor *)a)->unit_index & 0xffff].data) & 0xffff].data;
+    p = (uint8_t *)prop_data->data + (((actor *)a)->target_unit_index & 0xffff) * 0x138;
     if (!(*(float *)(unit_tag + 0x234) > 0.0f)) {
         return 0;
     }
-    actor_tag = (uint8_t *)tag_instances[*(datum_index *)(a + 0x58) & 0xffff].data;
+    actor_tag = (uint8_t *)tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data;
     if (*(uint32_t *)actor_tag & 0x200000) {
         float dot = *(float *)(p + 0xe8) * facing[2] + *(float *)(p + 0xe4) * facing[1] + *(float *)(p + 0xe0) * facing[0];
 
@@ -93,7 +93,7 @@ uint8_t actor_evaluate_grenade_target_position(datum_index actor_index)
             return 0;
         }
         action = (int16_t)side == 1 ? 7 : 6;
-        if (unit_scripted_action_animation_exists(*(datum_index *)(a + 0x18), action)) {
+        if (unit_scripted_action_animation_exists(((actor *)a)->unit_index, action)) {
             queued = actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
         }
     }

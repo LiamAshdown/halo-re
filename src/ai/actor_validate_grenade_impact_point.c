@@ -29,8 +29,8 @@ uint8_t actor_validate_grenade_impact_point(datum_index actor_index, real_point3
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
 
-    if (actor_score_blast_area_clear(actor_index, *(float *)((uint8_t *)variant + 0x188),
-                      *(float *)((uint8_t *)variant + 0x19c), candidate_point, &hostile_count) != 0) {
+    if (actor_score_blast_area_clear(actor_index, ((ActorVariant *)variant)->enemy_radius,
+                      ((ActorVariant *)variant)->collateral_damage_radius, candidate_point, &hostile_count) != 0) {
         self->grenade_impact_point = *candidate_point;
         return 1;
     }

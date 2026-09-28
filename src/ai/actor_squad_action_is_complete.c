@@ -15,6 +15,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -44,7 +45,7 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
 {
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
     ScenarioCommandList *list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)[command_list_index];
-    datum_index unit_index = *(datum_index *)(act + 0x18);
+    datum_index unit_index = ((actor *)act)->unit_index;
     ScenarioCommand *entry;
     uint8_t done;
 
@@ -68,9 +69,9 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
             real_vector3d delta;
             float distance_squared;
 
-            delta.i = *(float *)(aim_state + 0x8) - *(float *)(act + 0x12c);
-            delta.j = *(float *)(aim_state + 0xc) - *(float *)(act + 0x130);
-            delta.k = *(float *)(aim_state + 0x10) - *(float *)(act + 0x134);
+            delta.i = *(float *)(aim_state + 0x8) - ((actor *)act)->body_position.x;
+            delta.j = *(float *)(aim_state + 0xc) - ((actor *)act)->body_position.y;
+            delta.k = *(float *)(aim_state + 0x10) - ((actor *)act)->body_position.z;
             distance_squared = vector3d_magnitude_squared(&delta);
             if (distance_squared <= range * range) {
                 done = 1;
@@ -78,8 +79,8 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
                 // 0x4067f4: still closing in when moving towards the point (unit velocity +0x68)
                 uint8_t *unit = OBJECT_DATA(unit_index);
 
-                if (delta.k * *(float *)(unit + 0x70) + delta.j * *(float *)(unit + 0x6c) +
-                    delta.i * *(float *)(unit + 0x68) <= 0.0f) {
+                if (delta.k * ((unit_object *)unit)->base.velocity.k + delta.j * ((unit_object *)unit)->base.velocity.j +
+                    delta.i * ((unit_object *)unit)->base.velocity.i <= 0.0f) {
                     done = 1;
                 }
             }
@@ -99,21 +100,21 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
             if (act[0x99]) { // flying: face in 3d
                 real_vector3d direction;
 
-                direction.i = *(float *)(aim_state + 0x1c) - *(float *)(act + 0x12c);
-                direction.j = *(float *)(aim_state + 0x20) - *(float *)(act + 0x130);
-                direction.k = *(float *)(aim_state + 0x24) - *(float *)(act + 0x134);
+                direction.i = *(float *)(aim_state + 0x1c) - ((actor *)act)->body_position.x;
+                direction.j = *(float *)(aim_state + 0x20) - ((actor *)act)->body_position.y;
+                direction.k = *(float *)(aim_state + 0x24) - ((actor *)act)->body_position.z;
                 if (vector3d_normalize_with_length(&direction) > 0.0f &&
-                    direction.k * *(float *)(act + 0x17c) + direction.j * *(float *)(act + 0x178) +
-                    direction.i * *(float *)(act + 0x174) < 0.984f) {
+                    direction.k * ((actor *)act)->facing.k + direction.j * ((actor *)act)->facing.j +
+                    direction.i * ((actor *)act)->facing.i < 0.984f) {
                     return 0;
                 }
             } else {
                 real_vector2d direction;
 
-                direction.i = *(float *)(aim_state + 0x1c) - *(float *)(act + 0x12c);
-                direction.j = *(float *)(aim_state + 0x20) - *(float *)(act + 0x130);
+                direction.i = *(float *)(aim_state + 0x1c) - ((actor *)act)->body_position.x;
+                direction.j = *(float *)(aim_state + 0x20) - ((actor *)act)->body_position.y;
                 if (vector2d_normalize_with_length(&direction) > 0.0f &&
-                    direction.j * *(float *)(act + 0x178) + direction.i * *(float *)(act + 0x174) < 0.984f) {
+                    direction.j * ((actor *)act)->facing.j + direction.i * ((actor *)act)->facing.i < 0.984f) {
                     return 0;
                 }
             }
@@ -126,7 +127,7 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
         real_point3d position;
 
         if (check_object_index == unit_index) {
-            position = *(real_point3d *)(act + 0x12c);
+            position = *(real_point3d *)&((actor *)act)->body_position.x;
         } else {
             object_get_position(&position, check_object_index);
         }
@@ -145,7 +146,7 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
         if (*(int16_t *)(act + 0x60c) != 2 ||
             !(vector3d_distance_squared((real_point3d *)(act + 0x610), (real_point3d *)(aim_state + 0x38)) < 0.25f)) {
             // 0x4069ec: the actor variant's burst duration (+0x84), at least 60 ticks
-            int16_t ticks = (int16_t)(int32_t)(*(float *)(TAG_DATA(*(datum_index *)(act + 0x5c)) + 0x84) * 30.0f);
+            int16_t ticks = (int16_t)(int32_t)(*(float *)(TAG_DATA(((actor *)act)->actor_variant_tag) + 0x84) * 30.0f);
 
             *(int16_t *)(state + 0x2) = ticks > 0x3c ? ticks : 0x3c;
         }

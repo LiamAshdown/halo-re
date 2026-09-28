@@ -53,9 +53,9 @@ extern tag_instance *tag_instances; // 0x0087bc14
 void actor_type_jackal_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(act + 0x58) & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
 
-    if (*(int16_t *)(act + 0x6c) == 0 && *(int16_t *)(act + 0x6a) != 0) {
+    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
         actor_process_order_request(actor_index, 0xffff);
     }
     actor_process_pending_command_list(actor_index);
@@ -74,7 +74,7 @@ void actor_type_jackal_update(datum_index actor_index)
         actor_update_danger_avoidance(actor_index);
     }
 
-    switch (*(int16_t *)(act + 0x6c)) {
+    switch (((actor *)act)->mode) {
     case 3:  // fight
     case 10: // charge
         if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
@@ -85,7 +85,7 @@ void actor_type_jackal_update(datum_index actor_index)
     case 6: // guard: an ambushing jackal (+0xa4, not +0xa5 / +0xa6) keeps its shield up while its damage (+0x1bc)
         // stays under the Actor tag's limit (+0x2e0 in combat, else +0x2e4), 30 more ticks at a time
         if (act[0xa4] && !act[0xa5] && !act[0xa6]) {
-            float limit = *(int16_t *)(act + 0x6e) >= 4 ? *(float *)(actor_tag + 0x2e0) : *(float *)(actor_tag + 0x2e4);
+            float limit = *(int16_t *)(act + 0x6e) >= 4 ? ((Actor *)actor_tag)->attack_shield_fraction : ((Actor *)actor_tag)->pursue_shield_fraction;
 
             if (limit > *(float *)(act + 0x1bc)) {
                 act[0xa4] = 1;
@@ -119,10 +119,10 @@ void actor_type_jackal_update(datum_index actor_index)
         return;
     case 12: // converse
         actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index),
-                                     (uint8_t)(act[0xa0] || *(datum_index *)(act + 0x1dc) == k_datum_index_none));
+                                     (uint8_t)(act[0xa0] || ((actor *)act)->conversation_index == k_datum_index_none));
         return;
     case 13: // avoid
-        if (*(int16_t *)(act + 0x280) == 0) {
+        if (((actor *)act)->danger_type == 0) {
             actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;

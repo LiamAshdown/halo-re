@@ -81,10 +81,10 @@ datum_index actor_new_and_attach_to_unit(
             uint8_t *actor = ACTOR_AT(candidate);
 
             actor_index = candidate;
-            candidate = *(datum_index *)(actor + 0x2c);
-            if (actor[6] == 0 || actor_index == exclude_actor || *(int16_t *)(actor + 0x1e) >= 0x10 ||
-                *(datum_index *)(actor + 0x5c) != actor_variant_tag ||
-                (ignore_squad == 0 && *(int16_t *)(actor + 0x3a) != squad_index)) {
+            candidate = ((struct actor *)actor)->next_in_encounter;
+            if (actor[6] == 0 || actor_index == exclude_actor || ((struct actor *)actor)->cluster_count >= 0x10 ||
+                ((struct actor *)actor)->actor_variant_tag != actor_variant_tag ||
+                (ignore_squad == 0 && ((struct actor *)actor)->squad_index != squad_index)) {
                 continue;
             }
             goto attach;

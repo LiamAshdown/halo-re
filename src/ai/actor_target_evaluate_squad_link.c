@@ -112,8 +112,8 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
     }
 
     unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
-    controlled = *(datum_index *)(unit + 0x218) != k_datum_index_none;
-    enemies = teams_are_enemies(*(int16_t *)(unit + 0xb8), *(int16_t *)(self + 0x3e));
+    controlled = ((unit_object *)unit)->unit.controlling_player != k_datum_index_none;
+    enemies = teams_are_enemies(((unit_object *)unit)->base.owner_team, *(int16_t *)(self + 0x3e));
     if ((unit[0x106] & 4) != 0 && *(int16_t *)(unit + 0x420) == 0) {
         int32_t fired = *(int32_t *)(unit + 0x41c);
 
@@ -253,7 +253,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
     if (!(radius > 0.0f)) {
         return;
     }
-    if (*(datum_index *)(object + 0x11c) != k_datum_index_none && (object[0x22c] & 0x20) == 0) {
+    if (((struct object *)object)->parent_object != k_datum_index_none && (object[0x22c] & 0x20) == 0) {
         return;
     }
     object_get_position(&position, object_index);
@@ -279,11 +279,11 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
     *(datum_index *)(self + 0x28c) = object_index;
     *(float *)(self + 0x294) = radius;
     *(real_point3d *)(self + 0x298) = position;
-    *(real_vector3d *)(self + 0x2a4) = *(real_vector3d *)(object + 0x68);
+    *(real_vector3d *)(self + 0x2a4) = *(real_vector3d *)&((struct object *)object)->velocity.i;
     *(int16_t *)(self + 0x284) = 0x1e;
     self[0x286] = 0;
     *(int16_t *)(self + 0x282) = 0;
-    owner = *(datum_index *)(object + 0xc4);
+    owner = ((struct object *)object)->creator_object;
     if (owner != k_datum_index_none) {
         uint8_t *owner_object = (uint8_t *)object_try_and_get(owner, 0xffffffff);
 
@@ -291,7 +291,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
             owner_unit = owner;
             if (*(datum_index *)(self + 0x18) != k_datum_index_none && owner == *(datum_index *)(self + 0x18)) {
                 *(int16_t *)(self + 0x282) = 2;
-            } else if (!teams_are_enemies(*(int16_t *)(object + 0xb8), *(int16_t *)(self + 0x3e))) {
+            } else if (!teams_are_enemies(((struct object *)object)->owner_team, *(int16_t *)(self + 0x3e))) {
                 *(int16_t *)(self + 0x282) = 1;
             }
         }
@@ -307,9 +307,9 @@ void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_i
     while (object_index != k_datum_index_none) {
         uint8_t *object = OBJ(object_index);
 
-        if (*(int32_t *)(object + 0x14) != object_cluster_stamp) {
-            *(int32_t *)(object + 0x14) = object_cluster_stamp;
-            switch (*(int16_t *)(object + 0xb4)) {
+        if (((struct object *)object)->cluster_stamp != object_cluster_stamp) {
+            ((struct object *)object)->cluster_stamp = object_cluster_stamp;
+            switch (((struct object *)object)->type) {
             case 0:
                 squad_link_evaluate_biped(actor_index, self, object_index, object, (uint8_t *)candidates_a,
                     (uint8_t *)candidates_b);
@@ -326,10 +326,10 @@ void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_i
                 break;
             }
         }
-        if (*(datum_index *)(object + 0x118) != k_datum_index_none) {
-            actor_target_evaluate_squad_link(actor_index, *(datum_index *)(object + 0x118), candidates_a, candidates_b);
+        if (((struct object *)object)->first_child_object != k_datum_index_none) {
+            actor_target_evaluate_squad_link(actor_index, ((struct object *)object)->first_child_object, candidates_a, candidates_b);
         }
-        object_index = *(datum_index *)(object + 0x114);
+        object_index = ((struct object *)object)->next_object;
     }
 }
 

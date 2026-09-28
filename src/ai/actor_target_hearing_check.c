@@ -79,7 +79,7 @@ uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index ac
     if (source_cluster == -1) {
         return 0;
     }
-    range = *(float *)((uint8_t *)tag_instances[*(datum_index *)(a + 0x58) & 0xffff].data + 0x4c);
+    range = *(float *)((uint8_t *)tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data + 0x4c);
     dx = listener_position->x - *(float *)(listener + 0x0);
     dy = listener_position->y - *(float *)(listener + 0x4);
     dz = listener_position->z - *(float *)(listener + 0x8);
@@ -87,9 +87,9 @@ uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index ac
     if (!(dz * *(float *)(listener + 0x20) + dy * *(float *)(listener + 0x1c) + dx * *(float *)(listener + 0x18) >= 0.0f)) {
         range = range * 0.8f;
     }
-    if (*(int16_t *)(a + 0x6a) == 2) {
+    if (((actor *)a)->awareness_level == 2) {
         range = range * 0.7f;
-    } else if (*(int16_t *)(a + 0x6a) == 1) {
+    } else if (((actor *)a)->awareness_level == 1) {
         range = range * 0.4f;
     }
     if (gate == 4) {

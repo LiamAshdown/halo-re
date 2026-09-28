@@ -40,7 +40,7 @@ uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, ui
                                  real_vector3d *path_delta, uint8_t *in_danger)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *unit_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(*(datum_index *)(act + 0x18)));
+    uint8_t *unit_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(((actor *)act)->unit_index));
     float step = *(float *)(unit_tag + 0x238);
     int16_t kind = -1;
     uint8_t blocked = 0;
@@ -48,7 +48,7 @@ uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, ui
     real_vector2d axis = {0.0f, 0.0f};
 
     if (step > 0.0f) {
-        uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+        uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
         float sideways = (*(uint32_t *)actor_tag & 0x2000000) ? 8.0f : 0.0f;
         float length;
         real_vector3d path;
@@ -80,38 +80,38 @@ uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, ui
             }
         }
         if (!have_axis) {
-            axis.i = *(float *)(act + 0x2b0) - *(float *)(act + 0x12c);
-            axis.j = *(float *)(act + 0x2b4) - *(float *)(act + 0x130);
+            axis.i = ((actor *)act)->flee_from_point.x - ((actor *)act)->body_position.x;
+            axis.j = ((actor *)act)->flee_from_point.y - ((actor *)act)->body_position.y;
             if (vector2d_normalize_with_length(&axis) == 0.0f) {
-                axis.i = *(float *)(act + 0x174);
-                axis.j = *(float *)(act + 0x178);
+                axis.i = ((actor *)act)->facing.i;
+                axis.j = ((actor *)act)->facing.j;
                 if (vector2d_normalize_with_length(&axis) == 0.0f) {
                     axis = *global_forward2d_pointer;
                 }
             }
         }
-        path.i = *(float *)(act + 0x2c8) - *(float *)(act + 0x2b0);
-        path.j = *(float *)(act + 0x2cc) - *(float *)(act + 0x2b4);
-        path.k = *(float *)(act + 0x2d0) - *(float *)(act + 0x2b8);
+        path.i = ((actor *)act)->danger_segment_end.x - ((actor *)act)->flee_from_point.x;
+        path.j = ((actor *)act)->danger_segment_end.y - ((actor *)act)->flee_from_point.y;
+        path.k = ((actor *)act)->danger_segment_end.z - ((actor *)act)->flee_from_point.z;
         left.i = -axis.j;
         left.j = axis.i;
         left.k = 0.0f;
         right.i = axis.j;
         right.j = -axis.i;
         right.k = 0.0f;
-        left_point.x = left.i * step + *(float *)(act + 0x12c);
-        left_point.y = axis.i * step + *(float *)(act + 0x130);
-        left_point.z = step * 0.0f + *(float *)(act + 0x134);
-        right_point.x = axis.j * step + *(float *)(act + 0x12c);
-        right_point.y = right.j * step + *(float *)(act + 0x130);
-        right_point.z = step * 0.0f + *(float *)(act + 0x134);
+        left_point.x = left.i * step + ((actor *)act)->body_position.x;
+        left_point.y = axis.i * step + ((actor *)act)->body_position.y;
+        left_point.z = step * 0.0f + ((actor *)act)->body_position.z;
+        right_point.x = axis.j * step + ((actor *)act)->body_position.x;
+        right_point.y = right.j * step + ((actor *)act)->body_position.y;
+        right_point.z = step * 0.0f + ((actor *)act)->body_position.z;
 
         left_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, extra);
         left_distance = (float)sqrt(point3d_distance_squared_to_segment((real_point3d *)(act + 0x2b0), &path, &left_point));
-        left_out = (uint8_t)(left_hit && left_distance > *(float *)(act + 0x294));
+        left_out = (uint8_t)(left_hit && left_distance > ((actor *)act)->danger_unknown_294);
         right_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, extra);
         right_distance = (float)sqrt(point3d_distance_squared_to_segment((real_point3d *)(act + 0x2b0), &path, &right_point));
-        right_out = (uint8_t)(right_hit && right_distance > *(float *)(act + 0x294));
+        right_out = (uint8_t)(right_hit && right_distance > ((actor *)act)->danger_unknown_294);
 
         if (left_hit) {
             if (right_hit) {

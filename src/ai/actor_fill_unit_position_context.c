@@ -29,6 +29,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern char ai_marker_name_a[]; // 0x0066bfa0
@@ -54,7 +55,7 @@ void actor_fill_unit_position_context(datum_index unit_index, actor_unit_positio
     uint8_t *root_object;
 
     object_get_position((real_point3d *)(context + 0xc), unit_index);
-    *(real_vector3d *)(context + 0x18) = *(real_vector3d *)(unit + 0x74);
+    *(real_vector3d *)(context + 0x18) = *(real_vector3d *)&((unit_object *)unit)->base.forward.i;
     object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
     *(real_point3d *)context = marker.node_transform.position;
     object_get_root_object_velocities(unit_index, (real_vector3d *)(context + 0x2c), 0);

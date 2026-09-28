@@ -48,8 +48,8 @@ uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3
     }
     actor_solve_grenade_lob(actor_index, grenade_position);
     // (the binary leaves the direction uninitialised in a vehicle; seeded from the solution here)
-    direction = *(real_vector3d *)(a + 0x6bc);
-    if (*(datum_index *)(a + 0x158) == k_datum_index_none) {
+    direction = *(real_vector3d *)&((actor *)a)->grenade_unknown_6bc;
+    if (((actor *)a)->active_unit_index == k_datum_index_none) {
         real length = (real)sqrt(direction.j * direction.j + direction.i * direction.i);
 
         if (!(fabs(length) < 9.999999747378752e-05)) {
@@ -72,7 +72,7 @@ uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3
             }
         }
     }
-    speed = *(float *)(a + 0x6c8);
+    speed = ((actor *)a)->grenade_unknown_6c8;
     out_vector->i = direction.i * speed;
     out_vector->j = direction.j * speed;
     out_vector->k = speed * direction.k;

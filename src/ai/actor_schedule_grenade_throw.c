@@ -61,10 +61,10 @@ void actor_schedule_grenade_throw(uint32_t actor_index)
     float delay;
     int32_t ticks;
 
-    if (*(datum_index *)(a + 0x1dc) == k_datum_index_none) {
+    if (((actor *)a)->conversation_index == k_datum_index_none) {
         return;
     }
-    source = *(datum_index *)(a + 0x1e0);
+    source = ((actor *)a)->conversation_participant;
     if (source == k_datum_index_none) {
         return;
     }
@@ -77,17 +77,17 @@ void actor_schedule_grenade_throw(uint32_t actor_index)
         *(int16_t *)request = 3;
         unit_get_primary_eye_marker_position(source, (real_point3d *)(request + 0x4));
     }
-    actor_tag = (uint8_t *)tag_instances[*(datum_index *)(a + 0x58) & 0xffff].data;
-    if (!(*(int16_t *)(a + 0x6a) > 1) || *(int16_t *)(a + 0x544) > 8) {
+    actor_tag = (uint8_t *)tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data;
+    if (!(((actor *)a)->awareness_level > 1) || ((actor *)a)->vocalization_line > 8) {
         return;
     }
-    if (*(int16_t *)(a + 0x6c) == 0xb && !a[0x9f]) {
+    if (((actor *)a)->mode == 0xb && !a[0x9f]) {
         return;
     }
     if (*(int16_t *)request == 1 && datum_get(*(datum_index *)(request + 0x4), prop_data) == 0) {
         return;
     }
-    delay = (*(int16_t *)(a + 0x6a) < 3 || *(int16_t *)(a + 0x6e) == 0) ? 2.4f : 1.2f;
+    delay = (((actor *)a)->awareness_level < 3 || *(int16_t *)(a + 0x6e) == 0) ? 2.4f : 1.2f;
     if (*(float *)(actor_tag + 0xd4) != 0.0f || *(float *)(actor_tag + 0xd8) != 0.0f) {
         float lo = *(float *)(actor_tag + 0xd4) > 0.5f ? *(float *)(actor_tag + 0xd4) : 0.5f;
         float hi = *(float *)(actor_tag + 0xd8) > 2.0f ? 2.0f : *(float *)(actor_tag + 0xd8);
@@ -98,9 +98,9 @@ void actor_schedule_grenade_throw(uint32_t actor_index)
     if (ticks > 0x7fff) {
         ticks = 0x7fff;
     }
-    *(int16_t *)(a + 0x548) = (int16_t)ticks;
-    *(int16_t *)(a + 0x544) = 8;
-    *(int16_t *)(a + 0x546) = 5;
+    ((actor *)a)->vocalization_state = (int16_t)ticks;
+    ((actor *)a)->vocalization_line = 8;
+    ((actor *)a)->vocalization_variant = 5;
     memcpy(a + 0x54c, request, 0x10);
 }
 

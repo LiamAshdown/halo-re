@@ -26,7 +26,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 uint8_t actor_escalate_check_leader_flag(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
 
     if ((*(uint32_t *)actor_tag & 0x80000) == 0 || act[0x1c9] || *(int16_t *)(act + 0x6e) < 5) {
         return 0;

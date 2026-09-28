@@ -53,11 +53,11 @@ int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, in
     if (a[0x160] || select_mode == 0) {
         return -1;
     }
-    if (*(datum_index *)(a + 0x34) == k_datum_index_none) {
+    if (((actor *)a)->encounter_index == k_datum_index_none) {
         return -1;
     }
     squad = *(uint8_t **)(*(uint8_t **)((uint8_t *)global_scenario + 0x430) +
-        (*(datum_index *)(a + 0x34) & 0xffff) * 0xb0 + 0x84) + *(int16_t *)(a + 0x3a) * 0xe8;
+        (((actor *)a)->encounter_index & 0xffff) * 0xb0 + 0x84) + ((actor *)a)->squad_index * 0xe8;
     if (select_mode == 1 && current != -1) {
         return position_index;
     }
@@ -73,9 +73,9 @@ int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, in
         datum_index prop_index;
 
         if (current != -1) {
-            float dx = pos[0] - *(float *)(a + 0x12c);
-            float dy = pos[1] - *(float *)(a + 0x130);
-            float dz = pos[2] - *(float *)(a + 0x134);
+            float dx = pos[0] - ((actor *)a)->body_position.x;
+            float dy = pos[1] - ((actor *)a)->body_position.y;
+            float dz = pos[2] - ((actor *)a)->body_position.z;
 
             if (!(dz * dz + dy * dy + dx * dx >= 0.25f)) {
                 eligible = 0;
@@ -84,7 +84,7 @@ int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, in
         if (((uint8_t *)pos)[0x1e] && ((uint8_t *)pos)[0x1e] != a[0x68]) {
             eligible = 0;
         }
-        for (prop_index = *(datum_index *)(a + 0x50); prop_index != k_datum_index_none;) {
+        for (prop_index = ((actor *)a)->first_prop; prop_index != k_datum_index_none;) {
             uint8_t *pr = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
             int16_t kind = *(int16_t *)(pr + 0x24);
 

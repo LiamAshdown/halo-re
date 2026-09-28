@@ -41,18 +41,18 @@ void actor_mode_uncover_tick(datum_index actor_index)
     if (act[0x9d]) {
         return;
     }
-    actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     kind = *(int16_t *)(act + 0xa4);
     act[0x9c] = 0;
     if (kind == 0) {
-        if (*(int16_t *)(actor_tag + 0x2f8) == 4) {
-            act[0x9c] = (uint8_t)(*(int16_t *)(act + 0x268) != 6);
-        } else if ((actor_tag[0] & 2) && *(int16_t *)(act + 0x268) == 5 &&
-                   (int8_t)PROP(*(datum_index *)(act + 0x270))[0x121] <= 2) {
+        if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4) {
+            act[0x9c] = (uint8_t)(((actor *)act)->target_combat_status != 6);
+        } else if ((actor_tag[0] & 2) && ((actor *)act)->target_combat_status == 5 &&
+                   (int8_t)PROP(((actor *)act)->target_unit_index)[0x121] <= 2) {
             act[0x9c] = 1;
         }
     } else if (kind == 1) {
-        if (*(int16_t *)(actor_tag + 0x2f8) == 4 ||
+        if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4 ||
             ((actor_tag[0] & 4) &&
              vector3d_distance_squared((real_point3d *)(act + 0xb0), (real_point3d *)(act + 0x12c)) < 100.0f)) {
             act[0x9c] = 1;
@@ -63,19 +63,19 @@ void actor_mode_uncover_tick(datum_index actor_index)
     } else {
         *(int32_t *)(act + 0xc0) += 1;
         if (kind == 0 && *(int32_t *)(act + 0xc0) >= 30) {
-            actor_push_recognition_entry(actor_index, *(int16_t *)(act + 0x3b8), 0);
+            actor_push_recognition_entry(actor_index, ((actor *)act)->firing_position_index, 0);
         }
     }
     kind = *(int16_t *)(act + 0xa4);
     if (kind == 0) {
-        if (*(datum_index *)(act + 0x270) != k_datum_index_none) {
-            target_visible = (uint8_t)(*(int16_t *)(PROP(*(datum_index *)(act + 0x270)) + 0x32) > 0);
-            keep_going = (uint8_t)!(target_visible && *(int16_t *)(act + 0x268) < 5);
+        if (((actor *)act)->target_unit_index != k_datum_index_none) {
+            target_visible = (uint8_t)(*(int16_t *)(PROP(((actor *)act)->target_unit_index) + 0x32) > 0);
+            keep_going = (uint8_t)!(target_visible && ((actor *)act)->target_combat_status < 5);
         }
     } else {
         keep_going = (uint8_t)(act[0xbc] == 0);
     }
-    if (*(int16_t *)(act + 0x3b8) != -1 && keep_going && (act[0x162] || target_visible || act[0x504])) {
+    if (((actor *)act)->firing_position_index != -1 && keep_going && (act[0x162] || target_visible || act[0x504])) {
         *(int32_t *)(act + 0xc8) = *(int32_t *)(act + 0xc4);
     } else {
         act[0x9e] = 1;

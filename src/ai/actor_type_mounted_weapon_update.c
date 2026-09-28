@@ -33,7 +33,7 @@ void actor_type_mounted_weapon_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
 
-    if (*(int16_t *)(act + 0x6c) == 0 && *(int16_t *)(act + 0x6a) != 0) {
+    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
         actor_process_order_request(actor_index, 0xffff);
     }
     actor_process_pending_command_list(actor_index);
@@ -41,7 +41,7 @@ void actor_type_mounted_weapon_update(datum_index actor_index)
         actor_escalate_to_guard_or_combat(actor_index);
     }
 
-    switch (*(int16_t *)(act + 0x6c)) { // re-read after the calls above (0x426442)
+    switch (((actor *)act)->mode) { // re-read after the calls above (0x426442)
     case 3:
     case 4:
     case 6:

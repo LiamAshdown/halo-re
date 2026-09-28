@@ -143,7 +143,7 @@ void actor_update_firing_state(datum_index actor_index)
         if (grenade != -1 && *(int8_t *)(OBJECT_DATA(D(a, 0x18)) + 0x31e + grenade) == 0) {
             unit_set_grenade_type_and_count_delta(D(a, 0x18), grenade, 1);
         }
-        *(uint32_t *)(a + 0x6d0) |= 0x2000;
+        ((actor *)a)->flags |= 0x2000;
         ai_communication_broadcast(9, D(a, 0x18), k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
         goto idle;
     }
@@ -194,7 +194,7 @@ void actor_update_firing_state(datum_index actor_index)
             uint8_t *p = PROP(D(a, 0x610));
 
             F(a, 0x638) = F(p, 0x11c);
-            *(real_point3d *)(a + 0x62c) = *(real_point3d *)(p + 0xc8);
+            *(real_point3d *)&((actor *)a)->wander_unknown_62c = *(real_point3d *)(p + 0xc8);
             W(a, 0x626) = W(p, 0x38);
             a[0x621] = p[0x118];
             a[0x624] = 1;
@@ -204,7 +204,7 @@ void actor_update_firing_state(datum_index actor_index)
                 a[0x624] = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
             }
         } else {
-            *(real_point3d *)(a + 0x62c) = *(real_point3d *)(a + 0x610);
+            *(real_point3d *)&((actor *)a)->wander_unknown_62c = *(real_point3d *)(a + 0x610);
             F(a, 0x638) = vector3d_distance((real_point3d *)(a + 0x610), (real_point3d *)(a + 0x120));
             a[0x621] = 0;
             a[0x624] = 0;
@@ -319,7 +319,7 @@ dispatch:
         real_point3d origin;                        // [esp+0x30]
         int32_t blocking_prop = -1;                 // [esp+0x28]
 
-        *aim_point = *(real_point3d *)(a + 0x64c);
+        *aim_point = *(real_point3d *)&((actor *)a)->wander_unknown_64c.i;
         if (W(a, 0x60c) == 1) {
             uint8_t *p = PROP(D(a, 0x610));
             float f;
@@ -378,7 +378,7 @@ dispatch:
                 }
             }
             if (offset == 0) {
-                origin = *(real_point3d *)(a + 0x120);
+                origin = *(real_point3d *)&((actor *)a)->aim_origin.x;
             } else {
                 real_vector3d facing;       // [esp+0x3c]
 
@@ -388,7 +388,7 @@ dispatch:
                 if (vector2d_normalize_with_length((real_vector2d *)&facing) > 0.0f) {
                     facing.k = 0.0f;
                 } else {
-                    facing = *(real_vector3d *)(a + 0x174);
+                    facing = *(real_vector3d *)&((actor *)a)->facing.i;
                 }
                 unit_add_marker_relative_offset(D(a, 0x18), 3, (float *)(a + 0x12c), (uint32_t)&facing,
                                                 (uint32_t)offset, &origin);
@@ -464,9 +464,9 @@ dispatch:
     }
     actor_set_override_target(actor_index, enable, *(datum_index *)&value);
     if (secondary_flag) {
-        *(uint32_t *)(a + 0x6d0) |= 0x1000;
+        ((actor *)a)->flags |= 0x1000;
     } else {
-        *(uint32_t *)(a + 0x6d0) &= ~0x1000u;
+        ((actor *)a)->flags &= ~0x1000u;
     }
 }
 

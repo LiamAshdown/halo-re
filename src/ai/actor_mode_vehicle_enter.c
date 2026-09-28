@@ -23,5 +23,5 @@ void actor_mode_vehicle_enter(datum_index actor_index)
 
     *(int16_t *)(act + 0xaa) = 0;
     *(int32_t *)(act + 0xac) = game_time->game_time;
-    *(real_point3d *)(act + 0xb0) = *(real_point3d *)(act + 0x12c);
+    *(real_point3d *)(act + 0xb0) = *(real_point3d *)&((actor *)act)->body_position.x;
 }

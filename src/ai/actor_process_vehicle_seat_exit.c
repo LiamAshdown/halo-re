@@ -114,7 +114,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)(object_tag + 0x34) != -1) {
-            *(uint32_t *)(object + 0x10) &= ~1u;
+            ((struct object *)object)->flags &= ~1u;
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -181,7 +181,7 @@ static void biped_free_local_player_history(uint8_t *self)
 uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
 {
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    datum_index driving = *(datum_index *)(act + 0x158);
+    datum_index driving = ((actor *)act)->active_unit_index;
     uint8_t wanted = 0;
     uint8_t forced = 0;
     uint8_t result = 0;
@@ -193,7 +193,7 @@ uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
         return 0;
     }
     {
-        datum_index prop_index = *(datum_index *)(act + 0x50);
+        datum_index prop_index = ((actor *)act)->first_prop;
 
         while (prop_index != k_datum_index_none) {
             uint8_t *p = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
@@ -211,14 +211,14 @@ uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
         wanted = 1;
     }
     if (act[0x160] && (*(datum_index *)(act + 0x1b0) != k_datum_index_none ||
-                       (*(int16_t *)(act + 0x280) == 2 && act[0x28a]))) {
+                       (((actor *)act)->danger_type == 2 && act[0x28a]))) {
         forced = 1;
     } else if (!wanted) {
         act[0x2ed] = 0;
         return 0;
     }
     act[0x38c] = forced;
-    rider_index = *(datum_index *)(act + 0x18);
+    rider_index = ((actor *)act)->unit_index;
     rider = (uint8_t *)object_try_and_get(rider_index, 3);
     if (rider != 0 && network_game_mode != 1 && *(datum_index *)(rider + 0x11c) != k_datum_index_none &&
         *(int16_t *)(rider + 0x2f0) != -1) {
@@ -257,7 +257,7 @@ uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
                             object_for_each_light_attachment(rider_index, 0, 1);
                         }
                         if (*(int32_t *)(object_tag + 0x34) != -1) {
-                            *(uint32_t *)(object + 0x10) &= ~1u;
+                            ((struct object *)object)->flags &= ~1u;
                             OBJECT_HEADER(rider_index).flags |= 2;
                         }
                     }
@@ -266,7 +266,7 @@ uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
                     if (*(int32_t *)(rider + 0x4) == 0) {
                         unit_dispatch_scripted_event_9(0, (int32_t)rider_index);
                     }
-                    *(datum_index *)(act + 0x390) = *(datum_index *)(act + 0x158);
+                    *(datum_index *)(act + 0x390) = ((actor *)act)->active_unit_index;
                     *(int32_t *)(act + 0x394) = game_time->game_time + 180;
                     result = 1;
                 }

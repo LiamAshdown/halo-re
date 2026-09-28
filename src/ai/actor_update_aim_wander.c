@@ -50,7 +50,7 @@ void actor_update_aim_wander(datum_index actor_index)
 {
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
     uint8_t *variant = (uint8_t *)actor_get_actor_definition(actor_index);
-    int16_t team = *(int16_t *)(a + 0x3e);
+    int16_t team = ((actor *)a)->team;
     uint8_t *burst = 0;       // out_a (EDI)
     uint8_t *scale = 0;       // out_b (ESI)
     uint8_t bombard = 0;
@@ -65,22 +65,22 @@ void actor_update_aim_wander(datum_index actor_index)
     uint8_t moving;
 
     if (a[0x604] != 0 && !actor_target_is_visible_or_object_count_ok(actor_index,
-            (int16_t)*(uint16_t *)(variant + 0x156))) {
+            (int16_t)*(uint16_t *)&((ActorVariant *)variant)->special_fire_situation)) {
         a[0x604] = 0;
     }
     a[0x603] = a[0x604];
     a[0x604] = 0;
 
-    if (*(datum_index *)(a + 0x158) == k_datum_index_none) {
+    if (((actor *)a)->active_unit_index == k_datum_index_none) {
         moving = (a[0x15c] != 0 || a[0x504] != 0) ? 1 : 0;
     } else {
-        uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(a + 0x158) & 0xffff].data;
+        uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[((actor *)a)->active_unit_index & 0xffff].data;
         real_vector3d *velocity = (real_vector3d *)(vehicle + 0x68);
 
         moving = (velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k > 1.0f) ? 1 : 0;
     }
     a[0x601] = moving;
-    a[0x600] = (weapon_get_zoom_fov_resolved(0xd, team) * *(float *)(variant + 0x88) * 30.0f >
+    a[0x600] = (weapon_get_zoom_fov_resolved(0xd, team) * ((ActorVariant *)variant)->new_target_firing_pattern_time * 30.0f >
         (float)*(int32_t *)(a + 0x61c)) ? 1 : 0;
 
     actor_select_stance_offset_pair(actor_index, variant, &burst, &scale);
@@ -101,7 +101,7 @@ void actor_update_aim_wander(datum_index actor_index)
     *(int16_t *)(a + 0x5f4) = (int16_t)(int32_t)(time * 30.0f);
 
     // the aiming error
-    error = weapon_get_zoom_fov_resolved(0xb, team) * *(float *)(variant + 0x7c);
+    error = weapon_get_zoom_fov_resolved(0xb, team) * ((ActorVariant *)variant)->projectile_error;
     if (scale != 0 && *(float *)(scale + 0xc) != 0.0f) {
         error = error * *(float *)(scale + 0xc);
     }
@@ -111,10 +111,10 @@ void actor_update_aim_wander(datum_index actor_index)
     *(float *)(a + 0x698) = error;
 
     // the damage modifier
-    *(float *)(a + 0x69c) = 0.0f;
-    if (*(float *)(variant + 0xc4) > 0.0f) {
-        *(float *)(a + 0x69c) = *(float *)(variant + 0xc4);
-    } else if (*(float *)(variant + 0xc8) > 0.0f) {
+    ((actor *)a)->perception_scale = 0.0f;
+    if (((ActorVariant *)variant)->weapon_damage_modifier > 0.0f) {
+        ((actor *)a)->perception_scale = ((ActorVariant *)variant)->weapon_damage_modifier;
+    } else if (((ActorVariant *)variant)->damage_per_second > 0.0f) {
         datum_index weapon = actor_get_threat_weapon_object_index(actor_index);
 
         if (weapon != k_datum_index_none) {
@@ -122,37 +122,37 @@ void actor_update_aim_wander(datum_index actor_index)
             float damage = weapon_trigger_get_average_damage(
                 *(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data, &rate);
 
-            if (*(float *)(variant + 0x78) > 0.0f && rate > *(float *)(variant + 0x78)) {
-                rate = *(float *)(variant + 0x78);
+            if (((ActorVariant *)variant)->rate_of_fire > 0.0f && rate > ((ActorVariant *)variant)->rate_of_fire) {
+                rate = ((ActorVariant *)variant)->rate_of_fire;
             }
             damage = damage * rate;
             if (damage > 0.0f) {
-                *(float *)(a + 0x69c) = *(float *)(variant + 0xc8) / damage;
+                ((actor *)a)->perception_scale = ((ActorVariant *)variant)->damage_per_second / damage;
             }
         }
     }
     if (a[0x603] != 0 || a[0x602] != 0) {
-        if (*(float *)(variant + 0xf8) > 0.0f) {
-            *(float *)(a + 0x69c) = *(float *)(a + 0x69c) * *(float *)(variant + 0xf8);
+        if (((ActorVariant *)variant)->special_damage_modifier > 0.0f) {
+            ((actor *)a)->perception_scale = ((actor *)a)->perception_scale * ((ActorVariant *)variant)->special_damage_modifier;
         }
-        *(float *)(a + 0x698) = *(float *)(variant + 0xfc) + *(float *)(a + 0x698);
+        *(float *)(a + 0x698) = ((ActorVariant *)variant)->special_projectile_error + *(float *)(a + 0x698);
     }
 
     // the (possibly bombarded) target
-    if (*(float *)(variant + 0x14c) > 0.0f && *(int16_t *)(a + 0x60c) == 1) {
+    if (((ActorVariant *)variant)->bombardment_range > 0.0f && *(int16_t *)(a + 0x60c) == 1) {
         uint8_t *prop = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x610) & 0xffff) * 0x138;
         int16_t kind = *(int16_t *)(prop + 0x24);
 
         bombard = (kind < 2 || kind > 3 || *(int16_t *)(prop + 0x32) == 0) ? 1 : 0;
     }
-    target = *(real_point3d *)(a + 0x62c);
+    target = *(real_point3d *)&((actor *)a)->wander_unknown_62c;
     if (bombard) {
-        actor_choose_random_point_near(&target, *(float *)(variant + 0x14c));
+        actor_choose_random_point_near(&target, ((ActorVariant *)variant)->bombardment_range);
     }
     {
-        float dx = target.x - *(float *)(a + 0x120);
-        float dy = target.y - *(float *)(a + 0x124);
-        float dz = (target.z - *(float *)(a + 0x128)) * 0.0f;
+        float dx = target.x - ((actor *)a)->aim_origin.x;
+        float dy = target.y - ((actor *)a)->aim_origin.y;
+        float dz = (target.z - ((actor *)a)->aim_origin.z) * 0.0f;
 
         side.i = dy - dz;
         side.j = dz - dx;
@@ -187,7 +187,7 @@ void actor_update_aim_wander(datum_index actor_index)
         if (!(sweep <= 0.7853982f)) {
             sweep = 0.7853982f;
         }
-        limit = (float)ftan((double)sweep) * *(float *)(a + 0x638);
+        limit = (float)ftan((double)sweep) * ((actor *)a)->wander_unknown_638;
         if (radius_a > limit) {
             float limit_15 = limit * 1.5f;
 
@@ -220,12 +220,12 @@ void actor_update_aim_wander(datum_index actor_index)
         recoil.j = recoil.j * per_tick;
         recoil.k = recoil.k * per_tick;
     }
-    *(real_point3d *)(a + 0x64c) = target;
-    *(real_vector3d *)(a + 0x664) = wander;
-    *(real_vector3d *)(a + 0x670) = recoil;
-    *(float *)(a + 0x67c) = wander.i + target.x;
-    *(float *)(a + 0x680) = wander.j + target.y;
-    *(float *)(a + 0x684) = wander.k + target.z;
+    *(real_point3d *)&((actor *)a)->wander_unknown_64c.i = target;
+    *(real_vector3d *)&((actor *)a)->wander_unknown_664.i = wander;
+    *(real_vector3d *)&((actor *)a)->wander_unknown_670.i = recoil;
+    ((actor *)a)->grenade_aim_direction.i = wander.i + target.x;
+    ((actor *)a)->grenade_aim_direction.j = wander.j + target.y;
+    ((actor *)a)->grenade_aim_direction.k = wander.k + target.z;
 
     // the firing line
     if (*(int16_t *)(a + 0x6e) >= 7) {
@@ -248,7 +248,7 @@ void actor_update_aim_wander(datum_index actor_index)
         } else {
             code = 0x1a + (a[0x161] != 0);
         }
-        ai_communication_broadcast(code, *(datum_index *)(a + 0x18), object, 3, k_datum_index_none, k_datum_index_none, 0);
+        ai_communication_broadcast(code, ((actor *)a)->unit_index, object, 3, k_datum_index_none, k_datum_index_none, 0);
     }
 }
 

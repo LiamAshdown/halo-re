@@ -86,15 +86,15 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
                                 int16_t command_list_index, uint8_t *state)
 {
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
-    uint8_t *variant_tag = TAG_DATA(*(datum_index *)(act + 0x5c));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
+    uint8_t *variant_tag = TAG_DATA(((actor *)act)->actor_variant_tag);
     ScenarioCommandList *list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)[command_list_index];
     int32_t command_count = (int32_t)list->commands.count;
     int32_t command_index = state[0];
     ScenarioCommand *entry;
     ScenarioCommandPoint *points = (ScenarioCommandPoint *)list->points.pointer;
     int32_t point_count = (int32_t)list->points.count;
-    datum_index unit_index = *(datum_index *)(act + 0x18);
+    datum_index unit_index = ((actor *)act)->unit_index;
     char result = 0;
 
     if (command_index >= command_count) {
@@ -146,7 +146,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
         int16_t kind;
 
         if (check_object_index == unit_index) {
-            *start = *(real_point3d *)(act + 0x12c);
+            *start = *(real_point3d *)&((actor *)act)->body_position.x;
         } else {
             object_get_position(start, check_object_index);
         }
@@ -393,7 +393,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
     case 0xa: { // running jump
         uint8_t moving_forward;
 
-        if (check_object_index == unit_index && *(datum_index *)(act + 0x158) != k_datum_index_none) {
+        if (check_object_index == unit_index && ((actor *)act)->active_unit_index != k_datum_index_none) {
             return 0;
         }
         state[0x5] = (uint8_t)((state[0x5] & 0xe7) | 4);
@@ -414,7 +414,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
     }
 
     case 0xb: // targeted jump
-        if (check_object_index == unit_index && *(datum_index *)(act + 0x158) != k_datum_index_none) {
+        if (check_object_index == unit_index && ((actor *)act)->active_unit_index != k_datum_index_none) {
             return 0;
         }
         state[0x5] = (uint8_t)((state[0x5] & 0xf7) | 0x14);

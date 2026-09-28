@@ -63,11 +63,11 @@ datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum
     objects_garbage_collection();
     variant = TAG_DATA(variant_tag);
     if (use_palette_entry) {
-        variant_tag = *(datum_index *)(variant + 0x30);
+        variant_tag = *(datum_index *)&((ActorVariant *)variant)->major_variant.tag_id;
         variant = TAG_DATA(variant_tag);
     }
-    actor_definition = TAG_DATA(*(datum_index *)(variant + 0x10));
-    object_placement_data_initialize(&placement, *(datum_index *)(variant + 0x20), k_datum_index_none);
+    actor_definition = TAG_DATA(*(datum_index *)&((ActorVariant *)variant)->actor_definition.tag_id);
+    object_placement_data_initialize(&placement, *(datum_index *)&((ActorVariant *)variant)->unit.tag_id, k_datum_index_none);
     yaw = *(const float *)(request + 0xc);
     placement.position = *(const real_point3d *)request;
     placement.permutation_group = (int16_t)unit_type_index;

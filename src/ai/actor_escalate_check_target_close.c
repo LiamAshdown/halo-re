@@ -30,8 +30,8 @@ uint8_t actor_escalate_check_target_close(datum_index actor_index)
     if (*(int16_t *)(act + 0x6e) < 5) {
         return 0;
     }
-    if (!(*(float *)(PROP(*(datum_index *)(act + 0x270)) + 0x11c) <
-          *(float *)(TAG_DATA(*(datum_index *)(act + 0x58)) + 0x3a0))) {
+    if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) <
+          *(float *)(TAG_DATA(((actor *)act)->actor_definition_tag) + 0x3a0))) {
         return 0;
     }
     if (*(int16_t *)(act + 0x310) <= 2) {

@@ -58,7 +58,7 @@ datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_ind
         cluster_ref = *(int32_t *)(object + 500);
     }
 
-    if ((*(int16_t *)(object + 0xb4) == 0) && ((datum_index)cluster_ref != actor_index)) {
+    if ((((struct object *)object)->type == 0) && ((datum_index)cluster_ref != actor_index)) {
         datum_index cur = self->first_prop;
 
         for (;;) {
@@ -90,7 +90,7 @@ datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_ind
 
                 // 0x43ec21: the prop is allocated as an enemy when the object's team (+0xb8) is hostile to the actor's
                 result = actor_find_or_allocate_prop(actor_index, object_index,
-                    (char)teams_are_enemies(*(int16_t *)(object + 0xb8), *(int16_t *)((uint8_t *)self + 0x3e)));
+                    (char)teams_are_enemies(((struct object *)object)->owner_team, *(int16_t *)((uint8_t *)self + 0x3e)));
                 if (result != (datum_index)0xffffffff) {
                     prop *p = (prop *)((uint8_t *)prop_data->data + (result & 0xffff) * sizeof(prop));
 

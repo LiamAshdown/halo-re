@@ -21,14 +21,14 @@ void actor_mode_vehicle_update(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
 
     if (act[0xc8]) {
-        *(int16_t *)(act + 0x3e8) = 4;
-        *(int16_t *)(act + 0x3ec) = 4;
+        ((actor *)act)->vocalization_unknown_3e8 = 4;
+        ((actor *)act)->vocalization_unknown_3ec = 4;
         *(real_vector3d *)(act + 0x3f0) = *(real_vector3d *)(act + 0xd8);
     } else if (act[0x4a8]) {
-        *(int16_t *)(act + 0x3e8) = 3;
-        *(int16_t *)(act + 0x3ec) = 0;
+        ((actor *)act)->vocalization_unknown_3e8 = 3;
+        ((actor *)act)->vocalization_unknown_3ec = 0;
     } else {
-        *(int16_t *)(act + 0x3e8) = 0;
+        ((actor *)act)->vocalization_unknown_3e8 = 0;
     }
     *(int16_t *)(act + 0x3fc) = 4;
     act[0x454] = 0;

@@ -60,7 +60,7 @@ extern uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_a
 uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_mode, actor_combat_consideration *out)
 {
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(actor + 0x58) & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
     uint8_t *record = (uint8_t *)out;
     int16_t mode = consideration_mode;
     uint8_t result = 1;
@@ -87,19 +87,19 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
         if (actor[6] != 0) {
             goto done;
         }
-        unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(actor + 0x18) & 0xffff].data;
-        if ((unit[0x106] & 0x80) != 0 || *(datum_index *)(actor + 0x270) == k_datum_index_none) {
+        unit = (uint8_t *)((object_header *)object_data->data)[((struct actor *)actor)->unit_index & 0xffff].data;
+        if ((unit[0x106] & 0x80) != 0 || ((struct actor *)actor)->target_unit_index == k_datum_index_none) {
             goto done;
         }
-        target = (uint8_t *)prop_data->data + (*(datum_index *)(actor + 0x270) & 0xffff) * 0x138;
-        if (*(float *)(actor_tag + 0x388) == 0.0f || *(float *)(actor_tag + 0x390) == 0.0f) {
+        target = (uint8_t *)prop_data->data + (((struct actor *)actor)->target_unit_index & 0xffff) * 0x138;
+        if (*(float *)(actor_tag + 0x388) == 0.0f || ((Actor *)actor_tag)->melee_leap_chance == 0.0f) {
             record[0xa] = 0;
         } else if (target[0x130] != 0 || *(int16_t *)(target + 0x9c) > 0) {
             record[0xa] = 1;
             leap = 1;
             mode = 3;
         } else {
-            leap = random_real() < *(float *)(actor_tag + 0x390);
+            leap = random_real() < ((Actor *)actor_tag)->melee_leap_chance;
             record[0xa] = leap;
             if (*(float *)(target + 0x11c) < *(float *)(actor_tag + 0x384)) {
                 leap = 0;
@@ -107,7 +107,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
                 mode = 3;
             }
         }
-        if (!unit_get_weapon_marker_indices(*(datum_index *)(actor + 0x18), leap, (uint32_t)&dx_to_key_frame,
+        if (!unit_get_weapon_marker_indices(((struct actor *)actor)->unit_index, leap, (uint32_t)&dx_to_key_frame,
                 (uint32_t)&dx_total, &frame_count, &key_frame)) {
             goto done;
         }
@@ -128,7 +128,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
         if (limit > wait) {
             wait = limit;
         }
-        if (actor_movement_set_destination_near_target(*(datum_index *)(actor + 0x270), actor_index, wait)) {
+        if (actor_movement_set_destination_near_target(((struct actor *)actor)->target_unit_index, actor_index, wait)) {
             actor_movement_actions_cancel(actor_index);
             if (actor_grenade_trace_from_source(actor_index, (real_point3d *)(target + 0xc8))) {
                 result = 1;

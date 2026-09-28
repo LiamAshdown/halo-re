@@ -45,7 +45,7 @@ extern int32_t actor_report_command_status(uint32_t actor_index); // 0x4048b0, E
 void actor_mode_guard_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     uint32_t actor_flags = *(uint32_t *)actor_tag;
 
     if ((actor_flags & 0x40) && *(int16_t *)(act + 0x6e) == 0) {
@@ -88,11 +88,11 @@ void actor_mode_guard_update(datum_index actor_index)
             int16_t position = *(int16_t *)(act + 0xc4);
 
             if (position != -1) {
-                *(int16_t *)(act + 0x3b8) = position;
+                ((actor *)act)->firing_position_index = position;
                 act[0x3ba] = 0;
                 if (!actor_movement_set_destination_firing_position(actor_index, position, 0)) {
                     actor_push_recognition_entry(actor_index, *(int16_t *)(act + 0xc4), 0);
-                    *(int16_t *)(act + 0x3b8) = -1;
+                    ((actor *)act)->firing_position_index = -1;
                 }
             }
             if (!act[0x4a8]) {
@@ -113,7 +113,7 @@ void actor_mode_guard_update(datum_index actor_index)
                 act[0xab] = 0;
                 *(int32_t *)(act + 0xac) = -1;
                 actor_record_perception_event(actor_index, 2, 600);
-                ai_communication_broadcast(7, *(datum_index *)(act + 0x18), *(datum_index *)(watched + 0x18), -1, -1, 2, 0);
+                ai_communication_broadcast(7, ((actor *)act)->unit_index, *(datum_index *)(watched + 0x18), -1, -1, 2, 0);
             }
             if (act[0xa1]) {
                 actor_report_command_status(actor_index);
@@ -125,27 +125,27 @@ void actor_mode_guard_update(datum_index actor_index)
     }
 
     if (act[0xa3]) {
-        *(int16_t *)(act + 0x3e8) = 7;
-        *(int16_t *)(act + 0x3ec) = 2;
+        ((actor *)act)->vocalization_unknown_3e8 = 7;
+        ((actor *)act)->vocalization_unknown_3ec = 2;
         act[0x454] = 1;
         act[0x45d] = 1;
         *(float *)(act + 0x460) = global_up3d_pointer->i * 0.05f + *(float *)(act + 0xc4);
         *(float *)(act + 0x464) = global_up3d_pointer->j * 0.05f + *(float *)(act + 0xc8);
         *(float *)(act + 0x468) = global_up3d_pointer->k * 0.05f + *(float *)(act + 0xcc);
     } else if (*(datum_index *)(act + 0xd8) != k_datum_index_none) {
-        *(int16_t *)(act + 0x3e8) = 5;
-        *(int16_t *)(act + 0x3ec) = 1;
+        ((actor *)act)->vocalization_unknown_3e8 = 5;
+        ((actor *)act)->vocalization_unknown_3ec = 1;
         *(datum_index *)(act + 0x3f0) = *(datum_index *)(act + 0xd8);
     } else if (act[0xb0]) {
-        *(int16_t *)(act + 0x3ec) = 4;
-        *(int16_t *)(act + 0x3e8) = act[0xb1] ? 5 : 3;
+        ((actor *)act)->vocalization_unknown_3ec = 4;
+        ((actor *)act)->vocalization_unknown_3e8 = act[0xb1] ? 5 : 3;
         *(real_point3d *)(act + 0x3f0) = *(real_point3d *)(act + 0xb4);
-    } else if (*(int16_t *)(act + 0x6e) > 0 && *(datum_index *)(act + 0x270) != k_datum_index_none) {
-        *(int16_t *)(act + 0x3e8) = 3;
-        *(int16_t *)(act + 0x3ec) = 1;
-        *(datum_index *)(act + 0x3f0) = *(datum_index *)(act + 0x270);
+    } else if (*(int16_t *)(act + 0x6e) > 0 && ((actor *)act)->target_unit_index != k_datum_index_none) {
+        ((actor *)act)->vocalization_unknown_3e8 = 3;
+        ((actor *)act)->vocalization_unknown_3ec = 1;
+        *(datum_index *)(act + 0x3f0) = ((actor *)act)->target_unit_index;
     } else {
-        *(int16_t *)(act + 0x3e8) = 0;
+        ((actor *)act)->vocalization_unknown_3e8 = 0;
     }
     *(int16_t *)(act + 0x3fc) = *(int16_t *)(act + 0x6e) >= 4 ? 4 : 2;
 }

@@ -41,7 +41,7 @@ uint8_t actor_update_path_if_needed(datum_index actor_index)
         actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok);
         actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
     }
-    return *(int16_t *)(actor + 0x280) == 0;
+    return ((struct actor *)actor)->danger_type == 0;
 }
 
 #if 0

@@ -19,6 +19,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -59,8 +60,8 @@ extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const 
 uint8_t actor_mode_charge_process(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
-    uint8_t *variant = TAG_DATA(*(datum_index *)(act + 0x5c));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
+    uint8_t *variant = TAG_DATA(((actor *)act)->actor_variant_tag);
     uint8_t *definition = (uint8_t *)actor_get_actor_definition(actor_index);
     uint8_t *md = act + 0x9c;
     uint8_t *target = 0;
@@ -69,10 +70,10 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
     float threshold;
     int32_t now;
 
-    if (*(datum_index *)(act + 0x270) == k_datum_index_none) {
+    if (((actor *)act)->target_unit_index == k_datum_index_none) {
         md[0x28] = 0;
     } else {
-        target = PROP(*(datum_index *)(act + 0x270));
+        target = PROP(((actor *)act)->target_unit_index);
         kind = *(int16_t *)(md + 0x4);
         if (*(datum_index *)(act + 0x1b0) != k_datum_index_none || kind == 5 || kind == 4) {
             md[0x28] = 1;
@@ -88,10 +89,10 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             if (md[0x6] || md[0xb] || md[0xc]) {
                 check_range = 0;
             } else if (act[0x378] || !actor_has_unshielded_threat_weapon(actor_index)) {
-                range = use_retreat_range ? *(float *)(variant + 0x174) : *(float *)(variant + 0x164);
+                range = use_retreat_range ? ((ActorVariant *)variant)->berserk_melee_abort_range : ((ActorVariant *)variant)->melee_abort_range;
             }
             if (act[0x1cb]) {
-                float limit = (0.0f > *(float *)(actor_tag + 0x37c) ? 0.0f : *(float *)(actor_tag + 0x37c)) + 0.8f;
+                float limit = (0.0f > ((Actor *)actor_tag)->melee_fudge_factor ? 0.0f : ((Actor *)actor_tag)->melee_fudge_factor) + 0.8f;
 
                 if (range > limit) {
                     range = limit;
@@ -104,7 +105,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
                 md[0x28] = 1;
                 if (check_range) {
                     if (*(int16_t *)(md + 0x4) == 2) {
-                        if (*(float *)(actor_tag + 0x388) == 0.0f || *(float *)(actor_tag + 0x390) == 0.0f) {
+                        if (*(float *)(actor_tag + 0x388) == 0.0f || ((Actor *)actor_tag)->melee_leap_chance == 0.0f) {
                             md[0xa] = 0;
                         } else if (target[0x130] || *(int16_t *)(target + 0x9c) > 0) {
                             md[0xa] = 1;
@@ -135,8 +136,8 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
                 md[0x25] = 0;
                 if (!weak && (int8_t)target[0x124] <= 1) {
                     md[0x25] = 1;
-                } else if (*(float *)(actor_tag + 0x32c) > 0.0f &&
-                           !(*(float *)(target + 0x11c) < *(float *)(actor_tag + 0x32c))) {
+                } else if (((Actor *)actor_tag)->stalking_max_distance > 0.0f &&
+                           !(*(float *)(target + 0x11c) < ((Actor *)actor_tag)->stalking_max_distance)) {
                     md[0x25] = 1;
                 }
             } else if (!actor_has_unshielded_threat_weapon(actor_index) || act[0x15d]) {
@@ -174,7 +175,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
 
     // 0x4021f2
     if (md[0x6]) {
-        datum_index unit_index = *(datum_index *)(act + 0x18);
+        datum_index unit_index = ((actor *)act)->unit_index;
 
         md[0x7] = (uint8_t)!(unit_index != k_datum_index_none && unit_is_in_busy_animation_state(unit_index));
     } else if (!md[0xc] && (*(int16_t *)(md + 0x4) == 2 || *(int16_t *)(md + 0x4) == 3) && target != 0) {
@@ -195,15 +196,15 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             float factor = 0.0f;
             real_point3d lead;
 
-            unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(act + 0x18) & 0xffff].data;
+            unit = (uint8_t *)((object_header *)object_data->data)[((actor *)act)->unit_index & 0xffff].data;
             if (speed > 0.0f) {
                 factor = ((velocity->k * facing->k + velocity->j * facing->j + velocity->i * facing->i) / speed + 1.0f) * 0.5f;
             }
             lead_ticks = (float)*(int16_t *)(md + 0x32);
             point3d_add_scaled(&lead, velocity, (real_point3d *)(target + 0xbc), lead_ticks * factor);
-            direction.i = lead.x - *(float *)(act + 0x12c);
-            direction.j = lead.y - *(float *)(act + 0x130);
-            direction.k = lead.z - *(float *)(act + 0x134);
+            direction.i = lead.x - ((actor *)act)->body_position.x;
+            direction.j = lead.y - ((actor *)act)->body_position.y;
+            direction.k = lead.z - ((actor *)act)->body_position.z;
             if (direction.j * facing->j + direction.k * facing->k + direction.i * facing->i < 0.0f) {
                 along = 0.0f;
                 direction = *facing;
@@ -224,10 +225,10 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
                     real horizontal_speed;
 
                     if (projectile_solve_ballistic_arc((real_point3d *)(target + 0xbc), (real_point3d *)(act + 0x12c),
-                                                       *(float *)(actor_tag + 0x38c), 1.0f, (real *)(actor_tag + 0x394),
+                                                       ((Actor *)actor_tag)->melee_leap_velocity, 1.0f, (real *)(actor_tag + 0x394),
                                                        0, &leap, 0, 0, 0, 0, &half_gravity, &horizontal_speed)) {
                         if (vector2d_normalize_with_length((real_vector2d *)&leap) == 0.0f) {
-                            leap = *(real_vector3d *)(act + 0x174);
+                            leap = *(real_vector3d *)&((actor *)act)->facing.i;
                             if (vector2d_normalize_with_length((real_vector2d *)&leap) == 0.0f) {
                                 leap = *global_forward3d_pointer;
                             }
@@ -240,12 +241,12 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
                     }
                 }
             } else if (md[0x30]) {
-                if (along < *(float *)(actor_tag + 0x37c)) {
+                if (along < ((Actor *)actor_tag)->melee_fudge_factor) {
                     strike = 1;
-                } else if (along < *(float *)(actor_tag + 0x3a4)) {
-                    float closing = (velocity->j - *(float *)(unit + 0x6c)) * direction.j +
-                                    (velocity->i - *(float *)(unit + 0x68)) * direction.i +
-                                    (velocity->k - *(float *)(unit + 0x70)) * direction.k;
+                } else if (along < ((Actor *)actor_tag)->suicide_sensing_dist) {
+                    float closing = (velocity->j - ((unit_object *)unit)->base.velocity.j) * direction.j +
+                                    (velocity->i - ((unit_object *)unit)->base.velocity.i) * direction.i +
+                                    (velocity->k - ((unit_object *)unit)->base.velocity.k) * direction.k;
 
                     if (closing > 0.023333333f) {
                         strike = 1;
@@ -253,10 +254,10 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
                 }
             } else {
                 if (*(int16_t *)(md + 0x4) == 3 && md[0xb]) {
-                    along -= (direction.j * *(float *)(unit + 0x6c) + direction.k * *(float *)(unit + 0x70) +
-                              direction.i * *(float *)(unit + 0x68)) * lead_ticks;
+                    along -= (direction.j * ((unit_object *)unit)->base.velocity.j + direction.k * ((unit_object *)unit)->base.velocity.k +
+                              direction.i * ((unit_object *)unit)->base.velocity.i) * lead_ticks;
                 }
-                if (along < *(float *)(actor_tag + 0x37c) + *(float *)(md + 0x34)) {
+                if (along < ((Actor *)actor_tag)->melee_fudge_factor + *(float *)(md + 0x34)) {
                     strike = 1;
                 }
             }
@@ -269,7 +270,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             flat.i = direction.i;
             flat.j = direction.j;
             if (vector2d_normalize_with_length(&flat) > 0.0f &&
-                flat.j * *(float *)(act + 0x178) + flat.i * *(float *)(act + 0x174) < (md[0xb] ? 0.0f : 0.8660254f)) {
+                flat.j * ((actor *)act)->facing.j + flat.i * ((actor *)act)->facing.i < (md[0xb] ? 0.0f : 0.8660254f)) {
                 md[0xc] = 0;
                 md[0x9] = 1;
                 strike = 0; // 0x402629 goes straight to 0x4026a7
@@ -282,11 +283,11 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             flat.i = direction.i;
             flat.j = direction.j;
             if (vector2d_normalize_with_length(&flat) == 0.0f) {
-                flat.i = *(float *)(act + 0x174);
-                flat.j = *(float *)(act + 0x178);
+                flat.i = ((actor *)act)->facing.i;
+                flat.j = ((actor *)act)->facing.j;
             }
-            if (unit_try_ready_weapon(*(datum_index *)(act + 0x18), 0, &flat)) {
-                ai_communication_broadcast(0x2b, *(datum_index *)(act + 0x18), *(datum_index *)(target + 0x18), 3, -1, -1, 0);
+            if (unit_try_ready_weapon(((actor *)act)->unit_index, 0, &flat)) {
+                ai_communication_broadcast(0x2b, ((actor *)act)->unit_index, *(datum_index *)(target + 0x18), 3, -1, -1, 0);
                 md[0x6] = 1;
             }
         }
@@ -301,8 +302,8 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             if (*(int16_t *)(md + 0xe) > 15) {
                 md[0x8] = 1;
             }
-        } else if (*(float *)(actor_tag + 0x380) > 0.0f &&
-                   !((float)*(int32_t *)(md + 0x0) + *(float *)(actor_tag + 0x380) * 30.0f > (float)now)) {
+        } else if (((Actor *)actor_tag)->melee_charge_time > 0.0f &&
+                   !((float)*(int32_t *)(md + 0x0) + ((Actor *)actor_tag)->melee_charge_time * 30.0f > (float)now)) {
             md[0x8] = 1;
         }
     }
@@ -319,7 +320,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             if (!(radius > threshold)) {
                 radius = threshold;
             }
-            if (actor_movement_set_destination_near_target(*(datum_index *)(act + 0x270), actor_index, radius)) {
+            if (actor_movement_set_destination_near_target(((actor *)act)->target_unit_index, actor_index, radius)) {
                 actor_movement_actions_cancel(actor_index);
                 goto approach_done;
             }
@@ -328,8 +329,8 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
         }
         actor_movement_action_stop(actor_index);
     approach_done:
-        if (*(int16_t *)(act + 0x268) >= 7) {
-            datum_index target_index = *(datum_index *)(act + 0x270);
+        if (((actor *)act)->target_combat_status >= 7) {
+            datum_index target_index = ((actor *)act)->target_unit_index;
             uint8_t far_away = (uint8_t)(*(float *)(PROP(target_index) + 0x11c) > *(float *)(md + 0x2c));
             uint8_t engaged = 0;
             int16_t current = *(int16_t *)(md + 0x4);

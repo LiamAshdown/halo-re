@@ -37,11 +37,11 @@ void actor_update_target_lead_position(datum_index actor_index)
     if (*(int32_t *)(a + 0x164) != -1) {
         return;
     }
-    *point = *(real_point3d *)(a + 0x12c);
+    *point = *(real_point3d *)&((actor *)a)->body_position.x;
     if (a[0x99]) {
         return;
     }
-    vehicle = *(datum_index *)(a + 0x158);
+    vehicle = ((actor *)a)->active_unit_index;
     if (vehicle != k_datum_index_none) {
         int16_t seat_kind = *(int16_t *)(a + 0x15e);
 
@@ -50,8 +50,8 @@ void actor_update_target_lead_position(datum_index actor_index)
         }
         return;
     }
-    if (object_try_and_get(*(datum_index *)(a + 0x18), 1) != 0) {
-        *(int32_t *)(a + 0x164) = (int32_t)biped_get_cached_look_at_position(*(datum_index *)(a + 0x18), point);
+    if (object_try_and_get(((actor *)a)->unit_index, 1) != 0) {
+        *(int32_t *)(a + 0x164) = (int32_t)biped_get_cached_look_at_position(((actor *)a)->unit_index, point);
     }
 }
 

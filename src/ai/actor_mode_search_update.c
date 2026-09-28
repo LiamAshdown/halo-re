@@ -25,11 +25,11 @@ extern tag_instance *tag_instances; // 0x0087bc14
 void actor_mode_search_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
 
     if (act[0x504]) {
-        *(int16_t *)(act + 0x3e8) = 3;
-        *(int16_t *)(act + 0x3ec) = 0;
+        ((actor *)act)->vocalization_unknown_3e8 = 3;
+        ((actor *)act)->vocalization_unknown_3ec = 0;
     } else {
         int32_t total = *(int32_t *)(act + 0xbc);
         int32_t third = total / 3;
@@ -38,19 +38,19 @@ void actor_mode_search_update(datum_index actor_index)
             third = 90;
         }
         if (total - *(int32_t *)(act + 0xc0) < third && *(int16_t *)(act + 0xa4) == 0) {
-            *(int16_t *)(act + 0x3e8) = 3;
-            *(int16_t *)(act + 0x3ec) = 2;
+            ((actor *)act)->vocalization_unknown_3e8 = 3;
+            ((actor *)act)->vocalization_unknown_3ec = 2;
         } else if (total - *(int32_t *)(act + 0xc0) < third && *(int16_t *)(act + 0xa4) == 1) {
-            *(int16_t *)(act + 0x3e8) = 3;
-            *(int16_t *)(act + 0x3ec) = 3;
+            ((actor *)act)->vocalization_unknown_3e8 = 3;
+            ((actor *)act)->vocalization_unknown_3ec = 3;
             *(real_point3d *)(act + 0x3f0) = *(real_point3d *)(act + 0xb0);
         } else {
-            *(int16_t *)(act + 0x3e8) = 1;
+            ((actor *)act)->vocalization_unknown_3e8 = 1;
         }
     }
     *(int16_t *)(act + 0x3fc) = 3;
     if (*(int16_t *)(act + 0xa4) == 0) {
-        act[0x454] = (uint8_t)(*(int16_t *)(act + 0x268) >= ((actor_tag[0] & 0x10) ? 5 : 6));
+        act[0x454] = (uint8_t)(((actor *)act)->target_combat_status >= ((actor_tag[0] & 0x10) ? 5 : 6));
     }
     act[0x426] = act[0x9f];
     act[0x427] = act[0x9f];

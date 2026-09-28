@@ -61,7 +61,7 @@ void actor_movement_apply_steering(
     real_vector3d *out_heading, uint8_t *out_flag_507, uint8_t *out_flag_506)
 {
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     real_vector3d *facing = (real_vector3d *)(act + 0x174);
     float max_turn_cos = 0.8660254f; // S+0x18, later the accelerate-then-stop distance
     int16_t chosen_axis = -1;        // S+0x14
@@ -102,7 +102,7 @@ void actor_movement_apply_steering(
                                  desired_direction->j * desired_direction->j +
                                  desired_direction->k * desired_direction->k;
         if (desired_length_squared > 0.64000005f) {
-            max_turn_cos = *(float *)(actor_tag + 0xa0);
+            max_turn_cos = ((Actor *)actor_tag)->cosine_begin_moving_angle;
         }
         if (want_avoid_check && desired_length_squared <= avoid_threshold) {
             uint8_t use_scratch = 0;
@@ -178,9 +178,9 @@ void actor_movement_apply_steering(
                     real_point3d point;
                     path_find_boundary_crossing crossing;
 
-                    point.x = probe.i * 0.4f + *(float *)(act + 0x12c);
-                    point.y = probe.j * 0.4f + *(float *)(act + 0x130);
-                    point.z = *(float *)(act + 0x134);
+                    point.x = probe.i * 0.4f + ((actor *)act)->body_position.x;
+                    point.y = probe.j * 0.4f + ((actor *)act)->body_position.y;
+                    point.z = ((actor *)act)->body_position.z;
                     if (path_find_trace_bsp_boundary(global_structure_bsp, act[0x376], (real_point3d *)(act + 0x12c),
                                                      surface, &point, -1, &crossing) &&
                         !(max_turn_cos > 0.95f)) {

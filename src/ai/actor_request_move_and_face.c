@@ -32,7 +32,7 @@ extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing
 uint8_t actor_request_move_and_face(datum_index actor_index)
 {
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(actor + 0x58) & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
 
     if (actor[6] != 0) {
         *(int16_t *)(actor + 0xc0) = 1;
@@ -43,15 +43,15 @@ uint8_t actor_request_move_and_face(datum_index actor_index)
         actor[0xaa] = 1;
         return 0;
     }
-    if (*(int16_t *)(actor + 0xc0) == 3 && *(int16_t *)(actor + 0x3b8) == -1) {
+    if (*(int16_t *)(actor + 0xc0) == 3 && ((struct actor *)actor)->firing_position_index == -1) {
         *(int16_t *)(actor + 0xc0) = 0;
         actor[0xaa] = 1;
     }
     if (actor[0x4c] == 0 || actor[0xaa] == 0) {
         return 0;
     }
-    if (*(int16_t *)(actor + 0xc0) == 3 && *(int16_t *)(actor + 0x3b8) != -1) {
-        actor_push_recognition_entry(actor_index, *(int16_t *)(actor + 0x3b8), 0);
+    if (*(int16_t *)(actor + 0xc0) == 3 && ((struct actor *)actor)->firing_position_index != -1) {
+        actor_push_recognition_entry(actor_index, ((struct actor *)actor)->firing_position_index, 0);
     }
     {
         static actor_firing_position_query query;

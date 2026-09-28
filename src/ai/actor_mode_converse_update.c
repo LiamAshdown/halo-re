@@ -37,8 +37,8 @@ void actor_mode_converse_update(datum_index actor_index)
     }
     *(int16_t *)(act + 0x3fc) = 1;
     if (look_prop != k_datum_index_none) {
-        *(int16_t *)(act + 0x3e8) = 3;
-        *(int16_t *)(act + 0x3ec) = 1;
+        ((actor *)act)->vocalization_unknown_3e8 = 3;
+        ((actor *)act)->vocalization_unknown_3ec = 1;
         *(datum_index *)(act + 0x3f0) = look_prop;
     }
 }

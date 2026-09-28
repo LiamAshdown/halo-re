@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#include "units.h"
 
 extern data_array *object_data;           // 0x008603b0
 extern tag_instance *tag_instances;       // 0x0087bc14
@@ -69,17 +70,17 @@ void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum
 {
     uint8_t *variant = (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
     uint8_t *unit = object_get(unit_index);
-    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)(variant + 0x10) & 0xffff].data;
+    uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)&((ActorVariant *)variant)->actor_definition.tag_id & 0xffff].data;
     int16_t i;
 
-    if (*(float *)(variant + 0x200) > 0.0f || *(float *)(variant + 0x204) > 0.0f) {
+    if (((ActorVariant *)variant)->body_vitality > 0.0f || ((ActorVariant *)variant)->shield_vitality > 0.0f) {
         object_initialize_shield_stun_thresholds(unit_index, (float *)(variant + 0x200), (float *)(variant + 0x204));
     }
-    if (*(int16_t *)(variant + 0x20c) != 0) {
-        *(int16_t *)(unit + 0x176) = *(int16_t *)(variant + 0x20c);
+    if (*(int16_t *)&((ActorVariant *)variant)->forced_shader_permutation != 0) {
+        *(int16_t *)&((unit_object *)unit)->base.forced_shader_permutation = *(int16_t *)&((ActorVariant *)variant)->forced_shader_permutation;
     }
-    for (i = 0; i < *(int32_t *)(variant + 0x22c); i++) {
-        uint8_t *change_color = *(uint8_t **)(variant + 0x230) + i * 0x20;
+    for (i = 0; i < *(int32_t *)&((ActorVariant *)variant)->change_colors.count; i++) {
+        uint8_t *change_color = *(uint8_t **)&((ActorVariant *)variant)->change_colors.pointer + i * 0x20;
 
         if (i < 4) {
             ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
@@ -90,8 +91,8 @@ void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum
             *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
         }
     }
-    if (*(datum_index *)(variant + 0x70) != k_datum_index_none) {
-        datum_index weapon = actor_create_unit_item(*(datum_index *)(variant + 0x70), unit_index);
+    if (*(datum_index *)&((ActorVariant *)variant)->weapon.tag_id != k_datum_index_none) {
+        datum_index weapon = actor_create_unit_item(*(datum_index *)&((ActorVariant *)variant)->weapon.tag_id, unit_index);
 
         if (weapon != k_datum_index_none && !unit_pickup_weapon(2, weapon, unit_index)) {
             int32_t role = *(int32_t *)(object_get(weapon) + 4);
@@ -104,8 +105,8 @@ void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum
             }
         }
     }
-    if (*(int16_t *)(variant + 0x180) != -1) {
-        int16_t type = *(int16_t *)(variant + 0x180);
+    if (*(int16_t *)&((ActorVariant *)variant)->grenade_type != -1) {
+        int16_t type = *(int16_t *)&((ActorVariant *)variant)->grenade_type;
         int16_t minimum = *(int16_t *)(variant + 0x1d0);
         int32_t range = (int16_t)(*(int16_t *)(variant + 0x1d2) + 1) - minimum;
         uint8_t *object = object_get(unit_index);
@@ -116,12 +117,12 @@ void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum
         object[0x31d] = (uint8_t)type;
         object[0x31c] = (uint8_t)type;
     }
-    if (*(datum_index *)(variant + 0x1cc) != k_datum_index_none) {
-        int16_t equipment_kind = *(int16_t *)((uint8_t *)tag_instances[*(datum_index *)(variant + 0x1cc) & 0xffff].data
+    if (*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id != k_datum_index_none) {
+        int16_t equipment_kind = *(int16_t *)((uint8_t *)tag_instances[*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id & 0xffff].data
             + 0x308);
 
         if (equipment_kind != 0 && equipment_kind != 6) {
-            datum_index equipment = actor_create_unit_item(*(datum_index *)(variant + 0x1cc), unit_index);
+            datum_index equipment = actor_create_unit_item(*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id, unit_index);
 
             if (equipment != k_datum_index_none && !unit_try_select_equipment(unit_index, equipment, 1)) {
                 object_delete(equipment);
@@ -130,9 +131,9 @@ void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum
     }
     if (*(uint32_t *)variant & 0x30) {
         if (*(uint32_t *)variant & 0x20) {
-            *(uint32_t *)(unit + 0x204) |= 0x20;
+            ((unit_object *)unit)->unit.flags |= 0x20;
         }
-        *(uint32_t *)(unit + 0x204) |= 0x10;
+        ((unit_object *)unit)->unit.flags |= 0x10;
         *(float *)(unit + 0x37c) = 1.0f;
         *(float *)(unit + 0x380) = (unit_tag[0] & 0x20) ? 1.0f : 0.0f;
     }

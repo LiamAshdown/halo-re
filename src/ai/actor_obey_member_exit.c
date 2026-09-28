@@ -14,6 +14,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "units.h"
 
 extern data_array *object_data;  // 0x008603b0
 extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state,
@@ -32,5 +33,5 @@ void actor_obey_member_exit(uint32_t actor_index, datum_index unit_index, uint16
         actor_squad_action_reset_entry(actor_index, unit_index, record, (int16_t)command_list_index,
             (uint8_t *)secondary_record, &next_action);
     }
-    *(uint32_t *)(unit + 0x204) &= ~0x1000u;
+    ((unit_object *)unit)->unit.flags &= ~0x1000u;
 }

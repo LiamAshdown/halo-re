@@ -109,7 +109,7 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
     if (self[0x15d] != 0) {
         goto return_false;
     }
-    variant_mode = *(const int16_t *)(variant + 0x4c);
+    variant_mode = *(int16_t *)&((ActorVariant *)variant)->movement_type;
     if (variant_mode == 0) {
         goto return_false;
     }
@@ -183,7 +183,7 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
     flip_decision:
         decision = (self[0x363] == 0);
     } else {
-        float chance = *(const float *)(variant + 0x50);
+        float chance = ((ActorVariant *)variant)->initial_crouch_chance;
         float roll;
 
         if ((int8_t)self[0x200] > 0) {

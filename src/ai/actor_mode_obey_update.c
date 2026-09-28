@@ -130,7 +130,7 @@ void actor_mode_obey_update(uint32_t actor_index)
         float x;
         float y;
 
-        direction = *(real_vector2d *)(actor + 0x174);
+        direction = *(real_vector2d *)&((struct actor *)actor)->facing.i;
         if (vector2d_normalize_with_length(&direction) == 0.0f) {
             x = global_forward2d_pointer->i;
             y = global_forward2d_pointer->j;

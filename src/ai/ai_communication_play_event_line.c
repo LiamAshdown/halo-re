@@ -104,14 +104,14 @@ void ai_communication_play_event_line(datum_index object_index, int16_t event_id
                 uint8_t *actor = object_actor != k_datum_index_none
                     ? (uint8_t *)actor_data->data + (object_actor & 0xffff) * 0x724 : 0;
 
-                if (mode == 2 && actor != 0 && *(datum_index *)(actor + 0x34) != k_datum_index_none) {
+                if (mode == 2 && actor != 0 && ((struct actor *)actor)->encounter_index != k_datum_index_none) {
                     found = ai_communication_select_speaker_in_reference(9.0f, -1, (uint16_t)class_index,
                         (uint16_t)priority, *(uint16_t *)(row + 0x6), *(int16_t *)(row + 0x8), 0,
-                        *(datum_index *)(actor + 0x34) & 0xffff, object_index, k_datum_index_none);
+                        ((struct actor *)actor)->encounter_index & 0xffff, object_index, k_datum_index_none);
                 } else {
                     found = ai_communication_select_speaker_by_team(mode == 2 ? 1 : 2, object_index, k_datum_index_none,
                         9.0f, -1, (uint16_t)class_index, (uint16_t)priority, *(uint16_t *)(row + 0x6),
-                        *(int16_t *)(row + 0x8), 0, *(int16_t *)(object + 0xb8));
+                        *(int16_t *)(row + 0x8), 0, ((struct object *)object)->owner_team);
                 }
                 if (found == k_datum_index_none) {
                     continue;

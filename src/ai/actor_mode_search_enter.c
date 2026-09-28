@@ -24,7 +24,7 @@ extern uint32_t random_seed_global;  // 0x00719cd0
 void actor_mode_search_enter(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(act + 0x58) & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
     float lo;
     float hi;
     float t;

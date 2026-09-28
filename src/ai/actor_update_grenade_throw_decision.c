@@ -31,22 +31,22 @@ extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, ui
 uint8_t actor_update_grenade_throw_decision(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *variant = TAG_DATA(*(datum_index *)(act + 0x5c));
-    int16_t mode = *(int16_t *)(act + 0x6c);
+    uint8_t *variant = TAG_DATA(((actor *)act)->actor_variant_tag);
+    int16_t mode = ((actor *)act)->mode;
     uint8_t result = 0;
 
-    if (*(int16_t *)(act + 0x268) < 5 || (mode == 4 && *(int16_t *)(act + 0xa8) > 0)) {
+    if (((actor *)act)->target_combat_status < 5 || (mode == 4 && *(int16_t *)(act + 0xa8) > 0)) {
         act[0x6a0] = 0;
         return 0;
     }
-    switch (*(int16_t *)(variant + 0x184)) {
+    switch (*(int16_t *)&((ActorVariant *)variant)->grenade_stimulus) {
     case 1:
         if (*(int16_t *)(act + 0x6e) >= 5) {
             result = actor_consider_grenade_throw(actor_index);
         }
         break;
     case 2:
-        if (PROP(*(datum_index *)(act + 0x270))[0x14] || (mode == 4 && *(int16_t *)(act + 0xa8) == 0)) {
+        if (PROP(((actor *)act)->target_unit_index)[0x14] || (mode == 4 && *(int16_t *)(act + 0xa8) == 0)) {
             result = actor_consider_grenade_throw(actor_index);
         }
         break;

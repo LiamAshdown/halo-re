@@ -39,7 +39,7 @@ uint8_t ai_dialogue_condition_42f5b0(datum_index object_index, uint32_t param_2,
     }
     a = ACTOR(own_actor);
     b = ACTOR(actor_index);
-    return (uint8_t)(*(datum_index *)(a + 0x34) != k_datum_index_none &&
-        *(datum_index *)(a + 0x34) == *(datum_index *)(b + 0x34) &&
-        *(int16_t *)(a + 0x3c) == *(int16_t *)(b + 0x3c));
+    return (uint8_t)(((actor *)a)->encounter_index != k_datum_index_none &&
+        ((actor *)a)->encounter_index == *(datum_index *)(b + 0x34) &&
+        ((actor *)a)->platoon_index == *(int16_t *)(b + 0x3c));
 }

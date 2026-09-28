@@ -54,10 +54,10 @@ void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point3d *cen
         if (object_index == self_object_a || object_index == self_object_b || (object[0x10] & 1) != 0) {
             continue;
         }
-        if (*(int16_t *)(object + 0xb4) == 0 && (object[0x106] & 4) != 0) {
+        if (((struct object *)object)->type == 0 && (object[0x106] & 4) != 0) {
             continue; // 0x43c5d0: a biped flagged 4 at +0x106
         }
-        if (*(int16_t *)(object + 0xb4) == 7) {
+        if (((struct object *)object)->type == 7) {
             uint16_t machine_flags = *(uint16_t *)(TAG_DATA(*(datum_index *)object) + 0x292);
 
             if ((machine_flags & 1) == 0) {
@@ -67,7 +67,7 @@ void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point3d *cen
                 continue;
             }
         }
-        if (!point3d_within_radius((real_point3d *)(object + 0xa0), center, radius + *(float *)(object + 0xac))) {
+        if (!point3d_within_radius((real_point3d *)(object + 0xa0), center, radius + ((struct object *)object)->bounding_radius)) {
             continue;
         }
         object_tag = TAG_DATA(*(datum_index *)object);
@@ -89,7 +89,7 @@ void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point3d *cen
 
             object = OBJECT_DATA(object_index);
             if (node != -1) {
-                real_matrix4x3 *matrix = (real_matrix4x3 *)(object + *(int16_t *)(object + 0x1f2) + node * 0x34);
+                real_matrix4x3 *matrix = (real_matrix4x3 *)(object + ((struct object *)object)->nodes.offset + node * 0x34);
 
                 matrix4x3_transform_point(&point, (real_point3d *)(sphere + 0x10), matrix);
                 sphere_radius = *(float *)(sphere + 0x1c) * matrix->scale;
@@ -111,9 +111,9 @@ void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point3d *cen
             if (reach * reach < dz * dz * 4.0f + dy * dy + dx * dx) {
                 continue;
             }
-            if (*(int16_t *)(object + 0xb4) == 0 && dy * direction->j + dx * direction->i + dz * direction->k > 0.0f &&
-                *(float *)(object + 0x70) * direction->k + *(float *)(object + 0x6c) * direction->j +
-                        *(float *)(object + 0x68) * direction->i > 0.06666667f) {
+            if (((struct object *)object)->type == 0 && dy * direction->j + dx * direction->i + dz * direction->k > 0.0f &&
+                ((struct object *)object)->velocity.k * direction->k + ((struct object *)object)->velocity.j * direction->j +
+                        ((struct object *)object)->velocity.i * direction->i > 0.06666667f) {
                 flags = 1; // 0x43c81b: a biped moving along the same way
             }
             ai_search_append_obstacle(list, flags, object_index, (real_point2d *)&point, sphere_radius);

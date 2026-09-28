@@ -46,7 +46,7 @@ void actor_type_crew_update(uint32_t actor_index)
 {
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
 
-    if (*(int16_t *)(actor + 0x6c) == 0 && *(int16_t *)(actor + 0x6a) != 0) {
+    if (((struct actor *)actor)->mode == 0 && ((struct actor *)actor)->awareness_level != 0) {
         actor_process_order_request(actor_index, 0xffff);
     }
     actor_process_pending_command_list(actor_index);
@@ -62,7 +62,7 @@ void actor_type_crew_update(uint32_t actor_index)
         actor_update_danger_avoidance(actor_index);
     }
 
-    switch (*(int16_t *)(actor + 0x6c)) {
+    switch (((struct actor *)actor)->mode) {
     case 3:  // fight
     case 10: // charge
         if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
@@ -101,13 +101,13 @@ void actor_type_crew_update(uint32_t actor_index)
         actor_update_combat_behavior(actor_index, actor[0x9e], actor[0xa1]);
         return;
     case 12: { // converse
-        uint8_t forced = (actor[0xa0] != 0 || *(uint32_t *)(actor + 0x1dc) == 0xffffffff) ? 1 : 0;
+        uint8_t forced = (actor[0xa0] != 0 || *(uint32_t *)&((struct actor *)actor)->conversation_index == 0xffffffff) ? 1 : 0;
 
         actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index), forced);
         return;
     }
     case 13: // avoid
-        if (*(int16_t *)(actor + 0x280) == 0) {
+        if (((struct actor *)actor)->danger_type == 0) {
             actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;

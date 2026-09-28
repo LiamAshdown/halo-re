@@ -17,6 +17,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -44,19 +45,19 @@ static uint32_t actor_death_random_16(void)
 void actor_attempt_grenade_throw(datum_index actor_index)
 {
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;       // esi
-    uint8_t *variant = (uint8_t *)tag_instances[*(datum_index *)(a + 0x5c) & 0xffff].data; // ebp
-    datum_index encounter = *(datum_index *)(a + 0x34);                             // [esp+0x18]
+    uint8_t *variant = (uint8_t *)tag_instances[((actor *)a)->actor_variant_tag & 0xffff].data; // ebp
+    datum_index encounter = ((actor *)a)->encounter_index;                             // [esp+0x18]
     uint8_t *unit;
     datum_index weapon;
     real roll;
 
     // 0x428ae7: a fighter may pull a grenade as it dies
-    if (*(int16_t *)(a + 0x6a) == 3 && *(int16_t *)(a + 0x6e) >= 2) {
-        unit = OBJECT_DATA(*(datum_index *)(a + 0x18));
-        if (((*(uint32_t *)(unit + 0x204) >> 6) & 1) &&
-            unit_get_weapon_object_index(*(datum_index *)(a + 0x18), *(int16_t *)(unit + 0x2f2)) != k_datum_index_none &&
+    if (((actor *)a)->awareness_level == 3 && *(int16_t *)(a + 0x6e) >= 2) {
+        unit = OBJECT_DATA(((actor *)a)->unit_index);
+        if (((((unit_object *)unit)->unit.flags >> 6) & 1) &&
+            unit_get_weapon_object_index(((actor *)a)->unit_index, ((unit_object *)unit)->unit.current_weapon_index) != k_datum_index_none &&
             *(int8_t *)(unit + 0x28c) > 0) {
-            float chance = *(float *)(variant + 0x94);
+            float chance = ((ActorVariant *)variant)->death_fire_wildly_chance;
 
             if (!(chance >= 0.1f)) {
                 chance = 0.1f;
@@ -74,7 +75,7 @@ void actor_attempt_grenade_throw(datum_index actor_index)
                 }
             }
             if (random_real() < chance) {
-                float seconds = *(float *)(variant + 0x98);
+                float seconds = ((ActorVariant *)variant)->death_fire_wildly_time;
                 int16_t ticks;
 
                 if (seconds == 0.0f) {
@@ -85,7 +86,7 @@ void actor_attempt_grenade_throw(datum_index actor_index)
                     seconds = 1.3f;
                 }
                 ticks = (int16_t)(int32_t)(seconds * 30.0f);
-                unit_set_control_countdown(*(datum_index *)(a + 0x18), ticks, 0x800);
+                unit_set_control_countdown(((actor *)a)->unit_index, ticks, 0x800);
                 unit[0x28c] = (uint8_t)ticks;
             }
         }
@@ -93,10 +94,10 @@ void actor_attempt_grenade_throw(datum_index actor_index)
 
     // 0x428cab: what the corpse leaves behind
     roll = (real)(int32_t)actor_death_random_16() * 1.5259022e-05f;
-    unit = OBJECT_DATA(*(datum_index *)(a + 0x18));
-    weapon = *(int16_t *)(unit + 0x2f2) != -1 ? *(datum_index *)(unit + 0x2f8 + *(int16_t *)(unit + 0x2f2) * 4)
+    unit = OBJECT_DATA(((actor *)a)->unit_index);
+    weapon = ((unit_object *)unit)->unit.current_weapon_index != -1 ? *(datum_index *)(unit + 0x2f8 + ((unit_object *)unit)->unit.current_weapon_index * 4)
                                               : k_datum_index_none;
-    if (!ai_globals_ptr->grenades_enabled || roll < *(float *)(variant + 0x1d4)) {
+    if (!ai_globals_ptr->grenades_enabled || roll < ((ActorVariant *)variant)->don_t_drop_grenades_chance) {
         *(int16_t *)(unit + 0x31e) = 0;
     }
     if (weapon != k_datum_index_none) {

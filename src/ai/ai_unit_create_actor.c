@@ -91,7 +91,7 @@ void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index)
     a->unknown_90 = -1;
     a->unknown_68 = 0;
 
-    if (*((uint8_t *)a + 0x6) != actor_type_procs[*(int16_t *)((uint8_t *)a + 0x4)][0xd]) {
+    if (*((uint8_t *)a + 0x6) != actor_type_procs[((actor *)a)->type][0xd]) {
         actor_delete(actor_index, 0);
         return;
     }

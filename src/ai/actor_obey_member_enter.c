@@ -13,6 +13,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "units.h"
 
 extern data_array *object_data;  // 0x008603b0
 extern Scenario *global_scenario;
@@ -29,6 +30,6 @@ void actor_obey_member_enter(uint32_t actor_index, datum_index unit_index, uint1
     if (list[0x20] & 0x10) {
         uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
 
-        *(uint32_t *)(unit + 0x204) |= 0x1000;
+        ((unit_object *)unit)->unit.flags |= 0x1000;
     }
 }

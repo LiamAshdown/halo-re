@@ -110,17 +110,17 @@ finished_check:                                                                 
                     continue;
                 }
                 a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-                unit = *(datum_index *)(a + 0x18);
-                *(datum_index *)(a + 0x1dc) = handle;
-                *(datum_index *)(a + 0x1e0) = k_datum_index_none;
+                unit = ((actor *)a)->unit_index;
+                ((actor *)a)->conversation_index = handle;
+                ((actor *)a)->conversation_participant = k_datum_index_none;
                 if (unit == *(datum_index *)(inst + 0x54)) {
-                    *(datum_index *)(a + 0x1e0) = *(datum_index *)(inst + 0x58);
+                    ((actor *)a)->conversation_participant = *(datum_index *)(inst + 0x58);
                 } else if (unit == *(datum_index *)(inst + 0x58) && (flags & 1)) {
-                    *(datum_index *)(a + 0x1e0) = *(datum_index *)(inst + 0x54);
+                    ((actor *)a)->conversation_participant = *(datum_index *)(inst + 0x54);
                 } else if (flags & 2) {
-                    *(datum_index *)(a + 0x1e0) = *(datum_index *)(inst + 0x54);
+                    ((actor *)a)->conversation_participant = *(datum_index *)(inst + 0x54);
                 } else if (flags & 4) {
-                    *(datum_index *)(a + 0x1e0) = *(datum_index *)(inst + 0x58);
+                    ((actor *)a)->conversation_participant = *(datum_index *)(inst + 0x58);
                 }
             }
         }

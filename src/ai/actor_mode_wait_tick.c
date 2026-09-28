@@ -25,7 +25,7 @@ extern uint32_t random_seed_global; // 0x00719cd0
 void actor_mode_wait_tick(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    datum_index unit_index = *(datum_index *)(act + 0x18);
+    datum_index unit_index = ((actor *)act)->unit_index;
 
     if (*(int16_t *)(act + 0xac) > 0) {
         *(int16_t *)(act + 0xac) -= 1;

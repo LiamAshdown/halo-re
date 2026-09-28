@@ -116,7 +116,7 @@ void actor_refresh_combat_context(datum_index actor_index)
     }
 
     unit = object_get(A_I32(0x18));
-    parent_index = *(datum_index *)(unit + 0x11c);
+    parent_index = ((unit_object *)unit)->base.parent_object;
     if (parent_index != k_datum_index_none) {
         parent = object_get(parent_index);
     }
@@ -205,7 +205,7 @@ void actor_refresh_combat_context(datum_index actor_index)
     A_U8(0x1b5) = unit[0x28b] > 0;
     A_U8(0x1b4) = 0;
     A_I32(0x1b0) = -1;
-    for (child = *(datum_index *)(unit + 0x118); child != k_datum_index_none;
+    for (child = ((unit_object *)unit)->base.first_child_object; child != k_datum_index_none;
          child = *(datum_index *)(object_get(child) + 0x114)) {
         uint8_t *child_object = object_get(child);
         int16_t type = *(int16_t *)(child_object + 0xb4);
@@ -236,7 +236,7 @@ void actor_refresh_combat_context(datum_index actor_index)
 
     A_U8(0x15c) = 0;
     A_I32(0x164) = -1;
-    if (*(int16_t *)(unit + 0xb4) == 0 && A_I32(0x158) == -1) {
+    if (((unit_object *)unit)->base.type == 0 && A_I32(0x158) == -1) {
         uint8_t *unit_object = object_get(A_I32(0x18));
 
         if ((int8_t)unit_object[0x501] >= 6) {
@@ -264,17 +264,17 @@ void actor_refresh_combat_context(datum_index actor_index)
             *(real_vector3d *)(self + 0x180) = *(real_vector3d *)(vehicle + 0x23c);
         }
     } else {
-        *(real_vector3d *)(self + 0x180) = *(real_vector3d *)(unit + 0x23c);
+        *(real_vector3d *)(self + 0x180) = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;
     }
-    *(real_vector3d *)(self + 0x18c) = *(real_vector3d *)(unit + 0x260);
+    *(real_vector3d *)(self + 0x18c) = *(real_vector3d *)&((unit_object *)unit)->unit.looking_vector.i;
     vector3d_cross_product((real_vector3d *)(self + 0x198), (real_vector3d *)(self + 0x18c), global_up3d_pointer);
     vector3d_normalize_with_length((real_vector3d *)(self + 0x198));
     vector3d_cross_product((real_vector3d *)(self + 0x1a4), (real_vector3d *)(self + 0x198),
         (real_vector3d *)(self + 0x18c));
-    A_I32(0x1b8) = *(int32_t *)(unit + 0xe0);
-    A_I32(0x1bc) = *(int32_t *)(unit + 0xe4);
-    A_I32(0x1c0) = *(int32_t *)(unit + 0xf8);
-    A_I32(0x1c4) = *(int32_t *)(unit + 0xf4);
+    A_I32(0x1b8) = *(int32_t *)&((unit_object *)unit)->base.body_vitality;
+    A_I32(0x1bc) = *(int32_t *)&((unit_object *)unit)->base.shield_vitality;
+    A_I32(0x1c0) = *(int32_t *)&((unit_object *)unit)->base.recent_body_damage;
+    A_I32(0x1c4) = *(int32_t *)&((unit_object *)unit)->base.recent_shield_damage;
 }
 
 #if 0

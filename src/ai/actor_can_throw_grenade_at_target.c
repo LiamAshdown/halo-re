@@ -64,7 +64,7 @@ uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
 
         // 0x40da35..0x40da6f: the variant's wait (seconds) times difficulty scale 0x18 for the encounter's team
         // (encounter+2), doubled when actor+0x1ca is set, then converted to ticks (x30, __ftol)
-        random_wait = *(float *)((uint8_t *)variant + 0x1a8) *
+        random_wait = ((ActorVariant *)variant)->encounter_grenade_timeout *
                       weapon_get_zoom_fov_resolved(0x18, *(int16_t *)((uint8_t *)enc + 2));
         if (self->unknown_1ca != 0) {
             random_wait = random_wait + random_wait;
@@ -78,9 +78,9 @@ uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
     }
 
     if (actor_find_grenade_landing_spot(actor_index, &point, &target_handle, &relationship) != 0 &&
-        actor_score_blast_area_clear(actor_index, *(float *)((uint8_t *)variant + 0x188),
-                     *(float *)((uint8_t *)variant + 0x19c), &point, &hostile_count) != 0 &&
-        *(int16_t *)((uint8_t *)variant + 0x186) <= (int16_t)hostile_count &&
+        actor_score_blast_area_clear(actor_index, ((ActorVariant *)variant)->enemy_radius,
+                     ((ActorVariant *)variant)->collateral_damage_radius, &point, &hostile_count) != 0 &&
+        ((ActorVariant *)variant)->minimum_enemy_count <= (int16_t)hostile_count &&
         actor_commit_grenade_toss(actor_index, &point, target_handle, (uint32_t)relationship) != 0) {
         return 1;
     }

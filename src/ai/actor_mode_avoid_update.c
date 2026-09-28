@@ -21,13 +21,13 @@ void actor_mode_avoid_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
 
-    if (*(int16_t *)(act + 0x268) >= 5) {
+    if (((actor *)act)->target_combat_status >= 5) {
         act[0x454] = 1;
-        *(int16_t *)(act + 0x3e8) = 7;
-        *(int16_t *)(act + 0x3ec) = 2;
+        ((actor *)act)->vocalization_unknown_3e8 = 7;
+        ((actor *)act)->vocalization_unknown_3ec = 2;
     } else {
-        *(int16_t *)(act + 0x3e8) = 5;
-        *(int16_t *)(act + 0x3ec) = *(int16_t *)(act + 0x280) > 0 ? 5 : 2;
+        ((actor *)act)->vocalization_unknown_3e8 = 5;
+        ((actor *)act)->vocalization_unknown_3ec = ((actor *)act)->danger_type > 0 ? 5 : 2;
     }
     *(int16_t *)(act + 0x3fc) = 4;
     act[0x426] = act[0x358];

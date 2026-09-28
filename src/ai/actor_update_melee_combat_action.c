@@ -152,7 +152,7 @@ uint8_t actor_update_melee_combat_action(datum_index actor_index)
             retreat = 1;
             move_ok = 1;
             if (encounter_index != k_datum_index_none) {
-                ai_starting_location_derive_placement_flags(encounter_index, (int16_t)*(uint16_t *)(a + 0x3a), &hold,
+                ai_starting_location_derive_placement_flags(encounter_index, (int16_t)*(uint16_t *)&((actor *)a)->squad_index, &hold,
                                                             &support_mode, &phase, &ax_mode, &mode_b, &cx_mode);
                 if (a[0x6]) {
                     retreat = 1;

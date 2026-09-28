@@ -66,7 +66,7 @@ static uint8_t ult_lane(real_point3d *point, uint8_t *forward, uint8_t *axis, fl
 void actor_update_look_target(datum_index actor_index)
 {
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)(a + 0x58) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data;
     uint8_t *cache_a = a + 0x5a4;
     uint8_t *cache_b = a + 0x5b0;
     uint8_t *cache_c = a + 0x5bc;
@@ -106,7 +106,7 @@ void actor_update_look_target(datum_index actor_index)
             has_weapon = 0;
         }
         look_follows = has_weapon;
-        if (*(int16_t *)(a + 0x6a) == 3) {
+        if (((actor *)a)->awareness_level == 3) {
             side_cos[0] = (float)cos((double)*(float *)(definition + 0xbc));
             side_cos[1] = (float)cos((double)*(float *)(definition + 0xc0));
         } else {
@@ -122,11 +122,11 @@ void actor_update_look_target(datum_index actor_index)
             reason = 7;
             flee_look = 1;
         } else {
-            reason = (int16_t)*(uint16_t *)(a + 0x3e8);
+            reason = (int16_t)*(uint16_t *)&((actor *)a)->vocalization_unknown_3e8;
             if (reason != 0 && reason != 1) {
                 if (actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x3ec),
                         (real_vector3d *)&flee_point, actor_index)) {
-                    flee_look = *(int16_t *)(a + 0x3ec) == 2;
+                    flee_look = ((actor *)a)->vocalization_unknown_3ec == 2;
                 } else {
                     reason = 0;
                 }
@@ -134,20 +134,20 @@ void actor_update_look_target(datum_index actor_index)
         }
 
         // the vocalization source
-        if (*(int16_t *)(a + 0x544) >= 0 && *(int16_t *)(a + 0x548) > 0 &&
+        if (((actor *)a)->vocalization_line >= 0 && ((actor *)a)->vocalization_state > 0 &&
             actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x54c), (real_vector3d *)&voc_point,
                 actor_index)) {
-            priority = (int16_t)*(uint16_t *)(a + 0x546);
+            priority = (int16_t)*(uint16_t *)&((actor *)a)->vocalization_variant;
         }
         if (a[0x504] != 0 &&
-            *(int16_t *)((uint8_t *)actor_mode_definitions + *(int16_t *)(a + 0x6c) * 0x38 + 4) == 2 && priority > 5) {
+            *(int16_t *)((uint8_t *)actor_mode_definitions + ((actor *)a)->mode * 0x38 + 4) == 2 && priority > 5) {
             priority = 5;
         }
-        if (*(int16_t *)(a + 0x548) > 0) {
-            *(int16_t *)(a + 0x548) = (int16_t)(*(int16_t *)(a + 0x548) - 1);
-            if (*(int16_t *)(a + 0x548) == 0) {
-                *(int16_t *)(a + 0x544) = 0;
-                *(int16_t *)(a + 0x546) = 0;
+        if (((actor *)a)->vocalization_state > 0) {
+            ((actor *)a)->vocalization_state = (int16_t)(((actor *)a)->vocalization_state - 1);
+            if (((actor *)a)->vocalization_state == 0) {
+                ((actor *)a)->vocalization_line = 0;
+                ((actor *)a)->vocalization_variant = 0;
             }
         }
         a[0x58c] = 0;
@@ -399,8 +399,8 @@ void actor_update_look_target(datum_index actor_index)
         a[0x55f] = 0;
     body_turn:
         // 0x415fb6: turning the body toward the aim
-        if (a[0x504] == 0 && a[0x505] == 0 && !unit_is_in_busy_animation_state(*(uint32_t *)(a + 0x18)) &&
-            *(datum_index *)(a + 0x158) == k_datum_index_none) {
+        if (a[0x504] == 0 && a[0x505] == 0 && !unit_is_in_busy_animation_state(*(uint32_t *)&((actor *)a)->unit_index) &&
+            ((actor *)a)->active_unit_index == k_datum_index_none) {
             if (ult_cone((real_point3d *)cache_b, cache_a, cos_aim) &&
                 !ult_cone((real_point3d *)cache_b, a + 0x174, cos_aim)) {
                 a[0x591] = 1;
@@ -417,8 +417,8 @@ void actor_update_look_target(datum_index actor_index)
     }
 
     // 0x41609a: keep the facing horizontal unless flying
-    if (a[0x99] == 0 && !(fabs((double)*(float *)(a + 0x5ac)) < 9.999999747378752e-05)) {
-        *(float *)(a + 0x5ac) = 0.0f;
+    if (a[0x99] == 0 && !(fabs((double)((actor *)a)->position_cache_a.z) < 9.999999747378752e-05)) {
+        ((actor *)a)->position_cache_a.z = 0.0f;
         if (vector2d_normalize_with_length((real_vector2d *)cache_a) == 0.0f) {
             ULT_V3(cache_a) = ULT_V3(a + 0x174);
         }
@@ -426,8 +426,8 @@ void actor_update_look_target(datum_index actor_index)
     if (a[0x58f] != 0) {
         if (a[0x590] == 0) {
             if (a[0x504] == 0 &&
-                *(float *)(a + 0x188) * *(float *)(a + 0x5b8) + *(float *)(a + 0x184) * *(float *)(a + 0x5b4) +
-                *(float *)(a + 0x180) * *(float *)(a + 0x5b0) > 0.9f) {
+                ((actor *)a)->facing_unknown_180.k * ((actor *)a)->position_cache_b.z + ((actor *)a)->facing_unknown_180.j * ((actor *)a)->position_cache_b.y +
+                ((actor *)a)->facing_unknown_180.i * ((actor *)a)->position_cache_b.x > 0.9f) {
                 ULT_V3(a + 0x598) = ULT_V3(cache_a);
                 a[0x590] = 1;
             }
@@ -436,17 +436,17 @@ void actor_update_look_target(datum_index actor_index)
             uint8_t keep = 0;
 
             if (a[0x99] != 0) {
-                keep = *(float *)(a + 0x5ac) * *(float *)(a + 0x5a0) + *(float *)(a + 0x5a8) * *(float *)(a + 0x59c) +
-                       *(float *)(a + 0x5a4) * *(float *)(a + 0x598) > limit &&
-                       *(float *)(a + 0x5a0) * *(float *)(a + 0x5b8) + *(float *)(a + 0x59c) * *(float *)(a + 0x5b4) +
-                       *(float *)(a + 0x5b0) * *(float *)(a + 0x598) > limit;
+                keep = ((actor *)a)->position_cache_a.z * *(float *)(a + 0x5a0) + ((actor *)a)->position_cache_a.y * *(float *)(a + 0x59c) +
+                       ((actor *)a)->position_cache_a.x * *(float *)(a + 0x598) > limit &&
+                       *(float *)(a + 0x5a0) * ((actor *)a)->position_cache_b.z + *(float *)(a + 0x59c) * ((actor *)a)->position_cache_b.y +
+                       ((actor *)a)->position_cache_b.x * *(float *)(a + 0x598) > limit;
             } else {
                 real_vector2d aim2, face2, hold2;
 
-                aim2.i = *(float *)(a + 0x5b0);
-                aim2.j = *(float *)(a + 0x5b4);
-                face2.i = *(float *)(a + 0x5a4);
-                face2.j = *(float *)(a + 0x5a8);
+                aim2.i = ((actor *)a)->position_cache_b.x;
+                aim2.j = ((actor *)a)->position_cache_b.y;
+                face2.i = ((actor *)a)->position_cache_a.x;
+                face2.j = ((actor *)a)->position_cache_a.y;
                 hold2.i = *(float *)(a + 0x598);
                 hold2.j = *(float *)(a + 0x59c);
                 if (vector2d_normalize_with_length(&face2) != 0.0f && vector2d_normalize_with_length(&aim2) != 0.0f &&
@@ -467,14 +467,14 @@ void actor_update_look_target(datum_index actor_index)
     ULT_V3(a + 0x708) = ULT_V3(cache_b);
     ULT_V3(a + 0x714) = ULT_V3(cache_c);
     if (a[0x591] != 0) {
-        *(uint32_t *)(a + 0x6d0) |= 0x20;
+        ((actor *)a)->flags |= 0x20;
     } else {
-        *(uint32_t *)(a + 0x6d0) &= ~0x20u;
+        ((actor *)a)->flags &= ~0x20u;
     }
 
     aim_speed_zero = 1;
     if (!flee_look && *(int16_t *)(a + 0x3fc) != 4) {
-        switch (*(int16_t *)(a + 0x544)) {
+        switch (((actor *)a)->vocalization_line) {
         case 3: case 6: case 10: case 11: case 12:
             break;
         default:

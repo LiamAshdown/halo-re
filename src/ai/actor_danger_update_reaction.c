@@ -102,7 +102,7 @@ void actor_danger_update_reaction(datum_index actor_index)
     }
     object_get_position(position, A_D(0x28c));
     actor_get_firing_positions(actor_index, block, position);
-    *(real_vector3d *)(actor + 0x2bc) = *(real_vector3d *)(object + 0x68);
+    *(real_vector3d *)(actor + 0x2bc) = *(real_vector3d *)&((struct object *)object)->velocity.i;
     {
         float dx = position->x - block_point->x;
         float dy = position->y - block_point->y;
@@ -146,7 +146,7 @@ void actor_danger_update_reaction(datum_index actor_index)
         int16_t cluster;
         int16_t status;
 
-        if (A_D(0x18) != 0xffffffff && *(uint32_t *)(object + 0x11c) == A_D(0x18)) {
+        if (A_D(0x18) != 0xffffffff && *(uint32_t *)&((struct object *)object)->parent_object == A_D(0x18)) {
             own = 1;
         }
         if (*(float *)(object + 0x240) > 0.0f && *(float *)(object + 0x244) > 0.0f) {
@@ -165,8 +165,8 @@ void actor_danger_update_reaction(datum_index actor_index)
         if (!(A_F(0x2d4) < *(float *)(tag + 0x19c))) {
             break;
         }
-        cluster = *(int16_t *)(object + 0x9c);
-        if (*(uint32_t *)(object + 0x11c) != 0xffffffff) {
+        cluster = ((struct object *)object)->location_cluster_index;
+        if (*(uint32_t *)&((struct object *)object)->parent_object != 0xffffffff) {
             uint8_t *root = (uint8_t *)((object_header *)object_data->data)[object_get_root_object_index(A_D(0x28c)) & 0xffff].data;
 
             cluster = *(int16_t *)(root + 0x9c);
@@ -182,9 +182,9 @@ void actor_danger_update_reaction(datum_index actor_index)
     }
     case 3: { // 0x41ef40
         uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
-        float vi = *(float *)(object + 0x68);
-        float vj = *(float *)(object + 0x6c);
-        float vk = *(float *)(object + 0x70);
+        float vi = ((struct object *)object)->velocity.i;
+        float vj = ((struct object *)object)->velocity.j;
+        float vk = ((struct object *)object)->velocity.k;
         uint8_t asleep;
         uint8_t *location;
         int16_t status;
@@ -207,7 +207,7 @@ void actor_danger_update_reaction(datum_index actor_index)
         }
         asleep = actor_danger_asleep(actor);
         location = object + 0x98;
-        if (*(uint32_t *)(object + 0x11c) != 0xffffffff) {
+        if (*(uint32_t *)&((struct object *)object)->parent_object != 0xffffffff) {
             location = (uint8_t *)((object_header *)object_data->data)[object_get_root_object_index(A_D(0x28c)) & 0xffff].data + 0x98;
         }
         status = (int16_t)actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28),

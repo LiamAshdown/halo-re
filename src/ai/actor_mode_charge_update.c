@@ -29,18 +29,18 @@ extern game_time_globals *game_time; // 0x006f1d6c
 void actor_mode_charge_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     uint32_t actor_flags = *(uint32_t *)actor_tag;
     int16_t kind = *(int16_t *)(act + 0xa0);
 
-    *(int16_t *)(act + 0x3ec) = 2;
+    ((actor *)act)->vocalization_unknown_3ec = 2;
     *(int16_t *)(act + 0x3fc) = 4;
     if ((kind == 2 || kind == 3) && act[0xa5] && !act[0x504] && !act[0x4a8]) {
-        *(int16_t *)(act + 0x3e8) = 4;
+        ((actor *)act)->vocalization_unknown_3e8 = 4;
     } else if (*(int16_t *)(act + 0x6e) >= 5 && kind != 1) {
-        *(int16_t *)(act + 0x3e8) = 7;
+        ((actor *)act)->vocalization_unknown_3e8 = 7;
     } else {
-        *(int16_t *)(act + 0x3e8) = 5;
+        ((actor *)act)->vocalization_unknown_3e8 = 5;
     }
     if (*(int16_t *)(act + 0xa0) == 1) {
         act[0x426] = (uint8_t)(act[0xc1] == 0);

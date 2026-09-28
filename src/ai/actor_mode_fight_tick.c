@@ -26,7 +26,7 @@ void actor_mode_fight_tick(uint32_t actor_index)
     }
     countdown = (int16_t)(countdown - 1);
     *(int16_t *)(actor + 0x9c) = countdown;
-    if (countdown == 0 && *(uint16_t *)(actor + 0x3b8) != 0xffff && actor[0x3ba] == 0) {
-        actor_push_recognition_entry(actor_index, *(int16_t *)(actor + 0x3b8), 0);
+    if (countdown == 0 && *(uint16_t *)&((struct actor *)actor)->firing_position_index != 0xffff && actor[0x3ba] == 0) {
+        actor_push_recognition_entry(actor_index, ((struct actor *)actor)->firing_position_index, 0);
     }
 }

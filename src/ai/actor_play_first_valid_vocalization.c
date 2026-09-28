@@ -38,7 +38,7 @@ uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehi
     for (i = 0; i < count; i++) {
         int16_t seat = seat_list[i];
 
-        if (seat == -1 || !unit_seat_index_is_valid(*(datum_index *)(act + 0x18), vehicle_index, seat)) {
+        if (seat == -1 || !unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
             continue;
         }
         if (actor_build_order_investigate_encounter_point(vehicle_index, actor_index, seat, order)) {

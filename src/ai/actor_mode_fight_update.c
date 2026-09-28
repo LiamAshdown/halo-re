@@ -19,8 +19,8 @@ void actor_mode_fight_update(uint32_t actor_index)
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
 
     actor[0x426] = actor[0x358];
-    *(int16_t *)(actor + 0x3e8) = 5;
-    *(int16_t *)(actor + 0x3ec) = 2;
+    ((struct actor *)actor)->vocalization_unknown_3e8 = 5;
+    ((struct actor *)actor)->vocalization_unknown_3ec = 2;
     *(int16_t *)(actor + 0x3fc) = 4;
     actor[0x427] = 0;
     actor[0x428] = 0;
@@ -28,6 +28,6 @@ void actor_mode_fight_update(uint32_t actor_index)
     actor[0x425] = 0;
     if (*(int16_t *)(actor + 0x15e) != 4 && *(int16_t *)(actor + 0x6e) >= 5) {
         actor[0x454] = 1;
-        *(int16_t *)(actor + 0x3e8) = 7;
+        ((struct actor *)actor)->vocalization_unknown_3e8 = 7;
     }
 }

@@ -55,8 +55,8 @@ extern void encounter_deactivate(datum_index encounter_index); // 0x437870, EAX
 
 static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
 {
-    if (*(datum_index *)(actor + 0x270) != k_datum_index_none && *(int16_t *)(actor + 0x268) >= 5) {
-        uint8_t *target = PROP(*(datum_index *)(actor + 0x270));
+    if (((struct actor *)actor)->target_unit_index != k_datum_index_none && ((struct actor *)actor)->target_combat_status >= 5) {
+        uint8_t *target = PROP(((struct actor *)actor)->target_unit_index);
         int32_t fired = *(int32_t *)(actor + 0x88);
 
         if (*(int16_t *)(target + 0x24) >= 4 && *(int16_t *)(target + 0x24) <= 5) {
@@ -65,7 +65,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
         return target[0x12e] != 0 && fired != -1 && fired < 0x5a && *(float *)(target + 0x11c) < 10.0f;
     }
     {
-        int16_t team = *(int16_t *)(actor + 0x3e);
+        int16_t team = ((struct actor *)actor)->team;
         uint8_t enemies;
         uint8_t carry = 0;
         datum_index prop_index;
@@ -84,7 +84,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
         if (enemies) {
             return 0;
         }
-        for (prop_index = *(datum_index *)(actor + 0x50); prop_index != k_datum_index_none;) {
+        for (prop_index = ((struct actor *)actor)->first_prop; prop_index != k_datum_index_none;) {
             uint8_t *p = PROP(prop_index);
 
             prop_index = *(datum_index *)(p + 8);
@@ -105,10 +105,10 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
     datum_index hidden_units[16];
     int16_t i;
 
-    if (*(datum_index *)(actor + 0x28) == k_datum_index_none) {
+    if (((struct actor *)actor)->swarm_index == k_datum_index_none) {
         return 0;
     }
-    swarm = (uint8_t *)swarm_data->data + (*(datum_index *)(actor + 0x28) & 0xffff) * 0x98;
+    swarm = (uint8_t *)swarm_data->data + (((struct actor *)actor)->swarm_index & 0xffff) * 0x98;
     count = *(int16_t *)(swarm + 2);
     for (i = 0; i < count; i++) {
         datum_index unit_index = *(datum_index *)(swarm + 0x18 + i * 4);
@@ -136,8 +136,8 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
         actor = ACTOR(actor_index);
         actor_remove_from_unit_cluster(actor_index, unit_index);
         actor = ACTOR(actor_index);
-        if (actor_new_and_attach_to_unit(1, unit_index, *(datum_index *)(actor + 0x5c), *(uint32_t *)(actor + 0x34),
-                *(int16_t *)(actor + 0x3a), 0, actor_index, 0, 2, 0, 0xffff, 0) == k_datum_index_none) {
+        if (actor_new_and_attach_to_unit(1, unit_index, ((struct actor *)actor)->actor_variant_tag, *(uint32_t *)&((struct actor *)actor)->encounter_index,
+                ((struct actor *)actor)->squad_index, 0, actor_index, 0, 2, 0, 0xffff, 0) == k_datum_index_none) {
             int32_t kind = *(int32_t *)(OBJ(unit_index) + 4);
 
             if (kind == 0) {
@@ -171,7 +171,7 @@ void ai_reset_fire_group_assignments(void)
 
             actor_index = next;
             actor = ACTOR(actor_index);
-            next = *(datum_index *)(actor + 0x2c);
+            next = ((struct actor *)actor)->next_in_encounter;
             carry = ai_bsp_actor_should_carry(actor);
             if (!carry) {
                 continue;
@@ -181,15 +181,15 @@ void ai_reset_fire_group_assignments(void)
             }
             actor = ACTOR(actor_index);
             *(int32_t *)(actor + 0x30) = e;
-            *(int16_t *)(actor + 0x38) = *(int16_t *)(actor + 0x3a);
-            *(int16_t *)(actor + 0x3b8) = -1;
-            if (*(int16_t *)(actor + 0x46c) == 3 || *(int16_t *)(actor + 0x46c) == 4) {
-                *(int16_t *)(actor + 0x46c) = 0;
-                *(datum_index *)(actor + 0x480) = k_datum_index_none;
+            *(int16_t *)(actor + 0x38) = ((struct actor *)actor)->squad_index;
+            ((struct actor *)actor)->firing_position_index = -1;
+            if (((struct actor *)actor)->active_movement.type == 3 || ((struct actor *)actor)->active_movement.type == 4) {
+                ((struct actor *)actor)->active_movement.type = 0;
+                *(datum_index *)&((struct actor *)actor)->active_movement.extra = k_datum_index_none;
             }
             {
                 void (*carry_proc)(datum_index) =
-                    *(void (**)(datum_index))((uint8_t *)&actor_mode_definitions[*(int16_t *)(actor + 0x6c)] + 0x24);
+                    *(void (**)(datum_index))((uint8_t *)&actor_mode_definitions[((struct actor *)actor)->mode] + 0x24);
 
                 if (carry_proc != 0) {
                     carry_proc(actor_index);
@@ -200,7 +200,7 @@ void ai_reset_fire_group_assignments(void)
                 break;
             }
             actor = ACTOR(actor_index);
-            *(datum_index *)(actor + 0x2c) = *(datum_index *)(ai_globals_ptr + 8);
+            ((struct actor *)actor)->next_in_encounter = *(datum_index *)(ai_globals_ptr + 8);
             *(datum_index *)(ai_globals_ptr + 8) = actor_index;
             actor[9] = 1;
             *(int16_t *)(actor + 0x10) = actor[8] != 0 ? 0x5a : 0;

@@ -35,7 +35,7 @@ extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 
 uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
 {
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    int16_t mode = *(int16_t *)(act + 0x6c);
+    int16_t mode = ((actor *)act)->mode;
     uint8_t order[k_actor_mode_data_size];
     int16_t code = (int16_t)order_code;
 
@@ -57,8 +57,8 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
 
     switch (code) {
     case 1:
-        if (*(int16_t *)(act + 0x6a) != 1) {
-            *(int16_t *)(act + 0x6a) = 1;
+        if (((actor *)act)->awareness_level != 1) {
+            ((actor *)act)->awareness_level = 1;
             actor_set_mode(actor_index, 1, 0);
             return 1;
         }
@@ -91,7 +91,7 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
         if (actor_get_current_mode_combat_grade(actor_index) == 3) {
             break;
         }
-        *(int16_t *)(act + 0x6a) = 3;
+        ((actor *)act)->awareness_level = 3;
         *(int16_t *)(act + 0x72) = 2;
         *(int16_t *)(act + 0x6e) = 2;
         if (actor_update_melee_combat_action(actor_index)) {
@@ -124,7 +124,7 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
                 order[0xe] = 0;
             }
         }
-        if (*(int16_t *)(act + 0x6c) == 6) {
+        if (((actor *)act)->mode == 6) {
             break;
         }
         if (actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
@@ -148,7 +148,7 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
     }
 
     // 0x409f8a: an idle actor always gets something to do
-    if (*(int16_t *)(act + 0x6c) == 0 &&
+    if (((actor *)act)->mode == 0 &&
         actor_build_order_default(actor_index, 0, (actor_order *)order, -1)) {
         actor_set_mode(actor_index, 2, order);
         return 1;

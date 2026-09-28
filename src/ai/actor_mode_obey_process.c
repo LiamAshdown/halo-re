@@ -39,7 +39,7 @@ uint8_t actor_mode_obey_process(uint32_t actor_index)
         int mark = 1;
 
         if ((list[0x20] & 0x10) && actor[0x15c] != 0) {
-            uint8_t *variant = (uint8_t *)tag_instances[*(datum_index *)(actor + 0x58) & 0xffff].data;
+            uint8_t *variant = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
 
             if ((*(uint32_t *)variant & 0x200000) == 0) {
                 mark = 0;
@@ -50,5 +50,5 @@ uint8_t actor_mode_obey_process(uint32_t actor_index)
             mode_data[5] = 1;
         }
     }
-    return (uint8_t)(*(int16_t *)(actor + 0x6c) == 0xb && mode_data[5] != 0);
+    return (uint8_t)(((struct actor *)actor)->mode == 0xb && mode_data[5] != 0);
 }

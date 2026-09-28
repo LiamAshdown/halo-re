@@ -59,7 +59,7 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
     uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *variant = TAG_DATA(*(datum_index *)(act + 0x5c));
+    uint8_t *variant = TAG_DATA(((actor *)act)->actor_variant_tag);
     real_point3d entry;
     real_point3d seat;
     real_point3d hint;
@@ -78,10 +78,10 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
     if (unit_is_seat_occupied((int32_t)vehicle_index, seat_index)) {
         return 0;
     }
-    if ((TAG_DATA(*(datum_index *)(act + 0x58))[0x4] & 8) && !unit_seat_flag_bit10(vehicle_index, seat_index)) {
+    if ((TAG_DATA(((actor *)act)->actor_definition_tag)[0x4] & 8) && !unit_seat_flag_bit10(vehicle_index, seat_index)) {
         return 0;
     }
-    if (!unit_find_weapon_marker_transform(*(datum_index *)(act + 0x18), vehicle_index, seat_index, &entry, &seat,
+    if (!unit_find_weapon_marker_transform(((actor *)act)->unit_index, vehicle_index, seat_index, &entry, &seat,
                                            &hint)) {
         return 0;
     }
@@ -90,17 +90,17 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
     direction.k = 0.0f;
     direction.j = seat.y - entry.y;
     if (vector2d_normalize_with_length((real_vector2d *)&direction) == 0.0f) {
-        direction = *(real_vector3d *)(act + 0x174);
+        direction = *(real_vector3d *)&((actor *)act)->facing.i;
     }
-    ax = *(float *)(act + 0x12c);
-    ay = *(float *)(act + 0x130);
+    ax = ((actor *)act)->body_position.x;
+    ay = ((actor *)act)->body_position.y;
     if (sqrt((seat.y - ay) * (seat.y - ay) + (seat.x - ax) * (seat.x - ax)) <
         sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax))) {
         distance = (float)sqrt((seat.y - ay) * (seat.y - ay) + (seat.x - ax) * (seat.x - ax));
     } else {
         distance = (float)sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax));
     }
-    for (prop_index = *(datum_index *)(act + 0x50); prop_index != k_datum_index_none;) {
+    for (prop_index = ((actor *)act)->first_prop; prop_index != k_datum_index_none;) {
         uint8_t *prop = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
         datum_index other_index = *(datum_index *)(prop + 0x1c);
 
@@ -122,7 +122,7 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
     to_seat.i = seat.x - ax;
     to_seat.j = seat.y - ay;
     vector2d_normalize_with_length(&to_seat);
-    dot = to_seat.j * *(float *)(act + 0x178) + to_seat.i * *(float *)(act + 0x174);
+    dot = to_seat.j * ((actor *)act)->facing.j + to_seat.i * ((actor *)act)->facing.i;
     close = (uint8_t)(distance < 0.7f);
     facing = (uint8_t)(dot > 0.6f);
     in_front = (uint8_t)(distance < 1.1f && dot > 0.0f);

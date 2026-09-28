@@ -183,8 +183,8 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
     // 0x42d3e5: the speaking unit
     if (unit_index != k_datum_index_none) {
         unit = OBJECT_DATA(unit_index);
-        unit_team = (unit_team & 0xffff0000u) | *(uint16_t *)(unit + 0xb8);
-        unit_actor_index = *(datum_index *)(unit + 0x1f4);
+        unit_team = (unit_team & 0xffff0000u) | *(uint16_t *)&((unit_object *)unit)->base.owner_team;
+        unit_actor_index = ((unit_object *)unit)->unit.actor_index;
         unit_class = broadcast_team_class((int16_t)unit_team);
         if (unit_actor_index != k_datum_index_none) {
             unit_actor = ACTOR_DATA(unit_actor_index);
@@ -201,7 +201,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
             if (unit_encounter_index != k_datum_index_none) {
                 unit_encounter = (uint8_t *)encounter_data->data + (unit_encounter_index & 0xffff) * 0x6c;
             }
-        } else if (*(datum_index *)(unit + 0x218) != k_datum_index_none) {
+        } else if (((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
             unit_class = 1;
         }
     }
@@ -515,7 +515,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
         } else {
             uint8_t *object = OBJECT_DATA(speaker_unit);
 
-            if ((object[0x106] & 4) || *(int16_t *)(object + 0xb4) == 1) {
+            if ((object[0x106] & 4) || ((struct object *)object)->type == 1) {
                 reject = 1;
             } else if (*(datum_index *)(object + 0x218) == k_datum_index_none &&
                        *(datum_index *)(object + 0x1f4) == k_datum_index_none) {
@@ -636,9 +636,9 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
             if (unit_actor_index != k_datum_index_none) {
                 uint8_t *a = ACTOR_DATA(unit_actor_index);
 
-                if (*(int16_t *)(a + 0x280) > 0) {
+                if (((actor *)a)->danger_type > 0) {
                     look_kind = 2;
-                    look_object = *(datum_index *)(a + 0x28c);
+                    look_object = ((actor *)a)->danger_object_index;
                     goto look_marker_default;
                 }
             }
@@ -806,8 +806,8 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
                 uint8_t *object = OBJECT_DATA(speaker_unit);
                 real_vector2d direction;
 
-                direction.i = *(float *)(object + 0x74);
-                direction.j = *(float *)(object + 0x78);
+                direction.i = ((struct object *)object)->forward.i;
+                direction.j = ((struct object *)object)->forward.j;
                 if (other_object != k_datum_index_none) {
                     object_marker marker;
                     real_point3d from;

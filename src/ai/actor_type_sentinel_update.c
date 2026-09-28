@@ -41,7 +41,7 @@ void actor_type_sentinel_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
 
-    if (*(int16_t *)(act + 0x6c) == 0 && *(int16_t *)(act + 0x6a) != 0) {
+    if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
         actor_process_order_request(actor_index, 0xffff);
     }
     actor_process_pending_command_list(actor_index);
@@ -51,7 +51,7 @@ void actor_type_sentinel_update(datum_index actor_index)
         actor_update_danger_avoidance(actor_index);
     }
 
-    switch (*(int16_t *)(act + 0x6c)) {
+    switch (((actor *)act)->mode) {
     case 3:
     case 10:
         if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
@@ -81,10 +81,10 @@ void actor_type_sentinel_update(datum_index actor_index)
         break;
     case 12:
         actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index),
-            (uint8_t)(act[0xa0] != 0 || *(datum_index *)(act + 0x1dc) == k_datum_index_none));
+            (uint8_t)(act[0xa0] != 0 || ((actor *)act)->conversation_index == k_datum_index_none));
         break;
     case 13:
-        if (*(int16_t *)(act + 0x280) == 0) {
+        if (((actor *)act)->danger_type == 0) {
             actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;

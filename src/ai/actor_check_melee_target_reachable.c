@@ -38,7 +38,7 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
 {
     uint8_t *record = (uint8_t *)order;
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(actor + 0x58) & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
     static actor_firing_position_query query;
     static path_find_context path_context;
     actor_firing_position_candidate candidate;
@@ -62,7 +62,7 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
     } else {
         query.goal_kind = 2;
         *((uint8_t *)&query + 0x8) = record[5];
-        query.search_radius = *(float *)(actor_tag + 0x320) > 0.0f ? *(float *)(actor_tag + 0x320) : 6.0f;
+        query.search_radius = ((Actor *)actor_tag)->max_seek_cover_distance > 0.0f ? ((Actor *)actor_tag)->max_seek_cover_distance : 6.0f;
     }
     query.group_mask = actor_get_firing_position_group_mask(actor_index, query.goal_kind, 0);
     found = (int16_t)actor_find_best_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context,
@@ -90,10 +90,10 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
         }
         actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
         memset(request, 0, sizeof(request));
-        request[0] = *(uint32_t *)(actor_tag + 0x8c);           // pathfinding radius
+        request[0] = *(uint32_t *)&((Actor *)actor_tag)->pathfinding_radius;           // pathfinding radius
         ((uint8_t *)request)[4] = 0;                              // ignores glass
         request[2] = ignore_object;
-        request[3] = *(uint32_t *)(actor + 0x18);                 // the actor's unit
+        request[3] = *(uint32_t *)&((struct actor *)actor)->unit_index;                 // the actor's unit
         ((uint8_t *)request)[0x10] = 1;                           // have start
         *(real_point3d *)&request[5] = *(real_point3d *)(target + 0xf0);
         request[8] = *(uint32_t *)(target + 0xec);

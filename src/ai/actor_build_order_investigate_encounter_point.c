@@ -39,7 +39,7 @@ uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicle_index, ui
     real_point3d hint;
 
     memset(order, 0, 0x4c);
-    if (*(datum_index *)(act + 0x158) != k_datum_index_none || act[0x6] != 0) {
+    if (((actor *)act)->active_unit_index != k_datum_index_none || act[0x6] != 0) {
         return 0;
     }
     vehicle = (uint8_t *)((object_header *)object_data->data)[vehicle_index & 0xffff].data;
@@ -49,7 +49,7 @@ uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicle_index, ui
     *(datum_index *)(order + 0x0) = vehicle_index;
     *(int16_t *)(order + 0x4) = seat_index;
     order[0x6] = 0;
-    if (!unit_seat_index_is_valid(*(datum_index *)(act + 0x18), vehicle_index, seat_index)) {
+    if (!unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat_index)) {
         return 0;
     }
     if (!actor_evaluate_search_node(actor_index, vehicle_index, seat_index, &entry, &direction, &hint, 0, 0, 0, 0)) {

@@ -19,6 +19,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data; // 0x008802c0
@@ -52,14 +53,14 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
             *(int16_t *)(mode_data + 0x8) = -1;
         } else if (*(int16_t *)(mode_data + 0x8) == -1) {
             mode_data[0x6] = 1;
-        } else if (*(int16_t *)(act + 0x3b8) == -1) {
+        } else if (((actor *)act)->firing_position_index == -1) {
             *(int16_t *)(mode_data + 0x8) = -1;
             mode_data[0x6] = 1;
         } else if (actor_is_target_within_engagement_range(actor_index)) {
             if (*(int16_t *)(mode_data + 0x0) != 0) {
                 mode_data[0x6] = 1;
             } else {
-                *(int16_t *)(mode_data + 0x8) = *(int16_t *)(act + 0x3b8);
+                *(int16_t *)(mode_data + 0x8) = ((actor *)act)->firing_position_index;
                 mode_data[0xa] = act[0x3ba];
                 mode_data[0xf] = 1;
                 mode_data[0x6] = 0;
@@ -118,10 +119,10 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
     }
 
     kind = *(int16_t *)(mode_data + 0xc);
-    if (kind >= 9 && kind <= 12 && *(datum_index *)(act + 0x18) != k_datum_index_none) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(act + 0x18) & 0xffff].data;
+    if (kind >= 9 && kind <= 12 && ((actor *)act)->unit_index != k_datum_index_none) {
+        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[((actor *)act)->unit_index & 0xffff].data;
 
-        if (*(int16_t *)(unit + 0x388) <= 0) {
+        if (((unit_object *)unit)->unit.current_speech.priority <= 0) {
             mode_data[0x10] = 0;
         }
     }
@@ -133,7 +134,7 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
         if (mode_data[0xe]) {
             return 1;
         }
-        unit_index = *(datum_index *)(act + 0x18);
+        unit_index = ((actor *)act)->unit_index;
         if (unit_index != k_datum_index_none) {
             announced = mode_data[0x10];
             now = game_time->game_time;

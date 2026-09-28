@@ -45,8 +45,8 @@ extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_dat
 char actor_evaluate_combat_state_transition(uint32_t actor_index)
 {
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;     // esi
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(a + 0x58));                     // [esp+0x1c]
-    uint8_t *variant = TAG_DATA(*(datum_index *)(a + 0x5c));                       // [esp+0x20]
+    uint8_t *actor_tag = TAG_DATA(((actor *)a)->actor_definition_tag);                     // [esp+0x1c]
+    uint8_t *variant = TAG_DATA(((actor *)a)->actor_variant_tag);                       // [esp+0x20]
     uint8_t *definition = (uint8_t *)actor_get_actor_definition(actor_index);        // [esp+0x2c]
     uint8_t changed = 0;                                                             // [esp+0x12]
     uint8_t fallback = 0;                                                            // [esp+0x13]
@@ -56,16 +56,16 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
     int16_t mode;
     uint8_t hold;
 
-    if (*(datum_index *)(a + 0x270) != k_datum_index_none) {
-        p = (uint8_t *)prop_data->data + (*(datum_index *)(a + 0x270) & 0xffff) * 0x138;
+    if (((actor *)a)->target_unit_index != k_datum_index_none) {
+        p = (uint8_t *)prop_data->data + (((actor *)a)->target_unit_index & 0xffff) * 0x138;
         distance = *(float *)(p + 0x11c);
 
         // 0x40c6bd: a searching actor that finds its target raises the alert
-        if (*(int16_t *)(a + 0x6c) == 0xa && *(int16_t *)(a + 0xa0) == 1) {
+        if (((actor *)a)->mode == 0xa && *(int16_t *)(a + 0xa0) == 1) {
             uint8_t engaged = p[0x74] || (p[0x12f] && (int8_t)p[0x121] <= 1);
 
-            if (!engaged && *(float *)(actor_tag + 0x328) > 0.0f &&
-                !(*(int16_t *)(a + 0xc2) < (int16_t)(int32_t)(*(float *)(actor_tag + 0x328) * 30.0f) /* __ftol 0x40c71b */)) {
+            if (!engaged && ((Actor *)actor_tag)->stalking_discovery_time > 0.0f &&
+                !(*(int16_t *)(a + 0xc2) < (int16_t)(int32_t)(((Actor *)actor_tag)->stalking_discovery_time * 30.0f) /* __ftol 0x40c71b */)) {
                 engaged = 1;
             }
             if (engaged) {
@@ -83,8 +83,8 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
         // 0x40c75c: enter combat when the target is inside the engage range
         if (!(actor_has_unshielded_threat_weapon(actor_index) &&
               (*(datum_index *)(p + 0x110) != k_datum_index_none || p[0x14])) &&
-            !(*(int16_t *)(a + 0x6c) == 0xa && (*(int16_t *)(a + 0xa0) == 2 || *(int16_t *)(a + 0xa0) == 3)) &&
-            !changed && !a[0x6] && *(datum_index *)(a + 0x158) == k_datum_index_none &&
+            !(((actor *)a)->mode == 0xa && (*(int16_t *)(a + 0xa0) == 2 || *(int16_t *)(a + 0xa0) == 3)) &&
+            !changed && !a[0x6] && ((actor *)a)->active_unit_index == k_datum_index_none &&
             *(int16_t *)(a + 0x5f2) != 2) {
             int32_t now = game_time->game_time;                                      // [esp+0x24]
             uint8_t wide = a[0x378];                                                 // bl
@@ -96,15 +96,15 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
             if (!actor_has_unshielded_threat_weapon(actor_index) && !(*(uint32_t *)actor_tag & 0x20000)) {
                 wide = 1;
             }
-            base_delay = a[0x378] ? 0.0f : *(float *)(actor_tag + 0x378);
+            base_delay = a[0x378] ? 0.0f : ((Actor *)actor_tag)->melee_attack_delay;
             delay = weapon_get_zoom_fov(0x14, difficulty) + weapon_get_zoom_fov(0x15, difficulty) * base_delay;
-            range = wide ? *(float *)(variant + 0x170) : *(float *)(variant + 0x160);
-            if (!(*(int32_t *)(a + 0x37c) != -1 && *(int32_t *)(a + 0x37c) + 0xa >= now) &&
+            range = wide ? ((ActorVariant *)variant)->berserk_melee_range : ((ActorVariant *)variant)->melee_range;
+            if (!(*(int32_t *)&((actor *)a)->search_wait_time != -1 && *(int32_t *)&((actor *)a)->search_wait_time + 0xa >= now) &&
                 distance <= range) {
                 uint8_t near_enough = 1;
 
                 if (a[0x1cb]) {
-                    float extra = *(float *)(actor_tag + 0x37c);
+                    float extra = ((Actor *)actor_tag)->melee_fudge_factor;
 
                     if (!(0.0f <= extra)) {
                         extra = 0.0f;
@@ -114,7 +114,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
                 if (near_enough &&
                     (*(int32_t *)(a + 0x380) == -1 || (float)now > delay * 30.0f + (float)*(int32_t *)(a + 0x380))) {
                     actor_has_unshielded_threat_weapon(actor_index);
-                    *(int32_t *)(a + 0x37c) = now;
+                    *(int32_t *)&((actor *)a)->search_wait_time = now;
                     if (actor_consider_combat_mode(actor_index, 2, &consideration)) {
                         actor_set_mode(actor_index, 0xa, &consideration);
                         changed = 1;
@@ -124,7 +124,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
         }
 
         // 0x40c946: a vehicle gunner beyond the definition's +0x160 range with an unengaged prop
-        if (*(int16_t *)(a + 0x6c) != 0xa && !a[0x1cb]) {
+        if (((actor *)a)->mode != 0xa && !a[0x1cb]) {
             int16_t seat_kind = *(int16_t *)(a + 0x15e);
 
             if (changed) {
@@ -134,7 +134,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
                 uint8_t ready = 1;
 
                 if (*(int32_t *)(a + 0x388) != -1) {
-                    uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(*(datum_index *)(a + 0x158)));
+                    uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(((actor *)a)->active_unit_index));
 
                     ready = (float)game_time->game_time >
                         *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)(a + 0x388);
@@ -157,7 +157,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
     if (!a[0x1cb] && !actor_has_unshielded_threat_weapon(actor_index) && (*(uint32_t *)actor_tag & 0x1000000)) {
         fallback = 1;
     }
-    mode = *(int16_t *)(a + 0x6c);                                                   // dx
+    mode = ((actor *)a)->mode;                                                   // dx
     if (mode == 0xa) {
         int16_t state = *(int16_t *)(a + 0xa0);
 
@@ -182,11 +182,11 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
                 goto consider_zero;
             }
             {
-                uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(*(datum_index *)(a + 0x158)));
+                uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(((actor *)a)->active_unit_index));
                 float vehicle_range = *(float *)(vehicle_tag + 0x394);
 
-                if (a[0x484] && *(int16_t *)(a + 0x46c) == 5 &&
-                    *(datum_index *)(a + 0x470) == *(datum_index *)(a + 0x270)) {
+                if (a[0x484] && ((actor *)a)->active_movement.type == 5 &&
+                    *(datum_index *)&((actor *)a)->active_movement.destination.x == ((actor *)a)->target_unit_index) {
                     goto guard;
                 }
                 if (distance < vehicle_range) {
@@ -195,8 +195,8 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
                 if (!(vehicle_range + vehicle_range > distance)) {
                     goto consider_zero;
                 }
-                if (*(float *)(a + 0x17c) * *(float *)(p + 0xe8) + *(float *)(a + 0x178) * *(float *)(p + 0xe4) +
-                        *(float *)(p + 0xe0) * *(float *)(a + 0x174) >= 0.5f) {
+                if (((actor *)a)->facing.k * *(float *)(p + 0xe8) + ((actor *)a)->facing.j * *(float *)(p + 0xe4) +
+                        *(float *)(p + 0xe0) * ((actor *)a)->facing.i >= 0.5f) {
                     goto consider_zero;
                 }
                 goto guard;
@@ -226,7 +226,7 @@ settle:                                                                         
         return changed;
     }
 guard:                                                                               // 0x40cc2d
-    if (*(int16_t *)(a + 0x6c) == 3) {
+    if (((actor *)a)->mode == 3) {
         return changed;
     }
     *(uint32_t *)&consideration = 0;

@@ -29,7 +29,7 @@ extern uint32_t random_seed_global;  // 0x00719cd0
 void actor_mode_uncover_enter(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     float lo = *(float *)(actor_tag + 0x33c);
     float hi = *(float *)(actor_tag + 0x340);
     float t;
@@ -48,10 +48,10 @@ void actor_mode_uncover_enter(datum_index actor_index)
     ticks = (int32_t)(((hi - lo) * t + lo) * 30.0f);
     *(int32_t *)(act + 0xc4) = ticks;
     *(int32_t *)(act + 0xc8) = ticks;
-    if (*(int16_t *)(act + 0xa4) == 0 && *(datum_index *)(act + 0x270) != k_datum_index_none &&
+    if (*(int16_t *)(act + 0xa4) == 0 && ((actor *)act)->target_unit_index != k_datum_index_none &&
         *(int16_t *)(act + 0x6e) < 3) {
-        uint8_t *target = (uint8_t *)prop_data->data + (*(datum_index *)(act + 0x270) & 0xffff) * 0x138;
+        uint8_t *target = (uint8_t *)prop_data->data + (((actor *)act)->target_unit_index & 0xffff) * 0x138;
 
-        ai_communication_broadcast(0x15, *(datum_index *)(act + 0x18), *(datum_index *)(target + 0x18), -1, -1, -1, 0);
+        ai_communication_broadcast(0x15, ((actor *)act)->unit_index, *(datum_index *)(target + 0x18), -1, -1, -1, 0);
     }
 }

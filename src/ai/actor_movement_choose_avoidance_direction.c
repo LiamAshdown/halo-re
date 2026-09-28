@@ -57,7 +57,7 @@ void actor_movement_choose_avoidance_direction(uint32_t actor_index, real_vector
     const real_vector3d *zero = global_origin3d_pointer;
     real_vector3d result = *zero;
     float out = 0.0f;
-    datum_index unit_index = *(datum_index *)(act + 0x158);
+    datum_index unit_index = ((actor *)act)->active_unit_index;
     uint8_t *obj;
     actor_movement_context context;
     float weights[8];
@@ -81,7 +81,7 @@ void actor_movement_choose_avoidance_direction(uint32_t actor_index, real_vector
     int16_t held;
 
     if (unit_index == k_datum_index_none) {
-        unit_index = *(datum_index *)(act + 0x18);
+        unit_index = ((actor *)act)->unit_index;
         if (unit_index == k_datum_index_none) {
             *out_direction = result;
             *out_scale = 0.0f;

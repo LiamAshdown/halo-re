@@ -39,28 +39,28 @@ extern uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocit
 uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t param_3)
 {
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *variant = (uint8_t *)tag_instances[*(datum_index *)(a + 0x5c) & 0xffff].data;
-    real_point3d origin = *(real_point3d *)(a + 0x120);    // [esp+0x14]
+    uint8_t *variant = (uint8_t *)tag_instances[((actor *)a)->actor_variant_tag & 0xffff].data;
+    real_point3d origin = *(real_point3d *)&((actor *)a)->aim_origin.x;    // [esp+0x14]
     real_vector3d direction;                               // [esp+0x20]
     real_vector3d velocity;                                // [esp+0x2c]
     float speed;                                           // [esp+0x10]
     float flight_time;                                     // [esp+0xc]
     float gravity;                                         // [esp+0x3c], the argument slot reused
 
-    if (!actor_get_grenade_launch_velocity(*(int16_t *)(variant + 0x180), &direction, &origin,
-                                           *(float *)(variant + 0x190), point, 0, &speed, &flight_time,
+    if (!actor_get_grenade_launch_velocity(*(int16_t *)&((ActorVariant *)variant)->grenade_type, &direction, &origin,
+                                           ((ActorVariant *)variant)->grenade_velocity, point, 0, &speed, &flight_time,
                                            &velocity, &gravity)) {
         return 0;
     }
     if (!actor_grenade_parabolic_path_clear(&velocity, actor_index, &origin, flight_time, gravity, param_3,
-                                            (uint8_t)(*(datum_index *)(a + 0x158) != k_datum_index_none))) {
+                                            (uint8_t)(((actor *)a)->active_unit_index != k_datum_index_none))) {
         return 0;
     }
-    *(real_point3d *)(a + 0x6a8) = *point;
+    *(real_point3d *)&((actor *)a)->grenade_impact_point.x = *point;
     *(uint32_t *)(a + 0x6b4) = object_handle;
-    *(real_vector3d *)(a + 0x6bc) = direction;
+    *(real_vector3d *)&((actor *)a)->grenade_unknown_6bc = direction;
     *(uint32_t *)(a + 0x6b8) = param_3;
-    *(float *)(a + 0x6c8) = speed;
+    ((actor *)a)->grenade_unknown_6c8 = speed;
     a[0x6a1] = 0;
     return 1;
 }

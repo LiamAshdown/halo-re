@@ -41,15 +41,15 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
 {
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *variant = TAG_DATA(*(datum_index *)(act + 0x5c));
-    uint8_t *actor_tag = TAG_DATA(*(datum_index *)(act + 0x58));
+    uint8_t *variant = TAG_DATA(((actor *)act)->actor_variant_tag);
+    uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     int32_t now = game_time->game_time;
     char result = 0;
     float threshold;
     uint8_t may_evade;
     uint8_t may_target;
 
-    if (*(int16_t *)(act + 0x3a8) > 0 && *(datum_index *)(act + 0x158) == k_datum_index_none) {
+    if (*(int16_t *)(act + 0x3a8) > 0 && ((actor *)act)->active_unit_index == k_datum_index_none) {
         uint8_t *threat = (uint8_t *)prop_data->data + (*(datum_index *)(act + 0x3ac) & 0xffff) * 0x138;
 
         if (threat[0xa4] != 0 && (*(int16_t *)(threat + 0x38) == 0 || *(int16_t *)(threat + 0x38) == 1) &&
@@ -69,11 +69,11 @@ char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
     }
 
     if (act[0x374] != 0 && act[0x378] == 0) {
-        threshold = *(float *)(actor_tag + 0x314);
+        threshold = ((Actor *)actor_tag)->defending_evasion_threshold;
     } else {
-        threshold = *(float *)(actor_tag + 0x310);
+        threshold = ((Actor *)actor_tag)->attacking_evasion_threshold;
     }
-    if (act[0x1ca] != 0 && *(float *)(actor_tag + 0x318) > 0.0f && threshold > 1.1f) {
+    if (act[0x1ca] != 0 && ((Actor *)actor_tag)->evasion_seek_cover_chance > 0.0f && threshold > 1.1f) {
         threshold = 1.1f;
     }
     if (!(threshold <= *(float *)(act + 0x354))) {
@@ -82,14 +82,14 @@ char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
     if (act[0x504] == 0) {
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     }
-    if (*(int16_t *)(variant + 0x184) == 2 && actor_consider_grenade_throw(actor_index)) {
+    if (*(int16_t *)&((ActorVariant *)variant)->grenade_stimulus == 2 && actor_consider_grenade_throw(actor_index)) {
         *(float *)(act + 0x354) = 0.0f;
         result = 1;
     }
     may_evade = 1;
     may_target = 1;
     if (act[0x358] != 0 && (*(uint32_t *)actor_tag & 0x20) != 0) {
-        datum_index target = *(datum_index *)(act + 0x270);
+        datum_index target = ((actor *)act)->target_unit_index;
 
         may_evade = 0;
         if (target != k_datum_index_none) {
@@ -100,7 +100,7 @@ char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
             }
         }
     }
-    if (*(int16_t *)(act + 0x6c) == 10 && (*(int16_t *)(act + 0xa0) == 2 || *(int16_t *)(act + 0xa0) == 3)) {
+    if (((actor *)act)->mode == 10 && (*(int16_t *)(act + 0xa0) == 2 || *(int16_t *)(act + 0xa0) == 3)) {
         may_target = 0;
     }
     if (result) {
@@ -108,9 +108,9 @@ char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
     }
     if (may_evade && (*(int32_t *)(act + 0x36c) == -1 || *(int32_t *)(act + 0x36c) + 0x1e <= now)) {
         *(int32_t *)(act + 0x36c) = now;
-        if (actor_should_throw_grenade(actor_index, 0) && random_real() <= *(float *)(actor_tag + 0x318) &&
+        if (actor_should_throw_grenade(actor_index, 0) && random_real() <= ((Actor *)actor_tag)->evasion_seek_cover_chance &&
             actor_handle_death(actor_index, 0, 1)) {
-            ai_communication_broadcast(0x18, *(datum_index *)(act + 0x18), actor_get_target_prop_object_index(actor_index),
+            ai_communication_broadcast(0x18, ((actor *)act)->unit_index, actor_get_target_prop_object_index(actor_index),
                                        -1, -1, -1, 0);
             *(float *)(act + 0x354) = 0.0f;
             return 1;
@@ -118,7 +118,7 @@ char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
     }
     if (may_target && *(int16_t *)(act + 0x368) == 0 && actor_evaluate_grenade_target_position(actor_index)) {
         *(float *)(act + 0x354) = 0.0f;
-        *(int16_t *)(act + 0x368) = (int16_t)(int32_t)(*(float *)(actor_tag + 0x31c) * 30.0f);
+        *(int16_t *)(act + 0x368) = (int16_t)(int32_t)(((Actor *)actor_tag)->evasion_delay_time * 30.0f);
         act[0x3bb] = 1;
         result = 1;
     }

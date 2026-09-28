@@ -63,9 +63,9 @@ datum_index actor_get_squad_recent_attacker_target(datum_index actor_index, char
         if (unit == 0) {
             continue;
         }
-        source = *(datum_index *)(unit + 0x328);
+        source = ((unit_object *)unit)->unit.gunner_unit_index;
         if (source == k_datum_index_none) {
-            source = *(datum_index *)(unit + 0x324);
+            source = ((unit_object *)unit)->unit.driver_unit_index;
             if (source == k_datum_index_none) {
                 source = responsible;
             }

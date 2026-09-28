@@ -92,7 +92,7 @@ uint8_t ai_conversation_current_line_is_ready(datum_index instance_handle)
                         continue;
                     }
                     a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-                    if (*(int16_t *)(a + 0x6c) == 0xc && *(datum_index *)(a + 0xa8) != k_datum_index_none &&
+                    if (((actor *)a)->mode == 0xc && *(datum_index *)(a + 0xa8) != k_datum_index_none &&
                         !a[0xa1] && !a[0xa0]) {
                         blocked = 1;
                     }
@@ -147,7 +147,7 @@ uint8_t ai_conversation_current_line_is_ready(datum_index instance_handle)
         } else {
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(inst + 0x54) & 0xffff].data;
 
-            done = *(int16_t *)(unit + 0x388) != 6;
+            done = ((unit_object *)unit)->unit.current_speech.priority != 6;
         }
         inst[0x62] = done;
         if (!done) {

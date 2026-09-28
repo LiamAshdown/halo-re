@@ -55,7 +55,7 @@ uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_in
     float payload[2];
     uint8_t queued;
 
-    if (*(datum_index *)(act + 0x158) != k_datum_index_none) {
+    if (((actor *)act)->active_unit_index != k_datum_index_none) {
         return 0;
     }
     if (!actor_probe_step_direction(actor_index, step_distance, (real_vector2d *)path_delta, &direction_kind, distance,
@@ -69,8 +69,8 @@ uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_in
     case 3: a = path_delta->i; b = path_delta->j; break;
     default: b = probe_extra[1]; break;
     }
-    fx = *(float *)(act + 0x174);
-    fy = *(float *)(act + 0x178);
+    fx = ((actor *)act)->facing.i;
+    fy = ((actor *)act)->facing.j;
     scores[2] = b * fy + a * fx;  // forward
     scores[0] = fx * b - fy * a;  // side
     scores[3] = -scores[2];
@@ -78,7 +78,7 @@ uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_in
     for (i = 0; actor_dodge_table[i].action != -1; i++) {
         float value = scores[actor_dodge_table[i].direction] + actor_dodge_table[i].bias;
 
-        if (value > best && unit_scripted_action_animation_exists(*(datum_index *)(act + 0x18), actor_dodge_table[i].action)) {
+        if (value > best && unit_scripted_action_animation_exists(((actor *)act)->unit_index, actor_dodge_table[i].action)) {
             best = value;
             best_direction = actor_dodge_table[i].direction;
             best_action = actor_dodge_table[i].action;
@@ -96,7 +96,7 @@ uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_in
     }
     queued = actor_queue_secondary_action(actor_index, best_action, (uint32_t *)payload);
     if (queued) {
-        ai_communication_broadcast(0x2c, *(datum_index *)(act + 0x18), -1, -1, -1, -1, 0);
+        ai_communication_broadcast(0x2c, ((actor *)act)->unit_index, -1, -1, -1, -1, 0);
     }
     return queued;
 }
