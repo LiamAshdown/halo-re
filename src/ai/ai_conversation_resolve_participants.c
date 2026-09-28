@@ -40,6 +40,7 @@
 #include "ai.h"
 #include <stdint.h>
 #include "units.h"
+#include "game.h"
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern data_array *actor_data;           // 0x00880360
@@ -225,7 +226,7 @@ clear_wait:
     best_player_distance = 3.4028235e+38f;
     player = data_iterator_next(&iterator);
     while (player != 0) {
-        player_unit = *(datum_index *)((uint8_t *)player + 0x34);
+        player_unit = ((struct player *)player)->unit;
         if (player_unit != (datum_index)k_datum_index_none) {
             nearest = 3.4028235e+38f;
             for (j = 0; j < (int32_t)definition->participants.count; j++) {
@@ -268,11 +269,11 @@ check_looking:
         if (found_looking != 0) {
             goto apply;
         }
-        if (*(datum_index *)((uint8_t *)player + 0x34) != (datum_index)k_datum_index_none) {
+        if (((struct player *)player)->unit != (datum_index)k_datum_index_none) {
             for (j = 0; j < (int32_t)definition->participants.count; j++) {
                 // 0x4313c0: ECX = the player's unit, EDI = the participant actor's +0x120 point
                 if (instance->participant_actor[j] != (datum_index)k_datum_index_none &&
-                    unit_point_within_look_cone(0.5235988f, *(datum_index *)((uint8_t *)player + 0x34),
+                    unit_point_within_look_cone(0.5235988f, ((struct player *)player)->unit,
                         (real_point3d *)((uint8_t *)actor_data->data +
                             (instance->participant_actor[j] & 0xffff) * k_actor_size + 0x120)) != 0) {
                     found_looking = 1;

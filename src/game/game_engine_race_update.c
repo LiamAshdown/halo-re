@@ -14,6 +14,8 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -47,7 +49,7 @@ void game_engine_race_update(datum_index player_index)
         return;
     }
     unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 12 + 8);
-    parent_index = *(datum_index *)(unit + 0x11c);
+    parent_index = ((unit_object *)unit)->base.parent_object;
     if (parent_index != 0xffffffff) {
         uint8_t *parent = *(uint8_t **)((uint8_t *)object_data->data + (parent_index & 0xffff) * 12 + 8);
 

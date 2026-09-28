@@ -15,6 +15,8 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -51,7 +53,7 @@ void game_engine_ctf_update(datum_index player_index)
         return;
     }
     unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 12 + 8);
-    weapon_slot = *(int16_t *)(unit + 0x2f2);
+    weapon_slot = ((unit_object *)unit)->unit.current_weapon_index;
     if (weapon_slot == -1) {
         return;
     }

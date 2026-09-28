@@ -73,8 +73,8 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
 
         if (unit->controlling_player != (datum_index)k_datum_index_none) {
             uint8_t *player = (uint8_t *)player_data->data + (unit->controlling_player & 0xffff) * 0x200;
-            int32_t unknown_40 = *(int32_t *)(player + 0x40);      // UNSURE: no established name
-            int32_t unknown_44 = *(int32_t *)(player + 0x44);      // UNSURE: no established name
+            int32_t unknown_40 = *(int32_t *)&((struct player *)player)->observer_target;      // UNSURE: no established name
+            int32_t unknown_44 = ((struct player *)player)->observer_state;      // UNSURE: no established name
 
             if (unknown_40 != -1 && (int32_t)game_time->game_time <= unknown_44 + 0x5a) { // 0x422f6e: jl exits
                 object *player_unit = ((object_header *)object_data->data)[unknown_40 & 0xffff].data;

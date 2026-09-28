@@ -11,6 +11,8 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
+#include "units.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
@@ -30,10 +32,10 @@ void hs_evaluate_ai_command_list_advance_by_unit(int16_t function_index, uint32_
             uint8_t *unit = (uint8_t *)object_try_and_get((datum_index)arguments[0], 3);
 
             if (unit != 0) {
-                if (*(int32_t *)(unit + 0x1f4) != -1) {
-                    actor_swarm_for_each_component_thunk(*(uint32_t *)(unit + 0x1f4));
-                } else if (*(int32_t *)(unit + 0x1f8) != -1) {
-                    actor_swarm_for_each_component_thunk(*(uint32_t *)(unit + 0x1f8));
+                if (*(int32_t *)&((unit_object *)unit)->unit.actor_index != -1) {
+                    actor_swarm_for_each_component_thunk(*(uint32_t *)&((unit_object *)unit)->unit.actor_index);
+                } else if (*(int32_t *)&((unit_object *)unit)->unit.swarm_actor_index != -1) {
+                    actor_swarm_for_each_component_thunk(*(uint32_t *)&((unit_object *)unit)->unit.swarm_actor_index);
                 }
             }
         }

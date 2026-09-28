@@ -11,6 +11,8 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
+#include "units.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
@@ -27,6 +29,6 @@ void hs_evaluate_vehicle_driver(int16_t function_index, uint32_t thread_index, c
     if (arguments != 0) {
         uint8_t *unit = (uint8_t *)object_try_and_get((datum_index)arguments[0], 3);
 
-        hs_thread_return(unit != 0 ? *(int32_t *)(unit + 0x324) : -1, thread_index);
+        hs_thread_return(unit != 0 ? *(int32_t *)&((unit_object *)unit)->unit.driver_unit_index : -1, thread_index);
     }
 }

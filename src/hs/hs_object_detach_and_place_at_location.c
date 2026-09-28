@@ -24,6 +24,7 @@
 #include "game.h"
 #include "hs.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -69,13 +70,13 @@ static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 static void hs_unit_leave_seat(uint32_t object_index)
 {
     uint8_t *unit = OBJ(object_index);
-    datum_index parent_index = *(datum_index *)(unit + 0x11c);
+    datum_index parent_index = ((unit_object *)unit)->base.parent_object;
 
-    if (parent_index != k_datum_index_none && *(int16_t *)(unit + 0x2f0) != -1) {
+    if (parent_index != k_datum_index_none && ((unit_object *)unit)->unit.vehicle_seat_index != -1) {
         uint8_t *parent = OBJ(parent_index);
         uint8_t *parent_tag = (uint8_t *)tag_instances[*(datum_index *)parent & 0xffff].data;
-        uint8_t *seat = *(uint8_t **)(parent_tag + 0x2e8) + *(int16_t *)(unit + 0x2f0) * 0x11c;
-        real_matrix4x3 *nodes = (real_matrix4x3 *)(unit + *(int16_t *)(unit + 0x1f2));
+        uint8_t *seat = *(uint8_t **)(parent_tag + 0x2e8) + ((unit_object *)unit)->unit.vehicle_seat_index * 0x11c;
+        real_matrix4x3 *nodes = (real_matrix4x3 *)(unit + ((unit_object *)unit)->base.nodes.offset);
         uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
         uint8_t *model = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x34) & 0xffff].data;
         uint8_t *root_node = *(uint8_t **)(model + 0xbc);
@@ -91,40 +92,40 @@ static void hs_unit_leave_seat(uint32_t object_index)
         delta.j = nodes->position.y - marker.node_transform.position.y;
         delta.k = nodes->position.z - marker.node_transform.position.z;
         if (*(datum_index *)(parent + 0x324) == object_index && (int8_t)parent[0x2a3] != 0x25 &&
-            *(datum_index *)(unit + 0x11c) != k_datum_index_none) {
-            unit_try_set_animation_state(*(datum_index *)(unit + 0x11c), 0x25);
+            ((unit_object *)unit)->base.parent_object != k_datum_index_none) {
+            unit_try_set_animation_state(((unit_object *)unit)->base.parent_object, 0x25);
         }
-        *(datum_index *)(unit + 0x32c) = parent_index;
-        *(int32_t *)(unit + 0x330) = game_time->game_time;
-        if (*(datum_index *)(unit + 0x324) == object_index) {
-            *(datum_index *)(unit + 0x324) = k_datum_index_none;
+        ((unit_object *)unit)->unit.last_parent_object_index = parent_index;
+        ((unit_object *)unit)->unit.last_seat_change_tick = game_time->game_time;
+        if (((unit_object *)unit)->unit.driver_unit_index == object_index) {
+            ((unit_object *)unit)->unit.driver_unit_index = k_datum_index_none;
         }
-        if (*(datum_index *)(unit + 0x328) == object_index) {
-            *(datum_index *)(unit + 0x328) = k_datum_index_none;
+        if (((unit_object *)unit)->unit.gunner_unit_index == object_index) {
+            ((unit_object *)unit)->unit.gunner_unit_index = k_datum_index_none;
         }
         object_snap_to_parent_marker_and_detach(object_index);
-        position.x = delta.i + *(float *)(unit + 0x5c);
-        position.y = delta.j + *(float *)(unit + 0x60);
-        position.z = delta.k + *(float *)(unit + 0x64) - root_offset.k;
+        position.x = delta.i + ((unit_object *)unit)->base.position.x;
+        position.y = delta.j + ((unit_object *)unit)->base.position.y;
+        position.z = delta.k + ((unit_object *)unit)->base.position.z - root_offset.k;
         object_set_position_and_orientation(object_index, 0, 0, &position);
 
         unit = OBJ(object_index);
-        matrix4x3_multiply_procedure((real_matrix4x3 *)(unit + *(int16_t *)(unit + 0x1f2)), root_matrix, &basis);
-        *(real_vector3d *)(unit + 0x74) = basis.forward;
-        *(real_vector3d *)(unit + 0x80) = basis.up;
+        matrix4x3_multiply_procedure((real_matrix4x3 *)(unit + ((unit_object *)unit)->base.nodes.offset), root_matrix, &basis);
+        *(real_vector3d *)&((unit_object *)unit)->base.forward.i = basis.forward;
+        *(real_vector3d *)&((unit_object *)unit)->base.up.i = basis.up;
 
         unit = OBJ(object_index);
         unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
         if (*(datum_index *)(unit_tag + 0x34) != k_datum_index_none) {
-            if ((*(uint32_t *)(unit + 0x10) & 1) != 0) {
+            if ((((unit_object *)unit)->base.flags & 1) != 0) {
                 object_for_each_light_attachment(object_index, 0, 1);
             }
             if (*(datum_index *)(unit_tag + 0x34) != k_datum_index_none) {
-                *(uint32_t *)(unit + 0x10) &= ~1u;
+                ((unit_object *)unit)->base.flags &= ~1u;
                 ((uint8_t *)&((object_header *)object_data->data)[object_index & 0xffff])[2] |= 2;
             }
         }
-        *(int16_t *)(unit + 0x2f0) = -1;
+        ((unit_object *)unit)->unit.vehicle_seat_index = -1;
         unit[0x2a7] = 2;
         if (*(datum_index *)(parent + 0x324) == object_index) {
             *(datum_index *)(parent + 0x324) = k_datum_index_none;
@@ -136,8 +137,8 @@ static void hs_unit_leave_seat(uint32_t object_index)
         unit_pick_and_ready_next_weapon(object_index);
         unit_update_animation_state_machine(object_index, k_unit_exit_seat_request);
         unit = OBJ(object_index);
-        *(real_vector3d *)(unit + *(int16_t *)(unit + 0x1ea) + 0x10) = root_offset;
-        if (*(int16_t *)(unit + 0xb4) == 0) {
+        *(real_vector3d *)(unit + ((unit_object *)unit)->base.node_function_values.offset + 0x10) = root_offset;
+        if (((unit_object *)unit)->base.type == 0) {
             unit_reset_orientation_and_find_position(object_index, parent_index); // EDI = the seat parent
         }
         object_recalculate_bounding_radius_recursive(object_index);
@@ -150,13 +151,13 @@ static void hs_unit_leave_seat(uint32_t object_index)
         }
         unit = OBJ(object_index);
         if (network_game_mode == 1) {
-            uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(unit + 0x218), player_data);
+            uint8_t *player = (uint8_t *)datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
 
-            if (player != 0 && *(int16_t *)(player + 2) == -1) {
-                *(uint32_t *)(player + 0x180) = 0;
-                *(uint32_t *)(player + 0x17c) = 0;
-                *(uint32_t *)(player + 0x1e0) = 0;
-                *(uint32_t *)(player + 0x1dc) = 0;
+            if (player != 0 && ((struct player *)player)->local_player_index == -1) {
+                *(uint32_t *)&((struct player *)player)->position_updates.read_index = 0;
+                *(uint32_t *)&((struct player *)player)->position_updates.write_index = 0;
+                *(uint32_t *)&((struct player *)player)->vehicle_updates.read_index = 0;
+                *(uint32_t *)&((struct player *)player)->vehicle_updates.write_index = 0;
             }
         }
     }
@@ -165,12 +166,12 @@ static void hs_unit_leave_seat(uint32_t object_index)
     {
         uint8_t *unit = OBJ(object_index);
 
-        if (*(int32_t *)(unit + 4) == 0) {
+        if (((unit_object *)unit)->base.network_role == 0) {
             unit_dispatch_scripted_event_9(1, (int32_t)object_index);
             unit = OBJ(object_index);
         }
         if (network_game_mode == 1) {
-            datum_index player_index = *(datum_index *)(unit + 0x218);
+            datum_index player_index = ((unit_object *)unit)->unit.controlling_player;
             int16_t index = (int16_t)player_index;
             int16_t salt = (int16_t)(player_index >> 16);
 
@@ -178,7 +179,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
                 uint8_t *player = (uint8_t *)player_data->data + index * player_data->size;
                 int16_t identifier = *(int16_t *)player;
 
-                if (identifier != 0 && (salt == 0 || identifier == salt) && *(int16_t *)(player + 2) != -1 &&
+                if (identifier != 0 && (salt == 0 || identifier == salt) && ((struct player *)player)->local_player_index != -1 &&
                     network_client != 0) {
                     player_update_history_free_all(*(void **)(network_client + 0xf48));
                 }
@@ -243,8 +244,8 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
             if (detach_from_parent) {
                 player_attach_unit_to_parent(player_index, 0xffffffff, flag + 0x24);
             }
-            if (reorient && *(int16_t *)(player + 2) != -1) {
-                game_engine_compute_look_angles_from_vector(&local_forward, *(int16_t *)(player + 2));
+            if (reorient && ((struct player *)player)->local_player_index != -1) {
+                game_engine_compute_look_angles_from_vector(&local_forward, ((struct player *)player)->local_player_index);
             }
         }
     }

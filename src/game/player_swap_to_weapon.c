@@ -47,7 +47,7 @@ uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon)
 
             for (i = 0; i < 4; i++) {
                 if (*(datum_index *)(unit + 0x2f8 + i * 4) == target_weapon) {
-                    *(int16_t *)(unit + 0x2f4) = (int16_t)i;
+                    ((unit_object *)unit)->unit.desired_weapon_index = (int16_t)i;
                     unit_ready_desired_weapon(unit_index, 1);
                     break;
                 }

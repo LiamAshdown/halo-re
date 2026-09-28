@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+#include "game.h"
 
 
 extern double fcos(double x); // FCOS
@@ -234,7 +235,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
                 players.index = k_datum_index_none;
                 players.signature = (uint32_t)(uintptr_t)player_data ^ 0x69746572;
                 for (player = data_iterator_next(&players); player != 0; player = data_iterator_next(&players)) {
-                    datum_index player_unit = *(datum_index *)(player + 0x34);
+                    datum_index player_unit = ((struct player *)player)->unit;
 
                     if (player_unit != k_datum_index_none) {
                         real_point3d eye;

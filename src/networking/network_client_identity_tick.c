@@ -80,7 +80,7 @@ int32_t network_client_identity_tick(network_client_globals *client)
             if (*(int32_t *)local_player_globals->local_players != -1) {
                 void *player = datum_get(*(datum_index *)local_player_globals->local_players); // UNSURE argument
                 if (player != 0) {
-                    local_player_id = *(int32_t *)((uint8_t *)player + 0x20);
+                    local_player_id = ((struct player *)player)->team;
                 }
             }
         } else {

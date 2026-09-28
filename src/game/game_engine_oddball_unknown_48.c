@@ -16,6 +16,8 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *player_data; // 0x0087a480
@@ -71,7 +73,7 @@ void game_engine_oddball_unknown_48(void)
         *(datum_index *)(waypoint + 0x18) = carrier;
         *(int16_t *)(waypoint + 0x1c) = hud_waypoint_arrow_find("target_blue");
         waypoint[0x0c] = 1;
-        *(real_point3d *)waypoint = *(real_point3d *)(unit + 0xa0);
+        *(real_point3d *)waypoint = *(real_point3d *)&((unit_object *)unit)->base.bounding_center.x;
         *(float *)(waypoint + 0x08) += 0.63f;
         *(int16_t *)(waypoint + 0x14) = -1;
         *(int32_t *)(waypoint + 0x10) = -1;

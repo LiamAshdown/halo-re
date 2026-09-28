@@ -69,7 +69,7 @@ uint8_t player_execute_weapon_drop_interaction(uint32_t player_index)
     default:
         return 0;
     }
-    if (*(int32_t *)(unit + 0x4) == 0) {
+    if (((unit_object *)unit)->base.network_role == 0) {
         game_engine_notify_player_interaction(player_index, *(datum_index *)(record + 0x24), 1,
             *(uint16_t *)(record + 0x28), *(uint16_t *)(record + 0x2a), (int32_t)held_weapon);
     }

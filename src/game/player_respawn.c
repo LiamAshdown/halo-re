@@ -107,7 +107,7 @@ void player_respawn(uint32_t player_index)
 
             if ((unit[0x106] & 4) == 0) {
                 datum_index held_weapon = k_datum_index_none;
-                int16_t weapon_index = *(int16_t *)(unit + 0x2f2);
+                int16_t weapon_index = ((unit_object *)unit)->unit.current_weapon_index;
 
                 if (weapon_index != -1) {
                     held_weapon = *(datum_index *)(unit + 0x2f8 + weapon_index * 4);
@@ -169,9 +169,9 @@ void player_respawn(uint32_t player_index)
             goto reset_player_state;
         }
         p = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
-        *(uint32_t *)(unit + 0xc0) = player_index;
-        *(int16_t *)(unit + 0xb8) = *(int16_t *)(p + 0x20);
-        *(uint32_t *)(unit + 0x218) = player_index;
+        ((unit_object *)unit)->base.owner_linkage = player_index;
+        ((unit_object *)unit)->base.owner_team = *(int16_t *)(p + 0x20);
+        *(uint32_t *)&((unit_object *)unit)->unit.controlling_player = player_index;
         *(datum_index *)(p + 0x34) = new_unit;
         unit_refresh_targeting_flag_and_weapons(new_unit, 1);
         if (*(int16_t *)(p + 2) != -1) {
@@ -191,7 +191,7 @@ void player_respawn(uint32_t player_index)
             int32_t encoded_bits;
 
             game_engine_apply_player_grenade_counts(player_index);
-            *(uint32_t *)(unit + 4) = 0;
+            *(uint32_t *)&((unit_object *)unit)->base.network_role = 0;
             object_type_override_call_0x68(new_unit);
             encoded_bits = unit_build_network_update(new_unit, (int32_t)&network_message_scratch, 0x7ff8);
             if (encoded_bits > 0) {

@@ -133,7 +133,7 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
         player_release_unit_and_reset(player_index, (int32_t)target_object);
         return 0;
     }
-    *(real_vector3d *)(unit + 0x68) = *global_origin3d_pointer;
+    *(real_vector3d *)&((unit_object *)unit)->base.velocity.i = *global_origin3d_pointer;
     if (target_object == k_datum_index_none) {
         return placed;
     }
@@ -156,9 +156,9 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
             }
         }
     }
-    *(real_vector3d *)(unit + 0x224) = facing;
-    *(real_vector3d *)(unit + 0x230) = facing;
-    *(real_vector3d *)(unit + 0x254) = facing;
+    *(real_vector3d *)&((unit_object *)unit)->unit.desired_facing_vector.i = facing;
+    *(real_vector3d *)&((unit_object *)unit)->unit.desired_aiming_vector.i = facing;
+    *(real_vector3d *)&((unit_object *)unit)->unit.desired_looking_vector.i = facing;
     if (((struct player *)player)->local_player_index != -1) {
         game_engine_compute_look_angles_from_vector(&facing, ((struct player *)player)->local_player_index);
     }

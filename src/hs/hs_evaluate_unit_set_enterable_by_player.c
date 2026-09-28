@@ -12,6 +12,7 @@
 #include "math.h"
 #include "hs.h"
 #include "objects.h"
+#include "units.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
@@ -31,9 +32,9 @@ void hs_evaluate_unit_set_enterable_by_player(int16_t function_index, uint32_t t
 
             // unit +0x204 bit 0x10000 blocks the player: set when the boolean is false
             if (*(uint8_t *)&arguments[1] == 0) {
-                *(uint32_t *)(unit + 0x204) |= 0x10000;
+                ((unit_object *)unit)->unit.flags |= 0x10000;
             } else {
-                *(uint32_t *)(unit + 0x204) &= 0xfffeffff;
+                ((unit_object *)unit)->unit.flags &= 0xfffeffff;
             }
         }
         hs_thread_return(0, thread_index);

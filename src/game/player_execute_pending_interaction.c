@@ -121,8 +121,8 @@ uint8_t player_execute_pending_interaction(uint32_t player_index)
         uint8_t *target = OBJECT_DATA(target_index);
         int8_t direction;
 
-        *(datum_index *)(unit + 0x32c) = target_index;
-        *(int32_t *)(unit + 0x330) = game_time->game_time;
+        ((unit_object *)unit)->unit.last_parent_object_index = target_index;
+        ((unit_object *)unit)->unit.last_seat_change_tick = game_time->game_time;
         if (fabs(*(float *)(target + 0x7c)) > 0.7071067690849304) { // 0x673258 (double)
             direction = (int8_t)((*(float *)(target + 0x7c) < 0.0f) ? 4 : 3);
         } else {
@@ -151,7 +151,7 @@ uint8_t player_execute_pending_interaction(uint32_t player_index)
     }
     handled = 1;
 notify:
-    if (*(int32_t *)(unit + 0x4) == 0) {
+    if (((unit_object *)unit)->base.network_role == 0) {
         game_engine_notify_player_interaction(player_index, *(datum_index *)(record + 0x24), 0,
             *(uint16_t *)(record + 0x28), *(uint16_t *)(record + 0x2a), -1);
     }

@@ -10,6 +10,11 @@
 #include "tags.h"
 #include <string.h>
 #include <wchar.h>
+#include "math.h"
+#include "memory.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
 extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
@@ -45,7 +50,7 @@ void network_session_host_dispatch_message(int32_t key_id, int32_t index, void *
         return;
     }
     if (key_id == 0x19) {
-        qr2_buffer_add_int(buffer, *(int32_t *)(player + 0x20));
+        qr2_buffer_add_int(buffer, ((struct player *)player)->team);
         return;
     }
     if (current_game_engine != 0) {

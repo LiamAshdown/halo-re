@@ -34,6 +34,7 @@
 #include "cache.h"
 #include "objects.h"
 #include <stdint.h>
+#include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
@@ -260,7 +261,7 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
             if (unit == 0) {
                 continue;
             }
-            player_index = *(datum_index *)(unit + 0x218);
+            player_index = ((unit_object *)unit)->unit.controlling_player;
             if (player_index != k_datum_index_none) {
                 switch (network_game_mode) {
                 case 0:

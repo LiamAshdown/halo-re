@@ -145,11 +145,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     if (network_game_mode == 1) {
         uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
 
-        if (player != 0 && *(int16_t *)(player + 2) == -1) {
-            *(int32_t *)(player + 0x180) = 0;
-            *(int32_t *)(player + 0x17c) = 0;
-            *(int32_t *)(player + 0x1e0) = 0;
-            *(int32_t *)(player + 0x1dc) = 0;
+        if (player != 0 && ((struct player *)player)->local_player_index == -1) {
+            ((struct player *)player)->position_updates.read_index = 0;
+            ((struct player *)player)->position_updates.write_index = 0;
+            ((struct player *)player)->vehicle_updates.read_index = 0;
+            ((struct player *)player)->vehicle_updates.write_index = 0;
         }
     }
 }
@@ -167,7 +167,7 @@ static void biped_free_local_player_history(uint8_t *self)
         return;
     }
     player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
-    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || *(int16_t *)(player + 2) == -1) {
+    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
     if (network_client != 0) {

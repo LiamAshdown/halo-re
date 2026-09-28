@@ -108,7 +108,7 @@ void player_check_vehicle_boarding_interaction(uint32_t player_index, uint32_t c
         return;
     }
     weapon_tag = TAG_DATA(*(datum_index *)weapon);
-    dual_flagged = (uint8_t)((*(uint32_t *)(unit + 0x208) & 0x1800) != 0);
+    dual_flagged = (uint8_t)((((unit_object *)unit)->unit.control_flags & 0x1800) != 0);
     {
         uint8_t *holder = OBJECT_DATA(unit_index);
         int16_t slot = *(int16_t *)(holder + 0x2f2);

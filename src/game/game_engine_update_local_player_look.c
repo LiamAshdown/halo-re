@@ -136,7 +136,7 @@ void game_engine_update_local_player_look(int16_t local_player_index, real yaw_d
         if (*(real *)(unit_camera + 0x48) != 0.0f || *(real *)(unit_camera + 0x44) != 0.0f) {
             pitch_min = *(real *)(unit_camera + 0x44);
             pitch_max = *(real *)(unit_camera + 0x48);
-            if (camera.seat_index != -1 && *(real *)(unit + 0x88) > 0.2f) {
+            if (camera.seat_index != -1 && ((unit_object *)unit)->base.up.k > 0.2f) {
                 real_vector3d heading;
                 real adjust;
 

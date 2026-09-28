@@ -76,7 +76,7 @@ void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index pl
             // 0x4ee415 mov ebx,[esp+0x14] / mov ecx,ebx -- the function's stack argument
 
             if (unit == 0 || unit->type != _object_type_biped || unit->network_role != 0 ||
-                *(int32_t *)((uint8_t *)unit + 0x218) == (int32_t)player_index) {
+                *(int32_t *)&((unit_object *)unit)->unit.controlling_player == (int32_t)player_index) {
                 return;
             }
 

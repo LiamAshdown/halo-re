@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
 extern data_array *player_data; // 0x0087a480
@@ -20,6 +23,6 @@ void hs_evaluate_magic_melee_attack(int16_t function_index, uint32_t thread_inde
 {
     uint8_t *player = (uint8_t *)player_data->data;
 
-    unit_try_ready_weapon(*(uint32_t *)(player + 0x34), 0, 0);
+    unit_try_ready_weapon(*(uint32_t *)&((struct player *)player)->unit, 0, 0);
     hs_thread_return(0, thread_index);
 }

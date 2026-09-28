@@ -12,6 +12,7 @@
 #include "math.h"
 #include "hs.h"
 #include "objects.h"
+#include "units.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
@@ -29,7 +30,7 @@ void hs_evaluate_unit_set_desired_flashlight_state(int16_t function_index, uint3
         if (arguments[0] != -1) {
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
 
-            *(uint32_t *)(unit + 0x204) |= (uint8_t)arguments[1] ? 0x10000000 : 0x20000000;
+            ((unit_object *)unit)->unit.flags |= (uint8_t)arguments[1] ? 0x10000000 : 0x20000000;
         }
         hs_thread_return(0, thread_index);
     }

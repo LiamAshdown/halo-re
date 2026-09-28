@@ -29,6 +29,7 @@
 #include "units.h"
 #include "ai.h"
 #include <stdint.h>
+#include "game.h"
 // REWRITTEN 2026-09-28 against objdump 0x4303f0..0x4307b4: when either root cluster is -1 the original
 //   skips only the PVS test and still traces the segment (the draft dropped the player entirely);
 //   distance and facing sums follow the original z, y, x order. Everything else matched.
@@ -100,8 +101,8 @@ float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
     if (player != 0) {
         do {
             // player+0x34 is the player's controlled unit object index.
-            if (*(datum_index *)((uint8_t *)player + 0x34) != (datum_index)k_datum_index_none) {
-                datum_index player_unit = *(datum_index *)((uint8_t *)player + 0x34);
+            if (((struct player *)player)->unit != (datum_index)k_datum_index_none) {
+                datum_index player_unit = ((struct player *)player)->unit;
 
                 saw_any_player = 1;
                 object_get_node_local_transform(player_unit, ai_marker_name_a, &player_marker, 1);
