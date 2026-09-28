@@ -25,18 +25,18 @@ void actor_mode_flee_tick(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
 
-    *(int32_t *)(act + 0xb4) += 1;
-    if (*(int16_t *)(act + 0x9c) > 0) {
-        *(int16_t *)(act + 0x9c) -= 1;
+    ((struct actor *)act)->mode_data.flee.ticks_in_mode += 1;
+    if (((struct actor *)act)->mode_data.flee.countdown_180 > 0) {
+        ((struct actor *)act)->mode_data.flee.countdown_180 -= 1;
     }
-    if (*(int16_t *)(act + 0x9e) > 0) {
-        *(int16_t *)(act + 0x9e) -= 1;
-        if (*(int16_t *)(act + 0x9e) == 0 && ((actor *)act)->unit_index != k_datum_index_none &&
-            *(int16_t *)(act + 0xa8) >= 9 && *(int16_t *)(act + 0xa8) <= 12) {
+    if (((struct actor *)act)->mode_data.flee.countdown_02 > 0) {
+        ((struct actor *)act)->mode_data.flee.countdown_02 -= 1;
+        if (((struct actor *)act)->mode_data.flee.countdown_02 == 0 && ((actor *)act)->unit_index != k_datum_index_none &&
+            ((struct actor *)act)->mode_data.flee.panic >= 9 && ((struct actor *)act)->mode_data.flee.panic <= 12) {
             unit_initialize_random_turn_angle(((actor *)act)->unit_index);
         }
     }
-    if (*(int16_t *)(act + 0xa8) > 0) {
+    if (((struct actor *)act)->mode_data.flee.panic > 0) {
         *(int32_t *)(act + 0x39c) = game_time->game_time + 750;
     }
 }

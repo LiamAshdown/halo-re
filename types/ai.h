@@ -59,6 +59,7 @@
 // Functions in this address range that do NOT belong to the actor system, and whose types
 // are therefore not defined here, are listed in out/phase4/ai_types_notes.md.
 
+#include <stddef.h> // offsetof
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
@@ -236,9 +237,25 @@ typedef struct actor_mode_wait_data {
     int16_t countdown_150;              // 0x0e counted down by the tick; process re-arms it at 150
     int16_t random_countdown;           // 0x10 counted down by the tick; re-armed at 300..599 (random)
 } actor_mode_wait_data;
+typedef struct actor_mode_flee_data {
+    int16_t countdown_180;              // 0x00 counted down by the tick; process re-arms it at 180
+    int16_t countdown_02;               // 0x02 counted down by the tick; enter/tick act when it reaches 0
+    uint8_t unknown_04[2];              // 0x04
+    uint8_t movement_cancelled;         // 0x06 set by actor_mode_flee_movement_cancelled and by process
+    uint8_t unknown_07;                 // 0x07
+    int16_t destination;                // 0x08 firing position fled to, -1 for none
+    uint8_t unknown_0a[2];              // 0x0a
+    int16_t panic;                      // 0x0c update's "panic"; 9..12 is the cowering band
+    uint8_t unknown_0e[0x0a];           // 0x0e
+    int32_t ticks_in_mode;              // 0x18 incremented every tick, zeroed on enter
+    datum_index reference;              // 0x1c the actor/object fled from (actor_mode_flee_replace_reference)
+} actor_mode_flee_data;
+typedef char actor_mode_flee_data_reference_at_1c[offsetof(actor_mode_flee_data, reference) == 0x1c ? 1 : -1];
+
 typedef union actor_mode_data {
     uint8_t raw[0x84];
     actor_mode_wait_data wait;
+    actor_mode_flee_data flee;
 } actor_mode_data;                      // size 0x84
 typedef char actor_mode_data_size[sizeof(actor_mode_data) == 0x84 ? 1 : -1];
 

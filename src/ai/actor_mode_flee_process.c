@@ -45,27 +45,27 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
     int16_t kind;
 
     if (!act[0x6]) {
-        kind = *(int16_t *)(mode_data + 0xc);
+        kind = ((actor_mode_flee_data *)mode_data)->panic;
         if (kind >= 9 && kind <= 12) {
-            *(int16_t *)(mode_data + 0x0) = 180;
+            ((actor_mode_flee_data *)mode_data)->countdown_180 = 180;
         }
-        if (*(int16_t *)(mode_data + 0x2) > 0) {
-            *(int16_t *)(mode_data + 0x8) = -1;
-        } else if (*(int16_t *)(mode_data + 0x8) == -1) {
-            mode_data[0x6] = 1;
+        if (((actor_mode_flee_data *)mode_data)->countdown_02 > 0) {
+            ((actor_mode_flee_data *)mode_data)->destination = -1;
+        } else if (((actor_mode_flee_data *)mode_data)->destination == -1) {
+            ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
         } else if (((actor *)act)->firing_position_index == -1) {
-            *(int16_t *)(mode_data + 0x8) = -1;
-            mode_data[0x6] = 1;
+            ((actor_mode_flee_data *)mode_data)->destination = -1;
+            ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
         } else if (actor_is_target_within_engagement_range(actor_index)) {
-            if (*(int16_t *)(mode_data + 0x0) != 0) {
-                mode_data[0x6] = 1;
+            if (((actor_mode_flee_data *)mode_data)->countdown_180 != 0) {
+                ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
             } else {
-                *(int16_t *)(mode_data + 0x8) = ((actor *)act)->firing_position_index;
+                ((actor_mode_flee_data *)mode_data)->destination = ((actor *)act)->firing_position_index;
                 mode_data[0xa] = act[0x3ba];
                 mode_data[0xf] = 1;
-                mode_data[0x6] = 0;
-                if (*(datum_index *)(mode_data + 0x1c) != k_datum_index_none) {
-                    uint8_t *source = PROP(*(datum_index *)(mode_data + 0x1c));
+                ((actor_mode_flee_data *)mode_data)->movement_cancelled = 0;
+                if (((actor_mode_flee_data *)mode_data)->reference != k_datum_index_none) {
+                    uint8_t *source = PROP(((actor_mode_flee_data *)mode_data)->reference);
                     int16_t a = *(int16_t *)(source + 0x34);
                     int16_t b = *(int16_t *)(source + 0x36);
 
@@ -78,7 +78,7 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
                 }
             }
         }
-        switch (*(int16_t *)(mode_data + 0xc)) { // 0x403ad8
+        switch (((actor_mode_flee_data *)mode_data)->panic) { // 0x403ad8
         case 9:
         case 10:
             if (*(datum_index *)(act + 0x1b0) == k_datum_index_none) {
@@ -99,18 +99,18 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
             break;
         }
         if (act[0x4c] && !mode_data[0xf]) {
-            if (*(int16_t *)(mode_data + 0x8) != -1 && *(int16_t *)(mode_data + 0x0) == 0 &&
+            if (((actor_mode_flee_data *)mode_data)->destination != -1 && ((actor_mode_flee_data *)mode_data)->countdown_180 == 0 &&
                 actor_check_weapon_pickup_reachable(actor_index, mode_data)) {
-                *(int16_t *)(mode_data + 0x8) = -1;
-                mode_data[0x6] = 1;
+                ((actor_mode_flee_data *)mode_data)->destination = -1;
+                ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
             }
             if (act[0x160]) {
-                mode_data[0x6] = 0;
+                ((actor_mode_flee_data *)mode_data)->movement_cancelled = 0;
                 mode_data[0xe] = 1;
                 *(int32_t *)(act + 0x398) = game_time->game_time;
-            } else if (mode_data[0x6]) {
+            } else if (((actor_mode_flee_data *)mode_data)->movement_cancelled) {
                 actor_check_melee_target_reachable(actor_index, (int16_t *)mode_data);
-                if (*(int16_t *)(mode_data + 0x8) == -1) {
+                if (((actor_mode_flee_data *)mode_data)->destination == -1) {
                     mode_data[0xe] = 1;
                     *(int32_t *)(act + 0x398) = game_time->game_time;
                 }
@@ -118,7 +118,7 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
         }
     }
 
-    kind = *(int16_t *)(mode_data + 0xc);
+    kind = ((actor_mode_flee_data *)mode_data)->panic;
     if (kind >= 9 && kind <= 12 && ((actor *)act)->unit_index != k_datum_index_none) {
         uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[((actor *)act)->unit_index & 0xffff].data;
 
@@ -126,7 +126,7 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
             mode_data[0x10] = 0;
         }
     }
-    if (kind > 0 && *(int16_t *)(mode_data + 0x8) != -1) {
+    if (kind > 0 && ((actor_mode_flee_data *)mode_data)->destination != -1) {
         datum_index unit_index;
         int32_t now;
         uint8_t announced;
@@ -146,8 +146,8 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
                 } else {
                     datum_index source_object = k_datum_index_none;
 
-                    if (*(datum_index *)(mode_data + 0x1c) != k_datum_index_none) {
-                        source_object = *(datum_index *)(PROP(*(datum_index *)(mode_data + 0x1c)) + 0x18);
+                    if (((actor_mode_flee_data *)mode_data)->reference != k_datum_index_none) {
+                        source_object = *(datum_index *)(PROP(((actor_mode_flee_data *)mode_data)->reference) + 0x18);
                     }
                     if (!announced) {
                         ai_communication_broadcast(0x1f + (kind == 8), unit_index, source_object, -1, -1, 4, 0);

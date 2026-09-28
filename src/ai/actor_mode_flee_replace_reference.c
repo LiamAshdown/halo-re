@@ -19,7 +19,7 @@ void actor_mode_flee_replace_reference(datum_index actor_index, datum_index old_
 {
     uint8_t *act = ACTOR(actor_index);
 
-    if (*(datum_index *)(act + 0xb8) == old_reference) {
-        *(datum_index *)(act + 0xb8) = new_reference;
+    if (((struct actor *)act)->mode_data.flee.reference == old_reference) {
+        ((struct actor *)act)->mode_data.flee.reference = new_reference;
     }
 }

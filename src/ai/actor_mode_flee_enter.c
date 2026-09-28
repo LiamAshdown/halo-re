@@ -21,13 +21,13 @@ extern void unit_initialize_random_turn_angle(uint32_t object_index); // 0x57065
 void actor_mode_flee_enter(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    int16_t kind = *(int16_t *)(act + 0xa8);
+    int16_t kind = ((struct actor *)act)->mode_data.flee.panic;
 
-    *(int32_t *)(act + 0xb4) = 0;
+    ((struct actor *)act)->mode_data.flee.ticks_in_mode = 0;
     if (kind > 0) {
         act[0x98] = 0;
     }
-    if (*(int16_t *)(act + 0x9e) == 0 && ((actor *)act)->unit_index != k_datum_index_none && kind >= 9 && kind <= 12) {
+    if (((struct actor *)act)->mode_data.flee.countdown_02 == 0 && ((actor *)act)->unit_index != k_datum_index_none && kind >= 9 && kind <= 12) {
         unit_initialize_random_turn_angle(((actor *)act)->unit_index);
     }
 }

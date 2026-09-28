@@ -34,7 +34,7 @@ extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing
 void actor_mode_flee_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    int16_t panic = *(int16_t *)(act + 0xa8);
+    int16_t panic = ((struct actor *)act)->mode_data.flee.panic;
     datum_index target = ((actor *)act)->target_unit_index;
     int16_t destination;
 
@@ -46,22 +46,22 @@ void actor_mode_flee_update(datum_index actor_index)
         ((actor *)act)->vocalization_unknown_3e8 = 7;
         ((actor *)act)->vocalization_unknown_3ec = 2;
         act[0x454] = 1;
-    } else if (*(datum_index *)(act + 0xb8) != k_datum_index_none) {
+    } else if (((struct actor *)act)->mode_data.flee.reference != k_datum_index_none) {
         ((actor *)act)->vocalization_unknown_3e8 = 3;
         ((actor *)act)->vocalization_unknown_3ec = 1;
-        *(datum_index *)(act + 0x3f0) = *(datum_index *)(act + 0xb8);
+        *(datum_index *)(act + 0x3f0) = ((struct actor *)act)->mode_data.flee.reference;
     } else {
         ((actor *)act)->vocalization_unknown_3e8 = 0;
     }
     *(int16_t *)(act + 0x3fc) = 4;
-    act[0x428] = (uint8_t)(*(int16_t *)(act + 0xa8) > 0);
-    act[0x429] = (uint8_t)(*(int16_t *)(act + 0xa8) >= 9 && *(int16_t *)(act + 0xa8) <= 12);
+    act[0x428] = (uint8_t)(((struct actor *)act)->mode_data.flee.panic > 0);
+    act[0x429] = (uint8_t)(((struct actor *)act)->mode_data.flee.panic >= 9 && ((struct actor *)act)->mode_data.flee.panic <= 12);
     act[0x426] = 1;
     act[0x427] = 0;
     act[0x424] = 1;
     act[0x425] = 0;
 
-    destination = *(int16_t *)(act + 0xa4);
+    destination = ((struct actor *)act)->mode_data.flee.destination;
     if (destination == -1) {
         actor_movement_action_stop(actor_index);
         return;
@@ -70,7 +70,7 @@ void actor_mode_flee_update(datum_index actor_index)
         return;
     }
     if (actor_movement_set_destination_firing_position(actor_index, destination, 0)) {
-        ((actor *)act)->firing_position_index = *(int16_t *)(act + 0xa4);
+        ((actor *)act)->firing_position_index = ((struct actor *)act)->mode_data.flee.destination;
         act[0x3ba] = act[0xa6];
         return;
     }
@@ -79,6 +79,6 @@ void actor_mode_flee_update(datum_index actor_index)
         actor_movement_action_stop(actor_index);
         ((actor *)act)->firing_position_index = -1;
     }
-    *(int16_t *)(act + 0xa4) = -1;
+    ((struct actor *)act)->mode_data.flee.destination = -1;
     act[0xa2] = 1;
 }

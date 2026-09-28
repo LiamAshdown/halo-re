@@ -19,6 +19,6 @@ void actor_mode_flee_movement_cancelled(datum_index actor_index)
 {
     uint8_t *mode_data = ACTOR(actor_index) + 0x9c;
 
-    *(int16_t *)(mode_data + 0x8) = -1;
-    mode_data[0x6] = 1;
+    ((actor_mode_flee_data *)mode_data)->destination = -1;
+    ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
 }
