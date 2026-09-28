@@ -234,7 +234,11 @@ def main():
     open(os.path.join(OUT, "code_pointers.asm"), "w").write("\n".join(pointer_asm))
     extra.append(assemble(os.path.join(OUT, "code_pointers.asm"), os.path.join(OUT, "code_pointers.obj")))
 
-    objs = glob.glob(os.path.join(ROOT, "build", "obj", "*", "*.obj")) + extra
+    # only objects whose source still exists: a renamed or deleted .c leaves its old object behind, which would link
+    # stale code and its unbound references (shell_console_window_state_initialize.obj: nine '?' traps) (2026-09-28)
+    objs = [o for o in glob.glob(os.path.join(ROOT, "build", "obj", "*", "*.obj"))
+            if os.path.exists(os.path.join(ROOT, "src", os.path.basename(os.path.dirname(o)),
+                                           os.path.splitext(os.path.basename(o))[0] + ".c"))] + extra
     rc, unres = link(objs, False)
 
     addr, kind = gl.extern_map()
