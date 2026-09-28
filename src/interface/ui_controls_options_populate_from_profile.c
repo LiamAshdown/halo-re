@@ -22,6 +22,11 @@
 // the single least-confident piece of this whole session's work and should be revisited with an
 // objdump/hex-dump pass.
 
+// FIXED 2026-09-28 (retail-independence loop): the third row is a plain switch compiled to a jump table in .text
+// (index bytes at 0x4a0284 indexed by value - 1, not 0x4a0283; case addresses at 0x4a0268): 3 -> 1, 5 -> 2,
+// 10 -> 3, 15 -> 4, 25 -> 5, anything else -> 0, then the fourth and fifth rows as before. The C called the case
+// labels as functions (retail code, never runnable in the standalone) and returned early.
+
 // Phase-4 s2 review: the gate is the sbb/not/and select of the working copy buffer at 0x00714e80
 // (a record, not a pointer): the record is non-NULL only when the low nibble of
 // selected_saved_item is 1 (a variant). The earlier rewrite had the test inverted and
@@ -35,9 +40,6 @@
 
 extern int32_t selected_saved_item;   // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
-
-extern void *jump_table_004a0268[25]; // 0x4a0268, TYPES-GAP, UNSURE: see file header
-extern uint8_t jump_table_index_004a0283[25]; // 0x4a0283, TYPES-GAP, UNSURE: see file header
 
 // Finds the first spinner_list among `row`'s children.
 static widget_instance *find_row_control(widget_instance *row)
@@ -74,13 +76,16 @@ uint32_t ui_controls_options_populate_from_profile(widget_instance *widget)
 
     row = row->next_sibling;
     control = find_row_control(row);
-    field = *(int32_t *)(record + 0x58);
-    if ((uint32_t)(field - 1) < 0x19) {
-        uint8_t index = jump_table_index_004a0283[field];
-        uint32_t (*handler)(void) = (uint32_t (*)(void))jump_table_004a0268[index];
-        return handler();
+    // the switch at 0x4a011d (index bytes 0x4a0284 by field - 1, cases 0x4a0268): each case stores its selection
+    // and falls through to the next row
+    switch (*(int32_t *)(record + 0x58)) {
+    case 3: control->selection_index = 1; break;
+    case 5: control->selection_index = 2; break;
+    case 10: control->selection_index = 3; break;
+    case 15: control->selection_index = 4; break;
+    case 25: control->selection_index = 5; break;
+    default: control->selection_index = 0; break;
     }
-    control->selection_index = 0;
 
     row = row->next_sibling;
     control = find_row_control(row);

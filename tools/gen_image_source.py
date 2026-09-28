@@ -10,8 +10,7 @@ bin/halo.exe as assembler source, so neither halo.exe nor a halo_image.bin is ne
   standalone/image/pieces.json   name, original address, size and label of every piece, for the loader's table
 Pieces: all of .rdata, the initialised part of .data (the zero tail is the reserve's own zero fill), .tls and .rsrc, and
 from .text only what is read as data -- the DIOBJECTDATAFORMAT array the linker put at 0x613400 (256 x 16 bytes; its
-DIDATAFORMAT at 0x64dfdc points there) and the switch table at 0x4a0268 that ui_controls_options_populate_from_profile
-reads. The rest of .text is original code and stays zero (and not executable) in the standalone.
+DIDATAFORMAT at 0x64dfdc points there). The rest of .text is original code and stays zero (and not executable) in the standalone.
 Import slots keep their retail contents (hint/name RVAs); the loader overwrites them.
 Usage: python tools/gen_image_source.py   (reads bin/halo.exe; refuses under HALO_NO_RETAIL=1)"""
 import json, os, struct, sys
@@ -25,7 +24,6 @@ IMAGE = os.path.join(ROOT, "standalone", "image")
 
 # (label, first address, end address) of the .text ranges the standalone reads as data
 TEXT_DATA = [
-    ("text_004a0268", 0x4a0268, 0x4a029c),   # 25 case addresses + 25 index bytes (0x4a0283), padded to a dword
     ("text_00613400", 0x613400, 0x614400),   # DIOBJECTDATAFORMAT[256] for SetDataFormat (DIDATAFORMAT 0x64dfdc)
 ]
 
