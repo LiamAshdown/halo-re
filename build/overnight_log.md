@@ -2352,3 +2352,17 @@ Relinked: unresolved 1, traps 127.
 - Stored pointers now: game 87 (the five MP engines' callbacks, mapped by scratchpad/engine_slots.py), networking 83,
   units 2, hs 1 (0x48b150). Direct traps 95.
 - NEXT: the 87 MP game engine callbacks (ctf, king, oddball, race, slayer; cdecl, signatures from the slot callers).
+### iteration 5 (2026-09-28) -- commits 764710d..HEAD, relinked (0 unresolved, 95 direct traps)
+- Multiplayer game engine callbacks: 60 of 87 written (scratchpad/engine_lib.py + gen_engine1..3.py; slots mapped by
+  scratchpad/engine_slots.py; all cdecl since they are only called through game_engine_definition slots): scores,
+  team scores, player/team/header score texts, round resets, new-life / round-reset hooks, GameSpy query-report hooks
+  (they call GameSpy 0x616640 / 0x615590, already counted traps -- networking phase), King reset/new life, Oddball
+  init, Race is_winner / get_score / changed object / tick hook.
+- FIX: game_time_format_minutes_seconds (0x466530) passes the character count in EDX to every bounded wide format
+  (0x40 for the parts, its second argument -- 0x100 at every caller -- for the result) and divides signed; the old C
+  dropped the count. New: its ASCII twin 0x466600 (game_time_format_minutes_seconds_ascii).
+- OPEN: game_engine_queue_multiplayer_sound's C models one argument (the sound); the binary also takes the target
+  player (EDI) and a broadcast flag (stack). The new callers pass the true sound index.
+- Stored pointers: networking 83, game 27, units 2, hs 1. Direct traps 95.
+- NEXT: the 27 large engine callbacks (0x4684a0 886, 0x469300 1079, 0x46cac0 / 0x46e480 message-text switches, ...;
+  race allow_grenade_counts 0x46e980 needs 0x46d6f0 too).
