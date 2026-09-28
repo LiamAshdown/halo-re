@@ -53,6 +53,7 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#include "shaders.h"
 #include <stdint.h> // uintptr_t, for the 32 bit pointer fields of build_sprite_data
 
 extern uint8_t console_debug_toggle_69c565;          // 0x0069c565 particles enabled
@@ -289,7 +290,7 @@ void render_particles(void)
             } else {
                 average = 0.0f;
             }
-            *(float *)((uint8_t *)(uintptr_t)data.shader + 0x98) = average;
+            ((shader_effect *)(uintptr_t)data.shader)->average_particle_radius = average;
             build_sprites_end(&data);
         }
     }

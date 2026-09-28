@@ -2648,3 +2648,7 @@ Relinked: unresolved 1, traps 127.
   tools/gen_image_source.py is the other maintenance tool (regenerates standalone/image/*.asm).
 - Boot test on user request: loads the saved campaign checkpoint (mission "Halo"), 60 s, no crash besides the known
   Keystone thread AV.
+
+## Ghidra types loop (job c8dd7b0d; tools/ghidra_residue.py, gate: tools/objdiff.py 0 differ)
+Start totals (live code): 7135 offsets, 896 Ghidra names, 74 Ghidra types.
+- iter 1 cutscene + render (+rasterizer, shaders): render 1/1/0 -> 0/0/0; cutscene 1/0/0 kept (recorded_animation_compressed_update reads a 16-bit delay from a byte stream, not a struct -- DONE). shader_effect.unknown_98 -> average_particle_radius; param_9 -> lighting (rasterizer_transparent_geometry_group_new). 339 objects identical.

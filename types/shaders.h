@@ -175,8 +175,8 @@ typedef struct shader_effect {
     int16_t anchor;                 // 0x5c ParticleAnchor
     uint16_t secondary_map_flags;   // 0x5e IsUnfilteredFlag
     shader_texture_animation texture_animation; // 0x60
-    float unknown_98;               // 0x98 tag padding reused at runtime for the average
-                                    //      particle radius (types/render.h), not read here
+    float average_particle_radius;  // 0x98 tag padding reused at runtime: render_particles stores the
+                                    //      average radius of the particles it drew (types/render.h)
     float zsprite_radius_scale;     // 0x9c
     uint8_t unknown_a0[0x14];       // 0xa0 tag padding
 } shader_effect;                    // size 0xb4

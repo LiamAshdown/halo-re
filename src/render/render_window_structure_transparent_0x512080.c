@@ -13,7 +13,7 @@
 
 extern void rasterizer_transparent_geometry_group_new(void *shader, int16_t shader_permutation, uint32_t lightmap_bitmap,
     uint32_t dynamic_index_slot, uint32_t first_index, uint32_t primitive_count, uint32_t vertex_buffer, void *tint,
-    uint32_t param_9, uint32_t flags, void *world_position); // 0x522300, stack, EAX = world_position
+    uint32_t lighting, uint32_t flags, void *world_position); // 0x522300, stack, EAX = world_position
 
 void render_window_structure_transparent_0x512080(void *shader_data, int16_t shader_permutation, void *bitmap,
     int32_t render_context, int32_t surface_offset, int16_t surface_count, void *material_extra, void *rendered_vertices,
