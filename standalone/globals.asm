@@ -3036,8 +3036,6 @@ PUBLIC _network_server_status_last_print_ms
 _network_server_status_last_print_ms EQU 071C2F0h
 PUBLIC _network_server_storage
 _network_server_storage EQU 0861340h
-PUBLIC _network_session
-_network_session EQU 071C2D4h
 PUBLIC _network_session_active
 _network_session_active EQU 071C2C2h
 PUBLIC _network_session_active2

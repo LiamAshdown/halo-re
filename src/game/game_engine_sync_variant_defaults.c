@@ -5,7 +5,7 @@
 // evidence: out/phase4/game_functions.md ("Synchronizes the active game variant's default option
 // block into the local cache and, if hosting, into the network session state"); types/game.h
 // game_variant (0x98 bytes, 0x26 dwords), globals 0x0087aa80 (game_engine_pending_variant),
-// 0x0087ab20 (game_engine_active_variant), 0x0071c2d4 (network_session, variant at +0x10c,
+// 0x0087ab20 (game_engine_active_variant), 0x0071c2d4 (network_server, variant at +0x10c,
 // game_engine_index at +0x13c).
 // UNSURE: DAT_0087aab0 (the cached engine index compared against the session's own) and the four
 // globals reset at the very end (0x00719754/0x0071973c/0x00719738/0x0071974f) are not attributed
@@ -22,7 +22,7 @@
 extern game_variant game_engine_pending_variant; // 0x0087aa80
 extern game_variant game_engine_active_variant;  // 0x0087ab20
 extern int32_t cached_network_engine_index;      // 0x0087aab0, UNSURE identity
-extern uint8_t *network_session;                    // 0x0071c2d4
+extern network_server_globals *network_server;
 extern network_client_globals *network_client;
 
 extern uint16_t unknown_00719754; // UNSURE identity/owning module
@@ -46,7 +46,7 @@ void game_engine_sync_variant_defaults(void)
 
     main_queue_map_change_by_name_or_clear();
 
-    session = network_session;
+    session = network_server;
     hosting = (session != 0);
 
     game_engine_active_variant = game_engine_pending_variant;
@@ -54,7 +54,7 @@ void game_engine_sync_variant_defaults(void)
     if (hosting && *(int32_t *)((uint8_t *)session + 0x13c) != cached_network_engine_index) {
         *(game_variant *)((uint8_t *)session + 0x10c) = game_engine_pending_variant;
         network_game_broadcast_player_set_changed(session);
-        session = network_session;
+        session = network_server;
     }
 
     if (network_client == 0 && session == 0) {

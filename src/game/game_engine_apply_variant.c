@@ -14,7 +14,7 @@
 #include "game.h"
 
 extern game_variant game_engine_active_variant; // 0x0087ab20 (NOT 0x006f1c88, which is the live copy)
-extern uint8_t *network_session;             // 0x0071c2d4
+extern uint8_t *network_server;             // 0x0071c2d4
 
 extern void network_game_broadcast_player_set_changed(void *session); // UNSURE module, propagates a variant change over the network
 
@@ -25,10 +25,10 @@ void game_engine_apply_variant(const game_variant *variant)
 {
     if (variant != (const game_variant *)0) {
         game_engine_active_variant = *variant;
-        if (network_session != (void *)0 &&
-            *(int32_t *)((uint8_t *)network_session + 0x13c) != variant->game_engine_index) {
-            *(game_variant *)((uint8_t *)network_session + 0x10c) = *variant;
-            network_game_broadcast_player_set_changed(network_session);
+        if (network_server != (void *)0 &&
+            *(int32_t *)((uint8_t *)network_server + 0x13c) != variant->game_engine_index) {
+            *(game_variant *)((uint8_t *)network_server + 0x10c) = *variant;
+            network_game_broadcast_player_set_changed(network_server);
         }
     } else {
         uint8_t *dst = (uint8_t *)&game_engine_active_variant;

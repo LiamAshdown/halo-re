@@ -13,7 +13,7 @@
 // mis-rendering of a genuine "lookup succeeded" boolean (comparing a stack address to a literal
 // is not meaningful source code); modelled as game_engine_get_variant_by_name returning a
 // status byte instead. The network-session struct fields at +0x10c (variant) and +0x13c
-// (game_engine_index) match types/game.h's own notes on network_session's layout.
+// (game_engine_index) match types/game.h's own notes on network_server's layout.
 
 #include "tags.h"
 #include "memory.h"
@@ -21,7 +21,7 @@
 #include "game.h"
 
 extern game_variant game_engine_active_variant; // 0x0087ab20 (NOT 0x006f1c88, which is the live copy)
-extern uint8_t *network_session;             // 0x0071c2d4
+extern uint8_t *network_server;             // 0x0071c2d4
 
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
     // 0x4622d0, this module; blam-cc: ECX -> name, stack -> out. A NULL `out` only tests
@@ -37,10 +37,10 @@ void game_engine_set_variant_by_name(const char *name)
 
     if (game_engine_get_variant_by_name(name, &looked_up) != 0) {
         game_engine_active_variant = looked_up;
-        if (network_session != (void *)0 &&
-            *(int32_t *)((uint8_t *)network_session + 0x13c) != looked_up.game_engine_index) {
-            *(game_variant *)((uint8_t *)network_session + 0x10c) = looked_up;
-            network_game_broadcast_player_set_changed(network_session);
+        if (network_server != (void *)0 &&
+            *(int32_t *)((uint8_t *)network_server + 0x13c) != looked_up.game_engine_index) {
+            *(game_variant *)((uint8_t *)network_server + 0x10c) = looked_up;
+            network_game_broadcast_player_set_changed(network_server);
         }
     } else {
         uint8_t *dst = (uint8_t *)&game_engine_active_variant;

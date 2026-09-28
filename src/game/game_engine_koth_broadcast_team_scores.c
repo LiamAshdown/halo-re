@@ -18,9 +18,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
-extern uint8_t *network_session; // 0x0071c2d4
+extern network_server_globals *network_server;
 extern game_variant game_engine_variant; // 0x006f1c88 (unknown_8c aliased 0x006f1d14)
 extern int32_t king_alt_score_target;      // 0x006b1148, this batch
 extern int32_t king_alt_team_score[16];    // 0x006b114c, this batch

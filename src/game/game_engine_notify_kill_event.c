@@ -6,13 +6,13 @@
 // already-committed game_engine_dispatch_item_pickup_event.c (0x45f850), which uses the same
 // hash_table_get / message_delta_encode_message / network_session_send_to_machine trio with the
 // same "&param_N is really &local_c, the compiler reused the stack slot" pattern; types/game.h
-// player (identifier +0x00), and the "network_session read but not owned" note (+0x0071c2d4).
+// player (identifier +0x00), and the "network_server read but not owned" note (+0x0071c2d4).
 // register convention: a hash-table key in ECX (in_ECX, gates the lookup exactly like
 // game_engine_dispatch_item_pickup_event's machine_id); a player index in EAX (in_EAX, used only
 // in the machine-matching loop below); param_1/param_2 are this function's own stack parameters.
 //   // blam-cc: EAX -> player_index, ECX -> hash_key, stack -> message_type, subject
 // UNSURE: the player-index-to-machine
-// matching loop over `network_session + 0x3c4` (16 entries, stride 0x60) and the two flag bits it
+// matching loop over `network_server + 0x3c4` (16 entries, stride 0x60) and the two flag bits it
 // tests at each entry's +0xe are outside any header this module owns and are kept as raw offsets.
 
 #include "tags.h"
@@ -22,7 +22,7 @@
 #include "objects.h" // hash_table
 
 extern data_array *player_data;      // 0x0087a480
-extern uint8_t *network_session;     // 0x0071c2d4
+extern uint8_t *network_server;     // 0x0071c2d4
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
@@ -70,7 +70,7 @@ void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int3
     if (0 < encoded_size) {
         player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
         uint8_t player_machine_field = *(uint8_t *)&p->unknown_64; // UNSURE: field identity, see types/game.h player::unknown_64
-        int16_t *machine = (int16_t *)(network_session + 0x3c4); // UNSURE: network_session layout, not owned here
+        int16_t *machine = (int16_t *)(network_server + 0x3c4); // UNSURE: network_server layout, not owned here
         int32_t i = 0;
 
         while ((int32_t)*machine != (int32_t)(int8_t)player_machine_field) {
@@ -82,12 +82,12 @@ void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int3
         }
 
         {
-            uint8_t *entry = network_session + 0x3b8 + i * 0x60; // UNSURE: matching machine record
+            uint8_t *entry = network_server + 0x3b8 + i * 0x60; // UNSURE: matching machine record
             if (entry != 0) {
                 uint8_t flags = (uint8_t)*(uint16_t *)(entry + 0xe);
                 if (((flags >> 1) & 1) != 0 && ((flags >> 2) & 1) != 0) {
                     // 0x4609a3..0x4609b3: EAX = the player's machine index (0x460959), ESI = the server (0x46094a)
-                    network_session_send_to_machine((int32_t)(int8_t)player_machine_field, network_session, 1, network_message_scratch,
+                    network_session_send_to_machine((int32_t)(int8_t)player_machine_field, network_server, 1, network_message_scratch,
                                                     (uint32_t)encoded_size, 1, 0, 0, 3);
                 }
             }

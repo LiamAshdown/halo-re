@@ -6,7 +6,7 @@
 //   countdown, plays the win announcement, and broadcasts a UI-close/chat-reset message");
 //   types/game.h player::team/marked_for_deletion (0x20/0xd5), player_data (0x0087a480);
 //   game_variant::ctf_value_80 aliased 0x006f1d08 (aggregation mode: 0 = min, 1 = max, 2 = sum
-//   with a second 16-entry table added in), score_limit aliased 0x006f1ce0; network_session's
+//   with a second 16-entry table added in), score_limit aliased 0x006f1ce0; network_server's
 //   own end-of-game flag at +0xa0f (types/game.h evidence); game_engine_state_value /
 //   game_engine_end_game_timer (7.0 s); multiplayer_sound_enabled[1] (0x00688329);
 //   GlobalsMultiplayerInformation::sounds[1].tag_id (+0x60 array pointer, +0x1c into it);
@@ -26,6 +26,8 @@
 #include "objects.h"
 #include "game.h"
 #include <stdint.h>
+#include "units.h"
+#include "networking.h"
 
 extern data_array *player_data;   // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_value_80/score_limit aliased
@@ -34,7 +36,7 @@ extern int32_t game_engine_bucket_scores[16];      // 0x006b1318
 extern int32_t game_engine_bucket_scores_extra[16]; // 0x006b1358, added in when mode==2
 extern int16_t network_game_mode;         // 0x00719720
 extern game_engine_state game_engine_state_value; // 0x0087aa10
-extern uint8_t *network_session;          // 0x0071c2d4
+extern network_server_globals *network_server;
 extern float game_engine_end_game_timer;  // 0x0087aa08
 extern uint8_t multiplayer_sound_enabled[]; // 0x00688328 (index 1 used here)
 extern Globals *global_globals;           // 0x00746fa0
@@ -110,7 +112,7 @@ void game_engine_check_bucket_scores_and_end_round(void)
     for (bucket = 0; bucket < 16; bucket++) {
         if (game_engine_bucket_scores[bucket] >= game_engine_variant.score_limit &&
             network_game_mode == 2 && game_engine_state_value == 0) {
-            *(uint8_t *)(network_session + 0xa0f) = 1;
+            network_server->game_over = 1;
             game_engine_state_value = _game_engine_state_ending;
             game_engine_end_game_timer = 7.0f;
 

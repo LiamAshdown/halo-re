@@ -18,13 +18,16 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 extern int32_t king_team_hill_seconds_network[16]; // 0x0087a7e0
 extern int32_t king_bucket_credit_ticks[16];       // 0x006b0ec0, this batch (source span extends
     // 107 dwords past this address -- see UNSURE)
 extern int32_t king_hill_broadcast_overrun_value;  // 0x0087a984, UNSURE identity, see header
-extern uint8_t *network_session; // 0x0071c2d4
+extern network_server_globals *network_server;
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,

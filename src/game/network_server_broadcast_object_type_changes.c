@@ -30,7 +30,7 @@
 #include "game.h"
 
 extern int16_t network_game_mode;   // 0x00719720
-extern uint8_t *network_session;    // 0x0071c2d4, TYPES-GAP: only +0x04 (int16) is read here
+extern uint8_t *network_server;    // 0x0071c2d4, TYPES-GAP: only +0x04 (int16) is read here
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc, objects module
@@ -44,7 +44,7 @@ extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
 extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
     int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
 
-// While hosting (network_game_mode == 2) and network_session+0x04 == 1, walks every object
+// While hosting (network_game_mode == 2) and network_server+0x04 == 1, walks every object
 // that this machine controls (network_role == 0) whose type opts in
 // (object_type_override_call_0x74) and has a non-default object_type_definition +0x10 field,
 // consumes its "changed" flag, notifies the type's create/reset overrides, and -- if the
@@ -56,7 +56,7 @@ void network_server_broadcast_object_type_changes(void)
     uint8_t changed;
     int encode_result;
 
-    if (network_game_mode != 2 || *(int16_t *)(network_session + 4) != 1) {
+    if (network_game_mode != 2 || *(int16_t *)(network_server + 4) != 1) {
         return;
     }
 

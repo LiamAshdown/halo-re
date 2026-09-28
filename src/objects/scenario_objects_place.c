@@ -23,7 +23,7 @@
 #include "units.h"
 #include "game.h"
 
-extern int32_t network_session;  // 0x0071c2d4, pointer; +8 is its connection state
+extern int32_t network_server;  // 0x0071c2d4, pointer; +8 is its connection state
 extern int32_t network_client;   // 0x0071c2d8, pointer; +0xb14 is its connection state
 extern int16_t map_difficulty_or_kind; // 0x00719720: 1 single player, 2 multiplayer
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
@@ -53,8 +53,8 @@ void scenario_objects_place(uint8_t *scenario)
     uint8_t joining = 0;
     int16_t type;
 
-    if (network_session != 0) {
-        connection = (uint8_t *)network_session + 8;
+    if (network_server != 0) {
+        connection = (uint8_t *)network_server + 8;
     } else if (network_client != 0) {
         connection = (uint8_t *)network_client + 0xb14;
     }

@@ -5,7 +5,7 @@
 //   from the local-player map, and deletes its datum"); types/game.h player::local_player_index
 //   (the -1 gate that matches player_new_local's own "build the network update queues only for
 //   a non-local player" condition -- this is the matching teardown); types/game.h
-//   network_game_mode (0 local, 1 client, 2 host, 3 replay), network_session (0x0071c2d4).
+//   network_game_mode (0 local, 1 client, 2 host, 3 replay), network_server (0x0071c2d4).
 //   objdump -d -M intel --start-address=0x473ae0 --stop-address=0x473bb0 bin/halo.exe pins
 //   every register.
 // register convention: EAX -> machine_index, EBX -> player_handle.
@@ -32,7 +32,7 @@
 
 extern data_array *player_data;              // 0x0087a480
 extern int16_t network_game_mode;            // 0x00719720
-extern uint8_t *network_session;             // 0x0071c2d4
+extern network_server_globals *network_server;
 extern datum_index machine_to_player[16];    // 0x006b1460
 
 extern void game_engine_player_changed_object(uint32_t param); // 0x45c570, this module (already
@@ -82,7 +82,7 @@ void player_delete(uint32_t machine_index, datum_index player_handle)
     } else if (network_game_mode == 2) {
         update_machine_slot = 1;
         // 0x473afd: EDX = [0x71c2d4], EDI = machine_index (mov edi,eax at entry, 0x473ae2)
-        network_machine_clear_flag_by_id((network_server_globals *)network_session, (int32_t)machine_index);
+        network_machine_clear_flag_by_id((network_server_globals *)network_server, (int32_t)machine_index);
     }
 
     if (update_machine_slot && machine_to_player[machine_index & 0xffff] == player_handle) {

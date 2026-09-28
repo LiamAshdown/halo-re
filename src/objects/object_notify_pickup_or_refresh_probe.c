@@ -24,6 +24,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
 
 extern data_array *player_data;         // 0x0087a480, players module (not owned here)
@@ -39,7 +42,7 @@ extern int32_t network_index_cache_get(hash_table *table, int32_t key); // 0x4e9
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void *network_session; // 0x0071c2d4, network_server_globals *
+extern network_server_globals *network_server;
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server,
     uint32_t param_1, void *data, uint32_t param_3, uint32_t reliable, uint32_t unknown_a,
     char force, uint32_t priority); // 0x4e1930, EAX, ESI, stack
@@ -87,8 +90,8 @@ void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index pl
                 field_list[0] = &encoded_value;
                 field_list[1] = 0;
                 encoded = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x32, 0, field_list, 0, 1, 0);
-                network_session_send_to_machine((int8_t)record[0x64], network_session, 1, network_message_scratch,
-                    (uint32_t)encoded, 0, 0, 0, 9); // 0x4ee49a: EAX = the player machine, ESI = network_session
+                network_session_send_to_machine((int8_t)record[0x64], network_server, 1, network_message_scratch,
+                    (uint32_t)encoded, 0, 0, 0, 9); // 0x4ee49a: EAX = the player machine, ESI = network_server
                 return;
             }
 

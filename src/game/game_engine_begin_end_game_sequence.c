@@ -3,7 +3,7 @@
 // address 0x45fd90, size 86 bytes
 // name confidence: 0.5   rewrite confidence: 0.6
 // evidence: types/game.h globals: 0x00719720 network_game_mode (2 == host), 0x0087aa10
-// game_engine_state, 0x0071c2d4 network_session (+0xa0f the end-of-game flag), 0x0087aa08
+// game_engine_state, 0x0071c2d4 network_server (+0xa0f the end-of-game flag), 0x0087aa08
 // game_engine_end_game_timer ("7.0 s, then 5.0 s").
 // FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
 //   call(s) here now pass all three as the binary loads them (they passed one value before).
@@ -15,7 +15,7 @@
 
 extern int16_t network_game_mode;   // 0x00719720
 extern game_engine_state game_engine_state_value; // 0x0087aa10, renamed to avoid the enum tag
-extern uint8_t *network_session;       // 0x0071c2d4
+extern uint8_t *network_server;       // 0x0071c2d4
 extern float game_engine_end_game_timer; // 0x0087aa08
 
 extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
@@ -29,7 +29,7 @@ extern void widget_close_all(void); // 0x498650
 void game_engine_begin_end_game_sequence(void)
 {
     if (network_game_mode == 2 && game_engine_state_value == _game_engine_state_not_started) {
-        *((uint8_t *)network_session + 0xa0f) = 1;
+        *((uint8_t *)network_server + 0xa0f) = 1;
         game_engine_state_value = _game_engine_state_ending;
         game_engine_end_game_timer = 7.0f;
         game_engine_queue_multiplayer_sound(1, 0xffffffff, 0); // 0x45fdb1..0x45fdcf

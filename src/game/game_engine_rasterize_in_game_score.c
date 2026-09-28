@@ -69,7 +69,7 @@ extern game_variant game_engine_variant;            // 0x006f1c88 (::teams at 0x
 extern data_array *player_data;                     // 0x0087a480
 extern data_array *object_headers;                  // 0x008603b0
 extern tag_instance *tag_instances;                 // 0x0087bc14
-extern uint8_t *network_session;                    // 0x0071c2d4
+extern network_server_globals *network_server;
 extern network_client_globals *network_client;
 extern wchar_t empty_string;                        // 0x00660c34
 extern uint8_t *unknown_00873d40; // UNSURE: a globals-tag-like color/font source
@@ -304,7 +304,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
         uint16_t port = 0;
         char *address_text;
 
-        if (network_session == (uint8_t *)0) {
+        if (network_server == 0) {
             if (network_client == 0) {
                 return;
             }

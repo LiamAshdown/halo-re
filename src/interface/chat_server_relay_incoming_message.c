@@ -20,7 +20,7 @@
 // context, the stack holds the sending machine. The chat record {scope, sender byte, text pointer} decodes into
 // locals (the text into a local 0x200-byte buffer); the sender's player index comes from
 // network_object_owner_team_index_desired(machine) (0x4e0cf0, EAX) and a -1 drops the message. The record is
-// re-encoded (message type 0xf) into 0x871de0 and sent through network_session (0x71c2d4): scope 0 to every flagged
+// re-encoded (message type 0xf) into 0x871de0 and sent through network_server (0x71c2d4): scope 0 to every flagged
 // machine (0x4e1a80), scope 1 to every player on the sender's team, scope 2 to every player whose unit's vehicle
 // (+0x11c) is the sender's (player_get_vehicle) -- each such player's machine (+0x64, not -1) gets
 // network_session_send_to_machine (0x4e1930). The previous C decoded into nothing and sent with invented arguments.
@@ -35,7 +35,7 @@
 #include "units.h"
 #include <stdint.h>
 
-extern network_server_globals *network_session;   // 0x0071c2d4
+extern network_server_globals *network_server;   // 0x0071c2d4
 extern data_array *player_data;                     // 0x0087a480
 extern uint8_t network_message_scratch[0x7ff8];     // 0x00871de0
 
@@ -99,7 +99,7 @@ void chat_server_relay_incoming_message(void **context, void *machine)
     (void)zero_24;
     bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, &item, 0, 1, 0);
     if (message.scope == 0) {
-        network_session_broadcast_to_flagged(bits, network_session, 1, network_message_scratch, 1, 0, 1, 3);
+        network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 1, 3);
     } else if (message.scope == 1) {
         uint8_t *sender_player = (uint8_t *)datum_get((datum_index)message.sender, player_data);
 
@@ -109,7 +109,7 @@ void chat_server_relay_incoming_message(void **context, void *machine)
         chat_relay_iterator_begin(&iterator);
         while ((entry = (uint8_t *)data_iterator_next(&iterator)) != 0) {
             if (*(int32_t *)(entry + 0x20) == *(int32_t *)(sender_player + 0x20) && *(int8_t *)(entry + 0x64) != -1) {
-                network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_session, 1, network_message_scratch,
+                network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_server, 1, network_message_scratch,
                                                 (uint32_t)bits, 1, 0, 1, 3);
             }
         }
@@ -124,7 +124,7 @@ void chat_server_relay_incoming_message(void **context, void *machine)
             uint8_t *unit = (uint8_t *)object_try_and_get(*(datum_index *)(entry + 0x34), 3);
 
             if (unit != 0 && *(datum_index *)(unit + 0x11c) == vehicle && *(int8_t *)(entry + 0x64) != -1) {
-                network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_session, 1, network_message_scratch,
+                network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_server, 1, network_message_scratch,
                                                 (uint32_t)bits, 1, 0, 1, 3);
             }
         }

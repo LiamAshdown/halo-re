@@ -4,7 +4,7 @@
 // name confidence: 0.55   rewrite confidence: 0.3
 // evidence: types/game.h game_engine_state (0x0087aa10), game_engine_end_game_timer (0x0087aa08,
 // "7.0 s, then 5.0 s"), game_engine_post_game_fade (0x0087aa0c, "ramps 0 -> 1"),
-// game_engine_dedicated_idle/_timer (0x0087aa18/0x0087aa1c), network_session (0x0071c2d4).
+// game_engine_dedicated_idle/_timer (0x0087aa18/0x0087aa1c), network_server (0x0071c2d4).
 // UNSURE: two float comparisons below are Ghidra's `(a < b) == (a == b)` / `(a < b) != (a == b)`
 // idiom for an FPU flag test that doesn't reduce to a plain `<`; simplified to the algebraically
 // equivalent `a > 0.0` / `a <= 0.0` (see header derivation in this batch's working notes -- both
@@ -24,7 +24,7 @@ extern float game_engine_post_game_fade;            // 0x0087aa0c
 extern uint8_t game_engine_dedicated_idle;          // 0x0087aa18
 extern float game_engine_dedicated_idle_timer;      // 0x0087aa1c
 extern int16_t network_game_mode;                   // 0x00719720
-extern uint8_t *network_session;                       // 0x0071c2d4
+extern uint8_t *network_server;                       // 0x0071c2d4
 extern uint8_t unknown_0071c2de;                    // UNSURE identity/owning module
 extern uint8_t unknown_007124a0;                    // UNSURE identity/owning module
 extern uint8_t unknown_007124a1;                    // UNSURE identity/owning module
@@ -73,7 +73,7 @@ void game_engine_update_end_game_sequence(float delta_time)
         uint8_t idle_timer_expired = 0;
 
         if (game_engine_dedicated_idle == 0) {
-            if ((*((uint8_t *)network_session + 6) >> 2 & 1) != 0) {
+            if ((*((uint8_t *)network_server + 6) >> 2 & 1) != 0) {
                 chimera__console_out((ColorARGB *)0, "Game Complete. Dedicated server is now idle.");
                 unknown_0071c2de = 1;
                 chat_close();
@@ -87,7 +87,7 @@ void game_engine_update_end_game_sequence(float delta_time)
         }
 
         if (unknown_007124a0 != 0 || input_get_key_state() == 1 || idle_timer_expired) {
-            network_game_client_game_settings_updated(network_session);
+            network_game_client_game_settings_updated(network_server);
         }
     }
 

@@ -15,11 +15,11 @@
 // because Ghidra materializes almost every register argument as an untyped local (`local_18` is
 // reused across three different meanings) and gets one global wrong outright: the "iVar3+6" bit
 // test and both nearby player_customization_slot_set calls actually read `network_client`
-// (ds:0x71c2d8), not `network_session` (ds:0x71c2d4) as Ghidra's text claims (confirmed at
+// (ds:0x71c2d8), not `network_server` (ds:0x71c2d4) as Ghidra's text claims (confirmed at
 // 0x4708c3: `mov edi,[0x71c2d8]`).
 // register convention: EAX carries a "message envelope" (`**envelope`), used only for the very
 // first validity check; the stack parameter is a second, distinct pointer (`message`) whose +0xc
-// field is compared against the per-color network_session table.
+// field is compared against the per-color network_server table.
 //   // blam-cc: EAX -> envelope, stack -> message
 // UNSURE: message_delta_decode_compound_field's two output bytes (color, side_selector) and chat_queue_team_message's constant
 // 0x91 argument are not attested in any header; kept as raw/UNSURE. The final
@@ -38,7 +38,7 @@
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t game_engine_teams_enabled_flag;       // 0x006f1cbc
-extern uint8_t *network_session;                     // 0x0071c2d4, pointer variable
+extern uint8_t *network_server;                     // 0x0071c2d4, pointer variable
 extern uint8_t *network_client;                      // 0x0071c2d8, pointer variable
 extern data_array *player_data;                      // 0x0087a480
 extern uint8_t game_engine_unknown_1cfc;             // 0x006f1cfc, UNSURE raw flag
@@ -81,7 +81,7 @@ void game_engine_update_lead_change_state(void **envelope, uint8_t *message)
     side_selector = out_pair[1];
 
     if (color > 0xf ||
-        (int16_t)*(int8_t *)(network_session + (uint32_t)color * 0x20 + 0x1c6) != *(int16_t *)(message + 0xc)) {
+        (int16_t)*(int8_t *)(network_server + (uint32_t)color * 0x20 + 0x1c6) != *(int16_t *)(message + 0xc)) {
         chat_queue_team_message(color, 0x91);
         return;
     }

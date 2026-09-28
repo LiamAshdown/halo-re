@@ -7,7 +7,7 @@
 //   amount). Unless the player is gone or marked for deletion, a type 0xb message is encoded from {damage effect
 //   tag, network id of the responsible object (0 when none), damage flags, direction, blend, amount}
 //   (message_delta_encode_message, items {&fields, 0}) and sent to the player's machine (+0x64, reliable,
-//   priority 3) through network_session (0x71c2d4).
+//   priority 3) through network_server (0x71c2d4).
 // blam-cc: EAX -> player_handle, EBX -> direction, stack -> (dd, random_blend, damage_amount)
 
 #include "tags.h"
@@ -20,7 +20,7 @@
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern network_id_table *object_network_id_table; // 0x00687130
-extern network_server_globals *network_session; // 0x0071c2d4
+extern network_server_globals *network_server; // 0x0071c2d4
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, ESI table, ECX key
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -65,7 +65,7 @@ void player_effect_send_network_update(datum_index player_handle, const real_vec
     items[1] = 0;
     encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xb, 0, items, 0, 1, 0);
     if (encoded_bits > 0 && (int8_t)record->unknown_64 != -1) {
-        network_session_send_to_machine((int8_t)record->unknown_64, network_session, 1, network_message_scratch,
+        network_session_send_to_machine((int8_t)record->unknown_64, network_server, 1, network_message_scratch,
             (uint32_t)encoded_bits, 1, 0, 1, 3);
     }
 }

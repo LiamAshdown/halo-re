@@ -27,6 +27,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern void *viewport_globals;                      // 0x0071941c, UNSURE owning module
@@ -50,7 +53,7 @@ extern uint32_t screen_safe_area_origin;             // 0x007c3140
 extern uint32_t screen_safe_area_right;              // 0x007c3148, UNSURE: unused in this function
 extern uint32_t screen_safe_area_bottom;             // 0x007c314c
 extern float game_engine_post_game_fade;             // 0x0087aa0c
-extern uint8_t *network_session;                        // 0x0071c2d4
+extern network_server_globals *network_server;
 extern wchar_t empty_string;                          // 0x00660c34
 // 0x00671fac is not an empty string and not a pointer: it holds the characters of
 // L"<missing string>", the engine-wide placeholder a failed unicode_string_list lookup
@@ -346,7 +349,7 @@ void game_engine_post_rasterize_post_game(void)
         int16_t rel_y = (int16_t)(-origin_low + 0x19a);
         (void)bottom_low;
 
-        if (network_session == 0) {
+        if (network_server == 0) {
             banner_a = ((int32_t)0x1a4 << 16) | (uint16_t)rel_y;
             tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
             if (tag_id != k_datum_index_none) {

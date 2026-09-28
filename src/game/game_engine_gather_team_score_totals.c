@@ -9,7 +9,7 @@
 // since Ghidra shows the second out-parameter as `unaff_EDI`. `out_score` and `filter_value` are
 // this function's own (correctly identified) stack parameters; `out_count` arrives in EDI.
 //   // blam-cc: EDI -> out_count, stack -> out_score, filter_value
-// UNSURE: the 16-entry, 0x20-stride table at network_session+0x1c8 and the per-entry predicate
+// UNSURE: the 16-entry, 0x20-stride table at network_server+0x1c8 and the per-entry predicate
 // network_player_entry_validate(&entry[-0x1e]) are outside any header this module owns; modeled with raw offsets.
 
 #include "tags.h"
@@ -26,7 +26,7 @@ extern uint8_t network_player_entry_validate(void *entry_minus_0x1e); // 0x4de9f
 
 // blam-cc: EDI -> out_count, stack -> out_score, filter_value
 // Zeroes out_count[0..1] and out_score[0..1]. If a multiplayer engine is loaded and teams are
-// enabled, scans the 16-entry status table at network_session+0x1c8, and for every entry that
+// enabled, scans the 16-entry status table at network_server+0x1c8, and for every entry that
 // passes network_player_entry_validate, does not match `filter_value` at its own +1 byte, and whose category byte
 // (offset 0) is 0 or 1, increments out_count[category]; then fills out_score[0] and out_score[1]
 // from current_game_engine->get_team_score(0) and (1).

@@ -24,7 +24,7 @@
 //   network_channel_key_close's EAX argument (visible only in the disassembly, not in Ghidra's own
 //   pseudocode) is the same per-machine "player identifier record" pointer types/game.h's
 //   player-struct notes describe at player+0x48, computed here as
-//   (network_session ? network_session+8 : network_client ? network_client+0xb14 : 0) +
+//   (network_server ? network_server+8 : network_client ? network_client+0xb14 : 0) +
 //   join_key_slot*0x20 + 0x1a2, but that record's own field layout is not resolved past what
 //   game.h already documents; network_index_cache_insert_if_free's real argument list (it is called here with more
 //   live registers than its single established stack parameter, per
@@ -38,7 +38,7 @@
 #include "game.h"
 
 extern data_array *player_data;         // 0x0087a480
-extern uint8_t *network_session;        // 0x0071c2d4
+extern uint8_t *network_server;        // 0x0071c2d4
 extern uint8_t *network_client;         // 0x0071c2d8
 extern data_array *unknown_data_array_006f7ed0; // 0x006f7ed0, UNSURE identity, see header note
 extern uint8_t join_message_table[];    // 0x00687500, UNSURE identity (a .data table network_index_cache_insert_if_free
@@ -92,12 +92,12 @@ void game_engine_apply_player_join_message(void **envelope)
     }
 
     // UNSURE: see header note -- the per-machine identifier-record table base is
-    // network_session+8 when a session exists, else network_client+0xb14, else NULL. The
+    // network_server+8 when a session exists, else network_client+0xb14, else NULL. The
     // original computes this pointer (EBP) unconditionally at 0x477913, BEFORE the first
     // datum_get, and both the network_channel_key_close check and the game_set_local_player call below read
     // through it, so it is hoisted here rather than scoped to the not-found branch.
     {
-    uint8_t *table_base = (network_session != 0) ? (network_session + 8) :
+    uint8_t *table_base = (network_server != 0) ? (network_server + 8) :
         ((network_client != 0) ? (network_client + 0xb14) : 0);
     uint8_t *identifier_record = table_base + (uint32_t)message.slot_index * 0x20 + 0x1a2;
 

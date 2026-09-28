@@ -2,11 +2,11 @@
 // address 0x4655d0, size 167 bytes
 // name confidence: 0.3   rewrite confidence: 0.55
 // evidence: out/phase4/game_functions.md gives no summary beyond the raw signature; the shape
-//   (pick a base record from network_session or network_client, switch on a "kind" dword at
+//   (pick a base record from network_server or network_client, switch on a "kind" dword at
 //   +0x134, and return one of a small set of hardcoded small integers, several of them bumped
 //   by +0x1d/+0x1b/+0x20/+0x21 style deltas depending on sub-flags) reads like a UI/menu state
 //   selector, not game-simulation logic; renamed accordingly and marked low confidence.
-//   network_session (0x0071c2d4) and network_client (0x0071c2d8) are already named externs
+//   network_server (0x0071c2d4) and network_client (0x0071c2d8) are already named externs
 //   elsewhere in this module (e.g. src/game/game_engine_apply_variant.c); no header in this
 //   repo documents their layout, so every field below is a raw offset.
 // register convention: no parameters; pure global-state read.
@@ -16,7 +16,7 @@
 #include "tags.h"
 #include "memory.h"
 
-extern uint8_t *network_session; // 0x0071c2d4
+extern uint8_t *network_server; // 0x0071c2d4
 extern uint8_t *network_client;  // 0x0071c2d8
 
 // Selects a small integer id describing the current network session/client "kind" and a few of
@@ -25,8 +25,8 @@ int32_t game_engine_multiplayer_ui_state_id(void)
 {
     uint8_t *record;
 
-    if (network_session != (uint8_t *)0) {
-        record = network_session + 8;
+    if (network_server != (uint8_t *)0) {
+        record = network_server + 8;
     } else if (network_client != (uint8_t *)0) {
         record = network_client + 0xb14;
     } else {
