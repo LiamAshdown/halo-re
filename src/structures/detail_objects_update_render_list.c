@@ -26,11 +26,11 @@
 #include "game.h"
 #include "structures.h"
 
-extern player_globals *player_globals_ptr; // 0x0087a478, game.h
+extern player_globals *local_player_globals; // 0x0087a478, game.h
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern detail_object_globals *detail_objects; // 0x0072277c, this module
-extern int16_t render_camera_render_window_index; // 0x007c3108, this module (read, not owned)
-extern real_point3d render_camera_position; // 0x007c3114, this module (read, not owned)
+extern int16_t current_local_player_index; // 0x007c3108, this module (read, not owned)
+extern real_point3d render_camera_global; // 0x007c3114, this module (read, not owned)
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even);
     // the same reading src/math/periodic_function_evaluate.c gives Ghidra's ROUND()
 
@@ -54,7 +54,7 @@ void detail_objects_update_render_list(void)
     detail_object_frame *frame = &detail_objects->frames[0];
     int16_t cell_x, cell_y, cell_z;
 
-    if (player_globals_ptr->local_player_count != 1 || render_camera_render_window_index == -1) {
+    if (local_player_globals->local_player_count != 1 || current_local_player_index == -1) {
         return;
     }
 
@@ -62,9 +62,9 @@ void detail_objects_update_render_list(void)
         ? (ScenarioStructureBSPDetailObjectData *)0
         : (ScenarioStructureBSPDetailObjectData *)global_structure_bsp->detail_objects.pointer;
 
-    cell_x = (int16_t)(int32_t)lrint((double)(render_camera_position.x * 0.125f - 0.5f));
-    cell_y = (int16_t)(int32_t)lrint((double)(render_camera_position.y * 0.125f - 0.5f));
-    cell_z = (int16_t)(int32_t)lrint((double)(render_camera_position.z * 0.125f - 0.5f));
+    cell_x = (int16_t)(int32_t)lrint((double)(render_camera_global.x * 0.125f - 0.5f));
+    cell_y = (int16_t)(int32_t)lrint((double)(render_camera_global.y * 0.125f - 0.5f));
+    cell_z = (int16_t)(int32_t)lrint((double)(render_camera_global.z * 0.125f - 0.5f));
 
     if (detail_data->bullshit != 0) {
         rasterizer_detail_objects_begin(); // UNSURE: see file header

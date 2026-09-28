@@ -12,13 +12,13 @@
 #include "math.h"
 #include "objects.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
 
 uint8_t hud_nameplate_candidate_filter(uint32_t object_index, void *context)
 {
     datum_index player_handle = *(datum_index *)context;
-    uint8_t *obj = (uint8_t *)((object_header *)object_headers->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
 
     if ((obj[0x10] & 1) != 0) {
         return 0;

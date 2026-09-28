@@ -28,10 +28,10 @@ extern int32_t network_signal_quality_glyph(void); // 0x440610, not in this batc
 extern int32_t network_connect_timeout_ms; // 0x006894ac, per network_client_connect_progress_percent.c
 extern void network_receive_queue_close_socket(void); // 0x442040, not in this batch
 extern void console_printf_verbose(const char *text); // 0x496a80
-extern int32_t join_ui_countdown; // 0x00718f90
+extern int32_t interface_loading_screen_progress; // 0x00718f90
 extern int16_t network_game_mode; // 0x00719720
 extern int32_t join_ui_state; // 0x00718f8c
-extern int32_t some_global_0068e688; // 0x0068e688
+extern int32_t interface_loading_screen_request_id; // 0x0068e688
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
 extern int32_t network_game_process_incoming_messages(network_client_globals *client); // 0x4db180
 extern void network_join_status_text_update(int32_t mode, network_client_globals *client); // 0x4db4c0
@@ -91,11 +91,11 @@ int32_t network_join_connect_retry_tick(network_client_globals *client)
     if (attempt->unknown_0c == 0) {
         attempt->elapsed_counter = 0;
         console_printf_verbose("Loading");
-        join_ui_countdown = 0;
+        interface_loading_screen_progress = 0;
         if (network_game_mode == 2) {
             if (join_ui_state != 1) {
                 if (join_ui_state != 2 && join_ui_state == 4) {
-                    some_global_0068e688 = -1;
+                    interface_loading_screen_request_id = -1;
                 }
                 join_ui_state = 8;
                 attempt->unknown_0c = 1;
@@ -103,7 +103,7 @@ int32_t network_join_connect_retry_tick(network_client_globals *client)
             }
         } else if (join_ui_state != 1 && join_ui_state != 2) {
             if (join_ui_state == 4) {
-                some_global_0068e688 = -1;
+                interface_loading_screen_request_id = -1;
                 attempt->unknown_0c = 1;
                 goto service_channel;
             }

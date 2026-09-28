@@ -38,7 +38,7 @@ extern uint8_t *machine_table;               // 0x00687558, +0x28 array, stride 
 extern network_id_table *object_network_id_table; // 0x00687130
 extern Scenario *global_scenario;            // 0x00746f8c
 extern game_engine_definition *current_game_engine; // 0x006f1d20
-extern data_array *object_headers;           // 0x008603b0
+extern data_array *object_data;           // 0x008603b0
 
 extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590

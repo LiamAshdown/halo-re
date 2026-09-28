@@ -40,7 +40,7 @@
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern char profile_directory[0x105];                              // 0x006ac900
 extern int32_t os_platform;                                        // 0x00721ef0
-extern char *shell_fatal_error_argument;                           // 0x00722bbc
+extern char *rasterizer_shader_file_name;                           // 0x00722bbc
 
 extern void os_platform_identify(void);                            // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
@@ -135,7 +135,7 @@ validate_header:
         }
     }
 
-    shell_fatal_error_argument = path;
+    rasterizer_shader_file_name = path;
     shell_display_fatal_error_dialog(0x89, 0x7e, 1);
     slot->file = (void *)0xffffffff;
     return;

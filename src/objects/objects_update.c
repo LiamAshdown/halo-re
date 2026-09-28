@@ -38,10 +38,10 @@
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern data_array *object_data; // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c, UNSURE: foreign module, +0xc is the current tick
-extern uint8_t *bsp_cluster_pvs_source; // 0x0087a478, UNSURE: foreign module, +0x18 is the pvs bits
+extern uint8_t *local_player_globals; // 0x0087a478, UNSURE: foreign module, +0x18 is the pvs bits
 extern ScenarioStructureBSP *global_structure_bsp;
                                               //   live cluster count
-extern uint8_t *object_update_gate_globals; // 0x006b0b80, UNSURE: foreign module, +0x2 is a
+extern uint8_t *main_game_globals; // 0x006b0b80, UNSURE: foreign module, +0x2 is a
                                             //   single gating byte
 
 extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0, this batch
@@ -63,7 +63,7 @@ void objects_update(void)
     object_header *headers;
     int16_t last_index;
 
-    restrict_to_units = (*(uint8_t *)((uint8_t *)game_time + 0xc) & 1) != 0 && object_update_gate_globals[2] != 0;
+    restrict_to_units = (*(uint8_t *)((uint8_t *)game_time + 0xc) & 1) != 0 && main_game_globals[2] != 0;
 
     globals->unknown_04 = 0;
 
@@ -74,7 +74,7 @@ void objects_update(void)
         globals->cluster_pvs_previous[i] = globals->cluster_pvs_current[i];
     }
     for (i = 0; i < word_count; i++) {
-        globals->cluster_pvs_current[i] = *(uint32_t *)(bsp_cluster_pvs_source + 0x18 + i * 4);
+        globals->cluster_pvs_current[i] = *(uint32_t *)(local_player_globals + 0x18 + i * 4);
     }
 
     changed = 0;

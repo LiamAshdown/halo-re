@@ -33,7 +33,7 @@ extern int16_t network_game_mode; // 0x00719720
 extern network_server_globals *network_server; // 0x0071c2d4
 extern network_client_globals *network_client; // 0x0071c2d8
 extern game_time_globals *game_time; // 0x006f1d6c
-extern uint8_t *scenario_load_staging;  // 0x006b0b80, UNSURE identity/type
+extern uint8_t *main_game_globals;  // 0x006b0b80, UNSURE identity/type
 
 extern void cache_file_switch_map_by_path(void); // outside this batch
 extern void game_unload_map(void); // outside this batch
@@ -90,14 +90,14 @@ char network_game_scenario_load_request(network_game_session *session)
         game_engine_apply_variant();
     }
     cache_file_switch_map_by_path();
-    memcpy(scenario_load_staging + 8, &request, sizeof(request));
-    loaded = scenario_load(scenario_load_staging);
+    memcpy(main_game_globals + 8, &request, sizeof(request));
+    loaded = scenario_load(main_game_globals);
     if (loaded == 0) {
-        if (*scenario_load_staging == 0) {
+        if (*main_game_globals == 0) {
             return session->unknown_3ac;
         }
     } else {
-        *scenario_load_staging = 1;
+        *main_game_globals = 1;
     }
     session->unknown_3ac = 1;
     game_start_new_map();

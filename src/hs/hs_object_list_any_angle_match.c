@@ -5,7 +5,7 @@
 // rewrite confidence: 0.45
 // evidence: types/hs.h object_list_header/object_list_reference; the inline validity check
 //   (identifier nonzero, salt match, type bit 0 or 1 set, data pointer nonzero) matches
-//   src/memory/datum_get.c's own salt check applied to an object_headers entry directly rather
+//   src/memory/datum_get.c's own salt check applied to an object_data entry directly rather
 //   than through datum_get.
 // register convention: reference-list header index in EAX (in_EAX); angle in degrees as the
 //   recognized stack parameter (param_2); param_1 unused here, forwarded verbatim as the current
@@ -20,12 +20,12 @@ extern uint8_t hs_object_angle_predicate_helper(datum_index object_index, datum_
 
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
-extern data_array *object_headers;             // 0x008603b0, stride 0x0c
+extern data_array *object_data;             // 0x008603b0, stride 0x0c
 
 // hs_object_header_entry: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
 
 // Returns 1 if any object referenced by the list headed by `header_index` is a live, valid biped
-// or vehicle (per its object_headers entry) whose data pointer is set and which satisfies
+// or vehicle (per its object_data entry) whose data pointer is set and which satisfies
 // hs_object_angle_predicate_helper for `angle_degrees`; otherwise 0.
 uint32_t hs_object_list_any_angle_match(datum_index header_index, datum_index target_object, float angle_degrees)
 {
@@ -60,9 +60,9 @@ uint32_t hs_object_list_any_angle_match(datum_index header_index, datum_index ta
 
     do {
         index = (int16_t)object_index;
-        if (object_index != -1 && index >= 0 && index < object_headers->maximum_count) {
-            entry = (hs_object_header_entry *)((uint8_t *)object_headers->data +
-                index * object_headers->size);
+        if (object_index != -1 && index >= 0 && index < object_data->maximum_count) {
+            entry = (hs_object_header_entry *)((uint8_t *)object_data->data +
+                index * object_data->size);
             if (entry->identifier != 0) {
                 salt = (int16_t)((uint32_t)object_index >> 0x10);
                 if ((salt == 0 || entry->identifier == salt) &&

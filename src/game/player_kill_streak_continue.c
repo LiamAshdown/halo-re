@@ -20,7 +20,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 // blam-cc: EAX -> player_handle, stack -> slot
 // For slot 0 only, sets unit_flags bit 0x20 on the player's unit.
@@ -28,7 +28,7 @@ void player_kill_streak_continue(int16_t slot, uint32_t player_handle)
 {
     if (slot == 0) {
         player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data + k_unit_data_offset);
+        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
         unit->flags = unit->flags | 0x20; // UNSURE: bit identity, see header note
     }
 }

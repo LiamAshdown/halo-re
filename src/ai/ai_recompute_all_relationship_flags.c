@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.45
 // evidence: phase-4 summary ("recomputes the perceived-relationship (friend/foe) flags for
 // every recognized object of every actor in the level, likely run after a team or difficulty
-// change"). team_relationship_flags+0xa4 / +0x94 match the two 100-bit team-pair bitmaps
+// change"). team_pair_data+0xa4 / +0x94 match the two 100-bit team-pair bitmaps
 // out/phase4/game_types_notes.md documents at 0x45bc30's allocation (the 0xa4 map is the one
 // teams_are_enemies inverts, 0x94 is "a second per-pair flag"); reproduced here as the raw
 // bit test rather than calling teams_are_enemies (0x45bd50), since this function inlines
@@ -14,7 +14,7 @@
 // blam-cc: (no arguments)
 //
 // 0x006f1d20 is game.h current_game_engine (R04): NULL means no multiplayer engine. UNSURE: the
-// 10x10 team-pair bitmap layout at team_relationship_flags+0x94/+0xa4 are not independently
+// 10x10 team-pair bitmap layout at team_pair_data+0x94/+0xa4 are not independently
 // confirmed here; see out/phase4/game_types_notes.md's own "Unresolved: entry 0x08, 0x09,
 // 0x0c, and what distinguishes the two bitmaps" note. actor_target_update_active_flag's argument is UNSURE, as
 // in the other two functions of this shape.
@@ -34,7 +34,7 @@ extern data_array *actor_data;     // 0x00880360
 extern data_array *prop_data;      // 0x008802c0
 extern data_array *object_data;    // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint8_t *team_relationship_flags; // 0x006b0b84, a POINTER to the team-relationship block (+0x94 / +0xa4 10x10 bit matrices); the draft used the pointer's own address as the block
+extern uint8_t *team_pair_data; // 0x006b0b84, a POINTER to the team-relationship block (+0x94 / +0xa4 10x10 bit matrices); the draft used the pointer's own address as the block
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
 extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, EAX, EDI
@@ -88,7 +88,7 @@ void ai_recompute_all_relationship_flags(void)
             if (current_game_engine == 0) {
                 if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
                     int32_t pair = (int32_t)object_team + actor_team * 10;
-                    uint32_t bit = *(uint32_t *)(team_relationship_flags + 0xa4 + (pair >> 5) * 4);
+                    uint32_t bit = *(uint32_t *)(team_pair_data + 0xa4 + (pair >> 5) * 4);
                     hostile = 1 - ((bit & (1u << (pair & 0x1f))) != 0);
                 }
             } else {
@@ -99,7 +99,7 @@ void ai_recompute_all_relationship_flags(void)
             marked = 0;
             if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
                 int32_t pair = (int32_t)object_team + actor_team * 10;
-                uint32_t bit = *(uint32_t *)(team_relationship_flags + 0x94 + (pair >> 5) * 4);
+                uint32_t bit = *(uint32_t *)(team_pair_data + 0x94 + (pair >> 5) * 4);
                 marked = (bit & (1u << (pair & 0x1f))) != 0;
             }
             p->unknown_61 = marked;

@@ -24,7 +24,7 @@
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global; // 0x00719cd0
-extern random_seed local_random_seed; // 0x00719cd4
+extern random_seed effect_random_seed; // 0x00719cd4
 
 // Walks the next_animation chain starting at first_animation, picking the first entry whose
 // cumulative relative_weight is at or above a fresh random threshold in [0,1). Returns -1 if
@@ -46,8 +46,8 @@ int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int
         random_seed_global = random_seed_global * k_random_multiplier + k_random_increment;
         seed = random_seed_global;
     } else {
-        local_random_seed = local_random_seed * k_random_multiplier + k_random_increment;
-        seed = local_random_seed;
+        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+        seed = effect_random_seed;
     }
     threshold = (real)(seed >> k_random_value_shift) * 1.5259022e-05f;
 

@@ -21,13 +21,13 @@
 #include "interface.h"
 
 extern uint8_t main_menu_reload_pending; // 0x006926c8, UNSURE name
-extern char *command_line_00706e35c0;    // 0x006e35c0, TYPES-GAP, UNSURE name
+extern char *shell_command_line;    // 0x006e35c0, TYPES-GAP, UNSURE name
 extern uint8_t ui_input_batch_mode;      // 0x00718fc5
 extern uint8_t loading_thread_result;    // 0x00718fc0
 extern loading_thread_record *loading_thread; // 0x00718fbc
-extern int16_t ui_unknown_718fa4;        // 0x00718fa4
+extern int16_t network_join_error_code;        // 0x00718fa4
 extern uint8_t main_menu_music_pending;  // 0x00718fc6
-extern datum_index ui_cached_tag_00692af8; // 0x00692af8, TYPES-GAP, UNSURE name
+extern datum_index cached_saved_game_something; // 0x00692af8, TYPES-GAP, UNSURE name
 
 extern void input_time_base_resync(void); // 0x48b470
 extern void input_queue_sample_time_update(void); // 0x492210, UNSURE
@@ -50,8 +50,8 @@ void chimera__load_main_menu(void)
 {
     ui_input_batch_mode = 0;
     if (main_menu_reload_pending == 1) {
-        if (command_line_00706e35c0 != (char *)0) {
-            _stricmp(command_line_00706e35c0, "xdemo");
+        if (shell_command_line != (char *)0) {
+            _stricmp(shell_command_line, "xdemo");
         }
         ui_input_batch_mode = 1;
         loading_thread_result = 0;
@@ -64,14 +64,14 @@ void chimera__load_main_menu(void)
     widget_close_all();
     chimera__load_ui_widget("ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, 0xffff,
                             (datum_index)-1, (datum_index)-1, -1);
-    if (ui_unknown_718fa4 != -1) {
-        display_error(ui_unknown_718fa4, -1, 1, 0);
-        ui_unknown_718fa4 = -1;
+    if (network_join_error_code != -1) {
+        display_error(network_join_error_code, -1, 1, 0);
+        network_join_error_code = -1;
     }
     if (main_menu_music_pending == 0) {
         main_menu_play_title_music();
     }
-    ui_cached_tag_00692af8 = (datum_index)-1;
+    cached_saved_game_something = (datum_index)-1;
     virtual_keyboard_initialize();
     main_menu_reload_pending = 0;
 }

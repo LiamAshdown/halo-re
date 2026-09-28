@@ -28,7 +28,7 @@
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
 extern void *rasterizer_device; // 0x0071d174
-extern int8_t rasterizer_bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
+extern int8_t bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
 
 extern void *bitmap_data_get_pixel_address(BitmapData *bitmap, int32_t mip_level); // 0x43fb20, UNSURE signature
 extern int16_t bitmap_data_calculate_mip_depth(BitmapData *bitmap, int32_t mip_level); // 0x43fbe0, UNSURE signature
@@ -79,7 +79,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
         for (slice = 0; slice < depth; slice++) {
             // 0x524334: the level's bytes (pixels * bits per pixel / 8, rounded toward zero), split evenly by depth
             level_bytes = (int32_t)bitmap_data_calculate_mip_level_pixel_count(bitmap, level) *
-                          rasterizer_bitmap_format_bits_per_pixel[bitmap->format];
+                          bitmap_format_bits_per_pixel[bitmap->format];
             level_bytes = level_bytes / 8;
             slice_bytes = level_bytes / depth;
             memcpy(dest, source, slice_bytes);

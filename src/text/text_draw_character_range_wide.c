@@ -13,8 +13,8 @@
 // register convention: EAX = bounds Rectangle2D*. Stack args, in order: callback, pen
 //   Point2DInt*, clip Rectangle2D*, color, string (dropped by Ghidra as param_5, reaches
 //   text_parse_state_initialize only through ECX). text_parse_state_initialize (0x556b00) is called
-//   with ESI=&state, ECX=string, DX=text_justification_state, BX=text_style_state, stack=(text_font,
-//   &text_color) -- confirmed at 0x557399 "lea esi,[esp+0x30]" through 0x55739d
+//   with ESI=&state, ECX=string, DX=hud_text_draw_column, BX=hud_text_draw_color_or_flags, stack=(hud_text_draw_font_tag_id,
+//   &hud_text_draw_color_a) -- confirmed at 0x557399 "lea esi,[esp+0x30]" through 0x55739d
 //   "call 0x556b00". text_parse_next_token_wide (0x556f10) is called with EAX=&state
 //   (confirmed at 0x5573e9 "lea eax,[esp+0x28]"), matching
 //   out/phase4/text_types_notes.md's "0x556f10: EAX = state".
@@ -26,10 +26,10 @@
 #include "memory.h"
 #include "text.h"
 
-extern datum_index text_font;              // 0x006e472c
-extern int16_t text_style_state;                 // 0x006e4734
-extern int16_t text_justification_state;         // 0x006e4736
-extern ColorARGB text_color;               // 0x006e4738
+extern datum_index hud_text_draw_font_tag_id;              // 0x006e472c
+extern int16_t hud_text_draw_color_or_flags;                 // 0x006e4734
+extern int16_t hud_text_draw_column;         // 0x006e4736
+extern ColorARGB hud_text_draw_color_a;               // 0x006e4738
 extern int16_t text_highlight_start;       // 0x006e476a, first column drawn with inverted colour
 extern int16_t text_highlight_end;         // 0x006e476c, one past the last such column
 
@@ -72,8 +72,8 @@ void text_draw_character_range_wide(Rectangle2D *bounds, text_glyph_draw_proc ca
     }
 
     if (left < right && top < bottom) {
-        text_parse_state_initialize(string, text_justification_state, text_style_state, &state, text_font,
-            &text_color);
+        text_parse_state_initialize(string, hud_text_draw_column, hud_text_draw_color_or_flags, &state, hud_text_draw_font_tag_id,
+            &hud_text_draw_color_a);
         state.position = start_column;
         while (state.position < end_column) {
             uint32_t glyph_color;

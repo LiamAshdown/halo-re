@@ -18,7 +18,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 // blam-cc: EAX -> player_index
 // Decrements both of the player's kill_streak entries (floor 0), and when slot 0's countdown
@@ -32,7 +32,7 @@ void player_kill_streak_tick(uint32_t player_index)
         if (0 < p->kill_streak[slot]) {
             p->kill_streak[slot] = p->kill_streak[slot] - 1;
             if (p->kill_streak[slot] == 0 && slot == 0) {
-                unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data + k_unit_data_offset);
+                unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
                 unit->flags = unit->flags & ~_unit_flag_unknown_10;
             }
         }

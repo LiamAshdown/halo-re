@@ -15,7 +15,7 @@
 // 0x00719204 / 0x00699584 (a game setup choice, its sub index and the value picked from the
 // second table).
 // register convention: cdecl, the one stack parameter (widget).
-// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
+// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
 
 #include "crt.h"
 #include "tags.h"
@@ -30,14 +30,14 @@
 extern uint8_t save_in_progress_00719010;           // 0x00719010
 extern int32_t quality_selection_00692b04;          // 0x00692b04
 extern int32_t resolution_selection_00719204;       // 0x00719204
-extern int32_t current_profile_index;               // 0x00714dd4
-extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
+extern int32_t saved_player_profile_slots_handle;               // 0x00714dd4
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern uint16_t network_host_name_00719170[0x40];   // 0x00719170
 extern uint16_t network_host_subname_007191f0[9];   // 0x007191f0
 extern int32_t resolution_row_count_table_0065bfb4[5]; // 0x0065bfb4
 extern int32_t resolution_index_table_0065bf74[];   // 0x0065bf74
-extern int32_t resolution_selected_value_00699584;  // 0x00699584
-extern uint8_t network_capability_flag_006894a2;    // 0x006894a2
+extern int32_t sv_maxplayers_value;  // 0x00699584
+extern uint8_t network_game_info_packet_flag;    // 0x006894a2
 
 extern void player_profile_set_default_server_options(uint8_t *out_profile);     // 0x53a150, blam-cc: ESI out_profile; builds the default profile
 
@@ -55,8 +55,8 @@ uint8_t ui_network_host_setup_defaults_init(widget_instance *widget)
     if (save_in_progress_00719010 != 0) {
         resolution_selection_00719204 = 0;
     }
-    if (current_profile_index != -1) {
-        memcpy(profile, &saved_player_profile_slots[0].profile, sizeof(profile));
+    if (saved_player_profile_slots_handle != -1) {
+        memcpy(profile, &profile_globals_block[0].profile, sizeof(profile));
     } else {
         player_profile_set_default_server_options(profile);
     }
@@ -79,11 +79,11 @@ uint8_t ui_network_host_setup_defaults_init(widget_instance *widget)
         index = last_row;
     }
     resolution_selection_00719204 = index;
-    resolution_selected_value_00699584 = resolution_index_table_0065bf74[index];
+    sv_maxplayers_value = resolution_index_table_0065bf74[index];
 
     row1 = widget->first_child->next_sibling->next_sibling;
     control = row1->first_child->next_sibling;
-    if (network_capability_flag_006894a2 != 0) {
+    if (network_game_info_packet_flag != 0) {
         row1->scale = 1.0f;
         row1->hidden = 0;
         control->selection_index = (int16_t)choice;

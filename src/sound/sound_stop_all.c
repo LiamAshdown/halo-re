@@ -27,7 +27,7 @@ extern data_array *looping_sound_data;           // 0x00724a50, "looping sounds"
 extern uint8_t sound_stopping_all;               // 0x007252b7
 extern sound_driver *current_sound_driver;       // 0x00725208, header calls this "sound_driver";
                                                   // renamed here, sound_driver is already the type
-extern int32_t sound_dialog_suppress_until_tick; // 0x00725204
+extern int32_t ai_communication_quiet_until_tick; // 0x00725204
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
 extern void data_delete_all(data_array *array);                       // 0x4d0580, memory module
@@ -49,7 +49,7 @@ void sound_stop_all(void)
         data_delete_all(looping_sound_data); // ESI = 0x00724a50 (the sounds were deleted one by one above)
         current_sound_driver->stop_all();
     }
-    sound_dialog_suppress_until_tick = 0;
+    ai_communication_quiet_until_tick = 0;
     sound_stopping_all = 0;
 }
 

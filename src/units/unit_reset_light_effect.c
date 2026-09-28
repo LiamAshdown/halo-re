@@ -24,7 +24,7 @@
 // sound_start_at_object_marker is that sound_tag_id, together with a stack parameter
 // (object_index, at offset 0x4 from this function's own entry esp, loaded into ESI right
 // before that second call) that was previously missing from the signature entirely, and two
-// already-named globals (sound_creation_origin, global_forward3d_pointer) that the previous
+// already-named globals (global_zero_vector3d_pointer, global_forward3d_pointer) that the previous
 // rewrite guessed as a bare NULL position/no forward vector at all.
 
 #include "tags.h"
@@ -33,7 +33,7 @@
 #include "models.h"
 #include "objects.h"
 
-extern void *sound_creation_origin;               // 0x006966f8, types/devices.h
+extern void *global_zero_vector3d_pointer;               // 0x006966f8, types/devices.h
 extern real_vector3d *global_forward3d_pointer;   // 0x00696718, types/math.h
 
 extern animation_state_advance_result animation_state_advance(uint32_t animation_graph_tag_index,
@@ -50,7 +50,7 @@ uint16_t unit_reset_light_effect(animation_state *state, uint32_t animation_grap
     uint16_t result = animation_state_advance(animation_graph_tag_index, state, &sound_tag_id, _animation_random_global);
 
     if (sound_tag_id != -1) {
-        sound_start_at_object_marker(object_index, (Point3D *)sound_creation_origin,
+        sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
             (Vector3D *)global_forward3d_pointer, (datum_index)sound_tag_id, 0, 1.0f, 0);
     }
     return result;

@@ -16,12 +16,12 @@
 #include "ai.h"
 
 extern data_array *encounter_data; // 0x008802c8
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 
 // blam-cc: EAX -> out_iterator, stack -> active_only
 void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only)
 {
-    if (ai_global_data->actors_valid != 0) {
+    if (ai_globals_ptr->actors_valid != 0) {
         out_iterator->filter_array = encounter_data;
         out_iterator->unknown_04 = 0;
         out_iterator->cursor = -1;

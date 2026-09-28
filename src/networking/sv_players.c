@@ -38,7 +38,7 @@ extern network_server_globals *network_server; // 0x0071c2d4
 extern data_array *player_data; // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
     // "resolve player display name" callback (UNSURE)
-extern wchar_t network_players_no_name_placeholder[]; // 0x0065512c (UNSURE: assumed empty/dash)
+extern wchar_t k_empty_string[]; // 0x0065512c (UNSURE: assumed empty/dash)
 extern char *network_team_color_names[]; // 0x0066db78/0x0066db80/0x0066db88, the three column
     // header labels "Number"/"Name"/etc referenced positionally by the format string (UNSURE
     // grouping: these are printed as three separate varargs, not a real array)
@@ -100,7 +100,7 @@ void sv_players(void)
                     score = 0;
                     tk_num = 0;
                     tk_timer = 0;
-                    name_display = (uint16_t *)network_players_no_name_placeholder;
+                    name_display = (uint16_t *)k_empty_string;
                 } else {
                     score = p->unknown_dc;
                     tk_num = p->medal_streak_count;

@@ -15,7 +15,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern float king_hill_boundary_min_z; // 0x006b1060
 extern float king_hill_boundary_max_z; // 0x006b105c
 extern int32_t king_starting_location_count;       // 0x006b0f50
@@ -40,7 +40,7 @@ uint8_t game_engine_koth_player_in_hill_bounds(uint32_t player_index)
     if (unit == (datum_index)0xffffffff) {
         return 0;
     }
-    unit_obj = ((object_header *)object_headers->data)[unit & 0xffff].data;
+    unit_obj = ((object_header *)object_data->data)[unit & 0xffff].data;
     z = unit_obj->bounding_center.z;
     if (z >= king_hill_boundary_min_z && z < king_hill_boundary_max_z) {
         Point2D point;

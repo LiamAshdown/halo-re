@@ -22,8 +22,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
-extern uint8_t *globals_tag_data;   // 0x00746fa0, +0x174 player info, +0x18c/0x190 grenade tables (types/units.h)
-extern float unit_evade_scale;      // 0x0069c52c, UNSURE
+extern uint8_t *global_globals;   // 0x00746fa0, +0x174 player info, +0x18c/0x190 grenade tables (types/units.h)
+extern float k_physics_gravity;      // 0x0069c52c, UNSURE
 
 // object_get_position (0x4f6900, defined in src/objects/object_get_position.c) writes the
 // object position through the pointer in EAX and leaves that same pointer in EAX on return;
@@ -52,7 +52,7 @@ void biped_check_evade_reaction(uint32_t object_index)
         unit->animation_state != 0x1d && (int8_t)biped->unknown_501 > 0x1e &&
         (biped->unknown_4f8 == -1 ||
          (int32_t)(biped->unknown_4f8 + 0xf) < game_time->game_time)) {
-        void *table = *(void **)(globals_tag_data + 0x18c);
+        void *table = *(void **)(global_globals + 0x18c);
         real_point3d ground;   // [esp+0x1c]
         real_point3d position; // [esp+0x10]
 
@@ -66,7 +66,7 @@ void biped_check_evade_reaction(uint32_t object_index)
             float v = obj->velocity.k;
 
             object_get_position(&position, object_index);
-            if (v <= 0.0f && !(radius * radius > (position.z - ground.z) * unit_evade_scale * 2.0f + v * v)) {
+            if (v <= 0.0f && !(radius * radius > (position.z - ground.z) * k_physics_gravity * 2.0f + v * v)) {
                 unit_dispatch_reaction_animation((int32_t)object_index, 0);
             }
         }

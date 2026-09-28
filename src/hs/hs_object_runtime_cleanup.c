@@ -34,14 +34,14 @@ extern void object_delete_recursive(datum_index object_index, int32_t param_2); 
 
 extern void *object_iterator_next(hs_object_iterator_state *iterator); // objects module, 0x4f6f20
 
-extern data_array *players;        // 0x0087a480, stride 0x200, unit handle at +0x34
-extern data_array *object_headers; // 0x008603b0, stride 0x0c, object data pointer at +0x08
+extern data_array *player_data;        // 0x0087a480, stride 0x200, unit handle at +0x34
+extern data_array *object_data; // 0x008603b0, stride 0x0c, object data pointer at +0x08
 
 // hs_object_record: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
 
 static hs_object_record *hs_object_record_get(datum_index object_index)
 {
-    return *(hs_object_record **)((uint8_t *)object_headers->data +
+    return *(hs_object_record **)((uint8_t *)object_data->data +
         (object_index & 0xffff) * 0x0c + 8);
 }
 
@@ -63,7 +63,7 @@ void hs_object_runtime_cleanup(void)
     hs_object_record *object;
     datum_index object_index;
 
-    player_iter.data = players;
+    player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = (datum_index)0xffffffff;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;

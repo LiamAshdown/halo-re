@@ -25,7 +25,7 @@
 #include "game.h"
 #include <stdint.h>
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t network_game_mode;    // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88 (unknown_8c aliased 0x006f1d14)
@@ -53,7 +53,7 @@ void game_engine_koth_ball_idle_tick(uint32_t object_handle, object *obj)
         return;
     }
 
-    hdr = (object_header *)object_headers->data + (object_handle & 0xffff);
+    hdr = (object_header *)object_data->data + (object_handle & 0xffff);
     if ((hdr->flags & 0x08) != 0) { // UNSURE: header flags bit 0x08 (_object_header_delete_pending_bit)
         return;
     }
@@ -72,7 +72,7 @@ void game_engine_koth_ball_idle_tick(uint32_t object_handle, object *obj)
         if ((*(uint8_t *)((uint8_t *)obj + 0x22c) & 0x40) != 0) {
             data_iterator iter;
             void *element;
-            iter.data = object_headers; // UNSURE: iterator source not resolved
+            iter.data = object_data; // UNSURE: iterator source not resolved
             iter.next_index = 0;
             iter.index = (datum_index)0xffffffff;
             iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;

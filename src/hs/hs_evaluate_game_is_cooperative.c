@@ -12,9 +12,9 @@
 #include "hs.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern int16_t game_player_count_word; // 0x006894b8
+extern int16_t local_player_count; // 0x006894b8
 
 void hs_evaluate_game_is_cooperative(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)(game_player_count_word > 1), thread_index);
+    hs_thread_return((int32_t)(local_player_count > 1), thread_index);
 }

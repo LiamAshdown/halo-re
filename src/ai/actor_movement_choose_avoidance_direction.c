@@ -26,8 +26,8 @@
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
-extern uint32_t global_structure_bsp_value; // 0x00746f9c
-extern uint32_t global_structure_collision_bsp_value; // 0x00746f98
+extern uint32_t global_structure_bsp; // 0x00746f9c
+extern uint32_t global_structure_collision_bsp; // 0x00746f98
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
 extern double sqrt(double x);
@@ -89,8 +89,8 @@ void actor_movement_choose_avoidance_direction(uint32_t actor_index, real_vector
         }
     }
     obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    context.structure_bsp = global_structure_bsp_value;
-    context.collision_bsp = global_structure_collision_bsp_value;
+    context.structure_bsp = global_structure_bsp;
+    context.collision_bsp = global_structure_collision_bsp;
     context.unit_index = unit_index;
     object_get_position(&context.position, unit_index);
     context.forward = *(real_vector3d *)(obj + 0x74);

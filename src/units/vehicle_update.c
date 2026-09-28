@@ -33,12 +33,12 @@
 
 extern data_array *object_data;         // 0x008603b0
 extern tag_instance *tag_instances;     // 0x0087bc14
-extern int16_t game_connection_role;    // 0x00719720
+extern int16_t network_game_mode;    // 0x00719720
 extern int32_t vehicle_network_update_period; // 0x006f1cf0
 extern game_time_globals *game_time;    // 0x006f1d6c
 extern uint8_t unit_updates_suppressed; // 0x0071c419
-extern uint8_t *vehicle_altitude_band;  // 0x00746f9c, +0x10 floor / +0x14 ceiling (0 = none)
-extern uint8_t *globals_tag_data;       // 0x00746fa0
+extern uint8_t *global_structure_bsp;  // 0x00746f9c, +0x10 floor / +0x14 ceiling (0 = none)
+extern uint8_t *global_globals;       // 0x00746fa0
 
 extern double atan2(double y, double x); // fpatan
 extern double fabs(double x);
@@ -88,7 +88,7 @@ uint32_t vehicle_update(uint32_t object_index)
     static uint8_t node_output[0xc00];     // [esp+0x88]
     static uint8_t contact_points[0x2600]; // [esp+0xc88]
 
-    if (game_connection_role == 2 && *(int32_t *)(obj + 0x5ac) != -1 && vehicle_network_update_period != 0 &&
+    if (network_game_mode == 2 && *(int32_t *)(obj + 0x5ac) != -1 && vehicle_network_update_period != 0 &&
         game_time->game_time >= *(int32_t *)(obj + 0x5ac) + vehicle_network_update_period) {
         if (vector3d_distance((real_point3d *)(obj + 0x5b4), (real_point3d *)(obj + 0x5c)) > 1.5f &&
             unit_get_recently_updated_flag(object_index) == 1 && !unit_has_child_of_type5(object_index)) {
@@ -258,8 +258,8 @@ uint32_t vehicle_update(uint32_t object_index)
             if (!(*(uint32_t *)(obj + 0x10) & 0x1000000) &&
                 ((1u << (*(uint8_t *)(tag + 0x2f4) & 0x1f)) & 0x28)) {
                 // 0x571686: stay inside the altitude band
-                float floor_z = F(vehicle_altitude_band, 0x10);
-                float ceiling_z = F(vehicle_altitude_band, 0x14);
+                float floor_z = F(global_structure_bsp, 0x10);
+                float ceiling_z = F(global_structure_bsp, 0x14);
 
                 if (floor_z != 0.0f && F(obj, 0x64) < floor_z) {
                     F(obj, 0x70) += ((floor_z - F(obj, 0x64)) * 0.015625f - F(obj, 0x70) * 0.0625f) * F(obj, 0x338);
@@ -275,7 +275,7 @@ uint32_t vehicle_update(uint32_t object_index)
 
         // 0x571744: hard landings hurt the riders
         if ((*(uint32_t *)(tag + 0x2f0) & 0x40) && !unit_updates_suppressed) {
-            uint8_t *impact = *(uint8_t **)(globals_tag_data + 0x18c);
+            uint8_t *impact = *(uint8_t **)(global_globals + 0x18c);
 
             if (F(obj, 0x70) < -F(impact, 0x8c)) {
                 datum_index child = *(datum_index *)(obj + 0x118);

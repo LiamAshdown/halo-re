@@ -28,7 +28,7 @@
 #include <string.h>
 
 extern uint32_t network_game_socket_port; // 0x00698208
-extern int32_t interface_loading_screen_text_buffer; // 0x006b2f28, UNSURE identity/type; see
+extern int32_t progress_screen_text; // 0x006b2f28, UNSURE identity/type; see
     // network_join_request_resolve_host.c for the same global under this name
 extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source); // 0x557990, this module's established signature
 
@@ -73,7 +73,7 @@ uint32_t network_game_client_connect_to_address(wchar_t *player_name, char *addr
     if (address_string == 0) {
         // Unreachable in practice: the copy loop above already dereferenced address_string
         // unconditionally, so a real NULL would have faulted before this point. Kept verbatim.
-        interface_loading_screen_text_buffer = 0;
+        progress_screen_text = 0;
     } else {
         string_convert_ascii_to_unicode(0, 0, address_string); // UNSURE: elided register arguments; dest/dest_bytes
             // guessed from this module's established string_convert_ascii_to_unicode(dest, dest_bytes, source) shape

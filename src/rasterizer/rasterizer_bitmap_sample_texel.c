@@ -25,7 +25,7 @@ extern int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, i
 extern void dxt1_decode_block_texel(void *out, void *block, int32_t x, int32_t y); // 0x43ffe0, EAX, stack
 extern void dxt3_decode_alpha_texel(int32_t x, int32_t y, void *texel_out, void *block); // 0x440150, BL, SI, EDI, stack
 extern void dxt5_decode_alpha_texel(void *block, void *texel_out, int32_t x, int32_t y); // 0x440190, EBX, stack
-extern int8_t rasterizer_bitmap_format_bits_per_pixel[]; // 0x006571f4, indexed by format
+extern int8_t bitmap_format_bits_per_pixel[]; // 0x006571f4, indexed by format
 extern long lrint(double x);
 
 typedef struct locked_rect {
@@ -101,7 +101,7 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
     texel = width;
     if (compressed) {
         int16_t format = *(int16_t *)(data + 0xc);
-        int32_t block_bytes = ((int32_t)rasterizer_bitmap_format_bits_per_pixel[format] * 16) / 8;
+        int32_t block_bytes = ((int32_t)bitmap_format_bits_per_pixel[format] * 16) / 8;
         int32_t block_row = (int16_t)(y / 4);
         int32_t block_index = (block_row * width) / 4 + (int16_t)(x / 4);
         uint8_t *block = locked.bits + block_index * (int16_t)block_bytes;

@@ -24,7 +24,7 @@
 
 extern d3dx_macro rasterizer_effect_defines[2];                      // 0x007c0460, NULL-terminated
 extern void *rasterizer_effect_pool;                                  // 0x0071d254
-extern int32_t rasterizer_config_shader_version; // 0x00722b64 config pixel shader version (0x270e selects ps_2_a)
+extern int32_t config_force_shader; // 0x00722b64 config pixel shader version (0x270e selects ps_2_a)
 extern const char *rasterizer_shader_file_name;                       // 0x00722bbc
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 
@@ -54,7 +54,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
 
     rasterizer_effect_defines[0].name = "PS_2_0_TARGET";
     rasterizer_effect_defines[0].definition = "ps_2_a";
-    if (rasterizer_config_shader_version != 0x270e) {
+    if (config_force_shader != 0x270e) {
         rasterizer_effect_defines[0].definition = "ps_2_0";
     }
     rasterizer_effect_defines[1].name = 0;

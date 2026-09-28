@@ -22,7 +22,7 @@
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant;            // 0x006f1c88
 extern data_array *player_data;                     // 0x0087a480
-extern data_array *object_headers;                  // 0x008603b0
+extern data_array *object_data;                  // 0x008603b0
 
 // blam-cc: EAX -> player
 // While a multiplayer engine is running and the active variant has flag bit 3 set (UNSURE:
@@ -43,7 +43,7 @@ void game_engine_clear_unit_shields_when_disabled(datum_index player_handle)
         return;
     }
 
-    unit_obj = ((object_header *)object_headers->data)[p->unit & 0xffff].data;
+    unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
     unit_obj->shield_vitality = 0.0f;
     unit_obj->maximum_shield_vitality = 0.0f;
 }

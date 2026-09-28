@@ -23,7 +23,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
 
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference,
@@ -51,10 +51,10 @@ void ai_reference_detach_actors_from_encounters(uint32_t packed_reference)
     while (a != 0) {
         actor_movement_action_cancel(iterator.actor_index);
         encounter_remove_actor(iterator.actor_index, 0);
-        if (ai_global_data->actors_valid != 0) {
+        if (ai_globals_ptr->actors_valid != 0) {
             self = &((actor *)actor_data->data)[iterator.actor_index & 0xffff];
-            self->next_in_encounter = ai_global_data->unknown_08;
-            ai_global_data->unknown_08 = iterator.actor_index;
+            self->next_in_encounter = ai_globals_ptr->unknown_08;
+            ai_globals_ptr->unknown_08 = iterator.actor_index;
             self->unknown_09 = 1;
             *(uint16_t *)&self->unknown_10[0] =
                 (uint16_t)(-(uint16_t)(self->active != 0) & 0x5a);

@@ -12,7 +12,7 @@
 // holding literal return addresses instead of real arguments, the same class of failure noted
 // in src/structures/structure_picked_polygon_draw.c. This rewrite instead reconstructs every
 // vtable call from `objdump -d -M intel --start-address=0x4d8620 --stop-address=0x4d8a20`,
-// matching the `void **device = *rasterizer_device_ptr; (*(fn**)((uint8_t*)device+offset))(...)`
+// matching the `void **device = *rasterizer_device; (*(fn**)((uint8_t*)device+offset))(...)`
 // idiom that file already established for the same global. Ordinary direct calls (sprintf,
 // chimera__draw_8_bit_text, rasterizer_set_shader_stage_config, hud_text_draw_configure, __ftol) were
 // decompiled correctly by Ghidra and are taken from its output as-is (folding __ftol into a
@@ -51,23 +51,23 @@
 #include "networking.h"
 #include <stdio.h>
 
-extern void ***rasterizer_device_ptr; // 0x0071d174, foreign render module (read, not owned);
+extern void ***rasterizer_device; // 0x0071d174, foreign render module (read, not owned);
     // same global and access idiom as src/structures/structure_picked_polygon_draw.c
 
 extern uint32_t renderer_unknown_6e1af0; // 0x006e1af0, foreign render module, UNSURE
 extern uint32_t renderer_unknown_6e1af8; // 0x006e1af8, foreign render module, UNSURE
 extern uint32_t renderer_unknown_69e468; // 0x0069e468, foreign render module, UNSURE
-extern uint8_t renderer_feature_flag_69c680; // 0x0069c680, foreign render module; used
+extern uint8_t rasterizer_software_vertex_processing; // 0x0069c680, foreign render module; used
     // elsewhere (out/phase2/results/rasterizer_03.json) as a skinning/blend-style flag
 
 extern network_screen_point network_stats_overlay_text_rect_min; // 0x007c1254, UNSURE owner
 extern network_screen_point network_stats_overlay_text_rect_max; // 0x007c1258, UNSURE owner
 
-extern float renderer_text_color_alpha; // 0x006e4738
-extern float renderer_text_color_red; // 0x006e473c
-extern float renderer_text_color_green; // 0x006e4740
-extern float renderer_text_color_blue; // 0x006e4744
-extern uint16_t renderer_text_color_flags; // 0x006e4748
+extern float hud_text_draw_color_a; // 0x006e4738
+extern float hud_text_draw_color_r; // 0x006e473c
+extern float hud_text_draw_color_g; // 0x006e4740
+extern float hud_text_draw_color_b; // 0x006e4744
+extern uint16_t hud_text_draw_background_mode; // 0x006e4748
 extern const char *decimal_format_string; // 0x0065fb30, the literal "%d"
 
 extern void rasterizer_set_shader_stage_config(int32_t stage); // 0x519200, blam-cc: EAX -> stage, outside this batch
@@ -115,7 +115,7 @@ static void device_call_mode_ptr_count(void **device, uint32_t vtable_offset, in
 // blam-cc: ESI -> graph
 void network_stats_overlay_draw(network_bandwidth_graph *graph)
 {
-    void **device = *rasterizer_device_ptr;
+    void **device = *rasterizer_device;
     float delta_y, delta_x;
     float label_quad[13] = { 0 }; // see file header: indices 0,1,2,5,7,9 are never written,
                                   // matching the original's uninitialized stack slots there
@@ -123,7 +123,7 @@ void network_stats_overlay_draw(network_bandwidth_graph *graph)
     device_call1(device, 0x15c, (int32_t)renderer_unknown_6e1af0);
 
     {
-        uint32_t flag = ((renderer_feature_flag_69c680 != 0) ? 0x10u : 0u) & 0x10u;
+        uint32_t flag = ((rasterizer_software_vertex_processing != 0) ? 0x10u : 0u) & 0x10u;
         flag = (flag | renderer_unknown_6e1af8) & 0x10u;
         device_call1(device, 0x134, (int32_t)flag);
     }
@@ -172,11 +172,11 @@ void network_stats_overlay_draw(network_bandwidth_graph *graph)
     device_draw_primitive_up(device, 3, 4, (uint8_t *)graph + 0x44, sizeof(network_graph_vertex));
 
     hud_text_draw_configure(1, -1, 0, 0, 5, 0); // see file header UNSURE note
-    renderer_text_color_alpha = 1.0f;
-    renderer_text_color_red = 1.0f;
-    renderer_text_color_green = 1.0f;
-    renderer_text_color_blue = 1.0f;
-    renderer_text_color_flags = 0;
+    hud_text_draw_color_a = 1.0f;
+    hud_text_draw_color_r = 1.0f;
+    hud_text_draw_color_g = 1.0f;
+    hud_text_draw_color_b = 1.0f;
+    hud_text_draw_background_mode = 0;
 
     {
         char text[128]; // matches Ghidra's acStack_330 usage, only ever holding short printed numbers/labels
@@ -192,7 +192,7 @@ void network_stats_overlay_draw(network_bandwidth_graph *graph)
         chimera__draw_8_bit_text(0, 0, text);
     }
 
-    device_call1(device, 0x134, (int32_t)renderer_feature_flag_69c680);
+    device_call1(device, 0x134, (int32_t)rasterizer_software_vertex_processing);
 }
 
 #if 0

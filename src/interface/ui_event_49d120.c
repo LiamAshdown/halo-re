@@ -15,14 +15,14 @@
 #include "cache.h"
 #include "interface.h"
 
-extern uint8_t main_globals_byte_0071973c; // 0x0071973c
+extern uint8_t network_join_error_reason; // 0x0071973c
 extern uint8_t main_globals_byte_0071974f; // 0x0071974f
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, word stores
 extern uint8_t unknown_00719738; // 0x00719738, UNSURE
 
 uint8_t ui_event_49d120(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    main_globals_byte_0071973c = 0;
+    network_join_error_reason = 0;
     main_globals_byte_0071974f = 0;
     split_screen_quit_prompt_string = 0xffff;
     unknown_00719738 = 1;

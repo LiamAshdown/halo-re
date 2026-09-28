@@ -17,7 +17,7 @@
 //     before the real `mov eax,[0x69e270]; test eax,eax; je ...` null check. The first compare is
 //     always false (eax is freshly zeroed and 0x69e270 is a nonzero immediate), so it can never
 //     branch; it is omitted here as dead code rather than transcribed literally.
-//   - Case 3 ("Max") and case 4 ("Min") each have a sub-path (taken when unknown_00722b7c is
+//   - Case 3 ("Max") and case 4 ("Min") each have a sub-path (taken when config_min_max_blend_op_is_broken is
 //     nonzero) that renders with an additive blend and the FlashLighten technique
 //     (screen_flash_techniques[0]) instead of their own technique -- confirmed by direct
 //     disassembly of the SetTechnique argument, not a copy/paste mistake in this rewrite.
@@ -42,7 +42,7 @@ extern d3d_caps9 rasterizer_caps;                                     // 0x007c1
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 extern uint8_t rasterizer_software_vertex_processing;                 // 0x0069c680
-extern int32_t unknown_00722b7c; // 0x00722b7c flag selecting the additive + BLENDFACTOR fallback for the Max and Min flash blends
+extern int32_t config_min_max_blend_op_is_broken; // 0x00722b7c flag selecting the additive + BLENDFACTOR fallback for the Max and Min flash blends
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
@@ -150,7 +150,7 @@ void rasterizer_screen_flash_render(void)
             break;
 
         case 3: // Max
-            if (unknown_00722b7c != 0) {
+            if (config_min_max_blend_op_is_broken != 0) {
                 uint32_t clamped = pack_argb_bytes_clamped_alpha(color, intensity);
                 set_render_state(0x13, 5);  // SRCBLEND = SRCALPHA
                 set_render_state(0x14, 6);  // DESTBLEND = SRCCOLOR
@@ -175,7 +175,7 @@ void rasterizer_screen_flash_render(void)
             break;
 
         case 4: // Min
-            if (unknown_00722b7c != 0) {
+            if (config_min_max_blend_op_is_broken != 0) {
                 uint32_t clamped = pack_argb_bytes_clamped_alpha(color, intensity);
                 set_render_state(0x13, 5);  // SRCBLEND = SRCALPHA
                 set_render_state(0x14, 6);  // DESTBLEND = SRCCOLOR

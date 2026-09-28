@@ -23,10 +23,10 @@
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
-extern float unknown_0087aa14[1]; // 0x0087aa14, UNSURE: see header (game.h has this as int32_t)
+extern float game_engine_nameplate_fade_opacity_array[1]; // 0x0087aa14, UNSURE: see header (game.h has this as int32_t)
 
 // blam-cc: EAX -> player_handle
-// Returns whether `player_handle` is a local player whose slot in unknown_0087aa14 is <= 0.0
+// Returns whether `player_handle` is a local player whose slot in game_engine_nameplate_fade_opacity_array is <= 0.0
 // (true), or whether the checks don't apply (no multiplayer engine, invalid handle, not a local
 // player) -- also true in those cases. False only when the engine is running, the handle is
 // valid, it is a local player, and its value is > 0.0.
@@ -42,7 +42,7 @@ uint8_t game_engine_local_player_score_is_nonpositive(datum_index player_handle)
     p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
     local_player_index = p->local_player_index;
     if (local_player_index != -1) {
-        if (unknown_0087aa14[local_player_index] > 0.0f) {
+        if (game_engine_nameplate_fade_opacity_array[local_player_index] > 0.0f) {
             return 0;
         }
     }

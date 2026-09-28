@@ -19,7 +19,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern char empty_string_0065512c; // 0x0065512c, the shared MSVC empty std::string/char literal
+extern char k_empty_string; // 0x0065512c, the shared MSVC empty std::string/char literal
 
 // Tokenizes the raw Halo command line into a GlobalAlloc'd argv-style array of substring
 // pointers, writing the token count out through out_count. argv[0] is always the shared empty
@@ -90,7 +90,7 @@ char **command_line_parse_to_argv(char *command_line, int32_t *out_count)
 
     *out_count = token_count + 1;
     argv = (char **)GlobalAlloc(0, (uint32_t)(token_count + 1) * 4);
-    argv[0] = &empty_string_0065512c;
+    argv[0] = &k_empty_string;
 
     // Pass 3: record each token's start pointer, then trim its trailing whitespace in place.
     i = 0;

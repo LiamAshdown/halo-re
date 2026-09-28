@@ -5,7 +5,7 @@
 // network message types to a single target machine, likely used to resync a newly joined
 // client."); build_remote_player_vehicle_update.c / build_remote_player_vehicle_attachment_update.c
 // (this batch, the same per-player broadcast-cache offsets 0x130/0x16c/0x170.../0x188..); the
-// established network_object_update_scratch buffer (0x00871de0, this batch's
+// established network_message_scratch buffer (0x00871de0, this batch's
 // network_game_broadcast_player_set_changed.c) as message_delta_encode_message's shared output.
 // register convention: EBX -> player_index (unaff_EBX in the decompile).
 //   // blam-cc: EBX -> player_index
@@ -23,11 +23,10 @@
 #include "networking.h"
 
 extern data_array *player_data; // 0x0087a480
-extern void *remote_player_index_remap_table; // 0x00687558
-extern uint8_t network_object_update_scratch[0x7ff8]; // 0x00871de0
+extern void *machine_table; // 0x00687558
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
-extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits,
@@ -56,7 +55,7 @@ void build_player_full_resync_update(uint32_t player_index)
     header.baseline_id = *(uint8_t *)(cache + 300);
     network_hash = 0;
     if (player_index != 0xffffffff) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)remote_player_index_remap_table + 0x0c), player_index);
+        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), player_index);
         if (network_hash == -1) {
             network_hash = 0;
         }
@@ -68,13 +67,13 @@ void build_player_full_resync_update(uint32_t player_index)
     previous_ptr = &network_hash;
     encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x25, (int32_t)&previous_ptr,
         &items_ptr, 0, 1, '\0');
-    network_session_send_to_machine(1, network_object_update_scratch, encoded_size, 1, 0, 0, 1);
+    network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 1);
 
     header.update_id = *(uint8_t *)(cache + 0x16c);
     header.baseline_id = 0;
     network_hash = 0;
     if (player_index != 0xffffffff) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)remote_player_index_remap_table + 0x0c), player_index);
+        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), player_index);
         if (network_hash == -1) {
             network_hash = 0;
         }
@@ -86,13 +85,13 @@ void build_player_full_resync_update(uint32_t player_index)
     previous_ptr = &network_hash;
     encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x27, (int32_t)&previous_ptr,
         &items_ptr, 0, 1, '\0');
-    network_session_send_to_machine(1, network_object_update_scratch, encoded_size, 1, 0, 0, 1);
+    network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 1);
 
     header.update_id = *(uint8_t *)(cache + 0x16c);
     header.baseline_id = 0;
     network_hash = 0;
     if (player_index != 0xffffffff) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)remote_player_index_remap_table + 0x0c), player_index);
+        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), player_index);
         if (network_hash == -1) {
             network_hash = 0;
         }
@@ -104,7 +103,7 @@ void build_player_full_resync_update(uint32_t player_index)
     previous_ptr = &network_hash;
     encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x28, (int32_t)&previous_ptr,
         &items_ptr, 0, 1, '\0');
-    network_session_send_to_machine(1, network_object_update_scratch, encoded_size, 1, 0, 0, 1);
+    network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 1);
 }
 
 #if 0

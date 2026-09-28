@@ -38,7 +38,7 @@
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances;  // 0x0087bc14, types/cache.h, stride 0x20, tag data at +0x14
 extern data_array *player_data;      // 0x0087a480, "players"
-extern void *sound_creation_origin;  // 0x006966f8, types/devices.h (points at global_origin3d 0x0065c230)
+extern void *global_zero_vector3d_pointer;  // 0x006966f8, types/devices.h (points at global_origin3d 0x0065c230)
 extern real_vector3d *global_forward3d_pointer;  // 0x00696718, types/math.h
 
 extern int16_t item_type_to_message_stage(int16_t item_type_code);   // 0x4927c0, this module
@@ -142,7 +142,7 @@ void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_ty
         }
     }
 
-    sound_start_at_object_marker((datum_index)object_or_slot_index, sound_creation_origin, global_forward3d_pointer,
+    sound_start_at_object_marker((datum_index)object_or_slot_index, global_zero_vector3d_pointer, global_forward3d_pointer,
                  (datum_index)message_index, -1, 1.0f, has_carried_object);
 }
 

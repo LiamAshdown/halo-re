@@ -33,11 +33,11 @@ extern int32_t quality_selection_00692b04;         // 0x00692b04
 extern int32_t resolution_row_count_table_0065bfb4[5][1]; // 0x0065bfb4
 extern int32_t resolution_selection_00719204;      // 0x00719204
 extern int32_t resolution_index_table_0065bf74[];  // 0x0065bf74
-extern uint32_t resolution_selected_value_00699584; // 0x00699584
-extern uint32_t local_ip_address_006869b4;          // 0x006869b4, TYPES-GAP
+extern uint32_t sv_maxplayers_value; // 0x00699584
+extern uint32_t network_resolved_local_address;          // 0x006869b4, TYPES-GAP
 extern uint16_t local_port_006869b6;                 // 0x006869b6, TYPES-GAP
 extern uint16_t ip_port_format_string_0066a564[];    // 0x0066a564, TYPES-GAP (format string)
-extern uint32_t port_format_arg_00698208;             // 0x00698208, TYPES-GAP
+extern uint32_t network_game_socket_port;             // 0x00698208, TYPES-GAP
 extern uint8_t profile_globals_block[0x60a4];         // 0x00712dd8
 
 extern heap *widget_memory_pool; // 0x006926c4
@@ -110,7 +110,7 @@ void ui_network_host_setup_refresh(widget_instance *widget)
             resolution_selection_00719204 = resolution_row_count;
         }
     }
-    resolution_selected_value_00699584 = resolution_index_table_0065bf74[resolution_index];
+    sv_maxplayers_value = resolution_index_table_0065bf74[resolution_index];
     if (row->parent->focused_child == row) {
         tab_index = 7;
     }
@@ -120,10 +120,10 @@ void ui_network_host_setup_refresh(widget_instance *widget)
     ip_control = row->first_child->next_sibling;
     ip_control->text = heap_reallocate(ip_control->text, 0x40, widget_memory_pool);
     if (ip_control->text != (void *)0) {
-        // Byte-swaps local_ip_address_006869b4 into network order before formatting it as a string.
-        uint32_t swapped = ((local_ip_address_006869b4 << 0x10 | local_ip_address_006869b4 & 0xff00 |
-                             local_ip_address_006869b4 >> 0x10 & 0xff) << 8) |
-                            (local_ip_address_006869b4 >> 0x18);
+        // Byte-swaps network_resolved_local_address into network order before formatting it as a string.
+        uint32_t swapped = ((network_resolved_local_address << 0x10 | network_resolved_local_address & 0xff00 |
+                             network_resolved_local_address >> 0x10 & 0xff) << 8) |
+                            (network_resolved_local_address >> 0x18);
         struct in_addr swapped_address;
         char *text;
 
@@ -137,7 +137,7 @@ void ui_network_host_setup_refresh(widget_instance *widget)
         string_convert_ascii_to_unicode();
         string_format_wide_va_bounded(
             (wchar_t *)((uint8_t *)ip_control->text + (int32_t)((text - end)) * 2),
-            (const wchar_t *)ip_port_format_string_0066a564, port_format_arg_00698208);
+            (const wchar_t *)ip_port_format_string_0066a564, network_game_socket_port);
         ((uint16_t *)ip_control->text)[0x1f] = 0;
     }
 

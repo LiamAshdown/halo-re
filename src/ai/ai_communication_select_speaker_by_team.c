@@ -41,7 +41,7 @@
 extern data_array *encounter_data; // 0x008802c8
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint8_t *team_relationship_flags; // 0x006b0b84, a POINTER to the team-relationship block (+0x94 / +0xa4 10x10 bit matrices); the draft used the pointer's own address as the block
+extern uint8_t *team_pair_data; // 0x006b0b84, a POINTER to the team-relationship block (+0x94 / +0xa4 10x10 bit matrices); the draft used the pointer's own address as the block
 extern char ai_marker_name_a[];    // 0x0066bfa0
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
@@ -116,7 +116,7 @@ datum_index ai_communication_select_speaker_by_team(int16_t match_mode, datum_in
                 accept = (uint8_t)(team != other_team);
             } else if (team >= 0 && team < 10 && other_team >= 0 && other_team < 10) {
                 pair = (int32_t)other_team + (int32_t)team * 10;
-                accept = (uint8_t)(((*(uint32_t *)(team_relationship_flags + 0xa4 + (pair >> 5) * 4)) &
+                accept = (uint8_t)(((*(uint32_t *)(team_pair_data + 0xa4 + (pair >> 5) * 4)) &
                                     (1u << ((uint8_t)pair & 0x1f))) == 0);
             }
             if (match_mode == 0) {

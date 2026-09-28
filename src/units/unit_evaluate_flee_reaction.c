@@ -34,7 +34,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
     real_vector3d *out_normal, float distance, real_point3d *out_position); // 0x55aa20, ECX, ESI, EBX, stack
 extern real_vector3d *global_down3d_pointer; // 0x0069672c
-extern float global_gravity; // 0x0069c52c
+extern float k_physics_gravity; // 0x0069c52c
 
 // Evaluates whether a (typically vehicle-mounted) unit should flee or evade: gated on the
 // parent vehicle's Unit-tag flag 0x40 (UNSURE), the unit having an actor and not being mid
@@ -63,7 +63,7 @@ void unit_evaluate_flee_reaction(uint32_t object_index)
         if (unit_test_placement_candidate(object_index, global_down3d_pointer, 0, 8.0f, 0) == -1) {
             direction.i = parent->velocity.i * 60.0f;
             direction.j = parent->velocity.j * 60.0f;
-            direction.k = parent->velocity.k * 60.0f - global_gravity * 1800.0f;
+            direction.k = parent->velocity.k * 60.0f - k_physics_gravity * 1800.0f;
             if (!(vector3d_normalize_with_length(&direction) > 0.0f) ||
                 unit_test_placement_candidate(object_index, &direction, &normal, 8.0f, 0) == -1 ||
                 !(normal.k > 0.3f)) {

@@ -40,7 +40,7 @@
 extern int16_t network_game_mode;    // 0x00719720
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
-extern data_array *object_headers;   // 0x008603b0
+extern data_array *object_data;   // 0x008603b0
 
 extern void object_placement_data_initialize(object_placement_data *placement,
     datum_index definition_tag, datum_index role); // 0x4f53a0
@@ -76,7 +76,7 @@ datum_index player_spawn_starting_profile_weapon(TagDependency *weapon_dependenc
         }
 
         if (new_object != (datum_index)0xffffffff) {
-            weapon_data *weapon = (weapon_data *)((uint8_t *)((object_header *)object_headers->data)[new_object & 0xffff].data +
+            weapon_data *weapon = (weapon_data *)((uint8_t *)((object_header *)object_data->data)[new_object & 0xffff].data +
                 k_item_extension_offset); // weapon_data starts at object +0x22c (0x4778a0 writes +0x2b6)
             weapon->magazines[0].rounds_unloaded = *(int16_t *)((uint8_t *)weapon_dependency + 0x12);
             weapon->magazines[0].rounds_loaded = *(int16_t *)((uint8_t *)weapon_dependency + 0x10);

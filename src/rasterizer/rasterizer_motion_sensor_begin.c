@@ -23,7 +23,7 @@
 extern void *rasterizer_device;                    // 0x0071d174
 extern Globals *global_globals;                    // 0x00746fa0
 extern tag_instance *tag_instances;                // 0x0087bc14
-extern uint8_t unknown_0069c689;                   // 0x0069c689
+extern uint8_t rasterizer_caps_flag_689;                   // 0x0069c689
 extern uint8_t console_debug_toggle_689403;        // 0x00689403 motion sensor rendering enabled
 extern uint8_t rasterizer_motion_sensor_ready;     // 0x0071d205
 extern uint8_t rasterizer_software_vertex_processing; // 0x0069c680
@@ -89,7 +89,7 @@ void rasterizer_motion_sensor_begin(void)
     goo_bitmap = first_bitmap_data(*(uint32_t *)(interface_bitmaps + 0xdc));  // interface_goo_map1
 
     rasterizer_motion_sensor_ready = 0;
-    if (unknown_0069c689 || !console_debug_toggle_689403) {
+    if (rasterizer_caps_flag_689 || !console_debug_toggle_689403) {
         return;
     }
     if (texture_cache_get(blip_bitmap, 0, 1) == NULL) {

@@ -5,7 +5,7 @@
 // 0x28")
 // rewrite confidence: 0.55
 // evidence: types/objects.h light_transient (every field) and its global table at 0x008609cc,
-// k_maximum_transient_lights (8), light_transient_count (0x00860b0c); DAT_007c310a is the same
+// k_maximum_transient_lights (8), light_transient_count (0x00860b0c); render_window_index is the same
 // unresolved byte used by object_lights_update_all.c's queue path.
 // UNSURE: vector3d_pack_normal_11_11_10 is called twice with zero visible arguments and its results are stored
 // into light_transient.unknown_10/unknown_14; what it actually computes is not established.
@@ -24,7 +24,7 @@
 extern int16_t light_transient_count;        // 0x00860b0c
 extern light_transient light_transient_table[k_maximum_transient_lights]; // 0x008609cc
 extern tag_instance *tag_instances;           // 0x0087bc14
-extern uint8_t DAT_007c310a;                  // UNSURE: not owned by this module
+extern uint8_t render_window_index;                  // UNSURE: not owned by this module
 
 extern uint32_t color_real_to_argb_pack(float alpha, real_vector3d *color); // 0x44da60
 extern uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction); // 0x5132d0, ESI
@@ -43,7 +43,7 @@ void light_transient_add(datum_index light_tag, real_vector3d *color, real_point
         // 0x4f16a4: ESI = the second and third stack arguments (the light's forward and up)
         slot->unknown_10 = vector3d_pack_normal_11_11_10((real_vector3d *)param_2);
         slot->unknown_14 = vector3d_pack_normal_11_11_10((real_vector3d *)param_3);
-        slot->unknown_22 = DAT_007c310a;
+        slot->unknown_22 = render_window_index;
         slot->unknown_1e = -1;
         slot->unknown_1c = -1;
         slot->slot_index = light_transient_count;

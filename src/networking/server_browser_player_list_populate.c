@@ -22,7 +22,7 @@
 #include "networking.h"
 #include <wchar.h>
 
-extern wchar_t DAT_00669cc8[]; // default player-name string, see UNSURE
+extern wchar_t hud_text_unbound[]; // default player-name string, see UNSURE
 
 extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
 extern char *SBServerGetPlayerStringValue(void *entry, int32_t index, const char *key, const char *default_value); // 0x617530 SBServerGetPlayerStringValue
@@ -62,7 +62,7 @@ int32_t server_browser_player_list_populate(void *entry)
         do {
             name = SBServerGetPlayerStringValue(entry, i, "player", 0); // FIXED 2026-09-28: 0x4b7450 pushes (server, index, key, NULL)
             if (name == 0) {
-                swprintf(row, 0x100, L"  %s %d     ", DAT_00669cc8, 0);
+                swprintf(row, 0x100, L"  %s %d     ", hud_text_unbound, 0);
             } else {
                 score = SBServerGetPlayerStringValue(entry, i, "score", "--"); // FIXED 2026-09-28: default "--" (0x0066b038) at 0x4b7486
                 swprintf(row, 0x100, L"  %S %S     ", name, score);

@@ -38,13 +38,13 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480
-extern int16_t game_connection_role; // 0x00719720: 1 = client
+extern int16_t network_game_mode; // 0x00719720: 1 = client
 extern game_time_globals *game_time; // 0x006f1d6c
 extern network_client_globals *network_client;
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t is_dedicated_server_flag; // 0x00724a44
 extern Globals *global_globals;
-extern uint8_t network_index_cache_container[]; // 0x006870d8
+extern uint8_t network_object_index_cache[]; // 0x006870d8
 
 extern real random_real_range(real min, real max); // 0x401050
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
@@ -179,7 +179,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (game_connection_role == 1) {
+    if (network_game_mode == 1) {
         uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
 
         if (player != 0 && *(int16_t *)(player + 2) == -1) {
@@ -199,7 +199,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (game_connection_role != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
         return;
     }
@@ -276,7 +276,7 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
             goto stunned;
         }
         self = (uint8_t *)object_try_and_get(unit_index, 3);
-        if (self == 0 || game_connection_role == 1 ||
+        if (self == 0 || network_game_mode == 1 ||
             (vehicle_index = *(datum_index *)(self + 0x11c)) == k_datum_index_none ||
             *(int16_t *)(self + 0x2f0) == -1) {
             goto record_check;
@@ -466,7 +466,7 @@ local_reactions:
             record.unit = unit_index;
             unit_broadcast_state_change_event(record);
             if ((OBJECT_HEADER(unit_index).flags & 8) == 0) {
-                network_index_cache_remove(network_index_cache_container, (int32_t)unit_index);
+                network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
             }
             *(int32_t *)(obj + 0x4) = 3;
         }

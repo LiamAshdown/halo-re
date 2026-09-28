@@ -7,8 +7,8 @@
 // register convention: material index in AX (in_AX), a tag id in ECX (in_ECX) -- no stack
 //   arguments at all.
 //   // blam-cc: AX -> material_index, ECX -> unit_tag_id, EDX -> object_index
-// UNSURE: DAT_006e3208 is a fallback material-effect record this function initializes once
-//   (via the DAT_00721e4c latch and DAT_006e3578) when the index is out of range; only its
+// UNSURE: material_table_fallback is a fallback material-effect record this function initializes once
+//   (via the material_table_warning_issued latch and material_table_bad_index) when the index is out of range; only its
 //   +0x370 field (the effect tag) is touched here, so it is declared as an opaque byte array.
 // UNSURE: tag+0x120 (relative to whatever tag unit_tag_id names) lands in objects.h's
 //   undocumented _pad_110 padding; kept as a raw offset.
@@ -19,14 +19,14 @@
 #include "cache.h"
 #include "objects.h"
 
-extern uint8_t *globals_tag_data;   // 0x00746fa0
+extern uint8_t *global_globals;   // 0x00746fa0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t DAT_00721e4c;        // UNSURE: one-time-init latch for the fallback record
-extern int32_t DAT_006e3578;        // UNSURE: a field of the fallback record, zeroed on init
-extern uint8_t DAT_006e3208[0x374]; // UNSURE: fallback material-effect record, this module only
+extern uint8_t material_table_warning_issued;        // UNSURE: one-time-init latch for the fallback record
+extern int32_t material_table_bad_index;        // UNSURE: a field of the fallback record, zeroed on init
+extern uint8_t material_table_fallback[0x374]; // UNSURE: fallback material-effect record, this module only
                                      //   reads +0x370 of it
 
-extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
@@ -41,18 +41,18 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
 {
     uint8_t *material_record;
 
-    if (material_index < 0 || material_index >= *(int32_t *)(globals_tag_data + 0x194)) {
-        if (DAT_00721e4c == 0) {
-            DAT_006e3578 = -1;
-            DAT_00721e4c = 1;
+    if (material_index < 0 || material_index >= *(int32_t *)(global_globals + 0x194)) {
+        if (material_table_warning_issued == 0) {
+            material_table_bad_index = -1;
+            material_table_warning_issued = 1;
         }
-        material_record = DAT_006e3208;
+        material_record = material_table_fallback;
     } else {
-        material_record = *(uint8_t **)(globals_tag_data + 0x198) + material_index * 0x374;
+        material_record = *(uint8_t **)(global_globals + 0x198) + material_index * 0x374;
     }
 
     if (*(datum_index *)(material_record + 0x370) != k_datum_index_none) {
-        sound_start_at_object_marker(object_index, (Point3D *)global_zero_point3d_pointer,
+        sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
             (Vector3D *)global_forward3d_pointer, *(datum_index *)(material_record + 0x370), -1, 1.0f, 0);
     }
 
@@ -60,7 +60,7 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
         uint8_t *tag_data = tag_instances[unit_tag_id & 0xffff].data;
         datum_index effect = *(datum_index *)(tag_data + 0x120);
         if (effect != k_datum_index_none) {
-            sound_start_at_object_marker(object_index, (Point3D *)global_zero_point3d_pointer,
+            sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
                 (Vector3D *)global_forward3d_pointer, effect, -1, 1.0f, 0);
         }
     }

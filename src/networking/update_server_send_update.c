@@ -40,10 +40,10 @@ extern double cos(double x); // FCOS
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int16_t network_game_mode;               // 0x00719720
-extern data_array *update_server_globals;       // 0x0087a478, UNSURE identity/type
-extern uint32_t local_player_control_data[8];   // 0x006f7ea4, UNSURE identity: 8 floats copied
+extern data_array *local_player_globals;       // 0x0087a478, UNSURE identity/type
+extern uint32_t update_client_staged[8];   // 0x006f7ea4, UNSURE identity: 8 floats copied
                                                  // into the position/orientation record
-extern uint32_t update_checksum_seed;           // 0x0087a480, UNSURE identity
+extern uint32_t player_data;           // 0x0087a480, UNSURE identity
 extern void *message_delta_definition_table;    // 0x00871de0, UNSURE identity
 extern uint8_t update_server_pending_flush;      // 0x0071c2e4, UNSURE identity
 extern uint8_t update_server_history_index;      // 0x0071c2e5, UNSURE identity
@@ -103,11 +103,11 @@ char update_server_send_update(uint32_t *param_1, char param_2)
     if (network_client->state == 3) {
         now_ms = time_query_performance_counter_ms();
         reliable_seq = network_client->unknown_ecc & 0x7fffffff;
-        player_id = update_server_globals->maximum_count; // UNSURE: +0xc read as a word, see header
-        memcpy(control, local_player_control_data, sizeof(control));
+        player_id = local_player_globals->maximum_count; // UNSURE: +0xc read as a word, see header
+        memcpy(control, update_client_staged, sizeof(control));
         history_byte = 0;
         if ((int32_t)param_1 > 0 && param_2 == 0) {
-            checksum = update_checksum_seed;
+            checksum = player_data;
             (void)checksum;
             iterator.data = 0; iterator.next_index = 0; iterator.index = 0; // UNSURE: elided iterator source
             iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;

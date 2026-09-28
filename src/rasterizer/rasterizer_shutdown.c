@@ -21,7 +21,7 @@ extern void *rasterizer_device;   // 0x0071d174
 extern void *rasterizer_detail_object_vertex_buffer; // 0x0071d1c8
 extern void *lens_flare_occlusion_queries[k_lens_flare_occlusion_queries]; // 0x006e1dc8
 extern void *rasterizer_window_icon_dc;     // 0x0071d184, see rasterizer_create_game_window.c
-extern void *rasterizer_hwnd;               // 0x007461c4
+extern void *shell_window;               // 0x007461c4
 extern void *rasterizer_window_icon_bitmap; // 0x0071d188
 extern void *rasterizer_capture_surfaces[4]; // 0x0069c66c
 extern void *rasterizer_direct3d; // 0x0071d178
@@ -79,16 +79,16 @@ void __cdecl rasterizer_shutdown(void)
     chimera__registry_check_3();
 
     if (rasterizer_window_icon_dc != (void *)0) {
-        ReleaseDC(rasterizer_hwnd, rasterizer_window_icon_dc);
+        ReleaseDC(shell_window, rasterizer_window_icon_dc);
         rasterizer_window_icon_dc = (void *)0;
     }
     if (rasterizer_window_icon_bitmap != (void *)0) {
         DeleteObject(rasterizer_window_icon_bitmap);
         rasterizer_window_icon_bitmap = (void *)0;
     }
-    ShowWindow(rasterizer_hwnd, 0); // SW_HIDE
-    DestroyWindow(rasterizer_hwnd);
-    rasterizer_hwnd = (void *)0;
+    ShowWindow(shell_window, 0); // SW_HIDE
+    DestroyWindow(shell_window);
+    shell_window = (void *)0;
 
     for (i = 0; i < 4; i++) {
         if (rasterizer_capture_surfaces[i] != (void *)0) {

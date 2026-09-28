@@ -25,7 +25,7 @@
 #include "game.h"
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
-extern data_array *object_headers;                          // 0x008603b0
+extern data_array *object_data;                          // 0x008603b0
 extern tag_instance *tag_instances;                          // 0x0087bc14
 
 extern real weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov); // 0x4c2e50, DX zoom, stack (item, fov)
@@ -41,8 +41,8 @@ real game_engine_get_max_look_pitch(int16_t local_player_index)
     real result = 1.2217305f;
 
     if (look->unit != k_datum_index_none) {
-        void *base = *(void **)((uint8_t *)object_headers->data +
-            (uint32_t)(uint16_t)look->unit * object_headers->size + 8);
+        void *base = *(void **)((uint8_t *)object_data->data +
+            (uint32_t)(uint16_t)look->unit * object_data->size + 8);
         object *o = (object *)base;
         unit_data *u = (unit_data *)((uint8_t *)base + k_unit_data_offset);
         uint8_t *tag_data = (uint8_t *)tag_instances[(uint16_t)o->definition_tag].data;

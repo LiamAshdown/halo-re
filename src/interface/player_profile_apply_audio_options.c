@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.45
 // evidence: out/phase4/interface_functions.md "Applies the current profile's audio settings
 // (music/effects/voice volume and related toggles) to the sound system."; sibling function
-// player_profile_apply_video_options.c's precedent for profile_write_back_enabled (0x007196f4)
+// player_profile_apply_video_options.c's precedent for safe_mode (0x007196f4)
 // and the settings-block-in-register convention.
 // register convention: profile settings block in ESI (unaff_ESI). // blam-cc: ESI -> settings
 // UNSURE: sound_set_master_gain (the first of three 0..10 gain setters, called with settings+0xb78) is
@@ -20,11 +20,11 @@
 #include "networking.h"
 #include "interface.h"
 
-extern int32_t profile_write_back_enabled; // 0x007196f4
+extern int32_t safe_mode; // 0x007196f4
 
-extern uint8_t sound_environment_available; // 0x007252e0, UNSURE
-extern uint8_t sound_hardware_supports_eax; // 0x00746120, UNSURE
-extern uint16_t sound_environment_id;       // 0x007252b8, UNSURE
+extern uint8_t directsound_initialized; // 0x007252e0, UNSURE
+extern uint8_t directsound_eax_available; // 0x00746120, UNSURE
+extern uint16_t sound_permutation_limit;       // 0x007252b8, UNSURE
 
 extern void sound_driver_set_quality(int32_t enabled, uint8_t flag_b7b, uint8_t value_b7d); // 0x5480f0, UNSURE
 extern void sound_set_master_gain(float gain);          // 0x548590, UNSURE: first of three gain setters
@@ -41,7 +41,7 @@ void player_profile_apply_audio_options(uint8_t *settings)
     float gain;
     int32_t environment_enabled;
 
-    if (profile_write_back_enabled != 0) {
+    if (safe_mode != 0) {
         settings[0xb78] = 10;
         settings[0xb79] = 10;
         settings[0xb7a] = 6;
@@ -76,8 +76,8 @@ void player_profile_apply_audio_options(uint8_t *settings)
     }
     sound_set_music_gain(gain); // 0x548680
 
-    sound_environment_id = settings[0xb7f];
-    if (sound_environment_available == 0 || sound_hardware_supports_eax == 0 ||
+    sound_permutation_limit = settings[0xb7f];
+    if (directsound_initialized == 0 || directsound_eax_available == 0 ||
         settings[0xb7c] == 0) {
         environment_enabled = 0;
     } else {

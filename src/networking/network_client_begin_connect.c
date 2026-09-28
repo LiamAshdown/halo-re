@@ -19,7 +19,7 @@
 // rule, but this is the single largest source of doubt in this file's rewrite confidence.
 // UNSURE: the local scratch this function builds for chimera__on_connect's `session_info`
 // argument is, byte for byte, [2 unused bytes][8-wide-char player name][forced NUL][the leading
-// bytes of a 0x7ff-dword copy from game_variant_description_template] -- same "oversized copy
+// bytes of a 0x7ff-dword copy from profile_globals_block] -- same "oversized copy
 // into an undersized local, kept verbatim" situation server_browser_open.c already documents for
 // the same global.
 // UNSURE: network_debug_fill_canary_buffer (0x4e0790, outside this batch's range) is called with no visible
@@ -36,7 +36,7 @@
 extern network_client_globals *network_client;      // 0x0071c2d8
 extern uint8_t network_host_handoff_requested;       // 0x0071c2de
 extern int16_t network_game_mode;                    // 0x00719720
-extern uint8_t game_variant_description_template[0x1ffc]; // 0x00712dd8, established name (see
+extern uint8_t profile_globals_block[0x1ffc]; // 0x00712dd8, established name (see
     // network_game_settings_packet_send.c / server_browser_open.c)
 
 extern network_client_globals *network_session_create(void); // 0x4d8a80, outside this batch
@@ -59,7 +59,7 @@ uint32_t network_client_begin_connect(wchar_t *player_name, s_network_address *t
             network_host_handoff_requested = 0;
         }
     }
-    memcpy(scratch.config_template, game_variant_description_template,
+    memcpy(scratch.config_template, profile_globals_block,
         0x7ff * 4); // UNSURE: overruns config_template, see header
     *(uint32_t *)((uint8_t *)network_client + 0xf4c) = 0; // UNSURE: see header
     if (network_client->state == 0 && target_address->ipv4 != 0 && target_address->port != 0) {

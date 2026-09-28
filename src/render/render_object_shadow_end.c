@@ -34,7 +34,7 @@
 #include "render.h"
 
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220, rasterizer module
-extern uint8_t unknown_0069c689;                            // 0x0069c689 UNSURE
+extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689 UNSURE
 extern uint8_t console_debug_toggle_6893f2;                 // 0x006893f2 object shadows enabled
 extern uint8_t rasterizer_object_shadow_window_restored;    // 0x0069e550, rasterizer module
 
@@ -107,7 +107,7 @@ void render_object_shadow_end(object_render_data *data) // blam-cc: ECX -> data
 
     structure_debug_draw_surfaces_simple(position, data->shadow_radius * 4.0f, &box, planes, 6);
 
-    if (rasterizer_window.type == 1 && unknown_0069c689 == 0 && console_debug_toggle_6893f2 != 0 &&
+    if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0 &&
         rasterizer_object_shadow_window_restored == 0) {
         rasterizer_render_target_set_active(1, 0, 0);
         rasterizer_object_shadow_window_restored = 1;

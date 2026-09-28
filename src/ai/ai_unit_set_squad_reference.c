@@ -30,7 +30,7 @@
 
 extern data_array *object_data;    // 0x008603b0
 extern Scenario *global_scenario;  // 0x00746f8c
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
 
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
@@ -106,7 +106,7 @@ void ai_unit_set_squad_reference(datum_index object_index, uint32_t packed_refer
 
             ai_reference_actor_iterator_init_cursor((int32_t)*(int16_t *)((uint8_t *)obj + 0x334), cursor);
             actor_index = cursor[2];
-            while (ai_global_data->actors_valid != 0 &&
+            while (ai_globals_ptr->actors_valid != 0 &&
                    actor_index != (datum_index)k_datum_index_none) {
                 datum_index current = actor_index;
                 a = &((actor *)actor_data->data)[current & 0xffff];

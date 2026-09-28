@@ -16,7 +16,7 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
-extern uint8_t player_control_settings_cache[]; // 0x00710328, player_control_settings, stride 0x85c
+extern uint8_t input_globals[]; // 0x00710328, player_control_settings, stride 0x85c
 static const uint32_t k_turn_rate_display_bits = 0x431f27aa; // 0x00672c10, about 159.155 (1000 / 2pi)
 
 void hs_evaluate_get_mouse_pitch_scale(int16_t function_index, uint32_t thread_index, char first)
@@ -26,7 +26,7 @@ void hs_evaluate_get_mouse_pitch_scale(int16_t function_index, uint32_t thread_i
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        float value = *(float *)(player_control_settings_cache + (int16_t)arguments[0] * 0x85c + 0x82c) * *(const float *)&k_turn_rate_display_bits;
+        float value = *(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x82c) * *(const float *)&k_turn_rate_display_bits;
 
         hs_thread_return(*(int32_t *)&value, thread_index);
     }

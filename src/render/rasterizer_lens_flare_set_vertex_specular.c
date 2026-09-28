@@ -15,7 +15,7 @@
 #include "memory.h"
 
 extern uint32_t lens_flare_vertex_specular; // 0x0069e708
-extern float unknown_00672b60;              // 0x00672b60 UNSURE: assumed to be 255.0
+extern float text_color_scale;              // 0x00672b60 UNSURE: assumed to be 255.0
 
 // __ftol (0x6391b4, input on the FPU stack, chops toward zero) is written as a (long long) cast below
 
@@ -26,7 +26,7 @@ void rasterizer_lens_flare_set_vertex_specular(float intensity)
     uint32_t byte_value;
     uint32_t packed;
 
-    byte_value = (uint32_t)(int32_t)(long long)((double)(intensity * unknown_00672b60)) & 0xff;
+    byte_value = (uint32_t)(int32_t)(long long)((double)(intensity * text_color_scale)) & 0xff;
     packed = byte_value;
     packed = (packed << 8) | byte_value;
     packed = (packed << 8) | byte_value;

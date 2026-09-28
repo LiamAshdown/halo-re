@@ -19,7 +19,7 @@
 // this module, not rewritten here); its own signature is not established, so origin's exact
 // type (a position, or an object/actor index this function's own logic never dereferences) is
 // a guess from that one downstream use.
-// UNSURE: the fallback global at 0x69671c is named global_right3d_pointer by analogy with the
+// UNSURE: the fallback global at 0x69671c is named global_left3d_pointer by analogy with the
 // already-established global_forward3d_pointer (0x696718) / global_up3d_pointer (0x696720)
 // pair it sits between; not independently confirmed.
 // TYPES-GAP: the 80-byte trace-result buffer collision_test_movement_segment writes into is passed through
@@ -31,7 +31,7 @@
 #include "ai.h"
 
 extern uint32_t random_seed_global; // 0x00719cd0
-extern const real_vector3d *global_right3d_pointer; // 0x0069671c, UNSURE: see file header
+extern const real_vector3d *global_left3d_pointer; // 0x0069671c, UNSURE: see file header
 extern const real_vector3d *global_up3d_pointer;    // 0x00696720
 
 extern double cos(double x);  // FCOS
@@ -61,7 +61,7 @@ uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float 
     right_axis.j = base_direction->i;
     right_axis.k = 0.0f;
     if (vector3d_normalize_with_length(&right_axis) == 0.0f) {
-        right_axis = *global_right3d_pointer;
+        right_axis = *global_left3d_pointer;
     }
 
     for (attempt = 0; attempt < 10; attempt++) {

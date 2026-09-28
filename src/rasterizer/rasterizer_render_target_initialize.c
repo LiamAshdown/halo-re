@@ -21,7 +21,7 @@
 
 extern void *rasterizer_device;                             // 0x0071d174
 extern uint8_t rasterizer_caps_flag_68a;                    // 0x0069c68a
-extern uint8_t unknown_0069c689;                            // 0x0069c689
+extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689
 extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_targets]; // 0x0069d358
 extern void *rasterizer_render_target_index_buffer;         // 0x0071d208
 extern void *rasterizer_render_target_vertex_buffer;        // 0x0071d20c
@@ -76,7 +76,7 @@ uint8_t rasterizer_render_target_initialize(void)
         rasterizer_render_targets[2].height = desc.height >> 1;
     }
 
-    if (!unknown_0069c689 && ok) {
+    if (!rasterizer_caps_flag_689 && ok) {
         for (i = 1; i < k_rasterizer_render_targets; i++) {
             rasterizer_render_target *target = &rasterizer_render_targets[i];
 

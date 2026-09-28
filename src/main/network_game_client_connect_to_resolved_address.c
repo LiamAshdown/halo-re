@@ -37,7 +37,7 @@ extern main_globals main_globals_data; // 0x00719700
 // Foreign interface-module "loading screen" globals; see file header evidence.
 extern int32_t interface_loading_screen_address_a;   // 0x0068e680
 extern int32_t interface_loading_screen_address_b;   // 0x0068e684
-extern int32_t interface_loading_screen_ui_state;    // 0x00718f8c
+extern int32_t join_ui_state;    // 0x00718f8c
 extern int32_t interface_loading_screen_progress;    // 0x00718f90
 extern uint16_t progress_screen_text[0x20];    // 0x006b2f28, foreign (types/interface.h); WORD stores only
 extern uint16_t progress_screen_subtext[0x20]; // 0x006b2f68, foreign (types/interface.h); WORD stores only
@@ -65,7 +65,7 @@ void network_game_client_connect_to_resolved_address(void)
 
     interface_loading_screen_address_a = -1;
     interface_loading_screen_address_b = -1;
-    interface_loading_screen_ui_state = 0;
+    join_ui_state = 0;
     interface_loading_screen_progress = 0;
     progress_screen_text[0] = 0;    // WORD store
     progress_screen_subtext[0] = 0; // WORD store

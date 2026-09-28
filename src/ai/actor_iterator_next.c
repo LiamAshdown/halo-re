@@ -17,7 +17,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
@@ -28,7 +28,7 @@ actor *actor_iterator_next(actor_iterator_state *iterator)
     datum_index next;
     actor *a;
 
-    if (ai_global_data->actors_valid == 0) {
+    if (ai_globals_ptr->actors_valid == 0) {
         return 0;
     }
 
@@ -37,7 +37,7 @@ actor *actor_iterator_next(actor_iterator_state *iterator)
         encounter *enc = data_iterator_next((data_iterator *)iterator);
         if (enc == 0) {
             if (iterator->unknown_10 == 0) {
-                iterator->unknown_18 = ai_global_data->unknown_08;
+                iterator->unknown_18 = ai_globals_ptr->unknown_08;
                 iterator->unknown_10 = 1;
             }
             break;

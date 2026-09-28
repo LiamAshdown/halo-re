@@ -16,7 +16,7 @@
 #include "math.h"
 #include "sound.h"
 
-extern random_seed local_random_seed; // 0x00719cd4
+extern random_seed effect_random_seed; // 0x00719cd4
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
 
 extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170, math module
@@ -33,10 +33,10 @@ void sound_random_detail_direction(SoundLoopingDetail *detail, real_vector3d *ou
     float pitch;
     float yaw;
 
-    distance = random_real_range_seeded(&local_random_seed, detail->distance_bounds[0], detail->distance_bounds[1]);
+    distance = random_real_range_seeded(&effect_random_seed, detail->distance_bounds[0], detail->distance_bounds[1]);
     if (distance != 0.0f) {
-        pitch = random_real_range_seeded(&local_random_seed, detail->pitch_bounds[0], detail->pitch_bounds[1]);
-        yaw = random_real_range_seeded(&local_random_seed, detail->yaw_bounds[0], detail->yaw_bounds[1]);
+        pitch = random_real_range_seeded(&effect_random_seed, detail->pitch_bounds[0], detail->pitch_bounds[1]);
+        yaw = random_real_range_seeded(&effect_random_seed, detail->yaw_bounds[0], detail->yaw_bounds[1]);
         out->i = (float)(cos((double)yaw) * cos((double)pitch)) * distance;
         out->j = (float)(sin((double)yaw) * cos((double)pitch)) * distance;
         out->k = (float)sin((double)pitch) * distance;

@@ -25,11 +25,11 @@ extern int32_t network_session_reject_pending_connection_callback(void *unused, 
 
 extern network_server_globals network_server_storage; // 0x00861340
 extern uint8_t network_session_active2;                // 0x0071c2ec, UNSURE name; "network_server_active" per header
-extern int32_t unknown_00699f44;                       // 0x00699f44, UNSURE identity
-extern uint8_t unknown_0071cc24;                        // 0x0071cc24, UNSURE identity
+extern int32_t network_scenario_round_counter_a;                       // 0x00699f44, UNSURE identity
+extern uint8_t network_scenario_round_counter_b;                        // 0x0071cc24, UNSURE identity
 extern uint8_t unknown_00861d4e;                        // 0x00861d4e, UNSURE identity (beyond network_server_globals)
 extern uint8_t unknown_00861d4f;                        // 0x00861d4f, UNSURE identity
-extern int16_t unknown_00696564;                        // 0x00696564, UNSURE identity; seeds session.unknown_19e
+extern int16_t pending_difficulty;                        // 0x00696564, UNSURE identity; seeds session.unknown_19e
 
 extern void network_channels_open(void); // 0x441300, this module
 extern network_channel *network_channel_new(uint32_t flags); // 0x4dc9b0, this batch
@@ -49,8 +49,8 @@ void *network_game_server_host_new(void)
     memset(&network_server_storage, 0, sizeof(network_server_storage));
     host = &network_server_storage;
     network_session_active2 = 1;
-    unknown_00699f44 = 0;
-    unknown_0071cc24 = 0;
+    network_scenario_round_counter_a = 0;
+    network_scenario_round_counter_b = 0;
     unknown_00861d4e = 0;
     unknown_00861d4f = 0;
     network_channels_open();
@@ -60,7 +60,7 @@ void *network_game_server_host_new(void)
         host->unknown_004 = 0;
         network_game_session_reset(&host->session);
         host->session.message_callback = (void *)network_session_reject_pending_connection_callback; // 0x4e1410
-        host->session.unknown_19e = unknown_00696564;
+        host->session.unknown_19e = pending_difficulty;
         *(int32_t *)((uint8_t *)host + 0x3b0) = -1; // UNSURE: lands within session.unknown_3a2[10]
         for (i = 0; i < 16; i++) {
             machine = &host->machines[i];

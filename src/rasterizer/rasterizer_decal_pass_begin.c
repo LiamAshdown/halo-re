@@ -21,7 +21,7 @@
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 
-extern uint8_t console_debug_toggle_6893f5;                         // 0x006893f5
+extern uint8_t decals_for_all_responses;                         // 0x006893f5
 extern int16_t rasterizer_decal_layer;                              // 0x006d98dc set by rasterizer_decal_pass_begin
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164
@@ -51,7 +51,7 @@ void rasterizer_decal_pass_begin(int16_t stage)
     void **vtable;
     uint8_t proceed = 1;
 
-    if (console_debug_toggle_6893f5 == 0 && stage != 3) {
+    if (decals_for_all_responses == 0 && stage != 3) {
         proceed = 0;
     }
     if (*(int16_t *)&console_debug_toggle_6893e4 != 0 || !proceed) { // 0x51a82b: WORD compare

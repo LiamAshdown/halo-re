@@ -39,7 +39,7 @@
 extern tag_instance *tag_instances; // 0x0087bc14
 extern double sqrt(double x);
 extern game_time_globals *game_time; // 0x006f1d6c
-extern float glow_particle_time_scale; // 0x007c3110, UNSURE: foreign module
+extern float render_time_since_frame; // 0x007c3110, UNSURE: foreign module
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
@@ -203,7 +203,7 @@ void glow_update(uint32_t object_index, glow *entry /*EDI*/) // blam-cc: stack -
                 // single-stack-argument signature; local_1c (the object-function driver value
                 // computed above) does not fit that signature and is not passed here.
                 glow_particle_advance_time(object_index, entry, (uint8_t *)p,
-                                            glow_particle_time_scale * *(float *)((uint8_t *)p));
+                                            render_time_since_frame * *(float *)((uint8_t *)p));
                 glow_particle_compute_position(object_index, entry, p);
                 *(uint32_t *)((uint8_t *)p + 0x24) = *(uint32_t *)((uint8_t *)p + 0x20);
             }
@@ -226,9 +226,9 @@ void glow_update(uint32_t object_index, glow *entry /*EDI*/) // blam-cc: stack -
                 }
                 glow_particle_compute_color(entry, p);
 
-                *(float *)((uint8_t *)p + 0x2c) += glow_particle_time_scale * *(float *)((uint8_t *)p + 0x44);
-                *(float *)((uint8_t *)p + 0x30) += glow_particle_time_scale * *(float *)((uint8_t *)p + 0x48);
-                *(float *)((uint8_t *)p + 0x34) += glow_particle_time_scale * *(float *)((uint8_t *)p + 0x4c);
+                *(float *)((uint8_t *)p + 0x2c) += render_time_since_frame * *(float *)((uint8_t *)p + 0x44);
+                *(float *)((uint8_t *)p + 0x30) += render_time_since_frame * *(float *)((uint8_t *)p + 0x48);
+                *(float *)((uint8_t *)p + 0x34) += render_time_since_frame * *(float *)((uint8_t *)p + 0x4c);
 
                 if (*lifetime < *age) {
                     glow_particle *prev = *(glow_particle **)((uint8_t *)p + 0x60);

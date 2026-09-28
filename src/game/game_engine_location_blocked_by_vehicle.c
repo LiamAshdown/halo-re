@@ -31,7 +31,7 @@
 
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90 (R05; ScenarioStructureBSP +0xb4)
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly global_matg_multiplayer)
-extern data_array *object_headers;       // 0x008603b0
+extern data_array *object_data;       // 0x008603b0
 
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
     real_point3d *point); // 0x5013a0, not in this module; blam-cc: EAX -> node_index, ECX -> bsp,
@@ -63,7 +63,7 @@ uint8_t game_engine_location_blocked_by_vehicle(real_point3d *point)
     count = object_find_in_sphere(0, 0x11f, &location, point, 0.1f, candidates, 0x10);
 
     for (i = 0; i < count; i = i + 1) {
-        object *obj = ((object_header *)object_headers->data)[candidates[i] & 0xffff].data;
+        object *obj = ((object_header *)object_data->data)[candidates[i] & 0xffff].data;
         // The original re-fetches the same object pointer and checks it for NULL only inside
         // the type==1 branch; preserved.
         if (obj != 0 && obj->type == 1) {

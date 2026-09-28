@@ -12,24 +12,24 @@
 #include "networking.h"
 #include "interface.h"
 
-extern int32_t progress_screen_start_time;      // 0x0068e684
-extern uint32_t progress_screen_fade_end_time;   // 0x0068e680, UNSURE: header calls this progress_screen_bitmap; see chimera__do_show_loading_screen.c
-extern progress_screen_state progress_screen_state_var;            // 0x00718f8c
-extern int32_t progress_screen_progress;         // 0x00718f90
+extern int32_t interface_loading_screen_address_b;      // 0x0068e684
+extern uint32_t interface_loading_screen_address_a;   // 0x0068e680, UNSURE: header calls this progress_screen_bitmap; see chimera__do_show_loading_screen.c
+extern progress_screen_state join_ui_state;            // 0x00718f8c
+extern int32_t interface_loading_screen_progress;         // 0x00718f90
 extern uint16_t progress_screen_text[0x20];      // 0x006b2f28
 extern uint16_t progress_screen_subtext[0x20];   // 0x006b2f68
-extern datum_index progress_screen_tag;          // 0x0068e688
+extern datum_index interface_loading_screen_request_id;          // 0x0068e688
 
 // Resets every progress-screen global to its inactive state.
 void interface_loading_screen_reset(void)
 {
-    progress_screen_fade_end_time = -1;
-    progress_screen_start_time = -1;
-    progress_screen_state_var = 0;
-    progress_screen_progress = 0;
+    interface_loading_screen_address_a = -1;
+    interface_loading_screen_address_b = -1;
+    join_ui_state = 0;
+    interface_loading_screen_progress = 0;
     progress_screen_text[0] = 0;
     progress_screen_subtext[0] = 0;
-    progress_screen_tag = (datum_index)-1;
+    interface_loading_screen_request_id = (datum_index)-1;
 }
 
 #if 0

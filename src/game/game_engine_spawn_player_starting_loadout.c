@@ -31,7 +31,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern int16_t network_game_mode;                   // 0x00719720
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
-extern data_array *object_headers;                  // 0x008603b0
+extern data_array *object_data;                  // 0x008603b0
 
 extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count,
     int32_t current_engine_index); // 0x45f7c0, this batch
@@ -104,8 +104,8 @@ void game_engine_spawn_player_starting_loadout(uint32_t starting_equipment_index
                 new_object = object_new_with_datum_role_control(&placement, role);
                 if (new_object != (datum_index)0xffffffff) {
                     if (!first_spawn) {
-                        datum_index previous = (datum_index)((object_header *)object_headers->data)[new_object & 0xffff].data;
-                        // UNSURE: Ghidra reads this as *(int*)(object_headers[new_object]+4), i.e.
+                        datum_index previous = (datum_index)((object_header *)object_data->data)[new_object & 0xffff].data;
+                        // UNSURE: Ghidra reads this as *(int*)(object_data[new_object]+4), i.e.
                         // the object's own network_role/type-ish field per objects.h object+0x04;
                         // modeled with unit_has_weapon_of_type's own established signature instead.
                         if (unit_has_weapon_of_type(new_object, previous) != 0) {

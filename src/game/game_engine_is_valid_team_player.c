@@ -6,7 +6,7 @@
 // evidence: VERIFIED against the disassembly (objdump -d -M intel --start-address=0x466b60
 //   --stop-address=0x466bc0): `identifier` is a plain stack parameter (not a register), matching
 //   Ghidra's own recognized `param_1`. types/game.h game_engine_unknown_aa00 (0x0087aa00) and
-//   player::local_player_index (+0x02); g_0068944c (0x0068944c) is not owned by this module
+//   player::local_player_index (+0x02); light_count_enabled (0x0068944c) is not owned by this module
 //   either (see src/objects/lights_apply_spot_falloff.c, which keeps the same UNSURE name).
 //   player_index_from_unit_index (0x474db0) is outside this batch; out/phase4/game_functions.md notes its own
 //   decompiled view always returns -1, so its real per-call behavior is not established here.
@@ -19,7 +19,7 @@
 #include "game.h"
 
 extern int32_t game_engine_unknown_aa00; // 0x0087aa00
-extern int32_t g_0068944c;               // 0x0068944c, UNSURE: not owned by this module
+extern int32_t light_count_enabled;               // 0x0068944c, UNSURE: not owned by this module
 extern data_array *player_data;          // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
@@ -40,10 +40,10 @@ uint8_t game_engine_is_valid_team_player(uint32_t identifier)
     if ((game_engine_unknown_aa00 & 2) != 0) {
         return 0;
     }
-    if (g_0068944c < 1) {
+    if (light_count_enabled < 1) {
         return 0;
     }
-    if (g_0068944c >= 2) {
+    if (light_count_enabled >= 2) {
         return 1;
     }
 

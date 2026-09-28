@@ -32,7 +32,7 @@ extern void *effect_try_and_get(datum_index effect_index); // 0x450630, blam-cc:
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
     // 0x543ce0, blam-cc: ESI -> object_index, ECX -> position, EAX -> forward, stack -> the rest
-extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 
 // Plays whichever tag (sound or effect) is referenced by a tag id, at the item's owning object
@@ -70,7 +70,7 @@ uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_
     }
     if (group == 0x736e6421) { // 'snd!'
         effect_try_and_get(tag_id);
-        sound_start_at_object_marker(creator, (Point3D *)global_zero_point3d_pointer,
+        sound_start_at_object_marker(creator, (Point3D *)global_zero_vector3d_pointer,
             (Vector3D *)global_forward3d_pointer, tag_id, -1, a_scale, 0);
     }
     return 0xffffffff;

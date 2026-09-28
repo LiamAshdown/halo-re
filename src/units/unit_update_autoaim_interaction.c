@@ -6,7 +6,7 @@
 //   .unknown_410 (0x410, "stored by 0x5705a0, read back by 0x570720"); types/objects.h
 //   object.vitality_flags (0x106), object.owner_linkage (0x0c0), .creator_object (0x0c4),
 //   .name_index (0x0b8); the damage_data field mapping follows unit_cause_melee_damage.c.
-// UNSURE: globals_tag_data+0x18c is treated here as a pointer to a small record whose +0x78 is
+// UNSURE: global_globals+0x18c is treated here as a pointer to a small record whose +0x78 is
 //   a globally tracked target object index and whose base address doubles as the damage effect
 //   tag -- this is a different reading of the same offset from unit_apply_fall_damage.c's "fall
 //   damage table", and the two could not be reconciled in the time available.
@@ -24,7 +24,7 @@
 #include "units.h"
 
 extern data_array *object_data;   // 0x008603b0
-extern uint8_t *globals_tag_data; // 0x00746fa0
+extern uint8_t *global_globals; // 0x00746fa0
 
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
@@ -39,7 +39,7 @@ extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t 
 void unit_update_autoaim_interaction(uint32_t unit_index)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tracked = *(uint8_t **)(globals_tag_data + 0x18c);
+    uint8_t *tracked = *(uint8_t **)(global_globals + 0x18c);
 
     *(uint32_t *)(obj + 0x204) &= ~0x02000000u;
     obj[0x107] &= 0xf7;

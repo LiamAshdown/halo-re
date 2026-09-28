@@ -28,7 +28,7 @@
 //      reused verbatim for the two out-of-range lines, so the vehicle path logs itself as a
 //      position update.
 // UNSURE: the remap table at 0x00687130 is a second table with the same +0x28 shape as
-// remote_player_index_remap_table (0x00687558); named vehicle_object_remap_table from what it is
+// remote_player_index_remap_table (0x00687558); named object_network_id_table from what it is
 // used for (the result is compared against object::parent_object), not from any symbol.
 // UNSURE: FUN_00570cb0 (0x570cb0, foreign) takes the position in EAX and an object datum_index
 // in ECX and walks the object header table at 0x008603b0; it is the position setter of the pair
@@ -43,7 +43,7 @@
 #include "networking.h"
 
 extern data_array *player_data; // 0x0087a480
-extern void *vehicle_object_remap_table; // 0x00687130, table pointer at +0x28, UNSURE name
+extern void *object_network_id_table; // 0x00687130, table pointer at +0x28, UNSURE name
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a,
@@ -95,7 +95,7 @@ void player_update_client_remote_player_vehicle_update_from_network(datum_index 
 
     remapped_vehicle = -1;
     if (vehicle.parent_or_tag != 0) {
-        int32_t *table_base = *(int32_t **)((uint8_t *)vehicle_object_remap_table + 0x28);
+        int32_t *table_base = *(int32_t **)((uint8_t *)object_network_id_table + 0x28);
         remapped_vehicle = table_base[vehicle.parent_or_tag];
     }
     vehicle.parent_or_tag = remapped_vehicle;

@@ -31,10 +31,10 @@
 
 extern data_array *player_data;        // 0x0087a480
 extern Globals *global_globals;         // 0x00746fa0
-extern char waypoint_marker_name[];     // 0x0066bfa0, "head"
-extern real_matrix4x3 camera_view_matrix; // 0x007c3178
-extern uint8_t render_view_frustum[];    // 0x007c3168, UNSURE: passed in ESI to 0x50de30
-extern uint8_t render_camera[];          // 0x007c3114, UNSURE: passed in EDI to 0x50de30
+extern char ai_marker_name_a[];     // 0x0066bfa0, "head"
+extern real_matrix4x3 render_camera_world_to_view; // 0x007c3178
+extern uint8_t render_frustum_global[];    // 0x007c3168, UNSURE: passed in ESI to 0x50de30
+extern uint8_t render_camera_global[];          // 0x007c3114, UNSURE: passed in EDI to 0x50de30
 extern int16_t render_viewport_top;      // 0x007c3140
 extern int16_t render_viewport_left;     // 0x007c3142
 extern float waypoint_fade_near;         // 0x007c3240
@@ -65,11 +65,11 @@ void hud_waypoint_draw_one(datum_index player_index)
     BitmapData *bitmap;
     float fade;
 
-    object_get_node_local_transform(p->unit, waypoint_marker_name, &marker, 1);
+    object_get_node_local_transform(p->unit, ai_marker_name_a, &marker, 1);
     world_point = *(real_point3d *)((uint8_t *)&marker + 0x60);
     world_point.z = world_point.z + 0.3f;
-    matrix4x3_transform_point(&view_point, &world_point, &camera_view_matrix);
-    if (!render_project_world_point_to_screen(&screen_point, &view_point, render_view_frustum, render_camera)) {
+    matrix4x3_transform_point(&view_point, &world_point, &render_camera_world_to_view);
+    if (!render_project_world_point_to_screen(&screen_point, &view_point, render_frustum_global, render_camera_global)) {
         return;
     }
 

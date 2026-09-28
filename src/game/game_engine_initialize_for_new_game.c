@@ -32,7 +32,7 @@ extern int32_t game_engine_map_table_value;            // 0x006f1d24, TYPES-GAP:
 extern uint8_t map_per_map_table[];                     // 0x0068e590, TYPES-GAP: 0x30-byte
                                                         //   stride, 0x13 (19) entries, only the
                                                         //   first dword of an entry is read here
-extern uint8_t unknown_00722a18;                        // 0x00722a18, UNSURE meaning
+extern uint8_t network_session_host_state;                        // 0x00722a18, UNSURE meaning
 extern multiplayer_sound_request multiplayer_sound_queue[5]; // 0x006b10f0
 extern int32_t multiplayer_sound_queue_count;           // 0x006b1140
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];            // 0x006f1888
@@ -95,8 +95,8 @@ void game_engine_initialize_for_new_game(void)
         game_engine_dedicated_idle = 0;
         game_engine_dedicated_idle_timer = 0.0f;
         ((uint8_t *)&game_engine_map_table_value)[1] = 0;
-        if (unknown_00722a18 != 2) {
-            unknown_00722a18 = 1;
+        if (network_session_host_state != 2) {
+            network_session_host_state = 1;
         }
     }
 }

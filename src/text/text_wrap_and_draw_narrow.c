@@ -25,8 +25,8 @@
 //   Rectangle2D*, out Point2DInt* final pen, clip Rectangle2D*, int16 extra line
 //   spacing, string. text_parse_state_initialize (0x556b00) is called with ESI=&state,
 //   ECX=string (loaded into ECX before the prologue's register pushes, so it survives
-//   them), DX=text_justification_state, BX=text_style_state, stack=(text_font,
-//   &text_color). text_parse_next_token_narrow (0x556bb0) is called with EDI=&state.
+//   them), DX=hud_text_draw_column, BX=hud_text_draw_color_or_flags, stack=(hud_text_draw_font_tag_id,
+//   &hud_text_draw_color_a). text_parse_next_token_narrow (0x556bb0) is called with EDI=&state.
 //   text_draw_character_range_narrow (0x557030) is called with EAX=&line_bounds (the
 //   tab-adjusted local Rectangle2D copy, not the caller's own bounds pointer), stack =
 //   (callback, &pen, clip, state.color, string, start_column, end_column).
@@ -45,17 +45,17 @@
 #include "text.h"
 
 extern tag_instance *tag_instances;                  // 0x0087bc14
-extern datum_index text_font;                         // 0x006e472c
-extern ColorARGB text_color;                           // 0x006e4738
-extern int16_t text_style_state;                       // 0x006e4734
-extern int16_t text_justification_state;                 // 0x006e4736
-extern int16_t text_tab_stop_count;                       // 0x006e4748
+extern datum_index hud_text_draw_font_tag_id;                         // 0x006e472c
+extern ColorARGB hud_text_draw_color_a;                           // 0x006e4738
+extern int16_t hud_text_draw_color_or_flags;                       // 0x006e4734
+extern int16_t hud_text_draw_column;                 // 0x006e4736
+extern int16_t hud_text_draw_background_mode;                       // 0x006e4748
 extern int16_t text_tab_stops[k_text_maximum_tab_stops];   // 0x006e474a
-extern uint32_t text_flags_state;                            // 0x006e4730
+extern uint32_t hud_text_draw_unknown_4730;                            // 0x006e4730
 extern int16_t text_highlight_start;                          // 0x006e476a
 extern int16_t text_highlight_end;                             // 0x006e476c
-extern int16_t text_first_line_indent;                          // 0x006e476e
-extern int16_t text_wrapped_line_indent;                         // 0x006e4770
+extern int16_t ui_prompt_clip_x;                          // 0x006e476e
+extern int16_t ui_prompt_clip_y;                         // 0x006e4770
 
 extern void text_parse_state_initialize(void *string, int16_t justification, int16_t style,
     text_parse_state *state, datum_index font, ColorARGB *color); // 0x556b00
@@ -79,8 +79,8 @@ void text_wrap_and_draw_narrow(text_glyph_draw_proc callback, Rectangle2D *bound
     wrapped_sub_line_count = 0;
     max_wrapped_sub_line_count = 0;
 
-    text_parse_state_initialize(string, text_justification_state, text_style_state, &state,
-        text_font, &text_color);
+    text_parse_state_initialize(string, hud_text_draw_column, hud_text_draw_color_or_flags, &state,
+        hud_text_draw_font_tag_id, &hud_text_draw_color_a);
     font = (Font *)state.font_definition;
 
     for (;;) {
@@ -98,21 +98,21 @@ void text_wrap_and_draw_narrow(text_glyph_draw_proc callback, Rectangle2D *bound
 
         line_bounds = *bounds;
 
-        if (text_tab_stop_count < 1) {
+        if (hud_text_draw_background_mode < 1) {
             line_bounds.left = (int16_t)(line_bounds.left +
-                (line_index == 0 ? text_first_line_indent : text_wrapped_line_indent));
+                (line_index == 0 ? ui_prompt_clip_x : ui_prompt_clip_y));
         } else if (tab_index == 0) {
             line_bounds.left = (int16_t)(line_bounds.left +
-                (line_index == 0 ? text_first_line_indent : text_wrapped_line_indent));
-            if (tab_index < text_tab_stop_count) {
+                (line_index == 0 ? ui_prompt_clip_x : ui_prompt_clip_y));
+            if (tab_index < hud_text_draw_background_mode) {
                 line_bounds.right = text_tab_stops[tab_index];
             }
         } else {
-            // tab_index >= 1: text_tab_stop_count immediately precedes text_tab_stops[]
+            // tab_index >= 1: hud_text_draw_background_mode immediately precedes text_tab_stops[]
             // in memory (0x006e4748 then 0x006e474a with no gap), so indexing from
-            // &text_tab_stop_count by tab_index reads text_tab_stops[tab_index - 1].
-            line_bounds.left = (&text_tab_stop_count)[tab_index];
-            if (tab_index < text_tab_stop_count) {
+            // &hud_text_draw_background_mode by tab_index reads text_tab_stops[tab_index - 1].
+            line_bounds.left = (&hud_text_draw_background_mode)[tab_index];
+            if (tab_index < hud_text_draw_background_mode) {
                 line_bounds.right = text_tab_stops[tab_index];
             }
         }
@@ -158,7 +158,7 @@ void text_wrap_and_draw_narrow(text_glyph_draw_proc callback, Rectangle2D *bound
                                 previous_token = token;
                                 continue;
                             }
-                            if ((text_flags_state & _text_flag_word_wrap_bit) != 0) {
+                            if ((hud_text_draw_unknown_4730 & _text_flag_word_wrap_bit) != 0) {
                                 // Word wrap is enabled: back up to the last break
                                 // character if one was seen, otherwise cut right here.
                                 if (candidate_position > 0) {
@@ -198,7 +198,7 @@ void text_wrap_and_draw_narrow(text_glyph_draw_proc callback, Rectangle2D *bound
                 line_bounds.left);
         }
 
-        if ((text_flags_state & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
+        if ((hud_text_draw_unknown_4730 & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
             text_draw_character_range_narrow(&line_bounds, callback, &pen, clip, state.color,
                 string, span_start_position, flush_end_position);
         }
@@ -219,7 +219,7 @@ void text_wrap_and_draw_narrow(text_glyph_draw_proc callback, Rectangle2D *bound
             }
             break;
         case _text_token_tab:
-            if (tab_index < text_tab_stop_count) {
+            if (tab_index < hud_text_draw_background_mode) {
                 tab_index = (int16_t)(tab_index + 1);
                 wrapped_sub_line_count = 0;
             }

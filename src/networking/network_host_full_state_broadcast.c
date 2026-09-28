@@ -20,7 +20,7 @@
 #include "networking.h"
 #include <string.h>
 
-extern uint16_t network_broadcast_header; // 0x006b7f98, UNSURE identity: packed header word
+extern uint16_t network_challenge_packet_block; // 0x006b7f98, UNSURE identity: packed header word
 extern uint8_t network_broadcast_body[1536]; // 0x006b7f9a, UNSURE identity/size: encoded body buffer
 
 extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version); // 0x4d0ae0; UNSURE, see header
@@ -50,10 +50,10 @@ void network_host_full_state_broadcast(network_server_globals *host)
                 encode_ok = (char)data_packet_group_encode_packet(encode_buffer, &capacity, 0x21, 1);
                 (void)tick;
                 if (encode_ok != 0) {
-                    network_broadcast_header = ((int16_t)capacity + 2) * 0x10 | 0xc;
+                    network_challenge_packet_block = ((int16_t)capacity + 2) * 0x10 | 0xc;
                     memcpy(network_broadcast_body, encode_buffer, (uint32_t)capacity & 0xffff);
-                    byte_count = (uint32_t)(network_broadcast_header >> 4) << 3;
-                    if (network_session_send_to_machine(0, &network_broadcast_header, byte_count, 1, 0, 0, 3) != 0) {
+                    byte_count = (uint32_t)(network_challenge_packet_block >> 4) << 3;
+                    if (network_session_send_to_machine(0, &network_challenge_packet_block, byte_count, 1, 0, 0, 3) != 0) {
                         timestamp = timestamp + 100;
                     }
                 }

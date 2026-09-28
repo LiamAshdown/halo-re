@@ -23,9 +23,9 @@ extern uint8_t ui_flag_00719444; // 0x00719444, UNSURE (only ever set to 1 here)
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
 extern uint8_t input_controls_live_006b3a48[0x890]; // 0x006b3a48, UNSURE: the live controls configuration the profile copy mirrors
-extern int32_t chat_state_006953e8; // 0x006953e8, UNSURE identity
+extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity
 extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE
-extern uint8_t unknown_00712544[0xa0 * 4]; // 0x00712544, UNSURE identity (zeroed 0xa0 dwords)
+extern uint8_t controls_input_capture_buffer[0xa0 * 4]; // 0x00712544, UNSURE identity (zeroed 0xa0 dwords)
 
 uint8_t ui_event_4b4af0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
@@ -49,10 +49,10 @@ uint8_t ui_event_4b4af0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     list->item_count = 0;
     list->list_items = 0;
     ui_flag_00719444 = 0;
-    if (chat_state_006953e8 != -1) {
+    if (controls_capture_row != -1) {
         controls_input_capture_flags &= 0xf7;
-        memset(unknown_00712544, 0, sizeof(unknown_00712544));
-        chat_state_006953e8 = -1;
+        memset(controls_input_capture_buffer, 0, sizeof(controls_input_capture_buffer));
+        controls_capture_row = -1;
     }
     return 1;
 }

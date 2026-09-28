@@ -27,8 +27,8 @@ extern int32_t network_game_socket;    // 0x006f14c4
 extern int32_t network_query_socket;   // 0x006f14c8
 extern uint32_t network_local_address; // 0x006869b0
 extern uint8_t network_channels_open_ok; // 0x006869be
-extern uint32_t network_game_port;     // 0x00698208
-extern uint32_t network_query_port;    // 0x0069820c
+extern uint32_t network_game_socket_port;     // 0x00698208
+extern uint32_t game_cport;    // 0x0069820c
 
 // Foreign GameSpy transport calls; see UNSURE note above.
 extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address); // 0x6148b0: fills a
@@ -58,8 +58,8 @@ void network_channels_open(void)
                       network_local_address >> 0x18;
     network_channels_open_ok = 1;
 
-    gt2AddressToString(swapped_address, (uint16_t)network_game_port, game_address_buf);
-    gt2AddressToString(swapped_address, (uint16_t)network_query_port, query_address_buf);
+    gt2AddressToString(swapped_address, (uint16_t)network_game_socket_port, game_address_buf);
+    gt2AddressToString(swapped_address, (uint16_t)game_cport, query_address_buf);
 
     if (network_game_socket == 0) {
         result = gt2CreateSocket(&network_game_socket, game_address_buf, 0, 0,
@@ -77,7 +77,7 @@ void network_channels_open(void)
         result = gt2CreateSocket(&network_query_socket, query_address_buf, 0, 0,
                                      network_channel_gap_441060);
         if (result != 0) {
-            network_query_port = 0;
+            game_cport = 0;
             gt2AddressToString(swapped_address, 0, query_address_buf);
             result = gt2CreateSocket(&network_query_socket, query_address_buf, 0, 0,
                                          network_channel_gap_441060);

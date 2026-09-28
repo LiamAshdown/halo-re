@@ -22,9 +22,9 @@ extern network_server_globals *network_server; // 0x0071c2d4
 extern network_client_globals *network_client; // 0x0071c2d8
 extern uint8_t network_host_handoff_requested;  // 0x0071c2de
 extern int16_t network_game_mode;               // 0x00719720
-extern uint8_t unknown_0071c2dd;                // 0x0071c2dd, UNSURE identity
-extern uint32_t unknown_00719754;               // 0x00719754, UNSURE identity; accessed by byte/word
-extern uint32_t unknown_0071973c;               // 0x0071973c, UNSURE identity
+extern uint8_t network_server_host_valid;                // 0x0071c2dd, UNSURE identity
+extern uint32_t split_screen_quit_prompt_string;               // 0x00719754, UNSURE identity; accessed by byte/word
+extern uint32_t network_join_error_reason;               // 0x0071973c, UNSURE identity
 
 extern void main_menu_music_stop(void); // 0x4c8b40, outside this batch
 extern void chimera__load_ui_map(char reset); // 0x4c8930, outside this batch
@@ -58,11 +58,11 @@ int32_t network_host_shutdown_or_defer(void)
         if (network_server != 0) {
             network_game_server_host_dispose(network_server);
             network_server = 0;
-            unknown_0071c2dd = 0;
+            network_server_host_valid = 0;
         }
-        *(uint16_t *)&unknown_00719754 = 0xffff;
-        unknown_0071973c = 0;
-        *((uint8_t *)&unknown_00719754 + 3) = 1;
+        *(uint16_t *)&split_screen_quit_prompt_string = 0xffff;
+        network_join_error_reason = 0;
+        *((uint8_t *)&split_screen_quit_prompt_string + 3) = 1;
     }
     return 1;
 }

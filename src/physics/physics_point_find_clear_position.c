@@ -7,7 +7,7 @@
 //   k_physics_displacement_directions (0x0069c460, "0x00507170 samples 0x11 [17] offsets") and
 //   k_physics_displacement_direction_count = 17; physics_model_contact field layout (t, point,
 //   plane) matching local_ac34/30/2c/28/../1c's relative offsets; src/items/item_update.c's own
-//   global_reference_vector_0069672c (0x0069672c) reused here for the same indirect vector
+//   global_down3d_pointer (0x0069672c) reused here for the same indirect vector
 //   pointer.
 // register convention: unaff_ESI -> current_position (real_point3d *). param_1..param_6 are
 //   Ghidra's own recognized parameters (flags, sample_radius, x_margin, y_margin,
@@ -24,7 +24,7 @@
 #include "math.h"
 #include "physics.h"
 
-extern real_vector3d *global_reference_vector_0069672c; // 0x0069672c
+extern real_vector3d *global_down3d_pointer; // 0x0069672c
 extern float k_physics_displacement_directions[k_physics_displacement_direction_count][3]; // 0x0069c460
 
 extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point,
@@ -85,9 +85,9 @@ uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_
         if (!physics_shape_test_point(&model, &candidate, &contact) &&
             !object_collision_test_cluster_group(flags, &candidate, exclude_object_index)) { // 0x5072ad: EDI = &candidate
             real_vector3d probe;
-            probe.i = sample_radius * global_reference_vector_0069672c->i;
-            probe.j = sample_radius * global_reference_vector_0069672c->j;
-            probe.k = sample_radius * global_reference_vector_0069672c->k;
+            probe.i = sample_radius * global_down3d_pointer->i;
+            probe.j = sample_radius * global_down3d_pointer->j;
+            probe.k = sample_radius * global_down3d_pointer->k;
 
             if (physics_shape_test_ray(&model, &candidate, &probe, &contact) && 0.76604444f < contact.plane_k) {
                 // state = &contact: physics_model_contact's {t; point_x,y,z} matches

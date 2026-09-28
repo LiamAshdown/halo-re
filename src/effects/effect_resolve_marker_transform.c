@@ -23,7 +23,7 @@
 #include "effects.h"
 
 extern data_array *object_data;              // 0x008603b0
-extern uint8_t *first_person_weapon_globals; // 0x006b2d98, row stride 0x1ea0; UNSURE of the
+extern uint8_t *first_person_weapon_interfaces; // 0x006b2d98, row stride 0x1ea0; UNSURE of the
                                     // element type, declared as a byte base so the byte offset
                                     // arithmetic below stays exact
 
@@ -34,7 +34,7 @@ real_matrix4x3 *effect_resolve_marker_transform(effect *self, int16_t marker) //
     if (node_index != (int16_t)0xffff) {
         if ((marker & 0x8000) != 0) {
             uint16_t weapon_node = (uint16_t)marker & 0x7fff;
-            return (real_matrix4x3 *)(first_person_weapon_globals + 0x108c +
+            return (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
                                        self->first_person_weapon_index * 0x1ea0 +
                                        weapon_node * 0x34);
         }

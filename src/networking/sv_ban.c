@@ -15,7 +15,7 @@
 #include "networking.h"
 
 extern int16_t network_game_mode; // 0x00719720 (types/game.h), 2 == host
-extern char sv_ban_duration_arg_buffer[]; // 0x0066d6a4, UNSURE: scratch buffer reused by 0x4e51c0
+extern char sv_ban_penalty_arg_buffer[]; // 0x0066d6a4, UNSURE: scratch buffer reused by 0x4e51c0
 extern network_server_globals *network_server; // 0x0071c2d4
 
 extern network_player_entry *sv_find_client_by_name_or_index(char *name_or_index); // this batch, 0x4e3f70
@@ -26,8 +26,8 @@ extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network
     // blam-cc: ECX -> reason, EDI -> machine, stack -> server; foreign (< this batch), 0x4e0af0
 extern uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_override_seconds,
     network_player_entry *target_player); // this batch, 0x4e35c0
-extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
-extern void *console_color_00685218; // 0x00685218, a ColorARGB * the original loads into EAX
+extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void *console_message_default_color; // 0x00685218, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: bans (and disconnects) the client named or indexed by the first argument, for
@@ -45,9 +45,9 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
     }
     if (0 < (int32_t)argument_count && (int32_t)argument_count < 3) {
         if (argument_count == 2) {
-            duration = parse_time_duration_string((char *)arguments[1], 'm', (uint8_t *)sv_ban_duration_arg_buffer);
+            duration = parse_time_duration_string((char *)arguments[1], 'm', (uint8_t *)sv_ban_penalty_arg_buffer);
             if (duration == -1) {
-                chimera__console_out((ColorARGB *)console_color_00685218, "Incorrect usage. Type help sv_ban for more information.");
+                chimera__console_out((ColorARGB *)console_message_default_color, "Incorrect usage. Type help sv_ban for more information.");
                 return;
             }
         }
@@ -63,7 +63,7 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
         }
         return;
     }
-    chimera__console_out((ColorARGB *)console_color_006851fc, "Incorrect usage. Type help sv_ban for more information.");
+    chimera__console_out((ColorARGB *)global_white_argb, "Incorrect usage. Type help sv_ban for more information.");
 }
 
 #if 0

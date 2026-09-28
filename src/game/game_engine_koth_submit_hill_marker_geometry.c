@@ -27,21 +27,21 @@
 #include "game.h"
 
 extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h; WORD stores (0x46b306, 0x46b6c2, 0x46b6d2)
-extern void **render_device;                // 0x006e09e8, UNSURE identity (vtable object, +0x30 called)
-extern int16_t render_unknown_d99d8[];      // 0x006d99d8, UNSURE identity
+extern void **rasterizer_dynamic_index_buffer;                // 0x006e09e8, UNSURE identity (vtable object, +0x30 called)
+extern int16_t rasterizer_dynamic_vertex_slots[];      // 0x006d99d8, UNSURE identity
 extern int32_t render_unknown_d98f0[];      // 0x006d98f0, UNSURE identity
 extern uint8_t render_unknown_7bf04c[];     // 0x007bf04c, UNSURE identity
 extern tag_instance *tag_instances;         // 0x0087bc14
-extern void *render_ptr_9673c;              // 0x0069673c, UNSURE identity
-extern real_vector3d default_network_axis;  // 0x00686b04, UNSURE: reused as a generic 3-float default
+extern void *k_render_identity_matrix_ptr;              // 0x0069673c, UNSURE identity
+extern real_vector3d global_white_color;  // 0x00686b04, UNSURE: reused as a generic 3-float default
 extern const ColorARGB *global_white_argb;     // 0x006851fc, UNSURE identity (16 bytes copied)
 extern real_vector3d default_axis_b;        // 0x00686b0c, UNSURE identity
 extern king_hill_marker_history king_hill_markers; // 0x0087a9a0
-extern uint8_t render_flag_6893ec;          // 0x006893ec, UNSURE identity
-extern uint8_t render_flag_69c74c;          // 0x0069c74c, UNSURE identity
-extern uint8_t render_flag_71d1fa;          // 0x0071d1fa, UNSURE identity
-extern uint32_t render_version_7c118c;      // 0x007c118c, UNSURE identity
-extern void **render_context_71d174;        // 0x0071d174, UNSURE identity (vtable object, +0xe4 called)
+extern uint8_t console_debug_toggle_6893ec;          // 0x006893ec, UNSURE identity
+extern uint8_t rasterizer_render_states_dirty;          // 0x0069c74c, UNSURE identity
+extern uint8_t unknown_0071d1fa;          // 0x0071d1fa, UNSURE identity
+extern uint32_t rasterizer_device_version;      // 0x007c118c, UNSURE identity
+extern void **rasterizer_device;        // 0x0071d174, UNSURE identity (vtable object, +0xe4 called)
 
 extern void *rasterizer_dynamic_index_cache_reserve(void); // 0x51bd60, render module, UNSURE signature
 extern int32_t rasterizer_dynamic_vertex_cache_reserve(void); // 0x51bdd0, render module, UNSURE signature
@@ -121,10 +121,10 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
         *(uint16_t *)(dest_block + 8) = 3;
         *(uint16_t *)(dest_block + 10) = 0;
 
-        ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*render_device + 0x30)))(render_device); // TYPES-GAP vtable call
+        ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*rasterizer_dynamic_index_buffer + 0x30)))(rasterizer_dynamic_index_buffer); // TYPES-GAP vtable call
 
         {
-            int16_t sub_index = render_unknown_d99d8[iStack_fc * 8]; // *0x10 bytes / 2 == *8 int16 units
+            int16_t sub_index = rasterizer_dynamic_vertex_slots[iStack_fc * 8]; // *0x10 bytes / 2 == *8 int16 units
             if (render_unknown_d98f0[sub_index * 3] != 0) {
                 void **sub = (void **)(render_unknown_7bf04c + render_unknown_d98f0[sub_index * 3] * 10);
                 ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*sub + 0x30)))(sub); // TYPES-GAP vtable call
@@ -151,10 +151,10 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
 
             *(uint32_t *)(record + 4) = 1;
             *(uint16_t *)(record + 8) = 1;
-            *(void **)(record + 0xa) = render_ptr_9673c;
+            *(void **)(record + 0xa) = k_render_identity_matrix_ptr;
 
             if (position_override == (uint32_t *)0) {
-                *(real_vector3d *)(record + 0xe) = default_network_axis;
+                *(real_vector3d *)(record + 0xe) = global_white_color;
                 *(uint16_t *)(record + 0x1a) = 0;
                 *(uint16_t *)(record + 0x50) = 0;
                 for (i = 0; i < 16; i++) {
@@ -185,12 +185,12 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
             *(float *)(record + 0x9c) = fStack_ec;
             *(float *)(record + 0xa0) = fStack_e8;
 
-            if (render_flag_6893ec != 0) {
-                render_flag_69c74c = 1;
-                render_flag_71d1fa = 0;
-                if (render_version_7c118c < 0xffff0101) {
-                    ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*render_context_71d174 + 0xe4)))(
-                        render_context_71d174, 0x89, 1); // TYPES-GAP vtable call
+            if (console_debug_toggle_6893ec != 0) {
+                rasterizer_render_states_dirty = 1;
+                unknown_0071d1fa = 0;
+                if (rasterizer_device_version < 0xffff0101) {
+                    ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*rasterizer_device + 0xe4)))(
+                        rasterizer_device, 0x89, 1); // TYPES-GAP vtable call
                 }
             }
 
@@ -206,9 +206,9 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
             }
             rasterizer_model_draw_restore_states();
 
-            if (render_flag_6893ec != 0 && render_version_7c118c < 0xffff0101) {
-                ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*render_context_71d174 + 0xe4)))(
-                    render_context_71d174, 0x89, 0); // TYPES-GAP vtable call
+            if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < 0xffff0101) {
+                ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*rasterizer_device + 0xe4)))(
+                    rasterizer_device, 0x89, 0); // TYPES-GAP vtable call
             }
         }
 

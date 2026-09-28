@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 extern int32_t update_server_tick;              // 0x006f1d8c
-extern uint32_t update_server_history_raw[32 * (0x308 / 4)]; // 0x006f1d94, raw dword view of
+extern uint32_t update_server_history[32 * (0x308 / 4)]; // 0x006f1d94, raw dword view of
                                                               // update_server_history
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
@@ -50,7 +50,7 @@ void update_server_push_player_tick_history(void)
 
     update_server_tick = tick + 1;
     slot = (tick < tick + 1 && tick >= (tick + 1) - 0x20)
-        ? (uint8_t *)update_server_history_raw + (tick & 0x1f) * 0x308 : 0;
+        ? (uint8_t *)update_server_history + (tick & 0x1f) * 0x308 : 0;
     *(int32_t *)slot = tick;
     count = (uint16_t *)(slot + 4);
     *count = 0;

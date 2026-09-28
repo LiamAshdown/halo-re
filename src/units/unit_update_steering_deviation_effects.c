@@ -15,7 +15,7 @@
 // UNSURE: in_EAX is used both as the unit object index (via param_1, a stack copy Ghidra
 //   tracked separately) and, later, as a raw contact-point array base -- these cannot both be
 //   the same register's value, so the array pointer is modeled as a separate parameter here.
-// UNSURE: globals_tag_data+0x18c+0x48 (a second effect tag from the same "fall damage table"
+// UNSURE: global_globals+0x18c+0x48 (a second effect tag from the same "fall damage table"
 //   block referenced by unit_apply_fall_damage.c) is not named in any header.
 // reconciled: R25 damage_data.unknown_4c -> material_type (int16 collision material of the damaged surface, 0xffff = none; indexes DamageEffect +0x200)
 
@@ -28,13 +28,13 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *globals_tag_data;   // 0x00746fa0
+extern uint8_t *global_globals;   // 0x00746fa0
 
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
                                  int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
-extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 extern double sqrt(double x);
 
@@ -45,7 +45,7 @@ void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t *fall_table = *(uint8_t **)(globals_tag_data + 0x18c);
+    uint8_t *fall_table = *(uint8_t **)(global_globals + 0x18c);
     int32_t impact_effect_tag = *(int32_t *)(fall_table + 0x48);
 
     if (impact_effect_tag == -1 && *(int32_t *)((uint8_t *)tag + 0x3cc) == -1) {
@@ -94,7 +94,7 @@ void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *
                 }
 
                 if (*(int32_t *)((uint8_t *)tag + 0x3cc) != -1) {
-                    sound_start_at_object_marker(unit_index, (Point3D *)global_zero_point3d_pointer, (Vector3D *)global_forward3d_pointer,
+                    sound_start_at_object_marker(unit_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)global_forward3d_pointer,
                     *(int32_t *)((uint8_t *)tag + 0x3cc), -1, clamped, 0); // 0x575141: ESI the unit (stack arg), ECX *0x006966f8, EAX *0x00696718, node -1
                 }
             }

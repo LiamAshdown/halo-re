@@ -46,7 +46,7 @@ extern data_array *object_data;          // 0x008603b0
 extern data_array *encounter_data;       // 0x008802c8
 extern ai_globals *ai_globals_ptr;       // 0x00880354
 extern Scenario *global_scenario;        // 0x00746f8c
-extern datum_index *object_names_to_objects; // 0x006b8cb8, 0x200 entries
+extern datum_index *object_name_list; // 0x006b8cb8, 0x200 entries
 extern uint32_t random_seed_global;      // 0x00719cd0
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
@@ -176,7 +176,7 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
         named_object = (datum_index)k_datum_index_none;
         use_named_object = 1;
     } else {
-        named_object = object_names_to_objects[(int16_t)participant->use_this_object];
+        named_object = object_name_list[(int16_t)participant->use_this_object];
         use_named_object = 1;
     }
 

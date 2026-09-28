@@ -21,7 +21,7 @@
 #include "saved_games.h"
 #include "input.h"
 
-extern input_event_queue event_queue;                    // 0x00712cc0
+extern input_event_queue input_event_queue_active;                    // 0x00712cc0
 extern int64_t performance_frequency;                           // 0x006ac8f8/0x006ac8fc
 
 // blam-cc: queue index in EAX, record pointer in EDI
@@ -35,16 +35,16 @@ void input_queue_push_event(int16_t queue_index, ui_input_event *record)
     uint32_t now;
     ui_input_event *slots;
 
-    if (event_queue.push_disabled == 0) {
+    if (input_event_queue_active.push_disabled == 0) {
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
 
         record->controller_index = queue_index;
-        slots = event_queue.events[queue_index];
+        slots = input_event_queue_active.events[queue_index];
         memmove(&slots[0], &slots[1], sizeof(ui_input_event) * 7);
         slots[0] = *record;
         if (record->kind != 0) {
-            event_queue.last_event_time = now;
+            input_event_queue_active.last_event_time = now;
         }
     }
 }

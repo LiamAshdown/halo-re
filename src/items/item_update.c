@@ -32,14 +32,14 @@ extern data_array *object_data;        // 0x008603b0
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern game_time_globals *game_time;   // 0x006f1d6c
 extern game_engine_definition *current_game_engine;
-extern int16_t game_connection_role;   // 0x00719720
+extern int16_t network_game_mode;   // 0x00719720
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern uint8_t *global_structure_collision_bsp; // 0x00746f98, +0x40 the surfaces (0xc each)
 extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern real_vector3d *global_forward3d_pointer;     // 0x00696718
 extern real_vector3d *global_up3d_pointer;          // 0x00696720
 extern real_vector3d *global_down3d_pointer;        // 0x0069672c
-extern float global_gravity;           // 0x0069c52c
+extern float k_physics_gravity;           // 0x0069c52c
 extern char s_ground_point_marker[];   // 0x0066b180 "ground point"
 
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
@@ -82,9 +82,9 @@ static void item_start_falling(uint32_t item_index)
 {
     real_vector3d fall;
 
-    fall.i = global_gravity * global_down3d_pointer->i;
-    fall.j = global_gravity * global_down3d_pointer->j;
-    fall.k = global_gravity * global_down3d_pointer->k;
+    fall.i = k_physics_gravity * global_down3d_pointer->i;
+    fall.j = k_physics_gravity * global_down3d_pointer->j;
+    fall.k = k_physics_gravity * global_down3d_pointer->k;
     item_accelerate(item_index, &fall, 0);
 }
 
@@ -115,7 +115,7 @@ uint8_t item_update(uint32_t item_index)
             collision_result hit;                                     // [esp+0x30]
 
             if (!(((Item *)tag)->item_flags & 4)) {
-                velocity.k -= global_gravity;
+                velocity.k -= k_physics_gravity;
             }
             target.x = ((item_object *)obj)->base.position.x + velocity.i;
             target.y = ((item_object *)obj)->base.position.y + velocity.j;
@@ -250,7 +250,7 @@ uint8_t item_update(uint32_t item_index)
             object_marker marker;                                     // [esp+0xd8]
             real_vector3d side;                                       // [esp+0x1c]
 
-            if (game_connection_role == 0 && (((item_object *)obj)->base.flags & 0x20) &&
+            if (network_game_mode == 0 && (((item_object *)obj)->base.flags & 0x20) &&
                 (int16_t)object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1)) {
                 // resting: turn the ground point's frame and move the item so the point stays put
                 real_matrix4x3 frame = marker.node_transform;         // [esp+0xa0]

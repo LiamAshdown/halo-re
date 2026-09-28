@@ -36,7 +36,7 @@ extern rasterizer_model_draw_context *rasterizer_active_model_context; // 0x0071
 extern transparent_geometry_group transparent_geometry_group_environment_immediate; // 0x006e1828
 extern uint8_t transparent_geometry_group_overflow_c;       // 0x0071d204
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220
-extern uint8_t rasterizer_rendering_first_person;           // 0x007c0478 set around first person draws by FUN_004d6fc0
+extern uint8_t model_render_first_person;           // 0x007c0478 set around first person draws by FUN_004d6fc0
 extern int32_t transparent_geometry_group_last_drawn_key;   // 0x006e1d58
 extern uint8_t rasterizer_secondary_groups_drawn;           // 0x0071d274
 extern uint8_t rasterizer_render_states_dirty;              // 0x0069c74c UNSURE name: set after draws that leave device states changed
@@ -159,7 +159,7 @@ fill:
     } else {
         group->unknown_a0 = 0;
     }
-    group->first_person = rasterizer_rendering_first_person;
+    group->first_person = model_render_first_person;
 
     if (flags & 2) {
         // immediate: draw now with the live context

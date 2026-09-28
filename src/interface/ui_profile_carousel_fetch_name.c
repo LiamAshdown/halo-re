@@ -6,7 +6,7 @@
 // convention established in ui_selection_list_mirror_value_build.c and
 // ui_profile_carousel_fetch_sensitivity.c.
 // register convention: widget as the recognized parameter (param_1).
-// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
+// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
 
 #include "tags.h"
 #include "memory.h"
@@ -17,7 +17,7 @@
 #include "saved_games.h"
 #include <wchar.h>
 
-extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern heap *widget_memory_pool; // 0x006926c4
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
 
@@ -29,7 +29,7 @@ void ui_profile_carousel_fetch_name(widget_instance *widget)
     uint8_t profile_record[0x1ffc];
     uint16_t *dest;
 
-    memcpy(profile_record, &saved_player_profile_slots[widget->controller_index].profile, sizeof(profile_record));
+    memcpy(profile_record, &profile_globals_block[widget->controller_index].profile, sizeof(profile_record));
 
     dest = (uint16_t *)heap_reallocate(widget->text, 0x18, widget_memory_pool);
     widget->text = dest;

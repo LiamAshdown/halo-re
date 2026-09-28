@@ -10,7 +10,7 @@
 // evidence: types/objects.h object_header (flags 0x02 active bit), object (flags 0x10 with bit
 //   0x800/_object_needs_cluster_update_bit and bit 0x200000/_object_outside_map_bit,
 //   bounding_center 0x0a0, bounding_radius 0x0ac); global 0x008603b0 object_data, global
-//   0x0087a478 bsp_cluster_pvs_source (same global objects_update.c and
+//   0x0087a478 local_player_globals (same global objects_update.c and
 //   object_set_cluster_and_parent.c use); callees object_get_root_parent_placement (0x4f5f70,
 //   established: EAX -> object_index, ESI -> out_pair), vector3d_normalize_with_length
 //   (0x401990), object_get_node_local_transform (0x4f6080, OUTSIDE this batch -- see the
@@ -37,10 +37,10 @@
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *bsp_cluster_pvs_source; // 0x0087a478, same declaration as objects_update.c and
+extern uint8_t *local_player_globals; // 0x0087a478, same declaration as objects_update.c and
     // object_set_cluster_and_parent.c: the PVS dwords start at +0x18, not at the base
-extern data_array *unknown_data_0087a480; // 0x0087a480, UNSURE: see file header
-extern char zone_marker_name_0066bfa0[]; // FIXED: an array ("head"); its address is the name -- // 0x0066bfa0, UNSURE: a fixed marker-name string
+extern data_array *player_data; // 0x0087a480, UNSURE: see file header
+extern char ai_marker_name_a[]; // FIXED: an array ("head"); its address is the name -- // 0x0066bfa0, UNSURE: a fixed marker-name string
 
 extern int16_t object_get_root_parent_placement(uint32_t object_index,
     object_placement_cursor *out_cursor); // 0x4f5f70, blam-cc: EAX -> object_index, ESI -> out_cursor
@@ -76,10 +76,10 @@ uint8_t object_test_in_atmosphere_zone(uint32_t object_index) // blam-cc: EAX ->
             data_array *references = (data_array *)cursor.cluster_globals[2];
 
             // Walk the reference chain until its cluster's PVS bit is set (visible) or the
-            // chain runs out. PHASE-4 REVIEW: the PVS dwords begin at bsp_cluster_pvs_source
+            // chain runs out. PHASE-4 REVIEW: the PVS dwords begin at local_player_globals
             // + 0x18 (0x4f7715: `mov eax,[eax*4 + 0x18 + DAT_0087a478]`); the earlier rewrite
             // indexed from the base and read six dwords too early.
-            while ((*(uint32_t *)(bsp_cluster_pvs_source + 0x18 + ((int16_t)ref >> 5) * 4) &
+            while ((*(uint32_t *)(local_player_globals + 0x18 + ((int16_t)ref >> 5) * 4) &
                     (1u << ((uint8_t)ref & 0x1f))) == 0) {
                 if (ref_index == 0xffffffff) {
                     ref = 0xffffffff;
@@ -100,10 +100,10 @@ uint8_t object_test_in_atmosphere_zone(uint32_t object_index) // blam-cc: EAX ->
                 float search_radius = obj->bounding_radius;
                 // FIXED (objdump 0x4f77b9..0x4f77cc / 0x4f790f..0x4f7917): walk the PLAYER array (0x87a480) with
                 //   datum_next(DX = previous, EDI = the array); the draft passed nothing.
-                uint32_t zone_index = datum_next(-1, unknown_data_0087a480);
+                uint32_t zone_index = datum_next(-1, player_data);
 
                 while (zone_index != 0xffffffff) {
-                    uint8_t *zone_table = *(uint8_t **)((uint8_t *)unknown_data_0087a480 + 0x34);
+                    uint8_t *zone_table = *(uint8_t **)((uint8_t *)player_data + 0x34);
                     int32_t zone_offset = (int32_t)(zone_index & 0xffff) * 0x200;
                     int32_t zone_cluster_head = *(int32_t *)(zone_table + zone_offset + 0x34);
 
@@ -111,7 +111,7 @@ uint8_t object_test_in_atmosphere_zone(uint32_t object_index) // blam-cc: EAX ->
                         object_marker marker;
                         float dx, dy, dz;
 
-                        object_get_node_local_transform(zone_cluster_head, zone_marker_name_0066bfa0, &marker, 1);
+                        object_get_node_local_transform(zone_cluster_head, ai_marker_name_a, &marker, 1);
                         dx = obj->bounding_center.x - marker.node_transform.position.x;
                         dy = obj->bounding_center.y - marker.node_transform.position.y;
                         dz = obj->bounding_center.z - marker.node_transform.position.z;
@@ -141,12 +141,12 @@ uint8_t object_test_in_atmosphere_zone(uint32_t object_index) // blam-cc: EAX ->
                             if (delta.i * *(float *)(extended + 0x230) +
                                 delta.j * *(float *)(extended + 0x234) +
                                 delta.k * *(float *)(extended + 0x238) <= c) {
-                                zone_index = datum_next((int16_t)zone_index, unknown_data_0087a480);
+                                zone_index = datum_next((int16_t)zone_index, player_data);
                                 continue;
                             }
                         }
                     } else {
-                        zone_index = datum_next((int16_t)zone_index, unknown_data_0087a480);
+                        zone_index = datum_next((int16_t)zone_index, player_data);
                         continue;
                     }
 

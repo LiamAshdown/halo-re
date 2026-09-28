@@ -36,12 +36,12 @@
 #include "projectiles.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void *object_pooled_node_globals_006870d8; // 0x006870d8, the object hash/pooled-node
+extern void *network_object_index_cache; // 0x006870d8, the object hash/pooled-node
     // globals block; same global src/objects/object_delete_by_pooled_node_id.c uses
 extern network_id_table *object_network_id_table; // 0x00687130
     // array that resolves projectile_creation_message.creating_object_hash into
     // object_placement_data.role
-extern network_id_table *player_network_id_table; // 0x00687558
+extern network_id_table *machine_table; // 0x00687558
     // projectile_creation_message.owner_hash into object_placement_data.owner_linkage
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
@@ -99,7 +99,7 @@ void projectile_create_from_network(void *incoming_record)
     }
     owner_material = 0xffffffff;
     if (decoded.owner_hash != 0) {
-        owner_material = ((uint32_t *)player_network_id_table->handles)[decoded.owner_hash];
+        owner_material = ((uint32_t *)machine_table->handles)[decoded.owner_hash];
     }
 
     zero = (uint8_t *)&placement; // the `rep stos` of 0x22 dwords
@@ -121,7 +121,7 @@ void projectile_create_from_network(void *incoming_record)
         return;
     }
 
-    network_index_cache_insert_if_free(&object_pooled_node_globals_006870d8, new_object_index, decoded.object_hash);
+    network_index_cache_insert_if_free(&network_object_index_cache, new_object_index, decoded.object_hash);
 
     obj = ((object_header *)object_data->data)[new_object_index & 0xffff].data;
     proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);

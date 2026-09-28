@@ -4,7 +4,7 @@
 // evidence: out/phase4/saved_games_functions.md summary "Creates/opens the on-disk save-game
 // index file for writing at the start of an index rebuild, resetting the in-memory entry count."
 // The path component argument to path_append_component is register-dropped by Ghidra, but
-// hdmu_map_path (0x006e3108) is the only global this function's own referenced-globals list
+// saved_game_root_path (0x006e3108) is the only global this function's own referenced-globals list
 // includes that fits (this module's fixed "index of everything" file, matching
 // saved_game_list_rebuild_index.c's use of the same file for its own index writes right after
 // this call).
@@ -19,7 +19,7 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern char hdmu_map_path[0x100]; // 0x006e3108
+extern char saved_game_root_path[0x100]; // 0x006e3108
 extern file_reference_record savegame_index_file; // 0x00721330
 extern int16_t savegame_index_write_count; // 0x00721444
 extern uint8_t saved_game_index_file_open; // 0x00721448
@@ -30,7 +30,7 @@ extern uint8_t file_reference_create(file_reference_record *ref); // 0x5555b0, t
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, this module
 
 // blam-cc: no arguments
-// Builds savegame_index_file as a fresh, absolute file_reference_record naming hdmu_map_path,
+// Builds savegame_index_file as a fresh, absolute file_reference_record naming saved_game_root_path,
 // creates and opens it for writing. On success, resets savegame_index_write_count to 0, marks
 // the index open, and returns 1. On failure, sets savegame_index_write_count to -1 and returns
 // whatever saved_game_index_file_open already was.
@@ -45,7 +45,7 @@ uint8_t saved_game_index_open_for_write(void)
     if ((savegame_index_file.flags & _file_reference_is_file_bit) != 0) {
         path_remove_last_component(savegame_index_file.path); // unreachable: flags was just zeroed above
     }
-    path_append_component(savegame_index_file.path, hdmu_map_path);
+    path_append_component(savegame_index_file.path, saved_game_root_path);
     savegame_index_file.flags |= _file_reference_is_file_bit;
 
     created = file_reference_create(&savegame_index_file);

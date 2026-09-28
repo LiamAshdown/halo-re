@@ -23,7 +23,7 @@
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *player_data;      // 0x0087a480
-extern int16_t game_connection_role; // 0x00719720: 1 = client
+extern int16_t network_game_mode; // 0x00719720: 1 = client
 extern game_time_globals *game_time; // 0x006f1d6c
 extern network_client_globals *network_client;
 
@@ -137,7 +137,7 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (game_connection_role == 1) {
+    if (network_game_mode == 1) {
         uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
 
         if (player != 0 && *(int16_t *)(player + 2) == -1) {
@@ -157,7 +157,7 @@ uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_obje
     if (biped == 0) {
         return 0;
     }
-    if (*(datum_index *)(biped + 0x11c) != k_datum_index_none && game_connection_role != 1) {
+    if (*(datum_index *)(biped + 0x11c) != k_datum_index_none && network_game_mode != 1) {
         uint8_t *self = OBJECT_DATA(unit_index);
         datum_index parent = *(datum_index *)(self + 0x11c);
 
@@ -168,7 +168,7 @@ uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_obje
         if (*(int32_t *)(self + 0x4) == 0) {
             unit_dispatch_scripted_event_9(1, (int32_t)unit_index);
         }
-        if (game_connection_role == 1) {
+        if (network_game_mode == 1) {
             datum_index player_handle = *(datum_index *)(self + 0x218);
             int16_t index = (int16_t)player_handle;
             int16_t salt = (int16_t)(player_handle >> 16);

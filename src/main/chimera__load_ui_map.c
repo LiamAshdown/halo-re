@@ -8,7 +8,7 @@
 // (types/networking.h, size 0x10c) is filled the same way src/networking/
 // network_game_scenario_load_request.c's already-committed rewrite fills its own copy: zero,
 // then unknown_04=0, seed=1, salt=0xdeadbeef, map_name = strncpy(..., "levels\\ui\\ui", 0xff)
-// (map_name[0xff] cleared separately). scenario_load_staging (0x006b0b80) and
+// (map_name[0xff] cleared separately). main_game_globals (0x006b0b80) and
 // game_scenario_session_begin's EAX -> request convention are reused from that same evidence and
 // from main_types_notes.md. current_game_engine (0x006f1d20, game_engine_definition *) and its
 // dispose function pointer (+0x08) are established in src/camera/camera_track_compute_pov.c and
@@ -43,14 +43,14 @@
 extern main_globals main_globals_data; // 0x00719700
 extern Scenario *global_scenario;      // 0x00746f8c, foreign (game module)
 extern game_engine_definition *current_game_engine; // 0x006f1d20, foreign (ai/camera modules)
-extern uint8_t flag_006f1d38;          // 0x006f1d38, TYPES-GAP, UNSURE identity
-extern uint8_t opaque_006b0b88[0xc0 * 4]; // 0x006b0b88, TYPES-GAP, UNSURE identity/type (0xc0 dwords)
-extern uint8_t opaque_0087ab20[0x26 * 4]; // 0x0087ab20, TYPES-GAP, UNSURE identity/type (0x26 dwords)
+extern uint8_t player_profile_cache_initialized;          // 0x006f1d38, TYPES-GAP, UNSURE identity
+extern uint8_t player_profile_cache[0xc0 * 4]; // 0x006b0b88, TYPES-GAP, UNSURE identity/type (0xc0 dwords)
+extern uint8_t game_engine_active_variant[0x26 * 4]; // 0x0087ab20, TYPES-GAP, UNSURE identity/type (0x26 dwords)
 extern uint8_t *hs_camera_control_pointer; // 0x0087bc0c, foreign (camera module)
 extern camera_script_globals camera_script; // 0x006869d0, foreign (camera module)
 extern director directors[1];              // 0x006ac560, foreign (camera module)
 extern uint8_t ui_split_screen;            // 0x00718fc9, foreign (interface module)
-extern uint8_t *scenario_load_staging;     // 0x006b0b80, foreign (networking module), UNSURE
+extern uint8_t *main_game_globals;     // 0x006b0b80, foreign (networking module), UNSURE
                                             // identity/type; see network_game_scenario_load_request.c
 
 extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0x45aea0, foreign (game module)
@@ -90,11 +90,11 @@ void chimera__load_ui_map(char play_title_music)
         }
         current_game_engine = 0;
     }
-    if (flag_006f1d38 == 1) {
-        memset(opaque_006b0b88, 0, sizeof(opaque_006b0b88));
-        flag_006f1d38 = 0;
+    if (player_profile_cache_initialized == 1) {
+        memset(player_profile_cache, 0, sizeof(player_profile_cache));
+        player_profile_cache_initialized = 0;
     }
-    memset(opaque_0087ab20, 0, sizeof(opaque_0087ab20));
+    memset(game_engine_active_variant, 0, sizeof(game_engine_active_variant));
 
     main_globals_data.main_menu_scenario_loaded = 1;
     game_scenario_session_begin(&request);

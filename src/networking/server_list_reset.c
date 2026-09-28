@@ -34,11 +34,11 @@
 #include <wchar.h>
 
 extern int32_t server_browser_total_players; // 0x00719474
-extern int32_t DAT_00719478; // see UNSURE
+extern int32_t server_list_scroll_offset; // see UNSURE
 extern int32_t server_browser_selected_index; // 0x006953f4
-extern int32_t DAT_0071947c; // see UNSURE
+extern int32_t server_browser_last_click_ms; // see UNSURE
 extern uint8_t server_browser_skip_reselect; // 0x00719480, byte-sized at every access // see UNSURE
-extern uint8_t DAT_00719481; // see UNSURE
+extern uint8_t server_browser_player_list_ready; // see UNSURE
 extern int32_t DAT_00719484; // see UNSURE
 extern wchar_t DAT_00719498[0x100]; // see UNSURE
 
@@ -50,10 +50,10 @@ extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticke
 // blam-cc: EAX -> entry
 void server_list_reset(uint8_t *entry)
 {
-    DAT_00719478 = 0;
+    server_list_scroll_offset = 0;
     server_browser_selected_index = -1;
-    DAT_0071947c = 0;
-    DAT_00719481 = 0;
+    server_browser_last_click_ms = 0;
+    server_browser_player_list_ready = 0;
     server_browser_skip_reselect = 0;
     DAT_00719484 = 0;
     server_browser_total_players = 0;

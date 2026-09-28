@@ -12,10 +12,10 @@
 // UNSURE: `network_channel_service_close_if_disconnected`, `network_client_globals_create`, `network_client_globals_dispose` are called with no visible arguments
 // and are not in this task's range; declared exactly as shown.
 // UNSURE: `datum_get` is called with no visible argument; reconstructed as taking the local
-// player's datum index (`network_local_player_index_table[1]`, the same table read in
+// player's datum index (`local_player_globals[1]`, the same table read in
 // network_connection_finalize_join.c), the only value in scope that makes semantic sense here.
 // UNSURE: `DAT_0071c2c1` is documented in types/networking.h only as "copied into
-// network_game_session::unknown_3ac"; named `network_session_unknown_3ac_source` here.
+// network_game_session::unknown_3ac"; named `network_channel_table_default_flag` here.
 // UNSURE: client+0xaf0 (the wcsncpy source) is the same still-unresolved offset already used in
 // network_game_settings_packet_send.c (client+0xae0+0x10); accessed the same way, via a raw
 // offset, not a named field.
@@ -33,12 +33,12 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_channel_service_close_if_disconnected(network_channel *channel); // 0x4dd3f0
 extern network_server_globals *network_server; // 0x0071c2d4
 extern network_client_globals *network_client; // 0x0071c2d8
-extern uint8_t *network_local_player_index_table; // 0x0087a478, per network_connection_finalize_join.c
+extern uint8_t *local_player_globals; // 0x0087a478, per network_connection_finalize_join.c
 extern data_array *player_data; // 0x0087a480
 extern void *datum_get(datum_index index); // 0x4d0680
 extern void network_client_globals_dispose(void); // 0x4dde70, not in this batch
 extern void network_client_globals_create(void); // 0x4dde50, not in this batch
-extern uint8_t network_session_unknown_3ac_source; // 0x0071c2c1, UNSURE name; see file header
+extern uint8_t network_channel_table_default_flag; // 0x0071c2c1, UNSURE name; see file header
 extern void network_client_begin_connect(const wchar_t *name); // 0x4dc8d0, this batch (not yet rewritten at time of writing)
 
 // blam-cc: stack -> client
@@ -77,8 +77,8 @@ int32_t network_client_identity_tick(network_client_globals *client)
         wcsncpy(name, (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
 
         if (network_server == 0) {
-            if (*(int32_t *)(network_local_player_index_table + 4) != -1) {
-                void *player = datum_get(*(datum_index *)(network_local_player_index_table + 4)); // UNSURE argument
+            if (*(int32_t *)(local_player_globals + 4) != -1) {
+                void *player = datum_get(*(datum_index *)(local_player_globals + 4)); // UNSURE argument
                 if (player != 0) {
                     local_player_id = *(int32_t *)((uint8_t *)player + 0x20);
                 }
@@ -94,7 +94,7 @@ int32_t network_client_identity_tick(network_client_globals *client)
             return 1;
         }
 
-        network_session_unknown_3ac_source = 1;
+        network_channel_table_default_flag = 1;
         network_client_begin_connect(name);
         // Zeroes the whole 11-dword run at +0xee4 (the timer record plus unknown_ef8) plus
         // unknown_f10, matching Ghidra's literal "pcVar5 = &client->unknown_ee4[0]".
@@ -107,7 +107,7 @@ int32_t network_client_identity_tick(network_client_globals *client)
         client->unknown_f10 = 0;
         client->unknown_f10 = -1; // overwrites the zero just written, per Ghidra's own order
         network_client->unknown_f10 = local_player_id;
-        network_session_unknown_3ac_source = 0;
+        network_channel_table_default_flag = 0;
     }
     return 1;
 }

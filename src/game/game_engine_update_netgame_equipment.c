@@ -35,7 +35,7 @@
 extern Scenario *global_scenario;    // 0x00746f8c
 extern game_time_globals *game_time; // 0x006f1d6c
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern data_array *object_headers;   // 0x008603b0
+extern data_array *object_data;   // 0x008603b0
 
 extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count,
     int32_t current_engine_index); // 0x45f7c0, this batch; UNSURE real args at call site
@@ -132,7 +132,7 @@ void game_engine_update_netgame_equipment(char force_respawn)
 
                         new_object = object_new_with_datum_role_control((object_placement_data *)creation_data, 3);
                         if (new_object != (datum_index)0xffffffff) {
-                            object *obj = ((object_header *)object_headers->data)[new_object & 0xffff].data;
+                            object *obj = ((object_header *)object_data->data)[new_object & 0xffff].data;
                             item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
 
                             object_list_membership_set(0);

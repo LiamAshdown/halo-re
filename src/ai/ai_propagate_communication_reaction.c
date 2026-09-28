@@ -43,9 +43,9 @@ extern data_array *encounter_data; // 0x008802c8
 extern data_array *prop_data;      // 0x008802c0
 extern uint8_t *ai_globals_ptr;    // 0x00880354
 extern game_engine_definition *current_game_engine;
-extern uint8_t *game_team_relationships; // 0x006b0b84
+extern uint8_t *team_pair_data; // 0x006b0b84
 extern uint8_t ai_communication_lines[]; // 0x00655aa0, 0x28-byte rows
-extern char s_primary_eye_marker[]; // 0x0066bfa0
+extern char ai_marker_name_a[]; // 0x0066bfa0
 
 extern void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uint8_t status); // 0x42ba80
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
@@ -87,7 +87,7 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
     obj = OBJECT_DATA(object_index);
     object_team = *(int16_t *)(obj + 0xb8);
     location = obj + 0x98;
-    object_get_node_local_transform(object_index, s_primary_eye_marker, &marker, 1);
+    object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
     position = marker.node_transform.position;
     if (row != -1 && *(int16_t *)(ai_communication_lines + row * 0x28 + 0x2) >= 4) {
         gate = 3;
@@ -128,7 +128,7 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
                 continue;
             }
             bit = team * 10 + object_team;
-            if (!(*(uint32_t *)(game_team_relationships + 0xa4 + (bit >> 5) * 4) & (1u << (bit & 0x1f)))) {
+            if (!(*(uint32_t *)(team_pair_data + 0xa4 + (bit >> 5) * 4) & (1u << (bit & 0x1f)))) {
                 continue;
             }
         }

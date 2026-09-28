@@ -46,7 +46,7 @@ extern game_variant game_engine_variant;        // 0x006f1c88 (ctf_value_80 alia
 extern int32_t ctf_flag_auto_return_ticks;       // 0x006b0eb0, the live countdown
 extern uint8_t ctf_single_flag_mode;             // 0x006b0ebc
 extern data_array *player_data;                  // 0x0087a480
-extern data_array *object_headers;               // 0x008603b0
+extern data_array *object_data;               // 0x008603b0
 extern tag_instance *tag_instances;              // 0x0087bc14
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 extern player_globals *local_player_globals;       // 0x0087a478
@@ -131,7 +131,7 @@ void ctf_engine_flag_tick(uint32_t flag_handle, object *flag_obj)
                 {
                     data_iterator iter;
                     void *element;
-                    iter.data = object_headers; // UNSURE: iterates data_array of dropped-flag records
+                    iter.data = object_data; // UNSURE: iterates data_array of dropped-flag records
                     iter.next_index = 0;
                     iter.index = (datum_index)0xffffffff;
                     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -159,7 +159,7 @@ void ctf_engine_flag_tick(uint32_t flag_handle, object *flag_obj)
                     game_engine_ctf_respawn_team_flag((int32_t)toggled, (real_point3d *)0, 0); // UNSURE forwarded args
                     ctf_active_team = (uint8_t)toggled;
                     flag_handle = *(uint32_t *)((uint8_t *)&ctf_team_flag_object[0] + (int16_t)toggled * 4);
-                    flag_obj = ((object_header *)object_headers->data)[flag_handle & 0xffff].data;
+                    flag_obj = ((object_header *)object_data->data)[flag_handle & 0xffff].data;
                     item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
                     game_engine_queue_multiplayer_sound(0x25 + (*(int16_t *)((uint8_t *)flag_obj + 0xb8) != 0), 0xffffffff, 1); // 0x468e5d..0x468e79
                     game_engine_ctf_reset_team_return_credit(flag_handle); // FIXED 2026-09-28: 0x468840 takes only EAX

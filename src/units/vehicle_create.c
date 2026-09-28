@@ -30,7 +30,7 @@ static uint8_t *object_definition(uint8_t *object)
     return (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
 }
 
-extern int16_t map_difficulty_or_kind; // 0x00719720
+extern int16_t network_game_mode; // 0x00719720
 extern game_time_globals *game_time; // 0x006f1d6c
 extern void vehicle_reset_state(uint32_t object_index); // 0x570b00
 
@@ -47,7 +47,7 @@ uint8_t vehicle_create(datum_index object_index)
         *(uint32_t *)(object + 0x10) &= ~(uint32_t)0x20;
         *(float *)(object + 0x64) += *(float *)(definition + 4) * 0.5f;
     }
-    if (map_difficulty_or_kind == 1 || map_difficulty_or_kind == 2) {
+    if (network_game_mode == 1 || network_game_mode == 2) {
         object[0x525] = 0;
         object[0x526] = 0;
         object[0x527] = 0;

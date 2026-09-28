@@ -28,7 +28,7 @@
 #include "camera.h"
 
 extern observer observers[1];                // 0x006ac65c
-extern random_seed local_random_seed;        // 0x00719cd4, UNSURE: distinct from math's random_seed_global (0x00719cd0)
+extern random_seed effect_random_seed;        // 0x00719cd4, UNSURE: distinct from math's random_seed_global (0x00719cd0)
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
@@ -50,16 +50,16 @@ dead_camera_data *dead_camera_new(dead_camera_data *this, int16_t local_player_i
 
     this->field_of_view = 1.2217305f; // 70 degrees
 
-    local_random_seed = local_random_seed * k_random_multiplier + k_random_increment;
-    this->distance = (real)(local_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
+    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+    this->distance = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
 
-    local_random_seed = local_random_seed * k_random_multiplier + k_random_increment;
-    this->yaw = (real)(local_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
+    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+    this->yaw = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
 
     this->transition_time = 3.0f;
 
-    local_random_seed = local_random_seed * k_random_multiplier + k_random_increment;
-    this->pitch = -((real)(local_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
+    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+    this->pitch = -((real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
 
     if (unit != k_datum_index_none) {
         this->retarget_time = 3.4028235e38f; // FLT_MAX: an explicit target never auto-retargets

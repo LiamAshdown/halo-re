@@ -27,7 +27,7 @@
 #include "ai.h"
 
 extern data_array *object_data;                  // 0x008603b0
-extern ai_globals *ai_global_data;               // 0x00880354
+extern ai_globals *ai_globals_ptr;               // 0x00880354
 extern data_array *encounter_data;               // 0x008802c8
 extern team_pair_globals *team_pair_data;        // 0x006b0b84
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -57,7 +57,7 @@ void encounters_note_hostile_object(datum_index object_index)
         return;
     }
 
-    if (ai_global_data->actors_valid != 0) {
+    if (ai_globals_ptr->actors_valid != 0) {
         iterator.data = encounter_data;
         iterator.next_index = 0;
         iterator.index = (datum_index)k_datum_index_none;
@@ -65,7 +65,7 @@ void encounters_note_hostile_object(datum_index object_index)
         iterator.active_only = 1;
     }
 
-    while (ai_global_data->actors_valid != 0) {
+    while (ai_globals_ptr->actors_valid != 0) {
         do {
             enc = (encounter *)data_iterator_next((data_iterator *)&iterator);
             if (enc == 0 || iterator.active_only == 0) {

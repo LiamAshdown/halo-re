@@ -27,7 +27,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern real_point3d *ai_default_forward_vector; // 0x00696714, a pointer to a constant vector (UNSURE: likely but not confirmed identical to the {1,0,0} constant at 0x00696718 referenced elsewhere in this module)
+extern real_point3d *global_origin3d_pointer; // 0x00696714, a pointer to a constant vector (UNSURE: likely but not confirmed identical to the {1,0,0} constant at 0x00696718 referenced elsewhere in this module)
 
 extern double sqrt(double x); // FSQRT
 extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0, EDX, ESI
@@ -52,7 +52,7 @@ uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_
             *out_secondary = 3.4028235e+38f;
         }
         if (out_direction != 0) {
-            *out_direction = *(real_vector3d *)ai_default_forward_vector;
+            *out_direction = *(real_vector3d *)global_origin3d_pointer;
         }
         *out_distance = 3.4028235e+38f;
         return 0;

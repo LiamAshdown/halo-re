@@ -24,7 +24,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t network_game_mode;  // 0x00719720, 2 = host
 
@@ -47,7 +47,7 @@ extern void unit_invalidate_local_player_zoom_level(datum_index unit); // 0x4726
 extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key,
     uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key); // 0x478ff0, ECX, EDI, stack
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_headers->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
 
 void player_check_vehicle_boarding_interaction(uint32_t player_index, uint32_t candidate_object)

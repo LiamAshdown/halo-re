@@ -12,7 +12,7 @@
 //   best-effort structural transliteration of the decompiled C, not a verified rewrite; every
 //   parameter name below is a guess at Ghidra's own in_stack_* ordering.)
 // evidence: global 0x008603b0 object_data, 0x008603cc object_cluster_stamp, 0x008603d0
-//   noncollideable_cluster_first_008603d0, 0x008603d4 collideable_object_references, 0x006b8cbc
+//   collideable_cluster_first, 0x008603d4 collideable_object_references, 0x006b8cbc
 //   object_globals_pointer; types/objects.h object (cluster_stamp 0x014),
 //   object_cluster_reference (object_index 0x04, next_reference 0x08, same shape
 //   object_collect_in_clusters.c, this batch, already walks); callee
@@ -26,7 +26,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern int32_t object_cluster_stamp; // 0x008603cc
-extern datum_index *noncollideable_cluster_first_008603d0; // 0x008603d0, UNSURE: see file header (Ghidra's DAT_008603d0)
+extern datum_index *collideable_cluster_first; // 0x008603d0, UNSURE: see file header (Ghidra's DAT_008603d0)
 extern data_array *collideable_object_references; // 0x008603d4
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 
@@ -44,7 +44,7 @@ int32_t object_type_definitions_collect_by_flag_bits(int32_t bit_index, int32_t 
 
     do {
         if ((bit_array[bit_index >> 5] & (1u << (bit_index & 0x1f))) != 0) {
-            datum_index ref = noncollideable_cluster_first_008603d0[bit_index];
+            datum_index ref = collideable_cluster_first[bit_index];
 
             while (ref != k_datum_index_none) {
                 object_cluster_reference *node = (object_cluster_reference *)

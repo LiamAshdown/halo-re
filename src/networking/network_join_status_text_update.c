@@ -17,10 +17,10 @@
 #include "networking.h"
 
 extern void console_printf_verbose(const char *format, ...); // 0x496a80
-extern int32_t join_ui_countdown; // 0x00718f90
+extern int32_t interface_loading_screen_progress; // 0x00718f90
 extern int32_t join_ui_state; // 0x00718f8c
 extern int16_t network_game_mode; // 0x00719720
-extern int32_t some_global_0068e688; // 0x0068e688
+extern int32_t interface_loading_screen_request_id; // 0x0068e688
 extern const char network_ellipsis_dots[]; // 0x00697e7c, "................"
 
 
@@ -34,7 +34,7 @@ void network_join_status_text_update(int32_t mode, network_client_globals *clien
     if (mode == 0) {
         attempt->elapsed_counter = 0;
         console_printf_verbose("Connecting");
-        join_ui_countdown = 0;
+        interface_loading_screen_progress = 0;
         join_ui_state = 5;
     } else if (mode == 1) {
         memset(dots, 0, sizeof(dots));
@@ -47,10 +47,10 @@ void network_join_status_text_update(int32_t mode, network_client_globals *clien
         }
         strncpy(dots, network_ellipsis_dots, count);
         console_printf_verbose("Connecting%s", dots);
-        join_ui_countdown = attempt->elapsed_counter;
+        interface_loading_screen_progress = attempt->elapsed_counter;
         if (join_ui_state != 1 && join_ui_state != 2) {
             if (join_ui_state == 4) {
-                some_global_0068e688 = -1;
+                interface_loading_screen_request_id = -1;
                 return;
             }
             join_ui_state = 6;
@@ -59,19 +59,19 @@ void network_join_status_text_update(int32_t mode, network_client_globals *clien
     } else {
         attempt->elapsed_counter = 0;
         console_printf_verbose("Loading");
-        join_ui_countdown = 0;
+        interface_loading_screen_progress = 0;
         if (network_game_mode == 2) {
             if (join_ui_state != 1) {
                 if (join_ui_state != 2 && join_ui_state == 4) {
-                    some_global_0068e688 = -1;
+                    interface_loading_screen_request_id = -1;
                 }
                 join_ui_state = 8;
                 return;
             }
         } else if (join_ui_state != 1 && join_ui_state != 2) {
             if (join_ui_state == 4) {
-                some_global_0068e688 = -1;
-                join_ui_countdown = 0;
+                interface_loading_screen_request_id = -1;
+                interface_loading_screen_progress = 0;
                 return;
             }
             join_ui_state = 7;

@@ -29,7 +29,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 extern const real_point3d *global_origin3d_pointer;   // 0x00696714 (the copy read here is 0x006966f8, same target 0x0065c230)
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
-extern char k_head_marker_name[];                      // 0x0066bfa0, "head"
+extern char ai_marker_name_a[];                      // 0x0066bfa0, "head"
 
 extern void sound_impulse_fade_out(datum_index sound_index); // 0x549ee0, blam-cc: ECX
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name,
@@ -77,7 +77,7 @@ void sound_impulse_start(datum_index object_index, datum_index definition_index,
         Vector3D forward;
         int16_t node_index;
 
-        if ((int16_t)object_get_node_local_transform(object_index, k_head_marker_name, &marker, 1) != 0) {
+        if ((int16_t)object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1) != 0) {
             position = *(Point3D *)&marker.transform.position;
             forward = *(Vector3D *)&marker.transform.forward;
             node_index = marker.node_index;

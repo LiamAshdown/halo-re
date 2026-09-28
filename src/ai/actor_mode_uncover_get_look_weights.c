@@ -17,12 +17,12 @@ extern data_array *actor_data; // 0x00880360
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
 extern const float *actor_mode_uncover_look_weights_active; // 0x00685204
-extern const float *actor_mode_uncover_look_weights_idle;   // 0x006851f4
+extern const float *hud_text_message_hold_color;   // 0x006851f4
 
 void actor_mode_uncover_get_look_weights(datum_index actor_index, float *out_weights)
 {
     const float *source = ACTOR(actor_index)[0x9c] ? actor_mode_uncover_look_weights_active
-                                                    : actor_mode_uncover_look_weights_idle;
+                                                    : hud_text_message_hold_color;
 
     out_weights[0] = source[0];
     out_weights[1] = source[1];

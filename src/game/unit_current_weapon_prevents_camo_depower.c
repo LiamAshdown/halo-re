@@ -7,8 +7,8 @@
 //   and every register read after entry only ever depends on ECX, not EAX (Ghidra's "in_EAX"
 //   input and its "& 0xffffff00" masking are decompiler noise from the caller's leftover EAX --
 //   see game_engine_variant_defaults... no, see FUN_00466420's header). The chain
-//   player+0x34 (player::unit) -> object_headers -> unit+0x2f2 (current_weapon_index,
-//   types/units.h) -> unit+0x2f8 (weapons[], types/units.h) -> object_headers ->
+//   player+0x34 (player::unit) -> object_data -> unit+0x2f2 (current_weapon_index,
+//   types/units.h) -> unit+0x2f8 (weapons[], types/units.h) -> object_data ->
 //   object::definition_tag -> tag_instances -> +0x308 matches types/tags.h Weapon
 //   (Item base is 0x308 bytes, weapon_flags is the first field after it) and bit 13 of
 //   WeaponFlags is literally named `does_not_depower_active_camo_in_multilplayer`.
@@ -25,7 +25,7 @@
 #include "game.h"
 
 extern data_array *player_data;      // 0x0087a480
-extern data_array *object_headers;   // 0x008603b0
+extern data_array *object_data;   // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 
 // blam-cc: ECX -> player_handle
@@ -51,7 +51,7 @@ uint8_t unit_current_weapon_prevents_camo_depower(datum_index player_handle)
         return 0;
     }
 
-    unit_obj = ((object_header *)object_headers->data)[p->unit & 0xffff].data;
+    unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     weapon_slot = unit->current_weapon_index;
     if (weapon_slot == -1) {
@@ -63,7 +63,7 @@ uint8_t unit_current_weapon_prevents_camo_depower(datum_index player_handle)
         return 0;
     }
 
-    weapon_obj = ((object_header *)object_headers->data)[weapon_handle & 0xffff].data;
+    weapon_obj = ((object_header *)object_data->data)[weapon_handle & 0xffff].data;
     if (weapon_obj->definition_tag == (datum_index)0xffffffff) {
         return 0;
     }

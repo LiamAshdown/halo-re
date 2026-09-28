@@ -20,7 +20,7 @@ extern uint8_t king_hill_player_in_hill[16]; // 0x006b0f40
 extern int32_t king_starting_location_type; // 0x006b1064
 extern int32_t king_hill_move_ticks_006b1068; // 0x006b1068, UNSURE name
 extern int32_t king_hill_index_006b1058; // 0x006b1058, UNSURE name
-extern int32_t king_hill_state_006b1050; // 0x006b1050 (king_globals +0x00)
+extern int32_t king_hill_state_globals; // 0x006b1050 (king_globals +0x00)
 extern int32_t king_hill_state_006b1054; // 0x006b1054 (king_globals +0x04)
 extern void game_engine_koth_build_hill_boundary(void); // 0x46a240
 
@@ -39,7 +39,7 @@ void game_engine_king_reset_objects(void)
     king_starting_location_type = 0;
     king_hill_move_ticks_006b1068 = 0x708;
     king_hill_index_006b1058 = -1;
-    king_hill_state_006b1050 = 0;
+    king_hill_state_globals = 0;
     king_hill_state_006b1054 = 0;
     game_engine_koth_build_hill_boundary();
 }

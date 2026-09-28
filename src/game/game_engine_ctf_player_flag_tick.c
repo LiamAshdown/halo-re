@@ -21,7 +21,7 @@
 #include "objects.h"
 #include "game.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern data_array *player_data;    // 0x0087a480
 extern int16_t network_game_mode;  // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_option_7c/7e aliased 0x006f1d04/06)
@@ -48,7 +48,7 @@ extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index
 // blam-cc: stack -> flag_handle, player_index
 uint8_t game_engine_ctf_player_flag_tick(uint32_t flag_handle, uint32_t player_index)
 {
-    object *flag_obj = ((object_header *)object_headers->data)[flag_handle & 0xffff].data;
+    object *flag_obj = ((object_header *)object_data->data)[flag_handle & 0xffff].data;
     int16_t team = *(int16_t *)((uint8_t *)flag_obj + 0xb8); // UNSURE: name_index/team_index
 
     if (player_index != 0xffffffff && network_game_mode == 2) {

@@ -6,7 +6,7 @@
 // frame_delta_time (0x01c), game_connection (0x020), movie_frame_bitmap (0x024),
 // movie_frame_delta_time (0x034), frame_time_ms (0x008). game_time_force_single_tick
 // (0x007196d8), unknown_006894ba (0x006894ba) and cinematic_globals_ptr (0x006f187c) reuse
-// established names from types/main.h and other modules. performance_counter_frequency
+// established names from types/main.h and other modules. performance_frequency
 // (0x006ac8f8) reuses this module's own game_timer_reset.c naming.
 // register convention: cdecl, no parameters.
 // phase 4 review (disassembly 0x4c9f90..0x4ca196): control flow and every comparison checked;
@@ -27,7 +27,7 @@ extern main_globals main_globals_data; // 0x00719700
 extern int32_t game_time_force_single_tick; // 0x007196d8, foreign (main-owned global per main.h)
 extern uint8_t unknown_006894ba;       // 0x006894ba, foreign (interface module)
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
-extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
+extern int64_t performance_frequency; // 0x006ac8f8, foreign (math module)
 extern uint8_t unknown_00710301;       // TYPES-GAP, UNSURE identity
 
 
@@ -59,7 +59,7 @@ void main_loop_frame_pacer(void)
         QueryPerformanceCounter((LARGE_INTEGER *)&now);
         elapsed_ticks = now - (((int64_t)main_globals_data.frame_counter_high << 32) |
                                 main_globals_data.frame_counter_low);
-        elapsed_seconds = (double)elapsed_ticks / (double)performance_counter_frequency;
+        elapsed_seconds = (double)elapsed_ticks / (double)performance_frequency;
 
         sleep_ms = (!pacing || (0.03333333507180214 - elapsed_seconds <= 0.012)) ? 0 : 10;
         Sleep(sleep_ms);
@@ -114,7 +114,7 @@ apply:
 
     main_globals_data.frame_counter_low = (uint32_t)now;
     main_globals_data.frame_counter_high = (uint32_t)(now >> 32);
-    main_globals_data.frame_time_ms = (uint32_t)((now * 1000) / performance_counter_frequency);
+    main_globals_data.frame_time_ms = (uint32_t)((now * 1000) / performance_frequency);
     main_globals_data.frame_delta_time = (float)elapsed_seconds;
 }
 

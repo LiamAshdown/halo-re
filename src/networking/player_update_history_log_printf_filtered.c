@@ -36,7 +36,7 @@
 #include <stdarg.h>
 #include <wchar.h>
 
-extern uint16_t player_update_log_filter_name[0x400]; // this module, 0x0071c420
+extern uint16_t local_player_name_filter[0x400]; // this module, 0x0071c420
 
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
     const char *format, ...); // this module, 0x4e5ea0
@@ -52,7 +52,7 @@ void player_update_history_log_printf_filtered(player *target_player, int32_t un
     char buffer[0x400];
     va_list args;
 
-    if (wcscmp((wchar_t *)target_player->name, (wchar_t *)player_update_log_filter_name) != 0) {
+    if (wcscmp((wchar_t *)target_player->name, (wchar_t *)local_player_name_filter) != 0) {
         return;
     }
     va_start(args, format);

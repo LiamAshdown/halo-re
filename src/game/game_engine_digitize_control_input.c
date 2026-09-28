@@ -33,10 +33,10 @@ extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern uint8_t game_engine_input_source_flag; // 0x006887a8, UNSURE exact meaning (gates two
                                                // near-identical branches below)
 extern uint8_t unknown_007124a0;   // 0x007124a0 == local_player_input_states[0].buttons[8]
-extern uint8_t unknown_006e3000;    // UNSURE raw flag
-extern uint8_t *unknown_006f187c;    // UNSURE raw pointer (offset +10 tested)
-extern uint16_t unknown_00719754;     // UNSURE raw value (low 16 bits set to -1)
-extern uint8_t unknown_0071973c;       // UNSURE raw flag
+extern uint8_t game_state_write_in_progress;    // UNSURE raw flag
+extern uint8_t *cinematic_globals_ptr;    // UNSURE raw pointer (offset +10 tested)
+extern uint16_t split_screen_quit_prompt_string;     // UNSURE raw value (low 16 bits set to -1)
+extern uint8_t network_join_error_reason;       // UNSURE raw flag
 extern uint8_t unknown_0071973b;        // UNSURE raw flag
 
 // blam-cc: EDX -> input
@@ -49,10 +49,10 @@ void game_engine_digitize_control_input(player_control_input *input)
     uint32_t control_flags = input->control_flags;
     uint32_t button_flags = input->button_flags;
 
-    if ((input->melee != 0 || unknown_007124a0 != 0) && unknown_006e3000 == 0 &&
-        *(int8_t *)(unknown_006f187c + 10) != 0) {
-        unknown_00719754 = 0xffff;
-        unknown_0071973c = 0;
+    if ((input->melee != 0 || unknown_007124a0 != 0) && game_state_write_in_progress == 0 &&
+        *(int8_t *)(cinematic_globals_ptr + 10) != 0) {
+        split_screen_quit_prompt_string = 0xffff;
+        network_join_error_reason = 0;
         unknown_0071973b = 1;
     }
 

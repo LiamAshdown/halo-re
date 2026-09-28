@@ -18,7 +18,7 @@
 #include "ai.h"
 
 extern data_array *actor_data;      // 0x00880360
-extern ai_globals *ai_global_data;  // 0x00880354
+extern ai_globals *ai_globals_ptr;  // 0x00880354
 
 // blam-cc: EDX -> iterator
 // Advances the iterator to the next actor in its chain (the encounter's member list, or the
@@ -35,7 +35,7 @@ actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator)
         datum_index next;
         actor *candidate;
 
-        if (ai_global_data->actors_valid == 0) {
+        if (ai_globals_ptr->actors_valid == 0) {
             return 0;
         }
 

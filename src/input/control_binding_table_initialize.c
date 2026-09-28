@@ -10,7 +10,7 @@
 //   "No type is claimed; the addresses are recorded as globals only.")
 // evidence: out/phase4/objects_types_notes.md / src/objects/README.md: these six functions
 //   "read the packed control words at 0x006f1cec/0x006f1ce8 and belong to the input or game
-//   module." types/ai's item_globals (src/ai/actor_get_grenade_launch_velocity.c) is reused
+//   module." types/ai's global_globals (src/ai/actor_get_grenade_launch_velocity.c) is reused
 //   here purely because 0x00746fa0 is already declared under that name elsewhere in this
 //   codebase; offset +0x168 into it is not otherwise established and may belong to an
 //   unrelated subsystem sharing the same monolithic globals block.
@@ -35,11 +35,11 @@
 #include "saved_games.h"
 #include "input.h"
 
-extern uint8_t control_word_secondary_flag; // 0x006f1cbc, UNSURE: nonzero -> "secondary control word in use", see below
+extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc, UNSURE: nonzero -> "secondary control word in use", see below
 extern uint8_t g_control_binding_state;     // 0x008607a0, UNSURE: not independently typed
 extern uint8_t g_control_binding_secondary_active; // 0x008607a1, UNSURE: not independently typed
-extern uint8_t *item_globals; // 0x00746fa0, src/ai; +0x168 offset UNSURE, see file header
-extern uint32_t control_binding_row_profile_flag; // 0x006f1d20, UNSURE: nonzero selects the per-profile default source
+extern uint8_t *global_globals; // 0x00746fa0, src/ai; +0x168 offset UNSURE, see file header
+extern uint32_t current_game_engine; // 0x006f1d20, UNSURE: nonzero selects the per-profile default source
 extern uint32_t control_word_extract_field(uint32_t which_word, uint32_t field_index); // 0x4f3680, same pass
 
 // UNSURE (function-wide): raw byte offsets into the control-binding region starting at
@@ -54,7 +54,7 @@ void control_binding_table_initialize(void)
     int32_t outer_row = 0;   // objdump: EAX at the control_word_extract_field call, 0 then 1
     int32_t field_index;     // objdump: ESI at the same call, 0..5, reset for each outer row
 
-    g_control_binding_secondary_active = (control_word_secondary_flag != 0);
+    g_control_binding_secondary_active = (game_engine_teams_enabled_flag != 0);
     g_control_binding_state = 0;
 
     row = g_control_binding_region_e4;
@@ -80,10 +80,10 @@ void control_binding_table_initialize(void)
                 } while (count != 0);
             }
 
-            if (control_binding_row_profile_flag == 0) {
+            if (current_game_engine == 0) {
                 ((control_binding_half *)(cell - 4))->profile_default = -1;
             } else {
-                ((control_binding_half *)(cell - 4))->profile_default = *(int32_t *)(*(int32_t *)(*(uint8_t **)(item_globals + 0x168) + 0x24) + 0xc + offset);
+                ((control_binding_half *)(cell - 4))->profile_default = *(int32_t *)(*(int32_t *)(*(uint8_t **)(global_globals + 0x168) + 0x24) + 0xc + offset);
             }
 
             offset += 0x10;

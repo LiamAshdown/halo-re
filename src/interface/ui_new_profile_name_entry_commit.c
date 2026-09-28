@@ -29,9 +29,9 @@ extern int16_t quit_confirm_error_string_index;             // 0x00718fac
 extern int16_t quit_confirm_error_unknown_ae;               // 0x00718fae
 extern uint8_t quit_confirm_error_modal;                    // 0x00718fb0
 extern uint8_t quit_confirm_error_is_error;                  // 0x00718fb1
-extern uint16_t selected_level_start_flags_00719754;         // 0x00719754, TYPES-GAP (packed record)
-extern uint8_t selected_level_start_flags_00719754_byte3;    // 0x00719757
-extern uint8_t split_screen_quit_prompt_unknown_71973c; // 0x0071973c, TYPES-GAP
+extern uint16_t split_screen_quit_prompt_string;         // 0x00719754, TYPES-GAP (packed record)
+extern uint8_t split_screen_quit_prompt_armed;    // 0x00719757
+extern uint8_t network_join_error_reason; // 0x0071973c, TYPES-GAP
 
 extern int32_t saved_game_create_default_profile(int16_t player_index); // 0x539ab0, foreign (profile module), UNSURE
 extern uint8_t player_profile_get_or_cached_default(void); // 0x539bc0, foreign (profile module), UNSURE
@@ -80,9 +80,9 @@ uint32_t ui_new_profile_name_entry_commit(void)
     }
 
 fail:
-    selected_level_start_flags_00719754 = 0xffff;
-    split_screen_quit_prompt_unknown_71973c = 0;
-    selected_level_start_flags_00719754_byte3 = 1;
+    split_screen_quit_prompt_string = 0xffff;
+    network_join_error_reason = 0;
+    split_screen_quit_prompt_armed = 1;
     if (quit_confirm_error_string_index == -1) {
         quit_confirm_error_string_index = 0x25;
         quit_confirm_error_unknown_ae = -1;

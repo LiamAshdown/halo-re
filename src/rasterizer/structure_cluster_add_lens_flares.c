@@ -25,7 +25,7 @@
 
 extern uint8_t unknown_006893ff;                                    // 0x006893ff UNSURE: lens flares enable toggle
 extern int16_t unknown_00719aac;                                    // 0x00719aac UNSURE: at most 1 allowed
-extern int16_t unknown_00696568;                                    // 0x00696568 UNSURE: at most 1 when the above is 1
+extern int16_t screenshot_scale;                                    // 0x00696568 UNSURE: at most 1 when the above is 1
 extern ScenarioStructureBSP *global_structure_bsp;                         // 0x00746f9c
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 extern int16_t render_window_index;                                 // 0x007c310a render module (int16, render.h)
@@ -46,7 +46,7 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
     const uint8_t *cluster;
     uint32_t marker_ordinal;
 
-    if (unknown_006893ff == 0 || unknown_00719aac > 1 || (unknown_00719aac == 1 && unknown_00696568 > 1)) {
+    if (unknown_006893ff == 0 || unknown_00719aac > 1 || (unknown_00719aac == 1 && screenshot_scale > 1)) {
         return;
     }
 

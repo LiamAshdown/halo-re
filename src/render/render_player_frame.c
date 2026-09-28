@@ -55,7 +55,7 @@ extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
     // src/interface/hud_messaging_update.c and others); byte +9 is a "cinematic playing" flag
     // tested here alongside the multiplayer-round and local-player-count checks
 
-extern int16_t unknown_00696568; // UNSURE name/owner: screenshot tile grid divisor, see below
+extern int16_t screenshot_scale; // UNSURE name/owner: screenshot tile grid divisor, see below
 extern int16_t unknown_00719aac; // UNSURE name/owner: screenshot tile grid divisor, see below
 
 extern void render_camera_update_leaf_and_cluster(real_point3d *point); // 0x553490, structures
@@ -149,10 +149,10 @@ void render_player_frame(Point2DInt *screenshot_tile, render_view *view) // blam
     render_camera_compute_projection_skew(source_camera, frustum_bounds);
 
     if (screenshot_tile != 0) {
-        int32_t tile_total = (int32_t)unknown_00696568 * (int32_t)unknown_00719aac;
+        int32_t tile_total = (int32_t)screenshot_scale * (int32_t)unknown_00719aac;
         if (tile_total > 0) {
             // UNSURE: subdivides the asymmetric projection bounds into a screenshot tile grid;
-            // the identity of unknown_00696568/unknown_00719aac (both int16 globals) is not
+            // the identity of screenshot_scale/unknown_00719aac (both int16 globals) is not
             // recovered from this module alone. Arithmetic preserved exactly.
             float step_x = (frustum_bounds[1] - frustum_bounds[0]) / (float)tile_total;
             float step_y = (frustum_bounds[3] - frustum_bounds[2]) / (float)tile_total;

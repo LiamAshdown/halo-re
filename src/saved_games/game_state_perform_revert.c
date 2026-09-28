@@ -23,10 +23,10 @@
 
 extern uint8_t game_state_revert_available; // 0x006e2dd9
 extern uint8_t unknown_00746fa4; // 0x00746fa4, UNSURE
-extern uint16_t unknown_00719754; // 0x00719754, UNSURE (low word of a dword)
-extern uint8_t unknown_0071973c; // 0x0071973c, UNSURE
+extern uint16_t split_screen_quit_prompt_string; // 0x00719754, UNSURE (low word of a dword)
+extern uint8_t network_join_error_reason; // 0x0071973c, UNSURE
 extern uint8_t unknown_00719738; // 0x00719738, UNSURE
-extern uint8_t unknown_0071974f; // 0x0071974f, UNSURE
+extern uint8_t main_globals_byte_0071974f; // 0x0071974f, UNSURE
 extern uint8_t game_state_write_in_progress; // 0x006e3000
 extern game_state_proc game_state_revert_proc; // 0x0069e7b0
 
@@ -36,10 +36,10 @@ extern void game_state_dispatch_load_callbacks(void); // 0x537f70
 void game_state_perform_revert(void)
 {
     if (game_state_revert_available == 0 && unknown_00746fa4 == 0) {
-        unknown_00719754 = 0xffff;
-        unknown_0071973c = 0;
+        split_screen_quit_prompt_string = 0xffff;
+        network_join_error_reason = 0;
         unknown_00719738 = 1;
-        unknown_0071974f = 0;
+        main_globals_byte_0071974f = 0;
         return;
     }
 

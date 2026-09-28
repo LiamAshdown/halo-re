@@ -45,7 +45,7 @@ extern data_array *effect_location_data;     // 0x0087abe0
 extern data_array *object_data;              // 0x008603b0
 extern data_array *player_data;              // 0x0087a480
 extern tag_instance *tag_instances;          // 0x0087bc14
-extern uint8_t *first_person_weapon_globals; // 0x006b2d98, stride 0x1ea0
+extern uint8_t *first_person_weapon_interfaces; // 0x006b2d98, stride 0x1ea0
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630
 extern void *data_iterator_next(data_iterator *iterator);              // 0x4d05d0
@@ -117,7 +117,7 @@ uint32_t effect_check_object_collisions(void)
                         uint16_t node_index = entry->marker_index & 0x7fff;
 
                         if ((entry->marker_index & 0x8000) != 0) {
-                            node = (real_matrix4x3 *)(first_person_weapon_globals + 0x108c +
+                            node = (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
                                 self->first_person_weapon_index * 0x1ea0 + node_index * 0x34);
                         } else {
                             object *owner =

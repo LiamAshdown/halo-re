@@ -53,15 +53,15 @@ extern int64_t frame_statistics_unknown_d0;       // 0x0071cfd0, this module, ne
 extern int64_t frame_statistics_unknown_d8;       // 0x0071cfd8, this module, never written
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, this module
 extern int64_t performance_frequency;             // 0x006ac8f8/0x006ac8fc
-extern Rectangle2D unknown_0069c63c;              // 0x0069c63c UNSURE: screen bounds
-extern int64_t unknown_0069c648;                  // 0x0069c648 present counter (64 bit)
+extern Rectangle2D game_screen_rect;              // 0x0069c63c UNSURE: screen bounds
+extern int64_t rasterizer_present_counter_low;                  // 0x0069c648 present counter (64 bit)
 
 extern float hud_text_draw_color_a;               // 0x006e4738, interface module
 extern float hud_text_draw_color_r;               // 0x006e473c
 extern float hud_text_draw_color_g;               // 0x006e4740
 extern float hud_text_draw_color_b;               // 0x006e4744
 extern int16_t hud_text_draw_background_mode;     // 0x006e4748
-extern int16_t hud_text_draw_tab_stops[6];        // 0x006e474a UNSURE name
+extern int16_t text_tab_stops[6];        // 0x006e474a UNSURE name
 
 extern uint8_t input_get_key_state(int16_t key_index); // 0x490b50, input; blam-cc: ECX
 extern void rasterizer_frame_statistics_graph_init(void); // 0x512700, this module (fg_init)
@@ -89,7 +89,7 @@ static void set_text_state(const float color[4], const int16_t tab_stops[6])
     hud_text_draw_color_b = color[3];
     hud_text_draw_background_mode = 6;
     for (i = 0; i < 6; i++) {
-        hud_text_draw_tab_stops[i] = tab_stops[i];
+        text_tab_stops[i] = tab_stops[i];
     }
 }
 
@@ -148,8 +148,8 @@ void rasterizer_frame_statistics_draw(void)
         return;
     }
 
-    presents = unknown_0069c648 - frame_statistics_unknown_d8;
-    left = unknown_0069c63c.left;
+    presents = rasterizer_present_counter_low - frame_statistics_unknown_d8;
+    left = game_screen_rect.left;
     tab_stops[0] = 100;
     tab_stops[1] = 200;
     tab_stops[2] = 300;
@@ -177,7 +177,7 @@ void rasterizer_frame_statistics_draw(void)
     for (i = 0; i < 6; i++) {
         tab_stops[i] = (int16_t)(tab_stops[i] + left);
     }
-    bounds = unknown_0069c63c;
+    bounds = game_screen_rect;
     bounds.top = (int16_t)(bounds.top + 0x20);
     bounds.bottom = (int16_t)(bounds.bottom + 0x20);
 

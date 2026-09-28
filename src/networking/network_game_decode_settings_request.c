@@ -34,7 +34,7 @@ extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_p
     void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
     int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 extern data_packet_group network_game_messages_group; // 0x006994f8
-extern uint32_t network_engine_version_match_flag; // 0x0069b350, UNSURE name
+extern uint32_t message_delta_vector3d_mode; // 0x0069b350, UNSURE name
 extern void network_game_settings_packet_send(network_client_globals *client, const uint8_t *request); // 0x4d94c0
 
 // blam-cc: ESI -> client; stack -> buffer, capacity, expected_sequence
@@ -49,7 +49,7 @@ int32_t network_game_decode_settings_request(network_client_globals *client, con
     if (sender.address.ipv4 == *expected_sequence && client->state == 1) { // UNSURE: mode field
         if (data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group,
                                              decoded_body, buffer + 2, &out_a, (uint16_t *)&out_b, 2) != 0) {
-            network_engine_version_match_flag = (decoded_body[8] == 1);
+            message_delta_vector3d_mode = (decoded_body[8] == 1);
             network_game_settings_packet_send(client, decoded_body); // 0x4dbc87: stack body, EBX client
             return 1;
         }

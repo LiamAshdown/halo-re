@@ -22,9 +22,9 @@
 #include "networking.h"
 #include <wchar.h>
 
-extern wchar_t default_player_name; // 0x00660c34, the built-in fallback string
+extern wchar_t empty_string; // 0x00660c34, the built-in fallback string
 extern void *tag_instances;      // 0x0087bc14, UNSURE type: raw tag_instance array, see header
-extern random_seed local_random_seed; // 0x00719cd4, types/math.h
+extern random_seed effect_random_seed; // 0x00719cd4, types/math.h
 
 extern int32_t tag_lookup(const char *path); // 0x442550, cache module
 extern wchar_t *text_string_list_get_string(int32_t tag_index, int32_t string_index); // 0x5578c0
@@ -38,11 +38,11 @@ wchar_t *network_game_get_random_player_name(void)
     if (tag_id != 0xffffffff) {
         definition = *(void **)((uint8_t *)tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
-            local_random_seed = local_random_seed * 0x19660d + 0x3c6ef35f;
+            effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
             return text_string_list_get_string((int32_t)tag_id, 0); // UNSURE: index elided
         }
     }
-    return &default_player_name;
+    return &empty_string;
 }
 
 #if 0

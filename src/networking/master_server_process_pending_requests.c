@@ -13,7 +13,7 @@
 // of server_list. The disassembly at 0x4b5e00 is `mov edx,ds:0x7196bc; mov eax,[edx+esi*4]`,
 // i.e. it loads the pointer stored there and indexes that -- server_list.list[i], exactly
 // like the bit-0x20 branch does through the mutex_try_lock result.
-// UNSURE: DAT_00695424 (buffer) and DAT_007227b8 (value used both whole and masked to its low
+// UNSURE: DAT_00695424 (buffer) and network_session_start_game_type (value used both whole and masked to its low
 // 16 bits) have no documented names or types; declared as opaque externs.
 // UNSURE: DAT_006953f4, used as a dword index into the object server_list_mutex_try_lock's
 // result points at, is declared here as `server_browser_selected_index`; the "server
@@ -37,7 +37,7 @@ extern network_mutex_record *server_list_mutex; // 0x007196a8
 extern server_list_globals server_list;         // 0x007196bc
 extern uint8_t server_browser_require_valid_entry; // 0x006953f0
 extern uint8_t DAT_00695424[10];                // see UNSURE
-extern uint32_t DAT_007227b8;                   // see UNSURE
+extern uint32_t network_session_start_game_type;                   // see UNSURE
 extern int32_t server_browser_selected_index; // 0x006953f4, see UNSURE
 
 extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms); // 0x4ba760, this module
@@ -105,8 +105,8 @@ void master_server_process_pending_requests(void)
                     ReleaseMutex(server_list_mutex->handle);
                 }
                 if (server_browser_require_valid_entry == 0) {
-                    last_result = ServerBrowserLANUpdate(master_server_query_engine, 1, DAT_007227b8,
-                                                (uint16_t)DAT_007227b8);
+                    last_result = ServerBrowserLANUpdate(master_server_query_engine, 1, network_session_start_game_type,
+                                                (uint16_t)network_session_start_game_type);
                 } else {
                     last_result = ServerBrowserUpdate(master_server_query_engine, 1, 0, DAT_00695424, 10, 0);
                 }

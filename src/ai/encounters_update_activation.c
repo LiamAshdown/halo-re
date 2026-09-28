@@ -33,7 +33,7 @@
 #include "ai.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;      // 0x00746f9c
-extern ai_globals *ai_global_data;               // 0x00880354
+extern ai_globals *ai_globals_ptr;               // 0x00880354
 extern player_globals *local_player_globals;     // 0x0087a478
 extern data_array *actor_data;                   // 0x00880360
 extern data_array *object_data;                  // 0x008603b0
@@ -83,7 +83,7 @@ void encounters_update_activation(void)
 
     visible_clusters = (uint32_t *)((uint8_t *)local_player_globals + 0x18);
 
-    actor_index = ai_global_data->unknown_08;
+    actor_index = ai_globals_ptr->unknown_08;
     while (actor_index != (datum_index)k_datum_index_none) {
         current = actor_index;
         a = &((actor *)actor_data->data)[current & 0xffff];

@@ -23,7 +23,7 @@
 
 extern int16_t network_game_mode;              // 0x00719720, 0 local, 1 client, 2 host
 extern network_server_globals *network_server; // 0x0071c2d4
-extern uint8_t network_message_buffer[0x7ff8]; // 0x00871de0, UNSURE name: shared encode buffer
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, UNSURE name: shared encode buffer
 
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
                                  int16_t count); // 0x4ae400, blam-cc: EAX local_player_index, ECX source, BL source_kind
@@ -54,13 +54,13 @@ void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t 
     items[0] = &payload;
     payload.kind = kind;
     items[1] = 0;
-    bits = message_delta_encode_message(network_message_buffer, 0x7ff8, 0, 6, 0, items, 0, 1, 0);
+    bits = message_delta_encode_message(network_message_scratch, 0x7ff8, 0, 6, 0, items, 0, 1, 0);
     if (bits <= 0) {
         return;
     }
     machine = network_machine_find_by_id(network_server, (int16_t)machine_id);
     if (machine != 0 && machine->machine_id != -1) {
-        network_session_send_to_machine(machine->machine_id, network_server, 1, network_message_buffer, bits, 1, 0,
+        network_session_send_to_machine(machine->machine_id, network_server, 1, network_message_scratch, bits, 1, 0,
                                         1, 3);
     }
 }

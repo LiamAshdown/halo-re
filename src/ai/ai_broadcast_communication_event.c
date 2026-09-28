@@ -26,8 +26,8 @@
 
 extern uint8_t *ai_globals_ptr;     // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
-extern ModelCollisionGeometryBSP *broadcast_collision_bsp_root; // 0x00746f90
-extern uint8_t *broadcast_structure_bsp_bytes; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
+extern uint8_t *global_structure_bsp; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, EAX
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
@@ -52,10 +52,10 @@ void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t
     int32_t leaf;
 
     (void)unused;
-    leaf = (int32_t)bsp3d_node_find_leaf(0, broadcast_collision_bsp_root, point);
+    leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, point);
     location.leaf_index = leaf;
     location.cluster_index = leaf == -1 ? -1 :
-        *(int16_t *)(*(uint8_t **)(broadcast_structure_bsp_bytes + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
+        *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
     if (ai_globals_ptr[0x1]) {
         iterator.filter_array = encounter_data;
         iterator.unknown_04 = 0;

@@ -26,7 +26,7 @@
 
 extern void *rasterizer_device;                             // 0x0071d174
 extern uint8_t rasterizer_software_vertex_processing;       // 0x0069c680
-extern uint8_t unknown_0069c689;                            // 0x0069c689
+extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689
 extern uint8_t console_debug_toggle_6893f2;                 // 0x006893f2 object shadows enabled
 extern uint8_t console_debug_toggle_68941e;                 // 0x0068941e object shadow blur enabled
 extern int16_t rasterizer_active_render_target;             // 0x0069d350
@@ -99,7 +99,7 @@ void rasterizer_object_shadow_blur(void)
     uint32_t stage;
     uint32_t pass;
 
-    if (unknown_0069c689 != 0 || console_debug_toggle_6893f2 == 0 || console_debug_toggle_68941e == 0) {
+    if (rasterizer_caps_flag_689 != 0 || console_debug_toggle_6893f2 == 0 || console_debug_toggle_68941e == 0) {
         return;
     }
     effect = (void *)(uintptr_t)rasterizer_effects[45].effect;

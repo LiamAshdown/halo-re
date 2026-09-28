@@ -16,7 +16,7 @@
 #include "objects.h"
 #include "units.h"
 
-extern uint8_t *network_message_table; // 0x00687130, the pooled-node table (+0x28: key -> object index)
+extern uint8_t *object_network_id_table; // 0x00687130, the pooled-node table (+0x28: key -> object index)
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
@@ -41,7 +41,7 @@ void unit_dispatch_seat_exit_message(int32_t *message)
     if (message_delta_decode_compound_field(message, &decoded) == 0 || decoded.unit_key == 0) {
         return;
     }
-    unit_index = (*(int32_t **)(network_message_table + 0x28))[decoded.unit_key];
+    unit_index = (*(int32_t **)(object_network_id_table + 0x28))[decoded.unit_key];
     if (unit_index == -1) {
         return;
     }

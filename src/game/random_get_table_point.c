@@ -18,19 +18,19 @@
 #include "game.h"
 
 extern random_seed random_seed_global;      // 0x00719cd0
-extern real_point3d *random_point_table; // 0x006b7af4, a POINTER (0x473590 loads it, then indexes)
-extern int16_t random_point_table_count;   // 0x006b7af8 (read with movsx from a word)
+extern real_point3d *sphere_point_table; // 0x006b7af4, a POINTER (0x473590 loads it, then indexes)
+extern int16_t sphere_point_table_count;   // 0x006b7af8 (read with movsx from a word)
 
 // blam-cc: EAX -> out
-// Advances the global LCG PRNG and writes a random entry of random_point_table into *out.
+// Advances the global LCG PRNG and writes a random entry of sphere_point_table into *out.
 void random_get_table_point(real_point3d *out)
 {
     int16_t index;
 
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     index = (int16_t)(((random_seed_global >> 16) *
-                       (uint32_t)(int32_t)(int16_t)random_point_table_count) >> 16);
-    *out = random_point_table[index];
+                       (uint32_t)(int32_t)(int16_t)sphere_point_table_count) >> 16);
+    *out = sphere_point_table[index];
 }
 
 #if 0

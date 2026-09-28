@@ -29,7 +29,7 @@
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern tag_instance *tag_instances; // 0x0087bc14, cache.h
-extern breakable_surface_globals *breakable_surfaces; // 0x006b8d78, physics.h
+extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
 extern int16_t global_structure_bsp_index;  // 0x0069e8d8: accessed as WORD // 0x0069e8d8, physics.h
 extern real_vector3d fog_plane_vector; // 0x006e3ae4, this module
 extern const real_point3d *global_origin3d_pointer; // 0x00696714, math.h (== 0x0065c230, the zero point)
@@ -98,7 +98,7 @@ void structure_leaf_faces_for_each(int32_t render_context, structure_lightmap_be
                         consumed = (int16_t)(scan - surface_indices);
 
                         if (material->breakable_surface == (uint16_t)-1 ||
-                            (breakable_surfaces->active[global_structure_bsp_index][material->breakable_surface >> 5] &
+                            (breakable_surface_state->active[global_structure_bsp_index][material->breakable_surface >> 5] &
                              (1u << (material->breakable_surface & 0x1f))) != 0) {
                             if (shader->shader_type == 1 || (shader->shader_type > 4 && shader->shader_type < 0xc)) {
                                 if (transparent_material_cb != 0) {

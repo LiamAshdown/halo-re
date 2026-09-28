@@ -27,7 +27,7 @@ extern game_engine_state game_engine_state_value;    // 0x0087aa10
 extern float game_engine_end_game_timer;             // 0x0087aa08
 extern float game_engine_post_game_fade;             // 0x0087aa0c
 extern data_array *player_data;                      // 0x0087a480
-extern data_array *object_headers;                   // 0x008603b0
+extern data_array *object_data;                   // 0x008603b0
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 
@@ -52,7 +52,7 @@ void game_engine_end_game_sequence_stage2(void)
     p = (player *)data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (p->unit != (datum_index)0xffffffff) {
-            object *unit_obj = ((object_header *)object_headers->data)[p->unit & 0xffff].data;
+            object *unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
             unit_obj->vitality_flags = unit_obj->vitality_flags | 0x0020; // UNSURE: unnamed bit
         }
         p = (player *)data_iterator_next(&iterator);

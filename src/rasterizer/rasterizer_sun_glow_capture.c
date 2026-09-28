@@ -25,7 +25,7 @@ extern void *rasterizer_device;                             // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220
 extern GlobalsRasterizerData *rasterizer_globals_data;      // 0x0071d164
 extern uint8_t rasterizer_software_vertex_processing;       // 0x0069c680
-extern uint32_t unknown_00722b30;                           // 0x00722b30 UNSURE: render target textures addressed in texels
+extern uint32_t config_linear_texture_addressing_sun;                           // 0x00722b30 UNSURE: render target textures addressed in texels
 extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_targets]; // 0x0069d358
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
@@ -98,7 +98,7 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
     constants[0][3] = rect[0] / width;
     constants[1][1] = (rect[3] - rect[2]) / height;
     constants[1][3] = rect[2] / height;
-    if (unknown_00722b30) {
+    if (config_linear_texture_addressing_sun) {
         constants[0][0] *= width;
         constants[0][3] = width * constants[0][3];
         constants[1][1] = height * constants[1][1];

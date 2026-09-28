@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_functions.md: "Posts a type-0x21 game-engine event and, if
 // accepted, broadcasts an associated update packet to the whole session -- used whenever the
 // connected-player set changes." 0x00871de0 is types/networking.h's shared encode scratch
-// buffer, already named network_object_update_scratch by
+// buffer, already named network_message_scratch by
 // src/networking/network_server_check_machine_timeout.c (same address, "shared with
 // network_game_broadcast_team_object_updates.c").
 // register convention: ECX = server (implicit passthrough, following the same pattern
@@ -15,7 +15,7 @@
 // address-of-a-local passed to message_delta_encode_message; its true type and the meaning of
 // the +8 adjustment are not recoverable from this function alone.
 // UNSURE: message_delta_encode_message's own destination is not visible in this call (no
-// output buffer argument); the subsequent broadcast reads network_object_update_scratch
+// output buffer argument); the subsequent broadcast reads network_message_scratch
 // directly, so the encoder is presumed to write there through a fixed/global convention this
 // function does not itself set up.
 // UNSURE: `server` being implicit (rather than a genuine parameter) is inferred by analogy to
@@ -28,10 +28,9 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint8_t network_object_update_scratch[0x7ff8]; // 0x00871de0
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50
-extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
@@ -56,7 +55,7 @@ uint32_t network_game_broadcast_player_set_changed(uint8_t *param_1)
     record = param_1 + 8;
     encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &record, 0, 1, 0);
     if (0 < encoded_bits) {
-        network_session_broadcast_to_all(network_server, 1, network_object_update_scratch, 1, 0, 1, 3);
+        network_session_broadcast_to_all(network_server, 1, network_message_scratch, 1, 0, 1, 3);
     }
     return 0 < encoded_bits;
 }

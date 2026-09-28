@@ -35,7 +35,7 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_vector3d *global_up3d_pointer;      // 0x00696720
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
-extern uint8_t *unknown_00696738;               // 0x00696738, a pointer to 16 bytes copied into the powered entries
+extern uint8_t *global_identity_quaternion_pointer;               // 0x00696738, a pointer to 16 bytes copied into the powered entries
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points,
     real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
@@ -161,9 +161,9 @@ void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record
     *(real *)(obj + 0x4f0) = step + lean;
 
     *(real *)(powered + 0x18) = throttle;
-    memcpy(powered + 0x1c, unknown_00696738, 16);
+    memcpy(powered + 0x1c, global_identity_quaternion_pointer, 16);
     *(real *)(powered + 0x78) = throttle;
-    memcpy(powered + 0x7c, unknown_00696738, 16);
+    memcpy(powered + 0x7c, global_identity_quaternion_pointer, 16);
     object_physics_tick(unit_index, out_record, out_transform, &force, &torque);
 }
 

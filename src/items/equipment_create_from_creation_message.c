@@ -52,8 +52,8 @@ extern data_array *object_data; // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
     // its value is the hash -> datum_index array that resolves
     // equipment_creation_message.parent_hash into object_placement_data.role
-extern network_id_table *player_network_id_table; // 0x00687558
-    // this one player_network_id_table too; the name is UNSURE in both places); resolves
+extern network_id_table *machine_table; // 0x00687558
+    // this one machine_table too; the name is UNSURE in both places); resolves
     // equipment_creation_message.owner_hash into object_placement_data.owner_linkage. UNSURE name.
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
@@ -102,7 +102,7 @@ void equipment_create_from_creation_message(void *incoming_record)
     }
     owner_material = 0xffffffff;
     if (decoded.owner_hash != 0) {
-        owner_material = ((uint32_t *)player_network_id_table->handles)[decoded.owner_hash];
+        owner_material = ((uint32_t *)machine_table->handles)[decoded.owner_hash];
     }
 
     zero = (uint8_t *)&placement; // the `rep stos` of 0x22 dwords at 0x4bbecb

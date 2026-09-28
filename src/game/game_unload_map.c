@@ -15,15 +15,15 @@
 #include "game.h"
 #include "scenario.h"
 
-extern uint8_t download_in_progress;   // 0x006ac470
+extern uint8_t map_download_in_progress;   // 0x006ac470
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94, scenario.h
-extern uint32_t unknown_0069e8d4; // TYPES-GAP
-extern uint16_t unknown_0069e8d8; // TYPES-GAP
+extern uint32_t global_scenario_index; // TYPES-GAP
+extern uint16_t global_structure_bsp_index; // TYPES-GAP
 extern Scenario *global_scenario; // 0x00746f8c, cache module
-extern void *unknown_00746f9c;    // TYPES-GAP
-extern void *unknown_00746f98;    // TYPES-GAP
-extern void *unknown_00746f90;    // TYPES-GAP
+extern void *global_structure_bsp;    // TYPES-GAP
+extern void *global_structure_collision_bsp;    // TYPES-GAP
+extern void *global_collision_bsp;    // TYPES-GAP
 extern Globals *global_globals;   // 0x00746fa0
 
 extern int16_t cache_file_download_status_get(float *progress_out, int32_t unaff_ecx); // 0x4434a0,
@@ -41,7 +41,7 @@ void game_unload_map(void)
 {
     int16_t status;
 
-    if (download_in_progress != 0) {
+    if (map_download_in_progress != 0) {
         main_game_globals->map_loading_in_progress = 1;
         do {
             // objdump 0x45afd0..0x45afd8: EAX = main_game_globals + 4, the float the
@@ -59,12 +59,12 @@ void game_unload_map(void)
     if (main_game_globals->map_loaded != 0) {
         cache_file_unload();
         global_scenario_game_globals->structure_bsp_index = -1; // WORD +0x00
-        unknown_0069e8d4 = 0xffffffff;
-        unknown_0069e8d8 = 0xffff;
+        global_scenario_index = 0xffffffff;
+        global_structure_bsp_index = 0xffff;
         global_scenario = (Scenario *)0;
-        unknown_00746f9c = (void *)0;
-        unknown_00746f98 = (void *)0;
-        unknown_00746f90 = (void *)0;
+        global_structure_bsp = (void *)0;
+        global_structure_collision_bsp = (void *)0;
+        global_collision_bsp = (void *)0;
         global_globals = (Globals *)0;
         main_game_globals->map_loaded = 0;
     }

@@ -20,7 +20,7 @@ extern void *chat_gui_root_handle;    // 0x00721ea4
 extern chat_gui_find_object_fn chat_gui_find_object; // 0x00721eb8
 extern void *chat_gui_find_object_arg; // 0x0069c698
 extern chat_gui_find_child_fn chat_gui_find_child;    // 0x00721ecc
-extern chat_gui_get_property_string_fn chat_gui_get_property_string; // 0x00721ee0
+extern chat_gui_get_property_string_fn keystone_control_get_attribute; // 0x00721ee0
 extern chat_gui_release_fn chat_gui_release;          // 0x00721ec8
 
 extern int32_t chat_default_team_channel(void); // 0x4ab1e0
@@ -44,7 +44,7 @@ void chat_submit_input(void)
             if (gui_object != 0) {
                 void *editbox = chat_gui_find_child(gui_object, L"oEditbox");
                 if (editbox != 0) {
-                    text = chat_gui_get_property_string(editbox, L"text");
+                    text = keystone_control_get_attribute(editbox, L"text");
                 }
                 chat_gui_release(gui_object);
 

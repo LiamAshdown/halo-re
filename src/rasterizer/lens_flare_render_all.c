@@ -45,7 +45,7 @@ extern rasterizer_frame_time rasterizer_time; // 0x007c1200, the frame time as a
 extern void *rasterizer_device;             // 0x0071d174
 extern void *rasterizer_effect_pool_scratch; // 0x0071d278, the active effect, ended here
 extern int16_t unknown_00746fbc;            // 0x00746fbc lens flare quad blend mode (0 or 2)
-extern uint8_t unknown_0069c68a;            // 0x0069c68a
+extern uint8_t rasterizer_caps_flag_68a;            // 0x0069c68a
 extern uint8_t unknown_00689426;            // 0x00689426
 
 // blam-cc: stack -> (z_near, z_far) as raw float bits
@@ -284,7 +284,7 @@ void lens_flare_render_all(void)
         ((void (__stdcall *)(void *, int32_t))device_vtable[0x164 / 4])(rasterizer_device, 0);
     }
 
-    if (unknown_0069c68a == 0 && unknown_00689426 != 0) {
+    if (rasterizer_caps_flag_68a == 0 && unknown_00689426 != 0) {
         for (i = 0; i < lens_flare_instance_count; i++) {
             uint8_t *instance = (uint8_t *)&lens_flare_instances[i];
 

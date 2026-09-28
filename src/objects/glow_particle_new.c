@@ -21,14 +21,14 @@
 #include "objects.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint32_t widget_random_seed; // 0x00719cd4
+extern uint32_t effect_random_seed; // 0x00719cd4
 
 extern glow_particle *glow_particle_datum_new(void); // this module, 0x4fdde0
 
 static float glow_next_random_unit(void)
 {
-    widget_random_seed = widget_random_seed * 0x19660dU + 0x3c6ef35fU;
-    return (float)(widget_random_seed >> 16) * 1.5259022e-05f; // ~1/65536, [0,1)
+    effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
+    return (float)(effect_random_seed >> 16) * 1.5259022e-05f; // ~1/65536, [0,1)
 }
 
 glow_particle *glow_particle_new(glow *entry /*EDI*/, int16_t index, int16_t count)

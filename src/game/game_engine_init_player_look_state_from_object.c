@@ -24,7 +24,7 @@
 #include <string.h>
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
-extern data_array *object_headers;                          // 0x008603b0
+extern data_array *object_data;                          // 0x008603b0
 
 extern double atan2(double y, double x); // x87 FPATAN
 extern double sqrt(double x);            // x87 FSQRT
@@ -51,8 +51,8 @@ void game_engine_init_player_look_state_from_object(datum_index unit, int16_t lo
     look->suppressed_until_released = 0;
 
     if (unit != k_datum_index_none) {
-        unit_data *u = *(unit_data **)((uint8_t *)object_headers->data +
-            (uint32_t)(uint16_t)unit * object_headers->size + 8);
+        unit_data *u = *(unit_data **)((uint8_t *)object_data->data +
+            (uint32_t)(uint16_t)unit * object_data->size + 8);
         real horizontal;
 
         look->yaw = (real)atan2((double)u->desired_facing_vector.j, (double)u->desired_facing_vector.i);

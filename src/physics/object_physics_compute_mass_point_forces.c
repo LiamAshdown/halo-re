@@ -47,8 +47,8 @@ extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern data_array *object_data;                     // 0x008603b0
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (0x507f32 ECX)
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
-extern Globals *game_globals;                        // 0x00746fa0
-extern real_vector3d *global_reference_vector_0069672c; // 0x0069672c
+extern Globals *global_globals;                        // 0x00746fa0
+extern real_vector3d *global_down3d_pointer; // 0x0069672c
 extern float k_physics_gravity;                      // 0x0069c52c
 extern uint8_t material_table_warning_issued;         // 0x00721e4c
 extern int32_t material_table_bad_index;              // 0x006e3578
@@ -184,14 +184,14 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
                 ground_damp_fraction_scale;
             float tangential_speed;
 
-            if (material_index < 0 || (int32_t)material_index >= game_globals->materials.count) {
+            if (material_index < 0 || (int32_t)material_index >= global_globals->materials.count) {
                 if (!material_table_warning_issued) {
                     material_table_bad_index = -1;
                     material_table_warning_issued = 1;
                 }
                 material = (GlobalsMaterial *)material_table_fallback;
             } else {
-                material = &((GlobalsMaterial *)game_globals->materials.pointer)[material_index];
+                material = &((GlobalsMaterial *)global_globals->materials.pointer)[material_index];
             }
 
             // 0x50808f / 0x50809f: the material scale applies only to objects of at most 7500 mass (the draft
@@ -384,9 +384,9 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
                 collision_result result;
                 float probe_length = powered_def->antigrav_height + mp_def->radius;
 
-                delta.i = probe_length * global_reference_vector_0069672c->i;
-                delta.j = probe_length * global_reference_vector_0069672c->j;
-                delta.k = probe_length * global_reference_vector_0069672c->k;
+                delta.i = probe_length * global_down3d_pointer->i;
+                delta.j = probe_length * global_down3d_pointer->j;
+                delta.k = probe_length * global_down3d_pointer->k;
 
                 if (collision_test_movement_segment(0xc0a0, (real_point3d *)&mp->position_x, &delta,
                         context->object_index, &result)) {

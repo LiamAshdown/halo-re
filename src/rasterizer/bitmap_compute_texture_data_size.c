@@ -18,7 +18,7 @@
 #include "math.h"
 #include "rasterizer.h"
 
-extern int8_t rasterizer_bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
+extern int8_t bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
 // blam-cc: ESI -> bitmap, ECX -> mip_level
 extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t mip_level); // 0x43fc10
 extern uint32_t bitmap_compute_mipmap_count(BitmapData *bitmap); // 0x5145a0
@@ -40,7 +40,7 @@ int32_t bitmap_compute_texture_data_size(BitmapData *bitmap)
     mip_count = (int16_t)bitmap_compute_mipmap_count(bitmap);
 
     if (mip_count >= 0) {
-        bits_per_pixel = rasterizer_bitmap_format_bits_per_pixel[bitmap->format];
+        bits_per_pixel = bitmap_format_bits_per_pixel[bitmap->format];
         flags = bitmap->flags;
         level = 0;
         shift = 0;

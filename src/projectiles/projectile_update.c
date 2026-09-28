@@ -36,7 +36,7 @@ extern uint8_t *local_player_globals;  // 0x0087a478, +0x4 the first local playe
 extern data_array *player_data;        // 0x0087a480
 extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern game_main_globals *main_game_globals; // 0x006b0b80
-extern float global_gravity;           // 0x0069c52c
+extern float k_physics_gravity;           // 0x0069c52c
 
 extern void contrail_delete(datum_index attachment_handle); // 0x44cad0
 extern void projectile_update_function_values(datum_index projectile_index); // 0x4c0250
@@ -267,7 +267,7 @@ int projectile_update(uint32_t projectile_index)
         }
 
         // 0x4be32d: gravity
-        gravity = global_gravity * ((((projectile_object *)obj)->base.flags & 0x10) ? ((Projectile *)tag)->water_gravity_scale : ((Projectile *)tag)->air_gravity_scale);
+        gravity = k_physics_gravity * ((((projectile_object *)obj)->base.flags & 0x10) ? ((Projectile *)tag)->water_gravity_scale : ((Projectile *)tag)->air_gravity_scale);
         vel.k = vel_k - gravity * remaining;
         step_k = step.k - gravity * remaining * 0.5f;
 

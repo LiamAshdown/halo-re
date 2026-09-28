@@ -13,7 +13,7 @@
 // this function -- the actual connect call below it always uses one of two persistent globals
 // instead. Preserved exactly as decompiled; this may be dead code in the retail build or a
 // buffer Ghidra mismatched, not "improved" per the task's no-invented-behaviour rule.
-// UNSURE: `network_join_error_code`, `network_join_error_flags` and
+// UNSURE: `network_join_error_code`, `split_screen_quit_prompt_string` and
 // `network_join_target_address` are named from behavior only; gt2NetworkToHostShort/gt2AddressToString are
 // unnamed network glue functions outside this batch's address range.
 
@@ -26,7 +26,7 @@ extern uint16_t network_join_target_address[128]; // 0x00719458, a hostname/addr
 extern uint16_t empty_string;                   // 0x00660c34 (shared with the game module)
 extern int16_t network_join_error_code;         // 0x00718fa4, -1 means "not yet set"
 extern int32_t network_join_error_reason;       // 0x0071973c
-extern uint8_t network_join_error_flags[4];     // 0x00719754: word 0xffff at +0, byte 1 at +3
+extern uint8_t split_screen_quit_prompt_string[4];     // 0x00719754: word 0xffff at +0, byte 1 at +3
 
 // blam-cc: EAX -> address_string (0x4dc790 strcpy's it out of EAX), stack -> the wide
 // hostname/password string. Both call sites in this module and the one at 0x4c86ea agree.
@@ -66,8 +66,8 @@ void network_join_hostname_resolved_callback(int32_t resolve_failed, uint32_t un
         network_join_error_code = 0x2b;
     }
     network_join_error_reason = 0;
-    *(uint16_t *)network_join_error_flags = 0xffff;
-    network_join_error_flags[3] = 1;
+    *(uint16_t *)split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string[3] = 1;
 }
 
 #if 0

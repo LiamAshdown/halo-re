@@ -45,7 +45,7 @@
 //
 // UNSURE: the meaning of index values 0..15 (they are positions in the globals tag's weapon
 // list, so the mapping is data-driven and not recoverable from code), and of
-// `unknown_006f1d24`, which gates two of case 11's answers and the whole 0x80-flag early-out.
+// `game_engine_map_table_value`, which gates two of case 11's answers and the whole 0x80-flag early-out.
 
 #include "tags.h"
 #include "memory.h"
@@ -56,7 +56,7 @@
 extern Globals *global_globals;         // 0x00746fa0
 extern game_variant game_engine_variant; // 0x006f1c88 (flags aliased 0x006f1cc0,
                                           // starting_equipment aliased 0x006f1ce4)
-extern uint8_t unknown_006f1d24;        // 0x006f1d24, UNSURE identity
+extern uint8_t game_engine_map_table_value;        // 0x006f1d24, UNSURE identity
 
 // blam-cc: EAX -> handle
 // Finds `handle` in the globals tag's weapon list, remaps that list index according to the
@@ -79,7 +79,7 @@ int32_t game_engine_resolve_netgame_flag_role(uint32_t handle)
         }
     }
 
-    if (unknown_006f1d24 != 0 && (game_engine_variant.flags & 0x80) != 0 &&
+    if (game_engine_map_table_value != 0 && (game_engine_variant.flags & 0x80) != 0 &&
         (index == 1 || index == 0x0e)) {
         return -1;
     }
@@ -163,10 +163,10 @@ int32_t game_engine_resolve_netgame_flag_role(uint32_t handle)
     case 0x0b: /* 0x462f51 */
         if (index == 1) {
             // sbb/and/add: dl != 0 -> -1, dl == 0 -> 8
-            index = (unknown_006f1d24 != 0) ? -1 : 8;
+            index = (game_engine_map_table_value != 0) ? -1 : 8;
         } else if (index == 0x0e) {
             // sete/lea: dl == 0 -> 7, dl != 0 -> -1
-            index = (unknown_006f1d24 == 0) ? 7 : -1;
+            index = (game_engine_map_table_value == 0) ? 7 : -1;
         }
         break;
 

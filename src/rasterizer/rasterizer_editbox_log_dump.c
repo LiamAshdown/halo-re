@@ -26,12 +26,12 @@
 
 extern void *chat_gui_root_handle;                                  // 0x00721ea4 KSML UI engine instance (interface module name)
 extern void *(*unknown_00721ea0)(void *hwnd, void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e); // 0x00721ea0 UNSURE: engine factory
-extern uint32_t unknown_00721ea8; // 0x00721ea8 UNSURE: engine factory argument
+extern uint32_t keystone_current_directory; // 0x00721ea8 UNSURE: engine factory argument
 extern void *rasterizer_device; // 0x0071d174
-extern void *rasterizer_hwnd;   // 0x007461c4
+extern void *shell_window;   // 0x007461c4
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
-extern void *unknown_0069c698; // 0x0069c698, see rasterizer_ksml_ui_shutdown.c
-extern void *unknown_0069c69c; // 0x0069c69c, see rasterizer_ksml_ui_shutdown.c
+extern void *chat_gui_find_object_arg; // 0x0069c698, see rasterizer_ksml_ui_shutdown.c
+extern void *chat_listbox_gui_find_object_arg; // 0x0069c69c, see rasterizer_ksml_ui_shutdown.c
 extern int32_t (*unknown_00721eb4)(void *engine, void *path, void *key, uint32_t flags, void *rect,
                                     uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e, uint32_t f); // 0x00721eb4 UNSURE: "load document"
 extern int32_t (*unknown_00721eb8)(void *engine, void *key); // 0x00721eb8 UNSURE: "find document", see rasterizer_ksml_ui_shutdown.c
@@ -54,7 +54,7 @@ void rasterizer_editbox_log_dump(void)
         if (unknown_00721ea0 == (void *)0) {
             return;
         }
-        chat_gui_root_handle = unknown_00721ea0(rasterizer_hwnd, rasterizer_device, unknown_00721ea8, 0, 0, 0, 0);
+        chat_gui_root_handle = unknown_00721ea0(shell_window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
         if (chat_gui_root_handle == (void *)0) {
             return;
         }
@@ -76,13 +76,13 @@ void rasterizer_editbox_log_dump(void)
     wcscat(log_path, height_text);
     wcscat(log_path, L"log.ksml");
 
-    unknown_00721eb4(chat_gui_root_handle, editbox_path, unknown_0069c698, 0x10000000, /* 0x519802: mov eax,[0x69c698]; push eax */ rect_zero, 0, 0, 0, 0, 0, 0);
-    document = unknown_00721eb8(chat_gui_root_handle, unknown_0069c698);
+    unknown_00721eb4(chat_gui_root_handle, editbox_path, chat_gui_find_object_arg, 0x10000000, /* 0x519802: mov eax,[0x69c698]; push eax */ rect_zero, 0, 0, 0, 0, 0, 0);
+    document = unknown_00721eb8(chat_gui_root_handle, chat_gui_find_object_arg);
     if (document != 0) {
         unknown_00721edc(document, 0);
         unknown_00721ec8(document);
     }
-    unknown_00721eb4(chat_gui_root_handle, log_path, unknown_0069c69c, 0x10000000, /* 0x51985b: mov eax,[0x69c69c] */ rect_zero, 0, 0, 0, 0, 0, 0);
+    unknown_00721eb4(chat_gui_root_handle, log_path, chat_listbox_gui_find_object_arg, 0x10000000, /* 0x51985b: mov eax,[0x69c69c] */ rect_zero, 0, 0, 0, 0, 0, 0);
 }
 
 #if 0

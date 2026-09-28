@@ -15,7 +15,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
@@ -28,7 +28,7 @@ void encounters_recompute_dirty(void)
     encounter_iterator iterator;
     encounter *enc;
 
-    if (ai_global_data->actors_valid != 0) {
+    if (ai_globals_ptr->actors_valid != 0) {
         iterator.data = encounter_data;
         iterator.next_index = 0;
         iterator.index = (datum_index)k_datum_index_none;
@@ -37,7 +37,7 @@ void encounters_recompute_dirty(void)
     }
 
     for (;;) {
-        if (ai_global_data->actors_valid == 0) {
+        if (ai_globals_ptr->actors_valid == 0) {
             return;
         }
         do {

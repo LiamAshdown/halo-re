@@ -34,7 +34,7 @@
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
-extern data_array *object_headers;                  // 0x008603b0
+extern data_array *object_data;                  // 0x008603b0
 extern tag_instance *tag_instances;                 // 0x0087bc14
 
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970
@@ -66,7 +66,7 @@ void unit_update_active_camouflage_depower(datum_index player_handle)
         return;
     }
 
-    unit_obj = ((object_header *)object_headers->data)[unit_handle & 0xffff].data;
+    unit_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     weapon_slot = unit->current_weapon_index;
 
@@ -77,7 +77,7 @@ void unit_update_active_camouflage_depower(datum_index player_handle)
     if (prevents_depower) {
         rate = 0.0f; // 0x672ac0
     } else if (weapon_handle != (datum_index)0xffffffff) {
-        object *weapon_obj = ((object_header *)object_headers->data)[weapon_handle & 0xffff].data;
+        object *weapon_obj = ((object_header *)object_data->data)[weapon_handle & 0xffff].data;
         Weapon *weapon_tag = (Weapon *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
         if (weapon_tag->active_camo_ding != 0.0f) { // 0x672ac0
             rate = weapon_tag->active_camo_ding;

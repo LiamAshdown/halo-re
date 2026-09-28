@@ -10,8 +10,8 @@
 //   and reduces *max_width_inout by the width actually consumed either way.
 // register convention: objdump 0x557530..0x557650 shows no instruction loads ECX before
 //   "call 0x556b00" at 0x55755d -- ECX is a pure pass-through from this function's own
-//   caller, matching the notes. EAX/EDX/EBX are loaded from the text_font/
-//   text_justification_state/text_style_state globals (same as every other text_parse_state_initialize
+//   caller, matching the notes. EAX/EDX/EBX are loaded from the hud_text_draw_font_tag_id/
+//   hud_text_draw_column/hud_text_draw_color_or_flags globals (same as every other text_parse_state_initialize
 //   call site), not from registers this function receives. The stack argument
 //   max_width_inout sits at [esp+0x2c] (mov ebp,[esp+0x2c] at 0x557547).
 
@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "text.h"
 
-extern datum_index text_font;              // 0x006e472c
-extern int16_t text_style_state;                 // 0x006e4734
-extern int16_t text_justification_state;         // 0x006e4736
-extern ColorARGB text_color;               // 0x006e4738
+extern datum_index hud_text_draw_font_tag_id;              // 0x006e472c
+extern int16_t hud_text_draw_color_or_flags;                 // 0x006e4734
+extern int16_t hud_text_draw_column;         // 0x006e4736
+extern ColorARGB hud_text_draw_color_a;               // 0x006e4738
 
 // blam-cc: ECX=string, EDX=justification, EBX=style, ESI=state, stack=(font, color)
 extern void text_parse_state_initialize(void *string, int16_t justification, int16_t style,
@@ -45,8 +45,8 @@ int32_t text_measure_string_fit_width(void *string, int32_t *max_width_inout)
 
     consumed_width = 0;
     break_column = 0;
-    text_parse_state_initialize(string, text_justification_state, text_style_state, &state, text_font,
-        &text_color);
+    text_parse_state_initialize(string, hud_text_draw_column, hud_text_draw_color_or_flags, &state, hud_text_draw_font_tag_id,
+        &hud_text_draw_color_a);
 
     for (;;) {
         text_parse_next_token_wide(&state);

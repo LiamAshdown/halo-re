@@ -10,7 +10,7 @@
 //   wind_noise 0x38); flag_pole_get_marker_positions 0x4fc020 (this file group);
 //   point_physics_tick 0x50b530 (established in antenna_update_physics.c); math/README.md
 //   sphere_point_table (0x006b7af4) / sphere_point_table_count (0x006b7af8); types/objects.h
-//   globals list (widget_random_seed 0x00719cd4).
+//   globals list (effect_random_seed 0x00719cd4).
 // register convention: three clean stack parameters (entry, tag data, dt); Ghidra shows no
 //   in_REG/unaff_ markers for this function's own parameters (unlike its callees).
 // blam-cc: stack -> entry, tag, dt
@@ -34,7 +34,7 @@
 #include "objects.h"
 
 extern tag_instance *tag_instances;            // 0x0087bc14
-extern uint32_t widget_random_seed;            // 0x00719cd4
+extern uint32_t effect_random_seed;            // 0x00719cd4
 extern real_point3d *sphere_point_table;       // 0x006b7af4
 extern int16_t sphere_point_table_count;       // 0x006b7af8
 extern double sqrt(double x);
@@ -120,9 +120,9 @@ void flag_cloth_update(flag *entry, Flag *tag, float dt) // blam-cc: stack -> en
                                      tag->wind_noise * 0.00016f;
                     }
 
-                    widget_random_seed = widget_random_seed * 0x19660dU + 0x3c6ef35fU;
+                    effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
                     {
-                        int16_t idx = (int16_t)(((widget_random_seed >> 16) *
+                        int16_t idx = (int16_t)(((effect_random_seed >> 16) *
                                                   (uint32_t)sphere_point_table_count) >> 16);
                         real_point3d *dir = &sphere_point_table[idx];
                         wind_dir.i = dir->x * wind_scale;

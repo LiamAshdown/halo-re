@@ -60,11 +60,11 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 extern int32_t object_cluster_stamp; // 0x008603cc
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern char out_of_objects_error_prefix[]; // 0x0065efec, the printf-style error tag argument FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
-extern uint8_t object_new_server_broadcast_gate; // 0x0071c2c0, UNSURE: foreign global
+extern char network_log_path_format[]; // 0x0065efec, the printf-style error tag argument FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE: foreign global
 extern int16_t network_game_mode; // 0x00719720 (also used in this batch's
                                                      //   scenario_objects_place)
-extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, the 0x7ff8-byte network
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, the 0x7ff8-byte network
     // broadcast scratch buffer; the size is the literal pushed at 0x4f58d9
 
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle); // 0x4630b0, EAX handle; returns it, or the remapped tag
@@ -273,15 +273,15 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
         active = 0;
     }
 
-    if (object_new_server_broadcast_gate == 0 && active) {
+    if (network_action_apply_active == 0 && active) {
         if (network_game_mode == 2 && obj->network_role == 0) {
             int32_t override_count;
             object_type_override_call_0x68(new_index);
-            override_count = object_type_override_get_0x64(new_index, object_network_message_scratch,
-                                                           sizeof object_network_message_scratch);
+            override_count = object_type_override_get_0x64(new_index, network_message_scratch,
+                                                           sizeof network_message_scratch);
             if (override_count > 0) {
                 // 0x4f58eb..0x4f5904: EAX = override_count (0x4f44f0's result, untouched since the test)
-                network_session_broadcast_to_flagged(override_count, network_server, 1, object_network_message_scratch,
+                network_session_broadcast_to_flagged(override_count, network_server, 1, network_message_scratch,
                     1, 0, 0, 3);
             }
         }
@@ -296,7 +296,7 @@ out_of_objects:
             tag_path = last_slash + 1;
         }
         sprintf(out_of_objects_message, "OUT OF OBJECTS: cannot create %s", tag_path);
-        console_print_error_va(0, out_of_objects_error_prefix, out_of_objects_message);
+        console_print_error_va(0, network_log_path_format, out_of_objects_message);
         return new_index;
     }
 

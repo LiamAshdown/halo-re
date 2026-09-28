@@ -94,7 +94,7 @@ extern uint8_t shell_window_minimized;      // 0x00746254
 extern uint8_t shell_window_maximized;      // 0x00746255
 extern void *shell_arrow_cursor;            // 0x006e35bc
 extern int32_t nowindowskey;                // 0x007196f8
-extern uint8_t network_join_error_flags[4]; // 0x00719754, foreign (networking); byte 3 (offset
+extern uint8_t split_screen_quit_prompt_string[4]; // 0x00719754, foreign (networking); byte 3 (offset
                                              // +3 = 0x00719757) is main_globals.return_to_main_menu's
                                              // twin -- both names are attested for this dword by
                                              // different modules; kept as the networking module's own
@@ -118,9 +118,9 @@ extern int32_t sound_time;                  // 0x0072520c, foreign (sound)
 extern uint8_t chat_dialog_open;            // 0x006b3858, foreign (interface)
 
 extern void *keystone_module;               // 0x00721e9c
-extern void *keystone_root;                 // 0x00721ea4
+extern void *chat_gui_root_handle;                 // 0x00721ea4
 extern keystone_dispatch_message_fn keystone_dispatch_message; // 0x00721ec0
-extern chat_gui_release_fn keystone_window_release;            // 0x00721ec8
+extern chat_gui_release_fn chat_gui_release;            // 0x00721ec8
 
 // Leaves the window in the "suspended" state used whenever the app loses input focus: pauses
 // sound (or tells Keystone to pause when the device is not fullscreen-exclusive yet), releases
@@ -442,11 +442,11 @@ keyboard_message:
     }
 
 keystone_dispatch:
-    if (keystone_root != 0 && keystone_module != 0) {
+    if (chat_gui_root_handle != 0 && keystone_module != 0) {
         handled = 1;
-        released_window = keystone_dispatch_message(keystone_root, message, wparam, lparam, &handled);
+        released_window = keystone_dispatch_message(chat_gui_root_handle, message, wparam, lparam, &handled);
         if (released_window != 0) {
-            keystone_window_release(released_window);
+            chat_gui_release(released_window);
         }
         if (message == 0x100) { // WM_KEYDOWN
             if (wparam == 0xd) { // VK_RETURN

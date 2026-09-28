@@ -25,7 +25,7 @@
 extern network_id_table *object_network_id_table; // 0x00687130
     // variable's value is the table root, and +0x0c off it is the hash_table this function hashes
     // an object datum_index through (objdump 0x4bbcb9: mov esi,ds:0x687130 / add esi,0xc)
-extern network_id_table *player_network_id_table; // 0x00687558
+extern network_id_table *machine_table; // 0x00687558
     // handle is hashed through; src/units spells it the same way. UNSURE name in both places.
 extern data_array *object_data;     // 0x008603b0
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module.
@@ -65,7 +65,7 @@ void weapon_build_creation_message(datum_index item_index, uint32_t unused_param
         if (parent_hash == -1) parent_hash = 0;
     }
     if (item_obj->owner_linkage != (uint32_t)0xffffffff) {
-        owner_hash = hash_table_get(&player_network_id_table->id_to_index, item_obj->owner_linkage);
+        owner_hash = hash_table_get(&machine_table->id_to_index, item_obj->owner_linkage);
         if (owner_hash == -1) owner_hash = 0;
     }
     if (object_hash == -1) {

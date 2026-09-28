@@ -35,11 +35,11 @@
 #include "networking.h"
 #include "interface.h"
 
-extern progress_screen_state progress_screen_state_var; // 0x00718f8c, progress_screen_state in interface.h
-extern int32_t progress_screen_start_time;      // 0x0068e684
-extern uint32_t progress_screen_fade_end_time;  // 0x0068e680, milliseconds, -1 when none
-extern datum_index progress_screen_tag;         // 0x0068e688
-extern int32_t progress_screen_progress;         // 0x00718f90
+extern progress_screen_state join_ui_state; // 0x00718f8c, progress_screen_state in interface.h
+extern int32_t interface_loading_screen_address_b;      // 0x0068e684
+extern uint32_t interface_loading_screen_address_a;  // 0x0068e680, milliseconds, -1 when none
+extern datum_index interface_loading_screen_request_id;         // 0x0068e688
+extern int32_t interface_loading_screen_progress;         // 0x00718f90
 extern uint16_t progress_screen_text[0x20];      // 0x006b2f28
 extern uint16_t progress_screen_subtext[0x20];   // 0x006b2f68
 extern uint8_t chimera_loading_screen_cleanup_gate; // 0x007124a1, UNSURE
@@ -48,10 +48,10 @@ extern int16_t network_game_mode;                // 0x00719720, 2 is host
 extern uint8_t chat_state_00719a7a; // 0x00719a7a, UNSURE
 extern uint8_t chat_state_00719a9a; // 0x00719a9a, UNSURE
 extern uint8_t chat_state_00719a79; // 0x00719a79, UNSURE
-extern uint8_t chat_state_0071c2de; // 0x0071c2de, UNSURE
+extern uint8_t network_host_handoff_requested; // 0x0071c2de, UNSURE
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, word stores
 extern uint8_t split_screen_quit_prompt_armed;   // 0x00719757
-extern uint8_t split_screen_quit_prompt_unknown_71973c; // 0x0071973c, byte stores only
+extern uint8_t network_join_error_reason; // 0x0071973c, byte stores only
 
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550; blam-cc: group in EDI
@@ -80,39 +80,39 @@ void chimera__do_show_loading_screen(void)
     Rectangle2D bounds;
     uint16_t text_buffer[0x200];
 
-    if (progress_screen_state_var == 0) {
+    if (join_ui_state == 0) {
         return;
     }
     alpha = 1.0f;
-    if (progress_screen_start_time == -1) {
-        progress_screen_start_time = (int32_t)time_query_performance_counter_ms();
+    if (interface_loading_screen_address_b == -1) {
+        interface_loading_screen_address_b = (int32_t)time_query_performance_counter_ms();
     }
 
-    if (progress_screen_fade_end_time != 0xffffffffu) {
+    if (interface_loading_screen_address_a != 0xffffffffu) {
         uint32_t now = time_query_performance_counter_ms();
-        if (now >= progress_screen_fade_end_time) {
-            progress_screen_fade_end_time = 0xffffffffu;
-            progress_screen_start_time = -1;
-            progress_screen_tag = (datum_index)-1;
-            progress_screen_state_var = 0;
-            progress_screen_progress = 0;
+        if (now >= interface_loading_screen_address_a) {
+            interface_loading_screen_address_a = 0xffffffffu;
+            interface_loading_screen_address_b = -1;
+            interface_loading_screen_request_id = (datum_index)-1;
+            join_ui_state = 0;
+            interface_loading_screen_progress = 0;
             progress_screen_text[0] = 0;
             progress_screen_subtext[0] = 0;
             return;
         }
-        alpha = (float)(progress_screen_fade_end_time - now) * 0.0013333333f; // unsigned to float
+        alpha = (float)(interface_loading_screen_address_a - now) * 0.0013333333f; // unsigned to float
         if (alpha < 0.0f) {
             alpha = 0.0f;
         } else if (alpha > 1.0f) {
             alpha = 1.0f;
         }
     } else if (chimera_loading_screen_cleanup_gate != 0) {
-        switch (progress_screen_state_var) {
+        switch (join_ui_state) {
         case 2: case 5: case 6: case 7: case 9:
             chat_state_00719a7a = 0;
             chat_state_00719a9a = 0;
             chat_state_00719a79 = 0;
-            chat_state_0071c2de = 1;
+            network_host_handoff_requested = 1;
             chat_close();
             return;
         case 3:
@@ -120,15 +120,15 @@ void chimera__do_show_loading_screen(void)
             chat_state_00719a7a = 0;
             chat_state_00719a9a = 0;
             chat_state_00719a79 = 0;
-            split_screen_quit_prompt_unknown_71973c = 0;
+            network_join_error_reason = 0;
             split_screen_quit_prompt_armed = 1;
             return;
         case 4:
-            if (progress_screen_tag != (datum_index)-1) {
-                NNCancel(progress_screen_tag);
-                progress_screen_tag = (datum_index)-1;
+            if (interface_loading_screen_request_id != (datum_index)-1) {
+                NNCancel(interface_loading_screen_request_id);
+                interface_loading_screen_request_id = (datum_index)-1;
                 split_screen_quit_prompt_string = 0xffff;
-                split_screen_quit_prompt_unknown_71973c = 0;
+                network_join_error_reason = 0;
                 split_screen_quit_prompt_armed = 1;
             }
             break;
@@ -164,7 +164,7 @@ void chimera__do_show_loading_screen(void)
     bounds.top = 0x19a;
     bounds.right = 0x280;
     bounds.bottom = 0x1ae;
-    switch (progress_screen_state_var) {
+    switch (join_ui_state) {
     case 2:
         string_format_wide_va(text_buffer, text_string_list_get_string(strings, 1));
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
@@ -180,7 +180,7 @@ void chimera__do_show_loading_screen(void)
         break;
     case 6:
         string_format_wide_va(text_buffer, text_string_list_get_string(strings, 3), progress_screen_text,
-                              progress_screen_progress);
+                              interface_loading_screen_progress);
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 7:
@@ -203,7 +203,7 @@ void chimera__do_show_loading_screen(void)
 
     bounds.top = 0x1ae;
     bounds.bottom = 0x1c2;
-    switch (progress_screen_state_var) {
+    switch (join_ui_state) {
     case 2: case 3: case 4: case 5: case 6: case 7: case 9:
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_string_list_get_string(strings, 7));
         // fall through

@@ -14,13 +14,13 @@
 #include "math.h"
 #include "game.h"
 
-extern void *user_profile_signin_state; // 0x00721f24, UNSURE identity, see header note
+extern void *global_sound_effect_object; // 0x00721f24, UNSURE identity, see header note
 
-// Returns 1 if user_profile_signin_state is non-NULL and its dword at +4 is 0, 1, or 2.
+// Returns 1 if global_sound_effect_object is non-NULL and its dword at +4 is 0, 1, or 2.
 uint32_t user_profile_signin_state_is_valid(void)
 {
-    if (user_profile_signin_state != 0) {
-        int32_t state = *(int32_t *)((uint8_t *)user_profile_signin_state + 4);
+    if (global_sound_effect_object != 0) {
+        int32_t state = *(int32_t *)((uint8_t *)global_sound_effect_object + 4);
         if (state == 0 || state == 1 || state == 2) {
             return 1;
         }

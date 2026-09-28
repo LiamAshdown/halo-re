@@ -21,10 +21,10 @@
 #include <string.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
-extern int32_t unknown_0069fdfc;   // 0x0069fdfc, the rcon/console connection id per header
+extern int32_t network_console_connection_id;   // 0x0069fdfc, the rcon/console connection id per header
 extern uint8_t network_session_active2; // 0x0071c2ec, UNSURE name
-extern void *master_server_object; // 0x00722a20
-extern int32_t master_server_state; // 0x00722a18
+extern void *network_session_host_object; // 0x00722a20
+extern int32_t network_session_host_state; // 0x00722a18
 
 extern void gcd_disconnect_all(int32_t connection_id); // outside this batch, foreign
 extern void message_delta_parameters_protocol_dump_to_config_file(void); // 0x4ec330, outside this batch
@@ -48,7 +48,7 @@ void network_game_server_host_dispose(network_server_globals *host)
     int32_t message_type;
     uint32_t challenge_payload[4]; // UNSURE: the caller-frame scratch EDX points at
 
-    gcd_disconnect_all(unknown_0069fdfc);
+    gcd_disconnect_all(network_console_connection_id);
     if (((*(uint8_t *)((uint8_t *)host + 6) >> 2) & 1) != 0) {
         message_delta_parameters_protocol_dump_to_config_file();
         network_stats_summary_log_write();
@@ -78,15 +78,15 @@ void network_game_server_host_dispose(network_server_globals *host)
     }
     memset(host, 0, sizeof(*host));
     network_session_active2 = 0;
-    if (master_server_object != 0) {
-        if (master_server_state != 2) {
-            master_server_state = 2;
+    if (network_session_host_object != 0) {
+        if (network_session_host_state != 2) {
+            network_session_host_state = 2;
         }
         network_session_host_update();
-        unknown_0069fdfc = -1;
+        network_console_connection_id = -1;
         gcd_shutdown();
-        qr2_shutdown(master_server_object);
-        master_server_object = 0;
+        qr2_shutdown(network_session_host_object);
+        network_session_host_object = 0;
     }
 }
 

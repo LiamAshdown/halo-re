@@ -31,7 +31,7 @@ extern int16_t conversation_line_count;     // 0x006f0ca0, UNSURE name
 extern int32_t conversation_line_base;      // 0x006f0ca4, UNSURE name
 extern int16_t conversation_index_lookup[0x39]; // 0x008802e0, UNSURE size/name (57 entries: sVar6 runs 0..0x38)
 extern data_array *ai_conversation_data;    // 0x008802d4
-extern uint8_t ai_communication_line_table[];                          // 0x00655aa0, stride 0x28
+extern uint8_t ai_communication_lines[];                          // 0x00655aa0, stride 0x28
 extern ai_communication_event_definition ai_communication_event_definitions[]; // 0x00656b08, stride 0x24
 
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -57,7 +57,7 @@ void ai_communication_initialize(void)
     int32_t i;
 
     communication_line_count = 0;
-    entry = ai_communication_line_table;
+    entry = ai_communication_lines;
     do {
         entry = entry + 0x28;
         communication_line_count = communication_line_count + 1;
@@ -87,7 +87,7 @@ void ai_communication_initialize(void)
     conversation_index = 0;
     for (;;) {
         conversation_index_lookup[conversation_index] = -1;
-        entry = ai_communication_line_table;
+        entry = ai_communication_lines;
         position = 0;
         next_conversation_index = *(int16_t *)(entry + 0x28);
         for (;;) {

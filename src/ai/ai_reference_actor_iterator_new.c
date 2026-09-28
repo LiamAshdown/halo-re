@@ -22,7 +22,7 @@
 #include "ai.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 
 extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, this batch
 
@@ -41,7 +41,7 @@ void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_act
 
     *field0 = encounter_index;
 
-    if (global_scenario == 0 || ai_global_data->actors_valid == 0 ||
+    if (global_scenario == 0 || ai_globals_ptr->actors_valid == 0 ||
         encounter_index >= global_scenario->encounters.count) {
         *field0 = -1;
         return;

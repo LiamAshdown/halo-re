@@ -5,7 +5,7 @@
 //   effects_refresh_structure_locations 0x450e80 (activate slot 3), over particle_data.
 // objdump 0x455d20..0x455e5a: every particle (particle_data 0x0087abd0, 0x70 each; next datum found inline)
 //   gets a position: its own (+0x30) when free (+0x08 == -1); with flag 0x40 the first person weapon marker
-//   (first_person_weapon_globals 0x006b2d98 + weapon (+0x0f) * 0x1ea0 + marker (+0x0c) * 0x34 + 0x10b4);
+//   (first_person_weapon_interfaces 0x006b2d98 + weapon (+0x0f) * 0x1ea0 + marker (+0x0c) * 0x34 + 0x10b4);
 //   else the object's node matrix (object +0x1f2 offset, marker * 0x34, position +0x28), deleting the
 //   particle when object_try_and_get(-1) fails. bsp3d_node_find_leaf gives the leaf (+0x28) and the leaf's
 //   cluster (+0x2c); a particle outside the level (-1 cluster) is deleted (datum_delete, EAX array, EDX).
@@ -19,7 +19,7 @@
 #include "effects.h"
 
 extern data_array *particle_data;                       // 0x0087abd0
-extern uint8_t *first_person_weapon_globals;            // 0x006b2d98, stride 0x1ea0
+extern uint8_t *first_person_weapon_interfaces;            // 0x006b2d98, stride 0x1ea0
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern ScenarioStructureBSP *global_structure_bsp;
 
@@ -42,7 +42,7 @@ void particles_refresh_structure_locations(void)
         if (entry->object_index == k_datum_index_none) {
             point = &entry->position;
         } else if (entry->flags & 0x40) {
-            point = (real_point3d *)(first_person_weapon_globals + entry->first_person_weapon_index * 0x1ea0 +
+            point = (real_point3d *)(first_person_weapon_interfaces + entry->first_person_weapon_index * 0x1ea0 +
                 entry->marker_index * 0x34 + 0x10b4);
         } else {
             uint8_t *owner = (uint8_t *)object_try_and_get(entry->object_index, 0xffffffff);

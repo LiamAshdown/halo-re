@@ -24,7 +24,7 @@
 #include "math.h"
 #include "sound.h"
 
-extern random_seed local_random_seed; // 0x00719cd4
+extern random_seed effect_random_seed; // 0x00719cd4
 
 extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170, math module
 
@@ -37,7 +37,7 @@ float sound_compute_random_pitch(float pitch_bounds_min, float pitch_bounds_max,
     float random_pitch;
 
     distance_modifier = (one_pitch_modifier - zero_pitch_modifier) * distance_scale + zero_pitch_modifier;
-    random_pitch = random_real_range_seeded(&local_random_seed, pitch_bounds_min, pitch_bounds_max);
+    random_pitch = random_real_range_seeded(&effect_random_seed, pitch_bounds_min, pitch_bounds_max);
     return distance_modifier * random_pitch;
 }
 

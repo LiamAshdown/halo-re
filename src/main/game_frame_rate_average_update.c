@@ -21,7 +21,7 @@
 
 extern main_frame_rate_average frame_rate_average_data; // 0x00719ab0
 
-extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
+extern int64_t performance_frequency; // 0x006ac8f8, foreign (math module)
 
 // Returns the mean of the first `count` recorded frame times (or 1 ms if none have been recorded
 // yet), shifts entries 0..count-2 up one slot into 1..count-1 (making room for a new
@@ -52,7 +52,7 @@ uint32_t game_frame_rate_average_update(void)
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    frame_rate_average_data.sample_time_ms = (int32_t)((counter * 1000) / performance_counter_frequency);
+    frame_rate_average_data.sample_time_ms = (int32_t)((counter * 1000) / performance_frequency);
 
     return average;
 }

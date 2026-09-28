@@ -3,7 +3,7 @@
 // name confidence: 0.6   rewrite confidence: 0.85
 // evidence: types/input.h names this "input_queue_initialize 0x492250" and documents
 // input_event_queue (0x10c bytes at 0x00712cc0, 0x43 dwords zeroed here); the store to
-// DAT_00712cc0 = 1 last is event_queue.enabled.
+// DAT_00712cc0 = 1 last is input_event_queue_active.enabled.
 // register convention: no parameters, no return value.
 
 #include "win32.h"
@@ -16,7 +16,7 @@
 #include "saved_games.h"
 #include "input.h"
 
-extern input_event_queue event_queue;                    // 0x00712cc0
+extern input_event_queue input_event_queue_active;                    // 0x00712cc0
 extern int64_t performance_frequency;                           // 0x006ac8f8/0x006ac8fc
 
 // Zeroes the whole input event queue block, seeds its start_time and last_event_time from
@@ -27,16 +27,16 @@ void input_queue_initialize(void)
     uint32_t *cursor;
     int32_t count;
 
-    cursor = (uint32_t *)&event_queue;
+    cursor = (uint32_t *)&input_event_queue_active;
     for (count = 0x43; count != 0; count--) {
         *cursor = 0;
         cursor = cursor + 1;
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    event_queue.last_event_time = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
-    event_queue.start_time = event_queue.last_event_time;
-    event_queue.enabled = 1;
+    input_event_queue_active.last_event_time = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    input_event_queue_active.start_time = input_event_queue_active.last_event_time;
+    input_event_queue_active.enabled = 1;
 }
 
 #if 0

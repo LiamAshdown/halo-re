@@ -29,10 +29,10 @@
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern uint8_t *runtime_decals_suppressed;  // 0x0072278c, this module; UNSURE, see types/structures.h
 extern Scenario *global_scenario;           // 0x00746f8c, game.h/hs.h (read, not owned)
-extern uint8_t decals_enabled_by_blood_setting; // 0x006893f5, foreign (decal system toggle)
+extern uint8_t decals_for_all_responses; // 0x006893f5, foreign (decal system toggle)
 extern uint8_t decals_enabled;                  // 0x00687004, foreign (decal system toggle)
 extern tag_instance *tag_instances;         // 0x0087bc14, cache.h
-extern uint32_t cseries_random_seed;        // 0x00719cd4, foreign (cseries)
+extern uint32_t effect_random_seed;        // 0x00719cd4, foreign (cseries)
 extern double cos(double x); // MSVC CRT
 extern double sin(double x); // MSVC CRT
 
@@ -65,7 +65,7 @@ void structure_decals_update_switch_transitions(uint32_t *switch_group_a, uint32
     }
 
     for (slot = 0; ; slot = slot + 1) {
-        uint32_t saved_seed = cseries_random_seed;
+        uint32_t saved_seed = effect_random_seed;
         ScenarioStructureBSPCluster *cluster =
             (ScenarioStructureBSPCluster *)((uint8_t *)global_structure_bsp->clusters.pointer + cluster_offset);
         int cluster_has_decals = cluster->first_decal_index != (uint16_t)-1 && cluster->decal_count != 0;
@@ -96,7 +96,7 @@ void structure_decals_update_switch_transitions(uint32_t *switch_group_a, uint32
         if (entering) {
             decal_evict_object_decals(slot);
         } else {
-            cseries_random_seed = saved_seed;
+            effect_random_seed = saved_seed;
             if (leaving && cluster->decal_count != 0) {
                 int32_t i;
                 for (i = 0; i < cluster->decal_count; i = i + 1) {
@@ -117,7 +117,7 @@ void structure_decals_update_switch_transitions(uint32_t *switch_group_a, uint32
                     orientation.j = (float)sin(yaw) * cos_pitch;
                     orientation.k = (float)sin(pitch);
 
-                    if (decals_enabled_by_blood_setting == 0) {
+                    if (decals_for_all_responses == 0) {
                         Decal *shader_decal = (Decal *)tag_instances[shader_tag_id.index].data;
                         if (shader_decal->layer != decallayer_alpha_tested) {
                             spawn_ok = 0;
@@ -127,7 +127,7 @@ void structure_decals_update_switch_transitions(uint32_t *switch_group_a, uint32
                     if (decals_enabled != 0 && spawn_ok) {
                         collision_result placement;
 
-                        cseries_random_seed = *(uint32_t *)&decal->position.z ^
+                        effect_random_seed = *(uint32_t *)&decal->position.z ^
                             *(uint32_t *)&decal->position.y ^ *(uint32_t *)&decal->position.x ^ 0xdeadc0de;
                         if (collision_test_movement_segment(0x100061,
                                 (real_point3d *)&decal->position, &orientation, 0xffffffff,
@@ -137,7 +137,7 @@ void structure_decals_update_switch_transitions(uint32_t *switch_group_a, uint32
                             decal_place(*(datum_index *)&shader_tag_id, &placement, &orientation, 1.0f, 1, -1);
                         }
                     }
-                    cseries_random_seed = saved_seed;
+                    effect_random_seed = saved_seed;
                 }
             }
         }

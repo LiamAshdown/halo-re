@@ -18,7 +18,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data;                        // 0x00880354
+extern ai_globals *ai_globals_ptr;                        // 0x00880354
 extern data_array *actor_data;                            // 0x00880360
 extern data_array *encounter_data;                        // 0x008802c8
 extern encounter_squad_state *encounter_squad_states;     // 0x008802cc
@@ -38,7 +38,7 @@ void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters)
     datum_index *link;
     datum_index current;
 
-    if (ai_global_data->actors_valid == 0) {
+    if (ai_globals_ptr->actors_valid == 0) {
         return;
     }
 

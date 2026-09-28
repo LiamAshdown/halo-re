@@ -25,7 +25,7 @@
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool;    // 0x006926c4
-extern uint16_t default_profile_name_suffix_00671fac[]; // 0x00671fac, UNSURE name
+extern uint16_t missing_string_text[]; // 0x00671fac, UNSURE name
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550; blam-cc: group in EDI
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
@@ -39,7 +39,7 @@ extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const 
 void set_profile_name(widget_instance *widget, const uint16_t *name_source)
 {
     datum_index tag_id = tag_lookup(0x75737472 /* 'ustr' */, "ui\\shell\\strings\\common_button_captions");
-    uint16_t *suffix = default_profile_name_suffix_00671fac;
+    uint16_t *suffix = missing_string_text;
     void *buffer = heap_reallocate(widget->text, 0x80, widget_memory_pool);
 
     widget->text = buffer;

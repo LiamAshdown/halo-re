@@ -41,7 +41,7 @@
 
 // FIXED 2026-09-28 (send-path audit, from the disassembly): the two bit_stream_write_bits_chunked calls write into
 // the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
-// the encoded bits from &network_join_message_header; the C passed placeholders or dropped the arguments.
+// the encoded bits from &network_challenge_packet_block; the C passed placeholders or dropped the arguments.
 
 #include "crt.h"
 #include "win32.h"
@@ -59,13 +59,13 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int16_t network_game_mode; // 0x00719720
 extern char network_game_scenario_load_request(network_game_session *session); // 0x4de6d0
 extern data_array *player_data; // 0x0087a480
-extern uint8_t *network_local_player_index_table; // 0x0087a478, UNSURE name; flat base address
+extern uint8_t *local_player_globals; // 0x0087a478, UNSURE name; flat base address
 extern int32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0
 extern char network_player_entry_validate(void); // 0x4de9f0, UNSURE argument (none visible here); not in this batch
 extern int32_t data_packet_group_encode_packet(uint8_t *buffer, uint32_t *capacity,
     int32_t packet_type, int32_t version); // 0x4d0ae0; UNSURE, this call site's own 4-arg shape
-extern uint16_t network_join_message_header; // 0x006b7f98, UNSURE name
-extern uint32_t network_join_message_body[]; // 0x006b7f9a, UNSURE name/size
+extern uint16_t network_challenge_packet_block; // 0x006b7f98, UNSURE name
+extern uint32_t network_broadcast_body[]; // 0x006b7f9a, UNSURE name/size
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 extern void widget_close_all(void); // 0x498650
@@ -75,8 +75,8 @@ extern network_server_globals *network_server; // 0x0071c2d4
 extern void network_host_full_state_broadcast(network_server_globals *server); // 0x4df510, not in this batch
 extern int32_t join_ui_state; // 0x00718f8c
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, cseries: current time in milliseconds
-extern int32_t some_timestamp_0068e684; // 0x0068e684, UNSURE name
-extern int32_t some_deadline_0068e680;  // 0x0068e680, UNSURE name
+extern int32_t interface_loading_screen_address_b; // 0x0068e684, UNSURE name
+extern int32_t interface_loading_screen_address_a;  // 0x0068e680, UNSURE name
 
 // blam-cc: stack -> connection
 int32_t network_connection_finalize_join(uint16_t *connection)
@@ -134,7 +134,7 @@ int32_t network_connection_finalize_join(uint16_t *connection)
         uVar8 = (uint32_t)player_data_iterator_advance((int8_t)*((uint8_t *)puVar7 + 0xcd5));
         sVar9 = (int16_t)(int8_t)*((uint8_t *)puVar7 + 0xcd3);
         if (-1 < (int8_t)*((uint8_t *)puVar7 + 0xcd3) && sVar9 < 1) {
-            puVar2 = (uint32_t *)(network_local_player_index_table + 4 + sVar9 * 4);
+            puVar2 = (uint32_t *)(local_player_globals + 4 + sVar9 * 4);
             uVar3 = *puVar2;
             if (uVar3 != 0xffffffff) {
                 *(uint16_t *)((uVar3 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)player_data + 0x34)) = 0xffff;
@@ -169,9 +169,9 @@ after_search:
         uint32_t *src, *dst8;
         uint8_t *src_b, *dst_b;
 
-        network_join_message_header = (((int16_t)capacity + 2) * 0x10) | 0xc;
+        network_challenge_packet_block = (((int16_t)capacity + 2) * 0x10) | 0xc;
         src = (uint32_t *)encode_buffer;
-        dst8 = network_join_message_body;
+        dst8 = network_broadcast_body;
         for (i = (capacity & 0xffff) >> 2; i != 0; i = i - 1) {
             *dst8 = *src;
             src = src + 1;
@@ -186,7 +186,7 @@ after_search:
         }
 
         iVar6 = *(int32_t *)((uint8_t *)connection + 0xadc); // channel
-        iVar12 = (uint32_t)(network_join_message_header >> 4) * 8;
+        iVar12 = (uint32_t)(network_challenge_packet_block >> 4) * 8;
         if ((*(uint8_t *)(iVar6 + 0xa8c) & 1) == 0) {
             if ((((*(int32_t *)(iVar6 + 0x24) + *(int32_t *)(iVar6 + 0x1c) * -8) -
                   *(int32_t *)(iVar6 + 0x20)) + 1 < iVar12 + 1) &&
@@ -198,7 +198,7 @@ after_search:
                 *(int32_t *)(iVar6 + 0xa80) = *(int32_t *)(iVar6 + 0xa80) + iVar12 + 1;
                 { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)iVar6 + 0x10), &item_flag, 1); }
                 *(uint8_t *)(iVar6 + 0x2c) = 0;
-                bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)iVar6 + 0x10), (const uint32_t *)(&network_join_message_header), iVar12);
+                bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)iVar6 + 0x10), (const uint32_t *)(&network_challenge_packet_block), iVar12);
                 *(uint8_t *)(iVar6 + 0x2c) = 0;
             }
         }
@@ -219,14 +219,14 @@ after_search:
             int32_t now2 = time_query_performance_counter_ms();
             uint32_t delay = 0;
 
-            if (some_timestamp_0068e684 != -1 &&
-                (uint32_t)(now2 - some_timestamp_0068e684) < 2000 && join_ui_state != 1) {
-                delay = (uint32_t)(some_timestamp_0068e684 - now2) + 2000;
+            if (interface_loading_screen_address_b != -1 &&
+                (uint32_t)(now2 - interface_loading_screen_address_b) < 2000 && join_ui_state != 1) {
+                delay = (uint32_t)(interface_loading_screen_address_b - now2) + 2000;
                 if (delay > 2000) {
                     delay = 2000;
                 }
             }
-            some_deadline_0068e680 = delay + 0x6d6 + now2;
+            interface_loading_screen_address_a = delay + 0x6d6 + now2;
         }
     }
 tail:

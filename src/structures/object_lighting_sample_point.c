@@ -56,7 +56,7 @@
 extern ScenarioStructureBSP *global_structure_bsp;       // 0x00746f9c
 extern tag_instance *tag_instances;                      // 0x0087bc14
 extern render_lighting object_lighting_default;          // 0x0065dd20, UNSURE name
-extern real_vector3d object_lighting_probe_down[1];      // 0x0065dd94, (0, 0, -10)
+extern real_vector3d object_lightmap_probe_direction[1];      // 0x0065dd94, (0, 0, -10)
 extern real_vector3d object_lighting_probe_sideways[4];  // 0x0065dda0, (+-10, 0, 0), (0, +-10, 0)
 
 extern uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position,
@@ -130,7 +130,7 @@ uint8_t object_lighting_sample_point(uint8_t flags, real_point3d *point, render_
         directions = object_lighting_probe_sideways;
         direction_count = 4;
     } else {
-        directions = object_lighting_probe_down;
+        directions = object_lightmap_probe_direction;
         direction_count = 1;
     }
 

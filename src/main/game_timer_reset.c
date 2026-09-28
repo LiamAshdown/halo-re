@@ -3,7 +3,7 @@
 // name confidence: 0.55   rewrite confidence: 0.75
 // evidence: matches the given name exactly; every field is main_globals (types/main.h):
 // frame_counter_low/high (0x000/0x004), render_counter_low/high (0x010/0x014), frame_time_ms
-// (0x008). performance_counter_frequency (0x006ac8f8) reuses
+// (0x008). performance_frequency (0x006ac8f8) reuses
 // src/game/camera_debug_start.c-adjacent naming already used elsewhere in this codebase for the
 // same global (math module).
 // register convention: cdecl, no parameters.
@@ -16,7 +16,7 @@
 #include "main.h"
 
 extern main_globals main_globals_data; // 0x00719700
-extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
+extern int64_t performance_frequency; // 0x006ac8f8, foreign (math module)
 
 
 // Re-baselines the frame-timing globals (frame and render counters, plus frame_time_ms) to the
@@ -30,7 +30,7 @@ void game_timer_reset(void)
     main_globals_data.frame_counter_high = (uint32_t)(counter >> 32);
     main_globals_data.render_counter_low = (uint32_t)counter;
     main_globals_data.render_counter_high = (uint32_t)(counter >> 32);
-    main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / performance_counter_frequency);
+    main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / performance_frequency);
 }
 
 #if 0

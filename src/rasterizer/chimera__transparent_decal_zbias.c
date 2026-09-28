@@ -14,8 +14,8 @@
 
 extern void *rasterizer_device;    // 0x0071d174
 extern d3d_caps9 rasterizer_caps;  // 0x007c10c0
-extern uint32_t unknown_00722b84;  // 0x00722b84 UNSURE: alternate depth-bias value
-extern uint32_t unknown_00722b8c;  // 0x00722b8c UNSURE: alternate slope-scale-depth-bias value
+extern uint32_t config_transparent_decal_z_bias;  // 0x00722b84 UNSURE: alternate depth-bias value
+extern uint32_t config_transparent_decal_slope_z_bias;  // 0x00722b8c UNSURE: alternate slope-scale-depth-bias value
 
 typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
@@ -26,10 +26,10 @@ void chimera__transparent_decal_zbias(void)
     // the device is only touched inside each caps test (0x51953c, 0x519562): with neither cap set the original
     // never dereferences it
     if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
-        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xc3, unknown_00722b84);
+        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xc3, config_transparent_decal_z_bias);
     }
     if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
-        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xaf, unknown_00722b8c);
+        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xaf, config_transparent_decal_slope_z_bias);
     }
 }
 

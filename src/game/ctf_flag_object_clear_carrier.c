@@ -24,7 +24,7 @@
 #include "items.h"
 #include "game.h"
 
-extern data_array *object_headers;                    // 0x008603b0
+extern data_array *object_data;                    // 0x008603b0
 extern game_time_globals *game_time;                  // 0x006f1d6c
 extern real_vector3d *global_forward3d_pointer;        // 0x00696718, (1,0,0)
 extern real_vector3d *global_up3d_pointer;             // 0x00696720, (0,0,1)
@@ -48,7 +48,7 @@ void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *
         return;
     }
 
-    flag_obj = ((object_header *)object_headers->data)[flag_object_index & 0xffff].data;
+    flag_obj = ((object_header *)object_data->data)[flag_object_index & 0xffff].data;
 
     object_set_position_and_orientation(flag_object_index, global_forward3d_pointer,
                                          global_up3d_pointer, position);

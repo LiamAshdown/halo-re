@@ -26,7 +26,7 @@
 #include "structures.h"
 
 extern int16_t geometry_buffer_warning;  // 0x0069fa48: accessed as WORD in the binary  // 0x0069fa48, this module
-extern void **rasterizer_device_006e09e8; // 0x006e09e8, physics.h/objects.h (read, not owned)
+extern void **rasterizer_dynamic_index_buffer; // 0x006e09e8, physics.h/objects.h (read, not owned)
 
 // blam-cc: ECX -> query_box (NULL means "build one from query_point and radius"), EDX -> query_point
 extern int16_t structure_bsp_query_surfaces(real_rectangle3d *query_box, real_point3d *query_point,
@@ -72,7 +72,7 @@ void structure_debug_draw_surfaces_simple(real_point3d *query_point, float radiu
             void *vertex_buffer = rasterizer_dynamic_index_slot_lock(geometry_handle);
             structure_leaf_faces_gather_list(surface_count,
                 (ScenarioStructureBSPSurface *)vertex_buffer, local_surface_indices);
-            (*(void (__stdcall **)(void *))((uint8_t *)*rasterizer_device_006e09e8 + 0x30))(rasterizer_device_006e09e8);
+            (*(void (__stdcall **)(void *))((uint8_t *)*rasterizer_dynamic_index_buffer + 0x30))(rasterizer_dynamic_index_buffer);
 
             if (geometry_handle != -1) {
                 structure_leaf_faces_for_each(geometry_handle, (structure_lightmap_begin_callback)0,

@@ -29,7 +29,7 @@ extern uint8_t sound_update_toggle;    // 0x00725214
 extern data_array *sound_cache_entries; // 0x006ac528
 extern struct cache *sound_cache;       // 0x006ac530
 extern int32_t sound_time;              // 0x0072520c
-extern random_seed local_random_seed;   // 0x00719cd4
+extern random_seed effect_random_seed;   // 0x00719cd4
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
 extern void datum_delete(data_array *array, datum_index handle);       // 0x4d0510, memory module
@@ -120,7 +120,7 @@ void sound_update_looping_states(void)
                         period = definition->zero_detail_sound_period +
                             (definition->one_detail_sound_period - definition->zero_detail_sound_period) *
                                 state->location.scale;
-                        random_value = random_real_range_seeded(&local_random_seed, detail->random_period_bounds[0],
+                        random_value = random_real_range_seeded(&effect_random_seed, detail->random_period_bounds[0],
                             detail->random_period_bounds[1]); // inlined LCG in the binary
                         state->detail_next_time[detail_index] = (int32_t)(random_value * period * 1000.0f +
                             (float)(int32_t)detail_tag->longest_permutation_length + (float)sound_time);

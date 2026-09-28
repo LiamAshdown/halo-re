@@ -23,7 +23,7 @@
 #include <time.h>
 
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see UNSURE note above
-extern char network_ban_file_mode_string[]; // 0x0065fd30, UNSURE: exact text unresolved (fopen mode)
+extern char network_summary_log_mode_string[]; // 0x0065fd30, UNSURE: exact text unresolved (fopen mode)
 
 extern char *network_log_path_resolve(char *requested_path); // this batch, 0x4e40a0
 extern char network_banlist_full_path[]; // 0x0071c308, built by sv_banlist_file
@@ -44,7 +44,7 @@ void network_banlist_save(void)
     time_t expiry;
 
     file = (FILE *)fopen(network_log_path_resolve(network_banlist_full_path),
-                                 network_ban_file_mode_string);
+                                 network_summary_log_mode_string);
     if (file != 0) {
         fprintf(file, "# Name, CD key hash, ban count, ban end date\r\n");
         entries = (ban_list_entry *)ban_list.data;

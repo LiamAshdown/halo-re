@@ -40,13 +40,13 @@ extern data_array *player_data;     // 0x0087a480
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
-extern uint8_t *g_006b0b84;         // 0x006b0b84, +0xa4: the ten-team friend bitfield (team_a * 10 + team_b)
+extern uint8_t *team_pair_data;         // 0x006b0b84, +0xa4: the ten-team friend bitfield (team_a * 10 + team_b)
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern uint8_t g_0087abc5;          // 0x0087abc5, cheat: screen effects for unowned units too
 extern uint8_t g_0087abc7;          // 0x0087abc7, cheat: player damage kills outright
 extern ModelCollisionGeometryMaterial default_collision_material; // 0x006b8c68
 extern int16_t network_game_mode;   // 0x00719720, 0 local, 1 client, 2 host
-extern uint8_t g_006f1cbc;          // 0x006f1cbc, multiplayer friendly-fire rules enabled
+extern uint8_t game_engine_teams_enabled_flag;          // 0x006f1cbc, multiplayer friendly-fire rules enabled
 extern uint8_t g_006f1cf4;          // 0x006f1cf4, multiplayer friendly-fire mode
 extern player_globals *local_player_globals; // 0x0087a478
 
@@ -87,7 +87,7 @@ static uint8_t *tag_get(datum_index tag_index)
 
 static uint8_t teams_are_friends(int32_t bit)
 {
-    return (uint8_t)((*(uint32_t *)(g_006b0b84 + 0xa4 + (bit >> 5) * 4) >> (bit & 0x1f)) & 1);
+    return (uint8_t)((*(uint32_t *)(team_pair_data + 0xa4 + (bit >> 5) * 4) >> (bit & 0x1f)) & 1);
 }
 
 // the inline datum_try_and_get on the player array: the record, or 0 when stale
@@ -341,7 +341,7 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
 
             apply_state = (responsible != 0 && responsible->local_player_index != -1) ? 0 : 1;
         }
-        if (current_game_engine != 0 && g_006f1cbc) {
+        if (current_game_engine != 0 && game_engine_teams_enabled_flag) {
             datum_index owner = player_index_from_unit_index(id);
 
             if (owner != k_datum_index_none && owner != dd->responsible_player) {

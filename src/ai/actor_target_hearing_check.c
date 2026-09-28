@@ -40,7 +40,7 @@ static float sqrt_f(float x) { return (float)sqrt((double)x); }
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
-extern ScenarioStructureBSP *hearing_structure_bsp; // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 extern uint8_t scenario_location_background_sound_is_deafening_to_ais(bsp_leaf_reference *location); // 0x53e810, EAX
 extern uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b,
@@ -109,7 +109,7 @@ uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index ac
     if (!(range * range > distance_squared)) {
         return 0;
     }
-    pas = cluster_sound_distance_lookup(listener_cluster, source_cluster, hearing_structure_bsp);
+    pas = cluster_sound_distance_lookup(listener_cluster, source_cluster, global_structure_bsp);
     if (pas & 0x80) {
         return 0;
     }

@@ -23,7 +23,7 @@
 
 extern game_variant game_engine_variant; // 0x006f1c88 (::unknown_78 at 0x006f1d00, time limit)
 extern game_time_globals *game_time;      // 0x006f1d6c
-extern int32_t unknown_0087aa20;          // 0x0087aa20
+extern int32_t game_engine_round_reset_tick;          // 0x0087aa20
 
 // Returns -1 if the variant has no time limit; otherwise the ticks remaining (never negative).
 int32_t game_engine_get_time_remaining(void)
@@ -32,7 +32,7 @@ int32_t game_engine_get_time_remaining(void)
 
     remaining = -1;
     if (0 < game_engine_variant.unknown_78) {
-        remaining = (game_engine_variant.unknown_78 - game_time->game_time) + unknown_0087aa20;
+        remaining = (game_engine_variant.unknown_78 - game_time->game_time) + game_engine_round_reset_tick;
         if (remaining < 0) {
             remaining = 0;
         }

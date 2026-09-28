@@ -24,8 +24,8 @@
 
 extern uint8_t *lights_enabled;         // 0x0071cfb8
 extern game_engine_definition *current_game_engine;              // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint8_t g_0087aa00;              // 0x0087aa00, UNSURE: not owned by this module
-extern int16_t g_0068944c;              // 0x0068944c, word (cmp WORD PTR at 0x4f17b3)
+extern uint8_t game_engine_unknown_aa00;              // 0x0087aa00, UNSURE: not owned by this module
+extern int16_t light_count_enabled;              // 0x0068944c, word (cmp WORD PTR at 0x4f17b3)
 extern int16_t light_active_list_count; // 0x008607c8, word (cmp di,WORD PTR at 0x4f1929)
 extern datum_index light_active_list[];  // 0x008607cc, the array itself ([ecx*4+0x8607cc] at 0x4f17df)
 extern data_array *light_data;          // 0x00860b14
@@ -44,7 +44,7 @@ void lights_apply_spot_falloff(void)
     rasterizer_light_cone_set_texture_stage_states();
 
     if (*lights_enabled != 0 &&
-        (current_game_engine == 0 || ((g_0087aa00 & 1) == 0 && 1 < g_0068944c))) {
+        (current_game_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
         int16_t i;
 
         for (i = 0; i < light_active_list_count; i++) {

@@ -50,9 +50,9 @@ extern Scenario *global_scenario; // 0x00746f8c
 extern int16_t current_local_player_index; // 0x007c3108
 extern int32_t hud_splitscreen_message_raise;  // 0x00692fc0, 17 pixels
 extern int16_t render_viewport_left;           // 0x007c3142
-extern Rectangle2D render_window_bounds;       // 0x007c3148, UNSURE name
+extern Rectangle2D screen_safe_area_right;       // 0x007c3148, UNSURE name
 extern int8_t hud_message_button_icon_table[0x1d]; // 0x00692f36, element data 0x12..0x1c -> button icon
-extern const uint16_t *hud_item_message_default_text; // 0x00692d7c, points at the empty wide string 0x00660c34
+extern const uint16_t *empty_wide_string_pointer; // 0x00692d7c, points at the empty wide string 0x00660c34
 extern int32_t hud_text_draw_font_tag_id;      // 0x006e472c
 extern uint32_t hud_text_draw_unknown_4730;    // 0x006e4730
 extern uint16_t hud_text_draw_color_or_flags;  // 0x006e4734
@@ -221,7 +221,7 @@ void hud_messaging_update(int16_t local_player_index)
         line.top = y;
         line.left = origin.x;
         line.bottom = (int16_t)(y + line_height * 5);
-        line.right = (int16_t)(render_window_bounds.right - render_viewport_left);
+        line.right = (int16_t)(screen_safe_area_right.right - render_viewport_left);
         cursor = line;
         hud_messaging_set_text_state(font, &color);
 
@@ -333,8 +333,8 @@ void hud_messaging_update(int16_t local_player_index)
             color.alpha = (float)pow((double)t, 1.899999976158142) * color.alpha;
         }
 
-        cursor = render_window_bounds;
-        cursor.right = (int16_t)(render_window_bounds.right - render_viewport_left);
+        cursor = screen_safe_area_right;
+        cursor.right = (int16_t)(screen_safe_area_right.right - render_viewport_left);
         cursor.left = origin.x;
         cursor.top = y;
         cursor.bottom = (int16_t)(line_height + y);
@@ -357,7 +357,7 @@ void hud_messaging_update(int16_t local_player_index)
             }
             item = (Item *)tag_instances[slot->source & 0xffff].data;
             string_index = (int16_t)((int8_t)plural + item->pickup_text_index);
-            text = hud_item_message_default_text;
+            text = empty_wide_string_pointer;
             if (strings != (datum_index)-1) {
                 int32_t *string_list = (int32_t *)tag_instances[strings & 0xffff].data;
                 if (string_list != 0 && string_index >= 0 && string_index < string_list[0]) {

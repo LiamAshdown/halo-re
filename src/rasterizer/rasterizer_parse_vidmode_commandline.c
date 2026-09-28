@@ -18,8 +18,8 @@
 #include <stdlib.h>
 
 extern uint8_t unknown_0071d1b0; // 0x0071d1b0 UNSURE: "already parsed once" latch
-extern uint8_t unknown_0071d16d; // 0x0071d16d UNSURE: "explicit vidmode requested" flag
-extern uint8_t unknown_0071d170; // 0x0071d170 UNSURE, shared with rasterizer_build_present_parameters.c
+extern uint8_t rasterizer_needs_reset; // 0x0071d16d UNSURE: "explicit vidmode requested" flag
+extern uint8_t video_force_mode_flag; // 0x0071d170 UNSURE, shared with rasterizer_build_present_parameters.c
 
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value); // 0x542760
 
@@ -48,7 +48,7 @@ uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height
                 *height_out = height;
             }
             if (unknown_0071d1b0 == 0) {
-                unknown_0071d16d = 1;
+                rasterizer_needs_reset = 1;
             }
             found = 1;
         }
@@ -64,7 +64,7 @@ uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height
 
     if (unknown_0071d1b0 == 0) {
         if (refresh == 0) {
-            unknown_0071d170 = 1;
+            video_force_mode_flag = 1;
         }
         unknown_0071d1b0 = 1;
     }

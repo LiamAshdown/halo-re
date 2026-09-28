@@ -12,7 +12,7 @@
 // register convention: none (void); always returns 0.
 // FIXED (objdump 0x49c6ee): saved_game_find_by_name takes TWO arguments (name, 0); Ghidra's third was the
 //   enumeration count slot (preset 1) still on the stack.
-// TYPES-GAP: need_default_profiles_pending_0069e8d0 is not documented by any header read this
+// TYPES-GAP: playlist_profiles_need_defaults is not documented by any header read this
 // session.
 
 #include "tags.h"
@@ -23,7 +23,7 @@
 #include "interface.h"
 
 extern uint8_t loading_thread_result;                    // 0x00718fc0
-extern uint8_t need_default_profiles_pending_0069e8d0;    // 0x0069e8d0, TYPES-GAP
+extern uint8_t playlist_profiles_need_defaults;    // 0x0069e8d0, TYPES-GAP
 extern char last_profile_name[];                          // 0x00718e80
 extern int32_t cached_profile_slot;                       // 0x0068e66c
 
@@ -43,9 +43,9 @@ int32_t player_profile_check_storage_and_defaults(void)
 
     loading_thread_result = (uint8_t)saved_game_check_storage_availability();
     if (loading_thread_result == 0) {
-        if (need_default_profiles_pending_0069e8d0 == 1) {
+        if (playlist_profiles_need_defaults == 1) {
             playlist_profile_create_default_profiles_on_disk();
-            need_default_profiles_pending_0069e8d0 = 0;
+            playlist_profiles_need_defaults = 0;
         }
         {   // 0x49c699..0x49c6cb: one count (preset 1) at EBX for both calls; the second sees what the first left
             uint32_t count = 1;

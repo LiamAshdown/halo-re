@@ -27,7 +27,7 @@
 
 extern uint8_t *light_volume_instances; // 0x006b8d70, UNSURE: raw table, no struct defined
 extern tag_instance *tag_instances;     // 0x0087bc14
-extern float camera_position_x; // 0x007c3114
+extern float render_camera_global; // 0x007c3114
 extern float camera_position_y; // 0x007c3118
 extern float camera_position_z; // 0x007c311c (UNSURE: foreign module)
 extern float camera_forward_x; // 0x007c3120
@@ -80,7 +80,7 @@ void light_volume_render(uint32_t object_index, datum_index light_volume_handle,
 
             if (*(float *)(tag + 0x38) == 0.0f ||
                 camera_forward_y * (marker.node_transform.position.y - camera_position_y) +
-                camera_forward_x * (marker.node_transform.position.x - camera_position_x) +
+                camera_forward_x * (marker.node_transform.position.x - render_camera_global) +
                 camera_forward_z * (marker.node_transform.position.z - camera_position_z) <
                 *(float *)(tag + 0x38)) {
                 // 0x4fea2c: EAX = 0x4fea80, EDX = the marker position, stack (object, light volume)

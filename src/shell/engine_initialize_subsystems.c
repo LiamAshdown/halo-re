@@ -35,13 +35,13 @@ extern void *direct3d_create9;                // 0x00746274 FARPROC
 extern void *direct_sound_create8;            // 0x00746270 FARPROC
 extern void *direct_input8_create;            // 0x00746268 FARPROC
 extern void *sh_get_folder_path;              // 0x0074626c FARPROC
-extern int32_t nosound;                       // 0x007196e4 -nosound (32 bit BOOL)
-extern uint8_t network_statistics_flag;       // 0x007252b6 DAT_007252b6, copy of nosound
+extern int32_t shell_nosound;                       // 0x007196e4 -shell_nosound (32 bit BOOL)
+extern uint8_t sound_disabled;       // 0x007252b6 DAT_007252b6, copy of shell_nosound
 
 // 0x0087ac06 is interface.h / networking.h debug_log_level (uint8, R01); this function only
 // clears these.
 extern uint8_t console_debug_flag_0;          // 0x0087ac00
-extern uint8_t console_debug_flag_1;          // 0x0087ac01
+extern uint8_t error_file_enabled;          // 0x0087ac01
 extern uint8_t console_debug_flag_4;          // 0x0087ac04
 extern uint8_t console_debug_flag_5;          // 0x0087ac05
 extern uint8_t debug_log_level;               // 0x0087ac06 (R01; mov BYTE PTR ds:0x87ac06,bl at 0x540fac)
@@ -78,7 +78,7 @@ uint8_t engine_initialize_subsystems(void)
         d3d9_module = LoadLibraryA("d3d9.dll");
         direct3d_create9 = GetProcAddress(d3d9_module, "Direct3DCreate9");
 
-        if (nosound == 0) {
+        if (shell_nosound == 0) {
             dsound_module = LoadLibraryA("dsound.dll");
             direct_sound_create8 = GetProcAddress(dsound_module, "DirectSoundCreate8");
         } else {
@@ -96,7 +96,7 @@ uint8_t engine_initialize_subsystems(void)
     directory_create_recursive(profile_directory);
 
     debug_log_level = 0;
-    console_debug_flag_1 = 1;
+    error_file_enabled = 1;
     console_debug_flag_4 = 1;
     console_debug_flag_5 = 0;
     console_debug_flag_0 = 0;
@@ -109,7 +109,7 @@ uint8_t engine_initialize_subsystems(void)
     startup_ok = render_initialize();
     if ((uint8_t)startup_ok != 0) {
         input_directinput_initialize();
-        network_statistics_flag = (uint8_t)nosound; // low byte only (mov al,[0x7196e4] at 0x540ff0)
+        sound_disabled = (uint8_t)shell_nosound; // low byte only (mov al,[0x7196e4] at 0x540ff0)
         sound_initialize();
         return 1;
     }

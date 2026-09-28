@@ -20,7 +20,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *actor_data;     // 0x00880360
 
@@ -39,16 +39,16 @@ void encounter_set_team(datum_index encounter_index, int16_t team)
     enc->team = team;
 
     actor_index = (datum_index)k_datum_index_none;
-    if (ai_global_data->actors_valid != 0) {
+    if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)0xffffffff) { // FIXED: the full handle is compared (0x435b63)
-            actor_index = ai_global_data->unknown_08;
+            actor_index = ai_globals_ptr->unknown_08;
         } else {
             actor_index = enc->first_actor;
         }
     }
 
     current = (datum_index)k_datum_index_none;
-    while (ai_global_data->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
+    while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
         current = actor_index;
         actor_index = ((actor *)actor_data->data)[current & 0xffff].next_in_encounter;
         actor_propagate_unit_field(current, team); // FIXED: ESI = the team (0x435b47)

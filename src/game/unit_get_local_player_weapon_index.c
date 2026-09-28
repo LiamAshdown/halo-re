@@ -16,7 +16,7 @@
 #include "units.h"
 #include "game.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern data_array *player_data;    // 0x0087a480
 
 // blam-cc: EAX -> unit
@@ -25,8 +25,8 @@ extern data_array *player_data;    // 0x0087a480
 // index.
 int32_t unit_get_local_player_weapon_index(datum_index unit)
 {
-    unit_data *u = *(unit_data **)((uint8_t *)object_headers->data +
-        (uint32_t)(uint16_t)unit * object_headers->size + 8);
+    unit_data *u = *(unit_data **)((uint8_t *)object_data->data +
+        (uint32_t)(uint16_t)unit * object_data->size + 8);
     datum_index controlling_player = u->controlling_player;
 
     if (controlling_player != k_datum_index_none) {

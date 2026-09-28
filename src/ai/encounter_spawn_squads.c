@@ -30,7 +30,7 @@
 #include "ai.h"
 #include "game.h"
 
-extern ai_globals *ai_global_data;   // 0x00880354
+extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern Scenario *global_scenario;    // 0x00746f8c
 extern game_main_globals *main_game_globals; // 0x006b0b80
                                        //   this name; the int16 at +0x0e is the difficulty level (0..3)
@@ -61,7 +61,7 @@ void encounter_spawn_squads(datum_index encounter_index, int16_t platoon_filter,
     int32_t margin;
     uint8_t all_squads;
 
-    if (ai_global_data->actors_valid == 0) {
+    if (ai_globals_ptr->actors_valid == 0) {
         return;
     }
     definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)

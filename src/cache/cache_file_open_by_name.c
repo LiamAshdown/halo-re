@@ -63,7 +63,7 @@ extern void cache_file_slot_read_header(int32_t slot_index); // blam-cc: EAX; 0x
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern char map_path_prefix[]; // 0x006f16d8
 extern int32_t os_platform; // 0x00721ef0
-extern char *shell_fatal_error_argument; // 0x00722bbc
+extern char *rasterizer_shader_file_name; // 0x00722bbc
 
 // blam-cc: name in EAX, report_fatal_error is the recognized stack parameter
 // Ensures a cache_file_slot for `name`'s basename exists and is open: returns 1 immediately if
@@ -96,7 +96,7 @@ uint8_t cache_file_open_by_name(char *name, uint8_t report_fatal_error)
 
     if (cache_file_exists(basename, &header) == 0) {
         if (report_fatal_error != 0) {
-            shell_fatal_error_argument = name;
+            rasterizer_shader_file_name = name;
             shell_display_fatal_error_dialog(0x89, 0x7e, 1);
             interface_handle_quit_request();
         }

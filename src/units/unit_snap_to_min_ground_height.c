@@ -6,7 +6,7 @@
 //   the controlling_player-gated scale here; unit_data.swarm_actor_index/actor_index
 //   (0x1f8/0x1f4) and biped_data.unknown_504/unknown_4f0 (0x504/0x4f0) all match by offset.
 // UNSURE: FUN_00417fa0's exact contract (an actor-notification call whose return doubles as this
-//   function's early-exit value on failure); the globals_tag_data+0x174 player-info field.
+//   function's early-exit value on failure); the global_globals+0x174 player-info field.
 
 #include "tags.h"
 #include "memory.h"
@@ -17,7 +17,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *globals_tag_data;   // 0x00746fa0, +0x174 player info (types/units.h)
+extern uint8_t *global_globals;   // 0x00746fa0, +0x174 player info (types/units.h)
 extern uint8_t cheat_super_jump;    // 0x0087abc4
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 
@@ -46,7 +46,7 @@ uint32_t unit_snap_to_min_ground_height(uint32_t object_index)
     }
     jump_speed = *(float *)((uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data + 0x3b4);
     if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
-        jump_speed = (1.0f - *(float *)(*(uint8_t **)(globals_tag_data + 0x174) + 0x84) * *(float *)(obj + 0x424)) *
+        jump_speed = (1.0f - *(float *)(*(uint8_t **)(global_globals + 0x174) + 0x84) * *(float *)(obj + 0x424)) *
             jump_speed;
     }
     if (cheat_super_jump && *(datum_index *)(obj + 0x218) != k_datum_index_none) {

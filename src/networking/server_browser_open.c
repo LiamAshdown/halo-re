@@ -14,8 +14,8 @@
 // network_ui_widget node in types/networking.h (this file contributed its alpha/label_text/
 // highlight_flag fields). Every widget-tree hop is transcribed literally by offset; no
 // semantic name is claimed for any individual widget beyond what the code makes unambiguous.
-// UNSURE: when DAT_00714dd4 != -1, the original copies 0x7ff (2047) dwords from
-// &DAT_00712dd8 into a local buffer only declared for ~830 dwords before the individually
+// UNSURE: when saved_player_profile_slots_handle != -1, the original copies 0x7ff (2047) dwords from
+// &profile_globals_block into a local buffer only declared for ~830 dwords before the individually
 // named bytes it actually reads back -- this looks like a latent stack buffer overflow in the
 // original binary (only reachable if a saved/legacy config format is present); reproduced
 // exactly, not fixed, and marked here rather than silently corrected.
@@ -38,12 +38,12 @@
 
 extern uint8_t server_browser_initialized;      // 0x00719470
 extern void *master_server_query_engine;        // 0x0071946c
-extern uint8_t DAT_00722798[];                  // ServerBrowserNew argument, see UNSURE
-extern uint8_t DAT_007227a0[];                  // ServerBrowserNew argument, see UNSURE
+extern uint8_t network_session_start_host_name[];                  // ServerBrowserNew argument, see UNSURE
+extern uint8_t network_session_start_map_name[];                  // ServerBrowserNew argument, see UNSURE
 extern uint8_t server_browser_join_requested;   // 0x00719491
 extern void *server_browser_join_target;        // 0x00719450
 extern uint8_t server_browser_join_target_has_password; // 0x00719454
-extern uint8_t DAT_00719458;                    // see UNSURE
+extern uint8_t network_join_target_address;                    // see UNSURE
 extern uint8_t server_browser_require_valid_entry; // 0x006953f0
 extern uint8_t DAT_00719698;                    // motd/autopatch state, see UNSURE
 extern int32_t DAT_00695420;                    // autopatch slot/request id, see UNSURE
@@ -51,7 +51,7 @@ extern wchar_t DAT_00719498[0x100];             // ticker label buffer
 extern uint8_t DAT_00719696;                    // see UNSURE
 extern int32_t DAT_006b5e6c;
 extern int32_t DAT_006b5e88;
-extern int32_t DAT_006b5e58;
+extern int32_t server_browser_player_ticker;
 extern int32_t DAT_006b5e68;
 extern int32_t DAT_006b5e64;
 extern int32_t DAT_006b5e60;
@@ -59,8 +59,8 @@ extern ticker_text_buffer server_browser_variant_ticker; // 0x006b5e74
 extern int32_t DAT_006b5e84;
 extern int32_t DAT_006b5e80;
 extern int32_t DAT_006b5e7c;
-extern int32_t DAT_00714dd4;                    // -1 == "no saved filter config"
-extern uint8_t DAT_00712dd8[];                  // saved filter config blob, see UNSURE
+extern int32_t saved_player_profile_slots_handle;                    // -1 == "no saved filter config"
+extern uint8_t profile_globals_block[];                  // saved filter config blob, see UNSURE
 extern uint8_t server_browser_filter_dedicated_only; // 0x0071948b
 extern uint8_t server_browser_allow_password;        // 0x006953f9
 extern uint8_t server_browser_filter_allow_unknown_map; // 0x0071948d
@@ -111,12 +111,12 @@ int32_t server_browser_open(network_ui_widget *root)
     network_channels_open();
     if (server_browser_initialized == 0 && master_server_connection_start() == 0) {
         server_browser_join_requested = 1;
-        master_server_query_engine = ServerBrowserNew(&DAT_00722798, &DAT_00722798, &DAT_007227a0, 0,
+        master_server_query_engine = ServerBrowserNew(&network_session_start_host_name, &network_session_start_host_name, &network_session_start_map_name, 0,
                                                     10, 1, (void *)network_channel_gap_4ba660, 0);
     }
     server_browser_join_target = 0;
     server_browser_join_target_has_password = 0;
-    DAT_00719458 = 0;
+    network_join_target_address = 0;
     autopatch_download_pool_initialize();
     if (server_browser_require_valid_entry != 0 && DAT_00719698 == 0) {
         motd_available = shell_load_localized_string(0x90, motd_string);
@@ -138,7 +138,7 @@ int32_t server_browser_open(network_ui_widget *root)
     }
     DAT_006b5e6c = 100;
     DAT_006b5e88 = 100;
-    DAT_006b5e58 = 0;
+    server_browser_player_ticker = 0;
     DAT_006b5e68 = 0;
     DAT_006b5e64 = 0;
     DAT_006b5e60 = 0;
@@ -147,7 +147,7 @@ int32_t server_browser_open(network_ui_widget *root)
     DAT_006b5e80 = 0;
     DAT_006b5e7c = 0;
 
-    if (DAT_00714dd4 == -1) {
+    if (saved_player_profile_slots_handle == -1) {
         saved_config[0x1787] = 1;
         saved_config[0x1788] = 3;
         saved_config[0x1786] = 1;
@@ -160,7 +160,7 @@ int32_t server_browser_open(network_ui_widget *root)
         saved_config[0x177f] = 0;
         saved_config[0x177e] = 0;
     } else {
-        memcpy(saved_config, DAT_00712dd8, 0x7ff * 4); // UNSURE: overruns saved_config, see file header
+        memcpy(saved_config, profile_globals_block, 0x7ff * 4); // UNSURE: overruns saved_config, see file header
     }
     server_browser_filter_dedicated_only = saved_config[0x1785];
     server_browser_allow_password = saved_config[0x1786];

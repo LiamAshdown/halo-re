@@ -40,7 +40,7 @@
 // and game_engine_update_local_player_look.c are its two users).
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
-extern data_array *object_headers;                          // 0x008603b0
+extern data_array *object_data;                          // 0x008603b0
 extern tag_instance *tag_instances;                          // 0x0087bc14
 
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80,
@@ -58,8 +58,8 @@ void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_p
     out->seat_index = -1;
 
     if (unit != k_datum_index_none) {
-        object *u = (object *)(*(void **)((uint8_t *)object_headers->data +
-            (uint32_t)(uint16_t)unit * object_headers->size + 8));
+        object *u = (object *)(*(void **)((uint8_t *)object_data->data +
+            (uint32_t)(uint16_t)unit * object_data->size + 8));
 
         unit_get_camera_position(unit, &out->position);
 
@@ -76,8 +76,8 @@ void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_p
                 out->marker_offset = seat + 0x84;
                 out->unit = u->parent_object;
                 out->seat_index = seat_index;
-                u = (object *)(*(void **)((uint8_t *)object_headers->data +
-                    (uint32_t)(uint16_t)u->parent_object * object_headers->size + 8));
+                u = (object *)(*(void **)((uint8_t *)object_data->data +
+                    (uint32_t)(uint16_t)u->parent_object * object_data->size + 8));
             }
         }
         if (out->seat_index == -1) {

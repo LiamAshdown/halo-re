@@ -22,7 +22,7 @@
 #include "game.h"
 
 extern data_array *player_data; // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index); // 0x56dcd0
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);          // 0x56dec0
@@ -39,7 +39,7 @@ void game_engine_ctf_player_drop_flag(uint32_t player_index, datum_index flag_ob
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
     uint32_t unit_index = (uint32_t)p->unit;
-    object *unit_obj = ((object_header *)object_headers->data)[unit_index & 0xffff].data;
+    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
 
     if (unit_obj->network_role == 0) {
         unit_dispatch_scripted_event_1b(1, unit_index);

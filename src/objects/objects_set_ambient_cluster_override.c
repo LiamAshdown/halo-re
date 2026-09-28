@@ -26,7 +26,7 @@
 
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern uint8_t *player_globals_table; // 0x00746f8c, UNSURE: see file header, stride 0x68
+extern uint8_t *global_scenario; // 0x00746f8c, UNSURE: see file header, stride 0x68
 extern ScenarioStructureBSP *global_structure_bsp;
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
@@ -34,7 +34,7 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 void objects_set_ambient_cluster_override(int16_t local_player_index) // blam-cc: AX -> local_player_index
 {
     if (local_player_index != -1) {
-        uint8_t *player_base = *(uint8_t **)(player_globals_table + 0x4f4);
+        uint8_t *player_base = *(uint8_t **)(global_scenario + 0x4f4);
         real_point3d *point = (real_point3d *)(player_base + local_player_index * 0x68 + 0x28);
         int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, point);
 

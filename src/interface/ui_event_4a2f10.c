@@ -28,7 +28,7 @@ extern uint16_t network_host_name_00719170[0x40]; // 0x00719170
 extern uint16_t network_host_subname_007191f0[9]; // 0x007191f0
 extern uint8_t save_in_progress_00719010; // 0x00719010
 extern int32_t resolution_selection_00719204; // 0x00719204
-extern uint8_t network_capability_flag_006894a2; // 0x006894a2
+extern uint8_t network_game_info_packet_flag; // 0x006894a2
 extern int32_t quality_selection_00692b04; // 0x00692b04
 extern uint8_t saved_item_has_unsaved_changes(void); // 0x495ea0
 extern uint8_t player_profile_save(void); // 0x495d40
@@ -48,7 +48,7 @@ uint8_t ui_event_4a2f10(widget_instance *widget, int16_t *event, uint8_t *out_ha
         if (save_in_progress_00719010 == 0) {
             profile[0xebf] = (uint8_t)resolution_selection_00719204;
         }
-        if (network_capability_flag_006894a2 != 0) {
+        if (network_game_info_packet_flag != 0) {
             int32_t quality = quality_selection_00692b04;
 
             profile[0xfc0] = (uint8_t)(quality < 0 ? 0 : quality > 4 ? 4 : quality);

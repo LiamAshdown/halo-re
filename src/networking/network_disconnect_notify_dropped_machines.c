@@ -28,7 +28,7 @@
 #include "networking.h"
 
 extern uint8_t network_disconnect_notice_shown; // 0x00697e78, UNSURE name
-extern uint8_t network_dropped_machine_table[8]; // 0x0087a478, UNSURE name/size; only +4 is read here
+extern uint8_t local_player_globals[8]; // 0x0087a478, UNSURE name/size; only +4 is read here
 extern void display_error(int32_t code, int32_t player_index, uint8_t flag_a, uint8_t flag_b); // 0x498f20, UNSURE signature
 
 // blam-cc: EBX -> client
@@ -43,14 +43,14 @@ void network_disconnect_notify_dropped_machines(network_client_globals *client)
     }
     if (client->unknown_ee0 == 0) {
         player_index = -1;
-        if (*(int32_t *)&network_dropped_machine_table[4] != -1) {
+        if (*(int32_t *)&local_player_globals[4] != -1) {
             player_index = 0;
         }
         player_index_16 = (int16_t)player_index;
         while (player_index_16 != -1) {
             display_error(8, player_index, 1, 0);
             next = -1;
-            if (*(int32_t *)&network_dropped_machine_table[4] != -1 && (int16_t)player_index < 0) {
+            if (*(int32_t *)&local_player_globals[4] != -1 && (int16_t)player_index < 0) {
                 next = 0;
             }
             player_index = next;

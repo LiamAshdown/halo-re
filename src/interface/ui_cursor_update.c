@@ -32,10 +32,10 @@ extern int32_t previous_mouse_y;      // 0x006b2f20, last frame's OS cursor y
 extern int32_t ui_cursor_x;           // 0x00718f84
 extern int32_t ui_cursor_y;           // 0x00718f88
 
-extern int32_t cursor_delta_source_active;    // 0x006b1804, UNSURE: nonzero selects a raw delta source
-extern uint8_t cursor_delta_source_variant;   // 0x006b15f9, UNSURE: picks between the two records below
-extern int32_t cursor_delta_record_a[2];      // 0x006b1828, UNSURE: raw {dx, dy} device delta
-extern int32_t cursor_delta_record_b[2];      // 0x006b180c, UNSURE: raw {dx, dy} device delta
+extern int32_t mouse_device;    // 0x006b1804, UNSURE: nonzero selects a raw delta source
+extern uint8_t input_suppressed;   // 0x006b15f9, UNSURE: picks between the two records below
+extern int32_t mouse_neutral_state[2];      // 0x006b1828, UNSURE: raw {dx, dy} device delta
+extern int32_t live_mouse_state[2];      // 0x006b180c, UNSURE: raw {dx, dy} device delta
 extern float cursor_sensitivity_x;            // 0x0068e674, UNSURE: X-axis curve coefficient
 extern float cursor_sensitivity_y;            // 0x0068e678, UNSURE: Y-axis curve coefficient
 extern double cursor_sensitivity_curve_scale; // 0x00672da8, UNSURE: shared quadratic coefficient
@@ -67,11 +67,11 @@ void ui_cursor_update(void)
         float raw_x, raw_y, curve_x, curve_y;
         double scaled_x, scaled_y;
 
-        record = cursor_delta_record_b;
-        if (cursor_delta_source_active != 0) {
-            record = cursor_delta_record_a;
-            if (cursor_delta_source_variant == 0) {
-                record = cursor_delta_record_b;
+        record = live_mouse_state;
+        if (mouse_device != 0) {
+            record = mouse_neutral_state;
+            if (input_suppressed == 0) {
+                record = live_mouse_state;
             }
         }
         raw_x = (float)record[0];

@@ -4,7 +4,7 @@
 // evidence: out/phase4/saved_games_functions.md summary "Waits for a background profile-
 // verification thread to finish, then clears the cached default-profile buffer it produced."
 // types/saved_games.h globals: 0x0072127c player_profile_thread (network_thread_record*),
-// 0x0071d280 default_player_profile, 0x0071f27c unknown_0071f27c[0x2000] ("zeroed with the
+// 0x0071d280 default_profile_data, 0x0071f27c unknown_0071f27c[0x2000] ("zeroed with the
 // default profile (0x1001 dwords from 0x0071d280 in FUN_00539a40 / init)"). Named to parallel
 // the sibling s2 rewrite's control_profile_variant_write_wait_and_clear (0x53bae0).
 // register convention: no parameters, no return value.
@@ -19,7 +19,7 @@
 #include "saved_games.h"
 
 extern network_thread_record *player_profile_thread; // 0x0072127c
-extern saved_player_profile default_player_profile; // 0x0071d280
+extern saved_player_profile default_profile_data; // 0x0071d280
 
 
 void player_profile_verify_thread_wait_and_clear(void)
@@ -39,7 +39,7 @@ void player_profile_verify_thread_wait_and_clear(void)
         player_profile_thread->in_use = 0;
     }
 
-    clear = (uint32_t *)&default_player_profile;
+    clear = (uint32_t *)&default_profile_data;
     for (i = 0x1001; i != 0; i = i - 1) {
         *clear = 0;
         clear = clear + 1;

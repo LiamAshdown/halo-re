@@ -21,7 +21,7 @@
 #include "units.h"
 
 extern data_array *object_data;    // 0x008603b0
-extern char s_primary_eye_marker[]; // 0x0066bfa0, shared with unit_get_primary_eye_marker_position.c
+extern char ai_marker_name_a[]; // 0x0066bfa0, shared with unit_get_primary_eye_marker_position.c
 
 extern double fcos(double x);
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
@@ -38,7 +38,7 @@ uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
     object_marker marker;
-    object_get_node_local_transform(unit_index, s_primary_eye_marker, &marker, 1) /* FIXED: the original pushes 1, the maximum marker count */;
+    object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1) /* FIXED: the original pushes 1, the maximum marker count */;
 
     // FIXED (0x56c13c..0x56c1c4): the eye-to-point vector is normalized before the dot product
     //   with the look vector; the draft normalized an unused zero vector and dotted the raw

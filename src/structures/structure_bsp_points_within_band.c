@@ -23,8 +23,8 @@
 #include "memory.h"
 #include "structures.h"
 
-extern real_point3d render_camera_position; // 0x007c3114 (render camera block +0x14)
-extern real_vector3d camera_forward; // 0x007c3120 (render camera block +0x20)
+extern real_point3d render_camera_global; // 0x007c3114 (render camera block +0x14)
+extern real_vector3d camera_forward_x; // 0x007c3120 (render camera block +0x20)
 
 // blam-cc: EDX -> points, SI -> point_count, stack -> tolerance
 uint8_t structure_bsp_points_within_band(real_point3d *points, int16_t point_count,
@@ -32,9 +32,9 @@ uint8_t structure_bsp_points_within_band(real_point3d *points, int16_t point_cou
 {
     for (int16_t i = 0; i < point_count; i++) {
         real_point3d *p = &points[i];
-        float distance = camera_forward.i * (p->x - render_camera_position.x) +
-                          camera_forward.j * (p->y - render_camera_position.y) +
-                          camera_forward.k * (p->z - render_camera_position.z);
+        float distance = camera_forward_x.i * (p->x - render_camera_global.x) +
+                          camera_forward_x.j * (p->y - render_camera_global.y) +
+                          camera_forward_x.k * (p->z - render_camera_global.z);
         if (distance <= tolerance) {
             return 1;
         }

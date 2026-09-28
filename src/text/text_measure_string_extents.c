@@ -39,8 +39,8 @@
 #include "text.h"
 
 extern tag_instance *tag_instances;             // 0x0087bc14
-extern datum_index text_font;                    // 0x006e472c
-extern int16_t text_style_state;                 // 0x006e4734
+extern datum_index hud_text_draw_font_tag_id;                    // 0x006e472c
+extern int16_t hud_text_draw_color_or_flags;                 // 0x006e4734
 
 extern Rectangle2D text_measure_bounds;            // 0x006e4714, reset here, accumulated by the callback
 extern uint32_t text_measure_font;                  // 0x006e471c, Font* of the last glyph measured
@@ -67,16 +67,16 @@ void text_measure_string_extents(Rectangle2D *origin_bounds, Rectangle2D *out_cu
     text_measure_bounds.bottom = (int16_t)0x8000;
     text_measure_bounds.right = (int16_t)0x8000;
 
-    resolved_font = text_font;
-    if (text_style_state != (int16_t)-1) {
-        Font *base_font = (Font *)tag_instances[text_font & 0xffff].data;
+    resolved_font = hud_text_draw_font_tag_id;
+    if (hud_text_draw_color_or_flags != (int16_t)-1) {
+        Font *base_font = (Font *)tag_instances[hud_text_draw_font_tag_id & 0xffff].data;
         // style indexes the four style dependencies (bold=0, italic=1, condense=2,
         // underline=3); see text_parse_state_initialize.c for the confirmed offsets.
-        TagDependency *style_dependency = &base_font->bold + text_style_state;
+        TagDependency *style_dependency = &base_font->bold + hud_text_draw_color_or_flags;
         resolved_font = *(datum_index *)&style_dependency->tag_id;
     }
     if (resolved_font == (datum_index)0xffffffff) {
-        resolved_font = text_font;
+        resolved_font = hud_text_draw_font_tag_id;
     }
     text_measure_font = (uint32_t)tag_instances[resolved_font & 0xffff].data;
 

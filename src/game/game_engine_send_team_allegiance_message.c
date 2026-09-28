@@ -33,7 +33,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t game_engine_teams_enabled_flag;       // 0x006f1cbc; UNSURE raw name, see
                                                       // game_engine_get_teams_enabled (variant+0x34 alias)
 extern data_array *player_data;                      // 0x0087a480
-extern uint8_t network_session_ptr_0071c2d8[];                // 0x0071c2d8, UNSURE: raw pointer, see below
+extern uint8_t network_client[];                // 0x0071c2d8, UNSURE: raw pointer, see below
 extern uint8_t network_message_scratch[0x7ff8];      // 0x00871de0
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
@@ -85,7 +85,7 @@ void game_engine_send_team_allegiance_message(char broadcast)
 
     encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, fields_ptr, 0, 1, 0);
     if (encoded_bits > 0) {
-        uint8_t *session = *(uint8_t **)(network_session_ptr_0071c2d8 + 0xadc);
+        uint8_t *session = *(uint8_t **)(network_client + 0xadc);
 
         if ((*(uint8_t *)(session + 0xa8c) & 1) == 0 &&
             (encoded_bits + 1 <= (*(int32_t *)(session + 0x24) -

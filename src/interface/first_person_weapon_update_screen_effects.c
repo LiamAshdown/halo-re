@@ -36,7 +36,7 @@ extern tag_instance *tag_instances;        // 0x0087bc14
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern float camera_field_of_view;          // 0x007c313c, UNSURE name
 extern uint32_t rasterizer_device_version; // 0x007c118c
-extern uint8_t unknown_0069c68a;            // 0x0069c68a, UNSURE: disables the technique path
+extern uint8_t rasterizer_caps_flag_68a;            // 0x0069c68a, UNSURE: disables the technique path
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 
@@ -89,7 +89,7 @@ void first_person_weapon_update_screen_effects(void)
     hud_interface = local_player_get_weapon_hud_interface(&intensity);
     if (hud_interface == -1 ||
         (int32_t)((WeaponHUDInterface *)tag_instances[hud_interface & 0xffff].data)->screen_effect.count < 1) {
-        if (rasterizer_device_version >= 0xffff0101u && unknown_0069c68a == 0) {
+        if (rasterizer_device_version >= 0xffff0101u && rasterizer_caps_flag_68a == 0) {
             rasterizer_screen_effect_render((weapon_screen_effect_parameters *)0);
         } else {
             rasterizer_screen_effect_render_fixed_function((weapon_screen_effect_parameters *)0);
@@ -164,7 +164,7 @@ void first_person_weapon_update_screen_effects(void)
         }
     }
 
-    if (rasterizer_device_version >= 0xffff0101u && unknown_0069c68a == 0) {
+    if (rasterizer_device_version >= 0xffff0101u && rasterizer_caps_flag_68a == 0) {
         rasterizer_screen_effect_render(&parameters);
     } else {
         rasterizer_screen_effect_render_fixed_function(&parameters);

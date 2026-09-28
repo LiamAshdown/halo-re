@@ -17,7 +17,7 @@
 #include "game.h"
 #include "camera.h"
 
-extern uint8_t input_mode_flags;                    // 0x00712542
+extern uint8_t controls_input_capture_flags;                    // 0x00712542
 extern player_globals *local_player_globals;        // 0x0087a478
 extern uint8_t director_camera_switching;           // 0x00686a98
 extern director_globals camera_director_globals;    // 0x006ac558
@@ -42,7 +42,7 @@ void camera_update(float dt)
     camera_input input;
     observer_command command;
 
-    director_camera_switching = (input_mode_flags == 1);
+    director_camera_switching = (controls_input_capture_flags == 1);
     camera_director_globals.dt = dt;
 
     if (local_player_globals->local_players[0] == k_datum_index_none) {

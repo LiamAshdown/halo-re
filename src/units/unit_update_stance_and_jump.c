@@ -29,7 +29,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20
-extern int16_t game_connection_role;                // 0x00719720, word; 0 = local game
+extern int16_t network_game_mode;                // 0x00719720, word; 0 = local game
 extern char *s_stand;                                // 0x0069fdec "stand"
 extern double fabs(double x);
 
@@ -200,7 +200,7 @@ void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8
         if (forced) {
             uint8_t keep_still = suppress_shield_check || allow_death_reaction;
 
-            if (!keep_still && game_connection_role != 0) {
+            if (!keep_still && network_game_mode != 0) {
                 datum_index weapon = unit_get_weapon_object_index(unit_index, OBJECT_I16(obj, 0x2f2));
 
                 if (object_try_and_get(weapon, 4) != 0 && weapon_must_be_readied(weapon) == 1) {

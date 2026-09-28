@@ -6,7 +6,7 @@
 // objdump 0x489c80..0x489d47: takes a 4-byte scratch slot on the thread's current frame (frame +0x0c size,
 //   +0x0e data). The first pass pushes the argument node (the call node's second child) with
 //   hs_thread_push(EAX node, EDX thread, EBX slot) and returns; the next pass returns the object left in the slot
-//   when its type bit (1 << object +0xb4) is in the mask hs_object_cast_type_masks[function_index - 0x16]
+//   when its type bit (1 << object +0xb4) is in the mask hs_object_type_masks[function_index - 0x16]
 //   (0x00657538: 0xffff, 3 for "unit", ...), else -1 (also for a -1 object).
 // blam-cc: stack -> function_index, thread_index, first (cdecl)
 
@@ -17,7 +17,7 @@
 extern data_array *hs_thread_data; // 0x0087a470
 extern data_array *hs_syntax_data; // 0x0087a474
 extern data_array *object_data;    // 0x008603b0
-extern int16_t hs_object_cast_type_masks[]; // 0x00657538
+extern int16_t hs_object_type_masks[]; // 0x00657538
 
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address); // 0x48a560, EAX, EDX, EBX
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
@@ -42,7 +42,7 @@ void hs_evaluate_object_cast(int16_t function_index, uint32_t thread_index, char
     if (object_index != k_datum_index_none) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
 
-        if ((int32_t)hs_object_cast_type_masks[(int16_t)(function_index - 0x16)] & (1 << (object[0xb4] & 0x1f))) {
+        if ((int32_t)hs_object_type_masks[(int16_t)(function_index - 0x16)] & (1 << (object[0xb4] & 0x1f))) {
             hs_thread_return((int32_t)object_index, thread_index);
             return;
         }

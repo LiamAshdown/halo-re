@@ -12,14 +12,14 @@
 #include "math.h"
 #include "interface.h"
 
-extern uint8_t ui_event_byte_00719757;  // 0x00719757
+extern uint8_t split_screen_quit_prompt_armed;  // 0x00719757
 extern uint8_t ui_event_byte_0071975b;  // 0x0071975b
-extern int32_t ui_event_dword_007196d4; // 0x007196d4
+extern int32_t movie_playback_abort; // 0x007196d4
 
 uint8_t ui_event_4a1c80(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    ui_event_byte_00719757 = 0;
+    split_screen_quit_prompt_armed = 0;
     ui_event_byte_0071975b = 1;
-    ui_event_dword_007196d4 = 1;
+    movie_playback_abort = 1;
     return 1;
 }

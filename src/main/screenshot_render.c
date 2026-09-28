@@ -42,7 +42,7 @@
 
 extern main_globals main_globals_data; // 0x00719700
 extern int16_t screenshot_scale;       // 0x00696568, foreign (rasterizer module)
-extern Rectangle2D game_window_rect;   // 0x0069c634, foreign (rasterizer module)
+extern Rectangle2D game_window_top_left;   // 0x0069c634, foreign (rasterizer module)
 
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, this module
 extern void console_deactivate(void); // 0x4c64b0, this module
@@ -80,8 +80,8 @@ void screenshot_render(render_view *views)
         }
     }
 
-    height = (int16_t)((game_window_rect.bottom - game_window_rect.top) * screenshot_scale);
-    width = (int16_t)((game_window_rect.right - game_window_rect.left) * screenshot_scale);
+    height = (int16_t)((game_window_top_left.bottom - game_window_top_left.top) * screenshot_scale);
+    width = (int16_t)((game_window_top_left.right - game_window_top_left.left) * screenshot_scale);
 
     bitmap = (BitmapData *)GlobalAlloc(0, 0x30);
     if (bitmap == 0) {

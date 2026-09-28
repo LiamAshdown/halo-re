@@ -7,7 +7,7 @@
 //   object[0x0c] == -1 return true, else return game_time >= object[0x0c] +
 //   [0x006894c8]"), which is also that file's own correction to types/objects.h's
 //   object+0x0c ("a game-tick stamp, not a datum handle"). types/projectiles.h
-//   k_projectile_minimum_age_ticks (0x006894c8). global 0x006f1d6c game_time_globals (+0x0c the
+//   k_projectile_minimum_age_ticks (0x006894c8). global 0x006f1d6c game_time (+0x0c the
 //   game tick). This function is the twin of this batch's weapon_is_old_enough (0x4c6290) and
 //   equipment_is_old_enough (0x4bc420), which read the two adjacent globals 0x006894c4 and
 //   0x006894cc for their own types.
@@ -23,7 +23,7 @@
 #include "projectiles.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void *game_time_globals; // 0x006f1d6c, +0x0c the game tick
+extern void *game_time; // 0x006f1d6c, +0x0c the game tick
 extern int32_t k_projectile_minimum_age_ticks; // 0x006894c8
 
 // The projectile row's "is old enough" hook (object_type_definition +0x74). An object that has
@@ -37,7 +37,7 @@ uint8_t projectile_is_old_enough(uint32_t object_index) // blam-cc: stack -> obj
     if (stamp == -1) {
         return 1;
     }
-    return stamp + k_projectile_minimum_age_ticks <= *(int32_t *)((uint8_t *)game_time_globals + 0xc);
+    return stamp + k_projectile_minimum_age_ticks <= *(int32_t *)((uint8_t *)game_time + 0xc);
 }
 
 #if 0

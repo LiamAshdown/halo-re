@@ -37,7 +37,7 @@
 #include "networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
-extern uint8_t host_handoff_requested;          // 0x0071c2de, per types/networking.h
+extern uint8_t network_host_handoff_requested;          // 0x0071c2de, per types/networking.h
 extern void chat_close(void); // 0x4aa900
 extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int16_t **capacity,
     int32_t packet_type, int32_t version); // 0x4d0ae0; UNSURE, this call site's own 4-arg shape
@@ -59,7 +59,7 @@ int32_t network_send_join_request_packet(network_client_globals *connection)
     int32_t encode_ok;
 
     if (network_server == 0 || ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
-        host_handoff_requested = 1;
+        network_host_handoff_requested = 1;
         chat_close();
     }
 

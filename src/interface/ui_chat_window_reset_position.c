@@ -24,10 +24,10 @@ extern int32_t chat_listbox_x;      // 0x006b38e4, UNSURE: external GUI listbox 
 extern int32_t chat_listbox_y;      // 0x006b38e8
 extern int32_t chat_listbox_width;  // 0x006b38ec
 extern int32_t chat_listbox_height; // 0x006b38f0
-extern int32_t unknown_006b3858;    // UNSURE
+extern int32_t chat_dialog_open;    // UNSURE
 extern int32_t unknown_006b3914;    // UNSURE
 extern int32_t unknown_006b38f4;    // UNSURE
-extern int32_t unknown_006b385c;    // UNSURE
+extern int32_t chat_scope_active;    // UNSURE
 
 extern void hud_chat_listbox_clear(void); // 0x4ab400
 
@@ -37,12 +37,12 @@ void ui_chat_window_reset_position(void)
 {
     chat_listbox_x = chat_window_default_x;
     chat_listbox_y = chat_window_default_y;
-    unknown_006b3858 = 0;
+    chat_dialog_open = 0;
     unknown_006b3914 = 0;
     chat_listbox_width = chat_window_default_width;
     chat_listbox_height = chat_window_default_height;
     unknown_006b38f4 = 0;
-    unknown_006b385c = -1;
+    chat_scope_active = -1;
     hud_chat_listbox_clear();
 }
 

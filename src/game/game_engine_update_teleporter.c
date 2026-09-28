@@ -49,7 +49,7 @@
 
 extern data_array *player_data;      // 0x0087a480
 extern Scenario *global_scenario;    // 0x00746f8c
-extern data_array *object_headers;   // 0x008603b0
+extern data_array *object_data;   // 0x008603b0
 extern int32_t teleport_message_cooldown; // 0x006f1d2c, UNSURE identity
 extern wchar_t empty_string;          // 0x00660c34
 extern network_client_globals *network_client;
@@ -111,7 +111,7 @@ void game_engine_update_teleporter(uint32_t player_index)
     if (unit == (datum_index)0xffffffff) {
         return;
     }
-    unit_object = ((object_header *)object_headers->data)[unit & 0xffff].data;
+    unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
 
     // Cache invalidation: if the cached entrance flag (player::unknown_70) is more than 1 unit
     // away from the unit's current position, forget it.
@@ -149,7 +149,7 @@ void game_engine_update_teleporter(uint32_t player_index)
             void *candidates[44036 / sizeof(void *)]; // matches Ghidra's local_ac08 [44036]
             uint8_t blocked;
 
-            unit_object = ((object_header *)object_headers->data)[unit & 0xffff].data;
+            unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
             forward = unit_object->forward;
             margin = unit_get_crouch_height_offset(&margin); // UNSURE: real output target and meaning
 
@@ -172,7 +172,7 @@ void game_engine_update_teleporter(uint32_t player_index)
                 datum_index obstruction = (datum_index)0xffffffff; // UNSURE: really physics_shape_test_point's
                     // own out-parameter (Ghidra's local_ac20), not modeled as a real output above
                 if (obstruction != (datum_index)0xffffffff) {
-                    object *blocker = ((object_header *)object_headers->data)[obstruction & 0xffff].data;
+                    object *blocker = ((object_header *)object_data->data)[obstruction & 0xffff].data;
                     if (((1 << blocker->type) & _object_mask_unit) != 0) {
                         datum_index controller =
                             ((unit_data *)((uint8_t *)blocker +

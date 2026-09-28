@@ -43,10 +43,10 @@ extern uint8_t cache_file_open_by_name(char *name, uint8_t report_fatal_error); 
 extern uint8_t map_download_in_progress; // 0x006ac470
 extern map_download_state *map_download; // 0x006869c0
 
-extern int16_t unknown_00718fac; // UNSURE, see file header
-extern int16_t unknown_00718fae; // UNSURE
-extern uint8_t unknown_00718fb0; // UNSURE
-extern uint8_t unknown_00718fb1; // UNSURE
+extern int16_t quit_confirm_error_string_index; // UNSURE, see file header
+extern int16_t quit_confirm_error_unknown_ae; // UNSURE
+extern uint8_t quit_confirm_error_modal; // UNSURE
+extern uint8_t quit_confirm_error_is_error; // UNSURE
 
 // blam-cc: name in ESI
 // Makes sure `name` (a map file, basename taken from the last '\\') is available: returns 1 if a
@@ -99,11 +99,11 @@ uint8_t cache_file_request_map(char *name, uint8_t quit_on_fail)
 
 resolved:
     if (quit_on_fail == 0) {
-        if (unknown_00718fac == -1) {
-            unknown_00718fac = 0x23;
-            unknown_00718fae = 0;
-            unknown_00718fb0 = 0;
-            unknown_00718fb1 = 0;
+        if (quit_confirm_error_string_index == -1) {
+            quit_confirm_error_string_index = 0x23;
+            quit_confirm_error_unknown_ae = 0;
+            quit_confirm_error_modal = 0;
+            quit_confirm_error_is_error = 0;
         }
         return 0;
     }

@@ -37,7 +37,7 @@ extern uint8_t unit_updates_suppressed; // 0x0071c419
 extern uint8_t *ai_update_stagger;  // 0x006ef910
 extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip; // 0x0087abc2
-extern uint8_t *game_globals_pointer;  // 0x00746fa0
+extern uint8_t *global_globals;  // 0x00746fa0
 extern char *s_stand;                  // 0x0069fdec "stand"
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 extern real_point3d *global_origin3d_pointer;   // 0x00696714
@@ -567,7 +567,7 @@ controls:
 
                 if (unit_current_weapon_has_flag(unit_index)) {
                     if (button != 0) {
-                        uint8_t *effects = *(uint8_t **)(game_globals_pointer + 0x180);
+                        uint8_t *effects = *(uint8_t **)(global_globals + 0x180);
                         datum_index effect = ((*(uint32_t *)(obj + 0x204) & 0x4000000) != 0)
                             ? *(datum_index *)(effects + 0x64) : *(datum_index *)(effects + 0x54);
 

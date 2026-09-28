@@ -27,7 +27,7 @@ extern data_array *player_data;     // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 extern float game_engine_end_game_timer; // 0x0087aa08
-extern uint32_t unknown_0087aa00;   // 0x0087aa00, UNSURE identity (flag bitfield)
+extern uint32_t game_engine_unknown_aa00;   // 0x0087aa00, UNSURE identity (flag bitfield)
 
 extern void game_engine_multiplayer_sound_queue_tick(void); // 0x46bd80
 extern void game_engine_cleanup_dropped_objects(void); // 0x45f320, this batch
@@ -45,7 +45,7 @@ extern void game_engine_end_game_sequence_stage2(void); // 0x4670f0, not in this
 extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
 extern void network_server_advance_connect_state(void); // 0x4df290, not in this batch
 
-extern char idle_ambient_sound_class_name[]; // 0x0065512c, UNSURE exact contents (a sound class name)
+extern char k_empty_string[]; // 0x0065512c, UNSURE exact contents (a sound class name)
 
 // The multiplayer game engine's per-tick update: advances the announcer queue, item cleanup,
 // netgame-equipment respawns and (while hosting) each player's kill-streak/teleporter/per-player
@@ -107,12 +107,12 @@ void game_engine_tick(void)
             game_engine_begin_end_game_sequence();
         }
     } else if (game_engine_state_value == _game_engine_state_ending) {
-        if (game_engine_end_game_timer <= 2.0f && (unknown_0087aa00 & 0x10) == 0) {
-            sound_class_set_gain_by_name(idle_ambient_sound_class_name, 0.0f, 0x1e);
+        if (game_engine_end_game_timer <= 2.0f && (game_engine_unknown_aa00 & 0x10) == 0) {
+            sound_class_set_gain_by_name(k_empty_string, 0.0f, 0x1e);
             sound_class_set_gain_by_name("ambient_nature", 0.2f, 0x1e);
             sound_class_set_gain_by_name("ambient_machinery", 0.2f, 0x1e);
             sound_class_set_gain_by_name("ambient_computers", 0.2f, 0x1e);
-            unknown_0087aa00 = unknown_0087aa00 | 0x10;
+            game_engine_unknown_aa00 = game_engine_unknown_aa00 | 0x10;
         }
 
         game_engine_end_game_timer = game_engine_end_game_timer - 0.033333335f;

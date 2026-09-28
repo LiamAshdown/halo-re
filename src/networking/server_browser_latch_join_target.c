@@ -8,7 +8,7 @@
 // SBServerGetBoolValue that networking_types_notes.md's "server browser" section documents.
 // register convention: __cdecl, no arguments.
 // UNSURE: DAT_00719491 (a "join requested" gate, guessed name), DAT_00719450 (the latched
-// entry pointer), DAT_00719454 (the has-password result) and DAT_00719410 have no documented
+// entry pointer), DAT_00719454 (the has-password result) and network_host_edit_field_00719410 have no documented
 // names in networking_types_notes.md; declared here only by address with best-guess names.
 // UNSURE: virtual_keyboard_open's argument meaning (0x12, 0xc) was not resolved (outside this
 // session's range).
@@ -27,7 +27,7 @@ extern int32_t server_browser_selected_index; // 0x006953f4
 extern uint8_t server_browser_join_requested;   // 0x00719491, see UNSURE
 extern void *server_browser_join_target;        // 0x00719450, see UNSURE
 extern uint8_t server_browser_join_target_has_password; // 0x00719454, see UNSURE
-extern int32_t DAT_00719410;                    // see UNSURE
+extern int32_t network_host_edit_field_00719410;                    // see UNSURE
 extern uint32_t master_server_request_flags;    // 0x0071969c
 
 extern int32_t SBServerGetBoolValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library
@@ -52,7 +52,7 @@ void server_browser_latch_join_target(void)
             SBServerGetBoolValue(server_browser_join_target, "password", 0);
         if (server_browser_join_target_has_password != 0) {
             virtual_keyboard_open(0x12, 0xc);
-            DAT_00719410 = 0;
+            network_host_edit_field_00719410 = 0;
         }
         master_server_request_flags = master_server_request_flags | 4;
     }

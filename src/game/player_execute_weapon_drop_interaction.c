@@ -18,7 +18,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
 extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index); // 0x56d400, stack, EAX, ECX
@@ -27,7 +27,7 @@ extern void unit_invalidate_local_player_zoom_level(datum_index unit); // 0x4726
 extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key,
     uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key); // 0x478ff0, ECX, EDI, stack
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_headers->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 
 uint8_t player_execute_weapon_drop_interaction(uint32_t player_index)
 {

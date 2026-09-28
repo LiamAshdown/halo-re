@@ -13,12 +13,12 @@
 #include "hs.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *game_time_globals_pointer_6f1d6c; // 0x006f1d6c
+extern uint8_t *game_time; // 0x006f1d6c
 
 void hs_evaluate_game_time(int16_t function_index, uint32_t thread_index, char first)
 {
     (void)function_index;
     (void)first;
     
-    hs_thread_return(*(int32_t *)(game_time_globals_pointer_6f1d6c + 0xc), thread_index);
+    hs_thread_return(*(int32_t *)(game_time + 0xc), thread_index);
 }

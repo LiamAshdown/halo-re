@@ -29,7 +29,7 @@ extern int32_t render_frame_index;      // 0x007c3100, this module
 extern float render_time_since_tick;    // 0x007c310c, this module
 extern float render_time_since_frame;   // 0x007c3110, this module
 extern int16_t render_window_index;     // 0x007c310a, this module
-extern int16_t unknown_00696568;        // 0x00696568, UNSURE (see src/rasterizer/lens_flare_add_instance.c)
+extern int16_t screenshot_scale;        // 0x00696568, UNSURE (see src/rasterizer/lens_flare_add_instance.c)
 extern game_time_globals *game_time;    // 0x006f1d6c
 
 extern void render_cinematic_screen_effect_update(rasterizer_frame_time *time_source);
@@ -89,8 +89,8 @@ void render_frame(Point2DInt *screenshot_tile, render_view *views, int16_t count
             // check, with no separate null check of its own (the source likely never calls this
             // with a tile but no page). Preserved exactly rather than guarded.
             if (screenshot_tile != 0 && screenshot_page != 0) {
-                combined_tile.x = (int16_t)(screenshot_page->x * unknown_00696568 + screenshot_tile->x);
-                combined_tile.y = (int16_t)(screenshot_page->y * unknown_00696568 + screenshot_tile->y);
+                combined_tile.x = (int16_t)(screenshot_page->x * screenshot_scale + screenshot_tile->x);
+                combined_tile.y = (int16_t)(screenshot_page->y * screenshot_scale + screenshot_tile->y);
             }
             if (screenshot_tile != 0) {
                 tile_argument = &combined_tile;

@@ -37,7 +37,7 @@ extern int16_t network_game_mode;                   // 0x00719720
 extern Globals *global_globals;
 extern Scenario *global_scenario;
 extern const real_vector3d *global_up3d_pointer;    // 0x00696720
-extern uint8_t shared_hud_text_draw_state;          // 0x00871de0
+extern uint8_t network_message_scratch;          // 0x00871de0
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern network_server_globals *network_server; // 0x0071c2d4
 extern observer observers[];                        // 0x006ac65c, stride 0x29c
@@ -193,10 +193,10 @@ void player_respawn(uint32_t player_index)
             game_engine_apply_player_grenade_counts(player_index);
             *(uint32_t *)(unit + 4) = 0;
             object_type_override_call_0x68(new_unit);
-            encoded_bits = unit_build_network_update(new_unit, (int32_t)&shared_hud_text_draw_state, 0x7ff8);
+            encoded_bits = unit_build_network_update(new_unit, (int32_t)&network_message_scratch, 0x7ff8);
             if (encoded_bits > 0) {
                 network_session_broadcast_to_flagged(encoded_bits, (network_server_globals *)network_server,
-                    1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+                    1, &network_message_scratch, 1, 0, 0, 3);
             }
             *(uint32_t *)(p + 0x68) = 0;
             game_engine_send_unit_weapon_loadout(new_unit, player_index, team, -1);

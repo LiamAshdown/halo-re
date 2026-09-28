@@ -22,12 +22,11 @@
 
 extern data_array *object_data; // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
-extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
-extern void *object_pooled_node_globals_006870d8; // 0x006870d8, see
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
+extern void *network_object_index_cache; // 0x006870d8, see
     // src/objects/object_delete_by_pooled_node_id.c
 
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
-extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -55,11 +54,11 @@ void projectile_send_detonation(datum_index projectile_index)
     message.position = obj->position;
 
     items[0] = &message;
-    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_projectile_detonation, 0, items, 0, 1, 0), network_server, 1, object_network_message_scratch, 1, 0, 0, 3);
+    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_projectile_detonation, 0, items, 0, 1, 0), network_server, 1, network_message_scratch, 1, 0, 0, 3);
 
     obj->network_role = 3;
     if ((((object_header *)object_data->data)[projectile_index & 0xffff].flags & _object_header_delete_pending_bit) == 0) {
-        network_index_cache_remove(&object_pooled_node_globals_006870d8, projectile_index); // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
+        network_index_cache_remove(&network_object_index_cache, projectile_index); // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
     }
 }
 

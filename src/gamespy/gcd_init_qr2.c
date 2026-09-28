@@ -50,7 +50,7 @@ void gcd_send_disconnect(gcd_client *client, gcd_game *game);
 void gcd_send_auth_request(gcd_game *game, gcd_client *client, const char *challenge, const char *response);
 
 
-extern unsigned char qr2_default_record[]; // 0x00683838
+extern unsigned char static_rec[]; // 0x00683838
 extern void gcd_process(char *buf, int len, const struct sockaddr *from);
 extern int gcd_init_common(int game_id);
 
@@ -58,7 +58,7 @@ void gcd_init_qr2(void *qrec, int game_id, int use_network)
 {
     gcd_no_network = use_network == 0;
     if (qrec == 0) {
-        qrec = qr2_default_record;
+        qrec = static_rec;
     }
     gcd_own_socket = 0xffff;
     if (gcd_no_network == 0) {

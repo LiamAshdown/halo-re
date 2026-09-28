@@ -3,7 +3,7 @@
 // name confidence: 0.65   rewrite confidence: 0.6
 // evidence: types/input.h names this "input_queue_pop_event 0x4922b0 (pop: scans 0x00712d04 -
 // 8k, copies two dwords, clears the kind word)". 0x00712d04 is
-// event_queue.events[0][7] (0x00712ccc + 7*8); the pop walks slot 7 down to slot 0 of the
+// input_event_queue_active.events[0][7] (0x00712ccc + 7*8); the pop walks slot 7 down to slot 0 of the
 // requested queue and returns the highest-index slot whose kind word is nonzero, or tries all
 // four queues (0..3) when queue_index is -1.
 // register convention: plain stack arguments, confirmed by objdump: out_event at [esp+4]
@@ -19,7 +19,7 @@
 #include "saved_games.h"
 #include "input.h"
 
-extern input_event_queue event_queue; // 0x00712cc0
+extern input_event_queue input_event_queue_active; // 0x00712cc0
 
 // Pops the newest queued event of queue_index (0..3), or the newest across all four queues when
 // queue_index is -1. Returns 1 and fills *out_event on success, 0 (queue disabled, or nothing
@@ -29,12 +29,12 @@ uint8_t input_queue_pop_event(ui_input_event *out_event, int16_t queue_index)
     int32_t slot;
     ui_input_event *record;
 
-    if (event_queue.enabled == 0) {
+    if (input_event_queue_active.enabled == 0) {
         return 0;
     }
     if (queue_index != -1) {
         for (slot = 7; slot >= 0; slot--) {
-            record = &event_queue.events[queue_index][slot];
+            record = &input_event_queue_active.events[queue_index][slot];
             if (record->kind != 0) {
                 *out_event = *record;
                 record->kind = 0;

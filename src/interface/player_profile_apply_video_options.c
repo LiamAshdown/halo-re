@@ -34,29 +34,29 @@
 #include "rasterizer.h"
 #include "interface.h"
 
-extern int32_t profile_write_back_enabled;   // 0x007196f4
-extern int16_t rasterizer_present_mode;      // 0x0068944e
+extern int32_t safe_mode;   // 0x007196f4
+extern int16_t renderer_texture_quality;      // 0x0068944e
 extern int16_t unknown_00689450;             // 0x00689450, always set to 2 here
 extern int32_t game_time_force_single_tick;  // 0x007196d8
 extern uint8_t unknown_006894ba;             // 0x006894ba
-extern uint8_t rasterizer_device_valid;      // 0x0071d16c
+extern uint8_t rasterizer_fullscreen;      // 0x0071d16c
 extern void *rasterizer_device;              // 0x0071d174
 extern uint8_t rasterizer_needs_reset;       // 0x0071d16d
-extern uint8_t present_parameters_flags[];   // 0x007c11f0, the D3DDISPLAYMODE GetDisplayMode fills
-extern uint32_t video_triple_buffer_unsupported; // 0x00722b6c
-extern uint8_t unknown_006893f7;             // 0x006893f7
-extern uint8_t unknown_006893f6;             // 0x006893f6
-extern uint8_t unknown_006893fa;             // 0x006893fa
+extern uint8_t rasterizer_desktop_display_mode[];   // 0x007c11f0, the D3DDISPLAYMODE GetDisplayMode fills
+extern uint32_t config_disable_specular; // 0x00722b6c
+extern uint8_t console_debug_toggle_6893f7;             // 0x006893f7
+extern uint8_t console_debug_toggle_6893f6;             // 0x006893f6
+extern uint8_t console_debug_toggle_6893fa;             // 0x006893fa
 extern uint32_t rasterizer_device_version;   // 0x007c118c
-extern uint8_t unknown_006893f2;             // 0x006893f2
+extern uint8_t console_debug_toggle_6893f2;             // 0x006893f2
 extern uint32_t rasterizer_capability_007c10e4; // 0x007c10e4
 extern int16_t light_count_enabled;          // 0x0068944c, always set to 2 here
 extern uint8_t unknown_006893ff;             // 0x006893ff
-extern uint8_t unknown_00689404;             // 0x00689404
+extern uint8_t console_debug_toggle_689404;             // 0x00689404
 extern uint8_t decals_for_all_responses;     // 0x006893f5
 extern uint8_t particle_spawn_debug_mode;    // 0x0069c565
 extern uint8_t particle_systems_enabled;     // 0x0069c566
-extern int32_t rasterizer_gamma;             // 0x0071d1e0
+extern int32_t rasterizer_gamma_exponent;             // 0x0071d1e0
 extern struct cache *texture_cache;          // 0x006ac540
 
 extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested); // 0x515d10, blam-cc: EDI -> requested
@@ -83,7 +83,7 @@ uint8_t player_profile_apply_video_options(uint8_t *settings)
     int16_t new_mode;
     uint8_t value;
 
-    if (profile_write_back_enabled != 0) {
+    if (safe_mode != 0) {
         settings[0xa70] = 0;
         settings[0xa71] = 0;
         settings[0xa72] = 0;
@@ -97,8 +97,8 @@ uint8_t player_profile_apply_video_options(uint8_t *settings)
     default: new_mode = -1; break;
     }
     if (new_mode >= 0) {
-        mode_changed = rasterizer_present_mode != new_mode;
-        rasterizer_present_mode = new_mode;
+        mode_changed = renderer_texture_quality != new_mode;
+        renderer_texture_quality = new_mode;
     }
     unknown_00689450 = 2;
 
@@ -108,7 +108,7 @@ uint8_t player_profile_apply_video_options(uint8_t *settings)
     mode.vsync = settings[0xa6f] != 0;
     unknown_006894ba = game_time_force_single_tick != 0 ? 0 : settings[0xa6f] == 2;
 
-    if (rasterizer_device_valid == 0 || rasterizer_device == 0) {
+    if (rasterizer_fullscreen == 0 || rasterizer_device == 0) {
         GetWindowRect(GetDesktopWindow(), &desktop);
         if ((uint32_t)mode.height >= (uint32_t)desktop.bottom || (uint32_t)mode.width >= (uint32_t)desktop.right) {
             if (desktop.bottom > 600) {
@@ -126,24 +126,24 @@ uint8_t player_profile_apply_video_options(uint8_t *settings)
         rasterizer_build_present_parameters(present_parameters, &mode);
         rasterizer_device_reset(present_parameters);
         vtable = *(void ***)rasterizer_device;
-        ((d3d_get_display_mode_fn)vtable[0x20 / 4])(rasterizer_device, 0, present_parameters_flags);
+        ((d3d_get_display_mode_fn)vtable[0x20 / 4])(rasterizer_device, 0, rasterizer_desktop_display_mode);
         reset = 1;
         rasterizer_resize_game_window(mode.height, mode.width);
         rasterizer_needs_reset = 0;
     }
 
-    value = video_triple_buffer_unsupported != 0 ? 0 : settings[0xa70];
-    unknown_006893f7 = value;
-    unknown_006893f6 = value;
-    unknown_006893fa = value;
-    unknown_006893f2 = rasterizer_device_version < 0xffff0101u ? 0 : settings[0xa71];
+    value = config_disable_specular != 0 ? 0 : settings[0xa70];
+    console_debug_toggle_6893f7 = value;
+    console_debug_toggle_6893f6 = value;
+    console_debug_toggle_6893fa = value;
+    console_debug_toggle_6893f2 = rasterizer_device_version < 0xffff0101u ? 0 : settings[0xa71];
     light_count_enabled = 2;
     unknown_006893ff = 1;
-    unknown_00689404 = 1;
+    console_debug_toggle_689404 = 1;
     decals_for_all_responses = (rasterizer_capability_007c10e4 & 0x6000000u) != 0 ? settings[0xa72] : 0;
     particle_spawn_debug_mode = settings[0xa73];
     particle_systems_enabled = settings[0xa73];
-    rasterizer_gamma = settings[0xa76];
+    rasterizer_gamma_exponent = settings[0xa76];
     chimera__gamma();
 
     if (mode_changed) {

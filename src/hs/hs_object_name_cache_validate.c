@@ -3,7 +3,7 @@
 // name confidence: 0.25 (out/phase4/hs_functions.md: "Validates a cached object-slot reference
 //   against a type-mask test, resetting it via a fallback path when invalid or absent")
 // rewrite confidence: 0.9 (VERIFIED against objdump)
-// evidence: types/hs.h globals list (object_names_to_objects, 0x006b8cb8, objects module, 0x200
+// evidence: types/hs.h globals list (object_name_list, 0x006b8cb8, objects module, 0x200
 //   entries); this module's hs_object_hierarchy_test (0x487c10) as the "type-mask test".
 // register convention: none (void); object_names index is the recognized stack parameter
 //   (param_1).
@@ -19,7 +19,7 @@ extern char hs_object_hierarchy_test(datum_index object_index); // this module, 
 extern void object_delete(datum_index object_index); // 0x4f5bd0, blam-cc: EAX (0x487d56: mov eax,edi = the cached object)
 extern void object_new_from_scenario_name(int16_t object_name_index); // objects module, 0x4f7370, UNSURE args
 
-extern datum_index *object_names_to_objects; // 0x006b8cb8, 0x200 entries
+extern datum_index *object_name_list; // 0x006b8cb8, 0x200 entries
 
 // If `object_name_index` currently caches a resolved object that fails
 // hs_object_hierarchy_test, invalidates it via object_delete. Either way, if the slot is still
@@ -33,13 +33,13 @@ void hs_object_name_cache_validate(int16_t object_name_index)
     }
     if (-1 < object_name_index) {
         if (object_name_index < 0x200) {
-            cached = object_names_to_objects[object_name_index];
+            cached = object_name_list[object_name_index];
             if (cached != k_datum_index_none && hs_object_hierarchy_test(cached) == 0) {
                 object_delete(cached); // FIXED: the draft passed the name index
             }
         }
         if (-1 < object_name_index && object_name_index < 0x200 &&
-            object_names_to_objects[object_name_index] != k_datum_index_none) {
+            object_name_list[object_name_index] != k_datum_index_none) {
             return;
         }
     }

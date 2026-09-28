@@ -21,7 +21,7 @@
 #include "game.h"
 
 extern Globals *global_globals;      // 0x00746fa0
-extern data_array *object_headers;   // 0x008603b0
+extern data_array *object_data;   // 0x008603b0
 extern game_variant game_engine_variant; // 0x006f1c88 (unknown_8c aliased 0x006f1d14)
 
 extern void object_placement_data_initialize(object_placement_data *placement,
@@ -56,7 +56,7 @@ void game_engine_koth_relocate_hill_marker(int32_t ball_index)
 
             new_object = object_new(&placement);
 
-            hdr = (object_header *)object_headers->data + ((uint32_t)new_object & 0xffff);
+            hdr = (object_header *)object_data->data + ((uint32_t)new_object & 0xffff);
             header_flags = hdr->flags;
             hdr->flags = header_flags & ~_object_header_in_pvs_pass_bit;
             if ((header_flags & _object_header_active_bit) == 0) {

@@ -17,7 +17,7 @@ extern int16_t network_join_error_code; // 0x00718fa4, the pending join/disconne
                                         // string index; -1 means none. WORD-sized everywhere
                                         // (cmp/mov WORD PTR ds:0x718fa4), consumed and reset by
                                         // the main-menu display_error call at 0x4a9ff0.
-extern uint8_t host_handoff_requested;       // 0x0071c2de, per network_send_join_request_packet.c
+extern uint8_t network_host_handoff_requested;       // 0x0071c2de, per network_send_join_request_packet.c
 extern void chat_close(void); // 0x4aa900
 
 // blam-cc: AX -> error_code
@@ -26,7 +26,7 @@ void network_session_disconnect_with_error(int16_t error_code)
     if (network_join_error_code == -1) {
         network_join_error_code = error_code + 0x2b;
     }
-    host_handoff_requested = 1;
+    network_host_handoff_requested = 1;
     chat_close();
 }
 

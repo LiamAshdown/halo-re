@@ -16,7 +16,7 @@
 #include "ai.h"
 
 extern data_array *prop_data; // 0x008802c0
-extern real_point3d *ai_default_position_constant; // 0x00696714, UNSURE: same constant referenced elsewhere in this module
+extern real_point3d *global_origin3d_pointer; // 0x00696714, UNSURE: same constant referenced elsewhere in this module
 
 // blam-cc: EAX -> dest_prop, ECX -> src_prop
 void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop)
@@ -50,7 +50,7 @@ void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop)
         dest->unknown_44 = *(uint32_t *)&dy;
         dest->unknown_48 = *(uint32_t *)&dz;
     }
-    dest->unknown_d4 = *ai_default_position_constant;
+    dest->unknown_d4 = *global_origin3d_pointer;
     dest->unknown_123 = 0;
 }
 

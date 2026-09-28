@@ -23,12 +23,12 @@
 #include "units.h"
 
 extern data_array *object_data;      // 0x008603b0
-extern uint8_t *globals_tag_data;    // 0x00746fa0
-extern uint8_t network_toggle_0087abc2; // 0x0087abc2
+extern uint8_t *global_globals;    // 0x00746fa0
+extern uint8_t weapon_bottomless_clip; // 0x0087abc2
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-extern uint32_t game_mode_flags_0087aa00;    // 0x0087aa00
-extern uint32_t game_flags_006f1cc0;         // 0x006f1cc0
-extern int16_t game_connection_role;         // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
+extern uint32_t game_engine_unknown_aa00;    // 0x0087aa00
+extern uint32_t motion_sensor_override_value;         // 0x006f1cc0
+extern int16_t network_game_mode;         // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
 extern real vector3d_normalize_with_length(real_vector3d *v);                      // 0x401990
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);    // 0x4cd670, UNSURE signature
@@ -42,18 +42,18 @@ void unit_throw_grenade_move_to_hand(uint32_t unit_index)
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     int8_t grenade_type = unit->current_grenade_index;
-    uint8_t *grenade_table = *(uint8_t **)(globals_tag_data + 300);
+    uint8_t *grenade_table = *(uint8_t **)(global_globals + 300);
 
     if (((unit->controlling_player == k_datum_index_none) ||
-         ((network_toggle_0087abc2 == 0) &&
-          ((current_game_engine == 0) || ((game_mode_flags_0087aa00 & 4) != 0) ||
-           ((game_flags_006f1cc0 >> 2 & 1) == 0)))) &&
+         ((weapon_bottomless_clip == 0) &&
+          ((current_game_engine == 0) || ((game_engine_unknown_aa00 & 4) != 0) ||
+           ((motion_sensor_override_value >> 2 & 1) == 0)))) &&
         (unit->actor_index == k_datum_index_none) &&
         ((unit_obj->network_role == 3) || (unit_obj->network_role == 0))) {
         unit->grenade_counts[grenade_type] -= 1;
     }
 
-    if ((game_connection_role != 2) && (game_connection_role != 0)) {
+    if ((network_game_mode != 2) && (network_game_mode != 0)) {
         unit->throwing_grenade_projectile = k_datum_index_none;
         unit->throwing_grenade_state = 2;
         return;

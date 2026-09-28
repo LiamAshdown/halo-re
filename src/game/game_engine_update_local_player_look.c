@@ -28,7 +28,7 @@
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern Globals *global_globals;                              // 0x00746fa0
-extern data_array *object_headers;                            // 0x008603b0
+extern data_array *object_data;                            // 0x008603b0
 extern tag_instance *tag_instances;                            // 0x0087bc14
 
 // camera_basis_out now lives in types/game.h (folded there by the phase-4 review).
@@ -82,7 +82,7 @@ void game_engine_update_local_player_look(int16_t local_player_index, real yaw_d
     look->yaw = yaw_delta + look->yaw;
 
     if (camera.seat_index != -1) {
-        uint8_t *unit_object = (uint8_t *)((object_header *)object_headers->data)[camera.unit & 0xffff].data;
+        uint8_t *unit_object = (uint8_t *)((object_header *)object_data->data)[camera.unit & 0xffff].data;
         uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit_object & 0xffff].data;
         uint8_t *seat = *(uint8_t **)(unit_tag + 0x2e8) + (int32_t)camera.seat_index * 0x11c;
         real yaw_min = *(real *)(seat + 0xf0);
@@ -131,7 +131,7 @@ void game_engine_update_local_player_look(int16_t local_player_index, real yaw_d
     if (unit_camera != 0) {
         real target_pitch = *(real *)(unit_camera + 0x40);
 
-        unit = (uint8_t *)((object_header *)object_headers->data)[camera.unit & 0xffff].data;
+        unit = (uint8_t *)((object_header *)object_data->data)[camera.unit & 0xffff].data;
         if (*(real *)(unit_camera + 0x48) != 0.0f || *(real *)(unit_camera + 0x44) != 0.0f) {
             pitch_min = *(real *)(unit_camera + 0x44);
             pitch_max = *(real *)(unit_camera + 0x48);

@@ -25,7 +25,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
-extern void *object_pooled_node_globals_006870d8; // 0x006870d8, UNSURE: network_index_cache_remove's EAX operand
+extern void *network_object_index_cache; // 0x006870d8, UNSURE: network_index_cache_remove's EAX operand
 
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
@@ -65,7 +65,7 @@ void object_delete_by_pooled_node_id(int32_t **record)
         if (object_index != 0xffffffff) {
             header = (object_header *)object_data->data + (object_index & 0xffff);
             if ((header->flags & _object_header_delete_pending_bit) == 0) {
-                network_index_cache_remove(&object_pooled_node_globals_006870d8, object_index); // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
+                network_index_cache_remove(&network_object_index_cache, object_index); // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
             }
             if (object_try_and_get(object_index, _object_mask_all) != 0) {
                 // 0x4f5ba0 push -1 / mov ecx,esi

@@ -20,7 +20,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern double sqrt(double x); // x87 FSQRT
 
 // blam-cc: EAX -> player_index, EBX -> candidate_object, stack -> priority_type, seat
@@ -36,9 +36,9 @@ void player_set_pending_interaction_action(int16_t priority_type, int16_t seat,
 
     if (priority_type != 0xb) {
         if (priority_type == p->interaction_type) {
-            object *unit = (object *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
-            object *existing = (object *)((object_header *)object_headers->data)[p->interaction_object & 0xffff].data;
-            object *candidate = (object *)((object_header *)object_headers->data)[candidate_object & 0xffff].data;
+            object *unit = (object *)((object_header *)object_data->data)[p->unit & 0xffff].data;
+            object *existing = (object *)((object_header *)object_data->data)[p->interaction_object & 0xffff].data;
+            object *candidate = (object *)((object_header *)object_data->data)[candidate_object & 0xffff].data;
 
             float ex = existing->position.x - unit->position.x;
             float ey = existing->position.y - unit->position.y;

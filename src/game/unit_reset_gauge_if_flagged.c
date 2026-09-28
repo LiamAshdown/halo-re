@@ -21,7 +21,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 // blam-cc: EAX -> player_index
 void unit_reset_gauge_if_flagged(uint32_t player_index)
@@ -38,7 +38,7 @@ void unit_reset_gauge_if_flagged(uint32_t player_index)
     }
 
     unit = (unit_data *)((uint8_t *)
-        ((object_header *)object_headers->data)[p->unit & 0xffff].data + k_unit_data_offset);
+        ((object_header *)object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
     if ((unit->flags & _unit_flag_unknown_10) != 0) {
         unit->unknown_37c = 0.5f;
     }

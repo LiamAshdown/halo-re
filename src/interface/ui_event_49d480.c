@@ -25,8 +25,8 @@
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
-extern uint8_t unknown_0071c2dd; // 0x0071c2dd, UNSURE identity
-extern uint8_t network_session_starting_0071c2dc; // 0x0071c2dc, TYPES-GAP
+extern uint8_t network_server_host_valid; // 0x0071c2dd, UNSURE identity
+extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, TYPES-GAP
 extern uint32_t game_engine_ensure_variant_history_has_entry(void); // 0x463b20
 extern int32_t network_game_server_host_create(void); // 0x4ddd40
 extern int32_t game_variant_history_current; // 0x00687b18
@@ -43,7 +43,7 @@ uint8_t ui_event_49d480(widget_instance *widget, int16_t *event, uint8_t *out_ha
 {
     uint8_t ok = 1;
 
-    network_session_starting_0071c2dc = 0;
+    network_disconnect_timeout_flag = 0;
     if (network_server == 0) {
         game_engine_ensure_variant_history_has_entry();
         ok = (uint8_t)network_game_server_host_create();
@@ -65,7 +65,7 @@ uint8_t ui_event_49d480(widget_instance *widget, int16_t *event, uint8_t *out_ha
         if (network_server != 0) {
             network_game_server_host_dispose(network_server);
             network_server = 0;
-            unknown_0071c2dd = 0;
+            network_server_host_valid = 0;
         }
         network_client_globals_dispose();
         network_game_setup_teardown();

@@ -33,10 +33,10 @@ typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uin
 extern ai_update_stagger_state *ai_update_stagger; // 0x006ef910
 extern int16_t network_game_mode;            // 0x00719720
 extern game_main_globals *main_game_globals; // 0x006b0b80
-extern int32_t hs_thread_recursion_depth;    // 0x00719ccc, UNSURE name (incremented/decremented around FUN_004923d0)
-extern int32_t unknown_00699f44;             // 0x00699f44, TYPES-GAP: message queue count
+extern int32_t player_effect_reentry_count;    // 0x00719ccc, UNSURE name (incremented/decremented around FUN_004923d0)
+extern int32_t network_scenario_round_counter_a;             // 0x00699f44, TYPES-GAP: message queue count
 extern uint8_t unknown_00699f40[];           // 0x00699f40, TYPES-GAP: message queue buffer
-extern int32_t unknown_0071cc24;             // 0x0071cc24, TYPES-GAP: message queue count
+extern int32_t network_scenario_round_counter_b;             // 0x0071cc24, TYPES-GAP: message queue count
 extern uint8_t unknown_0071cc20[];           // 0x0071cc20, TYPES-GAP: message queue buffer
 
 extern void game_engine_flag_local_player_units(void);      // 0x45b590, this module
@@ -54,7 +54,7 @@ extern void game_engine_server_update_player_positions(void);                   
 extern void players_server_catchup_on_client_updates(void); // 0x4768c0
 extern void players_client_catchup_on_server_updates(void); // 0x476d40, UNSURE module
 extern void first_person_weapon_interface_tick(void);                    // UNSURE module (hs-related, guarded by
-                                                   //   hs_thread_recursion_depth)
+                                                   //   player_effect_reentry_count)
 extern void hud_update_dispatch(void);                    // UNSURE module
 extern void network_client_send_local_player_updates(void); // 0x4e77e0, UNSURE module
 extern void network_event_feed_flush(void *queue);             // UNSURE module (flushes a message queue)
@@ -96,9 +96,9 @@ after_role_update:
         effects_update_all(seconds_per_tick);
     }
 
-    hs_thread_recursion_depth = hs_thread_recursion_depth + 1;
+    player_effect_reentry_count = player_effect_reentry_count + 1;
     first_person_weapon_interface_tick();
-    hs_thread_recursion_depth = hs_thread_recursion_depth - 1;
+    player_effect_reentry_count = player_effect_reentry_count - 1;
 
     game_engine_tick();
     hs_runtime_update();
@@ -115,10 +115,10 @@ after_role_update:
         game_engine_server_update_player_positions();
         network_client_send_local_player_updates();
         network_server_broadcast_object_type_changes();
-        if (0 < unknown_00699f44) {
+        if (0 < network_scenario_round_counter_a) {
             network_event_feed_flush(unknown_00699f40);
         }
-        if (0 < unknown_0071cc24) {
+        if (0 < network_scenario_round_counter_b) {
             network_event_feed_flush(unknown_0071cc20);
         }
     }

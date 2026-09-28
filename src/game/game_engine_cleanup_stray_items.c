@@ -27,7 +27,7 @@
 #include "items.h"
 #include "game.h"
 
-extern data_array *object_headers;   // 0x008603b0
+extern data_array *object_data;   // 0x008603b0
 extern int16_t network_game_mode;    // 0x00719720
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_variant game_engine_variant; // 0x006f1c88 (game_engine_index aliased 0x006f1cb8)
@@ -57,9 +57,9 @@ void game_engine_cleanup_stray_items(void)
             int16_t index16 = (int16_t)(uint32_t)iter.handle;
 
             if (iter.handle != (datum_index)0xffffffff && index16 >= 0 &&
-                index16 < object_headers->maximum_count) {
+                index16 < object_data->maximum_count) {
                 object_header *hdr = (object_header *)
-                    ((uint8_t *)object_headers->data + (int32_t)object_headers->size * index16);
+                    ((uint8_t *)object_data->data + (int32_t)object_data->size * index16);
                 int16_t salt = (int16_t)((uint32_t)iter.handle >> 16);
 
                 if (hdr->identifier != 0 &&

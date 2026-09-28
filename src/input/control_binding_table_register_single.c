@@ -36,7 +36,7 @@
 extern uint32_t control_binding_device_type; // 0x006f1cb8, UNSURE: 1..4, device type selector
 
 extern uint8_t g_control_binding_region_ec[0x3c0]; // base 0x008603ec, UNSURE: same region as control_binding_table_query.c
-extern int32_t g_control_binding_count[6 * 2 * (0x50 / 4)]; // base 0x008603e0, stride 0x50 bytes per (selector, row) cell
+extern int32_t g_control_binding_region_e0[6 * 2 * (0x50 / 4)]; // base 0x008603e0, stride 0x50 bytes per (selector, row) cell
 extern int32_t g_control_binding_id[];   // base 0x008603f0, stride 8 bytes, UNSURE size
 extern int16_t g_control_binding_value[]; // base 0x008603f6, stride 8 bytes, UNSURE size
 
@@ -78,7 +78,7 @@ void control_binding_table_register_single(int32_t target, int32_t selector, int
 
         if (selector < 0 || selector > 1) selector = 0;
         idx = selector + row * 2;
-        count_cell = (int32_t *)((uint8_t *)g_control_binding_count + idx * 0x50);
+        count_cell = (int32_t *)((uint8_t *)g_control_binding_region_e0 + idx * 0x50);
         slot = *count_cell + idx * 10;
         *count_cell = *count_cell + 1;
         *(int32_t *)((uint8_t *)g_control_binding_id + slot * 8) = raw_id;

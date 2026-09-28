@@ -39,17 +39,17 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *light_data; // 0x00860b14
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern cluster_reference_group light_cluster_group; // 0x00860b20
+extern cluster_reference_group light_cluster_first; // 0x00860b20
 extern int16_t light_transient_count_or_queue; // 0x00860b10
 extern int32_t light_frame_counter; // 0x008607c4
 extern uint8_t light_render_unknown_7c0; // 0x008607c0
 extern datum_index light_active_list[0x80]; // 0x008607cc
 extern int16_t light_active_list_count; // 0x008607c8
-extern int32_t g_007c1480; // 0x007c1480, rasterizer light queue count
-extern rasterizer_light rasterizer_light_queue[0x80]; // 0x007c1484
-extern int16_t g_007d0390; // 0x007d0390, visible cluster count
-extern uint8_t visible_clusters_base[]; // 0x007c3390, 0x1a0-byte records, cluster index at +0
-extern float *default_effect_color_pointer; // 0x00686b04
+extern int32_t rasterizer_light_count; // 0x007c1480, rasterizer light queue count
+extern rasterizer_light rasterizer_lights[0x80]; // 0x007c1484
+extern int16_t visible_cluster_count; // 0x007d0390, visible cluster count
+extern uint8_t visible_clusters[]; // 0x007c3390, 0x1a0-byte records, cluster index at +0
+extern float *global_white_color; // 0x00686b04
 extern uint8_t render_window_index; // 0x007c310a
 extern int16_t current_local_player_index; // 0x007c3108
 extern int16_t light_transient_count; // 0x00860b0c
@@ -128,12 +128,12 @@ void object_lights_update_all(void)
         if (*(int32_t *)(light + 0x58) != -1) {
             float age = (float)(tick - *(int32_t *)(light + 0x58));
             if (!(age <= *(float *)(tag_data(*(datum_index *)(light + 4)) + 0xf4))) {
-                cluster_reference_remove_all(handle, (datum_index *)(light + 0x10), &light_cluster_group);
+                cluster_reference_remove_all(handle, (datum_index *)(light + 0x10), &light_cluster_first);
                 datum_delete(light_data, handle);
             }
         } else if (object_try_and_get(*(datum_index *)(light + 0x2c), 0xffffffff) != 0) {
             if ((light[2] & 2) != 0) {
-                cluster_reference_remove_all(handle, (datum_index *)(light + 0x10), &light_cluster_group);
+                cluster_reference_remove_all(handle, (datum_index *)(light + 0x10), &light_cluster_first);
                 light[2] &= ~4;
             }
             object_light_recompute_transform(handle);
@@ -147,10 +147,10 @@ void object_lights_update_all(void)
         (void *)light_cluster_iterate_begin, (void *)light_cluster_iterate_next, (void *)light_get_render_bounds,
         (void *)light_not_marked_this_frame, (void *)light_mark_this_frame);
     light_render_unknown_7c0 = 0;
-    g_007c1480 = 0;
+    rasterizer_light_count = 0;
     rasterizer_light_disable_all();
-    for (i = 0; i < g_007d0390; i++) {
-        structure_cluster_add_lens_flares(*(int16_t *)(visible_clusters_base + i * 0x1a0));
+    for (i = 0; i < visible_cluster_count; i++) {
+        structure_cluster_add_lens_flares(*(int16_t *)(visible_clusters + i * 0x1a0));
     }
 
     // 3 and 4. each visible light
@@ -182,7 +182,7 @@ void object_lights_update_all(void)
             void *tint;
 
             t = function_index == -1 ? 1.0f : *(float *)(object_data_get(owner_handle) + 0x134 + function_index * 4);
-            tint = color_index == -1 ? (void *)default_effect_color_pointer : (void *)(owner + 0x1b8 + color_index * 12);
+            tint = color_index == -1 ? (void *)global_white_color : (void *)(owner + 0x1b8 + color_index * 12);
             color_interpolate_argb_with_tint(*(uint32_t *)(tag + 0x34), tag + 0x48, color, tint, tag + 0x38, t);
         } else {
             float phase = (float)(tick - *(int32_t *)(light + 0x58)) / *(float *)(tag + 0xf4);
@@ -236,10 +236,10 @@ void object_lights_update_all(void)
                         light[2] |= 8;
                     }
                 }
-                if (g_007c1480 < 0x80) {
-                    slot = g_007c1480;
-                    rasterizer_light_queue[slot] = record;
-                    g_007c1480 = slot + 1;
+                if (rasterizer_light_count < 0x80) {
+                    slot = rasterizer_light_count;
+                    rasterizer_lights[slot] = record;
+                    rasterizer_light_count = slot + 1;
                     rasterizer_light_set(&record);
                 }
                 *(int32_t *)(light + 8) = slot;

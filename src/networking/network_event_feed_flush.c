@@ -8,7 +8,7 @@
 // bucket walk here matches hash_table_get's own bucket-chain shape exactly, just inlined).
 // register convention: none beyond the one recognized stack parameter (the queue pointer).
 // UNSURE: the manual hash-table walk assumes PTR_DAT_00687558 is the same wrapper as
-// remote_player_index_remap_table (hash_table embedded at +0xc), matching this batch's other
+// machine_table (hash_table embedded at +0xc), matching this batch's other
 // hash_table_get call sites against that global; not independently re-derived here.
 
 #include "tags.h"
@@ -20,7 +20,7 @@
 #include "networking.h"
 
 extern data_array *player_data; // 0x0087a480
-extern void *remote_player_index_remap_table; // 0x00687558
+extern void *machine_table; // 0x00687558
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -92,7 +92,7 @@ void network_event_feed_flush(int32_t *queue)
 
     remaining = 0;
     if (0 < survivor_count) {
-        table = (hash_table *)((uint8_t *)remote_player_index_remap_table + 0x0c);
+        table = (hash_table *)((uint8_t *)machine_table + 0x0c);
         do {
             raw_key = *(int32_t *)survivors_key[remaining];
             hash = 0;

@@ -28,7 +28,7 @@ extern uint8_t message_delta_decode_compound_field(void *decode_context, void *d
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
 extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
-extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Decodes an incoming broadcast text-message packet and prints its text to the console, unless
@@ -42,7 +42,7 @@ void network_client_handle_server_text_message(void *message) // blam-cc: EDX ->
         if (message_delta_decode_compound_field(message, decode_buf) != 0) {
             int32_t text_len = strlen((char *)decode_buf);
             if (text_len != 0) {
-                chimera__console_out((ColorARGB *)console_color_006851fc, network_log_path_format, decode_buf, text_len);
+                chimera__console_out((ColorARGB *)global_white_argb, network_log_path_format, decode_buf, text_len);
             }
         }
     } else {

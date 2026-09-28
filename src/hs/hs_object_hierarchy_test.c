@@ -19,13 +19,13 @@
 
 extern uint32_t player_index_from_unit_index(datum_index object_index); // game module, 0x474db0; UNSURE semantics
 
-extern data_array *object_headers; // 0x008603b0, stride 0x0c, object data pointer at +0x08
+extern data_array *object_data; // 0x008603b0, stride 0x0c, object data pointer at +0x08
 
 // hs_object_record: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
 
 static hs_object_record *hs_object_record_get(datum_index object_index)
 {
-    return *(hs_object_record **)((uint8_t *)object_headers->data +
+    return *(hs_object_record **)((uint8_t *)object_data->data +
         (object_index & 0xffff) * 0x0c + 8);
 }
 

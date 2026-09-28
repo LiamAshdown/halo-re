@@ -18,8 +18,8 @@
 #include "memory.h"
 #include <string.h>
 
-extern int32_t network_default_profile_ready; // 0x00714dd4, -1 == not yet built
-extern uint32_t network_default_profile_template[0x7ff]; // 0x00712dd8
+extern int32_t saved_player_profile_slots_handle; // 0x00714dd4, -1 == not yet built
+extern uint32_t profile_globals_block[0x7ff]; // 0x00712dd8
 
 extern void player_profile_set_default_server_options(void *dest); // foreign, builds a default profile in place, UNSURE shape
 extern void network_game_start_new_server_with_name_and_password(uint32_t param_1,
@@ -31,10 +31,10 @@ void network_game_start_new_server_from_profile(uint32_t param_1)
 {
     uint32_t profile[0x7ff];
 
-    if (network_default_profile_ready == -1) {
+    if (saved_player_profile_slots_handle == -1) {
         player_profile_set_default_server_options(profile);
     } else {
-        memcpy(profile, network_default_profile_template, sizeof(profile));
+        memcpy(profile, profile_globals_block, sizeof(profile));
     }
     network_game_start_new_server_with_name_and_password(param_1,
         (uint16_t *)((uint8_t *)profile + 867 * 4),

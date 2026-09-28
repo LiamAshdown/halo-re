@@ -23,7 +23,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern Globals *global_globals;    // 0x00746fa0
 
 extern double cos(double x); // x87 FCOS
@@ -41,7 +41,7 @@ extern void player_set_pending_interaction_action(int16_t priority_type, int16_t
 // driver" (9) or "enter as passenger" (8) accordingly.
 void player_check_vehicle_interaction(uint32_t player_index, uint32_t candidate_object)
 {
-    object *vehicle = (object *)((object_header *)object_headers->data)[candidate_object & 0xffff].data;
+    object *vehicle = (object *)((object_header *)object_data->data)[candidate_object & 0xffff].data;
 
     if ((*((uint8_t *)&vehicle->vitality_flags) & 4) == 0) {
         GlobalsPlayerControl *player_control = (GlobalsPlayerControl *)global_globals->player_control.pointer;
@@ -58,7 +58,7 @@ void player_check_vehicle_interaction(uint32_t player_index, uint32_t candidate_
             uint32_t unit_index = (uint32_t)p->unit;
 
             if (unit_current_weapon_type_is_2_or_3(unit_index) == 0) {
-                object *unit_obj = (object *)((object_header *)object_headers->data)[unit_index & 0xffff].data;
+                object *unit_obj = (object *)((object_header *)object_data->data)[unit_index & 0xffff].data;
                 float unit_speed_sq = unit_obj->velocity.k * unit_obj->velocity.k +
                     unit_obj->velocity.j * unit_obj->velocity.j + unit_obj->velocity.i * unit_obj->velocity.i;
                 float vehicle_spin_sq = vehicle->angular_velocity.k * vehicle->angular_velocity.k +

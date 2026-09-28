@@ -22,7 +22,7 @@
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see network_banlist_save.c
 
 extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX
-extern void *console_color_00686af8; // 0x00686af8, a ColorARGB * the original loads into EAX
+extern void *actor_mode_default_look_weights; // 0x00686af8, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Prints "[Num Bans Name]" followed by rows of up to three "[index ban_count name]" entries
@@ -48,7 +48,7 @@ void network_banlist_print(void)
                 in_line = in_line + 1;
                 i = i + 1;
             } while (in_line < 3);
-            chimera__console_out((ColorARGB *)console_color_00686af8, line);
+            chimera__console_out((ColorARGB *)actor_mode_default_look_weights, line);
         } while (i < ban_list.count);
     }
 }

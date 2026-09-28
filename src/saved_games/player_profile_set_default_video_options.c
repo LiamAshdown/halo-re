@@ -27,13 +27,13 @@
 #include "saved_games.h"
 
 extern int32_t rasterizer_gamma_exponent; // 0x0071d1e0, only its low byte is read here (mov al,ds:0x71d1e0)
-extern uint32_t no_simd_matrix_multiply_flag; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
-extern uint32_t unknown_007c118c; // rasterizer capability dword
-extern uint32_t unknown_00722bac; // machine class threshold (> 1000)
-extern uint32_t unknown_00722ba8; // machine class threshold (> 0x80)
-extern uint32_t unknown_00722bb0; // machine class threshold (> 0x2000000)
-extern uint32_t unknown_00722b6c; // UNSURE
-extern uint8_t unknown_007196f0; // UNSURE: "no display query" flag
+extern uint32_t safe_mode; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
+extern uint32_t rasterizer_device_version; // rasterizer capability dword
+extern uint32_t cpu_speed; // machine class threshold (> 1000)
+extern uint32_t physical_memory; // machine class threshold (> 0x80)
+extern uint32_t video_memory; // machine class threshold (> 0x2000000)
+extern uint32_t config_disable_specular; // UNSURE
+extern uint8_t width640; // UNSURE: "no display query" flag
 extern uint8_t unknown_006894ba; // UNSURE
 
 extern uint8_t rasterizer_decal_zbias_active(void); // 0x5195d0, not in this module
@@ -63,12 +63,12 @@ uint8_t player_profile_set_default_video_options(saved_player_profile *profile, 
     }
     profile->gamma = (int8_t)gamma;
 
-    if (no_simd_matrix_multiply_flag != 0 || unknown_007c118c < 0xffff0101 ||
-        unknown_00722bac < 0x3e9 || unknown_00722ba8 < 0x81 || unknown_00722bb0 < 0x2000001) {
+    if (safe_mode != 0 || rasterizer_device_version < 0xffff0101 ||
+        cpu_speed < 0x3e9 || physical_memory < 0x81 || video_memory < 0x2000001) {
         profile->unknown_a70 = 0;
         profile->unknown_a71 = 0;
         profile->unknown_a72 = 0;
-        profile->unknown_a73 = no_simd_matrix_multiply_flag == 0;
+        profile->unknown_a73 = safe_mode == 0;
         profile->unknown_a74 = 1;
         profile->screen_width = 0x280;
         profile->screen_height = 0x1e0;
@@ -77,14 +77,14 @@ uint8_t player_profile_set_default_video_options(saved_player_profile *profile, 
         return 1;
     }
 
-    profile->unknown_a70 = unknown_00722b6c == 0;
+    profile->unknown_a70 = config_disable_specular == 0;
     profile->unknown_a71 = 1;
     profile->unknown_a72 = rasterizer_decal_zbias_active() != 0;
     profile->unknown_a74 = 2;
     profile->unknown_a73 = 2;
     profile->unknown_a6f = 2;
 
-    if (unknown_007196f0 != 0) {
+    if (width640 != 0) {
         profile->screen_width = 0x280;
         profile->screen_height = 0x1e0;
         profile->refresh_rate = 0x3c;

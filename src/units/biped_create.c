@@ -30,7 +30,7 @@ static uint8_t *object_definition(uint8_t *object)
     return (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
 }
 
-extern int16_t map_difficulty_or_kind; // 0x00719720
+extern int16_t network_game_mode; // 0x00719720
 extern uint32_t k_default_resting_plane[4]; // 0x0069c53c
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
 extern void unit_find_nearest_valid_surface_plane(uint32_t unit_index); // 0x560630, ECX unit
@@ -58,7 +58,7 @@ uint8_t biped_create(datum_index object_index)
     unit_update_up_vector(definition, object);
     object[0x4d3] = 0;
     *(int32_t *)(object + 0x4d4) = -1;
-    if (map_difficulty_or_kind == 1 || map_difficulty_or_kind == 2) {
+    if (network_game_mode == 1 || network_game_mode == 2) {
         object[0x526] = 0;
         object[0x527] = 0;
         object[0x528] = 0;

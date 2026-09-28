@@ -15,7 +15,7 @@
 #include "hs.h"
 #include "game.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
@@ -31,7 +31,7 @@ void player_set_action_result(int16_t function_index, uint32_t thread_index, cha
         (int16_t *)definition->parameters, first);
 
     if (args != 0) {
-        object *target = (object *)((object_header *)object_headers->data)[args[0] & 0xffff].data;
+        object *target = (object *)((object_header *)object_data->data)[args[0] & 0xffff].data;
         *((uint8_t *)&target->vitality_flags) |= 0x20;
         hs_thread_return(0, thread_index);
     }

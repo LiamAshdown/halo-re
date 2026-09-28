@@ -23,7 +23,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
     real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); // 0x4f6fe0
@@ -51,7 +51,7 @@ void player_update_nearby_interactions_primary(uint32_t player_index)
     }
 
     {
-        object *unit = (object *)((object_header *)object_headers->data)[unit_index & 0xffff].data;
+        object *unit = (object *)((object_header *)object_data->data)[unit_index & 0xffff].data;
 
         if (unit->parent_object == (datum_index)0xffffffff) {
             datum_index candidates[16];
@@ -60,7 +60,7 @@ void player_update_nearby_interactions_primary(uint32_t player_index)
             int16_t i;
 
             for (i = 0; i < count; i++) {
-                object *candidate = (object *)((object_header *)object_headers->data)[candidates[i] & 0xffff].data;
+                object *candidate = (object *)((object_header *)object_data->data)[candidates[i] & 0xffff].data;
                 switch (candidate->type) {
                 case 1:
                     player_check_vehicle_interaction(player_index, candidates[i]);

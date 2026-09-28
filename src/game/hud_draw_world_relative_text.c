@@ -51,17 +51,17 @@ extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734, two separate int16 
 extern int16_t hud_text_draw_column;         // 0x006e4736  binary, never one dword
 extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730, always zeroed here
 extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c, the resolved font_terminal tag id
-extern float hud_text_draw_color_alpha;       // 0x006e4738, text.h text_color.alpha, copied from params->alpha
+extern float hud_text_draw_color_a;       // 0x006e4738, text.h text_color.alpha, copied from params->alpha
 extern float hud_text_draw_color_r;           // 0x006e473c
 extern float hud_text_draw_color_g;           // 0x006e4740
 extern float hud_text_draw_color_b;           // 0x006e4744
 extern int16_t hud_text_draw_background_mode; // 0x006e4748, 0 = none, 7 = boxed (UNSURE)
-extern uint32_t hud_text_draw_box_field_474a; // 0x006e474a, UNSURE: background box geometry
+extern uint32_t text_tab_stops; // 0x006e474a, UNSURE: background box geometry
 extern uint32_t hud_text_draw_box_field_474e; // 0x006e474e, UNSURE: background box geometry
-extern uint32_t hud_text_draw_box_field_4752; // 0x006e4752, UNSURE: background box geometry
+extern uint32_t hud_text_draw_tabstop_c; // 0x006e4752, UNSURE: background box geometry
 extern int16_t hud_text_draw_box_field_4756;  // 0x006e4756, UNSURE: background box geometry
 
-extern uint32_t screen_safe_area_origin; // 0x007c3140, high16 subtracted from both anchors
+extern uint32_t render_viewport_top; // 0x007c3140, high16 subtracted from both anchors
 extern uint32_t screen_safe_area_right;  // 0x007c3148, high16 is the rect's `left`
 extern uint32_t screen_safe_area_bottom; // 0x007c314c, high16 is the rect's `right`
 
@@ -100,22 +100,22 @@ int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row,
         // The four stores the disassembly makes, as the int16 pairs it actually writes:
         // 0x006e474a = (0x19, 0x5a), 0x006e474e = (0x118, 0x159), 0x006e4752 = (0x19a, 0x1e5),
         // 0x006e4756 = 0x230, with background_mode = 7 in between.
-        hud_text_draw_box_field_474a = 0x005a0019u;
+        text_tab_stops = 0x005a0019u;
         hud_text_draw_box_field_474e = 0x01590118u;
         hud_text_draw_background_mode = 7;
-        hud_text_draw_box_field_4752 = 0x01e5019au;
+        hud_text_draw_tabstop_c = 0x01e5019au;
         hud_text_draw_box_field_4756 = 0x230;
     } else {
         hud_text_draw_background_mode = 0;
     }
 
-    safe_left = (int16_t)(screen_safe_area_origin >> 16);
+    safe_left = (int16_t)(render_viewport_top >> 16);
     bounds.left = (int16_t)((screen_safe_area_right >> 16) - (uint16_t)safe_left);
     bounds.right = (int16_t)((screen_safe_area_bottom >> 16) - (uint16_t)safe_left);
     bounds.top = (int16_t)(row * 0x0f + 0x3b);
     bounds.bottom = (int16_t)(bounds.top + 0x11);
 
-    result = -(int32_t)screen_safe_area_origin;
+    result = -(int32_t)render_viewport_top;
     if (font_terminal_id != -1) {
         if (highlighted != 0) {
             r = r + 0.4f;
@@ -132,7 +132,7 @@ int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row,
         hud_text_draw_column = 0;
         hud_text_draw_unknown_4730 = 0;
         hud_text_draw_font_tag_id = font_terminal_id;
-        hud_text_draw_color_alpha = params->alpha;
+        hud_text_draw_color_a = params->alpha;
         // blam-cc: EAX = 0, ECX = &bounds
         chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
     }

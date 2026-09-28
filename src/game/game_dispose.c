@@ -22,34 +22,34 @@
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t player_profile_cache_initialized;     // 0x006f1d38
 extern player_profile player_profile_cache[16];         // 0x006b0b88 (16 entries, 0xc0 dwords)
-extern void *ctf_globals_live_or_weather_pool;        // 0x0087abcc, TYPES-GAP (weather particles data_new pool)
-extern uint32_t effect_pool;         // 0x0087abdc, TYPES-GAP
-extern uint32_t effect_location_pool;// 0x0087abe0, TYPES-GAP
-extern uint32_t particle_pool;       // 0x0087abd0, TYPES-GAP
-extern data_array *unknown_0087abe8;    // TYPES-GAP
-extern data_array *unknown_0087abec;    // TYPES-GAP
+extern void *weather_particle_data;        // 0x0087abcc, TYPES-GAP (weather particles data_new pool)
+extern uint32_t effect_data;         // 0x0087abdc, TYPES-GAP
+extern uint32_t effect_location_data;// 0x0087abe0, TYPES-GAP
+extern uint32_t particle_data;       // 0x0087abd0, TYPES-GAP
+extern data_array *contrail_point_data;    // TYPES-GAP
+extern data_array *contrail_data;    // TYPES-GAP
 extern data_array *player_data;      // 0x0087a480
 extern data_array *team_data;        // 0x0087a47c
 extern player_globals *local_player_globals; // 0x0087a478
-extern data_array *unknown_0087abe4;    // TYPES-GAP
+extern data_array *decal_data;    // TYPES-GAP
 
-extern uint8_t *widget_close_all_state; // 0x006926c4 area, TYPES-GAP (widget module)
-extern uint32_t unknown_00718f94_block[13]; // TYPES-GAP, 13 dwords zeroed together
-extern data_array *network_predicted_globals; // 0x007461a0, TYPES-GAP
-extern uint32_t network_something_00746140; // 0x00746140, TYPES-GAP
-extern uint32_t unknown_0071d174; // TYPES-GAP
-extern void **unknown_0071d1bc;   // TYPES-GAP, a vtable-dispatched object (dispose slot +8)
-extern uint32_t tag_cache_render_states; // 0x007c30ec, TYPES-GAP
-extern uint8_t unknown_006b2f18;  // TYPES-GAP
-extern uint32_t *unknown_006b2f00; // TYPES-GAP, GlobalAlloc-ed, 0xe dwords, byte flag at +9
-extern uint32_t unknown_006b2efc; // TYPES-GAP
-extern void *saved_games_arena;   // 0x006e2de4, TYPES-GAP
-extern uint32_t unknown_00712cc0_block[0x43];   // TYPES-GAP
-extern uint32_t unknown_00710328_block[0x97c];  // TYPES-GAP
-extern uint32_t unknown_00712dd8_block[0x1829]; // TYPES-GAP
-extern uint32_t unknown_006e2de8; // TYPES-GAP
-extern void *unknown_006e2df8_handle; // TYPES-GAP (Win32 handle)
-extern uint32_t unknown_006e2df4; // TYPES-GAP
+extern uint8_t *widget_memory_pool; // 0x006926c4 area, TYPES-GAP (widget module)
+extern uint32_t ui_root_widget[13]; // TYPES-GAP, 13 dwords zeroed together
+extern data_array *game_looping_sound_data; // 0x007461a0, TYPES-GAP
+extern uint32_t sound_class_gains; // 0x00746140, TYPES-GAP
+extern uint32_t rasterizer_device; // TYPES-GAP
+extern void **rasterizer_decal_vertex_cache;   // TYPES-GAP, a vtable-dispatched object (dispose slot +8)
+extern uint32_t object_render_state_cache; // 0x007c30ec, TYPES-GAP
+extern uint8_t console_win32_attached;  // TYPES-GAP
+extern uint32_t *terminal_messages; // TYPES-GAP, GlobalAlloc-ed, 0xe dwords, byte flag at +9
+extern uint32_t terminal_initialized; // TYPES-GAP
+extern void *game_state_write_buffer;   // 0x006e2de4, TYPES-GAP
+extern uint32_t input_event_queue_active[0x43];   // TYPES-GAP
+extern uint32_t input_globals[0x97c];  // TYPES-GAP
+extern uint32_t profile_globals_block[0x1829]; // TYPES-GAP
+extern uint32_t game_state_write_buffer_allocated; // TYPES-GAP
+extern void *game_state_persistent_storage; // TYPES-GAP (Win32 handle)
+extern uint32_t game_state_persistent_storage_created; // TYPES-GAP
 
 extern void hs_dispose_dynamic_globals(void); // 0x48a130, hs module
 extern void widget_close_all(void);           // 0x498650, widget module
@@ -65,17 +65,17 @@ void game_dispose(void)
 
     hs_dispose_dynamic_globals();
     widget_close_all();
-    if (*(void **)(widget_close_all_state + 4) != (void *)0) {
-        GlobalFree(*(void **)(widget_close_all_state + 4));
+    if (*(void **)(widget_memory_pool + 4) != (void *)0) {
+        GlobalFree(*(void **)(widget_memory_pool + 4));
     }
-    *(uint32_t *)(widget_close_all_state + 4) = 0;
-    *(uint32_t *)(widget_close_all_state + 8) = 0;
+    *(uint32_t *)(widget_memory_pool + 4) = 0;
+    *(uint32_t *)(widget_memory_pool + 8) = 0;
 
     for (i = 0; i < 13; i = i + 1) {
-        unknown_00718f94_block[i] = 0;
+        ui_root_widget[i] = 0;
     }
-    network_predicted_globals = (data_array *)0;
-    network_something_00746140 = 0;
+    game_looping_sound_data = (data_array *)0;
+    sound_class_gains = 0;
 
     if (current_game_engine != (game_engine_definition *)0) {
         if (current_game_engine->dispose != (void *)0) {
@@ -92,59 +92,59 @@ void game_dispose(void)
         player_profile_cache_initialized = 0;
     }
 
-    if (ctf_globals_live_or_weather_pool != (void *)0) {
-        cursor = (uint32_t *)ctf_globals_live_or_weather_pool;
+    if (weather_particle_data != (void *)0) {
+        cursor = (uint32_t *)weather_particle_data;
         for (i = 0; i < 14; i = i + 1) {
             cursor[i] = 0;
         }
-        GlobalFree(ctf_globals_live_or_weather_pool);
-        ctf_globals_live_or_weather_pool = (void *)0;
+        GlobalFree(weather_particle_data);
+        weather_particle_data = (void *)0;
     }
-    effect_pool = 0;
-    effect_location_pool = 0;
-    particle_pool = 0;
-    unknown_0087abe8 = (data_array *)0;
-    unknown_0087abec = (data_array *)0;
+    effect_data = 0;
+    effect_location_data = 0;
+    particle_data = 0;
+    contrail_point_data = (data_array *)0;
+    contrail_data = (data_array *)0;
     player_data = (data_array *)0;
     team_data = (data_array *)0;
     local_player_globals = (player_globals *)0;
-    unknown_0087abe4 = (data_array *)0;
+    decal_data = (data_array *)0;
 
-    if (unknown_0071d174 != 0 && unknown_0071d1bc != (void **)0) {
-        ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*unknown_0071d1bc + 8)))(unknown_0071d1bc); // TYPES-GAP vtable call
-        unknown_0071d1bc = (void **)0;
+    if (rasterizer_device != 0 && rasterizer_decal_vertex_cache != (void **)0) {
+        ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*rasterizer_decal_vertex_cache + 8)))(rasterizer_decal_vertex_cache); // TYPES-GAP vtable call
+        rasterizer_decal_vertex_cache = (void **)0;
     }
-    tag_cache_render_states = 0;
+    object_render_state_cache = 0;
     objects_dispose();
 
-    if (unknown_006b2f18 != 0) {
-        unknown_006b2f18 = 0;
+    if (console_win32_attached != 0) {
+        console_win32_attached = 0;
     }
-    if (unknown_006b2f00 != (uint32_t *)0) {
-        if (*((uint8_t *)unknown_006b2f00 + 9 * 4) != 0) { // UNSURE: preserved as-is, see below
-            *((uint8_t *)unknown_006b2f00 + 9 * 4) = 0;
+    if (terminal_messages != (uint32_t *)0) {
+        if (*((uint8_t *)terminal_messages + 9 * 4) != 0) { // UNSURE: preserved as-is, see below
+            *((uint8_t *)terminal_messages + 9 * 4) = 0;
         }
         for (i = 0; i < 14; i = i + 1) {
-            unknown_006b2f00[i] = 0;
+            terminal_messages[i] = 0;
         }
-        GlobalFree(unknown_006b2f00);
+        GlobalFree(terminal_messages);
     }
-    unknown_006b2efc = 0;
+    terminal_initialized = 0;
     saved_game_files_dispose();
 
     for (i = 0; i < 0x43; i = i + 1) {
-        unknown_00712cc0_block[i] = 0;
+        input_event_queue_active[i] = 0;
     }
     for (i = 0; i < 0x97c; i = i + 1) {
-        unknown_00710328_block[i] = 0;
+        input_globals[i] = 0;
     }
     for (i = 0; i < 0x1829; i = i + 1) {
-        unknown_00712dd8_block[i] = 0;
+        profile_globals_block[i] = 0;
     }
-    GlobalFree(saved_games_arena);
-    unknown_006e2de8 = 0;
-    CloseHandle(unknown_006e2df8_handle);
-    unknown_006e2df4 = 0;
+    GlobalFree(game_state_write_buffer);
+    game_state_write_buffer_allocated = 0;
+    CloseHandle(game_state_persistent_storage);
+    game_state_persistent_storage_created = 0;
 
     network_shutdown();
 }

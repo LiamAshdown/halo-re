@@ -32,24 +32,24 @@
 #include "networking.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
-extern void *viewport_globals;                      // 0x0071941c, UNSURE owning module
-extern uint32_t hud_text_draw_scale;                // 0x006e472c, UNSURE identity
-extern uint32_t hud_text_draw_color_tl;             // 0x006e4738
-extern uint32_t hud_text_draw_color_tr;             // 0x006e473c
-extern uint32_t hud_text_draw_color_bl;             // 0x006e4740
-extern uint32_t hud_text_draw_color_br;             // 0x006e4744
+extern void *hud_globals_tag_data;                      // 0x0071941c, UNSURE owning module
+extern uint32_t hud_text_draw_font_tag_id;                // 0x006e472c, UNSURE identity
+extern uint32_t hud_text_draw_color_a;             // 0x006e4738
+extern uint32_t hud_text_draw_color_r;             // 0x006e473c
+extern uint32_t hud_text_draw_color_g;             // 0x006e4740
+extern uint32_t hud_text_draw_color_b;             // 0x006e4744
 extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734, two separate int16 slots in the
 extern int16_t hud_text_draw_column;         // 0x006e4736  binary, never one dword
 extern uint32_t hud_text_draw_unknown_4730;         // 0x006e4730
-extern uint32_t hud_text_draw_font_or_lines;        // 0x006e4748
-extern void *hud_text_draw_tabstop_a;               // 0x006e474a
-extern void *hud_text_draw_tabstop_b;               // 0x006e474e
+extern uint32_t hud_text_draw_background_mode;        // 0x006e4748
+extern void *text_tab_stops;               // 0x006e474a
+extern void *hud_text_draw_box_field_474e;               // 0x006e474e
 extern void *hud_text_draw_tabstop_c;               // 0x006e4752
 extern Globals *global_globals;                     // 0x00746fa0
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern game_variant game_engine_variant;             // 0x006f1c88 (::teams at +0x34, 0x006f1cbc)
 extern data_array *player_data;                      // 0x0087a480
-extern uint32_t screen_safe_area_origin;             // 0x007c3140
+extern uint32_t render_viewport_top;             // 0x007c3140
 extern uint32_t screen_safe_area_right;              // 0x007c3148, UNSURE: unused in this function
 extern uint32_t screen_safe_area_bottom;             // 0x007c314c
 extern float game_engine_post_game_fade;             // 0x0087aa0c
@@ -101,15 +101,15 @@ void game_engine_post_rasterize_post_game(void)
         return;
     }
 
-    hud_text_draw_scale = *(uint32_t *)((uint8_t *)viewport_globals + 0x54);
+    hud_text_draw_font_tag_id = *(uint32_t *)((uint8_t *)hud_globals_tag_data + 0x54);
     color_tl = 0x3f800000;
     color_tr = 0x3eeaeaeb;
-    hud_text_draw_color_tl = 0x3f800000;
+    hud_text_draw_color_a = 0x3f800000;
     color_bl = 0x3f3ababb;
     color_br = 0x3f800000;
-    hud_text_draw_color_tr = 0x3eeaeaeb;
-    hud_text_draw_color_bl = 0x3f3ababb;
-    hud_text_draw_color_br = 0x3f800000;
+    hud_text_draw_color_r = 0x3eeaeaeb;
+    hud_text_draw_color_g = 0x3f3ababb;
+    hud_text_draw_color_b = 0x3f800000;
     hud_text_draw_color_or_flags = 0xffffu;
     hud_text_draw_column = 0;
     hud_text_draw_unknown_4730 = 0;
@@ -173,18 +173,18 @@ void game_engine_post_rasterize_post_game(void)
             banner_b = 0;
         }
 
-        hud_text_draw_font_or_lines = 6;
-        hud_text_draw_tabstop_a = &team_color[0];
-        hud_text_draw_tabstop_b = &team_color[1];
+        hud_text_draw_background_mode = 6;
+        text_tab_stops = &team_color[0];
+        hud_text_draw_box_field_474e = &team_color[1];
         hud_text_draw_tabstop_c = &team_color[2];
 
         for (i = 0; i < 2; i++) {
             int32_t team = i == 0 ? banner_a : banner_b;
             ((void (*)(int32_t, wchar_t *))current_game_engine->build_team_score_text)(team, score_text);
             string_format_wide_va_bounded(0x100, line, team_name[team], score_text);
-            hud_text_draw_tabstop_a = &tabstop_a;
-            hud_text_draw_font_or_lines = 6;
-            hud_text_draw_tabstop_b = &tabstop_b;
+            text_tab_stops = &tabstop_a;
+            hud_text_draw_background_mode = 6;
+            hud_text_draw_box_field_474e = &tabstop_b;
             hud_text_draw_tabstop_c = &tabstop_c;
             hud_draw_scoreboard_row_text(0, line, 0);
         }
@@ -199,10 +199,10 @@ void game_engine_post_rasterize_post_game(void)
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(score_text);
     string_format_wide_va_bounded(0x100, line, L"\t%s\t%s\t%s\t%s\t%s\t%s",
         col_a, col_b, score_text, col_c, col_d, col_e);
-    hud_text_draw_tabstop_a = &tabstop_a;
+    text_tab_stops = &tabstop_a;
     hud_text_draw_unknown_4730 = hud_text_draw_unknown_4730; // no-op, keeps analyzer quiet
-    hud_text_draw_font_or_lines = 6;
-    hud_text_draw_tabstop_b = &tabstop_b;
+    hud_text_draw_background_mode = 6;
+    hud_text_draw_box_field_474e = &tabstop_b;
     hud_text_draw_tabstop_c = &tabstop_c;
     hud_draw_scoreboard_row_text(0, line, 0);
 
@@ -216,19 +216,19 @@ void game_engine_post_rasterize_post_game(void)
         int32_t place;
 
         if (p->local_player_index == -1) {
-            hud_text_draw_color_tl = color_tl;
-            hud_text_draw_color_tr = color_tr;
-            hud_text_draw_color_bl = color_bl;
-            hud_text_draw_color_br = color_br;
+            hud_text_draw_color_a = color_tl;
+            hud_text_draw_color_r = color_tr;
+            hud_text_draw_color_g = color_bl;
+            hud_text_draw_color_b = color_br;
         } else {
-            hud_text_draw_color_tl = team_color[8];
-            hud_text_draw_color_tr = team_color[9];
-            hud_text_draw_color_bl = team_color[10];
-            hud_text_draw_color_br = team_color[11];
+            hud_text_draw_color_a = team_color[8];
+            hud_text_draw_color_r = team_color[9];
+            hud_text_draw_color_g = team_color[10];
+            hud_text_draw_color_b = team_color[11];
         }
-        hud_text_draw_tabstop_a = &tabstop_a;
-        hud_text_draw_font_or_lines = 6;
-        hud_text_draw_tabstop_b = &tabstop_b;
+        text_tab_stops = &tabstop_a;
+        hud_text_draw_background_mode = 6;
+        hud_text_draw_box_field_474e = &tabstop_b;
         hud_text_draw_tabstop_c = &tabstop_c;
 
         rank_index = visible[i].place & 0x7f;
@@ -244,10 +244,10 @@ void game_engine_post_rasterize_post_game(void)
         string_format_wide_va_bounded(0x100, line, L" \t%s", rank_text);
         hud_draw_scoreboard_row_text(0, line, 0);
 
-        hud_text_draw_color_tl = color_tl;
-        hud_text_draw_color_br = color_br;
-        hud_text_draw_color_tr = color_tr;
-        hud_text_draw_color_bl = color_bl;
+        hud_text_draw_color_a = color_tl;
+        hud_text_draw_color_b = color_br;
+        hud_text_draw_color_r = color_tr;
+        hud_text_draw_color_g = color_bl;
         if (game_engine_variant.teams != 0) {
             int32_t team = p->team;
             team_color[1] = 0x3f4ccccd;
@@ -263,88 +263,88 @@ void game_engine_post_rasterize_post_game(void)
             } else if (1 < team) {
                 team = 1;
             }
-            hud_text_draw_color_tl = team_color[team * 4];
-            hud_text_draw_color_tr = team_color[team * 4 + 1];
-            hud_text_draw_color_bl = team_color[team * 4 + 2];
-            hud_text_draw_color_br = team_color[team * 4 + 3];
+            hud_text_draw_color_a = team_color[team * 4];
+            hud_text_draw_color_r = team_color[team * 4 + 1];
+            hud_text_draw_color_g = team_color[team * 4 + 2];
+            hud_text_draw_color_b = team_color[team * 4 + 3];
         }
         string_format_wide_va_bounded(0x100, line, L" \t \t%s", p->name);
         hud_draw_scoreboard_row_text(0, line, 0);
 
-        hud_text_draw_color_tl = color_tl;
-        hud_text_draw_color_bl = color_bl;
-        hud_text_draw_color_tr = color_tr;
-        hud_text_draw_color_br = color_br;
+        hud_text_draw_color_a = color_tl;
+        hud_text_draw_color_g = color_bl;
+        hud_text_draw_color_r = color_tr;
+        hud_text_draw_color_b = color_br;
         place = game_engine_get_scoreboard_place(player_handle, 1, 0);
         if (place == 0) {
-            hud_text_draw_color_tl = alt_color_tl;
-            hud_text_draw_color_tr = alt_color_tr;
-            hud_text_draw_color_bl = alt_color_bl;
-            hud_text_draw_color_br = alt_color_br;
+            hud_text_draw_color_a = alt_color_tl;
+            hud_text_draw_color_r = alt_color_tr;
+            hud_text_draw_color_g = alt_color_bl;
+            hud_text_draw_color_b = alt_color_br;
         }
         ((void (*)(datum_index, wchar_t *))current_game_engine->unknown_54_build_player_text)(
             player_handle, score_text);
         string_format_wide_va_bounded(0x100, line, L" \t \t \t%s", score_text);
         hud_draw_scoreboard_row_text(0, line, 0);
 
-        hud_text_draw_color_tl = color_tl;
-        hud_text_draw_color_bl = color_bl;
-        hud_text_draw_color_tr = color_tr;
-        hud_text_draw_color_br = color_br;
+        hud_text_draw_color_a = color_tl;
+        hud_text_draw_color_g = color_bl;
+        hud_text_draw_color_r = color_tr;
+        hud_text_draw_color_b = color_br;
         place = game_engine_get_scoreboard_place(player_handle, 2, 0);
         if (place == 0) {
-            hud_text_draw_color_tl = alt_color_tl;
-            hud_text_draw_color_tr = alt_color_tr;
-            hud_text_draw_color_bl = alt_color_bl;
-            hud_text_draw_color_br = alt_color_br;
+            hud_text_draw_color_a = alt_color_tl;
+            hud_text_draw_color_r = alt_color_tr;
+            hud_text_draw_color_g = alt_color_bl;
+            hud_text_draw_color_b = alt_color_br;
         }
         string_format_wide_va_bounded(0x100, line, L" \t \t \t \t%d", (int32_t)p->kills);
         hud_draw_scoreboard_row_text(0, line, 0);
 
-        hud_text_draw_color_tl = color_tl;
-        hud_text_draw_color_tr = color_tr;
-        hud_text_draw_color_bl = color_bl;
-        hud_text_draw_color_br = color_br;
+        hud_text_draw_color_a = color_tl;
+        hud_text_draw_color_r = color_tr;
+        hud_text_draw_color_g = color_bl;
+        hud_text_draw_color_b = color_br;
         place = game_engine_get_scoreboard_place(player_handle, 3, 0);
         if (place == 0) {
-            hud_text_draw_color_tl = alt_color_tl;
-            hud_text_draw_color_tr = alt_color_tr;
-            hud_text_draw_color_bl = alt_color_bl;
-            hud_text_draw_color_br = alt_color_br;
+            hud_text_draw_color_a = alt_color_tl;
+            hud_text_draw_color_r = alt_color_tr;
+            hud_text_draw_color_g = alt_color_bl;
+            hud_text_draw_color_b = alt_color_br;
         }
         string_format_wide_va_bounded(0x100, line, L" \t \t \t \t \t%d", (int32_t)p->assists);
         hud_draw_scoreboard_row_text(0, line, 0);
 
-        hud_text_draw_color_tl = color_tl;
-        hud_text_draw_color_br = color_br;
-        hud_text_draw_color_tr = color_tr;
-        hud_text_draw_color_bl = color_bl;
+        hud_text_draw_color_a = color_tl;
+        hud_text_draw_color_b = color_br;
+        hud_text_draw_color_r = color_tr;
+        hud_text_draw_color_g = color_bl;
         place = game_engine_get_scoreboard_place(player_handle, 4, 0);
         if (place == 0) {
-            hud_text_draw_color_tl = alt_color_tl;
-            hud_text_draw_color_tr = alt_color_tr;
-            hud_text_draw_color_bl = alt_color_bl;
-            hud_text_draw_color_br = alt_color_br;
+            hud_text_draw_color_a = alt_color_tl;
+            hud_text_draw_color_r = alt_color_tr;
+            hud_text_draw_color_g = alt_color_bl;
+            hud_text_draw_color_b = alt_color_br;
         }
         string_format_wide_va_bounded(0x100, line, L" \t \t \t \t \t \t%d", (int32_t)p->deaths);
         hud_draw_scoreboard_row_text(0, line, 0);
 
-        hud_text_draw_tabstop_b = &tabstop_b;
+        hud_text_draw_box_field_474e = &tabstop_b;
         hud_text_draw_tabstop_c = &tabstop_c;
-        hud_text_draw_tabstop_a = &tabstop_a;
+        text_tab_stops = &tabstop_a;
     }
 
     team_color[8] = *(uint32_t *)&game_engine_post_game_fade;
-    hud_text_draw_color_tl = *(uint32_t *)&game_engine_post_game_fade;
-    hud_text_draw_font_or_lines = 0;
-    hud_text_draw_color_tr = color_tr;
-    hud_text_draw_color_bl = color_bl;
-    hud_text_draw_color_br = color_br;
+    hud_text_draw_color_a = *(uint32_t *)&game_engine_post_game_fade;
+    hud_text_draw_background_mode = 0;
+    hud_text_draw_color_r = color_tr;
+    hud_text_draw_color_g = color_bl;
+    hud_text_draw_color_b = color_br;
 
     {
         // Bottom prompt rect: packed from the screen-safe-area globals; not fully resolved, see
         // the file header note. `banner_a` is reused here for the packed rect/flags argument.
-        int16_t origin_low = (int16_t)screen_safe_area_origin;
+        int16_t origin_low = (int16_t)render_viewport_top;
         int16_t bottom_low = (int16_t)screen_safe_area_bottom;
         int16_t rel_y = (int16_t)(-origin_low + 0x19a);
         (void)bottom_low;

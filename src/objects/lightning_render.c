@@ -32,9 +32,9 @@
 
 extern uint8_t *lightning_instances; // 0x006b8d74, UNSURE: raw table, see light_volume_render.c
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern uint32_t widget_random_seed;  // 0x00719cd4
+extern uint32_t effect_random_seed;  // 0x00719cd4
 extern real_vector3d *shared_constant_vector_696704; // 0x00696704, UNSURE: fallback axis
-extern real_vector3d *shared_constant_vector_686b04;  // 0x00686b04, UNSURE: default colour scale
+extern real_vector3d *global_white_color;  // 0x00686b04, UNSURE: default colour scale
 extern float camera_forward_x; // 0x007c3120
 extern float camera_forward_y; // 0x007c3124
 extern float camera_forward_z; // 0x007c3128
@@ -58,13 +58,13 @@ extern uint32_t color_pack_argb_from_real(float *argb); // 0x497900, UNSURE: sig
 extern void rasterizer_transparent_object_append(uint32_t a, int32_t b, int32_t c, int32_t d, uint32_t e); // out of
     // module scope, unexamined; submits the built geometry
 
-// UNSURE: placeholder for the per-call widget_random_seed draw this function makes when
+// UNSURE: placeholder for the per-call effect_random_seed draw this function makes when
 // choosing each shard's texture-coordinate bias (`DAT_00719cd4 = ...; fStack_200ec = ...`);
 // factored out here for readability, not present as a separate function in the original.
 static float glow_random_unit_for_lightning(void)
 {
-    widget_random_seed = widget_random_seed * 0x19660dU + 0x3c6ef35fU;
-    return (float)(widget_random_seed >> 16) * 1.5259022e-05f;
+    effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
+    return (float)(effect_random_seed >> 16) * 1.5259022e-05f;
 }
 
 void lightning_render(uint32_t object_index, datum_index lightning_handle, uint32_t unused,
@@ -199,7 +199,7 @@ void lightning_render(uint32_t object_index, datum_index lightning_handle, uint3
                             float *out = (float *)rasterizer_dynamic_vertex_cache_lock();
                             float t_bias = glow_random_unit_for_lightning();
                             float alpha_scale = 1.0f, color_scale_extra = 1.0f;
-                            real_vector3d *color_scale = shared_constant_vector_686b04;
+                            real_vector3d *color_scale = global_white_color;
                             int32_t i;
                             real_point3d bbmin = {0}, bbmax = {0};
 

@@ -25,7 +25,7 @@ extern int16_t visible_surface_count;   // 0x00850394: every store in the binary
 extern int32_t visible_surface_indices[k_maximum_visible_surfaces]; // 0x00850398, this module
 extern int16_t render_force_flag; // 0x0069c67c, foreign render module; forced to 1 while drawing
 extern int32_t rasterizer_device_version; // 0x007c118c, foreign render module (read, not owned)
-extern void ***rasterizer_device_ptr; // 0x0071d174, foreign render module (read, not owned)
+extern void ***rasterizer_device; // 0x0071d174, foreign render module (read, not owned)
 
 // TYPES-GAP: matches the callback typedefs declared in structure_leaf_faces_for_each.c.
 
@@ -68,7 +68,7 @@ void structure_picked_polygon_draw(void)
         visible_surface_indices, (int16_t)visible_surface_count);
 
     if (rasterizer_device_version < 0xffff0101) {
-        void **device = *rasterizer_device_ptr;
+        void **device = *rasterizer_device;
         (*(void (__stdcall **)(void *, int32_t, int32_t))((uint8_t *)device + 0xe4))(device, 0x89, 0);
     }
 

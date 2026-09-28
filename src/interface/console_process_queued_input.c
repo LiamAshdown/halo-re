@@ -32,9 +32,9 @@ extern int32_t console_caret_blink_time; // 0x006b2f14
 extern int64_t performance_frequency;    // 0x006ac8f8/0x006ac8fc
 
 extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE (per src/interface/widget_close_all.c)
-extern int16_t queued_key_event_read_index;  // 0x006b16fa, int16 (word compares at 0x4a8c0d)
-extern int16_t queued_key_event_write_index; // 0x006b16fc, int16
-extern ui_key_event queued_key_events[];     // 0x006b16fe, UNSURE: ring array, capacity unknown
+extern int16_t key_event_read_index;  // 0x006b16fa, int16 (word compares at 0x4a8c0d)
+extern int16_t key_event_count; // 0x006b16fc, int16
+extern ui_key_event key_events[];     // 0x006b16fe, UNSURE: ring array, capacity unknown
 
 extern void widget_text_edit_process_key(text_edit_state *state, ui_key_event *event); // 0x44c290
 
@@ -61,9 +61,9 @@ uint8_t console_process_queued_input(void)
 
     while (controls_input_capture_flags != 1 && (controls_input_capture_flags & 8) == 0 &&
            (controls_input_capture_flags & 4) != 0 &&
-           queued_key_event_read_index < queued_key_event_write_index) {
-        event = queued_key_events[queued_key_event_read_index];
-        queued_key_event_read_index = queued_key_event_read_index + 1;
+           key_event_read_index < key_event_count) {
+        event = key_events[key_event_read_index];
+        key_event_read_index = key_event_read_index + 1;
         if (console_active->key_event_count < 0x20) {
             console_active->key_events[console_active->key_event_count] = event;
             console_active->key_event_count = console_active->key_event_count + 1;

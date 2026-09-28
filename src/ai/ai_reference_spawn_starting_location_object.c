@@ -24,7 +24,7 @@
 #include "cache.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data;   // 0x00880354
+extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern Scenario *global_scenario;    // 0x00746f8c
 extern tag_instance *tag_instances;  // 0x0087bc14
 
@@ -46,7 +46,7 @@ void ai_reference_spawn_starting_location_object(datum_index unit_index, uint32_
     uint32_t squad_index;
     uint32_t kind;
 
-    if (ai_global_data->actors_valid == 0 || packed_reference == (uint32_t)k_datum_index_none ||
+    if (ai_globals_ptr->actors_valid == 0 || packed_reference == (uint32_t)k_datum_index_none ||
         unit_index == (datum_index)k_datum_index_none) {
         return;
     }

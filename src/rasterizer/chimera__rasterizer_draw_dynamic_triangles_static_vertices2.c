@@ -28,7 +28,7 @@ extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer
 extern int16_t rasterizer_vertex_sizes[k_rasterizer_vertex_type_count]; // 0x0065de00
 extern rasterizer_dynamic_index_slot rasterizer_dynamic_index_slots[k_rasterizer_dynamic_vertex_slots]; // 0x006dd9e0
 extern void *rasterizer_dynamic_index_buffer;                       // 0x006e09e8
-extern int32_t renderer_unknown_722b60;                             // 0x00722b60 nonzero: one vertex stream, fixed function path
+extern int32_t config_safe_mode;                             // 0x00722b60 nonzero: one vertex stream, fixed function path
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
@@ -65,7 +65,7 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primiti
                                                    ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                     rasterizer_vertex_declarations[vertex_buffer->type].usage) & 0x10);
         ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, (void *)vertex_buffer->hardware_buffer, 0, stride);
-        if (renderer_unknown_722b60 == 0 && rasterizer_caps.max_streams > 1) {
+        if (config_safe_mode == 0 && rasterizer_caps.max_streams > 1) {
             ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 1, (void *)second_stream->hardware_buffer, 0,
                                                                    second_stride);
         }

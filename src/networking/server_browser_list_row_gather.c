@@ -36,7 +36,7 @@ extern void server_browser_list_row_populate(network_ui_widget *row, uint8_t fla
                                                const char *server_name, wchar_t *map_name,
                                                const char *gametype_name, uint8_t flag3,
                                                int32_t count_a, int32_t count_b, int32_t ping); // 0x4b67e0, this module
-extern wchar_t DAT_00660c34[]; // see server_browser_open.c UNSURE
+extern wchar_t empty_string[]; // see server_browser_open.c UNSURE
 
 // blam-cc: row widget as param_1 (real parameter); flag byte in AL (in_AL); GameSpy entry
 // pointer in ECX (in_ECX)
@@ -108,7 +108,7 @@ void server_browser_list_row_gather(network_ui_widget *row, uint8_t flag, void *
         row->hidden = 0; // *(byte*)(param_1+0x12)=0
         return;
     }
-    server_browser_list_row_populate(row, 0, 0, 0, DAT_00660c34, 0, 0, 0xffffffff, 0xffffffff, 0xffffffff);
+    server_browser_list_row_populate(row, 0, 0, 0, empty_string, 0, 0, 0xffffffff, 0xffffffff, 0xffffffff);
     row->hidden = 1; // *(byte*)(param_1+0x12)=1
 }
 

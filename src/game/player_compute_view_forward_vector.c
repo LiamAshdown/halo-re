@@ -37,7 +37,7 @@ extern data_array *player_data;      // 0x0087a480
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern real_vector3d *reference_axis_006696728; // 0x00696728 -> (0.0, -1.0, 0.0); UNSURE identity
-extern real_vector3d *reference_axis_0069672c;  // 0x0069672c -> (0.0, 0.0, -1.0); UNSURE identity
+extern real_vector3d *global_down3d_pointer;  // 0x0069672c -> (0.0, 0.0, -1.0); UNSURE identity
 
 extern double fcos(double radians); // a single x87 FCOS instruction
 extern double fsin(double radians); // a single x87 FSIN instruction
@@ -99,7 +99,7 @@ void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pit
     vector3d_cross_product(&cross_result, reference_axis_006696728, &parent_obj->up);
     length = vector3d_normalize_with_length(&cross_result);
     if (length == 0.0f) {
-        vector3d_cross_product(&cross_result, reference_axis_0069672c, &parent_obj->up);
+        vector3d_cross_product(&cross_result, global_down3d_pointer, &parent_obj->up);
         vector3d_normalize_with_length(&cross_result);
     }
     matrix4x3_from_forward_up(&parent_obj->up, &cross_result, &basis);

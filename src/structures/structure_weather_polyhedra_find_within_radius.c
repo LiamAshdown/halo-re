@@ -12,7 +12,7 @@
 //   in that order; `fcompp; test ah,0x41; jne skip`, so a NaN distance never matches. At most 8
 //   indices are stored (`cmp dx,8; jge`), but the loop runs to the end and re-reads the count
 //   every iteration. Returns the stored count in AX. The camera position is 0x007c3114
-//   (render_camera_position, the name src/render/render_camera_facing_frame_build.c uses).
+//   (render_camera_global, the name src/render/render_camera_facing_frame_build.c uses).
 // register convention: EDI = int16_t out[8]; the radius is the one stack argument.
 //   // blam-cc: EDI -> out, stack -> radius; returns int16 in AX
 
@@ -22,7 +22,7 @@
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
-extern float render_camera_position[3];            // 0x007c3114
+extern float render_camera_global[3];            // 0x007c3114
 
 // Collects (up to 8) indices of the BSP weather polyhedra whose bounding spheres come within
 // `radius` of the camera, and returns how many it stored.
@@ -35,9 +35,9 @@ int16_t structure_weather_polyhedra_find_within_radius(int16_t *out, float radiu
     for (index = 0; index < (int32_t)bsp->weather_polyhedra.count; index++) {
         ScenarioStructureBSPWeatherPolyhedron *polyhedron =
             (ScenarioStructureBSPWeatherPolyhedron *)(uintptr_t)bsp->weather_polyhedra.pointer + index;
-        float dx = polyhedron->bounding_sphere_center.x - render_camera_position[0];
-        float dy = polyhedron->bounding_sphere_center.y - render_camera_position[1];
-        float dz = polyhedron->bounding_sphere_center.z - render_camera_position[2];
+        float dx = polyhedron->bounding_sphere_center.x - render_camera_global[0];
+        float dy = polyhedron->bounding_sphere_center.y - render_camera_global[1];
+        float dz = polyhedron->bounding_sphere_center.z - render_camera_global[2];
         float reach = radius + polyhedron->bounding_sphere_radius;
 
         if (dx * dx + dz * dz + dy * dy < reach * reach && found < 8) {

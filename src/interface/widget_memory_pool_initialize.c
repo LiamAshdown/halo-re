@@ -24,7 +24,7 @@ extern uint8_t widget_memory_pool_valid; // 0x00718fc2
 
 extern widget_instance *ui_root_widget[1];         // 0x00718f94
 extern widget_history_node *ui_widget_history[3];  // 0x00718f98
-extern int16_t ui_unknown_718fa4;                  // 0x00718fa4
+extern int16_t network_join_error_code;                  // 0x00718fa4
 extern float ui_unknown_718fa8;                    // 0x00718fa8
 extern int16_t quit_confirm_error_string_index;      // 0x00718fac, first word of the pending message record (types/interface.h)
 extern ui_pending_error ui_pending_error_alternate; // 0x00718fb2
@@ -74,7 +74,7 @@ void widget_memory_pool_initialize(void)
     for (clear_cursor = (uint8_t *)&ui_root_widget[0], i = 0; i < 0x34; i++) {
         clear_cursor[i] = 0;
     }
-    ui_unknown_718fa4 = -1;
+    network_join_error_code = -1;
     ui_pending_error_alternate.error_string_index = -1;
     quit_confirm_error_string_index = -1;
     ui_pending_errors[0].error_string_index = -1;

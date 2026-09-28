@@ -19,7 +19,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 
 // blam-cc: EDI -> object_index
 // Returns the attention record for object_index, creating (and zero-initialising) one at the
@@ -32,7 +32,7 @@ ai_object_attention_record *ai_object_attention_find_or_create(datum_index objec
     int16_t index;
     int32_t i;
 
-    table = (ai_object_attention_record *)ai_global_data->unknown_3b8;
+    table = (ai_object_attention_record *)ai_globals_ptr->unknown_3b8;
     record = 0;
 
     if (object_index == (datum_index)k_datum_index_none) {
@@ -40,27 +40,27 @@ ai_object_attention_record *ai_object_attention_find_or_create(datum_index objec
     }
 
     index = 0;
-    if (0 < ai_global_data->unknown_3b6) {
+    if (0 < ai_globals_ptr->unknown_3b6) {
         index = 0;
         do {
             if (table[index].object_index == object_index) {
                 break;
             }
             index = index + 1;
-        } while (index < ai_global_data->unknown_3b6);
+        } while (index < ai_globals_ptr->unknown_3b6);
         if (0x1f < index) {
             return 0;
         }
     }
 
     record = &table[index];
-    if (ai_global_data->unknown_3b6 <= index) {
+    if (ai_globals_ptr->unknown_3b6 <= index) {
         for (i = 0; i < 10; i = i + 1) {
             ((int32_t *)record)[i] = 0;
         }
         record->object_index = object_index;
         record->weight = 8.0f; // 0x41000000
-        ai_global_data->unknown_3b6 = ai_global_data->unknown_3b6 + 1;
+        ai_globals_ptr->unknown_3b6 = ai_globals_ptr->unknown_3b6 + 1;
     }
     return record;
 }

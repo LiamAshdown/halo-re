@@ -5,11 +5,11 @@
 // evidence: when the optional display-mode source (in_EAX) is NULL, just copies the cached
 //   rasterizer_present_parameters (0x007c04a0, 14 dwords) out; otherwise builds a fresh
 //   d3d_present_parameters from it (format 0x16 X8R8G8B8, depth format 0x4b D24S8, hwnd
-//   rasterizer_hwnd), matching every field this session's type header pins.
+//   shell_window), matching every field this session's type header pins.
 // register convention: destination d3d_present_parameters* is the recognized parameter, source
 //   rasterizer_display_mode* (optional) in in_EAX. // blam-cc: EAX -> source(opt),
 //   stack -> dest
-// UNSURE: the exact boolean sense of rasterizer_fullscreen / unknown_0071d170 / the three debug
+// UNSURE: the exact boolean sense of rasterizer_fullscreen / video_force_mode_flag / the three debug
 //   toggles that feed `flags` -- preserved as literal reads/assignments rather than renamed for
 //   an assumed sense.
 
@@ -18,14 +18,14 @@
 #include "math.h"
 #include "rasterizer.h"
 
-extern uint32_t unknown_00722b54; // 0x00722b54 UNSURE: debug/flags toggle
+extern uint32_t config_disable_buffering; // 0x00722b54 UNSURE: debug/flags toggle
 extern uint8_t unknown_0071d18d;  // 0x0071d18d UNSURE: debug/flags toggle
-extern uint32_t unknown_007196e0; // 0x007196e0 UNSURE: debug/flags toggle
+extern uint32_t screenshots; // 0x007196e0 UNSURE: debug/flags toggle
 extern uint8_t rasterizer_fullscreen;                               // 0x0071d16c (the header called it windowed)
-extern void *rasterizer_hwnd;       // 0x007461c4
+extern void *shell_window;       // 0x007461c4
 extern int32_t os_platform;         // 0x00721ef0
-extern uint8_t unknown_0071d170;    // 0x0071d170 UNSURE (also read by rasterizer_display_mode_differs.c)
-extern uint32_t unknown_007196d8;   // 0x007196d8 UNSURE: vsync override toggle
+extern uint8_t video_force_mode_flag;    // 0x0071d170 UNSURE (also read by rasterizer_display_mode_differs.c)
+extern uint32_t game_time_force_single_tick;   // 0x007196d8 UNSURE: vsync override toggle
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 
 extern void os_platform_identify(void); // 0x5427e0
@@ -51,7 +51,7 @@ void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterize
         raw_dest[i] = 0;
     }
 
-    dest->flags = (unknown_00722b54 == 0 && unknown_0071d18d == 0 && unknown_007196e0 == 0) ? 0 : 1;
+    dest->flags = (config_disable_buffering == 0 && unknown_0071d18d == 0 && screenshots == 0) ? 0 : 1;
     dest->enable_auto_depth_stencil = 1;
     dest->swap_effect = (rasterizer_fullscreen == 0) ? 3 : 1;
     dest->back_buffer_width = (uint32_t)source->width;
@@ -59,7 +59,7 @@ void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterize
     dest->back_buffer_format = 0x16;
     dest->back_buffer_count = 1;
     dest->auto_depth_stencil_format = 0x4b;
-    dest->device_window = (uint32_t)rasterizer_hwnd;
+    dest->device_window = (uint32_t)shell_window;
 
     if (rasterizer_fullscreen == 0) {
         dest->windowed = 1;
@@ -69,14 +69,14 @@ void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterize
             os_platform_identify();
         }
         dest->windowed = 0;
-        if (unknown_0071d170 == 0 && source->refresh_rate != 0 && os_platform > 2) {
+        if (video_force_mode_flag == 0 && source->refresh_rate != 0 && os_platform > 2) {
             dest->fullscreen_refresh_rate = (uint32_t)source->refresh_rate;
         } else {
             dest->fullscreen_refresh_rate = 0;
         }
     }
 
-    if (source->vsync != 0 && unknown_007196d8 == 0) {
+    if (source->vsync != 0 && game_time_force_single_tick == 0) {
         dest->presentation_interval = 1;
     } else {
         dest->presentation_interval = 0x80000000u;

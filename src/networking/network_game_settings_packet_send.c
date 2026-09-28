@@ -53,9 +53,9 @@
 
 extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0
 extern int32_t join_ui_state; // 0x00718f8c, per network_client_state_dispatch.c cluster naming
-extern int32_t some_global_0068e688; // 0x0068e688, UNSURE name
-extern void *game_variant_description_template_source; // 0x007461a8, UNSURE name/type
-extern uint8_t game_variant_description_template[0x1ffc]; // 0x00712dd8, UNSURE name/size (0x7ff dwords)
+extern int32_t interface_loading_screen_request_id; // 0x0068e688, UNSURE name
+extern void *shell_product_id; // 0x007461a8, UNSURE name/type
+extern uint8_t profile_globals_block[0x1ffc]; // 0x00712dd8, UNSURE name/size (0x7ff dwords)
 extern void gcd_compute_response(void *a, void *request, uint8_t *out); // 0x617c70, not in this batch
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
@@ -115,7 +115,7 @@ compare_done:
         main_queue_map_change_by_name_or_clear();
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
-                some_global_0068e688 = -1;
+                interface_loading_screen_request_id = -1;
             }
             join_ui_state = 8;
         }
@@ -136,11 +136,11 @@ compare_done:
     wcsncpy((wchar_t *)(frame + 0x10), (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
     frame[0x6b] = *((uint8_t *)client + 0xf4c); // UNSURE: one byte past the struct; see file header
     *(uint16_t *)(frame + 0x20) = 0;
-    gcd_compute_response(game_variant_description_template_source, (void *)request, frame + 0x22);
+    gcd_compute_response(shell_product_id, (void *)request, frame + 0x22);
 
     // The big, likely-mis-sized copy; see file header.
     for (i = 0; i < 0x1ffc; i = i + 1) {
-        frame[0x90 + i] = game_variant_description_template[i];
+        frame[0x90 + i] = profile_globals_block[i];
     }
 
     *(uint8_t *)(frame + 0x8a) = request[0xc];

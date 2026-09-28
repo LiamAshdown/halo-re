@@ -38,7 +38,7 @@ extern tag_instance *tag_instances;                    // 0x0087bc14
 extern HUDGlobals *hud_globals_tag_data;               // 0x0071941c
 extern uint8_t widget_memory_pool_valid;               // 0x00718fc2
 extern widget_instance *ui_root_widget[1];             // 0x00718f94
-extern Rectangle2D letterbox_screen_bounds;             // 0x007c3140; only .top/.left are read
+extern Rectangle2D render_viewport_top;             // 0x007c3140; only .top/.left are read
                                                         // here (see also screen_safe_area_origin
                                                         // / render_viewport_top in other modules
                                                         // for the same packed pair)
@@ -110,13 +110,13 @@ void chimera__letterbox(void)
                     (float)k_cinematic_letterbox_screen_height;
                 Rectangle2D bar;
 
-                bar.left = (int16_t)ROUND((float)letterbox_screen_bounds.left);
+                bar.left = (int16_t)ROUND((float)render_viewport_top.left);
                 bar.right = (int16_t)ROUND((float)k_cinematic_letterbox_screen_width);
-                bar.top = (int16_t)ROUND((float)letterbox_screen_bounds.top);
-                bar.bottom = (int16_t)ROUND((float)letterbox_screen_bounds.top + bar_height);
+                bar.top = (int16_t)ROUND((float)render_viewport_top.top);
+                bar.bottom = (int16_t)ROUND((float)render_viewport_top.top + bar_height);
                 ui_draw_filled_rectangle((uint32_t)k_cinematic_letterbox_color, &bar);
 
-                bar.left = (int16_t)ROUND((float)letterbox_screen_bounds.left);
+                bar.left = (int16_t)ROUND((float)render_viewport_top.left);
                 bar.right = (int16_t)ROUND((float)k_cinematic_letterbox_screen_width);
                 bar.top = (int16_t)ROUND((float)k_cinematic_letterbox_screen_height - bar_height);
                 bar.bottom = (int16_t)k_cinematic_letterbox_bottom_edge;

@@ -23,7 +23,7 @@ extern int16_t current_local_player_index;           // 0x007c3108, UNSURE ownin
 extern uint8_t local_player_hud_status_table[];       // 0x007124a4, stride 0x28, UNSURE meaning
 extern float game_engine_nameplate_fade_opacity_array[]; // 0x0087aa14, see header note above
 
-extern player_globals *player_globals_ptr; // 0x0087a478
+extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;            // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value; // 0x0087aa10, renamed to not collide with the
@@ -45,7 +45,7 @@ void hud_update_teammate_nameplate_fade(void)
     if (local_player == -1 || 0 < local_player) {
         player_handle = (datum_index)0xffffffff;
     } else {
-        player_handle = ((datum_index *)((uint8_t *)player_globals_ptr + 4))[local_player];
+        player_handle = ((datum_index *)((uint8_t *)local_player_globals + 4))[local_player];
     }
 
     if (current_game_engine != 0 &&

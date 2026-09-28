@@ -35,14 +35,14 @@
 #include "tags.h"
 #include "math.h"
 
-extern float world_gravity_scale; // 0x0069c52c, k_physics_gravity (types/physics.h); named
-    // world_gravity_scale here to match src/ai/actor_solve_grenade_lob.c's existing extern
+extern float k_physics_gravity; // 0x0069c52c, k_physics_gravity (types/physics.h); named
+    // k_physics_gravity here to match src/ai/actor_solve_grenade_lob.c's existing extern
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
 extern const real_vector3d *global_up3d_pointer; // 0x00696720 == 0x0065c224 (types/math.h)
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
 // Solves a gravity-arc firing solution from *origin to *target: gravity is
-// world_gravity_scale * gravity_scale (clamped to >= 0), the launch speed is capped by
+// k_physics_gravity * gravity_scale (clamped to >= 0), the launch speed is capped by
 // speed_limit (or by *max_speed_override when non-NULL, which also skips the max_time-derived
 // tightening of that cap), and use_high_arc selects the lofted root of the two solutions to the
 // vertical-velocity quadratic when a real root exists. The resulting unit direction is written
@@ -69,7 +69,7 @@ uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origi
     dy = target->y - origin->y;
     dz = target->z - origin->z;
 
-    gravity = world_gravity_scale * gravity_scale;
+    gravity = k_physics_gravity * gravity_scale;
     if (gravity < 0.0f) {
         gravity = 0.0f;
     }

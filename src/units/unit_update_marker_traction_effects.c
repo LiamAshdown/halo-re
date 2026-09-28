@@ -33,7 +33,7 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
 extern uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold); // 0x4cf7a0, UNSURE signature
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
-extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 
 // REWRITTEN from objdump. Needs the animation graph (tag +0x44) with a node array (graph +0x24 count, +0x28
@@ -126,7 +126,7 @@ uint32_t unit_update_marker_traction_effects(uint32_t object_index)
             scale = 1.0f;
         }
         // 0x575424: ESI the object (stack arg), ECX *0x006966f8, EAX *0x00696718
-        sound_start_at_object_marker(object_index, (Point3D *)global_zero_point3d_pointer,
+        sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
             (Vector3D *)global_forward3d_pointer, *(datum_index *)(tag + 0x3bc), -1, scale, 0);
         return 1;
     }

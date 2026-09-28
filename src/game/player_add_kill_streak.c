@@ -15,7 +15,7 @@
 //   // blam-cc: EBX -> player_handle, stack -> slot, amount
 // UNSURE: the object_try_and_get(3) call's object argument is elided by Ghidra; modeled here as
 //   the player's own `unit`, consistent with every other reading of this idiom in this batch.
-//   The final network_role check reads object_headers[player::unit].data directly (not through
+//   The final network_role check reads object_data[player::unit].data directly (not through
 //   object_try_and_get), matching types/objects.h object::network_role (0x004).
 
 #include "tags.h"
@@ -28,7 +28,7 @@
 extern data_array *player_data;      // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern int16_t network_game_mode;    // 0x00719720
-extern data_array *object_headers;   // 0x008603b0
+extern data_array *object_data;   // 0x008603b0
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void player_kill_streak_begin(int32_t slot, uint32_t player_handle); // this batch, 0x479d90;
@@ -91,7 +91,7 @@ uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_han
     }
 
     if (network_game_mode == 2) {
-        object *owner_unit = (object *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
+        object *owner_unit = (object *)((object_header *)object_data->data)[p->unit & 0xffff].data;
         if (owner_unit->network_role == 0) {
             player_notify_kill_streak_update(slot, amount, player_handle);
         }

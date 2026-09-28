@@ -9,7 +9,7 @@
 //   0x494af0, AX for 0x519200 / 0x4984c0, EAX for 0x50eb70, EBX for 0x512530).
 //   - seven cdecl stack arguments; the frame holds an object_render_data at esp+0x10 (the
 //     shadow pass block) and the rasterizer_window_parameters at esp+0x58 (0x96 dword rep stosd).
-//   - render_window_count (0x007c3104) += 1, render_local_player_index (0x007c3108) = arg 0 as a
+//   - render_window_count (0x007c3104) += 1, current_local_player_index (0x007c3108) = arg 0 as a
 //     word; source camera -> 0x007c3114 (0x15 dwords), source frustum -> 0x007c3168 (99 dwords);
 //     the parameters get the rasterizer camera and frustum, type = rasterizer_target,
 //     window_index = render_window_index (0x007c310a), +0x04 = has_mirror and the fog copied
@@ -55,7 +55,7 @@
 #include "render.h"
 
 extern int32_t render_window_count;                   // 0x007c3104, this module
-extern int16_t render_local_player_index;             // 0x007c3108, this module
+extern int16_t current_local_player_index;             // 0x007c3108, this module
 extern int16_t render_window_index;                   // 0x007c310a, this module
 extern render_camera render_camera_global;            // 0x007c3114, this module
 extern render_frustum render_frustum_global;          // 0x007c3168, this module
@@ -64,7 +64,7 @@ extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c3
 extern rasterizer_window_parameters rasterizer_window; // 0x007c1220, rasterizer module
 extern uint8_t console_debug_toggle_69c614;           // 0x0069c614 object shadows enabled
 extern int16_t console_debug_toggle_6893e4;           // 0x006893e4 (read as a word here)
-extern uint8_t console_debug_toggle_6893f5;           // 0x006893f5 decals enabled
+extern uint8_t decals_for_all_responses;           // 0x006893f5 decals enabled
 extern int16_t visible_cluster_count;                 // 0x007d0390, structures module
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters]; // 0x007c3390
 extern int16_t visible_surface_count;                 // 0x00850394, structures module
@@ -72,7 +72,7 @@ extern int32_t visible_surface_indices[0x4000];       // 0x00850398, structures 
 extern uint8_t picked_surfaces_valid;                 // 0x006e3ad8, structures module
 extern int32_t picked_surfaces_geometry;              // 0x006e3adc, structures module
 extern ScenarioStructureBSP *global_structure_bsp;           // 0x00746f9c
-extern int16_t renderer_unknown_69c67c;               // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;               // 0x0069c67c UNSURE (read as a word)
 extern uint32_t rasterizer_active_environment_effect; // 0x0071d1d0 rasterizer_effect_slot*
 extern int32_t transparent_geometry_group_last_drawn_key; // 0x006e1d58, rasterizer module
 extern uint8_t rasterizer_secondary_groups_drawn;     // 0x0071d274, rasterizer module
@@ -209,7 +209,7 @@ void render_window(int16_t local_player_index, render_camera *source_camera,
     int16_t saved_69c67c;
 
     render_window_count++;
-    render_local_player_index = local_player_index;
+    current_local_player_index = local_player_index;
     raw = (uint8_t *)&parameters;
     for (i = 0; i < sizeof(parameters); i++) {
         raw[i] = 0;
@@ -246,7 +246,7 @@ void render_window(int16_t local_player_index, render_camera *source_camera,
     }
     lights_apply_spot_falloff();
 
-    if (console_debug_toggle_6893e4 == 0 && console_debug_toggle_6893f5) {
+    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
         rasterizer_decal_pass_begin(2);
         draw_visible_cluster_decals();
         rasterizer_end_decal_pass();
@@ -262,7 +262,7 @@ void render_window(int16_t local_player_index, render_camera *source_camera,
         rasterizer_force_bilinear_filtering();
     }
 
-    if (console_debug_toggle_6893e4 == 0 && console_debug_toggle_6893f5) {
+    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
         rasterizer_decal_pass_begin(0);
         draw_visible_cluster_decals();
         rasterizer_end_decal_pass();
@@ -273,16 +273,16 @@ void render_window(int16_t local_player_index, render_camera *source_camera,
     lights_apply_spot_falloff_specular();
 
     if (picked_surfaces_valid) {
-        saved_69c67c = renderer_unknown_69c67c;
+        saved_69c67c = render_force_flag;
         // the BSP has no lightmaps bitmap (lightmaps_bitmap.tag_id, +0x0c, is -1)
         if (*(int32_t *)&global_structure_bsp->lightmaps_bitmap.tag_id == -1 && saved_69c67c == 0) {
-            renderer_unknown_69c67c = 1;
+            render_force_flag = 1;
         }
         rasterizer_dynamic_light_technique_ps2_set_states();
         structure_pass(render_window_structure_lightmap_begin_0x511f90,
                        (structure_material_callback)render_window_structure_material_0x511fe0,
                        (structure_lightmap_end_callback)function_do_nothing, 0);
-        renderer_unknown_69c67c = saved_69c67c;
+        render_force_flag = saved_69c67c;
         if (picked_surfaces_valid) {
             rasterizer_shader_environment_technique_multipurpose_set_states();
             structure_pass(render_window_structure_lightmap_begin_0x512010,

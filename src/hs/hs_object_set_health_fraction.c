@@ -14,7 +14,7 @@
 #include "memory.h"
 #include "hs.h"
 
-extern data_array *object_headers; // 0x008603b0, stride 0x0c, object data pointer at +0x08
+extern data_array *object_data; // 0x008603b0, stride 0x0c, object data pointer at +0x08
 
 // hs_object_record: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
 
@@ -26,7 +26,7 @@ void hs_object_set_health_fraction(datum_index object_index, float fraction)
     hs_object_record *object;
 
     if (object_index != k_datum_index_none) {
-        object = *(hs_object_record **)((uint8_t *)object_headers->data +
+        object = *(hs_object_record **)((uint8_t *)object_data->data +
             (object_index & 0xffff) * 0x0c + 8);
         if (fraction < 0.0f) {
             object->current_health = object->maximum_health * 0.0f;

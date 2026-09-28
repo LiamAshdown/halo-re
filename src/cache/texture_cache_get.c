@@ -46,7 +46,7 @@ extern uint8_t debug_texture_cache_prints; // 0x006f17f6, console toggle, read b
 extern tag_instance *tag_instances;        // 0x0087bc14
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 extern int64_t performance_frequency;      // 0x006ac8f8/0x006ac8fc
-extern int32_t frame_watchdog_time;        // 0x0072520c
+extern int32_t sound_time;        // 0x0072520c
 
 extern void console_print_va(const char *format, ...);       // 0x4c6920
 
@@ -133,7 +133,7 @@ void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_mi
 
                 QueryPerformanceCounter((LARGE_INTEGER *)&counter);
                 elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-                if (0x84 < (uint32_t)(elapsed_ms - frame_watchdog_time)) {
+                if (0x84 < (uint32_t)(elapsed_ms - sound_time)) {
                     sound_idle_update();
                 }
                 if (wait == 0) {

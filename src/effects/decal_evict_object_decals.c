@@ -17,7 +17,7 @@
 
 extern data_array *decal_data;         // 0x0087abe4
 extern decal_grid *decal_grid_block;   // 0x006b0ad8
-extern cache *decal_geometry_cache;    // 0x0071d1c0
+extern cache *rasterizer_decal_vertex_cache_handle;    // 0x0071d1c0
 
 extern void cache_evict_entry(datum_index handle, cache *self); // 0x4d1c20,
     // blam-cc: EBX -> handle, EDI -> self
@@ -49,7 +49,7 @@ void decal_evict_object_decals(int16_t cluster_index)
                 if ((self->flags & _decal_object_attached_bit) != 0) {
                     self->flags = self->flags & ~_decal_object_attached_bit;
                     decal_grid_block->object_count = decal_grid_block->object_count - 1;
-                    cache_evict_entry(current, decal_geometry_cache);
+                    cache_evict_entry(current, rasterizer_decal_vertex_cache_handle);
                 }
 
                 current = next;

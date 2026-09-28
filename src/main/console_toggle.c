@@ -20,7 +20,7 @@
 #include "main.h"
 
 extern console_globals console_globals_data; // 0x006b7020
-extern uint8_t console_active_after_movie; // 0x007193a8, UNSURE: only tested here; blocks opening
+extern uint8_t virtual_keyboard; // 0x007193a8, UNSURE: only tested here; blocks opening
                                            // the console while set (movie playback? name is a guess)
 
 extern void console_deactivate(void); // this module, 0x4c64b0
@@ -28,7 +28,7 @@ extern uint8_t console_open(terminal_console *console); // 0x496510, blam-cc: ED
 extern void input_keyboard_set_capture_mode(uint8_t enable_capture); // 0x48b650, blam-cc: AL -> enable_capture
 
 // Closes the console if it is open; otherwise opens it (when enabled and not blocked by
-// console_active_after_movie), clearing the input line first, and always turns on keyboard
+// virtual_keyboard), clearing the input line first, and always turns on keyboard
 // capture mode afterward.
 void console_toggle(void)
 {
@@ -36,7 +36,7 @@ void console_toggle(void)
         console_deactivate();
         return;
     }
-    if (console_globals_data.enabled != 0 && console_active_after_movie == 0) {
+    if (console_globals_data.enabled != 0 && virtual_keyboard == 0) {
         console_globals_data.terminal.input[0] = 0; // 0x006b70d8
         console_globals_data.active = console_open(&console_globals_data.terminal); // EDI -> &terminal
         input_keyboard_set_capture_mode(1); // AL = 1 unconditionally (tail call in the binary)

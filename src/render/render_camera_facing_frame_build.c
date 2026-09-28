@@ -14,7 +14,7 @@
 //   render_camera_facing_basis, then a real_plane3d-shaped {normal, d} at 0x40), stack
 //   argument = float distance.
 // blam-cc: render_camera_facing_frame_build(void *out /*ECX*/, float distance /*stack*/)
-// UNSURE: render_camera_position (0x007c3114) and render_camera_forward (0x007c3120) are
+// UNSURE: render_camera_global (0x007c3114) and camera_forward_x (0x007c3120) are
 //   guessed names for a 3-float position and a 3-float direction; render_camera_facing_basis
 //   (0x007c31e0) is a 16-float block whose real shape (4x4 matrix? camera frustum corners?) is
 //   not established. The output struct is likewise not independently named/typed in
@@ -23,20 +23,20 @@
 #include "tags.h"
 #include "math.h"
 
-extern float render_camera_position[3]; // 0x007c3114, UNSURE: guessed name
-extern float render_camera_forward[3];  // 0x007c3120, UNSURE: guessed name
+extern float render_camera_global[3]; // 0x007c3114, UNSURE: guessed name
+extern float camera_forward_x[3];  // 0x007c3120, UNSURE: guessed name
 extern float render_camera_facing_basis[16]; // 0x007c31e0, UNSURE: guessed name/shape
 
 void render_camera_facing_frame_build(float *out, float distance)
 {
-    float px = render_camera_forward[0] * distance + render_camera_position[0];
-    float py = render_camera_forward[1] * distance + render_camera_position[1];
-    float pz = render_camera_forward[2] * distance + render_camera_position[2];
+    float px = camera_forward_x[0] * distance + render_camera_global[0];
+    float py = camera_forward_x[1] * distance + render_camera_global[1];
+    float pz = camera_forward_x[2] * distance + render_camera_global[2];
     int32_t i;
 
-    out[0x10] = render_camera_forward[0];
-    out[0x11] = render_camera_forward[1];
-    out[0x12] = render_camera_forward[2];
+    out[0x10] = camera_forward_x[0];
+    out[0x11] = camera_forward_x[1];
+    out[0x12] = camera_forward_x[2];
     out[0x13] = px * out[0x10] + py * out[0x11] + pz * out[0x12];
 
     for (i = 0; i < 16; i++) {

@@ -35,8 +35,8 @@ extern object_globals *object_globals_pointer;     // 0x006b8cbc
 extern int32_t object_cluster_stamp;                // 0x008603cc
 extern datum_index *collideable_cluster_first;      // 0x008603d0
 extern data_array *collideable_object_references;   // 0x008603d4
-extern uint8_t cluster_flood_fill_recursion_guard;  // 0x006e3f01
-extern int32_t cluster_flood_fill_call_count;       // 0x006e3f04
+extern uint8_t cluster_flood_in_progress;  // 0x006e3f01
+extern int32_t cluster_flood_stamp;       // 0x006e3f04
 extern int32_t cluster_visit_stamp[];               // 0x006e3f08
 
 // blam-cc: EAX -> bsp, ECX -> breakable_surface_count, ESI -> result,
@@ -90,10 +90,10 @@ uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *cent
             if ((flags & 0xfff00) == 0) {
                 flags |= 0xfff00;
             }
-            cluster_flood_fill_call_count++;
+            cluster_flood_stamp++;
             object_globals_pointer->collecting_in_clusters = 1;
             stamp = object_cluster_stamp + 1;
-            cluster_flood_fill_recursion_guard = 1;
+            cluster_flood_in_progress = 1;
             object_cluster_stamp = stamp;
 
             for (i = 0; i < sphere_result.leaf_count; i++) {
@@ -101,10 +101,10 @@ uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *cent
                     global_structure_bsp->leaves.pointer)[sphere_result.leaves[i] & 0x7fffffff].cluster;
                 // FIXED (objdump 0x506593): the leaf index is masked with 0x7fffffff first
 
-                if (cluster_visit_stamp[cluster_index] != cluster_flood_fill_call_count) {
+                if (cluster_visit_stamp[cluster_index] != cluster_flood_stamp) {
                     datum_index ref;
 
-                    cluster_visit_stamp[cluster_index] = cluster_flood_fill_call_count;
+                    cluster_visit_stamp[cluster_index] = cluster_flood_stamp;
                     ref = collideable_cluster_first[cluster_index];
                     while (ref != k_datum_index_none) {
                         object_cluster_reference *node = (object_cluster_reference *)
@@ -130,7 +130,7 @@ uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *cent
             }
 
             object_globals_pointer->collecting_in_clusters = 0;
-            cluster_flood_fill_recursion_guard = 0;
+            cluster_flood_in_progress = 0;
         }
     }
 

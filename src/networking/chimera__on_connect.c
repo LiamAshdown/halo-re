@@ -19,7 +19,7 @@
 // network_connection_initiate.c) as a live connection-mode discriminant; not renamed, per the
 // task's rule against editing that header.
 // UNSURE: DAT_00718f90 and DAT_00718f8c are not declared anywhere in types/networking.h; named
-// generically below (join_ui_countdown / join_ui_state) from their being reset together right
+// generically below (interface_loading_screen_progress / join_ui_state) from their being reset together right
 // after the "Connecting" status text is posted, but neither name is independently confirmed.
 // UNSURE: network_connection_endpoint_set (network_connection_endpoint_set) is called with no visible argument at
 // its call site; reconstructed as (target_address, client) since target_address is exactly what
@@ -37,7 +37,7 @@ extern int16_t network_join_error_code; // 0x00718fa4, the pending join/disconne
                                         // string index; -1 means none. WORD-sized everywhere
                                         // (cmp/mov WORD PTR ds:0x718fa4), consumed and reset by
                                         // the main-menu display_error call at 0x4a9ff0.
-extern int32_t join_ui_countdown; // 0x00718f90, UNSURE name; see file header
+extern int32_t interface_loading_screen_progress; // 0x00718f90, UNSURE name; see file header
 extern int32_t join_ui_state;     // 0x00718f8c, UNSURE name; see file header
 extern char *network_address_to_string(s_network_address *addr); // 0x440570
 extern int16_t network_channel_attempt_connect(int32_t a, int32_t b); // 0x441f60
@@ -109,7 +109,7 @@ int8_t chimera__on_connect(const uint32_t *target_address, network_client_global
         *(uint32_t *)&endpoint->address.size = target_address[4];
         endpoint->unknown_14 = target_address[5];
 
-        join_ui_countdown = 0;
+        interface_loading_screen_progress = 0;
         join_ui_state = 5;
         if (endpoint->address.size == k_network_address_size_ipv4) {
             network_connection_endpoint_set(target_address, client); // UNSURE argument

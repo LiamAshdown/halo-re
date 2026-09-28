@@ -18,7 +18,7 @@
 #include <string.h>
 
 extern game_variant game_engine_pending_variant; // 0x0087aa80
-extern char network_default_game_name[]; // 0x0087aa40 (UNSURE name)
+extern char variant_defaults_source[]; // 0x0087aa40 (UNSURE name)
 
 // Resets `server`'s session to compiled-in defaults: copies the pending game variant, the
 // default server name, and clears the two fields between them, then marks the session and the
@@ -27,7 +27,7 @@ extern char network_default_game_name[]; // 0x0087aa40 (UNSURE name)
 int32_t network_game_session_reset_defaults(network_server_globals *server)
 {
     memcpy(&server->session.variant, &game_engine_pending_variant, sizeof(game_variant));
-    strncpy(server->session.server_name, network_default_game_name, 0x3f);
+    strncpy(server->session.server_name, variant_defaults_source, 0x3f);
     server->session.server_name[0x3f] = 0;
     server->session.unknown_07e = 0;
     server->session.unknown_080 = 0;

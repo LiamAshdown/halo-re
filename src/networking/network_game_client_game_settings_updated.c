@@ -25,17 +25,17 @@
 #include "networking.h"
 #include <string.h>
 
-extern data_array *update_server_globals;  // 0x0087a478, UNSURE identity, see update_server_send_update.c
+extern data_array *local_player_globals;  // 0x0087a478, UNSURE identity, see update_server_send_update.c
 extern void *variant_defaults_source;      // 0x0087aa40, UNSURE identity: strncpy'd map-name-ish
-extern uint8_t variant_defaults_block[0x98]; // 0x0087aa80, UNSURE identity: copied into session+0x10c-ish
+extern uint8_t game_engine_pending_variant[0x98]; // 0x0087aa80, UNSURE identity: copied into session+0x10c-ish
 extern network_client_globals *network_client; // 0x0071c2d8
-extern int32_t unknown_00718f8c; // 0x00718f8c, UNSURE identity (join_ui_state per chimera__on_connect.c)
-extern int32_t unknown_00718f94; // 0x00718f94, UNSURE identity: a widget handle
-extern int32_t unknown_00718f98; // 0x00718f98, UNSURE identity
-extern uint8_t unknown_00718fa6; // 0x00718fa6, UNSURE identity
-extern int32_t unknown_006953e8; // 0x006953e8, UNSURE identity
-extern uint8_t unknown_00712542; // 0x00712542, UNSURE identity
-extern uint8_t unknown_00712544[0x280]; // 0x00712544, UNSURE identity/size
+extern int32_t join_ui_state; // 0x00718f8c, UNSURE identity (join_ui_state per chimera__on_connect.c)
+extern int32_t ui_root_widget; // 0x00718f94, UNSURE identity: a widget handle
+extern int32_t ui_widget_history; // 0x00718f98, UNSURE identity
+extern uint8_t ui_pause_depth; // 0x00718fa6, UNSURE identity
+extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity
+extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE identity
+extern uint8_t controls_input_capture_buffer[0x280]; // 0x00712544, UNSURE identity/size
 
 extern void message_delta_parameters_protocol_dump_to_config_file(void); // 0x4ec330, outside this batch
 extern void network_stats_summary_log_write(void); // 0x440820, this module
@@ -67,8 +67,8 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
 
     is_host = (host->flags >> 2) & 1;
     if (!is_host) {
-        if (update_server_globals->maximum_count != (int16_t)-1) { // UNSURE: +4 read as dword
-            item = datum_get(update_server_globals, 0);
+        if (local_player_globals->maximum_count != (int16_t)-1) { // UNSURE: +4 read as dword
+            item = datum_get(local_player_globals, 0);
             if (item != 0) {
                 network_client->unknown_f10 = *(int32_t *)((uint8_t *)(uint32_t)item + 0x20);
             }
@@ -115,10 +115,10 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
     game_engine_apply_current_custom_variant();
     game_engine_sync_variant_defaults();
     if (!is_host) {
-        unknown_00718f8c = 2;
+        join_ui_state = 2;
     }
     host->unknown_a0e = 1;
-    memcpy((uint8_t *)host + 0x10c, variant_defaults_block, sizeof(variant_defaults_block));
+    memcpy((uint8_t *)host + 0x10c, game_engine_pending_variant, sizeof(game_engine_pending_variant));
     strncpy((char *)host + 0x8c, (char *)variant_defaults_source, 0x3f);
     *(uint8_t *)((uint8_t *)host + 0xcb) = 0;
     host->unknown_004 = host->unknown_004 | 1;
@@ -126,17 +126,17 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
     *(int32_t *)((uint8_t *)host + 0x88) = 0;
     host->listen_channel->listening = 1;
 
-    if (unknown_00718f94 != 0) {
-        widget_close(unknown_00718f94);
+    if (ui_root_widget != 0) {
+        widget_close(ui_root_widget);
     }
-    if (unknown_00718f98 != 0) {
+    if (ui_widget_history != 0) {
         widget_pool_list_free_all();
     }
-    unknown_00718fa6 = 0;
-    if (unknown_006953e8 != -1) {
-        unknown_00712542 = unknown_00712542 & 0xf7;
-        memset(unknown_00712544, 0, sizeof(unknown_00712544));
-        unknown_006953e8 = -1;
+    ui_pause_depth = 0;
+    if (controls_capture_row != -1) {
+        controls_input_capture_flags = controls_input_capture_flags & 0xf7;
+        memset(controls_input_capture_buffer, 0, sizeof(controls_input_capture_buffer));
+        controls_capture_row = -1;
     }
     host->unknown_9bc[0x19] = 0; // 0x9d5
 

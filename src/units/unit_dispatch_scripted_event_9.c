@@ -14,7 +14,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint8_t *network_message_table; // 0x00687130, UNSURE
+extern uint8_t *object_network_id_table; // 0x00687130, UNSURE
 extern uint8_t event9_target;        // 0x00871de0, UNSURE
 extern int32_t network_role_0071c2d4; // 0x0071c2d4, UNSURE
 
@@ -30,7 +30,7 @@ void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key) // bla
 {
     int32_t looked_up = 0;
     if (hash_key != -1) {
-        looked_up = hash_table_get((hash_table *)(network_message_table + 0xc), hash_key);
+        looked_up = hash_table_get((hash_table *)(object_network_id_table + 0xc), hash_key);
         if (looked_up == -1) {
             looked_up = 0;
         }

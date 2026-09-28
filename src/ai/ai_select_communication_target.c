@@ -16,7 +16,7 @@
 // blam-cc: stack -> param_a, param_b, line_id, sub_id, out_weight
 //
 // UNSURE, substantially: ai_communication_select_speaker_by_team's exact 10-argument shape reproduced verbatim from the
-// decompile including its CONCAT22-packed arguments; communication_class_line (a per-line-id uint16
+// decompile including its CONCAT22-packed arguments; ai_communication_class_priority (a per-line-id uint16
 // table) is not otherwise established. This file should be treated as a starting point for
 // a follow-up disassembly pass, not a finished rewrite.
 
@@ -33,8 +33,8 @@ extern data_array *object_data;       // 0x008603b0
 extern ai_communication_event_definition ai_communication_event_definitions[]; // 0x00656b08, stride 0x24
 extern ai_globals *ai_globals_ptr;    // 0x00880354
 extern uint32_t random_seed_global;    // 0x00719cd0
-extern int32_t ai_communication_warmup_tick; // 0x00725204, the tick before which most lines are suppressed
-extern int16_t communication_class_line[8]; // 0x006558c4, per-class communication line id
+extern int32_t ai_communication_quiet_until_tick; // 0x00725204, the tick before which most lines are suppressed
+extern int16_t ai_communication_class_priority[8]; // 0x006558c4, per-class communication line id
 extern int32_t conversation_line_base; // 0x006f0ca4
 
 extern int32_t actor_classify_communication_object_type(datum_index actor_index); // 0x42f9a0, EAX
@@ -79,7 +79,7 @@ int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16
             if (*(int16_t *)(entry - 1) == line_id &&
                 (*(int16_t *)entry == -1 || *(int16_t *)entry == sub_id)) {
                 comm_kind = *(int16_t *)(entry + 4);
-                if ((ai_communication_warmup_tick <= game_time->game_time ||
+                if ((ai_communication_quiet_until_tick <= game_time->game_time ||
                      (*(uint8_t *)(entry + 5) & 1) != 0) &&
                     0.0f < *(float *)(entry + 9)) {
                     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
@@ -97,7 +97,7 @@ int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16
                             result = ai_communication_select_speaker_by_team((int16_t)search_kind, param_a,
                                                    0xffffffff, 9.0f, -1,
                                                    (uint32_t)(uint16_t)comm_kind,
-                                                   (uint32_t)(uint16_t)communication_class_line[comm_kind],
+                                                   (uint32_t)(uint16_t)ai_communication_class_priority[comm_kind],
                                                    (uint32_t)(uint16_t)candidate_a, candidate_b, 0,
                                                    *(int16_t *)((uint8_t *)((object_header *)object_data->data)[param_a & 0xffff].data + 0xb8));
                         } else if (target_kind == 3) {

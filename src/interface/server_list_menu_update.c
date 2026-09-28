@@ -35,9 +35,9 @@ extern void *server_list_entries_006b380c[9]; // 0x006b380c, TYPES-GAP
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern heap *widget_memory_pool; // 0x006926c4
-extern uint16_t default_profile_name_suffix_00671fac[]; // 0x00671fac
+extern uint16_t missing_string_text[]; // 0x00671fac
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint16_t decimal_format_006607a0[]; // 0x006607a0, L"%d"
+extern uint16_t chat_local_prompt_string[]; // 0x006607a0, L"%d"
 
 extern uint8_t network_game_search_entry_is_fresh(const uint8_t *entry); // 0x4da770, blam-cc: ESI entry; reads entry+0x12d and a QPC age
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
@@ -117,7 +117,7 @@ void server_list_menu_update(widget_instance *widget)
                 ((uint16_t *)row->text)[0xf] = 0;
             } else {
                 datum_index tag = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
-                uint16_t *source = default_profile_name_suffix_00671fac; // L"<missing string>"
+                uint16_t *source = missing_string_text; // L"<missing string>"
 
                 if (tag != (datum_index)-1) {
                     UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag & 0xffff].data;
@@ -231,7 +231,7 @@ void server_list_menu_update(widget_instance *widget)
 
                 r8->text = b;
                 if (b != (uint16_t *)0) {
-                    string_format_wide_va_bounded((wchar_t *)b, (const wchar_t *)decimal_format_006607a0, // EDX 3
+                    string_format_wide_va_bounded((wchar_t *)b, (const wchar_t *)chat_local_prompt_string, // EDX 3
                                                    (int32_t)*(uint16_t *)(sel + 0x124));
                     ((uint16_t *)r8->text)[3] = 0;
                 }
@@ -241,7 +241,7 @@ void server_list_menu_update(widget_instance *widget)
 
                 r9->text = b;
                 if (b != (uint16_t *)0) {
-                    string_format_wide_va_bounded((wchar_t *)b, (const wchar_t *)decimal_format_006607a0, // EDX 3
+                    string_format_wide_va_bounded((wchar_t *)b, (const wchar_t *)chat_local_prompt_string, // EDX 3
                                                    (int32_t)*(int16_t *)(sel + 0x128));
                     ((uint16_t *)r9->text)[3] = 0;
                 }

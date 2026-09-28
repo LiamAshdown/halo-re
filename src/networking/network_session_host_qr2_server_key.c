@@ -21,7 +21,7 @@ extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id); // 0x615560 qr2_
 extern uint8_t *network_server;            // 0x0071c2d4
 extern char network_qr2_text[0x100];         // 0x00722a28
 extern uint8_t network_session_host_closing; // 0x00722a1c
-extern uint8_t game_engine_variant_bytes[];  // 0x006f1c88 (game_variant)
+extern uint8_t game_engine_variant[];  // 0x006f1c88 (game_variant)
 extern uint8_t motion_sensor_override_value; // 0x006f1cc0
 extern int32_t game_engine_variant_score_limit; // 0x006f1ce0
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI dest, EDI source
@@ -38,8 +38,8 @@ extern int32_t network_server_password_is_set(void *server); // 0x4e08e0, blam-c
 void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *user_data)
 {
     uint8_t *server = network_server;
-    uint8_t *options = game_engine_variant_bytes + 0x7c;   // 0x006f1d04
-    int32_t game_type = *(int32_t *)(game_engine_variant_bytes + 0x30); // 0x006f1cb8
+    uint8_t *options = game_engine_variant + 0x7c;   // 0x006f1d04
+    int32_t game_type = *(int32_t *)(game_engine_variant + 0x30); // 0x006f1cb8
 
     (void)user_data;
     if (current_game_engine != 0) {
@@ -80,7 +80,7 @@ void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *use
     }
     case 7:
         qr2_buffer_add(buffer, (const char *)string_convert_unicode_to_ascii((uint8_t *)network_qr2_text,
-            (uint16_t *)game_engine_variant_bytes, 0x100));
+            (uint16_t *)game_engine_variant, 0x100));
         return;
     case 8:
         qr2_buffer_add_int(buffer, current_game_engine != 0 ? players_active_count() : 0);
@@ -107,7 +107,7 @@ void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *use
         qr2_buffer_add_int(buffer, (server[6] >> 2) & 1);
         return;
     case 0x34:
-        qr2_buffer_add(buffer, server_browser_custom_options_pack(game_engine_variant_bytes + 0x34));
+        qr2_buffer_add(buffer, server_browser_custom_options_pack(game_engine_variant + 0x34));
         return;
     case 0x35:
         switch (game_type) {

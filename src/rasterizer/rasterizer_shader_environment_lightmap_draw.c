@@ -28,9 +28,9 @@
 extern void *rasterizer_device;                   // 0x0071d174
 extern uint8_t console_debug_toggle_6893f4;       // 0x006893f4
 extern rasterizer_effect_slot rasterizer_effects[]; // 0x0069d410
-extern uint32_t rasterizer_environment_vertex_declaration; // 0x006e1a90
+extern uint32_t rasterizer_vertex_declarations; // 0x006e1a90
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[]; // 0x0069e350
-extern double rasterizer_frame_time_seconds;      // 0x007c1200
+extern double rasterizer_time;      // 0x007c1200
 
 extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
     int16_t default_index, int16_t frame, rasterizer_effect_slot *effect_slot); // 0x518860
@@ -93,11 +93,11 @@ void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame,
     constants[9] = 1.0f;
     constants[10] = sv3 * *(float *)(shader + 0xf8);
     constants[11] = 0.0f;
-    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_frame_time_seconds, shader);
+    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time, shader);
 
     device_vtable = *(void ***)rasterizer_device;
     ((d3d_set_constant_f_fn)device_vtable[0x178 / 4])(rasterizer_device, 10, constants, 3);
-    ((d3d_call1_fn)device_vtable[0x15c / 4])(rasterizer_device, rasterizer_environment_vertex_declaration);
+    ((d3d_call1_fn)device_vtable[0x15c / 4])(rasterizer_device, rasterizer_vertex_declarations);
     ((d3d_call1_fn)device_vtable[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[slot->vertex_shader_index].shader);
 
     effect = (void *)(uintptr_t)slot->effect;

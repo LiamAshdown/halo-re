@@ -27,11 +27,11 @@
 
 extern uint8_t ui_force_quit;   // 0x00718fca
 extern uint8_t ui_split_screen; // 0x00718fc9
-extern int16_t ui_unknown_718fa4; // 0x00718fa4, reset to -1
+extern int16_t network_join_error_code; // 0x00718fa4, reset to -1
 
 // UNSURE: split-screen "confirm quit" prompt record, not documented elsewhere in this module.
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, low 16 bits of the DAT_00719754 dword
-extern uint8_t split_screen_quit_prompt_unknown_71973c; // 0x0071973c, byte stores only
+extern uint8_t network_join_error_reason; // 0x0071973c, byte stores only
 extern uint8_t split_screen_quit_prompt_armed;  // 0x00719757, byte 3 of the DAT_00719754 dword
 
 // UNSURE: see file header -- conflicts with types/interface.h's ui_player_help_string[3] at the
@@ -54,11 +54,11 @@ void interface_handle_quit_request(void)
         ExitProcess(0xffffec7a); // does not return
     }
     if (ui_split_screen == 0) {
-        if (ui_unknown_718fa4 == -1) {
-            ui_unknown_718fa4 = 0x23;
+        if (network_join_error_code == -1) {
+            network_join_error_code = 0x23;
         }
         split_screen_quit_prompt_string = 0xffff;
-        split_screen_quit_prompt_unknown_71973c = 0;
+        network_join_error_reason = 0;
         split_screen_quit_prompt_armed = 1;
         ui_force_quit = 0;
         return;

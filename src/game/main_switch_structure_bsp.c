@@ -40,13 +40,13 @@ extern data_array *object_data;              // 0x008603b0
 extern int16_t network_game_mode;            // 0x00719720
 extern Scenario *global_scenario;            // 0x00746f8c
 extern int16_t global_structure_bsp_index;  // 0x0069e8d8, UNSURE name
-extern uint16_t requested_structure_bsp_index; // 0x00719754, UNSURE name (low 16 bits of a
+extern uint16_t split_screen_quit_prompt_string; // 0x00719754, UNSURE name (low 16 bits of a
                                                 //   larger record another module owns)
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t global_007102d8;              // 0x007102d8, UNSURE identity
-extern uint8_t global_0071973c;              // 0x0071973c, UNSURE identity; BYTE stores (0x474cff)
-extern uint8_t global_0071974f;              // 0x0071974f, UNSURE identity
-extern uint8_t *global_006b0b80;             // 0x006b0b80, TYPES-GAP (cached_object_render_states
+extern uint8_t network_join_error_reason;              // 0x0071973c, UNSURE identity; BYTE stores (0x474cff)
+extern uint8_t main_globals_byte_0071974f;              // 0x0071974f, UNSURE identity
+extern uint8_t *main_game_globals;             // 0x006b0b80, TYPES-GAP (cached_object_render_states
                                               //   elsewhere in this module; only +0x2 is touched here)
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
@@ -58,7 +58,7 @@ extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_ind
     // 0x53f020
 extern void console_print_va(const char *format, ...); // 0x4c6920
 extern void hud_display_loading_message(uint8_t is_begin); // 0x4aa2a0, AL
-    // requested_structure_bsp_index
+    // split_screen_quit_prompt_string
 extern void player_update_nearby_interactions_primary(datum_index player_handle); // this batch, 0x478400, blam-cc: EDI -> player_handle
 extern void player_update_nearby_interactions_secondary(datum_index player_handle); // this batch, 0x478500, blam-cc: EDI -> player_handle
 
@@ -72,7 +72,7 @@ extern void player_update_nearby_interactions_secondary(datum_index player_handl
 // bsp_switch_trigger_volume whose source matches the currently active structure BSP: if the
 // player is standing in its named trigger volume, validates the destination BSP index (logging
 // an error for an out-of-range or same-as-current one) and otherwise stages it in
-// requested_structure_bsp_index and calls hud_display_loading_message to perform the switch. Finally resets the
+// split_screen_quit_prompt_string and calls hud_display_loading_message to perform the switch. Finally resets the
 // player's pending interaction and dispatches the appropriate nearby-interaction scan
 // (player_update_nearby_interactions_secondary while this machine is a network client, player_update_nearby_interactions_primary otherwise).
 void main_switch_structure_bsp(void)
@@ -86,7 +86,7 @@ void main_switch_structure_bsp(void)
     if (local_player_globals->respawn_stagger > 0) {
         local_player_globals->respawn_stagger = local_player_globals->respawn_stagger - 1;
         if (local_player_globals->respawn_stagger == 0) {
-            global_006b0b80[2] = 0;
+            main_game_globals[2] = 0;
         }
     }
 
@@ -178,7 +178,7 @@ void main_switch_structure_bsp(void)
                             // skips. The first pass turned it into a jump out to the player
                             // loop's advance, which wrongly skipped the interaction reset and
                             // the player_update_nearby_interactions_primary/00478500 dispatch below for that player.
-                            requested_structure_bsp_index = (uint16_t)destination;
+                            split_screen_quit_prompt_string = (uint16_t)destination;
                             hud_display_loading_message(1); // FIXED: AL = 1 (0x474c39)
                         }
                     }
@@ -217,8 +217,8 @@ void main_switch_structure_bsp(void)
             global_007102d8 = 0;
         }
     } else if (current_game_engine == 0 && global_007102d8 == 0) {
-        global_0071973c = 0;
-        global_0071974f = 1;
+        network_join_error_reason = 0;
+        main_globals_byte_0071974f = 1;
         global_007102d8 = 1;
     }
 }

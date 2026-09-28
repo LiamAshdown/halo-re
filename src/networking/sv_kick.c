@@ -31,8 +31,8 @@ extern network_machine *network_machine_find_by_id(network_server_globals *serve
     // blam-cc: ESI -> server, EDI -> machine_id; foreign (< this batch), 0x4e0810
 extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
     // blam-cc: ECX -> reason, EDI -> machine, stack -> server; foreign (< this batch), 0x4e0af0
-extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
-extern void *console_color_00685218; // 0x00685218, a ColorARGB * the original loads into EAX
+extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void *console_message_default_color; // 0x00685218, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: disconnects (kicks) the client named or indexed by the console argument.
@@ -44,14 +44,14 @@ void sv_kick(char *name_or_index) // blam-cc: EAX -> name_or_index
     network_machine *machine;
 
     if (network_game_mode != 2) {
-        chimera__console_out((ColorARGB *)console_color_00685218, "sv_kick is a server-only function!");
+        chimera__console_out((ColorARGB *)console_message_default_color, "sv_kick is a server-only function!");
         return;
     }
     player = sv_find_client_by_name_or_index(name_or_index);
     if (player != 0) {
         machine = network_machine_find_by_id(network_server, player->machine_index);
         if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
-            chimera__console_out((ColorARGB *)console_color_006851fc, "sv_kick:  Can't kick a local client!");
+            chimera__console_out((ColorARGB *)global_white_argb, "sv_kick:  Can't kick a local client!");
             return;
         }
         network_server_notify_or_resend_challenge(7, machine, network_server);

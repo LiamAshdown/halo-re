@@ -43,8 +43,8 @@
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances; // 0x0087bc14
-extern real_point3d camera_position;  // 0x007c3114
-extern real_vector3d camera_forward;  // 0x007c3120
+extern real_point3d render_camera_global;  // 0x007c3114
+extern real_vector3d camera_forward_x;  // 0x007c3120
 extern real_vector3d camera_up;       // 0x007c312c, UNSURE
 
 extern double fpatan(double y, double x); // FPATAN: atan2(ST1, ST0)
@@ -72,11 +72,11 @@ extern void animation_graph_nodes_build_matrices(datum_index animation_graph,
 
 static void seed_aim(first_person_weapon_interface *fp)
 {
-    FP_FLOAT(fp, 0x60) = (float)fpatan(camera_forward.j, camera_forward.i);
-    FP_FLOAT(fp, 0x64) = (float)fpatan(camera_forward.k,
-                                       sqrt(camera_forward.j * camera_forward.j +
-                                            camera_forward.i * camera_forward.i));
-    *(real_point3d *)((uint8_t *)fp + 0x70) = camera_position;
+    FP_FLOAT(fp, 0x60) = (float)fpatan(camera_forward_x.j, camera_forward_x.i);
+    FP_FLOAT(fp, 0x64) = (float)fpatan(camera_forward_x.k,
+                                       sqrt(camera_forward_x.j * camera_forward_x.j +
+                                            camera_forward_x.i * camera_forward_x.i));
+    *(real_point3d *)((uint8_t *)fp + 0x70) = render_camera_global;
 }
 
 static void overlay_channel(ModelAnimationsAnimation *animation, float value, int32_t positive,
@@ -103,7 +103,7 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
     FP_FLOAT(fp, 0x6c) = FP_FLOAT(fp, 0x64);
     *(real_point3d *)(fp_raw + 0x7c) = *(real_point3d *)(fp_raw + 0x70);
     seed_aim(fp);
-    *(real_vector3d *)(fp_raw + 0x54) = camera_forward;
+    *(real_vector3d *)(fp_raw + 0x54) = camera_forward_x;
     fp->unknown_30[0x20] = 1;
 
     if (fp->weapon_index != (datum_index)-1 && object_try_and_get(fp->weapon_index, 4) == 0) {
@@ -201,8 +201,8 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
         }
 
         animation_graph_nodes_build_matrices(
-            *(datum_index *)&weapon_tag->first_person_animations.tag_id, &camera_position,
-            fp_raw + 0x108c, fp_raw + 0x8c, &camera_forward, &camera_up);
+            *(datum_index *)&weapon_tag->first_person_animations.tag_id, &render_camera_global,
+            fp_raw + 0x108c, fp_raw + 0x8c, &camera_forward_x, &camera_up);
     }
 }
 

@@ -18,16 +18,16 @@
 #include "rasterizer.h"
 
 
-extern void *rasterizer_hwnd;            // 0x007461c4
+extern void *shell_window;            // 0x007461c4
 extern uint32_t rasterizer_window_style; // 0x0069c6a4
 extern uint32_t game_window_top_left;    // 0x0069c634
 extern uint32_t game_window_bottom_right; // 0x0069c638
 extern int16_t unknown_0069c640; // 0x0069c640 UNSURE: mouse-bound style global
 extern int16_t unknown_0069c642; // 0x0069c642 UNSURE
 extern int16_t unknown_0069c63e; // 0x0069c63e UNSURE
-extern int16_t unknown_0069c63c; // 0x0069c63c UNSURE
-extern int32_t unknown_0069c648;                                    // 0x0069c648 UNSURE
-extern int32_t unknown_0069c64c;                                    // 0x0069c64c UNSURE
+extern int16_t game_screen_rect; // 0x0069c63c UNSURE
+extern int32_t rasterizer_present_counter_low;                                    // 0x0069c648 UNSURE
+extern int32_t rasterizer_present_counter_high;                                    // 0x0069c64c UNSURE
 
 
 // blam-cc: EAX -> height, ECX -> width
@@ -39,7 +39,7 @@ void rasterizer_resize_game_window(int32_t height, int32_t width)
     win32_rect current;
     win32_rect target;
 
-    GetWindowRect(rasterizer_hwnd, &current);
+    GetWindowRect(shell_window, &current);
     GetWindowRect(GetDesktopWindow(), &target);
 
     target.left = (uint32_t)((target.right - target.left) - width) >> 1;
@@ -50,9 +50,9 @@ void rasterizer_resize_game_window(int32_t height, int32_t width)
 
     if (current.top != target.top || current.bottom != target.bottom ||
         current.left != target.left || current.right != target.right) {
-        MoveWindow(rasterizer_hwnd, target.left, target.top, target.right - target.left,
+        MoveWindow(shell_window, target.left, target.top, target.right - target.left,
                    target.bottom - target.top, 1);
-        ShowWindow(rasterizer_hwnd, 5); // SW_SHOW
+        ShowWindow(shell_window, 5); // SW_SHOW
     }
 
     game_window_bottom_right = (uint16_t)(int16_t)height | ((uint32_t)(uint16_t)(int16_t)width << 16);
@@ -60,9 +60,9 @@ void rasterizer_resize_game_window(int32_t height, int32_t width)
     unknown_0069c642 = (int16_t)width - 8;
     game_window_top_left = 0;
     unknown_0069c63e = 8;
-    unknown_0069c63c = 8;
-    unknown_0069c648 = 1;
-    unknown_0069c64c = 0;
+    game_screen_rect = 8;
+    rasterizer_present_counter_low = 1;
+    rasterizer_present_counter_high = 0;
 }
 
 #if 0

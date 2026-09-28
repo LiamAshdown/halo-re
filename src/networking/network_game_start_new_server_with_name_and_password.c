@@ -24,23 +24,23 @@
 #include <string.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
-extern uint8_t network_session_host_flag_pending; // 0x0071c2dd
-extern uint8_t network_engine_mode_preference; // 0x006894a2, UNSURE name
-extern uint8_t network_game_message_dispatch_ready; // 0x0069fe00, UNSURE name
+extern uint8_t network_server_host_valid; // 0x0071c2dd
+extern uint8_t network_game_info_packet_flag; // 0x006894a2, UNSURE name
+extern uint8_t network_session_host_flags_byte; // 0x0069fe00, UNSURE name
 extern uint8_t network_channels_open_ok; // 0x006869be
-extern int32_t network_client_is_dedicated_flag; // 0x0069b350, UNSURE name
+extern int32_t message_delta_vector3d_mode; // 0x0069b350, UNSURE name
 extern network_client_globals *network_client; // 0x0071c2d8
-extern uint8_t network_host_handoff_request; // 0x0071c2de
-extern int32_t network_widget_reset_a; // 0x0068e680, UNSURE name/owner
-extern int32_t network_widget_reset_b; // 0x0068e684, UNSURE name/owner
-extern int32_t network_widget_reset_c; // 0x00718f8c, UNSURE name/owner
-extern int32_t network_widget_reset_d; // 0x00718f90, UNSURE name/owner
-extern int16_t network_widget_reset_e; // 0x006b2f28, UNSURE name/owner
-extern int16_t network_widget_reset_f; // 0x006b2f68, UNSURE name/owner
-extern int32_t network_widget_reset_g; // 0x0068e688, UNSURE name/owner
-extern int32_t network_widget_reset_h; // 0x00687b18, UNSURE name/owner
+extern uint8_t network_host_handoff_requested; // 0x0071c2de
+extern int32_t interface_loading_screen_address_a; // 0x0068e680, UNSURE name/owner
+extern int32_t interface_loading_screen_address_b; // 0x0068e684, UNSURE name/owner
+extern int32_t join_ui_state; // 0x00718f8c, UNSURE name/owner
+extern int32_t interface_loading_screen_progress; // 0x00718f90, UNSURE name/owner
+extern int16_t progress_screen_text; // 0x006b2f28, UNSURE name/owner
+extern int16_t progress_screen_subtext; // 0x006b2f68, UNSURE name/owner
+extern int32_t interface_loading_screen_request_id; // 0x0068e688, UNSURE name/owner
+extern int32_t game_variant_history_current; // 0x00687b18, UNSURE name/owner
 extern int16_t network_game_mode; // 0x00719720
-extern uint8_t network_channel_service_backoff_bypass_0071c2dc; // 0x0071c2dc
+extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc
 extern int32_t sv_maxplayers_value; // 0x00699584
 
 extern void network_channels_open(void); // this module (earlier batch), 0x441300
@@ -66,19 +66,19 @@ uint8_t network_game_start_new_server_with_name_and_password(uint32_t param_1, u
     if (network_server != 0) {
         network_game_server_host_dispose(network_server);
         network_server = 0;
-        network_session_host_flag_pending = 0;
+        network_server_host_valid = 0;
     }
     network_client_globals_dispose();
     if (*name == 0) {
         static const uint16_t default_name[] = { 'H', 'a', 'l', 'o', 0 };
         name = (uint16_t *)default_name;
     }
-    network_game_message_dispatch_ready = network_engine_mode_preference;
+    network_session_host_flags_byte = network_game_info_packet_flag;
     network_channels_open();
     if (network_channels_open_ok == 0) {
         goto fail;
     }
-    network_client_is_dedicated_flag = (network_engine_mode_preference == 1);
+    message_delta_vector3d_mode = (network_game_info_packet_flag == 1);
     ok = network_game_server_host_create();
     if (ok == 1) {
         if (((network_server->flags >> 2) & 1) == 0) {
@@ -87,33 +87,33 @@ uint8_t network_game_start_new_server_with_name_and_password(uint32_t param_1, u
             if (network_client == 0) {
                 goto fail_or_dispose;
             }
-            network_host_handoff_request = 0;
+            network_host_handoff_requested = 0;
             *(int32_t *)((uint8_t *)network_client + 0xf4c) = 4;
         }
-        network_widget_reset_a = -1;
-        network_widget_reset_b = -1;
-        network_widget_reset_c = 0;
-        network_widget_reset_d = 0;
-        network_widget_reset_e = 0;
-        network_widget_reset_f = 0;
-        network_widget_reset_g = -1;
+        interface_loading_screen_address_a = -1;
+        interface_loading_screen_address_b = -1;
+        join_ui_state = 0;
+        interface_loading_screen_progress = 0;
+        progress_screen_text = 0;
+        progress_screen_subtext = 0;
+        interface_loading_screen_request_id = -1;
         ok = game_engine_ensure_variant_history_has_entry();
         if (ok == 0) {
         fail:
             if (network_server != 0) {
                 network_game_server_host_dispose(network_server);
                 network_server = 0;
-                network_session_host_flag_pending = 0;
+                network_server_host_valid = 0;
             }
             network_client_globals_dispose();
             return 0;
         }
-        network_widget_reset_h = -1;
+        game_variant_history_current = -1;
         game_engine_apply_current_custom_variant();
         game_engine_sync_variant_defaults();
         network_game_mode = 2;
         network_host_round_reset();
-        network_channel_service_backoff_bypass_0071c2dc = 1;
+        network_disconnect_timeout_flag = 1;
     } else {
     fail_or_dispose:
         if (ok == 0) {
@@ -149,7 +149,7 @@ uint8_t network_game_start_new_server_with_name_and_password(uint32_t param_1, u
         widget_close_all();
         network_server->unknown_9fa = 1;
         if (((network_server->flags >> 2) & 1) == 0) {
-            network_widget_reset_c = 2;
+            join_ui_state = 2;
         }
         return 1;
     }

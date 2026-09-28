@@ -16,7 +16,7 @@
 
 extern uint8_t network_player_update_log_enabled; // 0x00710320
 extern char *network_player_update_history_log_path; // 0x0069a2c8, "ServerPlayerUpdateHistory.log"
-extern char network_player_update_log_file_mode_string[]; // 0x0066b87c, "a"
+extern char player_update_log_file_mode_string[]; // 0x0066b87c, "a"
 
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x624186, fopen-shaped CRT wrapper
 
@@ -33,7 +33,7 @@ void network_player_update_history_log_write(const char *format, ...)
     va_end(args);
     if (network_player_update_log_enabled == 1) {
         file = (FILE *)fopen(network_player_update_history_log_path,
-            network_player_update_log_file_mode_string);
+            player_update_log_file_mode_string);
         if (file != 0) {
             fprintf(file, buffer);
             fclose(file);

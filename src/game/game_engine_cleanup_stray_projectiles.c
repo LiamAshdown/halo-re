@@ -22,7 +22,7 @@
 #include "objects.h"
 #include "game.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20
 extern void object_delete_unparented(datum_index object_index);    // 0x4f5aa0, blam-cc: EDI

@@ -65,10 +65,10 @@ extern uint8_t network_channels_open_ok; // 0x006869be, this module (network_cha
 extern int32_t interface_loading_screen_address_a;   // 0x0068e680
 extern int32_t interface_loading_screen_address_b;   // 0x0068e684
 extern int32_t interface_loading_screen_request_id;  // 0x0068e688
-extern int32_t interface_loading_screen_ui_state;    // 0x00718f8c
+extern int32_t join_ui_state;    // 0x00718f8c
 extern int32_t interface_loading_screen_progress;    // 0x00718f90
-extern int32_t interface_loading_screen_text_buffer; // 0x006b2f28
-extern int32_t interface_loading_screen_unknown_6b2f68; // 0x006b2f68
+extern int32_t progress_screen_text; // 0x006b2f28
+extern int32_t progress_screen_subtext; // 0x006b2f68
 
 // Foreign GameSpy library accessors against server_browser_join_target (see
 // out/phase4/networking_types_notes.md: GameSpy SDK objects are deliberately not typed here).
@@ -163,10 +163,10 @@ uint32_t network_join_request_resolve_host(void)
         interface_loading_screen_address_a = -1;
         interface_loading_screen_address_b = -1;
         interface_loading_screen_request_id = -1;
-        interface_loading_screen_ui_state = 0;
+        join_ui_state = 0;
         interface_loading_screen_progress = 0;
-        interface_loading_screen_text_buffer = 0;
-        interface_loading_screen_unknown_6b2f68 = 0;
+        progress_screen_text = 0;
+        progress_screen_subtext = 0;
 
         sprintf(connect_string, "%s:%d", host_buffer, port & 0xffff);
         {
@@ -196,9 +196,9 @@ uint32_t network_join_request_resolve_host(void)
             interface_loading_screen_address_a = -1;
             interface_loading_screen_address_b = -1;
             interface_loading_screen_progress = 0;
-            interface_loading_screen_text_buffer = 0;
-            interface_loading_screen_unknown_6b2f68 = 0;
-            interface_loading_screen_ui_state = 4;
+            progress_screen_text = 0;
+            progress_screen_subtext = 0;
+            join_ui_state = 4;
             return 0xffffff01;
         }
         return result & 0xffffff00;

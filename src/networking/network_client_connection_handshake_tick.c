@@ -31,7 +31,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint8_t network_client_short_disconnect_timeout; // 0x0071c2dc
+extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc
 extern void network_timer_advance(network_timer_pair *timer); // 0x4deb50, this module
 extern void network_timer_increment_clamped(network_timer_pair *timer, int32_t upper_bound, int32_t increment); // 0x4debb0
 extern void network_timer_decrement_floored(network_timer_pair *timer, int32_t decrement); // 0x4debd0
@@ -102,7 +102,7 @@ void network_client_connection_handshake_tick(int16_t state, network_server_glob
             *(uint8_t *)(base + 0x9d6) = 0;
             return;
         }
-        if (network_client_short_disconnect_timeout == 0 ||
+        if (network_disconnect_timeout_flag == 0 ||
             (connected_count = network_server_count_connected_machines(owner), connected_count > 0)) {
             ready = network_channel_short_disconnect_timeout();
             *(uint8_t *)(base + 0x9d4) = 1;

@@ -16,7 +16,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint8_t *network_message_table; // 0x00687130, object_network_id_table
+extern uint8_t *object_network_id_table; // 0x00687130, object_network_id_table
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, ESI table, ECX key
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
@@ -33,7 +33,7 @@ void unit_broadcast_state_change_event(unit_state_change_record record)
     int32_t sent;
 
     if (record.unit != (datum_index)-1) {
-        resolved = hash_table_get((hash_table *)(network_message_table + 0xc), (int32_t)record.unit);
+        resolved = hash_table_get((hash_table *)(object_network_id_table + 0xc), (int32_t)record.unit);
         if (resolved == -1) {
             resolved = 0;
         }

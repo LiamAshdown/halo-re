@@ -19,7 +19,7 @@
 //   location_leaf_index/location_cluster_index 0x098/0x09c == bsp_leaf_reference,
 //   bounding_center 0x0a0, object_flags _object_in_water_bit 0x10, _object_definition_flag0_bit
 //   0x40000, _object_connected_to_map_bit 0x80000); global 0x00746f9c global_structure_bsp,
-//   0x00719cd0 object_random_seed, 0x00719720 network_game_mode. Callees
+//   0x00719cd0 random_seed_global, 0x00719720 network_game_mode. Callees
 //   projectile_compute_rotation / projectile_update_function_values /
 //   projectile_compute_deceleration (all three this module, already written) and
 //   scenario_location_fog_region (0x53ec30, src/scenario, EAX -> leaf, EBX -> point).
@@ -55,7 +55,7 @@
 extern data_array *object_data;            // 0x008603b0
 extern tag_instance *tag_instances;        // 0x0087bc14
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
-extern uint32_t object_random_seed;        // 0x00719cd0
+extern uint32_t random_seed_global;        // 0x00719cd0
 extern int16_t network_game_mode;          // 0x00719720, 0 local, 1 client, 2 host
 
 extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point); // 0x53ec30
@@ -107,8 +107,8 @@ uint8_t projectile_new(uint32_t object_index) // blam-cc: stack -> object_index
     // same timer[0]*30 expression as the bit-0x40 branch.
     if ((tag->projectile_flags & 0x04) == 0) {
         if ((tag->projectile_flags & 0x40) == 0) {
-            object_random_seed = object_random_seed * 0x19660d + 0x3c6ef35f;
-            rate = ((tag->timer[1] - tag->timer[0]) * (real)(object_random_seed >> 0x10) * 1.5259022e-05f +
+            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            rate = ((tag->timer[1] - tag->timer[0]) * (real)(random_seed_global >> 0x10) * 1.5259022e-05f +
                     tag->timer[0]) * 30.0f;
         } else {
             rate = tag->timer[0] * 30.0f;

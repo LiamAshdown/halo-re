@@ -29,7 +29,7 @@
 #include "hs.h"
 #include "game.h"
 
-extern file_reference savegame_directory_file_reference; // 0x00721330
+extern file_reference savegame_index_file; // 0x00721330
 
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the path component appended below
 extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0;
@@ -45,10 +45,10 @@ extern void path_remove_last_component(uint8_t *path); // 0x555f80; blam-cc: EBX
 // size); returns 1 on success, 0 otherwise.
 uint8_t savegame_index_file_exists(void)
 {
-    uint32_t *raw = (uint32_t *)&savegame_directory_file_reference;
+    uint32_t *raw = (uint32_t *)&savegame_index_file;
     int32_t i;
-    uint8_t *flags_byte = (uint8_t *)&savegame_directory_file_reference + 4;
-    uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_directory_file_reference + 6);
+    uint8_t *flags_byte = (uint8_t *)&savegame_index_file + 4;
+    uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_index_file + 6);
 
     for (i = 0; i < 0x43; i++) {
         raw[i] = 0;
@@ -56,13 +56,13 @@ uint8_t savegame_index_file_exists(void)
     raw[0] = 0x66696c6f; // UNSURE: field identity, see header note
     *word_at_6 = 2;
     if ((*flags_byte & 1) != 0) {
-        path_remove_last_component((uint8_t *)&savegame_directory_file_reference + 8);
+        path_remove_last_component((uint8_t *)&savegame_index_file + 8);
     }
-    path_append_component((char *)&savegame_directory_file_reference + 8, saved_game_root_path);
+    path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
     *flags_byte = *flags_byte | 1;
 
-    if (file_reference_open(&savegame_directory_file_reference, 1) != 0) {
-        file_reference_get_size(&savegame_directory_file_reference);
+    if (file_reference_open(&savegame_index_file, 1) != 0) {
+        file_reference_get_size(&savegame_index_file);
         return 1;
     }
     return 0;

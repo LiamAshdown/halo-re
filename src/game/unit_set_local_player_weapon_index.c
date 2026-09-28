@@ -16,7 +16,7 @@
 #include "units.h"
 #include "game.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern data_array *player_data;    // 0x0087a480
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 
@@ -24,8 +24,8 @@ extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 // If `unit` is controlled by a local player, sets that local player's desired_weapon_index.
 void unit_set_local_player_weapon_index(datum_index unit, int16_t weapon_index)
 {
-    unit_data *u = *(unit_data **)((uint8_t *)object_headers->data +
-        (uint32_t)(uint16_t)unit * object_headers->size + 8);
+    unit_data *u = *(unit_data **)((uint8_t *)object_data->data +
+        (uint32_t)(uint16_t)unit * object_data->size + 8);
     datum_index controlling_player = u->controlling_player;
 
     if (controlling_player != k_datum_index_none) {

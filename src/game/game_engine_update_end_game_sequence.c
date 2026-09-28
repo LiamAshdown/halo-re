@@ -25,9 +25,9 @@ extern uint8_t game_engine_dedicated_idle;          // 0x0087aa18
 extern float game_engine_dedicated_idle_timer;      // 0x0087aa1c
 extern int16_t network_game_mode;                   // 0x00719720
 extern uint8_t *network_server;                       // 0x0071c2d4
-extern uint8_t unknown_0071c2de;                    // UNSURE identity/owning module
+extern uint8_t network_host_handoff_requested;                    // UNSURE identity/owning module
 extern uint8_t unknown_007124a0;                    // UNSURE identity/owning module
-extern uint8_t unknown_007124a1;                    // UNSURE identity/owning module
+extern uint8_t chimera_loading_screen_cleanup_gate;                    // UNSURE identity/owning module
 
 extern void game_engine_end_game_sequence_stage3(void); // 0x467180, not in this batch
 extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
@@ -75,7 +75,7 @@ void game_engine_update_end_game_sequence(float delta_time)
         if (game_engine_dedicated_idle == 0) {
             if ((*((uint8_t *)network_server + 6) >> 2 & 1) != 0) {
                 chimera__console_out((ColorARGB *)0, "Game Complete. Dedicated server is now idle.");
-                unknown_0071c2de = 1;
+                network_host_handoff_requested = 1;
                 chat_close();
             }
         } else {
@@ -91,8 +91,8 @@ void game_engine_update_end_game_sequence(float delta_time)
         }
     }
 
-    if (unknown_007124a1 != 0) {
-        unknown_0071c2de = 1;
+    if (chimera_loading_screen_cleanup_gate != 0) {
+        network_host_handoff_requested = 1;
         chat_close();
     }
 }

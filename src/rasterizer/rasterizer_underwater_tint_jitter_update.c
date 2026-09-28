@@ -17,7 +17,7 @@
 #include "rasterizer.h"
 
 extern uint8_t console_debug_toggle_6893f1; // 0x006893f1, gates this whole function
-extern int16_t renderer_unknown_69c67c;                             // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)
 extern BitmapData *rasterizer_environment_lightmap;                 // 0x006e0a08 set from EAX by 0x51f310
 extern float renderer_unknown_68940c;       // 0x0068940c, UNSURE meaning; constant-mode fill value
 extern float rasterizer_underwater_tint_jitter_r; // 0x006e09f8
@@ -33,11 +33,11 @@ void rasterizer_underwater_tint_jitter_update(BitmapData *lightmap)
         return;
     }
     rasterizer_environment_lightmap = lightmap;
-    if (renderer_unknown_69c67c <= 0) {
+    if (render_force_flag <= 0) {
         return;
     }
 
-    if (renderer_unknown_69c67c == 2) {
+    if (render_force_flag == 2) {
         rasterizer_underwater_tint_jitter_b = renderer_unknown_68940c;
         rasterizer_underwater_tint_jitter_g = renderer_unknown_68940c;
         rasterizer_underwater_tint_jitter_r = renderer_unknown_68940c;

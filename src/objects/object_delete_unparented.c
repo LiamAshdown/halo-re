@@ -22,12 +22,11 @@
 #include "networking.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, see object_new_with_datum_role_control.c
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, see object_new_with_datum_role_control.c
 
 extern network_id_table *object_network_id_table; // 0x00687130
-extern void *object_pooled_node_globals_006870d8; // 0x006870d8, UNSURE: network_index_cache_remove's EAX operand
+extern void *network_object_index_cache; // 0x006870d8, UNSURE: network_index_cache_remove's EAX operand
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module; UNSURE: key inferred
-extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940
 extern void network_index_cache_remove(void *globals, uint32_t object_index); // 0x4e9d40.
@@ -66,11 +65,11 @@ void object_delete_unparented(uint32_t object_index) // blam-cc: EDI -> object_i
 
     header = (object_header *)object_data->data + (object_index & 0xffff);
     if ((header->flags & _object_header_delete_pending_bit) == 0) {
-        network_index_cache_remove(&object_pooled_node_globals_006870d8, object_index); // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
+        network_index_cache_remove(&network_object_index_cache, object_index); // FIXED: EAX is the container ADDRESS 0x6870d8 (mov eax,imm); its dword is 0xd, not a pointer
     }
 
     if (encoded_length > 0) {
-        network_session_broadcast_to_flagged(encoded_length, network_server, 1, object_network_message_scratch, 1, 0, 0, 3); // 0x4f5b3b: EAX = the encoded length
+        network_session_broadcast_to_flagged(encoded_length, network_server, 1, network_message_scratch, 1, 0, 0, 3); // 0x4f5b3b: EAX = the encoded length
     }
 }
 

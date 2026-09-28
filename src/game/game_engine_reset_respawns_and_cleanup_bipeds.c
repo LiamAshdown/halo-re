@@ -34,7 +34,7 @@
 extern int16_t network_game_mode;               // 0x00719720
 extern data_array *player_data;                 // 0x0087a480
 extern game_variant game_engine_variant;        // 0x006f1c88
-extern data_array *object_headers;              // 0x008603b0
+extern data_array *object_data;              // 0x008603b0
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern object *object_iterator_next(object_iterator *iterator);   // 0x4f6f20

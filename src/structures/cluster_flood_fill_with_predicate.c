@@ -27,7 +27,7 @@
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t cluster_flood_stamp;         // 0x006e3f04
 extern uint8_t cluster_flood_in_progress;   // 0x006e3f01
-extern int32_t cluster_flood_stamps[0x200]; // 0x006e3f08
+extern int32_t cluster_visit_stamp[0x200]; // 0x006e3f08
 
 // math module, out of this batch.
 extern uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b,
@@ -50,7 +50,7 @@ int16_t cluster_flood_fill_with_predicate(real_point3d *position, real_vector3d 
 
     cluster_flood_stamp++;
     cluster_flood_in_progress = 1;
-    cluster_flood_stamps[start_cluster] = cluster_flood_stamp;
+    cluster_visit_stamp[start_cluster] = cluster_flood_stamp;
     stack[0] = start_cluster;
 
     do {
@@ -74,14 +74,14 @@ int16_t cluster_flood_fill_with_predicate(real_point3d *position, real_vector3d 
                               (int32_t)portal_indices[i] * 0x40;
             int16_t neighbor = (*(int16_t *)portal == cluster_index) ? *(int16_t *)(portal + 2) : *(int16_t *)portal;
 
-            if (cluster_flood_stamps[neighbor] == cluster_flood_stamp) {
+            if (cluster_visit_stamp[neighbor] == cluster_flood_stamp) {
                 continue;
             }
             if (!vector3d_projection_band_test(facing, position, (real_point3d *)(portal + 8),
                     *(real *)(portal + 0x14), max_distance, sin_angle, cos_angle)) {
                 continue;
             }
-            cluster_flood_stamps[neighbor] = cluster_flood_stamp;
+            cluster_visit_stamp[neighbor] = cluster_flood_stamp;
             stack[stack_top++] = neighbor;
         }
     } while (stack_top > 0);

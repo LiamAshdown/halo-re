@@ -16,20 +16,20 @@
 extern void *keystone_module;                 // 0x00721e9c
 extern keystone_translate_accelerator_fn keystone_translate_accelerator;  // 0x00721eb0
 extern keystone_create_window_fn keystone_create_window;                  // 0x00721eb4
-extern chat_gui_find_object_fn keystone_get_window;                        // 0x00721eb8
+extern chat_gui_find_object_fn chat_gui_find_object;                        // 0x00721eb8
 extern keystone_update_fn keystone_update;                                  // 0x00721ebc
 extern keystone_dispatch_message_fn keystone_dispatch_message;               // 0x00721ec0
-extern chat_gui_release_fn keystone_window_release;                          // 0x00721ec8
+extern chat_gui_release_fn chat_gui_release;                          // 0x00721ec8
 extern keystone_unknown_fn keystone_set_focus_window;                        // 0x00721ec4
-extern chat_gui_find_child_fn keystone_window_get_control;                   // 0x00721ecc
+extern chat_gui_find_child_fn chat_gui_find_child;                   // 0x00721ecc
 extern chat_gui_get_property_string_fn keystone_control_get_attribute;       // 0x00721ee0
 extern chat_gui_set_property_string_fn keystone_control_set_attribute;       // 0x00721ee4
-extern chat_gui_set_property_int_fn keystone_control_send_message;           // 0x00721ee8
-extern chat_gui_finalize_fn keystone_window_relayout;                        // 0x00721ed0
-extern chat_gui_set_focus_fn keystone_window_set_focus_control;              // 0x00721ed4
+extern chat_gui_set_property_int_fn chat_gui_set_property_int;           // 0x00721ee8
+extern chat_gui_finalize_fn chat_gui_finalize;                        // 0x00721ed0
+extern chat_gui_set_focus_fn chat_gui_set_focus;              // 0x00721ed4
 extern keystone_unknown_fn keystone_window_add_dirty_control;                // 0x00721ed8
 extern keystone_release_fn keystone_release;                                 // 0x00721eac
-extern chat_gui_set_state_fn keystone_window_show;                           // 0x00721edc
+extern chat_gui_set_state_fn chat_gui_set_state;                           // 0x00721edc
 
 
 // Unloads keystone.dll and clears all of its cached UI entry-point function pointers.
@@ -41,20 +41,20 @@ void keystone_library_unload(void)
     }
     keystone_translate_accelerator = 0;
     keystone_create_window = 0;
-    keystone_get_window = 0;
+    chat_gui_find_object = 0;
     keystone_update = 0;
     keystone_dispatch_message = 0;
-    keystone_window_release = 0;
+    chat_gui_release = 0;
     keystone_set_focus_window = 0;
-    keystone_window_get_control = 0;
+    chat_gui_find_child = 0;
     keystone_control_get_attribute = 0;
     keystone_control_set_attribute = 0;
-    keystone_control_send_message = 0;
-    keystone_window_relayout = 0;
-    keystone_window_set_focus_control = 0;
+    chat_gui_set_property_int = 0;
+    chat_gui_finalize = 0;
+    chat_gui_set_focus = 0;
     keystone_window_add_dirty_control = 0;
     keystone_release = 0;
-    keystone_window_show = 0;
+    chat_gui_set_state = 0;
 }
 
 #if 0

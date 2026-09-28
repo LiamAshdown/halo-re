@@ -34,7 +34,7 @@
 #include "rasterizer.h"
 #include "render.h"
 
-extern Rectangle2D game_window_bounds;     // 0x0069c634 top, 0x0069c636 left, 0x0069c638 bottom,
+extern Rectangle2D game_window_top_left;     // 0x0069c634 top, 0x0069c636 left, 0x0069c638 bottom,
                                            // 0x0069c63a right (rasterizer module; src/rasterizer
                                            // declares the halves as game_window_top_left /
                                            // game_window_bottom_right)
@@ -47,8 +47,8 @@ extern frame_graph frame_graphs[1];        // 0x006b9260, this module
 void rasterizer_frame_statistics_graph_init(void)
 {
     frame_graph *g = &frame_graphs[0];
-    int32_t width = (int32_t)game_window_bounds.right - (int32_t)game_window_bounds.left;
-    int32_t height = (int32_t)game_window_bounds.bottom - (int32_t)game_window_bounds.top;
+    int32_t width = (int32_t)game_window_top_left.right - (int32_t)game_window_top_left.left;
+    int32_t height = (int32_t)game_window_top_left.bottom - (int32_t)game_window_top_left.top;
     float right;
     float span;
     float x_scale;
@@ -61,7 +61,7 @@ void rasterizer_frame_statistics_graph_init(void)
         return;
     }
 
-    right = (float)((int32_t)game_window_bounds.right - 0x40);
+    right = (float)((int32_t)game_window_top_left.right - 0x40);
     frame_graph_window_width = height;
     frame_graph_window_height = width;
     g->bounds.left = 0x40;

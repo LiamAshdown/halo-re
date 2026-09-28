@@ -19,7 +19,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 // blam-cc: EAX -> player_index, ESI -> value, stack -> slot
 // The first time slot 0's streak is touched (it reads 0), marks the player's unit with
@@ -31,7 +31,7 @@ void player_kill_streak_set_max(int16_t slot, uint32_t player_index, int16_t val
     int16_t *streak = &p->kill_streak[slot];
 
     if (*streak == 0 && slot == 0) {
-        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data + k_unit_data_offset);
+        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
         unit->flags = unit->flags | _unit_flag_unknown_10;
         unit->unknown_422 = slot;
     }

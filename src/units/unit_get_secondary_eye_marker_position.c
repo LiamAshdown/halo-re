@@ -15,7 +15,7 @@
 #include "math.h"
 #include "objects.h"
 
-extern char s_secondary_eye_marker[]; // 0x00672034, "body" (an array: its address is the marker name)
+extern char ai_marker_name_b[]; // 0x00672034, "body" (an array: its address is the marker name)
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
                                                 uint32_t param_4); // 0x4f6080
@@ -23,7 +23,7 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out) // blam-cc: ECX -> object_index, ESI -> out
 {
     object_marker marker;
-    object_get_node_local_transform(object_index, s_secondary_eye_marker, &marker, 1) /* FIXED: the original pushes 1, the maximum marker count */;
+    object_get_node_local_transform(object_index, ai_marker_name_b, &marker, 1) /* FIXED: the original pushes 1, the maximum marker count */;
     *out = marker.node_transform.position; // [esp+0x70] after four pushes = marker +0x60, the world position
     return;
 }

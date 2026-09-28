@@ -12,14 +12,14 @@
 #include "hs.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint16_t main_globals_word_00719754; // 0x00719754
-extern uint8_t main_globals_byte_0071973c; // 0x0071973c
-extern uint8_t main_globals_byte_0071973b; // 0x0071973b
+extern uint16_t split_screen_quit_prompt_string; // 0x00719754
+extern uint8_t network_join_error_reason; // 0x0071973c
+extern uint8_t unknown_0071973b; // 0x0071973b
 
 void hs_evaluate_cinematic_abort(int16_t function_index, uint32_t thread_index, char first)
 {
-    main_globals_word_00719754 = 0xffff;
-    main_globals_byte_0071973c = 0;
-    main_globals_byte_0071973b = 1;
+    split_screen_quit_prompt_string = 0xffff;
+    network_join_error_reason = 0;
+    unknown_0071973b = 1;
     hs_thread_return(0, thread_index);
 }

@@ -45,7 +45,7 @@ extern uint8_t message_delta_decode_compound_field_forced(void *event, uint32_t 
     // 0x4ec600, blam-cc: EAX, EDX, ECX, stack -> zero; UNSURE
 extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670, blam-cc: EAX -> event; UNSURE identity
 
-extern int32_t *unknown_00687558_table; // 0x00687558+0x28, UNSURE: owning module/identity
+extern int32_t *machine_table; // 0x00687558+0x28, UNSURE: owning module/identity
 
 // UNSURE: applies a found player-profile-cache entry's stat tail onto a player datum. `event`'s
 // shape beyond one `[[event+0x44]]` dereference, and the two foreign FUN_004ec5xx/4ec6xx calls'
@@ -63,7 +63,7 @@ void game_engine_apply_player_profile_entry(void *event)
     lookup_index = **(int32_t **)((uint8_t *)event + 0x44);
     search_handle = (datum_index)0xffffffff;
     if (lookup_index != 0) {
-        search_handle = (datum_index)unknown_00687558_table[lookup_index];
+        search_handle = (datum_index)machine_table[lookup_index];
     }
 
     slot = game_engine_player_profile_cache_find(search_handle);

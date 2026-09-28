@@ -45,8 +45,8 @@
 extern network_server_globals *network_server; // 0x0071c2d4
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern network_client_globals *network_client; // 0x0071c2d8
-extern int32_t network_rcon_connection_id; // 0x0069fdfc (UNSURE name)
-extern uint8_t network_object_update_scratch[0x7ff8]; // 0x00871de0, shared with
+extern int32_t network_console_connection_id; // 0x0069fdfc (UNSURE name)
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, shared with
     // network_game_broadcast_team_object_updates.c
 
 extern char network_player_entry_validate(network_player_entry *entry);
@@ -61,10 +61,9 @@ extern void network_channel_remove_child(network_channel *channel); // other mod
 extern void gcd_disconnect_user(int32_t id, int32_t value); // GameSpy library (UNSURE)
 extern void gcd_disconnect_all(int32_t id); // GameSpy library (UNSURE)
 extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50
-extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-    // The call at 0x4e1187 also sets EAX = network_object_update_scratch and EDX = 0x7ff8, two
+    // The call at 0x4e1187 also sets EAX = network_message_scratch and EDX = 0x7ff8, two
     // register arguments this declaration does not model.
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
     void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
@@ -143,9 +142,9 @@ not_timed_out:
                     *(int32_t *)((uint8_t *)machine + 0x52) = 0;
                     *(int32_t *)((uint8_t *)machine + 0x56) = 0;
                     if (machine->unknown_5c == -1) {
-                        gcd_disconnect_all(network_rcon_connection_id);
+                        gcd_disconnect_all(network_console_connection_id);
                     } else {
-                        gcd_disconnect_user(network_rcon_connection_id, machine->unknown_5c);
+                        gcd_disconnect_user(network_console_connection_id, machine->unknown_5c);
                     }
                     machine->unknown_50 = 0;
                     machine->unknown_51 = 0;
@@ -159,7 +158,7 @@ not_timed_out:
                         session_ptr = &server->session;
                         encoded = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &session_ptr, 0, 1, 0);
                         if (encoded > 0) {
-                            network_session_broadcast_to_all(network_server, 1, network_object_update_scratch,
+                            network_session_broadcast_to_all(network_server, 1, network_message_scratch,
                                 1, 0, 1, 3);
                         }
                     }

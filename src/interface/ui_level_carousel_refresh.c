@@ -12,7 +12,7 @@
 // instead of its extended description, dropped both register arguments of 0x4a7400 and handed
 // ui_level_carousel_row_refresh the loop counter instead of the index.
 // register convention: cdecl, the one stack parameter (widget).
-// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
+// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
 
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +23,7 @@
 #include "saved_games.h"
 #include <string.h>
 
-extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710, blam-cc: EBX widget
 extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget); // 0x4a7400, blam-cc: EAX out, ECX widget
@@ -35,7 +35,7 @@ void ui_level_carousel_refresh(widget_instance *widget)
     uint8_t profile_record[0x1ffc];
     int32_t i;
 
-    memcpy(profile_record, &saved_player_profile_slots[0].profile, sizeof(profile_record));
+    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
     set_profile_name(widget->extended_description, (const uint16_t *)(profile_record + 2));
     widget_list_scroll_window(visible, widget);
 

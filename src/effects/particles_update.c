@@ -21,7 +21,7 @@
 
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t render_tick_counter; // 0x007c3100, UNSURE: foreign module (render globals)
+extern int32_t render_frame_index; // 0x007c3100, UNSURE: foreign module (render globals)
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
@@ -43,7 +43,7 @@ void particles_update(real delta_time)
         real age_before = self->age;
         Particle *tag = (Particle *)tag_instances[(uint16_t)self->definition_index].data;
 
-        if (render_tick_counter - self->last_update_tick < 0x10) {
+        if (render_frame_index - self->last_update_tick < 0x10) {
             self->age = delta_time + self->age;
 
             if (self->age < self->lifespan || age_before == 0.0f || tag->final_sequence_count != 0) {

@@ -36,7 +36,7 @@ extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *
 extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734, always 0xffff here
 extern int16_t hud_text_draw_column;          // 0x006e4736, the `column` argument
 extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730, always zeroed here
-extern uint32_t screen_safe_area_origin;      // 0x007c3140, high16 subtracted from both corners below
+extern uint32_t render_viewport_top;      // 0x007c3140, high16 subtracted from both corners below
 extern uint32_t screen_safe_area_right;       // 0x007c3148, high16 is the right anchor x
 extern uint32_t screen_safe_area_bottom;      // 0x007c314c, high16 is the bottom anchor y
 
@@ -53,7 +53,7 @@ void hud_draw_scoreboard_row_text(int16_t row, wchar_t *text, int16_t column)
     hud_text_draw_column = column;
     hud_text_draw_unknown_4730 = 0;
 
-    safe_left = (int16_t)(screen_safe_area_origin >> 16);
+    safe_left = (int16_t)(render_viewport_top >> 16);
     bounds.top = (int16_t)(row * 0x12);
     bounds.left = (int16_t)((screen_safe_area_right >> 16) - (uint16_t)safe_left);
     bounds.bottom = (int16_t)(row * 0x12 + 0x1a);

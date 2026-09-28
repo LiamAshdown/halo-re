@@ -5,7 +5,7 @@
 // a fixed position on the HUD"); reuses the shared HUD text draw-state globals already named in
 // src/game/hud_draw_scoreboard_row_text.c and src/game/hud_draw_world_relative_text.c
 // (hud_text_draw_font_tag_id @0x006e472c, hud_text_draw_unknown_4730 @0x006e4730,
-// hud_text_draw_color_or_flags @0x006e4734, hud_text_draw_color_alpha @0x006e4738 (text.h text_color.alpha),
+// hud_text_draw_color_or_flags @0x006e4734, hud_text_draw_color_a @0x006e4738 (text.h text_color.alpha),
 // hud_text_draw_color_r/g/b @0x006e473c/4740/4744, hud_text_draw_background_mode @0x006e4748);
 // types/tags.h Globals::interface_bitmaps (+0x140) -> GlobalsInterfaceBitmaps::font_terminal
 // (its tag_id at +0x1c, same anchor as hud_draw_world_relative_text.c).
@@ -21,7 +21,7 @@
 // five-argument shape hud_draw_scoreboard_row_text.c established, and with plain small integer
 // literals rather than that call's packed 16.16 values); modeled with its own six-argument
 // prototype for this file only, per this codebase's established per-call-site convention.
-// reconciled: R36 0x006e4738 extern renamed hud_text_draw_color_alpha (float, text.h text_color.alpha); store kept bit-exact
+// reconciled: R36 0x006e4738 extern renamed hud_text_draw_color_a (float, text.h text_color.alpha); store kept bit-exact
 
 #include "tags.h"
 #include "memory.h"
@@ -36,7 +36,7 @@ extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c
 extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730
 extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734, two separate int16 slots in the
 extern int16_t hud_text_draw_column;         // 0x006e4736  binary, never one dword
-extern float hud_text_draw_color_alpha;       // 0x006e4738, text.h text_color.alpha
+extern float hud_text_draw_color_a;       // 0x006e4738, text.h text_color.alpha
 extern float hud_text_draw_color_r;           // 0x006e473c
 extern float hud_text_draw_color_g;           // 0x006e4740
 extern float hud_text_draw_color_b;           // 0x006e4744
@@ -61,7 +61,7 @@ void hud_draw_teammate_nameplate_text(wchar_t *text, int32_t value)
                                  ((int32_t)interface_bitmaps->font_terminal.tag_id.id << 16);
     hud_text_draw_unknown_4730 = 8;
     hud_text_draw_color_r = 0.45882353f; // 0x3eeaeaeb
-    *(int32_t *)&hud_text_draw_color_alpha = value; // raw dword store, as the binary does
+    *(int32_t *)&hud_text_draw_color_a = value; // raw dword store, as the binary does
     hud_text_draw_color_b = 1.0f; // 0x3f800000
     hud_text_draw_color_or_flags = 0xffffu;
     hud_text_draw_column = 2;

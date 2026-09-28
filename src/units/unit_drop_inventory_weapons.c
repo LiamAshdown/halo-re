@@ -14,7 +14,7 @@
 #include "units.h"
 
 extern data_array *object_data;      // 0x008603b0
-extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
+extern int16_t network_game_mode; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
 extern uint8_t weapon_is_out_of_ammo(uint32_t object_index); // 0x4c2c70, EAX; AL result
 extern void object_delete(uint32_t object_index);   // 0x4f5bd0, UNSURE exact signature
@@ -45,7 +45,7 @@ void unit_drop_inventory_weapons(uint32_t unit_index)
 
             // 0x56f0bb / 0x56f0d7: EAX = the dropped weapon (ESI). FIXED 2026-09-28: the draft passed the slot after
             // clearing it (-1), which crashed in weapon_is_out_of_ammo when the player died holding two weapons.
-            if (weapon_is_out_of_ammo(dropped) == 0 && game_connection_role == 0) {
+            if (weapon_is_out_of_ammo(dropped) == 0 && network_game_mode == 0) {
                 object_delete(dropped);
             }
         }

@@ -67,18 +67,18 @@
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant;            // 0x006f1c88 (::teams at 0x006f1cbc)
 extern data_array *player_data;                     // 0x0087a480
-extern data_array *object_headers;                  // 0x008603b0
+extern data_array *object_data;                  // 0x008603b0
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern network_server_globals *network_server;
 extern network_client_globals *network_client;
 extern wchar_t empty_string;                        // 0x00660c34
-extern uint8_t *unknown_00873d40; // UNSURE: a globals-tag-like color/font source
+extern uint8_t *hud_messaging_parameters; // UNSURE: a globals-tag-like color/font source
 extern const ColorARGB *global_white_argb; // 0x006851fc -> 0x00655138 = {1,1,1,1} (.data)
 
 extern float hud_text_draw_color_r; // 0x006e473c
 extern float hud_text_draw_color_g; // 0x006e4740
 extern float hud_text_draw_color_b; // 0x006e4744
-extern float hud_text_draw_color_alpha; // 0x006e4738, text.h text_color.alpha
+extern float hud_text_draw_color_a; // 0x006e4738, text.h text_color.alpha
 extern uint16_t hud_text_draw_color_or_flags; // 0x006e4734, two separate int16 slots in the
 extern int16_t hud_text_draw_column;         // 0x006e4736  binary, never one dword
 extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730
@@ -225,7 +225,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
                     {
                         object *unit_obj = (p->unit == (datum_index)0xffffffff)
                             ? (object *)0
-                            : ((object_header *)object_headers->data)[p->unit & 0xffff].data;
+                            : ((object_header *)object_data->data)[p->unit & 0xffff].data;
                         int16_t team_col_index = (int16_t)(visible[i].player & 0x7f); // UNSURE: field role
                         wchar_t *team_text;
                         datum_index text_tag;
@@ -282,11 +282,11 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
             hud_text_draw_color_r = global_white_argb->red;
             hud_text_draw_color_g = global_white_argb->green;
             hud_text_draw_color_b = global_white_argb->blue;
-            hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x64);
+            hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x64);
             if (hud_text_draw_font_tag_id == -1) {
-                hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x54);
+                hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x54);
             }
-            hud_text_draw_color_alpha = opacity;
+            hud_text_draw_color_a = opacity;
             hud_text_draw_color_or_flags = 0xffffu;
             hud_text_draw_column = 0;
             hud_text_draw_unknown_4730 = 0;
@@ -339,11 +339,11 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
                 string_format_wide_va_bounded(0x200, row_buffer, L"%s%s:%u", label, address_wide, port);
             }
 
-            hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x64);
+            hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x64);
             if (hud_text_draw_font_tag_id == -1) {
-                hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x54);
+                hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x54);
             }
-            hud_text_draw_color_alpha = opacity;
+            hud_text_draw_color_a = opacity;
             hud_text_draw_color_g = global_white_argb->green;
             hud_text_draw_color_b = global_white_argb->blue;
             hud_text_draw_color_or_flags = 0xffffu;

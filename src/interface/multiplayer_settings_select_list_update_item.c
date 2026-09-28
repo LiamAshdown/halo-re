@@ -29,7 +29,7 @@
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool;    // 0x006926c4
-extern uint16_t default_profile_name_suffix_00671fac[]; // 0x00671fac
+extern uint16_t missing_string_text[]; // 0x00671fac
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
@@ -67,7 +67,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
                 desc_buf[0] = 0;
                 if (labels_tag != (datum_index)-1) {
                     UnicodeStringList *list = (UnicodeStringList *)tag_instances[labels_tag & 0xffff].data;
-                    const uint16_t *source = default_profile_name_suffix_00671fac;
+                    const uint16_t *source = missing_string_text;
 
                     if (list->strings.count > 5) {
                         UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;

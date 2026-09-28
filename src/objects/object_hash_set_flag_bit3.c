@@ -17,8 +17,8 @@
 #include "objects.h"
 
 extern data_array *object_data;    // 0x008603b0
-extern data_array *g_0087a464;     // 0x0087a464, UNSURE: not owned by this module
-extern data_array *g_0087a468;     // 0x0087a468, UNSURE: not owned by this module
+extern data_array *object_list_header_data;     // 0x0087a464, UNSURE: not owned by this module
+extern data_array *object_list_reference_data;     // 0x0087a468, UNSURE: not owned by this module
 
 void object_hash_set_flag_bit3(uint32_t key)
 {
@@ -28,11 +28,11 @@ void object_hash_set_flag_bit3(uint32_t key)
 
     if (key != 0xffffffff) {
         // objdump: mov eax,[edx+eax*4+0x8] -- the key's entry holds its first node at +8, not +0
-        node = *(uint32_t *)((uint8_t *)g_0087a464->data + (key & 0xffff) * 0xc + 8);
+        node = *(uint32_t *)((uint8_t *)object_list_header_data->data + (key & 0xffff) * 0xc + 8);
         if (node == 0xffffffff) {
             next_node = 0xffffffff;
         } else {
-            uint8_t *entry = (uint8_t *)g_0087a468->data + (node & 0xffff) * 0xc;
+            uint8_t *entry = (uint8_t *)object_list_reference_data->data + (node & 0xffff) * 0xc;
             next_node = *(uint32_t *)(entry + 8);
             node = *(uint32_t *)(entry + 4);
         }
@@ -47,7 +47,7 @@ void object_hash_set_flag_bit3(uint32_t key)
         if (next_node == 0xffffffff) {
             node = 0xffffffff;
         } else {
-            uint8_t *entry = (uint8_t *)g_0087a468->data + (next_node & 0xffff) * 0xc;
+            uint8_t *entry = (uint8_t *)object_list_reference_data->data + (next_node & 0xffff) * 0xc;
             next_node = *(uint32_t *)(entry + 8);
             node = *(uint32_t *)(entry + 4);
         }

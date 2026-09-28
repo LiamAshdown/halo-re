@@ -21,7 +21,7 @@
 extern uint8_t network_disabled_flag; // 0x007196ec, UNSURE: see note above
 extern int16_t network_join_error_code; // 0x00718fa4, UNSURE
 extern int32_t network_join_error_reason; // 0x0071973c, UNSURE
-extern uint8_t network_join_error_flags[4]; // 0x00719754, UNSURE: byte 2 is never
+extern uint8_t split_screen_quit_prompt_string[4]; // 0x00719754, UNSURE: byte 2 is never
                                                   // touched by this function
 extern data_packet_group network_game_messages_group; // 0x006994f8
 
@@ -37,9 +37,9 @@ void network_dispatch_initialize(void)
         if (network_join_error_code == -1) {
             network_join_error_code = 5;
         }
-        *(uint16_t *)&network_join_error_flags[0] = 0xffff;
+        *(uint16_t *)&split_screen_quit_prompt_string[0] = 0xffff;
         network_join_error_reason = 0;
-        network_join_error_flags[3] = 1;
+        split_screen_quit_prompt_string[3] = 1;
     }
     if (network_disabled_flag == 0) {
         struct_definition_table_compute_sizes(&network_game_messages_group);

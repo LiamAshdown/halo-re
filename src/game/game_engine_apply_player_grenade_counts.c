@@ -33,7 +33,7 @@ extern Globals *global_globals;                     // 0x00746fa0
 extern int32_t game_engine_unknown_aa00;            // 0x0087aa00
 extern game_variant game_engine_variant;            // 0x006f1c88 (flags aliased 0x006f1cc0,
                                                      // starting_equipment aliased 0x006f1ce4)
-extern data_array *object_headers;                  // 0x008603b0
+extern data_array *object_data;                  // 0x008603b0
 
 extern void game_engine_spawn_player_starting_loadout(uint32_t starting_equipment_index,
     int32_t *frag_count, int32_t *plasma_count); // 0x4611f0, this batch
@@ -75,7 +75,7 @@ void game_engine_apply_player_grenade_counts(uint32_t player_index)
     }
 
     if ((game_engine_variant.flags & 0x20) == 0) {
-        object *obj = ((object_header *)object_headers->data)[unit & 0xffff].data;
+        object *obj = ((object_header *)object_data->data)[unit & 0xffff].data;
         if (obj->network_role == 0 || obj->network_role == 3) {
             game_engine_spawn_player_starting_loadout(unit, &frag_count, &plasma_count);
         }
@@ -94,7 +94,7 @@ void game_engine_apply_player_grenade_counts(uint32_t player_index)
             return;
         }
         {
-            object *obj = ((object_header *)object_headers->data)[unit & 0xffff].data;
+            object *obj = ((object_header *)object_data->data)[unit & 0xffff].data;
 
             if (obj->network_role != 0 && obj->network_role != 3) {
                 return;

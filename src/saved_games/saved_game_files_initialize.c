@@ -7,7 +7,7 @@
 // and resets the in-memory save index." types/saved_games.h globals list documents the two bulk
 // zero ranges this function performs: the 0x2c7-dword block 0x00721330..0x00721e4c (savegame_
 // index_file through the eleven path buffers this function is about to fill) and the 0x1001-dword
-// block from default_player_profile (0x0071d280) through unknown_0071f27c, which runs past both
+// block from default_profile_data (0x0071d280) through unknown_0071f27c, which runs past both
 // of those into default_player_profile_initialized (0x00721280, immediately set back to 1 right
 // after) -- kept as a raw pointer-cursor zero rather than forced into any one struct's sizeof,
 // since it deliberately spans three separate globals.
@@ -27,7 +27,7 @@
 extern char profile_directory[0x105]; // 0x006ac900 (cache module)
 extern file_reference_record savegame_index_file; // 0x00721330
 extern char saved_game_root_directory[0x100]; // 0x00721449
-extern char hdmu_map_path[0x100]; // 0x006e3108
+extern char saved_game_root_path[0x100]; // 0x006e3108
 extern char savegames_directory[0x100]; // 0x00721549
 extern char saved_directory[0x100]; // 0x00721649
 extern char player_profiles_directory[0x100]; // 0x00721749
@@ -41,7 +41,7 @@ extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 extern uint8_t savegame_index_dirty; // 0x00721447
 extern network_mutex_record *savegame_index_mutex; // 0x00721440
 extern uint8_t saved_game_files_initialized; // 0x00721446
-extern saved_player_profile default_player_profile; // 0x0071d280
+extern saved_player_profile default_profile_data; // 0x0071d280
 extern uint8_t default_player_profile_initialized; // 0x00721280
 extern variant_write_request variant_write_request_state; // 0x00721288
 extern int16_t default_game_variant_count; // 0x00721328
@@ -74,7 +74,7 @@ void saved_game_files_initialize(void)
     }
 
     strncpy(saved_game_root_directory, profile_directory, 0xff);
-    _snprintf(hdmu_map_path, 0xff, "%s\\%s\\%s", saved_game_root_directory, "saved", "hdmu.map");
+    _snprintf(saved_game_root_path, 0xff, "%s\\%s\\%s", saved_game_root_directory, "saved", "hdmu.map");
     _snprintf(savegames_directory, 0xff, "%s\\%s", saved_game_root_directory, "savegames");
     _snprintf(saved_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved");
     directory_create_recursive(saved_directory);
@@ -106,12 +106,12 @@ void saved_game_files_initialize(void)
     saved_game_files_initialized = 0;
 
 default_profile:
-    zero_cursor = (uint8_t *)&default_player_profile;
+    zero_cursor = (uint8_t *)&default_profile_data;
     for (i = 0x1001; i != 0; i--) {
         *(uint32_t *)zero_cursor = 0;
         zero_cursor += 4;
     }
-    player_profile_initialize(&default_player_profile, 0, 0);
+    player_profile_initialize(&default_profile_data, 0, 0);
     default_player_profile_initialized = 1;
     player_profile_write_default_files();
 

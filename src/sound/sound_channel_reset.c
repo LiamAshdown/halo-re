@@ -19,7 +19,7 @@
 #include "memory.h"
 #include "sound.h"
 
-extern uint32_t unknown_722b58; // 0x00722b58, UNSURE, see file header
+extern uint32_t config_enable_stop_start; // 0x00722b58, UNSURE, see file header
 extern uint8_t sound_stopping_all; // 0x007252b7
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
@@ -32,7 +32,7 @@ extern void sound_channel_stream_update(int16_t channel_index, uint8_t unused); 
 void sound_channel_reset(int16_t channel_index)
 {
     directsound_channel *channel = &directsound_channels[channel_index];
-    uint8_t keep_streaming = (unknown_722b58 == 0); // UNSURE, see file header
+    uint8_t keep_streaming = (config_enable_stop_start == 0); // UNSURE, see file header
 
     channel->source = (SoundPermutation *)0;
     channel->next_source = (SoundPermutation *)0;

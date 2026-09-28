@@ -24,7 +24,7 @@
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern game_time_globals *game_time; // 0x006f1d6c
-extern char unknown_0065fd30[]; // 0x0065fd30, fopen mode "wt"
+extern char network_summary_log_mode_string[]; // 0x0065fd30, fopen mode "wt"
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern int16_t campaign_level_find_index_for_path(char *scenario_name); // 0x4c8b90, not in this module; one stack argument (add esp,4 at 0x538bdb)
@@ -45,7 +45,7 @@ void game_checkpoint_write_stats_file(char *scenario_name, int32_t difficulty)
     strcpy(path, directory);
     strcpy(path + strlen(path), "savegame.sav");
 
-    file = fopen(path, unknown_0065fd30);
+    file = fopen(path, network_summary_log_mode_string);
     if (file != 0) {
         GetLocalTime((LPSYSTEMTIME)&now);
         level = campaign_level_find_index_for_path(scenario_name);

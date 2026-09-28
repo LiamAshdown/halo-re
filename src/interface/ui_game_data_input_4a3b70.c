@@ -22,7 +22,7 @@
 extern uint8_t ui_split_screen; // 0x00718fc9
 extern int32_t network_host_number_field_00719218; // 0x00719218, UNSURE (1 or 2: which option is being typed)
 extern uint16_t network_host_number_text_0071921c[0x10]; // 0x0071921c, UNSURE
-extern uint32_t network_channel_port_a; // 0x00698208, UNSURE name
+extern uint32_t network_game_socket_port; // 0x00698208, UNSURE name
 extern uint32_t network_game_option_a_00719210; // 0x00719210, TYPES-GAP
 extern uint32_t network_game_option_b_00719214; // 0x00719214, TYPES-GAP
 extern heap *widget_memory_pool; // 0x006926c4
@@ -57,7 +57,7 @@ void ui_game_data_input_4a3b70(widget_instance *widget)
 
     if (network_host_number_field_00719218 == 1) {
         if (network_host_number_text_0071921c[0] == 0) {
-            network_game_option_a_00719210 = network_channel_port_a;
+            network_game_option_a_00719210 = network_game_socket_port;
         } else {
             network_game_option_a_00719210 = (uint32_t)_wtoi((const wchar_t *)network_host_number_text_0071921c);
             if (network_game_option_a_00719210 > 0xffff) {

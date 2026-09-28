@@ -41,12 +41,12 @@ extern int32_t ui_list_current;                        // 0x00692c04
 extern growable_array ui_lists[3];                      // 0x006b3830
 extern int16_t local_player_count;                      // 0x006894b8
 extern uint8_t profile_globals_block[0x60a4];           // 0x00712dd8
-extern int32_t current_profile_index;                   // 0x00714dd4
+extern int32_t saved_player_profile_slots_handle;                   // 0x00714dd4
 extern int32_t cached_profile_slot;                     // 0x0068e66c
 extern char last_profile_name[];                        // 0x00718e80
 extern campaign_level_entry known_campaign_levels_00692acc[10]; // 0x00692acc
-extern uint8_t selected_level_start_flags_00719754_byte3; // 0x00719757
-extern char selected_level_path_00719779[0x100];        // 0x00719779
+extern uint8_t split_screen_quit_prompt_armed; // 0x00719757
+extern char unknown_00719779[0x100];        // 0x00719779
 extern uint8_t selected_level_active_00719878;          // 0x00719878
 extern uint8_t selected_level_pending_00719778;         // 0x00719778
 extern uint8_t network_wait_flag_00719739;              // 0x00719739
@@ -83,11 +83,11 @@ uint8_t ui_level_select_confirm_choice(widget_instance *widget)
     }
     if (local_player_count == 1) {
         unlocked = level_unlocked_for(0, level_id);
-        if (cached_profile_slot != current_profile_index) {
-            if (current_profile_index != -1) {
-                saved_game_get_directory_by_handle(current_profile_index, last_profile_name);
+        if (cached_profile_slot != saved_player_profile_slots_handle) {
+            if (saved_player_profile_slots_handle != -1) {
+                saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
             }
-            cached_profile_slot = current_profile_index;
+            cached_profile_slot = saved_player_profile_slots_handle;
         }
         if (last_profile_name[0] != 0) {
             saved_game_last_profile_clear(last_profile_name);
@@ -101,8 +101,8 @@ uint8_t ui_level_select_confirm_choice(widget_instance *widget)
         widget_play_sound_effect(4);
         return unlocked;
     }
-    selected_level_start_flags_00719754_byte3 = 0;
-    strncpy(selected_level_path_00719779, known_campaign_levels_00692acc[level_id].path, 0xff);
+    split_screen_quit_prompt_armed = 0;
+    strncpy(unknown_00719779, known_campaign_levels_00692acc[level_id].path, 0xff);
     selected_level_active_00719878 = 0;
     selected_level_pending_00719778 = 1;
     network_wait_flag_00719739 = 0;

@@ -43,8 +43,8 @@
 extern int16_t local_player_count;                        // 0x006894b8, TYPES-GAP
 extern char level_select_current_path_00719068[0x106];            // 0x00719068, TYPES-GAP
 extern level_select_entry level_select_entries[10];  // 0x00719018
-extern int32_t current_profile_index;                              // 0x00714dd4
-extern int32_t level_select_cached_profile_index_00692af8;         // 0x00692af8, TYPES-GAP
+extern int32_t saved_player_profile_slots_handle;                              // 0x00714dd4
+extern int32_t cached_saved_game_something;         // 0x00692af8, TYPES-GAP
 extern uint8_t level_select_flags_0071916a;                        // 0x0071916a, TYPES-GAP
 extern uint8_t level_select_flags_0071916b;                        // 0x0071916b, TYPES-GAP
 extern uint8_t level_select_flags_0071916c;                        // 0x0071916c, TYPES-GAP
@@ -54,7 +54,7 @@ extern growable_array ui_lists[3];                                  // 0x006b383
 extern int32_t ui_list_current;                                     // 0x00692c04
 extern uint8_t ui_list_has_default;                                 // 0x007192f8
 extern campaign_level_entry known_campaign_levels_00692acc[10];  // 0x00692acc, TYPES-GAP
-extern uint16_t default_profile_name_suffix_00671fac[];             // 0x00671fac
+extern uint16_t missing_string_text[];             // 0x00671fac
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 extern int16_t level_select_frame_00719168;                         // 0x00719168, TYPES-GAP
 extern int32_t last_level_widget_selection_00692afc;                 // 0x00692afc, TYPES-GAP
@@ -93,12 +93,12 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
     string_list_tag = tag_lookup(0x75737472 /* 'ustr' */, "ui\\shell\\main_menu\\map_list_oneline");
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
-    if (current_profile_index != level_select_cached_profile_index_00692af8) {
+    if (saved_player_profile_slots_handle != cached_saved_game_something) {
         memset(level_select_current_path_00719068, 0, sizeof(level_select_current_path_00719068));
         // 0x49c97d..0x49c991: EAX = &0x0071916c, ESI = &0x00719168, EDI = the path buffer 0x00719068.
         level_select_flags_0071916b = game_state_read_checkpoint_summary(&level_select_flags_0071916c,
             &level_select_frame_00719168, level_select_current_path_00719068);
-        level_select_cached_profile_index_00692af8 = current_profile_index;
+        cached_saved_game_something = saved_player_profile_slots_handle;
     }
 
     memcpy(profile_copy, profile_globals_block, sizeof(profile_copy) < sizeof(profile_globals_block)
@@ -147,7 +147,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
             level_select_entries[i].flag_bit3 = (uint8_t)((flags >> 3) & 1);
         }
 
-        entry_name = default_profile_name_suffix_00671fac;
+        entry_name = missing_string_text;
         if (string_list_tag != (datum_index)-1) {
             UnicodeStringList *list = (UnicodeStringList *)tag_instances[string_list_tag & 0xffff].data;
 
@@ -211,7 +211,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
             level_select_flags_0071916b = 0;
             return 1;
         }
-    } else if (level_select_flags_0071916c == 1 && current_profile_index != -1) {
+    } else if (level_select_flags_0071916c == 1 && saved_player_profile_slots_handle != -1) {
         if (last_level_widget_selection_00692afc == -1) {
             if (quit_confirm_error_string_index == -1) {
                 quit_confirm_error_string_index = 0x27;
@@ -219,7 +219,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
                 quit_confirm_error_modal = 1;
                 quit_confirm_error_is_error = 0;
             }
-            last_level_widget_selection_00692afc = current_profile_index;
+            last_level_widget_selection_00692afc = saved_player_profile_slots_handle;
             return 1;
         }
         last_level_widget_selection_00692afc = -1;

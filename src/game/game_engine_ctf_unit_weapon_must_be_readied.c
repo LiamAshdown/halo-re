@@ -3,7 +3,7 @@
 // flag while the active game-variant type equals the CTF value (1).")
 // address 0x466bc0, size 81 bytes
 // name confidence: 0.4   rewrite confidence: 0.7
-// evidence: types/game.h game_engine_index (_game_engine_ctf == 1); the object_headers ->
+// evidence: types/game.h game_engine_index (_game_engine_ctf == 1); the object_data ->
 //   definition_tag -> tag_instances chain matches every other Weapon-flag lookup in this batch
 //   (see unit_current_weapon_prevents_camo_depower.c); WeaponFlags::must_be_readied (bit 3,
 //   types/tags.h) matches the ">> 3 & 1" the disassembly performs.
@@ -19,7 +19,7 @@
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant;            // 0x006f1c88
-extern data_array *object_headers;                  // 0x008603b0
+extern data_array *object_data;                  // 0x008603b0
 extern tag_instance *tag_instances;                 // 0x0087bc14
 
 // blam-cc: ECX -> unit_handle
@@ -34,7 +34,7 @@ uint8_t game_engine_ctf_unit_weapon_must_be_readied(datum_index unit_handle)
         return 0;
     }
 
-    unit_obj = ((object_header *)object_headers->data)[unit_handle & 0xffff].data;
+    unit_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
     weapon_tag = (Weapon *)tag_instances[unit_obj->definition_tag & 0xffff].data;
     return (uint8_t)((weapon_tag->weapon_flags >> 3) & 1);
 }

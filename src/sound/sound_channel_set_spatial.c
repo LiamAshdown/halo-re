@@ -31,7 +31,7 @@ static float sound_channel_set_spatial_fabsf(float x) { return (x < 0.0f) ? -x :
 
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 extern uint8_t directsound_initialized; // 0x007252e0
-extern uint32_t unknown_722b5c; // 0x00722b5c, UNSURE, see types/sound.h "referenced, owned elsewhere"
+extern uint32_t config_head_relative_speech; // 0x00722b5c, UNSURE, see types/sound.h "referenced, owned elsewhere"
 extern uint8_t directsound_deferred_dirty; // 0x00746132
 extern sound_effect_object *global_sound_effect_object; // 0x00721f24
 
@@ -57,7 +57,7 @@ void sound_channel_set_spatial(int16_t channel_index, uint8_t spatialized, sound
     uint8_t dialog_class = (sound_class >= 0x2c && sound_class <= 0x2f);
 
     if (channel->spatialized != spatialized || directsound_initialized == 0) {
-        if (unknown_722b5c == 0 || spatialized != 0 || !dialog_class) {
+        if (config_head_relative_speech == 0 || spatialized != 0 || !dialog_class) {
             set_mode(channel->buffer_3d, (spatialized != 0) ? 0u : 2u, 1); // DS3DMODE_NORMAL/DISABLE
         } else {
             set_mode(channel->buffer_3d, 1, 1); // DS3DMODE_HEADRELATIVE
@@ -73,7 +73,7 @@ void sound_channel_set_spatial(int16_t channel_index, uint8_t spatialized, sound
           sound_channel_set_spatial_fabsf(spatial->position.y - channel->position.y) >= 0.05f ||
           sound_channel_set_spatial_fabsf(spatial->position.z - channel->position.z) >= 0.05f)) ||
         directsound_initialized == 0) {
-        if (unknown_722b5c == 0 || spatialized != 0 || !dialog_class) {
+        if (config_head_relative_speech == 0 || spatialized != 0 || !dialog_class) {
             set_position(channel->buffer_3d, spatial->position.x, -spatial->position.y, spatial->position.z, 1);
         } else {
             set_position(channel->buffer_3d, 0.0f, 0.0f, 0.0f, 1);

@@ -19,7 +19,7 @@
 #include "interface.h"
 
 extern growable_array hud_text_message_queue; // 0x006b37e8
-extern uint16_t empty_wide_string_00660c34[];  // 0x00660c34
+extern uint16_t empty_string[];  // 0x00660c34
 
 extern int32_t growable_array_add_element(growable_array *array); // 0x4cf810
 
@@ -50,7 +50,7 @@ int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t t
         if (text[1] == 's') {
             int32_t delay = _wtol(text + 2);
 
-            message->text = empty_wide_string_00660c34;
+            message->text = empty_string;
             message->end_time = delay * 0x10 + start_time;
             return delay * 0x10;
         }

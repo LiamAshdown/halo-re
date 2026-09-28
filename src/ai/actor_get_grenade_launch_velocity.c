@@ -24,8 +24,8 @@
 #include <stdint.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *item_globals;       // 0x00746fa0, the grenade type table pointer sits at +300
-extern float world_gravity_scale;   // 0x0069c52c
+extern uint8_t *global_globals;       // 0x00746fa0, the grenade type table pointer sits at +300
+extern float k_physics_gravity;   // 0x0069c52c
 
 extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
     real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
@@ -49,7 +49,7 @@ uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *d
     float scale;
     uint8_t used_straight_line; // [esp+0xf]
 
-    entry = *(uint8_t **)(item_globals + 300) + (int32_t)grenade_type * 0x44;
+    entry = *(uint8_t **)(global_globals + 300) + (int32_t)grenade_type * 0x44;
     if (entry == (uint8_t *)0) {
         return 0;
     }
@@ -85,7 +85,7 @@ uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *d
         if (used_straight_line) {
             *out_gravity = 0.0f;
         } else {
-            *out_gravity = -(world_gravity_scale *
+            *out_gravity = -(k_physics_gravity *
                              *(float *)((uint8_t *)projectile_definition + 0x1cc));
         }
     }

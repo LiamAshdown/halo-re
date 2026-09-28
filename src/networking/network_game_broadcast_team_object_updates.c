@@ -28,8 +28,8 @@
 #include "networking.h"
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
-extern void *network_object_type_table[12]; // 0x0069bfdc, an ARRAY of the 12 object type definitions (was a pointer variable)
-extern uint8_t network_object_update_scratch[0x7ff8]; // 0x00871de0
+extern void *object_type_definitions[12]; // 0x0069bfdc, an ARRAY of the 12 object type definitions (was a pointer variable)
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t object_type_override_get_0x64(uint8_t *out_buffer, int32_t out_buffer_size); // other module; UNSURE
 extern uint32_t network_session_send_to_machine(int32_t machine_id, uint8_t *data, int32_t bits,
     int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority); // 0x4e1930, this batch;
@@ -53,12 +53,12 @@ void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t 
     obj = object_iterator_next(&iterator);
     while (obj != 0) {
         if (obj->network_role == 0 &&
-            *(int32_t *)((uint8_t *)network_object_type_table[obj->type] + 0x10) != -1) {
-            encoded_bits = object_type_override_get_0x64(network_object_update_scratch, 0x7ff8);
+            *(int32_t *)((uint8_t *)object_type_definitions[obj->type] + 0x10) != -1) {
+            encoded_bits = object_type_override_get_0x64(network_message_scratch, 0x7ff8);
             if (encoded_bits > 0) {
                 *bytes_sent = *bytes_sent + encoded_bits;
                 *object_count = *object_count + 1;
-                network_session_send_to_machine(1, network_object_update_scratch, encoded_bits, 1, 0, 0, 3);
+                network_session_send_to_machine(1, network_message_scratch, encoded_bits, 1, 0, 0, 3);
             }
         }
         obj = object_iterator_next(&iterator);

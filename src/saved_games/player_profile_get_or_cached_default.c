@@ -18,7 +18,7 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern saved_player_profile default_player_profile; // 0x0071d280
+extern saved_player_profile default_profile_data; // 0x0071d280
 
 extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); // 0x53a770
 
@@ -26,7 +26,7 @@ extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffe
 uint8_t player_profile_get_or_cached_default(saved_player_profile *out_buffer, int32_t index)
 {
     if (index == -1) {
-        *out_buffer = default_player_profile;
+        *out_buffer = default_profile_data;
         return 0;
     }
     return player_profile_get(index, out_buffer);

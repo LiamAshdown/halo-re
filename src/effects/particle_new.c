@@ -43,9 +43,9 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern ScenarioStructureBSP *global_structure_bsp;
 extern player_globals *local_player_globals; // 0x0087a478
-extern uint8_t *first_person_weapon_globals; // 0x006b2d98, row stride 0x1ea0
+extern uint8_t *first_person_weapon_interfaces; // 0x006b2d98, row stride 0x1ea0
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
-extern int32_t render_tick_counter; // 0x007c3100, UNSURE: foreign module (render globals)
+extern int32_t render_frame_index; // 0x007c3100, UNSURE: foreign module (render globals)
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, memory module
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m); // 0x4cbde0
@@ -90,7 +90,7 @@ void particle_new(particle_creation_data *creation_data)
         matrix4x3_transform_point(&position, &creation_data->position, marker); // UNSURE, see
                                     // file header
     } else {
-        real_matrix4x3 *marker = (real_matrix4x3 *)(first_person_weapon_globals + 0x108c +
+        real_matrix4x3 *marker = (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
             creation_data->first_person_weapon_index * 0x1ea0 +
             (uint16_t)creation_data->marker_index * 0x34); // UNSURE, see file header
         matrix4x3_transform_point(&position, &creation_data->position, marker); // UNSURE, see
@@ -135,7 +135,7 @@ void particle_new(particle_creation_data *creation_data)
             self->object_index = creation_data->object_index;
             self->marker_index = creation_data->marker_index;
             self->sequence_state = _particle_sequence_state_new;
-            self->last_update_tick = render_tick_counter;
+            self->last_update_tick = render_frame_index;
 
             speed = random_range_real(tag->lifespan[0], tag->lifespan[1]);
             if (speed > 0.7f) {

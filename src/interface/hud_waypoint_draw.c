@@ -36,11 +36,11 @@ extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern player_globals *local_player_globals;  // 0x0087a478
 extern data_array *player_data;               // 0x0087a480
 extern real_matrix4x3 render_camera_world_to_view; // 0x007c3178, UNSURE name
-extern uint8_t render_camera_frustum[];       // 0x007c3168, UNSURE name/type (ESI of 0x50de30)
-extern uint8_t render_camera[];               // 0x007c3114, UNSURE name/type (EDI of 0x50de30)
+extern uint8_t render_frustum_global[];       // 0x007c3168, UNSURE name/type (ESI of 0x50de30)
+extern uint8_t render_camera_global[];               // 0x007c3114, UNSURE name/type (EDI of 0x50de30)
 extern int16_t render_viewport_top;           // 0x007c3140
 extern int16_t render_viewport_left;          // 0x007c3142
-extern Rectangle2D render_window_bounds;      // 0x007c3148, UNSURE name
+extern Rectangle2D screen_safe_area_right;      // 0x007c3148, UNSURE name
 
 extern float sqrtf(float x);
 extern float atan2f(float y, float x);
@@ -122,7 +122,7 @@ void hud_waypoint_draw(const real_point3d *position, int16_t local_player_index,
     }
 
     matrix4x3_transform_point(&point, &point, &render_camera_world_to_view);
-    if (visibility != 1 && render_project_world_point_to_screen(&screen, &point, render_camera_frustum, render_camera) != 0) {
+    if (visibility != 1 && render_project_world_point_to_screen(&screen, &point, render_frustum_global, render_camera_global) != 0) {
         x = screen.x - (float)(render_viewport_left + 0x140);
         y = screen.y - (float)(render_viewport_top + 0xf0);
     } else {
@@ -208,8 +208,8 @@ void hud_waypoint_draw(const real_point3d *position, int16_t local_player_index,
                                             (float)arrow_position.x));
         number_y = (int16_t)__ftol((double)((uv[3] - uv[2]) * (float)(int16_t)bitmap->height * 0.5f * scale * 0.66f +
                                             (float)arrow_position.y));
-        placement.anchor_offset.x = (int16_t)(number_x + (int16_t)(render_viewport_left - render_window_bounds.left));
-        placement.anchor_offset.y = (int16_t)(number_y + (int16_t)(render_viewport_top - render_window_bounds.top));
+        placement.anchor_offset.x = (int16_t)(number_x + (int16_t)(render_viewport_left - screen_safe_area_right.left));
+        placement.anchor_offset.y = (int16_t)(number_y + (int16_t)(render_viewport_top - screen_safe_area_right.top));
         power = (float)pow(10.0, 4.0);
         whole = (int32_t)lrint(fmod((double)(power * meters < 0.0f ? -(power * meters) : power * meters), (double)power));
         hud_draw_number((void *)(int32_t)local_player_index, anchor, &placement,

@@ -36,7 +36,7 @@
 #include <string.h>
 
 extern input_abstraction_globals input_globals;    // 0x00710328
-extern input_event_queue event_queue;              // 0x00712cc0
+extern input_event_queue input_event_queue_active;              // 0x00712cc0
 extern int16_t keyboard_bindings[k_control_keyboard_key_count]; // 0x00710330
 extern int16_t gamepad_action_buttons[k_control_gamepad_count][2]; // 0x00710526
 extern int16_t gamepad_button_bindings[k_control_gamepad_count][k_control_gamepad_button_count]; // 0x00710426
@@ -240,39 +240,39 @@ void input_menu_generate_events(void)
         }
     }
 
-    if (fired[0] && event_queue.enabled) {
+    if (fired[0] && input_event_queue_active.enabled) {
         push_menu_event(3, 8, 1);
     }
-    if (fired[1] && event_queue.enabled) {
+    if (fired[1] && input_event_queue_active.enabled) {
         push_menu_event(3, 9, 1);
     }
-    if (fired[2] && event_queue.enabled) {
+    if (fired[2] && input_event_queue_active.enabled) {
         push_menu_event(3, 0xa, 1);
     }
-    if (fired[3] && event_queue.enabled) {
+    if (fired[3] && input_event_queue_active.enabled) {
         push_menu_event(3, 0xb, 1);
     }
-    if (accept_fired && event_queue.enabled) {
+    if (accept_fired && input_event_queue_active.enabled) {
         push_menu_event(3, 0, 1);
     }
-    if (back_fired && event_queue.enabled) {
+    if (back_fired && input_event_queue_active.enabled) {
         push_menu_event(3, 0xd, 1);
     }
 
     held = input_get_key_state(_input_key_insert);
-    if (held != 0 && event_queue.enabled) {
+    if (held != 0 && input_event_queue_active.enabled) {
         held = input_get_key_state(_input_key_insert);
         push_menu_event(3, 3, held);
     }
 
     held = input_get_key_state(_input_key_delete);
-    if (held != 0 && event_queue.enabled) {
+    if (held != 0 && input_event_queue_active.enabled) {
         held = input_get_key_state(_input_key_delete);
         push_menu_event(3, 2, held);
     }
 
     if (mouse_device != 0 && input_suppressed == 0 && live_mouse_state.button_frames[0] != 0 &&
-        event_queue.enabled) {
+        input_event_queue_active.enabled) {
         push_menu_event(4, 0, live_mouse_state.button_frames[0]);
     }
 
@@ -290,7 +290,7 @@ void input_menu_generate_events(void)
                 mouse_double_click_time = 0;
             }
         } else {
-            if (event_queue.enabled) {
+            if (input_event_queue_active.enabled) {
                 push_menu_event(4, 3, 1);
             }
             mouse_double_click_time = 0;
@@ -300,7 +300,7 @@ void input_menu_generate_events(void)
     // 0x48f7a5: the right button is mouse_state slot 2 (mouse_button_map puts the physical
     // right button there), read as its hold count at 0x006b181a, not a went-down flag
     if (mouse_device != 0 && input_suppressed == 0 && live_mouse_state.button_frames[2] != 0 &&
-        event_queue.enabled) {
+        input_event_queue_active.enabled) {
         push_menu_event(4, 2, live_mouse_state.button_frames[2]);
     }
 }

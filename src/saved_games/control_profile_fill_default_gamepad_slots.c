@@ -7,7 +7,7 @@
 // player_profile_initialize (0x53a1c0) as a caller (out/phase2/saved_games/00.md callees of
 // 0x53a1c0 include 0053b7f0:FUN_0053b7f0). The connected-device table at 0x006b1868 (stride
 // 0x240, count at 0x006b1844) and its control_profile_find_or_create_gamepad_slot (0x53b470) consumer are the same ones
-// src/interface/controls_gamepad_lists_load.c already documents; that file's `input_gamepads` /
+// src/interface/controls_gamepad_lists_load.c already documents; that file's `input_devices` /
 // `input_device_count` externs and its have-entry-flag idiom (for the same
 // uninitialised-stack-byte pattern seen here) are reused verbatim.
 // Phase 4 review: matched objdump 0x53b7f0..0x53b9a3, including the uninitialised have-entry byte
@@ -30,7 +30,7 @@
 #include "saved_games.h"
 
 extern int32_t input_device_count; // 0x006b1844, input.h (0..8 connected input devices)
-extern uint8_t input_gamepads[]; // 0x006b1868, stride 0x240; UNSURE name
+extern uint8_t input_devices[]; // 0x006b1868, stride 0x240; UNSURE name
 
 extern int32_t input_device_default_profile_tag_find(input_guid guid, uint8_t *out_profile); // 0x490110
 extern uint8_t control_profile_find_or_create_gamepad_slot(controls_gamepad_record *entry, saved_player_profile *profile); // 0x53b470, saved_games (below this batch)
@@ -81,7 +81,7 @@ void control_profile_fill_default_gamepad_slots(saved_player_profile *profile)
                     break;
                 }
                 if ((int16_t)i < input_device_count) {
-                    memcpy(&entry, input_gamepads + (int16_t)i * 0x240, sizeof(entry));
+                    memcpy(&entry, input_devices + (int16_t)i * 0x240, sizeof(entry));
                     have_entry = 1;
 pass1_try_add:
                     key = entry.product_guid;
@@ -108,7 +108,7 @@ pass1_try_add:
                     return;
                 }
                 if ((int16_t)i < input_device_count) {
-                    memcpy(&entry, input_gamepads + (int16_t)i * 0x240, sizeof(entry));
+                    memcpy(&entry, input_devices + (int16_t)i * 0x240, sizeof(entry));
                     have_entry = 1;
 pass2_try_add:
                     added = control_profile_find_or_create_gamepad_slot(&entry, profile);

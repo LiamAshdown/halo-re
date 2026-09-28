@@ -33,7 +33,7 @@
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time;                // 0x006f1d6c
 extern data_array *player_data;                     // 0x0087a480
-extern data_array *object_headers;                  // 0x008603b0
+extern data_array *object_data;                  // 0x008603b0
 extern int16_t network_game_mode;                   // 0x00719720
 extern game_variant game_engine_variant;             // 0x006f1c88
 
@@ -120,7 +120,7 @@ void game_engine_on_player_death(datum_index killer, datum_index death_object, d
         }
         message_category = (is_suicide != 0) + 4; // 4 (killed) or 5 (killed, alternate wording)
     } else if (death_object != (datum_index)0xffffffff) {
-        object *obj = ((object_header *)object_headers->data)[death_object & 0xffff].data;
+        object *obj = ((object_header *)object_data->data)[death_object & 0xffff].data;
         if (obj->type == 0) {
             message_category = 2;
         } else if (obj->type == 1) {

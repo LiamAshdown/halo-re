@@ -32,7 +32,7 @@
 #include "networking.h"
 
 extern int16_t network_game_mode;   // 0x00719720
-extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc, objects module
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
@@ -76,7 +76,7 @@ void network_server_broadcast_object_type_changes(void)
             }
             encode_result = object_type_override_call_0x6c(iterator.handle);
             if (0 < encode_result) {
-                network_session_broadcast_to_flagged(network_server, 1, object_network_message_scratch, changed == 0, 0, 0, 3);
+                network_session_broadcast_to_flagged(network_server, 1, network_message_scratch, changed == 0, 0, 0, 3);
             }
             object_type_override_call_0x7c(iterator.handle);
         }

@@ -22,14 +22,14 @@
 extern uint8_t server_browser_initialized;                // 0x00719470
 extern void *server_list_thread;                          // 0x007196ac
 extern void *master_server_query_engine;                  // 0x0071946c
-extern void *server_list_block;                           // 0x007196bc
+extern void *server_list;                           // 0x007196bc
 extern int32_t server_list_block_used;                    // 0x007196c0
 extern int32_t server_list_block_capacity;                // 0x007196c4
 extern int32_t server_browser_query_elapsed_ms;           // 0x007196c8
 extern uint8_t server_browser_player_ticker[0x1c];        // 0x006b5e58
 extern uint8_t server_browser_variant_ticker[0x1c];       // 0x006b5e74
 extern int32_t DAT_00695420;                // 0x00695420
-extern int32_t saved_game_profile_index;                  // 0x00714dd4
+extern int32_t saved_player_profile_slots_handle;                  // 0x00714dd4
 extern int32_t selected_saved_item;                       // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc];           // 0x00714e80
 extern uint8_t server_browser_sort_column;                // 0x00719489
@@ -70,17 +70,17 @@ uint8_t server_browser_closed_event(widget_instance *widget, int16_t *event, uin
     }
     server_browser_initialized = 0;
     server_list_reset(0);
-    if (server_list_block != 0) {
-        GlobalFree(server_list_block);
+    if (server_list != 0) {
+        GlobalFree(server_list);
     }
-    server_list_block = 0;
+    server_list = 0;
     server_list_block_used = 0;
     server_list_block_capacity = 0;
     server_browser_query_elapsed_ms = 0;
     ticker_text_buffer_reset(server_browser_player_ticker);
     ticker_text_buffer_reset(server_browser_variant_ticker);
     autopatch_download_pool_shutdown();
-    profile = saved_game_profile_index;
+    profile = saved_player_profile_slots_handle;
     DAT_00695420 = -1;
     if (profile == -1) {
         return 1;

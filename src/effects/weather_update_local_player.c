@@ -22,13 +22,13 @@
 
 extern uint8_t weather_enabled;               // 0x00687350
 extern int16_t current_local_player_index;     // 0x007c3108, UNSURE: foreign module (render globals)
-extern uint32_t render_weather_sample_point;  // 0x007c3344, UNSURE: foreign module
-extern int16_t render_weather_sample_unknown; // 0x007c3348, UNSURE: foreign module
+extern uint32_t render_leaf_index;  // 0x007c3344, UNSURE: foreign module
+extern int16_t render_cluster_index; // 0x007c3348, UNSURE: foreign module
 extern ScenarioStructureBSP *global_structure_bsp;
                                     // row table this function reads, UNSURE (foreign/BSP module)
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 
-extern real_point3d camera_position; // 0x007c3114
+extern real_point3d render_camera_global; // 0x007c3114
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
 extern void weather_instance_deactivate(int16_t instance_index); // 0x457f00, this module
@@ -47,11 +47,11 @@ void weather_update_local_player(void)
         int16_t cluster_index;
         int32_t new_definition_index = -1;
 
-        instance->unknown_14 = render_weather_sample_unknown;
-        instance->unknown_10 = render_weather_sample_point;
-        // 0x458acf..0x458ae6: EBX = &camera_position (0x7c3114), push &instance->unknown_10 (the leaf),
+        instance->unknown_14 = render_cluster_index;
+        instance->unknown_10 = render_leaf_index;
+        // 0x458acf..0x458ae6: EBX = &render_camera_global (0x7c3114), push &instance->unknown_10 (the leaf),
         // push &instance->cluster_index -- the callee writes the index straight into the instance
-        instance->in_sky = scenario_location_get_water_and_weather(&camera_position,
+        instance->in_sky = scenario_location_get_water_and_weather(&render_camera_global,
             (bsp_leaf_reference *)&instance->unknown_10, &instance->cluster_index);
         cluster_index = instance->cluster_index;
 

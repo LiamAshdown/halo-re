@@ -16,7 +16,7 @@
 #include "interface.h"
 
 extern uint8_t save_in_progress_00719010;   // 0x00719010, TYPES-GAP
-extern int32_t current_profile_index;        // 0x00714dd4
+extern int32_t saved_player_profile_slots_handle;        // 0x00714dd4
 extern int32_t cached_profile_slot;          // 0x0068e66c
 extern int16_t network_game_mode;             // 0x00719720
 extern uint8_t network_wait_flag_00719739;    // 0x00719739
@@ -34,11 +34,11 @@ uint32_t ui_restart_saved_game(void)
     saved_game_delete_files();
     network_game_mode = 0;
     network_wait_flag_00719739 = 1;
-    if (cached_profile_slot != current_profile_index) {
-        if (current_profile_index != -1) {
-            saved_game_get_directory_by_handle(current_profile_index, last_profile_name);
+    if (cached_profile_slot != saved_player_profile_slots_handle) {
+        if (saved_player_profile_slots_handle != -1) {
+            saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
         }
-        cached_profile_slot = current_profile_index;
+        cached_profile_slot = saved_player_profile_slots_handle;
     }
     if (last_profile_name[0] != '\0') {
         saved_game_last_profile_clear(last_profile_name);

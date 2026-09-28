@@ -38,7 +38,7 @@
 #include "rasterizer.h"
 #include "render.h"
 
-extern data_array *cached_object_render_states; // 0x007c30ec, this module
+extern data_array *object_render_state_cache; // 0x007c30ec, this module
 extern data_array *object_data;                 // 0x008603b0, objects module
 extern int32_t render_frame_index;              // 0x007c3100, this module
 extern int32_t render_window_count;             // 0x007c3104, this module
@@ -75,7 +75,7 @@ void object_render_state_refresh(datum_index cache_index, datum_index object_ind
                                  uint8_t full_sample) // blam-cc: stack=(cache_index, object_index, level_of_detail_pixels, full_sample)
 {
     cached_object_render_state *entry =
-        &((cached_object_render_state *)cached_object_render_states->data)[(uint16_t)cache_index];
+        &((cached_object_render_state *)object_render_state_cache->data)[(uint16_t)cache_index];
     object *obj = ((object_header *)object_data->data)[(uint16_t)object_index].data;
     int32_t windows_elapsed = render_window_count - entry->last_update_window;
     int32_t frames_since_update = render_frame_index - entry->last_update_frame;

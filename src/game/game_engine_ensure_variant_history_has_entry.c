@@ -18,7 +18,7 @@
 extern uint32_t game_variant_history_count;   // 0x00687b10
 extern uint8_t game_variant_saved_default_valid; // 0x00714e78
 extern game_variant game_variant_saved_default;  // 0x00714de0
-extern char saved_default_variant_name[];        // 0x00719879, UNSURE identity
+extern char network_build_string[];        // 0x00719879, UNSURE identity
 
 extern void game_engine_free_custom_variant_cache(void); // 0x4638b0, this batch
 extern uint32_t game_engine_variant_add_to_history(char *name, game_variant *options, char *path); // 0x463980, this batch
@@ -33,7 +33,7 @@ uint32_t game_engine_ensure_variant_history_has_entry(void)
         game_variant temp = game_variant_saved_default;
 
         game_engine_free_custom_variant_cache();
-        game_engine_variant_add_to_history(saved_default_variant_name, &temp, 0);
+        game_engine_variant_add_to_history(network_build_string, &temp, 0);
         if (game_variant_history_count != 0) {
             return 1;
         }

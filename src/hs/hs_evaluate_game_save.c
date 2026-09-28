@@ -13,7 +13,7 @@
 #include "hs.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t main_globals_byte_0071973c; // 0x0071973c
+extern uint8_t network_join_error_reason; // 0x0071973c
 extern uint8_t main_globals_byte_0071973d; // 0x0071973d
 extern uint8_t main_globals_byte_0071973e; // 0x0071973e
 extern int32_t main_globals_dword_00719740; // 0x00719740
@@ -22,8 +22,8 @@ extern int16_t main_globals_word_0071974c; // 0x0071974c
 
 void hs_evaluate_game_save(int16_t function_index, uint32_t thread_index, char first)
 {
-    if (main_globals_byte_0071973c == 0 || main_globals_byte_0071973e != 0) {
-        main_globals_byte_0071973c = 1;
+    if (network_join_error_reason == 0 || main_globals_byte_0071973e != 0) {
+        network_join_error_reason = 1;
         main_globals_byte_0071973d = 1;
         main_globals_byte_0071973e = 1;
         main_globals_dword_00719740 = 0;

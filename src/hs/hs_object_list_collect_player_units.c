@@ -2,11 +2,11 @@
 // address 0x487630, size 279 bytes
 // name confidence: 0.3 (out/phase4/hs_functions.md: "Builds a linked reference list collecting a
 //   per-entry index field from every valid slot of an object-related datum array"; the array and
-//   field are not parameters here, they are the hardcoded players array and its unit field)
+//   field are not parameters here, they are the hardcoded player_data array and its unit field)
 // rewrite confidence: 0.6
 // evidence: types/hs.h object_list_header/object_list_reference (this module owns both, created by
 //   object_lists_initialize @0x48b250) and the "globals this module reads but does not own" note
-//   for players (0x0087a480, stride 0x200, unit handle at +0x34); src/memory/datum_new.c and
+//   for player_data (0x0087a480, stride 0x200, unit handle at +0x34); src/memory/datum_new.c and
 //   src/memory/datum_next.c for the two callees, whose bodies this function's tail loop matches
 //   instruction for instruction (the second and later "find next player" steps are datum_next's
 //   logic, re-inlined here rather than called again -- restored to a real call since the two are
@@ -18,7 +18,7 @@
 //   both guesses. The mechanism itself -- allocate one object_list header, then chain a reference
 //   node onto it for every player with a live unit -- is certain from the code.
 // UNSURE: if the header allocation (the first datum_new) fails, the original still falls through
-//   into the players loop and indexes object_list_header_data with the failed (0xffff-masked)
+//   into the player_data loop and indexes object_list_header_data with the failed (0xffff-masked)
 //   index; that out-of-bounds behavior on allocation failure is preserved as-is, not guarded.
 
 #include "tags.h"
@@ -31,7 +31,7 @@ extern datum_index datum_next(int16_t after_index, data_array *array);
 
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
-extern data_array *players;                    // 0x0087a480, stride 0x200, unit handle at +0x34
+extern data_array *player_data;                    // 0x0087a480, stride 0x200, unit handle at +0x34
 
 // hs_player_record: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
 
@@ -55,9 +55,9 @@ datum_index hs_object_list_collect_player_units(void)
         header->first_reference = k_datum_index_none;
     }
 
-    player_index = datum_next(-1, players);
+    player_index = datum_next(-1, player_data);
     while (player_index != k_datum_index_none) {
-        unit = ((hs_player_record *)((uint8_t *)players->data +
+        unit = ((hs_player_record *)((uint8_t *)player_data->data +
             (player_index & 0xffff) * 0x200))->unit;
         if (unit != k_datum_index_none) {
             header = (object_list_header *)((uint8_t *)object_list_header_data->data +
@@ -72,7 +72,7 @@ datum_index hs_object_list_collect_player_units(void)
             }
             header->count = header->count + 1;
         }
-        player_index = datum_next((int16_t)player_index, players);
+        player_index = datum_next((int16_t)player_index, player_data);
     }
     return header_index;
 }

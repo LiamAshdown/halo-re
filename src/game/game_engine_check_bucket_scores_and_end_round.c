@@ -44,12 +44,12 @@ extern int32_t multiplayer_sound_queue_count; // 0x006b1140
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds]; // 0x006b10f0
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 
-extern void *widget_open_00718f94; // 0x00718f94, UNSURE identity (interface module)
-extern void *unknown_00718f98;     // 0x00718f98, UNSURE identity
-extern uint8_t unknown_00718fa6;   // 0x00718fa6, UNSURE identity
-extern int32_t chat_state_006953e8; // 0x006953e8, UNSURE identity (network/chat module)
-extern uint8_t unknown_00712542;    // 0x00712542, UNSURE identity
-extern uint8_t unknown_00712544[0xa0 * 4]; // 0x00712544, UNSURE identity (zeroed 0xa0 dwords)
+extern void *ui_root_widget; // 0x00718f94, UNSURE identity (interface module)
+extern void *ui_widget_history;     // 0x00718f98, UNSURE identity
+extern uint8_t ui_pause_depth;   // 0x00718fa6, UNSURE identity
+extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity (network/chat module)
+extern uint8_t controls_input_capture_flags;    // 0x00712542, UNSURE identity
+extern uint8_t controls_input_capture_buffer[0xa0 * 4]; // 0x00712544, UNSURE identity (zeroed 0xa0 dwords)
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void game_engine_player_profile_cache_sync_all(datum_index player_handle); // 0x466cb0, UNSURE (not the profile-cache-sync
@@ -145,20 +145,20 @@ void game_engine_check_bucket_scores_and_end_round(void)
                 }
             }
 
-            if (widget_open_00718f94 != (void *)0) {
-                widget_close(widget_open_00718f94);
+            if (ui_root_widget != (void *)0) {
+                widget_close(ui_root_widget);
             }
-            if (unknown_00718f98 != (void *)0) {
+            if (ui_widget_history != (void *)0) {
                 widget_pool_list_free_all();
             }
-            unknown_00718fa6 = 0;
-            if (chat_state_006953e8 != -1) {
+            ui_pause_depth = 0;
+            if (controls_capture_row != -1) {
                 int32_t i;
-                unknown_00712542 &= 0xf7;
+                controls_input_capture_flags &= 0xf7;
                 for (i = 0; i < 0xa0; i++) {
-                    ((uint32_t *)unknown_00712544)[i] = 0;
+                    ((uint32_t *)controls_input_capture_buffer)[i] = 0;
                 }
-                chat_state_006953e8 = -1;
+                controls_capture_row = -1;
             }
 
             {

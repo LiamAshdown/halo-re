@@ -24,7 +24,7 @@
 
 extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0
 extern int32_t join_ui_state; // 0x00718f8c
-extern int32_t some_global_0068e688; // 0x0068e688, UNSURE name; see network_game_settings_packet_send.c
+extern int32_t interface_loading_screen_request_id; // 0x0068e688, UNSURE name; see network_game_settings_packet_send.c
 extern char network_game_settings_ack_send(uint8_t *client, int16_t template_row); // 0x4d9f50
     // UNSURE: called with no visible arguments at this call site; template_row's value cannot
     // be recovered from this function's own decompiled body, so 0 is passed (row 0, matching
@@ -74,7 +74,7 @@ compare_done:
         main_queue_map_change_by_name_or_clear();
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
-                some_global_0068e688 = -1;
+                interface_loading_screen_request_id = -1;
             }
             join_ui_state = 8;
         }

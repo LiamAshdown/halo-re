@@ -25,7 +25,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_variant game_engine_variant; // 0x006f1c88
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -96,12 +96,12 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
 
     if (p->unit != (datum_index)0xffffffff) {
         unit_data *unit = (unit_data *)((uint8_t *)
-            ((object_header *)object_headers->data)[(uint32_t)p->unit & 0xffff].data +
+            ((object_header *)object_data->data)[(uint32_t)p->unit & 0xffff].data +
             k_unit_data_offset);
         if (unit->current_weapon_index != -1) {
             datum_index weapon = unit->weapons[unit->current_weapon_index];
             if (weapon != (datum_index)0xffffffff) {
-                object *weapon_obj = ((object_header *)object_headers->data)[weapon & 0xffff].data;
+                object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
                 uint32_t *tag_data = (uint32_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int32_t score = king_alt_player_score[idx];

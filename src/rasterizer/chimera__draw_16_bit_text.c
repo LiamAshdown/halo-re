@@ -17,15 +17,15 @@
 #include "interface.h"
 #include "rasterizer.h"
 
-extern uint8_t console_debug_toggle_689402;                         // 0x00689402
+extern uint8_t text_rendering_enabled;                         // 0x00689402
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 extern font_glyph_cache g_font_glyph_cache; // 0x006d8828
 extern int32_t rasterizer_frame_index; // 0x0069c694
 
-extern int16_t unknown_007c3140[2]; // 0x007c3140 UNSURE
-extern int16_t unknown_007c3144[2]; // 0x007c3144 UNSURE
-extern int16_t unknown_007c3148[2]; // 0x007c3148 UNSURE
-extern int16_t unknown_007c314c[2]; // 0x007c314c UNSURE
+extern int16_t render_viewport_top[2]; // 0x007c3140 UNSURE
+extern int16_t render_viewport_bottom[2]; // 0x007c3144 UNSURE
+extern int16_t screen_safe_area_right[2]; // 0x007c3148 UNSURE
+extern int16_t screen_safe_area_bottom[2]; // 0x007c314c UNSURE
 
 // blam-cc: EDI -> state
 extern void rasterizer_draw_text_begin(ui_quad_render_state *state); // 0x531b80
@@ -45,7 +45,7 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
     uint32_t glyph_state[0x23]; // UNSURE: exact field layout, see chimera__draw_8_bit_text.c
     int i;
 
-    if (console_debug_toggle_689402 == 0 || rasterizer_window.type != 1) {
+    if (text_rendering_enabled == 0 || rasterizer_window.type != 1) {
         return;
     }
 
@@ -58,11 +58,11 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
     wcslen(text); // UNSURE: return unused
 
     if (dest_rect_override == (int32_t *)0) {
-        int16_t neg_origin_x = (int16_t)(-unknown_007c3140[0]);
-        dest_rect[0] = (uint16_t)(int16_t)(unknown_007c3148[0] + neg_origin_x) |
-                       ((uint16_t)(int16_t)(unknown_007c3148[1] - unknown_007c3140[1]) << 16);
-        dest_rect[1] = (uint16_t)(int16_t)(unknown_007c314c[0] + neg_origin_x) |
-                       ((uint16_t)(int16_t)(unknown_007c314c[1] - unknown_007c3140[1]) << 16);
+        int16_t neg_origin_x = (int16_t)(-render_viewport_top[0]);
+        dest_rect[0] = (uint16_t)(int16_t)(screen_safe_area_right[0] + neg_origin_x) |
+                       ((uint16_t)(int16_t)(screen_safe_area_right[1] - render_viewport_top[1]) << 16);
+        dest_rect[1] = (uint16_t)(int16_t)(screen_safe_area_bottom[0] + neg_origin_x) |
+                       ((uint16_t)(int16_t)(screen_safe_area_bottom[1] - render_viewport_top[1]) << 16);
     } else {
         dest_rect[0] = dest_rect_override[0];
         dest_rect[1] = dest_rect_override[1];
@@ -70,8 +70,8 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
 
     if (clip_rect_override == (Rectangle2D *)0) {
         clip_rect[0] = 0;
-        clip_rect[1] = (uint16_t)(int16_t)(unknown_007c3144[0] - unknown_007c3140[0]) |
-                       ((uint16_t)(int16_t)(unknown_007c3144[1] - unknown_007c3140[1]) << 16);
+        clip_rect[1] = (uint16_t)(int16_t)(render_viewport_bottom[0] - render_viewport_top[0]) |
+                       ((uint16_t)(int16_t)(render_viewport_bottom[1] - render_viewport_top[1]) << 16);
     } else {
         int16_t *r = (int16_t *)clip_rect_override;
         int16_t clip_w = (r[2] > 0x1df) ? 0x1e0 : r[2];

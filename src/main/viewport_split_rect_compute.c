@@ -12,7 +12,7 @@
 // this matches main.h's "0x0069c634 / 0x0069c63c game window and screen rectangles (rasterizer)"
 // exactly as two adjacent structs, not one. The first is used only to clamp the computed grid
 // cell to the true window edge on boundary rows/columns; the second is what the row/column grid
-// is actually divided out of. Named game_window_rect / game_screen_rect accordingly.
+// is actually divided out of. Named game_window_top_left / game_screen_rect accordingly.
 // register convention: EAX -> view_count, EDX -> view_index, ECX -> window, stack -> out_viewport.
 // phase 4 review (disassembly 0x4c8da0..0x4c8f1a: grid search, rounding and every rect store match; no drift.
 // UNSURE: the exact intent of the four "extra_blank_flag" adjustments (added/subtracted from
@@ -24,7 +24,7 @@
 #include "interface.h"
 #include "main.h"
 
-extern Rectangle2D game_window_rect; // 0x0069c634, foreign (rasterizer module)
+extern Rectangle2D game_window_top_left; // 0x0069c634, foreign (rasterizer module)
 extern Rectangle2D game_screen_rect; // 0x0069c63c, foreign (rasterizer module)
 
 // blam-cc: EAX -> view_count, EDX -> view_index, ECX -> window, stack -> out_viewport
@@ -33,7 +33,7 @@ extern Rectangle2D game_screen_rect; // 0x0069c63c, foreign (rasterizer module)
 // across its rows. Writes the raw grid cell into `window` (with a small margin applied per row/
 // column when splitting more than one view), and a copy of the pre-margin cell into
 // `out_viewport`, except that a cell touching the outer edge of the grid instead gets clamped to
-// game_window_rect's matching edge on that side.
+// game_window_top_left's matching edge on that side.
 void viewport_split_rect_compute(int32_t view_count, int32_t view_index, Rectangle2D *window,
                                   Rectangle2D *out_viewport)
 {
@@ -95,16 +95,16 @@ void viewport_split_rect_compute(int32_t view_count, int32_t view_index, Rectang
     window->bottom = window->bottom - (int16_t)((row_index == 0) * extra_blank_flag);
 
     if (col_index == 0) {
-        out_viewport->left = game_window_rect.left;
+        out_viewport->left = game_window_top_left.left;
     }
     if (one_fewer_row + 1 + col_index == columns) {
-        out_viewport->right = game_window_rect.right;
+        out_viewport->right = game_window_top_left.right;
     }
     if (row_index == 0) {
-        out_viewport->top = game_window_rect.top;
+        out_viewport->top = game_window_top_left.top;
     }
     if (row_index + 1 == rows) {
-        out_viewport->bottom = game_window_rect.bottom;
+        out_viewport->bottom = game_window_top_left.bottom;
     }
 }
 

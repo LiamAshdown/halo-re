@@ -19,7 +19,7 @@
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t cluster_flood_stamp;         // 0x006e3f04
-extern int32_t cluster_flood_stamps[0x200]; // 0x006e3f08
+extern int32_t cluster_visit_stamp[0x200]; // 0x006e3f08
 
 // this batch (0x554b00): tests whether a sphere (point, tolerance) intersects a specific portal.
 // blam-cc: EAX -> global_structure_bsp, ECX -> point, DX -> portal_index, stack -> tolerance
@@ -36,8 +36,8 @@ int32_t cluster_flood_fill_within_radius(int16_t cluster_index, real_point3d *po
     if (remaining_budget > 0) {
         *output++ = cluster_index;
     }
-    if (cluster_flood_stamps[cluster_index] != cluster_flood_stamp) {
-        cluster_flood_stamps[cluster_index] = cluster_flood_stamp;
+    if (cluster_visit_stamp[cluster_index] != cluster_flood_stamp) {
+        cluster_visit_stamp[cluster_index] = cluster_flood_stamp;
     }
 
     int32_t written = 1;
@@ -52,7 +52,7 @@ int32_t cluster_flood_fill_within_radius(int16_t cluster_index, real_point3d *po
         int16_t neighbor = (portal->front_cluster == (uint16_t)cluster_index)
                                 ? (int16_t)portal->back_cluster
                                 : (int16_t)portal->front_cluster;
-        if (cluster_flood_stamps[neighbor] == cluster_flood_stamp) {
+        if (cluster_visit_stamp[neighbor] == cluster_flood_stamp) {
             continue;
         }
         if (!structure_bsp_portal_sphere_test(global_structure_bsp, point, portal_refs[i].portal,

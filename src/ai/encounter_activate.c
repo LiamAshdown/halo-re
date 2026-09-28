@@ -23,7 +23,7 @@
 extern data_array *encounter_data;   // 0x008802c8
 extern Scenario *global_scenario;    // 0x00746f8c
 extern int16_t global_structure_bsp_index;    // 0x0069e8d8
-extern ai_globals *ai_global_data;   // 0x00880354
+extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
@@ -53,14 +53,14 @@ uint8_t encounter_activate(datum_index encounter_index)
 
     if (enc->units_active == 0) {
         actor_index = (datum_index)k_datum_index_none;
-        if (ai_global_data->actors_valid != 0) {
+        if (ai_globals_ptr->actors_valid != 0) {
             if (encounter_index == (datum_index)k_datum_index_none) {
-                actor_index = ai_global_data->unknown_08;
+                actor_index = ai_globals_ptr->unknown_08;
             } else {
                 actor_index = enc->first_actor;
             }
         }
-        while (ai_global_data->actors_valid != 0 &&
+        while (ai_globals_ptr->actors_valid != 0 &&
                actor_index != (datum_index)k_datum_index_none) {
             current = actor_index;
             a = &((actor *)actor_data->data)[current & 0xffff];

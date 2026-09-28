@@ -11,7 +11,7 @@
 //   src/objects/object_find_in_sphere.c (the object_data / object_cluster_stamp /
 //   collideable_cluster_first dedup idiom this function inlines by hand for a per-cluster
 //   object walk, and the DAT_006e3f01/04 cluster-visit-stamp pair those files already name
-//   cluster_flood_fill_recursion_guard / cluster_flood_fill_call_count); types/tags.h
+//   cluster_flood_in_progress / cluster_flood_stamp); types/tags.h
 //   ScenarioStructureBSP (leaves +0xe4 stride 0x10 cluster +0x08, collision_materials +0xa8
 //   stride 0x14 material +0x12, clusters +0x138 stride 0x68, fog_planes +0x17c stride 0x20),
 //   ScenarioStructureBSPFogPlane (front_region +0x00, material_type +0x02, plane +0x04).
@@ -48,11 +48,11 @@ extern object_globals *object_globals_pointer;     // 0x006b8cbc
 extern int32_t object_cluster_stamp;                // 0x008603cc
 extern datum_index *collideable_cluster_first;      // 0x008603d0
 extern data_array *collideable_object_references;   // 0x008603d4
-extern uint8_t cluster_flood_fill_recursion_guard;  // 0x006e3f01, shared with object_find_in_sphere
-extern int32_t cluster_flood_fill_call_count;       // 0x006e3f04, shared with object_find_in_sphere
+extern uint8_t cluster_flood_in_progress;  // 0x006e3f01, shared with object_find_in_sphere
+extern int32_t cluster_flood_stamp;       // 0x006e3f04, shared with object_find_in_sphere
 extern int32_t cluster_visit_stamp[];               // 0x006e3f08, per-cluster stamp array indexed
                                                      //   by cluster index, compared against
-                                                     //   cluster_flood_fill_call_count; UNSURE name
+                                                     //   cluster_flood_stamp; UNSURE name
 
 // blam-cc: EAX -> flags, ECX -> result, stack -> bsp, breakable_surface_count,
 //          breakable_surfaces, origin, delta, max_fraction. Declaration copied verbatim from
@@ -253,10 +253,10 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
             if ((flags & _collision_test_object_type_mask_default) == 0) {
                 flags |= _collision_test_object_type_mask_default;
             }
-            cluster_flood_fill_call_count++;
+            cluster_flood_stamp++;
             object_globals_pointer->collecting_in_clusters = 1;
             stamp = object_cluster_stamp + 1;
-            cluster_flood_fill_recursion_guard = 1;
+            cluster_flood_in_progress = 1;
             object_cluster_stamp = stamp;
 
             for (i = 0; i < seg_result.leaf_count; i++) {
@@ -265,13 +265,13 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
                     ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf].cluster;
 
                 // cluster_index == -1 indexes cluster_visit_stamp[-1], which IS
-                // cluster_flood_fill_call_count itself (0x006e3f04 sits immediately before
+                // cluster_flood_stamp itself (0x006e3f04 sits immediately before
                 // 0x006e3f08) -- so the test always fails and a clusterless leaf is skipped.
                 // The original does exactly the same thing, via `sVar11 * 4`.
-                if (cluster_visit_stamp[cluster_index] != cluster_flood_fill_call_count) {
+                if (cluster_visit_stamp[cluster_index] != cluster_flood_stamp) {
                     datum_index ref;
 
-                    cluster_visit_stamp[cluster_index] = cluster_flood_fill_call_count;
+                    cluster_visit_stamp[cluster_index] = cluster_flood_stamp;
                     ref = collideable_cluster_first[cluster_index];
                     while (ref != k_datum_index_none) {
                         object_cluster_reference *node = (object_cluster_reference *)
@@ -292,7 +292,7 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
             }
 
             object_globals_pointer->collecting_in_clusters = 0;
-            cluster_flood_fill_recursion_guard = 0;
+            cluster_flood_in_progress = 0;
         }
 
         if (hit == 0) {

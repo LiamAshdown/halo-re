@@ -35,7 +35,7 @@
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern team_pair_globals *team_pair_data;         // 0x006b0b84
-extern void *local_zoom_state;                        // 0x006b0b80, UNSURE: see header
+extern void *main_game_globals;                        // 0x006b0b80, UNSURE: see header
 extern int16_t weapon_zoom_index_substitutions[];     // 0x00657470, indexed by zoom_table_index
 
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, this batch
@@ -46,10 +46,10 @@ extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification)
 // substitution_check_index is in 0..9 and team_pair_globals marks team `substitution_check_index`
 // as an enemy of team 1, first substitutes zoom_table_index through
 // weapon_zoom_index_substitutions (falling back to the multiplayer-style call if the substitute is
-// -1); either way, the magnification used is *(int16 *)(local_zoom_state + 0xe).
+// -1); either way, the magnification used is *(int16 *)(main_game_globals + 0xe).
 real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index)
 {
-    int16_t magnification = *(int16_t *)((uint8_t *)local_zoom_state + 0xe);
+    int16_t magnification = *(int16_t *)((uint8_t *)main_game_globals + 0xe);
 
     if (current_game_engine != 0) {
         return weapon_get_zoom_fov(zoom_table_index, 1);

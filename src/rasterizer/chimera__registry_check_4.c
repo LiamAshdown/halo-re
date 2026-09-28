@@ -22,10 +22,10 @@ extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c
 
 extern int __cdecl _stricmp(const char *a, const char *b);
 
-extern int32_t command_line_argc;                                   // 0x00721e94
-extern char **command_line_argv;                                    // 0x00721e90
-extern int32_t unknown_007196f4;                                    // 0x007196f4 UNSURE: safe mode switch
-extern int32_t renderer_unknown_722b60;                             // 0x00722b60 nonzero: one vertex stream, fixed function path
+extern int32_t shell_argc;                                   // 0x00721e94
+extern char **shell_argv;                                    // 0x00721e90
+extern int32_t safe_mode;                                    // 0x007196f4 UNSURE: safe mode switch
+extern int32_t config_safe_mode;                             // 0x00722b60 nonzero: one vertex stream, fixed function path
 extern uint8_t rasterizer_gamma_disabled;    // 0x0071d1e8
 extern uint8_t rasterizer_gamma_high_bit_17; // 0x006e1718, UNSURE owner; bit 0x11 of dev_caps
 extern d3d_gamma_ramp rasterizer_desktop_gamma_ramp; // 0x006e0b18
@@ -44,21 +44,21 @@ void chimera__registry_check_4(void)
     int32_t gamma_flag;
     HDC dc;
 
-    if (0 < command_line_argc) {
-        for (i = 0; i < command_line_argc; i++) {
-            char *arg = command_line_argv[i];
+    if (0 < shell_argc) {
+        for (i = 0; i < shell_argc; i++) {
+            char *arg = shell_argv[i];
             if (*arg == '-' && _stricmp("-nogamma", arg) == 0) {
                 rasterizer_gamma_disabled = 1;
                 goto set_bit;
             }
         }
     }
-    if (unknown_007196f4 != 0) {
+    if (safe_mode != 0) {
         rasterizer_gamma_disabled = 1;
         goto set_bit;
     }
     rasterizer_gamma_disabled = 0;
-    if (renderer_unknown_722b60 != 0) {
+    if (config_safe_mode != 0) {
         rasterizer_gamma_disabled = 1;
     }
 

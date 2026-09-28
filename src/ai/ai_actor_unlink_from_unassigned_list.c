@@ -13,14 +13,14 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
 
 void ai_actor_unlink_from_unassigned_list(datum_index actor_index)
 {
-    if (ai_global_data->actors_valid != 0) {
+    if (ai_globals_ptr->actors_valid != 0) {
         actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-        datum_index *link = &ai_global_data->unknown_08;
+        datum_index *link = &ai_globals_ptr->unknown_08;
 
         while (*link != actor_index) {
             actor *node = &((actor *)actor_data->data)[*link & 0xffff];

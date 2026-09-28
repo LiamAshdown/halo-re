@@ -31,7 +31,7 @@ extern void *rasterizer_device;                 // 0x0071d174
 extern d3d_caps9 rasterizer_caps;               // 0x007c10c0
 extern float unknown_00689418;                  // 0x00689418 debug: solid ambient override when > 0
 extern uint32_t renderer_unknown_69c684;        // 0x0069c684 low byte: ambient boost in 1/255 steps
-extern ColorRGB unknown_0071d190;               // 0x0071d190 fixed function ambient base
+extern ColorRGB zoom_static_tint_r;               // 0x0071d190 fixed function ambient base
 
 // blam-cc: EAX -> light_index, CX -> slot, EDX -> dest_base
 extern void rasterizer_light_set_point_constants(int32_t light_index, int16_t slot,
@@ -108,9 +108,9 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
 
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
         float boost = (float)(renderer_unknown_69c684 & 0xff) * 0.003921569f;
-        uint32_t red = (uint32_t)(int32_t)(clamp01(unknown_0071d190.red + boost + ambient_red) * 255.0f);
-        uint32_t green = (uint32_t)(int32_t)(clamp01(unknown_0071d190.green + boost + ambient_green) * 255.0f);
-        uint32_t blue = (uint32_t)(int32_t)(clamp01(unknown_0071d190.blue + boost + ambient_blue) * 255.0f);
+        uint32_t red = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.red + boost + ambient_red) * 255.0f);
+        uint32_t green = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.green + boost + ambient_green) * 255.0f);
+        uint32_t blue = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.blue + boost + ambient_blue) * 255.0f);
 
         ((d3d_call2_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(
             rasterizer_device, 0x8b, (((red & 0xff) << 8 | (green & 0xff)) << 8) | (blue & 0xff)); // AMBIENT

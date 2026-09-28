@@ -6,7 +6,7 @@
 // rewrite confidence: 0.5
 // evidence: types/objects.h object (region_permutations 0x180); types/tags.h GBXModel.regions,
 // ModelRegion, ModelRegionPermutation; global 0x008603b0 object_data, global 0x00719cd0
-// object_random_seed; callee object_permutation_find_matching_group (0x4f8d80, this batch).
+// random_seed_global; callee object_permutation_find_matching_group (0x4f8d80, this batch).
 // register convention: object index in EAX, probability-group filter in CX, GBXModel pointer as
 //   the sole stack parameter. Confirmed against objdump -d -M intel bin/halo.exe: 0x4f8dda
 //   mov edi,ecx (the filter, carried in EDI's low word across the loop) and 0x4f8de5
@@ -22,7 +22,7 @@
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint32_t object_random_seed; // 0x00719cd0
+extern uint32_t random_seed_global; // 0x00719cd0
 
 extern int16_t object_permutation_find_matching_group(ModelRegion *region, int16_t group, int16_t *out); // 0x4f8d80, this batch
 
@@ -53,8 +53,8 @@ uint8_t object_regions_initialize_permutations(uint32_t object_index, int16_t gr
         if (match_count == 1) {
             chosen = 0;
         } else {
-            object_random_seed = object_random_seed * 0x19660d + 0x3c6ef35f;
-            chosen = (int16_t)(((int32_t)(object_random_seed >> 0x10) * match_count) >> 0x10);
+            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            chosen = (int16_t)(((int32_t)(random_seed_global >> 0x10) * match_count) >> 0x10);
         }
         obj->region_permutations[region_index] = (uint8_t)matches[chosen];
     }

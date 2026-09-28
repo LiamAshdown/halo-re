@@ -30,8 +30,8 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern uint8_t *globals_tag_data;    // 0x00746fa0
-extern char s_primary_eye_marker[];  // 0x0066bfa0
+extern uint8_t *global_globals;    // 0x00746fa0
+extern char ai_marker_name_a[];  // 0x0066bfa0
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
@@ -71,7 +71,7 @@ void unit_melee_attack_scan(uint32_t unit_index)
     int32_t row;
     int32_t col;
 
-    object_get_node_local_transform(unit_index, s_primary_eye_marker, &marker, 1);
+    object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
     origin = marker.node_transform.position;
     vector3d_build_perpendicular(&perp, aim);
     vector3d_normalize_with_length(&perp);
@@ -185,7 +185,7 @@ void unit_melee_attack_scan(uint32_t unit_index)
                 breakable_surface_apply_damage(&dd, (int32_t)breakable_index, breakable_surface);
             }
         } else {
-            float speed_scale = *(float *)(*(uint8_t **)(globals_tag_data + 0x174) + 0x34);
+            float speed_scale = *(float *)(*(uint8_t **)(global_globals + 0x174) + 0x34);
 
             if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 7) {
                 device_machine_melee_attacked(best_object);

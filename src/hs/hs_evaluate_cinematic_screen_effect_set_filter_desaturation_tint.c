@@ -15,7 +15,7 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *cinematic_screen_effect; // 0x0071cfc4
+extern uint8_t *cinematic_screen_effect_state; // 0x0071cfc4
 
 void hs_evaluate_cinematic_screen_effect_set_filter_desaturation_tint(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -24,10 +24,10 @@ void hs_evaluate_cinematic_screen_effect_set_filter_desaturation_tint(int16_t fu
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    if (cinematic_screen_effect != 0) {
-        *(int32_t *)(cinematic_screen_effect + 0x18) = arguments[1];
-        *(int32_t *)(cinematic_screen_effect + 0x14) = arguments[0];
-        *(int32_t *)(cinematic_screen_effect + 0x1c) = arguments[2];
+    if (cinematic_screen_effect_state != 0) {
+        *(int32_t *)(cinematic_screen_effect_state + 0x18) = arguments[1];
+        *(int32_t *)(cinematic_screen_effect_state + 0x14) = arguments[0];
+        *(int32_t *)(cinematic_screen_effect_state + 0x1c) = arguments[2];
     }
     hs_thread_return(0, thread_index);
     }

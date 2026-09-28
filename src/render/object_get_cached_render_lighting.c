@@ -19,7 +19,7 @@
 #include "rasterizer.h"
 #include "render.h"
 
-extern data_array *cached_object_render_states; // 0x007c30ec, this module
+extern data_array *object_render_state_cache; // 0x007c30ec, this module
 extern render_lighting render_uncached_object_lighting; // 0x006b91c8, this module
 
 extern datum_index object_get_cached_render_state(datum_index object_index,
@@ -40,7 +40,7 @@ render_lighting *object_get_cached_render_lighting(datum_index object_index,
     datum_index cache_index = object_get_cached_render_state(object_index, level_of_detail_pixels);
 
     if (cache_index != k_datum_index_none) {
-        return &((cached_object_render_state *)cached_object_render_states->data)[(uint16_t)cache_index].lighting;
+        return &((cached_object_render_state *)object_render_state_cache->data)[(uint16_t)cache_index].lighting;
     }
 
     object_sample_ambient_lighting(object_index, &render_uncached_object_lighting);

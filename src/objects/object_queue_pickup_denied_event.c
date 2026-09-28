@@ -21,12 +21,11 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, UNSURE
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, UNSURE
 
 extern network_id_table *object_network_id_table; // 0x00687130
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // UNSURE: zero visible args; this module, 0x4f05e0 (skipped
     // as library/non-objects code, but still a valid callee here)
-extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -61,7 +60,7 @@ void object_queue_pickup_denied_event(void *param_1, int32_t key, uint32_t *sour
         void *items[1];
         items[0] = &block;
         network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x31, 0,
-                                             items, 0, 1, 0), network_server, 1, object_network_message_scratch, 0, 0, 0, 3);
+                                             items, 0, 1, 0), network_server, 1, network_message_scratch, 0, 0, 0, 3);
     }
 }
 

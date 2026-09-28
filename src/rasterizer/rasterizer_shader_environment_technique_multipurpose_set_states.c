@@ -19,7 +19,7 @@
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893f8; // 0x006893f8
 extern uint8_t console_debug_toggle_6893fa; // 0x006893fa
-extern int16_t renderer_unknown_69c67c;                             // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)
 extern void *rasterizer_device;             // 0x0071d174
 // UNSURE: per rasterizer_shader_environment_technique_draw.c (0x520970), the table pointer is
 // really a pointer to a {effect (void*), vertex_shader_index (int32_t)} pair, not a bare
@@ -37,7 +37,7 @@ void rasterizer_shader_environment_technique_multipurpose_set_states(void)
     d3d_call3_fn set_sampler_state;
 
     if (console_debug_toggle_6893e4 == 0 && console_debug_toggle_6893f8 != 0 &&
-        console_debug_toggle_6893fa != 0 && renderer_unknown_69c67c == 0) {
+        console_debug_toggle_6893fa != 0 && render_force_flag == 0) {
         vtable = *(void ***)rasterizer_device;
         set_render_state = (d3d_call2_fn)vtable[0x39]; // +0xe4
         set_render_state(rasterizer_device, 0x16, 3);

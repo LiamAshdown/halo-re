@@ -16,7 +16,7 @@ extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buf
 extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
 extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add
 typedef struct data_array data_array;
-extern uint8_t *player_data_raw; // 0x0087a480 (data_array *)
+extern uint8_t *player_data; // 0x0087a480 (data_array *)
 extern uint32_t players_get_active_by_index(int32_t index); // 0x45c6f0, blam-cc: EAX index
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950
 
@@ -28,11 +28,11 @@ void network_session_host_dispatch_message(int32_t key_id, int32_t index, void *
     uint8_t *player;
 
     (void)user_data;
-    if (handle == 0xffffffff || player_index < 0 || player_index >= *(int16_t *)(player_data_raw + 0x20)) {
+    if (handle == 0xffffffff || player_index < 0 || player_index >= *(int16_t *)(player_data + 0x20)) {
         qr2_buffer_add(buffer, "");
         return;
     }
-    player = *(uint8_t **)(player_data_raw + 0x34) + player_index * *(int16_t *)(player_data_raw + 0x22);
+    player = *(uint8_t **)(player_data + 0x34) + player_index * *(int16_t *)(player_data + 0x22);
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt)) {
         qr2_buffer_add(buffer, "");
         return;

@@ -33,7 +33,7 @@
 extern Globals *global_globals;                                 // 0x00746fa0
 extern int16_t network_game_mode;                                // 0x00719720
 extern tag_instance *tag_instances;                              // 0x0087bc14
-extern data_array *object_headers;                                // 0x008603b0
+extern data_array *object_data;                                // 0x008603b0
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 
 extern void object_placement_data_initialize(object_placement_data *placement,
@@ -76,7 +76,7 @@ datum_index game_engine_ctf_create_flag_object(real_point3d *position, uint16_t 
 
     new_object = object_new_with_datum_role_control(&placement, role);
 
-    hdr = (object_header *)object_headers->data + ((uint32_t)new_object & 0xffff);
+    hdr = (object_header *)object_data->data + ((uint32_t)new_object & 0xffff);
     header_flags = hdr->flags;
     hdr->flags = header_flags & ~_object_header_in_pvs_pass_bit;
     if ((header_flags & _object_header_active_bit) == 0) {

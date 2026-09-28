@@ -28,7 +28,7 @@
 #include "networking.h"
 #include <time.h>
 
-extern int32_t rcon_connection_id; // 0x0069fdfc, "the rcon/console connection id" (networking.h)
+extern int32_t network_console_connection_id; // 0x0069fdfc, "the rcon/console connection id" (networking.h)
 extern int32_t sv_ban_penalty_seconds[4]; // 0x00699574
 
 extern char *gcd_getkeyhash(int32_t connection_id, int32_t identity_lookup_key); // foreign (< this module), CD-key hash lookup
@@ -56,7 +56,7 @@ uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_ov
     char time_buf[32];
     char date_buf[32];
 
-    cd_key_hash = gcd_getkeyhash(rcon_connection_id, identity_lookup_key);
+    cd_key_hash = gcd_getkeyhash(network_console_connection_id, identity_lookup_key);
     if (cd_key_hash == 0 || *cd_key_hash == 0) {
         return 1;
     }

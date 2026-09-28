@@ -32,7 +32,7 @@
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                     // 0x0071d174
-extern uint8_t rasterizer_linear_render_targets;    // 0x00722b2c UNSURE name: render target textures carry the linear flag
+extern uint8_t config_linear_texture_addressing_zoom;    // 0x00722b2c UNSURE name: render target textures carry the linear flag
 
 extern float effect_random_fraction(void); // 0x4505b0
 
@@ -78,7 +78,7 @@ void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t heig
     frame.depth = 1;
     frame.type = 0;
     frame.format = (BitmapDataFormat_t)0xffff;
-    frame.flags = rasterizer_linear_render_targets ? 0x10 : 0;
+    frame.flags = config_linear_texture_addressing_zoom ? 0x10 : 0;
     frame.registration_point.x = 0;
     frame.registration_point.y = 0;
     frame.mipmap_count = 0;

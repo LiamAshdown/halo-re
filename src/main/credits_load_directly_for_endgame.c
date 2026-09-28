@@ -15,7 +15,7 @@
 // register convention: cdecl, no parameters.
 // reconciled: R22 saved_player_profile_flags gains _saved_player_profile_end_credits_reached_bit (0x0004); the literal 4 now uses it
 
-// phase 4 review (disassembly 0x4c8d40..0x4c8d9a): 0x00714dd4 is saved_player_profile_slots[0].handle
+// phase 4 review (disassembly 0x4c8d40..0x4c8d9a): 0x00714dd4 is profile_globals_block[0].handle
 // and 0x00719230 is a DWORD store (the phase 3 file wrote one byte).
 #include "tags.h"
 #include "memory.h"
@@ -27,7 +27,7 @@
 #include "saved_games.h"
 #include "main.h"
 
-extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8,
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8,
     // foreign (saved_games); slot 0 handle at 0x00714dd4 (+0x1ffc)
 extern int32_t hud_text_message_cycle_state_00719230; // 0x00719230, foreign, TYPES-GAP (interface module); DWORD store
 
@@ -47,9 +47,9 @@ void credits_load_directly_for_endgame(void)
 {
     datum_index main_menu_tag;
 
-    saved_player_profile_slots[0].profile.flags = saved_player_profile_slots[0].profile.flags | _saved_player_profile_end_credits_reached_bit; // byte OR at 0x00712ef4
-    if (saved_player_profile_slots[0].handle != -1) {
-        player_profile_write_data(saved_player_profile_slots[0].handle, &saved_player_profile_slots[0].profile);
+    profile_globals_block[0].profile.flags = profile_globals_block[0].profile.flags | _saved_player_profile_end_credits_reached_bit; // byte OR at 0x00712ef4
+    if (profile_globals_block[0].handle != -1) {
+        player_profile_write_data(profile_globals_block[0].handle, &profile_globals_block[0].profile);
     }
     main_menu_return_and_reset();
     main_menu_tag = tag_lookup(0x44654c61 /* 'DeLa' */, "ui\\shell\\main_menu\\main_menu");

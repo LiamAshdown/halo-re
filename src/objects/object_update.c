@@ -35,8 +35,8 @@
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern object_globals *object_globals_pointer; // 0x006b8cbc
-extern int16_t game_mode_or_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter), UNSURE: foreign global
-extern real_vector3d *shared_zero_vector; // 0x00696714, a pointer variable per types/math.h
+extern int16_t network_game_mode; // 0x00719720 (a WORD; 0x719722 is the screenshot counter), UNSURE: foreign global
+extern real_vector3d *global_origin3d_pointer; // 0x00696714, a pointer variable per types/math.h
     // ("global_origin3d_pointer"); matches src/objects/flag_new.c's declaration style for the
     // same address.
 extern float fabsf(float x); // x87 FABS
@@ -100,14 +100,14 @@ uint8_t object_update(uint32_t object_index)
 
     object_notify_node_array_if_animated(object_index);
 
-    if (game_mode_or_role == 2) {
+    if (network_game_mode == 2) {
         uint8_t *at_rest_flag = (uint8_t *)&obj->unknown_008;
-        if ((fabsf(obj->velocity.i - shared_zero_vector->i) < 0.0001f) &&
-            (fabsf(obj->velocity.j - shared_zero_vector->j) < 0.0001f) &&
-            (fabsf(obj->velocity.k - shared_zero_vector->k) < 0.0001f) &&
-            (fabsf(obj->angular_velocity.i - shared_zero_vector->i) < 0.0001f) &&
-            (fabsf(obj->angular_velocity.j - shared_zero_vector->j) < 0.0001f) &&
-            (fabsf(obj->angular_velocity.k - shared_zero_vector->k) < 0.0001f)) {
+        if ((fabsf(obj->velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
+            (fabsf(obj->velocity.j - global_origin3d_pointer->j) < 0.0001f) &&
+            (fabsf(obj->velocity.k - global_origin3d_pointer->k) < 0.0001f) &&
+            (fabsf(obj->angular_velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
+            (fabsf(obj->angular_velocity.j - global_origin3d_pointer->j) < 0.0001f) &&
+            (fabsf(obj->angular_velocity.k - global_origin3d_pointer->k) < 0.0001f)) {
             *at_rest_flag = 1;
             return 1;
         }

@@ -5,7 +5,7 @@
 //   index 0xc, matching `variant[0xc]` here); global 0x006f1c88 game_engine_variant (the live
 //   0x26-dword option block copy); global 0x00688308 game_engine_definitions[7]; global
 //   0x006f1d20 current_game_engine; the game_engine_unknown_aa00.. block this function zeroes
-//   is the same one game_engine_tick.c (unknown_0087aa00), game_engine_begin_end_game_sequence.c
+//   is the same one game_engine_tick.c (game_engine_unknown_aa00), game_engine_begin_end_game_sequence.c
 //   (game_engine_end_game_timer) and game_engine_post_rasterize_post_game.c
 //   (game_engine_post_game_fade) already declare; game_engine_state_value and
 //   game_engine_dedicated_idle/_timer come from game_engine_update_end_game_sequence.c.
@@ -22,7 +22,7 @@
 #include "math.h"
 #include "game.h"
 
-extern uint32_t unknown_0087aa00;                          // 0x0087aa00
+extern uint32_t game_engine_unknown_aa00;                          // 0x0087aa00
 extern int32_t game_engine_auto_team_counter;              // 0x0087aa04
 extern float game_engine_end_game_timer;                   // 0x0087aa08
 extern float game_engine_post_game_fade;                   // 0x0087aa0c
@@ -30,7 +30,7 @@ extern game_engine_state game_engine_state_value;           // 0x0087aa10
 extern float game_engine_nameplate_fade_opacity_array[];   // 0x0087aa14
 extern uint8_t game_engine_dedicated_idle;                  // 0x0087aa18
 extern float game_engine_dedicated_idle_timer;              // 0x0087aa1c
-extern int32_t unknown_0087aa20;                            // 0x0087aa20
+extern int32_t game_engine_round_reset_tick;                            // 0x0087aa20
 extern game_variant game_engine_variant;                    // 0x006f1c88
 extern game_engine_definition *game_engine_definitions[7];  // 0x00688308
 extern game_engine_definition *current_game_engine;          // 0x006f1d20
@@ -49,14 +49,14 @@ void game_engine_load_from_variant(const game_variant *variant)
     uint32_t *dst;
     int32_t i;
 
-    unknown_0087aa00 = 0;
+    game_engine_unknown_aa00 = 0;
     game_engine_auto_team_counter = 0;
     game_engine_end_game_timer = 0.0f;
     game_engine_post_game_fade = 0.0f;
     game_engine_nameplate_fade_opacity_array[0] = 0.0f;
     game_engine_dedicated_idle = 0;
     game_engine_dedicated_idle_timer = 0.0f;
-    unknown_0087aa20 = 0;
+    game_engine_round_reset_tick = 0;
     game_engine_state_value = _game_engine_state_not_started;
 
     if (variant != (const game_variant *)0 && variant->game_engine_index != 0) {

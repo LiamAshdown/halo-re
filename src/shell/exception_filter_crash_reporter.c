@@ -66,9 +66,9 @@ extern uint32_t shell_stack_guard_old_protect;                                 /
 extern int32_t crash_in_progress;                                              // 0x00722bd0
 extern report_fault_fn report_fault;                                           // 0x00721f10
 extern uint8_t shell_window_proc_bypass;                                       // 0x00721e8d
-extern void *keystone_root;                                                    // 0x00721ea4
-extern chat_gui_find_object_fn keystone_get_window;                            // 0x00721eb8
-extern chat_gui_release_fn keystone_window_release;                            // 0x00721ec8
+extern void *chat_gui_root_handle;                                                    // 0x00721ea4
+extern chat_gui_find_object_fn chat_gui_find_object;                            // 0x00721eb8
+extern chat_gui_release_fn chat_gui_release;                            // 0x00721ec8
 extern keystone_release_fn keystone_release;                                   // 0x00721eac
 extern void *chat_gui_find_object_arg;                                         // 0x0069c698 -> L"KeystoneEditbox"
 extern void *chat_listbox_gui_find_object_arg;                                 // 0x0069c69c -> L"KeystoneChatLog"
@@ -163,17 +163,17 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
         rasterizer_service_deferred_windowed_ops();
         sound_stop_all();
         ShowCursor(1);
-        if (keystone_root != 0) {
-            window = keystone_get_window(keystone_root, chat_gui_find_object_arg);
+        if (chat_gui_root_handle != 0) {
+            window = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
             if (window != 0) {
-                keystone_window_release(window);
+                chat_gui_release(window);
             }
-            window = keystone_get_window(keystone_root, chat_listbox_gui_find_object_arg);
+            window = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
             if (window != 0) {
-                keystone_window_release(window);
+                chat_gui_release(window);
             }
-            keystone_release(keystone_root);
-            keystone_root = 0;
+            keystone_release(chat_gui_root_handle);
+            chat_gui_root_handle = 0;
         }
         if (shell_window != 0) {
             ShowWindow(shell_window, 6 /* SW_MINIMIZE */);

@@ -24,7 +24,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80
 extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin,
@@ -42,8 +42,8 @@ extern void player_set_pending_interaction_action(int16_t priority_type, int16_t
 void player_check_assassination_opportunity(uint32_t player_index, uint32_t candidate_object)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    object *unit = (object *)((object_header *)object_headers->data)[p->unit & 0xffff].data;
-    object *candidate = (object *)((object_header *)object_headers->data)[candidate_object & 0xffff].data;
+    object *unit = (object *)((object_header *)object_data->data)[p->unit & 0xffff].data;
+    object *candidate = (object *)((object_header *)object_data->data)[candidate_object & 0xffff].data;
     real_point3d camera_position;
 
     unit_get_camera_position(p->unit, &camera_position);

@@ -19,7 +19,7 @@ extern uint8_t server_browser_initialized;       // 0x00719470
 extern uint8_t DAT_00719488;     // 0x00719488, UNSURE name
 extern int32_t server_browser_query_elapsed_ms;  // 0x007196c8
 extern int32_t server_browser_selected_index;    // 0x006953f4
-extern int32_t server_browser_selection_valid;   // 0x0071947c, UNSURE name
+extern int32_t server_browser_last_click_ms;   // 0x0071947c, UNSURE name
 extern int32_t SBServerHasBasicKeys(void *server); // 0x6175c0 SBServerHasBasicKeys
 extern int32_t SBServerHasFullKeys(void *server); // 0x6175d0 SBServerHasFullKeys
 extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms); // 0x4ba760
@@ -61,7 +61,7 @@ void network_channel_gap_4ba660(void *sb, uint32_t reason, void *server, void *i
                 dynamic_pointer_array_remove_at(index, list);
                 if (index == server_browser_selected_index) {
                     server_browser_selected_index = -1;
-                    server_browser_selection_valid = 0;
+                    server_browser_last_click_ms = 0;
                     server_browser_ui_refresh();
                 }
             }

@@ -21,7 +21,7 @@
 //   look_vector.c -- takes a unit handle and an out yaw/pitch pointer, neither of which is
 //   recoverable here) and game_engine_update_local_player_look's two arguments are reconstructed from the only visible
 //   arithmetic (a signed triple-product-shaped expression against a foreign "camera basis"
-//   pointer, `k_camera_axis_table` at 0x00696720). `vector2d_angle_between` and both
+//   pointer, `global_up3d_pointer` at 0x00696720). `vector2d_angle_between` and both
 //   `vector3d_normalize_with_length` calls are likewise argument-elided; reconstructed from the
 //   two 2D unit vectors the surrounding magnitude checks operate on. The player_camera_impulse
 //   fields at +0x1c/+0x20/+0x24/+0x28/+0x2c (written from the 13-dword descriptor copy but not
@@ -37,11 +37,11 @@
 #include "objects.h"
 #include "effects.h"
 
-extern int32_t *game_control_globals; // 0x006b145c, UNSURE: foreign module (player look/aim
+extern int32_t *player_control_globals_ptr; // 0x006b145c, UNSURE: foreign module (player look/aim
                                     // globals); stride 0x40, +0x1c pitch, +0x20 yaw
 extern random_seed effect_random_seed; // 0x00719cd4
 extern double fabs(double x); // ABS is a single x87 FABS instruction
-extern const real *k_camera_axis_table; // 0x00696720, UNSURE: foreign module (render globals),
+extern const real *global_up3d_pointer; // 0x00696720, UNSURE: foreign module (render globals),
                                     // 3 floats read as a basis for game_engine_update_local_player_look's expression
 
 extern double cos(double x);
@@ -53,7 +53,7 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
                                         real cos_angle); // 0x4cd820
 extern void game_engine_update_local_player_look(int16_t local_player_index, real yaw_delta, real pitch_delta); // 0x472160, AX, stack
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward); // 0x473d70, EAX, ECX, ESI
-extern uint8_t *player_globals_0087a478; // 0x0087a478, +0x04 local_players[0]
+extern uint8_t *local_player_globals; // 0x0087a478, +0x04 local_players[0]
 
 // Replaces a local player's active camera impulse with a new one built from `descriptor` and
 // `direction` when the new one out-prioritizes (or has run longer than) the current one, then
@@ -77,11 +77,11 @@ void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_
     real *impulse = (real *)(fx + 0x50);
     real_vector3d *impulse_direction = (real_vector3d *)(fx + 0x00);
     real_vector3d *impulse_rotation = (real_vector3d *)(fx + 0x0c);
-    real_vector3d *up = (real_vector3d *)k_camera_axis_table; // [0x696720]: the global up vector
+    real_vector3d *up = (real_vector3d *)global_up3d_pointer; // [0x696720]: the global up vector
     real duration_ticks = duration_scale * 30.0f;
     real ticks = (real)*(int16_t *)(fx + 0xe0);
     real blended = (1.0f - descriptor[6]) * intensity_falloff + descriptor[6];
-    real *look_globals = (real *)((uint8_t *)game_control_globals + local_player_index * 0x40);
+    real *look_globals = (real *)((uint8_t *)player_control_globals_ptr + local_player_index * 0x40);
 
     if (impulse[0] > ticks || blended > *(real *)(fx + 0x68) ||
         (!(blended < *(real *)(fx + 0x68)) && duration_ticks * descriptor[0] > ticks)) {
@@ -138,7 +138,7 @@ void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_
     {
         real blended_b = (1.0f - descriptor[9]) * intensity_falloff + descriptor[9];
         datum_index player_handle = (local_player_index != -1 && local_player_index < 1) ?
-            *(datum_index *)(player_globals_0087a478 + 4 + local_player_index * 4) : (datum_index)k_datum_index_none;
+            *(datum_index *)(local_player_globals + 4 + local_player_index * 4) : (datum_index)k_datum_index_none;
         real_vector3d forward;
         real_vector3d left;
         real yaw_delta;

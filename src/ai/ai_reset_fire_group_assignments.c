@@ -31,9 +31,9 @@ extern data_array *encounter_data;   // 0x008802c8
 extern data_array *prop_data;        // 0x008802c0
 extern data_array *swarm_data;       // 0x0088035c
 extern data_array *object_data;      // 0x008603b0
-extern uint8_t *ai_globals_ptr_raw;  // 0x00880354
+extern uint8_t *ai_globals_ptr;  // 0x00880354
 extern Scenario *global_scenario;
-extern uint8_t *team_pair_table;     // 0x006b0b84
+extern uint8_t *team_pair_data;     // 0x006b0b84
 extern game_engine_definition *current_game_engine;
 extern uint8_t *local_player_globals; // 0x0087a478
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
@@ -79,7 +79,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
                 return 0;
             }
             index = team * 10 + 1;
-            enemies = (*(uint32_t *)(team_pair_table + 0xa4 + (index >> 5) * 4) & (1u << (index & 0x1f))) == 0;
+            enemies = (*(uint32_t *)(team_pair_data + 0xa4 + (index >> 5) * 4) & (1u << (index & 0x1f))) == 0;
         }
         if (enemies) {
             return 0;
@@ -165,7 +165,7 @@ void ai_reset_fire_group_assignments(void)
             continue;
         }
         next = *(datum_index *)(encounter + 0x14);
-        while (ai_globals_ptr_raw[1] != 0 && next != k_datum_index_none) {
+        while (ai_globals_ptr[1] != 0 && next != k_datum_index_none) {
             uint8_t *actor;
             uint8_t carry;
 
@@ -196,12 +196,12 @@ void ai_reset_fire_group_assignments(void)
                 }
             }
             encounter_remove_actor(actor_index, 0);
-            if (ai_globals_ptr_raw[1] == 0) {
+            if (ai_globals_ptr[1] == 0) {
                 break;
             }
             actor = ACTOR(actor_index);
-            *(datum_index *)(actor + 0x2c) = *(datum_index *)(ai_globals_ptr_raw + 8);
-            *(datum_index *)(ai_globals_ptr_raw + 8) = actor_index;
+            *(datum_index *)(actor + 0x2c) = *(datum_index *)(ai_globals_ptr + 8);
+            *(datum_index *)(ai_globals_ptr + 8) = actor_index;
             actor[9] = 1;
             *(int16_t *)(actor + 0x10) = actor[8] != 0 ? 0x5a : 0;
             actor_movement_action_cancel(actor_index);
@@ -212,7 +212,7 @@ void ai_reset_fire_group_assignments(void)
     }
 
     // 0x42ce06
-    for (actor_index = *(datum_index *)(ai_globals_ptr_raw + 8); actor_index != k_datum_index_none;) {
+    for (actor_index = *(datum_index *)(ai_globals_ptr + 8); actor_index != k_datum_index_none;) {
         datum_index following = *(datum_index *)(ACTOR(actor_index) + 0x2c);
         datum_index prop_index;
 

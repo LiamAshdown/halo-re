@@ -25,7 +25,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 extern Scenario *global_scenario;  // 0x00746f8c
 
 extern uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index); // 0x438f60, ECX, AX
@@ -33,9 +33,9 @@ extern uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index,
 // blam-cc: stack -> packed_reference
 int32_t ai_reference_resolve_squad_datum(uint32_t packed_reference)
 {
-    int32_t fallback = (int32_t)ai_global_data; // see UNSURE note above
+    int32_t fallback = (int32_t)ai_globals_ptr; // see UNSURE note above
 
-    if (ai_global_data->actors_valid != 0 && packed_reference != (uint32_t)k_datum_index_none) {
+    if (ai_globals_ptr->actors_valid != 0 && packed_reference != (uint32_t)k_datum_index_none) {
         if (packed_reference >> 0x1e == 2) {
             // 0x432cb2: the squad byte, zero-extended (never 0xffff); tail jump with ECX = encounter, AX = squad
             return (int32_t)encounter_squad_spawn_reinforcement(packed_reference & 0xffff,

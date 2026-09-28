@@ -4,7 +4,7 @@
 // evidence: out/phase2/results/scenario_00.json ("Loads the map's cache file, resolves the
 // scenario and matg globals tag data pointers, and switches in the initial structure bsp");
 // calls cache_file_load, derives global_scenario from the returned tag id via tag_instances,
-// looks up "globals\\globals" ('matg', 0x6d617467) with tag_lookup for global_game_globals, and
+// looks up "globals\\globals" ('matg', 0x6d617467) with tag_lookup for global_globals, and
 // calls scenario_structure_bsp_switch(0) to bring in the initial structure bsp. On success it
 // then stamps -1 into every netgame_equipment element's runtime item handle
 // (unknown_ffffffff, +0x10), matching types/scenario.h's note on that field.
@@ -28,12 +28,12 @@ extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); // 0x
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern datum_index global_scenario_index; // 0x0069e8d4
 extern Scenario *global_scenario;      // 0x00746f8c
-extern Globals *global_game_globals;   // 0x00746fa0
+extern Globals *global_globals;   // 0x00746fa0
 extern char k_empty_string[1];         // 0x0065512c
 
 // blam-cc: EAX -> path
 // Loads the map cache file at `path`. On success, resolves global_scenario from the returned
-// scenario tag id, looks up the "globals\\globals" ('matg') tag for global_game_globals, and
+// scenario tag id, looks up the "globals\\globals" ('matg') tag for global_globals, and
 // switches in structure bsp 0 via scenario_structure_bsp_switch. If that switch succeeds, every
 // element of the scenario's netgame_equipment block has its runtime item handle
 // (unknown_ffffffff, +0x10) reset to -1. Returns nonzero (in AL) on success.
@@ -69,7 +69,7 @@ uint8_t scenario_load(char *path)
         return 0;
     }
 
-    global_game_globals = (Globals *)tag_instances[
+    global_globals = (Globals *)tag_instances[
         tag_lookup(0x6d617467 /* 'matg' */, "globals\\globals") & 0xffff].data;
 
     if (scenario_structure_bsp_switch(0) == 0) {

@@ -25,14 +25,14 @@
 extern void *rasterizer_device;                                     // 0x0071d174
 extern data_array *decal_data;                                      // 0x0087abe4
 extern tag_instance *tag_instances;                                 // 0x0087bc14
-extern uint32_t *decal_cluster_heads;                               // 0x006b0ad8 [layer * 0x200 + cluster],
+extern uint32_t *decal_grid_block;                               // 0x006b0ad8 [layer * 0x200 + cluster],
                                                                     //   decal datum index, -1 for none
 extern uint8_t *rasterizer_decal_vertex_cache_handle;               // 0x0071d1c0 UNSURE: +0x2c shift, +0x3c data_array
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 extern uint8_t rasterizer_software_vertex_processing;               // 0x0069c680
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
-extern uint8_t console_debug_toggle_6893f5;                         // 0x006893f5
+extern uint8_t decals_for_all_responses;                         // 0x006893f5
 extern int16_t rasterizer_decal_layer;                              // 0x006d98dc set by rasterizer_decal_pass_begin
 extern int16_t rasterizer_decal_blend_mode;                         // 0x006d98d8 last framebuffer blend function
 extern uint32_t rasterizer_decal_bitmap_tag;                        // 0x006d98e0 last bound decal bitmap
@@ -73,14 +73,14 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
     uint8_t layer_enabled = 1;
     uint32_t decal_index;
 
-    if (console_debug_toggle_6893f5 == 0 && rasterizer_decal_layer != 3) {
+    if (decals_for_all_responses == 0 && rasterizer_decal_layer != 3) {
         layer_enabled = 0;
     }
     if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || !layer_enabled) {
         return;
     }
 
-    decal_index = decal_cluster_heads[rasterizer_decal_layer * 0x200 + cluster_index];
+    decal_index = decal_grid_block[rasterizer_decal_layer * 0x200 + cluster_index];
     while (decal_index != 0xffffffff) {
         uint8_t *decal = (uint8_t *)decal_data->data + (decal_index & 0xffff) * 0x38;
         uint32_t definition_tag = *(uint32_t *)(decal + 0x2c);

@@ -28,7 +28,7 @@
 extern main_globals main_globals_data; // 0x00719700
 extern void *connect_thread;   // 0x00719b64, this module; HANDLE of the hostname worker
 
-extern int32_t interface_loading_screen_ui_state; // 0x00718f8c, foreign (interface module); see
+extern int32_t join_ui_state; // 0x00718f8c, foreign (interface module); see
     // src/networking/network_join_request_resolve_host.c for the same global under this name
 
 extern char network_address_string_is_valid(char *address_string);   // 0x4dc730, foreign (networking module)
@@ -85,7 +85,7 @@ uint8_t network_game_client_connect_to_address_async(char *address, char *passwo
 
         widget_close_all();
         interface_loading_screen_reset();
-        interface_loading_screen_ui_state = 3;
+        join_ui_state = 3;
         interface_loading_screen_set_text(address);
 
         while (connect_thread != 0) {

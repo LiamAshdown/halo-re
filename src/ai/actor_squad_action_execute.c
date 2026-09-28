@@ -75,7 +75,7 @@ extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_
 extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
     uint8_t interpolate); // 0x5702a0, stack, EDI, EAX, stack
 extern int32_t float_compare_ascending(const void *a, const void *b); // 0x405360
-extern const char DAT_0065512c[]; // 0x0065512c, the empty string: a seat name filter matching every seat
+extern const char k_empty_string[]; // 0x0065512c, the empty string: a seat name filter matching every seat
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
@@ -381,7 +381,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
             seat_flags = entry->atom_modifier;
         }
         for (i = 0; i < sample_count; i++) {
-            if (actor_play_first_valid_vocalization(0, samples[i].vehicle_index, actor_index, (char *)DAT_0065512c,
+            if (actor_play_first_valid_vocalization(0, samples[i].vehicle_index, actor_index, (char *)k_empty_string,
                                                     seat_flags, 0)) {
                 state[0x4] |= 4;
                 return 1;

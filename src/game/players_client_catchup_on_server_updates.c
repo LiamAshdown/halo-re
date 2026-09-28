@@ -38,7 +38,7 @@ extern int16_t network_game_mode;    // 0x00719720
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int32_t catchup_backlog_threshold;   // 0x006887bc, UNSURE name
 extern int32_t catchup_time_threshold;      // 0x006887c0, UNSURE name
-extern uint8_t catchup_prefer_object_update; // 0x006894a1, UNSURE name
+extern uint8_t network_client_vehicle_ack_enabled; // 0x006894a1, UNSURE name
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
@@ -187,7 +187,7 @@ void players_client_catchup_on_server_updates(void)
                             unit_apply_control_block(&ctrl, -1);
 
                             run_object_update = player_unit_has_parent(plr->unit); // UNSURE: see above
-                            if (run_object_update == 0 || catchup_prefer_object_update == 0) {
+                            if (run_object_update == 0 || network_client_vehicle_ack_enabled == 0) {
                                 unit_update(plr->unit);
                                 biped_update(plr->unit);
                             } else {

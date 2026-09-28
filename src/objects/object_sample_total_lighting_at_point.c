@@ -39,11 +39,11 @@
 #include "structures.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
-extern real_vector3d *object_ambient_lighting_default; // 0x00686b0c
+extern real_vector3d *default_axis_b; // 0x00686b0c
 extern real_vector3d object_lightmap_probe_direction;  // 0x0065dd94, (0, 0, -10)
 extern ScenarioStructureBSP *global_structure_bsp;     // 0x00746f9c
 extern int32_t light_frame_counter;                    // 0x008607c4
-extern uint8_t light_gather_in_progress;               // 0x008607c0, UNSURE name
+extern uint8_t light_render_unknown_7c0;               // 0x008607c0, UNSURE name
 extern data_array *light_data;                         // 0x00860b14
 
 extern uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position,
@@ -78,7 +78,7 @@ void object_sample_total_lighting_at_point(real_point3d *point, bsp_leaf_referen
     ScenarioStructureBSPLightmap *lightmap;
     ScenarioStructureBSPMaterial *material;
 
-    *color = *object_ambient_lighting_default;
+    *color = *default_axis_b;
 
     if (structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
             &object_lightmap_probe_direction, &material_index, &surface_index, &weight_1)) {
@@ -106,10 +106,10 @@ void object_sample_total_lighting_at_point(real_point3d *point, bsp_leaf_referen
         int32_t i;
 
         light_frame_counter++;
-        light_gather_in_progress = 1;
+        light_render_unknown_7c0 = 1;
         object_lights_gather_nearest(location->cluster_index, 0xffffffff, point, 0.0f, indices, scores,
             (uint32_t)(uintptr_t)weights, &count, 2);
-        light_gather_in_progress = 0;
+        light_render_unknown_7c0 = 0;
 
         for (i = 0; i < count; i++) {
             uint8_t *entry = (uint8_t *)light_data->data + (indices[i] & 0xffff) * 0x7c;

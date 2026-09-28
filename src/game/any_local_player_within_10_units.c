@@ -31,7 +31,7 @@
 #include "game.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
-extern float camera_position_x_table[]; // 0x006ac6d0, stride 0x29c bytes (0xa7 floats) per player slot
+extern float camera_point[]; // 0x006ac6d0, stride 0x29c bytes (0xa7 floats) per player slot
 extern float camera_position_y_table[]; // 0x006ac6d4, same stride
 extern float camera_position_z_table[]; // 0x006ac6d8, same stride
 
@@ -46,7 +46,7 @@ uint8_t any_local_player_within_10_units(const real_point3d *query_point) // bla
 
     for (slot = 0; slot < 1; slot++) {
         if (slot != -1 && slot < 1 && (int32_t)local_player_globals->local_players[slot] != -1) {
-            float dx = query_point->x - camera_position_x_table[slot * 0xa7];
+            float dx = query_point->x - camera_point[slot * 0xa7];
             float dy = query_point->y - camera_position_y_table[slot * 0xa7];
             float dz = query_point->z - camera_position_z_table[slot * 0xa7];
             if (dx * dx + dz * dz + dy * dy < 100.0f) { // x87 order 0x453379..0x453387; `jnp`: NaN is not < 100

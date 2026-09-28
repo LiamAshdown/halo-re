@@ -34,12 +34,12 @@ extern int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *na
 extern void main_queue_map_change(char *map_name); // 0x4c8740, blam-cc: EAX -> map_name
 extern uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_name, char *target_name); // 0x5387e0
 
-extern char *campaign_level_paths_00696574[10]; // 0x00696574
+extern char *campaign_level_paths[10]; // 0x00696574
 
 // blam-cc: stack -> name (cdecl)
 // FIXED (verified against 0x5391a0..0x53928d): the only argument is the stack name; EDI is saved and restored,
 //   not an input. The stats file reader takes &difficulty in EBX. A difficulty 0..3 becomes pending_difficulty
-//   (0x696564, a word). main_queue_map_change gets EAX = campaign_level_paths_00696574[level] for a level 0..9,
+//   (0x696564, a word). main_queue_map_change gets EAX = campaign_level_paths[level] for a level 0..9,
 //   otherwise NULL (the draft passed nothing). When the name is not "savegame" (9-byte compare) the files are
 //   copied onto "savegame" (ESI = directory, EDI = name). Returns whether the stats file gave a level.
 // Loads the checkpoint "<current profile directory><name>.sav" as the active checkpoint.
@@ -69,7 +69,7 @@ uint8_t saved_game_load_checkpoint_by_name(char *name)
         pending_difficulty = (int16_t)difficulty;
     }
     if (level >= 0 && level < 10) {
-        map_path = campaign_level_paths_00696574[level];
+        map_path = campaign_level_paths[level];
     }
     main_queue_map_change(map_path);
     if (memcmp(name, "savegame", 9) != 0) {

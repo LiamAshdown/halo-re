@@ -27,8 +27,8 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern char *level_name_table[k_campaign_level_count]; // 0x00696574, UNSURE: element type/exact table length
-extern ColorARGB *unknown_00686af8; // 0x00686af8, UNSURE: console color passed to chimera__console_out
+extern char *campaign_level_paths[k_campaign_level_count]; // 0x00696574, UNSURE: element type/exact table length
+extern ColorARGB *actor_mode_default_look_weights; // 0x00686af8, UNSURE: console color passed to chimera__console_out
 
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50
 
@@ -49,10 +49,10 @@ uint8_t game_checkpoint_print_list_entry(int32_t index, const char *name, int32_
 
     level_name = 0;
     if (0 <= level_index && level_index < k_campaign_level_count) {
-        level_name = level_name_table[level_index];
+        level_name = campaign_level_paths[level_index];
     }
 
-    chimera__console_out(unknown_00686af8, "%-15s %-20s %02d:%02d:%02d", name, level_name, hours, minutes, seconds);
+    chimera__console_out(actor_mode_default_look_weights, "%-15s %-20s %02d:%02d:%02d", name, level_name, hours, minutes, seconds);
     return 1;
 }
 

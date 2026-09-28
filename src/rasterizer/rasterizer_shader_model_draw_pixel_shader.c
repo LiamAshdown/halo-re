@@ -37,7 +37,7 @@ extern uint8_t rasterizer_camouflage_fade_active;           // 0x0071d1fe
 extern float rasterizer_camouflage_fade;                    // 0x0071d200
 extern uint8_t rasterizer_fog_enabled;                      // 0x0069c6a8
 extern uint8_t unknown_0071d1fb;                            // 0x0071d1fb UNSURE
-extern float *unknown_0071cfc0;                             // 0x0071cfc0 UNSURE: four floats
+extern float *rasterizer_model_ambient_reflection_tint;                             // 0x0071cfc0 UNSURE: four floats
 extern float unknown_007c047c;                              // 0x007c047c UNSURE: fog alpha scale
 extern const ColorRGB *global_white_color;                  // 0x00686b04
 extern float rasterizer_model_effect_vector[4];             // 0x006e17e4 scratch vector for SetVector
@@ -403,19 +403,19 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     if (((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &reflection_constants[0][0], 2) < 0) {
         ok = 0;
     }
-    if (unknown_0071cfc0 != NULL &&
-        (unknown_0071cfc0[0] > 0.0f || unknown_0071cfc0[1] > 0.0f ||
-         unknown_0071cfc0[2] > 0.0f || unknown_0071cfc0[3] > 0.0f)) {
+    if (rasterizer_model_ambient_reflection_tint != NULL &&
+        (rasterizer_model_ambient_reflection_tint[0] > 0.0f || rasterizer_model_ambient_reflection_tint[1] > 0.0f ||
+         rasterizer_model_ambient_reflection_tint[2] > 0.0f || rasterizer_model_ambient_reflection_tint[3] > 0.0f)) {
         float override_constants[2][4];
 
         override_constants[0][0] = 0.0f;
         override_constants[0][1] = 0.0f;
         override_constants[0][2] = 0.0f;
         override_constants[0][3] = 0.0f;
-        override_constants[1][0] = unknown_0071cfc0[0];
-        override_constants[1][1] = unknown_0071cfc0[1];
-        override_constants[1][2] = unknown_0071cfc0[2];
-        override_constants[1][3] = unknown_0071cfc0[3];
+        override_constants[1][0] = rasterizer_model_ambient_reflection_tint[0];
+        override_constants[1][1] = rasterizer_model_ambient_reflection_tint[1];
+        override_constants[1][2] = rasterizer_model_ambient_reflection_tint[2];
+        override_constants[1][3] = rasterizer_model_ambient_reflection_tint[3];
         if (((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &override_constants[0][0], 2) < 0) {
             ok = 0;
             goto done;

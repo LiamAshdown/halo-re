@@ -31,17 +31,17 @@
 
 extern data_array *actor_data;        // 0x00880360
 extern data_array *swarm_data;        // 0x0088035c
-extern data_array *swarm_creature_data; // 0x00880358
+extern data_array *swarm_component_data; // 0x00880358
 extern data_array *encounter_data;    // 0x008802c8
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
 extern data_array *object_data;       // 0x008603b0
 extern tag_instance *tag_instances;   // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20
-extern uint8_t *ai_team_relationships; // 0x006b0b84, a bitset at +0xa4 (10 x 10 teams)
-extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern uint8_t *team_pair_data; // 0x006b0b84, a bitset at +0xa4 (10 x 10 teams)
+extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 extern const real_vector3d *global_up3d_pointer;        // 0x00696720
-extern char ai_marker_name_head[];    // 0x00672034
+extern char ai_marker_name_b[];    // 0x00672034
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, blam-cc: EAX, ECX
 extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
@@ -83,9 +83,9 @@ void actor_refresh_combat_context(datum_index actor_index)
         int16_t count = *(int16_t *)(swarm + 2);
         int16_t i;
 
-        *center = *global_zero_point3d_pointer;
+        *center = *global_zero_vector3d_pointer;
         for (i = 0; i < count; i++) {
-            uint8_t *creature = (uint8_t *)swarm_creature_data->data +
+            uint8_t *creature = (uint8_t *)swarm_component_data->data +
                 (*(datum_index *)(swarm + 0x58 + i * 4) & 0xffff) * 0x40;
             datum_index creature_unit = *(datum_index *)(swarm + 0x18 + i * 4);
             uint8_t *creature_object = object_get(creature_unit);
@@ -124,7 +124,7 @@ void actor_refresh_combat_context(datum_index actor_index)
         object_marker marker;
         real_point3d head;
 
-        object_get_node_local_transform(A_I32(0x18), ai_marker_name_head, &marker, 1);
+        object_get_node_local_transform(A_I32(0x18), ai_marker_name_b, &marker, 1);
         head = marker.node_transform.position;
         A_U8(0x15d) = scenario_location_get_water_and_weather(&head, (bsp_leaf_reference *)(self + 0x144), 0);
     }
@@ -221,7 +221,7 @@ void actor_refresh_combat_context(datum_index actor_index)
             } else {
                 int32_t bit = actor_team * 10 + child_team;
 
-                enemy = (((uint32_t *)(ai_team_relationships + 0xa4))[bit >> 5] & (1u << (bit & 0x1f))) == 0;
+                enemy = (((uint32_t *)(team_pair_data + 0xa4))[bit >> 5] & (1u << (bit & 0x1f))) == 0;
             }
             if (enemy) {
                 A_U8(0x1b4) = 1;

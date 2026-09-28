@@ -19,7 +19,7 @@
 #include "saved_games.h"
 #include "cache.h"
 
-extern uint16_t game_state_persistent_storage_created_or_similar_007196d8; // 0x007196d8, UNSURE: guards this whole path
+extern uint16_t game_time_force_single_tick; // 0x007196d8, UNSURE: guards this whole path
 extern int16_t pending_difficulty; // 0x00696564
 extern uint8_t *game_state_base; // 0x006e2dc8
 extern game_main_globals *main_game_globals; // 0x006b0b80
@@ -36,7 +36,7 @@ void game_state_load_checkpoint(void)
 {
     game_state_header header;
 
-    if (game_state_persistent_storage_created_or_similar_007196d8 != 0) {
+    if (game_time_force_single_tick != 0) {
         return;
     }
     if (saved_game_validate_crc(k_game_state_size, k_game_state_header_size, (uint8_t *)&header,

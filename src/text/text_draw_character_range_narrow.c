@@ -19,9 +19,9 @@
 //   text_parse_state_initialize through ECX, confirmed at 0x55710f "mov ecx,[esp+0x58]"),
 //   start_column, end_column.
 //   text_parse_state_initialize (0x556b00) is called with ESI=&state (lea esi,[esp+0x30] at
-//   0x557119), ECX=string, DX=text_justification_state, BX=text_style_state, stack=(text_font,
-//   &text_color) -- ebx is loaded as a full dword from 0x6e4734 (text_style_state followed
-//   immediately by text_justification_state in memory) but only bx is read by the callee.
+//   0x557119), ECX=string, DX=hud_text_draw_column, BX=hud_text_draw_color_or_flags, stack=(hud_text_draw_font_tag_id,
+//   &hud_text_draw_color_a) -- ebx is loaded as a full dword from 0x6e4734 (hud_text_draw_color_or_flags followed
+//   immediately by hud_text_draw_column in memory) but only bx is read by the callee.
 //   text_parse_next_token_narrow (0x556bb0) is called with EDI=&state (lea edi,[esp+0x28]
 //   at 0x55716d, no other visible arguments), matching out/phase4/text_types_notes.md's
 //   "0x556bb0: EDI = state".
@@ -34,10 +34,10 @@
 #include "memory.h"
 #include "text.h"
 
-extern datum_index text_font;              // 0x006e472c
-extern int16_t text_style_state;                 // 0x006e4734
-extern int16_t text_justification_state;         // 0x006e4736
-extern ColorARGB text_color;               // 0x006e4738
+extern datum_index hud_text_draw_font_tag_id;              // 0x006e472c
+extern int16_t hud_text_draw_color_or_flags;                 // 0x006e4734
+extern int16_t hud_text_draw_column;         // 0x006e4736
+extern ColorARGB hud_text_draw_color_a;               // 0x006e4738
 extern int16_t text_highlight_start;       // 0x006e476a, first column drawn with inverted colour
 extern int16_t text_highlight_end;         // 0x006e476c, one past the last such column
 
@@ -79,8 +79,8 @@ void text_draw_character_range_narrow(Rectangle2D *bounds, text_glyph_draw_proc 
     }
 
     if (left < right && top < bottom) {
-        text_parse_state_initialize(string, text_justification_state, text_style_state, &state, text_font,
-            &text_color);
+        text_parse_state_initialize(string, hud_text_draw_column, hud_text_draw_color_or_flags, &state, hud_text_draw_font_tag_id,
+            &hud_text_draw_color_a);
         state.position = start_column;
         while (state.position < end_column) {
             uint32_t glyph_color;

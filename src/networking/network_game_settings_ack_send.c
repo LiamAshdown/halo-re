@@ -39,7 +39,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint32_t network_game_variant_template_table[]; // 0x00712dd8, UNSURE name; row stride 0x801 dwords
+extern uint32_t profile_globals_block[]; // 0x00712dd8, UNSURE name; row stride 0x801 dwords
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
@@ -59,7 +59,7 @@ char network_game_settings_ack_send(uint8_t *client, int16_t template_row)
     int32_t free_bits;
     char result;
 
-    src = &network_game_variant_template_table[(uint32_t)template_row * 0x801];
+    src = &profile_globals_block[(uint32_t)template_row * 0x801];
     dst = (uint32_t *)(frame + 0x46);
     for (i = 0x7ff; i != 0; i = i - 1) {
         *dst = *src;

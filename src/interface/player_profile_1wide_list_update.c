@@ -29,7 +29,7 @@
 
 extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60
 extern char joystick_set_separator_0065f010[];           // 0x0065f010, CR LF (8-bit, for %hs)
-extern uint16_t empty_wide_string_00660c34[];            // 0x00660c34
+extern uint16_t empty_string[];            // 0x00660c34
 extern heap *widget_memory_pool;                         // 0x006926c4
 
 extern void ui_profile_carousel_slot_cache_populate(int32_t count, const int32_t *candidate_ids); // 0x4a74b0, blam-cc: EBX candidate_ids
@@ -65,7 +65,7 @@ void player_profile_1wide_list_update(widget_instance *widget)
                 }
                 if (flags & 1) {
                     datum_index names = tag_lookup(0x75737472, "ui\\shell\\strings\\default_player_profile_names");
-                    const uint16_t *source = empty_wide_string_00660c34;
+                    const uint16_t *source = empty_string;
                     if (names != (datum_index)-1) {
                         source = text_string_list_get_string(names, (int16_t)(flags >> 8));
                     }

@@ -32,10 +32,10 @@
 extern data_array *particle_system_data;          // 0x0087abd4
 extern data_array *particle_system_particle_data; // 0x0087abd8
 extern tag_instance *tag_instances;                // 0x0087bc14
-extern uint32_t visible_cluster_bits[];            // 0x007c3350
-extern real_matrix4x3 camera_render_basis;          // 0x007c3178
+extern uint32_t cluster_visible_bits[];            // 0x007c3350
+extern real_matrix4x3 render_camera_world_to_view;          // 0x007c3178
 extern random_seed effect_random_seed;              // 0x00719cd4
-extern real_point3d *global_origin_pointer_6966f8;  // 0x006966f8
+extern real_point3d *global_zero_vector3d_pointer;  // 0x006966f8
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, EAX, EDX, stack
 extern void build_sprite_rotational(build_sprite_data *data, uint32_t flags, int16_t first_sequence_index,
@@ -69,7 +69,7 @@ static void particle_build_state_sprite(uint8_t *type, uint8_t *state_definition
     data.shader = (uint32_t)(state_definition + 0xb8);
     data.sprite_count = 0;
     data.flags = 4;
-    data.centroid = *global_origin_pointer_6966f8;
+    data.centroid = *global_zero_vector3d_pointer;
     data.group_count = 0;
     if (*(int16_t *)(type + 0x28) == 1) {
         mode = (type[0x20] & 0x80) ? 3 : 1;
@@ -101,7 +101,7 @@ void particle_system_render(datum_index particle_system_handle)
             uint8_t *particle = (uint8_t *)particle_system_particle_data->data + particle_index * 0x80;
             int16_t cluster = *(int16_t *)(particle + 0x18);
 
-            if (particle[3] && (visible_cluster_bits[cluster >> 5] & (1u << (cluster & 0x1f)))) {
+            if (particle[3] && (cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f)))) {
                 uint8_t *states = *(uint8_t **)(type + 0x78);
                 uint8_t *current = states + *(int16_t *)(particle + 8) * 0x178;
                 uint8_t *next = 0;
@@ -119,9 +119,9 @@ void particle_system_render(datum_index particle_system_handle)
                 float vx = *(float *)(particle + 0x34);
                 float vy = *(float *)(particle + 0x38);
                 float vz = *(float *)(particle + 0x3c);
-                float *m = (float *)&camera_render_basis;
+                float *m = (float *)&render_camera_world_to_view;
 
-                matrix4x3_transform_point(&position, (real_point3d *)(particle + 0x1c), &camera_render_basis);
+                matrix4x3_transform_point(&position, (real_point3d *)(particle + 0x1c), &render_camera_world_to_view);
                 direction.i = vx * m[1] + vy * m[4] + vz * m[7];
                 direction.j = vx * m[2] + vy * m[5] + vz * m[8];
                 direction.k = vx * m[3] + vy * m[6] + vz * m[9];

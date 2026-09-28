@@ -32,7 +32,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern float *global_zero_vector2d_pointer;      // 0x00696730
-extern real_point3d *global_origin3d_pointer_a;  // 0x006966f8
+extern real_point3d *global_zero_vector3d_pointer;  // 0x006966f8
 
 extern void animation_replace_frame_orientations(void *animation, int16_t frame, void *out_orientations); // 0x4d4dd0, ESI, stack
 extern void animation_overlay_frame_orientations(void *animation, int16_t frame, void *out_orientations); // 0x4d4f90, ESI, stack
@@ -58,7 +58,7 @@ static void aiming_angles_in_unit_frame(uint32_t unit_index, real_vector3d *dire
     frame.scale = 1.0f;
     object_get_orientation(&frame.forward, unit_index, &frame.up);
     vector3d_cross_product(&frame.left, &frame.forward, &frame.up);
-    frame.position = *global_origin3d_pointer_a;
+    frame.position = *global_zero_vector3d_pointer;
     matrix4x3_inverse_transform_normal(&local, direction, &frame);
     *yaw = (float)atan2((double)local.j, (double)local.i);
     *pitch = (float)atan2((double)local.k, sqrt((double)(local.i * local.i + local.j * local.j)));

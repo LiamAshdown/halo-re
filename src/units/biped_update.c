@@ -31,7 +31,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480
-extern int16_t game_connection_role; // 0x00719720: 1 = client
+extern int16_t network_game_mode; // 0x00719720: 1 = client
 extern game_time_globals *game_time; // 0x006f1d6c
 extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle; // 0x006893cc
@@ -175,7 +175,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (game_connection_role == 1) {
+    if (network_game_mode == 1) {
         uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
 
         if (player != 0 && *(int16_t *)(player + 2) == -1) {
@@ -195,7 +195,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (game_connection_role != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
         return;
     }
@@ -231,7 +231,7 @@ uint8_t biped_update(uint32_t object_index)
             goto tail;
         }
         unit_evaluate_flee_reaction(object_index);
-        if ((obj[0x208] & 0x40) != 0 && game_connection_role != 1) {
+        if ((obj[0x208] & 0x40) != 0 && network_game_mode != 1) {
             uint8_t *self = (uint8_t *)object_try_and_get(object_index, 3);
             datum_index vehicle_index;
 
@@ -279,7 +279,7 @@ uint8_t biped_update(uint32_t object_index)
         }
         // 0x5596ac: falling out of an upside-down vehicle
         if (biped_detach_from_flipped_vehicle && *(float *)(parent + 0x88) < 0.0f && (parent[0x10] & 2) != 0 &&
-            game_connection_role != 1) {
+            network_game_mode != 1) {
             uint8_t *self = OBJECT_DATA(object_index);
             datum_index vehicle_index = *(datum_index *)(self + 0x11c);
 

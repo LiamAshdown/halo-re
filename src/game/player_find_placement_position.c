@@ -27,14 +27,14 @@ extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *player_data;      // 0x0087a480
 extern Scenario *global_scenario;    // 0x00746f8c
-extern uint8_t *global_globals_bytes; // 0x00746fa0 (+0x174 -> +0xc4 the teleport effect)
-extern uint8_t *local_player_globals_bytes; // 0x0087a478
+extern uint8_t *global_globals; // 0x00746fa0 (+0x174 -> +0xc4 the teleport effect)
+extern uint8_t *local_player_globals; // 0x0087a478
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern uint32_t random_seed_global; // 0x00719cd0
-extern real_point3d *random_point_table; // 0x006b7af4, a POINTER
-extern int16_t random_point_table_count; // 0x006b7af8
+extern real_point3d *sphere_point_table; // 0x006b7af4, a POINTER
+extern int16_t sphere_point_table_count; // 0x006b7af8
 extern real_point3d player_placement_ring[9]; // 0x006574c0
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
@@ -102,8 +102,8 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
                 int16_t index;
 
                 random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                index = (int16_t)(((random_seed_global >> 16) * (int32_t)random_point_table_count) >> 16);
-                facing = *(real_vector3d *)&random_point_table[index];
+                index = (int16_t)(((random_seed_global >> 16) * (int32_t)sphere_point_table_count) >> 16);
+                facing = *(real_vector3d *)&sphere_point_table[index];
                 jittered.x = facing.i * collision_radius + spot.x;
                 jittered.y = facing.j * collision_radius + spot.y;
                 jittered.z = facing.k * collision_radius + spot.z;
@@ -163,10 +163,10 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
         game_engine_compute_look_angles_from_vector(&facing, *(int16_t *)(player + 0x2));
     }
     {
-        datum_index effect = *(datum_index *)(*(uint8_t **)(global_globals_bytes + 0x174) + 0xc4);
+        datum_index effect = *(datum_index *)(*(uint8_t **)(global_globals + 0x174) + 0xc4);
 
         if (effect != k_datum_index_none) {
-            game_engine_build_visible_cluster_bitmask((uint32_t *)(local_player_globals_bytes + 0x18), 0);
+            game_engine_build_visible_cluster_bitmask((uint32_t *)(local_player_globals + 0x18), 0);
             effect_new_on_object(unit_index, effect, unit_index, -1, 0.0f, 0.0f, 0, 0);
         }
     }

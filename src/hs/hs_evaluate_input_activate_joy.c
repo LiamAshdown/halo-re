@@ -17,9 +17,9 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern int32_t input_joystick_count; // 0x006b1844
-extern uint8_t input_joysticks[]; // 0x006b1a98, 0x240 each
-extern int32_t input_player_joysticks[]; // 0x006b2ce8
+extern int32_t input_device_count; // 0x006b1844
+extern uint8_t input_device_to_slot[]; // 0x006b1a98, 0x240 each
+extern int32_t joystick_slot_devices[]; // 0x006b2ce8
 
 void hs_evaluate_input_activate_joy(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -32,10 +32,10 @@ void hs_evaluate_input_activate_joy(int16_t function_index, uint32_t thread_inde
     int32_t player = *(int16_t *)&arguments[1];
     uint8_t bound = 0;
 
-    if (joystick < input_joystick_count && *(int32_t *)(input_joysticks + joystick * 0x240) == -1 &&
-        input_player_joysticks[player] == -1) {
-        *(int32_t *)(input_joysticks + joystick * 0x240) = player;
-        input_player_joysticks[player] = joystick;
+    if (joystick < input_device_count && *(int32_t *)(input_device_to_slot + joystick * 0x240) == -1 &&
+        joystick_slot_devices[player] == -1) {
+        *(int32_t *)(input_device_to_slot + joystick * 0x240) = player;
+        joystick_slot_devices[player] = joystick;
         bound = 1;
     }
     hs_thread_return((int32_t)bound, thread_index);

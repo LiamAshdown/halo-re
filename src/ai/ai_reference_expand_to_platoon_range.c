@@ -26,7 +26,7 @@
 // TYPES-GAP: the 3-dword out-parameter of ai_reference_expand_to_platoon_range. No existing
 // header struct matches; only this function and its callers use it.
 extern Scenario *global_scenario; // 0x00746f8c
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 
 // Expands a packed ai reference (see ai_reference_parse) to the range of platoon indices it
 // names within its encounter: the single platoon a platoon reference names, the owning
@@ -44,7 +44,7 @@ void ai_reference_expand_to_platoon_range(uint32_t packed_reference, ai_referenc
 
     out_range->encounter_index = (int32_t)encounter_index;
 
-    if (global_scenario == 0 || ai_global_data->actors_valid == 0 ||
+    if (global_scenario == 0 || ai_globals_ptr->actors_valid == 0 ||
         (int32_t)global_scenario->encounters.count <= (int32_t)encounter_index) {
         goto fail;
     }

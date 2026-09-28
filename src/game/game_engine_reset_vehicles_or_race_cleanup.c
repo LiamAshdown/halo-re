@@ -16,7 +16,7 @@
 #include "game.h"
 
 extern game_variant game_engine_variant; // 0x006f1c88 (game_engine_index aliased 0x006f1cb8)
-extern data_array *object_headers;       // 0x008603b0
+extern data_array *object_data;       // 0x008603b0
 
 extern object *object_iterator_next(object_iterator *iterator);              // 0x4f6f20
 extern void object_delete_unparented(datum_index object_index);              // 0x4f5aa0

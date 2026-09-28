@@ -19,8 +19,8 @@ extern void *chat_gui_root_handle;                                  // 0x00721ea
 extern int32_t (*unknown_00721eb8)(void *engine, void *key); // 0x00721eb8 UNSURE: "find document"
 extern void (*unknown_00721ec8)(int32_t document); // 0x00721ec8 UNSURE: "release document"
 extern void (*unknown_00721eac)(void *engine); // 0x00721eac UNSURE: "destroy engine"
-extern void *unknown_0069c698; // 0x0069c698 UNSURE: editbox document key
-extern void *unknown_0069c69c; // 0x0069c69c UNSURE: log document key
+extern void *chat_gui_find_object_arg; // 0x0069c698 UNSURE: editbox document key
+extern void *chat_listbox_gui_find_object_arg; // 0x0069c69c UNSURE: log document key
 
 // Tears down the debug KSML UI engine: releases the editbox and log documents (each released
 // twice, matching the original) and destroys the engine instance, only while all three engine
@@ -33,13 +33,13 @@ void __cdecl rasterizer_ksml_ui_shutdown(void)
         return;
     }
 
-    document = unknown_00721eb8(chat_gui_root_handle, unknown_0069c698);
+    document = unknown_00721eb8(chat_gui_root_handle, chat_gui_find_object_arg);
     if (document != 0) {
         unknown_00721ec8(document);
         unknown_00721ec8(document);
     }
 
-    document = unknown_00721eb8(chat_gui_root_handle, unknown_0069c69c);
+    document = unknown_00721eb8(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
     if (document != 0) {
         unknown_00721ec8(document);
         unknown_00721ec8(document);

@@ -26,7 +26,7 @@
 
 extern char unknown_00719779[]; // 0x00719779, UNSURE: current scenario/level name buffer
 extern game_main_globals *main_game_globals; // 0x006b0b80
-extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8
 
 extern int16_t campaign_level_find_index_for_path(char *scenario_name); // 0x4c8b90, not in this module; one stack argument, campaign level index or -1
 extern void player_profile_write_data(int32_t handle, saved_player_profile *profile); // 0x53a950
@@ -45,12 +45,12 @@ void player_profile_mark_level_visited_and_select(int16_t local_player_index)
     if (local_player_index < 0 || 1 <= local_player_index) {
         return;
     }
-    handle = saved_player_profile_slots[local_player_index].handle;
+    handle = profile_globals_block[local_player_index].handle;
     if (handle == -1) {
         return;
     }
 
-    profile = saved_player_profile_slots[local_player_index].profile;
+    profile = profile_globals_block[local_player_index].profile;
     profile.campaign_progress[current_level] |= (uint8_t)(1 << (difficulty & 0x1f));
     player_profile_write_data(handle, &profile);
     player_profile_load(local_player_index, &profile, handle);

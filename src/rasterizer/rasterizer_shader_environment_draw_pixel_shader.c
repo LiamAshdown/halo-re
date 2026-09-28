@@ -38,7 +38,7 @@ extern uint8_t *rasterizer_active_model_context;     // 0x0071d1f0
 extern uint8_t unknown_0071d1fb;                     // 0x0071d1fb
 extern uint8_t rasterizer_fog_enabled;               // 0x0069c6a8
 extern float unknown_007c047c;                       // 0x007c047c
-extern uint32_t rasterizer_pixel_shader_version;     // 0x007c118c
+extern uint32_t rasterizer_device_version;     // 0x007c118c
 extern float rasterizer_camera_position[3];          // 0x007c1228
 extern float rasterizer_camera_forward[3];           // 0x007c1234
 extern uint8_t rasterizer_fog_flags;                 // 0x007c1408
@@ -142,7 +142,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
     environment_set_render_state(0xab, 1);
     environment_set_render_state(0x0f, shader[0x28] & 1);
     environment_set_render_state(0x18, 0x7f);
-    if (rasterizer_pixel_shader_version < 0xffff0104) {
+    if (rasterizer_device_version < 0xffff0104) {
         environment_set_render_state(0x1c, 0);
     } else {
         environment_set_render_state(0x1c, (shader[0x28] >> 2) & 1);
@@ -168,7 +168,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
         return;
     }
     ((d3d_call1_fn)(*(void ***)effect)[0xec / 4])(effect,
-        (rasterizer_pixel_shader_version >= 0xffff0104 && !pixel_shader_fog) ?
+        (rasterizer_device_version >= 0xffff0104 && !pixel_shader_fog) ?
             environment_techniques_ps14[*(int16_t *)(shader + 0xb0)] :
             (uint32_t)environment_techniques_no[*(int16_t *)(shader + 0xb0)]);
     rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0x94), 0, 0, 1, frame, &environment_effect_slot);
@@ -228,7 +228,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
         fog[1] = fog[2] = fog[3] = 0.0f;
         negative[0] = negative[1] = negative[2] = 0.0f;
     } else if (pixel_shader_fog) {
-        if (rasterizer_pixel_shader_version < 0xffff0104) {
+        if (rasterizer_device_version < 0xffff0104) {
             fog[0] = 1.0f;
             fog[1] = fog[2] = fog[3] = 0.0f;
             environment_set_render_state(0x22, color_rgb_float_to_int(&rasterizer_fog_atmospheric_color));
@@ -264,7 +264,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
             add[0] = density * rasterizer_fog_atmospheric_color.red;
             add[1] = rasterizer_fog_atmospheric_color.green * density;
             add[2] = rasterizer_fog_atmospheric_color.blue * density;
-            if (rasterizer_pixel_shader_version < 0xffff0104) {
+            if (rasterizer_device_version < 0xffff0104) {
                 if (vertex_shader != 0x19) {
                     environment_set_render_state(0x22, color_rgb_float_to_int(&rasterizer_fog_atmospheric_color));
                 } else {

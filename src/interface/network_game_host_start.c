@@ -30,13 +30,13 @@ extern uint8_t network_server_host_valid;  // 0x0071c2dd, UNSURE
 extern int16_t network_game_mode; // 0x00719720, types/game.h: 0 local, 1 client, 2 host (word access)
 extern game_variant game_variant_saved_default; // 0x00714de0
 extern uint8_t game_variant_saved_default_valid; // 0x00714e78
-extern uint8_t network_server_host_flag_2dc; // 0x0071c2dc, UNSURE: caller's param_3
+extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, UNSURE: caller's param_3
 extern network_client_globals *network_client; // 0x0071c2d8, UNSURE
-extern uint8_t unknown_0071c2de;            // 0x0071c2de, UNSURE
-extern int32_t unknown_00687b18;            // 0x00687b18, UNSURE
+extern uint8_t network_host_handoff_requested;            // 0x0071c2de, UNSURE
+extern int32_t game_variant_history_current;            // 0x00687b18, UNSURE
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, word stores
 extern uint8_t split_screen_quit_prompt_armed;   // 0x00719757
-extern uint8_t split_screen_quit_prompt_unknown_71973c; // 0x0071973c, byte stores only
+extern uint8_t network_join_error_reason; // 0x0071973c, byte stores only
 
 extern void widget_close_all(void); // 0x498650
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
@@ -83,12 +83,12 @@ void network_game_host_start(char *map_name, char *variant_name, uint8_t param_3
         (datum_index)0xffffffff, -1);
     if (widget != (widget_instance *)0) {
         game_engine_ensure_variant_history_has_entry();
-        network_server_host_flag_2dc = param_3;
+        network_disconnect_timeout_flag = param_3;
         if (network_game_server_host_create() != 0) {
             network_client = network_session_create();
             if (network_client != (void *)0) {
-                unknown_0071c2de = 0;
-                unknown_00687b18 = -1;
+                network_host_handoff_requested = 0;
+                game_variant_history_current = -1;
                 game_engine_apply_current_custom_variant();
                 game_engine_sync_variant_defaults();
                 network_game_mode = 2;
@@ -101,10 +101,10 @@ void network_game_host_start(char *map_name, char *variant_name, uint8_t param_3
             network_server_host_valid = 0;
         }
         network_client_globals_dispose();
-        network_server_host_flag_2dc = 0;
+        network_disconnect_timeout_flag = 0;
     }
     split_screen_quit_prompt_string = 0xffff; // objdump 0x495bc3
-    split_screen_quit_prompt_unknown_71973c = 0;
+    network_join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
 }
 

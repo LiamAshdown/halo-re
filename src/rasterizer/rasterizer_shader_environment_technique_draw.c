@@ -26,7 +26,7 @@ extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 extern rasterizer_effect_slot *rasterizer_active_environment_effect; // 0x0071d1d0
 extern uint8_t rasterizer_environment_lightmap_missing;             // 0x006e0a0c set by 0x520910
-extern int16_t renderer_unknown_69c67c;                             // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893f8;                         // 0x006893f8
 extern uint8_t console_debug_toggle_6893fa;                         // 0x006893fa
@@ -62,7 +62,7 @@ void rasterizer_shader_environment_technique_draw(rasterizer_vertex_buffer *vert
     uint32_t pass;
 
     if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f8 == 0 || console_debug_toggle_6893fa == 0 ||
-        renderer_unknown_69c67c != 0 || rasterizer_environment_lightmap_missing != 0) {
+        render_force_flag != 0 || rasterizer_environment_lightmap_missing != 0) {
         return;
     }
     if (!(*(const float *)(raw + 0x2f4) > 0.0f) && !(*(const float *)(raw + 0x2f8) > 0.0f)) {

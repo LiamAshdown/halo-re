@@ -21,7 +21,7 @@
 #include "saved_games.h"
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
-extern char unknown_0066d81c[]; // 0x0066d81c, fopen mode "rt"
+extern char network_ban_file_read_mode_string[]; // 0x0066d81c, fopen mode "rt"
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 
@@ -47,7 +47,7 @@ int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *name, int
     strcpy(path + strlen(path), name);
     strcpy(path + strlen(path), ".sav");
 
-    file = fopen(path, unknown_0066d81c);
+    file = fopen(path, network_ban_file_read_mode_string);
     if (file != 0) {
         time.year = 0; time.month = 0; time.day_of_week = 0; time.day = 0;
         time.hour = 0; time.minute = 0; time.second = 0; time.milliseconds = 0;

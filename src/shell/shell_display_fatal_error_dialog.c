@@ -20,9 +20,9 @@
 //   fault while tearing down still reaches ExitProcess(1). Callee names now match the other modules.
 // Review note: shell_load_string_resource 0x57e110 is called with the id in EAX, the full language
 //   dword in ECX, the capacity in EBX, the module in EDI and the buffer on the stack.
-// UNSURE: the byte-by-byte " (" / ")" splice around fatal_error_argument is Ghidra's decompile of
+// UNSURE: the byte-by-byte " (" / ")" splice around rasterizer_shader_file_name is Ghidra's decompile of
 //   an inlined strcat; rewritten here as three explicit strcat calls with identical observable
-//   effect (fatal_error_text = fatal_error_text + " (" + fatal_error_argument + ")").
+//   effect (fatal_error_text = fatal_error_text + " (" + rasterizer_shader_file_name + ")").
 // global 0x00722bc0 fatal_error_remember_choice is now in types/shell.h's globals list (R15):
 //   written by the dialog proc 0x57e5a0, read here at 0x57ee7c.
 // reconciled: R15 0x00722bc0 fatal_error_remember_choice added to shell.h as int32_t; extern retyped uint32 -> int32
@@ -53,12 +53,12 @@ extern void rasterizer_service_deferred_windowed_ops(void);   // 0x5180d0 (raste
 extern void sound_stop_all(void);                              // 0x54adb0 (sound)
 extern void keystone_library_unload(void); // 0x542cf0, below this module's rewrite range
 
-extern void *strings_module;               // 0x00722bb8
+extern void *shell_module_handle;               // 0x00722bb8
 extern char fatal_error_text[k_shell_fatal_error_text_length];       // 0x006effe8
 extern char fatal_error_help_file[k_shell_fatal_error_readme_length]; // 0x006f0470
 extern char fatal_error_title[k_shell_fatal_error_title_length];     // 0x006f03f0
 extern int32_t fatal_error_is_fatal;       // 0x006f03ec
-extern char *fatal_error_argument;         // 0x00722bbc
+extern char *rasterizer_shader_file_name;         // 0x00722bbc
 extern char *graphics_vendor_name;         // 0x00722b90
 extern char *graphics_device_name;         // 0x00722b94
 extern uint32_t graphics_device_id;        // 0x00722b98
@@ -108,7 +108,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
         } while (*source++ != 0);
         sprintf(fatal_error_help_file, "readme.rtf");
     } else {
-        module = strings_module;
+        module = shell_module_handle;
         loaded = shell_load_string_resource(resource_id, (uint16_t)shell_language_id, k_shell_fatal_error_text_length,
                                              module, fatal_error_text);
         if (loaded == 0 &&
@@ -121,7 +121,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
             sprintf(fatal_error_text, "Missing error string %d", resource_id);
         }
 
-        module = strings_module;
+        module = shell_module_handle;
         loaded = shell_load_string_resource((uint32_t)help_text, (uint16_t)shell_language_id,
                                              k_shell_fatal_error_readme_length, module, fatal_error_help_file);
         if (loaded == 0 &&
@@ -136,7 +136,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
         }
     }
 
-    module = strings_module;
+    module = shell_module_handle;
     loaded = shell_load_string_resource(0x7f + (is_fatal != 0), (uint16_t)shell_language_id,
                                          k_shell_fatal_error_title_length, module, fatal_error_title);
     if (loaded == 0 &&
@@ -151,11 +151,11 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
 
     fatal_error_is_fatal = is_fatal;
 
-    if (fatal_error_argument != 0) {
+    if (rasterizer_shader_file_name != 0) {
         strcat(fatal_error_text, " (");
-        strcat(fatal_error_text, fatal_error_argument);
+        strcat(fatal_error_text, rasterizer_shader_file_name);
         strcat(fatal_error_text, ")");
-        fatal_error_argument = 0;
+        rasterizer_shader_file_name = 0;
     }
 
     if (is_fatal == 0) {
@@ -201,7 +201,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
     }
 
     ShowCursor(1);
-    result = dialog_box_show_localized((dialog_window_proc_fn)fatal_error_dialog_proc, strings_module, (const char *)0x66, window); // 0x57ee1d
+    result = dialog_box_show_localized((dialog_window_proc_fn)fatal_error_dialog_proc, shell_module_handle, (const char *)0x66, window); // 0x57ee1d
     ShowCursor(0);
 
     if (is_fatal != 0 || result == 2) {

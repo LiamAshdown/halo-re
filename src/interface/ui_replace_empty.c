@@ -11,9 +11,9 @@
 #include "math.h"
 #include "interface.h"
 
-extern uint16_t ui_empty_wide_string[]; // 0x00660c34
+extern uint16_t empty_string[]; // 0x00660c34
 
 void *ui_replace_empty(widget_instance *widget)
 {
-    return ui_empty_wide_string;
+    return empty_string;
 }

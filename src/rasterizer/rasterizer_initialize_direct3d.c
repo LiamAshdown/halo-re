@@ -37,55 +37,55 @@ extern d3d_display_mode rasterizer_desktop_display_mode; // 0x007c11f0
 extern uint8_t rasterizer_fullscreen;                               // 0x0071d16c (the header called it windowed)
 extern uint8_t rasterizer_pending_clear;                 // 0x0071d16e
 extern uint8_t rasterizer_device_lost;                   // 0x007c10b0
-extern uint8_t unknown_0071d170;                         // 0x0071d170 UNSURE: present parameter
+extern uint8_t video_force_mode_flag;                         // 0x0071d170 UNSURE: present parameter
                                                          //   fallback latch, see
                                                          //   rasterizer_build_present_parameters.c
 extern uint8_t rasterizer_software_vertex_processing;    // 0x0069c680
 extern uint8_t rasterizer_caps_flag_688;                 // 0x0069c688
-extern uint8_t unknown_0069c689; // 0x0069c689
+extern uint8_t rasterizer_caps_flag_689; // 0x0069c689
 extern uint8_t rasterizer_caps_flag_68a;                 // 0x0069c68a
 extern uint32_t rasterizer_device_type;                  // 0x0069c6a0 D3DDEVTYPE, 1 HAL, 2 REF
 extern int16_t rasterizer_texture_stage_count;           // 0x0069c682 UNSURE name: 4, or 2 on
                                                          //   fewer than 4 simultaneous textures
 extern int16_t rasterizer_maximum_skinning_nodes;        // 0x0069c67e
-extern uint32_t rasterizer_adapter;                      // 0x0071d180 adapter ordinal in use
+extern uint32_t d3d_adapter;                      // 0x0071d180 adapter ordinal in use
 extern uint8_t rasterizer_use_fx_file;                   // 0x0071d18e -usefxfile
 extern uint8_t rasterizer_frame_started;                 // 0x0069c630 UNSURE name
 extern void *rasterizer_scratch_memory;                  // 0x0071d13c
-extern void *rasterizer_hwnd;                            // 0x007461c4
-extern void *rasterizer_external_direct3d;               // 0x00721e98 UNSURE: an IDirect3D9 supplied
+extern void *shell_window;                            // 0x007461c4
+extern void *shell_direct3d;               // 0x00721e98 UNSURE: an IDirect3D9 supplied
                                                          //   before startup; NULL normally
 extern void *(__stdcall *direct3d_create9_procedure)(uint32_t sdk_version); // 0x00746274
 extern int32_t rasterizer_window_requested;              // 0x0071d1a8 -window; also D3DCREATE 4 and
                                                          //   skips the loading screen
-extern int32_t unknown_0071d1ac;                         // 0x0071d1ac UNSURE: second windowed switch
-extern int32_t rasterizer_fpu_preserve;                  // 0x0071d1a4 D3DCREATE_FPU_PRESERVE
-extern int32_t rasterizer_disable_driver_management;     // 0x00722b38 D3DCREATE 0x100
-extern uint32_t unknown_007196d8;                        // 0x007196d8 UNSURE: nonzero turns vsync off
-extern int32_t unknown_007196f0;                         // 0x007196f0 UNSURE: safe mode switch
-extern int32_t unknown_007196f4;                                    // 0x007196f4 UNSURE: safe mode switch
-extern uint32_t unknown_00722ba8;                        // 0x00722ba8 UNSURE: machine spec, <= 0x80
+extern int32_t windowed;                         // 0x0071d1ac UNSURE: second windowed switch
+extern int32_t checkfpu;                  // 0x0071d1a4 D3DCREATE_FPU_PRESERVE
+extern int32_t config_disable_driver_management;     // 0x00722b38 D3DCREATE 0x100
+extern uint32_t game_time_force_single_tick;                        // 0x007196d8 UNSURE: nonzero turns vsync off
+extern int32_t width640;                         // 0x007196f0 UNSURE: safe mode switch
+extern int32_t safe_mode;                                    // 0x007196f4 UNSURE: safe mode switch
+extern uint32_t physical_memory;                        // 0x00722ba8 UNSURE: machine spec, <= 0x80
                                                          //   forces 640x480
-extern uint32_t unknown_00722bac;                        // 0x00722bac UNSURE: machine spec, <= 1000
+extern uint32_t cpu_speed;                        // 0x00722bac UNSURE: machine spec, <= 1000
                                                          //   forces 640x480
-extern int32_t rasterizer_config_shader_version;         // 0x00722b64 config.txt pixel shader
+extern int32_t config_force_shader;         // 0x00722b64 config.txt pixel shader
                                                          //   override, e.g. 11 for ps_1_1
-extern int32_t renderer_unknown_722b60;                             // 0x00722b60 nonzero: one vertex stream, fixed function path
-extern int32_t renderer_unknown_722b34;                  // 0x00722b34 forces the fixed function path
-extern int32_t rasterizer_config_warning_722b3c;         // 0x00722b3c config.txt driver warnings
-extern int32_t rasterizer_config_warning_722b40;         // 0x00722b40
-extern int32_t rasterizer_config_warning_722b44;         // 0x00722b44
-extern int32_t rasterizer_config_warning_722b48;         // 0x00722b48
-extern int32_t rasterizer_config_warning_722b4c;         // 0x00722b4c
-extern int32_t rasterizer_config_warning_722b50;         // 0x00722b50
-extern int32_t rasterizer_config_disable_render_targets; // 0x00722b70 sets flags 689 and 68a
-extern int32_t rasterizer_config_disable_offscreen;      // 0x00722b74 sets flag 68a
-extern uint32_t rasterizer_adapter_device_id;            // 0x00722b98
-extern uint32_t rasterizer_adapter_vendor_id;            // 0x00722b9c 0x1002 ATI, 0x10de NVIDIA
-extern uint32_t video_memory_bytes;                      // 0x00722bb0
-extern uint32_t rasterizer_minimum_video_memory_mb;      // 0x006effc8 UNSURE name
-extern int32_t command_line_argc;                                   // 0x00721e94
-extern char **command_line_argv;                                    // 0x00721e90
+extern int32_t config_safe_mode;                             // 0x00722b60 nonzero: one vertex stream, fixed function path
+extern int32_t config_use_fixed_function;                  // 0x00722b34 forces the fixed function path
+extern int32_t config_unsupported_card;         // 0x00722b3c config.txt driver warnings
+extern int32_t config_prototype_card;         // 0x00722b40
+extern int32_t config_old_driver;         // 0x00722b44
+extern int32_t config_old_sound_driver;         // 0x00722b48
+extern int32_t config_invalid_driver;         // 0x00722b4c
+extern int32_t config_invalid_sound_driver;         // 0x00722b50
+extern int32_t config_disable_render_targets; // 0x00722b70 sets flags 689 and 68a
+extern int32_t config_disable_alpha_render_targets;      // 0x00722b74 sets flag 68a
+extern uint32_t graphics_device_id;            // 0x00722b98
+extern uint32_t graphics_vendor_id;            // 0x00722b9c 0x1002 ATI, 0x10de NVIDIA
+extern uint32_t video_memory;                      // 0x00722bb0
+extern uint32_t required_video_memory;      // 0x006effc8 UNSURE name
+extern int32_t shell_argc;                                   // 0x00721e94
+extern char **shell_argv;                                    // 0x00721e90
 extern uint8_t *game_state_base;                                    // 0x006e2dc8, game.h (saved_games)
 extern int32_t game_state_cursor;                                   // 0x006e2dcc, game.h (saved_games)
 extern uint32_t game_state_crc;                                     // 0x006e2dd4, game.h (saved_games)
@@ -135,8 +135,8 @@ static int command_line_has_switch(const char *name)
 {
     int32_t i;
 
-    for (i = 0; i < command_line_argc; i++) {
-        const char *argument = command_line_argv[i];
+    for (i = 0; i < shell_argc; i++) {
+        const char *argument = shell_argv[i];
 
         if (argument[0] == '-' && _stricmp(name, argument) == 0) {
             return 1;
@@ -177,30 +177,30 @@ uint8_t rasterizer_initialize_direct3d(void)
     void *hwnd;
     uint8_t succeeded;
 
-    mode.vsync = (uint8_t)(unknown_007196d8 == 0);
+    mode.vsync = (uint8_t)(game_time_force_single_tick == 0);
     mode.width = 800;
     mode.height = 600;
     mode.refresh_rate = 60;
     rasterizer_device = 0;
-    rasterizer_fullscreen = (uint8_t)(unknown_0071d1ac == 0);
+    rasterizer_fullscreen = (uint8_t)(windowed == 0);
     if (rasterizer_window_requested != 0) {
         rasterizer_fullscreen = 0;
     }
-    if (unknown_007196f0 != 0 || unknown_007196f4 != 0 || unknown_00722bac <= 1000 || unknown_00722ba8 <= 0x80) {
+    if (width640 != 0 || safe_mode != 0 || cpu_speed <= 1000 || physical_memory <= 0x80) {
         mode.width = 640;
         mode.height = 480;
     }
     rasterizer_parse_vidmode_commandline(&mode.width, &mode.height, (long *)&mode.refresh_rate);
-    unknown_0069c689 = 0;
+    rasterizer_caps_flag_689 = 0;
     rasterizer_caps_flag_68a = 0;
     rasterizer_caps_flag_688 = 0;
 
     if (!rasterizer_create_game_window(mode.height, mode.width)) {
         return 0;
     }
-    hwnd = rasterizer_hwnd;
-    if (rasterizer_external_direct3d != 0) {
-        rasterizer_direct3d = rasterizer_external_direct3d;
+    hwnd = shell_window;
+    if (shell_direct3d != 0) {
+        rasterizer_direct3d = shell_direct3d;
     } else {
         rasterizer_direct3d = direct3d_create9_procedure(0x1f);    // D3D_SDK_VERSION
         if (rasterizer_direct3d == 0) {
@@ -252,41 +252,41 @@ uint8_t rasterizer_initialize_direct3d(void)
 
         // pixel shader version override: config.txt first, then the command line
         shader_version = 0xffffffff;
-        if (rasterizer_config_shader_version != 0) {
-            if (rasterizer_config_shader_version == 9999 || rasterizer_config_shader_version == 0x270d) {
+        if (config_force_shader != 0) {
+            if (config_force_shader == 9999 || config_force_shader == 0x270d) {
                 shader_version = 0;
-            } else if (rasterizer_config_shader_version == 0x270e) {
+            } else if (config_force_shader == 0x270e) {
                 shader_version = 0xffff0200;
             } else {
                 // 11 -> ps_1_1 (0xffff0101), 14 -> ps_1_4 ...
-                shader_version = ((((uint32_t)rasterizer_config_shader_version / 10) | 0xffffff00) << 8) |
-                                 ((uint32_t)rasterizer_config_shader_version % 10);
+                shader_version = ((((uint32_t)config_force_shader / 10) | 0xffffff00) << 8) |
+                                 ((uint32_t)config_force_shader % 10);
             }
         }
         if (command_line_has_switch("-useff") ||
-            unknown_007196f4 != 0 || renderer_unknown_722b60 != 0 || renderer_unknown_722b34 != 0) {
-            rasterizer_config_shader_version = 0;
+            safe_mode != 0 || config_safe_mode != 0 || config_use_fixed_function != 0) {
+            config_force_shader = 0;
             shader_version = 0;
         }
         if (command_line_has_switch("-use00")) {
-            rasterizer_config_shader_version = 0;
+            config_force_shader = 0;
             shader_version = 0;
             rasterizer_caps.max_streams = 1;
         }
         if (command_line_has_switch("-use11")) {
-            rasterizer_config_shader_version = 0;
+            config_force_shader = 0;
             shader_version = 0xffff0101;
         }
         if (command_line_has_switch("-use14")) {
-            rasterizer_config_shader_version = 0;
+            config_force_shader = 0;
             shader_version = 0xffff0104;
         }
         if (command_line_has_switch("-use20")) {
-            rasterizer_config_shader_version = 0;
+            config_force_shader = 0;
             shader_version = 0xffff0200;
         }
         if (command_line_has_switch("-use2a")) {
-            rasterizer_config_shader_version = 0;
+            config_force_shader = 0;
             shader_version = 0xffff0200;
             goto lower_shader_version;
         }
@@ -299,39 +299,39 @@ uint8_t rasterizer_initialize_direct3d(void)
         }
 
         // driver warnings flagged by config.txt
-        if (rasterizer_config_warning_722b40 != 0) {
+        if (config_prototype_card != 0) {
             shell_display_fatal_error_dialog(0x93, 0x70, 0);
         }
-        if (rasterizer_config_warning_722b3c != 0) {
+        if (config_unsupported_card != 0) {
             shell_display_fatal_error_dialog(0x67, 0x70, 0);
         }
-        if (rasterizer_config_warning_722b4c != 0 && rasterizer_config_warning_722b3c == 0) {
+        if (config_invalid_driver != 0 && config_unsupported_card == 0) {
             shell_display_fatal_error_dialog(0x69, 0x72, 0);
         }
-        if (rasterizer_config_warning_722b44 != 0 && rasterizer_config_warning_722b4c == 0 &&
-            rasterizer_config_warning_722b3c == 0) {
+        if (config_old_driver != 0 && config_invalid_driver == 0 &&
+            config_unsupported_card == 0) {
             shell_display_fatal_error_dialog(0x68, 0x71, 0);
         }
-        if (rasterizer_config_warning_722b50 != 0) {
+        if (config_invalid_sound_driver != 0) {
             shell_display_fatal_error_dialog(0x8f, 0x72, 0);
         }
-        if (rasterizer_config_warning_722b48 != 0 && rasterizer_config_warning_722b50 == 0) {
+        if (config_old_sound_driver != 0 && config_invalid_sound_driver == 0) {
             shell_display_fatal_error_dialog(0x8e, 0x71, 0);
         }
-        if (rasterizer_config_disable_render_targets != 0) {
-            unknown_0069c689 = 1;
+        if (config_disable_render_targets != 0) {
+            rasterizer_caps_flag_689 = 1;
             rasterizer_caps_flag_68a = 1;
         }
-        if (rasterizer_config_disable_offscreen != 0) {
+        if (config_disable_alpha_render_targets != 0) {
             rasterizer_caps_flag_68a = 1;
         }
 
-        if (rasterizer_adapter_vendor_id == 0x1002) {
-            if (rasterizer_adapter_device_id == 0x514c || rasterizer_adapter_device_id == 0x514e ||
-                rasterizer_adapter_device_id == 0x514f || rasterizer_adapter_device_id == 0x4242) {
+        if (graphics_vendor_id == 0x1002) {
+            if (graphics_device_id == 0x514c || graphics_device_id == 0x514e ||
+                graphics_device_id == 0x514f || graphics_device_id == 0x4242) {
                 rasterizer_caps_flag_688 = 1;
             }
-        } else if (rasterizer_adapter_vendor_id == 0x10de) {
+        } else if (graphics_vendor_id == 0x10de) {
             void *library = LoadLibraryA("NVCPL.dll");
 
             if (library != 0) {
@@ -349,7 +349,7 @@ uint8_t rasterizer_initialize_direct3d(void)
             }
         }
 
-        if (video_memory_bytes < (rasterizer_minimum_video_memory_mb << 20)) {
+        if (video_memory < (required_video_memory << 20)) {
             shell_display_fatal_error_dialog(0x6c, 0x75, 0);
         }
 
@@ -395,8 +395,8 @@ uint8_t rasterizer_initialize_direct3d(void)
             // without D3DDEVCAPS_HWTRANSFORMANDLIGHT (dev_caps bit 16) skip the first choice
             for (i = (~(rasterizer_caps.dev_caps >> 16)) & 1; i < 4; i++) {
                 uint32_t flags = behavior_flags[i] +
-                                 (rasterizer_disable_driver_management != 0 ? 0x100 : 0) +
-                                 (rasterizer_fpu_preserve != 0 ? 2 : 0) +
+                                 (config_disable_driver_management != 0 ? 0x100 : 0) +
+                                 (checkfpu != 0 ? 2 : 0) +
                                  (rasterizer_window_requested != 0 ? 4 : 0);
 
                 if (((d3d_create_device_fn)direct3d_vtable()[0x40 / 4])(rasterizer_direct3d, adapter,
@@ -407,17 +407,17 @@ uint8_t rasterizer_initialize_direct3d(void)
                     goto device_created;
                 }
             }
-            if (unknown_0071d170 != 0) {
-                unknown_0071d170 = (uint8_t)(mode.refresh_rate == 0);
+            if (video_force_mode_flag != 0) {
+                video_force_mode_flag = (uint8_t)(mode.refresh_rate == 0);
                 break;
             }
             // one retry with the fallback present parameters
-            unknown_0071d170 = 1;
+            video_force_mode_flag = 1;
             rasterizer_build_present_parameters(&rasterizer_present_parameters, &mode);
         }
 
     device_created:
-        if (rasterizer_fpu_preserve != 0) {
+        if (checkfpu != 0) {
             rasterizer_fpu_reset_control_word(0x7e);
         }
         if ((adapter_usable != 0 && rasterizer_device != 0) || adapter_count <= 1) {
@@ -437,7 +437,7 @@ finish:
     }
 
     rasterizer_texture_stage_count = (int16_t)(rasterizer_caps.max_simultaneous_textures < 4 ? 2 : 4);
-    rasterizer_adapter = adapter;
+    d3d_adapter = adapter;
     rasterizer_maximum_skinning_nodes = 0x3f;
     // can the adapter render to an A8R8G8B8 surface on an X8R8G8B8 desktop?
     if (((d3d_check_device_format_fn)direct3d_vtable()[0x28 / 4])(rasterizer_direct3d, adapter, rasterizer_device_type,

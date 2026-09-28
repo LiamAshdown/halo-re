@@ -18,7 +18,7 @@
 
 extern data_array *decal_data;      // 0x0087abe4
 extern decal_grid *decal_grid_block; // 0x006b0ad8
-extern cache *decal_geometry_cache; // 0x0071d1c0
+extern cache *rasterizer_decal_vertex_cache_handle; // 0x0071d1c0
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern long lrint(double x); // x87 fistp under the default control word
@@ -41,7 +41,7 @@ void decal_update_fade(datum_index decal_index)
                 self->flags = self->flags & ~_decal_temporary_bit;
                 decal_grid_block->temporary_count = decal_grid_block->temporary_count - 1;
             }
-            cache_evict_entry(decal_index, decal_geometry_cache);
+            cache_evict_entry(decal_index, rasterizer_decal_vertex_cache_handle);
             return;
         }
 

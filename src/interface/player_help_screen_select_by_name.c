@@ -25,7 +25,7 @@
 #include "interface.h"
 #include "cache.h"
 
-extern datum_index current_profile_tag_index; // 0x0069e8d4, UNSURE name
+extern datum_index global_scenario_index; // 0x0069e8d4, UNSURE name
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t profile_slot_id[]; // 0x00714dde, per types/interface.h globals list (profile_slot_id[])
 
@@ -54,10 +54,10 @@ void player_help_screen_select_by_name(int16_t value)
     char *tag_path;
     widget_instance *dialog;
 
-    if (current_profile_tag_index == (datum_index)-1) {
+    if (global_scenario_index == (datum_index)-1) {
         return;
     }
-    strncpy(name, tag_instances[(int16_t)current_profile_tag_index].path, 0xff);
+    strncpy(name, tag_instances[(int16_t)global_scenario_index].path, 0xff);
 
     for (p = name; *p != 0; p++) {
         *p = (char)_tolower((uint8_t)*p);

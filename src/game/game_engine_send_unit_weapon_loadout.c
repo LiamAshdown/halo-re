@@ -30,7 +30,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern data_array *object_headers;      // 0x008603b0
+extern data_array *object_data;      // 0x008603b0
 extern data_array *player_data;         // 0x0087a480
 extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
@@ -98,7 +98,7 @@ void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index playe
     unit_data *unit;
     int i;
 
-    obj = (object *)((object_header *)object_headers->data)[unit_index & 0xffff].data;
+    obj = (object *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset); // unit_data starts at object +0x1f4 (0x477b14: +0x2f0)
 
     fields.player_hash = 0;

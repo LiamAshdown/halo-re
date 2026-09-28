@@ -53,7 +53,7 @@ extern int32_t ui_time_milliseconds;              // 0x00718f9c
 extern loading_thread_record *loading_thread;      // 0x00718fbc
 extern uint8_t loading_thread_result;               // 0x00718fc0, UNSURE: 1/2 select which error string
 extern uint8_t ui_input_batch_mode;                 // 0x00718fc5, UNSURE name
-extern uint8_t virtual_keyboard_active;             // 0x007193a8 (virtual_keyboard_globals::active)
+extern uint8_t virtual_keyboard;             // 0x007193a8 (virtual_keyboard_globals::active)
 extern widget_instance *ui_root_widget[1];          // 0x00718f94
 extern widget_history_node *ui_widget_history[3];   // 0x00718f98
 extern ui_pending_error ui_pending_error_alternate;  // 0x00718fb2
@@ -64,7 +64,7 @@ extern uint8_t ui_widget_opened;                     // 0x00718fc8
 extern int32_t ui_cursor_x;                          // 0x00718f84
 extern int32_t ui_cursor_y;                          // 0x00718f88
 extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE (per src/interface/widget_close_all.c)
-extern int32_t clear_buffer_00712ccc[0x40];          // 0x00712ccc, UNSURE: 0x100 byte scratch region zeroed every tick
+extern int32_t unknown_00712ccc[0x40];          // 0x00712ccc, UNSURE: 0x100 byte scratch region zeroed every tick
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern int64_t performance_frequency;                // 0x006ac8f8/0x006ac8fc
 
@@ -140,7 +140,7 @@ void interface_tick(void)
         goto after_widget_pass;
     }
 
-    if (virtual_keyboard_active == 0) {
+    if (virtual_keyboard == 0) {
         if (ui_pending_error_alternate.error_string_index == -1) {
             if (quit_confirm_error_string_index == -1) { // objdump 0x497f96: 0x00718fac, not 0x00718fa4
                 uint8_t is_paused = ui_check_for_pause_game();
@@ -231,7 +231,7 @@ shared_tail:
         int32_t i;
 
         for (i = 0; i < 0x40; i++) {
-            clear_buffer_00712ccc[i] = 0;
+            unknown_00712ccc[i] = 0;
         }
         if (ui_cursor_changed != 0 || ui_widget_opened != 0) {
             ui_widget_opened = 0;

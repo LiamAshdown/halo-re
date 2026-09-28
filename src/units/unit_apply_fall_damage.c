@@ -9,7 +9,7 @@
 //   src/objects/object_apply_damage.c and src/objects/object_update_vitality_and_regeneration.c.
 //   Biped.biped_flags bit 2 (0x2f4) gates whether a unit is exempt (already "invulnerable to
 //   falling" per the sign test on that byte).
-// UNSURE: the fall-damage table at globals_tag_data+0x18c (offsets 0x8c/0x90/0x94/0x1c/0x38) is
+// UNSURE: the fall-damage table at global_globals+0x18c (offsets 0x8c/0x90/0x94/0x1c/0x38) is
 //   not identified against any documented struct (units.h only names the +0x18c/+0x190 slots as
 //   "grenade tables", which does not obviously match this usage) -- kept as raw offsets.
 //   FUN_00474db0's role (looked up when a "delete on out-of-bounds" flag is set) is UNSURE.
@@ -26,7 +26,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *globals_tag_data;   // 0x00746fa0
+extern uint8_t *global_globals;   // 0x00746fa0
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 extern uint8_t DAT_0087abc1;        // UNSURE global (cheat/debug toggle)
 extern game_engine_definition *current_game_engine;  // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
@@ -49,7 +49,7 @@ void unit_apply_fall_damage(uint32_t object_index, float fall_speed)
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t *fall_table = *(uint8_t **)(globals_tag_data + 0x18c);
+    uint8_t *fall_table = *(uint8_t **)(global_globals + 0x18c);
     uint32_t exempt;
 
     exempt = ((unit->flags & 0x1000) == 0 && (int8_t)tag->biped_flags >= 0) ? 0 : 1;

@@ -33,7 +33,7 @@ extern uint8_t rasterizer_frame_started;                            // 0x0069c63
 extern uint8_t rasterizer_caps_flag_68a;                            // 0x0069c68a
 extern uint8_t rasterizer_in_scene;                                 // 0x0071d16f set after BeginScene, cleared after EndScene
 extern uint8_t console_debug_toggle_6893e6;                         // 0x006893e6 wireframe
-extern uint32_t rasterizer_render_target_unnormalized_uvs;          // 0x00722b28 UNSURE: nonzero
+extern uint32_t config_linear_texture_addressing;          // 0x00722b28 UNSURE: nonzero
                                                                     //   scales the quad UVs to texels
 extern uint8_t chat_dialog_open;                                    // 0x006b3858
 extern void *chat_gui_root_handle;                                  // 0x00721ea4 KSML UI engine instance (interface module name)
@@ -155,7 +155,7 @@ void rasterizer_end_frame(void)
                 rasterizer_set_quad_vertex(&vertices[1], right, -0.5f, 1.0f, 0.0f);
                 rasterizer_set_quad_vertex(&vertices[2], right, bottom, 1.0f, 1.0f);
                 rasterizer_set_quad_vertex(&vertices[3], -0.5f, bottom, 0.0f, 1.0f);
-                if (rasterizer_render_target_unnormalized_uvs != 0) {
+                if (config_linear_texture_addressing != 0) {
                     vertices[1].u *= (float)width;
                     vertices[2].u *= (float)width;
                     vertices[2].v *= (float)height;

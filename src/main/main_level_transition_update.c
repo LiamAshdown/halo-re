@@ -11,7 +11,7 @@
 // level_transition (0x039, NOT the "network wait" guess other modules make for the same
 // overlapping byte, per src/main/main_queue_map_change.c's correction), main_menu_scenario_
 // loaded (0x056), return_to_main_menu (0x057), idle_timeout_reached (0x059), unknown_05a
-// (0x05a), level_transition_fade_end_ms (0x048). main_pending_difficulty (0x00696564) and
+// (0x05a), level_transition_fade_end_ms (0x048). pending_difficulty (0x00696564) and
 // local_player_count (0x006894b8) reuse types/main.h and src/saved_games's established names.
 // The stack-built network_scenario_load_request mirrors src/main/chimera__load_ui_map.c and
 // src/main/game_scenario_session_begin.c's identical construction.
@@ -47,9 +47,9 @@ extern int32_t interface_loading_screen_progress;    // 0x00718f90, foreign (int
 extern uint16_t progress_screen_text[0x20];    // 0x006b2f28, foreign (types/interface.h); WORD stores only
 extern uint16_t progress_screen_subtext[0x20]; // 0x006b2f68, foreign (types/interface.h); WORD stores only
 extern int32_t interface_loading_screen_request_id;  // 0x0068e688, foreign (interface module)
-extern int32_t interface_loading_screen_ui_state;    // 0x00718f8c, foreign (interface module)
+extern int32_t join_ui_state;    // 0x00718f8c, foreign (interface module)
 extern game_time_globals *game_time;    // 0x006f1d6c, foreign (game module)
-extern int16_t main_pending_difficulty; // 0x00696564, foreign (main-owned global per main.h)
+extern int16_t pending_difficulty; // 0x00696564, foreign (main-owned global per main.h)
 extern int16_t local_player_count;      // 0x006894b8, foreign (saved_games module)
 
 extern int32_t _access(const char *path, int32_t mode); // 0x624236, UNSURE, CRT-shaped; see file header
@@ -95,7 +95,7 @@ void main_level_transition_update(void)
         progress_screen_text[0] = 0;    // WORD store
         progress_screen_subtext[0] = 0; // WORD store
         interface_loading_screen_request_id = -1;
-        interface_loading_screen_ui_state = 1;
+        join_ui_state = 1;
     }
 
     if (main_globals_data.main_menu_scenario_loaded == 1) {
@@ -139,7 +139,7 @@ after_fade:
             request.salt = 0xdeadbeef;
             strncpy(request.map_name, main_globals_data.scenario_path, 0xff);
             request.map_name[0xff] = 0;
-            request.difficulty = main_pending_difficulty;
+            request.difficulty = pending_difficulty;
 
             game_stop_current_map();
             cache_file_switch_map_by_path(request.map_name, 1);   // 0x4c998e mov bl,1 ; lea eax,[esp+0x1c]

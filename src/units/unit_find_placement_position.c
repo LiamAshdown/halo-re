@@ -26,8 +26,8 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_vector3d *global_up3d_pointer; // 0x00696720
-extern ModelCollisionGeometryBSP *placement_collision_bsp_root; // 0x00746f90
-extern uint8_t *placement_structure_bsp_bytes; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
+extern uint8_t *global_structure_bsp; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
 extern real_vector3d placement_offset_table[27]; // 0x0065e660
 
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
@@ -138,11 +138,11 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
             point.y = radius * offset->j + base.y;
             point.z = radius * offset->k + base.z;
         }
-        leaf = (int32_t)bsp3d_node_find_leaf(0, placement_collision_bsp_root, &point);
+        leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &point);
         if (leaf == -1) {
             continue;
         }
-        if (*(int16_t *)(*(uint8_t **)(placement_structure_bsp_bytes + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8) == -1) {
+        if (*(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8) == -1) {
             continue;
         }
         if (!physics_point_find_clear_position(flags, &point, pill_radius + pill_radius, pill_height, pill_radius,

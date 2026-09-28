@@ -38,10 +38,10 @@
 #include "saved_games.h"
 
 extern uint8_t savegame_index_dirty; // 0x00721447
-extern int16_t saved_game_pending_error; // 0x00718fac, UNSURE name (interface error code slot)
-extern int16_t saved_game_pending_error_arg; // 0x00718fae
-extern uint8_t saved_game_pending_error_flag1; // 0x00718fb0
-extern uint8_t saved_game_pending_error_flag2; // 0x00718fb1
+extern int16_t quit_confirm_error_string_index; // 0x00718fac, UNSURE name (interface error code slot)
+extern int16_t quit_confirm_error_unknown_ae; // 0x00718fae
+extern uint8_t quit_confirm_error_modal; // 0x00718fb0
+extern uint8_t quit_confirm_error_is_error; // 0x00718fb1
 extern char savegames_directory[0x100]; // 0x00721549
 
 extern void saved_game_list_rebuild_index(void); // 0x53d720, this module
@@ -95,17 +95,17 @@ uint32_t saved_game_create_slot(uint16_t type, uint16_t *name)
     }
     storage_status = saved_game_check_storage_availability();
     if (storage_status == 1) {
-        if (saved_game_pending_error == -1) {
-            saved_game_pending_error = 0x21;
-            saved_game_pending_error_arg = -1;
-            saved_game_pending_error_flag1 = 1;
-            saved_game_pending_error_flag2 = 0;
+        if (quit_confirm_error_string_index == -1) {
+            quit_confirm_error_string_index = 0x21;
+            quit_confirm_error_unknown_ae = -1;
+            quit_confirm_error_modal = 1;
+            quit_confirm_error_is_error = 0;
         }
-    } else if (storage_status == 2 && saved_game_pending_error == -1) {
-        saved_game_pending_error = 0x22;
-        saved_game_pending_error_arg = -1;
-        saved_game_pending_error_flag1 = 1;
-        saved_game_pending_error_flag2 = 0;
+    } else if (storage_status == 2 && quit_confirm_error_string_index == -1) {
+        quit_confirm_error_string_index = 0x22;
+        quit_confirm_error_unknown_ae = -1;
+        quit_confirm_error_modal = 1;
+        quit_confirm_error_is_error = 0;
     }
     if (storage_status != 0) {
         return 0xffffffff;
@@ -113,13 +113,13 @@ uint32_t saved_game_create_slot(uint16_t type, uint16_t *name)
 
     entry_count = savegame_index_get_slot_count();
     if (0x3e6 < entry_count) {
-        if (saved_game_pending_error != -1) {
+        if (quit_confirm_error_string_index != -1) {
             return 0xffffffff;
         }
-        saved_game_pending_error = 0x24;
-        saved_game_pending_error_arg = -1;
-        saved_game_pending_error_flag1 = 1;
-        saved_game_pending_error_flag2 = 0;
+        quit_confirm_error_string_index = 0x24;
+        quit_confirm_error_unknown_ae = -1;
+        quit_confirm_error_modal = 1;
+        quit_confirm_error_is_error = 0;
         return 0xffffffff;
     }
 

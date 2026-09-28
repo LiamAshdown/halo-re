@@ -14,7 +14,7 @@
 
 extern data_array *object_data;             // 0x008603b0
 extern data_array *object_list_header_data; // 0x0087a464
-extern data_array *object_list_link_array;  // 0x0087a468
+extern data_array *object_list_reference_data;  // 0x0087a468
 
 void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_bit) // blam-cc: in_EAX, param_1
 {
@@ -27,7 +27,7 @@ void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_b
             object_index = 0xffffffff;
             next_link = 0xffffffff;
         } else {
-            uint8_t *node = (uint8_t *)object_list_link_array->data + (link & 0xffff) * 0xc;
+            uint8_t *node = (uint8_t *)object_list_reference_data->data + (link & 0xffff) * 0xc;
             next_link = *(uint32_t *)(node + 8);
             object_index = *(uint32_t *)(node + 4);
         }
@@ -56,7 +56,7 @@ void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_b
             object_index = 0xffffffff;
             next_link = 0xffffffff;
         } else {
-            uint8_t *node = (uint8_t *)object_list_link_array->data + (next_link & 0xffff) * 0xc;
+            uint8_t *node = (uint8_t *)object_list_reference_data->data + (next_link & 0xffff) * 0xc;
             next_link = *(uint32_t *)(node + 8);
             object_index = *(uint32_t *)(node + 4);
         }

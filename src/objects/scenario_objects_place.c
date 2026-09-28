@@ -25,7 +25,7 @@
 
 extern int32_t network_server;  // 0x0071c2d4, pointer; +8 is its connection state
 extern int32_t network_client;   // 0x0071c2d8, pointer; +0xb14 is its connection state
-extern int16_t map_difficulty_or_kind; // 0x00719720: 1 single player, 2 multiplayer
+extern int16_t network_game_mode; // 0x00719720: 1 single player, 2 multiplayer
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 extern game_engine_definition *current_game_engine;
 extern uint8_t g_control_binding_secondary_active; // 0x008607a1
@@ -62,7 +62,7 @@ void scenario_objects_place(uint8_t *scenario)
         joining = 1;
     } else {
         control_binding_table_initialize();
-        if (map_difficulty_or_kind == 2) {
+        if (network_game_mode == 2) {
             object_type_definition *vehicle = object_type_definitions[_object_type_vehicle];
             int32_t size = vehicle->scenario_placement_size;
             TagReflexive *placements = (TagReflexive *)(scenario + vehicle->scenario_placement_offset);
@@ -95,7 +95,7 @@ void scenario_objects_place(uint8_t *scenario)
         int32_t size;
         int16_t i;
 
-        if (map_difficulty_or_kind == 1 && type == _object_type_vehicle) {
+        if (network_game_mode == 1 && type == _object_type_vehicle) {
             continue;
         }
         if (((1 << type) & 0x240) != 0) {   // scenery and light fixtures: scenario_objects_place_for_structure_bsp

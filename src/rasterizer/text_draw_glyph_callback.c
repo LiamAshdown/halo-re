@@ -22,7 +22,7 @@
 extern uint32_t text_shadow_color_argb; // 0x0071d144
 extern uint8_t font_glyph_cache_slots[]; // 0x006d8838, 8 bytes per slot: +4 u, +6 v
 extern uint8_t text_rendering_enabled; // 0x00689402
-extern int16_t rasterizer_text_mode; // 0x007c1220
+extern int16_t rasterizer_window; // 0x007c1220
 extern void *rasterizer_device; // 0x0071d174
 extern void font_glyph_cache_allocate_and_upload(void *font, void *character); // 0x514ed0
 
@@ -68,7 +68,7 @@ void text_draw_glyph_callback(void *state, void *font, uint8_t *character, uint3
             vertices[i].z = 0.0f;
             vertices[i].color = pass_color;
         }
-        if (text_rendering_enabled && rasterizer_text_mode == 1) {
+        if (text_rendering_enabled && rasterizer_window == 1) {
             void **vtable = *(void ***)rasterizer_device;
             ((d3d_draw_primitive_up_fn)vtable[0x14c / 4])(rasterizer_device, 6 /* D3DPT_TRIANGLEFAN */, 2, vertices,
                                                           sizeof(text_glyph_vertex));

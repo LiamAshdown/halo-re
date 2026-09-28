@@ -35,7 +35,7 @@
 #include "units.h"
 
 extern data_array *object_data;                    // 0x008603b0
-extern uint8_t *network_message_table;             // 0x00687130, +0x28: network key -> object index
+extern uint8_t *object_network_id_table;             // 0x00687130, +0x28: network key -> object index
 extern data_array *player_data;                    // 0x0087a480
 extern uint8_t network_object_index_cache[];       // 0x006870d8
 
@@ -77,7 +77,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet) // b
     if (message_delta_decode_compound_field(packet, &message) == 0 || message.unit_key == 0) {
         return;
     }
-    unit_index = (uint32_t)(*(int32_t **)(network_message_table + 0x28))[message.unit_key];
+    unit_index = (uint32_t)(*(int32_t **)(object_network_id_table + 0x28))[message.unit_key];
     if (unit_index == 0xffffffff) {
         return;
     }

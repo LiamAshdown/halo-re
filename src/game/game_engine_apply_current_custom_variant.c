@@ -5,7 +5,7 @@
 // evidence: out/phase4/game_functions.md ("Cycles to and loads the next entry of the custom
 // game-variant cache into the currently active variant state"); types/game.h
 // game_variant_history/_count/_current (0x00687b0c/0x10/0x18), game_engine_pending_variant
-// (0x0087aa80, per src/game/game_engine_sync_variant_defaults.c), game_engine_pending_variant_name
+// (0x0087aa80, per src/game/game_engine_sync_variant_defaults.c), variant_defaults_source
 // (0x0087aa40, 0x40 bytes per types/game.h's own global list).
 // UNSURE: 0x0071c40c (network_game_mode-shaped, but a different address from the game module's
 // own 0x00719720 network_game_mode), 0x0087aa7f, 0x0087aaec and 0x0087aaf8/0x00699608 are not
@@ -22,12 +22,12 @@
 extern uint32_t game_variant_history_count;    // 0x00687b10
 extern int32_t game_variant_history_current;   // 0x00687b18
 extern game_variant_history_entry *game_variant_history; // 0x00687b0c
-extern char game_engine_pending_variant_name[0x40];      // 0x0087aa40
+extern char variant_defaults_source[0x40];      // 0x0087aa40
 extern game_variant game_engine_pending_variant;         // 0x0087aa80
-extern int32_t unknown_0071c40c;   // 0x0071c40c, UNSURE identity
+extern int32_t sv_friendly_fire_mode;   // 0x0071c40c, UNSURE identity
 extern uint8_t unknown_0087aa7f;   // 0x0087aa7f, UNSURE identity
 extern int32_t unknown_0087aaec;   // 0x0087aaec, UNSURE identity
-extern int32_t default_time_limit_scale; // 0x00699608, UNSURE identity
+extern int32_t sv_timelimit_minutes; // 0x00699608, UNSURE identity
 extern int32_t unknown_0087aaf8;   // 0x0087aaf8, UNSURE identity
 
 
@@ -47,9 +47,9 @@ void game_engine_apply_current_custom_variant(void)
     }
 
     entry = &game_variant_history[game_variant_history_current];
-    strncpy(game_engine_pending_variant_name, entry->name, 0x3f);
+    strncpy(variant_defaults_source, entry->name, 0x3f);
 
-    mode = unknown_0071c40c;
+    mode = sv_friendly_fire_mode;
     mode_is_1 = (mode == 1);
     unknown_0087aa7f = 0;
     game_engine_pending_variant = entry->options;
@@ -62,9 +62,9 @@ void game_engine_apply_current_custom_variant(void)
         unknown_0087aaec = 1;
     }
 
-    if (default_time_limit_scale != -1) {
-        if (default_time_limit_scale != 0) {
-            unknown_0087aaf8 = default_time_limit_scale * 0x708;
+    if (sv_timelimit_minutes != -1) {
+        if (sv_timelimit_minutes != 0) {
+            unknown_0087aaf8 = sv_timelimit_minutes * 0x708;
             return;
         }
         unknown_0087aaf8 = 0;

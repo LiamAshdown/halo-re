@@ -98,7 +98,7 @@ extern uint8_t particle_spawn_debug_mode;   // 0x0069c565, UNSURE name: nonzero 
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern data_array *object_data;             // 0x008603b0
 extern random_seed effect_random_seed;      // 0x00719cd4
-extern uint8_t *first_person_weapon_globals; // 0x006b2d98, stride 0x1ea0
+extern uint8_t *first_person_weapon_interfaces; // 0x006b2d98, stride 0x1ea0
 extern real_point3d *sphere_point_table;    // 0x006b7af4, 1026 unit vectors
 extern int16_t sphere_point_table_count;    // 0x006b7af8
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
@@ -229,7 +229,7 @@ void effect_spawn_particles(effect *self)
             uint16_t remaining;
 
             if (entry->marker_index != 0xffff && (entry->marker_index & 0x8000) != 0 &&
-                *(int32_t *)(first_person_weapon_globals + self->first_person_weapon_index * 0x1ea0 + 8) == -1) {
+                *(int32_t *)(first_person_weapon_interfaces + self->first_person_weapon_index * 0x1ea0 + 8) == -1) {
                 continue;
             }
             remaining = (uint16_t)spawn_count;
@@ -295,7 +295,7 @@ void effect_spawn_particles(effect *self)
                     int16_t node_index = (int16_t)(entry->marker_index & 0x7fff);
 
                     if ((entry->marker_index & 0x8000) != 0) {
-                        node = (real_matrix4x3 *)(first_person_weapon_globals + 0x108c +
+                        node = (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
                             self->first_person_weapon_index * 0x1ea0 + node_index * 0x34);
                     } else {
                         uint8_t *owner = (uint8_t *)((object_header *)object_data->data)[(uint16_t)self->object_index].data;

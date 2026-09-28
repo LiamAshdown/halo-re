@@ -58,7 +58,7 @@ extern data_array *object_data;              // 0x008603b0
 extern tag_instance *tag_instances;          // 0x0087bc14
 extern int16_t network_game_mode;            // 0x00719720
 extern game_engine_definition *current_game_engine; // 0x006f1d20
-extern uint8_t global_00718fc9;              // 0x00718fc9, UNSURE identity
+extern uint8_t ui_split_screen;              // 0x00718fc9, UNSURE identity
 extern uint8_t global_00719750;              // 0x00719750, UNSURE identity, set to 1
 extern int16_t global_00719772;              // 0x00719772, UNSURE identity, set to 0x5b
 extern real_vector3d global_origin3d;        // 0x0065c230, reached via global_origin3d_pointer
@@ -148,7 +148,7 @@ void game_engine_players_update_server(void)
 
         if (plr->unit == (datum_index)-1) {
             if (current_game_engine == 0) {
-                if (global_00718fc9 == 0) {
+                if (ui_split_screen == 0) {
                     if (plr->deaths == 0) {
                         player_respawn(player_handle);
                     } else if (local_player_globals->no_player_has_a_unit == 0) {

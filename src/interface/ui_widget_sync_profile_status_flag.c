@@ -2,13 +2,13 @@
 // address 0x4a7360, size 106 bytes
 // name confidence: 0.3 (chosen)   rewrite confidence: 0.55
 // evidence: types/interface.h widget_instance (parent, controller_index, selection_index) and
-// player_control_settings (profile+0x12f -> ((uint8_t *)&saved_player_profile_slots[slot])[0x12f], the same
+// player_control_settings (profile+0x12f -> ((uint8_t *)&profile_globals_block[slot])[0x12f], the same
 // "unknown_858" field the header already quotes as "profile+0x12f"); profile_slot_id
 // (0x00714dde) per the header's own comment.
 // UNSURE: Ghidra's search loop is bounded `sVar6 < 1`, so it only ever inspects slot 0 no
 // matter how many profile slots exist; transcribed as-is rather than "fixed" into a real scan.
 // register convention: widget as the recognized parameter (param_1).
-// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
+// reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
 
 #include "tags.h"
 #include "memory.h"
@@ -19,7 +19,7 @@
 #include "saved_games.h"
 
 extern int16_t profile_slot_id[];                // 0x00714dde
-extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 
 // Walks up to the root ancestor widget, and if profile slot 0's id matches the root's
 // controller_index, mirrors that profile's status byte (profile+0x12f) into this widget's
@@ -42,7 +42,7 @@ void ui_widget_sync_profile_status_flag(widget_instance *widget)
 
     status = 0;
     if (slot != -1) {
-        status = ((uint8_t *)&saved_player_profile_slots[slot])[0x12f];
+        status = ((uint8_t *)&profile_globals_block[slot])[0x12f];
     }
     widget->selection_index = (status != 0);
 }

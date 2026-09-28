@@ -24,7 +24,7 @@ extern uint8_t sound_enabled;      // 0x00725201
 extern uint8_t sound_disabled;     // 0x007252b6
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 extern tag_instance *tag_instances;    // 0x0087bc14
-extern random_seed local_random_seed;  // 0x00719cd4
+extern random_seed effect_random_seed;  // 0x00719cd4
 extern int32_t sound_time;             // 0x0072520c
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, memory module
@@ -61,7 +61,7 @@ datum_index sound_looping_state_new(datum_index definition_index, int32_t owner,
 
     for (detail_index = 0; detail_index < (int32_t)definition->detail_sounds.count; detail_index++) {
         SoundLoopingDetail *detail = (SoundLoopingDetail *)definition->detail_sounds.pointer + detail_index;
-        float random_value = random_real_range_seeded(&local_random_seed, detail->random_period_bounds[0],
+        float random_value = random_real_range_seeded(&effect_random_seed, detail->random_period_bounds[0],
             detail->random_period_bounds[1]);
         float period = definition->zero_detail_sound_period +
             (definition->one_detail_sound_period - definition->zero_detail_sound_period) * location->scale;

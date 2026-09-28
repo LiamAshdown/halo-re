@@ -21,8 +21,8 @@
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination); // 0x4ec590, blam-cc: EAX context, ECX destination
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags,
     int32_t changed_offset, int32_t destination_offset); // 0x4ed1d0, blam-cc: EDI state
-extern uint8_t ctf_globals_live_bytes[]; // 0x006b1290 (ctf_globals as the race engine uses it)
-extern uint8_t ctf_globals_network_bytes[]; // 0x0087a520 (its replicated copy)
+extern uint8_t ctf_globals_live[]; // 0x006b1290 (ctf_globals as the race engine uses it)
+extern uint8_t ctf_globals_network[]; // 0x0087a520 (its replicated copy)
 
 // The inline tail every decoder shares with message_delta_decode_compound_field: nothing changed, so the stream
 //   cursor moves past this message's bits when the target is inside the stream.
@@ -61,21 +61,21 @@ void game_engine_race_profile_post_update(void **context)
     uint8_t changed;
 
     if (state->incremental == 0) {
-        changed = message_delta_decode_compound_field(context, ctf_globals_network_bytes);
+        changed = message_delta_decode_compound_field(context, ctf_globals_network);
     } else {
-        changed = read_changed(context, ctf_globals_network_bytes, ctf_globals_live_bytes);
-        memcpy(ctf_globals_network_bytes + 0x88, ctf_globals_live_bytes + 0x88, 16 * 4);
-        memcpy(ctf_globals_network_bytes + 0x04, ctf_globals_live_bytes + 0x04, 16 * 4);
-        memcpy(ctf_globals_network_bytes + 0x44, ctf_globals_live_bytes + 0x44, 16 * 4);
-        *(uint32_t *)ctf_globals_network_bytes = *(uint32_t *)ctf_globals_live_bytes;
-        *(int32_t *)(ctf_globals_network_bytes + 0x84) = *(int32_t *)(ctf_globals_live_bytes + 0x84);
+        changed = read_changed(context, ctf_globals_network, ctf_globals_live);
+        memcpy(ctf_globals_network + 0x88, ctf_globals_live + 0x88, 16 * 4);
+        memcpy(ctf_globals_network + 0x04, ctf_globals_live + 0x04, 16 * 4);
+        memcpy(ctf_globals_network + 0x44, ctf_globals_live + 0x44, 16 * 4);
+        *(uint32_t *)ctf_globals_network = *(uint32_t *)ctf_globals_live;
+        *(int32_t *)(ctf_globals_network + 0x84) = *(int32_t *)(ctf_globals_live + 0x84);
     }
     if (changed != 1) {
         return;
     }
-    memcpy(ctf_globals_live_bytes + 0x88, ctf_globals_network_bytes + 0x88, 16 * 4);
-    memcpy(ctf_globals_live_bytes + 0x04, ctf_globals_network_bytes + 0x04, 16 * 4);
-    memcpy(ctf_globals_live_bytes + 0x44, ctf_globals_network_bytes + 0x44, 16 * 4);
-    *(uint32_t *)ctf_globals_live_bytes = *(uint32_t *)ctf_globals_network_bytes;
-    *(int32_t *)(ctf_globals_live_bytes + 0x84) = *(int32_t *)(ctf_globals_network_bytes + 0x84);
+    memcpy(ctf_globals_live + 0x88, ctf_globals_network + 0x88, 16 * 4);
+    memcpy(ctf_globals_live + 0x04, ctf_globals_network + 0x04, 16 * 4);
+    memcpy(ctf_globals_live + 0x44, ctf_globals_network + 0x44, 16 * 4);
+    *(uint32_t *)ctf_globals_live = *(uint32_t *)ctf_globals_network;
+    *(int32_t *)(ctf_globals_live + 0x84) = *(int32_t *)(ctf_globals_network + 0x84);
 }

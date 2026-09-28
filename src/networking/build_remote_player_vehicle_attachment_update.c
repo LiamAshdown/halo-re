@@ -26,7 +26,7 @@ extern double sin(double x); // FSIN
 extern double cos(double x); // FCOS
 
 extern data_array *object_data; // 0x008603b0
-extern void *remote_player_index_remap_table; // 0x00687558, see build_remote_player_vehicle_update.c
+extern void *machine_table; // 0x00687558, see build_remote_player_vehicle_update.c
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
@@ -62,7 +62,7 @@ void build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t updat
     staged_update_id = update_id;
     network_hash = 0;
     if (network_key != -1) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)remote_player_index_remap_table + 0x0c), network_key);
+        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), network_key);
         if (network_hash == -1) {
             network_hash = 0;
         }
@@ -85,7 +85,7 @@ void build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t updat
     vehicle_obj = ((object_header *)object_data->data)[parent_object & 0xffff].data;
     vehicle_hash = 0;
     if (parent_object != (datum_index)-1) {
-        vehicle_hash = hash_table_get((hash_table *)((uint8_t *)remote_player_index_remap_table + 0x0c), parent_object);
+        vehicle_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), parent_object);
         if (vehicle_hash == -1) {
             vehicle_hash = 0;
         }

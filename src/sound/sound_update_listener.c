@@ -46,7 +46,7 @@ extern void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720
-extern const real_point3d *global_zero_point3d_pointer;  // 0x006966f8, listener-space position is
+extern const real_point3d *global_zero_vector3d_pointer;  // 0x006966f8, listener-space position is
                                                            // always the origin (sources are moved
                                                            // into listener space instead)
 extern const real_point3d *global_origin3d_pointer;  // 0x00696714, zero velocity
@@ -118,7 +118,7 @@ void sound_update_listener(void)
         (real_matrix4x3 *)&listener->scale);
 
 push_listener_parameters:
-    params.position = *(Point3D *)global_zero_point3d_pointer;
+    params.position = *(Point3D *)global_zero_vector3d_pointer;
     params.forward = *(Vector3D *)global_forward3d_pointer;
     params.up = *(Vector3D *)global_up3d_pointer;
     params.velocity = *(Vector3D *)global_origin3d_pointer;

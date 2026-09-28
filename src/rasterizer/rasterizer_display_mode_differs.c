@@ -5,14 +5,14 @@
 // name confidence: 0.4   rewrite confidence: 0.4
 // evidence: compares a requested rasterizer_display_mode (width/height/vsync fields match the
 //   type header exactly) against rasterizer_present_parameters' dimensions/vsync, and -- only
-//   when rasterizer_fullscreen is set and unknown_0071d170 is clear and the dimensions already
+//   when rasterizer_fullscreen is set and video_force_mode_flag is clear and the dimensions already
 //   match -- also compares normalized refresh rates via rasterizer_get_refresh_rate.
 // register convention: requested rasterizer_display_mode* in unaff_EDI.
 //   // blam-cc: unaff_EDI -> requested
 // UNSURE: rasterizer_get_refresh_rate is called twice here with no visible arguments; modeled
 //   as comparing the requested mode's refresh_rate against the present parameters' raw
 //   fullscreen_refresh_rate, which is the only pairing that makes semantic sense but was not
-//   independently confirmed. unknown_0071d170's meaning is unresolved.
+//   independently confirmed. video_force_mode_flag's meaning is unresolved.
 
 #include "tags.h"
 #include "memory.h"
@@ -21,21 +21,21 @@
 
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern uint8_t rasterizer_fullscreen;                               // 0x0071d16c (the header called it windowed)
-extern uint8_t unknown_0071d170;      // 0x0071d170 UNSURE
+extern uint8_t video_force_mode_flag;      // 0x0071d170 UNSURE
 extern int32_t os_platform;           // 0x00721ef0
 extern void os_platform_identify(void); // 0x5427e0
 extern int32_t rasterizer_get_refresh_rate(int32_t requested_rate); // 0x515c70
 
 // blam-cc: unaff_EDI -> requested
 // Returns nonzero if `requested` differs from the currently active display mode (dimensions
-// always compared; refresh rate compared only while windowed and unknown_0071d170 is clear).
+// always compared; refresh rate compared only while windowed and video_force_mode_flag is clear).
 uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested)
 {
     uint8_t differs = (requested->height != (int32_t)rasterizer_present_parameters.back_buffer_height) ||
                        (requested->width != (int32_t)rasterizer_present_parameters.back_buffer_width);
 
     if (rasterizer_fullscreen != 0) {
-        if (unknown_0071d170 == 0) {
+        if (video_force_mode_flag == 0) {
             if (requested->height == (int32_t)rasterizer_present_parameters.back_buffer_height &&
                 requested->width == (int32_t)rasterizer_present_parameters.back_buffer_width) {
                 if (os_platform == 0) {

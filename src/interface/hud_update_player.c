@@ -29,10 +29,10 @@ extern player_globals *local_player_globals;   // 0x0087a478, established in src
 extern data_array *player_data;                // 0x0087a480, established in src/game/
 extern hud_globals_flags *hud_flags;           // 0x00719420
 
-extern uint8_t unknown_006f1d20; // UNSURE
-extern uint8_t unknown_006f1cc0; // UNSURE
-extern uint8_t unknown_006f1cbc; // UNSURE
-extern uint8_t *unknown_006f187c; // UNSURE: byte 9 tested
+extern uint8_t current_game_engine; // UNSURE
+extern uint8_t motion_sensor_override_value; // UNSURE
+extern uint8_t game_engine_teams_enabled_flag; // UNSURE
+extern uint8_t *cinematic_globals_ptr; // UNSURE: byte 9 tested
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0, CX
@@ -71,8 +71,8 @@ void hud_update_player(void)
     {
         player *local_player = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
 
-        if ((unknown_006f1d20 == 0 || ((unknown_006f1cc0 & 2) != 0 && unknown_006f1cbc != 0)) &&
-            unknown_006f187c[9] == 0) {
+        if ((current_game_engine == 0 || ((motion_sensor_override_value & 2) != 0 && game_engine_teams_enabled_flag != 0)) &&
+            cinematic_globals_ptr[9] == 0) {
             hud_waypoint_draw_all_for_player();
         }
 

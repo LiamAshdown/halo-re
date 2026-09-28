@@ -19,15 +19,15 @@
 #include "math.h"
 #include "game.h"
 
-extern uint8_t download_in_progress;   // 0x006ac470
-extern char *download_error_path;      // 0x00722bbc
+extern uint8_t map_download_in_progress;   // 0x006ac470
+extern char *rasterizer_shader_file_name;      // 0x00722bbc
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern uint32_t unknown_00719979; // TYPES-GAP
 extern uint32_t unknown_00719774; // TYPES-GAP
-extern int32_t unknown_006894b8;  // TYPES-GAP
-extern int32_t saved_game_profile_index;    // 0x00714dd4
-extern int32_t saved_game_profile_previous; // 0x0068e66c
-extern uint8_t unknown_00718e80;  // TYPES-GAP
+extern int32_t local_player_count;  // TYPES-GAP
+extern int32_t saved_player_profile_slots_handle;    // 0x00714dd4
+extern int32_t cached_profile_slot; // 0x0068e66c
+extern uint8_t last_profile_name;  // TYPES-GAP
 
 extern char *strrchr(const char *s, int32_t c); // CRT
 extern int16_t cache_file_find_slot_by_name(char *path); // 0x443770, UNSURE args
@@ -52,13 +52,13 @@ void cache_file_switch_map_by_path(char *path, uint8_t apply_state)
     strrchr(path, 0x5c);
     slot = cache_file_find_slot_by_name(path); // UNSURE args
     if (slot == -1) {
-        if (download_in_progress == 0) {
+        if (map_download_in_progress == 0) {
         open_by_name:
             if (cache_file_open_by_name(path, apply_state) == 0) { // EBX/BL is forwarded as report_fatal_error
                 if (apply_state == 0) {
                     return;
                 }
-                download_error_path = path;
+                rasterizer_shader_file_name = path;
                 shell_display_fatal_error_dialog(0x89, 0x7e, 1);
             }
         } else {
@@ -70,7 +70,7 @@ void cache_file_switch_map_by_path(char *path, uint8_t apply_state)
                     cache_file_download_finish();
                 }
             }
-            if (download_in_progress == 0) {
+            if (map_download_in_progress == 0) {
                 goto open_by_name;
             }
         }
@@ -85,17 +85,17 @@ void cache_file_switch_map_by_path(char *path, uint8_t apply_state)
     if (apply_state != 0) {
         unknown_00719979 = 0;
         unknown_00719774 = 0;
-        if (download_in_progress != 0) {
+        if (map_download_in_progress != 0) {
             cache_file_download_finish();
         }
-        if (unknown_006894b8 == 1) {
-            if (saved_game_profile_previous != saved_game_profile_index) {
-                if (saved_game_profile_index != -1) {
+        if (local_player_count == 1) {
+            if (cached_profile_slot != saved_player_profile_slots_handle) {
+                if (saved_player_profile_slots_handle != -1) {
                     saved_game_get_directory_by_handle();
                 }
-                saved_game_profile_previous = saved_game_profile_index;
+                cached_profile_slot = saved_player_profile_slots_handle;
             }
-            if (unknown_00718e80 != 0) {
+            if (last_profile_name != 0) {
                 saved_game_last_profile_clear();
             }
         }

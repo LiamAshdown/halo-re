@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 extern ScenarioStructureBSP *global_structure_bsp;
-extern data_array *object_headers;      // 0x008603b0
+extern data_array *object_data;      // 0x008603b0
 
 extern int16_t objects_get_ambient_cluster(void); // 0x4f7a50, not in this batch; UNSURE exact signature
 extern data_array *player_data;         // 0x0087a480
@@ -67,7 +67,7 @@ void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t lo
                 uint32_t current = (uint32_t)pl->unit;
                 object *root;
                 do {
-                    root = (object *)((object_header *)object_headers->data)[current & 0xffff].data;
+                    root = (object *)((object_header *)object_data->data)[current & 0xffff].data;
                     current = (uint32_t)root->parent_object;
                 } while (current != 0xffffffff);
                 // UNSURE: field at object+0x9c re-read here rather than reusing

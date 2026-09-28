@@ -35,7 +35,7 @@ extern data_array *sound_cache_entries;  // 0x006ac528
 extern struct cache *sound_cache;        // 0x006ac530
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 extern int64_t performance_frequency;    // 0x006ac8f8/0x006ac8fc
-extern int32_t frame_watchdog_time;      // 0x0072520c
+extern int32_t sound_time;      // 0x0072520c
 
 
 extern void sound_cache_decode_permutation(SoundPermutation *permutation); // this module, sound_cache_decode_permutation.c
@@ -102,7 +102,7 @@ uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wai
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-        stall_ms = (uint32_t)(elapsed_ms - frame_watchdog_time);
+        stall_ms = (uint32_t)(elapsed_ms - sound_time);
         if (0x84 < stall_ms) {
             sound_idle_update();
         }

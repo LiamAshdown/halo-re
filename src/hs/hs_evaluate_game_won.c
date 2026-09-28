@@ -12,12 +12,12 @@
 #include "hs.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t main_globals_byte_0071973c; // 0x0071973c
+extern uint8_t network_join_error_reason; // 0x0071973c
 extern uint8_t main_globals_byte_0071974e; // 0x0071974e
 
 void hs_evaluate_game_won(int16_t function_index, uint32_t thread_index, char first)
 {
-    main_globals_byte_0071973c = 0;
+    network_join_error_reason = 0;
     main_globals_byte_0071974e = 1;
     hs_thread_return(0, thread_index);
 }

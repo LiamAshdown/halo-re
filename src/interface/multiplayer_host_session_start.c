@@ -21,12 +21,12 @@
 #include "interface.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
-extern uint8_t network_session_starting_0071c2dc; // 0x0071c2dc, TYPES-GAP
-extern int32_t custom_variant_index_00687b18;      // 0x00687b18, TYPES-GAP
+extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, TYPES-GAP
+extern int32_t game_variant_history_current;      // 0x00687b18, TYPES-GAP
 extern int16_t network_game_mode;                  // 0x00719720
 extern network_client_globals *network_client; // 0x0071c2d8
-extern uint8_t unknown_0071c2de;                    // 0x0071c2de
-extern uint8_t unknown_0071c2dd;                    // 0x0071c2dd
+extern uint8_t network_host_handoff_requested;                    // 0x0071c2de
+extern uint8_t network_server_host_valid;                    // 0x0071c2dd
 
 extern void game_engine_sync_variant_defaults(void); // 0x45fc80, UNSURE
 extern uint8_t game_engine_ensure_variant_history_has_entry(void); // foreign, UNSURE shape
@@ -46,7 +46,7 @@ uint8_t multiplayer_host_session_start(void)
 
     network_client_globals_dispose();
     network_game_setup_teardown();
-    network_session_starting_0071c2dc = 1;
+    network_disconnect_timeout_flag = 1;
 
     if (network_server == (network_server_globals *)0) {
         game_engine_ensure_variant_history_has_entry();
@@ -59,7 +59,7 @@ uint8_t multiplayer_host_session_start(void)
             raw[0x274] = 0;
             raw[0x275] = 0;
             *((uint8_t *)raw + 0x9d5) = 1;
-            custom_variant_index_00687b18 = -1;
+            game_variant_history_current = -1;
             game_engine_apply_current_custom_variant();
             game_engine_sync_variant_defaults();
             network_game_mode = 2;
@@ -73,7 +73,7 @@ uint8_t multiplayer_host_session_start(void)
         network_client = network_session_create();
         ok = (network_client != (network_client_globals *)0);
         if (ok) {
-            unknown_0071c2de = 0;
+            network_host_handoff_requested = 0;
         }
     }
     if (ok != 0) {
@@ -84,10 +84,10 @@ fail:
     if (network_server != (network_server_globals *)0) {
         network_game_server_host_dispose(network_server);
         network_server = (network_server_globals *)0;
-        unknown_0071c2dd = 0;
+        network_server_host_valid = 0;
     }
     network_client_globals_dispose();
-    network_session_starting_0071c2dc = 0;
+    network_disconnect_timeout_flag = 0;
     network_game_setup_teardown();
     return 0;
 }

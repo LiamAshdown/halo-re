@@ -18,7 +18,7 @@
 #include "tags.h"
 #include "cache.h"
 
-extern void *d3d_device; // 0x0071d174
+extern void *rasterizer_device; // 0x0071d174
 
 // blam-cc: compiled_header in EAX
 // Releases the Direct3D vertex buffer objects every material in every lightmap of a structure_bsp
@@ -47,7 +47,7 @@ void structure_bsp_dispose_material_vertex_buffers(
             material = (ScenarioStructureBSPMaterial *)(lightmap->materials.pointer +
                 material_index * sizeof(ScenarioStructureBSPMaterial));
 
-            if (d3d_device != 0 && (void *)material != (void *)-0xc4) {
+            if (rasterizer_device != 0 && (void *)material != (void *)-0xc4) {
                 object = (void **)material->lightmap_vertices_index_pointer;
                 if (object != 0) {
                     vtable = *(void (__stdcall ***)(void *))object; // object's vtable pointer
@@ -55,7 +55,7 @@ void structure_bsp_dispose_material_vertex_buffers(
                     material->lightmap_vertices_index_pointer = 0;
                 }
             }
-            if (d3d_device != 0 && (void *)material != (void *)-0xb0) {
+            if (rasterizer_device != 0 && (void *)material != (void *)-0xb0) {
                 object = (void **)material->rendered_vertices_index_pointer;
                 if (object != 0) {
                     vtable = *(void (__stdcall ***)(void *))object;

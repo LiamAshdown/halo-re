@@ -34,7 +34,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_time_milliseconds; // 0x00718f9c
 extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, per interface_handle_quit_request.c
-extern uint8_t split_screen_quit_prompt_unknown_71973c; // 0x0071973c, byte stores only
+extern uint8_t network_join_error_reason; // 0x0071973c, byte stores only
 extern uint8_t split_screen_quit_prompt_armed; // 0x00719757
 extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h (slot -> device, -1 none); DWORD reads 0x499d5d, 0x499d83
 
@@ -428,7 +428,7 @@ dispatch_to_children:
         }
         if (i == 1) {
             split_screen_quit_prompt_string = 0xffff;
-            split_screen_quit_prompt_unknown_71973c = 0;
+            network_join_error_reason = 0;
             split_screen_quit_prompt_armed = 1;
         }
     }

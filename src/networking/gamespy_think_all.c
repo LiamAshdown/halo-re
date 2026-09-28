@@ -9,7 +9,7 @@
 #include "memory.h"
 #include "math.h"
 
-extern void *gamespy_think_list; // 0x006a26c8
+extern void *negotiatorList; // 0x006a26c8
 extern int32_t gamespy_array_length(void *array); // 0x6175f0
 extern void *gamespy_array_nth(void *array, int32_t index); // 0x61dc00
 extern void NegotiateThink(void *element); // 0x615360, GameSpy per-element think
@@ -18,10 +18,10 @@ void gamespy_think_all(void)
 {
     int32_t i;
 
-    if (gamespy_think_list == 0) {
+    if (negotiatorList == 0) {
         return;
     }
-    for (i = gamespy_array_length(gamespy_think_list) - 1; i >= 0; i--) {
-        NegotiateThink(gamespy_array_nth(gamespy_think_list, i));
+    for (i = gamespy_array_length(negotiatorList) - 1; i >= 0; i--) {
+        NegotiateThink(gamespy_array_nth(negotiatorList, i));
     }
 }

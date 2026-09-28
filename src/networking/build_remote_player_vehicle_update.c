@@ -35,7 +35,7 @@ extern double cos(double x); // FCOS
 extern network_id_table *object_network_id_table; // 0x00687130
     // through this global elsewhere; this function's own hash table pointer, PTR_DAT_00687558,
     // is a different global and is declared separately below)
-extern void *remote_player_index_remap_table; // 0x00687558, see types/networking.h
+extern void *machine_table; // 0x00687558, see types/networking.h
     // remote_player_update_header's header comment; UNSURE: reused here as the network-id hash
     // table by analogy with the other hash_table_get call sites in this batch, not re-derived
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
@@ -67,7 +67,7 @@ void build_remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8
     staged_update_id = update_id;
     network_hash = 0;
     if (network_key != -1) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)remote_player_index_remap_table + 0x0c), network_key);
+        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), network_key);
         if (network_hash == -1) {
             network_hash = 0;
         }

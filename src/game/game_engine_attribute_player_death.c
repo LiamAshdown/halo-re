@@ -51,7 +51,7 @@
 extern uint8_t game_engine_attribute_enabled;    // 0x006b1458, UNSURE: see header
 extern game_time_globals *game_time;             // 0x006f1d6c
 extern data_array *player_data;                  // 0x0087a480
-extern data_array *object_headers;               // 0x008603b0
+extern data_array *object_data;               // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern team_pair_globals *team_pair_data;        // 0x006b0b84
 
@@ -118,8 +118,8 @@ void game_engine_attribute_player_death(datum_index victim_unit, datum_index kil
 
     current_tick = game_time->game_time;
     assist_window_start = current_tick - 0xb4;
-    victim_object = *(object **)((uint8_t *)object_headers->data +
-        (uint32_t)(uint16_t)victim_unit * object_headers->size + 8);
+    victim_object = *(object **)((uint8_t *)object_data->data +
+        (uint32_t)(uint16_t)victim_unit * object_data->size + 8);
     recent_damage = (unit_recent_damage *)((uint8_t *)victim_object + 0x430);
 
     compacted_count = 0;

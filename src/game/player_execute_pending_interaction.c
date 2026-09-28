@@ -23,7 +23,7 @@
 #include "networking.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern int16_t network_game_mode;  // 0x00719720
 extern network_client_globals *network_client;
 extern real_vector3d *global_up3d_pointer; // 0x00696720
@@ -51,7 +51,7 @@ extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_i
 extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key,
     uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key); // 0x478ff0, ECX, EDI, stack
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_headers->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 
 uint8_t player_execute_pending_interaction(uint32_t player_index)
 {

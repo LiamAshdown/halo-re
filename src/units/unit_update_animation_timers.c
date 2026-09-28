@@ -21,7 +21,7 @@
 #include "ai.h"
 
 extern data_array *object_data;     // 0x008603b0
-extern real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 
 extern void unit_choose_dialogue_variant(uint32_t unit_index); // 0x561990, EAX
@@ -82,7 +82,7 @@ void unit_update_animation_timers(uint32_t unit_index)
                 forward = *(Vector3D *)(raw + 0x8);
                 node = *(int16_t *)raw;
             } else {
-                position = *(Point3D *)global_zero_point3d_pointer;
+                position = *(Point3D *)global_zero_vector3d_pointer;
                 forward = *(Vector3D *)global_forward3d_pointer;
             }
             if (*(datum_index *)(obj + 0x38c) != k_datum_index_none) {

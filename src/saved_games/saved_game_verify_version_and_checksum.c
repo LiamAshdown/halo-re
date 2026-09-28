@@ -4,7 +4,7 @@
 // evidence: out/phase4/saved_games_functions.md; out/phase4/saved_games_types_notes.md's
 // game_state_header field table (build_version, scenario_name, allocation_checksum,
 // local_player_count, map_checksum are all read and compared here, matching the exact literal
-// strings/offsets game_state_build_header (0x538000) wrote); shell_fatal_error_argument /
+// strings/offsets game_state_build_header (0x538000) wrote); rasterizer_shader_file_name /
 // shell_display_fatal_error_dialog signatures from src/cache/cache_file_open_by_name.c.
 // register convention: __cdecl (Ghidra-recognized), header and report_error are the recognized
 // parameters.
@@ -27,7 +27,7 @@ extern int16_t local_player_count; // 0x006894b8
 extern uint32_t cache_file_current_header_crc32; // 0x006a81b8
 extern datum_index global_scenario_index; // 0x0069e8d4
 extern tag_instance *tag_instances; // 0x0087bc14
-extern char *shell_fatal_error_argument; // 0x00722bbc
+extern char *rasterizer_shader_file_name; // 0x00722bbc
 
 extern int32_t strcmp(const char *a, const char *b);
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
@@ -35,7 +35,7 @@ extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_
 // Verifies a loaded game_state_header against the running build: its build_version string must
 // match the current build or one of eight older accepted builds, and its scenario_name,
 // allocation_checksum, local_player_count and map_checksum must all match the running state.
-// On any mismatch, if report_error is set, points shell_fatal_error_argument at the header's
+// On any mismatch, if report_error is set, points rasterizer_shader_file_name at the header's
 // scenario_name and raises a fatal error dialog (string 0x89, title 0x7e).
 uint8_t saved_game_verify_version_and_checksum(game_state_header *header, uint8_t report_error)
 {
@@ -61,7 +61,7 @@ uint8_t saved_game_verify_version_and_checksum(game_state_header *header, uint8_
         if (report_error == 0) {
             return 0;
         }
-        shell_fatal_error_argument = header->scenario_name;
+        rasterizer_shader_file_name = header->scenario_name;
         shell_display_fatal_error_dialog(0x89, 0x7e, 1);
         return 0;
     }
@@ -75,7 +75,7 @@ uint8_t saved_game_verify_version_and_checksum(game_state_header *header, uint8_
     }
 
     if (report_error != 0) {
-        shell_fatal_error_argument = header->scenario_name;
+        rasterizer_shader_file_name = header->scenario_name;
         shell_display_fatal_error_dialog(0x89, 0x7e, 1);
     }
     return 0;

@@ -29,7 +29,7 @@
 extern void *rasterizer_device;                             // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220
 extern GlobalsRasterizerData *rasterizer_globals_data;      // 0x0071d164
-extern uint8_t unknown_0069c689;                            // 0x0069c689
+extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689
 extern uint8_t console_debug_toggle_6893f2;                 // 0x006893f2 object shadows enabled
 extern uint8_t console_debug_toggle_68941e;                 // 0x0068941e object shadow blur enabled
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
@@ -90,7 +90,7 @@ void rasterizer_object_shadow_structure_draw(rasterizer_vertex_buffer *vertex_bu
     uint32_t passes;
     uint32_t pass;
 
-    if (rasterizer_window.type != 1 || unknown_0069c689 != 0 || console_debug_toggle_6893f2 == 0) {
+    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || console_debug_toggle_6893f2 == 0) {
         return;
     }
     if (rasterizer_effects[47].effect == 0) {

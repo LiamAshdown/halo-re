@@ -3,10 +3,10 @@
 // address 0x53e7c0, size 71 bytes
 // name confidence: 0.45   rewrite confidence: 0.8
 // evidence: out/phase4/scenario_types_notes.md: not scenario-specific -- it indexes
-// global_game_globals->materials (Globals.materials, +0x194/+0x198, stride 0x374
+// global_globals->materials (Globals.materials, +0x194/+0x198, stride 0x374
 // GlobalsMaterial), and physics (0x507cc0, out of this batch) inlines the same lookup; kept in
-// this module because it lives here and scenario owns global_game_globals. Out-of-range indices
-// fall back to k_default_global_material, whose melee_hit_sound.tag_id (0x006e3578 ==
+// this module because it lives here and scenario owns global_globals. Out-of-range indices
+// fall back to material_table_fallback, whose melee_hit_sound.tag_id (0x006e3578 ==
 // 0x006e3208 + 0x370) is set to "no tag" on first use, latched by material_table_warning_issued
 // (0x00721e4c, owned by types/physics.h).
 // register convention: raw disassembly (0x53e7c0-0x53e806) shows AX tested and moved into EAX
@@ -17,28 +17,28 @@
 #include "tags.h"
 #include "scenario.h"
 
-extern Globals *global_game_globals;              // 0x00746fa0
+extern Globals *global_globals;              // 0x00746fa0
 extern uint8_t material_table_warning_issued;      // 0x00721e4c, owned by types/physics.h
-extern GlobalsMaterial k_default_global_material;   // 0x006e3208
+extern GlobalsMaterial material_table_fallback;   // 0x006e3208
 
 // blam-cc: AX -> material_index
-// Returns a pointer to global_game_globals->materials[material_index], or, when the index is
+// Returns a pointer to global_globals->materials[material_index], or, when the index is
 // out of range, a pointer to the static default material (clearing its melee_hit_sound tag
 // reference the first time this happens).
 GlobalsMaterial *globals_material_get(int16_t material_index)
 {
     GlobalsMaterial *materials;
 
-    if (0 <= material_index && (int32_t)material_index < (int32_t)global_game_globals->materials.count) {
-        materials = (GlobalsMaterial *)global_game_globals->materials.pointer;
+    if (0 <= material_index && (int32_t)material_index < (int32_t)global_globals->materials.count) {
+        materials = (GlobalsMaterial *)global_globals->materials.pointer;
         return &materials[material_index];
     }
 
     if (material_table_warning_issued == 0) {
-        *(uint32_t *)&k_default_global_material.melee_hit_sound.tag_id = 0xffffffff;
+        *(uint32_t *)&material_table_fallback.melee_hit_sound.tag_id = 0xffffffff;
         material_table_warning_issued = 1;
     }
-    return &k_default_global_material;
+    return &material_table_fallback;
 }
 
 #if 0

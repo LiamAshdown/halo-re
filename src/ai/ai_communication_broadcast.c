@@ -29,10 +29,10 @@ extern game_time_globals *game_time;   // 0x006f1d6c
 extern data_array *object_data;        // 0x008603b0
 extern data_array *actor_data;         // 0x00880360
 extern data_array *encounter_data;     // 0x008802c8
-extern uint8_t *actor_type_definitions[]; // 0x006853b8, +0x4 the type flags word
-extern uint8_t *game_team_relationships; // 0x006b0b84, +0x94 the 10x10 team bit matrix
+extern uint8_t *actor_type_procs[]; // 0x006853b8, +0x4 the type flags word
+extern uint8_t *team_pair_data; // 0x006b0b84, +0x94 the 10x10 team bit matrix
 extern uint8_t *ai_globals_ptr;        // 0x00880354
-extern int16_t ai_communication_event_index[]; // 0x008802e0, first line row per event, -1 none
+extern int16_t conversation_index_lookup[]; // 0x008802e0, first line row per event, -1 none
 extern uint8_t ai_communication_lines[];       // 0x00655aa0, 0x28-byte rows
 extern float ai_communication_direction_table[]; // 0x00655950, 10 rows of 5 floats
 extern int16_t ai_communication_class_priority[]; // 0x006558c4
@@ -41,14 +41,14 @@ extern int16_t ai_communication_class_follow_up[]; // 0x006558f4
 extern int16_t ai_communication_class_look_marker[]; // 0x00655904
 extern int16_t ai_communication_class_no_actor_class[]; // 0x00655914
 extern float ai_communication_selector_delay_seconds[]; // 0x00655a68, by participant selector
-extern uint8_t *ai_communication_line_history; // 0x006f0c9c, 8-byte records per (row, side)
+extern uint8_t *communication_line_base; // 0x006f0c9c, 8-byte records per (row, side)
 extern uint32_t random_seed_global;    // 0x00719cd0
 extern int32_t ai_communication_quiet_until_tick; // 0x00725204
 // FIXED 2026-09-27 (static loop, scratchpad/equcheck.py): this file declared the table at 0x0065524c with the
 // combat grade at +0xc, but the linker binds actor_mode_definitions to 0x00655254 (16 other files), so the
 // read landed on process_proc's low word. Binary: [mode * 0x38 + 0x655258] == definitions[mode].combat_grade.
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
-extern char s_primary_eye_marker[];      // 0x0066bfa0
+extern char ai_marker_name_a[];      // 0x0066bfa0
 
 extern double sqrt(double x);
 extern double fabs(double x);
@@ -189,7 +189,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
         if (unit_actor_index != k_datum_index_none) {
             unit_actor = ACTOR_DATA(unit_actor_index);
             unit_class = (unit_class & 0xffff0000u) |
-                         *(uint16_t *)(actor_type_definitions[*(int16_t *)(unit_actor + 0x4)] + 0x4);
+                         *(uint16_t *)(actor_type_procs[*(int16_t *)(unit_actor + 0x4)] + 0x4);
             unit_encounter_index = *(datum_index *)(unit_actor + 0x34);
             if (*(int8_t *)(unit_actor + 0x245) > 0) {
                 unit_capability[1] = 1;
@@ -214,7 +214,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
         if (other_actor_index != k_datum_index_none) {
             other_actor = ACTOR_DATA(other_actor_index);
             other_class = (other_class & 0xffff0000u) |
-                          *(uint16_t *)(actor_type_definitions[*(int16_t *)(other_actor + 0x4)] + 0x4);
+                          *(uint16_t *)(actor_type_procs[*(int16_t *)(other_actor + 0x4)] + 0x4);
             if (*(int8_t *)(other_actor + 0x245) > 0) {
                 other_capability[0] = 1;
                 other_capability[1] = 1;
@@ -235,7 +235,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
         if (team_u != team_o && team_u >= 0 && team_u < 10 && team_o >= 0 && team_o < 10) {
             int32_t bit = team_u * 10 + team_o;
 
-            if (*(uint32_t *)(game_team_relationships + 0x94 + (bit >> 5) * 4) & (1u << (bit & 0x1f))) {
+            if (*(uint32_t *)(team_pair_data + 0x94 + (bit >> 5) * 4) & (1u << (bit & 0x1f))) {
                 uint8_t react = 0; // [esp+0x12]
                 uint8_t hostile = 0; // bl
 
@@ -388,7 +388,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
     if (ai_globals_ptr[0x10] == 0) {
         return;
     }
-    row_index = ai_communication_event_index[event];
+    row_index = conversation_index_lookup[event];
     if ((int16_t)row_index == -1) {
         return;
     }
@@ -567,7 +567,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
             }
             near = (uint8_t)!(proximity >= 2.0f);
             if (speaker_actor != k_datum_index_none) {
-                uint16_t type_flags = *(uint16_t *)(actor_type_definitions[*(int16_t *)(ACTOR_DATA(speaker_actor) + 0x4)] + 0x4);
+                uint16_t type_flags = *(uint16_t *)(actor_type_procs[*(int16_t *)(ACTOR_DATA(speaker_actor) + 0x4)] + 0x4);
                 int16_t type_side = (type_flags & 2) ? 0 : ((type_flags & 4) ? 1 : -1);
 
                 if (type_side != -1) {
@@ -578,7 +578,7 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
                     }
                     recent_value = (uint16_t)((int16_t *)recent_ticks)[index];
                     if ((int16_t)class_word < 7) {
-                        int32_t *history = (int32_t *)(ai_communication_line_history +
+                        int32_t *history = (int32_t *)(communication_line_base +
                                                        ((int16_t)row_index * 2 + type_side) * 8);
 
                         if (history[0] != -1) {
@@ -816,9 +816,9 @@ void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datu
                     float dy;
                     float length;
 
-                    object_get_node_local_transform(speaker_unit, s_primary_eye_marker, &marker, 1);
+                    object_get_node_local_transform(speaker_unit, ai_marker_name_a, &marker, 1);
                     from = marker.node_transform.position;
-                    object_get_node_local_transform(other_object, s_primary_eye_marker, &marker, 1);
+                    object_get_node_local_transform(other_object, ai_marker_name_a, &marker, 1);
                     to = marker.node_transform.position;
                     dx = to.x - from.x;
                     dy = to.y - from.y;

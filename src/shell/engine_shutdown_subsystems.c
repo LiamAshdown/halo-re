@@ -18,15 +18,15 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern uint32_t external_0069e8d4;   // hs.h: datum_index global_scenario_index, -1 = none
-extern uint16_t external_0069e8d8;   // physics.h/items.h: int16_t structure bsp index
-extern uint16_t *external_00746f94;  // scenario_game_globals * (0x7c-byte scenario game-state block; only +0x30..+0x7b is sound state)
-extern uint32_t external_00746f8c;   // hs.h: Scenario *global_scenario
+extern uint32_t global_scenario_index;   // hs.h: datum_index global_scenario_index, -1 = none
+extern uint16_t global_structure_bsp_index;   // physics.h/items.h: int16_t structure bsp index
+extern uint16_t *global_scenario_game_globals;  // scenario_game_globals * (0x7c-byte scenario game-state block; only +0x30..+0x7b is sound state)
+extern uint32_t global_scenario;   // hs.h: Scenario *global_scenario
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (the resident structure BSP)
-extern uint32_t external_00746f98;   // items.h: void *collision_bsp_globals
-extern uint32_t external_00746f90;   // hs.h: void *global_globals (structures.h disagrees)
-extern uint32_t external_00746fa0;   // rasterizer.h: void *global_globals (Globals tag data)
-extern void *external_006b7af4;      // GlobalFree argument, owner unknown
+extern uint32_t global_structure_collision_bsp;   // items.h: void *collision_bsp_globals
+extern uint32_t global_collision_bsp;   // hs.h: void *global_globals (structures.h disagrees)
+extern uint32_t global_globals;   // rasterizer.h: void *global_globals (Globals tag data)
+extern void *sphere_point_table;      // GlobalFree argument, owner unknown
 extern uint32_t external_00686b4c;   // cleared to -1
 extern uint8_t external_00686b50;    // cleared to 0 (byte store, mov byte [0x686b50],bl at 0x54108d)
 extern void *external_00686b58;      // GlobalFree'd if non-null, then cleared
@@ -46,18 +46,18 @@ extern void sound_dispose(void);                           // 0x00549760
 void engine_shutdown_subsystems(void)
 {
     cache_file_unload();
-    external_0069e8d4 = 0xffffffff;
-    external_0069e8d8 = 0xffff;
-    *external_00746f94 = 0xffff;
-    external_00746f8c = 0;
+    global_scenario_index = 0xffffffff;
+    global_structure_bsp_index = 0xffff;
+    *global_scenario_game_globals = 0xffff;
+    global_scenario = 0;
     global_structure_bsp = 0;
-    external_00746f98 = 0;
-    external_00746f90 = 0;
-    external_00746fa0 = 0;
+    global_structure_collision_bsp = 0;
+    global_collision_bsp = 0;
+    global_globals = 0;
 
     input_directinput_release_devices();
     rasterizer_shutdown();
-    GlobalFree(external_006b7af4);
+    GlobalFree(sphere_point_table);
     periodic_function_tables_free();
     data_file_close();
     sound_dispose();

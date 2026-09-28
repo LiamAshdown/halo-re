@@ -19,7 +19,7 @@
 
 extern data_array *player_data;                          // 0x0087a480
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
-extern data_array *object_headers;                        // 0x008603b0
+extern data_array *object_data;                        // 0x008603b0
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80, ECX unit, EDI out
@@ -72,7 +72,7 @@ datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle)
     }
 
     for (i = 0; i < candidate_count; i++) {
-        uint8_t *candidate = (uint8_t *)((object_header *)object_headers->data)[candidates[i] & 0xffff].data;
+        uint8_t *candidate = (uint8_t *)((object_header *)object_data->data)[candidates[i] & 0xffff].data;
         real dx = *(real *)(candidate + 0x5c) - camera.x;
         real dy = *(real *)(candidate + 0x60) - camera.y;
         real dz = *(real *)(candidate + 0x64) - camera.z;

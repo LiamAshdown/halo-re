@@ -16,7 +16,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 
 // blam-cc: EAX -> object_index
 void ai_object_attention_remove(datum_index object_index)
@@ -28,25 +28,25 @@ void ai_object_attention_remove(datum_index object_index)
     int32_t *src;
     int32_t *dst;
 
-    table = (ai_object_attention_record *)ai_global_data->unknown_3b8;
+    table = (ai_object_attention_record *)ai_globals_ptr->unknown_3b8;
 
     if (object_index == (datum_index)k_datum_index_none) {
         return;
     }
-    if (ai_global_data->unknown_3b6 <= 0) {
+    if (ai_globals_ptr->unknown_3b6 <= 0) {
         return;
     }
 
     index = 0;
     while (table[index].object_index != object_index) {
         index = index + 1;
-        if (ai_global_data->unknown_3b6 <= index) {
+        if (ai_globals_ptr->unknown_3b6 <= index) {
             return;
         }
     }
 
-    last = ai_global_data->unknown_3b6 - 1;
-    ai_global_data->unknown_3b6 = last;
+    last = ai_globals_ptr->unknown_3b6 - 1;
+    ai_globals_ptr->unknown_3b6 = last;
     if (index < last) {
         src = (int32_t *)&table[last];
         dst = (int32_t *)&table[index];

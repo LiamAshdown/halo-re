@@ -5,7 +5,7 @@
 // stage states for another higher-tier shader_environment technique variant."); named for the
 // dynamic-light draw pass since it sits directly before FUN_00521f90 ("Draws an additional
 // (higher pixel-shader tier) dynamic-light contribution pass") in address order and shares its
-// gate shape (renderer_unknown_69c67c == 0, pixel_shader_version > ps_1_3). A clean, fully
+// gate shape (render_force_flag == 0, pixel_shader_version > ps_1_3). A clean, fully
 // linear sequence of SetRenderState/SetSamplerState calls with no register ambiguity.
 // register convention: no parameters.
 
@@ -18,7 +18,7 @@ extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c
 
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893f7; // 0x006893f7
-extern int16_t renderer_unknown_69c67c;                             // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)
 extern void *rasterizer_device;             // 0x0071d174
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
@@ -31,7 +31,7 @@ void rasterizer_dynamic_light_technique_ps2_set_states(void)
     d3d_call3_fn set_sampler_state;
 
     if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 ||
-        renderer_unknown_69c67c != 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
+        render_force_flag != 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }
 

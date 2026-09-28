@@ -4,7 +4,7 @@
 //   jitter, oriented by the object's transform, to a position (e.g. antenna tip wobble)")
 // rewrite confidence: 0.3
 // evidence: types/math.h real_matrix4x3, real_vector3d; matrix4x3_transform_vector 0x4cbe50
-//   (established: EAX -> out, EDX -> vector, stack -> m); global 0x00719cd4 widget_random_seed.
+//   (established: EAX -> out, EDX -> vector, stack -> m); global 0x00719cd4 effect_random_seed.
 // register convention: Ghidra shows one clean stack parameter (the matrix) plus two unresolved
 //   implicit inputs, `in_ECX` (a 3-float jitter amplitude, read but not written) and
 //   `unaff_ESI` (the position accumulator, read-modify-written both before and after the
@@ -20,7 +20,7 @@
 #include "memory.h"
 #include "math.h"
 
-extern uint32_t widget_random_seed; // 0x00719cd4
+extern uint32_t effect_random_seed; // 0x00719cd4
 
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50
 
@@ -28,14 +28,14 @@ void antenna_tip_jitter(real_vector3d *amplitude /*ECX*/, real_point3d *position
                          real_matrix4x3 *m)
     // blam-cc: ECX -> amplitude, ESI -> position, stack -> m (UNSURE, see file header)
 {
-    uint32_t s1 = widget_random_seed * 0x19660dU + 0x3c6ef35fU;
+    uint32_t s1 = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
     uint32_t s2 = s1 * 0x19660dU + 0x3c6ef35fU;
     float rz = (float)(s1 >> 16) * 1.5259022e-05f;
     float ry, rx;
 
-    widget_random_seed = s2 * 0x19660dU + 0x3c6ef35fU;
+    effect_random_seed = s2 * 0x19660dU + 0x3c6ef35fU;
     ry = (float)(s2 >> 16) * 1.5259022e-05f;
-    rx = (float)(widget_random_seed >> 16) * 1.5259022e-05f;
+    rx = (float)(effect_random_seed >> 16) * 1.5259022e-05f;
 
     {
         real i = amplitude->i, j = amplitude->j, k = amplitude->k;

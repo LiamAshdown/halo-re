@@ -33,9 +33,9 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc
 extern int32_t time_query_performance_counter_ms(void);                // 0x449210, UNSURE: appears to be a millisecond clock (see interface.h progress_screen_fade_end_time note)
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
 
-extern void **directinput_keyboard_device; // 0x006b1800, UNSURE: DirectInput device COM pointer
-extern uint8_t directinput_unknown_buffer_1[0x6d]; // 0x006b1620 (0x1b dwords + 1 byte cleared)
-extern uint8_t directinput_unknown_buffer_2[0x6d]; // 0x006b168d (0x1b dwords + 1 byte cleared)
+extern void **keyboard_device; // 0x006b1800, UNSURE: DirectInput device COM pointer
+extern uint8_t key_frames[0x6d]; // 0x006b1620 (0x1b dwords + 1 byte cleared)
+extern uint8_t key_release_pending[0x6d]; // 0x006b168d (0x1b dwords + 1 byte cleared)
 
 
 // Opens the on-screen virtual keyboard for a caller-supplied wide-string buffer, clamping
@@ -75,12 +75,12 @@ uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, in
     // UNSURE: unrelated flag bit raised alongside opening the keyboard; not part of this module.
     controls_input_capture_flags |= 4;
 
-    if (directinput_keyboard_device != 0) {
+    if (keyboard_device != 0) {
         int32_t minus_one = -1;
-        void **vtable = *(void ***)directinput_keyboard_device;
-        ((directinput_set_property_fn)vtable[0x28 / 4])(directinput_keyboard_device, 0x14, 0, &minus_one, 0);
-        memset(directinput_unknown_buffer_2, 0, sizeof(directinput_unknown_buffer_2));
-        memset(directinput_unknown_buffer_1, 0, sizeof(directinput_unknown_buffer_1));
+        void **vtable = *(void ***)keyboard_device;
+        ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
+        memset(key_release_pending, 0, sizeof(key_release_pending));
+        memset(key_frames, 0, sizeof(key_frames));
     }
     return 1;
 }

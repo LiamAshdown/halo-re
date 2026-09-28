@@ -36,10 +36,10 @@ extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern data_array *weather_particle_data;     // 0x0087abcc
 extern tag_instance *tag_instances;           // 0x0087bc14
 extern ScenarioStructureBSP *global_structure_bsp;
-extern float camera_position_x; // 0x007c3114 (render_camera_global.position; one declaration per line -- the
+extern float render_camera_global; // 0x007c3114 (render_camera_global.position; one declaration per line -- the
 extern float camera_position_y; // 0x007c3118  standalone linker resolves a line by its single address, so the old
 extern float camera_position_z; // 0x007c311c  "x, y, z; // 0x007c3114/18/1c" line bound z to 0x7c3114)
-extern const real *k_camera_axis_table;       // 0x00696720
+extern const real *global_up3d_pointer;       // 0x00696720
 extern const uint32_t k_particle_render_constant[3]; // 0x006966f8
 
 extern void weather_instance_update(int16_t instance_index); // 0x458420, this module

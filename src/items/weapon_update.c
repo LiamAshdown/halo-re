@@ -35,7 +35,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t weapons_frozen;      // 0x0071c419
+extern uint8_t unit_updates_suppressed;      // 0x0071c419
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
@@ -91,7 +91,7 @@ int32_t weapon_update(datum_index item_index)
     id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
     weapon_tag = (Weapon *)tag_instances[(uint16_t)item_obj->definition_tag].data;
 
-    if (weapons_frozen == 1) {
+    if (unit_updates_suppressed == 1) {
         return 1;
     }
 

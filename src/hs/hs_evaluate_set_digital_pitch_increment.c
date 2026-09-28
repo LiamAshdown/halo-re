@@ -16,7 +16,7 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
-extern uint8_t player_control_settings_cache[]; // 0x00710328, player_control_settings, stride 0x85c
+extern uint8_t input_globals[]; // 0x00710328, player_control_settings, stride 0x85c
 extern float input_sensitivity_to_turn_rate(float sensitivity); // 0x48c8e0
 
 void hs_evaluate_set_digital_pitch_increment(int16_t function_index, uint32_t thread_index, char first)
@@ -29,7 +29,7 @@ void hs_evaluate_set_digital_pitch_increment(int16_t function_index, uint32_t th
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(player_control_settings_cache + slot * 0x85c + 0x81c) = input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
+            *(float *)(input_globals + slot * 0x85c + 0x81c) = input_sensitivity_to_turn_rate(*(float *)&arguments[1]);
         }
         hs_thread_return(0, thread_index);
     }

@@ -19,7 +19,7 @@ extern widget_history_node *ui_widget_history[3]; // 0x00718f98
 extern int16_t ui_pause_depth; // 0x00718fa6
 extern int32_t controls_capture_row; // 0x006953e8, UNSURE
 extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE
-extern uint8_t controls_state_00712544[0x290]; // 0x00712544, UNSURE: 0xa0 dwords zeroed
+extern uint8_t controls_input_capture_buffer[0x290]; // 0x00712544, UNSURE: 0xa0 dwords zeroed
 
 extern void widget_close(widget_instance *widget); // 0x497c00
 extern void widget_pool_list_free_all(widget_history_node **head); // 0x4994b0
@@ -40,7 +40,7 @@ void widget_close_all(void)
     if (controls_capture_row != -1) {
         controls_input_capture_flags = controls_input_capture_flags & 0xf7;
         for (i = 0; i < 0x290; i++) {
-            controls_state_00712544[i] = 0;
+            controls_input_capture_buffer[i] = 0;
         }
         controls_capture_row = -1;
     }

@@ -23,7 +23,7 @@
 #include "objects.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590, blam-cc:
     // EAX -> event, ECX -> out_values; UNSURE identity (a network message-delta decode)
@@ -79,7 +79,7 @@ void game_engine_spawn_or_replay_netgame_equipment(int32_t *message)
 
             new_object = object_new_with_datum_role_control((object_placement_data *)creation_data, 1);
             if (new_object != (datum_index)0xffffffff) {
-                object *obj = ((object_header *)object_headers->data)[new_object & 0xffff].data;
+                object *obj = ((object_header *)object_data->data)[new_object & 0xffff].data;
 
                 network_index_cache_insert_if_free(placement[0]);
                 object_list_membership_set(0);

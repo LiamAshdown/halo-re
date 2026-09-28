@@ -61,7 +61,7 @@
 
 extern player_globals *local_player_globals;                 // 0x0087a478
 extern data_array *player_data;                              // 0x0087a480
-extern data_array *object_headers;                           // 0x008603b0
+extern data_array *object_data;                           // 0x008603b0
 extern tag_instance *tag_instances;                          // 0x0087bc14
 extern player_control_globals *player_control_globals_ptr;   // 0x006b145c
 extern game_time_globals *game_time;                         // 0x006f1d6c
@@ -164,7 +164,7 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
     yaw_rate = 0.0f;
     pitch_rate = 0.0f;
     if (plr->unit != (datum_index)-1) {
-        object *unit_object = ((object_header *)object_headers->data)[plr->unit & 0xffff].data;
+        object *unit_object = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
         unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
         yaw_rate = look_yaw_rate_setting[local_player_index] *
@@ -175,7 +175,7 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
         // A unit riding a vehicle seat inherits that seat's own turn rates when they are set.
         if (unit_object->parent_object != (datum_index)-1 && unit->vehicle_seat_index != -1) {
             object *parent =
-                ((object_header *)object_headers->data)[unit_object->parent_object & 0xffff].data;
+                ((object_header *)object_data->data)[unit_object->parent_object & 0xffff].data;
             Unit *parent_definition =
                 (Unit *)tag_instances[parent->definition_tag & 0xffff].data;
             UnitSeat *seat =
@@ -232,7 +232,7 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)object_headers->data)[plr->unit & 0xffff].data +
+                    ((object_header *)object_data->data)[plr->unit & 0xffff].data +
                     k_unit_data_offset);
 
                 scale = (1.0f - unit->unknown_424 * player_information->stun_turning_penalty) * scale;
@@ -275,7 +275,7 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)object_headers->data)[plr->unit & 0xffff].data +
+                    ((object_header *)object_data->data)[plr->unit & 0xffff].data +
                     k_unit_data_offset);
                 real stun_scale =
                     1.0f - unit->unknown_424 * player_information->stun_turning_penalty;
@@ -406,10 +406,10 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
     if (network_game_mode == 1 && (out->control_flags & 0x800u) != 0 &&
         plr->unit != (datum_index)-1) {
         unit_data *unit = (unit_data *)((uint8_t *)
-            ((object_header *)object_headers->data)[plr->unit & 0xffff].data + k_unit_data_offset);
+            ((object_header *)object_data->data)[plr->unit & 0xffff].data + k_unit_data_offset);
 
         if (unit->current_weapon_index != -1) {
-            object *weapon_object = ((object_header *)object_headers->data)
+            object *weapon_object = ((object_header *)object_data->data)
                 [unit->weapons[unit->current_weapon_index] & 0xffff].data;
             weapon_data *weapon =
                 (weapon_data *)((uint8_t *)weapon_object + k_item_extension_offset);

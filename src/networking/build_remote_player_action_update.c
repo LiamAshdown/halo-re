@@ -6,7 +6,7 @@
 // connected peers."); types/game.h player_action (the stack layout of param_4..param_7 plus four
 // more unnamed trailing dwords matches player_action's 8-dword shape exactly, and param_5/param_6
 // individually alias its desired_yaw/desired_pitch fields, exactly as build_remote_player_vehicle_update.c's
-// EBX-passed control record does); types/networking.h remote_player_index_remap_table (0x00687558).
+// EBX-passed control record does); types/networking.h machine_table (0x00687558).
 // register convention: none recognized beyond the stack; Ghidra resolved this call's own
 // convention, but several of ITS parameters are themselves heavily reused for unrelated purposes
 // partway through the function body (a compiler/decompiler register-reuse artifact), which this
@@ -33,7 +33,7 @@ extern double cos(double x); // FCOS
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_broadcast_event_feed_mode; // 0x006894a0, UNSURE: nonzero routes through
     // network_event_feed_queue_append instead of an immediate message_delta_encode_message/send
-extern void *remote_player_index_remap_table; // 0x00687558
+extern void *machine_table; // 0x00687558
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 extern int32_t network_action_resend_interval_ms; // 0x0068948c
 extern int32_t network_action_resend_interval_ms_alt; // 0x0071031c, UNSURE: second, separate
@@ -82,7 +82,7 @@ void build_remote_player_action_update(uint32_t player_index, uint32_t network_k
     if (network_broadcast_event_feed_mode == 0) {
         network_hash = 0;
         if (player_index != 0xffffffff) {
-            network_hash = hash_table_get((hash_table *)((uint8_t *)remote_player_index_remap_table + 0x0c), network_key);
+            network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), network_key);
             if (network_hash == 0xffffffff) {
                 network_hash = 0;
             }

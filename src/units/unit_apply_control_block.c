@@ -20,14 +20,14 @@
 #include "units.h"
 
 extern data_array *object_data; // 0x008603b0
-extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter), DAT_00719720 (1 = client, 2 = server)
+extern int16_t network_game_mode; // 0x00719720 (a WORD; 0x719722 is the screenshot counter), DAT_00719720 (1 = client, 2 = server)
 
 void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id) // blam-cc: see file header
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    if (game_connection_role == 2) {
+    if (network_game_mode == 2) {
         unit->unknown_474 = (control->control_flags & 0x2800) != 0;
         unit->saved_control = *control;
     }

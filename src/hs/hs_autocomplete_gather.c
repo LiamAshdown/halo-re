@@ -22,7 +22,7 @@ extern void hs_enumerate_special_form_names(void); // 0x00483840, this batch (ta
 extern void hs_autocomplete_add_startup(void); // 0x00483860, this batch (table entry only)
 
 extern void *hs_autocomplete_procedures[0x12]; // 0x00689380
-extern char hs_empty_string_storage[1]; // 0x0065512c
+extern char k_empty_string[1]; // 0x0065512c
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0
 extern char *hs_autocomplete_prefix;          // 0x006b14a4
 extern uint16_t hs_autocomplete_gametype_mask; // 0x006b14ac
@@ -43,7 +43,7 @@ int16_t hs_autocomplete_gather(uint32_t category_mask, char **results, char *pre
     hs_autocomplete_results = results;
     hs_autocomplete_prefix = prefix;
     if (prefix == 0) {
-        hs_autocomplete_prefix = hs_empty_string_storage;
+        hs_autocomplete_prefix = k_empty_string;
     }
     procedure = hs_autocomplete_procedures;
     remaining = 0x12;

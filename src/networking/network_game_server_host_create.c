@@ -17,7 +17,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern random_seed local_random_seed; // 0x00719cd4, types/math.h
+extern random_seed effect_random_seed; // 0x00719cd4, types/math.h
 extern network_client_globals *network_client; // 0x0071c2d8
 extern network_server_globals *network_server; // 0x0071c2d4
 
@@ -31,8 +31,8 @@ int32_t network_game_server_host_create(void)
     host = network_game_server_host_new();
     network_server = host;
     if (host != 0) {
-        local_random_seed = local_random_seed * 0x19660d + 0x3c6ef35f;
-        salt = local_random_seed >> 0x10;
+        effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+        salt = effect_random_seed >> 0x10;
         *(uint32_t *)((uint8_t *)host + 0x3ac) = salt; // UNSURE: see header
         if (network_client != 0) {
             *(uint32_t *)((uint8_t *)network_client + 0xeb8) = salt; // UNSURE: see header

@@ -31,7 +31,7 @@ extern data_array *particle_system_particle_data; // 0x0087abd8
 extern tag_instance *tag_instances;               // 0x0087bc14
 extern uint8_t particle_systems_enabled;          // 0x0069c566
 extern int16_t current_local_player_index;        // 0x007c3108
-extern uint8_t *first_person_weapon_globals;      // 0x006b2d98, stride 0x1ea0
+extern uint8_t *first_person_weapon_interfaces;      // 0x006b2d98, stride 0x1ea0
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 extern random_seed effect_random_seed;             // 0x00719cd4
 extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index,
@@ -115,7 +115,7 @@ void particle_system_spawn(particle_system *system_record, int32_t type_index, f
         marker_count = (int16_t)object_get_node_local_transform(object_index, marker_name, markers, 8);
         object_get_root_location((int32_t *)(system + 0x18), object_index);
         if (marker_count == 0) {
-            datum_index weapon = *(datum_index *)(first_person_weapon_globals + current_local_player_index * 0x1ea0 + 8);
+            datum_index weapon = *(datum_index *)(first_person_weapon_interfaces + current_local_player_index * 0x1ea0 + 8);
 
             if (weapon != k_datum_index_none) {
                 marker_count = (int16_t)first_person_weapon_get_marker_data(weapon, marker_name, markers, 8);

@@ -27,7 +27,7 @@
 
 extern network_id_table *object_network_id_table; // 0x00687130
     // function hashes the projectile's own datum_index through
-extern network_id_table *player_network_id_table; // 0x00687558
+extern network_id_table *machine_table; // 0x00687558
     // is hashed through
 extern data_array *object_data; // 0x008603b0
 
@@ -56,7 +56,7 @@ int32_t projectile_send_creation(uint32_t projectile_index)
         }
     }
     if (obj->owner_linkage != 0xffffffff) {
-        owner_hash = hash_table_get(&player_network_id_table->id_to_index, obj->owner_linkage);
+        owner_hash = hash_table_get(&machine_table->id_to_index, obj->owner_linkage);
         if (owner_hash == -1) {
             owner_hash = 0;
         }

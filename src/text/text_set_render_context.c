@@ -15,21 +15,21 @@
 // text_encoding, text_justification and text_flags are already the names of this
 // module's enum typedefs (types/text.h); the file-scope globals use a "_state" suffix
 // instead (see text_language_initialize_from_string_list.c).
-extern datum_index text_font;                        // 0x006e472c
-extern ColorARGB text_color;                          // 0x006e4738
-extern int16_t text_style_state;                     // 0x006e4734
-extern int16_t text_justification_state;              // 0x006e4736
-extern uint32_t text_flags_state;                     // 0x006e4730
+extern datum_index hud_text_draw_font_tag_id;                        // 0x006e472c
+extern ColorARGB hud_text_draw_color_a;                          // 0x006e4738
+extern int16_t hud_text_draw_color_or_flags;                     // 0x006e4734
+extern int16_t hud_text_draw_column;              // 0x006e4736
+extern uint32_t hud_text_draw_unknown_4730;                     // 0x006e4730
 
 // blam-cc: ECX -> font, EAX -> color, stack -> style, justification, flags
 void text_set_render_context(datum_index font, ColorARGB *color, int16_t style,
     int16_t justification, uint32_t flags)
 {
-    text_font = font;
-    text_color = *color;
-    text_style_state = style;
-    text_justification_state = justification;
-    text_flags_state = flags;
+    hud_text_draw_font_tag_id = font;
+    hud_text_draw_color_a = *color;
+    hud_text_draw_color_or_flags = style;
+    hud_text_draw_column = justification;
+    hud_text_draw_unknown_4730 = flags;
 }
 
 #if 0

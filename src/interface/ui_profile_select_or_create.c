@@ -20,7 +20,7 @@ extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, ui
     uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
 extern uint8_t ui_new_profile_name_entry_open(void *widget, int16_t *event, uint8_t *out_handled); // 0x4a1940, new profile name entry
 
-extern int32_t current_profile_index;            // 0x00714dd4
+extern int32_t saved_player_profile_slots_handle;            // 0x00714dd4
 extern uint8_t new_profile_name_flag_0071916e;   // 0x0071916e, cleared by ui_new_profile_name_entry_open
 extern void saved_item_select(int32_t profile_index); // 0x495be0, blam-cc: EBX profile_index
 
@@ -31,7 +31,7 @@ uint8_t ui_profile_select_or_create(void *widget, int16_t *event, uint8_t *out_h
 
     saved_game_enumerate_by_type(0, &slot, 0, &count);
     if (count > 0) {
-        saved_item_select(current_profile_index);
+        saved_item_select(saved_player_profile_slots_handle);
         return 1;
     }
     ui_new_profile_name_entry_open(widget, event, out_handled);

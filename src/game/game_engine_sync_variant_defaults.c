@@ -25,12 +25,12 @@ extern int32_t cached_network_engine_index;      // 0x0087aab0, UNSURE identity
 extern network_server_globals *network_server;
 extern network_client_globals *network_client;
 
-extern uint16_t unknown_00719754; // UNSURE identity/owning module
-extern uint8_t unknown_0071973c;  // UNSURE identity/owning module; written as a BYTE
+extern uint16_t split_screen_quit_prompt_string; // UNSURE identity/owning module
+extern uint8_t network_join_error_reason;  // UNSURE identity/owning module; written as a BYTE
                                   //   (objdump 0x45fcff "mov ds:0x71973c,al")
 extern uint8_t unknown_00719738;  // UNSURE identity/owning module; written as a BYTE
                                   //   (objdump 0x45fd04 "mov BYTE PTR ds:0x719738,0x1")
-extern uint8_t unknown_0071974f;  // UNSURE identity/owning module
+extern uint8_t main_globals_byte_0071974f;  // UNSURE identity/owning module
 
 extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0
 extern void network_game_broadcast_player_set_changed(void *session); // 0x4e1bf0, not in this batch
@@ -58,10 +58,10 @@ void game_engine_sync_variant_defaults(void)
     }
 
     if (network_client == 0 && session == 0) {
-        unknown_00719754 = 0xffff;
-        unknown_0071973c = 0;
+        split_screen_quit_prompt_string = 0xffff;
+        network_join_error_reason = 0;
         unknown_00719738 = 1;
-        unknown_0071974f = 0;
+        main_globals_byte_0071974f = 0;
     }
 }
 

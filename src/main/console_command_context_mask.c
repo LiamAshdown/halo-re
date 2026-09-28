@@ -4,14 +4,14 @@
 // name confidence: 0.4   rewrite confidence: 0.85
 // evidence: types/main.h console_command_context_flags (every bit below matches its comments
 // exactly); types/game.h current_game_engine (0x006f1d20); types/saved_games.h
-// saved_player_profile_slots[0].profile.flags (0x00712dd8+0x11c); main_globals_data.game_connection
+// profile_globals_block[0].profile.flags (0x00712dd8+0x11c); main_globals_data.game_connection
 // (0x00719720). Disassembly (objdump -d -M intel, bin/halo.exe) confirms the parameter is a
 // plain stack argument (`or eax,DWORD PTR [ebp+0x8]`) and that the 8188-byte `rep movsd` Ghidra
 // shows is a copy of the whole saved_player_profile_slot (0x1ffc-byte profile) onto the stack
 // merely to read its `flags` field at a fixed +0x11c; that copy has no other observable effect,
 // so it is not reproduced here (see the UNSURE note).
 // register convention: context_flags is the recognized stack parameter (param_1).
-// UNSURE: the 8188-byte on-stack copy of saved_player_profile_slots[0] before reading its
+// UNSURE: the 8188-byte on-stack copy of profile_globals_block[0] before reading its
 // flags field is dropped as a non-observable simplification (no aliasing/threading concern is
 // visible in this function); reading the field directly is behaviourally identical.
 // reconciled: R22 saved_player_profile_flags gains _saved_player_profile_end_credits_reached_bit (0x0004); the literal 4 now uses it
@@ -28,7 +28,7 @@
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern main_globals main_globals_data;                    // 0x00719700
-extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8
 
 // Builds the command-availability mask console_process_command checks a command's flags against
 // (and chimera__autocomplete_gather filters candidates with): bit 0 and bit 6 are always set;
@@ -44,7 +44,7 @@ uint32_t console_command_context_mask(uint32_t context_flags)
 
     if (current_game_engine == 0) {
         mask = _console_context_default_bit;
-        if ((saved_player_profile_slots[0].profile.flags & _saved_player_profile_end_credits_reached_bit) == 0) {
+        if ((profile_globals_block[0].profile.flags & _saved_player_profile_end_credits_reached_bit) == 0) {
             mask = _console_context_default_bit | k_console_context_exec_file; // forbid bit 5
         }
         mask = mask | _console_context_no_multiplayer_bit;

@@ -13,7 +13,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern uint8_t autopatch_temp_name_buffer[11]; // 0x006ef910, bytes 0..10
+extern uint8_t ai_update_stagger[11]; // 0x006ef910, bytes 0..10
 extern uint8_t autopatch_temp_name_flag;       // 0x006ef91b, UNSURE: cleared here, adjacent to the buffer
 
 // Seeds the CRT RNG from the current time (xored with a constant) and writes a random 7-letter
@@ -27,9 +27,9 @@ char *autopatch_temp_name_generate(void)
     srand(now ^ 0x33333333);
     autopatch_temp_name_flag = 0;
     for (i = 10; i >= 4; i--) {
-        autopatch_temp_name_buffer[i] = (uint8_t)(rand() % 0x1a) + 'a';
+        ai_update_stagger[i] = (uint8_t)(rand() % 0x1a) + 'a';
     }
-    return (char *)&autopatch_temp_name_buffer[4]; // 0x006ef914
+    return (char *)&ai_update_stagger[4]; // 0x006ef914
 }
 
 #if 0

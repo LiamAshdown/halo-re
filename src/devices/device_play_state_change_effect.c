@@ -38,8 +38,8 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern void *effect_creation_origin; // 0x00696718, a constant pointer to .rdata 0x0065c20c
-extern void *sound_creation_origin;  // 0x006966f8, a constant pointer to .rdata 0x0065c230
+extern void *global_forward3d_pointer; // 0x00696718, a constant pointer to .rdata 0x0065c20c
+extern void *global_zero_vector3d_pointer;  // 0x006966f8, a constant pointer to .rdata 0x0065c230
 
 // 0x4507a0, out of range (effect-creation routine).
 //   // blam-cc: EAX = object_index, ECX = tag_id, the rest on the stack
@@ -47,7 +47,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
     const ColorRGB *color, const effect_tint_source *tint_source); // EAX creator, ECX definition
 // 0x543ce0, out of range (sound-playback routine).
-//   // blam-cc: EAX = effect_creation_origin, ECX = sound_creation_origin, the rest on the stack
+//   // blam-cc: EAX = global_forward3d_pointer, ECX = global_zero_vector3d_pointer, the rest on the stack
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // ESI object, ECX position, EAX forward
 
@@ -67,7 +67,7 @@ void device_play_state_change_effect(uint32_t object_index, TagID tag_id)
                 (const ColorRGB *)0, (const effect_tint_source *)0);
         } else if (group_tag == k_device_state_change_tag_sound) {
             // 0x44c1de..0x44c1f3: ESI = object, ECX = [0x6966f8], EAX = [0x696718], push tag, -1, 1.0f, 0
-            sound_start_at_object_marker(object_index, (Point3D *)sound_creation_origin, (Vector3D *)effect_creation_origin,
+            sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)global_forward3d_pointer,
                 *(datum_index *)&tag_id, -1, 1.0f, 0);
         }
     }

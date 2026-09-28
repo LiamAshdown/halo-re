@@ -29,10 +29,10 @@
 #include "objects.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data;   // 0x00880354
+extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *actor_data;       // 0x00880360
-extern uint8_t *actor_type_definitions[]; // 0x006853b8, one definition pointer per actor type (+0xd swarm byte)
+extern uint8_t *actor_type_procs[]; // 0x006853b8, one definition pointer per actor type (+0xd swarm byte)
 
 extern datum_index actor_new(datum_index actor_variant_tag);          // 0x426760, stack
 extern void actor_attach_to_unit(datum_index actor_index, datum_index unit_index); // 0x427560
@@ -51,7 +51,7 @@ void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index)
     datum_index actor_index;
     actor *a;
 
-    if (ai_global_data->actors_valid == 0 ||
+    if (ai_globals_ptr->actors_valid == 0 ||
         unit_index == (datum_index)k_datum_index_none ||
         actor_variant_tag == (datum_index)k_datum_index_none) {
         return;
@@ -91,7 +91,7 @@ void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index)
     a->unknown_90 = -1;
     a->unknown_68 = 0;
 
-    if (*((uint8_t *)a + 0x6) != actor_type_definitions[*(int16_t *)((uint8_t *)a + 0x4)][0xd]) {
+    if (*((uint8_t *)a + 0x6) != actor_type_procs[*(int16_t *)((uint8_t *)a + 0x4)][0xd]) {
         actor_delete(actor_index, 0);
         return;
     }

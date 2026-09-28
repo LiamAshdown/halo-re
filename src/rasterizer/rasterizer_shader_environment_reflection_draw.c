@@ -37,7 +37,7 @@ extern int16_t rasterizer_bound_bitmap_size_b[2];                   // 0x006d987
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893fa;                         // 0x006893fa reflections enable
 extern uint8_t console_debug_toggle_689409;                         // 0x00689409
-extern int16_t renderer_unknown_69c67c;                             // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)
 
 // blam-cc: EAX -> bitmap_tag_id, DX -> index
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index); // 0x43f250
@@ -221,7 +221,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
         int32_t lightmap_stream;
 
         ((d3dx_effect_pass_fn)(*(void ***)effect)[0x104 / 4])(effect, pass);
-        lightmap_stream = (renderer_unknown_69c67c != 0 && (int16_t)reflection_type == 2) ? 1 : 0;
+        lightmap_stream = (render_force_flag != 0 && (int16_t)reflection_type == 2) ? 1 : 0;
         chimera__rasterizer_draw_dynamic_triangles_static_vertices2(primitive_count, vertex_buffer, dynamic_index_slot, first_primitive,
                                                                     vertex_buffer + lightmap_stream);
     }

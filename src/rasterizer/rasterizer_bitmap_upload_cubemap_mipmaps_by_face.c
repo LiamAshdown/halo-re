@@ -25,7 +25,7 @@
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
 extern void *rasterizer_device; // 0x0071d174
-extern int8_t rasterizer_bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
+extern int8_t bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
 
 extern void *bitmap_data_get_cube_map_pixel_address(BitmapData *bitmap, int32_t mip_level, int16_t x, int16_t y,
                                                     int16_t face); // 0x43fa90; ECX mip, EDI bitmap, stack (x, y, face)
@@ -74,7 +74,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
             if ((bitmap->flags & 2) != 0) {
                 // compressed: the level's bytes (pixels * bits per pixel / 8, toward zero) split over six faces
                 bytes = (int32_t)bitmap_data_calculate_mip_level_pixel_count(bitmap, level) *
-                        rasterizer_bitmap_format_bits_per_pixel[bitmap->format];
+                        bitmap_format_bits_per_pixel[bitmap->format];
                 bytes = bytes / 8;
                 memcpy(dest, source, bytes / 6);
             } else {

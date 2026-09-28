@@ -27,24 +27,24 @@
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
 extern uint32_t game_state_crc;   // 0x006e2dd4
-extern void *cached_object_render_states_006b0b80; // 0x006b0b80, TYPES-GAP
+extern void *main_game_globals; // 0x006b0b80, TYPES-GAP
 extern game_variant game_engine_active_variant; // 0x0087ab20, the 0x98-byte staging variant
     // (0x26 dwords) this function zeroes and then hands to game_engine_load_from_variant in EBX
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94, scenario.h
-extern uint8_t *unknown_0087bc0c;             // 0x0087bc0c, TYPES-GAP, single byte zeroed
+extern uint8_t *hs_camera_control_pointer;             // 0x0087bc0c, TYPES-GAP, single byte zeroed
 extern data_array *object_render_state_cache;       // 0x007c30ec, TYPES-GAP
-extern void *effect_pool_ptr;                 // 0x0072278c, TYPES-GAP
+extern void *runtime_decals_suppressed;                 // 0x0072278c, TYPES-GAP
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
-extern data_array *particle_pool_ptr;               // 0x0087abd0, TYPES-GAP
-extern data_array *effect_object_pool_ptr;          // 0x0087abdc, TYPES-GAP
-extern data_array *effect_location_pool_ptr;        // 0x0087abe0, TYPES-GAP
-extern data_array *weather_particle_pool_ptr;       // 0x0087abcc, TYPES-GAP
-extern void *particle_system_pool_ptr;        // 0x0087abd4, TYPES-GAP
-extern data_array *particle_system_particle_pool_ptr; // 0x0087abd8, TYPES-GAP
-extern void *sound_something_00746140;        // 0x00746140, TYPES-GAP
-extern uint32_t *ai_something_006f1884;       // 0x006f1884, TYPES-GAP
-extern void *recorded_animations_pool_ptr;    // 0x006b0a10, TYPES-GAP
-extern uint32_t *saved_games_something_006f187c; // 0x006f187c, TYPES-GAP (7 dwords)
+extern data_array *particle_data;               // 0x0087abd0, TYPES-GAP
+extern data_array *effect_data;          // 0x0087abdc, TYPES-GAP
+extern data_array *effect_location_data;        // 0x0087abe0, TYPES-GAP
+extern data_array *weather_particle_data;       // 0x0087abcc, TYPES-GAP
+extern void *particle_system_data;        // 0x0087abd4, TYPES-GAP
+extern data_array *particle_system_particle_data; // 0x0087abd8, TYPES-GAP
+extern void *sound_class_gains;        // 0x00746140, TYPES-GAP
+extern uint32_t *player_effect_globals_pointer;       // 0x006f1884, TYPES-GAP
+extern void *recorded_animations;    // 0x006b0a10, TYPES-GAP
+extern uint32_t *cinematic_globals_ptr; // 0x006f187c, TYPES-GAP (7 dwords)
 
 extern void ai_initialize_for_new_map(void);           // 0x42a7c0, ai module
 extern void contrails_initialize(void);                 // 0x44c8b0
@@ -90,7 +90,7 @@ void game_initialize(void)
     game_state_cursor = game_state_cursor + 0x114;
     size = 0x114;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
-    cached_object_render_states_006b0b80 = cursor;
+    main_game_globals = cursor;
     for (i = 0x45; i != 0; i = i - 1) {
         *cursor = 0;
         cursor = cursor + 1;
@@ -113,18 +113,18 @@ void game_initialize(void)
     game_state_cursor = game_state_cursor + 0x7c;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
-    unknown_0087bc0c = (uint8_t *)(game_state_cursor + game_state_base);
+    hs_camera_control_pointer = (uint8_t *)(game_state_cursor + game_state_base);
     size = 4;
     game_state_cursor = game_state_cursor + 4;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
-    *unknown_0087bc0c = 0;
+    *hs_camera_control_pointer = 0;
 
     object_render_state_cache = (data_array *)game_state_new("cached object render states", 0x100, 0x100);
     objects_initialize();
     detail_objects_globals_allocate();
 
     size = 4;
-    effect_pool_ptr = (void *)(game_state_cursor + game_state_base);
+    runtime_decals_suppressed = (void *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 4;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
@@ -137,21 +137,21 @@ void game_initialize(void)
     players_initialize();
     contrails_initialize();
 
-    particle_pool_ptr = (data_array *)game_state_new("particle", 0x400, 0x70);
-    effect_object_pool_ptr = (data_array *)game_state_new("effect", 0x100, 0xfc);
-    effect_location_pool_ptr = (data_array *)game_state_new("effect location", 0x200, 0x3c);
-    weather_particle_pool_ptr = data_new(0x54, "weather particles", 0x200); // objdump 0x45ab96: EBX = 0x54
-    particle_system_pool_ptr = game_state_new("particle systems", 0x40, 0x158);
-    particle_system_particle_pool_ptr = (data_array *)game_state_new("particle system particles", 0x200, 0x80);
+    particle_data = (data_array *)game_state_new("particle", 0x400, 0x70);
+    effect_data = (data_array *)game_state_new("effect", 0x100, 0xfc);
+    effect_location_data = (data_array *)game_state_new("effect location", 0x200, 0x3c);
+    weather_particle_data = data_new(0x54, "weather particles", 0x200); // objdump 0x45ab96: EBX = 0x54
+    particle_system_data = game_state_new("particle systems", 0x40, 0x158);
+    particle_system_particle_data = (data_array *)game_state_new("particle system particles", 0x200, 0x80);
 
     size = 0x264;
-    sound_something_00746140 = (void *)(game_state_cursor + game_state_base);
+    sound_class_gains = (void *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x264;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     game_sound_initialize();
 
     size = 0x128;
-    ai_something_006f1884 = (uint32_t *)(game_state_cursor + game_state_base);
+    player_effect_globals_pointer = (uint32_t *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x128;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     ai_initialize_for_new_map();
@@ -161,10 +161,10 @@ void game_initialize(void)
     hs_runtime_initialize();
     hs_scripts_reload();
 
-    recorded_animations_pool_ptr = game_state_new("recorded animations", 0x40, 0x64);
+    recorded_animations = game_state_new("recorded animations", 0x40, 0x64);
 
     size = 0x1c;
-    saved_games_something_006f187c = (uint32_t *)(game_state_cursor + game_state_base);
+    cinematic_globals_ptr = (uint32_t *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x1c;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     saved_game_files_initialize();

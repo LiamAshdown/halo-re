@@ -19,7 +19,7 @@
 #include "interface.h"
 #include <string.h>
 
-extern int32_t chat_state_006953e8; // 0x006953e8, UNSURE identity
+extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity
 extern uint8_t controls_menu_list_mode; // 0x00719445, UNSURE name
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -38,7 +38,7 @@ uint8_t ui_event_4b4980(widget_instance *widget, int16_t *event, uint8_t *out_ha
     uint8_t *profile;
     widget_instance *list;
 
-    chat_state_006953e8 = -1;
+    controls_capture_row = -1;
     third->state = 0;
     third->hidden = 1;
     widget->focused_child = second;

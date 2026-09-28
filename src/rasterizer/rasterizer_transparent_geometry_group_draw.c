@@ -58,7 +58,7 @@ extern void *rasterizer_glass_draw_procedures[3];                           // 0
 extern void *rasterizer_water_draw_procedure;                               // 0x007bf050
 extern uint8_t console_debug_toggle_689422;                                 // 0x00689422
 extern uint8_t console_debug_toggle_6893eb;                                 // 0x006893eb meter debug animation
-extern int16_t console_debug_toggle_689412;                                 // 0x00689412 read as a word here
+extern int16_t debug_print_enabled_flag;                                 // 0x00689412 read as a word here
 extern float console_debug_meter_period;                                    // 0x00689454
 extern float console_debug_meter_values[4];                                 // 0x00689458 negative keeps the animated value
 
@@ -467,7 +467,7 @@ static void draw_meter_shader(transparent_geometry_group *group, const uint8_t *
     vertex_constants[2][2] = 0.0f;
     vertex_constants[2][3] = 0.0f;
     ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 10, &vertex_constants[0][0], 3);
-    if (console_debug_toggle_6893eb && console_debug_toggle_689412 != 0) {
+    if (console_debug_toggle_6893eb && debug_print_enabled_flag != 0) {
         set_render_state(0x1b, 0);
     }
     ((d3d_set_constant_f_fn)device_vtable()[0x1b4 / 4])(rasterizer_device, 0, &pixel_constants[0][0], 6);
@@ -716,7 +716,7 @@ finish:
         do {
             if (secondary->unknown_a0 == group->sort_key && secondary->parameters.mode == 1) {
                 rasterizer_transparent_geometry_group_draw(secondary, 1);
-                if (console_debug_toggle_689412 != 0) {
+                if (debug_print_enabled_flag != 0) {
                     rasterizer_secondary_groups_drawn = 1;
                 }
             }

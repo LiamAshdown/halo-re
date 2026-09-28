@@ -22,7 +22,7 @@
 // TYPES-GAP: the 5-dword state ai_reference_squad_iterator_new/_next (0x4324f0/0x4325b0)
 // share. No existing header struct matches.
 extern Scenario *global_scenario; // 0x00746f8c
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 
 // Initializes out_iterator to walk every ScenarioSquad a packed ai reference names: one
 // squad for a squad reference, every squad of the named platoon (filtered by
@@ -39,7 +39,7 @@ void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_reference_squ
 
     out_iterator->encounter_index = (int32_t)encounter_index;
 
-    if (global_scenario == 0 || ai_global_data->actors_valid == 0 ||
+    if (global_scenario == 0 || ai_globals_ptr->actors_valid == 0 ||
         (int32_t)global_scenario->encounters.count <= (int32_t)encounter_index) {
         goto fail;
     }

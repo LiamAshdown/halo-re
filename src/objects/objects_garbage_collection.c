@@ -39,7 +39,7 @@ extern memory_pool *object_memory_pool; // 0x006b8cb4
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern game_time_globals *game_time; // 0x006f1d6c
 extern void *ai_gc_callback_table; // 0x0065ddd0, UNSURE: see file header
-extern char console_error_category_objects[]; // 0x0065efec, UNSURE: a console category tag FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char network_log_path_format[]; // 0x0065efec, UNSURE: a console category tag FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 
 extern void block_list_compact(memory_pool *arena); // 0x4d1eb0, EBX (the object pool at all three sites)
     // takes `memory_pool *arena`; Ghidra models no argument at the call sites in this file,
@@ -211,7 +211,7 @@ void objects_garbage_collection(void)
             }
 
             sprintf(critical_text, "garbage collection %scritical (%s)", qualifier, free_text);
-            console_print_error_va(console_error_category_objects, critical_text);
+            console_print_error_va(network_log_path_format, critical_text);
             reported = 1;
             if (!critical || entry[1] == 0) {
                 break;
@@ -231,7 +231,7 @@ void objects_garbage_collection(void)
                         list, 0x1000);
                     if (removed) {
                         sprintf(removing_text, "removing objects: %s", callback_text);
-                        console_print_error_va(console_error_category_objects, removing_text);
+                        console_print_error_va(network_log_path_format, removing_text);
                     }
                     if (!more) {
                         entry += 2;

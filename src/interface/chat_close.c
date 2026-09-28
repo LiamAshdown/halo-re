@@ -18,9 +18,9 @@ extern uint8_t chat_dialog_open;  // 0x006b3858
 extern int32_t chat_scope_active; // 0x006b385c
 extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE (per src/interface/widget_close_all.c)
 
-extern void **directinput_keyboard_device;        // 0x006b1800
-extern uint8_t directinput_unknown_buffer_1[0x6d]; // 0x006b1620
-extern uint8_t directinput_unknown_buffer_2[0x6d]; // 0x006b168d
+extern void **keyboard_device;        // 0x006b1800
+extern uint8_t key_frames[0x6d]; // 0x006b1620
+extern uint8_t key_release_pending[0x6d]; // 0x006b168d
 
 extern void *chat_gui_root_handle;    // 0x00721ea4
 extern chat_gui_find_object_fn chat_gui_find_object; // 0x00721eb8
@@ -44,12 +44,12 @@ void chat_close(void)
     chat_scope_active = -1;
     chat_dialog_open = 0;
 
-    if (directinput_keyboard_device != 0) {
+    if (keyboard_device != 0) {
         int32_t minus_one = -1;
-        void **vtable = *(void ***)directinput_keyboard_device;
-        ((directinput_set_property_fn)vtable[0x28 / 4])(directinput_keyboard_device, 0x14, 0, &minus_one, 0);
-        memset(directinput_unknown_buffer_2, 0, sizeof(directinput_unknown_buffer_2));
-        memset(directinput_unknown_buffer_1, 0, sizeof(directinput_unknown_buffer_1));
+        void **vtable = *(void ***)keyboard_device;
+        ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
+        memset(key_release_pending, 0, sizeof(key_release_pending));
+        memset(key_frames, 0, sizeof(key_frames));
     }
 
     chat_gui_active = 0;

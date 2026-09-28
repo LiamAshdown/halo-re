@@ -23,7 +23,7 @@
 
 extern network_client_globals *network_client; // 0x0071c2d8
 
-extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 extern int32_t message_delta_encode_message(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX, EDX
@@ -48,11 +48,11 @@ void rcon_send_request(char *command, char *password) // blam-cc: EAX -> command
     int32_t encoded_bits;
 
     if (strlen(password) > 8) {
-        chimera__console_out((ColorARGB *)console_color_006851fc, "ERROR: Maximum rcon password length is %d characters", 8);
+        chimera__console_out((ColorARGB *)global_white_argb, "ERROR: Maximum rcon password length is %d characters", 8);
         return;
     }
     if (strlen(command) > 0x40) {
-        chimera__console_out((ColorARGB *)console_color_006851fc, "ERROR: Maximum rcon command length is %d characters", 0x40);
+        chimera__console_out((ColorARGB *)global_white_argb, "ERROR: Maximum rcon command length is %d characters", 0x40);
         return;
     }
     strcpy(record.password, password);

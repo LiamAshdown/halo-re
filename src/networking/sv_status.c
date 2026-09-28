@@ -27,8 +27,8 @@ extern char network_build_string[]; // 0x00719879 (UNSURE: reused here as a map 
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 
 extern int32_t players_active_count(int32_t maximum_players); // foreign (UNSURE)
-extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
-extern void *console_color_00685218; // 0x00685218, a ColorARGB * the original loads into EAX
+extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void *console_message_default_color; // 0x00685218, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: prints the current map and player count, and whether the game is ending, or
@@ -44,11 +44,11 @@ void sv_status(void)
                 chimera__console_out((ColorARGB *)0, "Use the 'sv_end_game' command to stop the game.");
                 return;
             }
-            chimera__console_out((ColorARGB *)console_color_00685218, "Game is ending...");
+            chimera__console_out((ColorARGB *)console_message_default_color, "Game is ending...");
         }
         return;
     }
-    chimera__console_out((ColorARGB *)console_color_006851fc, "%s is a server-only function!", "sv_status");
+    chimera__console_out((ColorARGB *)global_white_argb, "%s is a server-only function!", "sv_status");
 }
 
 #if 0

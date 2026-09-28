@@ -22,8 +22,8 @@
 // most likely four different literal action-id constants that Ghidra could not attribute;
 // string_convert_ascii_to_unicode's single call here is likewise bare; string_format_wide_va_bounded's third
 // argument (`local_80`, a 128-byte stack buffer never otherwise written) and
-// autopatch_download_get_result's exact output semantics were not resolved; DAT_006b1804/
-// DAT_006b15f9/DAT_006b1828/DAT_006b180c (a mouse-wheel-ish state pair) and DAT_007196a0/
+// autopatch_download_get_result's exact output semantics were not resolved; mouse_device/
+// input_suppressed/mouse_neutral_state/live_mouse_state (a mouse-wheel-ish state pair) and DAT_007196a0/
 // DAT_0071948a (a query-mode flag) have no documented names. Two float bit patterns
 // (0x3f800000 == 1.0f, 0x3eaa7efa ~ 0.3333f) are written through a `uint32_t*` reinterpretation
 // of the `alpha` field to avoid any floating-point literal rounding.
@@ -39,20 +39,20 @@
 
 extern void *server_browser_join_target;        // 0x00719450
 extern uint8_t server_browser_join_target_has_password; // 0x00719454
-extern uint8_t DAT_00719458;                    // see server_browser_open.c UNSURE
+extern uint8_t network_join_target_address;                    // see server_browser_open.c UNSURE
 extern uint8_t DAT_007193be;                    // see UNSURE
-extern int32_t DAT_006b1804;                    // see UNSURE (mouse-wheel-ish state)
-extern uint8_t DAT_006b15f9;                    // see UNSURE
-extern int32_t DAT_006b1828[3];                 // see UNSURE
-extern int32_t DAT_006b180c[3];                 // see UNSURE
+extern int32_t mouse_device;                    // see UNSURE (mouse-wheel-ish state)
+extern uint8_t input_suppressed;                    // see UNSURE
+extern int32_t mouse_neutral_state[3];                 // see UNSURE
+extern int32_t live_mouse_state[3];                 // see UNSURE
 extern void *master_server_query_engine;        // 0x0071946c
 extern network_thread_record *server_list_thread; // 0x007196ac
 extern int32_t DAT_007196a0;                    // see UNSURE
 extern uint8_t server_browser_query_pending;       // 0x0071948a, see UNSURE
 extern int32_t server_list_scroll_offset;       // 0x00719478
 extern int32_t server_browser_selected_index; // 0x006953f4
-extern uint8_t DAT_00719481;                    // see server_list_reset.c UNSURE
-extern int32_t DAT_0071947c;                    // see server_list_reset.c UNSURE
+extern uint8_t server_browser_player_list_ready;                    // see server_list_reset.c UNSURE
+extern int32_t server_browser_last_click_ms;                    // see server_list_reset.c UNSURE
 extern network_mutex_record *server_list_mutex; // 0x007196a8
 extern uint8_t server_browser_join_requested;   // 0x00719491
 extern int32_t master_server_last_result;       // 0x007196a4
@@ -68,8 +68,8 @@ extern uint8_t DAT_00719696;                    // see server_browser_open.c UNS
 extern uint8_t server_browser_require_valid_entry; // 0x006953f0
 extern int32_t server_browser_total_players;    // 0x00719474
 extern heap widget_memory_pool;                 // 0x006926c4
-extern char DAT_0065512c[];                     // shared empty-string default buffer
-extern wchar_t DAT_00660c34[];                  // see UNSURE, argument to server_browser_list_row_populate
+extern char k_empty_string[];                     // shared empty-string default buffer
+extern wchar_t empty_string[];                  // see UNSURE, argument to server_browser_list_row_populate
 
 extern int32_t network_join_request_resolve_host(void); // foreign, outside this session's range, see UNSURE
 extern void widget_close_all(void); // 0x498650, outside this session's range
@@ -157,7 +157,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
     int32_t bVar12;
 
     if (server_browser_join_target != 0) {
-        if (server_browser_join_target_has_password == 0 || DAT_00719458 != 0) {
+        if (server_browser_join_target_has_password == 0 || network_join_target_address != 0) {
             clicked = network_join_request_resolve_host();
             if (clicked != 0) {
                 widget_close_all();
@@ -170,16 +170,16 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
             password_panel->parent->selected_child = password_panel;
             password_panel->first_child->first_child->value = 0x2a;
         }
-        DAT_00719458 = 0;
+        network_join_target_address = 0;
         server_browser_join_target_has_password = 0;
         server_browser_join_target = 0;
     }
 
     scroll_target = 0;
-    if (DAT_006b1804 != 0) {
-        scroll_target = DAT_006b1828;
-        if (DAT_006b15f9 == 0) {
-            scroll_target = DAT_006b180c;
+    if (mouse_device != 0) {
+        scroll_target = mouse_neutral_state;
+        if (input_suppressed == 0) {
+            scroll_target = live_mouse_state;
         }
     }
     clicked = input_get_key_state();
@@ -258,7 +258,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
         do {
             row_entry = col_headers[idx];
             row_entry->highlight_flag = (row_entry->parent->selected_child == row_entry);
-            server_browser_list_row_populate(row_entry, 0, 0, 0, DAT_00660c34, 0, 0, 0xffffffff,
+            server_browser_list_row_populate(row_entry, 0, 0, 0, empty_string, 0, 0, 0xffffffff,
                                               0xffffffff, 0xffffffff);
             idx = idx + 1;
             row_entry->hidden = 1;
@@ -289,15 +289,15 @@ int32_t join_game_server_browser_tick(network_ui_widget *param_1)
                     entry = locked->list[scan_index];
                 }
                 server_browser_list_row_gather(col_headers[idx], 0, entry);
-                if (server_browser_selected_index == scan_index && DAT_00719481 == 0) {
+                if (server_browser_selected_index == scan_index && server_browser_player_list_ready == 0) {
                     if (entry == 0) {
                         server_browser_selected_index = -1;
-                        DAT_0071947c = 0;
+                        server_browser_last_click_ms = 0;
                         server_list_reset();
                     } else {
                         probe = SBServerHasFullKeys(entry);
                         if (probe != 0) {
-                            DAT_00719481 = 1;
+                            server_browser_player_list_ready = 1;
                             server_browser_player_list_populate(entry);
                             server_browser_selected_variant_description_build(entry);
                         }

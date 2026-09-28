@@ -24,8 +24,8 @@
 
 extern data_array *flag_data;       // 0x008603a8
 extern tag_instance *tag_instances; // 0x0087bc14
-extern real_point3d *flag_cloth_default_position;          // 0x006966f8, shared constant vector
-extern real_point3d *flag_cloth_default_previous_position; // 0x00696714, shared constant vector
+extern real_point3d *global_zero_vector3d_pointer;          // 0x006966f8, shared constant vector
+extern real_point3d *global_origin3d_pointer; // 0x00696714, shared constant vector
 
 extern datum_index datum_new(data_array *array); // UNSURE: returns {handle, data_array*} as a
     // 64-bit pair in the original; only the handle is modeled here, using flag_data directly
@@ -65,8 +65,8 @@ datum_index flag_new(datum_index flag_tag)
                     for (col = 0; col < tag->height; col++) {
                         flag_vertex *vertex = &entry->vertices[tag->height * row + col];
 
-                        vertex->position = *flag_cloth_default_position;
-                        vertex->previous_position = *flag_cloth_default_previous_position;
+                        vertex->position = *global_zero_vector3d_pointer;
+                        vertex->previous_position = *global_origin3d_pointer;
 
                         if (row < tag->width - 1 && col < tag->height - 1) {
                             entry->cell_split_codes[(tag->height - 1) * row + col] = 0;

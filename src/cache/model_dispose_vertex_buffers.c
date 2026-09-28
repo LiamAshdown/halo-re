@@ -26,7 +26,7 @@
 extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; this module, 0x4425d0
 
 extern tag_instance *tag_instances; // 0x0087bc14
-extern void *d3d_device;            // 0x0071d174
+extern void *rasterizer_device;            // 0x0071d174
 
 // Releases the Direct3D vertex and index buffer objects (see UNSURE above) held by every part of
 // every geometry of every gbxmodel tag, and clears both fields. The disposal counterpart of
@@ -59,7 +59,7 @@ void model_dispose_vertex_buffers(void)
                 part = (GBXModelGeometryPart *)(geometry->parts.pointer +
                     part_index * sizeof(GBXModelGeometryPart));
 
-                if (d3d_device != 0 && (void *)part != (void *)-0x54) {
+                if (rasterizer_device != 0 && (void *)part != (void *)-0x54) {
                     object = (void **)part->base.vertex_offset;
                     if (object != 0) {
                         vtable = *(void (__stdcall ***)(void *))object;
@@ -67,7 +67,7 @@ void model_dispose_vertex_buffers(void)
                         part->base.vertex_offset = 0;
                     }
                 }
-                if (d3d_device != 0 && (void *)part != (void *)-0x44) {
+                if (rasterizer_device != 0 && (void *)part != (void *)-0x44) {
                     object = (void **)part->base.triangle_offset_2;
                     if (object != 0) {
                         vtable = *(void (__stdcall ***)(void *))object;

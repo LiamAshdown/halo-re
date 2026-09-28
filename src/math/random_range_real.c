@@ -5,7 +5,7 @@
 //   random_range_real(float minimum, float maximum);`); out/phase4/cache_types_notes.md
 //   "random_range_real @0x444af0 belongs to the math/random module. It is the global LCG
 //   (seed = seed * 0x19660d + 0x3c6ef35f) on 0x00719cd4"; types/math.h already documents
-//   0x00719cd4 as `local_random_seed`, the "non-deterministic stream" companion to
+//   0x00719cd4 as `effect_random_seed`, the "non-deterministic stream" companion to
 //   `random_seed_global` (0x00719cd0, used by the differently-named sibling
 //   src/math/random_real_range.c @0x401050). This is a distinct, real, independently callable
 //   function -- not a duplicate compiled instance of 0x401050 -- because it drives the other
@@ -18,15 +18,15 @@
 #include "tags.h"
 #include "math.h"
 
-extern random_seed local_random_seed; // 0x00719cd4, the non-deterministic LCG stream (types/math.h)
+extern random_seed effect_random_seed; // 0x00719cd4, the non-deterministic LCG stream (types/math.h)
 
 // Returns a pseudo-random float linearly interpolated between minimum and maximum using the
-// engine's non-deterministic (local_random_seed) LCG stream. Same formula as
+// engine's non-deterministic (effect_random_seed) LCG stream. Same formula as
 // random_real_range @0x401050, which instead drives the deterministic random_seed_global stream.
 real random_range_real(real minimum, real maximum)
 {
-    local_random_seed = local_random_seed * k_random_multiplier + k_random_increment;
-    return (maximum - minimum) * (real)(local_random_seed >> k_random_value_shift) * 1.5259022e-05f + minimum;
+    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+    return (maximum - minimum) * (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f + minimum;
 }
 
 #if 0

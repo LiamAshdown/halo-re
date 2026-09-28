@@ -20,7 +20,7 @@
 
 extern uint8_t unknown_006893ff;    // 0x006893ff UNSURE: console/debug toggle, owner module unclear
 extern int16_t unknown_00719aac;    // 0x00719aac UNSURE: gating value, owner module unclear
-extern int16_t unknown_00696568;    // 0x00696568 UNSURE: gating value, owner module unclear
+extern int16_t screenshot_scale;    // 0x00696568 UNSURE: gating value, owner module unclear
 extern lens_flare_instance lens_flare_instances[0x400]; // 0x006ce818
 extern int32_t lens_flare_instance_count; // 0x0071d134
 
@@ -39,7 +39,7 @@ void lens_flare_update_visibility(void)
     uint8_t new_value;
 
     if (unknown_006893ff == 0 || unknown_00719aac >= 2 ||
-        (unknown_00719aac == 1 && unknown_00696568 >= 2)) {
+        (unknown_00719aac == 1 && screenshot_scale >= 2)) {
         return;
     }
 

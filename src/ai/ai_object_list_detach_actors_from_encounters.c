@@ -27,7 +27,7 @@ extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
 extern data_array *object_data;                // 0x008603b0
 extern data_array *actor_data;                 // 0x00880360
-extern ai_globals *ai_global_data;             // 0x00880354
+extern ai_globals *ai_globals_ptr;             // 0x00880354
 
 extern void actor_movement_action_cancel(datum_index actor_index); // 0x428650, not yet rewritten
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index
@@ -95,10 +95,10 @@ void ai_object_list_detach_actors_from_encounters(datum_index object_list_header
                 actor_movement_action_cancel(actor_index);
                 encounter_remove_actor(actor_index, 0);
 
-                if (ai_global_data->actors_valid != 0) {
+                if (ai_globals_ptr->actors_valid != 0) {
                     a = &((actor *)actor_data->data)[actor_index & 0xffff];
-                    a->next_in_encounter = ai_global_data->unknown_08;
-                    ai_global_data->unknown_08 = actor_index;
+                    a->next_in_encounter = ai_globals_ptr->unknown_08;
+                    ai_globals_ptr->unknown_08 = actor_index;
                     a->unknown_09 = 1;
                     *(uint16_t *)&a->unknown_10[0] =
                         (uint16_t)(-(uint16_t)(a->active != 0) & 0x5a);

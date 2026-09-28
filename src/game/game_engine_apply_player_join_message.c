@@ -40,7 +40,7 @@
 extern data_array *player_data;         // 0x0087a480
 extern uint8_t *network_server;        // 0x0071c2d4
 extern uint8_t *network_client;         // 0x0071c2d8
-extern data_array *unknown_data_array_006f7ed0; // 0x006f7ed0, UNSURE identity, see header note
+extern data_array *update_client_queues; // 0x006f7ed0, UNSURE identity, see header note
 extern uint8_t join_message_table[];    // 0x00687500, UNSURE identity (a .data table network_index_cache_insert_if_free
                                         //   receives in EAX at this one call site)
 
@@ -108,7 +108,7 @@ void game_engine_apply_player_join_message(void **envelope)
         }
         network_index_cache_insert_if_free(message.hash_value, message.join_key, join_message_table);
         p = (player *)datum_get((datum_index)message.join_key, player_data);
-        datum_new_at_index_with_salt((datum_index)message.join_key, unknown_data_array_006f7ed0);
+        datum_new_at_index_with_salt((datum_index)message.join_key, update_client_queues);
         game_engine_player_profile_cache_add(message.join_key);
         if (p == 0) {
             return;

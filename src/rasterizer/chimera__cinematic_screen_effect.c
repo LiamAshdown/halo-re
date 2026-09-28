@@ -25,8 +25,8 @@ extern rasterizer_frame_time rasterizer_time; // 0x007c1200
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 extern uint8_t unknown_0071d275; // 0x0071d275 UNSURE
 extern uint8_t unknown_0071d276;                                    // 0x0071d276 UNSURE
-extern uint8_t *unknown_006ac540; // 0x006ac540 UNSURE: some HUD/cinematic object, +0x30 frame counter
-extern uint8_t console_debug_toggle_6893f5;                         // 0x006893f5
+extern uint8_t *texture_cache; // 0x006ac540 UNSURE: some HUD/cinematic object, +0x30 frame counter
+extern uint8_t decals_for_all_responses;                         // 0x006893f5
 extern uint8_t *rasterizer_decal_vertex_cache_handle;               // 0x0071d1c0 UNSURE: +0x2c shift, +0x3c data_array
 
 extern void lens_flare_update_visibility(void); // 0x513780 (this session)
@@ -54,8 +54,8 @@ void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 
     lens_flare_update_visibility();
 
-    *(int32_t *)(unknown_006ac540 + 0x30) = *(int32_t *)(unknown_006ac540 + 0x30) + 1;
-    if (console_debug_toggle_6893f5 != 0) {
+    *(int32_t *)(texture_cache + 0x30) = *(int32_t *)(texture_cache + 0x30) + 1;
+    if (decals_for_all_responses != 0) {
         *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) = *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) + 1;
         decals_update_fade();
     }

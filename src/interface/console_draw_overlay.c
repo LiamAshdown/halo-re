@@ -49,12 +49,12 @@ extern float hud_text_draw_color_r;           // 0x006e473c
 extern float hud_text_draw_color_g;           // 0x006e4740
 extern float hud_text_draw_color_b;           // 0x006e4744
 extern int16_t hud_text_draw_background_mode; // 0x006e4748
-extern uint32_t hud_text_draw_box_field_474a; // 0x006e474a, UNSURE: background box geometry
+extern uint32_t text_tab_stops; // 0x006e474a, UNSURE: background box geometry
 extern uint32_t hud_text_draw_box_field_474e; // 0x006e474e, UNSURE: background box geometry
 
 extern void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
     uint32_t position_or_color1, uint32_t position_or_color2, const char *text); // 0x5148b0, EAX clip, ECX dest rect
-extern int16_t console_screen_safe_area[6]; // 0x007c3140: [0] top, [1] left, [5] (0x7c314a) right anchor
+extern int16_t render_viewport_top[6]; // 0x007c3140: [0] top, [1] left, [5] (0x7c314a) right anchor
 
 // Draws the developer console overlay. When the terminal has been initialized: if a console is
 // active, builds "prompt + input" into a scratch line, splices in a caret glyph (0x7f) at the
@@ -114,10 +114,10 @@ void console_draw_overlay(void)
             // 0x49680a..0x496887: EAX = 0, ECX = &{0x1e0 - line_height - top, [5] - left, 0x1e0 - top, 0x280 - left}
             Rectangle2D rect;
 
-            rect.top = (int16_t)(0x1e0 - line_height - console_screen_safe_area[0]);
-            rect.left = (int16_t)(console_screen_safe_area[5] - console_screen_safe_area[1]);
-            rect.bottom = (int16_t)(0x1e0 - console_screen_safe_area[0]);
-            rect.right = (int16_t)(0x280 - console_screen_safe_area[1]);
+            rect.top = (int16_t)(0x1e0 - line_height - render_viewport_top[0]);
+            rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
+            rect.bottom = (int16_t)(0x1e0 - render_viewport_top[0]);
+            rect.right = (int16_t)(0x280 - render_viewport_top[1]);
             chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, line);
         }
     }
@@ -141,7 +141,7 @@ void console_draw_overlay(void)
             y = y - line_height;
             if (message->is_command_echo != 0) {
                 hud_text_draw_background_mode = 3;
-                hud_text_draw_box_field_474a = 0x014000a0;
+                text_tab_stops = 0x014000a0;
                 hud_text_draw_box_field_474e = 0x000001d6;
             }
             hud_text_draw_color_or_flags = 0xffff;
@@ -153,10 +153,10 @@ void console_draw_overlay(void)
                 // y + line_height - top, 0x280 - left}
                 Rectangle2D rect;
 
-                rect.top = (int16_t)(y - console_screen_safe_area[0]);
-                rect.left = (int16_t)(console_screen_safe_area[5] - console_screen_safe_area[1]);
-                rect.bottom = (int16_t)(y + line_height - console_screen_safe_area[0]);
-                rect.right = (int16_t)(0x280 - console_screen_safe_area[1]);
+                rect.top = (int16_t)(y - render_viewport_top[0]);
+                rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
+                rect.bottom = (int16_t)(y + line_height - render_viewport_top[0]);
+                rect.right = (int16_t)(0x280 - render_viewport_top[1]);
                 chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, message->text);
             }
             hud_text_draw_background_mode = 0;

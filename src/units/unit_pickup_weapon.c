@@ -20,8 +20,8 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern char s_no_weapon_label[];      // 0x0065512c, UNSURE exact text FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
-extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
+extern char k_empty_string[];      // 0x0065512c, UNSURE exact text FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern int16_t network_game_mode; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);         // 0x4f5de0, UNSURE signature
@@ -46,9 +46,9 @@ uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t 
     object *weapon_obj = object_try_and_get(weapon_index, _object_mask_weapon);
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
-    if (game_connection_role == 1) {
+    if (network_game_mode == 1) {
         char *seat_name = unit_get_seat_or_state_name(unit_index);
-        char *weapon_label = s_no_weapon_label;
+        char *weapon_label = k_empty_string;
         if (weapon_index != 0xffffffff) {
             object *label_src = ((object_header *)object_data->data)[weapon_index & 0xffff].data;
             weapon_label = (char *)(tag_instances[label_src->definition_tag & 0xffff].data) + 0x30c;

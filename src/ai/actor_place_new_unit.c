@@ -23,7 +23,7 @@
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *object_data;     // 0x008603b0
 extern Scenario *global_scenario;   // 0x00746f8c
-extern int16_t game_connection_word; // 0x00719720 (compared as a word with 2)
+extern int16_t network_game_mode; // 0x00719720 (compared as a word with 2)
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 
 extern double cos(double x); // x87 FCOS
@@ -76,7 +76,7 @@ datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum
     placement.forward.k = 0.0f;
 
     role = 3;
-    if (game_connection_word == 2) {
+    if (network_game_mode == 2) {
         int16_t object_type = *(int16_t *)TAG_DATA(placement.definition_tag);
 
         if (*(int32_t *)((uint8_t *)object_type_definitions[object_type] + 0x10) != -1) {

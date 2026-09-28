@@ -31,7 +31,7 @@
 
 extern uint8_t *light_volume_instances; // 0x006b8d70
 extern tag_instance *tag_instances;     // 0x0087bc14
-extern float camera_position_x; // 0x007c3114
+extern float render_camera_global; // 0x007c3114
 extern float camera_position_y; // 0x007c3118
 extern float camera_position_z; // 0x007c311c
 extern float camera_forward_x;  // 0x007c3120
@@ -108,7 +108,7 @@ void light_volume_render_procedure(uint32_t object_index, datum_index light_volu
     }
     if (*(float *)(tag + 0x38) > 0.0f) {
         float distance = (origin->z - camera_position_z) * camera_forward_z +
-            (origin->x - camera_position_x) * camera_forward_x + camera_forward_y * (origin->y - camera_position_y);
+            (origin->x - render_camera_global) * camera_forward_x + camera_forward_y * (origin->y - camera_position_y);
 
         fade = clamp01((distance - *(float *)(tag + 0x38)) / (*(float *)(tag + 0x34) - *(float *)(tag + 0x38)));
     }

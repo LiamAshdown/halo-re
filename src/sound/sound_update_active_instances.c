@@ -36,7 +36,7 @@ extern sound_driver *current_sound_driver; // 0x00725208, header calls this "sou
 extern sound_listener sound_listeners[1]; // 0x00725218
 extern data_array *game_looping_sound_data; // 0x007461a0
 
-extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8
+extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 extern const real_point3d *global_origin3d_pointer;    // 0x00696714
 
@@ -137,7 +137,7 @@ void sound_update_active_instances(void)
                         sound_listeners[instance->listener_index].underwater, definition->sound_class);
                 } else {
                     sound_channel_spatial default_spatial;
-                    default_spatial.position = *(Point3D *)global_zero_point3d_pointer;
+                    default_spatial.position = *(Point3D *)global_zero_vector3d_pointer;
                     default_spatial.forward = *(Vector3D *)global_forward3d_pointer;
                     default_spatial.velocity = *(Vector3D *)global_origin3d_pointer;
                     current_sound_driver->channel_set_spatial(channel_index, 0, &default_spatial, 0.0f, 0.0f,

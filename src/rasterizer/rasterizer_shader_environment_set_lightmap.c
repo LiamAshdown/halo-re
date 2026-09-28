@@ -19,7 +19,7 @@
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893f8; // 0x006893f8
 extern uint8_t console_debug_toggle_6893fa; // 0x006893fa
-extern int16_t renderer_unknown_69c67c;                             // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)
 extern rasterizer_effect_slot *rasterizer_active_environment_effect; // 0x0071d1d0, &rasterizer_effects[36] or NULL
 extern uint8_t rasterizer_environment_lightmap_missing;           // 0x006e0a0c 1 when no lightmap was bound
 
@@ -30,7 +30,7 @@ extern uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, r
 void rasterizer_shader_environment_set_lightmap(BitmapData *lightmap)
 {
     if (console_debug_toggle_6893e4 == 0 && console_debug_toggle_6893f8 != 0 &&
-        console_debug_toggle_6893fa != 0 && renderer_unknown_69c67c == 0 &&
+        console_debug_toggle_6893fa != 0 && render_force_flag == 0 &&
         rasterizer_active_environment_effect != 0 &&
         rasterizer_active_environment_effect->effect != 0) {
         if (lightmap != 0) {

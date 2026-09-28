@@ -25,7 +25,7 @@
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int16_t network_game_mode;               // 0x00719720
-extern uint8_t unknown_0071c2de;                 // 0x0071c2de
+extern uint8_t network_host_handoff_requested;                 // 0x0071c2de
 
 extern void *widget_instance_find_root(widget_instance *widget); // 0x498e10, UNSURE args
 extern int32_t widget_get_sibling_index(widget_instance *widget); // 0x498e30
@@ -61,7 +61,7 @@ uint8_t ui_server_list_connect_selected(widget_instance *widget, int16_t *event,
                 connected = network_connection_initiate(network_client, (const uint32_t *)entry,
                                                          session_info);
                 if ((uint8_t)connected == 0) {
-                    unknown_0071c2de = 1;
+                    network_host_handoff_requested = 1;
                     chat_close();
                     return 0;
                 }

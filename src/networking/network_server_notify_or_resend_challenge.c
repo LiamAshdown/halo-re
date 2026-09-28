@@ -19,7 +19,7 @@
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, blam-cc: EAX type, EDX payload
 extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t param_1, void *data,
     uint32_t bits, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); // 0x4e1930, blam-cc: EAX machine_id, ESI server
-extern int16_t network_chat_close_deadline; // 0x00718fa4
+extern int16_t network_join_error_code; // 0x00718fa4
 extern uint8_t network_host_handoff_requested; // 0x0071c2de
 extern void chat_close(void); // 0x4aa900
 extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms); // 0x4df090, blam-cc: ESI machine
@@ -31,8 +31,8 @@ uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machin
     uint8_t ok = 1;
 
     if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
-        if (network_chat_close_deadline == -1) {
-            network_chat_close_deadline = (int16_t)(reason + 0x2b);
+        if (network_join_error_code == -1) {
+            network_join_error_code = (int16_t)(reason + 0x2b);
         }
         network_host_handoff_requested = 1;
         chat_close();

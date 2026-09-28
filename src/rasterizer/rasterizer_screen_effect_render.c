@@ -33,7 +33,7 @@ extern void *rasterizer_device;                             // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220
 extern uint8_t rasterizer_software_vertex_processing;       // 0x0069c680
 extern uint8_t console_debug_toggle_689428;                 // 0x00689428 screen effects enabled
-extern uint32_t rasterizer_screen_effect_alternate;         // 0x00722b78 UNSURE: picks technique 3 over 2
+extern uint32_t config_use_alternate_convolve_mask;         // 0x00722b78 UNSURE: picks technique 3 over 2
 extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_targets]; // 0x0069d358
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
@@ -302,7 +302,7 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
             if (p->mask_bitmap_data != 0) {
                 technique = (pass == pass_count - 1) ? select_filter_technique(p, 4) : 0;
                 if (technique == 0) {
-                    technique = rasterizer_screen_effect_alternate ? screen_effect_techniques[3]
+                    technique = config_use_alternate_convolve_mask ? screen_effect_techniques[3]
                                                                    : screen_effect_techniques[2];
                 }
                 set_technique(technique);

@@ -17,7 +17,7 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern data_array *encounter_data; // 0x008802c8, 0x6c-byte encounter records
-extern uint8_t *ai_globals_ptr_raw; // 0x00880354, byte +0x1 = actors valid
+extern uint8_t *ai_globals_ptr; // 0x00880354, byte +0x1 = actors valid
 
 void hs_evaluate_ai_set_deaf(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -26,7 +26,7 @@ void hs_evaluate_ai_set_deaf(int16_t function_index, uint32_t thread_index, char
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff && ai_globals_ptr_raw[1] != 0) {
+        if ((uint32_t)arguments[0] != 0xffffffff && ai_globals_ptr[1] != 0) {
             ((uint8_t *)encounter_data->data)[(arguments[0] & 0xffff) * 0x6c + 0x41] = *(uint8_t *)&arguments[1];
         }
         hs_thread_return(0, thread_index);

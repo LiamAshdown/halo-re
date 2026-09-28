@@ -23,7 +23,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
@@ -48,8 +48,8 @@ void player_check_vehicle_boarding_interaction_lightweight(uint32_t player_index
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
     datum_index unit_handle = p->unit;
-    uint8_t *unit_obj = (uint8_t *)((object_header *)object_headers->data)[unit_handle & 0xffff].data;
-    uint8_t *candidate = (uint8_t *)((object_header *)object_headers->data)[candidate_object & 0xffff].data;
+    uint8_t *unit_obj = (uint8_t *)((object_header *)object_data->data)[unit_handle & 0xffff].data;
+    uint8_t *candidate = (uint8_t *)((object_header *)object_data->data)[candidate_object & 0xffff].data;
     object *weapon_candidate;
     uint8_t *weapon_tag;
     uint8_t unit_flag_1800;
@@ -70,10 +70,10 @@ void player_check_vehicle_boarding_interaction_lightweight(uint32_t player_index
     unit_flag_1800 = (uint8_t)((*(uint32_t *)(unit_obj + 0x208) & 0x1800) != 0);
 
     current_weapon = unit_get_weapon_object_index((uint32_t)p->unit,
-        *(int16_t *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data + 0x2f2));
+        *(int16_t *)((uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data + 0x2f2));
     weapon_count = unit_count_deployed_weapons((uint32_t)p->unit);
     if (weapon_count >= 2 && current_weapon != (datum_index)0xffffffff && (weapon_tag[0x308] & 0x10) == 0) {
-        object *held = ((object_header *)object_headers->data)[current_weapon & 0xffff].data;
+        object *held = ((object_header *)object_data->data)[current_weapon & 0xffff].data;
 
         if ((((uint8_t *)tag_instances[held->definition_tag & 0xffff].data)[0x308] & 0x10) != 0) {
             holds_exclusive = 1;

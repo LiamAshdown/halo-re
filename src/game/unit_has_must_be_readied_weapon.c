@@ -24,7 +24,7 @@
 #include "game.h"
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 // blam-cc: ECX -> player_index
@@ -44,12 +44,12 @@ uint8_t unit_has_must_be_readied_weapon(uint32_t player_index)
 
     // 0x463340..0x463347: the four weapon slots are at OBJECT +0x2f8 (unit::weapons); the draft added the unit
     // data offset (0x1f4) first and read object +0x4ec.
-    unit = (unit_data *)((uint8_t *)((object_header *)object_headers->data)[p->unit & 0xffff].data);
+    unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data);
 
     for (i = 0; i < 4; i++) {
         datum_index weapon = *(datum_index *)((uint8_t *)unit + 0x2f8 + i * 4);
         if (weapon != (datum_index)0xffffffff) {
-            object *weapon_obj = ((object_header *)object_headers->data)[weapon & 0xffff].data;
+            object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
             uint8_t *weapon_tag_data = (uint8_t *)tag_instances[weapon_obj->definition_tag & 0xffff].data;
             if (((*(uint32_t *)(weapon_tag_data + 0x308) >> 3) & 1) != 0) {
                 return 1;

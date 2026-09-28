@@ -17,7 +17,7 @@
 extern data_array *object_data;             // 0x008603b0
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern data_array *object_list_header_data; // 0x0087a464
-extern data_array *object_list_link_array;  // 0x0087a468
+extern data_array *object_list_reference_data;  // 0x0087a468
 
 extern object * object_iterator_next(object_iterator *iterator); // 0x4f6f20
 
@@ -66,7 +66,7 @@ uint8_t unit_named_seat_occupant_in_zone(uint32_t unit_index, char *seat_label, 
                 next_link = 0xffffffff;
             } else {
                 uint32_t link_slot = first_link & 0xffff;
-                uint8_t *node = (uint8_t *)object_list_link_array->data + link_slot * 0xc;
+                uint8_t *node = (uint8_t *)object_list_reference_data->data + link_slot * 0xc;
                 next_link = *(uint32_t *)(node + 8);
                 zone_object = *(uint32_t *)(node + 4);
             }
@@ -80,7 +80,7 @@ uint8_t unit_named_seat_occupant_in_zone(uint32_t unit_index, char *seat_label, 
                 zone_object = 0xffffffff;
                 next_link = 0xffffffff;
             } else {
-                uint8_t *node = (uint8_t *)object_list_link_array->data + (next_link & 0xffff) * 0xc;
+                uint8_t *node = (uint8_t *)object_list_reference_data->data + (next_link & 0xffff) * 0xc;
                 next_link = *(uint32_t *)(node + 8);
                 zone_object = *(uint32_t *)(node + 4);
             }

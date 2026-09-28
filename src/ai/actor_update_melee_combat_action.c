@@ -21,7 +21,7 @@ extern data_array *actor_data;       // 0x00880360
 extern data_array *encounter_data;   // 0x008802c8
 extern data_array *prop_data;        // 0x008802c0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern uint8_t *actor_type_definitions[]; // 0x006853b8
+extern uint8_t *actor_type_procs[]; // 0x006853b8
 // FIXED 2026-09-27 (static loop, scratchpad/equcheck.py): this file declared the table at 0x0065524c with the
 // combat grade at +0xc, but the linker binds actor_mode_definitions to 0x00655254 (16 other files), so the
 // read landed on process_proc's low word. Binary: [mode * 0x38 + 0x655258] == definitions[mode].combat_grade.
@@ -135,7 +135,7 @@ uint8_t actor_update_melee_combat_action(datum_index actor_index)
 
         if (target == 0 || !target[0xbb]) {
             // 0x40cf4e: what the type, the encounter and the target say
-            uint8_t *type = actor_type_definitions[W(a, 0x4)];
+            uint8_t *type = actor_type_procs[W(a, 0x4)];
             int16_t ax_mode = W(type, 0x6);         // [esp+0x30]
             int16_t cx_mode = W(type, 0x8);         // [esp+0x2c]
             int16_t mode_b = W(type, 0xa);          // [esp+0x34]

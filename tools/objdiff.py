@@ -23,7 +23,10 @@ def disasm(obj):
     lines = [l for l in r.stdout.splitlines() if l.strip() and not l.startswith("Dump of file")
              and not re.match(r"\s*File Type:", l)]
     # compiler-numbered labels ($SG string literals, $LN local labels) shift when a header grows: not a code change
-    return re.sub(r"\$(SG|LN)\d+", r"$\1", "\n".join(lines))
+    text = re.sub(r"\$(SG|LN)\d+", r"$\1", "\n".join(lines))
+    # a relocation's symbol-table index shifts when the object declares fewer or other symbols; the name is what
+    # it binds to:  "0000012F  DIR32   00000000   D  _name"  ->  "0000012F  DIR32   00000000  _name"
+    return re.sub(r"^(\s*[0-9A-F]{8}\s+\w+\s+[0-9A-F]{8})\s+[0-9A-F]+(\s+\S+)$", r"\1\2", text, flags=re.M)
 
 
 def renamed(text, renames):
@@ -85,6 +88,10 @@ def main():
     mod = sys.argv[2]
     # symbol renames made by the edit (old=new): applied to the snapshot's disassembly before comparing
     renames = [a.split("=", 1) for a in sys.argv[3:] if "=" in a]
+    if "--renames" in sys.argv:
+        # a file of old=new lines (tools/unify_aliases.py writes build/alias_renames.txt)
+        path = sys.argv[sys.argv.index("--renames") + 1]
+        renames += [l.strip().split("=", 1) for l in open(path) if "=" in l]
     src, snap = os.path.join(ROOT, "build", "obj", mod), os.path.join(SNAP, mod)
     if sys.argv[1] == "snapshot":
         shutil.rmtree(snap, ignore_errors=True)
@@ -96,9 +103,12 @@ def main():
         new = os.path.join(src, os.path.basename(old))
         if not os.path.exists(new):
             diff.append(os.path.basename(old) + " (object gone)")
-        elif open(old, "rb").read() == open(new, "rb").read() or renamed(disasm(old), renames) == disasm(new):
+        # renames name one symbol twice: normalize both sides (a file an alias pass left alone keeps the old name)
+        elif open(old, "rb").read() == open(new, "rb").read() or \
+                renamed(disasm(old), renames) == renamed(disasm(new), renames):
             same += 1
-        elif "--index-folding" in sys.argv and index_folded(renamed(disasm(old), renames)) == index_folded(disasm(new)):
+        elif "--index-folding" in sys.argv and \
+                index_folded(renamed(disasm(old), renames)) == index_folded(renamed(disasm(new), renames)):
             folded.append(os.path.basename(old))
         else:
             diff.append(os.path.basename(old))

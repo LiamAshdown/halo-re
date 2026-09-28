@@ -24,7 +24,7 @@
 #include "math.h"
 #include "sound.h"
 
-extern random_seed local_random_seed;      // 0x00719cd4
+extern random_seed effect_random_seed;      // 0x00719cd4
 extern int16_t sound_permutation_limit;     // 0x007252b8, UNSURE: see types/sound.h globals
 
 extern int effect_random_int_between(int16_t minimum, int16_t maximum); // 0x44c800, effects module, blam-cc: ECX -> minimum, stack -> maximum
@@ -57,8 +57,8 @@ int16_t sound_permutation_pick_random(int16_t pitch_range_index, int16_t explici
         return (int16_t)permutations[explicit_permutation_index].next_permutation_index;
     }
 
-    local_random_seed = local_random_seed * 0x19660d + 0x3c6ef35f;
-    candidate = (uint32_t)((local_random_seed >> 16) * (int32_t)range->actual_permutation_count) >> 16;
+    effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+    candidate = (uint32_t)((effect_random_seed >> 16) * (int32_t)range->actual_permutation_count) >> 16;
     attempts = 0;
     permutations = (SoundPermutation *)range->permutations.pointer;
 
@@ -83,10 +83,10 @@ int16_t sound_permutation_pick_random(int16_t pitch_range_index, int16_t explici
                 break;
             }
 
-            local_random_seed = local_random_seed * 0x19660d + 0x3c6ef35f;
+            effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
             attempts++;
 
-            if (permutations[chosen].skip_fraction <= (float)(local_random_seed >> 16) * 1.5259022e-05f) {
+            if (permutations[chosen].skip_fraction <= (float)(effect_random_seed >> 16) * 1.5259022e-05f) {
                 break;
             }
         }

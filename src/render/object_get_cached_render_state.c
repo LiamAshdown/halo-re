@@ -24,7 +24,7 @@
 #include "render.h"
 
 extern data_array *object_data;                    // 0x008603b0
-extern data_array *cached_object_render_states;       // 0x007c30ec, this module
+extern data_array *object_render_state_cache;       // 0x007c30ec, this module
 extern int32_t render_window_count;  // 0x007c3104, this module
 extern int32_t render_frame_index;                    // 0x007c3100, this module
 
@@ -47,21 +47,21 @@ datum_index object_get_cached_render_state(datum_index object_index,
     datum_index cache_index = obj->cached_render_state_index;
 
     if (cache_index != k_datum_index_none &&
-        ((cached_object_render_state *)cached_object_render_states->data)[(uint16_t)cache_index].object_index ==
+        ((cached_object_render_state *)object_render_state_cache->data)[(uint16_t)cache_index].object_index ==
             object_index) {
         object_render_state_refresh(cache_index, object_index, level_of_detail_pixels, 0);
         return cache_index;
     }
 
-    cache_index = datum_new(cached_object_render_states);
+    cache_index = datum_new(object_render_state_cache);
     if (cache_index == k_datum_index_none) {
         float oldest_age = -3.4028235e+38f; // -FLT_MAX
-        datum_index candidate = datum_next(-1, cached_object_render_states);
+        datum_index candidate = datum_next(-1, object_render_state_cache);
         int32_t current_window = render_window_count; // mov ebp,[0x7c3104] at 0x50f1c4
 
         while (candidate != k_datum_index_none) {
             cached_object_render_state *entry =
-                &((cached_object_render_state *)cached_object_render_states->data)[(uint16_t)candidate];
+                &((cached_object_render_state *)object_render_state_cache->data)[(uint16_t)candidate];
             float age = (float)(current_window - entry->last_update_window);
             if (age < 0.0f) {
                 age = 1000.0f;
@@ -70,7 +70,7 @@ datum_index object_get_cached_render_state(datum_index object_index,
                 cache_index = candidate;
                 oldest_age = age;
             }
-            candidate = datum_next((int16_t)candidate, cached_object_render_states);
+            candidate = datum_next((int16_t)candidate, object_render_state_cache);
         }
         if (cache_index == k_datum_index_none) {
             return k_datum_index_none;

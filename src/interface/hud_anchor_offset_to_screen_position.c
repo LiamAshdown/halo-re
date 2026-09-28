@@ -26,7 +26,7 @@
 
 
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
-extern uint32_t hud_anchor_screen_offset; // 0x007c3140, UNSURE name: packed {int16 x, int16 y}
+extern uint32_t render_viewport_top; // 0x007c3140, UNSURE name: packed {int16 x, int16 y}
 
 
 // blam-cc: see header
@@ -49,8 +49,8 @@ void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, f
         y = (float)((((anchor_value & 2) == 0) ? 1 : -1) * (int32_t)offset[1]) * scale +
             (float)((((anchor_value & 2) != 0) ? 0x1d8 : 0) + 8);
     } else {
-        int16_t offset_x = (int16_t)(hud_anchor_screen_offset >> 16);
-        int16_t offset_y = (int16_t)hud_anchor_screen_offset;
+        int16_t offset_x = (int16_t)(render_viewport_top >> 16);
+        int16_t offset_y = (int16_t)render_viewport_top;
         x = (float)(int32_t)offset[0] * scale + (float)(0x140 - offset_x);
         y = (float)(int32_t)offset[1] * scale + (float)(0xf0 - offset_y);
     }

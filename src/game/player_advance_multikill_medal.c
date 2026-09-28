@@ -19,8 +19,8 @@
 
 extern data_array *player_data;              // 0x0087a480
 extern int32_t multikill_medal_threshold;    // 0x006894a4
-extern int32_t multikill_window_reset_value; // 0x0069956c
-extern int32_t multikill_window_alt_value;   // 0x00699570
+extern int32_t sv_tk_grace_ticks; // 0x0069956c
+extern int32_t sv_tk_cooldown_ticks;   // 0x00699570
 
 extern void network_session_autoban_player(void); // 0x4e36e0, not in this batch; UNSURE args elided
 
@@ -28,8 +28,8 @@ extern void network_session_autoban_player(void); // 0x4e36e0, not in this batch
 // Validates `player_handle` exactly like player_add_kill_streak.c. If the player's
 // medal_streak_timer hasn't expired (still >= 0), increments medal_streak_count; if that count
 // reaches the configured threshold, fires the medal event (network_session_autoban_player) and returns without
-// resetting the timer. Otherwise resets medal_streak_timer to -multikill_window_reset_value,
-// falling back to multikill_window_alt_value if that negation is exactly zero.
+// resetting the timer. Otherwise resets medal_streak_timer to -sv_tk_grace_ticks,
+// falling back to sv_tk_cooldown_ticks if that negation is exactly zero.
 void player_advance_multikill_medal(uint32_t player_handle)
 {
     int16_t index;
@@ -64,9 +64,9 @@ void player_advance_multikill_medal(uint32_t player_handle)
         return;
     }
 
-    p->medal_streak_timer = -multikill_window_reset_value;
+    p->medal_streak_timer = -sv_tk_grace_ticks;
     if (p->medal_streak_timer == 0) {
-        p->medal_streak_timer = multikill_window_alt_value;
+        p->medal_streak_timer = sv_tk_cooldown_ticks;
     }
 }
 

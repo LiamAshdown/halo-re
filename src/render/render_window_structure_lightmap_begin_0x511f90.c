@@ -13,21 +13,21 @@
 
 extern int16_t console_debug_toggle_6893e4; // 0x006893e4
 extern uint8_t console_debug_toggle_6893f7; // 0x006893f7
-extern uint32_t rasterizer_pixel_shader_version; // 0x007c118c
-extern void *rasterizer_structure_lightmap_006e0a6c; // 0x006e0a6c
-extern uint8_t rasterizer_structure_no_lightmap_006e0a68; // 0x006e0a68
+extern uint32_t rasterizer_device_version; // 0x007c118c
+extern void *rasterizer_lightmap_bitmap; // 0x006e0a6c
+extern uint8_t rasterizer_lightmap_bitmap_missing; // 0x006e0a68
 
 void render_window_structure_lightmap_begin_0x511f90(void *bitmap_data)
 {
     if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 ||
-        rasterizer_pixel_shader_version < 0xffff0104) {
+        rasterizer_device_version < 0xffff0104) {
         return;
     }
     if (bitmap_data != 0) {
-        rasterizer_structure_lightmap_006e0a6c = bitmap_data;
-        rasterizer_structure_no_lightmap_006e0a68 = 0;
+        rasterizer_lightmap_bitmap = bitmap_data;
+        rasterizer_lightmap_bitmap_missing = 0;
     } else {
-        rasterizer_structure_lightmap_006e0a6c = 0;
-        rasterizer_structure_no_lightmap_006e0a68 = 1;
+        rasterizer_lightmap_bitmap = 0;
+        rasterizer_lightmap_bitmap_missing = 1;
     }
 }

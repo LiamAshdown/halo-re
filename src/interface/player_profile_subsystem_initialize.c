@@ -29,14 +29,14 @@
 #include <string.h>
 
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8, 3 x 0x2004 byte profile records + tail
-extern int32_t current_profile_index;         // 0x00714dd4
+extern int32_t saved_player_profile_slots_handle;         // 0x00714dd4
 extern int16_t profile_slot_id[];             // 0x00714dde
 extern int32_t selected_saved_item;           // 0x00714e7c
 extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280, UNSURE: compiled-in default profile
-extern uint8_t saved_game_index_dirty;        // 0x00721447, UNSURE name: see symbols 0x53c4e0
+extern uint8_t savegame_index_dirty;        // 0x00721447, UNSURE name: see symbols 0x53c4e0
 extern char last_profile_name[];              // 0x00718e80, name buffer, [0] != 0 when valid
 extern int32_t cached_profile_slot;           // 0x0068e66c, UNSURE
-extern int32_t profile_write_back_enabled;    // 0x007196f4, UNSURE
+extern int32_t safe_mode;    // 0x007196f4, UNSURE
 extern uint8_t profile_load_complete;         // 0x00718e78, UNSURE
 
 extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX
@@ -69,7 +69,7 @@ void player_profile_subsystem_initialize(void)
 
     memset(profile_globals_block, 0, sizeof(profile_globals_block));
     player_profile_initialize(profile_globals_block, 0, 0);
-    current_profile_index = -1;
+    saved_player_profile_slots_handle = -1;
     profile_slot_id[0] = -1;
     player_profile_refresh_settings_cache(0);
     selected_saved_item = -1;
@@ -77,7 +77,7 @@ void player_profile_subsystem_initialize(void)
     enumerated_count = 1;
     enumerated_slot = -1;
     saved_game_enumerate_by_type(0, &enumerated_slot, 0, (uint16_t *)&enumerated_count); // EBX = &enumerated_count
-    saved_game_index_dirty = 1;
+    savegame_index_dirty = 1;
 
     if (last_profile_name[0] == '\0' && saved_game_last_profile_read(last_profile_name) != 0) {
         cached_profile_slot = saved_game_find_by_name(last_profile_name, 0);
@@ -99,12 +99,12 @@ void player_profile_subsystem_initialize(void)
 
 have_slot:
     if (slot_to_load != -1) {
-        if (profile_write_back_enabled != 0) {
+        if (safe_mode != 0) {
             player_profile_set_default_video_options(profile_data, 0);
             player_profile_set_default_audio_options(profile_data);
         }
         player_profile_load(0, profile_data, slot_to_load);
-        if (profile_write_back_enabled != 0) {
+        if (safe_mode != 0) {
             if (enumerated_slot == -1) {
                 console_out_printf(0, "profile not saved since it was a default profile");
                 profile_load_complete = 1;

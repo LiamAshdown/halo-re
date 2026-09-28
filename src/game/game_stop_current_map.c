@@ -19,34 +19,34 @@
 #include "math.h"
 #include "game.h"
 
-extern void *recorded_animations_pool_ptr; // 0x006b0a10, TYPES-GAP (data_array*)
-extern uint32_t unknown_0071d164; // TYPES-GAP
-extern uint32_t *saved_games_something_006f187c; // 0x006f187c, TYPES-GAP
-extern data_array *unknown_008802d4; // TYPES-GAP
-extern data_array *unknown_008802c8; // TYPES-GAP
-extern data_array *unknown_008802d0; // TYPES-GAP
-extern data_array *unknown_008802c0; // TYPES-GAP
-extern data_array *unknown_00880360; // TYPES-GAP
-extern data_array *unknown_0088035c; // TYPES-GAP
-extern data_array *unknown_00880358; // TYPES-GAP
-extern uint8_t *unknown_00880354;    // TYPES-GAP, byte+1 cleared (not a data_array valid flag)
-extern data_array *weather_particle_pool_ptr; // 0x0087abcc
-extern uint32_t unknown_0071d1c0; // TYPES-GAP
-extern data_array *unknown_0087abe4; // TYPES-GAP
+extern void *recorded_animations; // 0x006b0a10, TYPES-GAP (data_array*)
+extern uint32_t rasterizer_globals_data; // TYPES-GAP
+extern uint32_t *cinematic_globals_ptr; // 0x006f187c, TYPES-GAP
+extern data_array *ai_conversation_data; // TYPES-GAP
+extern data_array *encounter_data; // TYPES-GAP
+extern data_array *ai_pursuit_data; // TYPES-GAP
+extern data_array *prop_data; // TYPES-GAP
+extern data_array *actor_data; // TYPES-GAP
+extern data_array *swarm_data; // TYPES-GAP
+extern data_array *swarm_component_data; // TYPES-GAP
+extern uint8_t *ai_globals_ptr;    // TYPES-GAP, byte+1 cleared (not a data_array valid flag)
+extern data_array *weather_particle_data; // 0x0087abcc
+extern uint32_t rasterizer_decal_vertex_cache_handle; // TYPES-GAP
+extern data_array *decal_data; // TYPES-GAP
 extern data_array *object_render_state_cache; // 0x007c30ec
 extern data_array *player_data; // 0x0087a480
 extern data_array *team_data;   // 0x0087a47c
-extern data_array *network_predicted_globals; // 0x007461a0
+extern data_array *game_looping_sound_data; // 0x007461a0
 extern uint32_t unknown_006ac568; // TYPES-GAP
 extern real unknown_006ac624;     // TYPES-GAP
 extern uint32_t unknown_006ac620; // TYPES-GAP
-extern uint8_t *unknown_0087bc0c; // 0x0087bc0c
-extern data_array *unknown_0087abe8; // TYPES-GAP
-extern uint32_t unknown_006e4728; // TYPES-GAP
-extern data_array *unknown_0087abec; // TYPES-GAP
-extern data_array *particle_pool_ptr;      // 0x0087abd0
-extern data_array *effect_object_pool_ptr; // 0x0087abdc
-extern data_array *effect_location_pool_ptr; // 0x0087abe0
+extern uint8_t *hs_camera_control_pointer; // 0x0087bc0c
+extern data_array *contrail_point_data; // TYPES-GAP
+extern uint32_t text_localization_strings; // TYPES-GAP
+extern data_array *contrail_data; // TYPES-GAP
+extern data_array *particle_data;      // 0x0087abd0
+extern data_array *effect_data; // 0x0087abdc
+extern data_array *effect_location_data; // 0x0087abe0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time; // 0x006f1d6c
 extern uint32_t unknown_00746280_block[0x343]; // 0x00746280, a block (mov edi,0x746280; rep stos), not a pointer
@@ -70,52 +70,52 @@ void game_stop_current_map(void)
     uint8_t had_network_predicted_globals;
 
     font_glyph_cache_clear_all();
-    unknown_0071d164 = 0;
-    ((data_array *)recorded_animations_pool_ptr)->valid = 0;
+    rasterizer_globals_data = 0;
+    ((data_array *)recorded_animations)->valid = 0;
     hs_scripts_free();
 
-    ((uint8_t *)saved_games_something_006f187c)[8] = 0;
-    ((uint8_t *)saved_games_something_006f187c)[9] = 0;
-    unknown_008802d4->valid = 0;
-    unknown_008802c8->valid = 0;
-    unknown_008802d0->valid = 0;
-    unknown_008802c0->valid = 0;
-    unknown_00880360->valid = 0;
-    unknown_0088035c->valid = 0;
-    unknown_00880358->valid = 0;
-    unknown_00880354[1] = 0;
+    ((uint8_t *)cinematic_globals_ptr)[8] = 0;
+    ((uint8_t *)cinematic_globals_ptr)[9] = 0;
+    ai_conversation_data->valid = 0;
+    encounter_data->valid = 0;
+    ai_pursuit_data->valid = 0;
+    prop_data->valid = 0;
+    actor_data->valid = 0;
+    swarm_data->valid = 0;
+    swarm_component_data->valid = 0;
+    ai_globals_ptr[1] = 0;
     particle_systems_delete_all();
 
-    if (weather_particle_pool_ptr->valid != 0) {
-        weather_particle_pool_ptr->valid = 0;
+    if (weather_particle_data->valid != 0) {
+        weather_particle_data->valid = 0;
     }
-    if (unknown_0071d1c0 != 0) {
+    if (rasterizer_decal_vertex_cache_handle != 0) {
         decal_clear_flags(1); // FIXED: BL = 1 (0x45b3f9)
-        cache_flush((cache *)unknown_0071d1c0); // objdump 0x45b3ef: ESI = DAT_0071d1c0
+        cache_flush((cache *)rasterizer_decal_vertex_cache_handle); // objdump 0x45b3ef: ESI = DAT_0071d1c0
     }
-    unknown_0087abe4->valid = 0;
+    decal_data->valid = 0;
     if (object_render_state_cache != (data_array *)0 && object_render_state_cache->valid != 0) {
         object_render_state_cache->valid = 0;
     }
     objects_flush_dirty_state();
 
-    had_network_predicted_globals = network_predicted_globals != (data_array *)0;
+    had_network_predicted_globals = game_looping_sound_data != (data_array *)0;
     unknown_006ac568 = 0;
     unknown_006ac624 = 1.0f;
     unknown_006ac620 = 0;
-    *unknown_0087bc0c = 0;
-    unknown_006e4728 = 0xffffffff;
+    *hs_camera_control_pointer = 0;
+    text_localization_strings = 0xffffffff;
     player_data->valid = 0;
     team_data->valid = 0;
-    unknown_0087abe8->valid = 0;
-    unknown_0087abec->valid = 0;
-    particle_pool_ptr->valid = 0;
-    effect_object_pool_ptr->valid = 0;
-    effect_location_pool_ptr->valid = 0;
+    contrail_point_data->valid = 0;
+    contrail_data->valid = 0;
+    particle_data->valid = 0;
+    effect_data->valid = 0;
+    effect_location_data->valid = 0;
 
-    if (had_network_predicted_globals && network_predicted_globals->valid != 0) {
+    if (had_network_predicted_globals && game_looping_sound_data->valid != 0) {
         game_sound_revert_scripting_sounds();
-        network_predicted_globals->valid = 0;
+        game_looping_sound_data->valid = 0;
     }
 
     sound_fade_out_and_stop_all();

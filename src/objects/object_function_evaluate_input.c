@@ -31,7 +31,7 @@ extern data_array *object_data; // 0x008603b0
 
 extern real random_real(void); // math module, 0x4019f0
 extern float angle_delta_wrapped(float a, float b); // 0x470d10, UNSURE: argument order guessed from the call shape
-extern uint8_t *player_globals_table; // 0x00746f8c, same global as objects_set_ambient_cluster_override.c
+extern uint8_t *global_scenario; // 0x00746f8c, same global as objects_set_ambient_cluster_override.c
 extern double atan2(double y, double x); // x87 FPATAN
 extern float fabsf(float x); // x87 FABS
 
@@ -104,7 +104,7 @@ store_and_advance:
                 goto store_and_advance;
             }
             initial_st0 = (float)atan2((double)node->forward.j, (double)node->forward.k); // UNSURE: mapping guessed
-            initial_angle_input = *(float *)(player_globals_table + 0x4c); // UNSURE: see file header
+            initial_angle_input = *(float *)(global_scenario + 0x4c); // UNSURE: see file header
             value = angle_delta_wrapped(initial_angle_input, initial_st0);
             value = value * 0.15915494f + 0.5f;
             if (value >= 0.0f) {

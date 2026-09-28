@@ -12,7 +12,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *keystone_root;                    // 0x00721ea4
+extern void *chat_gui_root_handle;                    // 0x00721ea4
 extern void *keystone_module;                  // 0x00721e9c
 extern void *shell_window;                     // 0x007461c4
 extern keystone_translate_accelerator_fn keystone_translate_accelerator; // 0x00721eb0
@@ -29,11 +29,11 @@ void shell_pump_windows_messages(void)
 
     has_message = PeekMessageA((LPMSG)message, 0, 0, 0, 1);
     while (has_message != 0) {
-        if (keystone_root == 0 || keystone_module == 0) {
+        if (chat_gui_root_handle == 0 || keystone_module == 0) {
             TranslateMessage((const MSG *)message);
             DispatchMessageA((const MSG *)message);
         } else {
-            handled = (int32_t)keystone_translate_accelerator(keystone_root, shell_window, 0, message);
+            handled = (int32_t)keystone_translate_accelerator(chat_gui_root_handle, shell_window, 0, message);
             if (handled == 0) {
                 TranslateMessage((const MSG *)message);
                 DispatchMessageA((const MSG *)message);

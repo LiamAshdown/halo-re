@@ -26,7 +26,7 @@ extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param
     int32_t param_10, int32_t param_11, int32_t param_12); // effects module, 0x450980
 
 extern Scenario *global_scenario;      // 0x00746f8c
-extern void *unknown_00696714;         // 0x00696714, PTR_DAT_00696714, UNSURE
+extern void *global_origin3d_pointer;         // 0x00696714, PTR_DAT_00696714, UNSURE
 
 // Spawns `effect` at Scenario::cutscene_flags[location_index]'s position, oriented along the
 // location's yaw/pitch converted to a forward vector.
@@ -45,7 +45,7 @@ void hs_effect_spawn_at_location(int16_t location_index, uint32_t effect)
     // UNSURE: `location->facing.pitch`/`.j` stand in for the source floats at
     // cutscene_flag+0x30/+0x34 (pitch, yaw); see hs_object_detach_and_place_at_location.c.
 
-    effect_new_with_color(effect, 0xffffffff, unknown_00696714, 1, 0, (real_point3d *)&location->position, &forward,
+    effect_new_with_color(effect, 0xffffffff, global_origin3d_pointer, 1, 0, (real_point3d *)&location->position, &forward,
         1.0f, 1.0f, 0, 0, 1);
     // UNSURE: `&location->position` stands in for `location+0x24`; ScenarioCutsceneFlag's
     // actual position field name may differ.

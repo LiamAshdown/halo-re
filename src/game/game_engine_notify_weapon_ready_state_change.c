@@ -21,7 +21,7 @@
 #include "items.h"
 #include "game.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
@@ -47,7 +47,7 @@ uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, dat
         return 1;
     }
     weapon_definition = (Object *)tag_instances[
-        (((object_header *)object_headers->data)[weapon_index & 0xffff].data->definition_tag) & 0xffff
+        (((object_header *)object_data->data)[weapon_index & 0xffff].data->definition_tag) & 0xffff
     ].data;
     if (((*(uint32_t *)((uint8_t *)weapon_definition + 0x308) >> 3) & 1) == 0) {
         return 1;

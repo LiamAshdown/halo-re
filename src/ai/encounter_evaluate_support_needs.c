@@ -25,7 +25,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *actor_data;     // 0x00880360
 
@@ -53,9 +53,9 @@ void encounter_evaluate_support_needs(datum_index encounter_index, datum_index s
     uint8_t not_self;
 
     actor_index = (datum_index)k_datum_index_none;
-    if (ai_global_data->actors_valid != 0) {
+    if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_global_data->unknown_08;
+            actor_index = ai_globals_ptr->unknown_08;
         } else {
             enc = &((encounter *)encounter_data->data)[encounter_index & 0xffff];
             actor_index = enc->first_actor;
@@ -68,7 +68,7 @@ void encounter_evaluate_support_needs(datum_index encounter_index, datum_index s
     mode5_count = 0;
 
     for (;;) {
-        if (ai_global_data->actors_valid == 0 || actor_index == (datum_index)k_datum_index_none) {
+        if (ai_globals_ptr->actors_valid == 0 || actor_index == (datum_index)k_datum_index_none) {
             break;
         }
         current = actor_index;

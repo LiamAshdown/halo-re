@@ -14,7 +14,7 @@
 extern uint32_t random_seed_generate(void); // 0x4cd070
 extern sphere_mesh *sphere_mesh_generate(int16_t subdivisions); // 0x4ca4b0, blam-cc: subdivisions in EAX
 
-extern random_seed local_random_seed;               // 0x00719cd4
+extern random_seed effect_random_seed;               // 0x00719cd4
 extern real_point3d *sphere_point_table;             // 0x006b7af4
 extern int16_t sphere_point_table_count;             // 0x006b7af8
 
@@ -27,7 +27,7 @@ void sphere_point_table_init(void)
     real_point3d *points;
     int16_t i;
 
-    local_random_seed = random_seed_generate();
+    effect_random_seed = random_seed_generate();
     mesh = sphere_mesh_generate(k_sphere_point_table_subdivisions);
 
     points = (real_point3d *)GlobalAlloc(0, (uint32_t)mesh->point_count * sizeof(real_point3d));

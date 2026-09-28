@@ -35,8 +35,8 @@ extern uint16_t formatted_prompt_scratch[0x100]; // 0x006b2fe8, copy of the sour
 extern int16_t ui_prompt_clip_y; // 0x006e4770, word store
 extern int16_t ui_prompt_clip_x; // 0x006e476e, clamped to >= 0
 extern uint16_t prompt_percent_text[];     // 0x00669cd4, L"%"
-extern uint16_t prompt_quote_text[];       // 0x00669cd0, a one character double quote string
-extern uint16_t prompt_unknown_key_text[]; // 0x00669cc8, L"???"
+extern uint16_t hud_text_quote[];       // 0x00669cd0, a one character double quote string
+extern uint16_t hud_text_unbound[]; // 0x00669cc8, L"???"
 extern int8_t prompt_key_token_table[];    // 0x00692796, indexed by token 0x12..0x1f
 extern uint8_t prompt_icon_override_table[0x12]; // 0x006926f4, 1 for tokens 6, 7, 0xe..0x11
 extern float hud_text_draw_color_a;        // 0x006e4738
@@ -121,11 +121,11 @@ void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_tex
 
                     if (input_get_last_used_binding((int16_t)prompt_key_token_table[token], binding) != 0) {
                         input_get_binding_display_name(binding, key_name);
-                        ui_widget_draw_prompt_span(prompt_quote_text, &cursor_rect, bounds);
+                        ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);
                         ui_widget_draw_prompt_span(key_name, &cursor_rect, bounds);
-                        ui_widget_draw_prompt_span(prompt_quote_text, &cursor_rect, bounds);
+                        ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);
                     } else {
-                        ui_widget_draw_prompt_span(prompt_unknown_key_text, &cursor_rect, bounds);
+                        ui_widget_draw_prompt_span(hud_text_unbound, &cursor_rect, bounds);
                     }
                     goto next_span;
                 }

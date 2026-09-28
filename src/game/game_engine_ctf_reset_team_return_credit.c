@@ -23,7 +23,7 @@
 #include "objects.h"
 #include "game.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 extern uint8_t ctf_team_return_credit_active[2]; // 0x006b0ea4
 extern int32_t ctf_team_return_credit_ticks[2];  // 0x006b0ea8
@@ -40,7 +40,7 @@ extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_po
 // equipment-runtime bit, and marks the flag object changed for network sync.
 void game_engine_ctf_reset_team_return_credit(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_headers->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     int16_t team = *(int16_t *)((uint8_t *)obj + 0xb8); // UNSURE: name_index/team_index conflict
 
     ctf_team_return_credit_active[team] = 0;

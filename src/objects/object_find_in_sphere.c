@@ -26,8 +26,8 @@
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t cluster_flood_fill_recursion_guard; // 0x006e3f01, foreign module, UNSURE
-extern int32_t cluster_flood_fill_call_count; // 0x006e3f04, foreign module, UNSURE
+extern uint8_t cluster_flood_in_progress; // 0x006e3f01, foreign module, UNSURE
+extern int32_t cluster_flood_stamp; // 0x006e3f04, foreign module, UNSURE
 
 extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count,
     int16_t *cluster_indices, int16_t max_output, datum_index *out_objects); // 0x4f7180, this batch
@@ -56,10 +56,10 @@ int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *lo
             cluster_count = 1;
             clusters[0] = start_cluster;
         } else {
-            cluster_flood_fill_call_count++;
-            cluster_flood_fill_recursion_guard = 1;
+            cluster_flood_stamp++;
+            cluster_flood_in_progress = 1;
             cluster_count = cluster_flood_fill_within_radius(start_cluster, center, radius, 0x200, clusters);
-            cluster_flood_fill_recursion_guard = 0;
+            cluster_flood_in_progress = 0;
         }
     }
 

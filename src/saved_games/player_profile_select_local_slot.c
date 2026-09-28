@@ -4,7 +4,7 @@
 // evidence: out/phase4/saved_games_functions.md summary "Switches the active player profile to
 // the given local slot, reloading it if its cached copy is stale." local_1ee0 sits 0x128 bytes
 // above local_2008 in Ghidra's frame, matching saved_player_profile::last_campaign_level
-// (offset 0x128); local_2008 is a full 0x1ffc-byte copy of saved_player_profile_slots[slot]
+// (offset 0x128); local_2008 is a full 0x1ffc-byte copy of profile_globals_block[slot]
 // .profile despite its truncated Ghidra array declaration. The `uStack_c = 0x539cc0` line is
 // the same harmless __chkstk-frame decompiler artifact seen elsewhere in this module (never
 // read). Only slot 0 is ever reachable (param_1 < 1 guard, matching
@@ -26,7 +26,7 @@
 #include "saved_games.h"
 
 extern char unknown_00719779[]; // 0x00719779, UNSURE: current scenario/level name buffer
-extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8
 
 extern int16_t campaign_level_find_index_for_path(char *scenario_name); // 0x4c8b90, not in this module; one stack argument, campaign level index or -1
 extern void player_profile_write_data(int32_t handle, saved_player_profile *profile); // 0x53a950
@@ -43,12 +43,12 @@ void player_profile_select_local_slot(int16_t local_player_index)
         return;
     }
 
-    handle = saved_player_profile_slots[local_player_index].handle;
+    handle = profile_globals_block[local_player_index].handle;
     if (handle == -1) {
         return;
     }
 
-    profile = saved_player_profile_slots[local_player_index].profile;
+    profile = profile_globals_block[local_player_index].profile;
     if (profile.last_campaign_level != current_level) {
         profile.last_campaign_level = current_level;
         player_profile_write_data(handle, &profile);

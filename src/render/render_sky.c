@@ -24,7 +24,7 @@
 //     first marker of that name (model_markers_get_by_name 0x4d7850: ECX model tag, EAX name,
 //     stack (0, 0, matrices, 0, &marker, 1); position at marker +0x60), normalized unless
 //     shorter than 0.0001 (double 0x672bd8). light_transient_add 0x4f1600 then gets EAX = the
-//     lens flare tag, EDX = *global_real_rgb_white_pointer (0x00686b04 -> {1,1,1}), stack (camera +
+//     lens flare tag, EDX = *global_white_color (0x00686b04 -> {1,1,1}), stack (camera +
 //     direction * 1023.875, -direction, normalize(perpendicular(-direction)), 1.0).
 //   - the sky is drawn at 1/1024 scale around 0.99902344 * camera position: every node matrix
 //     is premultiplied by that matrix through the function pointer at 0x00696664
@@ -58,8 +58,8 @@ extern render_camera render_camera_global;           // 0x007c3114, this module
 extern real_point3d *global_zero_vector3d_pointer;                // 0x006966f8 -> {0,0,0}
 extern real_vector3d *global_forward3d_pointer;              // 0x00696718 -> {1,0,0}
 extern real_vector3d *global_up3d_pointer;                   // 0x00696720 -> {0,0,1}
-extern real_matrix4x3 *global_identity4x3_pointer;           // 0x0069673c -> identity at 0x0065c208
-extern ColorRGB *global_real_rgb_white_pointer;              // 0x00686b04 -> {1,1,1} at 0x0065513c
+extern real_matrix4x3 *k_render_identity_matrix_ptr;           // 0x0069673c -> identity at 0x0065c208
+extern ColorRGB *global_white_color;              // 0x00686b04 -> {1,1,1} at 0x0065513c
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b,
                                           real_matrix4x3 *out); // 0x00696664 -> 0x4cc0d0
 extern uint8_t console_debug_toggle_6893ec;          // 0x006893ec
@@ -221,11 +221,11 @@ void render_sky(void)
             up.j = up.j * inverse;
             up.k = up.k * inverse;
         }
-        light_transient_add(tag_id_of(light->lens_flare.tag_id), global_real_rgb_white_pointer, &position,
+        light_transient_add(tag_id_of(light->lens_flare.tag_id), global_white_color, &position,
                             &toward_camera, &up, 1.0f);
     }
 
-    sky_transform = *global_identity4x3_pointer;
+    sky_transform = *k_render_identity_matrix_ptr;
     sky_transform.position.x = render_camera_global.position.x * 0.99902344f;
     sky_transform.position.y = render_camera_global.position.y * 0.99902344f;
     sky_transform.position.z = render_camera_global.position.z * 0.99902344f;
@@ -246,7 +246,7 @@ void render_sky(void)
             raw[k] = 0;
         }
     }
-    lighting.ambient_color = *global_real_rgb_white_pointer;
+    lighting.ambient_color = *global_white_color;
     render_model(sky->model.tag_id, matrices, 0.0f, 0, 0, function_values, &lighting,
                  &render_camera_global.position, 0.0f, 0, 0, 0, 1);
 

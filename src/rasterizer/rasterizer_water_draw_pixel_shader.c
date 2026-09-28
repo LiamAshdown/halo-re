@@ -25,7 +25,7 @@
 #include "rasterizer.h"
 #include <string.h>
 
-extern uint8_t unknown_0069c689;                 // 0x0069c689
+extern uint8_t rasterizer_caps_flag_689;                 // 0x0069c689
 extern uint8_t rasterizer_water_enabled;         // 0x006893fe (also gates 0x534f80)
 extern uint8_t unknown_0071d275;                 // 0x0071d275, "refresh the water ripple texture"
 extern void *rasterizer_device;                  // 0x0071d174
@@ -122,7 +122,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
     uint8_t z_write;                                // bl
     void *effect;
 
-    if (unknown_0069c689 != 0 || rasterizer_water_enabled == 0) {
+    if (rasterizer_caps_flag_689 != 0 || rasterizer_water_enabled == 0) {
         return;
     }
     if (*(void **)(raw + 0x58) != 0) {

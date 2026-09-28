@@ -24,17 +24,17 @@
 #include "interface.h"
 
 extern uint8_t video_force_mode_flag;    // 0x0071d170, UNSURE name (distinct byte from 0x0071d16c below)
-extern int32_t os_platform_class_id;     // 0x00721ef0, UNSURE name, set by os_platform_identify
+extern int32_t os_platform;     // 0x00721ef0, UNSURE name, set by os_platform_identify
 extern int32_t os_platform_refresh_default; // 0x007c11f8, UNSURE name
 extern video_resolution video_resolutions[0x20]; // 0x006b6690
 extern int32_t video_resolution_count;            // 0x007196cc
-extern uint8_t rasterizer_device_valid; // 0x0071d16c, UNSURE name (see video_display_modes_enumerate.c's video_force_mode_flag; kept distinct here since both addresses appear together)
-extern uint32_t video_force_mode_value;   // 0x0071d174
+extern uint8_t rasterizer_fullscreen; // 0x0071d16c, UNSURE name (see video_display_modes_enumerate.c's video_force_mode_flag; kept distinct here since both addresses appear together)
+extern uint32_t rasterizer_device;   // 0x0071d174
 extern uint32_t rasterizer_device_version; // 0x007c118c, UNSURE name
-extern uint32_t video_triple_buffer_unsupported; // 0x00722b6c, UNSURE name
+extern uint32_t config_disable_specular; // 0x00722b6c, UNSURE name
 extern uint32_t rasterizer_capability_007c10e4; // 0x007c10e4, UNSURE name
 extern int32_t video_gamma_setting; // 0x00695464, UNSURE name
-extern int32_t rasterizer_gamma;      // 0x0071d1e0, UNSURE name
+extern int32_t rasterizer_gamma_exponent;      // 0x0071d1e0, UNSURE name
 
 extern void video_resolution_list_build(void); // 0x4bad40, this module
 extern uint32_t video_refresh_rate_find_index(int32_t resolution_index, int32_t refresh_rate); // 0x4bae80, blam-cc: ECX resolution_index, EDI refresh_rate
@@ -55,11 +55,11 @@ void video_options_menu_populate(uint8_t *context, uint8_t *settings)
     if (video_force_mode_flag == 0) {
         target_refresh = *(int16_t *)(settings + 0xa6c);
     } else {
-        if (os_platform_class_id == 0) {
+        if (os_platform == 0) {
             os_platform_identify();
         }
         target_refresh = os_platform_refresh_default;
-        if (os_platform_class_id < 3) {
+        if (os_platform < 3) {
             target_refresh = 0x3c;
         }
     }
@@ -106,14 +106,14 @@ void video_options_menu_populate(uint8_t *context, uint8_t *settings)
 
     *(video_resolution **)(refresh_field + 0x44) = video_resolutions;
     *(int16_t *)(refresh_field + 0x48) = (int16_t)video_resolutions[0].refresh_rate_count; // entry 0, not the selected one (0x006b66b8)
-    if (os_platform_class_id == 0) {
+    if (os_platform == 0) {
         os_platform_identify();
     }
-    if (os_platform_class_id < 3) {
+    if (os_platform < 3) {
         *(int16_t *)(refresh_field + 0x40) = 0;
         (*(uint8_t **)(refresh_field + 0x30))[0x12] = 1;
         *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = 0x3eaa7efa;
-    } else if (video_force_mode_flag == 0 && rasterizer_device_valid != 0 && video_force_mode_value != 0) {
+    } else if (video_force_mode_flag == 0 && rasterizer_fullscreen != 0 && rasterizer_device != 0) {
         *(int16_t *)(refresh_field + 0x40) = (int16_t)refresh_index;
         (*(uint8_t **)(refresh_field + 0x30))[0x12] = 0;
         *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = 0x3f800000;
@@ -135,7 +135,7 @@ void video_options_menu_populate(uint8_t *context, uint8_t *settings)
         base = *(uint8_t **)(base + 0x2c);
         for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
         *(uint16_t *)(node + 0x40) = (*(int8_t *)(settings + 0xa70) != 0) ? 1 : 0;
-        if (rasterizer_device_version < 0xffff0101u || video_triple_buffer_unsupported != 0) {
+        if (rasterizer_device_version < 0xffff0101u || config_disable_specular != 0) {
             *(uint16_t *)(node + 0x40) = 0;
             base[0x12] = 1;
             *(uint32_t *)(base + 0x24) = 0x3eaa7efa;
@@ -184,13 +184,13 @@ void video_options_menu_populate(uint8_t *context, uint8_t *settings)
         uint8_t gamma = *(uint8_t *)(settings + 0xa76);
         if (gamma == 0) {
             video_gamma_setting = 1;
-            rasterizer_gamma = 1;
+            rasterizer_gamma_exponent = 1;
         } else if (gamma == 0xff) {
             video_gamma_setting = 0xfe;
-            rasterizer_gamma = 0xfe;
+            rasterizer_gamma_exponent = 0xfe;
         } else {
             video_gamma_setting = gamma;
-            rasterizer_gamma = gamma;
+            rasterizer_gamma_exponent = gamma;
         }
         chimera__gamma();
     }

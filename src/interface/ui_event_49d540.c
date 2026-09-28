@@ -27,9 +27,9 @@ extern void network_game_setup_teardown(void); // 0x495520
 extern void network_client_globals_dispose(void); // 0x4dde70
 extern network_server_globals *network_server; // 0x0071c2d4
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
-extern uint8_t unknown_0071c2dd; // 0x0071c2dd, UNSURE identity
+extern uint8_t network_server_host_valid; // 0x0071c2dd, UNSURE identity
 extern uint8_t main_menu_music_pending; // 0x00718fc6
-extern uint8_t network_session_starting_0071c2dc; // 0x0071c2dc, TYPES-GAP
+extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, TYPES-GAP
 extern int16_t network_game_mode; // 0x00719720
 extern uint8_t save_in_progress_00719010; // 0x00719010
 extern int16_t local_player_count; // 0x006894b8
@@ -47,10 +47,10 @@ uint8_t ui_event_49d540(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (network_server != 0) {
         network_game_server_host_dispose(network_server);
         network_server = 0;
-        unknown_0071c2dd = 0;
+        network_server_host_valid = 0;
     }
     music_pending = main_menu_music_pending;
-    network_session_starting_0071c2dc = 0;
+    network_disconnect_timeout_flag = 0;
     network_game_mode = 0;
     save_in_progress_00719010 = 0;
     local_player_count = 1;

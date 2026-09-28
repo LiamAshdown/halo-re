@@ -12,7 +12,7 @@
 //   filter_light_enhancement_intensity +0x0c and filter_desaturation_intensity +0x10 through
 //   real_lerp_clamped 0x4cd900 (ECX out, stack (lower, upper, t)) against +0x4c/+0x50 and
 //   +0x54/+0x58, filter_desaturation_tint +0x14 replaced by *global_real_rgb_green_pointer while it
-//   equals *global_real_rgb_black_pointer (a dword compare, repz cmpsd), and the two clears (radius
+//   equals *default_axis_b (a dword compare, repz cmpsd), and the two clears (radius
 //   <= 0.0001; both intensities <= 0.0001 once the filter progress reached 1.0).
 //   - EAX in and out: both callers (rasterizer_screen_effect_render 0x52d8a0 and the fixed
 //     function variant 0x52e2d0) load EAX with their own screen effect parameter block before
@@ -38,7 +38,7 @@
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4 (named _state;
                                              // a variable cannot share the typedef's own name in C)
 extern game_time_globals *game_time; // 0x006f1d6c
-extern ColorRGB *global_real_rgb_black_pointer; // 0x00686b0c -> {0,0,0} at 0x0065515c
+extern ColorRGB *default_axis_b; // 0x00686b0c -> {0,0,0} at 0x0065515c
 extern ColorRGB *global_real_rgb_green_pointer; // 0x00686b14 -> {0,1,0} at 0x0065517c
 
 extern void real_lerp_clamped(real *out, real a, real b, real t); // 0x4cd900, math module;
@@ -90,7 +90,7 @@ cinematic_screen_effect_globals *cinematic_screen_effect_update(cinematic_screen
                       g->filter_desaturation_intensity_upper_bound, filter_progress);
 
     tint = (uint32_t *)&g->filter_desaturation_tint;
-    black = (uint32_t *)global_real_rgb_black_pointer;
+    black = (uint32_t *)default_axis_b;
     if (tint[0] == black[0] && tint[1] == black[1] && tint[2] == black[2]) {
         g->filter_desaturation_tint = *global_real_rgb_green_pointer;
     }

@@ -26,7 +26,7 @@
 #include "game.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
-extern data_array *object_headers;   // 0x008603b0
+extern data_array *object_data;   // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20
@@ -56,7 +56,7 @@ void game_engine_cleanup_dropped_objects(void)
 
         if ((int32_t)item->held_game_time < now - 900 &&
             (item->flags & _item_in_inventory_bit) == 0) {
-            object_header *hdr = (object_header *)datum_get(iterator.handle, object_headers);
+            object_header *hdr = (object_header *)datum_get(iterator.handle, object_data);
             uint8_t wake_flag = 0;
 
             if (hdr != 0) {

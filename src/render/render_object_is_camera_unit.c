@@ -7,7 +7,7 @@
 //   checked to exactly local_player_index in [0,1) or -1) indexes the players data_array
 //   (0x0087a480) to read player.unit (+0x34, a datum_index -- NOT a cluster), which is compared
 //   against the function's own object argument. camera_get_type_for_player is called with CX
-//   still holding render_local_player_index from the first load (a genuine reused register, not
+//   still holding current_local_player_index from the first load (a genuine reused register, not
 //   a fresh argument). types/game.h's player.unit field pins this: the phase-2 summary ("tests
 //   whether a cluster matches the camera's current cluster or media cluster") does not match any
 //   field actually read here and is not used for this rewrite.
@@ -18,7 +18,7 @@
 //   that can be watching a different object than the local player's own unit. Also UNSURE:
 //   camera_get_type_for_player's return value of 0 is assumed to mean "normal" here too, matching
 //   src/render/render_local_player_gunner_seat_visible.c's own note for the same callee. The
-//   local player's own bound check compares render_local_player_index directly (0x007c3108, the
+//   local player's own bound check compares current_local_player_index directly (0x007c3108, the
 //   window loop's own copy), not player_globals::local_player_index.
 
 #include "tags.h"
@@ -28,12 +28,12 @@
 
 extern player_globals *local_player_globals; // 0x0087a478, game module
 extern data_array *player_data;              // 0x0087a480, game module
-extern int16_t render_local_player_index;    // 0x007c3108, this module
+extern int16_t current_local_player_index;    // 0x007c3108, this module
 
 extern int16_t camera_get_type_for_player(int16_t player_index); // 0x445ac0, camera module;
                                                                   // blam-cc: CX=player_index
 
-extern uint8_t director_camera_active;      // 0x006869d0, UNSURE
+extern uint8_t camera_script;      // 0x006869d0, UNSURE
 extern int16_t director_camera_mode;        // 0x006869d2, UNSURE
 extern datum_index director_camera_target;  // 0x00686a04, UNSURE
 
@@ -45,7 +45,7 @@ extern datum_index director_camera_target;  // 0x00686a04, UNSURE
 // candidate list built by render_objects_collect, 0x50eac0).
 uint8_t render_object_is_camera_unit(datum_index object) // blam-cc: ESI=object
 {
-    int16_t local_player_index = render_local_player_index;
+    int16_t local_player_index = current_local_player_index;
     datum_index local_unit = k_datum_index_none;
 
     if (local_player_index != -1 && local_player_index < 1) {
@@ -59,7 +59,7 @@ uint8_t render_object_is_camera_unit(datum_index object) // blam-cc: ESI=object
     if (local_unit == object && camera_get_type_for_player(local_player_index) == 0) {
         return 1;
     }
-    if (director_camera_active != 0 && director_camera_mode == 2 && director_camera_target == object) {
+    if (camera_script != 0 && director_camera_mode == 2 && director_camera_target == object) {
         return 1;
     }
     return 0;

@@ -32,11 +32,11 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern uint32_t no_simd_matrix_multiply_flag; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
-extern uint32_t unknown_00722bac; // machine class threshold, matches player_profile_set_default_video_options
-extern uint32_t unknown_00722ba8; // machine class threshold
+extern uint32_t safe_mode; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
+extern uint32_t cpu_speed; // machine class threshold, matches player_profile_set_default_video_options
+extern uint32_t physical_memory; // machine class threshold
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
-extern saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles]; // 0x00712dd8
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8
 extern int16_t cache_file_index; // 0x006ac494, -1 when no map is loaded
 
 extern void control_profile_reset_digital_bindings(saved_player_profile *profile); // 0x539ff0
@@ -122,7 +122,7 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
 
     player_profile_set_default_video_options(profile, (uint8_t)merge_existing);
 
-    if (no_simd_matrix_multiply_flag == 0 && 1000 < unknown_00722bac && 0x80 < unknown_00722ba8) {
+    if (safe_mode == 0 && 1000 < cpu_speed && 0x80 < physical_memory) {
         profile->unknown_b7d = 1;
         profile->unknown_b7f = 2;
     } else {
@@ -185,7 +185,7 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
                 have_existing = 1;
             }
         } else {
-            existing = saved_player_profile_slots[0].profile;
+            existing = profile_globals_block[0].profile;
             have_existing = 1;
         }
 

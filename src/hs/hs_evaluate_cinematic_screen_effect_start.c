@@ -16,7 +16,7 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *cinematic_screen_effect; // 0x0071cfc4
+extern uint8_t *cinematic_screen_effect_state; // 0x0071cfc4
 
 void hs_evaluate_cinematic_screen_effect_start(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -25,16 +25,16 @@ void hs_evaluate_cinematic_screen_effect_start(int16_t function_index, uint32_t 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    if (cinematic_screen_effect != 0) {
-        if (*(uint8_t *)&arguments[0] || !cinematic_screen_effect[0x39]) {
+    if (cinematic_screen_effect_state != 0) {
+        if (*(uint8_t *)&arguments[0] || !cinematic_screen_effect_state[0x39]) {
             int32_t i;
 
             for (i = 0; i < 0xe; i++) {
-                ((uint32_t *)cinematic_screen_effect)[i] = 0;
+                ((uint32_t *)cinematic_screen_effect_state)[i] = 0;
             }
-            cinematic_screen_effect[0x39] = 1;
+            cinematic_screen_effect_state[0x39] = 1;
         }
-        cinematic_screen_effect[0x38] = 1;
+        cinematic_screen_effect_state[0x38] = 1;
     }
     hs_thread_return(0, thread_index);
     }

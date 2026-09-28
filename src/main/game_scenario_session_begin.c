@@ -3,14 +3,14 @@
 // name confidence: 0.5   rewrite confidence: 0.75
 // evidence: out/phase4/main_types_notes.md "Register arguments confirmed at call sites":
 // "game_scenario_session_begin 0x4c95f0: EAX = network_scenario_load_request
-// (0x4c89de, 0x4c999e)". scenario_load_staging (0x006b0b80) and scenario_load's signature reuse
+// (0x4c89de, 0x4c999e)". main_game_globals (0x006b0b80) and scenario_load's signature reuse
 // src/networking/network_game_scenario_load_request.c; FUN_0045aea0/_0045b050/_0045b8b0/
 // _00470ae0 reuse that same file's externs. Every 0x00719738..0x00719753 field is main_globals
 // (types/main.h, offsets 0x038..0x053), confirmed the same way as
 // src/main/main_queue_map_change.c's correction (not any other module's less-informed guess for
 // an overlapping address). last_activity_time_ms (0x00719764) and restore_checkpoint_on_load
 // (0x00719778) are main_globals fields too. ui_pause_pending_count_00718fa0 (0x00718fa0),
-// interface_loading_screen_ui_state (0x00718f8c) and interface_loading_screen_address_a/_b
+// join_ui_state (0x00718f8c) and interface_loading_screen_address_a/_b
 // (0x0068e680/4) reuse src/interface/ui_check_for_pause_game.c and
 // src/networking/network_join_request_resolve_host.c's names. network_game_mode (0x00719720)
 // and game_state_load_checkpoint (0x538280) are established elsewhere in this codebase.
@@ -31,13 +31,13 @@
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
-extern uint8_t game_globals_initialized_flag;    // 0x0087ac00, TYPES-GAP, UNSURE identity
-extern int16_t game_globals_unknown_0087ac08;    // 0x0087ac08, TYPES-GAP, UNSURE identity (WORD store)
+extern uint8_t console_debug_flag_0;    // 0x0087ac00, TYPES-GAP, UNSURE identity
+extern int16_t console_debug_word_8;    // 0x0087ac08, TYPES-GAP, UNSURE identity (WORD store)
 extern int32_t ui_pause_pending_count_00718fa0;  // 0x00718fa0, foreign (interface module)
-extern int32_t interface_loading_screen_ui_state;    // 0x00718f8c, foreign (interface module)
+extern int32_t join_ui_state;    // 0x00718f8c, foreign (interface module)
 extern int32_t interface_loading_screen_address_a;   // 0x0068e680, foreign (interface module)
 extern int32_t interface_loading_screen_address_b;   // 0x0068e684, foreign (interface module)
-extern uint8_t *scenario_load_staging;           // 0x006b0b80, foreign (networking module)
+extern uint8_t *main_game_globals;           // 0x006b0b80, foreign (networking module)
 
 extern void input_reset_state_and_axis_configs(void); // 0x490aa0, foreign (input module)
 extern void input_bind_capture_reset(void);            // 0x48b5f0, foreign (input module)
@@ -51,11 +51,11 @@ extern char scenario_load(char *scenario_path); // 0x53e6a0, foreign (game modul
     // blam-cc: EAX -> scenario_path (0x4c961d mov eax,ebp; the callee hands EAX to 0x442290)
 extern void game_state_load_checkpoint(void);    // 0x538280, foreign (game module)
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210, foreign (math module)
-extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
+extern int64_t performance_frequency; // 0x006ac8f8, foreign (math module)
 
 // Loads a scenario per `request`, seeds the game timer and pending-pause bookkeeping, and (on
 // the first session only) ensures the local players exist. Copies `request` into the persistent
-// scenario_load_staging buffer, calls scenario_load, resets the level/save/won/lost/respawn/
+// main_game_globals buffer, calls scenario_load, resets the level/save/won/lost/respawn/
 // core-load request flags, re-baselines last_activity_time_ms from QueryPerformanceCounter,
 // restores a checkpoint if one was requested, and -- outside a networked game with the loading
 // screen up -- re-arms the loading screen's minimum-display-time deadline.
@@ -69,21 +69,21 @@ void game_scenario_session_begin(network_scenario_load_request *request)
     input_bind_capture_reset();
     cache_file_switch_map_by_path(request->map_name, 1);   // 0x4c9603 lea ebp,[esi+0xc] ; mov bl,1
 
-    memcpy(scenario_load_staging + 8, request, sizeof(network_scenario_load_request));
+    memcpy(main_game_globals + 8, request, sizeof(network_scenario_load_request));
 
     if (scenario_load(request->map_name) == 0) {
-        if (*scenario_load_staging == 0) {
+        if (*main_game_globals == 0) {
             goto after_load;
         }
     } else {
-        *scenario_load_staging = 1;
+        *main_game_globals = 1;
     }
     game_start_new_map();
 
 after_load:
-    already_initialized = game_globals_initialized_flag != 0;
-    game_globals_initialized_flag = 0;
-    game_globals_unknown_0087ac08 = 0;
+    already_initialized = console_debug_flag_0 != 0;
+    console_debug_flag_0 = 0;
+    console_debug_word_8 = 0;
     if (!already_initialized) {
         main_ensure_local_players();
         game_engine_init_tick_record_for_mode();
@@ -105,20 +105,20 @@ after_load:
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     counter_ms = counter * 1000;
-    main_globals_data.last_activity_time_ms = (int32_t)(counter_ms / performance_counter_frequency);
+    main_globals_data.last_activity_time_ms = (int32_t)(counter_ms / performance_frequency);
 
     if (main_globals_data.restore_checkpoint_on_load != 0) {
         game_state_load_checkpoint();
     }
 
     ui_pause_pending_count_00718fa0 = 0x1e;
-    if (main_globals_data.game_connection == 0 && interface_loading_screen_ui_state != 0) {
+    if (main_globals_data.game_connection == 0 && join_ui_state != 0) {
         int32_t now = time_query_performance_counter_ms();
         uint32_t extra = 0;
 
         if (interface_loading_screen_address_b != -1) {
             uint32_t elapsed = (uint32_t)(now - interface_loading_screen_address_b);
-            if (elapsed < 2000 && interface_loading_screen_ui_state != 1) {
+            if (elapsed < 2000 && join_ui_state != 1) {
                 extra = (uint32_t)(interface_loading_screen_address_b - now) + 2000;
                 if (extra > 2000) {
                     extra = 2000;

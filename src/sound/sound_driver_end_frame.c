@@ -30,8 +30,8 @@ extern uint8_t debug_sound_channels;        // 0x00724a4c, per-type channel tota
 extern uint8_t debug_sound_channel_details; // 0x007251f8, per-channel lines
 extern uint16_t sound_channel_type_flag_table[4]; // 0x0069f528, { 9, 8, 0xa, 0xe }
 extern sound_driver_parameters driver_parameters; // 0x0069f514
-extern int16_t hud_text_draw_font_or_lines; // 0x006e4748 (src/game declares it uint32_t; a word is stored here)
-extern int16_t hud_text_draw_tabstop_a;     // 0x006e474a (src/game declares it void *; a word is stored here)
+extern int16_t hud_text_draw_background_mode; // 0x006e4748 (src/game declares it uint32_t; a word is stored here)
+extern int16_t text_tab_stops;     // 0x006e474a (src/game declares it void *; a word is stored here)
 extern char k_empty_string[];               // 0x0065512c
 
 extern void sound_update_streaming_channels(void); // 0x546b40
@@ -94,8 +94,8 @@ void sound_driver_end_frame(void)
     sound_update_streaming_channels();
 
     if (debug_sound_channel_details != 0) {
-        hud_text_draw_font_or_lines = 1;
-        hud_text_draw_tabstop_a = 0x118;
+        hud_text_draw_background_mode = 1;
+        text_tab_stops = 0x118;
         text[0] = '\0';
         for (i = 0; i < directsound_channel_count; i++) {
             directsound_channel *channel = &directsound_channels[i];
@@ -118,8 +118,8 @@ void sound_driver_end_frame(void)
     } else if (debug_sound_channels != 0) {
         int32_t counts[4] = { 0, 0, 0, 0 };
 
-        hud_text_draw_tabstop_a = 0x118;
-        hud_text_draw_font_or_lines = 1;
+        text_tab_stops = 0x118;
+        hud_text_draw_background_mode = 1;
         text[0] = '\0';
         for (i = 0; i < directsound_channel_count; i++) {
             directsound_channel *channel = &directsound_channels[i];

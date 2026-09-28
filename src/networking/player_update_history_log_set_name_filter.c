@@ -17,7 +17,7 @@
 #include "memory.h"
 #include <string.h>
 
-extern uint16_t player_update_log_filter_name[0x400]; // 0x0071c420, see player_update_history_log_printf_filtered.c
+extern uint16_t local_player_name_filter[0x400]; // 0x0071c420, see player_update_history_log_printf_filtered.c
 
 // Copies name (an 8-bit string, e.g. a console command argument) into the shared UTF-16 filter
 // buffer used by player_update_history_log_printf_filtered, truncating to 0x3ff characters.
@@ -31,9 +31,9 @@ void player_update_history_log_set_name_filter(char *name) // blam-cc: ESI -> na
         length = 0x3ff;
     }
     if ((uint32_t)(length * 2 + 2) <= 0x800) {
-        player_update_log_filter_name[length] = 0;
+        local_player_name_filter[length] = 0;
         for (i = length - 1; i >= 0; i--) {
-            player_update_log_filter_name[i] = (uint16_t)(uint8_t)name[i];
+            local_player_name_filter[i] = (uint16_t)(uint8_t)name[i];
         }
     }
 }

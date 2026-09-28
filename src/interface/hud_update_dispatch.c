@@ -25,7 +25,7 @@ extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled); // 0x4afee0,
 extern data_array *player_data; // 0x0087a480
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20, UNSURE
-extern int32_t unknown_0087aa10; // 0x0087aa10, UNSURE
+extern int32_t game_engine_state_value; // 0x0087aa10, UNSURE
 extern player_globals *local_player_globals; // 0x0087a478, established in src/game/
 
 // Runs the weapon HUD, unit meter and waypoint per-frame updates, resets the messaging
@@ -38,7 +38,7 @@ void hud_update_dispatch(void)
     hud_waypoints_update();
     hud_messaging->next_sequence = 0;
 
-    if (current_game_engine != 0 && unknown_0087aa10 > 1 && unknown_0087aa10 < 4 &&
+    if (current_game_engine != 0 && game_engine_state_value > 1 && game_engine_state_value < 4 &&
         local_player_globals->local_players[0] != (datum_index)-1) {
         // s2 part 2 review: EAX is the player record of local player 0 (objdump 0x4a99d1..0x4a99e6)
         hud_unit_sounds_update((player *)((uint8_t *)player_data->data +

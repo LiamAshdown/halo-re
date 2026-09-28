@@ -26,17 +26,17 @@
 
 extern int16_t local_player_count;                 // 0x006894b8, TYPES-GAP
 extern int32_t joystick_slot_devices[4];                   // 0x006b2ce8, input.h (DWORD cmp at 0x49cff3)
-extern char known_campaign_level_one_path_00692acc[];        // 0x00692acc ("levels\\a10\\a10")
-extern char selected_level_path_00719779[0x100];             // 0x00719779, TYPES-GAP
-extern uint8_t campaign_start_pending_00696564;               // 0x00696564, TYPES-GAP
-extern uint8_t selected_level_start_flags_00719754_byte3;    // 0x00719757, TYPES-GAP
+extern char known_campaign_levels_00692acc[];        // 0x00692acc ("levels\\a10\\a10")
+extern char unknown_00719779[0x100];             // 0x00719779, TYPES-GAP
+extern uint8_t pending_difficulty;               // 0x00696564, TYPES-GAP
+extern uint8_t split_screen_quit_prompt_armed;    // 0x00719757, TYPES-GAP
 extern uint8_t selected_level_active_00719878;                // 0x00719878, TYPES-GAP
 extern uint8_t selected_level_pending_00719778;                // 0x00719778, TYPES-GAP
 extern int16_t network_game_mode;                              // 0x00719720
 extern uint8_t network_wait_flag_00719739;                     // 0x00719739
 extern int16_t profile_slot_id[];                              // 0x00714dde
-extern int16_t profile_slot_id_1_00714de0;                     // 0x00714de0, TYPES-GAP
-extern int32_t current_profile_index;                          // 0x00714dd4
+extern int16_t game_variant_saved_default;                     // 0x00714de0, TYPES-GAP
+extern int32_t saved_player_profile_slots_handle;                          // 0x00714dd4
 extern int32_t cached_profile_slot;                             // 0x0068e66c
 extern char last_profile_name[];                                // 0x00718e80
 
@@ -69,22 +69,22 @@ uint32_t ui_start_campaign_from_level_one(void *param_1, int16_t *param_2)
         i = -1;
     }
 
-    campaign_start_pending_00696564 = 1;
-    selected_level_start_flags_00719754_byte3 = 0;
-    strncpy(selected_level_path_00719779, known_campaign_level_one_path_00692acc, 0xff);
+    pending_difficulty = 1;
+    split_screen_quit_prompt_armed = 0;
+    strncpy(unknown_00719779, known_campaign_levels_00692acc, 0xff);
     selected_level_active_00719878 = 0;
     selected_level_pending_00719778 = 1;
     network_game_mode = 0;
     network_wait_flag_00719739 = 1;
     profile_slot_id[0] = requested_index;
     if (i != -1) {
-        profile_slot_id_1_00714de0 = i;
+        game_variant_saved_default = i;
     }
-    if (cached_profile_slot != current_profile_index) {
-        if (current_profile_index != -1) {
-            saved_game_get_directory_by_handle(current_profile_index, last_profile_name);
+    if (cached_profile_slot != saved_player_profile_slots_handle) {
+        if (saved_player_profile_slots_handle != -1) {
+            saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
         }
-        cached_profile_slot = current_profile_index;
+        cached_profile_slot = saved_player_profile_slots_handle;
     }
     if (last_profile_name[0] != '\0') {
         saved_game_last_profile_clear(last_profile_name);

@@ -23,7 +23,7 @@ extern uint8_t console_debug_toggle_6893f4;    // 0x006893f4, gates this whole f
 extern void *rasterizer_device;                // 0x0071d174
 extern uint8_t console_debug_toggle_68941d;    // 0x0068941d, UNSURE meaning
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
-extern uint8_t renderer_unknown_722b68;        // 0x00722b68, UNSURE meaning; gates anisotropic filtering below
+extern uint8_t config_use_anisotropic_filter;        // 0x00722b68, UNSURE meaning; gates anisotropic filtering below
 extern uint8_t rasterizer_fog_enabled;                              // 0x0069c6a8 latched by rasterizer_set_fog_constants
 
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color); // 0x4ab5d0
@@ -61,7 +61,7 @@ void rasterizer_fog_screen_overlay_set_states(void)
 
     stage5_filter = 2;
     stage6_filter = 2;
-    if (renderer_unknown_722b68 != 0 && (rasterizer_caps.raster_caps & 0x20000) != 0 &&
+    if (config_use_anisotropic_filter != 0 && (rasterizer_caps.raster_caps & 0x20000) != 0 &&
         1 < rasterizer_caps.max_anisotropy) {
         max_anisotropy = 8;
         if (rasterizer_caps.max_anisotropy < 8) {

@@ -36,7 +36,7 @@ extern data_array *player_data;                // 0x0087a480, "players"
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances;            // 0x0087bc14
 extern Globals *global_globals;                // 0x00746fa0
-extern float camera_position_x; // 0x007c3114 (render_camera_global.position; one declaration per line -- the
+extern float render_camera_global; // 0x007c3114 (render_camera_global.position; one declaration per line -- the
 extern float camera_position_y; // 0x007c3118  standalone linker resolves a line by its single address, so the old
 extern float camera_position_z; // 0x007c311c  "x, y, z; // 0x007c3114/18/1c" line bound z to 0x7c3114)
 
@@ -118,7 +118,7 @@ void first_person_weapon_update_lighting(void)
         light_params.unit_37c = *(float *)((char *)unit_obj + 0x37c);
         light_params.unit_380 = *(float *)((char *)unit_obj + 0x380);
         light_params.type = 1;
-        light_params.centroid[0] = camera_position_x;
+        light_params.centroid[0] = render_camera_global;
         light_params.centroid[1] = camera_position_y;
         light_params.centroid[2] = camera_position_z;
         light_params.object_index = unit_handle;
@@ -132,7 +132,7 @@ void first_person_weapon_update_lighting(void)
         hud_meter_permute_node_records(node_scratch, fp->unknown_108c, model_tag_ref,
                                         fp->weapon_hud_element);
         render_model(model_tag_ref, node_scratch, 0, 0, (ColorRGB *)((char *)weapon_obj + 0x1b8),
-                     (float *)((char *)weapon_obj + 0x134), light_sample, &camera_position_x, 0,
+                     (float *)((char *)weapon_obj + 0x134), light_sample, &render_camera_global, 0,
                      &light_params, fp->weapon_index, 0, 8);
     }
     if (fp->device_hud_valid != 0 &&
@@ -142,7 +142,7 @@ void first_person_weapon_update_lighting(void)
         hud_meter_permute_node_records(node_scratch, fp->unknown_108c, model_tag_ref,
                                         fp->device_hud_element);
         render_model(model_tag_ref, node_scratch, 0, 0, (ColorRGB *)((char *)unit_obj + 0x1b8),
-                     (float *)((char *)unit_obj + 0x134), light_sample, &camera_position_x, 0,
+                     (float *)((char *)unit_obj + 0x134), light_sample, &render_camera_global, 0,
                      &light_params, fp->weapon_index, 0, 8);
     }
 }

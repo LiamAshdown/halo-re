@@ -22,10 +22,10 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *globals_tag_data;   // 0x00746fa0, +0x174 the player information block
+extern uint8_t *global_globals;   // 0x00746fa0, +0x174 the player information block
 extern real_vector3d *global_up3d_pointer; // 0x00696720
-extern int16_t game_connection_role;   // 0x00719720
-extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
+extern int16_t network_game_mode;   // 0x00719720
+extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern network_server_globals *network_server; // 0x0071c2d4
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
@@ -75,7 +75,7 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
     } else {
         if (*(datum_index *)(unit + 0x218) != k_datum_index_none) {
             // 0x56e4de: a player throws from the camera, offset by the globals' grenade offsets
-            uint8_t *info = *(uint8_t **)(globals_tag_data + 0x174);
+            uint8_t *info = *(uint8_t **)(global_globals + 0x174);
             real_vector3d forward = *aim;       // [esp+0x28]
             real_vector3d right;                // [esp+0x34]
             real_vector3d up;                   // [esp+0x40]
@@ -137,13 +137,13 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
             return;
         }
     }
-    if (*(int32_t *)(unit + 0x4) == 0 && game_connection_role == 2 && !object_is_delete_pending(grenade)) {
+    if (*(int32_t *)(unit + 0x4) == 0 && network_game_mode == 2 && !object_is_delete_pending(grenade)) {
         *(int32_t *)(OBJECT_DATA(grenade) + 0x4) = 0;
         object_type_override_call_0x68(grenade);
         int32_t bits = projectile_send_creation(grenade);
 
         if (bits > 0) {
-            network_session_broadcast_to_flagged(bits, network_server, 1, object_network_message_scratch, 1, 0, 0, 3);
+            network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 0, 3);
         }
     }
 }

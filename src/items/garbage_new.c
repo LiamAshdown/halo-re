@@ -10,7 +10,7 @@
 //   object_globals.first_tracked_object (0x08), object_flags (_object_in_tracked_list_bit
 //   0x10000, "object_list_membership_set; the garbage column of the memory dump",
 //   _object_definition_flag0_bit 0x40000, _object_connected_to_map_bit 0x80000);
-//   types/math.h/objects.h object_random_seed (0x00719cd0). global 0x006b8cbc
+//   types/math.h/objects.h random_seed_global (0x00719cd0). global 0x006b8cbc
 //   object_globals_pointer.
 // register convention: object index is a plain stack cdecl parameter, matching the rest of this
 //   directly-indexed (non object_try_and_get) family.
@@ -29,7 +29,7 @@
 
 extern data_array *object_data;               // 0x008603b0
 extern object_globals *object_globals_pointer; // 0x006b8cbc
-extern uint32_t object_random_seed;            // 0x00719cd0
+extern uint32_t random_seed_global;            // 0x00719cd0
 
 // The garbage row's query_create hook (object_type_definition +0x28). Links a freshly activated
 // garbage object into the object_globals tracked list (unless it, or some later object, already
@@ -47,8 +47,8 @@ uint8_t garbage_new(uint32_t object_index) // blam-cc: stack -> object_index
     }
     obj->flags |= _object_definition_flag0_bit | _object_connected_to_map_bit;
 
-    object_random_seed = object_random_seed * 0x19660d + 0x3c6ef35f;
-    *despawn_countdown = (int16_t)(((object_random_seed >> 0x10) * 300) >> 0x10) + 300;
+    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+    *despawn_countdown = (int16_t)(((random_seed_global >> 0x10) * 300) >> 0x10) + 300;
 
     return 1;
 }

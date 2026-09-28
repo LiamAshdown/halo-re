@@ -36,20 +36,20 @@ extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); 
 
 
 // UNSURE: the text engine's shared "current string" scratch state; see file header.
-extern void *text_measure_font_state;      // 0x006e472c
-extern uint16_t text_measure_cursor_low;   // 0x006e4734 low word
-extern uint16_t text_measure_cursor_high;  // 0x006e4736 high word
-extern float renderer_text_color_alpha;  // 0x006e4738
-extern float renderer_text_color_red;  // 0x006e473c
-extern float renderer_text_color_green;  // 0x006e4740
-extern float renderer_text_color_blue;  // 0x006e4744
-extern int32_t text_measure_scratch_30;    // 0x006e4730
+extern void *hud_text_draw_font_tag_id;      // 0x006e472c
+extern uint16_t hud_text_draw_color_or_flags;   // 0x006e4734 low word
+extern uint16_t hud_text_draw_column;  // 0x006e4736 high word
+extern float hud_text_draw_color_a;  // 0x006e4738
+extern float hud_text_draw_color_r;  // 0x006e473c
+extern float hud_text_draw_color_g;  // 0x006e4740
+extern float hud_text_draw_color_b;  // 0x006e4744
+extern int32_t hud_text_draw_unknown_4730;    // 0x006e4730
 
 extern int32_t text_measure_string_fit_width(int32_t *max_width_inout); // 0x557530
 
 // UNSURE: base of a 0x20-byte-stride font-record table, indexed by a 16-bit id read out of the
 // widget's text-row object; see file header.
-extern uint8_t *font_record_table_base; // 0x0087bc14
+extern uint8_t *tag_instances; // 0x0087bc14
 
 // blam-cc: EAX -> widget, EDI -> self
 void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
@@ -63,20 +63,20 @@ void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
 
     *(int16_t *)(row_object + 0x40) = (int16_t)self->start_column;
 
-    font_record = *(uint8_t **)(font_record_table_base + (*text_row & 0xffff) * 0x20 + 0x14);
-    text_measure_font_state = *(void **)(font_record + 0x108);
+    font_record = *(uint8_t **)(tag_instances + (*text_row & 0xffff) * 0x20 + 0x14);
+    hud_text_draw_font_tag_id = *(void **)(font_record + 0x108);
     max_width[0] = (int32_t)*(int16_t *)(font_record + 0x2a) - (int32_t)*(int16_t *)(font_record + 0x26);
     max_width[1] = 0;
-    renderer_text_color_alpha = 0.0f;
+    hud_text_draw_color_a = 0.0f;
     max_width[2] = 0;
     max_width[3] = 0;
     max_width[4] = 0;
-    renderer_text_color_red = 0.0f;
-    renderer_text_color_green = 0.0f;
-    renderer_text_color_blue = 0.0f;
-    text_measure_cursor_low = 0xffff;
-    text_measure_cursor_high = 0;
-    text_measure_scratch_30 = 0;
+    hud_text_draw_color_r = 0.0f;
+    hud_text_draw_color_g = 0.0f;
+    hud_text_draw_color_b = 0.0f;
+    hud_text_draw_color_or_flags = 0xffff;
+    hud_text_draw_column = 0;
+    hud_text_draw_unknown_4730 = 0;
 
     fit_count = text_measure_string_fit_width(max_width);
     if (fit_count == 0) {

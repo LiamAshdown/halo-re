@@ -12,9 +12,9 @@
 #include "hs.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern int32_t input_joystick_count; // 0x006b1844
+extern int32_t input_device_count; // 0x006b1844
 
 void hs_evaluate_input_get_joy_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)(uint16_t)input_joystick_count, thread_index);
+    hs_thread_return((int32_t)(uint16_t)input_device_count, thread_index);
 }

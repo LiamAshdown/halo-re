@@ -19,12 +19,12 @@
 #include "rasterizer.h"
 
 
-extern void *rasterizer_window_proc;    // 0x007461d0, WNDPROC
+extern void *shell_window_proc;    // 0x007461d0, WNDPROC
 extern uint32_t rasterizer_window_style; // 0x0069c6a4
-extern void *rasterizer_hinstance;      // 0x007461c0
-extern char rasterizer_window_class_name[]; // 0x007461d4
-extern char rasterizer_window_title[];      // 0x00746214
-extern void *rasterizer_hwnd;               // 0x007461c4
+extern void *shell_instance;      // 0x007461c0
+extern char shell_window_class_name[]; // 0x007461d4
+extern char shell_window_title[];      // 0x00746214
+extern void *shell_window;               // 0x007461c4
 extern void *shell_module_handle;                                   // 0x00722bb8 HINSTANCE
 extern void *rasterizer_window_icon_bitmap; // 0x0071d188, HBITMAP
 extern void *rasterizer_window_icon_dc;     // 0x0071d184, HDC
@@ -46,19 +46,19 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
         fields[i] = 0;
     }
 
-    wc.window_procedure = (uint32_t)rasterizer_window_proc;
+    wc.window_procedure = (uint32_t)shell_window_proc;
     rasterizer_window_style = 0xcf0000; // WS_OVERLAPPEDWINDOW
     wc.size = 0x30;
     wc.style = 0x40; // CS_DBLCLKS
     wc.class_extra = 0;
     wc.window_extra = 0;
-    wc.instance = (uint32_t)rasterizer_hinstance;
-    wc.icon = (uint32_t)LoadIconA(rasterizer_hinstance, (const char *)0x66);
-    wc.small_icon = (uint32_t)LoadIconA(rasterizer_hinstance, (const char *)0x66);
+    wc.instance = (uint32_t)shell_instance;
+    wc.icon = (uint32_t)LoadIconA(shell_instance, (const char *)0x66);
+    wc.small_icon = (uint32_t)LoadIconA(shell_instance, (const char *)0x66);
     wc.cursor = (uint32_t)LoadCursorA((void *)0, (const char *)0x7f00); // IDC_ARROW
     wc.background_brush = 0;
     wc.menu_name = 0;
-    wc.class_name = (uint32_t)rasterizer_window_class_name;
+    wc.class_name = (uint32_t)shell_window_class_name;
     RegisterClassExA((const WNDCLASSEXA *)&wc);
 
     GetWindowRect(GetDesktopWindow(), &rect);
@@ -68,7 +68,7 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
     rect.right = rect.left + width;
     AdjustWindowRect(&rect, rasterizer_window_style, 0);
 
-    hwnd = CreateWindowExA(0, rasterizer_window_class_name, rasterizer_window_title,
+    hwnd = CreateWindowExA(0, shell_window_class_name, shell_window_title,
                             rasterizer_window_style, rect.left, rect.top, rect.right - rect.left,
                             rect.bottom - rect.top, GetDesktopWindow(), (void *)0, (void *)wc.instance, (void *)0);
     if (hwnd == (void *)0) {
@@ -76,12 +76,12 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
         uint32_t message_id = GetLastError();
         FormatMessageA(0x1300, (const void *)0, message_id, 0x400, (LPSTR)&message_buffer, 0, (void *)0);
         MessageBoxA((void *)0, message_buffer, "ERROR - failed to create window", 0x40);
-        UnregisterClassA(rasterizer_window_class_name, rasterizer_hinstance);
+        UnregisterClassA(shell_window_class_name, shell_instance);
         LocalFree(message_buffer);
         return 0;
     }
 
-    rasterizer_hwnd = hwnd;
+    shell_window = hwnd;
     rasterizer_window_icon_bitmap = LoadBitmapA((void *)shell_module_handle, (const char *)0x86);
     if (rasterizer_window_icon_bitmap != (void *)0) {
         void *hdc = GetDC(hwnd);

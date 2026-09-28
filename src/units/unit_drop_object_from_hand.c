@@ -27,7 +27,7 @@ extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern random_seed random_seed_global;    // 0x00719cd0
 extern game_engine_definition *current_game_engine;
 extern char s_left_hand_marker[];    // 0x00671ffc "left hand"
-extern char s_empty_marker_name[];   // 0x0065512c ""
+extern char k_empty_string[];   // 0x0065512c ""
 
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
@@ -75,7 +75,7 @@ void unit_drop_object_from_hand(uint32_t unit_index, uint32_t object_index)
                 ((object_header *)object_data->data)[object_index & 0xffff].flags |= 2;
             }
         }
-        object_reorient_relative_to_marker(unit_index, s_left_hand_marker, object_index, s_empty_marker_name);
+        object_reorient_relative_to_marker(unit_index, s_left_hand_marker, object_index, k_empty_string);
     }
     *(uint32_t *)(OBJECT_DATA(object_index) + 0x1f4) &= ~3u;
     object_snap_to_parent_marker_and_detach(object_index);

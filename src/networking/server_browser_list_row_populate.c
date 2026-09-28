@@ -22,7 +22,7 @@
 // order; no individual column is independently confirmed beyond what the summary states
 // (name, ratio, ping).
 // UNSURE: PTR_s_parameter_handles_0063fff0_0x35_006607a0 (the ping format string) and
-// DAT_00660c34 (passed to FUN_00625b7a on the two "leave blank" paths) are declared only by
+// empty_string (passed to FUN_00625b7a on the two "leave blank" paths) are declared only by
 // address.
 
 #include "crt.h"
@@ -33,7 +33,7 @@
 #include "networking.h"
 #include <wchar.h>
 
-extern wchar_t DAT_00660c34[]; // see UNSURE
+extern wchar_t empty_string[]; // see UNSURE
 extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[]; // ping format string, see UNSURE
 
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, memory module

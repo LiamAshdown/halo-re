@@ -37,8 +37,8 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 extern memory_pool *game_state_new_pool(char *name, int32_t pool_size); // 0x538150, stack name, EBX pool_size
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern void cluster_partition_new(cluster_reference_group *out, char *name); // 0x551e30, blam-cc: ESI -> out, EDI -> name
-extern cluster_reference_group collideable_cluster_group; // 0x008603d0
-extern cluster_reference_group noncollideable_cluster_group; // 0x008603c0
+extern cluster_reference_group collideable_cluster_first; // 0x008603d0
+extern cluster_reference_group noncollideable_cluster_first; // 0x008603c0
 
 void objects_initialize(void)
 {
@@ -67,8 +67,8 @@ void objects_initialize(void)
     object_name_list = (datum_index *)name_list_region;
 
     // 0x4f4b81..0x4f4b9a: EDI the category name, ESI the group
-    cluster_partition_new(&collideable_cluster_group, "collideable object");
-    cluster_partition_new(&noncollideable_cluster_group, "noncollideable object");
+    cluster_partition_new(&collideable_cluster_first, "collideable object");
+    cluster_partition_new(&noncollideable_cluster_first, "noncollideable object");
 }
 
 #if 0

@@ -15,7 +15,7 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern void *console_color_00686af8; // 0x00686af8
+extern void *actor_mode_default_look_weights; // 0x00686af8
 extern void console_printf_verbose(ColorARGB *color, char *format, ...); // 0x496a80, blam-cc: EAX, stack
 
 void hs_evaluate_print(int16_t function_index, uint32_t thread_index, char first)
@@ -25,7 +25,7 @@ void hs_evaluate_print(int16_t function_index, uint32_t thread_index, char first
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    console_printf_verbose((ColorARGB *)console_color_00686af8, (char *)arguments[0]);
+    console_printf_verbose((ColorARGB *)actor_mode_default_look_weights, (char *)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }

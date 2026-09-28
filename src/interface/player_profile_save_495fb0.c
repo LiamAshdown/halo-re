@@ -21,14 +21,14 @@
 #include "interface.h"
 
 extern uint8_t unknown_00712f07;         // 0x00712f07, UNSURE
-extern int32_t current_profile_index;    // 0x00714dd4
+extern int32_t saved_player_profile_slots_handle;    // 0x00714dd4
 extern tag_instance *tag_instances;      // 0x0087bc14
 extern uint8_t profile_globals_block[];  // 0x00712dd8
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern void hud_message_broadcast_to_local_players(const uint16_t *text); // 0x495f50, blam-cc: ESI text
-extern const uint16_t hud_text_empty_00660c34[];          // 0x00660c34, L""
-extern const uint16_t hud_text_missing_string_00671fac[]; // 0x00671fac, L"<missing string>"
+extern const uint16_t empty_string[];          // 0x00660c34, L""
+extern const uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"
 extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX (0 at both calls here)
 extern void console_out_printf(uint8_t unknown, const char *format, ...); // 0x4c6860
 extern void player_profile_write_data(int32_t slot, void *profile_data); // 0x53a950
@@ -48,15 +48,15 @@ void player_profile_save_495fb0(uint8_t flag)
     const uint16_t *text;
 
     unknown_00712f07 = flag;
-    if (current_profile_index != -1) {
+    if (saved_player_profile_slots_handle != -1) {
         string_list_tag = tag_lookup(0x75737472, "ui\\shell\\strings\\temp_strings"); // 'ustr'
         // s2 part 2 review: the broadcast text (EDX -> ESI of 0x495f50) is string 1 of the list,
         // L"<missing string>" (0x00671fac) when the list is too short or the string empty, and
         // L"" (0x00660c34) when the tag is missing (objdump 0x495fd9..0x49601a).
-        text = hud_text_empty_00660c34;
+        text = empty_string;
         if (string_list_tag != (datum_index)0xffffffff) {
             string_list_data = (int32_t *)tag_instances[(uint16_t)string_list_tag].data;
-            text = hud_text_missing_string_00671fac;
+            text = missing_string_text;
             if (string_list_data[0] > 1) {
                 block = (char *)string_list_data[1];
                 length = *(uint32_t *)(block + 0x14);
@@ -67,12 +67,12 @@ void player_profile_save_495fb0(uint8_t flag)
             }
         }
         hud_message_broadcast_to_local_players(text);
-        if (current_profile_index == -1) {
+        if (saved_player_profile_slots_handle == -1) {
             console_out_printf(0, "profile not saved since it was a default profile");
             player_profile_refresh_settings_cache(0);
             return;
         }
-        player_profile_write_data(current_profile_index, profile_globals_block);
+        player_profile_write_data(saved_player_profile_slots_handle, profile_globals_block);
     }
     player_profile_refresh_settings_cache(0);
 }

@@ -23,7 +23,7 @@
 
 extern data_array *object_data;         // 0x008603b0
 extern tag_instance *tag_instances;     // 0x0087bc14
-extern void *DAT_00746f98;              // UNSURE global, passed straight through to FUN_00502060
+extern void *global_structure_collision_bsp;              // UNSURE global, passed straight through to FUN_00502060
 extern real_vector3d *global_up3d_pointer;  // 0x00696720
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c, a POINTER (-> 0x65c25c {0,0,-1})
 
@@ -62,7 +62,7 @@ int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_
         // 0x571e50..0x571ec1: EAX = 1, ECX = &result, push bsp [0x746f98], 0, 0, &base, &delta, FLT_MAX (0x7f7fffff)
         {
             uint32_t flt_max_bits = 0x7f7fffff;
-            hit = collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)DAT_00746f98, 0,
+            hit = collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                 (uint32_t *)0, &base_position, &delta, *(float *)&flt_max_bits);
         }
         hit_fraction = segment_result.t;                              // [esp+0x20] = result +0x00

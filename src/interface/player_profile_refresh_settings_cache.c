@@ -26,7 +26,7 @@
 
 extern uint8_t profile_globals_block[];         // 0x00712dd8, stride 0x2004 per slot
 extern int16_t profile_slot_id[];               // 0x00714dde, indexed by player index
-extern player_control_settings player_control_settings_cache[]; // 0x00710328
+extern player_control_settings input_globals[]; // 0x00710328
 
 // Remap tables, built on the stack in the original (local_8e0[0x00..0x1d]).
 static const float k_table_80[10] = { // local_8e0[0x00..0x09]
@@ -45,7 +45,7 @@ static uint32_t slider_index(uint8_t value)
 }
 
 // blam-cc: BX -> player_index
-// Rebuilds player_index's row of player_control_settings_cache from its raw profile record.
+// Rebuilds player_index's row of input_globals from its raw profile record.
 // The destination row is profile_slot_id[player_index] if one is assigned, else player_index.
 void player_profile_refresh_settings_cache(int16_t player_index)
 {
@@ -91,7 +91,7 @@ void player_profile_refresh_settings_cache(int16_t player_index)
     if (profile_slot_id[player_index] == -1) {
         dest_slot = player_index;
     }
-    player_control_settings_cache[dest_slot] = settings;
+    input_globals[dest_slot] = settings;
 }
 
 #if 0

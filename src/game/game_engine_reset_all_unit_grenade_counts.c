@@ -26,7 +26,7 @@
 #include <stdint.h>
 
 extern data_array *player_data;    // 0x0087a480
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 
@@ -47,7 +47,7 @@ void game_engine_reset_all_unit_grenade_counts(void)
     p = (player *)data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (p->unit != (datum_index)0xffffffff) {
-            object *unit_obj = ((object_header *)object_headers->data)[p->unit & 0xffff].data;
+            object *unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             unit->grenade_counts[0] = 0;
             unit->grenade_counts[1] = 0;

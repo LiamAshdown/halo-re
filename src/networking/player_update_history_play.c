@@ -43,7 +43,7 @@ extern void *memcpy(void *dest, const void *src, int32_t count);
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t network_replaying_update; // 0x0071c419, UNSURE: set 1 for the duration of every
+extern uint8_t unit_updates_suppressed; // 0x0071c419, UNSURE: set 1 for the duration of every
     // single object_update/biped_update call in the replay loop below
 
 extern player_update_history_node *player_update_history_find_and_prune(
@@ -212,7 +212,7 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
             if (0 < remaining_ticks) {
                 ticks_this_call = ticks_this_call + remaining_ticks;
                 do {
-                    network_replaying_update = 1;
+                    unit_updates_suppressed = 1;
                     if (vehicle_obj == 0) {
                         biped_update();
                         biped_update();
@@ -220,7 +220,7 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
                         object_update();
                     }
                     remaining_ticks = remaining_ticks - 1;
-                    network_replaying_update = 0;
+                    unit_updates_suppressed = 0;
                 } while (remaining_ticks != 0);
             }
             node = node->next;

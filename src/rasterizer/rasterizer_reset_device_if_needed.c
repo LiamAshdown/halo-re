@@ -16,8 +16,8 @@
 #include "rasterizer.h"
 
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
-extern uint8_t unknown_006893f6, unknown_006893f7, unknown_006893f8, unknown_006893f9; // UNSURE debug toggles
-extern uint8_t unknown_006893fd, unknown_0068941d, unknown_006893f2; // UNSURE debug toggles
+extern uint8_t unknown_006893f6, unknown_006893f7, unknown_006893f8, console_debug_toggle_6893f9; // UNSURE debug toggles
+extern uint8_t unknown_006893fd, unknown_0068941d, console_debug_toggle_6893f2; // UNSURE debug toggles
 extern uint8_t rasterizer_device_lost; // 0x007c10b0
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern void *rasterizer_device; // 0x0071d174
@@ -39,10 +39,10 @@ uint8_t __cdecl rasterizer_reset_device_if_needed(void)
         unknown_006893f6 = 0;
         unknown_006893f7 = 0;
         unknown_006893f8 = 0;
-        unknown_006893f9 = 0;
+        console_debug_toggle_6893f9 = 0;
         unknown_006893fd = 0;
         unknown_0068941d = 0;
-        unknown_006893f2 = 0;
+        console_debug_toggle_6893f2 = 0;
     }
 
     if (rasterizer_device_lost != 0) {

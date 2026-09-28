@@ -30,14 +30,14 @@
 #include "networking.h"
 #include "interface.h"
 
-extern d3d9_interface *d3d_interface;       // 0x0071d178
+extern d3d9_interface *rasterizer_direct3d;       // 0x0071d178
 extern uint32_t d3d_adapter;                // 0x0071d180, UNSURE name
-extern uint32_t video_max_width;            // 0x0069fe3c, 0x1000 by default; UNSURE name
-extern int32_t command_line_argc;           // 0x00721e94
-extern char **command_line_argv;            // 0x00721e90
-extern uint32_t video_memory_bytes;         // 0x00722bb0, UNSURE name
-extern uint8_t rasterizer_device_valid; // 0x0071d16c, UNSURE name
-extern void *d3d_device;                    // 0x0071d174
+extern uint32_t config_maximum_resolution;            // 0x0069fe3c, 0x1000 by default; UNSURE name
+extern int32_t shell_argc;           // 0x00721e94
+extern char **shell_argv;            // 0x00721e90
+extern uint32_t video_memory;         // 0x00722bb0, UNSURE name
+extern uint8_t rasterizer_fullscreen; // 0x0071d16c, UNSURE name
+extern void *rasterizer_device;                    // 0x0071d174
 
 extern int _stricmp(const char *a, const char *b); // 0x628d8b
 extern void video_resolution_add(int32_t height, int32_t width, int32_t refresh_rate); // 0x4badc0, blam-cc: EAX height
@@ -46,11 +46,11 @@ static uint8_t video_mode_memory_limit_applies(void)
 {
     int32_t i;
 
-    if (video_max_width == 0x1000) {
+    if (config_maximum_resolution == 0x1000) {
         return 1;
     }
-    for (i = 0; i < command_line_argc; i++) {
-        const char *argument = command_line_argv[i];
+    for (i = 0; i < shell_argc; i++) {
+        const char *argument = shell_argv[i];
 
         if (argument[0] == '-' && _stricmp("-vidmode", argument) == 0) {
             return 1;
@@ -66,33 +66,33 @@ void video_display_modes_enumerate(uint32_t format)
     d3d_display_mode mode;
     uint32_t index;
 
-    if (d3d_interface == 0) {
+    if (rasterizer_direct3d == 0) {
         return;
     }
     GetWindowRect(GetDesktopWindow(), &desktop);
-    index = d3d_interface->vtable->get_adapter_mode_count(d3d_interface, d3d_adapter, format);
+    index = rasterizer_direct3d->vtable->get_adapter_mode_count(rasterizer_direct3d, d3d_adapter, format);
     while (index != 0) {
         index--;
-        if (d3d_interface->vtable->enum_adapter_modes(d3d_interface, d3d_adapter, format, index, &mode) < 0) {
+        if (rasterizer_direct3d->vtable->enum_adapter_modes(rasterizer_direct3d, d3d_adapter, format, index, &mode) < 0) {
             continue;
         }
         if (video_mode_memory_limit_applies()) {
-            if (video_memory_bytes <= 0x2000000 && mode.width > 0x400) {
+            if (video_memory <= 0x2000000 && mode.width > 0x400) {
                 continue;
             }
-            if (video_memory_bytes <= 0x4000000 && mode.width > 0x500) {
+            if (video_memory <= 0x4000000 && mode.width > 0x500) {
                 continue;
             }
-            if (video_memory_bytes <= 0x8000000 && mode.width > 0x640) {
+            if (video_memory <= 0x8000000 && mode.width > 0x640) {
                 continue;
             }
         }
-        if (rasterizer_device_valid == 0 || d3d_device == 0) {
+        if (rasterizer_fullscreen == 0 || rasterizer_device == 0) {
             if (mode.width >= (uint32_t)desktop.right || mode.height >= (uint32_t)desktop.bottom) {
                 continue;
             }
         }
-        if (mode.width > video_max_width || mode.width < 0x280 || mode.height < 0x1e0 || mode.width > 0x12c0 ||
+        if (mode.width > config_maximum_resolution || mode.width < 0x280 || mode.height < 0x1e0 || mode.width > 0x12c0 ||
             mode.height > 0xe10 || mode.refresh_rate > 0x78) {
             continue;
         }

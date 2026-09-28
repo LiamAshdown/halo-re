@@ -10,7 +10,7 @@
 //   "TDefault_ps"/"TDefault_no_ps" (or "fallback" when neither -deferred nor a captured caps flag
 //   applies) before activating whatever technique it found with SetTechnique.
 // register convention: EAX -> effect_index (rasterizer_effects[] slot to initialize).
-// UNSURE: `renderer_unknown_722b60`/`rasterizer_config_shader_version` are read but not otherwise documented in this
+// UNSURE: `config_safe_mode`/`config_force_shader` are read but not otherwise documented in this
 //   module; from the branch shape (skip the whole version-probing loop, go straight to the
 //   "fallback" technique name) they read as a forced-fallback flag and a specific sentinel value
 //   (0x270d) that also selects the plain fallback path.
@@ -23,8 +23,8 @@
 
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 extern d3d_caps9 rasterizer_caps;                                    // 0x007c10c0
-extern int32_t renderer_unknown_722b60; // 0x00722b60 nonzero forces the "fallback" technique name
-extern int32_t rasterizer_config_shader_version; // 0x00722b64 config pixel shader version; 0x270d also forces "fallback"
+extern int32_t config_safe_mode; // 0x00722b60 nonzero forces the "fallback" technique name
+extern int32_t config_force_shader; // 0x00722b64 config pixel shader version; 0x270d also forces "fallback"
 
 typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, void *parent, const char *name);
 typedef int32_t (__stdcall *d3dx_validate_technique_fn)(void *effect, void *technique);
@@ -52,7 +52,7 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
     technique = 0;
     found = 0;
 
-    if (renderer_unknown_722b60 == 0 && rasterizer_config_shader_version != 0x270d) {
+    if (config_safe_mode == 0 && config_force_shader != 0x270d) {
         major = (rasterizer_caps.pixel_shader_version >> 8) & 0xff;
         minor = rasterizer_caps.pixel_shader_version & 0xff;
         for (; !found && major >= 0; major--, minor = 9) {

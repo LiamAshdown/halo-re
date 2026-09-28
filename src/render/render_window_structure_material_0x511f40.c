@@ -10,9 +10,9 @@
 #include "memory.h"
 #include "math.h"
 
-extern void *shader_environment_procedure_007c0494; // 0x007c0494
+extern void *unknown_007c0494; // 0x007c0494
 
 void render_window_structure_material_0x511f40(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
 {
-    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))shader_environment_procedure_007c0494)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))unknown_007c0494)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
 }

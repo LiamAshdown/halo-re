@@ -37,7 +37,7 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern uint8_t *globals_tag_data;    // 0x00746fa0
+extern uint8_t *global_globals;    // 0x00746fa0
 
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
                              uint32_t exclude_object, void *scratch); // 0x505880
@@ -153,10 +153,10 @@ void unit_can_see_point(uint32_t unit_index, real_vector3d *target_direction,
                 if (best_obj->type == 7) {
                     device_machine_melee_attacked(best_object); // FIXED: ECX = the hit object (0x56fa82)
                 }
-                if (*(float *)(globals_tag_data + 0x174 + 0x34) > 0.0f) {
+                if (*(float *)(global_globals + 0x174 + 0x34) > 0.0f) {
                     float f = (obj->forward.i * obj->velocity.i + obj->forward.j * obj->velocity.j +
                                obj->forward.k * obj->velocity.k) * 30.0f /
-                              *(float *)(globals_tag_data + 0x174 + 0x34);
+                              *(float *)(global_globals + 0x174 + 0x34);
                     dd.random_blend = (f < 0.0f) ? 0.0f : (f > 1.0f ? 1.0f : f);
                 }
                 if (obj->type == 0 && *(int8_t *)((uint8_t *)obj + 0x501) > 0x0f) {

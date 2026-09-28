@@ -33,7 +33,7 @@ extern int32_t map_list_count; // 0x00712dd0
 extern map_list_entry *map_list; // 0x00712dcc, stride 0xc
 
 extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX
-extern void *console_color_00686af8; // 0x00686af8, a ColorARGB * the original loads into EAX
+extern void *actor_mode_default_look_weights; // 0x00686af8, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: prints every installed map name (lowercased filter substring optional),
@@ -71,7 +71,7 @@ void map_list_matching_substring(uint32_t argument_count, char **arguments) // b
             i = i + 1;
         }
         if (line[0] != 0) {
-            chimera__console_out((ColorARGB *)console_color_00686af8, line);
+            chimera__console_out((ColorARGB *)actor_mode_default_look_weights, line);
         }
     }
 }

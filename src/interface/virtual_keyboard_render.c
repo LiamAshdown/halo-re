@@ -24,7 +24,7 @@
 
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern tag_instance *tag_instances;               // 0x0087bc14
-extern uint16_t hud_text_missing_string_00671fac[]; // 0x00671fac, L"<missing string>"
+extern uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"
 
 extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c
 extern uint32_t hud_text_draw_unknown_4730;   // 0x006e4730
@@ -60,7 +60,7 @@ void virtual_keyboard_render(void)
     const uint8_t *strings = (const uint8_t *)virtual_keyboard.strings_tag_data;
     datum_index background = *(const datum_index *)(strings + 0x1c);
     datum_index string_list;
-    const uint16_t *prompt = hud_text_missing_string_00671fac;
+    const uint16_t *prompt = missing_string_text;
     Rectangle2D rect;
 
     if (background != (datum_index)-1) {

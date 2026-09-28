@@ -26,7 +26,7 @@
 #include "hs.h"
 #include "game.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
@@ -47,7 +47,7 @@ void player_examine_nearby_vehicle(int16_t index, uint32_t thread_index, hs_func
         return;
     }
     if (args[0] != (int32_t)0xffffffff) {
-        object *target = (object *)((object_header *)object_headers->data)[args[0] & 0xffff].data;
+        object *target = (object *)((object_header *)object_data->data)[args[0] & 0xffff].data;
         if ((char)args[1] != 0) {
             *((uint8_t *)&target->vitality_flags + 1) |= 0x01;
             hs_thread_return(0, thread_index);

@@ -16,7 +16,7 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint32_t *unknown_0071cfc0; // 0x0071cfc0, the model ambient reflection tint (4 floats)
+extern uint32_t *rasterizer_model_ambient_reflection_tint; // 0x0071cfc0, the model ambient reflection tint (4 floats)
 
 void hs_evaluate_rasterizer_model_ambient_reflection_tint(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -25,11 +25,11 @@ void hs_evaluate_rasterizer_model_ambient_reflection_tint(int16_t function_index
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if (unknown_0071cfc0 != 0) {
-            unknown_0071cfc0[0] = (uint32_t)arguments[0];
-            unknown_0071cfc0[1] = (uint32_t)arguments[1];
-            unknown_0071cfc0[2] = (uint32_t)arguments[2];
-            unknown_0071cfc0[3] = (uint32_t)arguments[3];
+        if (rasterizer_model_ambient_reflection_tint != 0) {
+            rasterizer_model_ambient_reflection_tint[0] = (uint32_t)arguments[0];
+            rasterizer_model_ambient_reflection_tint[1] = (uint32_t)arguments[1];
+            rasterizer_model_ambient_reflection_tint[2] = (uint32_t)arguments[2];
+            rasterizer_model_ambient_reflection_tint[3] = (uint32_t)arguments[3];
         }
         hs_thread_return(0, thread_index);
     }

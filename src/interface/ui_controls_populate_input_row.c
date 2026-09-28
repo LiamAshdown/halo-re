@@ -19,8 +19,8 @@
 #include "networking.h"
 #include "interface.h"
 
-extern uint8_t capability_flag_007252e0; // 0x007252e0, TYPES-GAP
-extern uint8_t capability_flag_00746120; // 0x00746120, TYPES-GAP
+extern uint8_t directsound_initialized; // 0x007252e0, TYPES-GAP
+extern uint8_t directsound_eax_available; // 0x00746120, TYPES-GAP
 
 static widget_instance *find_row_control(widget_instance *row)
 {
@@ -55,7 +55,7 @@ void ui_controls_populate_input_row(widget_instance *widget, const uint8_t *prof
 
     row = row->next_sibling;
     control = find_row_control(row);
-    if (capability_flag_007252e0 == 0 || capability_flag_00746120 == 0) {
+    if (directsound_initialized == 0 || directsound_eax_available == 0) {
         row->hidden = 1;
         row->scale = 0.333f; // 0x3eaa7efa
         control->selection_index = 0;
@@ -73,7 +73,7 @@ void ui_controls_populate_input_row(widget_instance *widget, const uint8_t *prof
     row = row->next_sibling;
     control = find_row_control(row);
     control->selection_index =
-        (profile_record[0xb7b] != 0 && capability_flag_007252e0 != 0 && capability_flag_00746120 != 0)
+        (profile_record[0xb7b] != 0 && directsound_initialized != 0 && directsound_eax_available != 0)
             ? 1 : 0;
 
     row = row->next_sibling;

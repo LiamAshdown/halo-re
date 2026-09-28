@@ -23,7 +23,7 @@ extern lens_flare_object_visibility lens_flare_object_visibility_table[k_lens_fl
 extern uint8_t lens_flare_marker_visibility[0x10008]; // 0x006be810
 extern int32_t lens_flare_instance_count; // 0x0071d134
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4, render.h (0x78 bytes, +0x74 near_clip_distance)
-extern float *unknown_0071cfc0; // 0x0071cfc0
+extern float *rasterizer_model_ambient_reflection_tint; // 0x0071cfc0
 
 extern void font_glyph_cache_clear_all(void); // 0x514cb0
 
@@ -59,11 +59,11 @@ void decal_and_font_system_reset(void)
         ((uint32_t *)cinematic_screen_effect_state)[0x1b] = 0x3f800000;
         ((uint32_t *)cinematic_screen_effect_state)[0x1c] = 0x3f800000;
     }
-    if (unknown_0071cfc0 != (float *)0) {
-        unknown_0071cfc0[0] = 0;
-        unknown_0071cfc0[1] = 0;
-        unknown_0071cfc0[2] = 0;
-        unknown_0071cfc0[3] = 0;
+    if (rasterizer_model_ambient_reflection_tint != (float *)0) {
+        rasterizer_model_ambient_reflection_tint[0] = 0;
+        rasterizer_model_ambient_reflection_tint[1] = 0;
+        rasterizer_model_ambient_reflection_tint[2] = 0;
+        rasterizer_model_ambient_reflection_tint[3] = 0;
     }
     if (cinematic_screen_effect_state != (cinematic_screen_effect_globals *)0) {
         ((uint32_t *)cinematic_screen_effect_state)[0x1d] = 0; // near_clip_distance (+0x74)

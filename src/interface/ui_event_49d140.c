@@ -16,13 +16,13 @@
 #include "interface.h"
 
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, word stores
-extern uint8_t main_globals_byte_0071973c; // 0x0071973c
+extern uint8_t network_join_error_reason; // 0x0071973c
 extern uint8_t split_screen_quit_prompt_armed; // 0x00719757
 
 uint8_t ui_event_49d140(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     split_screen_quit_prompt_string = 0xffff;
-    main_globals_byte_0071973c = 0;
+    network_join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
     return 1;
 }

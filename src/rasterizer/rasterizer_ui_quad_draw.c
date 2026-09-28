@@ -39,7 +39,7 @@
 
 extern void *rasterizer_device;                             // 0x0071d174
 extern uint8_t rasterizer_software_vertex_processing;       // 0x0069c680
-extern uint8_t console_debug_toggle_689402;                 // 0x00689402
+extern uint8_t text_rendering_enabled;                 // 0x00689402
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220
 extern d3d_caps9 rasterizer_caps;                           // 0x007c10c0
 extern const ColorRGB *global_white_color;                  // 0x00686b04
@@ -108,7 +108,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
     int16_t width, height;
     int16_t stage;
 
-    if (console_debug_toggle_689402 == 0 || rasterizer_window.type != 1) {
+    if (text_rendering_enabled == 0 || rasterizer_window.type != 1) {
         return;
     }
     set_render_state(0x16, 1);           // CULLMODE NONE

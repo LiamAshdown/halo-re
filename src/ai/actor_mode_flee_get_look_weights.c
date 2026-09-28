@@ -16,12 +16,12 @@ extern data_array *actor_data; // 0x00880360
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
-extern const float *actor_mode_flee_look_weights_fleeing; // 0x00685200
+extern const float *hud_text_message_normal_color; // 0x00685200
 extern const float *actor_mode_default_look_weights;      // 0x00686af8
 
 void actor_mode_flee_get_look_weights(datum_index actor_index, float *out_weights)
 {
-    const float *source = *(int16_t *)(ACTOR(actor_index) + 0xa8) > 0 ? actor_mode_flee_look_weights_fleeing
+    const float *source = *(int16_t *)(ACTOR(actor_index) + 0xa8) > 0 ? hud_text_message_normal_color
                                                                         : actor_mode_default_look_weights;
 
     out_weights[0] = source[0];

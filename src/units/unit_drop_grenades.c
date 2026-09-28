@@ -6,7 +6,7 @@
 //   object_placement_data (size 0x88, matches the Ghidra local buffer exactly); callees
 //   object_placement_data_initialize (0x4f53a0), object_new_with_datum_role_control (0x4f54b0),
 //   unit_drop_object_from_hand (0x56ed00, this batch).
-// UNSURE: the grenade-type table at globals_tag_data+0x12c (same table read by
+// UNSURE: the grenade-type table at global_globals+0x12c (same table read by
 //   unit_throw_grenade_move_to_hand, there at field +0x40; here at field +0x30 -- a different
 //   field of the same 0x44-byte record) is not named in types/units.h.
 // UNSURE: the role-override check (indexing object_type_definitions by the spawned tag's own
@@ -22,8 +22,8 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern uint8_t *globals_tag_data;    // 0x00746fa0
-extern int16_t game_connection_role; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
+extern uint8_t *global_globals;    // 0x00746fa0
+extern int16_t network_game_mode; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc, an ARRAY (was a pointer variable)
 
 extern void object_placement_data_initialize(object_placement_data *placement,
@@ -39,7 +39,7 @@ extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_obj
 // blam-cc: stack -> unit_index
 void unit_drop_grenades(uint32_t unit_index)
 {
-    uint8_t *grenade_type_table = *(uint8_t **)(globals_tag_data + 0x12c); // UNSURE table identity
+    uint8_t *grenade_type_table = *(uint8_t **)(global_globals + 0x12c); // UNSURE table identity
     int32_t table_offset = 0;
     int grenade_type;
 
@@ -55,7 +55,7 @@ void unit_drop_grenades(uint32_t unit_index)
 
             object_placement_data_initialize(&placement, projectile_tag, unit_index);
 
-            if (game_connection_role == 2) {
+            if (network_game_mode == 2) {
                 Object *proj_tag = (Object *)tag_instances[placement.definition_tag & 0xffff].data;
                 object_type_definition *type_def = object_type_definitions[proj_tag->object_type];
                 if (*(int32_t *)((uint8_t *)type_def + 0x10) != -1) {

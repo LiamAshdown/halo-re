@@ -23,9 +23,9 @@
 extern player_globals *local_player_globals;      // 0x0087a478
 extern data_array *player_data;                   // 0x0087a480
 extern int16_t profile_slot_id[];                 // 0x00714dde
-extern int16_t game_player_count_word;            // 0x006894b8
+extern int16_t local_player_count;            // 0x006894b8
 extern uint8_t *player_control_globals_ptr;       // 0x006b145c
-extern uint8_t *hud_weapon_interface_globals;     // 0x00719430
+extern uint8_t *hud_weapon_state;     // 0x00719430
 extern uint8_t *hud_unit_meters;                  // 0x0071942c
 
 extern void game_set_local_player(datum_index player_handle, int16_t local_player_index); // 0x474d50, ECX, SI
@@ -45,7 +45,7 @@ void players_rebind_local_player_after_load(void)
     if (local < 1 && local_player_globals->local_players[local] != k_datum_index_none) {
         return;
     }
-    if (game_player_count_word != 1) {
+    if (local_player_count != 1) {
         return;
     }
     for (slot = 0; slot < 4; slot++) {
@@ -86,7 +86,7 @@ void players_rebind_local_player_after_load(void)
     game_set_local_player(handle, local);
     game_engine_init_player_look_state_from_object(entry->unit, local);
 
-    memmove(hud_weapon_interface_globals + local * 0x28, hud_weapon_interface_globals + slot * 0x28, 0x28);
-    memmove(hud_weapon_interface_globals + 0x28 + local * 0x50, hud_weapon_interface_globals + 0x28 + slot * 0x50, 0x50);
+    memmove(hud_weapon_state + local * 0x28, hud_weapon_state + slot * 0x28, 0x28);
+    memmove(hud_weapon_state + 0x28 + local * 0x50, hud_weapon_state + 0x28 + slot * 0x50, 0x50);
     memmove(hud_unit_meters + local * 0x58, hud_unit_meters + slot * 0x58, 0x58);
 }

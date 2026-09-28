@@ -15,7 +15,7 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *hud_weapon_interface_globals; // 0x00719430
+extern uint8_t *hud_weapon_state; // 0x00719430
 
 void hs_evaluate_hud_show_crosshair(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -25,9 +25,9 @@ void hs_evaluate_hud_show_crosshair(int16_t function_index, uint32_t thread_inde
 
     if (arguments != 0) {
     if (*(uint8_t *)&arguments[0]) {
-        *(uint32_t *)(hud_weapon_interface_globals + 0x78) |= 1;
+        *(uint32_t *)(hud_weapon_state + 0x78) |= 1;
     } else {
-        *(uint32_t *)(hud_weapon_interface_globals + 0x78) &= 0xfffffffe;
+        *(uint32_t *)(hud_weapon_state + 0x78) &= 0xfffffffe;
     }
     hs_thread_return(0, thread_index);
     }

@@ -26,8 +26,8 @@
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *item_globals;       // 0x00746fa0, the grenade type table pointer sits at +300
-extern float world_gravity_scale;   // 0x0069c52c
+extern uint8_t *global_globals;       // 0x00746fa0, the grenade type table pointer sits at +300
+extern float k_physics_gravity;   // 0x0069c52c
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
@@ -63,7 +63,7 @@ uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point)
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
 
-    entry = *(uint8_t **)(item_globals + 300) + (int32_t)variant->grenade_type * 0x44;
+    entry = *(uint8_t **)(global_globals + 300) + (int32_t)variant->grenade_type * 0x44;
     projectile_definition = (void *)0;
     if (entry != (uint8_t *)0) {
         projectile_tag = *(uint32_t *)(entry + 0x40);
@@ -100,7 +100,7 @@ uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point)
     velocity.j = direction.j * speed;
     velocity.k = direction.k * speed;
     gravity = (flat != 0) ? 0.0f
-                          : -(world_gravity_scale *
+                          : -(k_physics_gravity *
                               *(float *)((uint8_t *)projectile_definition + 0x1cc));
 
     // 0x410906: EAX the velocity, ECX the actor, EDX the throw point

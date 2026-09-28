@@ -38,7 +38,7 @@ extern int16_t network_game_mode;                    // 0x00719720
 extern uint8_t ui_split_screen;                       // 0x00718fc9
 extern int32_t ui_pause_pending_count_00718fa0;       // 0x00718fa0, TYPES-GAP
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
-extern uint8_t unknown_006b3858;                      // 0x006b3858, TYPES-GAP
+extern uint8_t chat_dialog_open;                      // 0x006b3858, TYPES-GAP
 extern uint8_t unknown_007127d1;                      // 0x007127d1, TYPES-GAP
 extern player_globals *local_player_globals;          // 0x0087a478
 extern game_engine_state game_engine_state_value;     // 0x0087aa10
@@ -69,7 +69,7 @@ uint32_t ui_check_for_pause_game(void)
         (game_time->active == 0 && game_time->paused == 0) ||
         cinematic_globals_ptr->in_progress != 0 ||
         network_game_mode == 3 || ui_split_screen != 0 || ui_pause_pending_count_00718fa0 != 0 ||
-        (player_control_globals_ptr->action_flags_latched >> 3 & 1) != 0 || unknown_006b3858 != 0 ||
+        (player_control_globals_ptr->action_flags_latched >> 3 & 1) != 0 || chat_dialog_open != 0 ||
         unknown_007127d1 != 1) {
         goto decrement_and_return;
     }

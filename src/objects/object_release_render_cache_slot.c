@@ -9,7 +9,7 @@
 // register convention: object index in EDI. Confirmed against objdump-consistent pattern:
 //   Ghidra shows only "unaff_EDI", no stack access.
 //   // blam-cc: EDI -> object_index
-// UNSURE: the loop bound at player_globals_table+0x204 is not otherwise established in this
+// UNSURE: the loop bound at global_scenario+0x204 is not otherwise established in this
 //   module; kept as a raw offset off the same DAT_00746f8c global used elsewhere in this batch.
 
 #include "tags.h"
@@ -18,7 +18,7 @@
 #include "objects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t *player_globals_table; // 0x00746f8c, see objects_set_ambient_cluster_override.c
+extern uint8_t *global_scenario; // 0x00746f8c, see objects_set_ambient_cluster_override.c
 extern datum_index *object_name_list; // 0x006b8cb8
 
 void object_release_render_cache_slot(uint32_t object_index) // blam-cc: EDI -> object_index
@@ -26,7 +26,7 @@ void object_release_render_cache_slot(uint32_t object_index) // blam-cc: EDI -> 
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
     if (obj->render_cache_slot != -1) {
-        int32_t count = *(int32_t *)(player_globals_table + 0x204); // UNSURE: see file header
+        int32_t count = *(int32_t *)(global_scenario + 0x204); // UNSURE: see file header
         int16_t i;
 
         obj->render_cache_slot = -1;

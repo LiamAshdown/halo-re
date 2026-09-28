@@ -29,7 +29,7 @@
 
 extern void *rasterizer_device;                             // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220
-extern uint8_t unknown_0069c689;                            // 0x0069c689
+extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689
 extern uint8_t console_debug_toggle_6893f2;                 // 0x006893f2 object shadows enabled
 extern uint8_t console_debug_toggle_68941f;                 // 0x0068941f grey shadow target clear
 extern int16_t rasterizer_active_render_target;             // 0x0069d350
@@ -77,7 +77,7 @@ uint8_t rasterizer_object_shadow_begin(const real_matrix4x3 *projection, const C
     if (rasterizer_window.type != 1) {
         return 1;
     }
-    if (unknown_0069c689 != 0 || console_debug_toggle_6893f2 == 0) {
+    if (rasterizer_caps_flag_689 != 0 || console_debug_toggle_6893f2 == 0) {
         if (out_radius != NULL) {
             *out_radius = 0.0f;
         }

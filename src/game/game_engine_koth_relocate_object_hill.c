@@ -22,7 +22,7 @@
 #include "game.h"
 
 extern int16_t network_game_mode;        // 0x00719720
-extern data_array *object_headers;       // 0x008603b0
+extern data_array *object_data;       // 0x008603b0
 extern game_variant game_engine_variant; // 0x006f1c88 (unknown_90 aliased 0x006f1d18)
 
 extern void game_engine_koth_find_marker_position(real_point3d *out_position, int16_t type_filter); // 0x46beb0, this batch
@@ -38,7 +38,7 @@ extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_po
 void game_engine_koth_relocate_object_hill(uint32_t object_index)
 {
     if (network_game_mode == 2) {
-        object *obj = ((object_header *)object_headers->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
         real_point3d discarded_position;
 
         game_engine_koth_find_marker_position(&discarded_position, *(int16_t *)((uint8_t *)obj + 0xb8));

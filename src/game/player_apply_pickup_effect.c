@@ -27,10 +27,10 @@
 #include "game.h"
 
 extern data_array *player_data;              // 0x0087a480
-extern data_array *object_headers;           // 0x008603b0
+extern data_array *object_data;           // 0x008603b0
 extern tag_instance *tag_instances;          // 0x0087bc14
 extern player_globals *local_player_globals; // 0x0087a478
-extern uint8_t *global_006b0b80;             // 0x006b0b80, UNSURE identity, see header note
+extern uint8_t *main_game_globals;             // 0x006b0b80, UNSURE identity, see header note
 extern int16_t network_game_mode;            // 0x00719720
 
 extern uint8_t object_shield_recharge_start(uint32_t object_index); // 0x4edba0, UNSURE exact signature
@@ -58,7 +58,7 @@ extern void object_delete(uint32_t object_index); // 0x4f5bd0
 void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    object *pickup = (object *)((object_header *)object_headers->data)[pickup_object & 0xffff].data;
+    object *pickup = (object *)((object_header *)object_data->data)[pickup_object & 0xffff].data;
     uint8_t *tag = (uint8_t *)tag_instances[pickup->definition_tag & 0xffff].data;
     int16_t amount = (int16_t)(int32_t)(*(float *)(tag + 0x30c) * 30.0f); // fld / fmul 30 / __ftol, then test ax
     int16_t discriminator;
@@ -70,7 +70,7 @@ void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object)
     discriminator = *(int16_t *)(tag + 0x308);
     if (discriminator == 1) {
         local_player_globals->respawn_stagger = local_player_globals->respawn_stagger + amount;
-        global_006b0b80[2] = 1;
+        main_game_globals[2] = 1;
     } else if (discriminator == 2) {
         if (object_shield_recharge_start(p->unit) == 0) {
             return;

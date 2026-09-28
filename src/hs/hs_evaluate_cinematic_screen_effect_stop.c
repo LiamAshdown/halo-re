@@ -12,12 +12,12 @@
 #include "hs.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *cinematic_screen_effect; // 0x0071cfc4
+extern uint8_t *cinematic_screen_effect_state; // 0x0071cfc4
 
 void hs_evaluate_cinematic_screen_effect_stop(int16_t function_index, uint32_t thread_index, char first)
 {
-    if (cinematic_screen_effect != 0) {
-        cinematic_screen_effect[0x38] = 0;
+    if (cinematic_screen_effect_state != 0) {
+        cinematic_screen_effect_state[0x38] = 0;
     }
     hs_thread_return(0, thread_index);
 }

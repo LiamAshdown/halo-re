@@ -13,7 +13,7 @@
 #include "units.h"
 
 extern data_array *object_data;  // 0x008603b0
-extern uint8_t *some_globals_006f187c; // 0x006f187c, UNSURE
+extern uint8_t *cinematic_globals_ptr; // 0x006f187c, UNSURE
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 
 extern void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index); // 0x560590, next batch: fires a numbered unit trigger event
@@ -34,7 +34,7 @@ void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out)
         biped->unknown_508 = -1;
     }
 
-    if (some_globals_006f187c[9] == 0 && unit_updates_suppressed == 0 &&
+    if (cinematic_globals_ptr[9] == 0 && unit_updates_suppressed == 0 &&
         (frame_count == 2 || (biped->unknown_508 == -1 && biped->unknown_4d1 < 2))) {
         // unit_index rides in EBX (see that function's header); Ghidra bound only the two
         // stack arguments, which are its 2nd and 3rd parameters.

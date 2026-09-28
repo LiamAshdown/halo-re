@@ -21,7 +21,7 @@
 #include "networking.h"
 
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
-extern file_reference savegame_directory_file_reference; // 0x00721330
+extern file_reference savegame_index_file; // 0x00721330
 extern network_mutex_record *savegame_index_mutex; // 0x00721440, networking.h record; +0x00 is the HANDLE
 
 extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0
@@ -55,10 +55,10 @@ uint8_t savegame_index_write_slot(uint16_t slot, const void *entry)
     }
 
     {
-        uint32_t *raw = (uint32_t *)&savegame_directory_file_reference;
+        uint32_t *raw = (uint32_t *)&savegame_index_file;
         int32_t i;
-        uint8_t *flags_byte = (uint8_t *)&savegame_directory_file_reference + 4;
-        uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_directory_file_reference + 6);
+        uint8_t *flags_byte = (uint8_t *)&savegame_index_file + 4;
+        uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_index_file + 6);
 
         for (i = 0; i < 0x43; i++) {
             raw[i] = 0;
@@ -66,23 +66,23 @@ uint8_t savegame_index_write_slot(uint16_t slot, const void *entry)
         raw[0] = 0x66696c6f;
         *word_at_6 = 2;
         if ((*flags_byte & 1) != 0) {
-            path_remove_last_component((uint8_t *)&savegame_directory_file_reference + 8);
+            path_remove_last_component((uint8_t *)&savegame_index_file + 8);
         }
-        path_append_component((char *)&savegame_directory_file_reference + 8, saved_game_root_path);
+        path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
         *flags_byte = *flags_byte | 1;
     }
 
-    if (file_reference_open(&savegame_directory_file_reference, 2) != 0) {
-        uint32_t size = file_reference_get_size(&savegame_directory_file_reference);
+    if (file_reference_open(&savegame_index_file, 2) != 0) {
+        uint32_t size = file_reference_get_size(&savegame_index_file);
         if ((uint32_t)slot * 0x206 + 0x206 <= size) {
-            if (file_reference_seek((int32_t)slot * 0x206, &savegame_directory_file_reference) != 0) {
+            if (file_reference_seek((int32_t)slot * 0x206, &savegame_index_file) != 0) {
                 result = 1;
-                if (file_reference_write(&savegame_directory_file_reference, entry, 0x206) == 0) {
+                if (file_reference_write(&savegame_index_file, entry, 0x206) == 0) {
                     result = 0;
                 }
             }
         }
-        if (file_reference_close(&savegame_directory_file_reference) == 0) {
+        if (file_reference_close(&savegame_index_file) == 0) {
             result = 0;
         }
     }

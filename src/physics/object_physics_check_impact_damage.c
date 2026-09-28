@@ -67,7 +67,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern Globals *game_globals;       // 0x00746fa0
+extern Globals *global_globals;       // 0x00746fa0
 extern game_time_globals *game_time; // 0x006f1d6c
                                     // game_time; same global src/items and src/devices use)
 extern float k_impact_damage_scale_table[]; // 0x0069c54c, indexed by material type per
@@ -208,7 +208,7 @@ uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t
 
     {
         // local_ac88 and local_ac94 are both reused here as the sub-tag pointer and its field
-        uint8_t *collision_damage_tag = *(uint8_t **)((uint8_t *)game_globals + 0x18c);
+        uint8_t *collision_damage_tag = *(uint8_t **)((uint8_t *)global_globals + 0x18c);
         int32_t impact_damage_tag_id = *(int32_t *)(collision_damage_tag + 0x68);
         int32_t breakable_damage_tag_id;
 

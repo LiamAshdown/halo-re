@@ -35,7 +35,7 @@
 extern data_array *encounter_data;                        // 0x008802c8
 extern encounter_squad_state *encounter_squad_states;     // 0x008802cc
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
-extern ai_globals *ai_global_data;                        // 0x00880354
+extern ai_globals *ai_globals_ptr;                        // 0x00880354
 extern data_array *actor_data;                            // 0x00880360
 extern data_array *object_data;                           // 0x008603b0
 extern data_array *prop_data;                             // 0x008802c0
@@ -108,15 +108,15 @@ void encounter_recompute_morale(datum_index encounter_index)
     }
 
     actor_index = (datum_index)k_datum_index_none;
-    if (ai_global_data->actors_valid != 0) {
+    if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_global_data->unknown_08;
+            actor_index = ai_globals_ptr->unknown_08;
         } else {
             actor_index = enc->first_actor;
         }
     }
 
-    while (ai_global_data->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
+    while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
         current = actor_index;
         a = &((actor *)actor_data->data)[current & 0xffff];
         actor_index = a->next_in_encounter;

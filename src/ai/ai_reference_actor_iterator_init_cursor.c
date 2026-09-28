@@ -29,7 +29,7 @@
 #include "ai.h"
 
 extern data_array *encounter_data; // 0x008802c8
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 
 // blam-cc: EAX -> encounter_index, ECX -> cursor
 // cursor[0] = encounter index (-1 for the unassigned actors), cursor[1] = the actor last returned
@@ -37,7 +37,7 @@ extern ai_globals *ai_global_data; // 0x00880354
 // the unassigned actor list.
 void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor)
 {
-    if (ai_global_data->actors_valid == 0) {
+    if (ai_globals_ptr->actors_valid == 0) {
         return;
     }
 
@@ -45,7 +45,7 @@ void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_inde
     cursor[1] = (datum_index)k_datum_index_none;
 
     if (encounter_index == -1) {
-        cursor[2] = ai_global_data->unknown_08;
+        cursor[2] = ai_globals_ptr->unknown_08;
         return;
     }
 

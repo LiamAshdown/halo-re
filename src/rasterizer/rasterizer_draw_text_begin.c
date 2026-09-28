@@ -21,7 +21,7 @@
 #include "interface.h"
 #include "rasterizer.h"
 
-extern uint8_t console_debug_toggle_689402;   // 0x00689402
+extern uint8_t text_rendering_enabled;   // 0x00689402
 extern rasterizer_window_parameters rasterizer_window; // 0x007c1220
 extern void *rasterizer_device;               // 0x0071d174
 extern uint8_t console_debug_toggle_6893e6;   // 0x006893e6
@@ -66,7 +66,7 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
     void *part0;
     int16_t part;
 
-    if (console_debug_toggle_689402 == 0 || rasterizer_window.type != 1) {
+    if (text_rendering_enabled == 0 || rasterizer_window.type != 1) {
         return;
     }
 

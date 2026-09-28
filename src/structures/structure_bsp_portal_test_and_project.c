@@ -24,8 +24,8 @@
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
-extern real_point3d render_camera_position;  // 0x007c3114, render camera block (read, not owned)
-extern uint8_t render_camera_projection;     // 0x007c3168, the transform context, +0x10 is the matrix
+extern real_point3d render_camera_global;  // 0x007c3114, render camera block (read, not owned)
+extern uint8_t render_frustum_global;     // 0x007c3168, the transform context, +0x10 is the matrix
 
 // blam-cc: EAX -> plane, ECX -> camera_ref, EDX -> vertices, stack -> the rest
 extern uint8_t structure_bsp_portal_project(real_plane3d *plane, void *camera_ref,
@@ -45,9 +45,9 @@ uint8_t structure_bsp_portal_test_and_project(char same_side, int16_t portal_ind
         (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
     ModelCollisionGeometryBSPPlane *plane =
         &((ModelCollisionGeometryBSPPlane *)collision_bsp->planes.pointer)[portal->plane_index];
-    return structure_bsp_portal_project((real_plane3d *)&plane->plane, &render_camera_position,
+    return structure_bsp_portal_project((real_plane3d *)&plane->plane, &render_camera_global,
                                          (real_point3d *)portal->vertices.pointer,
-                                         &render_camera_projection, portal->vertices.count,
+                                         &render_frustum_global, portal->vertices.count,
                                          (int16_t)((same_side == 0) * 2 - 1), out);
 }
 

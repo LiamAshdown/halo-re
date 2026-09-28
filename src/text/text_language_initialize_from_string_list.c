@@ -6,9 +6,9 @@
 //   localization string_list dependency's tag_id (+0xac) into text_localization_strings.
 //   atol()s string 0 ("the encoding id") of that string list into text_encoding, clamped
 //   to 0..5, then resets the draw-state globals that the tokenizer (0x556bb0) and the
-//   wrap loops (0x556400 / 0x556780) depend on: text_font, text_tab_stop_count,
+//   wrap loops (0x556400 / 0x556780) depend on: hud_text_draw_font_tag_id, hud_text_draw_background_mode,
 //   text_flags, text_justification (only the high half of the DAT_006e4734 dword --
-//   text_style is left untouched), text_first_line_indent, text_wrapped_line_indent.
+//   text_style is left untouched), ui_prompt_clip_x, ui_prompt_clip_y.
 // register convention: no register-passed arguments; the function only reads and writes
 //   file-scope globals and one tag lookup.
 // UNSURE: when Globals.interface_bitmaps.count is 0, the original still dereferences
@@ -30,12 +30,12 @@ extern tag_instance *tag_instances;                 // 0x0087bc14
 
 extern datum_index text_localization_strings;       // 0x006e4728
 extern int16_t text_encoding_state;                  // 0x006e4800
-extern datum_index text_font;                        // 0x006e472c
-extern int16_t text_tab_stop_count;                  // 0x006e4748
-extern uint32_t text_flags_state;                    // 0x006e4730
-extern int16_t text_justification_state;             // 0x006e4736
-extern int16_t text_first_line_indent;               // 0x006e476e
-extern int16_t text_wrapped_line_indent;             // 0x006e4770
+extern datum_index hud_text_draw_font_tag_id;                        // 0x006e472c
+extern int16_t hud_text_draw_background_mode;                  // 0x006e4748
+extern uint32_t hud_text_draw_unknown_4730;                    // 0x006e4730
+extern int16_t hud_text_draw_column;             // 0x006e4736
+extern int16_t ui_prompt_clip_x;               // 0x006e476e
+extern int16_t ui_prompt_clip_y;             // 0x006e4770
 extern char missing_string[17];                      // 0x00671fd0, "<missing string>"
 
 void text_language_initialize_from_string_list(void)
@@ -63,12 +63,12 @@ void text_language_initialize_from_string_list(void)
             text_encoding_state = 0;
         }
 
-        text_font = (datum_index)k_datum_index_none;
-        text_tab_stop_count = 0;
-        text_flags_state = 0;
-        text_justification_state = 0;
-        text_first_line_indent = 0;
-        text_wrapped_line_indent = 0;
+        hud_text_draw_font_tag_id = (datum_index)k_datum_index_none;
+        hud_text_draw_background_mode = 0;
+        hud_text_draw_unknown_4730 = 0;
+        hud_text_draw_column = 0;
+        ui_prompt_clip_x = 0;
+        ui_prompt_clip_y = 0;
     }
 }
 

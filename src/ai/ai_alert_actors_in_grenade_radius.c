@@ -29,7 +29,7 @@ extern uint8_t *ai_globals_ptr;     // 0x00880354
 extern data_array *object_data;    // 0x008603b0
 extern data_array *prop_data;      // 0x008802c0
 extern data_array *encounter_data; // 0x008802c8
-extern uint8_t *global_structure_bsp_bytes; // 0x00746f9c (clusters.count +0x134, sound PAS +0x220)
+extern uint8_t *global_structure_bsp; // 0x00746f9c (clusters.count +0x134, sound PAS +0x220)
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, EAX
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
@@ -73,7 +73,7 @@ void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t st
     if (*(datum_index *)(source + 0x11c) != k_datum_index_none) {
         location = OBJECT_DATA(object_get_root_object_index(source_unit_index)) + 0x98;
     }
-    cluster_count = *(int32_t *)(global_structure_bsp_bytes + 0x134);
+    cluster_count = *(int32_t *)(global_structure_bsp + 0x134);
     memset(cluster_bits, 0, sizeof(cluster_bits));
     source_cluster = *(int16_t *)(location + 0x4);
     if (source_cluster != -1) {
@@ -85,9 +85,9 @@ void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t st
             if (source_cluster != i) {
                 int32_t lo = source_cluster < i ? source_cluster : i;
                 int32_t hi = source_cluster < i ? i : source_cluster;
-                int32_t row = (uint16_t)(*(uint16_t *)(global_structure_bsp_bytes + 0x134) - 1) * lo - ((lo + 1) * lo) / 2;
+                int32_t row = (uint16_t)(*(uint16_t *)(global_structure_bsp + 0x134) - 1) * lo - ((lo + 1) * lo) / 2;
 
-                pas = (*(uint8_t **)(global_structure_bsp_bytes + 0x220))[(int16_t)(row + hi - 1)];
+                pas = (*(uint8_t **)(global_structure_bsp + 0x220))[(int16_t)(row + hi - 1)];
             }
             if (!(pas & 0x80) && (float)(int32_t)(pas & 0x7f) * 2.015748f < 40.0f) {
                 cluster_bits[i >> 5] |= 1u << (i & 0x1f);

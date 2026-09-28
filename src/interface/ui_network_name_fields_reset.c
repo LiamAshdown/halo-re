@@ -17,7 +17,7 @@
 #include "interface.h"
 #include <string.h>
 
-extern int32_t current_profile_index;         // 0x00714dd4
+extern int32_t saved_player_profile_slots_handle;         // 0x00714dd4
 extern uint8_t profile_globals_block[0x60a4];  // 0x00712dd8
 extern uint16_t network_host_name_field_00719238[32]; // 0x00719238, TYPES-GAP
 extern uint8_t network_host_name_flag_00719276;         // 0x00719276, TYPES-GAP
@@ -29,7 +29,7 @@ uint32_t ui_network_name_fields_reset(void)
 {
     uint16_t unused_name_source[2077]; // Ghidra's local_1046, never written before use either
 
-    if (current_profile_index == -1) {
+    if (saved_player_profile_slots_handle == -1) {
         player_profile_set_default_server_options();
     } else {
         uint8_t profile_copy[0x2000];

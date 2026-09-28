@@ -22,7 +22,7 @@
 
 // network_buffer_pair is types/networking.h (0x08; folded out of this file by the review pass).
 
-extern int32_t network_buffer_pair_pool_unknown_element_flag; // 0x006b85a8, set to -1 here, UNSURE meaning
+extern int32_t network_buffer_pair_pool; // 0x006b85a8, set to -1 here, UNSURE meaning
 extern int32_t network_buffer_pair_pool_count; // 0x006b85ac
 extern network_buffer_pair *network_buffer_pair_pool_data; // 0x006b85b0
 
@@ -39,7 +39,7 @@ void network_buffer_pair_pool_clear(void)
             GlobalFree(network_buffer_pair_pool_data[i].second);
         }
     }
-    network_buffer_pair_pool_unknown_element_flag = -1;
+    network_buffer_pair_pool = -1;
     network_buffer_pair_pool_count = -1;
     if (network_buffer_pair_pool_data != 0) {
         GlobalFree(network_buffer_pair_pool_data);

@@ -30,7 +30,7 @@ extern int32_t ai_communication_quiet_until_tick; // 0x00725204
 extern int16_t ai_communication_class_priority[]; // 0x006558c4
 extern float ai_communication_class_tail_seconds[]; // 0x006558d4
 extern int16_t ai_communication_class_follow_up[]; // 0x006558f4
-extern uint8_t ai_communication_event_lines[];    // 0x00656b08, 0x24-byte rows
+extern uint8_t ai_communication_event_definitions[];    // 0x00656b08, 0x24-byte rows
 
 typedef uint8_t (*ai_communication_line_predicate)(datum_index object_index, uint32_t *event_record,
                                                    datum_index actor_index);
@@ -57,7 +57,7 @@ extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index ac
 void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force,
                                       datum_index explicit_speaker_actor_index, uint32_t *event_record)
 {
-    uint8_t *row = ai_communication_event_lines;
+    uint8_t *row = ai_communication_event_definitions;
     int32_t row_index = 0;              // [esp+0x10]
 
     if (!ai_globals_ptr[0x10] || event_id == -1) {

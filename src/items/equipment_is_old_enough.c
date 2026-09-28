@@ -10,7 +10,7 @@
 //   objects.h: object + 0x0c is a game-tick stamp, not a datum handle"; projectile_is_old_enough
 //   does the identical `object[0x0c]==-1` / `game_time >= object[0x0c] + threshold` test against
 //   k_projectile_minimum_age_ticks, 0x006894c8, adjacent to this function's own global).
-//   global 0x006f1d6c game_time_globals (+0x0c the game tick).
+//   global 0x006f1d6c game_time (+0x0c the game tick).
 // register convention: object index is a plain stack cdecl parameter, matching the rest of this
 //   directly-indexed (non object_try_and_get) family.
 // blam-cc: stack -> object_index
@@ -26,7 +26,7 @@
 #include "items.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void *game_time_globals; // 0x006f1d6c, +0x0c the game tick
+extern void *game_time; // 0x006f1d6c, +0x0c the game tick
 extern int32_t k_equipment_minimum_age_ticks; // 0x006894cc, UNSURE name
 
 // The equipment row's "is old enough" hook (object_type_definition +0x74). An object that has
@@ -40,7 +40,7 @@ uint8_t equipment_is_old_enough(uint32_t object_index) // blam-cc: stack -> obje
     if (stamp == -1) {
         return 1;
     }
-    return stamp + k_equipment_minimum_age_ticks <= *(int32_t *)((uint8_t *)game_time_globals + 0xc);
+    return stamp + k_equipment_minimum_age_ticks <= *(int32_t *)((uint8_t *)game_time + 0xc);
 }
 
 #if 0

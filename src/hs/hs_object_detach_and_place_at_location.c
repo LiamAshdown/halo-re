@@ -29,9 +29,9 @@ extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern Scenario *global_scenario;
 extern data_array *player_data;      // 0x0087a480
-extern int16_t game_connection_role; // 0x00719720 (1 = client)
+extern int16_t network_game_mode; // 0x00719720 (1 = client)
 extern game_time_globals *game_time; // 0x006f1d6c
-extern uint8_t *network_game_client; // 0x0071c2d8, +0xf48 the update history
+extern uint8_t *network_client; // 0x0071c2d8, +0xf48 the update history
 
 extern double cos(double x);
 extern double sin(double x);
@@ -149,7 +149,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
             }
         }
         unit = OBJ(object_index);
-        if (game_connection_role == 1) {
+        if (network_game_mode == 1) {
             uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(unit + 0x218), player_data);
 
             if (player != 0 && *(int16_t *)(player + 2) == -1) {
@@ -169,7 +169,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
             unit_dispatch_scripted_event_9(1, (int32_t)object_index);
             unit = OBJ(object_index);
         }
-        if (game_connection_role == 1) {
+        if (network_game_mode == 1) {
             datum_index player_index = *(datum_index *)(unit + 0x218);
             int16_t index = (int16_t)player_index;
             int16_t salt = (int16_t)(player_index >> 16);
@@ -179,8 +179,8 @@ static void hs_unit_leave_seat(uint32_t object_index)
                 int16_t identifier = *(int16_t *)player;
 
                 if (identifier != 0 && (salt == 0 || identifier == salt) && *(int16_t *)(player + 2) != -1 &&
-                    network_game_client != 0) {
-                    player_update_history_free_all(*(void **)(network_game_client + 0xf48));
+                    network_client != 0) {
+                    player_update_history_free_all(*(void **)(network_client + 0xf48));
                 }
             }
         }
@@ -206,7 +206,7 @@ void hs_object_detach_and_place_at_location(int16_t location_index, datum_index 
     if (detach_from_parent && *(datum_index *)(placed + 0x11c) != k_datum_index_none) {
         if (object_try_and_get(object_index, 3) == 0) {
             object_snap_to_parent_marker_and_detach(object_index);
-        } else if (game_connection_role != 1) {
+        } else if (network_game_mode != 1) {
             hs_unit_leave_seat(object_index);
         }
     }

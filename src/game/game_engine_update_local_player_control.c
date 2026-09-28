@@ -51,12 +51,12 @@
 #include "game.h"
 
 extern player_globals *local_player_globals;                 // 0x0087a478
-extern data_array *object_headers;                           // 0x008603b0
+extern data_array *object_data;                           // 0x008603b0
 extern player_control_globals *player_control_globals_ptr;   // 0x006b145c
 extern game_time_globals *game_time;                         // 0x006f1d6c
 extern Globals *global_globals;                              // 0x00746fa0
 extern int16_t network_game_mode;                            // 0x00719720 (tested as a word here)
-extern uint8_t *unknown_006f187c;                            // 0x006f187c, UNSURE (see header)
+extern uint8_t *cinematic_globals_ptr;                            // 0x006f187c, UNSURE (see header)
 extern uint8_t local_player_input_frozen[];                  // 0x006ac5b2 = directors[i].look_input_consumed, stride 0xf8
 extern uint8_t local_player_look_frozen[];                   // 0x006ac5b1 = directors[i].suppress_look_update, stride 0xf8
 
@@ -150,7 +150,7 @@ void game_engine_update_local_player_control(int16_t local_player_index, real de
         goto store_input;
     }
 
-    unit_object = ((object_header *)object_headers->data)[control->unit & 0xffff].data;
+    unit_object = ((object_header *)object_data->data)[control->unit & 0xffff].data;
     unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
     current_weapon = (datum_index)-1;
@@ -218,7 +218,7 @@ void game_engine_update_local_player_control(int16_t local_player_index, real de
     // Zoom cycles only while the engine is actually running and the player holds a weapon.
     if ((button_flags & 4) != 0 && (player_control_globals_ptr->flags & 1) == 0 &&
         game_time->paused == 0 && current_weapon != (datum_index)-1 &&
-        unknown_006f187c[9] == 0) {
+        cinematic_globals_ptr[9] == 0) {
         // blam-cc: EAX -> control->desired_zoom_level, ECX -> current_weapon
         control->desired_zoom_level =
             (int16_t)weapon_get_next_zoom_level(control->desired_zoom_level, current_weapon);

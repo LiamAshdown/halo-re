@@ -38,7 +38,7 @@ extern input_abstraction_globals input_globals; // 0x00710328, foreign (input mo
 
 extern int32_t interface_loading_screen_address_a;   // 0x0068e680, foreign (interface module)
 extern int32_t interface_loading_screen_address_b;   // 0x0068e684, foreign (interface module)
-extern int32_t interface_loading_screen_ui_state;    // 0x00718f8c, foreign (interface module)
+extern int32_t join_ui_state;    // 0x00718f8c, foreign (interface module)
 extern int32_t interface_loading_screen_progress;    // 0x00718f90, foreign (interface module)
 extern uint16_t progress_screen_text[0x20];    // 0x006b2f28, foreign (types/interface.h); WORD stores only
 extern uint16_t progress_screen_subtext[0x20]; // 0x006b2f68, foreign (types/interface.h); WORD stores only
@@ -77,7 +77,7 @@ void main_menu_return_and_reset(void)
 
     interface_loading_screen_address_a = -1;
     interface_loading_screen_address_b = -1;
-    interface_loading_screen_ui_state = 0;
+    join_ui_state = 0;
     interface_loading_screen_progress = 0;
     progress_screen_text[0] = 0;    // WORD store
     progress_screen_subtext[0] = 0; // WORD store

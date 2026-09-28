@@ -42,14 +42,14 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *sound_data;      // 0x007252c0
 
 extern game_time_globals *game_time; // 0x006f1d6c
-extern int32_t sound_dialog_suppress_until_tick; // 0x00725204
+extern int32_t ai_communication_quiet_until_tick; // 0x00725204
 extern uint8_t sound_dialog_unspatialized;       // 0x007252bc
 extern uint8_t sound_initialized;   // 0x00725200
 extern uint8_t sound_enabled;       // 0x00725201
 extern uint8_t sound_disabled;      // 0x007252b6
-extern random_seed local_random_seed; // 0x00719cd4, see src/sound/sound_compute_random_pitch.c
+extern random_seed effect_random_seed; // 0x00719cd4, see src/sound/sound_compute_random_pitch.c
 extern int32_t sound_time;          // 0x0072520c
-extern uint8_t *unknown_006f187c;   // 0x006f187c, UNSURE (see src/game/game_engine_update_local_player_control.c)
+extern uint8_t *cinematic_globals_ptr;   // 0x006f187c, UNSURE (see src/game/game_engine_update_local_player_control.c)
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wait_until_loaded,
@@ -85,8 +85,8 @@ datum_index sound_play_new(datum_index definition_index, sound_location *locatio
         tag->sound_class == soundclass_scripted_dialog_other ||
         tag->sound_class == soundclass_scripted_dialog_force_unspatialized) {
         int32_t suppress_until = ((int32_t)tag->longest_permutation_length * 30) / 1000 + 10 + game_time->game_time;
-        if (sound_dialog_suppress_until_tick < suppress_until) {
-            sound_dialog_suppress_until_tick = suppress_until;
+        if (ai_communication_quiet_until_tick < suppress_until) {
+            ai_communication_quiet_until_tick = suppress_until;
         }
         if (sound_dialog_unspatialized != 0) {
             location->type = _sound_location_none;
@@ -104,10 +104,10 @@ datum_index sound_play_new(datum_index definition_index, sound_location *locatio
         }
 
         if ((location->scale != 0.0f || tag->zero_gain_modifier != 0.0f)) {
-            local_random_seed = local_random_seed * 0x19660d + 0x3c6ef35f;
+            effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
             if (((tag->one_skip_fraction_modifier - tag->zero_skip_fraction_modifier) * location->scale +
                  tag->zero_skip_fraction_modifier) * tag->skip_fraction <
-                (float)(local_random_seed >> 16) * 1.5259022e-05f) {
+                (float)(effect_random_seed >> 16) * 1.5259022e-05f) {
                 float maximum_distance = sound_definition_maximum_distance(definition_index);
 
                 if (sound_definition_has_audible_permutations(*(TagID *)&definition_index) != 0) {
@@ -133,13 +133,13 @@ datum_index sound_play_new(datum_index definition_index, sound_location *locatio
                             if (((uint8_t)first_person_hint != 0 &&
                                  (tag->sound_class == soundclass_weapon_fire ||
                                   (tag->sound_class == soundclass_weapon_ready &&
-                                   unknown_006f187c[10] == 0 && unknown_006f187c[9] == 0) ||
+                                   cinematic_globals_ptr[10] == 0 && cinematic_globals_ptr[9] == 0) ||
                                   tag->sound_class == soundclass_weapon_reload ||
                                   tag->sound_class == soundclass_weapon_empty ||
                                   tag->sound_class == soundclass_weapon_charge ||
                                   tag->sound_class == soundclass_weapon_overheat ||
                                   tag->sound_class == soundclass_weapon_idle)) ||
-                                (unknown_006f187c[9] != 0 && location->type != 0 &&
+                                (cinematic_globals_ptr[9] != 0 && location->type != 0 &&
                                  (tag->sound_class == soundclass_scripted_dialog_player ||
                                   tag->sound_class == soundclass_scripted_dialog_other))) {
                                 self->first_person = 1;

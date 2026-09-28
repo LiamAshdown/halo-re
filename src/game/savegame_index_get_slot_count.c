@@ -20,7 +20,7 @@
 #include "game.h"
 
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
-extern file_reference savegame_directory_file_reference; // 0x00721330
+extern file_reference savegame_index_file; // 0x00721330
 
 extern void path_append_component(char *destination, const char *component); // 0x555ec0
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
@@ -38,10 +38,10 @@ extern uint8_t file_reference_get_size_by_path(void *ref, uint32_t *out_size); /
 // returning size / 0x206 (the number of save-slot records), or 0 if the query fails.
 uint32_t savegame_index_get_slot_count(void)
 {
-    uint32_t *raw = (uint32_t *)&savegame_directory_file_reference;
+    uint32_t *raw = (uint32_t *)&savegame_index_file;
     int32_t i;
-    uint8_t *flags_byte = (uint8_t *)&savegame_directory_file_reference + 4;
-    uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_directory_file_reference + 6);
+    uint8_t *flags_byte = (uint8_t *)&savegame_index_file + 4;
+    uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_index_file + 6);
     uint32_t size;
 
     for (i = 0; i < 0x43; i++) {
@@ -50,12 +50,12 @@ uint32_t savegame_index_get_slot_count(void)
     raw[0] = 0x66696c6f;
     *word_at_6 = 2;
     if ((*flags_byte & 1) != 0) {
-        path_remove_last_component((uint8_t *)&savegame_directory_file_reference + 8);
+        path_remove_last_component((uint8_t *)&savegame_index_file + 8);
     }
-    path_append_component((char *)&savegame_directory_file_reference + 8, saved_game_root_path);
+    path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
     *flags_byte = *flags_byte | 1;
 
-    if (file_reference_get_size_by_path((void *)&savegame_directory_file_reference, &size) != 0) { // 0x53e473: ESI = 0x721330
+    if (file_reference_get_size_by_path((void *)&savegame_index_file, &size) != 0) { // 0x53e473: ESI = 0x721330
         return size / 0x206;
     }
     return 0;

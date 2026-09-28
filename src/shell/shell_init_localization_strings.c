@@ -23,7 +23,7 @@ extern int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32
                                            char *buffer); // 0x57e110
 extern char *strcat(char *dst, const char *src); // CRT, statically linked
 
-extern void *strings_module;          // 0x00722bb8
+extern void *shell_module_handle;          // 0x00722bb8
 extern uint32_t shell_language_id;    // 0x0069ff20
 extern char exception_title[0x100];             // 0x006f0770, string 0x77, "Exception!"
 extern char exception_gathering_text[0x100];    // 0x006f0670, string 0x78, "Gathering Exception Data..."
@@ -46,8 +46,8 @@ void shell_init_localization_strings(void)
     uint32_t value_size;
     int32_t loaded;
 
-    strings_module = LoadLibraryA("strings.dll");
-    if (strings_module == 0) {
+    shell_module_handle = LoadLibraryA("strings.dll");
+    if (shell_module_handle == 0) {
         GetCurrentDirectoryA(0x104, current_directory);
         strcat(current_directory, "\\strings.dll is missing.");
         MessageBoxA(0, current_directory, "Error!", 0);
@@ -69,49 +69,49 @@ void shell_init_localization_strings(void)
         RegCloseKey(key);
     }
 
-    loaded = shell_load_string_resource(0x77, (uint16_t)shell_language_id, 0x100, strings_module, exception_title);
+    loaded = shell_load_string_resource(0x77, (uint16_t)shell_language_id, 0x100, shell_module_handle, exception_title);
     if (loaded == 0 &&
         (shell_language_id == k_shell_language_default ||
-         (loaded = shell_load_string_resource(0x77, k_shell_language_default, 0x100, strings_module,
+         (loaded = shell_load_string_resource(0x77, k_shell_language_default, 0x100, shell_module_handle,
                                                exception_title),
           loaded == 0)) &&
-        (loaded = LoadStringA(strings_module, 0x77, exception_title, 0x100), loaded == 0)) {
+        (loaded = LoadStringA(shell_module_handle, 0x77, exception_title, 0x100), loaded == 0)) {
         exception_title[0] = 0;
         strcat(exception_title, "Exception!");
     }
 
-    loaded = shell_load_string_resource(0x78, (uint16_t)shell_language_id, 0x100, strings_module,
+    loaded = shell_load_string_resource(0x78, (uint16_t)shell_language_id, 0x100, shell_module_handle,
                                          exception_gathering_text);
     if (loaded == 0 &&
         (shell_language_id == k_shell_language_default ||
-         (loaded = shell_load_string_resource(0x78, k_shell_language_default, 0x100, strings_module,
+         (loaded = shell_load_string_resource(0x78, k_shell_language_default, 0x100, shell_module_handle,
                                                exception_gathering_text),
           loaded == 0)) &&
-        (loaded = LoadStringA(strings_module, 0x78, exception_gathering_text, 0x100), loaded == 0)) {
+        (loaded = LoadStringA(shell_module_handle, 0x78, exception_gathering_text, 0x100), loaded == 0)) {
         exception_gathering_text[0] = 0;
         strcat(exception_gathering_text, "Gathering Exception Data...");
     }
 
-    loaded = shell_load_string_resource(0x84, (uint16_t)shell_language_id, k_shell_eula_name_length, strings_module,
+    loaded = shell_load_string_resource(0x84, (uint16_t)shell_language_id, k_shell_eula_name_length, shell_module_handle,
                                          eula_file_name);
     if (loaded == 0 &&
         (shell_language_id == k_shell_language_default ||
          (loaded = shell_load_string_resource(0x84, k_shell_language_default, k_shell_eula_name_length,
-                                               strings_module, eula_file_name),
+                                               shell_module_handle, eula_file_name),
           loaded == 0)) &&
-        (loaded = LoadStringA(strings_module, 0x84, eula_file_name, k_shell_eula_name_length), loaded == 0)) {
+        (loaded = LoadStringA(shell_module_handle, 0x84, eula_file_name, k_shell_eula_name_length), loaded == 0)) {
         eula_file_name[0] = 0;
         strcat(eula_file_name, "eula.rtf");
     }
 
     loaded = shell_load_string_resource(0x88, (uint16_t)shell_language_id, k_shell_strings_dll_error_length,
-                                         strings_module, strings_dll_invalid_text);
+                                         shell_module_handle, strings_dll_invalid_text);
     if (loaded == 0 &&
         (shell_language_id == k_shell_language_default ||
          (loaded = shell_load_string_resource(0x88, k_shell_language_default, k_shell_strings_dll_error_length,
-                                               strings_module, strings_dll_invalid_text),
+                                               shell_module_handle, strings_dll_invalid_text),
           loaded == 0))) {
-        loaded = LoadStringA(strings_module, 0x88, strings_dll_invalid_text, k_shell_strings_dll_error_length);
+        loaded = LoadStringA(shell_module_handle, 0x88, strings_dll_invalid_text, k_shell_strings_dll_error_length);
     }
     if (loaded == 0) {
         strings_dll_invalid_text[0] = 0;

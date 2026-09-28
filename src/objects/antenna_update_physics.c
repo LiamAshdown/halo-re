@@ -37,7 +37,7 @@
 #include "objects.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
-extern real_vector3d *antenna_default_axis; // 0x0069671c, UNSURE: see file header
+extern real_vector3d *global_left3d_pointer; // 0x0069671c, UNSURE: see file header
 extern double sqrt(double x); // a single x87 FSQRT instruction in the original (Ghidra's SQRT())
 extern double sin(double x); // x87 FSIN
 extern double cos(double x); // x87 FCOS
@@ -144,7 +144,7 @@ void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt)
 
                     length = vector3d_normalize_with_length(&axis);
                     if (length == 0.0f) {
-                        axis = *antenna_default_axis;
+                        axis = *global_left3d_pointer;
                     }
 
                     offset.i = tag_vertex->offset.x;

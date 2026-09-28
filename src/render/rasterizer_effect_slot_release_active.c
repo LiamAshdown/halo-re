@@ -16,7 +16,7 @@
 #include "math.h"
 #include "rasterizer.h"
 
-extern void **rasterizer_active_effect_slot; // 0x0071d278 UNSURE: &effects[48], types/rasterizer.h rasterizer_effect_slot
+extern void **rasterizer_effect_pool_scratch; // 0x0071d278 UNSURE: &effects[48], types/rasterizer.h rasterizer_effect_slot
 extern void *rasterizer_device;              // 0x0071d174
 
 extern void rasterizer_lens_flare_batch_flush_all(void); // 0x536c80
@@ -32,12 +32,12 @@ void rasterizer_effect_slot_release_active(void)
 
     rasterizer_lens_flare_batch_flush_all();
 
-    if (rasterizer_active_effect_slot != 0 && *rasterizer_active_effect_slot != 0) {
-        void *effect = *rasterizer_active_effect_slot;
+    if (rasterizer_effect_pool_scratch != 0 && *rasterizer_effect_pool_scratch != 0) {
+        void *effect = *rasterizer_effect_pool_scratch;
         vtable = *(void ***)effect;
         ((d3d_release_fn)vtable[0x108 / 4])(effect);
     }
-    rasterizer_active_effect_slot = 0;
+    rasterizer_effect_pool_scratch = 0;
 
     vtable = *(void ***)rasterizer_device;
     ((d3d_clear_state_slot_fn)vtable[0x164 / 4])(rasterizer_device, 0);

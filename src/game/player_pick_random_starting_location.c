@@ -41,7 +41,7 @@
 extern Scenario *global_scenario;      // 0x00746f8c
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern random_seed random_seed_global;    // 0x00719cd0
-extern float lcg_high_word_to_unit_scale; // 0x00672b84, UNSURE exact bit pattern
+extern float k_random_scale_65536; // 0x00672b84, UNSURE exact bit pattern
 extern double sqrt_pow_exponent;       // 0x00672cf0 QWORD == 0.5
 
 extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count,
@@ -95,7 +95,7 @@ int16_t player_pick_random_starting_location(datum_index player_handle)
 
             random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
             {
-                float unit_random = (float)(random_seed_global >> 0x10) * lcg_high_word_to_unit_scale;
+                float unit_random = (float)(random_seed_global >> 0x10) * k_random_scale_65536;
                 float weight = (float)pow((double)unit_random, sqrt_pow_exponent) * suitability;
                 if (best_score < weight) {
                     best_score = weight;

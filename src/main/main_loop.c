@@ -60,13 +60,13 @@ extern multiplayer_map_table_entry multiplayer_maps[k_main_multiplayer_map_count
 extern console_globals console_globals_data;                // 0x006b7020
 extern int32_t game_time_force_single_tick;                 // 0x007196d8, -timedemo frame counter
 extern uint8_t main_unknown_696570;                         // 0x00696570
-extern int64_t performance_counter_frequency;               // 0x006ac8f8, foreign (math module)
+extern int64_t performance_frequency;               // 0x006ac8f8, foreign (math module)
 extern game_time_globals *game_time;                        // 0x006f1d6c, foreign (game module)
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern data_array *player_data;                             // 0x0087a480, foreign (game module)
 extern data_array *object_data;                             // 0x008603b0, foreign (objects module)
 extern input_abstraction_globals input_globals;             // 0x00710328, foreign (input module)
-extern input_event_queue event_queue;                       // 0x00712cc0, foreign (input module)
+extern input_event_queue input_event_queue_active;                       // 0x00712cc0, foreign (input module)
 extern char network_banlist_full_path[0x104];               // 0x0071c308, foreign (networking)
 extern char profile_directory[0x105];                       // 0x006ac900, foreign (shell)
 extern growable_array ban_list;                             // 0x006b859c, foreign (networking)
@@ -83,18 +83,18 @@ extern uint8_t game_state_write_in_progress;                // 0x006e3000, forei
 extern uint8_t *game_state_base;                            // 0x006e2dc8, foreign (saved_games)
 extern int32_t ui_pause_pending_count_00718fa0;             // 0x00718fa0, foreign, TYPES-GAP
 extern uint8_t map_download_in_progress;                    // 0x006ac470, foreign (cache)
-extern int32_t unknown_0069fdfc;                            // 0x0069fdfc, foreign, UNSURE
+extern int32_t network_console_connection_id;                            // 0x0069fdfc, foreign, UNSURE
 extern network_bandwidth_graph network_bandwidth_graph_globals; // 0x00719ce0, foreign (networking)
-extern uint32_t network_bandwidth_sample_interval_default;  // 0x006894b0, foreign, UNSURE name
+extern uint32_t network_bandwidth_graph_default_interval_ms;  // 0x006894b0, foreign, UNSURE name
 extern uint8_t ui_split_screen;                             // 0x00718fc9, foreign (interface)
 extern widget_instance *ui_root_widget[1];                  // 0x00718f94, foreign (interface)
 extern uint8_t shell_application_inactive;                  // 0x00721e8c, foreign (shell)
 extern network_client_globals *network_client;              // 0x0071c2d8, foreign (networking)
 extern network_server_globals *network_server;              // 0x0071c2d4, foreign (networking)
 extern int16_t network_join_error_code;                     // 0x00718fa4, foreign (interface)
-extern uint8_t host_handoff_requested;                      // 0x0071c2de, foreign (networking)
+extern uint8_t network_host_handoff_requested;                      // 0x0071c2de, foreign (networking)
 extern uint8_t terminal_initialized;                        // 0x006b2efc, foreign (interface)
-extern uint32_t local_player_control_data[8];               // 0x006f7ea4, foreign, UNSURE identity
+extern uint32_t update_client_staged[8];               // 0x006f7ea4, foreign, UNSURE identity
 extern int32_t update_client_unknown_ec4;                   // 0x006f7ec4, foreign, UNSURE
 extern int32_t update_client_staged_count;                  // 0x006f7ecc, foreign (networking)
 extern uint32_t player_update_log_flags;                    // 0x00710310, foreign (read as a dword here)
@@ -237,7 +237,7 @@ void main_loop(void)
     main_globals_data.switch_structure_bsp_index = -1;
     main_globals_data.time_is_running = 1;
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    main_globals_data.last_activity_time_ms = (int32_t)((counter * 1000) / performance_counter_frequency);
+    main_globals_data.last_activity_time_ms = (int32_t)((counter * 1000) / performance_frequency);
 
     console_initialize();
     network_bandwidth_graph_reset();
@@ -397,18 +397,18 @@ void main_loop(void)
             break;
         }
 
-        if (event_queue.enabled != 0) {
-            previous_queue_time = event_queue.start_time;
+        if (input_event_queue_active.enabled != 0) {
+            previous_queue_time = input_event_queue_active.start_time;
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-            event_queue.start_time = (uint32_t)((counter * 1000) / performance_counter_frequency);
-            if (event_queue.last_event_time < previous_queue_time && event_queue.enabled != 0) {
+            input_event_queue_active.start_time = (uint32_t)((counter * 1000) / performance_frequency);
+            if (input_event_queue_active.last_event_time < previous_queue_time && input_event_queue_active.enabled != 0) {
                 memset(&idle_event, 0, sizeof(idle_event));
                 input_queue_push_event(0, &idle_event);
             }
         }
         if (connection == _game_connection_network_server) {
             network_session_host_update();
-            if (unknown_0069fdfc != -1) {
+            if (network_console_connection_id != -1) {
                 gcd_think();
             }
         }
@@ -418,9 +418,9 @@ void main_loop(void)
             (ui_split_screen == 1 && ui_root_widget[0] != 0 &&
              strcmp(ui_root_widget[0]->name, "the_main_menu") == 0)) {
             if (network_bandwidth_graph_globals.sample_interval_ms !=
-                network_bandwidth_sample_interval_default) {
+                network_bandwidth_graph_default_interval_ms) {
                 network_bandwidth_graph_globals.sample_interval_ms =
-                    network_bandwidth_sample_interval_default;
+                    network_bandwidth_graph_default_interval_ms;
                 network_bandwidth_graph_instance_history_reset(&network_bandwidth_graph_globals);
             }
             network_bandwidth_graph_tick(&network_bandwidth_graph_globals);
@@ -442,7 +442,7 @@ void main_loop(void)
                 } else if (network_join_error_code == -1) {
                     network_join_error_code = 6;
                 }
-                host_handoff_requested = 1;
+                network_host_handoff_requested = 1;
                 chat_close();
             }
         } else if (connection == _game_connection_network_server) {
@@ -451,7 +451,7 @@ void main_loop(void)
                 if (network_join_error_code == -1) {
                     network_join_error_code = 1;
                 }
-                host_handoff_requested = 1;
+                network_host_handoff_requested = 1;
                 chat_close();
             }
         } else if (connection == _game_connection_film_playback) {
@@ -465,21 +465,21 @@ void main_loop(void)
         if (input_globals.idle == 0 || console_globals_data.active != 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             main_globals_data.last_activity_time_ms =
-                (int32_t)((counter * 1000) / performance_counter_frequency);
+                (int32_t)((counter * 1000) / performance_frequency);
         } else if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0) &&
                    game_time->paused == 0 && cinematic_globals_ptr->in_progress != 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             main_globals_data.last_gameplay_time_ms =
-                (int32_t)((counter * 1000) / performance_counter_frequency);
+                (int32_t)((counter * 1000) / performance_frequency);
         } else if (main_globals_data.idle_timeout_ms > 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             idle_remaining = main_globals_data.idle_timeout_ms -
-                (int32_t)((counter * 1000) / performance_counter_frequency) +
+                (int32_t)((counter * 1000) / performance_frequency) +
                 main_globals_data.last_activity_time_ms;
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             if (idle_remaining <= 0 &&
                 main_globals_data.last_gameplay_time_ms -
-                    (int32_t)((counter * 1000) / performance_counter_frequency) +
+                    (int32_t)((counter * 1000) / performance_frequency) +
                     k_main_idle_gameplay_grace_ms <= 0) {
                 if (ui_split_screen != 0) {
                     main_globals_data.return_to_main_menu = 0;
@@ -516,7 +516,7 @@ void main_loop(void)
         if (console_process_key_events() == 0 || main_globals_data.game_connection != 0) {
             delta = (float)main_globals_data.time_is_running * main_globals_data.frame_delta_time;
             ticks = game_engine_accumulate_simulation_ticks(delta, 1);
-            memset(local_player_control_data, 0, sizeof(local_player_control_data));
+            memset(update_client_staged, 0, sizeof(update_client_staged));
             update_client_staged_count = 0;
             update_client_unknown_ec4 = ticks;
             game_engine_update_local_player_control(0, delta, ticks);
@@ -528,7 +528,7 @@ void main_loop(void)
                     if (network_join_error_code == -1) {
                         network_join_error_code = 1;
                     }
-                    host_handoff_requested = 1;
+                    network_host_handoff_requested = 1;
                     chat_close();
                 }
             }
@@ -613,7 +613,7 @@ void main_loop(void)
             leftover_time = game_time->leftover_time;
             render_time = counter - ((int64_t)main_globals_data.render_counter_high << 32 |
                 main_globals_data.render_counter_low);
-            frame_delta = (float)render_time / (float)performance_counter_frequency;
+            frame_delta = (float)render_time / (float)performance_frequency;
             if (game_time_force_single_tick != 0) {
                 frame_delta = 1.0f / 30.0f;       // 0x00672acc
             }
@@ -646,7 +646,7 @@ void main_loop(void)
             main_globals_data.frame_counter_high = (uint32_t)(counter >> 32);
             main_globals_data.render_counter_low = (uint32_t)counter;
             main_globals_data.render_counter_high = (uint32_t)(counter >> 32);
-            main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / performance_counter_frequency);
+            main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / performance_frequency);
             main_globals_data.time_is_running = 1;
         }
         if (shell_application_inactive != 0) {
@@ -655,7 +655,7 @@ void main_loop(void)
                 0xff /* QS_ALLINPUT */);
         }
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        elapsed_ms = (int32_t)((counter * 1000) / performance_counter_frequency) -
+        elapsed_ms = (int32_t)((counter * 1000) / performance_frequency) -
             frame_rate_average_data.sample_time_ms;
         frame_rate_average_data.history[0] = elapsed_ms;
         if ((uint32_t)elapsed_ms > k_main_frame_time_clamp_ms) {

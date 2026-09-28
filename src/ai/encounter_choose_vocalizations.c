@@ -35,12 +35,12 @@
 #include "ai.h"
 
 extern data_array *encounter_data;   // 0x008802c8
-extern ai_globals *ai_global_data;   // 0x00880354
+extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern data_array *actor_data;       // 0x00880360
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *prop_data;        // 0x008802c0
 extern data_array *object_data;      // 0x008603b0
-extern uint8_t *actor_type_definitions[]; // 0x006853b8, one definition pointer per actor type (+0x4 flags byte)
+extern uint8_t *actor_type_procs[]; // 0x006853b8, one definition pointer per actor type (+0x4 flags byte)
 extern int16_t ai_vocalization_line_table[4]; // 0x00657194, UNSURE length
 
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index,
@@ -113,15 +113,15 @@ void encounter_choose_vocalizations(datum_index encounter_index)
     any_candidate = 0;
 
     actor_index = (datum_index)k_datum_index_none;
-    if (ai_global_data->actors_valid != 0) {
+    if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_global_data->unknown_08;
+            actor_index = ai_globals_ptr->unknown_08;
         } else {
             actor_index = enc->first_actor;
         }
     }
 
-    while (ai_global_data->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
+    while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
         current = actor_index;
         a = &((actor *)actor_data->data)[current & 0xffff];
         actor_definition = (uint8_t *)tag_instances[a->actor_definition_tag & 0xffff].data;
@@ -233,21 +233,21 @@ void encounter_choose_vocalizations(datum_index encounter_index)
         best_distance = 0.0f;
 
         actor_index = (datum_index)k_datum_index_none;
-        if (ai_global_data->actors_valid != 0) {
+        if (ai_globals_ptr->actors_valid != 0) {
             if (encounter_index == (datum_index)k_datum_index_none) {
-                actor_index = ai_global_data->unknown_08;
+                actor_index = ai_globals_ptr->unknown_08;
             } else {
                 actor_index = enc->first_actor;
             }
         }
-        while (ai_global_data->actors_valid != 0 &&
+        while (ai_globals_ptr->actors_valid != 0 &&
                actor_index != (datum_index)k_datum_index_none) {
             current = actor_index;
             a = &((actor *)actor_data->data)[current & 0xffff];
             actor_index = a->next_in_encounter;
             if (a->unit_index != (datum_index)k_datum_index_none) {
                 proximity = ai_communication_rate_player_proximity(1, 0, 0, a->unit_index); // EBX = a->unit_index
-                if ((actor_type_definitions[a->type][4] & 2) != 0 /* 0x438a6c: byte +0x4 of the type definition */ && 2.0f < proximity &&
+                if ((actor_type_procs[a->type][4] & 2) != 0 /* 0x438a6c: byte +0x4 of the type definition */ && 2.0f < proximity &&
                     best_distance < proximity) {
                     best_distance = proximity;
                     chosen_actor = current;
@@ -290,14 +290,14 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                 nearest_prop = (datum_index)k_datum_index_none;
 
                 actor_index = (datum_index)k_datum_index_none;
-                if (ai_global_data->actors_valid != 0) {
+                if (ai_globals_ptr->actors_valid != 0) {
                     if (encounter_index == (datum_index)k_datum_index_none) {
-                        actor_index = ai_global_data->unknown_08;
+                        actor_index = ai_globals_ptr->unknown_08;
                     } else {
                         actor_index = enc->first_actor;
                     }
                 }
-                while (ai_global_data->actors_valid != 0 &&
+                while (ai_globals_ptr->actors_valid != 0 &&
                        actor_index != (datum_index)k_datum_index_none) {
                     datum_index found;
                     current = actor_index;

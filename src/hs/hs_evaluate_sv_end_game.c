@@ -18,16 +18,16 @@ extern void chimera__console_out(void *color, char *format, ...); // 0x496b50, b
 extern int16_t network_game_mode; // 0x00719720
 extern uint8_t g_006f1d25; // 0x006f1d25
 extern void game_engine_begin_end_game_sequence(void); // 0x45fd90
-extern void *console_color_006851fc; // 0x006851fc
+extern void *global_white_argb; // 0x006851fc
 
 void hs_evaluate_sv_end_game(int16_t function_index, uint32_t thread_index, char first)
 {
     if (network_game_mode == 2) {
         g_006f1d25 = 1;
         game_engine_begin_end_game_sequence();
-        chimera__console_out(console_color_006851fc, "Server is stopping the game..."); // 0x0066dbd4
+        chimera__console_out(global_white_argb, "Server is stopping the game..."); // 0x0066dbd4
     } else {
-        chimera__console_out(console_color_006851fc, "sv_end_game is a server-only function!"); // 0x0066dbac
+        chimera__console_out(global_white_argb, "sv_end_game is a server-only function!"); // 0x0066dbac
     }
     hs_thread_return(0, thread_index);
 }

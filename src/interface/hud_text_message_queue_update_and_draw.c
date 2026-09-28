@@ -27,10 +27,10 @@ extern growable_array hud_text_message_queue; // 0x006b37e8
 extern int32_t hud_text_message_cycle_state_00719230; // 0x00719230, compared as a dword
 extern ColorARGB *hud_text_message_hold_color;   // 0x006851f4, a POINTER (0x4a4056 loads then derefs it)
 extern ColorARGB *hud_text_message_normal_color; // 0x00685200, a POINTER (0x4a404a)
-extern int32_t hud_text_draw_font_006e472c;         // 0x006e472c, TYPES-GAP
-extern ColorARGB hud_text_draw_color_006e4738;       // 0x006e4738, TYPES-GAP
-extern uint32_t hud_text_draw_flags_006e4734;        // 0x006e4734, TYPES-GAP
-extern int32_t hud_text_draw_unknown_006e4730;        // 0x006e4730, TYPES-GAP
+extern int32_t hud_text_draw_font_tag_id;         // 0x006e472c, TYPES-GAP
+extern ColorARGB hud_text_draw_color_a;       // 0x006e4738, TYPES-GAP
+extern uint32_t hud_text_draw_color_or_flags;        // 0x006e4734, TYPES-GAP
+extern int32_t hud_text_draw_unknown_4730;        // 0x006e4730, TYPES-GAP
 extern uint16_t missing_string_text[];               // 0x00671fac, L"<missing string>"
 
 extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, EAX
@@ -133,10 +133,10 @@ draw:
 
             dest.bottom = (int16_t)entry->end_time;
             dest.top = (int16_t)entry->start_time;
-            hud_text_draw_font_006e472c = *(int32_t *)((uint8_t *)tag + 0x108);
-            hud_text_draw_color_006e4738 = *color;
-            hud_text_draw_flags_006e4734 = 0x0002ffff; // WORD 0x6e4734 = -1, WORD 0x6e4736 = 2
-            hud_text_draw_unknown_006e4730 = 0;
+            hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)tag + 0x108);
+            hud_text_draw_color_a = *color;
+            hud_text_draw_color_or_flags = 0x0002ffff; // WORD 0x6e4734 = -1, WORD 0x6e4736 = 2
+            hud_text_draw_unknown_4730 = 0;
             chimera__draw_16_bit_text(&clip, (int32_t *)&dest, 0, 0, (const int16_t *)entry->text);
         }
     }

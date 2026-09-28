@@ -25,8 +25,8 @@
 extern uint8_t controls_menu_list_mode;          // 0x00719445, UNSURE name
 extern int32_t selected_saved_item;              // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80
-extern uint8_t control_profile_digital_bindings[0xda]; // 0x00714fb4 (working profile +0x134)
-extern uint32_t control_profile_analog_block[7]; // 0x0071508e (working profile +0x20e)
+extern uint8_t control_keyboard_scan_table[0xda]; // 0x00714fb4 (working profile +0x134)
+extern uint32_t control_mouse_button_scan_table[7]; // 0x0071508e (working profile +0x20e)
 extern uint32_t input_default_profile_guid[4];   // 0x0065b8e0
 
 extern int32_t input_device_default_profile_tag_find(input_guid guid, uint8_t *out_profile); // 0x490110, the GUID passed by value
@@ -71,8 +71,8 @@ uint8_t controls_apply_preset(widget_instance *widget)
 
             memcpy(&guid, input_default_profile_guid, sizeof(guid));
             if (input_device_default_profile_tag_find(guid, profile) != -1) {
-                memcpy(control_profile_digital_bindings, profile + 0x134, 0xda);
-                memcpy(control_profile_analog_block, profile + 0x20e, sizeof(control_profile_analog_block));
+                memcpy(control_keyboard_scan_table, profile + 0x134, 0xda);
+                memcpy(control_mouse_button_scan_table, profile + 0x20e, sizeof(control_mouse_button_scan_table));
             } else {
                 control_profile_reset_digital_bindings(saved_item_working_copy);
                 control_profile_reset_analog_bindings(saved_item_working_copy);

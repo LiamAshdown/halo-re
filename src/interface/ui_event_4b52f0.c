@@ -17,7 +17,7 @@
 #include "cache.h"
 #include "interface.h"
 
-extern int32_t chat_state_006953e8; // 0x006953e8, UNSURE identity
+extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity
 extern void input_bind_scan_set_active(uint8_t enable_scan); // 0x48b6b0, blam-cc: AL
 
 uint8_t ui_event_4b52f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
@@ -33,7 +33,7 @@ uint8_t ui_event_4b52f0(widget_instance *widget, int16_t *event, uint8_t *out_ha
         }
         child = child->next_sibling;
     }
-    chat_state_006953e8 = i;
+    controls_capture_row = i;
     input_bind_scan_set_active(1);
     second = child->first_child->next_sibling;
     third = second->next_sibling;

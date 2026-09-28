@@ -16,7 +16,7 @@
 #include "networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
-extern uint8_t host_handoff_requested;          // 0x0071c2de
+extern uint8_t network_host_handoff_requested;          // 0x0071c2de
 extern void chat_close(void); // 0x4aa900
 
 // blam-cc: EAX -> client
@@ -28,7 +28,7 @@ void network_client_timer_default_or_disconnect(network_client_globals *client)
     if (network_server != 0 && (network_server->flags >> 2 & 1) != 0) {
         return;
     }
-    host_handoff_requested = 1;
+    network_host_handoff_requested = 1;
     chat_close();
 }
 

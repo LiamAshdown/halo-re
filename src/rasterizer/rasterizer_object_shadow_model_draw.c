@@ -27,7 +27,7 @@
 extern void *rasterizer_device;                             // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220
 extern rasterizer_frame_time rasterizer_time;               // 0x007c1200
-extern uint8_t unknown_0069c689;                            // 0x0069c689
+extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689
 extern uint8_t console_debug_toggle_6893f2;                 // 0x006893f2 object shadows enabled
 extern rasterizer_model_draw_context *rasterizer_object_shadow_model_context; // 0x0071d260
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
@@ -62,7 +62,7 @@ void rasterizer_object_shadow_model_draw(const ShaderModel *shader, int16_t fram
     float constants[3][4];  // c10, then c11 / c12 written by the animation evaluate
     rasterizer_model_draw_context *context;
 
-    if (rasterizer_window.type != 1 || unknown_0069c689 != 0 || console_debug_toggle_6893f2 == 0) {
+    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || console_debug_toggle_6893f2 == 0) {
         return;
     }
     if (shader->base.shader_type != 4) {

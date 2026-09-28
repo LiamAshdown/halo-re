@@ -29,13 +29,13 @@
 #include "networking.h"
 #include "interface.h"
 
-extern int32_t current_profile_index;               // 0x00714dd4, record 0 field +0x1ffc
+extern int32_t saved_player_profile_slots_handle;               // 0x00714dd4, record 0 field +0x1ffc
 extern uint8_t profile_globals_block[];             // 0x00712dd8, stride 0x2004 per player
 extern game_engine_definition *current_game_engine; // 0x006f1d20 (current_game_engine, opaque here)
-extern uint8_t unknown_0071c2d0;                    // 0x0071c2d0, UNSURE
-extern uint32_t network_channel_port_a;             // 0x00698208, UNSURE name
-extern uint32_t network_channel_port_b;             // 0x0069820c, UNSURE name
-extern uint32_t unknown_007227b8;                   // 0x007227b8, UNSURE: copy of port_a
+extern uint8_t port_overridden;                    // 0x0071c2d0, UNSURE
+extern uint32_t network_game_socket_port;             // 0x00698208, UNSURE name
+extern uint32_t game_cport;             // 0x0069820c, UNSURE name
+extern uint32_t network_session_start_game_type;                   // 0x007227b8, UNSURE: copy of port_a
 extern int32_t cached_profile_slot;                 // 0x0068e66c (per player_profile_subsystem_initialize.c)
 extern char last_profile_name[];                    // 0x00718e80 (per player_profile_subsystem_initialize.c)
 
@@ -74,22 +74,22 @@ void player_profile_load(int16_t player_index, void *source_profile, int32_t pro
     player_profile_apply_video_options(record);
     player_profile_apply_audio_options(record);
 
-    if (current_game_engine == (void *)0 && unknown_0071c2d0 == 0 &&
-        (network_channel_port_a != *(uint16_t *)(record + 0x1002) ||
-         network_channel_port_b != *(uint16_t *)(record + 0x1004))) {
+    if (current_game_engine == (void *)0 && port_overridden == 0 &&
+        (network_game_socket_port != *(uint16_t *)(record + 0x1002) ||
+         game_cport != *(uint16_t *)(record + 0x1004))) {
         network_channels_close();
-        network_channel_port_a = *(uint16_t *)(record + 0x1002);
-        network_channel_port_b = *(uint16_t *)(record + 0x1004);
+        network_game_socket_port = *(uint16_t *)(record + 0x1002);
+        game_cport = *(uint16_t *)(record + 0x1004);
         network_channels_open();
-        unknown_007227b8 = network_channel_port_a;
+        network_session_start_game_type = network_game_socket_port;
     }
 
     if (profile_id != -1) {
-        if (cached_profile_slot != current_profile_index) {
-            if (current_profile_index != -1) {
-                saved_game_get_directory_by_handle(current_profile_index, last_profile_name);
+        if (cached_profile_slot != saved_player_profile_slots_handle) {
+            if (saved_player_profile_slots_handle != -1) {
+                saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
             }
-            cached_profile_slot = current_profile_index;
+            cached_profile_slot = saved_player_profile_slots_handle;
         }
         if (last_profile_name[0] != '\0') {
             saved_game_last_profile_clear(last_profile_name);

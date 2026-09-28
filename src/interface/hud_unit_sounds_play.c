@@ -21,7 +21,7 @@
 #include "networking.h"
 #include "interface.h"
 
-extern data_array *hud_looping_sounds; // 0x007461a0, UNSURE name (elsewhere network_predicted_globals)
+extern data_array *game_looping_sound_data; // 0x007461a0, UNSURE name (elsewhere network_predicted_globals)
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 extern void sound_impulse_fade_out(int32_t sound_handle); // 0x549ee0, stops a playing impulse sound, blam-cc: ECX handle
@@ -43,9 +43,9 @@ void hud_unit_sounds_play(uint32_t active_mask, const TagReflexive *sounds, int3
                     datum_index handle = (datum_index)-1;
 
                     if (tag != (datum_index)-1) {
-                        handle = datum_new(hud_looping_sounds);
+                        handle = datum_new(game_looping_sound_data);
                         if (handle != (datum_index)-1) {
-                            uint8_t *element = (uint8_t *)hud_looping_sounds->data + (handle & 0xffff) * 0x34;
+                            uint8_t *element = (uint8_t *)game_looping_sound_data->data + (handle & 0xffff) * 0x34;
                             *(int32_t *)(element + 0x10) = -1;
                             *(datum_index *)(element + 0x0c) = tag;
                             *(int16_t *)(element + 0x02) = 2;
@@ -72,7 +72,7 @@ void hud_unit_sounds_play(uint32_t active_mask, const TagReflexive *sounds, int3
             *playing |= (uint16_t)(1u << i);
         } else if (handles[i] != -1) {
             if (is_looping) {
-                uint8_t *element = (uint8_t *)hud_looping_sounds->data + (handles[i] & 0xffff) * 0x34;
+                uint8_t *element = (uint8_t *)game_looping_sound_data->data + (handles[i] & 0xffff) * 0x34;
                 *(uint32_t *)(element + 0x04) |= 2;
             }
             handles[i] = -1;

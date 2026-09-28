@@ -19,7 +19,7 @@
 #include "items.h"
 #include "game.h"
 
-extern data_array *object_headers; // 0x008603b0
+extern data_array *object_data; // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
 // blam-cc: EDX -> object_index
@@ -28,7 +28,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 // game engine implements object_expired, notifies it.
 void game_engine_notify_item_expired(datum_index object_index)
 {
-    object *obj = ((object_header *)object_headers->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
     uint32_t *extension_flags = (uint32_t *)((uint8_t *)obj + 0x22c);
 

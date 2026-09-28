@@ -31,7 +31,7 @@
 #include "saved_games.h"
 
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
-extern file_reference_record savegame_directory_file_reference; // 0x00721330
+extern file_reference_record savegame_index_file; // 0x00721330
 extern network_mutex_record *savegame_index_mutex; // 0x00721440, networking.h record; +0x00 is the HANDLE
 
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, ESI ref, stack mode
@@ -48,7 +48,7 @@ extern uint8_t file_reference_get_size_by_path(file_reference_record *ref, uint3
 // earlier, then the file is truncated by one record. Returns 1 on success, 0 otherwise.
 uint8_t savegame_index_remove_slot(uint16_t slot)
 {
-    file_reference_record *ref = &savegame_directory_file_reference;
+    file_reference_record *ref = &savegame_index_file;
     uint8_t record[0x206];
     uint32_t size;
     uint32_t read_offset, write_offset;

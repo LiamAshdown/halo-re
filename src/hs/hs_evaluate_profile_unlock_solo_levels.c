@@ -14,7 +14,7 @@
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
-extern int32_t saved_game_profile_index; // 0x00714dd4
+extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern void player_profile_write_data(int32_t handle, void *profile); // 0x53a950 (saved_player_profile *)
 
 void hs_evaluate_profile_unlock_solo_levels(int16_t function_index, uint32_t thread_index, char first)
@@ -25,8 +25,8 @@ void hs_evaluate_profile_unlock_solo_levels(int16_t function_index, uint32_t thr
         profile_globals_block[0x11e + level] |= 0xf;
     }
     profile_globals_block[0x11c] |= 4;
-    if (saved_game_profile_index != -1) {
-        player_profile_write_data(saved_game_profile_index, profile_globals_block);
+    if (saved_player_profile_slots_handle != -1) {
+        player_profile_write_data(saved_player_profile_slots_handle, profile_globals_block);
     }
     hs_thread_return(0, thread_index);
 }

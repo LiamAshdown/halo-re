@@ -25,7 +25,7 @@
 #include "interface.h"
 #include "cache.h"
 
-extern uint16_t default_player_profile_name_0066a750[]; // 0x0066a750
+extern uint16_t hud_text_unknown[]; // 0x0066a750
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern heap *widget_memory_pool; // 0x006926c4
@@ -79,7 +79,7 @@ void player_profile_details_widget_refresh(widget_instance *widget, const uint8_
                 tag_lookup(0x75737472 /* 'ustr' */, "ui\\shell\\strings\\default_player_profile_names");
             const uint16_t *source = names_tag != (datum_index)-1
                 ? text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
-                : default_player_profile_name_0066a750;
+                : hud_text_unknown;
 
             wcsncpy((uint16_t *)a->text, source, 0xb);
         } else {

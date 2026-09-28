@@ -64,7 +64,7 @@ extern double cos(double x);
 extern data_array *object_data;                              // 0x008603b0
 extern ScenarioStructureBSP *global_structure_bsp;          // 0x00746f9c
 extern ModelCollisionGeometryBSP *global_collision_bsp;    // 0x00746f90
-extern real_vector3d *global_reference_vector_0069672c;       // 0x0069672c
+extern real_vector3d *global_down3d_pointer;       // 0x0069672c
 extern float k_physics_gravity;                               // 0x0069c52c
 extern tag_instance *tag_instances;                           // 0x0087bc14
 
@@ -391,9 +391,9 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                 collision_result probe_result;
                 float probe_length = powered_def->antigrav_height + mp_def->radius;
 
-                delta.i = probe_length * global_reference_vector_0069672c->i;
-                delta.j = probe_length * global_reference_vector_0069672c->j;
-                delta.k = probe_length * global_reference_vector_0069672c->k;
+                delta.i = probe_length * global_down3d_pointer->i;
+                delta.j = probe_length * global_down3d_pointer->j;
+                delta.k = probe_length * global_down3d_pointer->k;
 
                 if (collision_test_movement_segment(0xc0a0, (real_point3d *)&mp->position_x, &delta,
                         object_index, &probe_result)) {

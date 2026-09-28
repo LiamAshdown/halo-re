@@ -17,7 +17,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern random_seed local_random_seed; // 0x00719cd4, types/math.h
+extern random_seed effect_random_seed; // 0x00719cd4, types/math.h
 
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
 
@@ -31,7 +31,7 @@ void network_player_assign_random_color(network_game_session *session, network_p
     int32_t i;
 
     attempt = 0;
-    seed = local_random_seed;
+    seed = effect_random_seed;
     for (;;) {
         seed = seed * 0x19660d + 0x3c6ef35f;
         if (attempt < 10) {
@@ -40,7 +40,7 @@ void network_player_assign_random_color(network_game_session *session, network_p
             candidate = (int16_t)((int32_t)(seed >> 0x10) * 0x11 >> 0x10);
         }
         in_use = 0;
-        local_random_seed = seed;
+        effect_random_seed = seed;
         for (i = 0; i < 0x10; i++) {
             if (network_player_entry_validate(&session->players[i]) != 0 &&
                 session->players[i].color_index == candidate) {

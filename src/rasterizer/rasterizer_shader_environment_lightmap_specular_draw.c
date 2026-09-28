@@ -34,7 +34,7 @@ extern tag_instance *tag_instances;                                 // 0x0087bc1
 extern int16_t rasterizer_bound_bitmap_size_b[2];                   // 0x006d9870
 extern uint8_t rasterizer_lightmap_bitmap_missing;                  // 0x006e0a68 set by 0x511f90
 extern BitmapData *rasterizer_lightmap_bitmap;                      // 0x006e0a6c set by 0x511f90
-extern int16_t renderer_unknown_69c67c;                             // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893f7;                         // 0x006893f7 lightmap specular enable
 extern uint8_t console_debug_toggle_689409;                         // 0x00689409
@@ -83,7 +83,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 || renderer_unknown_69c67c != 0 ||
+    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 || render_force_flag != 0 ||
         rasterizer_lightmap_bitmap_missing != 0 || rasterizer_caps.pixel_shader_version < 0xffff0104) {
         return;
     }

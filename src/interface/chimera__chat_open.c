@@ -34,7 +34,7 @@ extern chat_gui_find_object_fn chat_gui_find_object;         // 0x00721eb8
 extern void *chat_gui_find_object_arg;                       // 0x0069c698
 extern chat_gui_find_child_fn chat_gui_find_child;            // 0x00721ecc
 extern chat_gui_set_focus_fn chat_gui_set_focus;              // 0x00721ed4
-extern chat_gui_set_property_string_fn chat_gui_set_property_string; // 0x00721ee4
+extern chat_gui_set_property_string_fn keystone_control_set_attribute; // 0x00721ee4
 extern chat_gui_set_property_int_fn chat_gui_set_property_int; // 0x00721ee8
 extern chat_gui_set_state_fn chat_gui_set_state;              // 0x00721edc
 extern chat_gui_release_fn chat_gui_release;                  // 0x00721ec8
@@ -112,13 +112,13 @@ gui_setup: // LAB_004aa826
     if (gui_object != 0) {
         child = chat_gui_find_child(gui_object, L"oPrompt");
         if (child != 0) {
-            chat_gui_set_property_string(child, L"text", prompt_text);
+            keystone_control_set_attribute(child, L"text", prompt_text);
         }
         child = chat_gui_find_child(gui_object, L"oEditbox");
         if (child != 0) {
             int32_t zero[2] = {0, 0};
             chat_gui_set_focus(gui_object, child);
-            chat_gui_set_property_string(child, L"text", &empty_string);
+            keystone_control_set_attribute(child, L"text", &empty_string);
             chat_gui_set_property_int(child, 0x201, 0, zero);
         }
         chat_gui_set_state(gui_object, 5);

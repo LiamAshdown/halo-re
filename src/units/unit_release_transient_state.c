@@ -29,7 +29,7 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480
 extern data_array *actor_data;      // 0x00880360
-extern int16_t game_connection_role; // 0x00719720: 1 = client
+extern int16_t network_game_mode; // 0x00719720: 1 = client
 extern game_time_globals *game_time; // 0x006f1d6c
 extern network_client_globals *network_client;
 extern uint32_t random_seed_global;  // 0x00719cd0
@@ -152,7 +152,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (game_connection_role == 1) {
+    if (network_game_mode == 1) {
         uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
 
         if (player != 0 && *(int16_t *)(player + 2) == -1) {
@@ -172,7 +172,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (game_connection_role != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
         return;
     }
@@ -240,7 +240,7 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
     if (*(datum_index *)(obj + 0x11c) != k_datum_index_none) {
         if (*(int16_t *)(obj + 0x2f0) == -1) {
             unit_detach_reposition_and_nudge(unit_index);
-        } else if (game_connection_role != 1) {
+        } else if (network_game_mode != 1) {
             uint8_t *me = OBJECT_DATA(unit_index);
 
             if (*(datum_index *)(me + 0x11c) != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {

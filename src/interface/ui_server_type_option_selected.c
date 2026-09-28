@@ -26,7 +26,7 @@
 extern uint8_t autopatch_status_state_00719234;   // 0x00719234
 extern uint8_t autopatch_status_active_00719235;  // 0x00719235
 extern uint8_t ui_server_option_flag_00692b10;    // 0x00692b10
-extern uint8_t network_capability_flag_006894a2;  // 0x006894a2
+extern uint8_t network_game_info_packet_flag;  // 0x006894a2
 extern uint8_t server_browser_require_valid_entry; // 0x006953f0
 
 uint8_t ui_server_type_option_selected(widget_instance *widget)
@@ -48,11 +48,11 @@ uint8_t ui_server_type_option_selected(widget_instance *widget)
         autopatch_status_state_00719234 = 0;
         autopatch_status_active_00719235 = 0;
         ui_server_option_flag_00692b10 = 1;
-        network_capability_flag_006894a2 = 1;
+        network_game_info_packet_flag = 1;
         server_browser_require_valid_entry = 1;
         break;
     case 1:
-        network_capability_flag_006894a2 = 0;
+        network_game_info_packet_flag = 0;
         server_browser_require_valid_entry = 0;
         ui_server_option_flag_00692b10 = 1;
         break;
@@ -60,12 +60,12 @@ uint8_t ui_server_type_option_selected(widget_instance *widget)
         ui_server_option_flag_00692b10 = 0;
         autopatch_status_state_00719234 = 0;
         autopatch_status_active_00719235 = 0;
-        network_capability_flag_006894a2 = 1;
+        network_game_info_packet_flag = 1;
         server_browser_require_valid_entry = 1;
         break;
     case 5:
         ui_server_option_flag_00692b10 = 0;
-        network_capability_flag_006894a2 = 0;
+        network_game_info_packet_flag = 0;
         server_browser_require_valid_entry = 0;
         break;
     default: // -1 and 3 jump through garbage in the binary

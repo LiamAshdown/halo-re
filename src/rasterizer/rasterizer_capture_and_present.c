@@ -30,14 +30,14 @@
 
 extern uint8_t rasterizer_device_lost;                  // 0x007c10b0
 extern void *rasterizer_device;                         // 0x0071d174
-extern uint32_t unknown_00722b54;                       // 0x00722b54 config: flush the back buffer before present
-extern uint32_t unknown_007196e0;                       // 0x007196e0 capture enabled
+extern uint32_t config_disable_buffering;                       // 0x00722b54 config: flush the back buffer before present
+extern uint32_t screenshots;                       // 0x007196e0 capture enabled
 extern uint8_t rasterizer_pending_clear;                // 0x0071d16e
 extern uint32_t game_window_top_left;                   // 0x0069c634 int16 top, left
 extern uint32_t game_window_bottom_right;               // 0x0069c638 int16 bottom, right
-extern int32_t unknown_0069c648;                        // 0x0069c648 present counter, low dword
-extern int32_t unknown_0069c64c;                        // 0x0069c64c present counter, high dword
-extern int8_t rasterizer_bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
+extern int32_t rasterizer_present_counter_low;                        // 0x0069c648 present counter, low dword
+extern int32_t rasterizer_present_counter_high;                        // 0x0069c64c present counter, high dword
+extern int8_t bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
 
 // blam-cc: bitmap in EDI, mip level in EAX, x and y on the stack
 extern uint16_t *bitmap_data_get_row_address(BitmapData *bitmap, int32_t mip_level, int32_t x, int32_t y); // 0x43f8e0
@@ -63,7 +63,7 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
     if (rasterizer_device_lost) {
         return;
     }
-    if (unknown_00722b54 != 0) {
+    if (config_disable_buffering != 0) {
         surface = NULL;
         if (((d3d_get_back_buffer_fn)vtable_of(rasterizer_device)[0x48 / 4])(rasterizer_device, 0, 0, 0, &surface) < 0) {
             ok = 0;
@@ -77,7 +77,7 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
         }
         ((com_release_fn)vtable_of(surface)[2])(surface);
     }
-    if (unknown_007196e0 != 0 && bitmap != NULL && *(const uint32_t *)((const uint8_t *)bitmap + 0x2c) != 0) {
+    if (screenshots != 0 && bitmap != NULL && *(const uint32_t *)((const uint8_t *)bitmap + 0x2c) != 0) {
         int16_t top = (int16_t)(game_window_top_left & 0xffff);
         int16_t left = (int16_t)(game_window_top_left >> 16);
         int16_t bottom = (int16_t)(game_window_bottom_right & 0xffff);
@@ -102,7 +102,7 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
                 ((d3d_lock_rect_fn)vtable_of(surface)[0x34 / 4])(surface, &locked, NULL, 0x10) >= 0 &&
                 locked.bits != 0) {
                 int16_t rows = (int16_t)((game_window_bottom_right & 0xffff) - (game_window_top_left & 0xffff));
-                int32_t row_bytes = (int32_t)rasterizer_bitmap_format_bits_per_pixel[bitmap->format] *
+                int32_t row_bytes = (int32_t)bitmap_format_bits_per_pixel[bitmap->format] *
                                     (int32_t)(int16_t)bitmap->width / 8;
                 int16_t row;
 
@@ -125,9 +125,9 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
         rasterizer_pending_clear = (uint8_t)(rasterizer_pending_clear == 0);
     }
     {
-        uint32_t low = (uint32_t)unknown_0069c648 + 1;
-        unknown_0069c64c += (low == 0);
-        unknown_0069c648 = (int32_t)low;
+        uint32_t low = (uint32_t)rasterizer_present_counter_low + 1;
+        rasterizer_present_counter_high += (low == 0);
+        rasterizer_present_counter_low = (int32_t)low;
     }
 }
 

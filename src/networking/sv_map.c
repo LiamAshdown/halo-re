@@ -35,8 +35,8 @@ extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out); // other module
 extern char network_game_start_new_server_from_profile(uint32_t param_1); // 0x4e40f0, this
     // module, called here with a local char-returning prototype (UNSURE, see header)
-extern void *console_color_006851fc; // 0x006851fc, a ColorARGB * the original loads into EAX
-extern void *console_color_00685218; // 0x00685218, a ColorARGB * the original loads into EAX
+extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void *console_message_default_color; // 0x00685218, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: validates the requested map/variant, then either restarts the current
@@ -45,7 +45,7 @@ extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b
 void sv_map(uint32_t argument_count, uint16_t **arguments)
 {
     if (argument_count == 0 || arguments == 0 || game_engine_is_map_and_variant_valid() == 0) {
-        chimera__console_out((ColorARGB *)console_color_006851fc, "sv_map specified invalid map or game variant");
+        chimera__console_out((ColorARGB *)global_white_argb, "sv_map specified invalid map or game variant");
         return;
     }
 
@@ -73,7 +73,7 @@ void sv_map(uint32_t argument_count, uint16_t **arguments)
         return;
     }
 
-    chimera__console_out((ColorARGB *)console_color_00685218, "sv_map is a server-only function!");
+    chimera__console_out((ColorARGB *)console_message_default_color, "sv_map is a server-only function!");
 }
 
 #if 0

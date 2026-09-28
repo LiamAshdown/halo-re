@@ -23,7 +23,7 @@
 #include "objects.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint32_t widget_random_seed; // 0x00719cd4
+extern uint32_t effect_random_seed; // 0x00719cd4
 
 extern glow_particle *glow_particle_datum_new(void); // this module, 0x4fdde0
 extern void glow_particle_reposition(glow *entry, uint8_t *particle, float phase_rate); // 0x4fde40
@@ -37,8 +37,8 @@ extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
 
 static float glow_next_random_unit(void)
 {
-    widget_random_seed = widget_random_seed * 0x19660dU + 0x3c6ef35fU;
-    return (float)(widget_random_seed >> 16) * 1.5259022e-05f;
+    effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
+    return (float)(effect_random_seed >> 16) * 1.5259022e-05f;
 }
 
 glow_particle *glow_particle_spawn(glow *entry /*EBX*/) // blam-cc: EBX -> entry

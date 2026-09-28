@@ -14,18 +14,18 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data; // 0x00880354
+extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
 
 extern void actor_movement_action_cancel(datum_index actor_index); // 0x428650, EDI -> actor_index
 
 void ai_actor_link_to_unassigned_list(datum_index actor_index)
 {
-    if (ai_global_data->actors_valid != 0) {
+    if (ai_globals_ptr->actors_valid != 0) {
         actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
 
-        a->next_in_encounter = ai_global_data->unknown_08;
-        ai_global_data->unknown_08 = actor_index;
+        a->next_in_encounter = ai_globals_ptr->unknown_08;
+        ai_globals_ptr->unknown_08 = actor_index;
         a->unknown_09 = 1;
         *(int16_t *)a->unknown_10 = (a->active != 0) ? 0x5a : 0;
 

@@ -34,7 +34,7 @@ extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready
                                         uint8_t require_still); // 0x566de0
 extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset); // 0x568610, UNSURE signature
 extern void unit_broadcast_state_change_event(unit_state_change_record record); // 0x566c00, the record by value
-extern uint8_t network_index_cache_container[]; // 0x006870d8, the object network index cache
+extern uint8_t network_object_index_cache[]; // 0x006870d8, the object network index cache
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key); // 0x4e9d40, EAX container, ESI key
 
 void unit_exit_vehicle_seat(uint32_t player_index) // blam-cc: in_EAX -> player_index
@@ -74,7 +74,7 @@ void unit_exit_vehicle_seat(uint32_t player_index) // blam-cc: in_EAX -> player_
             if ((((object_header *)object_data->data)[unit_index & 0xffff].flags & 8) == 0) {
                 // FIXED (0x568213): EAX = the cache container 0x6870d8, ESI = the unit; the draft
                 //   passed the unit as the container.
-                network_index_cache_remove(network_index_cache_container, (int32_t)unit_index);
+                network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
             }
         }
     }

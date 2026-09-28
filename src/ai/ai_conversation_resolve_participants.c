@@ -46,7 +46,7 @@ extern data_array *object_data;          // 0x008603b0
 extern data_array *prop_data;            // 0x008802c0
 extern data_array *player_data;          // 0x0087a480, stride 0x200
 extern Scenario *global_scenario;        // 0x00746f8c
-extern datum_index *object_names_to_objects; // 0x006b8cb8, 0x200 entries
+extern datum_index *object_name_list; // 0x006b8cb8, 0x200 entries
 
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
@@ -326,7 +326,7 @@ apply:
         object_name = (int16_t)participants[i].set_new_name;
         if (object_name != -1 && object_name >= 0 &&
             (int32_t)object_name < (int32_t)global_scenario->object_names.count) {
-            object_names_to_objects[object_name] = unit_index;
+            object_name_list[object_name] = unit_index;
         }
         // 0x4314f2: the conversation mode data (0x14 bytes, mode 12's data_size) comes from 0x402cf0 (EDX = out,
         //   ESI = the conversation); the draft entered conversation mode with NULL, leaving stale mode data.

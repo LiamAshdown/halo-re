@@ -2,7 +2,7 @@
 // address 0x5411e0, size 2077 bytes
 // name confidence: 0.7   rewrite confidence: 0.7
 // evidence: string literals match every command line flag shell.h documents (-window(ed),
-// -nosound, -nonetwork, -novideo/-connect, -nojoystick, -width640, -screenshot(s), -checkfpu,
+// -shell_nosound, -network_disabled_flag, -novideo/-connect, -nojoystick, -width640, -screenshot(s), -checkfpu,
 // -timedemo, -nowinkey/-nowindowskey, -safemode, -? / -help, -testcrash, -port, -cport, -ip), the
 // registry path "Software\Microsoft\Microsoft Games\Halo" / "FIRSTRUN" matches the EULA first-run
 // check, and 0x00721f08 / 0x00721f0c match shell.h's shell_stack_guard_page / _old_protect.
@@ -60,7 +60,7 @@ extern int32_t shell_show_command;           // 0x007461cc
 extern uint32_t shell_window_proc;           // 0x007461d0
 extern uint8_t code_address_shell_window_procedure[]; // 0x00541b30: the original address in the hooked build,
                                              // shell_window_procedure itself in the standalone build
-extern void *shell_gamma_window;             // 0x007461c8
+extern void *rasterizer_window_handle;             // 0x007461c8
 extern uint8_t shell_window_maximized;       // 0x00746255
 extern uint8_t shell_window_minimized;       // 0x00746254
 extern char shell_window_class_name[k_shell_window_name_length]; // 0x007461d4 "Halo"
@@ -81,9 +81,9 @@ extern void *shfolder_module;                // 0x00746260
 extern void *sh_get_folder_path;             // 0x0074626c
 
 extern int32_t screenshots;                  // 0x007196e0
-extern int32_t nosound;                      // 0x007196e4
+extern int32_t shell_nosound;                      // 0x007196e4
 extern int32_t novideo_or_connect;           // 0x007196e8
-extern int32_t nonetwork;                    // 0x007196ec
+extern int32_t network_disabled_flag;                    // 0x007196ec
 extern int32_t width640;                     // 0x007196f0
 extern int32_t safe_mode;                    // 0x007196f4
 extern int32_t nowindowskey;                 // 0x007196f8
@@ -108,10 +108,10 @@ extern char strings_dll_invalid_text[k_shell_strings_dll_error_length]; // 0x006
 extern void *shell_stack_guard_page;         // 0x00721f08
 extern uint32_t shell_stack_guard_old_protect; // 0x00721f0c
 
-extern uint32_t game_port;                   // 0x00698208 -port
+extern uint32_t network_game_socket_port;                   // 0x00698208 -port
 extern uint32_t game_cport;                  // 0x0069820c -cport
 extern uint8_t port_overridden;              // 0x0071c2d0
-extern uint32_t connect_address_raw;         // 0x006869b0 inet_addr result, then the swapped address
+extern uint32_t network_local_address;         // 0x006869b0 inet_addr result, then the swapped address
 extern uint32_t connect_address;             // 0x006869a4 byte swapped copy
 
 
@@ -202,7 +202,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         shell_instance = hInstance;
         shell_show_command = nCmdShow;
         shell_window_proc = (uint32_t)code_address_shell_window_procedure; // the window procedure 0x541b30
-        shell_gamma_window = 0;
+        rasterizer_window_handle = 0;
         shell_window_maximized = 0;
         shell_window_minimized = 0;
         memcpy(shell_window_class_name, "Halo", 5);
@@ -234,8 +234,8 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         // command line
         shell_argv = command_line_parse_to_argv(command_line_copy, &shell_argc);
         windowed = command_line_check_flag("-window", 0) || command_line_check_flag("-windowed", 0);
-        nosound = command_line_check_flag("-nosound", 0);
-        nonetwork = command_line_check_flag("-nonetwork", 0);
+        shell_nosound = command_line_check_flag("-nosound", 0);
+        network_disabled_flag = command_line_check_flag("-nonetwork", 0);
         novideo_or_connect = command_line_check_flag("-novideo", 0) ||
                              command_line_check_flag("-connect", 0);
         nojoystick = command_line_check_flag("-nojoystick", 0);
@@ -251,7 +251,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
             novideo_or_connect = 1;
             nojoystick = 1;
             windowed = 1;
-            nosound = 1;
+            shell_nosound = 1;
         }
 
         shell_detect_hardware_specs();
@@ -296,7 +296,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         }
 
         // the other DirectX / shell DLLs
-        if (nosound != 0) {
+        if (shell_nosound != 0) {
             dsound_module = 0;
             direct_sound_create8 = 0;
         } else {
@@ -361,9 +361,9 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         if (integrity_ok == 0 || engine_initialize_subsystems() != 0) {
             port_value = 0;
             ip_value = 0;
-            connect_address_raw = 0;
+            network_local_address = 0;
             if (command_line_check_flag("-port", &port_value) && port_value != 0) {
-                game_port = (uint32_t)atol(port_value);
+                network_game_socket_port = (uint32_t)atol(port_value);
                 port_overridden = 1;
             }
             if (command_line_check_flag("-cport", &port_value) && port_value != 0) {
@@ -371,16 +371,16 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
                 port_overridden = 1;
             }
             if (command_line_check_flag("-ip", &ip_value) && ip_value != 0) {
-                connect_address_raw = inet_addr(ip_value);
-                if (connect_address_raw != 0) {
-                    connect_address = (connect_address_raw << 24) | ((connect_address_raw & 0xff00) << 8) |
-                                      ((connect_address_raw >> 8) & 0xff00) | (connect_address_raw >> 24);
-                    connect_address_raw = connect_address;
+                network_local_address = inet_addr(ip_value);
+                if (network_local_address != 0) {
+                    connect_address = (network_local_address << 24) | ((network_local_address & 0xff00) << 8) |
+                                      ((network_local_address >> 8) & 0xff00) | (network_local_address >> 24);
+                    network_local_address = connect_address;
                 }
             }
             memset(secret_key, 0, sizeof(secret_key));
             memcpy(secret_key, "e4Rd9J", 7);
-            network_session_host_start_info_set("halor", secret_key, (char *)ip_value, (int32_t)game_port);
+            network_session_host_start_info_set("halor", secret_key, (char *)ip_value, (int32_t)network_game_socket_port);
             main_loop();
             engine_shutdown_subsystems();
         }

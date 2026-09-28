@@ -44,7 +44,7 @@
 
 extern data_array *player_data;              // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
-extern void *vehicle_seat_lookup_table;      // 0x00687130, UNSURE: name and shape both guessed
+extern void *object_network_id_table;      // 0x00687130, UNSURE: name and shape both guessed
 extern network_client_globals *network_client; // 0x0071c2d8
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
@@ -91,7 +91,7 @@ void player_update_client_local_player_vehicle_update_from_network(int32_t *deco
         return;
     }
     if (ack.vehicle.parent_or_tag != 0) {
-        int32_t *table_base = *(int32_t **)((uint8_t *)vehicle_seat_lookup_table + 0x28);
+        int32_t *table_base = *(int32_t **)((uint8_t *)object_network_id_table + 0x28);
         ack.vehicle.parent_or_tag = table_base[ack.vehicle.parent_or_tag];
     } else {
         ack.vehicle.parent_or_tag = -1;

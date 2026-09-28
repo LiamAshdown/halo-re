@@ -21,7 +21,7 @@
 #include "items.h"
 #include "game.h"
 
-extern data_array *object_headers;   // 0x008603b0
+extern data_array *object_data;   // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
@@ -55,7 +55,7 @@ void game_engine_update_item_scale_and_pickup(void)
         }
 
         if (current_game_engine != 0 && current_game_engine->object_in_play_update != 0) {
-            object_header *hdr = (object_header *)datum_get(iterator.handle, object_headers);
+            object_header *hdr = (object_header *)datum_get(iterator.handle, object_data);
 
             if (hdr != 0 && (1u << hdr->type) == _object_mask_weapon && hdr->data != 0 &&
                 ((*(uint32_t *)((uint8_t *)tag_instances[obj->definition_tag & 0xffff].data + 0x308) >> 3) & 1) != 0) {

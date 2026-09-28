@@ -33,7 +33,7 @@
 extern data_array *encounter_data;  // 0x008802c8
 extern Scenario *global_scenario;   // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14
-extern ai_globals *ai_global_data;  // 0x00880354
+extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern data_array *actor_data;      // 0x00880360
 extern int16_t global_structure_bsp_index;        // 0x0069e8d8, UNSURE: a designer-slot/leader sentinel value
 
@@ -142,7 +142,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
     // 2. members of the source encounter
     ai_reference_actor_iterator_init_cursor((int32_t)source_index, cursor);
     actor_index = cursor[2];
-    while (ai_global_data->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
+    while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
         actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
         datum_index current = actor_index;
         int16_t squad_index = a->squad_index;
@@ -193,8 +193,8 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
     }
 
     // 4. unassigned actors that name the source encounter
-    actor_index = ai_global_data->actors_valid != 0 ? ai_global_data->unknown_08 : (datum_index)k_datum_index_none;
-    while (ai_global_data->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
+    actor_index = ai_globals_ptr->actors_valid != 0 ? ai_globals_ptr->unknown_08 : (datum_index)k_datum_index_none;
+    while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
         datum_index current = actor_index;
         uint8_t *raw = (uint8_t *)&((actor *)actor_data->data)[current & 0xffff];
         int16_t squad_index;

@@ -67,7 +67,7 @@ extern int16_t sound_permutation_limit;             // 0x007252b8, foreign (soun
 extern uint8_t directsound_eax_enabled;             // 0x00746121, foreign (sound)
 extern int32_t directsound_quality;                 // 0x00746128, foreign (sound)
 extern int16_t renderer_texture_quality;            // 0x0068944e, foreign, UNSURE (WORD reads here)
-extern int16_t effect_particle_level;               // 0x0068944c, foreign, UNSURE (WORD reads here)
+extern int16_t light_count_enabled;               // 0x0068944c, foreign, UNSURE (WORD reads here)
 extern uint8_t decals_for_all_responses;            // 0x006893f5, foreign (effects)
 extern uint8_t console_debug_toggle_6893f2;         // 0x006893f2 object shadows enabled
 extern uint8_t console_debug_toggle_6893fa;         // 0x006893fa specular / reflections enable
@@ -299,9 +299,9 @@ void timedemo_benchmark_update(void)
         } else {
             texture_quality = "Low";
         }
-        if (effect_particle_level == 0) {
+        if (light_count_enabled == 0) {
             particles = "High";
-        } else if (effect_particle_level == 1) {
+        } else if (light_count_enabled == 1) {
             particles = "Low";
         } else {
             particles = "Off";

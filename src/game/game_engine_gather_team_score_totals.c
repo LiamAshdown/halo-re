@@ -20,7 +20,7 @@
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t game_engine_teams_enabled_flag;       // 0x006f1cbc
-extern uint8_t network_session_ptr[];                // 0x0071c2d4
+extern uint8_t network_server[];                // 0x0071c2d4
 
 extern uint8_t network_player_entry_validate(void *entry_minus_0x1e); // 0x4de9f0, not in this batch; UNSURE signature
 
@@ -38,7 +38,7 @@ void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t out_sc
     out_count[1] = 0;
 
     if (current_game_engine != 0 && game_engine_teams_enabled_flag) {
-        uint8_t *entry = network_session_ptr + 0x1c8;
+        uint8_t *entry = network_server + 0x1c8;
         int32_t i;
 
         for (i = 0; i < 16; i++) {

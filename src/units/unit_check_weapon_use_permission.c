@@ -22,7 +22,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern char s_no_weapon_label[];     // 0x0065512c, shared with unit_pickup_weapon.c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
+extern char k_empty_string[];     // 0x0065512c, shared with unit_pickup_weapon.c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern char * unit_get_seat_or_state_name(uint32_t unit_index);                     // 0x56c2f0
@@ -31,7 +31,7 @@ extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char 
 uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index) // blam-cc: ESI -> unit_index, EDI -> weapon_index
 {
     char *seat_name = unit_get_seat_or_state_name(unit_index);
-    char *weapon_label = s_no_weapon_label;
+    char *weapon_label = k_empty_string;
     if (weapon_index != 0xffffffff) {
         object *weapon_obj = ((object_header *)object_data->data)[weapon_index & 0xffff].data;
         weapon_label = (char *)(tag_instances[weapon_obj->definition_tag & 0xffff].data) + 0x30c;

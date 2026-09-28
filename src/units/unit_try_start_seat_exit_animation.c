@@ -17,7 +17,7 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern int16_t game_connection_role; // 0x00719720
+extern int16_t network_game_mode; // 0x00719720
 
 extern void actor_notify_weapon_pickup_once(datum_index object_index); // 0x42c370, ECX
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
@@ -49,7 +49,7 @@ uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_ind
     if (self == 0) {
         return 0;
     }
-    if (game_connection_role == 1 && force_flag != 1) {
+    if (network_game_mode == 1 && force_flag != 1) {
         return 0;
     }
     vehicle_index = *(datum_index *)(self + 0x11c);

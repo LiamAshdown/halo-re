@@ -17,14 +17,14 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern uint32_t no_simd_matrix_multiply_flag; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
-extern uint32_t unknown_00722bac; // machine class threshold
-extern uint32_t unknown_00722ba8; // machine class threshold
+extern uint32_t safe_mode; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
+extern uint32_t cpu_speed; // machine class threshold
+extern uint32_t physical_memory; // machine class threshold
 
 // blam-cc: profile in EAX
 uint8_t player_profile_set_default_audio_options(saved_player_profile *profile)
 {
-    if (no_simd_matrix_multiply_flag == 0 && 1000 < unknown_00722bac && 0x80 < unknown_00722ba8) {
+    if (safe_mode == 0 && 1000 < cpu_speed && 0x80 < physical_memory) {
         profile->unknown_b7d = 1;
         profile->unknown_b7f = 2;
     } else {

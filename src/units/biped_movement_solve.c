@@ -21,7 +21,7 @@
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720
-extern float world_gravity_scale;                     // 0x0069c52c
+extern float k_physics_gravity;                     // 0x0069c52c
 extern double sqrt(double x);
 extern double fabs(double x);
 extern data_array *object_data;                      // 0x008603b0
@@ -133,7 +133,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         *result_flags = (uint16_t)(flags & 2);
         solve->result_velocity.i = dx + solve->velocity.i;
         solve->result_velocity.j = dy + solve->velocity.j;
-        solve->result_velocity.k = solve->velocity.k - world_gravity_scale;
+        solve->result_velocity.k = solve->velocity.k - k_physics_gravity;
     } else {
         // on the ground (0x55f270): delta along the ground, scaled by slope, acceleration-limited
         real_vector3d *ground_normal = &solve->ground_normal;
@@ -230,7 +230,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         solve->result_velocity.j = (c.j - ground_normal->j * K_GROUND_NORMAL_OFFSET) + solve->velocity.j;
         solve->result_velocity.k = (c.k - ground_normal->k * K_GROUND_NORMAL_OFFSET) + solve->velocity.k;
         if ((*result_flags & 2) != 0) {
-            solve->result_velocity.k -= world_gravity_scale;
+            solve->result_velocity.k -= k_physics_gravity;
         }
     }
 

@@ -27,44 +27,44 @@ extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t player_profile_cache_initialized;     // 0x006f1d38
-extern uint32_t player_profile_cache_block[0xc0];    // 0x006b0b88, TYPES-GAP
+extern uint32_t player_profile_cache[0xc0];    // 0x006b0b88, TYPES-GAP
 extern game_variant game_engine_active_variant;             // 0x0087ab20 (NOT 0x006f1c88, which is the live copy)
 extern game_time_globals *game_time;                 // 0x006f1d6c
 extern uint32_t unknown_00746280_block[0x343];         // 0x00746280, a block of 0x343 dwords (not a pointer)
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94, scenario.h
-extern uint32_t unknown_0065e508_block[0x12];        // TYPES-GAP, copied into the block above
+extern uint32_t k_default_sound_environment[0x12];        // TYPES-GAP, copied into the block above
 extern data_array *object_render_state_cache;              // 0x007c30ec, TYPES-GAP (data_array*)
-extern uint32_t *unknown_0072277c_block;              // TYPES-GAP, 0x290c dwords + trailing byte
-extern void *unknown_0072278c;                         // TYPES-GAP
-extern void *custom_waypoints_or_similar_006b0ad8;      // 0x006b0ad8, TYPES-GAP (0xa00+3 dwords)
-extern data_array *unknown_0087abe4;                          // TYPES-GAP (a data_array*)
-extern data_array *unknown_0087abec;      // TYPES-GAP
-extern data_array *unknown_0087abe8;      // TYPES-GAP
-extern data_array *particle_pool_ptr;     // 0x0087abd0, TYPES-GAP
-extern data_array *effect_object_pool_ptr;// 0x0087abdc, TYPES-GAP
-extern data_array *effect_location_pool_ptr; // 0x0087abe0, TYPES-GAP
-extern void *particle_system_pool_ptr; // 0x0087abd4, TYPES-GAP
-extern data_array *particle_system_particle_pool_ptr; // 0x0087abd8, TYPES-GAP
-extern uint8_t unknown_007252b6; // TYPES-GAP
-extern void *unknown_007252c0;   // TYPES-GAP
-extern void *unknown_00724a50;   // TYPES-GAP
-extern void *sound_something_00746140; // 0x00746140, TYPES-GAP (0x33 records, stride 6 shorts)
-extern data_array *network_predicted_globals; // 0x007461a0, TYPES-GAP
-extern uint32_t *unknown_007461a4;      // TYPES-GAP
-extern int32_t unknown_006b0ae4; // TYPES-GAP
-extern int32_t unknown_006b0ae0; // TYPES-GAP
-extern data_array *weather_particle_pool_ptr; // 0x0087abcc, TYPES-GAP
+extern uint32_t *detail_objects;              // TYPES-GAP, 0x290c dwords + trailing byte
+extern void *runtime_decals_suppressed;                         // TYPES-GAP
+extern void *decal_grid_block;      // 0x006b0ad8, TYPES-GAP (0xa00+3 dwords)
+extern data_array *decal_data;                          // TYPES-GAP (a data_array*)
+extern data_array *contrail_data;      // TYPES-GAP
+extern data_array *contrail_point_data;      // TYPES-GAP
+extern data_array *particle_data;     // 0x0087abd0, TYPES-GAP
+extern data_array *effect_data;// 0x0087abdc, TYPES-GAP
+extern data_array *effect_location_data; // 0x0087abe0, TYPES-GAP
+extern void *particle_system_data; // 0x0087abd4, TYPES-GAP
+extern data_array *particle_system_particle_data; // 0x0087abd8, TYPES-GAP
+extern uint8_t sound_disabled; // TYPES-GAP
+extern void *sound_data;   // TYPES-GAP
+extern void *looping_sound_data;   // TYPES-GAP
+extern void *sound_class_gains; // 0x00746140, TYPES-GAP (0x33 records, stride 6 shorts)
+extern data_array *game_looping_sound_data; // 0x007461a0, TYPES-GAP
+extern uint32_t *game_sound_globals_ptr;      // TYPES-GAP
+extern int32_t weather_instances; // TYPES-GAP
+extern int32_t weather_instance_count; // TYPES-GAP
+extern data_array *weather_particle_data; // 0x0087abcc, TYPES-GAP
 extern real unknown_0069c534; // TYPES-GAP
-extern real unknown_006b8d80; // TYPES-GAP
+extern real k_air_density; // TYPES-GAP
 extern real unknown_0069c530; // TYPES-GAP
-extern real unknown_006b8d7c; // TYPES-GAP
-extern uint32_t unknown_006b1458; // TYPES-GAP
-extern uint32_t *ai_something_006f1884; // 0x006f1884, TYPES-GAP
-extern void *recorded_animations_pool_ptr; // 0x006b0a10, TYPES-GAP
-extern uint32_t unknown_00686b60; // TYPES-GAP
-extern uint32_t *saved_games_something_006f187c; // 0x006f187c, TYPES-GAP (7 dwords)
+extern real k_water_density; // TYPES-GAP
+extern uint32_t game_engine_attribute_enabled; // TYPES-GAP
+extern uint32_t *player_effect_globals_pointer; // 0x006f1884, TYPES-GAP
+extern void *recorded_animations; // 0x006b0a10, TYPES-GAP
+extern uint32_t cinematic_saved_music_gain; // TYPES-GAP
+extern uint32_t *cinematic_globals_ptr; // 0x006f187c, TYPES-GAP (7 dwords)
 extern Scenario *global_scenario; // 0x00746f8c
-extern uint8_t *unknown_006b8cbc; // TYPES-GAP
+extern uint8_t *object_globals_pointer; // TYPES-GAP
 
 extern void ai_reset_for_new_map(void);                 // 0x42a840
 extern void encounters_spawn_initial(void);                          // UNSURE module
@@ -110,7 +110,7 @@ void game_start_new_map(void)
     }
     if (player_profile_cache_initialized == 1) {
         for (i = 0; i < 0xc0; i = i + 1) {
-            player_profile_cache_block[i] = 0;
+            player_profile_cache[i] = 0;
         }
         player_profile_cache_initialized = 0;
     }
@@ -147,7 +147,7 @@ void game_start_new_map(void)
     }
     dst = (uint32_t *)tag_cache_bytes + 0xd;
     for (i = 0x12; i != 0; i = i - 1) {
-        *dst = unknown_0065e508_block[0x12 - i];
+        *dst = k_default_sound_environment[0x12 - i];
         dst = dst + 1;
     }
     *((uint8_t *)((uint32_t *)tag_cache_bytes + 0xc)) = 0;
@@ -156,16 +156,16 @@ void game_start_new_map(void)
     object_render_state_cache->valid = 1;
     data_delete_all(object_render_state_cache);
 
-    dst = unknown_0072277c_block;
+    dst = detail_objects;
     for (i = 0x290c; i != 0; i = i - 1) {
         *dst = 0;
         dst = dst + 1;
     }
-    *((uint8_t *)unknown_0072277c_block + 0x520e) = 0;
-    *(uint32_t *)unknown_0072278c = 0;
+    *((uint8_t *)detail_objects + 0x520e) = 0;
+    *(uint32_t *)runtime_decals_suppressed = 0;
     breakable_surfaces_reset();
 
-    dst = (uint32_t *)custom_waypoints_or_similar_006b0ad8;
+    dst = (uint32_t *)decal_grid_block;
     for (i = 0xa00; i != 0; i = i - 1) {
         *dst = 0xffffffff;
         dst = dst + 1;
@@ -173,36 +173,36 @@ void game_start_new_map(void)
     dst[0] = 0xffffffff;
     dst[1] = 0;
     dst[2] = 0;
-    unknown_0087abe4->valid = 1;
-    data_delete_all(unknown_0087abe4);
+    decal_data->valid = 1;
+    data_delete_all(decal_data);
 
     camera_initialize();
     observer_new(&observers[0]); // 0x45b1a2: mov edx,0x6ac65c
 
-    unknown_0087abec->valid = 1;
-    data_delete_all(unknown_0087abec);
-    unknown_0087abe8->valid = 1;
-    data_delete_all(unknown_0087abe8);
-    particle_pool_ptr->valid = 1;
-    data_delete_all(particle_pool_ptr);
-    effect_object_pool_ptr->valid = 1;
-    data_delete_all(effect_object_pool_ptr);
-    effect_location_pool_ptr->valid = 1;
-    data_delete_all(effect_location_pool_ptr);
-    *((uint8_t *)particle_system_pool_ptr + 0x24) = 1;
-    data_delete_all(particle_system_pool_ptr);
-    particle_system_particle_pool_ptr->valid = 1;
-    data_delete_all(particle_system_particle_pool_ptr);
+    contrail_data->valid = 1;
+    data_delete_all(contrail_data);
+    contrail_point_data->valid = 1;
+    data_delete_all(contrail_point_data);
+    particle_data->valid = 1;
+    data_delete_all(particle_data);
+    effect_data->valid = 1;
+    data_delete_all(effect_data);
+    effect_location_data->valid = 1;
+    data_delete_all(effect_location_data);
+    *((uint8_t *)particle_system_data + 0x24) = 1;
+    data_delete_all(particle_system_data);
+    particle_system_particle_data->valid = 1;
+    data_delete_all(particle_system_particle_data);
 
-    if (unknown_007252b6 == 0) {
-        *((uint8_t *)unknown_007252c0 + 0x24) = 1;
-        data_delete_all(unknown_007252c0);
-        *((uint8_t *)unknown_00724a50 + 0x24) = 1;
-        data_delete_all(unknown_00724a50);
+    if (sound_disabled == 0) {
+        *((uint8_t *)sound_data + 0x24) = 1;
+        data_delete_all(sound_data);
+        *((uint8_t *)looping_sound_data + 0x24) = 1;
+        data_delete_all(looping_sound_data);
     }
 
     // 0x45b233..0x45b252: 0x33 records of 12 bytes: two 1.0 floats then a zero word (byte offsets -8, -4, 0)
-    record = (uint8_t *)sound_something_00746140 + 8;
+    record = (uint8_t *)sound_class_gains + 8;
     i = 0x33;
     do {
         *(uint32_t *)(record - 4) = 0x3f800000;
@@ -212,37 +212,37 @@ void game_start_new_map(void)
         i = i - 1;
     } while (i != 0);
 
-    if (network_predicted_globals != (data_array *)0) {
-        network_predicted_globals->valid = 1;
-        data_delete_all(network_predicted_globals);
-        unknown_007461a4[1] = 0xffffffff;
-        unknown_007461a4[0] = 0;
-        unknown_007461a4[2] = 0;
+    if (game_looping_sound_data != (data_array *)0) {
+        game_looping_sound_data->valid = 1;
+        data_delete_all(game_looping_sound_data);
+        game_sound_globals_ptr[1] = 0xffffffff;
+        game_sound_globals_ptr[0] = 0;
+        game_sound_globals_ptr[2] = 0;
     }
 
-    unknown_006b0ae4 = -1;
-    unknown_006b0ae0 = 0;
-    weather_particle_pool_ptr->valid = 1;
-    data_delete_all(weather_particle_pool_ptr);
+    weather_instances = -1;
+    weather_instance_count = 0;
+    weather_particle_data->valid = 1;
+    data_delete_all(weather_particle_data);
 
-    unknown_006b8d80 = unknown_0069c534 * 118613.34f;
-    unknown_006b8d7c = unknown_0069c530 * 118613.34f;
+    k_air_density = unknown_0069c534 * 118613.34f;
+    k_water_density = unknown_0069c530 * 118613.34f;
 
     game_engine_initialize_for_new_game();
-    unknown_006b1458 = 1;
+    game_engine_attribute_enabled = 1;
     update_server_new();
     game_engine_reset_player_look_state();
 
-    dst = ai_something_006f1884;
+    dst = player_effect_globals_pointer;
     for (i = 0x4a; i != 0; i = i - 1) {
         *dst = 0;
         dst = dst + 1;
     }
-    *(uint16_t *)((uint8_t *)ai_something_006f1884 + 0x3f * 4) = 0xffff;
-    ai_something_006f1884[0x49] = ((uint32_t *)game_time)[3];
+    *(uint16_t *)((uint8_t *)player_effect_globals_pointer + 0x3f * 4) = 0xffff;
+    player_effect_globals_pointer[0x49] = ((uint32_t *)game_time)[3];
     ai_reset_for_new_map();
 
-    dst = saved_games_something_006f187c;
+    dst = cinematic_globals_ptr;
     dst[0] = 0;
     dst[1] = 0;
     dst[2] = 0;
@@ -251,15 +251,15 @@ void game_start_new_map(void)
     dst[5] = 0xffffffff;
     dst[6] = 0xffffffff;
 
-    unknown_00686b60 = 0xbf800000;
+    cinematic_saved_music_gain = 0xbf800000;
     hs_scripts_reload();
-    *((uint8_t *)recorded_animations_pool_ptr + 0x24) = 1;
-    data_delete_all(recorded_animations_pool_ptr);
+    *((uint8_t *)recorded_animations + 0x24) = 1;
+    data_delete_all(recorded_animations);
 
     main_game_globals->active = 1;
-    *unknown_006b8cbc = 1;
+    *object_globals_pointer = 1;
     scenario_objects_place(global_scenario);
-    *unknown_006b8cbc = 0;
+    *object_globals_pointer = 0;
     encounters_spawn_initial();
 }
 

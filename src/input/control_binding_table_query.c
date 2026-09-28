@@ -28,7 +28,7 @@
 #include "saved_games.h"
 #include "input.h"
 
-extern uint32_t control_binding_row_profile_flag; // 0x006f1d20, same global as control_binding_table_initialize.c
+extern uint32_t current_game_engine; // 0x006f1d20, same global as control_binding_table_initialize.c
 
 extern uint8_t g_control_binding_region_ec[0x3c0]; // base 0x008603ec, same region as control_binding_table_register_single.c
 extern uint8_t g_control_binding_region_e0[0x3c0]; // base 0x008603e0, same region as control_binding_table_update_a/_b.c
@@ -41,7 +41,7 @@ uint8_t control_binding_table_query(int32_t target, int32_t raw_id)
     int32_t row;
     int32_t row_index;
 
-    if (control_binding_row_profile_flag == 0) {
+    if (current_game_engine == 0) {
         return result;
     }
 

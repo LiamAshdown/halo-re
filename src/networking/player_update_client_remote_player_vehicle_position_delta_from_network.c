@@ -36,7 +36,7 @@
 #include <string.h>
 
 extern data_array *player_data; // 0x0087a480
-extern void *remote_player_index_remap_table; // 0x00687558, table pointer at +0x28
+extern void *machine_table; // 0x00687558, table pointer at +0x28
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
@@ -74,7 +74,7 @@ void player_update_client_remote_player_vehicle_position_delta_from_network(int3
 
     remapped_index = -1;
     if (header->player_index != 0) {
-        int32_t *table_base = *(int32_t **)((uint8_t *)remote_player_index_remap_table + 0x28);
+        int32_t *table_base = *(int32_t **)((uint8_t *)machine_table + 0x28);
         remapped_index = table_base[header->player_index];
     }
     // note: no write-back into header->player_index on this path

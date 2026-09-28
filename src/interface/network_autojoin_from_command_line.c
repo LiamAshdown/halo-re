@@ -29,7 +29,7 @@
 #include "interface.h"
 
 extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280, UNSURE name
-extern char empty_string_0065512c[];                  // 0x0065512c
+extern char k_empty_string[];                  // 0x0065512c
 
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value); // 0x542760, blam-cc: EDI out_value (zeroed, then the argument after the flag)
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source); // 0x557990, blam-cc: EAX dest, EDI dest_bytes, EBX source; 8-bit to wide copy
@@ -72,7 +72,7 @@ uint8_t network_autojoin_from_command_line(void)
     }
 
     if (!command_line_check_flag("-password", &password) || password == 0) {
-        password = empty_string_0065512c;
+        password = k_empty_string;
     }
     network_game_client_connect_to_address_async(address, password);
     return 1;

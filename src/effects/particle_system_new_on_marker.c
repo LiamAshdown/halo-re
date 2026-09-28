@@ -32,7 +32,7 @@ extern tag_instance *tag_instances;      // 0x0087bc14
 extern uint8_t particle_systems_enabled; // 0x0069c566
 extern const ColorARGB *global_white_argb;    // 0x006851fc, opaque white per
                                     //   src/game/game_engine_koth_submit_hill_marker_geometry.c
-extern const ColorRGB *default_effect_color_pointer; // 0x00686b04. Ghidra names the
+extern const ColorRGB *global_white_color; // 0x00686b04. Ghidra names the
     // label PTR_DAT_00686b04 and every use in this module is `p = PTR_DAT_00686b04; ... *p`, so
     // 0x00686b04 holds a POINTER to the constant, not the constant itself. An earlier draft of
     // this file read it as an inline real_vector3d[4]; effect_set_placement.c 0x451600 and
@@ -89,7 +89,7 @@ datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t ob
             system->velocity.j *= 30.0f;
             system->velocity.k *= 30.0f;
 
-            system->ambient_color = *default_effect_color_pointer; // one load: the global holds the pointer (mov eax,ds:0x686b04; mov ecx,[eax])
+            system->ambient_color = *global_white_color; // one load: the global holds the pointer (mov eax,ds:0x686b04; mov ecx,[eax])
 
             if (object_function_get_value(object_index, system->scale_function_index,
                                            &function_value)) {

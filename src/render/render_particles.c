@@ -7,7 +7,7 @@
 //   build_sprite_data, types/tags.h Particle (bitmap id +0x10, fade_in_time +0x40,
 //   fade_out_time +0x44, minimum_size +0x68, radius_animation +0x74 / +0x78, fade_end_size
 //   +0x90, sprite_size +0xa8, orientation +0xac, the shader block +0xb0).
-//   - gated on the particle toggle 0x0069c565. The viewer is render_local_player_index
+//   - gated on the particle toggle 0x0069c565. The viewer is current_local_player_index
 //     (0x007c3108), or 1 when that is -1 or render_local_player_gunner_seat_visible 0x50fcd0
 //     (EAX = the index, AL result) says no.
 //   - collect: every live particle (datum_next 0x4d0630, then its inlined copy) whose cluster
@@ -56,8 +56,8 @@
 #include "shaders.h"
 #include <stdint.h> // uintptr_t, for the 32 bit pointer fields of build_sprite_data
 
-extern uint8_t console_debug_toggle_69c565;          // 0x0069c565 particles enabled
-extern int16_t render_local_player_index;            // 0x007c3108, this module
+extern uint8_t particle_spawn_debug_mode;          // 0x0069c565 particles enabled
+extern int16_t current_local_player_index;            // 0x007c3108, this module
 extern data_array *particle_data;                    // 0x0087abd0, effects module
 extern uint32_t cluster_visible_bits[0x10];          // 0x007c3350, structures module
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -94,10 +94,10 @@ void render_particles(void)
     int32_t viewer_value;
     datum_index index;
 
-    if (!console_debug_toggle_69c565) {
+    if (!particle_spawn_debug_mode) {
         return;
     }
-    viewer = render_local_player_index;
+    viewer = current_local_player_index;
     if (viewer == -1 || !(uint8_t)render_local_player_gunner_seat_visible(viewer)) {
         viewer = 1;
     }

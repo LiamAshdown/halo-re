@@ -27,7 +27,7 @@
 extern datum_index machine_to_player[16]; // 0x006b1460
 extern data_array *player_data; // 0x0087a480, stride 0x200 (game module)
 extern uint8_t network_stats_enabled_gate; // 0x006894a8 (UNSURE name)
-extern int64_t network_cached_qpc_counter; // 0x00719700/0x00719704 (UNSURE: cached QPC value)
+extern int64_t main_globals_data; // 0x00719700/0x00719704 (UNSURE: cached QPC value)
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 // Resolves machine_index to a live player via machine_to_player/player_data, then -- while the
@@ -65,7 +65,7 @@ uint32_t network_client_check_connection_quality(uint32_t machine_index, uint8_t
         float loss_ratio;
         float latency;
 
-        now_ms = (int32_t)((network_cached_qpc_counter * 1000) / performance_frequency);
+        now_ms = (int32_t)((main_globals_data * 1000) / performance_frequency);
         added = units;
 
         if (plr->unknown_108 == 0) {

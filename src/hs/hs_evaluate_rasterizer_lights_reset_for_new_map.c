@@ -12,20 +12,20 @@
 #include "hs.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint32_t rasterizer_lights_block_006bc510[0x8c0]; // 0x006bc510
-extern uint32_t rasterizer_lights_block_006be810[0x4002]; // 0x006be810
-extern int32_t rasterizer_lights_count_0071d134; // 0x0071d134
+extern uint32_t lens_flare_object_visibility_table[0x8c0]; // 0x006bc510
+extern uint32_t lens_flare_marker_visibility[0x4002]; // 0x006be810
+extern int32_t lens_flare_instance_count; // 0x0071d134
 
 void hs_evaluate_rasterizer_lights_reset_for_new_map(int16_t function_index, uint32_t thread_index, char first)
 {
     int32_t i;
 
     for (i = 0; i < 0x8c0; i++) {
-        rasterizer_lights_block_006bc510[i] = 0;
+        lens_flare_object_visibility_table[i] = 0;
     }
     for (i = 0; i < 0x4002; i++) {
-        rasterizer_lights_block_006be810[i] = 0;
+        lens_flare_marker_visibility[i] = 0;
     }
-    rasterizer_lights_count_0071d134 = 0;
+    lens_flare_instance_count = 0;
     hs_thread_return(0, thread_index);
 }

@@ -25,7 +25,7 @@
 #include "math.h"
 #include "ai.h"
 
-extern ai_globals *ai_global_data;                        // 0x00880354
+extern ai_globals *ai_globals_ptr;                        // 0x00880354
 extern data_array *actor_data;                            // 0x00880360
 extern data_array *encounter_data;                        // 0x008802c8
 extern Scenario *global_scenario;                         // 0x00746f8c
@@ -55,7 +55,7 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
     int16_t platoon_index;
     uint8_t activated;
 
-    if (ai_global_data->actors_valid == 0) {
+    if (ai_globals_ptr->actors_valid == 0) {
         return;
     }
 

@@ -24,7 +24,7 @@
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern uint8_t *global_scenario;     // 0x00746f8c, UNSURE: scenario tag data pointer
-extern int32_t DAT_006f1cb8;         // UNSURE global (a game-mode selector)
+extern int32_t control_binding_device_type;         // UNSURE global (a game-mode selector)
 extern uint8_t *object_type_definitions_ex; // 0x0069bfe0, UNSURE: a second type-definition table
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 
@@ -64,7 +64,7 @@ void unit_set_facing_from_index_table(uint32_t object_index)
     {
         real_point3d *spawn_position;
 
-        if (DAT_006f1cb8 == 5) {
+        if (control_binding_device_type == 5) {
             uint8_t *entry = *(uint8_t **)(global_scenario + 0x37c) + facing_index * 0x94;
 
             spawn_position = (real_point3d *)entry;

@@ -24,7 +24,7 @@ extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c
 
 
 extern int32_t rasterizer_gamma_exponent;             // 0x0071d1e0
-extern int32_t rasterizer_gamma_exponent_clamped;     // 0x0071d1e4, UNSURE owner
+extern int32_t video_gamma_current;     // 0x0071d1e4, UNSURE owner
 
 extern double log(double x); // inline fldln2 / fyl2x
 extern double exp(double x); // inline fldl2e / f2xm1 / fscale
@@ -50,13 +50,13 @@ void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings
     }
     if (rasterizer_gamma_exponent < 1) {
         rasterizer_gamma_exponent = 1;
-        rasterizer_gamma_exponent_clamped = 1;
+        video_gamma_current = 1;
         return;
     }
     if (0xfe < rasterizer_gamma_exponent) {
         rasterizer_gamma_exponent = 0xfe;
     }
-    rasterizer_gamma_exponent_clamped = rasterizer_gamma_exponent;
+    video_gamma_current = rasterizer_gamma_exponent;
 }
 
 #if 0

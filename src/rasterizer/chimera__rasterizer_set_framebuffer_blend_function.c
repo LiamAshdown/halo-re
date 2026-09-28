@@ -14,7 +14,7 @@
 #include "math.h"
 #include "rasterizer.h"
 
-extern int32_t unknown_00722b7c; // 0x00722b7c
+extern int32_t config_min_max_blend_op_is_broken; // 0x00722b7c
 extern void *rasterizer_device;   // 0x0071d174
 extern uint32_t rasterizer_blend_src_table[16];  // 0x0065dfbc UNSURE: element count
 extern uint32_t rasterizer_blend_dest_table[16]; // 0x0065dfe0 UNSURE: element count
@@ -30,7 +30,7 @@ void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode)
     void **vtable = *(void ***)rasterizer_device;
     d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
 
-    if (unknown_00722b7c != 0 && (mode == 5 || mode == 6)) {
+    if (config_min_max_blend_op_is_broken != 0 && (mode == 5 || mode == 6)) {
         set_render_state(rasterizer_device, 0x13, 2);
         set_render_state(rasterizer_device, 0x14, 2);
         set_render_state(rasterizer_device, 0xab, 1);
