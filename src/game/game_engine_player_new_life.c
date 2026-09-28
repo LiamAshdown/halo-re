@@ -38,7 +38,7 @@ extern int32_t game_engine_auto_team_counter;       // 0x0087aa04
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module;
     // blam-cc: EDI -> iterator
-extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast); // 0x460a30, this module. CORRECTED by review: the
     // first pass declared a 4-parameter form that did not match chimera__kill_feed's own
     // definition. objdump 0x45c512..0x45c541 shows the real shape -- a data_iterator built at

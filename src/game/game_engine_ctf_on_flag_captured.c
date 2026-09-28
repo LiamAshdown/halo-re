@@ -35,7 +35,7 @@ extern void game_engine_check_bucket_scores_and_end_round(void);      // 0x46db7
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
     int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast); // 0x460c10, blam-cc: BL broadcast
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast); // 0x460a30
 
 void game_engine_ctf_on_flag_captured(uint32_t flag_index)

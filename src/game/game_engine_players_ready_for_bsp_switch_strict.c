@@ -88,7 +88,7 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
         int32_t this_team;
         int32_t carry_team;
         uint8_t counts;
-        uint8_t bVar5;
+        uint8_t has_spawned_reference_team;
 
         spawned_reference_team = -1;
         disagreement_found = 0;
@@ -122,9 +122,9 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
                 }
 
                 if (counts && this_team != spawned_reference_team) {
-                    bVar5 = (spawned_reference_team != -1);
+                    has_spawned_reference_team = (spawned_reference_team != -1);
                     spawned_reference_team = this_team;
-                    if (bVar5) {
+                    if (has_spawned_reference_team) {
                         return 1;
                     }
                 }

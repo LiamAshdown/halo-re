@@ -28,7 +28,7 @@
 extern data_array *player_data; // 0x0087a480
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast); // 0x460a30, this batch
 
 // FIXED 2026-09-28 from objdump 0x460ba0..0x460c04: ESI is the message type (players are skipped when it is -1),

@@ -39,7 +39,7 @@ extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point
 extern void game_engine_koth_relocate_object_hill(uint32_t object_index); // 0x46c1a0, blam-cc: EAX object_index
 extern uint8_t weapon_must_be_readied(void); // 0x4c2ea0, UNSURE exact identity
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast); // 0x460a30
 
 void game_engine_koth_ball_idle_tick(uint32_t object_handle, object *obj)

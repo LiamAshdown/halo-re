@@ -32,7 +32,7 @@ extern player_globals *local_player_globals; // 0x0087a478
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590, blam-cc:
     // EAX -> event, ECX -> out_values; UNSURE identity (a network message-delta decode)
 extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670, blam-cc: EAX -> event; UNSURE identity
-extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast); // 0x460a30, this batch
 
 // blam-cc: EAX -> message

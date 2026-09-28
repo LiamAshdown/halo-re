@@ -8,9 +8,9 @@
 // "index/salt/local_player_index" recipient validation already committed verbatim (twice) in
 // game_engine_on_player_death.c.
 // register convention: the recipient handle is unaff_EDI (never loaded from any stack slot in
-// this function, and tested first); param_1..param_4 are this function's own stack parameters.
-//   // blam-cc: unaff_EDI -> recipient, stack -> param_1, message_type, subject, broadcast
-// UNSURE: param_1 is passed only to the game-variant override callback (build_message_text) and
+// this function, and tested first); hash_key..param_4 are this function's own stack parameters.
+//   // blam-cc: unaff_EDI -> recipient, stack -> hash_key, message_type, subject, broadcast
+// UNSURE: hash_key is passed only to the game-variant override callback (build_message_text) and
 // is otherwise unused; its real meaning is not recoverable from this decompilation. The override
 // callback's prototype (5 visible arguments here, none anywhere else in this batch) is likewise
 // unrecoverable and is modeled literally from what Ghidra shows at this one call site.
@@ -33,14 +33,14 @@ extern void chimera__hud_message(int16_t local_player_index, wchar_t *text); // 
     // blam-cc: EAX -> local_player_index, stack -> text. objdump 0x460b23: `mov ax,[esi+0x2]`
     // loads the recipient's player::local_player_index into EAX immediately before the call.
 
-// blam-cc: unaff_EDI -> recipient, stack -> param_1, message_type, subject, broadcast
+// blam-cc: unaff_EDI -> recipient, stack -> hash_key, message_type, subject, broadcast
 // Validates `recipient` against the live players array (index range, occupied slot, optional
 // salt match), and -- only for a recipient that is a local player -- builds the message text
 // (variant override first, default builder second) and routes it to either the multiplayer chat
 // line or the HUD message line depending on `message_type`. Independently of the local-player
 // check, when hosting and `broadcast` is set, forwards the event to other machines via
 // FUN_004608d0.
-void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast)
 {
     int16_t index = (int16_t)recipient;
@@ -67,7 +67,7 @@ void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message
             if (current_game_engine->build_message_text != 0) {
                 built = ((char (*)(int32_t, uint32_t, datum_index, wchar_t *, size_t))
                     current_game_engine->build_message_text)
-                    (param_1, message_type, subject, message, 0x400); // 0x460aa7..0x460ac2: (param_1, type, subject, text, 0x400)
+                    (hash_key, message_type, subject, message, 0x400); // 0x460aa7..0x460ac2: (hash_key, type, subject, text, 0x400)
             }
             if (built == 0) {
                 built = game_engine_build_kill_feed_message_text(message, message_type, subject, 0x400);
@@ -87,8 +87,8 @@ void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message
         }
 
         if (network_game_mode == 2 && broadcast == 1) {
-            // 0x460b48..0x460b5a: EAX = the recipient (EDI), ECX = param_1, stack (message_type, subject)
-            game_engine_notify_kill_event(recipient, param_1, (int32_t)message_type, subject);
+            // 0x460b48..0x460b5a: EAX = the recipient (EDI), ECX = hash_key, stack (message_type, subject)
+            game_engine_notify_kill_event(recipient, hash_key, (int32_t)message_type, subject);
         }
     }
 }

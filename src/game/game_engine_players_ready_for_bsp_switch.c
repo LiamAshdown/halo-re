@@ -62,7 +62,7 @@ uint8_t game_engine_players_ready_for_bsp_switch(void)
     int16_t reread_deaths;    // re-read of p->deaths, same reason
     uint8_t result;
     uint8_t odd_man_out_result;
-    uint8_t bVar5;
+    uint8_t no_reference_team;
 
     if (players_active_count() < 2) {
         return 1;
@@ -100,9 +100,9 @@ uint8_t game_engine_players_ready_for_bsp_switch(void)
                 if (p->team == reference_team) {
                     keep_going = 1;
                 } else {
-                    bVar5 = (reference_team == -1);
+                    no_reference_team = (reference_team == -1);
                     reference_team = p->team;
-                    keep_going = bVar5;
+                    keep_going = no_reference_team;
                 }
             }
 

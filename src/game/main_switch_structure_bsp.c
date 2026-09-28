@@ -51,7 +51,7 @@ extern uint8_t *main_game_globals;             // 0x006b0b80, TYPES-GAP (cached_
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern void player_effect_apply_generic_damage_feedback(datum_index player_index, real fade_fraction); // 0x4569d0, EDX player, stack fade_fraction
-extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
                                 datum_index subject, char broadcast); // 0x460a30
 extern void player_kill_streak_tick(datum_index player_handle); // this batch, 0x479d10, blam-cc: EAX -> player_handle
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX

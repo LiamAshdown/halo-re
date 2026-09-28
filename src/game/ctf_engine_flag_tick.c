@@ -65,7 +65,7 @@ extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slo
 extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0
 extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index); // 0x56dcd0
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);          // 0x56dec0
-extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
+extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
     datum_index subject, char broadcast); // 0x460a30
 extern void object_delete(datum_index object_index);                       // 0x4f5bd0
 extern void game_engine_ctf_respawn_team_flag(int32_t team, real_point3d *forwarded_position,
