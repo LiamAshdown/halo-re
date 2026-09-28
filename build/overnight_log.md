@@ -2388,3 +2388,17 @@ Relinked: unresolved 1, traps 127.
   Direct traps 95 (networking 61, shell 22 + cseries 7 = GameSpy SDK and friends).
 - NEXT: networking (83 stored pointers, 61 direct traps, the '?' names, GameSpy 0x614000..0x61e000), then units
   0x571f20 / 0x5726e0 and hs 0x48b150; then step 2 (build-time independence).
+### iteration 6b (2026-09-28) -- commits c54a87b..8bfca59, relinked (0 unresolved, traps 95 -> 93)
+- hs: syntax data byte-swap proc 0x48b150 (tag data definition "hs_syntax_data_definition"; 0x4cfd50 inlined) -- hs
+  stored pointers 0.
+- Traps: the CRT _CIpow (0x6283c0) and wcslen (0x625b7a) traps are gone. Three callers called _CIpow with no
+  operands (ally bonus pow(1 - (d - 1) * 0.2, 0.6); nameplate scale pow(min(n, 10) * 0.1, 1.9) * 0.5; nameplate fade
+  pow(opacity, 1.9)); game_engine_rasterize_in_game_score (0x465690) takes (player, opacity) on the stack (the C had
+  the player in EAX and the text alpha from a third argument passed as 0). The server browser row's wcslen was the
+  inlined copy's unused length; its bounded formats take EDX = 0x1f / 7 (the C passed the text as the count).
+- Left: networking 83 stored pointers + units 2 (0x571f20 / 0x5726e0, network object-create message builders);
+  direct traps 93 = GameSpy SDK (0x614540..0x61e550 and thunks 0x61c3e0.. / 0x622050), server browser comparators
+  0x4b6cd0 / 0x4b6e70 / 0x4b6fb0 (they call GameSpy SB getters 0x617490 / 0x617c10), autopatch callbacks
+  0x576a70 / 0x5777d0, network_channel_gap_* (0x441020..0x441f30, 0x4ba660), the five '?' names.
+- NEXT: networking -- start with the GameSpy SDK leaf functions (query/report and server browser getters), then the
+  comparators, autopatch callbacks and channel gaps.
