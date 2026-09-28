@@ -160,7 +160,7 @@ bookkeeping:
                     *vitality = 0.0f;
                     break;
                 }
-                child = *(datum_index *)(child_obj + 0x114);
+                child = ((object *)child_obj)->next_object;
             }
         }
     }

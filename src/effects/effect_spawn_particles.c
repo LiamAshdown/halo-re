@@ -300,7 +300,7 @@ void effect_spawn_particles(effect *self)
                     } else {
                         uint8_t *owner = (uint8_t *)((object_header *)object_data->data)[(uint16_t)self->object_index].data;
 
-                        node = (real_matrix4x3 *)(owner + *(int16_t *)(owner + 0x1f2) + node_index * 0x34);
+                        node = (real_matrix4x3 *)(owner + ((object *)owner)->nodes.offset + node_index * 0x34);
                     }
                     effect_spawn_particles_transform_point(&position, record.position.x, record.position.y,
                         record.position.z, node);

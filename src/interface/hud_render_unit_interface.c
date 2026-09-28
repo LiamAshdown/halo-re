@@ -191,7 +191,7 @@ void hud_render_unit_interface(player *p)
                     hud_tags[1] = *(datum_index *)&parent_hud;
                     count = 2;
                 }
-                for (child = *(datum_index *)(parent_object + 0x118); child != (datum_index)-1 && (uint32_t)count < 18;) {
+                for (child = ((object *)parent_object)->first_child_object; child != (datum_index)-1 && (uint32_t)count < 18;) {
                     uint8_t *child_data = (uint8_t *)((object_header *)object_data->data)[child & 0xffff].data;
                     uint8_t *child_object = (uint8_t *)object_try_and_get(child, 3);
 
@@ -203,7 +203,7 @@ void hud_render_unit_interface(player *p)
                         hud_tags[count] = *(datum_index *)&seat_hud;
                         count++;
                     }
-                    child = *(datum_index *)(child_data + 0x114); // object next_object
+                    child = ((object *)child_data)->next_object; // object next_object
                 }
             }
         }

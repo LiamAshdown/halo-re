@@ -10,6 +10,7 @@ MAP = {"actor_data": "actor", "prop_data": "prop", "player_data": "player", "enc
        "light_data": "light", "particle_system_data": "particle_system", "decal_data": "decal",
        "game_looping_sound_data": "game_looping_sound", "swarm_data": "swarm",
        "particle_system_particle_data": "particle_system_particle"}
+OBJ_INIT = re.compile(r"uint8_t \*(\w+) = \(uint8_t \*\)\(\(object_header \*\)object_data->data\)\[[^]]*\]\.data;")
 INIT = re.compile(r"uint8_t \*(\w+) = \(uint8_t \*\)(\w+)->data \+ \([^;]*& 0xffff\) \* (0x[0-9a-f]+);")
 
 
@@ -28,6 +29,12 @@ def main():
         for var, array, stride in INIT.findall(live):
             if array in MAP:
                 groups[(MAP[array], var, int(stride, 16))].add(os.path.relpath(f, ROOT))
+    # an object's data through its header: the object view (offsets below 0x1f4, whatever the object's type)
+    for f in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
+        live = open(f, encoding="utf-8").read().split("\n#if 0")[0]
+        for var in OBJ_INIT.findall(live):
+            if var != "unit_object":           # a local named like the view type: left alone
+                groups[("object", var, 0x1f4)].add(os.path.relpath(f, ROOT))
     for (struct, var, stride), files in sorted(groups.items()):
         size, header = size_of(struct)
         if size != stride:

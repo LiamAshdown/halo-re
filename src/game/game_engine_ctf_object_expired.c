@@ -18,5 +18,5 @@ void game_engine_ctf_object_expired(datum_index object_index)
 {
     uint8_t *object = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
 
-    *(int32_t *)(object + 0xc0) = -1;
+    *(int32_t *)&((struct object *)object)->owner_linkage = -1;
 }

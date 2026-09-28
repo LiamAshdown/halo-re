@@ -40,7 +40,7 @@ void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, floa
     } else if (((unit_object *)unit)->base.type == 0 && parent_index != k_datum_index_none) {
         uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[parent_index & 0xffff].data;
 
-        if (*(int16_t *)(parent + 0xb4) == 1 && unit_predict_aim_target_position(parent_index, &reference) != -1) {
+        if (((object *)parent)->type == 1 && unit_predict_aim_target_position(parent_index, &reference) != -1) {
             have_reference = 1;
         }
     }

@@ -67,7 +67,7 @@ uint8_t blip_type_get(int16_t local_player_index, datum_index object_index)
         }
         if (occupant != (datum_index)-1) {
             uint8_t *occupant_data = (uint8_t *)((object_header *)object_data->data)[occupant & 0xffff].data;
-            return (uint8_t)((teams_are_enemies((int16_t)viewer_team, *(int16_t *)(occupant_data + 0xb8)) != 0) + 3);
+            return (uint8_t)((teams_are_enemies((int16_t)viewer_team, ((object *)occupant_data)->owner_team) != 0) + 3);
         }
         {
             uint8_t *vehicle_tag = (uint8_t *)tag_instances[*(datum_index *)object_data_ptr & 0xffff].data;

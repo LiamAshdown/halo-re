@@ -58,7 +58,7 @@ void player_check_vehicle_boarding_interaction_lightweight(uint32_t player_index
     uint8_t holds_exclusive = 0;
     object *current_weapon_obj;
 
-    if (*(datum_index *)(candidate + 0x11c) != (datum_index)0xffffffff ||
+    if (((object *)candidate)->parent_object != (datum_index)0xffffffff ||
         *(uint32_t *)(candidate + 0x200) == (uint32_t)unit_handle) {
         return;
     }

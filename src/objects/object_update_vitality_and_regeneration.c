@@ -156,8 +156,8 @@ void object_update_vitality_and_regeneration(uint32_t object_index)
     if (((object *)obj)->type == 0 && ((object *)obj)->network_role == 0) {
         uint8_t *object = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
 
-        if ((uint32_t)(*(int16_t *)(object + 0x104) > 0) != (uint32_t)object[0x538]) {
-            *(uint32_t *)(object + 0x10) |= 0x4000000;
+        if ((uint32_t)(((struct object *)object)->shield_stun_ticks > 0) != (uint32_t)object[0x538]) {
+            ((struct object *)object)->flags |= 0x4000000;
         }
     }
 }

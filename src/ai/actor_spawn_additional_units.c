@@ -128,7 +128,7 @@ int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spaw
                     char reuse_existing = (char)((*(const uint32_t *)actor_tag_data >> 0x1a) & 1);
                     datum_index new_actor;
 
-                    if (*(uint32_t *)(new_obj + 0xb4) == 0) {
+                    if (*(uint32_t *)&((object *)new_obj)->type == 0) {
                         unit_find_placement_position(new_object, 0xffffffff, 0, 1.0f, 1, 0, 0, 0,
                             (real_vector3d *)&placement.position);
                     }
@@ -151,7 +151,7 @@ int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spaw
                         impulse.i = impulse.i * health_scale;
                         impulse.j = impulse.j * health_scale;
                         impulse.k = r2 * health_scale;
-                        if (*(uint32_t *)(new_obj + 0xb4) == 0) {
+                        if (*(uint32_t *)&((object *)new_obj)->type == 0) {
                             unit_apply_impulse(new_object, &impulse);
                         }
                     }

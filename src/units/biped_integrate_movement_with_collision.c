@@ -533,7 +533,7 @@ step_crouch:
         lunge.j = solve.result_position.y - solve.start_position.y;
         lunge.k = solve.result_position.z - solve.start_position.z;
         if (ray_intersects_sphere_test(&solve.start_position, (real_point3d *)(target + 0xa0), &lunge,
-                                       *(float *)(target + 0xac)) &&
+                                       ((object *)target)->bounding_radius) &&
             object_collision_context_build(target_index, &context) &&
             object_collision_context_test_segment(&context, 3, &solve.start_position, &lunge, &node_hit) &&
             !collision_test_movement_segment(0xc2a0, &solve.start_position, &lunge, object_index, &structure_hit)) {
