@@ -17,5 +17,5 @@
 const char *__fastcall std_exception_what(uint8_t *this, void *unused_edx)
 {
     (void)unused_edx;
-    return *(uint32_t *)(this + 0x24) >= 0x10 ? *(const char **)(this + 0x10) : (const char *)(this + 0x10);
+    return ((std_runtime_error *)this)->message.capacity >= 0x10 ? ((std_runtime_error *)this)->message.bx.pointer : ((std_runtime_error *)this)->message.bx.buffer;
 }

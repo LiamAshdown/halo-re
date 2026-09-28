@@ -12,26 +12,28 @@
 #include "math.h"
 #include <string.h>
 #include <stdlib.h>
+#include "rasterizer.h"
+#include "shell.h"
 
 extern void *std_exception_vtable; // 0x0064ef90
 
 void *exception_copy_construct(void *this, const void *other)
 {
-    uint8_t *self = (uint8_t *)this;
-    const uint8_t *source = (const uint8_t *)other;
+    std_exception *self = (std_exception *)this;
+    const std_exception *source = (const std_exception *)other;
 
-    *(void **)self = &std_exception_vtable;
-    *(uint32_t *)(self + 8) = *(const uint32_t *)(source + 8);
-    if (*(const uint32_t *)(source + 8) != 0) {
-        const char *message = *(const char *const *)(source + 4);
+    self->vftable = &std_exception_vtable;
+    self->do_free = source->do_free;
+    if (source->do_free != 0) {
+        const char *message = source->what;
         char *copy = (char *)malloc(strlen(message) + 1);
 
-        *(char **)(self + 4) = copy;
+        self->what = copy;
         if (copy != 0) {
             strcpy(copy, message);
         }
     } else {
-        *(const char **)(self + 4) = *(const char *const *)(source + 4);
+        self->what = source->what;
     }
     return this;
 }

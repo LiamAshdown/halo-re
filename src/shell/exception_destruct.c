@@ -11,15 +11,17 @@
 #include "math.h"
 #include <string.h>
 #include <stdlib.h>
+#include "rasterizer.h"
+#include "shell.h"
 
 extern void *std_exception_vtable; // 0x0064ef90
 
 void exception_destruct(void *this)
 {
-    uint8_t *self = (uint8_t *)this;
+    std_exception *self = (std_exception *)this;
 
-    *(void **)self = &std_exception_vtable;
-    if (*(uint32_t *)(self + 8) != 0) {
-        free(*(void **)(self + 4));
+    self->vftable = &std_exception_vtable;
+    if (self->do_free != 0) {
+        free((void *)self->what);
     }
 }

@@ -56,7 +56,36 @@
 // Functions in this address range that are misattributed, library code or not real functions
 // are listed in out/phase4/shell_types_notes.md; their types are not defined here.
 
+#include <stddef.h> // offsetof
 #pragma pack(push, 1)
+
+// ---------------------------------------------------------------------------
+// MSVC 7.1 C++ runtime objects the game's CRT code builds and reads (<exception>, <string>):
+// exception_copy_construct / exception_destruct work on std_exception, std_exception_what on a
+// std_runtime_error-style object (the base plus the message string).
+// ---------------------------------------------------------------------------
+typedef struct std_exception {
+    void *vftable;                      // 0x00 std_exception_vtable (0x0064ef90)
+    const char *what;                   // 0x04 _m_what
+    uint32_t do_free;                   // 0x08 _m_doFree: what was malloc'd by the copy constructor
+} std_exception;                        // size 0x0c
+
+typedef struct std_string {
+    uint32_t allocator;                 // 0x00 the (empty) allocator object
+    union {
+        char buffer[16];                // inline storage while capacity < 16
+        char *pointer;
+    } bx;                               // 0x04 _Bx
+    uint32_t size;                      // 0x14 _Mysize
+    uint32_t capacity;                  // 0x18 _Myres
+} std_string;                           // size 0x1c
+
+typedef struct std_runtime_error {
+    std_exception base;                 // 0x00
+    std_string message;                 // 0x0c
+} std_runtime_error;                    // size 0x28
+typedef char std_runtime_error_capacity_at_24[offsetof(std_runtime_error, message.capacity) == 0x24 ? 1 : -1];
+
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
 
