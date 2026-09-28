@@ -60,6 +60,9 @@ LIST_ID = ('static int32_t list_item_id(int16_t index)\n{\n'
 LIST_DATA = ('static void *list_item_data(int16_t index)\n{\n'
              '    if (index >= 0 && index < ui_lists[ui_list_current].count) {\n'
              '        return ((ui_list_item *)ui_lists[ui_list_current].data)[index].data;\n    }\n    return 0;\n}\n')
+FIRST_LIST = ('static widget_instance *first_list_child(widget_instance *widget)\n{\n'
+              '    widget_instance *child = widget->first_child;\n\n'
+              '    while (child != 0 && child->widget_type != 2) {\n        child = child->next_sibling;\n    }\n    return child;\n}\n')
 ROOT_CLOSE = ('    root = widget;\n    while (root->parent != 0) {\n        root = root->parent;\n    }\n'
               '    widget_close(root);\n    *out_handled = 1;\n')
 QUIT_ERR = ('        quit_confirm_error_string_index = %s;\n        quit_confirm_error_unknown_ae = -1;\n'
