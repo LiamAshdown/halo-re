@@ -35,23 +35,11 @@ extern void function_do_nothing(void);  // 0x44ad80
 //   only referenced by these immediate stores); see src/rasterizer/README.md, known gaps.
 extern uint8_t LAB_0051fd80, LAB_0051fad0, LAB_0051e8f0, LAB_0051e570;
 extern void rasterizer_shader_environment_lightmap_draw(void); // 0x51e2a0
-extern uint8_t LAB_005358b0, DAT_00535fd0;
+extern void rasterizer_water_draw_fixed_function(transparent_geometry_group *group); // 0x5358b0
+extern void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group);   // 0x535fd0
 
 // Selects vendor/driver-specific rendering code path function pointers based on the detected
 // GPU capability caps (max_streams, pixel_shader_version).
-extern void __cdecl standalone_log(const char *format, ...);
-
-// STOPGAP: stands in for the unrewritten water draw procedures (see the end of the function below)
-static void rasterizer_water_draw_stopgap(void *group)
-{
-    static int32_t logged;
-
-    (void)group;
-    if (!logged) {
-        logged = 1;
-        standalone_log("STOPGAP water draw skipped (0x535fd0 not rewritten yet)");
-    }
-}
 
 void __cdecl rasterizer_select_hardware_codepaths(void)
 {
@@ -86,14 +74,10 @@ void __cdecl rasterizer_select_hardware_codepaths(void)
     unknown_007c0494 = (void *)function_do_nothing;
 
 set_vertex_buffer_slot:
-    rasterizer_water_draw_procedure = &LAB_005358b0;
+    rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_fixed_function;
     if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
-        rasterizer_water_draw_procedure = &DAT_00535fd0;
+        rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_pixel_shader;
     }
-    // STOPGAP (2026-09-28): neither water draw procedure (0x5358b0 fixed function, 0x535fd0 pixel shader, ~3 KB)
-    // has a C rewrite yet, and the standalone maps the original code non-executable, so the first water shader
-    // drawn (a10's sky) crashed. Water is skipped until 0x535fd0 is rewritten.
-    rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_stopgap;
 }
 
 #if 0
