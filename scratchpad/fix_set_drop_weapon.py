@@ -1,4 +1,7 @@
-// unit_scripting_set_or_drop_weapon  (Ghidra: FUN_0056ddb0)
+p = "C:\\Users\\Liam-\\halo-re\\src\\units\\unit_scripting_set_or_drop_weapon.c"
+t = open(p, encoding="utf-8").read()
+cut = t.index("\n#if 0")
+new = '''// unit_scripting_set_or_drop_weapon  (Ghidra: FUN_0056ddb0)
 // address 0x56ddb0, size 270 bytes, name confidence 0.3, rewrite confidence 0.85
 // functions.md: "Script/console-callable helper that resolves weapon-name arguments to object
 // ids and updates or drops the unit's selected weapon accordingly."
@@ -80,65 +83,6 @@ void unit_scripting_set_or_drop_weapon(int32_t *message)
         unit_drop_current_weapon(unit_index, (uint8_t)decoded.force);
     }
 }
-
-#if 0
-Original Ghidra decompilation (0x56ddb0):
-
-void FUN_0056ddb0(void)
-
-{
-  short sVar1;
-  uint uVar2;
-  char cVar3;
-  undefined4 *in_EAX;
-  int iVar4;
-  int iVar5;
-  int *piVar6;
-  int iVar7;
-  int local_c;
-  int local_8;
-  undefined4 local_4;
-
-  if (*(int *)*in_EAX == 0) {
-    cVar3 = FUN_004ec590();
-    if ((cVar3 != '\0') && (local_c != 0)) {
-      iVar5 = *(int *)(PTR_DAT_00687130 + 0x28);
-      uVar2 = *(uint *)(iVar5 + local_c * 4);
-      if ((uVar2 != 0xffffffff) && (iVar4 = object_try_and_get(3), iVar4 != 0)) {
-        iVar7 = -1;
-        if (local_8 != 0) {
-          iVar7 = *(int *)(iVar5 + local_8 * 4);
-        }
-        iVar5 = unit_get_weapon_object_index();
-        if (iVar5 != iVar7) {
-          iVar5 = 0;
-          piVar6 = (int *)(iVar4 + 0x2f8);
-          do {
-            if (*piVar6 == iVar7) {
-              *(short *)(iVar4 + 0x2f4) = (short)iVar5;
-              unit_ready_desired_weapon(uVar2,1);
-              break;
-            }
-            iVar5 = iVar5 + 1;
-            piVar6 = piVar6 + 1;
-          } while (iVar5 < 4);
-        }
-        iVar5 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (uVar2 & 0xffff) * 0xc);
-        sVar1 = *(short *)(iVar5 + 0x2f2);
-        iVar4 = -1;
-        if (sVar1 != -1) {
-          iVar4 = *(int *)(iVar5 + 0x2f8 + sVar1 * 4);
-        }
-        if (iVar4 == iVar7) {
-          unit_drop_current_weapon(uVar2,local_4);
-          return;
-        }
-      }
-    }
-  }
-  else {
-    FUN_004ec670();
-  }
-  return;
-}
-#endif
+'''
+open(p, "w", encoding="utf-8", newline="\n").write(new + t[cut:])
+print("ok")
