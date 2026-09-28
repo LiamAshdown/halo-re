@@ -29,6 +29,7 @@ extern int32_t network_console_connection_id;                  // 0x0069fdfc, UN
 
 extern void network_session_host_dispose(void);              // 0x5778f0, this module
 extern void network_channels_open(void);                     // 0x441300, this module
+extern void network_session_host_natneg_callback(int32_t cookie); // 0x578160
 extern int32_t gamespy_array_length(int32_t socket);                  // foreign, UNSURE
 extern void *FUN_00616340(void **object, int32_t query_result, int32_t game_type, void *host_name,
                            void *map_name, uint32_t flags, int32_t a7, void *cb1, void *cb2,
@@ -52,7 +53,8 @@ void *network_session_host_start(int32_t param_1)
                            network_session_start_map_name, network_session_host_flags, 1,
                            (void *)0, (void *)network_session_host_dispatch_message, (void *)0, (void *)0, (void *)0,
                            (void *)0, param_1);
-    FUN_00615530(network_session_host_object, (void *)0);
+    // FIXED 2026-09-28: 0x5778b5 registers 0x578160 (network_session_host_natneg_callback), not NULL.
+    FUN_00615530(network_session_host_object, (void *)network_session_host_natneg_callback);
     network_console_connection_id = 0x319;
     FUN_0061b6d0(network_session_host_object, 0x319, network_session_host_flags);
     return result;
