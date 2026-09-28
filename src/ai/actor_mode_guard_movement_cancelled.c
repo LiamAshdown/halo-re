@@ -23,15 +23,15 @@ void actor_mode_guard_movement_cancelled(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
     int16_t kind;
 
-    if (act[0xa4] && *(int16_t *)(act + 0xc0) == 3) {
+    if (act[0xa4] && ((struct actor *)act)->mode_data.guard.stage == 3) {
         act[0xa4] = 0;
-        *(int16_t *)(act + 0xa8) = 0;
+        ((struct actor *)act)->mode_data.guard.countdown_0c = 0;
         act[0xa6] = 0;
     }
-    kind = *(int16_t *)(act + 0xc0);
+    kind = ((struct actor *)act)->mode_data.guard.stage;
     if (kind == 3 || (kind == 1 && act[0x160] == 0)) {
-        *(int16_t *)(act + 0xc0) = 0;
-        *(int16_t *)(act + 0xc4) = -1;
+        ((struct actor *)act)->mode_data.guard.stage = 0;
+        ((struct actor *)act)->mode_data.guard.firing_position = -1;
         act[0xaa] = 1;
     }
 }

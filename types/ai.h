@@ -297,6 +297,22 @@ typedef struct actor_mode_charge_data {
 } actor_mode_charge_data;
 typedef char actor_mode_charge_data_start_at_10[offsetof(actor_mode_charge_data, stage_start_time) == 0x10 ? 1 : -1];
 
+typedef struct actor_mode_guard_data {
+    int16_t countdown_00;               // 0x00 counted down by the tick
+    int16_t countdown_02;               // 0x02 counted down by the tick
+    uint8_t unknown_04[8];              // 0x04
+    int16_t countdown_0c;               // 0x0c counted down by the tick; movement_cancelled clears it
+    uint8_t unknown_0e[2];              // 0x0e
+    datum_index hold_reference;         // 0x10 swapped by actor_mode_guard_replace_reference
+    uint8_t unknown_14[0x10];           // 0x14
+    int16_t stage;                      // 0x24 0..3
+    uint8_t unknown_26[2];              // 0x26
+    int16_t firing_position;            // 0x28 -1 for none
+    uint8_t unknown_2a[0x12];           // 0x2a (0x34 an int32 target_cleared resets to -1, 0x38 a position)
+    datum_index guard_target;           // 0x3c swapped by replace_reference; update makes it the actor's target
+} actor_mode_guard_data;
+typedef char actor_mode_guard_data_target_at_3c[offsetof(actor_mode_guard_data, guard_target) == 0x3c ? 1 : -1];
+
 typedef union actor_mode_data {
     uint8_t raw[0x84];
     actor_mode_wait_data wait;
@@ -305,6 +321,7 @@ typedef union actor_mode_data {
     actor_mode_uncover_data uncover;
     actor_mode_search_data search;
     actor_mode_charge_data charge;
+    actor_mode_guard_data guard;
 } actor_mode_data;                      // size 0x84
 typedef char actor_mode_data_size[sizeof(actor_mode_data) == 0x84 ? 1 : -1];
 

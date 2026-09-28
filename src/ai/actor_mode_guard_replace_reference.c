@@ -21,11 +21,11 @@ void actor_mode_guard_replace_reference(datum_index actor_index, datum_index old
 {
     uint8_t *mode_data = ACTOR(actor_index) + 0x9c;
 
-    if (*(datum_index *)(mode_data + 0x3c) == old_reference) {
-        *(datum_index *)(mode_data + 0x3c) = new_reference;
+    if (((actor_mode_guard_data *)mode_data)->guard_target == old_reference) {
+        ((actor_mode_guard_data *)mode_data)->guard_target = new_reference;
     }
-    if (*(datum_index *)(mode_data + 0x10) == old_reference) {
-        *(datum_index *)(mode_data + 0x10) = new_reference;
+    if (((actor_mode_guard_data *)mode_data)->hold_reference == old_reference) {
+        ((actor_mode_guard_data *)mode_data)->hold_reference = new_reference;
         if (new_reference == k_datum_index_none) {
             mode_data[0xf] = 0;
         }

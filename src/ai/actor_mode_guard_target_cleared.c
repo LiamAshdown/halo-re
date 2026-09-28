@@ -20,7 +20,7 @@ void actor_mode_guard_target_cleared(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
 
-    if (*(int16_t *)(act + 0xc0) == 2) {
+    if (((struct actor *)act)->mode_data.guard.stage == 2) {
         *(int32_t *)(act + 0xd0) = -1;
     }
 }

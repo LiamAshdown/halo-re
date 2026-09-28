@@ -66,7 +66,7 @@ void actor_mode_guard_update(datum_index actor_index)
     if (act[0x4c] && !act[0x6]) {
         uint8_t in_place = 0;
 
-        switch (*(int16_t *)(act + 0xc0)) { // 0x4050f0
+        switch (((struct actor *)act)->mode_data.guard.stage) { // 0x4050f0
         case 0:
         case 1:
             actor_movement_action_stop(actor_index);
@@ -85,13 +85,13 @@ void actor_mode_guard_update(datum_index actor_index)
             break;
         }
         case 3: {
-            int16_t position = *(int16_t *)(act + 0xc4);
+            int16_t position = ((struct actor *)act)->mode_data.guard.firing_position;
 
             if (position != -1) {
                 ((actor *)act)->firing_position_index = position;
                 act[0x3ba] = 0;
                 if (!actor_movement_set_destination_firing_position(actor_index, position, 0)) {
-                    actor_push_recognition_entry(actor_index, *(int16_t *)(act + 0xc4), 0);
+                    actor_push_recognition_entry(actor_index, ((struct actor *)act)->mode_data.guard.firing_position, 0);
                     ((actor *)act)->firing_position_index = -1;
                 }
             }
@@ -108,7 +108,7 @@ void actor_mode_guard_update(datum_index actor_index)
         act[0xa0] = 1;
         if (in_place) {
             if (act[0xab]) {
-                uint8_t *watched = PROP(*(datum_index *)(act + 0xac));
+                uint8_t *watched = PROP(((struct actor *)act)->mode_data.guard.hold_reference);
 
                 act[0xab] = 0;
                 *(int32_t *)(act + 0xac) = -1;
@@ -117,7 +117,7 @@ void actor_mode_guard_update(datum_index actor_index)
             }
             if (act[0xa1]) {
                 actor_report_command_status(actor_index);
-                if (*(int16_t *)(act + 0x1e4) == 9 && *(int16_t *)(act + 0xc0) == 2) {
+                if (*(int16_t *)(act + 0x1e4) == 9 && ((struct actor *)act)->mode_data.guard.stage == 2) {
                     act[0xa3] = 1;
                 }
             }
@@ -132,10 +132,10 @@ void actor_mode_guard_update(datum_index actor_index)
         *(float *)(act + 0x460) = global_up3d_pointer->i * 0.05f + *(float *)(act + 0xc4);
         *(float *)(act + 0x464) = global_up3d_pointer->j * 0.05f + *(float *)(act + 0xc8);
         *(float *)(act + 0x468) = global_up3d_pointer->k * 0.05f + *(float *)(act + 0xcc);
-    } else if (*(datum_index *)(act + 0xd8) != k_datum_index_none) {
+    } else if (((struct actor *)act)->mode_data.guard.guard_target != k_datum_index_none) {
         ((actor *)act)->vocalization_unknown_3e8 = 5;
         ((actor *)act)->vocalization_unknown_3ec = 1;
-        *(datum_index *)(act + 0x3f0) = *(datum_index *)(act + 0xd8);
+        *(datum_index *)(act + 0x3f0) = ((struct actor *)act)->mode_data.guard.guard_target;
     } else if (act[0xb0]) {
         ((actor *)act)->vocalization_unknown_3ec = 4;
         ((actor *)act)->vocalization_unknown_3e8 = act[0xb1] ? 5 : 3;
