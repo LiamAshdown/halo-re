@@ -51,7 +51,7 @@ static void ListCallback(SBServerList *slist, int reason, SBServer *server, void
         sb->BrowserCallback(sb, 5, 0, sb->instance);
         break;
     case 6:
-        gt2SetReceiveDump(&sb->engine, (void *)sb->list.mypublicip);
+        gt2SetSendDump(&sb->engine, (void *)sb->list.mypublicip);
         break;
     }
     if (server != 0 && server->publicip == sb->triggerIP && server->publicport == sb->triggerPort) {

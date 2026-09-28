@@ -128,7 +128,7 @@ void SBServerListRemoveAt(void *slist, int index);
 void SBServerListClear(void *slist);
 void SBFreeDeadList(void *slist);
 void SBRefStrHashCleanup(void);
-void gt2SetReceiveDump(void *object, void *value); // 0x61e550: *(object + 0x24) = value; ICF-shared, here
+void gt2SetSendDump(void *object, void *value); // 0x61e550: *(object + 0x24) = value; ICF-shared, here
                                                    // SBEngineSetPublicIP(engine, ip)
 
 // sb_crypt.c
