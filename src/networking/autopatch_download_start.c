@@ -22,8 +22,10 @@ extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
 extern int32_t FUN_0061bd80(void *path, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6,
                              int32_t a7, void *progress_callback, void *complete_callback, int32_t a8); // foreign, UNSURE
-extern int32_t FUN_0061bef0(void *path); // foreign, UNSURE
-extern void LAB_00576a70(void); // UNSURE: a progress/status callback local to this module
+extern int32_t FUN_0061bef0(void *url, void *filename, void *headers, void *post, int32_t throttle, int32_t blocking,
+                             void *progress_callback, void *complete_callback, void *param); // 0x61bef0 ghttpSaveEx
+extern void autopatch_download_progress_callback(int32_t request, int32_t state, const char *buffer,
+    int32_t buffer_length, int32_t bytes_received, int32_t total_size, void *param); // 0x576a70
 extern uint32_t autopatch_download_complete_callback(int32_t request_id, int32_t error, uint8_t *data, uint32_t size); // 0x576ad0, this module
 
 // blam-cc: stack -> path, EDX -> local_file
@@ -48,11 +50,14 @@ int32_t autopatch_download_start(void *path, int32_t local_file)
 
     autopatch_download_slots[slot_index].state = k_autopatch_download_active;
     if (local_file == 0) {
-        request_id = FUN_0061bd80(path, 0, 0, 0, 0, 0, 0, (void *)LAB_00576a70,
+        request_id = FUN_0061bd80(path, 0, 0, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
                                    (void *)autopatch_download_complete_callback, 0);
         autopatch_download_slots[slot_index].local_file = 0;
     } else {
-        request_id = FUN_0061bef0(path);
+        // FIXED 2026-09-28 (0x576eb3): EDX is the file to save into, passed on to ghttpSaveEx with the same
+        // progress / completion callbacks as the download.
+        request_id = FUN_0061bef0(path, (void *)local_file, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
+                                  (void *)autopatch_download_complete_callback, 0);
         autopatch_download_slots[slot_index].local_file = 1;
     }
     autopatch_download_slots[slot_index].request_id = request_id;
