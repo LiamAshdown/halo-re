@@ -25,7 +25,7 @@ extern void object_type_override_call_0x70(uint32_t object_index, uint32_t edi_a
 
 // FIXED (register inputs, objdump): the original never reads ECX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: EAX -> record, stack -> param_1
-void object_type_override_call_0x70_release_node(int32_t *record, uint32_t param_1)
+void object_type_override_call_0x70_release_node(int32_t *record, uint32_t client)
 {
     int32_t **slot = (int32_t **)((uint8_t *)record + 0x44);
     int32_t node = **slot;

@@ -56,7 +56,7 @@ extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission
 void actor_movement_apply_steering(
     int16_t cached_axis, uint8_t keep_z,
     datum_index actor_index, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed,
-    float param_5, float param_6, float param_7, float param_8, float param_9,
+    float steering_maximum, float oversteer_min, float oversteer_max, float avoidance_scale, float throttle_maximum,
     real_vector3d *desired_direction, real_vector3d *out_direction, int16_t *out_axis,
     real_vector3d *out_heading, uint8_t *out_flag_507, uint8_t *out_flag_506)
 {
@@ -73,7 +73,7 @@ void actor_movement_apply_steering(
     uint8_t take_step;               // S+0x13
     float stop_distance;             // the actor-index argument slot at 0x41865b
     float desired_length_squared;
-    float turn_limit = param_9;
+    float turn_limit = throttle_maximum;
 
     if (act[0x42a]) {
         act[0x591] = 1;
@@ -234,7 +234,7 @@ void actor_movement_apply_steering(
         *out_flag_507 = 1;
     }
 
-    if (param_5 > 0.0f || param_7 > 0.0f) {
+    if (steering_maximum > 0.0f || oversteer_max > 0.0f) {
         float target_angle;
         float angle;
         float *held = (float *)(act + 0x594);
@@ -247,12 +247,12 @@ void actor_movement_apply_steering(
             target_angle = (float)acos(dot_facing);
         }
         angle = target_angle;
-        if (param_5 > 0.0f) {
-            float limit = param_5 * param_8;
-            float cap = param_5;
+        if (steering_maximum > 0.0f) {
+            float limit = steering_maximum * avoidance_scale;
+            float cap = steering_maximum;
 
-            if (param_8 > 1.0f) {
-                cap = (param_8 > 1.5f ? 1.5f : param_8) * param_5;
+            if (avoidance_scale > 1.0f) {
+                cap = (avoidance_scale > 1.5f ? 1.5f : avoidance_scale) * steering_maximum;
             }
             if (target_angle * 3.0f <= limit) {
                 limit = target_angle * 3.0f;
@@ -264,11 +264,11 @@ void actor_movement_apply_steering(
             }
         }
         if (angle > *held) {
-            if (act[0x591] && angle > param_6) {
-                *held = angle <= param_7 ? angle : param_7;
+            if (act[0x591] && angle > oversteer_min) {
+                *held = angle <= oversteer_max ? angle : oversteer_max;
             }
         } else if (*held > 0.0f) {
-            if (angle < param_6) {
+            if (angle < oversteer_min) {
                 *held = 0.0f;
             } else {
                 angle = *held;

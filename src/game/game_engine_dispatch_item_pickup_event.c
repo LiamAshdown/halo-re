@@ -39,7 +39,7 @@ extern uint8_t shared_hud_text_draw_state; // 0x00871de0, UNSURE identity (see g
 // Resolves `machine_id` to a local slot index (via the hash table, or by allocating one through
 // network_index_cache_find_or_allocate_slot if it isn't registered yet), then encodes and broadcasts a networked event 0x2f
 // (item pickup) carrying `param_1` and the low 16 bits of `param_2`.
-void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t param_1, int32_t param_2)
+void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t picked_tag, int32_t param_2)
 {
     // CORRECTED (phase 4 review, objdump 0x45f883..0x45f8c0): `&param_2` really is a pointer to
     // param_2's own stack slot, and that slot has just been loaded with `&local_c`. The encoder's
@@ -47,7 +47,7 @@ void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t param_1,
     // MSVC reuses the dead incoming parameter slots as scratch. The block itself is
     // {int32 hash slot, int32 param_1, int16 low half of param_2} -- the third store (0x45f8b3)
     // genuinely is a 16-bit `mov`, unlike the sibling at 0x4608d0.
-    struct { int32_t slot; int32_t param_1; int16_t param_2_low; } fields;
+    struct { int32_t slot; int32_t picked_tag; int16_t param_2_low; } fields;
     void *fields_ptr;
 
     fields.slot = 0;
@@ -58,7 +58,7 @@ void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t param_1,
         fields.slot = network_index_cache_find_or_allocate_slot(machine_id);
     }
 
-    fields.param_1 = param_1;
+    fields.picked_tag = picked_tag;
     fields.param_2_low = (int16_t)param_2;
     fields_ptr = &fields;
 

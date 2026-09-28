@@ -40,7 +40,7 @@ extern data_array *object_data;   // 0x008603b0
 extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count,
     int32_t current_engine_index); // 0x45f7c0, this batch; UNSURE real args at call site
 extern int32_t tag_reflexive_pick_weighted_random_index(datum_index tag_id); // 0x45f720, this batch
-extern void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t param_1,
+extern void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t picked_tag,
     int32_t param_2); // 0x45f850, this batch; UNSURE real args at call site
 extern int32_t __ftol(void); // 0x6391b4, MSVC runtime; UNSURE: real argument is on the x87 stack
 

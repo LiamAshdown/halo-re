@@ -22,7 +22,7 @@ extern uint8_t cheat_super_jump;    // 0x0087abc4
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 
 extern uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index, real_vector3d *out_velocity,
-    uint32_t param_1, float speed_limit); // 0x417fa0, AL, ECX, EDX, stack
+    uint32_t object_index, float speed_limit); // 0x417fa0, AL, ECX, EDX, stack
 extern void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index); // 0x560590, EBX, stack
 
 // REWRITTEN from objdump 0x55ecf0..0x55eec4 (really the biped jump launch). Unless already airborne (+0x4cc bit 0)

@@ -40,7 +40,7 @@ extern int32_t time_query_performance_counter_ms(void);   // foreign, presumed a
 // If the queued message's first dword is non-zero, skips it via FUN_004ec670. Otherwise, if
 // FUN_004ec590 reports true, resolves the local player's datum and stores the elapsed time
 // since server+0x9c0 into datum+0xdc.
-uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_server_globals *param_1)
+uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_server_globals *server)
 {
     uint8_t *player;
     uint8_t decode_scratch[5]; // [esp+0x3], the one-byte-aligned tail of the 4-byte frame
@@ -52,7 +52,7 @@ uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_s
     if (message_delta_decode_compound_field(message, decode_scratch) == 1) { // blam-cc: EAX -> message, ECX -> scratch
         player = (uint8_t *)datum_get();
         if (player != 0) {
-            int32_t stored_time = *(int32_t *)((uint8_t *)param_1 + 0x9c0);
+            int32_t stored_time = *(int32_t *)((uint8_t *)server + 0x9c0);
             int32_t now = time_query_performance_counter_ms();
             *(int32_t *)(player + 0xdc) = now - stored_time;
         }

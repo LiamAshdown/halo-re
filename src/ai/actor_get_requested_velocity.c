@@ -28,7 +28,7 @@ extern void actor_dispatch_type_vtable_0x1c(datum_index actor_index, uint32_t a,
 
 // blam-cc: AL -> skip_clamp, ECX -> actor_index, EDX -> out_velocity, stack -> param_1, speed_limit
 uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index,
-                                     real_vector3d *out_velocity, uint32_t param_1,
+                                     real_vector3d *out_velocity, uint32_t object_index,
                                      float speed_limit)
 {
     actor *self;
@@ -40,7 +40,7 @@ uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
         if (self->swarm != 0) {
             // 0x417fd6: ECX = actor, stack (param_1, speed_limit, EDX = out_velocity)
-            actor_dispatch_type_vtable_0x1c(actor_index, param_1, *(uint32_t *)&speed_limit, (uint32_t)out_velocity);
+            actor_dispatch_type_vtable_0x1c(actor_index, object_index, *(uint32_t *)&speed_limit, (uint32_t)out_velocity);
             self->unknown_530[0] = 0; // 0x530
             return 1;
         }

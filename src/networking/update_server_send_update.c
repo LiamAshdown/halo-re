@@ -71,7 +71,7 @@ extern char player_update_history_add(void *update_history, uint32_t *values); /
 extern void *message_delta_encode_single_value(void *definition, void *dest, uint32_t *values, uint8_t *history_byte,
     int32_t max_bits, int32_t flags, int32_t unknown); // 0x4ec450, outside this batch, elided args
 
-char update_server_send_update(uint32_t *tick_count, char param_2)
+char update_server_send_update(uint32_t *tick_count, char frame_time_overflow)
 {
     char result;
     char flush_ok;
@@ -106,7 +106,7 @@ char update_server_send_update(uint32_t *tick_count, char param_2)
         player_id = local_player_globals->maximum_count; // UNSURE: +0xc read as a word, see header
         memcpy(control, update_client_staged, sizeof(control));
         history_byte = 0;
-        if ((int32_t)tick_count > 0 && param_2 == 0) {
+        if ((int32_t)tick_count > 0 && frame_time_overflow == 0) {
             checksum = player_data;
             (void)checksum;
             iterator.data = 0; iterator.next_index = 0; iterator.index = 0; // UNSURE: elided iterator source

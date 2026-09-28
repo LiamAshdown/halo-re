@@ -53,14 +53,14 @@ extern void network_player_update_history_log_write(const char *format, ...); //
 // changed sub-fields or takes the FUN_004ec590 path), restores connect_state, and -- if the
 // staged copy's first byte is set -- checks connection quality and, on success, applies the
 // position/orientation update and logs it.
-void network_game_client_apply_received_update(network_machine *machine, uint32_t param_1, void **message)
+void network_game_client_apply_received_update(network_machine *machine, uint32_t server, void **message)
 {
     uint8_t staged[0x34];
     uint8_t staged2[0x34];
     int32_t *msg;
     int32_t delta_bits;
 
-    (void)param_1;
+    (void)server;
     memcpy(staged, machine->connect_state, 0x34);
 
     msg = (int32_t *)*message;
