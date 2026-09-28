@@ -25,7 +25,7 @@
 extern wchar_t DAT_00669cc8[]; // default player-name string, see UNSURE
 
 extern int32_t FUN_00617c10(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
-extern char *FUN_00617530(void *entry, const char *key, int32_t index); // foreign, GameSpy library, see UNSURE
+extern char *FUN_00617530(void *entry, int32_t index, const char *key, const char *default_value); // 0x617530 SBServerGetPlayerStringValue
 // swprintf comes from <wchar.h>; not redeclared here to avoid a conflicting-prototype error.
 extern ticker_text_buffer server_browser_player_ticker; // 0x006b5e58
 extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self); // 0x4b8a60, this module
@@ -60,11 +60,11 @@ int32_t server_browser_player_list_populate(void *entry)
     i = 0;
     if (0 < player_count) {
         do {
-            name = FUN_00617530(entry, "player", i);
+            name = FUN_00617530(entry, i, "player", 0); // FIXED 2026-09-28: 0x4b7450 pushes (server, index, key, NULL)
             if (name == 0) {
                 swprintf(row, 0x100, L"  %s %d     ", DAT_00669cc8, 0);
             } else {
-                score = FUN_00617530(entry, "score", i);
+                score = FUN_00617530(entry, i, "score", "--"); // FIXED 2026-09-28: default "--" (0x0066b038) at 0x4b7486
                 swprintf(row, 0x100, L"  %S %S     ", name, score);
             }
             ticker_text_buffer_append(row, 0, &server_browser_player_ticker);

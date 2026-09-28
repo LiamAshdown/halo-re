@@ -74,4 +74,18 @@ int SetSockBlocking(SOCKET sock, int is_blocking);
 int SetReceiveBufferSize(SOCKET sock, int size);
 int CanReceiveOnSocket(SOCKET sock);
 
+int ArrayLength(DArray array);
+int TableCount(HashTable table);
+
+// ---- sb_server.c (serverbrowsing)
+typedef struct SBKeyValuePair {
+    const char *key;                // 0x00
+    const char *value;              // 0x04
+} SBKeyValuePair;
+
+int KeyValCompareKeyA(const void *elem1, const void *elem2);
+int KeyValHashKeyA(const void *elem, int num_buckets);
+void SBRefStrFree(void *elem);
+HashTable SBRefStrHash(void);
+
 #endif
