@@ -30,6 +30,8 @@ From source only, no Python and no retail binary:
     cmake --build build/cmake --config Release --parallel
 
 (or open build/cmake/halo.sln in Visual Studio; cache variables DXSDK_DIR, HALO_FOLDER, HALO_FX_OVERRIDE).
+With Python found (HALO_REGENERATE, on by default) the CMake build also runs tools/cmake_regen.py between compiling
+and linking: new or renamed functions and new engine globals need no manual step.
 The same build with the Python tools: `python tools\msvc_build.py` then `python tools\gen_standalone_link.py`
 (output build\standalone\halo_rebuilt.exe). Graphics need shaders\fx.bin converted by `tools\convert_fx.py` in
 override\shaders\ next to the exe. Committed generated sources: after adding or renaming functions run
