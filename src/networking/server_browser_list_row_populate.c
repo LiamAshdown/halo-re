@@ -41,9 +41,8 @@ extern heap widget_memory_pool; // 0x006926c4
 // Widens an ASCII string into dest and returns dest, or NULL when it does not fit.
 extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source); // 0x557990
 extern wchar_t string_widen_scratch[0x400]; // 0x006b5e90, the 0x800-byte shared target
-extern void string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910;
+extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...); // 0x557910, blam-cc: EDX count;
     // the bound (0x1f at the 0x4b84e0 call sites) rides in EDX and is not modeled here // foreign
-extern void FUN_00625b7a(wchar_t *out); // foreign, outside this session's range
 extern wchar_t *_wcscpy(wchar_t *dest, const wchar_t *source);
 extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
@@ -94,10 +93,9 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w1->label_text = text;
     if (text != 0) {
         if (count_a == -1 || count_b == -1) {
-            FUN_00625b7a(DAT_00660c34);
-            _wcscpy(text, L"");
+            _wcscpy(text, L""); // FIXED 2026-09-28: the wcslen (0x625b7a) before it is the inlined copy's unused length
         } else {
-            string_format_wide_va_bounded(text, L"%d / %d", count_a, count_b);
+            string_format_wide_va_bounded(0x1f, text, L"%d / %d", count_a, count_b); // FIXED: EDX = 0x1f at 0x4b6925
             *(uint16_t *)((uint8_t *)w1->label_text + 0x3e) = 0;
         }
     }
@@ -106,11 +104,10 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w1->label_text = text;
     if (text != 0) {
         if (0 < ping && ping < 9999) {
-            string_format_wide_va_bounded(text, PTR_s_parameter_handles_0063fff0_0x35_006607a0, ping);
+            string_format_wide_va_bounded(7, text, PTR_s_parameter_handles_0063fff0_0x35_006607a0, ping); // FIXED: EDX = 7 at 0x4b6988
             *(uint16_t *)((uint8_t *)w1->label_text + 0xe) = 0;
             return;
         }
-        FUN_00625b7a(DAT_00660c34);
         _wcscpy(text, L"");
     }
 }
