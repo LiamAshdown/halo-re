@@ -110,6 +110,8 @@ def generate(specs):
             hdr = HDR_GDI % dict(a=a, i=i, s=s, slot=0x692b18 + 4 * i, note=note(a, s, text))
             sig = 'void %s(widget_instance *widget)' % name
         inc = '#include "tags.h"\n#include "memory.h"\n#include "math.h"\n#include "cache.h"\n#include "interface.h"\n'
+        if 'd3d_' in body or 'rasterizer_display_mode' in body:
+            inc += '#include "rasterizer.h"\n'
         if 'memset' in body or 'memcpy' in body:
             inc += '#include <string.h>\n'
         if 'wcs' in body:
