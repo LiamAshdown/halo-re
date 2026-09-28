@@ -43,7 +43,11 @@ extern char network_session_broadcast_to_all(network_server_globals *server, int
 // Posts a game-engine event (message-delta type 0x21) built from `param_1 + 8`; if the encoder
 // reports a positive bit count, broadcasts the shared encode-scratch buffer to every
 // established machine.
-uint32_t network_game_broadcast_player_set_changed(network_server_globals *server, uint8_t *param_1)
+// FIXED 2026-09-28 (networking call audit, from the disassembly 0x4e1bf0..0x4e1c57): the only argument is the
+// session on the stack (its +8 is the record to encode; the game/ callers already pass one argument); the
+// broadcast's server (ECX) is the global network_session (0x71c2d4), not a parameter.
+extern network_server_globals *network_session; // 0x0071c2d4
+uint32_t network_game_broadcast_player_set_changed(uint8_t *param_1)
 {
     int32_t encoded_bits;
     void *record;
@@ -52,7 +56,7 @@ uint32_t network_game_broadcast_player_set_changed(network_server_globals *serve
     record = param_1 + 8;
     encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &record, 0, 1, 0);
     if (0 < encoded_bits) {
-        network_session_broadcast_to_all(server, 1, network_object_update_scratch, 1, 0, 1, 3);
+        network_session_broadcast_to_all(network_session, 1, network_object_update_scratch, 1, 0, 1, 3);
     }
     return 0 < encoded_bits;
 }

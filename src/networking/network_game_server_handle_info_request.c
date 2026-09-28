@@ -1,6 +1,6 @@
 // network_game_server_handle_info_request  (Ghidra: FUN_004e2700; named per this rewrite)
 // address 0x4e2700, size 136 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN; was 0.3)
 // evidence: out/phase4/networking_functions.md: "Handles message type 0x1a, sending a full
 // server-info reply to not-yet-established machines or otherwise forwarding to FUN_004dfc90"
 // -- network_game_server_handle_client_join, already written. `*unaff_EDI + 0xa98` matches
@@ -13,40 +13,49 @@
 // UNSURE: both network_server_build_full_game_info_packet and
 // network_game_server_handle_client_join are called here with zero visible arguments, against
 // their own files' non-empty signatures; matching Ghidra literally.
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly: network_game_process_incoming_message
+// (0x4e1c60) calls this with the registers noted at the signature; the record length arrives on the stack, is
+// reduced by 2 in place and passed by address (EAX) as data_packet_group_decode_packet's remaining length, which
+// takes 7 arguments (the previous C declared 6, shifting every argument, and passed no record or length at all).
+// 0x4e2700: ESI server, EDI machine, EDX record, stack length; state (+4) 0 or 1, class 5. A machine whose
+// connection (+0) has +0xa98 set, or any machine while the server's +0xa0f is clear, gets
+// network_game_server_handle_client_join (stack server, machine) and 1; otherwise the full game info packet is
+// built for it (0x4e0bd0) and its result returned. Returns 0 when the state or the decode fails.
 
 #include "tags.h"
 #include "memory.h"
+#include <string.h>
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
 extern data_packet_group network_game_messages_group; // 0x006994f8
-extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
-    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
-extern char network_server_build_full_game_info_packet(void); // 0x4e0bd0, this module,
-    // called here with no visible arguments (UNSURE, see header)
-extern void network_game_server_handle_client_join(void); // 0x4dfc90, this module,
-    // called here with no visible arguments (UNSURE, see header)
+extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
+    void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
+    int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 
-// blam-cc: ESI -> server, EDX -> buffer, EDI -> machine
-uint32_t network_game_server_handle_info_request(network_server_globals *server, uint8_t *buffer, network_machine *machine)
+extern void network_game_server_handle_client_join(int32_t *object_count_passthrough, network_server_globals *server,
+    network_machine *machine, uint8_t bl_passthrough); // 0x4dfc90, stack (server, machine)
+extern char network_server_build_full_game_info_packet(network_machine *machine); // 0x4e0bd0, stack
+
+uint32_t network_game_server_handle_info_request(network_server_globals *server, network_machine *machine, uint8_t *record,
+    int32_t length)
 {
-    uint8_t decoded_body[4];
-    int16_t out_a, out_b;
+    uint32_t body[1];
+    int16_t out_type;
+    uint16_t version_used;
+    int16_t state = *(int16_t *)((uint8_t *)server + 4);
+    uint8_t *connection;
 
-    if (server->unknown_004 != 0 && server->unknown_004 != 1) {
+    if ((state != 0 && state != 1) || data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) == 0) {
         return 0;
     }
-    if (data_packet_group_decode_packet(&network_game_messages_group, decoded_body, buffer + 2,
-                                         &out_a, &out_b, 5) == 0) {
-        return 0;
+    connection = machine != 0 ? *(uint8_t **)machine : 0;
+    if ((connection != 0 && connection[0xa98] != 0) || *((uint8_t *)server + 0xa0f) == 0) {
+        network_game_server_handle_client_join(0 /* UNSURE: a register pass-through */, server, machine, 1);
+        return 1;
     }
-    if ((machine == 0 || machine->channel == 0 || machine->channel->connected == 0) &&
-        server->game_over != 0) {
-        return network_server_build_full_game_info_packet();
-    }
-    network_game_server_handle_client_join();
-    return 1;
+    return (uint8_t)network_server_build_full_game_info_packet(machine);
 }
 
 #if 0

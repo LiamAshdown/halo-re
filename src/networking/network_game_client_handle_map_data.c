@@ -1,6 +1,6 @@
 // network_game_client_handle_map_data  (Ghidra: FUN_004e2790; named per this rewrite)
 // address 0x4e2790, size 126 bytes
-// name confidence: 0.35   rewrite confidence: 0.25
+// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN; was 0.25)
 // evidence: out/phase4/networking_functions.md's summary claims message type 0x1b, but
 // network_game_process_incoming_message.c's own verified dispatch switch (this batch) shows
 // `case 0x1c: FUN_004e2790(param_1);` -- type 0x1b is instead handled inline inside the
@@ -20,46 +20,38 @@
 // raw byte pointer with explicit offset casts rather than asserting either type.
 // UNSURE: network_player_entry_is_valid (FUN_004de9f0) is called here with zero visible
 // arguments, against its own presumed EAX-based convention documented elsewhere in this batch.
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly: network_game_process_incoming_message
+// (0x4e1c60) calls this with the registers noted at the signature; the record length arrives on the stack, is
+// reduced by 2 in place and passed by address (EAX) as data_packet_group_decode_packet's remaining length, which
+// takes 7 arguments (the previous C declared 6, shifting every argument, and passed no record or length at all).
+// 0x4e2790: stack (server, length), EDX record, ESI machine; state (+4) 1, class 5. A decoded 0x20-byte player
+// entry that validates (network_player_entry_validate, EAX) is stored at server +0x9d8 once (+0x9f8 set).
 
 #include "tags.h"
 #include "memory.h"
+#include <string.h>
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#include <string.h>
 
 extern data_packet_group network_game_messages_group; // 0x006994f8
-extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
-    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
-extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, blam-cc: EAX -> entry
-    // blam-cc: EAX -> entry; 0x4de9f0, other module. The EAX convention is pinned by
-    // network_server_check_machine_timeout (0x4e0f80 `mov eax,esi` / 0x4e102b
-    // `lea eax,[esp+0x20]`), both immediately before the call.
+extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
+    void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
+    int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 
-// blam-cc: EDX -> buffer, stack -> context, length
-uint32_t network_game_client_handle_map_data(uint8_t *context, uint8_t *buffer, int32_t length)
+extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, EAX
+
+uint32_t network_game_client_handle_map_data(network_server_globals *server, uint8_t *record, int32_t length)
 {
-    uint32_t decoded_body[8];
-    int16_t out_a;
-    int32_t out_b_scratch; // UNSURE: Ghidra reuses &param_1 (the context pointer's own stack
-                            // slot) as this decode's `out_b`; modeled as a separate local
-                            // instead of aliasing the parameter, which is behaviourally
-                            // equivalent since `context` is never re-read after this call.
+    uint32_t body[8];
+    int16_t out_type;
+    uint16_t version_used;
+    uint8_t *s = (uint8_t *)server;
 
-    (void)length; // only ever computed as length-2 and never used further in the decompile
-
-    if (*(int16_t *)context == 1) {
-        if (data_packet_group_decode_packet(&network_game_messages_group, decoded_body, buffer + 2,
-                                             &out_a, (int16_t *)&out_b_scratch, 5) != 0 &&
-            context[0x9f8] == 0) {
-            // blam-cc: EAX -> decoded_body (0x4e27d8 `lea eax,[esp+0x8]`). The 8-dword copy right
-            // below confirms decoded_body is a network_player_entry (0x20 bytes).
-            if (network_player_entry_validate((network_player_entry *)decoded_body) != 0) {
-                memcpy(context + 0x9d8, decoded_body, sizeof(decoded_body));
-                context[0x9f8] = 1;
-                return 1;
-            }
-        }
+    if (*(int16_t *)(s + 4) == 1 && data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0 && s[0x9f8] == 0 &&
+        network_player_entry_validate((network_player_entry *)body) != 0) {
+        memcpy(s + 0x9d8, body, sizeof(body));
+        s[0x9f8] = 1;
     }
     return 1;
 }

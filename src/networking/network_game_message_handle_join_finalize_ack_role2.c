@@ -1,7 +1,7 @@
 // network_game_message_handle_join_finalize_ack_role2  (Ghidra: FUN_004e2930; named per this
 // rewrite)
 // address 0x4e2930, size 86 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN; was 0.3)
 // evidence: out/phase4/networking_functions.md's summary claims message type 0x23, but
 // network_game_process_incoming_message.c's own verified dispatch switch (this batch) shows
 // `case 0x24: FUN_004e2930();` ('$' is 0x24, not 0x23) -- the dispatcher's literal call table
@@ -12,31 +12,34 @@
 // register convention: ECX = context (role, checked against 2), ESI = machine (the flags
 // clear), stack = buffer.
 //   // blam-cc: ECX -> context, ESI -> machine, stack -> buffer
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly: network_game_process_incoming_message
+// (0x4e1c60) calls this with the registers noted at the signature; the record length arrives on the stack, is
+// reduced by 2 in place and passed by address (EAX) as data_packet_group_decode_packet's remaining length, which
+// takes 7 arguments (the previous C declared 6, shifting every argument, and passed no record or length at all).
+// 0x4e2930: ECX server, ESI machine, stack (record, length); state (+4) 2, class 7; then the machine's flag
+// byte +0x0e loses bit 4.
 
 #include "tags.h"
 #include "memory.h"
+#include <string.h>
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
 extern data_packet_group network_game_messages_group; // 0x006994f8
-extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
-    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
+extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
+    void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
+    int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 
-// blam-cc: ECX -> context, ESI -> machine, stack -> buffer
-// Decodes the type-0x23 payload and, on success, clears machine->flags bit 0x04 (the pending
-// join-finalize flag network_game_server_handle_client_join sets).
-uint32_t network_game_message_handle_join_finalize_ack_role2(uint8_t *context, network_machine *machine, uint8_t *buffer)
+uint32_t network_game_message_handle_join_finalize_ack_role2(network_server_globals *server, network_machine *machine,
+    uint8_t *record, int32_t length)
 {
-    uint8_t decoded_body[4];
-    int16_t out_a, out_b;
+    uint32_t body[1];
+    int16_t out_type;
+    uint16_t version_used;
 
-    if (*(int16_t *)context == 2) {
-        if (data_packet_group_decode_packet(&network_game_messages_group, decoded_body, buffer + 2,
-                                             &out_a, &out_b, 7) != 0) {
-            machine->flags = machine->flags & 0xfb;
-            return 1;
-        }
+    if (*(int16_t *)((uint8_t *)server + 4) == 2 && data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 7) != 0) {
+        *((uint8_t *)machine + 0xe) &= 0xfb;
     }
     return 1;
 }

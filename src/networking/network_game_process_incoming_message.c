@@ -1,7 +1,7 @@
 // network_game_process_incoming_message  (Ghidra: network_game_process_incoming_message,
 // already named)
 // address 0x4e1c60, size 614 bytes
-// name confidence: 0.7   rewrite confidence: 0.35
+// name confidence: 0.7   rewrite confidence: 0.85 (REWRITTEN; was 0.35)
 // evidence: out/phase4/networking_functions.md: "Top-level decoder/dispatcher for incoming
 // 'network game' protocol messages, decoding each message with the network-game message group
 // and routing it by type byte." The bitstream-header check (`(*record & 3) == 0 && ((*record
@@ -24,111 +24,105 @@
 // FUN_004e2110 (this batch) is called with the address of the just-decoded record, which is the
 // one case where a real argument is visible; FUN_004dff70 (network_game_client_apply_position_update,
 // prior batch) is called with none.
+// REWRITTEN 2026-09-28 (networking call audit) from the disassembly: network_game_process_incoming_message
+// (0x4e1c60) calls this with the registers noted at the signature; the record length arrives on the stack, is
+// reduced by 2 in place and passed by address (EAX) as data_packet_group_decode_packet's remaining length, which
+// takes 7 arguments (the previous C declared 6, shifting every argument, and passed no record or length at all).
+// 0x4e1c60: EAX length, ECX machine, EDX record, stack server; jump tables 0x4e1f0c / 0x4e1ec8. The message
+// type is the record's last byte; a machine without flag bit 1 only gets type 0xe, or type 1 with bit 4. Every
+// handler now receives what the original passes it (the previous C passed nothing to eleven of them).
 
 #include "tags.h"
 #include "memory.h"
+#include <string.h>
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, UNSURE name; see other files' notes
 extern data_packet_group network_game_messages_group; // 0x006994f8
+extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
+    void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
+    int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 
-extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
-    const uint8_t *buffer, void *out_a, void *out_b, int32_t expected_class); // 0x4d09d0
-extern uint32_t network_game_message_handle_keepalive(int32_t *record); // 0x4e2110, this batch
+extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, UNSURE name
+extern uint32_t network_game_message_handle_keepalive(network_channel **channel, int32_t *record); // 0x4e2110, EAX machine, stack
 extern char network_game_server_handle_join_password(network_machine *machine, network_server_globals *server, uint8_t *buffer,
-    int32_t length); // 0x4e21d0, case 0xe, blam-cc: EBX machine
+    int32_t length); // 0x4e21d0, EBX machine, stack (server, record, length)
 extern char network_game_server_handle_join_confirm(network_machine *machine, network_server_globals *server, uint8_t *buffer,
-    int32_t length); // 0x4e2400, case 0xf, blam-cc: EAX machine, ECX server, EDX buffer
-extern uint32_t network_game_message_handle_settings_relay(void); // 0x4e24d0, this batch, case 0x10
-extern uint32_t network_game_message_handle_player_count_broadcast(void); // 0x4e2530, case 0x11
-extern uint32_t network_game_message_handle_player_entry_update(void);    // 0x4e2580, case 0x12
-extern uint32_t network_game_message_handle_handshake_forward(void);      // 0x4e25e0, case 0x13
-extern uint32_t network_game_message_handle_retry_schedule(void);         // 0x4e26a0, case 0x14/0x25
-extern uint32_t network_game_message_handle_build_version(void);          // 0x4e2630, case 0x15
-extern uint32_t network_game_server_handle_info_request(void);            // 0x4e2700, case 0x1a
-extern void network_game_client_apply_position_update(void);              // 0x4dff70, case 0x1b, prior batch
-extern uint32_t network_game_client_handle_map_data(network_server_globals *server); // 0x4e2790, case 0x1c
-extern uint32_t network_game_client_handle_settings_relay(void);          // 0x4e2810, case 0x1d
-extern uint32_t network_game_client_handle_retry_schedule(void);          // 0x4e2870, case 0x1e
-extern uint32_t network_game_message_handle_settings_relay_role2(void);   // 0x4e28d0, case 0x23
-extern uint32_t network_game_message_handle_join_finalize_ack_role2(void); // 0x4e2930, case 0x24
+    int32_t length); // 0x4e2400, EAX machine, ECX server, EDX record, stack length
+extern uint32_t network_game_message_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e24d0
+extern uint32_t network_game_message_handle_player_count_broadcast(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2530
+extern uint32_t network_game_message_handle_player_entry_update(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2580
+extern uint32_t network_game_message_handle_handshake_forward(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e25e0
+extern uint32_t network_game_message_handle_retry_schedule(network_server_globals *server, network_machine *machine,
+    uint8_t *record, int32_t length); // 0x4e26a0
+extern uint32_t network_game_message_handle_build_version(network_server_globals *server, network_machine *machine,
+    uint8_t *record, int32_t length); // 0x4e2630
+extern uint32_t network_game_server_handle_info_request(network_server_globals *server, network_machine *machine,
+    uint8_t *record, int32_t length); // 0x4e2700
+extern void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet, void *param_3, void *object); // 0x4dff70, stack
+extern uint32_t network_game_client_handle_map_data(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2790
+extern uint32_t network_game_client_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2810
+extern uint32_t network_game_client_handle_retry_schedule(network_server_globals *server, network_machine *machine,
+    uint8_t *record, int32_t length); // 0x4e2870
+extern uint32_t network_game_message_handle_settings_relay_role2(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e28d0
+extern uint32_t network_game_message_handle_join_finalize_ack_role2(network_server_globals *server, network_machine *machine,
+    uint8_t *record, int32_t length); // 0x4e2930
 
-// blam-cc: EAX -> length, ECX -> machine, EDX -> record, stack -> server
 uint32_t network_game_process_incoming_message(int32_t length, network_machine *machine, uint16_t *record, network_server_globals *server)
 {
+    uint8_t *bytes = (uint8_t *)record;
     uint8_t type_byte;
-    uint16_t machine_flags_word;
     uint8_t machine_flags;
 
     if ((*record & 3) != 0 || ((*record >> 2) & 3) != 3) {
         return 1;
     }
-
-    type_byte = ((uint8_t *)record)[(int16_t)length - 1];
-    machine_flags_word = *(uint16_t *)((uint8_t *)machine + 0xe);
-    machine_flags = (uint8_t)machine_flags_word;
-
-    if (((machine_flags >> 1) & 1) == 0 && type_byte != 0x0e &&
-        !(((machine_flags >> 4) & 1) != 0 && type_byte == 1)) {
+    type_byte = bytes[(int16_t)length - 1];
+    machine_flags = *((uint8_t *)machine + 0xe);
+    if (((machine_flags >> 1) & 1) == 0 && type_byte != 0x0e && !(((machine_flags >> 4) & 1) != 0 && type_byte == 1)) {
         return 1;
     }
-
     switch (type_byte) {
-    case 1:
+    case 0x01:
         if (network_disconnect_timeout_flag != 0) {
-            int32_t decoded_value;
-            int16_t out_a;
+            int32_t body[1];
+            int16_t out_type;
+            uint16_t version_used;
 
-            if (data_packet_group_decode_packet(&network_game_messages_group, &decoded_value,
-                                                 (uint8_t *)(record + 1), &out_a, &type_byte, 0) != 0) {
-                network_game_message_handle_keepalive(&decoded_value);
-                return 1;
+            if (data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
+                                                bytes + 2, &out_type, &version_used, 0) != 0) {
+                network_game_message_handle_keepalive((network_channel **)machine, body);
             }
         }
-        break;
-    case 0x0e:
-        return network_game_server_handle_join_password(machine, server, (uint8_t *)record, length); // FIXED 2026-09-28: 0x4e1ce9
-    case 0x0f:
-        return network_game_server_handle_join_confirm(machine, server, (uint8_t *)record, length); // FIXED 2026-09-28: 0x4e1d00
-    case 0x10:
-        return network_game_message_handle_settings_relay();
-    case 0x11:
-        return network_game_message_handle_player_count_broadcast();
-    case 0x12:
-        return network_game_message_handle_player_entry_update();
-    case 0x13:
-        return network_game_message_handle_handshake_forward();
+        return 1;
+    case 0x0e: return (uint8_t)network_game_server_handle_join_password(machine, server, bytes, length);
+    case 0x0f: return (uint8_t)network_game_server_handle_join_confirm(machine, server, bytes, length);
+    case 0x10: return (uint8_t)network_game_message_handle_settings_relay(server, bytes, length);
+    case 0x11: return (uint8_t)network_game_message_handle_player_count_broadcast(server, bytes, length);
+    case 0x12: return (uint8_t)network_game_message_handle_player_entry_update(server, bytes, length);
+    case 0x13: return (uint8_t)network_game_message_handle_handshake_forward(server, bytes, length);
     case 0x14:
-    case 0x25:
-        return network_game_message_handle_retry_schedule();
-    case 0x15:
-        return network_game_message_handle_build_version();
-    case 0x1a:
-        return network_game_server_handle_info_request();
+    case 0x25: return (uint8_t)network_game_message_handle_retry_schedule(server, machine, bytes, length);
+    case 0x15: return (uint8_t)network_game_message_handle_build_version(server, machine, bytes, length);
+    case 0x1a: return (uint8_t)network_game_server_handle_info_request(server, machine, bytes, length);
     case 0x1b:
-        if (server->unknown_004 == 1) {
-            uint8_t decoded_body[4];
-            int32_t out_a;
-            int16_t out_b;
+        if (*(int16_t *)((uint8_t *)server + 4) == 1) {
+            uint32_t body[8];
+            int16_t out_type;
+            uint16_t version_used;
 
-            if (data_packet_group_decode_packet(&network_game_messages_group, decoded_body,
-                                                 (uint8_t *)(record + 1), &out_a, &out_b, 5) != 0) {
-                network_game_client_apply_position_update();
+            if (data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
+                                                bytes + 2, &out_type, &version_used, 5) != 0) {
+                network_game_client_apply_position_update((uint8_t *)machine, body, (void *)-1, 0);
             }
         }
-        break;
-    case 0x1c:
-        return network_game_client_handle_map_data(server);
-    case 0x1d:
-        return network_game_client_handle_settings_relay();
-    case 0x1e:
-        return network_game_client_handle_retry_schedule();
-    case 0x23:
-        return network_game_message_handle_settings_relay_role2();
-    case 0x24:
-        return network_game_message_handle_join_finalize_ack_role2();
+        return 1;
+    case 0x1c: return (uint8_t)network_game_client_handle_map_data(server, bytes, length);
+    case 0x1d: return (uint8_t)network_game_client_handle_settings_relay(server, bytes, length);
+    case 0x1e: return (uint8_t)network_game_client_handle_retry_schedule(server, machine, bytes, length);
+    case 0x23: return (uint8_t)network_game_message_handle_settings_relay_role2(server, bytes, length);
+    case 0x24: return (uint8_t)network_game_message_handle_join_finalize_ack_role2(server, machine, bytes, length);
     }
     return 1;
 }
