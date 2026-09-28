@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h" // hash_table
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -26,8 +29,7 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // size, then the seven stack arguments. Returns the encoded bit length in EAX.
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
 
@@ -60,7 +62,7 @@ void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t param_1,
     fields.param_2_low = (int16_t)param_2;
     fields_ptr = &fields;
 
-    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2f, 0, &fields_ptr, 0, 1, '\0'), network_server_pointer, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2f, 0, &fields_ptr, 0, 1, '\0'), network_server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
 }
 
 #if 0

@@ -17,9 +17,13 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
 extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
 extern char network_player_entry_validate(void *entry); // 0x4de9f0, blam-cc: EAX -> entry
 extern char network_game_settings_ack_send(uint8_t *client, int16_t template_row); // 0x4d9f50
@@ -40,7 +44,7 @@ uint8_t ui_event_49dca0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (*state != 2) {
         return 1;
     }
-    game = network_server_pointer != 0 ? (uint8_t *)network_server_pointer + 8 : network_client != 0 ? network_client + 0xb14 : 0;
+    game = network_server != 0 ? (uint8_t *)network_server + 8 : network_client != 0 ? network_client + 0xb14 : 0;
     if (network_client != 0 && *(int16_t *)network_client != -1) {
         int16_t key = *(int16_t *)network_client;
         int16_t i;

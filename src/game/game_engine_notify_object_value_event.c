@@ -28,6 +28,8 @@
 #include "math.h"
 #include "game.h"
 #include "objects.h" // hash_table
+#include "units.h"
+#include "networking.h"
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 
@@ -36,8 +38,7 @@ extern uint8_t *machine_table; // 0x00687558, its hash_table sits at +0x0c
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length,
@@ -67,7 +68,7 @@ void game_engine_notify_object_value_event(uint8_t value_byte, int32_t hash_key,
     encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 7, 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         if (machine_index == -1) {
-            network_session_broadcast_to_flagged(encoded_bits, network_server_pointer, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
+            network_session_broadcast_to_flagged(encoded_bits, network_server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
             return;
         }
         network_session_send_to_machine(1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 0, 3);

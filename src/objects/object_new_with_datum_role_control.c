@@ -47,6 +47,8 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#include "units.h"
+#include "networking.h"
 
 // TagID {index;id} is bit-identical in memory to a datum_index (low 16 bits index, high 16
 // bits salt/identifier), so a TagID is reinterpreted in place wherever the object header wants
@@ -102,7 +104,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     // files in this module that reach 0x4507a0 declare it with an empty parameter list because
     // their own call sites show none. Unified on the empty list -- it asserts no prototype and so
     // does not contradict either set of call sites.
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
@@ -279,7 +281,7 @@ datum_index object_new_with_datum_role_control(object_placement_data *placement,
                                                            sizeof object_network_message_scratch);
             if (override_count > 0) {
                 // 0x4f58eb..0x4f5904: EAX = override_count (0x4f44f0's result, untouched since the test)
-                network_session_broadcast_to_flagged(override_count, network_server_pointer, 1, object_network_message_scratch,
+                network_session_broadcast_to_flagged(override_count, network_server, 1, object_network_message_scratch,
                     1, 0, 0, 3);
             }
         }

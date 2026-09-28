@@ -17,6 +17,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
 extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
@@ -24,8 +27,7 @@ extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, mem
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
 
@@ -49,7 +51,7 @@ void weapon_notify_ammo_pickup(datum_index item_index, int16_t magazine_index, i
     // original writes `items[0] = &message; items[1] = 0;` and then passes `items`.
     items[0] = &message;
     items[1] = 0;
-    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_weapon_ammo_pickup, 0, items, 0, 1, 0), network_server_pointer, 1, object_network_message_scratch, 1, 0, 0, 3);
+    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_weapon_ammo_pickup, 0, items, 0, 1, 0), network_server, 1, object_network_message_scratch, 1, 0, 0, 3);
 }
 
 #if 0

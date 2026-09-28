@@ -23,7 +23,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
 extern uint8_t unknown_0071c2dd; // 0x0071c2dd, UNSURE identity
 extern uint8_t network_session_starting_0071c2dc; // 0x0071c2dc, TYPES-GAP
@@ -44,7 +44,7 @@ uint8_t ui_event_49d480(widget_instance *widget, int16_t *event, uint8_t *out_ha
     uint8_t ok = 1;
 
     network_session_starting_0071c2dc = 0;
-    if (network_server_pointer == 0) {
+    if (network_server == 0) {
         game_engine_ensure_variant_history_has_entry();
         ok = (uint8_t)network_game_server_host_create();
         if (ok == 1) {
@@ -62,9 +62,9 @@ uint8_t ui_event_49d480(widget_instance *widget, int16_t *event, uint8_t *out_ha
         ok = (uint8_t)(network_client != 0);
     }
     if (ok == 0) {
-        if (network_server_pointer != 0) {
-            network_game_server_host_dispose(network_server_pointer);
-            network_server_pointer = 0;
+        if (network_server != 0) {
+            network_game_server_host_dispose(network_server);
+            network_server = 0;
             unknown_0071c2dd = 0;
         }
         network_client_globals_dispose();

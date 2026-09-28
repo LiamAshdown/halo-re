@@ -39,7 +39,7 @@ extern Scenario *global_scenario;
 extern const real_vector3d *global_up3d_pointer;    // 0x00696720
 extern uint8_t shared_hud_text_draw_state;          // 0x00871de0
 extern tag_instance *tag_instances;                 // 0x0087bc14
-extern void *network_server_pointer;                // 0x0071c2d4
+extern network_server_globals *network_server; // 0x0071c2d4
 extern observer observers[];                        // 0x006ac65c, stride 0x29c
 
 extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0, blam-cc: EAX
@@ -195,7 +195,7 @@ void player_respawn(uint32_t player_index)
             object_type_override_call_0x68(new_unit);
             encoded_bits = unit_build_network_update(new_unit, (int32_t)&shared_hud_text_draw_state, 0x7ff8);
             if (encoded_bits > 0) {
-                network_session_broadcast_to_flagged(encoded_bits, (network_server_globals *)network_server_pointer,
+                network_session_broadcast_to_flagged(encoded_bits, (network_server_globals *)network_server,
                     1, &shared_hud_text_draw_state, 1, 0, 0, 3);
             }
             *(uint32_t *)(p + 0x68) = 0;

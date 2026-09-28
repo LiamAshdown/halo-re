@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0, see object_new_with_datum_role_control.c
@@ -33,7 +36,7 @@ extern void network_index_cache_remove(void *globals, uint32_t object_index); //
     // (0x4f5b16 `mov esi,edi / mov eax,0x6870d8` and 0x4f5b96 `mov eax,0x6870d8` with ESI
     // already holding the index). Ghidra shows neither, so it used to be declared with the
     // object index alone.
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
     // 0x4e1a80, UNSURE: unexamined
@@ -67,7 +70,7 @@ void object_delete_unparented(uint32_t object_index) // blam-cc: EDI -> object_i
     }
 
     if (encoded_length > 0) {
-        network_session_broadcast_to_flagged(encoded_length, network_server_pointer, 1, object_network_message_scratch, 1, 0, 0, 3); // 0x4f5b3b: EAX = the encoded length
+        network_session_broadcast_to_flagged(encoded_length, network_server, 1, object_network_message_scratch, 1, 0, 0, 3); // 0x4f5b3b: EAX = the encoded length
     }
 }
 

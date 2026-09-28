@@ -16,6 +16,8 @@
 #include "math.h"
 #include "game.h"
 #include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern data_array *player_data; // 0x0087a480
 extern void *remote_player_index_remap_table; // 0x00687558
@@ -23,8 +25,7 @@ extern void *remote_player_index_remap_table; // 0x00687558
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
     // UNSURE: signature inferred from this call site only
@@ -118,7 +119,7 @@ void network_event_feed_flush(int32_t *queue)
     force_changed = (char)*queue != 1;
     type_offset_arg = force_changed ? survivors_extra : 0;
     network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, (uint32_t)force_changed, 0x26, (int32_t)survivors_key,
-        survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed), network_server_pointer, 1, 0, (char)*queue, 0, 0, 2);
+        survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed), network_server, 1, 0, (char)*queue, 0, 0, 2);
     queue[1] = 0;
 }
 

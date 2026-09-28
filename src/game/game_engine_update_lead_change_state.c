@@ -35,10 +35,12 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t game_engine_teams_enabled_flag;       // 0x006f1cbc
-extern uint8_t *network_server;                     // 0x0071c2d4, pointer variable
 extern uint8_t *network_client;                      // 0x0071c2d8, pointer variable
 extern data_array *player_data;                      // 0x0087a480
 extern uint8_t game_engine_unknown_1cfc;             // 0x006f1cfc, UNSURE raw flag
@@ -59,7 +61,7 @@ extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data,
     int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, ECX server
 
@@ -81,7 +83,7 @@ void game_engine_update_lead_change_state(void **envelope, uint8_t *message)
     side_selector = out_pair[1];
 
     if (color > 0xf ||
-        (int16_t)*(int8_t *)(network_server + (uint32_t)color * 0x20 + 0x1c6) != *(int16_t *)(message + 0xc)) {
+        (int16_t)*(int8_t *)((uint8_t *)network_server + (uint32_t)color * 0x20 + 0x1c6) != *(int16_t *)(message + 0xc)) {
         chat_queue_team_message(color, 0x91);
         return;
     }
@@ -138,7 +140,7 @@ void game_engine_update_lead_change_state(void **envelope, uint8_t *message)
 
             message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, (void **)&fields_ptr, 0, 1, 0);
         }
-        network_session_broadcast_to_flagged(network_server_pointer, 1, network_message_scratch, 1, 0, 1, 3);
+        network_session_broadcast_to_flagged(network_server, 1, network_message_scratch, 1, 0, 1, 3);
     }
 }
 

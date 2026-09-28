@@ -25,6 +25,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
@@ -33,8 +36,7 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // EDX -> destination size, then the seven stack arguments. Returns the encoded bit
     // length in EAX. `fields` is a pointer TO a pointer to the field block.
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1,
@@ -57,7 +59,7 @@ void game_engine_send_player_profile_update(void *has_payload, void *profile_tai
                                                  (uint32_t)profile_tail, 1, 0);
     if (encoded_size > 0) {
         if (target == -1) {
-            network_session_broadcast_to_flagged(encoded_size, network_server_pointer, 1, network_message_scratch, 1, 0, 0, 3); // UNSURE: args 3-6 elided by Ghidra here
+            network_session_broadcast_to_flagged(encoded_size, network_server, 1, network_message_scratch, 1, 0, 0, 3); // UNSURE: args 3-6 elided by Ghidra here
         } else {
             network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 3);
         }

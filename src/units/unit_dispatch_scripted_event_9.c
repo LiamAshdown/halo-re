@@ -11,6 +11,8 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "game.h"
+#include "networking.h"
 
 extern uint8_t *network_message_table; // 0x00687130, UNSURE
 extern uint8_t event9_target;        // 0x00871de0, UNSURE
@@ -20,7 +22,7 @@ extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
 
@@ -43,7 +45,7 @@ void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key) // bla
     items[0] = &item;
     encoded_len = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 9, 0, items, 0, 1, 0);
     if (0 < encoded_len) {
-        network_session_broadcast_to_flagged(encoded_len, network_server_pointer, 1, network_message_scratch, 1, 0, 0, 3); // 0x871de0 data
+        network_session_broadcast_to_flagged(encoded_len, network_server, 1, network_message_scratch, 1, 0, 0, 3); // 0x871de0 data
     }
     return;
 }

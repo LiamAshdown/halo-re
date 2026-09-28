@@ -3030,8 +3030,6 @@ PUBLIC _network_server_password
 _network_server_password EQU 071C2F4h
 PUBLIC _network_server_password_is_default
 _network_server_password_is_default EQU 071C304h
-PUBLIC _network_server_pointer
-_network_server_pointer EQU 071C2D4h
 PUBLIC _network_server_status_last_print_ms
 _network_server_status_last_print_ms EQU 071C2F0h
 PUBLIC _network_server_storage

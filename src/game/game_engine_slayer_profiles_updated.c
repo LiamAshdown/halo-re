@@ -15,13 +15,16 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern int32_t slayer_team_score[16]; // 0x006b13d8
 extern int32_t slayer_player_score[16]; // 0x006b1418
 extern int32_t slayer_unknown_0087a4a0[16]; // 0x0087a4a0, UNSURE
 extern int32_t slayer_unknown_0087a4e0[16]; // 0x0087a4e0, UNSURE
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, blam-cc: EAX buffer, EDX size
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit,
@@ -49,8 +52,8 @@ void game_engine_slayer_profiles_updated(int32_t mode, int32_t machine_index)
         return;
     }
     if (machine_index == -1) {
-        network_session_broadcast_to_flagged(bits, network_server_pointer, 1, network_message_scratch, 1, 0, 0, 3);
+        network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 0, 3);
     } else {
-        network_session_send_to_machine(machine_index, network_server_pointer, 1, network_message_scratch, bits, 1, 0, 0, 3);
+        network_session_send_to_machine(machine_index, network_server, 1, network_message_scratch, bits, 1, 0, 0, 3);
     }
 }

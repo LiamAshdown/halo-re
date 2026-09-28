@@ -17,15 +17,19 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
 extern char network_player_entry_validate(void *entry); // 0x4de9f0, blam-cc: EAX -> entry
 extern int32_t network_game_record_message_send(void *client, const uint32_t *source); // 0x4da130, blam-cc: EDX source, stack client
 
 uint8_t ui_event_49dbc0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *game = network_server_pointer != 0 ? (uint8_t *)network_server_pointer + 8
+    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
     int16_t key;
     int32_t i;

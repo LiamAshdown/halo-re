@@ -14,11 +14,14 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
 
 extern int16_t network_game_mode; // 0x00719720
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
-extern uint8_t *network_server_pointer; // 0x0071c2d4 (network_server_globals *; +0xa0f set when the game ends)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t game_engine_state_value; // 0x0087aa10
 extern float game_engine_end_game_timer; // 0x0087aa08
 extern void widget_close_all(void); // 0x498650
@@ -35,7 +38,7 @@ void game_engine_ctf_unknown_48(void)
         return;
     }
     if ((ctf_team_flag_touch_count[0] >= limit || ctf_team_flag_touch_count[1] >= limit) && game_engine_state_value == 0) {
-        network_server_pointer[0xa0f] = 1;
+        network_server->game_over = 1;
         game_engine_state_value = 1;
         game_engine_end_game_timer = 7.0f;
         game_engine_queue_multiplayer_sound(1, 0xffffffff, 0);

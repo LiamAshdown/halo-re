@@ -17,6 +17,8 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "game.h"
+#include "networking.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -24,7 +26,7 @@ extern uint8_t *globals_tag_data;   // 0x00746fa0, +0x174 the player information
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern int16_t game_connection_role;   // 0x00719720
 extern uint8_t object_network_message_scratch[0x7ff8]; // 0x00871de0
-extern void *network_server_pointer; // 0x0071c2d4
+extern network_server_globals *network_server; // 0x0071c2d4
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
@@ -141,7 +143,7 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
         int32_t bits = projectile_send_creation(grenade);
 
         if (bits > 0) {
-            network_session_broadcast_to_flagged(bits, network_server_pointer, 1, object_network_message_scratch, 1, 0, 0, 3);
+            network_session_broadcast_to_flagged(bits, network_server, 1, object_network_message_scratch, 1, 0, 0, 3);
         }
     }
 }

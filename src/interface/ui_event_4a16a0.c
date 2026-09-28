@@ -13,13 +13,17 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 
 uint8_t ui_event_4a16a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    if (network_server_pointer != 0) {
-        ((uint8_t *)network_server_pointer)[0x9d5] = 0;
+    if (network_server != 0) {
+        ((uint8_t *)network_server)[0x9d5] = 0;
     }
     return 1;
 }

@@ -15,13 +15,17 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
 
 void ui_game_data_input_4a6d50(widget_instance *widget)
 {
-    uint8_t *game = network_server_pointer != 0 ? (uint8_t *)network_server_pointer + 8
+    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
 
     if (game == 0) {

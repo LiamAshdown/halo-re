@@ -30,7 +30,7 @@ extern uint32_t time_query_performance_counter_ms(void); // 0x449210
 extern char network_player_entry_validate(void *entry); // 0x4de9f0, blam-cc: EAX -> entry
 extern char network_session_info_packet_send(const uint32_t *source, void *client); // 0x4d9050, blam-cc: EAX source, stack client
 extern uint8_t local_player_profile_blocks_00714dd8[]; // 0x00714dd8, 0x2004 bytes per local player
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_session_starting_0071c2dc; // 0x0071c2dc, TYPES-GAP
 extern uint32_t network_server_reset_game_stats(void); // 0x4a1670
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc]; // 0x00714ddc, TYPES-GAP
@@ -81,16 +81,16 @@ uint8_t ui_event_4a1790(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (count != 1) {
         return 0;
     }
-    if (network_server_pointer != 0 && network_session_starting_0071c2dc != 1) {
+    if (network_server != 0 && network_session_starting_0071c2dc != 1) {
         uint8_t result = (uint8_t)network_server_reset_game_stats();
 
         local_player_profile_blocks_00714dd8[0] = coop_profile_globals_block_00714ddc[0];
         return result;
     }
     network_client_globals_dispose();
-    if (network_server_pointer != 0) {
-        network_game_server_host_dispose(network_server_pointer);
-        network_server_pointer = 0;
+    if (network_server != 0) {
+        network_game_server_host_dispose(network_server);
+        network_server = 0;
         unknown_0071c2dd = 0;
     }
     local_player_profile_blocks_00714dd8[0] = coop_profile_globals_block_00714ddc[0];

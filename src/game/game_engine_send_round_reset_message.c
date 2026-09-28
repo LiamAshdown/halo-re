@@ -11,14 +11,19 @@
 //   network_session_broadcast_to_flagged's parameters are inherited unresolved from the sibling function.
 
 #include "tags.h"
+#include "math.h"
+#include "memory.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
+#include "networking.h"
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0, UNSURE identity (see game_types_notes.md)
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
+extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
 
@@ -32,7 +37,7 @@ void game_engine_send_round_reset_message(void)
 
     encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x17, 0, (void **)&payload, 0, 1, 0);
     if (encoded_bits > 0) {
-        network_session_broadcast_to_flagged(encoded_bits, network_server_pointer, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+        network_session_broadcast_to_flagged(encoded_bits, network_server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
     }
 }
 
