@@ -41,7 +41,7 @@ extern player_profile player_profile_cache[16]; // 0x006b0b88
 extern int32_t player_profile_cache_count; // 0x006f1d34
 
 extern int32_t QueryPerformanceCounter(large_integer *counter);
-extern char network_player_entry_is_valid(network_player_entry *entry);
+extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, blam-cc: EAX -> entry
     // blam-cc: EAX -> entry; 0x4de9f0, other module. The EAX convention is pinned by
     // network_server_check_machine_timeout (0x4e0f80 `mov eax,esi` / 0x4e102b
     // `lea eax,[esp+0x20]`), both immediately before the call.
@@ -131,7 +131,7 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
     entry = server->session.players;
     remaining = 16;
     for (;;) {
-        valid = network_player_entry_is_valid(entry); // blam-cc: EAX -> entry
+        valid = network_player_entry_validate(entry); // blam-cc: EAX -> entry
         handled = 0;
         if (valid != 0) {
             scan = server->session.players;
@@ -144,7 +144,7 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
                             ok = network_player_join_finalize();
                         } else {
                             ok = 0;
-                            if (network_player_entry_is_valid(entry) != 0 && server->unknown_004 == 1) {
+                            if (network_player_entry_validate(entry) != 0 && server->unknown_004 == 1) {
                                 // UNSURE: EAX at this second call site was not re-derived;
                                 // entry is the only live candidate.
                                 ok = network_channel_key_open();

@@ -39,7 +39,7 @@ extern data_array *object_data; // 0x008603b0 (objects module)
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent); // 0x4df950, this batch
-extern char network_player_entry_is_valid(network_player_entry *entry);
+extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, blam-cc: EAX -> entry
     // blam-cc: EAX -> entry; 0x4de9f0, other module. The EAX convention is pinned by
     // network_server_check_machine_timeout (0x4e0f80 `mov eax,esi` / 0x4e102b
     // `lea eax,[esp+0x20]`), both immediately before the call.
@@ -90,7 +90,7 @@ void network_game_server_handoff_object_ownership(int32_t *object_count_passthro
 
         do_transfer = 0;
         owner = 0;
-        if (network_player_entry_is_valid(entry) != 0) { // blam-cc: EAX -> entry
+        if (network_player_entry_validate(entry) != 0) { // blam-cc: EAX -> entry
             key_machine_index = entry->machine_index;
             scan = server->session.players;
             i = 0;

@@ -31,7 +31,7 @@
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
     const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
-extern char network_player_entry_is_valid(network_player_entry *entry);
+extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, blam-cc: EAX -> entry
     // blam-cc: EAX -> entry; 0x4de9f0, other module. The EAX convention is pinned by
     // network_server_check_machine_timeout (0x4e0f80 `mov eax,esi` / 0x4e102b
     // `lea eax,[esp+0x20]`), both immediately before the call.
@@ -54,7 +54,7 @@ uint32_t network_game_client_handle_map_data(uint8_t *context, uint8_t *buffer, 
             context[0x9f8] == 0) {
             // blam-cc: EAX -> decoded_body (0x4e27d8 `lea eax,[esp+0x8]`). The 8-dword copy right
             // below confirms decoded_body is a network_player_entry (0x20 bytes).
-            if (network_player_entry_is_valid((network_player_entry *)decoded_body) != 0) {
+            if (network_player_entry_validate((network_player_entry *)decoded_body) != 0) {
                 memcpy(context + 0x9d8, decoded_body, sizeof(decoded_body));
                 context[0x9f8] = 1;
                 return 1;

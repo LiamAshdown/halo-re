@@ -48,7 +48,7 @@ extern void equipment_create_from_creation_message(void);
 extern void projectile_detonation_message_apply(void);
 extern void projectile_attach_apply(void);
 extern void projectile_create_from_network(void);
-extern void item_add_ammunition(void);
+extern int32_t weapon_add_ammunition(void **message_record); // 0x4c25a0, blam-cc: EAX -> message_record (the action entry, still in EAX)
 extern void weapon_predict_ammo(void);
 extern void weapon_apply_ammo_correction(void);
 extern void weapon_apply_ammo_correction_and_resync(void);
@@ -284,7 +284,7 @@ void network_game_action_apply(int32_t **action_entry)
         network_action_apply_active = 0;
         return;
     case 0x2c:
-        item_add_ammunition();
+        weapon_add_ammunition((void **)action_entry);
         network_action_apply_active = 0;
         return;
     case 0x2d:

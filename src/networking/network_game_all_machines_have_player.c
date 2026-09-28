@@ -18,7 +18,7 @@
 #include "game.h"
 #include "networking.h"
 
-extern char network_player_entry_is_valid(network_player_entry *entry);
+extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, blam-cc: EAX -> entry
     // blam-cc: EAX -> entry; 0x4de9f0, other module. The EAX convention is pinned by
     // network_server_check_machine_timeout (0x4e0f80 `mov eax,esi` / 0x4e102b
     // `lea eax,[esp+0x20]`), both immediately before the call.
@@ -44,7 +44,7 @@ uint32_t network_game_all_machines_have_player(network_server_globals *server)
             for (i = 0; i < 16; i = i + 1) {
                 char valid;
 
-                valid = network_player_entry_is_valid(entry); // blam-cc: EAX -> entry
+                valid = network_player_entry_validate(entry); // blam-cc: EAX -> entry
                 if (valid != 0 && entry->machine_index == (int8_t)machine_id) {
                     found = 1;
                 }

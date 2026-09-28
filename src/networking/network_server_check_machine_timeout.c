@@ -49,14 +49,14 @@ extern int32_t network_rcon_connection_id; // 0x0069fdfc (UNSURE name)
 extern uint8_t network_object_update_scratch[0x7ff8]; // 0x00871de0, shared with
     // network_game_broadcast_team_object_updates.c
 
-extern char network_player_entry_is_valid(network_player_entry *entry);
-    // blam-cc: EAX -> entry; 0x4de9f0, other module. The EAX convention is pinned by
-    // network_server_check_machine_timeout (0x4e0f80 `mov eax,esi` / 0x4e102b
-    // `lea eax,[esp+0x20]`), both immediately before the call.
-extern char network_df0e0_broadcast(network_server_globals *server, network_player_entry *entry);
-    // 0x4df0e0, other module (UNSURE name); both arguments are pushed, EAX also holds server
-extern void network_player_table_remove(network_player_entry *entry);
-    // blam-cc: EAX -> entry; 0x4de640, other module
+extern char network_player_entry_validate(network_player_entry *entry);
+    // blam-cc: EAX -> entry; 0x4de9f0. The EAX convention is pinned by 0x4e0f80 `mov eax,esi` /
+    // 0x4e102b `lea eax,[esp+0x20]`, both immediately before the call.
+extern uint32_t network_game_settings_broadcast_send(uint32_t round, uint32_t *record);
+    // 0x4df0e0; both arguments are pushed: (server, the 32-byte player entry)
+extern uint32_t network_player_entry_remove(network_player_entry *key, network_game_session *session);
+    // blam-cc: EAX -> key, EBX -> session; 0x4de640. 0x4e105f passes the server session (EBX = server + 8),
+    // 0x4e108a the client's (EBX = network_client + 0xb14).
 extern void network_channel_remove_child(network_channel *channel); // other module (UNSURE)
 extern void FUN_0061b350(int32_t id, int32_t value); // GameSpy library (UNSURE)
 extern void FUN_0061b3f0(int32_t id); // GameSpy library (UNSURE)
@@ -113,13 +113,13 @@ not_timed_out:
                 network_player_entry copy;
 
                 memcpy(&copy, entry, sizeof(copy));
-                if (network_player_entry_is_valid(&copy) != 0 && // blam-cc: EAX -> &copy
+                if (network_player_entry_validate(&copy) != 0 && // blam-cc: EAX -> &copy
                     (int32_t)copy.machine_index == machine_id) {
-                    if (network_df0e0_broadcast(server, &copy) != 0) {
-                        network_player_table_remove(&copy); // blam-cc: EAX -> &copy
+                    if (network_game_settings_broadcast_send((uint32_t)server, (uint32_t *)&copy) != 0) {
+                        network_player_entry_remove(&copy, &server->session); // EAX &copy, EBX server + 8
                         if (network_client != 0 && (int32_t)network_client != -0xb14 &&
                             (machine->flags >> 2 & 1) != 0) {
-                            network_player_table_remove(&copy); // blam-cc: EAX -> &copy, again
+                            network_player_entry_remove(&copy, &network_client->session); // EBX client + 0xb14
                         }
                     }
                 }
@@ -183,9 +183,9 @@ not_timed_out:
         entry = server->session.players;
         local_result = 0;
         for (i = 0; i < 16; i = i + 1) {
-            if (network_player_entry_is_valid(entry) != 0 && // blam-cc: EAX -> entry (live)
+            if (network_player_entry_validate(entry) != 0 && // blam-cc: EAX -> entry (live)
                 (int16_t)entry->machine_index == machine->machine_id) {
-                if (network_df0e0_broadcast(server, entry) == 0) {
+                if (network_game_settings_broadcast_send((uint32_t)server, (uint32_t *)entry) == 0) {
                     local_result = 0;
                     break;
                 }
