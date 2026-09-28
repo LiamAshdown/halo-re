@@ -32,9 +32,9 @@ extern void actor_issue_multi_target_vocalization(int16_t line, datum_index acto
 void ai_dispatch_queued_order(ai_queued_order *order, datum_index prop_index, datum_index actor_index)
 {
     uint8_t *o = (uint8_t *)order;
-    int16_t count = *(int16_t *)(o + 0xe);
-    datum_index target = *(datum_index *)(o + 0x10);
-    int16_t variant = (int16_t)*(uint16_t *)(o + 0xc);
+    int16_t count = ((struct ai_queued_order *)o)->target_count;
+    datum_index target = ((struct ai_queued_order *)o)->object_a;
+    int16_t variant = (int16_t)*(uint16_t *)&((struct ai_queued_order *)o)->single_target;
     int16_t line = 9;
 
     if (count <= 0) {

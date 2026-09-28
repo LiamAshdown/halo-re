@@ -18,6 +18,8 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#include "objects.h"
+#include "units.h"
 
 extern int32_t update_client_base_tick; // 0x006f7e9c
 extern int32_t update_client_unknown_ea0; // 0x006f7ea0
@@ -52,7 +54,7 @@ uint32_t update_client_queue_apply_tick(player_action *out_actions,
         player_element = data_iterator_next(&player_iter);
         while (player_element != 0) {
             index = index + 1;
-            if (index < *(int16_t *)(slot_bytes + 4)) {
+            if (index < *(int16_t *)&((struct update_record *)slot_bytes)->player_count) {
                 uint8_t *record = slot_bytes + 8 + (int32_t)index * 0x20;
                 uint8_t *dst = (uint8_t *)player_element;
 

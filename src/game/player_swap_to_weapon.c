@@ -32,11 +32,11 @@ uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200);
     uint8_t *record = (uint8_t *)p;
-    datum_index unit_index = *(datum_index *)(record + 0x34);
-    datum_index interaction_object = *(datum_index *)(record + 0x24);
+    datum_index unit_index = ((struct player *)record)->unit;
+    datum_index interaction_object = ((struct player *)record)->interaction_object;
     uint8_t *unit = OBJECT_DATA(unit_index);
 
-    switch (*(int16_t *)(record + 0x28)) {
+    switch (((struct player *)record)->interaction_type) {
     case 6: {
         uint8_t *current = OBJECT_DATA(unit_index);
         int16_t slot = *(int16_t *)(current + 0x2f2);
@@ -55,7 +55,7 @@ uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon)
         }
         if (unit_drop_current_weapon(unit_index, 1) &&
             unit_pickup_weapon(1, interaction_object, unit_index)) {
-            hud_add_item_message(*(int16_t *)(record + 0x2),
+            hud_add_item_message(((struct player *)record)->local_player_index,
                 (int32_t)*(datum_index *)OBJECT_DATA(interaction_object), 0, 0);
             unit_invalidate_local_player_zoom_level(unit_index);
         }
@@ -63,7 +63,7 @@ uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon)
     }
     case 7:
         if (unit_pickup_weapon(1, interaction_object, unit_index)) {
-            hud_add_item_message(*(int16_t *)(record + 0x2),
+            hud_add_item_message(((struct player *)record)->local_player_index,
                 (int32_t)*(datum_index *)OBJECT_DATA(interaction_object), 0, 0);
         }
         return 0;

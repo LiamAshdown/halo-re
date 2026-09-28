@@ -24,6 +24,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern uint8_t rasterizer_caps_flag_689;                 // 0x0069c689
 extern uint8_t rasterizer_water_enabled;         // 0x006893fe (also gates 0x534f80)
@@ -114,8 +116,8 @@ static void effect_draw_pass(void *effect, uint32_t pass, transparent_geometry_g
 void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
 {
     uint8_t *raw = (uint8_t *)group;
-    uint8_t *water = *(uint8_t **)(raw + 0xc);      // esi
-    uint16_t frame = *(uint16_t *)(raw + 0x10);
+    uint8_t *water = *(uint8_t **)&((struct transparent_geometry_group *)raw)->shader;      // esi
+    uint16_t frame = ((struct transparent_geometry_group *)raw)->shader_permutation;
     int16_t vertex_type = -1;                       // ebp
     int16_t shader_index = 0;                       // esp+0x10, UNSURE for other vertex types
     uint32_t declaration;
@@ -125,10 +127,10 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
     if (rasterizer_caps_flag_689 != 0 || rasterizer_water_enabled == 0) {
         return;
     }
-    if (*(void **)(raw + 0x58) != 0) {
-        vertex_type = **(int16_t **)(raw + 0x58);
-    } else if (*(int32_t *)(raw + 0x54) != -1) {
-        vertex_type = rasterizer_dynamic_vertex_slots[*(int32_t *)(raw + 0x54)].vertex_type;
+    if (*(void **)&((struct transparent_geometry_group *)raw)->vertex_buffer != 0) {
+        vertex_type = **(int16_t **)&((struct transparent_geometry_group *)raw)->vertex_buffer;
+    } else if (((struct transparent_geometry_group *)raw)->dynamic_vertex_slot != -1) {
+        vertex_type = rasterizer_dynamic_vertex_slots[((struct transparent_geometry_group *)raw)->dynamic_vertex_slot].vertex_type;
     }
     if (vertex_type == 0 || vertex_type == 2) {
         shader_index = 0;

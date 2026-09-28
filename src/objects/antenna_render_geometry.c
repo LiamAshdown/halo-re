@@ -30,7 +30,7 @@ extern void build_sprites_end(build_sprite_data *data); // 0x511620, ESI
 void antenna_render_geometry(Antenna *antenna_tag, antenna *ant)
 {
     uint8_t *tag = (uint8_t *)antenna_tag;
-    int32_t count = *(int32_t *)(tag + 0xc4);
+    int32_t count = *(int32_t *)&((struct Antenna *)tag)->vertices.count;
     build_sprite_data data;
     float fade;
     int16_t i;
@@ -38,13 +38,13 @@ void antenna_render_geometry(Antenna *antenna_tag, antenna *ant)
     if (count == 0) {
         return;
     }
-    fade = (100.0f - *(float *)(tag + 0x98)) / (*(float *)(tag + 0x94) - *(float *)(tag + 0x98));
+    fade = (100.0f - ((struct Antenna *)tag)->cutoff_pixels) / (((struct Antenna *)tag)->falloff_pixels - ((struct Antenna *)tag)->cutoff_pixels);
     if (fade < 0.0f) {
         fade = 0.0f;
     } else if (fade > 1.0f) {
         fade = 1.0f;
     }
-    data.bitmap_group_index = *(datum_index *)(tag + 0x2c);
+    data.bitmap_group_index = *(datum_index *)&((struct Antenna *)tag)->bitmaps.tag_id;
     data.maximum_sprite_count = (int16_t)count;
     data.shader = (uint32_t)(uintptr_t)antenna_sprite_shader;
     data.sprite_count = 0;
@@ -52,9 +52,9 @@ void antenna_render_geometry(Antenna *antenna_tag, antenna *ant)
     data.centroid = *global_zero_vector3d_pointer;
     data.group_count = 0;
 
-    for (i = 0; i < *(int32_t *)(tag + 0xc4); i++) {
+    for (i = 0; i < *(int32_t *)&((struct Antenna *)tag)->vertices.count; i++) {
         antenna_vertex *vertex = &ant->vertices[i];
-        uint8_t *tag_vertex = *(uint8_t **)(tag + 0xc8) + i * 0x80;
+        uint8_t *tag_vertex = *(uint8_t **)&((struct Antenna *)tag)->vertices.pointer + i * 0x80;
         real_vector3d direction;
         ColorARGB color;
 

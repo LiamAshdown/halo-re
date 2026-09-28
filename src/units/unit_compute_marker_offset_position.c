@@ -79,8 +79,8 @@ void unit_compute_marker_offset_position(uint32_t object_index, real_vector3d *r
             }
         }
     }
-    out_position->z += fraction * *(float *)((uint8_t *)tag_data + 0x404) +
-                        (1.0f - fraction) * *(float *)((uint8_t *)tag_data + 0x400);
+    out_position->z += fraction * ((struct Biped *)tag_data)->crouching_camera_height +
+                        (1.0f - fraction) * ((struct Biped *)tag_data)->standing_camera_height;
 }
 
 #if 0

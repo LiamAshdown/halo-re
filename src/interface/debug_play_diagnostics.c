@@ -43,7 +43,7 @@ void debug_play_diagnostics(void)
     standalone_log("DIAG fp attached=%d unit=%08x weapon=%08x state=%d anim=%d frame=%d weapon_hud=%d device_hud=%d "
                    "anim14=%d",
         raw[0], fp->unit_index, fp->weapon_index, fp->state, *(int16_t *)(raw + 0x16), *(int16_t *)(raw + 0x18),
-        raw[0x1d8c], raw[0x1e0e], *(int16_t *)(raw + 0x14));
+        raw[0x1d8c], raw[0x1e0e], ((struct first_person_weapon_interface *)raw)->animation_index);
     if (player_team >= 0 && player_team < 10) {
         int32_t ab = player_team * 10 + 2;
         int32_t ba = 2 * 10 + player_team;

@@ -57,7 +57,7 @@ glow_particle *glow_particle_spawn(glow *entry /*EBX*/) // blam-cc: EBX -> entry
         } else {
             float lo = *(float *)(tag + 0x108) * entry->total_length;
             float hi = *(float *)(tag + 0x10c) * entry->total_length;
-            *(float *)(pb + 0x28) = (hi - lo) * glow_next_random_unit() + lo;
+            ((struct glow_particle *)pb)->t = (hi - lo) * glow_next_random_unit() + lo;
             glow_particle_reposition(entry, pb, 0.0f);
         }
 
@@ -95,14 +95,14 @@ glow_particle *glow_particle_spawn(glow *entry /*EBX*/) // blam-cc: EBX -> entry
                (*(float *)(tag + 0xa4) - *(float *)(tag + 0xa0)) * glow_next_random_unit();
         *(float *)(pb + 0x20) = size / (float)entry->particle_count;
 
-        *(int16_t *)(pb + 0x52) = (int16_t)__ftol((double)*(float *)(pb + 0x20)); // UNSURE, see file header
+        ((struct glow_particle *)pb)->lifetime = (int16_t)__ftol((double)*(float *)(pb + 0x20)); // UNSURE, see file header
 
         {
             float t = glow_next_random_unit();
             *(uint32_t *)(pb + 0xc) = 0x3f800000; // 1.0f
             *(float *)(pb + 0x10) = (*(float *)(tag + 0xc8) - *(float *)(tag + 0xb8)) * t + *(float *)(tag + 0xb8);
             *(float *)(pb + 0x14) = (*(float *)(tag + 0xcc) - *(float *)(tag + 0xbc)) * t + *(float *)(tag + 0xbc);
-            *(uint32_t *)(pb + 0x54) = *(uint32_t *)(pb + 0x54) | 2;
+            ((struct glow_particle *)pb)->flags = ((struct glow_particle *)pb)->flags | 2;
             *(float *)(pb + 0x18) = (*(float *)(tag + 0xd0) - *(float *)(tag + 0xc0)) * t + *(float *)(tag + 0xc0);
         }
     }

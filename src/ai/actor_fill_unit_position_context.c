@@ -55,7 +55,7 @@ void actor_fill_unit_position_context(datum_index unit_index, actor_unit_positio
     uint8_t *root_object;
 
     object_get_position((real_point3d *)(context + 0xc), unit_index);
-    *(real_vector3d *)(context + 0x18) = *(real_vector3d *)&((unit_object *)unit)->base.forward.i;
+    *(real_vector3d *)&((struct actor_unit_position_context *)context)->forward.i = *(real_vector3d *)&((unit_object *)unit)->base.forward.i;
     object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
     *(real_point3d *)context = marker.node_transform.position;
     object_get_root_object_velocities(unit_index, (real_vector3d *)(context + 0x2c), 0);
@@ -68,8 +68,8 @@ void actor_fill_unit_position_context(datum_index unit_index, actor_unit_positio
         } while (cursor != k_datum_index_none);
     }
     root_object = object_get(root);
-    *(uint32_t *)(context + 0x24) = *(uint32_t *)(root_object + 0x98);
-    *(uint32_t *)(context + 0x28) = *(uint32_t *)(root_object + 0x9c);
+    *(uint32_t *)&((struct actor_unit_position_context *)context)->root_position_x = *(uint32_t *)(root_object + 0x98);
+    *(uint32_t *)&((struct actor_unit_position_context *)context)->root_position_y = *(uint32_t *)(root_object + 0x9c);
 }
 
 #if 0

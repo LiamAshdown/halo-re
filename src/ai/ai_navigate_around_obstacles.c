@@ -42,9 +42,9 @@ extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t co
 static real_plane3d *ai_navigate_surface_plane(ModelCollisionGeometryBSP *bsp, int32_t surface)
 {
     uint8_t *raw = (uint8_t *)bsp;
-    uint32_t plane = *(uint32_t *)(*(uint8_t **)(raw + 0x40) + surface * 12) & 0x7fffffff;
+    uint32_t plane = *(uint32_t *)(*(uint8_t **)&((struct ModelCollisionGeometryBSP *)raw)->surfaces.pointer + surface * 12) & 0x7fffffff;
 
-    return (real_plane3d *)(*(uint8_t **)(raw + 0x10) + plane * 16);
+    return (real_plane3d *)(*(uint8_t **)&((struct ModelCollisionGeometryBSP *)raw)->planes.pointer + plane * 16);
 }
 
 uint8_t ai_navigate_around_obstacles(path_find_context *context, int16_t count, path_find_waypoint *waypoints,

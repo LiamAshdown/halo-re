@@ -33,6 +33,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "game.h"
+#include "units.h"
 
 extern player_effect_globals *player_effect_globals_pointer; // 0x006f1884
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -82,23 +83,23 @@ void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_
     if (local_player_index == -1) {
         return;
     }
-    if ((*(uint8_t *)(g + 0x120) & 1) != 0) {
-        real t = *(real *)(g + 0x118);
-        int16_t ticks = *(int16_t *)(g + 0x11c);
+    if ((*(uint8_t *)&((struct player_effect_globals *)g)->scripted_shake_flags & 1) != 0) {
+        real t = ((struct player_effect_globals *)g)->scripted_shake_intensity;
+        int16_t ticks = ((struct player_effect_globals *)g)->scripted_shake_ticks;
 
         *out = *k_render_identity_matrix_ptr;
         if (ticks > 0) {
-            real fraction = (real)(int32_t)ticks / (real)(int32_t)*(int16_t *)(g + 0x11e);
+            real fraction = (real)(int32_t)ticks / (real)(int32_t)((struct player_effect_globals *)g)->scripted_shake_duration;
 
-            if ((*(uint8_t *)(g + 0x120) & 2) == 0) {
+            if ((*(uint8_t *)&((struct player_effect_globals *)g)->scripted_shake_flags & 2) == 0) {
                 fraction = 1.0f - fraction;
             }
             t = fraction * t;
-            *(int16_t *)(g + 0x11c) = (int16_t)(ticks - game_time->ticks_this_frame);
-        } else if ((*(uint32_t *)(g + 0x120) & 2) != 0) {
-            *(uint32_t *)(g + 0x120) &= ~(uint32_t)1;
+            ((struct player_effect_globals *)g)->scripted_shake_ticks = (int16_t)(ticks - game_time->ticks_this_frame);
+        } else if ((((struct player_effect_globals *)g)->scripted_shake_flags & 2) != 0) {
+            ((struct player_effect_globals *)g)->scripted_shake_flags &= ~(uint32_t)1;
         }
-        if ((*(uint8_t *)(g + 0x120) & 1) == 0) {
+        if ((*(uint8_t *)&((struct player_effect_globals *)g)->scripted_shake_flags & 1) == 0) {
             return;
         }
         if (!(t >= 0.0f)) {

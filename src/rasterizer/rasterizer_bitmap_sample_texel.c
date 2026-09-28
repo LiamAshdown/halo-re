@@ -57,7 +57,7 @@ static int16_t level_dimension(uint16_t base, int16_t level, int16_t skip, uint8
 int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias)
 {
     uint8_t *data = (uint8_t *)bitmap;
-    void *texture = *(void **)(data + 0x28);
+    void *texture = *(void **)&((struct BitmapData *)data)->hardware_texture;
     int16_t skipped_width;
     int16_t skipped_height;
     int16_t skip;
@@ -76,16 +76,16 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
         return -1;
     }
     skip = (int16_t)rasterizer_bitmap_compute_mipmap_skip_count(bitmap, &skipped_width, &skipped_height);
-    remaining = (int16_t)(*(int16_t *)(data + 0x14) - skip);
+    remaining = (int16_t)(*(int16_t *)&((struct BitmapData *)data)->mipmap_count - skip);
     level = 0;
     if (mip_bias < 1.0f && remaining > 0 && skip == 0) {
         float mip = (1.0f - mip_bias) * (float)remaining;
 
         level = (int16_t)lrint((double)mip);
     }
-    compressed = (uint8_t)((*(uint16_t *)(data + 0xe) & 2) != 0);
-    width = level_dimension(*(uint16_t *)(data + 0x4), level, skip, compressed);
-    height = level_dimension(*(uint16_t *)(data + 0x6), level, skip, compressed);
+    compressed = (uint8_t)((*(uint16_t *)&((struct BitmapData *)data)->flags & 2) != 0);
+    width = level_dimension(((struct BitmapData *)data)->width, level, skip, compressed);
+    height = level_dimension(((struct BitmapData *)data)->height, level, skip, compressed);
     x = sample_texel_coordinate(width, uv[0]);
     y = sample_texel_coordinate(height, uv[1]);
 
@@ -100,7 +100,7 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
 
     texel = width;
     if (compressed) {
-        int16_t format = *(int16_t *)(data + 0xc);
+        int16_t format = *(int16_t *)&((struct BitmapData *)data)->format;
         int32_t block_bytes = ((int32_t)bitmap_format_bits_per_pixel[format] * 16) / 8;
         int32_t block_row = (int16_t)(y / 4);
         int32_t block_index = (block_row * width) / 4 + (int16_t)(x / 4);
@@ -122,7 +122,7 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
         uint32_t c;
         uint32_t d;
 
-        switch (*(int16_t *)(data + 0xc)) {
+        switch (*(int16_t *)&((struct BitmapData *)data)->format) {
         case 6: // R5G6B5
             v = *(uint16_t *)(row + x * 2);
             a = ((v & 0xfffff800) | 0xffff0000) << 3;

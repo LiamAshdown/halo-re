@@ -46,19 +46,19 @@ datum_index light_new_positioned(datum_index light_tag, int32_t marker_index, in
         entry->flags = 0;
         entry->marker_link = game_time->game_time; // +0x0c, the current tick
         entry->definition_tag = light_tag;
-        *(int32_t *)(raw + 0x2c) = marker_index; // UNSURE: overlaps light.owner_object
+        *(int32_t *)&((struct light *)raw)->owner_object = marker_index; // UNSURE: overlaps light.owner_object
         entry->unknown_78 = param_5;
         entry->flags = 3; // _light_always_visible_bit | _light_attached_bit
 
         entry->next_light = (datum_index)0xffffffff;
 
         if (marker_index == -1) {
-            *(real_point3d *)(raw + 0x30) = *position;
-            *(real_vector3d *)(raw + 0x3c) = *direction;
+            *(real_point3d *)&((struct light *)raw)->position.x = *position;
+            *(real_vector3d *)&((struct light *)raw)->direction.i = *direction;
         } else {
-            *(int16_t *)(raw + 0x5c) = marker_sub_index;
-            *(real_point3d *)(raw + 0x60) = *position;   // UNSURE: overlaps light.change_color_index
-            *(real_vector3d *)(raw + 0x6c) = *direction;
+            ((struct light *)raw)->marker_index = marker_sub_index;
+            *(real_point3d *)&((struct light *)raw)->local_position.x = *position;   // UNSURE: overlaps light.change_color_index
+            *(real_vector3d *)&((struct light *)raw)->local_direction.i = *direction;
         }
 
         object_light_recompute_transform(handle);

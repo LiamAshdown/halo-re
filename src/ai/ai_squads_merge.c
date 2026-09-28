@@ -29,6 +29,8 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *encounter_data;  // 0x008802c8
 extern Scenario *global_scenario;   // 0x00746f8c
@@ -200,7 +202,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
         int16_t squad_index;
         int16_t remapped;
 
-        actor_index = *(datum_index *)(raw + 0x2c);
+        actor_index = ((struct actor *)raw)->next_in_encounter;
         if ((*(uint32_t *)(raw + 0x30) & 0xffff) != source_index) {
             continue;
         }

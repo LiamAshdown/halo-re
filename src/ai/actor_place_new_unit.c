@@ -19,6 +19,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *object_data;     // 0x008603b0
@@ -68,7 +69,7 @@ datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum
     }
     actor_definition = TAG_DATA(*(datum_index *)&((ActorVariant *)variant)->actor_definition.tag_id);
     object_placement_data_initialize(&placement, *(datum_index *)&((ActorVariant *)variant)->unit.tag_id, k_datum_index_none);
-    yaw = *(const float *)(request + 0xc);
+    yaw = ((struct actor_placement_request *)request)->yaw;
     placement.position = *(const real_point3d *)request;
     placement.permutation_group = (int16_t)unit_type_index;
     placement.forward.i = (float)cos((double)yaw);

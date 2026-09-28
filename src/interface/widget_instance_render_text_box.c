@@ -30,6 +30,8 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "objects.h"
+#include "units.h"
 
 extern int32_t ui_time_milliseconds; // 0x00718f9c
 extern heap *widget_memory_pool;     // 0x006926c4
@@ -73,7 +75,7 @@ void widget_instance_render_text_box(widget_instance *widget, UIWidgetDefinition
         uint16_t *buf;
 
         if (index == -1) {
-            index = *(int16_t *)(t + 0x12e);
+            index = *(int16_t *)&((struct UIWidgetDefinition *)t)->string_list_index;
         }
         src = text_string_list_get_string(*(datum_index *)&tag->text_label_unicode_strings_list.tag_id, index);
         byte_len = wcslen(src) * 2;
@@ -133,22 +135,22 @@ void widget_instance_render_text_box(widget_instance *widget, UIWidgetDefinition
         ColorARGB highlight;  // esp+0x3c, filled by ui_get_saved_pulse_color
 
         rects[1] = (dest != (Rectangle2D *)0) ? *dest : tag->bounds;
-        rects[0].top = (int16_t)(tag->bounds.top + y + *(int16_t *)(t + 0x132));
-        rects[0].left = (int16_t)(tag->bounds.left + x + *(int16_t *)(t + 0x130));
+        rects[0].top = (int16_t)(tag->bounds.top + y + ((struct UIWidgetDefinition *)t)->vert_offset);
+        rects[0].left = (int16_t)(tag->bounds.left + x + ((struct UIWidgetDefinition *)t)->horiz_offset);
         rects[0].bottom = (int16_t)(tag->bounds.bottom + y);
         rects[0].right = (int16_t)(tag->bounds.right + x);
 
-        if (*(float *)(w + 0x44) != 0.0f) {
-            color = *(ColorARGB *)(w + 0x44); // text_box color override
+        if (*(float *)&((struct widget_instance *)w)->list_items != 0.0f) {
+            color = *(ColorARGB *)&((struct widget_instance *)w)->list_items; // text_box color override
             color.alpha = color.alpha * scale;
         } else if (is_top_of_stack != 0) {
             color = *ui_get_saved_pulse_color(&highlight);
-            color.alpha = *(float *)(t + 0x10c) * scale;
+            color.alpha = *(float *)&((struct UIWidgetDefinition *)t)->text_color * scale;
         } else {
-            color = *(ColorARGB *)(t + 0x10c);
+            color = ((struct UIWidgetDefinition *)t)->text_color;
             if (color.red == 1.0f && color.green == 1.0f && color.blue == 1.0f) {
                 color = *ui_get_saved_pulse_color(&highlight);
-                color.alpha = *(float *)(t + 0x10c);
+                color.alpha = *(float *)&((struct UIWidgetDefinition *)t)->text_color;
             }
             color.alpha = color.alpha * scale;
         }

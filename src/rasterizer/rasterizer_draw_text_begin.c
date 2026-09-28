@@ -20,6 +20,8 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#include "objects.h"
+#include "units.h"
 
 extern uint8_t text_rendering_enabled;   // 0x00689402
 extern rasterizer_window_parameters rasterizer_window; // 0x007c1220
@@ -71,7 +73,7 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
     }
 
     chimera__widescreen_text_scaling();
-    chimera__rasterizer_set_framebuffer_blend_function(*(int16_t *)(context + 0x88));
+    chimera__rasterizer_set_framebuffer_blend_function(((struct ui_quad_render_state *)context)->framebuffer_blend_function);
 
     part0 = *(void **)(context + 0xc);
     if (part0 != 0) {

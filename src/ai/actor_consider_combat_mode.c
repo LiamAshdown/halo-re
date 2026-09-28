@@ -37,6 +37,7 @@
 #include "objects.h"
 #include "game.h"
 #include <string.h>
+#include "units.h"
 
 // TYPES (folded into types/ai.h by the review pass): local model of the 0x38-byte result record actor_consider_combat_mode and its
 // siblings (0x402f80, 0x403180, 0x403630, 0x40c620...) build and pass around. Only the
@@ -69,7 +70,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
     *(int32_t *)record = game_time->game_time;
 
     if (mode == 5 || mode == 4) {
-        *(int16_t *)(record + 4) = mode;
+        ((struct actor_combat_consideration *)record)->mode = mode;
         return *(int16_t *)(actor + 0x15e) > 1;
     }
     if (mode == 2) {
@@ -112,18 +113,18 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
             goto done;
         }
         if ((*(uint32_t *)actor_tag & 0x8000000) != 0) {
-            *(int16_t *)(record + 0x32) = frame_count;
-            *(float *)(record + 0x34) = 0.0f;
+            ((struct actor_combat_consideration *)record)->position_index = frame_count;
+            ((struct actor_combat_consideration *)record)->distance_delta = 0.0f;
             record[0x30] = 1;
         } else if (key_frame == 0) {
-            *(int16_t *)(record + 0x32) = (int16_t)(frame_count / 2);
-            *(float *)(record + 0x34) = dx_total - dx_total * 0.5f;
+            ((struct actor_combat_consideration *)record)->position_index = (int16_t)(frame_count / 2);
+            ((struct actor_combat_consideration *)record)->distance_delta = dx_total - dx_total * 0.5f;
         } else {
-            *(int16_t *)(record + 0x32) = key_frame;
-            *(float *)(record + 0x34) = dx_total - dx_to_key_frame;
+            ((struct actor_combat_consideration *)record)->position_index = key_frame;
+            ((struct actor_combat_consideration *)record)->distance_delta = dx_total - dx_to_key_frame;
         }
         wait = actor_get_consideration_wait_threshold(actor_index, mode, out);
-        *(float *)(record + 0x2c) = wait;
+        ((struct actor_combat_consideration *)record)->wait_threshold = wait;
         limit = mode == 3 ? 4.0f : 1.5f;
         if (limit > wait) {
             wait = limit;
@@ -141,7 +142,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
     }
 
 done:
-    *(int16_t *)(record + 4) = mode;
+    ((struct actor_combat_consideration *)record)->mode = mode;
     return result;
 }
 

@@ -81,12 +81,12 @@ void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_
     real_vector3d *impulse_rotation = (real_vector3d *)(fx + 0x0c);
     real_vector3d *up = (real_vector3d *)global_up3d_pointer; // [0x696720]: the global up vector
     real duration_ticks = duration_scale * 30.0f;
-    real ticks = (real)*(int16_t *)(fx + 0xe0);
+    real ticks = (real)((struct player_effect *)fx)->impulse_ticks;
     real blended = (1.0f - descriptor[6]) * intensity_falloff + descriptor[6];
     real *look_globals = (real *)((uint8_t *)player_control_globals_ptr + local_player_index * 0x40);
 
-    if (impulse[0] > ticks || blended > *(real *)(fx + 0x68) ||
-        (!(blended < *(real *)(fx + 0x68)) && duration_ticks * descriptor[0] > ticks)) {
+    if (impulse[0] > ticks || blended > ((struct player_effect *)fx)->impulse.intensity ||
+        (!(blended < ((struct player_effect *)fx)->impulse.intensity) && duration_ticks * descriptor[0] > ticks)) {
         real_vector3d flat_direction;
         real_vector3d look;
         real a = look_globals[7]; // +0x1c
@@ -113,8 +113,8 @@ void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_
                 impulse[i] = descriptor[i];
             }
             impulse[0] = duration_ticks * impulse[0];
-            *(real *)(fx + 0x68) = blended;
-            *(int16_t *)(fx + 0xe0) = (int16_t)(int32_t)impulse[0];
+            ((struct player_effect *)fx)->impulse.intensity = blended;
+            ((struct player_effect *)fx)->impulse_ticks = (int16_t)(int32_t)impulse[0];
 
             impulse_direction->k = 0.0f;
             impulse_direction->i = (real)cos((double)angle);
@@ -122,7 +122,7 @@ void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_
 
             effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
             magnitude = (real)(int32_t)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
-                (*(real *)(fx + 0x64) - *(real *)(fx + 0x60)) + *(real *)(fx + 0x60);
+                (((struct player_effect *)fx)->impulse.magnitude_maximum - ((struct player_effect *)fx)->impulse.magnitude_minimum) + ((struct player_effect *)fx)->impulse.magnitude_minimum;
             effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
             random_angle = (real)(int32_t)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
 
@@ -133,7 +133,7 @@ void player_effect_set_camera_impulse(player_effect *self, int16_t local_player_
             impulse_rotation->i = magnitude * impulse_rotation->i;
             impulse_rotation->j = magnitude * impulse_rotation->j;
             impulse_rotation->k = magnitude * impulse_rotation->k;
-            *(uint8_t *)(fx + 0xe8) |= 2;
+            *(uint8_t *)&((struct player_effect *)fx)->flags |= 2;
         }
     }
 

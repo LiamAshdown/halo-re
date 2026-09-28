@@ -25,6 +25,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "units.h"
 
 extern data_array *object_data;                   // 0x008603b0
 extern data_array *particle_system_particle_data; // 0x0087abd8
@@ -58,12 +59,12 @@ void particle_system_spawn(particle_system *system_record, int32_t type_index, f
 {
     uint8_t *system = (uint8_t *)system_record;
     uint8_t *type_state = system + 0x58 + (int16_t)type_index * 0x40;
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)(system + 8) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)tag_instances[((struct particle_system *)system)->definition_index & 0xffff].data;
     uint8_t *type = *(uint8_t **)(definition + 0x60) + (int16_t)type_index * 0x80;
-    uint8_t initial = (uint8_t)((*(uint32_t *)(system + 4) >> 1) & 1);
+    uint8_t initial = (uint8_t)((((struct particle_system *)system)->flags >> 1) & 1);
     uint8_t *state = initial ? 0 : *(uint8_t **)(type + 0x6c) + *(int16_t *)type_state * 0xc0;
     uint32_t type_flags = *(uint32_t *)(type + 0x20);
-    datum_index object_index = *(datum_index *)(system + 0xc);
+    datum_index object_index = ((struct particle_system *)system)->object_index;
     object_marker markers[8];
     int16_t locality;
     int16_t target;
@@ -84,7 +85,7 @@ void particle_system_spawn(particle_system *system_record, int32_t type_index, f
 
     if (initial) {
         if (type_flags & 0x400) {
-            target = (int16_t)(int32_t)((double)*(int16_t *)(type + 0x24) * *(float *)(system + 0x14) + 0.5);
+            target = (int16_t)(int32_t)((double)*(int16_t *)(type + 0x24) * ((struct particle_system *)system)->scale + 0.5);
         } else {
             target = *(int16_t *)(type + 0x24);
         }
@@ -110,7 +111,7 @@ void particle_system_spawn(particle_system *system_record, int32_t type_index, f
     if (object_index != k_datum_index_none) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
         uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
-        char *marker_name = (char *)(*(uint8_t **)(object_tag + 0x144) + *(int16_t *)(system + 0x10) * 0x48 + 0x10);
+        char *marker_name = (char *)(*(uint8_t **)(object_tag + 0x144) + ((struct particle_system *)system)->attachment_index * 0x48 + 0x10);
 
         marker_count = (int16_t)object_get_node_local_transform(object_index, marker_name, markers, 8);
         object_get_root_location((int32_t *)(system + 0x18), object_index);
@@ -123,12 +124,12 @@ void particle_system_spawn(particle_system *system_record, int32_t type_index, f
             }
         }
     } else {
-        markers[0].node_transform.position = *(real_point3d *)(system + 0x20);
+        markers[0].node_transform.position = *(real_point3d *)&((struct particle_system *)system)->position.x;
         *(real_vector3d *)((uint8_t *)&markers[0] + 0x3c) = *global_origin3d_pointer;
         marker_count = 1;
     }
 
-    if (*(int16_t *)(system + 0x1c) == -1 || *(int16_t *)(type_state + 0x3a) >= target) {
+    if (((struct particle_system *)system)->location.cluster_index == -1 || *(int16_t *)(type_state + 0x3a) >= target) {
         goto done;
     }
     for (spawned = 0; marker_count != 0 && spawned < 0x80; ) {

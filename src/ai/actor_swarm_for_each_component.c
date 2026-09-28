@@ -21,6 +21,8 @@
 #include "ai.h"
 #include <stdint.h>
 #include <string.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;           // 0x00880360
 extern data_array *swarm_data;           // 0x0088035c
@@ -54,7 +56,7 @@ void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, acto
 
             if (reset_first != 0) {
                 memset(comp_base + 0x1c, 0, 0x24);
-                *(uint16_t *)(comp_base + 2) = (*(uint16_t *)(comp_base + 2) & 0xfffb) | 8;
+                *(uint16_t *)&((struct swarm_component *)comp_base)->flags = (*(uint16_t *)&((struct swarm_component *)comp_base)->flags & 0xfffb) | 8;
             }
             if ((comp_base[2] & 8) != 0) {
                 callback(actor_index, sw->unit_index[i], *caller_record, comp_base + 0x1c, 0, callback_extra);

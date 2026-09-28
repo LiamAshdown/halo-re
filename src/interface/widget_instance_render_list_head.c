@@ -203,7 +203,7 @@ void widget_instance_render_list_head(widget_instance *widget, UIWidgetDefinitio
             int16_t y = (int16_t)(offset_xy >> 16);
             Rectangle2D rect = tag->bounds; // esp+0x18, offset by offset_xy
             Rectangle2D clip = (dest != (Rectangle2D *)0) ? *dest : tag->bounds; // esp+0x24
-            ColorARGB color = *(ColorARGB *)(t + 0x10c); // esp+0x3c
+            ColorARGB color = ((struct UIWidgetDefinition *)t)->text_color; // esp+0x3c
             ColorARGB flash;
 
             rect.top = (int16_t)(rect.top + y);

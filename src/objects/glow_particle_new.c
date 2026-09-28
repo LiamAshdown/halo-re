@@ -57,10 +57,10 @@ glow_particle *glow_particle_new(glow *entry /*EDI*/, int16_t index, int16_t cou
             *(float *)(pb + 0x18) = (*(float *)(tag + 0xd0) - *(float *)(tag + 0xc0)) * t + *(float *)(tag + 0xc0);
         }
         if (*(int16_t *)(tag + 0x24) == 0) {
-            *(float *)(pb + 0x28) = glow_next_random_unit() * entry->total_length;
+            ((struct glow_particle *)pb)->t = glow_next_random_unit() * entry->total_length;
             *(float *)(pb + 8) = glow_next_random_unit() * 6.2831855f; // 2*pi
         } else if (*(int16_t *)(tag + 0x24) == 1) {
-            *(float *)(pb + 0x28) = ((float)index / (float)count) * entry->total_length;
+            ((struct glow_particle *)pb)->t = ((float)index / (float)count) * entry->total_length;
             *(float *)(pb + 8) = glow_next_random_unit() * 6.2831855f;
         }
     }

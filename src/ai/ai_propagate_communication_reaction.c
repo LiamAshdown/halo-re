@@ -37,6 +37,7 @@
 #include "ai.h"
 #include <stdint.h>
 #include <string.h>
+#include "units.h"
 
 extern data_array *object_data;    // 0x008603b0
 extern data_array *encounter_data; // 0x008802c8
@@ -77,11 +78,11 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
     actor_iterator_state iterator;
     actor *a;
 
-    if (*(int16_t *)(o + 0x14) == 1) {
+    if (((struct actor_squad_order_header *)o)->type == 1) {
         ai_mark_recognized_objects_for_reaction((int16_t)*(uint16_t *)(o + 0x18), (int16_t)*(uint16_t *)(o + 0x1a),
                                                 o[0x1c]);
     }
-    if (*(int16_t *)(o + 0x14) == 0 && *(int16_t *)(o + 0xc) <= 0) {
+    if (((struct actor_squad_order_header *)o)->type == 0 && *(int16_t *)(o + 0xc) <= 0) {
         return;
     }
     obj = OBJECT_DATA(object_index);
@@ -110,11 +111,11 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
 
     for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
         uint8_t *ap = (uint8_t *)a;
-        int16_t team = *(int16_t *)(ap + 0x3e);
+        int16_t team = ((struct actor *)ap)->team;
         datum_index actor_index;
         datum_index prop_index;
 
-        if (*(datum_index *)(ap + 0x18) == object_index) {
+        if (((struct actor *)ap)->unit_index == object_index) {
             continue;
         }
         if (current_game_engine != 0) {
@@ -133,9 +134,9 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
             }
         }
         {
-            float dx = position.x - *(float *)(ap + 0x120);
-            float dy = position.y - *(float *)(ap + 0x124);
-            float dz = position.z - *(float *)(ap + 0x128);
+            float dx = position.x - ((struct actor *)ap)->aim_origin.x;
+            float dy = position.y - ((struct actor *)ap)->aim_origin.y;
+            float dz = position.z - ((struct actor *)ap)->aim_origin.z;
 
             if (!(dz * dz + dy * dy + dx * dx <= 900.0f)) {
                 continue;
