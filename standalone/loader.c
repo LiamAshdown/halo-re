@@ -25,7 +25,9 @@
 #endif
 const char standalone_halo_folder[] = HALO_FOLDER;
 
-#define RESERVE_BASE 0x400000
+/* the data image starts at .rdata 0x63a000 (the original code range below it is never used: nothing original runs),
+   so the reservation starts at the 64 KB boundary under it; under a debugger 0x400000.. is already mapped */
+#define RESERVE_BASE 0x630000
 #define RESERVE_END  0x891000
 
 extern int __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCmdLine, int nCmdShow);
