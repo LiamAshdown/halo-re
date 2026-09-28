@@ -2402,3 +2402,22 @@ Relinked: unresolved 1, traps 127.
   0x576a70 / 0x5777d0, network_channel_gap_* (0x441020..0x441f30, 0x4ba660), the five '?' names.
 - NEXT: networking -- start with the GameSpy SDK leaf functions (query/report and server browser getters), then the
   comparators, autopatch callbacks and channel gaps.
+### iteration 7 (2026-09-28) -- commits 226c8ce..aa49239, relinked (0 unresolved, traps 93 -> 61)
+- New module src/gamespy (header gamespy.h, generator scratchpad/gs_lib.py): the GameSpy SDK linked into halo.exe
+  (0x614540..0x623142). Its call closure from the traps is ~390 functions / 60 KB (scratchpad/closure.py stops at the
+  CRT, 0x623142); written bottom-up so no new traps appear. Done so far (95 functions): darray, hashtable, nonport
+  socket helpers, GT2 accessors + gt2AddressToString / gt2StringToAddress, serverbrowsing server accessors, key
+  tables, ref strings (__declspec(thread) table, as the SDK's TLS slot), key parsers, SBServerList basics, qr2
+  buffers. The SDK's Winsock (WS2_32/WSOCK32 delay imports) and CRT calls go to ws2_32.lib / libcmt by name.
+- LINK: gen_standalone_link binds an unresolved name whose address is a rewritten cdecl C function to it
+  ("rewritten function by address"), so callers still declaring FUN_006147a0 reach gt2GetConnectionState. Every
+  newly bound caller's arity was checked against the binary call sites.
+- FIXED callers: network_listen_start passes the queue to gt2SetSocketData (0x442179 pushes ESI); the server browser
+  player list calls SBServerGetPlayerStringValue as (server, index, key, default) (0x4b7450); network_session_host_start
+  registers the natneg callback 0x578160 (it passed NULL) -- written with its completion callback 0x578120.
+- Also written: the server browser comparators 0x4b6cd0 / 0x4b6e70 / 0x4b6fb0.
+- NOTE: the linker folded identical GameSpy functions (ICF): 0x6175f0 is ArrayLength and also the SBServer public-ip /
+  GT2Socket SOCKET getter; 0x6147d0 is gt2GetRemotePort and the raw SBServer port getter.
+- NEXT: natneg (NNBeginNegotiationWithSocket 0x614f30 and its engine), qr2 core (0x616340 qr2_init..), SB query
+  engine / serverbrowsing (0x61e5b0..0x6202b0), GT2 core (0x619b90 think, 0x61c3e0..), gcdkey (0x61aa50), ghttp
+  (0x620520..0x623110), then game-side network_channel_gap_*, autopatch callbacks, the '?' names.
