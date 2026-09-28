@@ -193,14 +193,33 @@ def code_pointer_asm():
     stubs = ["EXTERN _standalone_missing_function:PROC", ".code"]
     strs = [".const"]
     for sym, name in traps:
-        stubs += ["%s:" % sym, "    push offset %s_name" % sym, "    call _standalone_missing_function"]
+        stubs += ["PUBLIC %s" % sym, "%s:" % sym, "    push offset %s_name" % sym, "    call _standalone_missing_function"]
         strs.append('%s_name db "%s (stored code pointer)", 0' % (sym, name))
     return ext + stubs + strs, rows, entry_rows
 
 
+# extra linker options (the image source's /ALTERNATENAME bindings), written into the response file
+LINK_OPTIONS = []
+
+
+def image_source():
+    """assembles the data image (standalone/image/*.asm, written by tools/gen_image_source.py) and returns its objects
+    plus the /ALTERNATENAME options that bind each halo_code_<address> it stores to the C rewrite of that function"""
+    image = os.path.join(SA, "image")
+    objs = [assemble(os.path.join(image, p["label"] + ".asm"), os.path.join(OUT, "image_%s.obj" % p["label"]))
+            for p in json.load(open(os.path.join(image, "pieces.json")))]
+    std = stdcall_definitions()
+    fast = fastcall_definitions()
+    bound = {}
+    for p in json.load(open(os.path.join(OUT, "code_pointers.json"))):
+        # a library pointer without C (the retail D3DX / CRT tables) gets the same named trap the table below gives it
+        bound[p["target"]] = c_symbol(p["c_symbol"], std, fast) if "c_symbol" in p else "cp_trap_%06x" % p["target"]
+    return objs, ["/ALTERNATENAME:halo_code_%06x=%s" % (a, s) for a, s in sorted(bound.items())]
+
+
 def link(objs, force):
     rsp = os.path.join(OUT, "objs.rsp")
-    open(rsp, "w").write("\n".join('"%s"' % o for o in objs))
+    open(rsp, "w").write("\n".join(['"%s"' % o for o in objs] + LINK_OPTIONS))
     cmd = [gl.tool("link"), "/nologo", "/MACHINE:X86", "/SUBSYSTEM:WINDOWS", "/FIXED", "/BASE:0x%x" % BASE,
            "/SAFESEH:NO", "/OPT:NOREF", "/OPT:NOICF", "/LARGEADDRESSAWARE:NO", "/NODEFAULTLIB:msvcrt.lib",
            "/LIBPATH:" + DXSDK_LIB, "/OUT:" + EXE, "/MAP:" + os.path.join(OUT, "halo_rebuilt.map"), "@" + rsp] + \
@@ -245,6 +264,9 @@ def main():
         "END", ""]
     open(os.path.join(OUT, "code_pointers.asm"), "w").write("\n".join(pointer_asm))
     extra.append(assemble(os.path.join(OUT, "code_pointers.asm"), os.path.join(OUT, "code_pointers.obj")))
+    image_objs, alternates = image_source()
+    extra += image_objs
+    LINK_OPTIONS[:] = alternates
 
     # only objects whose source still exists: a renamed or deleted .c leaves its old object behind, which would link
     # stale code and its unbound references (shell_console_window_state_initialize.obj: nine '?' traps) (2026-09-28)
