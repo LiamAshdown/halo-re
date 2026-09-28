@@ -18,7 +18,10 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t isnan(double x); // Ghidra's __isnan() pseudo-function
+static int32_t isnan(double x) // Ghidra's __isnan() pseudo-function: the x87 unordered test (FIXED 2026-09-28: was an
+{                               //   extern that bound to nothing)
+    return x != x;
+}
 
 
 extern uint32_t vector3d_quantize(int32_t *out_indices, real *range, uint32_t max_level,
