@@ -114,8 +114,8 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
     unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
     controlled = ((unit_object *)unit)->unit.controlling_player != k_datum_index_none;
     enemies = teams_are_enemies(((unit_object *)unit)->base.owner_team, ((actor *)self)->team);
-    if ((unit[0x106] & 4) != 0 && *(int16_t *)(unit + 0x420) == 0) {
-        int32_t fired = *(int32_t *)(unit + 0x41c);
+    if ((unit[0x106] & 4) != 0 && ((struct unit_object *)unit)->unit.unknown_420 == 0) {
+        int32_t fired = ((struct unit_object *)unit)->unit.unknown_41c;
 
         firing = 1;
         since_fired = fired == -1 ? 0x7fff : (int16_t)((int16_t)game_time->game_time - (int16_t)fired);

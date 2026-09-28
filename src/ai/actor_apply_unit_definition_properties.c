@@ -134,8 +134,8 @@ void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum
             ((unit_object *)unit)->unit.flags |= 0x20;
         }
         ((unit_object *)unit)->unit.flags |= 0x10;
-        *(float *)(unit + 0x37c) = 1.0f;
-        *(float *)(unit + 0x380) = (unit_tag[0] & 0x20) ? 1.0f : 0.0f;
+        ((struct unit_object *)unit)->unit.unknown_37c = 1.0f;
+        ((struct unit_object *)unit)->unit.unknown_380 = (unit_tag[0] & 0x20) ? 1.0f : 0.0f;
     }
 }
 

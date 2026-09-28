@@ -80,7 +80,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
                 reference = *(int32_t *)&((struct actor *)self)->unknown_3a0;
             }
             if (reference != -1) {
-                int32_t fired = *(int32_t *)(unit + 0x41c);
+                int32_t fired = ((struct unit_object *)unit)->unit.unknown_41c;
 
                 if (fired == -1 || fired < reference) {
                     counts = 0;

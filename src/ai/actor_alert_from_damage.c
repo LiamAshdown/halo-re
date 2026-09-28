@@ -13,6 +13,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -47,7 +48,7 @@ uint8_t actor_alert_from_damage(datum_index actor_index)
     }
     if (D(0x18) != 0xffffffff) {
         uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & 0xffff].data;
-        datum_index attacker = *(datum_index *)(unit + 0x410);
+        datum_index attacker = *(datum_index *)&((struct unit_object *)unit)->unit.unknown_410;
 
         if (attacker != k_datum_index_none) {
             uint8_t *attacker_unit = (uint8_t *)object_try_and_get(attacker, 3);
