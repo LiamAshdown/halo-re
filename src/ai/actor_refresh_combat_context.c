@@ -72,16 +72,16 @@ static uint8_t *object_get(datum_index object_index)
 void actor_refresh_combat_context(datum_index actor_index)
 {
     uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)tag_instances[*(datum_index *)(self + 0x58) & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)tag_instances[((struct actor *)self)->actor_definition_tag & 0xffff].data;
     uint8_t *unit;
     uint8_t *parent = 0;
     datum_index parent_index;
     datum_index child;
 
     if (A_U8(0x06)) {
-        uint8_t *swarm = (uint8_t *)swarm_data->data + (*(datum_index *)(self + 0x28) & 0xffff) * 0x98;
+        uint8_t *swarm = (uint8_t *)swarm_data->data + (((struct actor *)self)->swarm_index & 0xffff) * 0x98;
         real_point3d *center = (real_point3d *)(swarm + 0xc);
-        int16_t count = *(int16_t *)(swarm + 2);
+        int16_t count = ((struct swarm *)swarm)->component_count;
         int16_t i;
 
         *center = *global_zero_vector3d_pointer;
@@ -169,7 +169,7 @@ void actor_refresh_combat_context(datum_index actor_index)
                     uint8_t *encounter_record = (uint8_t *)encounter_data->data + (encounter & 0xffff) * 0x6c;
 
                     if (*(int16_t *)(encounter_record + 0x62) > 0) {
-                        int16_t first = *(int16_t *)(encounter_record + 4);
+                        int16_t first = ((struct encounter *)encounter_record)->first_squad;
                         uint8_t *states = (uint8_t *)encounter_squad_states;
 
                         if (states[(int16_t)(first + A_I16(0x3a)) * 0x20 + 0x10] != 0 &&
@@ -249,9 +249,9 @@ void actor_refresh_combat_context(datum_index actor_index)
         (real_vector3d *)(self + 0x174));
     if (A_U8(0x99) == 0) {
         if (vector2d_normalize_with_length((real_vector2d *)(self + 0x174)) > 0.0f) {
-            *(float *)(self + 0x17c) = 0.0f;
+            ((struct actor *)self)->facing.k = 0.0f;
         } else {
-            *(real_vector3d *)(self + 0x174) = *global_forward3d_pointer;
+            *(real_vector3d *)&((struct actor *)self)->facing.i = *global_forward3d_pointer;
         }
     }
     if (A_U8(0x161)) {
@@ -261,12 +261,12 @@ void actor_refresh_combat_context(datum_index actor_index)
         if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
             unit_get_forward_vector_or_marker_normal(A_I32(0x18), (real_vector3d *)(self + 0x180));
         } else {
-            *(real_vector3d *)(self + 0x180) = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;
+            *(real_vector3d *)&((struct actor *)self)->facing_unknown_180.i = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;
         }
     } else {
-        *(real_vector3d *)(self + 0x180) = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;
+        *(real_vector3d *)&((struct actor *)self)->facing_unknown_180.i = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;
     }
-    *(real_vector3d *)(self + 0x18c) = *(real_vector3d *)&((unit_object *)unit)->unit.looking_vector.i;
+    *(real_vector3d *)&((struct actor *)self)->facing_unknown_18c.i = *(real_vector3d *)&((unit_object *)unit)->unit.looking_vector.i;
     vector3d_cross_product((real_vector3d *)(self + 0x198), (real_vector3d *)(self + 0x18c), global_up3d_pointer);
     vector3d_normalize_with_length((real_vector3d *)(self + 0x198));
     vector3d_cross_product((real_vector3d *)(self + 0x1a4), (real_vector3d *)(self + 0x198),

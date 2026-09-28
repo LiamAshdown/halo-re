@@ -101,8 +101,8 @@ def main():
                     return m.group(0)
                 path, ftype = r
                 n_file += 1
-                # a variable named like the type shadows the typedef: cast through the struct tag
-                view = "((%s%s *)%s)->%s" % ("struct " if v == struct else "", struct, v, path)
+                # always through the struct tag: a local named like the type (actor, encounter) shadows the typedef
+                view = "((struct %s *)%s)->%s" % (struct, v, path)
                 if ctype == ftype or (ctype, ftype) in tg.SAME:
                     return view
                 base, stars = ctype.rstrip("*").strip(), len(ctype) - len(ctype.rstrip("*"))
