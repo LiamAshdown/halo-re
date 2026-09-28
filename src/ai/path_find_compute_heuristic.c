@@ -66,19 +66,19 @@ uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_
 
     secondary = 0.0f;
     if (((path_find_request *)context)->have_avoid_sphere != 0) {
-        float local_c, local_8, local_4; // the closest point, [esp+0x14]
+        float closest_x, closest_y, closest_z; // the closest point, [esp+0x14]
         real_point3d closest;
 
         // 0x43a377: EAX = the avoid sphere centre (context +0x28), ECX = the node position, EDX = the point
         path_find_closest_point_on_segment((real_point3d *)((uint8_t *)context + 0x28), &node->position, point,
             &closest);
-        local_c = closest.x;
-        local_8 = closest.y;
-        local_4 = closest.z;
+        closest_x = closest.x;
+        closest_y = closest.y;
+        closest_z = closest.z;
         {
-            float fx = local_c - ((path_find_request *)context)->avoid_position.x;
-            float fy = local_8 - ((path_find_request *)context)->avoid_position.y;
-            float fz = local_4 - ((path_find_request *)context)->avoid_position.z;
+            float fx = closest_x - ((path_find_request *)context)->avoid_position.x;
+            float fy = closest_y - ((path_find_request *)context)->avoid_position.y;
+            float fz = closest_z - ((path_find_request *)context)->avoid_position.z;
             secondary = (float)sqrt(fx * fx + fy * fy + fz * fz);
         }
         if (node->unknown_1c < secondary) {
