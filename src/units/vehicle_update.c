@@ -294,7 +294,7 @@ uint32_t vehicle_update(uint32_t object_index)
                     dd.random_blend = 1.0f;
                     dd.multiplier = 1.0f;
                     object_apply_damage(&dd, child, -1, -1, -1, 0);
-                    child = *(datum_index *)(child_obj + 0x114);
+                    child = ((struct object *)child_obj)->next_object;
                 }
             }
         }

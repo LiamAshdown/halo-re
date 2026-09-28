@@ -59,7 +59,7 @@ void ai_process_vehicle_entry_queue(void)
                 uint8_t *parent = OBJECT_DATA(((vehicle_object *)vehicle)->base.parent_object);
 
                 matrix4x3_transform_point(&request.position, (real_point3d *)(vehicle + 0x5c),
-                    (real_matrix4x3 *)(parent + *(int16_t *)(parent + 0x1f2) + (int8_t)vehicle[0x120] * 0x34));
+                    (real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset + (int8_t)vehicle[0x120] * 0x34));
             }
             actor_index = actor_place_new_unit(gunner_tag, k_datum_index_none, -1, 0, 0, &request);
             if (actor_index != k_datum_index_none) {

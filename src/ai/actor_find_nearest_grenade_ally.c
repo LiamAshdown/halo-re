@@ -19,6 +19,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;   // 0x00880360
 extern data_array *prop_data;    // 0x008802c0
@@ -50,7 +52,7 @@ int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_s
     float best_distance = 3.4028235e+38f;           // [esp+0x14]
     datum_index prop_index;
 
-    for (prop_index = *(datum_index *)(self + 0x50); prop_index != k_datum_index_none;) {
+    for (prop_index = ((struct actor *)self)->first_prop; prop_index != k_datum_index_none;) {
         uint8_t *p = PROP(prop_index);
         datum_index current = prop_index;
 
@@ -70,19 +72,19 @@ int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_s
             best_distance = *(float *)(p + 0x11c);
         }
     }
-    if (seen < (int16_t)limit && *(datum_index *)(self + 0x34) != k_datum_index_none) {
+    if (seen < (int16_t)limit && ((struct actor *)self)->encounter_index != k_datum_index_none) {
         datum_index cursor[3];                      // [esp+0x24]
         datum_index candidate;
 
-        ai_reference_actor_iterator_init_cursor(*(int32_t *)(self + 0x34), cursor);
+        ai_reference_actor_iterator_init_cursor(*(int32_t *)&((struct actor *)self)->encounter_index, cursor);
         candidate = cursor[2];
         while (ai_globals_ptr->actors_valid && candidate != k_datum_index_none) {
             uint8_t *other = ACTOR(candidate);
-            datum_index unit = *(datum_index *)(other + 0x18);
+            datum_index unit = ((struct actor *)other)->unit_index;
             datum_index current = candidate;
             datum_index prop;
 
-            candidate = *(datum_index *)(other + 0x2c);
+            candidate = ((struct actor *)other)->next_in_encounter;
             if (unit == k_datum_index_none || !actor_validate_grenade_ally_candidate(current, widen_search)) {
                 continue;
             }
@@ -94,9 +96,9 @@ int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_s
                 }
             }
             {
-                float dx = *(float *)(other + 0x12c) - *(float *)(self + 0x12c);
-                float dy = *(float *)(other + 0x130) - *(float *)(self + 0x130);
-                float dz = *(float *)(other + 0x134) - *(float *)(self + 0x134);
+                float dx = ((struct actor *)other)->body_position.x - ((struct actor *)self)->body_position.x;
+                float dy = ((struct actor *)other)->body_position.y - ((struct actor *)self)->body_position.y;
+                float dz = ((struct actor *)other)->body_position.z - ((struct actor *)self)->body_position.z;
                 float distance = (float)sqrt(dz * dz + dx * dx + dy * dy);
 
                 seen++;

@@ -111,9 +111,9 @@ void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *
 
         damage_data_initialize(&dd, tag);
         if (creator != 0) {
-            *(uint32_t *)(raw + 0x08) = *(uint32_t *)(creator + 0xc0);
+            *(uint32_t *)(raw + 0x08) = ((struct object *)creator)->owner_linkage;
             *(datum_index *)(raw + 0x0c) = SELF_FIELD(datum_index, 0x40);
-            *(int16_t *)(raw + 0x10) = *(int16_t *)(creator + 0xb8);
+            *(int16_t *)(raw + 0x10) = ((struct object *)creator)->owner_team;
         }
         *(real *)(raw + 0x40) = scale;
         *(uint32_t *)(raw + 0x14) = SELF_FIELD(uint32_t, 0x10);

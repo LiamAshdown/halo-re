@@ -123,8 +123,8 @@ uint8_t player_execute_pending_interaction(uint32_t player_index)
 
         ((unit_object *)unit)->unit.last_parent_object_index = target_index;
         ((unit_object *)unit)->unit.last_seat_change_tick = game_time->game_time;
-        if (fabs(*(float *)(target + 0x7c)) > 0.7071067690849304) { // 0x673258 (double)
-            direction = (int8_t)((*(float *)(target + 0x7c) < 0.0f) ? 4 : 3);
+        if (fabs(((struct object *)target)->forward.k) > 0.7071067690849304) { // 0x673258 (double)
+            direction = (int8_t)((((struct object *)target)->forward.k < 0.0f) ? 4 : 3);
         } else {
             real_matrix4x3 target_matrix;
             real_matrix4x3 unit_matrix;
@@ -138,8 +138,8 @@ uint8_t player_execute_pending_interaction(uint32_t player_index)
             side.j = target_position->y - unit_position->y;
             side.k = target_position->z - unit_position->z;
             vector3d_cross_product(&side, &side, global_up3d_pointer);
-            direction = (int8_t)((side.k * *(float *)(target + 0x7c) + side.j * *(float *)(target + 0x78) +
-                                  side.i * *(float *)(target + 0x74) > 0.0f) ? 2 : 1);
+            direction = (int8_t)((side.k * ((struct object *)target)->forward.k + side.j * ((struct object *)target)->forward.j +
+                                  side.i * ((struct object *)target)->forward.i > 0.0f) ? 2 : 1);
         }
         target[0x4cc] |= 0x10;
         target[0x4d1] = (uint8_t)direction;

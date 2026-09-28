@@ -62,9 +62,9 @@ void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index
             int32_t i;
 
             blocked = 1;
-            to_center.i = *(float *)(target + 0xa0) - origin->x;
-            to_center.j = *(float *)(target + 0xa4) - origin->y;
-            to_center.k = *(float *)(target + 0xa8) - origin->z;
+            to_center.i = ((struct object *)target)->bounding_center.x - origin->x;
+            to_center.j = ((struct object *)target)->bounding_center.y - origin->y;
+            to_center.k = ((struct object *)target)->bounding_center.z - origin->z;
             vector3d_build_perpendicular(&side_a, &to_center);
             vector3d_normalize_with_length(&side_a);
             vector3d_cross_product(&side_b, &side_a, &to_center);
@@ -85,9 +85,9 @@ void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index
                 offset.k = side->k * radius;
                 collision_test_movement_segment(0xc221, origin, &offset, object_get_root_object_index(target_index), &hit);
                 sample = hit.point;
-                back.i = *(float *)(target + 0xa0) - sample.x;
-                back.j = *(float *)(target + 0xa4) - sample.y;
-                back.k = *(float *)(target + 0xa8) - sample.z;
+                back.i = ((struct object *)target)->bounding_center.x - sample.x;
+                back.j = ((struct object *)target)->bounding_center.y - sample.y;
+                back.k = ((struct object *)target)->bounding_center.z - sample.z;
                 if (!collision_test_movement_segment(0xc221, &sample, &back, object_get_root_object_index(target_index), &hit)) {
                     blocked = 0;
                 }
@@ -103,9 +103,9 @@ void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index
                 root = walk;
                 walk = *(datum_index *)(OBJECT_DATA(walk) + 0x11c);
             }
-            to_center.i = *(float *)(target + 0xa0) - origin->x;
-            to_center.j = *(float *)(target + 0xa4) - origin->y;
-            to_center.k = *(float *)(target + 0xa8) - origin->z;
+            to_center.i = ((struct object *)target)->bounding_center.x - origin->x;
+            to_center.j = ((struct object *)target)->bounding_center.y - origin->y;
+            to_center.k = ((struct object *)target)->bounding_center.z - origin->z;
             blocked = collision_test_movement_segment(0xc221, origin, &to_center, root, &hit);
         }
         if (blocked) {
@@ -117,7 +117,7 @@ void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index
         if ((flags & 1) && target_index == dd->responsible_object) {
             apply = 0;
         }
-        if ((flags & 8) && !teams_are_enemies(dd->team_index, *(int16_t *)(target + 0xb8))) {
+        if ((flags & 8) && !teams_are_enemies(dd->team_index, ((struct object *)target)->owner_team)) {
             apply = 0;
         } else if (apply && (flags & 0x1000)) {
             apply = 0;
@@ -144,9 +144,9 @@ void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index
             real blend;
             real range;
 
-            dd->direction.i = *(float *)(target + 0xa0) - origin->x;
-            dd->direction.j = *(float *)(target + 0xa4) - origin->y;
-            dd->direction.k = *(float *)(target + 0xa8) - origin->z;
+            dd->direction.i = ((struct object *)target)->bounding_center.x - origin->x;
+            dd->direction.j = ((struct object *)target)->bounding_center.y - origin->y;
+            dd->direction.k = ((struct object *)target)->bounding_center.z - origin->z;
             distance = vector3d_normalize_with_length(&dd->direction);
             range = *(float *)(effect + 0x4) - *(float *)(effect + 0x0);
             if (range > 0.0f) {
@@ -170,19 +170,19 @@ void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index
                 datum_index model = *(datum_index *)(target_tag + 0x7c);
 
                 if (model != k_datum_index_none && (*TAG_DATA(model) & 8) &&
-                    *(datum_index *)(target + 0x118) != k_datum_index_none) {
-                    object_damage_apply_line_of_sight(dd, *(datum_index *)(target + 0x118), 1);
+                    ((struct object *)target)->first_child_object != k_datum_index_none) {
+                    object_damage_apply_line_of_sight(dd, ((struct object *)target)->first_child_object, 1);
                 }
             }
         }
         if (spared_player && (!apply || !applied)) {
             dd->flags |= 0x40;
         }
-        if (!continue_flag || *(datum_index *)(target + 0x114) == k_datum_index_none) {
+        if (!continue_flag || ((struct object *)target)->next_object == k_datum_index_none) {
             return;
         }
         continue_flag = 1;
-        target_index = *(datum_index *)(target + 0x114);
+        target_index = ((struct object *)target)->next_object;
     }
 }
 

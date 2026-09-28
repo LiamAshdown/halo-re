@@ -61,13 +61,13 @@ void unit_update_autoaim_interaction(uint32_t unit_index)
             dd.random_blend = 1.0f;
             dd.multiplier = 1.0f;
             if (source != 0) {
-                datum_index creator = *(datum_index *)(source + 0xc4);
-                dd.responsible_player = *(datum_index *)(source + 0xc0);
+                datum_index creator = ((struct object *)source)->creator_object;
+                dd.responsible_player = *(datum_index *)&((struct object *)source)->owner_linkage;
                 if (creator == k_datum_index_none) {
                     creator = *(datum_index *)(obj + 0x410);
                 }
                 dd.responsible_object = creator;
-                dd.team_index = *(int16_t *)(source + 0xb8);
+                dd.team_index = ((struct object *)source)->owner_team;
             }
             object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
         }

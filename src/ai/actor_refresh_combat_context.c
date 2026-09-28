@@ -90,7 +90,7 @@ void actor_refresh_combat_context(datum_index actor_index)
                 (*(datum_index *)(swarm + 0x58 + i * 4) & 0xffff) * 0x40;
             datum_index creature_unit = *(datum_index *)(swarm + 0x18 + i * 4);
             uint8_t *creature_object = object_get(creature_unit);
-            datum_index vehicle = *(int16_t *)(creature_object + 0xb4) == 0 ?
+            datum_index vehicle = ((struct object *)creature_object)->type == 0 ?
                 *(datum_index *)(creature_object + 0x4d8) : k_datum_index_none;
 
             object_get_position((real_point3d *)(creature + 4), creature_unit);
@@ -208,11 +208,11 @@ void actor_refresh_combat_context(datum_index actor_index)
     for (child = ((unit_object *)unit)->base.first_child_object; child != k_datum_index_none;
          child = *(datum_index *)(object_get(child) + 0x114)) {
         uint8_t *child_object = object_get(child);
-        int16_t type = *(int16_t *)(child_object + 0xb4);
+        int16_t type = ((struct object *)child_object)->type;
 
         if (type == 0) {
             int16_t actor_team = A_I16(0x3e);
-            int16_t child_team = *(int16_t *)(child_object + 0xb8);
+            int16_t child_team = ((struct object *)child_object)->owner_team;
             uint8_t enemy;
 
             if (current_game_engine != 0) {

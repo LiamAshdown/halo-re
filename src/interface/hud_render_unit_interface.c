@@ -195,7 +195,7 @@ void hud_render_unit_interface(player *p)
                     uint8_t *child_data = (uint8_t *)((object_header *)object_data->data)[child & 0xffff].data;
                     uint8_t *child_object = (uint8_t *)object_try_and_get(child, 3);
 
-                    if (child_object != 0 && *(datum_index *)(child_object + 0x11c) == parent &&
+                    if (child_object != 0 && ((struct object *)child_object)->parent_object == parent &&
                         *(int16_t *)(child_object + 0x2f0) != -1) {
                         TagID seat_hud = unit_get_seat_hud_interface_tag_id(parent_tag, *(int16_t *)(child_object + 0x2f0),
                                                                             split);

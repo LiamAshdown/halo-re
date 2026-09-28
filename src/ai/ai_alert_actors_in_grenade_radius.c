@@ -70,7 +70,7 @@ void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t st
     if (owner_actor == k_datum_index_none) {
         owner_actor = *(datum_index *)(source + 0x1f4);
     }
-    if (*(datum_index *)(source + 0x11c) != k_datum_index_none) {
+    if (((struct object *)source)->parent_object != k_datum_index_none) {
         location = OBJECT_DATA(object_get_root_object_index(source_unit_index)) + 0x98;
     }
     cluster_count = *(int32_t *)(global_structure_bsp + 0x134);

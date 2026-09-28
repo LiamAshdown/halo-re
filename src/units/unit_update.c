@@ -161,7 +161,7 @@ uint8_t unit_update(uint32_t unit_index)
             if (driver != k_datum_index_none && (obj[0x106] & 4) == 0) {
                 uint8_t *d = OBJECT_DATA(driver);
 
-                ((unit_object *)obj)->base.owner_team = *(int16_t *)(d + 0xb8);
+                ((unit_object *)obj)->base.owner_team = ((struct object *)d)->owner_team;
                 riding = 1;
                 if (*(datum_index *)(d + 0x218) != k_datum_index_none || (d[0x2a3] != 0x1b && d[0x2a3] != 0x1a)) {
                     ((unit_object *)obj)->unit.control_flags |= *(uint32_t *)(d + 0x208) & 0x3f;
@@ -173,7 +173,7 @@ uint8_t unit_update(uint32_t unit_index)
                 uint8_t *g = OBJECT_DATA(gunner);
 
                 if (!riding) {
-                    ((unit_object *)obj)->base.owner_team = *(int16_t *)(g + 0xb8);
+                    ((unit_object *)obj)->base.owner_team = ((struct object *)g)->owner_team;
                 }
                 if (*(datum_index *)(g + 0x218) != k_datum_index_none || (g[0x2a3] != 0x1b && g[0x2a3] != 0x1a)) {
                     *(real_vector3d *)&((unit_object *)obj)->unit.desired_aiming_vector.i = *(real_vector3d *)(g + 0x230);

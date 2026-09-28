@@ -51,7 +51,7 @@ void particles_refresh_structure_locations(void)
                 datum_delete(particle_data, handle);
                 continue;
             }
-            point = (real_point3d *)(owner + *(int16_t *)(owner + 0x1f2) + entry->marker_index * 0x34 + 0x28);
+            point = (real_point3d *)(owner + ((struct object *)owner)->nodes.offset + entry->marker_index * 0x34 + 0x28);
         }
         leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);
         entry->location.leaf_index = (int32_t)leaf;

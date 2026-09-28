@@ -52,7 +52,7 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
     uint32_t unit_flags = *(uint32_t *)(TAG_DATA(*(datum_index *)attacker) + 0x17c);
     uint8_t *target = OBJECT_DATA(target_index);
 
-    if ((unit_flags & 0x2000) && *(int16_t *)(target + 0xb4) == 0 && *(float *)(target + 0xe4) > 0.0f &&
+    if ((unit_flags & 0x2000) && ((struct object *)target)->type == 0 && ((struct object *)target)->shield_vitality > 0.0f &&
         (*(uint32_t *)(TAG_DATA(*(datum_index *)target) + 0x17c) & 0x400000)) {
         // 0x56ffc6: an infection form touching a frying shield
         unit_cause_melee_damage(attacker_index, 1, target_index, (int16_t)node_pair, (int16_t)region_pair,
@@ -65,15 +65,15 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
         return;
     }
     {
-        datum_index parent = *(datum_index *)(target + 0x11c);
+        datum_index parent = ((struct object *)target)->parent_object;
 
         while (parent != k_datum_index_none) {
             uint8_t *p = OBJECT_DATA(parent);
 
-            if (parent == attacker_index || *(int16_t *)(p + 0xb4) != 1) {
+            if (parent == attacker_index || ((struct object *)p)->type != 1) {
                 return;
             }
-            parent = *(datum_index *)(p + 0x11c);
+            parent = ((struct object *)p)->parent_object;
         }
     }
     {
@@ -81,8 +81,8 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
         real_vector3d *up = (real_vector3d *)(attacker + 0x80);
         real_vector3d left;
 
-        *(real_vector3d *)(attacker + 0x68) = *global_origin3d_pointer;
-        *(real_vector3d *)(attacker + 0x8c) = *global_origin3d_pointer;
+        *(real_vector3d *)&((struct object *)attacker)->velocity.i = *global_origin3d_pointer;
+        *(real_vector3d *)&((struct object *)attacker)->angular_velocity.i = *global_origin3d_pointer;
         *forward = contact_plane->normal;
         forward->i = -forward->i;
         forward->j = -forward->j;
@@ -98,7 +98,7 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
     }
     object_set_position_and_relink(contact_point, attacker_index, contact_leaf);
     object_attach_to_object(target_index, attacker_index, (int16_t)node_pair);
-    *(uint32_t *)(attacker + 0x10) |= 0x20;
+    ((struct object *)attacker)->flags |= 0x20;
     *(uint32_t *)(attacker + 0x204) |= 0x8000;
     unit_try_ready_weapon(attacker_index, 1, 0);
 }

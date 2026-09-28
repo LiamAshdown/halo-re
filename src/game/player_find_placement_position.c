@@ -74,12 +74,12 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
         int16_t i;
 
         target_object = root;
-        facing = *(real_vector3d *)(root_object + 0x68);
+        facing = *(real_vector3d *)&((struct object *)root_object)->velocity.i;
         if (!(facing.j * facing.j + facing.i * facing.i > 0.0f)) {
-            if (*(float *)(root_object + 0x7c) >= 0.70710677f) {
-                facing = *(real_vector3d *)(root_object + 0x80);
+            if (((struct object *)root_object)->forward.k >= 0.70710677f) {
+                facing = *(real_vector3d *)&((struct object *)root_object)->up.i;
             } else {
-                facing = *(real_vector3d *)(root_object + 0x74);
+                facing = *(real_vector3d *)&((struct object *)root_object)->forward.i;
             }
         }
         collision_radius = *(float *)((uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data + 0x42c);
@@ -88,8 +88,8 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
         facing.j = -facing.j;
         vector3d_normalize_with_length(&facing);
         matrix4x3_from_forward_up(global_up3d_pointer, &facing, &ring);
-        ring.position = *(real_point3d *)(root_object + 0xa0);
-        ring.scale = collision_radius * 3.0f + *(float *)(root_object + 0xac);
+        ring.position = *(real_point3d *)&((struct object *)root_object)->bounding_center.x;
+        ring.scale = collision_radius * 3.0f + ((struct object *)root_object)->bounding_radius;
         for (i = 0; !placed && (uint16_t)i < 9; i++) {
             real_point3d spot;                      // [ebp-0x30]
             int16_t attempt;

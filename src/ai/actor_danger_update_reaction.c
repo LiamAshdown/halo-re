@@ -169,7 +169,7 @@ void actor_danger_update_reaction(datum_index actor_index)
         if (*(uint32_t *)&((struct object *)object)->parent_object != 0xffffffff) {
             uint8_t *root = (uint8_t *)((object_header *)object_data->data)[object_get_root_object_index(A_D(0x28c)) & 0xffff].data;
 
-            cluster = *(int16_t *)(root + 0x9c);
+            cluster = ((struct object *)root)->location_cluster_index;
         }
         status = (int16_t)actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28), cluster,
             position, (real_point3d *)block, 0, 0, A_D(0x28c), A_D(0x158) != 0xffffffff);

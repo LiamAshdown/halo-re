@@ -119,7 +119,7 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
     int16_t material_index = hit_material_index;
     uint8_t *target = object_get(target_index);
     uint8_t *effect_block = tag_get(dd->damage_effect_tag) + 0x1c4;
-    int32_t target_role = *(int32_t *)(target + 0x4);
+    int32_t target_role = ((struct object *)target)->network_role;
     uint8_t target_is_local = (target_role == 0 || target_role == 3);
     uint8_t difficulty_scaled = 0;
     uint8_t parents_take_damage = 1;
@@ -188,24 +188,24 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
     if (*(datum_index *)(target_tag + 0x7c) != k_datum_index_none) {
         parents_take_damage = (uint8_t)(~(*(uint32_t *)tag_get(*(datum_index *)(target_tag + 0x7c)) >> 4) & 1);
     }
-    if (*(datum_index *)(target + 0xf0) != k_datum_index_none) {
-        list[count++] = *(datum_index *)(target + 0xf0);
+    if (((struct object *)target)->damage_owner != k_datum_index_none) {
+        list[count++] = ((struct object *)target)->damage_owner;
     }
 
     // a vehicle hands rider_damage_fraction of the damage to the bipeds seated in it
-    if ((flags & 1) == 0 && *(int16_t *)(target + 0xb4) == 1) {
+    if ((flags & 1) == 0 && ((struct object *)target)->type == 1) {
         float rider_fraction = (1.0f - *(float *)(effect_block + 0x18)) * *(float *)(target_tag + 0x184);
         datum_index child;
 
         dd->multiplier = rider_fraction;
-        if (current_game_engine != 0 && *(datum_index *)(target + 0x118) != k_datum_index_none) {
+        if (current_game_engine != 0 && ((struct object *)target)->first_child_object != k_datum_index_none) {
             int32_t players = 0;
 
-            for (child = *(datum_index *)(target + 0x118); child != k_datum_index_none;
+            for (child = ((struct object *)target)->first_child_object; child != k_datum_index_none;
                  child = *(datum_index *)(object_get(child) + 0x114)) {
                 uint8_t *rider = object_get(child);
 
-                if (*(int16_t *)(rider + 0xb4) == 0 && *(datum_index *)(rider + 0x218) != k_datum_index_none) {
+                if (((struct object *)rider)->type == 0 && *(datum_index *)(rider + 0x218) != k_datum_index_none) {
                     players++;
                 }
             }
@@ -213,11 +213,11 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
                 dd->multiplier = rider_fraction / (float)players;
             }
         }
-        for (child = *(datum_index *)(target + 0x118); child != k_datum_index_none;
+        for (child = ((struct object *)target)->first_child_object; child != k_datum_index_none;
              child = *(datum_index *)(object_get(child) + 0x114)) {
             uint8_t *rider = object_get(child);
 
-            if (*(int16_t *)(rider + 0xb4) != 0) {
+            if (((struct object *)rider)->type != 0) {
                 continue;
             }
             if (*(datum_index *)(rider + 0x218) == k_datum_index_none) {

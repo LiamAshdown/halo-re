@@ -59,7 +59,7 @@ void unit_drop_object_from_hand(uint32_t unit_index, uint32_t object_index)
     real speed;
     int32_t role;
 
-    if (*(datum_index *)(dropped + 0x11c) == k_datum_index_none) {
+    if (((struct object *)dropped)->parent_object == k_datum_index_none) {
         uint8_t *object;
         uint8_t *object_tag;
 
@@ -79,8 +79,8 @@ void unit_drop_object_from_hand(uint32_t unit_index, uint32_t object_index)
     }
     *(uint32_t *)(OBJECT_DATA(object_index) + 0x1f4) &= ~3u;
     object_snap_to_parent_marker_and_detach(object_index);
-    *(real_vector3d *)(dropped + 0x68) = *global_origin3d_pointer;
-    *(real_vector3d *)(dropped + 0x8c) = *global_origin3d_pointer;
+    *(real_vector3d *)&((struct object *)dropped)->velocity.i = *global_origin3d_pointer;
+    *(real_vector3d *)&((struct object *)dropped)->angular_velocity.i = *global_origin3d_pointer;
 
     // 0x56ee29: toss along the aim
     vector3d_randomize_direction((real_point3d *)(unit + 0x23c), &toss, &random_seed_global, 0.0f, 0.39269909f);

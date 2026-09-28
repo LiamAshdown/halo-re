@@ -90,9 +90,9 @@ uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state)
         {
             uint8_t *reloaded = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
 
-            *(datum_index *)(reloaded + 0xcc) = graph;
-            *(int16_t *)(reloaded + 0xd0) = animation;
-            *(int16_t *)(reloaded + 0xd2) = 0;
+            ((struct object *)reloaded)->animation_graph = graph;
+            ((struct object *)reloaded)->animation_index = animation;
+            ((struct object *)reloaded)->animation_frame = 0;
         }
         current_state = (int8_t)unit[0x2a3];
         transform_count = 6;

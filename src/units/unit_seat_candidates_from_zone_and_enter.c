@@ -103,7 +103,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + *(int16_t *)(reloaded + 0x1f2)),
+        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((unit_object *)self)->base.forward.i = basis.forward;
@@ -226,12 +226,12 @@ int16_t unit_seat_candidates_from_zone_and_enter(datum_index vehicle_index, char
             if (seat == -1) {
                 continue;
             }
-            if (*(int16_t *)(candidate + 0xb4) != 1 &&
+            if (((struct object *)candidate)->type != 1 &&
                 !unit_set_or_test_seat_and_weapon_label(candidate_index,
                     (char *)(*(uint8_t **)(vehicle_tag + 0x2e8) + seat * 0x11c + 0x4), 0, 0)) {
                 continue;
             }
-            if (*(datum_index *)(candidate + 0x11c) != k_datum_index_none) {
+            if (((struct object *)candidate)->parent_object != k_datum_index_none) {
                 // 0x56a651: seated elsewhere; a server takes it out first
                 if (*(int16_t *)(candidate + 0x2f0) != -1 && network_game_mode != 1) {
                     uint8_t *self = OBJECT_DATA(candidate_index);
@@ -244,7 +244,7 @@ int16_t unit_seat_candidates_from_zone_and_enter(datum_index vehicle_index, char
                     }
                     biped_free_local_player_history(self);
                 }
-                if (*(datum_index *)(candidate + 0x11c) != k_datum_index_none) {
+                if (((struct object *)candidate)->parent_object != k_datum_index_none) {
                     continue;
                 }
             }

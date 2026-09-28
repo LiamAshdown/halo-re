@@ -58,7 +58,7 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
 {
     uint8_t *self = OBJECT_DATA(object_index);
     uint8_t *vehicle = OBJECT_DATA(vehicle_index);
-    uint8_t *nodes = self + *(int16_t *)(self + 0x1f2);
+    uint8_t *nodes = self + ((struct object *)self)->nodes.offset;
     uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
@@ -74,8 +74,8 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
     model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
-        *(datum_index *)(self + 0x11c) != k_datum_index_none) {
-        unit_try_set_animation_state(*(datum_index *)(self + 0x11c), 0x25);
+        ((struct object *)self)->parent_object != k_datum_index_none) {
+        unit_try_set_animation_state(((struct object *)self)->parent_object, 0x25);
     }
     *(datum_index *)(self + 0x32c) = vehicle_index;
     *(int32_t *)(self + 0x330) = game_time->game_time;
@@ -86,18 +86,18 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
         *(datum_index *)(self + 0x328) = k_datum_index_none;
     }
     object_snap_to_parent_marker_and_detach(object_index);
-    position.x = offset.x + *(float *)(self + 0x5c);
-    position.y = offset.y + *(float *)(self + 0x60);
-    position.z = offset.z + *(float *)(self + 0x64) - default_translation.z;
+    position.x = offset.x + ((struct object *)self)->position.x;
+    position.y = offset.y + ((struct object *)self)->position.y;
+    position.z = offset.z + ((struct object *)self)->position.z - default_translation.z;
     object_set_position_and_orientation(object_index, 0, 0, &position);
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + *(int16_t *)(reloaded + 0x1f2)),
+        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
-    *(real_vector3d *)(self + 0x74) = basis.forward;
-    *(real_vector3d *)(self + 0x80) = basis.up;
+    *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
+    *(real_vector3d *)&((struct object *)self)->up.i = basis.up;
     {
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
@@ -125,8 +125,8 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
 
         unit_update_animation_state_machine(object_index, request);
     }
-    *(real_point3d *)(self + *(int16_t *)(self + 0x1ea) + 0x10) = default_translation;
-    if (*(int16_t *)(self + 0xb4) == 0) {
+    *(real_point3d *)(self + ((struct object *)self)->node_function_values.offset + 0x10) = default_translation;
+    if (((struct object *)self)->type == 0) {
         unit_reset_orientation_and_find_position(object_index, vehicle_index);
     }
     object_recalculate_bounding_radius_recursive(object_index);
@@ -159,13 +159,13 @@ uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_obje
     }
     if (((biped_object *)biped)->base.parent_object != k_datum_index_none && network_game_mode != 1) {
         uint8_t *self = OBJECT_DATA(unit_index);
-        datum_index parent = *(datum_index *)(self + 0x11c);
+        datum_index parent = ((struct object *)self)->parent_object;
 
         if (parent != k_datum_index_none && *(int16_t *)(self + 0x2f0) != -1) {
             player_unit_exit_seat(unit_index, parent);
         }
         // 0x476005
-        if (*(int32_t *)(self + 0x4) == 0) {
+        if (((struct object *)self)->network_role == 0) {
             unit_dispatch_scripted_event_9(1, (int32_t)unit_index);
         }
         if (network_game_mode == 1) {

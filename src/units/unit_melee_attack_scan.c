@@ -108,11 +108,11 @@ void unit_melee_attack_scan(uint32_t unit_index)
                 uint8_t *cand = OBJECT_DATA(candidate);
                 int16_t type;
 
-                if (*(int16_t *)(cand + 0xb4) != 2 && *(datum_index *)(cand + 0x11c) != k_datum_index_none) {
-                    candidate = *(datum_index *)(cand + 0x11c);
+                if (((struct object *)cand)->type != 2 && ((struct object *)cand)->parent_object != k_datum_index_none) {
+                    candidate = ((struct object *)cand)->parent_object;
                     cand = OBJECT_DATA(candidate);
                 }
-                type = *(int16_t *)(cand + 0xb4);
+                type = ((struct object *)cand)->type;
                 if (best_object != 0xffffffff) {
                     if (type != 0) {
                         continue;
@@ -152,7 +152,7 @@ void unit_melee_attack_scan(uint32_t unit_index)
     if (best_object != 0xffffffff) {
         uint8_t *best = OBJECT_DATA(best_object);
 
-        if (*(int16_t *)(best + 0xb4) == 1 && *(int32_t *)(best + 0x4) != 1) {
+        if (((struct object *)best)->type == 1 && ((struct object *)best)->network_role != 1) {
             float scale = *(float *)(TAG_DATA(*(datum_index *)best) + 0x20) * 0.035f;
 
             side.i = scale * aim->i;

@@ -261,7 +261,7 @@ void trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint
                 while (D(root, 0x11c) != k_datum_index_none) {
                     root = OBJECT_DATA(D(root, 0x11c));
                 }
-                placement.velocity = *(real_vector3d *)(root + 0x68);
+                placement.velocity = *(real_vector3d *)&((struct object *)root)->velocity.i;
             } else {
                 placement.velocity.i = placement.forward.i * speed;
                 placement.velocity.j = placement.forward.j * speed;

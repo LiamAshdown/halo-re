@@ -54,10 +54,10 @@ void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priori
         for (child = ((object *)obj)->first_child_object; child != k_datum_index_none;) {
             uint8_t *c = OBJECT_DATA(child);
 
-            if (*(int16_t *)(c + 0xb4) == 0) {
+            if (((struct object *)c)->type == 0) {
                 ai_alert_actors_in_grenade_radius(child, stimulus_value, priority);
             }
-            child = *(datum_index *)(c + 0x114);
+            child = ((struct object *)c)->next_object;
         }
     } else if (((object *)obj)->type == 0) {
         ai_alert_actors_in_grenade_radius(object_index, stimulus_value, priority);

@@ -131,7 +131,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + *(int16_t *)(reloaded + 0x1f2)),
+        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((unit_object *)self)->base.forward.i = basis.forward;
@@ -223,9 +223,9 @@ uint8_t biped_update(uint32_t object_index)
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
         uint8_t *parent = OBJECT_DATA(((unit_object *)obj)->base.parent_object);
 
-        if (*(int16_t *)(parent + 0xb4) != 1) {
+        if (((struct object *)parent)->type != 1) {
             // 0x559adc: riding another biped
-            if (*(int16_t *)(parent + 0xb4) == 0) {
+            if (((struct object *)parent)->type == 0) {
                 state[0] = (int8_t)((parent[0x106] & 4) | 0x20);
             }
             goto tail;
@@ -278,7 +278,7 @@ uint8_t biped_update(uint32_t object_index)
             }
         }
         // 0x5596ac: falling out of an upside-down vehicle
-        if (biped_detach_from_flipped_vehicle && *(float *)(parent + 0x88) < 0.0f && (parent[0x10] & 2) != 0 &&
+        if (biped_detach_from_flipped_vehicle && ((struct object *)parent)->up.k < 0.0f && (parent[0x10] & 2) != 0 &&
             network_game_mode != 1) {
             uint8_t *self = OBJECT_DATA(object_index);
             datum_index vehicle_index = ((unit_object *)self)->base.parent_object;

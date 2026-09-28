@@ -35,6 +35,21 @@ def main():
         for var in OBJ_INIT.findall(live):
             if var != "unit_object":           # a local named like the view type: left alone
                 groups[("object", var, 0x1f4)].add(os.path.relpath(f, ROOT))
+    # more initialiser forms naming the element type (object views cover offsets below 0x1f4 of any object)
+    FORMS = [
+        (r"uint8_t \*(\w+) = OBJECT_DATA\([^;]*\);", "object", 0x1f4),
+        (r"uint8_t \*(\w+) = \(uint8_t \*\)object_try_and_get\([^;]*\);", "object", 0x1f4),
+        (r"uint8_t \*(\w+) = object_get\([^;]*\);", "object", 0x1f4),
+        (r"uint8_t \*(\w+) = \*\(uint8_t \*\*\)\(\(uint8_t \*\)object_data->data \+ \([^;]*& 0xffff\) \* 0xc \+ 8\);", "object", 0x1f4),
+        (r"uint8_t \*(\w+) = ACTOR\([^;]*\);", "actor", 0x724),
+        (r"uint8_t \*(\w+) = TAG_DATA\(\(\(actor \*\)\w+\)->actor_definition_tag\);", "Actor", 0x4f8),
+    ]
+    for f in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
+        live = open(f, encoding="utf-8").read().split("\n#if 0")[0]
+        for rx, struct, size in FORMS:
+            for var in re.findall(rx, live):
+                if var not in ("unit_object", "object", "actor"):
+                    groups[(struct, var, size)].add(os.path.relpath(f, ROOT))
     for (struct, var, stride), files in sorted(groups.items()):
         size, header = size_of(struct)
         if size != stride:
