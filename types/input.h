@@ -52,6 +52,7 @@
 // Functions in this range that are not real functions or belong elsewhere are listed in
 // out/phase4/input_types_notes.md; their types are not defined here.
 
+#include <stddef.h> // offsetof
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
@@ -651,5 +652,36 @@ typedef int32_t (__stdcall *idirectinputdevice8_poll_proc)(void *self);         
 // 0x007461c0 / 0x007461c4 / 0x00746268  shell instance, window, DirectInput8Create (shell)
 // 0x0087bc14  tag_instances (cache); 0x0087a478 / 0x0087a480 player globals / players (game);
 // 0x008603b0  object headers (objects), read by the look inversion test 0x48fd60
+
+// ---------------------------------------------------------------------------
+// control binding table (0x008603e0, 0x3c0 bytes): six slots of two halves, the halves
+// following the primary / secondary control word (control_word_primary 0x006f1ce8 and its
+// secondary). Layout from control_binding_table_initialize (0x4f37b0), which fills every field,
+// and the two update passes (control_binding_table_update_a / _b), which set entries' selected
+// flags by device type and balance the selected counts between the two halves of a slot.
+// The update passes also address the entries as one flat array of 8-byte records from +0x10
+// (10 records per half: a half's four header ints take the place of two), see _update_a.
+// ---------------------------------------------------------------------------
+typedef struct control_binding_entry {
+    int32_t id;                         // 0x00 -1 when empty
+    uint8_t selected;                   // 0x04 set to 1 by the update passes
+    uint8_t unknown_05;
+    uint8_t device_mask;                // 0x06 one bit per device type (types 1..4: bits 1, 0, 3, 2)
+    uint8_t unknown_07;
+} control_binding_entry;                // size 0x08
+
+typedef struct control_binding_half {
+    int32_t entry_count;                // 0x00
+    int32_t selected_count;             // 0x04
+    int32_t limit;                      // 0x08 a 3-bit field of the control word (control_word_extract_field)
+    int32_t profile_default;            // 0x0c -1, or from the globals tag (+0x168 block) per profile
+    control_binding_entry entries[8];   // 0x10
+} control_binding_half;                 // size 0x50
+
+typedef struct control_binding_slot {
+    control_binding_half halves[2];     // 0x00 primary, 0x50 secondary control word
+} control_binding_slot;                 // size 0xa0; the table holds 6
+typedef char control_binding_half_size[sizeof(control_binding_half) == 0x50 ? 1 : -1];
+typedef char control_binding_entries_at_10[offsetof(control_binding_half, entries) == 0x10 ? 1 : -1];
 
 #pragma pack(pop)

@@ -58,11 +58,11 @@ void control_binding_table_update_a(void)
             int32_t sub;
             for (sub = 0; sub < 2; sub++) {
                 uint8_t *cell = g_control_binding_region_e0 + row_offset + sub * 0x50;
-                int32_t count = *(int32_t *)cell;              // 0x008603e0
+                int32_t count = ((control_binding_half *)cell)->entry_count;              // 0x008603e0
                 int32_t i;
 
                 for (i = 0; i < count; i++) {
-                    uint8_t value = *(cell + 0x16 + i * 8);     // low byte of the 0x008603f6 word
+                    uint8_t value = ((control_binding_half *)cell)->entries[i].device_mask;     // 0x008603f6
                     uint8_t bit;
 
                     switch (control_binding_device_type) {
@@ -73,32 +73,32 @@ void control_binding_table_update_a(void)
                     default: bit = 0; break; // UNSURE: the original indexes the table unchecked
                     }
                     if (bit) {
-                        *(cell + 0x14 + i * 8) = 1;                // 0x008603f4
+                        ((control_binding_half *)cell)->entries[i].selected = 1;                // 0x008603f4
                     }
                 }
             }
         } else {
             uint8_t *base = g_control_binding_region_e0 + row_offset;
-            int32_t remaining = *(int32_t *)(base + 8); // DAT_008603e8 offset
+            int32_t remaining = ((control_binding_half *)base)->limit; // DAT_008603e8 offset
             int32_t settled = 0;
 
             while (remaining > 0 && !settled) {
-                uint32_t a = *(uint32_t *)(base + 4);       // DAT_008603e4 offset
-                uint32_t b = *(uint32_t *)(g_control_binding_region_e0 + 0x54 + row_offset); // DAT_00860434 offset
+                uint32_t a = (uint32_t)((control_binding_half *)base)->selected_count;       // DAT_008603e4 offset
+                uint32_t b = (uint32_t)((control_binding_half *)(g_control_binding_region_e0 + 0x50 + row_offset))->selected_count; // DAT_00860434 offset
                 int32_t pick;
                 int32_t has_pick = 0;
 
                 settled = 1;
                 if (b < a) {
-                    if (b < *(uint32_t *)(g_control_binding_region_e0 + 0x50 + row_offset)) { // DAT_00860430
+                    if (b < (uint32_t)((control_binding_half *)(g_control_binding_region_e0 + 0x50 + row_offset))->entry_count) { // DAT_00860430
                         pick = 1; has_pick = 1;
-                    } else if (a < *(uint32_t *)base) { // DAT_008603e0
+                    } else if (a < (uint32_t)((control_binding_half *)base)->entry_count) { // DAT_008603e0
                         pick = 0; has_pick = 1;
                     }
                 } else {
-                    if (a < *(uint32_t *)base) { // DAT_008603e0
+                    if (a < (uint32_t)((control_binding_half *)base)->entry_count) { // DAT_008603e0
                         pick = 0; has_pick = 1;
-                    } else if (b < *(uint32_t *)(g_control_binding_region_e0 + 0x50 + row_offset)) { // DAT_00860430
+                    } else if (b < (uint32_t)((control_binding_half *)(g_control_binding_region_e0 + 0x50 + row_offset))->entry_count) { // DAT_00860430
                         pick = 1; has_pick = 1;
                     }
                 }

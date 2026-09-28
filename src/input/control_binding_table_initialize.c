@@ -63,26 +63,27 @@ void control_binding_table_initialize(void)
         offset = 0;
         field_index = 0;
         do {
-            *(int32_t *)(cell - 4) = 0;
-            *(int32_t *)cell = 0;
-            *(int32_t *)(cell + 4) = (int32_t)control_word_extract_field(outer_row, field_index);
+            // cell points 4 bytes into a control_binding_half (types/input.h), at selected_count
+            ((control_binding_half *)(cell - 4))->entry_count = 0;
+            ((control_binding_half *)(cell - 4))->selected_count = 0;
+            ((control_binding_half *)(cell - 4))->limit = (int32_t)control_word_extract_field(outer_row, field_index);
             field_index++;
 
             {
                 uint8_t *sub = cell + 0x10;
                 int32_t count = 8;
                 do {
-                    *(int32_t *)(sub - 4) = -1;
-                    *sub = 0;
+                    ((control_binding_entry *)(sub - 4))->id = -1;       // sub points at the entry's selected flag
+                    ((control_binding_entry *)(sub - 4))->selected = 0;
                     sub += 8;
                     count--;
                 } while (count != 0);
             }
 
             if (control_binding_row_profile_flag == 0) {
-                *(int32_t *)(cell + 8) = -1;
+                ((control_binding_half *)(cell - 4))->profile_default = -1;
             } else {
-                *(int32_t *)(cell + 8) = *(int32_t *)(*(int32_t *)(*(uint8_t **)(item_globals + 0x168) + 0x24) + 0xc + offset);
+                ((control_binding_half *)(cell - 4))->profile_default = *(int32_t *)(*(int32_t *)(*(uint8_t **)(item_globals + 0x168) + 0x24) + 0xc + offset);
             }
 
             offset += 0x10;
