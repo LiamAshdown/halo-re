@@ -138,6 +138,13 @@ def main():
     slot_set = {s["slot"] for s in slots}
 
     # ---- code pointers stored in data
+    # data ranges whose dwords only coincidentally equal a function start: never patched (a patch would corrupt them)
+    NOT_CODE_POINTER_RANGES = [
+        # int16 LR parser tables read by library code at 0x5a6600..0x5a7420 (0x679600, 0x679848, 0x679a90,
+        # 0x679e50, 0x679f38, 0x67a6b8, 0x67a7a0, 0x67c1e8 ...); the shorts 0x0000 0x0057 at 0x679d54 equal the
+        # entry 0x570000 (2026-09-28)
+        (0x679600, 0x67d000),
+    ]
     funcs = {int(f["addr"], 16): f for f in json.load(open(os.path.join(ROOT, "out", "functions.json")))}
     library_ranges = sorted((int(f["addr"], 16), int(f["addr"], 16) + (f.get("size") or 0))
                             for f in funcs.values() if f.get("lib") or f.get("fid"))
@@ -153,6 +160,8 @@ def main():
         for o in range(0, s["rsize"] - 3, 4):
             va = s["va"] + o
             if va in slot_set:
+                continue
+            if any(lo <= va < hi for lo, hi in NOT_CODE_POINTER_RANGES):
                 continue
             v = struct.unpack_from("<I", exe, s["raw"] + o)[0]
             if not (text["va"] <= v < text["va"] + text["vsize"]):
