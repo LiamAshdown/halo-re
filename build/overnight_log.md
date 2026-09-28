@@ -2262,3 +2262,13 @@ Relinked: unresolved 1, traps 127.
 - NEXT: breakable-surface shatter 0x500090 (decompiled skeleton in scratchpad/bsce_decomp.c, asm in
   scratchpad/bsce.asm; CRT floor 0x623e40 / ceil 0x6267f0), water 0x5358b0/0x535fd0, rasterizer LABs, then UI.
 - Build-time independence: not started. Run-time independence: not started.
+### iteration 2 (2026-09-28) -- commits 0d78ed9..4d99983, relinked (0 unresolved, 125 direct traps)
+- breakable_surface_shatter (0x500090, 4.8 KB): glass shatter particles + sound. Its callers declared it as
+  physics_point_spawn_contact_effect with the address on a continuation line (never bound) -> renamed and bound.
+- Water: rasterizer_water_draw_pixel_shader (0x535fd0), rasterizer_water_update_ripple_texture (0x534f80),
+  rasterizer_water_draw_fixed_function (0x5358b0); the water stopgap in rasterizer_select_hardware_codepaths is
+  GONE. Traps 127 -> 125.
+- SMOKE: plain standalone_boot dies on the known Keystone.dll thread AV (only cdb swallows it) -> use
+  scratchpad/cdb_trace.sh for unattended boots. a10 under cdb for 120 s: no trap/exception, but the player unit
+  never appeared (still in the opening), so the new water code was not exercised. OPEN (runtime): water in play.
+- NEXT: rasterizer LAB_0051e570/0051e8f0/0051fad0/0051fd80 + FUN_005276c0/00527ae0, units callbacks, then UI.
