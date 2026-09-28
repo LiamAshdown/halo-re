@@ -2437,3 +2437,14 @@ Relinked: unresolved 1, traps 127.
   binary call site) -- after the traps are gone.
 - NEXT: natneg (0x614ab0..0x615360), qr2 core (0x615600..0x616340), SB query engine, GT2 core, ghttp/autopatch
   (0x61bd00..0x61c260, 0x620520..0x623110), then 0x441020/0x441040/0x441060/0x4410b0/0x441200 and the '?' names.
+### iteration 9 (2026-09-28) -- commits e177fe7..HEAD, relinked (0 unresolved, traps 41 -> 34)
+- gamespy: NAT negotiation (18 functions: negotiator list, INIT/PING/CONNECT_ACK, NNBeginNegotiationWithSocket,
+  NNCancel, packet handlers, NNProcessData, per-negotiator think, getlocalhost, IsPrivateIP); qr2 query handling
+  (15: B64Encode, GameSpy RC4, challenge response, new/old query replies, parse, client messages, qr2_parse_queryA,
+  keep-alive, qr2_init_socketA, socket drain).
+- networking: GT2 dump callbacks 0x441020 / 0x441040, the query socket's unrecognized-message callback 0x441200.
+- FOUND: network_session_host_start calls qr2_init_socketA with NULL for five callbacks the binary passes
+  (0x5779c0 server key, 0x577f40 team key, 0x577fb0 key list, 0x5780c0 count, 0x578100 add error) -- none has C
+  (so they never counted as traps); 0x577e40 (the player key callback, C name network_session_host_dispatch_message)
+  models 3 of its 4 arguments. NEXT: write those five, fix host_start and 0x577e40; then qr2 heartbeat/think
+  (0x616680..0x616ff0), SB query engine, GT2 core, ghttp/autopatch, 0x441060/0x4410b0, the '?' names.
