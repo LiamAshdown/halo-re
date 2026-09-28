@@ -36,7 +36,7 @@ real weapon_trigger_projectile_time_fraction(datum_index item_index, int16_t tri
     if (trigger_index >= 0 && trigger_index < weapon_tag->triggers.count) {
         WeaponTrigger *trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
         uint8_t *projectile_tag = (uint8_t *)tag_instances[(uint16_t)(*(datum_index *)&trigger->projectile.tag_id)].data;
-        real initial_velocity = *(real *)(projectile_tag + 0x1e4); // UNSURE: Projectile.initial_velocity
+        real initial_velocity = ((Projectile *)projectile_tag)->initial_velocity;
 
         if (initial_velocity > 0.0f) {
             return elapsed / initial_velocity;

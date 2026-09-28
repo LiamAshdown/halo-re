@@ -27,6 +27,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "sound.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -43,12 +44,12 @@ void equipment_definition_play_pickup_sound(uint32_t equipment_tag_id) // blam-c
     uint8_t parameters[16];
 
     tag = (Equipment *)tag_instances[equipment_tag_id & 0xffff].data;
-    pickup_sound_tag_id = *(int32_t *)((uint8_t *)tag + 0x31c); // Equipment.pickup_sound.tag_id
+    pickup_sound_tag_id = *(int32_t *)&tag->pickup_sound.tag_id;
 
     if (pickup_sound_tag_id != -1) {
-        *(int16_t *)(parameters + 0x00) = 0;
-        *(float *)(parameters + 0x04) = 1.0f;
-        *(float *)(parameters + 0x08) = 1.0f;
+        ((sound_location *)parameters)->type = 0;         // the 16-byte head of a sound_location
+        ((sound_location *)parameters)->scale = 1.0f;
+        ((sound_location *)parameters)->gain = 1.0f;
         sound_play_new((uint32_t)pickup_sound_tag_id, parameters, 0xffffffff, 0, 0, 0, 0);
     }
 }

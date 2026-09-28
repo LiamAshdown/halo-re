@@ -95,7 +95,7 @@ void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_de
             // UNSURE: structure_bsp_plane_fetch_signed's exact signature; see file header
             real_plane3d plane;
             // 0x4bd155..0x4bd16f: surfaces pointer at bsp+0x40, 0xc stride, the index sign-extended
-            int32_t surface_plane_ref = *(int32_t *)(*(uint8_t **)(global_structure_collision_bsp + 0x40)
+            int32_t surface_plane_ref = *(int32_t *)((uint8_t *)((ModelCollisionGeometryBSP *)global_structure_collision_bsp)->surfaces.pointer
                 + (int32_t)(int16_t)item->resting_surface_index * 0x0c);
             real_point3d marker_position = marker.node_transform.position;
             real correction;

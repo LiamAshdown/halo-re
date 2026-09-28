@@ -68,8 +68,8 @@ static uint32_t weapon_blur_target(uint32_t item_index)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[item_index & 0xffff].data;
 
-    if ((*(uint32_t *)(obj + 0x10) & 1) && *(datum_index *)(obj + 0x11c) != (datum_index)0xffffffff) {
-        return *(datum_index *)(obj + 0x11c);
+    if ((((object *)obj)->flags & 1) && ((object *)obj)->parent_object != (datum_index)0xffffffff) {
+        return ((object *)obj)->parent_object;
     }
     return item_index;
 }

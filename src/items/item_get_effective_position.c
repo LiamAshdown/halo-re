@@ -20,6 +20,7 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "game.h"
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *player_data; // 0x0087a480, players module, stride 0x200 (types/units.h)
@@ -55,8 +56,8 @@ uint8_t item_get_effective_position(datum_index object_index, real_point3d *out_
                 return 0;
             }
             {
-                // TYPES-GAP: player+0x34, UNSURE name (used here as an object datum_index)
-                uint32_t controlled_object_index = *(uint32_t *)(player + 0x34);
+                // the player's unit (struct player: the local is named player too)
+                uint32_t controlled_object_index = (uint32_t)((struct player *)player)->unit;
                 if (controlled_object_index == (uint32_t)k_datum_index_none) {
                     return 0;
                 }
