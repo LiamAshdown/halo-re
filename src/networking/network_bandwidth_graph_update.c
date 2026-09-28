@@ -52,7 +52,7 @@ void network_bandwidth_graph_update(void)
             float right_minus_yscale = right_raw - y_scale;
             float baseline_raw = (float)(game_window_bottom_right.y - 0x40);
             float baseline_minus_xscale = baseline_raw - x_scale;
-            float fVar1, fVar2, fVar3, fVar4;
+            float box_x1, box_y1, box_x0, box_y0;
             int16_t field24_v;
             float r1, r2;
             int32_t i;
@@ -77,25 +77,25 @@ void network_bandwidth_graph_update(void)
 
             network_bandwidth_graph_instance_history_reset(graph);
 
-            fVar3 = right_minus_yscale - 1.0f;
+            box_x0 = right_minus_yscale - 1.0f;
             *(uint32_t *)(base + 0x50) = 0xffffff00;
             *(uint32_t *)(base + 0x68) = 0xffffff00;
             *(uint32_t *)(base + 0x80) = 0xffffff00;
             *(uint32_t *)(base + 0x98) = 0xffffff00;
-            *(float *)(base + 0x44) = fVar3;
-            fVar4 = baseline_minus_xscale - 1.0f;
+            *(float *)(base + 0x44) = box_x0;
+            box_y0 = baseline_minus_xscale - 1.0f;
             *(uint32_t *)(base + 0xb0) = 0xffffff00;
-            *(float *)(base + 0x48) = fVar4;
-            fVar2 = right_raw + 1.0f;
-            fVar1 = baseline_raw + 1.0f;
-            *(float *)(base + 0x5c) = fVar2;
-            *(float *)(base + 0x60) = fVar4;
-            *(float *)(base + 0x74) = fVar2;
-            *(float *)(base + 0x78) = fVar1;
-            *(float *)(base + 0x8c) = fVar3;
-            *(float *)(base + 0x90) = fVar1;
-            *(float *)(base + 0xa4) = fVar3;
-            *(float *)(base + 0xa8) = fVar4;
+            *(float *)(base + 0x48) = box_y0;
+            box_y1 = right_raw + 1.0f;
+            box_x1 = baseline_raw + 1.0f;
+            *(float *)(base + 0x5c) = box_y1;
+            *(float *)(base + 0x60) = box_y0;
+            *(float *)(base + 0x74) = box_y1;
+            *(float *)(base + 0x78) = box_x1;
+            *(float *)(base + 0x8c) = box_x0;
+            *(float *)(base + 0x90) = box_x1;
+            *(float *)(base + 0xa4) = box_x0;
+            *(float *)(base + 0xa8) = box_y0;
 
             r1 = 640.0f / y_scale;
             r2 = 480.0f / x_scale;

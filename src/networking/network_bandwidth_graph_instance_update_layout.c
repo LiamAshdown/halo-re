@@ -58,7 +58,7 @@ void network_bandwidth_graph_instance_update_layout(network_bandwidth_graph *gra
         float y_scale = (float)height * 0.4f;
         float right_raw = (float)(game_window_bottom_right.x - 0x40);   // Ghidra's fVar1 (before reuse)
         float baseline_raw = (float)(game_window_bottom_right.y - 0x40); // Ghidra's fVar2 (before reuse)
-        float fVar1, fVar2, fVar3, fVar4;
+        float box_y1, box_x1, box_x0, box_y0;
         int16_t field24_v;
         float r1, r2;
         int32_t i;
@@ -85,25 +85,25 @@ void network_bandwidth_graph_instance_update_layout(network_bandwidth_graph *gra
 
         network_bandwidth_graph_instance_history_reset(graph);
 
-        fVar3 = (right_raw - y_scale) - 1.0f;
+        box_x0 = (right_raw - y_scale) - 1.0f;
         *(uint32_t *)(base + 0x50) = 0xffffff00;
         *(uint32_t *)(base + 0x68) = 0xffffff00;
-        *(float *)(base + 0x44) = fVar3;
+        *(float *)(base + 0x44) = box_x0;
         *(uint32_t *)(base + 0x80) = 0xffffff00;
         *(uint32_t *)(base + 0x98) = 0xffffff00;
-        fVar4 = (baseline_raw - x_scale) - 1.0f;
+        box_y0 = (baseline_raw - x_scale) - 1.0f;
         *(uint32_t *)(base + 0xb0) = 0xffffff00;
-        *(float *)(base + 0x48) = fVar4;
-        fVar1 = right_raw + 1.0f;
-        *(float *)(base + 0x5c) = fVar1;
-        *(float *)(base + 0x60) = fVar4;
-        *(float *)(base + 0x74) = fVar1;
-        fVar2 = baseline_raw + 1.0f;
-        *(float *)(base + 0x78) = fVar2;
-        *(float *)(base + 0x8c) = fVar3;
-        *(float *)(base + 0x90) = fVar2;
-        *(float *)(base + 0xa4) = fVar3;
-        *(float *)(base + 0xa8) = fVar4;
+        *(float *)(base + 0x48) = box_y0;
+        box_y1 = right_raw + 1.0f;
+        *(float *)(base + 0x5c) = box_y1;
+        *(float *)(base + 0x60) = box_y0;
+        *(float *)(base + 0x74) = box_y1;
+        box_x1 = baseline_raw + 1.0f;
+        *(float *)(base + 0x78) = box_x1;
+        *(float *)(base + 0x8c) = box_x0;
+        *(float *)(base + 0x90) = box_x1;
+        *(float *)(base + 0xa4) = box_x0;
+        *(float *)(base + 0xa8) = box_y0;
 
         // Label quad texture-space scaling; see file header UNSURE note.
         r1 = 640.0f / y_scale;
