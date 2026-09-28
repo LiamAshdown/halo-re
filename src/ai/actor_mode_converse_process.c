@@ -34,10 +34,10 @@ uint8_t actor_mode_converse_process(datum_index actor_index)
     if (!act[0x4c]) {
         return act[0xa0];
     }
-    if (*(datum_index *)(act + 0xac) == k_datum_index_none && *(datum_index *)(act + 0xa8) != k_datum_index_none) {
-        *(datum_index *)(act + 0xac) = actor_find_or_create_shared_prop(*(datum_index *)(act + 0xa8), actor_index, 1, 1);
+    if (((struct actor *)act)->mode_data.converse.partner_prop == k_datum_index_none && ((struct actor *)act)->mode_data.converse.partner_unit != k_datum_index_none) {
+        ((struct actor *)act)->mode_data.converse.partner_prop = actor_find_or_create_shared_prop(((struct actor *)act)->mode_data.converse.partner_unit, actor_index, 1, 1);
     }
-    partner = *(datum_index *)(act + 0xac);
+    partner = ((struct actor *)act)->mode_data.converse.partner_prop;
     if (partner == k_datum_index_none) {
         act[0xa0] = 1;
         return act[0xa0];
@@ -46,7 +46,7 @@ uint8_t actor_mode_converse_process(datum_index actor_index)
         uint8_t *p = (uint8_t *)prop_data->data + (partner & 0xffff) * 0x138;
         float distance = ((prop *)p)->distance;
 
-        if ((*(int16_t *)(p + 0x32) >= 2 && distance < *(float *)(act + 0xa4)) || distance < 0.7f) {
+        if ((*(int16_t *)(p + 0x32) >= 2 && distance < ((struct actor *)act)->mode_data.converse.approach_distance) || distance < 0.7f) {
             act[0xa1] = 1;
         }
     }
@@ -54,7 +54,7 @@ uint8_t actor_mode_converse_process(datum_index actor_index)
         actor_movement_action_stop(actor_index);
         return act[0xa0];
     }
-    if (!actor_movement_set_destination_near_target(partner, actor_index, *(float *)(act + 0xa4))) {
+    if (!actor_movement_set_destination_near_target(partner, actor_index, ((struct actor *)act)->mode_data.converse.approach_distance)) {
         act[0xa0] = 1;
     }
     return act[0xa0];

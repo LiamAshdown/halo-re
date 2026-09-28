@@ -252,10 +252,19 @@ typedef struct actor_mode_flee_data {
 } actor_mode_flee_data;
 typedef char actor_mode_flee_data_reference_at_1c[offsetof(actor_mode_flee_data, reference) == 0x1c ? 1 : -1];
 
+typedef struct actor_mode_converse_data {
+    datum_index conversation;           // 0x00
+    uint8_t unknown_04[4];              // 0x04
+    float approach_distance;            // 0x08 process closes to within this of the partner
+    datum_index partner_unit;           // 0x0c the partner, turned into partner_prop by actor_find_or_create_shared_prop
+    datum_index partner_prop;           // 0x10 the partner's prop (actor_mode_converse_replace_reference swaps it)
+} actor_mode_converse_data;
+
 typedef union actor_mode_data {
     uint8_t raw[0x84];
     actor_mode_wait_data wait;
     actor_mode_flee_data flee;
+    actor_mode_converse_data converse;
 } actor_mode_data;                      // size 0x84
 typedef char actor_mode_data_size[sizeof(actor_mode_data) == 0x84 ? 1 : -1];
 

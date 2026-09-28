@@ -23,15 +23,15 @@ extern datum_index actor_find_prop_for_object(datum_index object_index, datum_in
 void actor_mode_converse_update(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
-    datum_index conversation = *(datum_index *)(act + 0x9c);
+    datum_index conversation = ((struct actor *)act)->mode_data.converse.conversation;
     uint8_t *record = 0;
     datum_index look_prop = k_datum_index_none;
 
     if (conversation != k_datum_index_none) {
         record = (uint8_t *)ai_conversation_data->data + (conversation & 0xffff) * 0x64;
     }
-    if (*(datum_index *)(act + 0xac) != k_datum_index_none) {
-        look_prop = *(datum_index *)(act + 0xac);
+    if (((struct actor *)act)->mode_data.converse.partner_prop != k_datum_index_none) {
+        look_prop = ((struct actor *)act)->mode_data.converse.partner_prop;
     } else if (record != 0 && *(datum_index *)(record + 0x10) != k_datum_index_none) {
         look_prop = actor_find_prop_for_object(*(datum_index *)(record + 0x10), actor_index);
     }

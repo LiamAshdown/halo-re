@@ -20,7 +20,7 @@ void actor_mode_converse_replace_reference(datum_index actor_index, datum_index 
 {
     uint8_t *mode_data = ACTOR(actor_index) + 0x9c;
 
-    if (*(datum_index *)(mode_data + 0x10) == old_reference) {
-        *(datum_index *)(mode_data + 0x10) = new_reference;
+    if (((actor_mode_converse_data *)mode_data)->partner_prop == old_reference) {
+        ((actor_mode_converse_data *)mode_data)->partner_prop = new_reference;
     }
 }
