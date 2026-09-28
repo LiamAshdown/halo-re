@@ -5,12 +5,12 @@
 //   node block and its nodes (GlobalFree), then the buckets; everything zero.
 // blam-cc: EDI -> table
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 
-extern void *__stdcall GlobalFree(void *memory);
 
 void hash_table_dispose(hash_table *table)
 {

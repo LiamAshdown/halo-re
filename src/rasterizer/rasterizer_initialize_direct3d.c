@@ -20,6 +20,7 @@
 // register convention: none, __cdecl with no parameters; returns a bool in AL.
 // reconciled: R80 0x0071cfc4 uint32_t* cinematic_globals -> render.h cinematic_screen_effect_globals *cinematic_screen_effect_state
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -119,17 +120,6 @@ extern int32_t __stricmp(const char *a, const char *b);                         
 extern int sscanf(const char *buffer, const char *format, ...);                  // 0x626572
 
 // Win32
-extern void *__stdcall LoadLibraryA(const char *name);
-extern void *__stdcall GetProcAddress(void *module, const char *name);
-extern int32_t __stdcall FreeLibrary(void *module);
-extern void *__stdcall GetDesktopWindow(void);
-extern void *__stdcall GetDC(void *hwnd);
-extern int32_t __stdcall ReleaseDC(void *hwnd, void *hdc);
-extern int32_t __stdcall GetDeviceCaps(void *hdc, int32_t index);
-extern int32_t __stdcall SetWindowLongA(void *hwnd, int32_t index, int32_t value);
-extern int32_t __stdcall GetWindowRect(void *hwnd, win32_rect *rect);
-extern int32_t __stdcall ShowCursor(int32_t show);
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 typedef uint32_t (__stdcall *d3d_get_adapter_count_fn)(void *self);
 typedef int32_t (__stdcall *d3d_get_adapter_display_mode_fn)(void *self, uint32_t adapter, d3d_display_mode *mode);

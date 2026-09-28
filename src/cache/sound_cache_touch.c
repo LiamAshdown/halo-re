@@ -25,6 +25,7 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -36,8 +37,6 @@ extern cache_io_request *cache_io_requests; // 0x006ac4a0
 extern int64_t performance_frequency;    // 0x006ac8f8/0x006ac8fc
 extern int32_t frame_watchdog_time;      // 0x0072520c
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
-extern void __stdcall Sleep(uint32_t milliseconds); // 0x0063a29c IAT
 
 extern void sound_cache_decode_permutation(SoundPermutation *permutation); // this module, sound_cache_decode_permutation.c
 extern void sound_cache_page_allocate(SoundPermutation *permutation, uint8_t priority); // blam-cc:
@@ -101,7 +100,7 @@ uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wai
             return 1;
         }
 
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
         stall_ms = (uint32_t)(elapsed_ms - frame_watchdog_time);
         if (0x84 < stall_ms) {

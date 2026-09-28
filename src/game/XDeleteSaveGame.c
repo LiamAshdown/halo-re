@@ -14,6 +14,7 @@
 // (the first argument is the save name -- see FIXED below; the old "validity_token" reading was wrong)
 //   XCreateSaveGame.c); string_convert_unicode_to_ascii's exact argument list (guessed by analogy).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,11 +24,6 @@
 
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, ESI dest, EDI source, stack capacity
 extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
-extern void *__stdcall FindFirstFileA(const char *pattern, win32_find_dataa *out_data); // Win32
-extern uint32_t __stdcall FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
-extern uint32_t __stdcall FindClose(void *find_handle); // Win32
-extern uint32_t __stdcall DeleteFileA(const char *path); // Win32
-extern uint32_t __stdcall RemoveDirectoryA(const char *path); // Win32
 
 // blam-cc: EAX -> save_game_name, ECX -> root_path
 // Deletes every file directly under "<root_path>\<name>\" (skipping dotfiles and an entry
@@ -57,7 +53,7 @@ uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path)
 
     _sprintf(pattern, "%s*.*", root_with_slash);
     last_delete_ok = 0;
-    find_handle = FindFirstFileA(pattern, &find_data);
+    find_handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)0xffffffff) {
         do {
             if (find_data.cFileName[0] != '.') {
@@ -81,14 +77,14 @@ uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path)
                     }
                 }
             }
-        } while (FindNextFileA(find_handle, &find_data) != 0);
+        } while (FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data) != 0);
         FindClose(find_handle);
     }
 
     _sprintf(pattern, "%scheckpoints\\*.*", root_with_slash);
     result = 0;
     if (last_delete_ok != 0) {
-        find_handle = FindFirstFileA(pattern, &find_data);
+        find_handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)&find_data);
         if (find_handle != (void *)0xffffffff) {
             uint32_t has_more;
             do {
@@ -108,7 +104,7 @@ uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path)
                         DeleteFileA(delete_path);
                     }
                 }
-                has_more = FindNextFileA(find_handle, &find_data);
+                has_more = FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data);
             } while (has_more != 0);
             FindClose(find_handle);
             _sprintf(pattern, "%scheckpoints", root_with_slash);

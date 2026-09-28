@@ -7,10 +7,10 @@
 // handle into EAX immediately before calling.
 //   // blam-cc: EAX -> handle
 
+#include "win32.h"
 #include "tags.h"
 #include "cseries.h"
 
-extern void *__stdcall GlobalFree(void *handle); // Win32, 0x0063a0bc import thunk
 
 // Thin wrapper freeing a block previously returned by memory_global_alloc via GlobalFree.
 void *memory_global_free(void *handle)

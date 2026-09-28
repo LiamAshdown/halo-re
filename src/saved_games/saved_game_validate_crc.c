@@ -16,6 +16,7 @@
 // register convention: total_size in ECX, header_size in EDX, header_buffer in EBX; expected_crc
 // and corrupt_flag are the recognized stack parameters (param_1, param_2), in that order.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,10 +32,6 @@ extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_dire
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
 extern void sound_idle_update(void); // 0x549960, sound-clock service tick called between chunked reads
 
-extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method);
-extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped);
-extern void __stdcall CloseHandle(void *file);
-extern int32_t __stdcall DeleteFileA(const char *path);
 
 // blam-cc: total_size in ECX, header_size in EDX, header_buffer in EBX, then the recognized
 // stack parameters (expected_crc, corrupt_flag)

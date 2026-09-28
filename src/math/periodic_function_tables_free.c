@@ -6,10 +6,10 @@
 // initialized flag.
 // register convention: __cdecl, no arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "math.h"
 
-extern void *__stdcall GlobalFree(void *block); // 0x0063a0bc import thunk; returns NULL on success, like the Win32 original
 
 extern periodic_function_table *periodic_function_tables[12]; // 0x006b7aa8
 extern periodic_function_table *transition_function_tables[6]; // 0x006b7ad8

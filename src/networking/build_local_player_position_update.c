@@ -18,6 +18,7 @@
 // is built here field-by-field rather than through that type, since the source fields split
 // across a byte read of +0xf4 that the named type does not model.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,7 +28,6 @@
 extern int32_t network_ack_resend_interval_ms; // 0x00689484
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 
-extern uint32_t __stdcall GetTickCount(void);
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size

@@ -18,6 +18,7 @@
 // 4-argument local prototype instead of forcing the mismatch, per the same reasoning documented
 // in network_send_join_request_packet.c for data_packet_group_encode_packet.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,7 +26,6 @@
 #include "networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0
 extern void network_channel_reliable_pool_store(network_channel *channel, uint16_t *packet, uint8_t *reliable_flag,
     int32_t priority); // 0x4dcdb0, this module, fuller signature in network_channel_queue_message.c
@@ -51,7 +51,7 @@ uint32_t network_game_message_handle_keepalive(network_channel **channel, int32_
     if (chan == 0) {
         return 0;
     }
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     payload.echoed_value = *record;
     payload.timestamp_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     packet = network_prepare_challenge_packet(3, &payload);

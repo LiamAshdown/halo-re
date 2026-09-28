@@ -15,6 +15,7 @@
 // TYPES-GAP: COORD / CONSOLE_SCREEN_BUFFER_INFO are plain win32 console API structs, not engine
 // types; declared locally rather than added to types/interface.h.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,14 +32,6 @@ extern void console_position_cursor(void); // 0x4971a0
 extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...);
 extern char *strcpy(char *dest, const char *source);
 extern uint32_t strlen(const char *s);
-extern int32_t __stdcall GetConsoleScreenBufferInfo(void *console_output,
-                                           win32_console_screen_buffer_info *info);
-extern int32_t __stdcall FillConsoleOutputCharacterA(void *console_output, char character,
-                                            uint32_t length, win32_coord write_coord,
-                                            uint32_t *chars_written);
-extern int32_t __stdcall WriteConsoleOutputCharacterA(void *console_output, const char *buffer,
-                                             uint32_t length, win32_coord write_coord,
-                                             uint32_t *chars_written);
 
 // Draws "<window title> <input line>" over the last row of the attached win32 console window.
 void console_draw_input_line(void)

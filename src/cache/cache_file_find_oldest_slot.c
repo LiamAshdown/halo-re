@@ -15,13 +15,13 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern int16_t cache_file_index;                                  // 0x006ac494, -1 when none open
 
-extern int32_t __stdcall CompareFileTime(file_time *a, file_time *b); // 0x0063a2e0 IAT
 
 // Per-slot size limit used by cache_file_find_oldest_slot: 0x18000000 for slots 0-1,
 // 0x02300000 for slot 2, 0x08000000 for slots 3-5 (see types/cache.h
@@ -73,7 +73,7 @@ int16_t cache_file_find_oldest_slot(cache_file_slot_category slot_category, int3
                     if (best_slot != -1) {
                         int32_t best_limit = cache_file_slot_size_limit(best_slot);
                         if (best_limit <= limit &&
-                            CompareFileTime(&best->last_write_time, &current->last_write_time) < 1) {
+                            CompareFileTime((const FILETIME *)&best->last_write_time, (const FILETIME *)&current->last_write_time) < 1) {
                             goto next;
                         }
                     }

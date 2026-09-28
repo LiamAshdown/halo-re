@@ -25,6 +25,7 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 #include "memory.h"
@@ -40,9 +41,6 @@ extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc:
     int32_t offset, uint32_t size, void *destination, uint8_t priority,
     uint8_t data_file_index); // this module, 0x442b20
 extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; this module, 0x4425d0
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *__stdcall GlobalFree(void *memory);
-extern void __stdcall Sleep(uint32_t milliseconds);
 
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern uint32_t rasterizer_device_version;  // 0x007c118c

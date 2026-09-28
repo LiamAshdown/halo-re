@@ -22,8 +22,11 @@ extern void thunk_FUN_00622050(void *proxy_settings); // foreign WinInet/WinHTTP
 
 // Detects and installs the proxy configuration used by the autopatch HTTP client, then signals
 // it is ready.
-uint32_t autopatch_proxy_initialize(void)
+// FIXED 2026-09-28: a CreateThread routine (network_initialize), __stdcall with the unused thread parameter --
+// the original ends ret 4 (0x5771d7).
+uint32_t __stdcall autopatch_proxy_initialize(void *parameter)
 {
+    (void)parameter;
     void *settings = autopatch_get_proxy_settings();
     thunk_FUN_00622050(settings);
     autopatch_proxy_ready = 1;

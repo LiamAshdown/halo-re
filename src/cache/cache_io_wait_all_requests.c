@@ -7,10 +7,10 @@
 // evidence: types/cache.h cache_io_request (pending at 0x1d) and k_cache_io_request_count.
 // register convention: no parameters.
 
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern void __stdcall Sleep(uint32_t milliseconds);
 
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 

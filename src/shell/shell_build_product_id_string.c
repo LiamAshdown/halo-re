@@ -20,20 +20,13 @@
 //   in the original binary; reproduced as-is rather than "fixed", per the no-invented-behaviour
 //   rule.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __stdcall RegOpenKeyExA(void *key, const char *subkey, uint32_t reserved, uint32_t desired_access,
-                              void **result_key); // import 0x63a014
-extern int32_t __stdcall RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type, uint8_t *data,
-                                 uint32_t *data_size); // import 0x63a018
-extern int32_t __stdcall RegCloseKey(void *key); // import 0x63a010
-extern int32_t __stdcall CryptAcquireContextA(uint32_t *provider, const char *container, const char *provider_name,
-                                     uint32_t provider_type, uint32_t flags); // import 0x63a050
-extern int32_t __stdcall CryptReleaseContext(uint32_t provider, uint32_t flags); // import 0x63a04c
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern int32_t extract_product_id_digits(const char *product_id); // 0x57f360, blam-cc: product_id in EBX
 extern uint8_t compute_sha1_hash(const uint8_t *data, uint32_t length, uint8_t *digest_out); // 0x57f2a0
@@ -66,7 +59,7 @@ char *shell_build_product_id_string(void)
     data_size = 0x400; // see UNSURE above: larger than sizeof(digital_product_id)
 
     if (RegOpenKeyExA((void *)0x80000002 /* HKEY_LOCAL_MACHINE */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                      0x20019, &key) != 0) {
+                      0x20019, (PHKEY)&key) != 0) {
         return &empty_string_0065512c;
     }
     if (RegQueryValueExA(key, "DigitalProductID", 0, 0, (uint8_t *)&data, &data_size) != 0) {

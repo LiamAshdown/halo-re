@@ -6,13 +6,13 @@
 //   arithmetic), then Releases every effect and the effect pool -- the matching teardown.
 // register convention: none -- __cdecl, no arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
 
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 extern void *rasterizer_effect_pool;                                  // 0x0071d254
-extern void *__stdcall GlobalFree(void *mem); // Win32
 
 static void free_constant_handles(int first, int last)
 {

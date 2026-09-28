@@ -8,12 +8,12 @@
 // register convention: the queue to tear down in ESI (unaff_ESI); no stack parameters.
 //   // blam-cc: ESI -> queue
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 
-extern void *__stdcall GlobalFree(void *block); // Win32
 
 // blam-cc: ESI -> queue
 void network_queue_destroy(circular_queue *queue)

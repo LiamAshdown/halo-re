@@ -17,6 +17,7 @@
 // register convention: no parameters, no return value.
 // reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,7 +33,6 @@
 extern int32_t input_device_count;    // 0x006b1844
 extern input_device input_devices[8]; // 0x006b1868
 
-extern int32_t __stdcall StringFromGUID2(const input_guid *guid, uint16_t *out, int32_t max_chars); // OLE32 IAT
 extern void console_printf_verbose(ColorARGB *color, char *format, ...); // interface module, 0x496a80
 
 // Debug/test routine: logs "<index>) deviceid <guid> - <name>" for every registered input
@@ -52,7 +52,7 @@ void input_device_list_print(void)
     for (index = 0; index < input_device_count; index++) {
         record = input_devices[index].record;
 
-        hr = StringFromGUID2(&record.product_guid, guid_wide, 0x27);
+        hr = StringFromGUID2((REFGUID)&record.product_guid, guid_wide, 0x27);
         if (hr < 0) {
             continue;
         }

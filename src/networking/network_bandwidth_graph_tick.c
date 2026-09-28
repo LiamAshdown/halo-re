@@ -13,6 +13,7 @@
 // pointer arrives in EAX (`in_EAX` in Ghidra's decompile).
 // // blam-cc: EAX -> graph
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,7 +21,6 @@
 #include "networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 extern void network_bandwidth_graph_new_sample(network_bandwidth_graph *graph); // 0x4d8430, this batch
 
@@ -30,7 +30,7 @@ void network_bandwidth_graph_tick(network_bandwidth_graph *graph)
     large_integer counter;
     uint32_t elapsed_ms;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     if (graph->needs_layout != 0) {
         return;
     }

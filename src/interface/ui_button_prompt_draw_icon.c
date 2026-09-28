@@ -17,6 +17,7 @@
 // frame at the text cursor; its two pointer arguments are this function's own locals (a zeroed
 // dword and the 8 byte counter buffer). The name follows from the caller context.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,7 +28,6 @@
 extern Globals *global_globals;       // 0x00746fa0
 extern int64_t performance_frequency; // 0x006ac8f8 (LowPart) .. 0x006ac8fc (HighPart), LARGE_INTEGER
 
-extern int32_t __stdcall QueryPerformanceCounter(int64_t *counter);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset); // 0x4ab8d0, blam-cc: EAX frame_index
 
@@ -49,7 +49,7 @@ void ui_button_prompt_draw_icon(HUDGlobalsButtonIcon *icon)
     } else {
         uint32_t milliseconds;
 
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         milliseconds = (uint32_t)((counter * 1000) / performance_frequency); // __allmul, __alldiv
         frame = (int32_t)((milliseconds * 30u / 1000u) / (uint32_t)(int32_t)icon->frame_rate);
     }

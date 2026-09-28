@@ -6,6 +6,7 @@
 // DAT_00712cc0 = 1 last is event_queue.enabled.
 // register convention: no parameters, no return value.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 
 extern input_event_queue event_queue;                    // 0x00712cc0
 extern int64_t performance_frequency;                           // 0x006ac8f8/0x006ac8fc
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);  // 0x0063a0ac IAT
 
 // Zeroes the whole input event queue block, seeds its start_time and last_event_time from
 // QueryPerformanceCounter, then enables it.
@@ -33,7 +33,7 @@ void input_queue_initialize(void)
         cursor = cursor + 1;
     }
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     event_queue.last_event_time = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
     event_queue.start_time = event_queue.last_event_time;
     event_queue.enabled = 1;

@@ -21,6 +21,7 @@
 //   sound_looping_start_ambient takes EAX = -1 (no object), EDX = background tag. Objects whose
 //   _object_needs_cluster_update_bit is clear are skipped for this pass (not stopped).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -36,7 +37,6 @@ extern SoundEnvironment sound_environment;          // 0x0072525c
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words]; // 0x00746160
 extern int64_t performance_frequency;               // 0x006ac8f8/0x006ac8fc, see src/sound/sound_update_clock.c
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
@@ -52,7 +52,7 @@ extern void object_get_root_location(int32_t *out, uint32_t object_index); // 0x
 static int32_t game_sound_update_now_ms(void) // UNSURE helper name; inlines sound_update_clock.c's own QPC math
 {
     large_integer counter;
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     return (int32_t)((counter.quad_part * 1000) / performance_frequency);
 }
 

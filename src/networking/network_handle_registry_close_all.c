@@ -17,6 +17,7 @@
 // could not be confirmed here; the record shape is reused rather than guessed at.
 // network_handle_registry_slot now lives in types/networking.h (folded from this file).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -24,7 +25,6 @@
 #include "networking.h"
 
 extern network_handle_registry_slot network_handle_registry[64]; // 0x006f14d0
-extern int32_t __stdcall CloseHandle(void *object); // Win32 // Win32
 
 // blam-cc: __cdecl, no arguments
 // Sweeps the 64-slot handle registry; for every slot that is both registered and still points

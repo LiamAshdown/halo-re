@@ -9,6 +9,7 @@
 // the sibling s2 rewrite's control_profile_variant_write_wait_and_clear (0x53bae0).
 // register convention: no parameters, no return value.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,8 +21,6 @@
 extern network_thread_record *player_profile_thread; // 0x0072127c
 extern saved_player_profile default_player_profile; // 0x0071d280
 
-extern uint32_t __stdcall GetExitCodeThread(void *thread, uint32_t *exit_code); // Win32
-extern uint32_t __stdcall CloseHandle(void *handle); // Win32
 
 void player_profile_verify_thread_wait_and_clear(void)
 {

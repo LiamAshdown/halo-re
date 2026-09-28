@@ -7,13 +7,13 @@
 // register convention: ESI = server (network_server_globals *).
 // blam-cc: ESI -> server
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern void *network_prepare_challenge_packet(void); // 0x4deaf0, this module
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
@@ -29,7 +29,7 @@ uint32_t network_server_resend_challenge_periodic(network_server_globals *server
     uint32_t now_ms;
     uint32_t *last_sent;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
     last_sent = (uint32_t *)((uint8_t *)server + 0x9bc);
     if (*last_sent + 5000u < now_ms) {

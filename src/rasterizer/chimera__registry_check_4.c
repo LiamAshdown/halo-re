@@ -11,6 +11,7 @@
 // register convention: no parameters.
 // UNSURE: DAT_007196f4 (a second override flag alongside -nogamma) has no documented owner.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,24 +19,7 @@
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
-typedef void *HKEY;
-typedef unsigned long DWORD;
-typedef unsigned char BYTE;
-typedef BYTE *LPBYTE;
-typedef DWORD *LPDWORD;
-typedef char *LPSTR;
-typedef void *LPSECURITY_ATTRIBUTES;
-typedef void *HDC;
-typedef void *HWND;
 
-extern long __stdcall RegOpenKeyExA(HKEY key, const char *subkey, DWORD options, DWORD sam, HKEY *result);
-extern long __stdcall RegQueryValueExA(HKEY key, const char *value, LPDWORD reserved, LPDWORD type, LPBYTE data, LPDWORD data_size);
-extern long __stdcall RegCloseKey(HKEY key);
-extern long __stdcall RegCreateKeyExA(HKEY key, const char *subkey, DWORD reserved, LPSTR class_name, DWORD options, DWORD sam, LPSECURITY_ATTRIBUTES sa, HKEY *result, LPDWORD disposition);
-extern long __stdcall RegSetValueExA(HKEY key, const char *value, DWORD reserved, DWORD type, const BYTE *data, DWORD data_size);
-extern HDC __stdcall GetDC(HWND wnd);
-extern long __stdcall ReleaseDC(HWND wnd, HDC dc);
-extern long __stdcall GetDeviceGammaRamp(HDC dc, void *ramp);
 extern int __cdecl _stricmp(const char *a, const char *b);
 
 extern int32_t command_line_argc;                                   // 0x00721e94
@@ -83,7 +67,7 @@ set_bit:
 
     gamma_flag = 0;
     value_size = 4;
-    RegOpenKeyExA(k_HKEY_CURRENT_USER, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0x20019, &key);
+    RegOpenKeyExA(k_HKEY_CURRENT_USER, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0x20019, (PHKEY)&key);
     RegQueryValueExA(key, "gamma", (LPDWORD)0, (LPDWORD)0, (LPBYTE)&gamma_flag, &value_size);
     RegCloseKey(key);
 
@@ -106,7 +90,7 @@ set_bit:
 
     gamma_flag = 1;
     RegCreateKeyExA(k_HKEY_CURRENT_USER, "Software\\Microsoft\\Microsoft Games\\Halo", 0, (LPSTR)0,
-                     0, 0x20006, (LPSECURITY_ATTRIBUTES)0, &key, (LPDWORD)0);
+                     0, 0x20006, (LPSECURITY_ATTRIBUTES)0, (PHKEY)&key, (LPDWORD)0);
     RegSetValueExA(key, "gamma", 0, 4, (const BYTE *)&gamma_flag, 4);
     RegCloseKey(key);
 

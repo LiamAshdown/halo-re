@@ -13,6 +13,7 @@
 // memory pool header, the save-game arena) belong to other modules and are not named in
 // types/game.h; kept as raw global writes with TYPES-GAP markers rather than guessed names.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -55,8 +56,6 @@ extern void widget_close_all(void);           // 0x498650, widget module
 extern void objects_dispose(void);            // 0x4f4db0, objects module
 extern void saved_game_files_dispose(void);   // 0x53c480, saved_games module
 extern void network_shutdown(void);           // 0x4416e0, network module
-extern void *__stdcall GlobalFree(void *mem);           // Win32
-extern uint32_t __stdcall CloseHandle(void *handle);     // Win32
 
 // Tears down the memory pools and Win32 resources allocated by game_initialize (0x45a9c0).
 void game_dispose(void)

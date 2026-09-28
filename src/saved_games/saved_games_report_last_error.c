@@ -10,6 +10,7 @@
 // repeating inline.
 // register convention: no arguments; reads/clears the calling thread's Win32 last-error code.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,10 +19,6 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern uint32_t __stdcall GetLastError(void); // Win32
-extern int32_t __stdcall FormatMessageA(uint32_t flags, const void *source, uint32_t message_id,
-    uint32_t language_id, char *buffer, uint32_t size, void *arguments); // Win32
-extern void __stdcall SetLastError(uint32_t error_code); // Win32
 
 // blam-cc: no arguments
 // Formats the current Win32 last-error code into a discarded 0x800-byte scratch buffer (the
@@ -33,7 +30,7 @@ void saved_games_report_last_error(void)
     char scratch[0x800];
 
     message_id = GetLastError();
-    FormatMessageA(0x12ff, 0, message_id, 0, scratch, 0x800, 0);
+    FormatMessageA(0x12ff, 0, message_id, 0, (LPSTR)scratch, 0x800, 0);
     SetLastError(0);
     return;
 }

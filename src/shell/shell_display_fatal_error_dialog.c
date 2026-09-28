@@ -27,6 +27,7 @@
 //   written by the dialog proc 0x57e5a0, read here at 0x57ee7c.
 // reconciled: R15 0x00722bc0 fatal_error_remember_choice added to shell.h as int32_t; extern retyped uint32 -> int32
 
+#include "win32.h"
 #include "tags.h"
 #include "dialogs.h"
 #include "memory.h"
@@ -37,7 +38,6 @@
 
 extern int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32_t buffer_capacity, void *module,
                                            char *buffer); // 0x57e110
-extern int32_t __stdcall LoadStringA(void *instance, uint32_t id, char *buffer, int32_t buffer_capacity); // import 0x63a328
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern char *strcat(char *dst, const char *src);                // CRT, statically linked
 extern void shell_registry_set_exit_flag_clean(void); // 0x57ea10
@@ -46,29 +46,7 @@ extern int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void
                                                                  // in ESI, dialog_id/parent on the stack; "dialogs"
                                                                  // module function, not in the function list
 
-extern int32_t __stdcall RegOpenKeyExA(void *key, const char *subkey, uint32_t reserved, uint32_t desired_access,
-                              void **result_key); // import 0x63a014
-extern int32_t __stdcall RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type, uint8_t *data,
-                                 uint32_t *data_size); // import 0x63a018
-extern int32_t __stdcall RegCreateKeyExA(void *key, const char *subkey, uint32_t reserved, char *class_name, uint32_t options,
-                                uint32_t desired_access, void *security_attributes, void **result_key,
-                                uint32_t *disposition); // import 0x63a008
-extern int32_t __stdcall RegSetValueExA(void *key, const char *value_name, uint32_t reserved, uint32_t type,
-                               const uint8_t *data, uint32_t data_size); // import 0x63a00c
-extern int32_t __stdcall RegCloseKey(void *key); // import 0x63a010
 
-extern void *__stdcall LoadIconA(void *instance, const char *name);   // import 0x63a3e4
-extern void *__stdcall LoadCursorA(void *instance, const char *name); // import 0x63a374
-extern int32_t __stdcall RegisterClassExA(win32_wndclassexa *wndclass); // import 0x63a3d8
-extern void *__stdcall CreateWindowExA(uint32_t ex_style, const char *class_name, const char *window_name, uint32_t style,
-                              int32_t x, int32_t y, int32_t width, int32_t height, void *parent, void *menu,
-                              void *instance, void *param); // import 0x63a42c
-extern int32_t __stdcall ShowWindow(void *window, int32_t command); // import 0x63a400
-extern int32_t __stdcall ShowCursor(int32_t show);                  // import 0x63a3f0
-extern int32_t __stdcall DestroyWindow(void *window);               // import 0x63a3d0
-extern int32_t __stdcall UnregisterClassA(const char *class_name, void *instance); // import 0x63a3f8
-extern void *__stdcall DefWindowProcA(void *window, uint32_t message, uint32_t wparam, int32_t lparam); // import 0x63a3c4
-extern void __stdcall ExitProcess(uint32_t exit_code); // import 0x63a2c8
 
 extern void chimera__registry_check_3(void);                  // 0x5226c0 (rasterizer), restores the gamma ramp
 extern void rasterizer_service_deferred_windowed_ops(void);   // 0x5180d0 (rasterizer)
@@ -184,7 +162,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
         sprintf(registry_value_name, "%s %s (0x%04x):%d", graphics_vendor_name, graphics_device_name,
                 graphics_device_id, resource_id);
         RegOpenKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                      0x20019, &key);
+                      0x20019, (PHKEY)&key);
         data_size = 0x10;
         remembered[0] = 0;
         RegQueryValueExA(key, registry_value_name, 0, 0, remembered, &data_size);
@@ -216,7 +194,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
         wndclass.icon = (uint32_t)LoadIconA(shell_instance, (const char *)0x66);
         wndclass.cursor = (uint32_t)LoadCursorA(0, (const char *)0x7f00);
         wndclass.class_name = (uint32_t)"Halo";
-        RegisterClassExA(&wndclass);
+        RegisterClassExA((const WNDCLASSEXA *)&wndclass);
         window = CreateWindowExA(0, "Halo", "Halo", 0x80000000, -0x80000000, -0x80000000, -0x80000000, -0x80000000,
                                   0, 0, shell_instance, 0);
         ShowWindow(window, 5);
@@ -254,7 +232,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
         sprintf(registry_value_name, "%s %s (0x%04x):%d", graphics_vendor_name, graphics_device_name,
                 graphics_device_id, resource_id);
         RegCreateKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                         0, 0x20006, 0, 0, &key, 0);
+                         0, 0x20006, 0, 0, (PHKEY)&key, 0);
         digit_text[0] = 'y';
         digit_text[1] = (char)(result + '0');
         digit_text[2] = 0;

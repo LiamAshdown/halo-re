@@ -20,6 +20,7 @@
 //   0x53e590 read(EDX ref, ECX record, ESI 0x206)     0x53e5a7 seek(EAX write offset, ECX ref)
 //   0x53e5b7 write(EDX ref, ECX record, ESI 0x206)    0x53e5e2 set_length(EAX size-0x206, ESI ref)
 //   0x53e5f6 close(ESI ref). The mutex wait failing returns 0 without releasing it (0x53e625).
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -42,8 +43,6 @@ extern uint8_t file_reference_set_length(int32_t offset, file_reference_record *
 extern void path_append_component(char *destination, const char *component); // 0x555ec0, ESI destination, EBX component
 extern void path_remove_last_component(char *path); // 0x555f80, EBX path
 extern uint8_t file_reference_get_size_by_path(file_reference_record *ref, uint32_t *out_size); // 0x555b00, ESI ref, stack out_size
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
-extern uint32_t __stdcall ReleaseMutex(void *handle); // Win32
 
 // Removes save-slot `slot` from the index file: every 0x206-byte record after it is read and written back one record
 // earlier, then the file is truncated by one record. Returns 1 on success, 0 otherwise.

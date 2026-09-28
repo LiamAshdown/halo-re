@@ -6,6 +6,7 @@
 // deadline passes.
 // register convention: no parameters, no return value.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 
 extern key_block_timer key_block_timers[k_input_key_block_timer_count]; // 0x006b1600
 extern int64_t performance_frequency;                                   // 0x006ac8f8/0x006ac8fc
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);         // 0x0063a0ac IAT
 
 // Frees any key_block_timer entry whose deadline has passed.
 void input_key_block_timers_expire(void)
@@ -28,7 +28,7 @@ void input_key_block_timers_expire(void)
 
     for (i = 0; i < k_input_key_block_timer_count; i++) {
         if (key_block_timers[i].deadline != 0xffffffff) {
-            QueryPerformanceCounter(&counter);
+            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             now = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
             if (key_block_timers[i].deadline <= now) {
                 key_block_timers[i].deadline = 0xffffffff;

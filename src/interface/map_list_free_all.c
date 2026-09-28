@@ -6,6 +6,7 @@
 // path buffer plus the map-list array itself and resets the map list to empty."
 // register convention: none (void).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@ extern map_list_entry *map_list;  // 0x00712dcc
 extern int32_t map_list_count;    // 0x00712dd0
 extern int32_t map_list_capacity; // 0x00712dd4
 
-extern void *__stdcall GlobalFree(void *mem);
 
 // Frees every entry's path buffer, then the map_list array itself, and resets the list to empty.
 void map_list_free_all(void)

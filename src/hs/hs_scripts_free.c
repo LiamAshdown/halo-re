@@ -8,12 +8,12 @@
 // object-list data_arrays invalid.
 // register convention: __cdecl, no parameters.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
 
-extern void *__stdcall GlobalFree(void *memory); // EXTERNAL kernel32
 extern void hs_syntax_node_garbage_collect(void); // 0x00483310, this batch
 extern void hs_dispose_dynamic_globals(void); // 0x0048a130, outside this batch's assigned range
 

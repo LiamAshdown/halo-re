@@ -13,11 +13,11 @@
 // datum_new call is read as a leaked hs_syntax_data pointer (identical pattern in
 // hs_parse_cond_recursive); modeled here as a fresh read of the actual global instead.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // EXTERNAL kernel32
 extern void skip_whitespace(char **cursor); // 0x00486350, this batch
 extern datum_index hs_tokenize(char **cursor); // 0x00486120, this batch
 extern datum_index datum_new(data_array *array); // memory module, 0x004d0480

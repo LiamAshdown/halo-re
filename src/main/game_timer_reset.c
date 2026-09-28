@@ -8,6 +8,7 @@
 // same global (math module).
 // register convention: cdecl, no parameters.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 extern main_globals main_globals_data; // 0x00719700
 extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
 
-extern uint32_t __stdcall QueryPerformanceCounter(int64_t *counter);
 
 // Re-baselines the frame-timing globals (frame and render counters, plus frame_time_ms) to the
 // current high-resolution timestamp.
@@ -25,7 +25,7 @@ void game_timer_reset(void)
 {
     int64_t counter;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     main_globals_data.frame_counter_low = (uint32_t)counter;
     main_globals_data.frame_counter_high = (uint32_t)(counter >> 32);
     main_globals_data.render_counter_low = (uint32_t)counter;

@@ -39,6 +39,8 @@
 // register convention: no arguments. hex_string_to_uint 0x57d7f0 takes the string in EDX;
 //   hex_string_to_bytes 0x57d830 takes the destination in ECX and the source in EDX.
 
+#include "win32.h"
+#include <dsound.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -46,30 +48,6 @@
 #include "shell.h"
 #include <string.h>
 
-extern void __stdcall GlobalMemoryStatus(win32_memory_status *status);        // import 0x63a0a4
-extern void *__stdcall GetCurrentThread(void);                                 // import 0x63a0cc
-extern void *__stdcall GetCurrentProcess(void);                                // import 0x63a2c0
-extern int32_t __stdcall GetThreadPriority(void *thread);                      // import 0x63a188
-extern uint32_t __stdcall GetPriorityClass(void *process);                     // import 0x63a15c
-extern int32_t __stdcall SetPriorityClass(void *process, uint32_t priority_class); // import 0x63a158
-extern int32_t __stdcall SetThreadPriority(void *thread, int32_t priority);    // import 0x63a308
-extern void __stdcall Sleep(uint32_t milliseconds);                            // import 0x63a29c
-extern int32_t __stdcall QueryPerformanceFrequency(large_integer *frequency);  // import 0x63a0c0
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);      // import 0x63a0ac
-extern void *__stdcall LoadLibraryA(const char *file_name);                    // import 0x63a0a0
-extern void *__stdcall GetProcAddress(void *module, const char *proc_name);    // import 0x63a098
-extern int32_t __stdcall FreeLibrary(void *module);                            // import 0x63a2c4
-extern int32_t __stdcall CoInitialize(void *reserved);                         // import 0x63a438
-extern int32_t __stdcall CoCreateInstance(const void *clsid, void *outer, uint32_t context,
-                                          const void *iid, void **result);     // import 0x63a434
-extern void __stdcall CoUninitialize(void);                                    // import 0x63a444
-extern void __stdcall VariantInit(win32_variant *variant);                     // import 0x63a31c
-extern int32_t __stdcall VariantClear(win32_variant *variant);                 // import 0x63a318
-extern int32_t __stdcall WideCharToMultiByte(uint32_t code_page, uint32_t flags, const uint16_t *wide,
-                                             int32_t wide_length, char *multi_byte,
-                                             int32_t multi_byte_length, const char *default_char,
-                                             int32_t *used_default);           // import 0x63a184
-extern int32_t __stdcall GetDeviceID(const void *source_guid, void *result_guid); // 0x6133ec, dsound.lib
 
 extern char *_strlwr(char *string);                                            // 0x6276c6 CRT
 extern int32_t sscanf(const char *buffer, const char *format, ...);            // 0x626572 CRT
@@ -174,7 +152,7 @@ void shell_detect_hardware_specs(void)
     int32_t version_a, version_b, version_c, version_d;
 
     // physical memory
-    GlobalMemoryStatus(&memory_status);
+    GlobalMemoryStatus((LPMEMORYSTATUS)&memory_status);
     if (memory_status.total_physical > k_shell_physical_memory_clamp) {
         memory_status.total_physical = k_shell_physical_memory_clamp;
     }
@@ -188,12 +166,12 @@ void shell_detect_hardware_specs(void)
     SetPriorityClass(process, 0x100);   // REALTIME_PRIORITY_CLASS
     SetThreadPriority(thread, 15);      // THREAD_PRIORITY_TIME_CRITICAL
     Sleep(100);
-    QueryPerformanceFrequency(&frequency);
-    QueryPerformanceCounter(&target);
+    QueryPerformanceFrequency((LARGE_INTEGER *)&frequency);
+    QueryPerformanceCounter((LARGE_INTEGER *)&target);
     target.quad_part = target.quad_part + frequency.quad_part / 4;
     shell_read_time_stamp_counter(&tsc_start);
     do {
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     } while (target.quad_part > counter.quad_part);
     shell_read_time_stamp_counter(&tsc_end);
     cycles = tsc_end.quad_part - tsc_start.quad_part;
@@ -291,12 +269,12 @@ void shell_detect_hardware_specs(void)
     memset(sound_devices, 0, sizeof(sound_devices));
     sound_device_count = 0;
     selected_sound_device = 0;
-    GetDeviceID(dsdevid_default_playback, default_guid);
+    GetDeviceID((LPCGUID)dsdevid_default_playback, (LPGUID)default_guid);
     CoInitialize(0);
 
     provider = 0;
     root = 0;
-    if (CoCreateInstance(clsid_dxdiag_provider, 0, 1 /* CLSCTX_INPROC_SERVER */, iid_dxdiag_provider,
+    if (CoCreateInstance((REFCLSID)clsid_dxdiag_provider, 0, 1 /* CLSCTX_INPROC_SERVER */, (REFIID)iid_dxdiag_provider,
                          (void **)&provider) < 0) {
         CoUninitialize();
         return;
@@ -312,7 +290,7 @@ void shell_detect_hardware_specs(void)
     if (root != 0) {
         devices = 0;
         device = 0;
-        VariantInit(&variant);
+        VariantInit((VARIANTARG *)&variant);
         root->vtable->get_child_container(root, (const uint16_t *)L"DxDiag_DirectSound.DxDiag_SoundDevices",
                                           (void **)&devices);
         if (devices != 0) {
@@ -339,7 +317,7 @@ void shell_detect_hardware_specs(void)
                         if (memcmp(record->guid, default_guid, 0x10) == 0) {
                             selected_sound_device = (int32_t)device_index;
                         }
-                        VariantClear(&variant);
+                        VariantClear((VARIANTARG *)&variant);
                     }
 
                     device->vtable->get_prop(device, (const uint16_t *)L"szDescription", &variant);
@@ -347,7 +325,7 @@ void shell_detect_hardware_specs(void)
                         WideCharToMultiByte(0, 0, (const uint16_t *)variant.value, -1, text, sizeof(text), 0, 0);
                         strncpy(record->description, text, 0x1f);
                         record->description[0x1f] = 0;
-                        VariantClear(&variant);
+                        VariantClear((VARIANTARG *)&variant);
                     }
 
                     // szHardwareID "pci\ven_xxxx&dev_xxxx&subsys_xxxxxxxx&rev_xx..."
@@ -366,7 +344,7 @@ void shell_detect_hardware_specs(void)
                         record->subsystem_id = match != 0 ? (uint32_t)hex_string_to_uint(match + 7) : 0;
                         match = strstr(text, "rev_");
                         record->revision = match != 0 ? (uint32_t)hex_string_to_uint(match + 7) : 0; // +7, see header
-                        VariantClear(&variant);
+                        VariantClear((VARIANTARG *)&variant);
                     }
 
                     // szDriverVersion "a.b.c.d"
@@ -377,7 +355,7 @@ void shell_detect_hardware_specs(void)
                         sscanf(text, "%d.%d.%d.%d", &version_a, &version_b, &version_c, &version_d);
                         record->driver_version.parts.high_part = (version_a << 16) + version_b;
                         record->driver_version.parts.low_part = (uint32_t)((version_c << 16) + version_d);
-                        VariantClear(&variant);
+                        VariantClear((VARIANTARG *)&variant);
                     }
 
                     device->vtable->release(device);

@@ -8,6 +8,7 @@
 // eax ; call input_guid_parse_ansi`).
 // register convention: ansi string in ESI (unaff_ESI); output input_guid pointer on the stack.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 #include "saved_games.h"
 #include "input.h"
 
-extern int32_t __stdcall CLSIDFromString(uint16_t *wide_string, input_guid *out_guid); // 0x63a440 IAT
 
 // blam-cc: ansi string in ESI
 // Widens ansi (up to 0x26 characters; longer strings are truncated to 0x26, matching the
@@ -43,7 +43,7 @@ uint8_t input_guid_parse_ansi(input_guid *out_guid, char *ansi)
             wide[i] = (uint8_t)ansi[i];
         }
     }
-    hresult = CLSIDFromString(wide, out_guid);
+    hresult = CLSIDFromString(wide, (LPCLSID)out_guid);
     return hresult >= 0;
 }
 

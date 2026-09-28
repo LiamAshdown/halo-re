@@ -10,13 +10,13 @@
 //   // blam-cc: EBX -> history
 // UNSURE: none.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalFree(void *memory);
 
 // Frees every node of history's linked list and then the history container itself.
 void player_update_history_destroy(player_update_history *history)

@@ -18,17 +18,12 @@
 // prologue reads [esp+0x10] (hwnd), [esp+0x18] (message), [esp+0x1c]/[esp+0x20] (wParam/lParam,
 // offsets after the four register pushes) with no register-passed values.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "interface.h"
 #include "dialogs.h"
 
-extern void *__stdcall GetPropA(void *hwnd, const char *name);              // import 0x63a324
-extern void *__stdcall RemovePropA(void *hwnd, const char *name);           // import 0x63a330
-extern int32_t __stdcall CallWindowProcA(void *prev_wnd_proc, void *hwnd, uint32_t message, uint32_t wparam,
-                                          int32_t lparam);                  // import 0x63a384
-extern int32_t __stdcall SetWindowLongA(void *hwnd, int32_t index, int32_t value); // import 0x63a3f4
-extern uint32_t __stdcall SetTextColor(void *hdc, uint32_t color);          // import 0x63a090
 
 extern int32_t dialog_hyperlink_hovered; // 0x00722bc8, this module; owned by
                                          // dialog_static_hyperlink_subclass_proc 0x57e350

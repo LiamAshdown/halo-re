@@ -12,6 +12,7 @@
 // the note used "out-handle" (hyphen) where the parameter is named out_handle (underscore), so
 // the checker's alias match failed even though the code already used it correctly.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +23,6 @@ extern int32_t network_mutex_name_counter; // 0x006f0cac
 
 extern network_mutex_record *network_mutex_slot_allocate(void); // 0x440420, this module
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
-extern void *__stdcall CreateMutexA(void *security_attributes, int32_t initial_owner, const char *name);
 
 // blam-cc: EDI -> out_handle
 int32_t mutex_create(network_mutex_record **out_handle)

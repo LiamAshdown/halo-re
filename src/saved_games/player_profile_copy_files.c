@@ -23,6 +23,7 @@
 // register convention: source directory in ESI; destination directory as the one stack
 // argument.
 
+#include "win32.h"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -32,10 +33,6 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern int32_t __stdcall CopyFileA(const char *existing_path, const char *new_path, int32_t fail_if_exists); // Win32
-extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *out_data); // Win32
-extern int32_t __stdcall FindNextFileA(void *handle, win32_find_dataa *out_data); // Win32
-extern int32_t __stdcall FindClose(void *handle); // Win32
 extern int32_t __snprintf(char *buffer, uint32_t count, const char *format, ...); // CRT
 extern char *_strrchr(char *s, int32_t c); // CRT
 
@@ -90,7 +87,7 @@ uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
     }
 
     __snprintf(search_path, 0xff, "%scheckpoints\\*.sav", source_dir);
-    find_handle = FindFirstFileA(search_path, &find_data);
+    find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)-1) {
         do {
             __snprintf(dest_path, 0xff, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
@@ -99,7 +96,7 @@ uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
             if (copy_ok == 0) {
                 break;
             }
-        } while (FindNextFileA(find_handle, &find_data) != 0);
+        } while (FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data) != 0);
         FindClose(find_handle);
     }
     if (copy_ok == 0) {
@@ -107,7 +104,7 @@ uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
     }
 
     __snprintf(search_path, 0xff, "%scheckpoints\\*.bin", source_dir);
-    find_handle = FindFirstFileA(search_path, &find_data);
+    find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)-1) {
         do {
             __snprintf(dest_path, 0xff, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
@@ -115,7 +112,7 @@ uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
             if ((uint8_t)CopyFileA(source_path, dest_path, 0) == 0) {
                 break;
             }
-        } while (FindNextFileA(find_handle, &find_data) != 0);
+        } while (FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data) != 0);
         FindClose(find_handle);
     }
     return result;

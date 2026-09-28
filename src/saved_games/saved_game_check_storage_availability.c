@@ -12,6 +12,7 @@
 // leftover register value.
 // register convention: __cdecl, no arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,12 +23,9 @@
 
 extern char savegames_directory[0x100]; // 0x00721549
 
-extern int32_t __stdcall GetDiskFreeSpaceExA(const char *directory, uint64_t *free_bytes_available,
-    uint64_t *total_bytes, uint64_t *total_free_bytes); // Win32
 extern int32_t savegame_find_first(const char *root, void *out_find_data); // 0x551bc0, game module
 extern uint8_t savegame_find_next(void *out_find_data, int32_t handle); // 0x551d30, game module
 extern uint8_t user_save_path_remove(int32_t handle); // 0x5516d0, game module
-extern int32_t __stdcall FindClose(void *handle); // Win32
 
 // blam-cc: __cdecl, no arguments
 // Returns _saved_game_storage_ok if there is at least 0x2800000 bytes of free disk space.
@@ -46,7 +44,7 @@ int32_t saved_game_check_storage_availability(void)
     uint8_t found;
     uint8_t removed;
 
-    ok = GetDiskFreeSpaceExA(savegames_directory, &free_bytes_available, &total_bytes, &total_free_bytes);
+    ok = GetDiskFreeSpaceExA(savegames_directory, (PULARGE_INTEGER)&free_bytes_available, (PULARGE_INTEGER)&total_bytes, (PULARGE_INTEGER)&total_free_bytes);
     if (ok != 0 && (free_bytes_available >> 32) == 0 && (uint32_t)free_bytes_available < 0x2800000) {
         return _saved_game_storage_ok;
     }

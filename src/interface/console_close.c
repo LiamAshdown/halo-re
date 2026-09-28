@@ -6,6 +6,7 @@
 // with bVisible set to 0 instead of 1, and only acts when `console` is the currently active one.
 // register convention: terminal_console* in EAX (in_EAX). // blam-cc: EAX -> console
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,8 +18,6 @@ extern terminal_console *console_active; // 0x006b2f0c
 extern uint8_t console_win32_attached;   // 0x006b2f18
 extern void *console_output_handle;      // 0x006b2dd0, win32 console output handle
 
-extern int32_t __stdcall GetConsoleCursorInfo(void *console_output, win32_console_cursor_info *info);
-extern int32_t __stdcall SetConsoleCursorInfo(void *console_output, win32_console_cursor_info *info);
 
 // Deactivates `console` if it is the currently active developer console: hides the win32
 // console cursor (when one is attached) and clears console_active.

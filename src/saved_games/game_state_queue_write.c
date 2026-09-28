@@ -7,6 +7,7 @@
 // register convention: __cdecl (Ghidra-recognized); final_flag is the recognized parameter.
 // Returns a bool in AL only (mov al,1 at 0x538763); the caller tests AL (0x5381d7).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,8 +23,6 @@ extern uint8_t *game_state_write_buffer; // 0x006e2de4
 extern void *game_state_write_event; // 0x006e2ffc
 extern uint8_t game_state_write_is_checkpoint; // 0x006e3001
 
-extern void __stdcall Sleep(uint32_t milliseconds);
-extern int32_t __stdcall SetEvent(void *event);
 extern void *memcpy(void *dest, const void *src, uint32_t count);
 
 uint8_t game_state_queue_write(uint8_t final_flag)

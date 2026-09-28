@@ -11,17 +11,13 @@
 //   returned when either test failed).
 // register convention: no parameters.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 
-typedef void *HDC;
-typedef void *HWND;
 
-extern HDC __stdcall GetDC(HWND wnd);
-extern long __stdcall ReleaseDC(HWND wnd, HDC dc);
-extern long __stdcall SetDeviceGammaRamp(HDC dc, void *ramp);
 extern double log(double x);                    // inline fldln2 / fyl2x
 extern double pow(double base, double exponent); // 0x6283c0 CRT _CIpow, x87 operands
 

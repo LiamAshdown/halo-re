@@ -17,6 +17,7 @@
 // UNSURE: the hostent parsing (`**(hostent+0xc)`, i.e. h_addr_list[0] dereferenced) is a raw
 // Winsock structure walk with no Blam type, same treatment as network_local_hostent_get.c.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,10 +33,7 @@ extern int32_t network_initialized_at_ms;  // 0x006f14c0, UNSURE
 
 extern int network_local_hostent_get(void **out_hostent); // 0x441540, this module
 extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
-extern int32_t __stdcall WSAStartup(uint16_t version_requested, void *wsa_data);
-extern void *__stdcall CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
-                           void *parameter, uint32_t creation_flags, uint32_t *thread_id);
-extern void join_game_server_browser_tick(void); // foreign module (autopatch, > 0x4b80f0)
+extern uint32_t __stdcall autopatch_proxy_initialize(void *parameter); // 0x5771c0, the proxy thread
 
 int16_t network_initialize(void)
 {
@@ -54,7 +52,7 @@ int16_t network_initialize(void)
     }
     if (network_winsock_initialized == 0) {
         memset(wsa_data, 0, sizeof(wsa_data));
-        wsa_result = WSAStartup(2, wsa_data);
+        wsa_result = WSAStartup(2, (LPWSADATA)wsa_data);
         if ((int16_t)wsa_result == 0) {
             if (network_local_address == 0) {
                 if (network_local_hostent_get(&hostent) == 0) {
@@ -68,7 +66,8 @@ int16_t network_initialize(void)
                 network_resolved_local_address = network_local_address;
             }
         }
-        CreateThread(0, 0x10400, join_game_server_browser_tick, 0, 0, &thread_id);
+        CreateThread(0, 0x10400, autopatch_proxy_initialize, 0, 0, &thread_id); // FIXED 2026-09-28: 0x4416ad pushes
+            // 0x5771c0 (autopatch_proxy_initialize); the C started join_game_server_browser_tick on the thread
         network_initialized_at_ms = time_query_performance_counter_ms();
         network_winsock_initialized = 1;
         result = (int16_t)wsa_result;

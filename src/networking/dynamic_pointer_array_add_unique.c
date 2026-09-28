@@ -23,15 +23,13 @@
 // UNSURE: the `if (index != -1) ... else break;` inside the dedup loop is unreachable in
 // practice (index only ever counts up from 0), but is preserved verbatim for fidelity.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *__stdcall GlobalFree(void *memory); // Win32
-extern void *__stdcall GlobalReAlloc(void *memory, uint32_t bytes, uint32_t flags);
 
 extern uint8_t server_browser_server_passes_filter(void *server_record); // 0x4b7080, this module
 

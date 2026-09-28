@@ -18,14 +18,13 @@
 // struct individually -- so the struct below embeds s_network_address rather than a flat array;
 // the same typedef is duplicated there.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *__stdcall GlobalFree(void *memory); // Win32
 
 
 int32_t network_connection_endpoint_set(const uint32_t *source, network_client_globals *connection)

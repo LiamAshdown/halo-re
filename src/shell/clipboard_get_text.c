@@ -7,19 +7,13 @@
 // GetClipboardData is then called unconditionally regardless of whether the clipboard was
 // actually opened; preserved exactly as decompiled (likely a genuine bug in the original).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __stdcall IsClipboardFormatAvailable(uint32_t format);
-extern int32_t __stdcall OpenClipboard(void *hwnd);
-extern void *__stdcall GetClipboardData(uint32_t format);
-extern void *__stdcall GlobalLock(void *handle);
-extern int32_t __stdcall GlobalUnlock(void *handle);
-extern int32_t __stdcall CloseClipboard(void);
-extern uint32_t __stdcall GetLastError(void);
 extern char *_strncpy(char *dest, const char *src, uint32_t count);
 
 extern void *shell_window; // 0x007461c4

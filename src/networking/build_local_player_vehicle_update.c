@@ -19,6 +19,7 @@
 // not a tag reference. types/game.h's comment on that field is left alone since it is shared by
 // other call sites this batch does not re-derive.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,7 +32,6 @@ extern uint8_t *object_pooled_node_globals; // 0x00687130
 extern int32_t network_vehicle_ack_resend_interval_ms; // 0x00689488
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 
-extern uint32_t __stdcall GetTickCount(void);
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,

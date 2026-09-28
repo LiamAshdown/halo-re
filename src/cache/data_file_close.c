@@ -12,11 +12,10 @@
 // field itself afterward (only file_id/data_offset/table_offset/entry_count are zeroed);
 // reproduced exactly as decompiled, not "fixed".
 
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern void __stdcall CloseHandle(void *object);
-extern void *__stdcall GlobalFree(void *memory);
 
 extern void cache_io_wait_all_requests(void); // this module, 0x4432b0
 

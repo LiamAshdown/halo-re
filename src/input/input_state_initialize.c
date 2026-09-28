@@ -8,6 +8,7 @@
 //   out/phase4/input_types_notes.md).
 // register convention: no parameters, no return value.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -21,7 +22,6 @@
 extern input_abstraction_globals input_globals; // 0x00710328
 extern int32_t last_input_device;                            // 0x0087a460
 extern int64_t performance_frequency;                         // 0x006ac8f8/0x006ac8fc
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
 
 // One-time input subsystem initializer: zeroes the whole input abstraction block (settings,
 // states, binding tables, scan state), reseeds the millisecond time base from
@@ -36,7 +36,7 @@ void input_state_initialize(void)
     last_input_device = 0;
     input_globals.unknown_2214 = 1;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     input_globals.time_base = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
 
     input_globals.scan_result.device_type = 0;   // 0x007127c4 (dword with device_index)

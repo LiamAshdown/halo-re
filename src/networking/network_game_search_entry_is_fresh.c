@@ -12,13 +12,13 @@
 // stale path); simplified to a plain 0/1 return, matching the "callers only read the low byte"
 // idiom used throughout this module.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 // blam-cc: ESI -> entry
@@ -31,7 +31,7 @@ uint8_t network_game_search_entry_is_fresh(network_game_search_entry *entry)
     if (entry->in_use == 0) {
         return 0;
     }
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     elapsed_ms = now_ms - entry->received_ms;
     if (elapsed_ms < 0x1771) {

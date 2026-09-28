@@ -17,6 +17,7 @@
 // reconciled: R10 profile_directory is char[0x105] (k_profile_directory_storage_size; shell zeroes 0x41 dwords + 1 byte at 0x540ef9)
 // reconciled: R01 0x0087ac06 console_verbosity_low -> debug_log_level (uint8)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -46,10 +47,6 @@ extern uint8_t console_debug_flag_5;          // 0x0087ac05
 extern uint8_t debug_log_level;               // 0x0087ac06 (R01; mov BYTE PTR ds:0x87ac06,bl at 0x540fac)
 extern uint16_t console_debug_word_8;         // 0x0087ac08 (16 bit store, mov word [0x87ac08],bx at 0x540fcc)
 
-extern void *__stdcall LoadLibraryA(const char *file_name);
-extern void *__stdcall GetProcAddress(void *module, const char *proc_name);
-extern uint32_t __stdcall QueryPerformanceFrequency(large_integer *frequency);
-extern uint32_t __stdcall timeBeginPeriod(uint32_t period_ms);
 
 extern uint8_t data_file_open(void);                    // 0x00442840
 extern void directory_create_recursive(char *path);     // 0x00449250
@@ -69,7 +66,7 @@ uint8_t engine_initialize_subsystems(void)
     uint32_t startup_ok;
 
     timeBeginPeriod(1);
-    QueryPerformanceFrequency(&performance_frequency);
+    QueryPerformanceFrequency((LARGE_INTEGER *)&performance_frequency);
 
     for (i = 0; i < 0x105; i++) { // rep stosd x 0x41 + stosb
         profile_directory[i] = 0;

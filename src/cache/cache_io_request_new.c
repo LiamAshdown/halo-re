@@ -14,10 +14,10 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern void __stdcall SetEvent(void *event);
 
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 extern void *cache_io_event;                // 0x006ac498

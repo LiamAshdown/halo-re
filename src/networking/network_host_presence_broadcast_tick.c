@@ -18,6 +18,7 @@
 // the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
 // the encoded bits from challenge; the C passed placeholders or dropped the arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
@@ -25,7 +26,6 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern char cache_file_request_map(int32_t unknown); // 0x442640, UNSURE argument
 extern char network_build_string[]; // 0x00719879
@@ -45,7 +45,7 @@ void network_host_presence_broadcast_tick(network_client_globals *client)
     int32_t bits_to_send;
     char retransmit_ok;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     if (client->unknown_ed4 + 1000 < now_ms) {

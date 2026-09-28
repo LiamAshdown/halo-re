@@ -18,6 +18,7 @@
 // UNSURE: the GlobalAlloc size computed for the hostname copy (0x4c85b3..0x4c85c1) is
 // strlen(address)+1, matching a plain strcpy of address into the new buffer, immediately below.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "interface.h"
@@ -41,10 +42,6 @@ extern void interface_loading_screen_reset(void); // 0x4978d0, foreign
 extern void interface_loading_screen_set_text(const char *text); // 0x4978a0, foreign; blam-cc: EAX -> text
 extern uint32_t __stdcall network_game_client_connect_by_hostname(char *host_port_string); // 0x4c83e0, this module (thread proc)
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void __stdcall Sleep(uint32_t milliseconds);
-extern void *__stdcall CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
-                           void *parameter, uint32_t creation_flags, uint32_t *thread_id);
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal,
                            uint8_t is_error); // 0x498f20, foreign (interface module)
 

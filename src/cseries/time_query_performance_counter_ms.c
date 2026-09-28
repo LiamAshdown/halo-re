@@ -18,11 +18,11 @@
 // equivalence) and by src/cache/sound_cache_touch.c and src/cache/texture_cache_get.c, which
 // each carry their own inlined copy of this exact function's body.
 
+#include "win32.h"
 #include "tags.h"
 #include "math.h"
 #include "cseries.h"
 
-extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformanceFrequency()
                                        // result, owned by this module (see types/cseries.h)
 
@@ -32,7 +32,7 @@ uint32_t time_query_performance_counter_ms(void)
 {
     large_integer counter;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     return (uint32_t)((counter.quad_part * 1000) / performance_frequency);
 }
 

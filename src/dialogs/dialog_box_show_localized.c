@@ -18,19 +18,10 @@
 //   shell_display_fatal_error_dialog, with ESI = strings_module (0x00722bb8), EBX = 0x57e5a0
 //   (the fatal error dialog proc), template id 0x66, parent = the window.
 
+#include "win32.h"
 #include "tags.h"
 #include "dialogs.h"
 
-extern void *__stdcall FindResourceExA(void *module, const char *type, const char *name,
-                                        uint16_t language); // import 0x63a30c
-extern void *__stdcall LoadResource(void *module, void *resource_info); // import 0x63a18c
-extern void *__stdcall LockResource(void *resource_data);               // import 0x63a190
-extern int32_t __stdcall DialogBoxIndirectParamA(void *module, const void *dialog_template, void *parent_window,
-                                                  dialog_window_proc_fn dialog_proc,
-                                                  int32_t init_param); // import 0x63a388
-extern int32_t __stdcall DialogBoxParamA(void *module, const char *template_name, void *parent_window,
-                                          dialog_window_proc_fn dialog_proc,
-                                          int32_t init_param); // import 0x63a38c
 
 extern uint32_t shell_language_id; // 0x0069ff20, shell-owned; see types/dialogs.h
 
@@ -55,7 +46,7 @@ int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *modul
         if (resource_data != 0) {
             dialog_template = LockResource(resource_data);
             if (dialog_template != 0) {
-                result = DialogBoxIndirectParamA(module, dialog_template, parent_window, dialog_proc, 0);
+                result = DialogBoxIndirectParamA(module, dialog_template, parent_window, (DLGPROC)dialog_proc, 0);
                 if (result != k_dialog_box_failed) {
                     return result;
                 }
@@ -71,7 +62,7 @@ int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *modul
             if (resource_data != 0) {
                 dialog_template = LockResource(resource_data);
                 if (dialog_template != 0) {
-                    result = DialogBoxIndirectParamA(module, dialog_template, parent_window, dialog_proc, 0);
+                    result = DialogBoxIndirectParamA(module, dialog_template, parent_window, (DLGPROC)dialog_proc, 0);
                     if (result != k_dialog_box_failed) {
                         return result;
                     }
@@ -80,7 +71,7 @@ int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *modul
         }
     }
 
-    result = DialogBoxParamA(module, template_name, parent_window, dialog_proc, 0);
+    result = DialogBoxParamA(module, template_name, parent_window, (DLGPROC)dialog_proc, 0);
     return result;
 }
 

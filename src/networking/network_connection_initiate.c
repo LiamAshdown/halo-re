@@ -46,15 +46,14 @@
 // constant 1, those three bytes are always zero in practice, so this is written as a plain
 // zero-extended `(int32_t)is_local_connection` with no behaviour lost.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
-extern uint32_t __stdcall inet_addr(const char *ip_string); // Winsock
 extern int32_t network_game_socket_port; // 0x00698208, port of network_game_socket (0x006f14c4)
 extern int16_t network_join_error_code; // 0x00718fa4, the pending join/disconnect error
                                         // string index; -1 means none. WORD-sized everywhere
@@ -85,7 +84,7 @@ int32_t network_connection_initiate(network_client_globals *connection, const ui
     attempt = &connection->connect_attempt;
     attempt->unknown_00 = 0;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     started_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     attempt->elapsed_counter = 0;

@@ -4,6 +4,7 @@
 // evidence: out/phase4/game_functions.md ("Frees and resets both the server-side and client-side
 // network update-queue allocations"); types/game.h globals list.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@ extern uint8_t update_client_initialized;      // 0x006f7e98
 extern int32_t update_client_base_tick;         // 0x006f7e9c
 extern int32_t update_client_unknown_ea0;        // 0x006f7ea0
 
-extern void *__stdcall GlobalFree(void *ptr);
 
 // Frees update_server_queues and update_client_queues (each preceded by a 14-dword zero pass
 // over their data_array headers, matching Ghidra literally) and resets every bookkeeping global.

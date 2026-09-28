@@ -21,6 +21,7 @@
 //   the numeric HRESULT-shaped return constants (0x57 = ERROR_INVALID_PARAMETER,
 //   0x80004005 = E_FAIL) are Win32/COM values, not reinterpreted.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,13 +33,6 @@ extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacit
     // UNSURE: EAX -> text, ECX -> length (guessed -- writes the "Name=" info file)
 extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
 extern char *_strncpy(char *dest, const char *src, uint32_t count); // MSVC CRT
-extern uint32_t __stdcall GetFileAttributesA(const char *path); // Win32
-extern uint32_t __stdcall CreateDirectoryA(const char *path, void *security_attributes); // Win32
-extern void *__stdcall CreateFileA(const char *path, uint32_t access, uint32_t share_mode,
-    void *security_attributes, uint32_t creation_disposition, uint32_t flags, void *template_file); // Win32
-extern uint32_t __stdcall WriteFile(void *file, const void *buffer, uint32_t bytes_to_write,
-    uint32_t *bytes_written, void *overlapped); // Win32
-extern uint32_t __stdcall CloseHandle(void *handle); // Win32
 
 // blam-cc: EAX -> save_game_name, stack -> root_path, mode, out_path, out_path_size
 // FIXED (step 1, objdump -d 0x551710..0x55199d): EAX is the save game's Unicode name -- the source of the ASCII name

@@ -33,11 +33,10 @@
 //   The failure paths free `mesh->points` / `mesh->indices` without clearing the now-dangling
 //   pointers in `*mesh` -- kept as-is, matching the original (not "fixed").
 
+#include "win32.h"
 #include "tags.h"
 #include "math.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 import thunk
-extern void *__stdcall GlobalFree(void *block); // 0x0063a0bc import thunk; returns NULL on success, like the Win32 original
 extern void sphere_mesh_build_face(int16_t *next_point_index, sphere_mesh *mesh, int16_t vertex_a,
                                     int16_t vertex_b, int16_t apex, int16_t *strip_cursor,
                                     sphere_mesh_edge_cache *edge_cache); // 0x4ca5f0

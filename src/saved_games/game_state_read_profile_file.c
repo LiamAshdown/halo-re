@@ -9,6 +9,7 @@
 // this one raises a fatal error dialog instead of returning a status.
 // register convention: name in EAX, size in EDI, buffer is the recognized stack parameter.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,10 +21,6 @@
 extern char game_state_core_directory[0x100]; // 0x006e2efc
 
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
-extern void *__stdcall CreateFileA(const char *path, uint32_t access, uint32_t share_mode,
-    void *security_attributes, uint32_t creation_disposition, uint32_t flags, void *template_file); // Win32
-extern uint32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // Win32
-extern uint32_t __stdcall CloseHandle(void *handle); // Win32
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 
 // blam-cc: name in EAX, size in EDI, then the recognized stack parameter (buffer)

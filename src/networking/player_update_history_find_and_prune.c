@@ -6,13 +6,13 @@
 // register convention: none; __cdecl, all three parameters on the stack.
 // UNSURE: none.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalFree(void *memory);
 
 // Walks history's linked list looking for the node whose update_id equals target_id. If prune
 // is set and a match is found, frees every node from the head through the match (inclusive) and

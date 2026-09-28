@@ -13,18 +13,13 @@
 // blam-cc: id in EAX, language in CX (low word of ECX), buffer_capacity in EBX, module in EDI,
 //   buffer on the stack.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *__stdcall FindResourceExA(void *module, const char *type, const char *name, uint16_t language); // import 0x63a30c
-extern void *__stdcall LoadResource(void *module, void *resource_info);                                       // import 0x63a18c
-extern void *__stdcall LockResource(void *resource_data);                                                     // import 0x63a190
-extern int32_t __stdcall WideCharToMultiByte(uint32_t code_page, uint32_t flags, const uint16_t *wide_str, int32_t wide_len,
-                                    char *multi_byte_str, int32_t multi_byte_capacity, const char *default_char,
-                                    int32_t *used_default_char); // import 0x63a184
 
 // Loads Win32 string-table resource entry `id` (block (id>>4)+1, index id&0xf) from `module` for
 // the given language, converting it to ANSI into `buffer` (capacity `buffer_capacity`).

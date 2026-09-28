@@ -9,6 +9,7 @@
 //   and loses handle and pixels again; its D3D texture (+0x28) is released; the entry is deleted.
 // blam-cc: stack -> handle (cdecl)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -16,8 +17,6 @@
 
 extern data_array *texture_cache_entries; // 0x006ac538
 extern void *texture_cache; // 0x006ac540
-extern void __stdcall Sleep(uint32_t milliseconds);
-extern void *__stdcall GlobalFree(void *memory);
 extern void cache_evict_entry(datum_index handle, void *self); // 0x4d1c20, blam-cc: EBX -> handle, EDI -> self
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array, EDX -> handle
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);

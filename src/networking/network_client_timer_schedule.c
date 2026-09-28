@@ -13,13 +13,13 @@
 // outside this task's range); called here with no visible argument, reconstructed as taking
 // `client`, matching that function's own single-parameter signature.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
 
@@ -31,7 +31,7 @@ void network_client_timer_schedule(int32_t delay_ms, int32_t context, network_cl
     large_integer counter;
     int32_t now_ms;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     timer = &client->timer;

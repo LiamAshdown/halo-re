@@ -34,6 +34,7 @@
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; the separate iterator_signature local is folded into it
 // reconciled: R10 profile_directory is char[0x105] (k_profile_directory_storage_size; shell zeroes 0x41 dwords + 1 byte at 0x540ef9)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -100,10 +101,6 @@ extern int32_t rasterizer_present_counter_low;              // 0x0069c648, forei
 extern int32_t rasterizer_present_counter_high;             // 0x0069c64c
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, foreign (render)
 
-extern uint32_t __stdcall QueryPerformanceCounter(int64_t *counter);                  // import 0x63a0ac
-extern void __stdcall GetLocalTime(void *system_time);                      // import 0x63a10c
-extern uint32_t __stdcall MsgWaitForMultipleObjects(uint32_t count, const void *handles,
-    int32_t wait_all, uint32_t milliseconds, uint32_t wake_mask);           // import 0x63a40c
 extern void console_initialize(void);                                       // 0x4c62d0 (Ghidra splits it at 0x4c62f0 / 0x4c6340)
 extern uint32_t network_bandwidth_graph_reset(void);                        // 0x4d7980, foreign (networking)
 extern void ui_chat_window_reset_position(void);                            // 0x4aa6b0, foreign (interface)
@@ -231,13 +228,13 @@ void main_loop(void)
     int32_t elapsed_ms;
     int32_t i;
 
-    GetLocalTime(local_time);
+    GetLocalTime((LPSYSTEMTIME)local_time);
     strncpy(main_globals_data.scenario_path, "levels\\b30\\b30", 0xff);
     main_globals_data.scenario_path[0xff] = 0;
     main_globals_data.return_to_main_menu = 1;
     main_globals_data.switch_structure_bsp_index = -1;
     main_globals_data.time_is_running = 1;
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     main_globals_data.last_activity_time_ms = (int32_t)((counter * 1000) / performance_counter_frequency);
 
     console_initialize();
@@ -400,7 +397,7 @@ void main_loop(void)
 
         if (event_queue.enabled != 0) {
             previous_queue_time = event_queue.start_time;
-            QueryPerformanceCounter(&counter);
+            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             event_queue.start_time = (uint32_t)((counter * 1000) / performance_counter_frequency);
             if (event_queue.last_event_time < previous_queue_time && event_queue.enabled != 0) {
                 memset(&idle_event, 0, sizeof(idle_event));
@@ -464,20 +461,20 @@ void main_loop(void)
         interface_tick();
 
         if (input_globals.idle == 0 || console_globals_data.active != 0) {
-            QueryPerformanceCounter(&counter);
+            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             main_globals_data.last_activity_time_ms =
                 (int32_t)((counter * 1000) / performance_counter_frequency);
         } else if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0) &&
                    game_time->paused == 0 && cinematic_globals[9] != 0) {
-            QueryPerformanceCounter(&counter);
+            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             main_globals_data.last_gameplay_time_ms =
                 (int32_t)((counter * 1000) / performance_counter_frequency);
         } else if (main_globals_data.idle_timeout_ms > 0) {
-            QueryPerformanceCounter(&counter);
+            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             idle_remaining = main_globals_data.idle_timeout_ms -
                 (int32_t)((counter * 1000) / performance_counter_frequency) +
                 main_globals_data.last_activity_time_ms;
-            QueryPerformanceCounter(&counter);
+            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             if (idle_remaining <= 0 &&
                 main_globals_data.last_gameplay_time_ms -
                     (int32_t)((counter * 1000) / performance_counter_frequency) +
@@ -609,7 +606,7 @@ void main_loop(void)
         if (main_globals_data.disable_frame_output != 0) {
             goto frame_end;
         }
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         if (game_time->paused == 0 && console_globals_data.active == 0) {
             leftover_time = game_time->leftover_time;
             render_time = counter - ((int64_t)main_globals_data.render_counter_high << 32 |
@@ -642,7 +639,7 @@ void main_loop(void)
         }
         if (main_globals_data.reset_frame_timers != 0) {
             main_globals_data.reset_frame_timers = 0;
-            QueryPerformanceCounter(&counter);
+            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             main_globals_data.frame_counter_low = (uint32_t)counter;
             main_globals_data.frame_counter_high = (uint32_t)(counter >> 32);
             main_globals_data.render_counter_low = (uint32_t)counter;
@@ -655,7 +652,7 @@ void main_loop(void)
                 (main_globals_data.game_connection > 0 && main_globals_data.game_connection <= 2) ? 20 : 100,
                 0xff /* QS_ALLINPUT */);
         }
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         elapsed_ms = (int32_t)((counter * 1000) / performance_counter_frequency) -
             frame_rate_average_data.sample_time_ms;
         frame_rate_average_data.history[0] = elapsed_ms;

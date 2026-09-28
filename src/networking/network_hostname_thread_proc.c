@@ -6,6 +6,7 @@
 // already recovered the full __stdcall signature and both Win32 calls by name.
 // register convention: __stdcall, one recognized stack parameter (hostname_buffer).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -14,8 +15,6 @@
 
 extern uint8_t network_hostname_ready; // 0x006f14cc
 
-extern int32_t __stdcall gethostname(char *name, int32_t buffer_length);
-extern void __stdcall ExitThread(uint32_t exit_code);
 
 void network_hostname_thread_proc(char *hostname_buffer)
 {

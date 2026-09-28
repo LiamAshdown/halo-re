@@ -22,6 +22,7 @@
 // zero-fill loops (the second of which never executes, since its own counter is initialized to
 // 0) are preserved exactly, including the dead second loop.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,7 +32,6 @@
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint32_t game_time; // 0x006f1d6c + 0xc, UNSURE name/owner
 extern random_seed random_seed_global; // 0x00719cd0
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern void network_disconnect_notify_dropped_machines(network_client_globals *client); // 0x4d9340
 extern void update_client_advance_read_cursor(void *payload); // 0x4734b0, UNSURE argument; not in this batch
@@ -88,7 +88,7 @@ int32_t network_game_state_update_receive(network_client_globals *client, uint8_
     update_client_advance_read_cursor(local_buffer); // UNSURE argument
     client->unknown_ecc = *(uint32_t *)record;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     client->unknown_ed0 = now_ms;
     return 1;

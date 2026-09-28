@@ -40,6 +40,7 @@
 // the selection with list_definition in EAX; the pending message record is 0x00718fac (all four
 // fields forwarded), not 0x00718fa4 (objdump 0x497f6d..0x49816a).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -73,9 +74,6 @@ extern int16_t quit_confirm_error_unknown_ae;   // 0x00718fae
 extern uint8_t quit_confirm_error_modal;        // 0x00718fb0
 extern uint8_t quit_confirm_error_is_error;     // 0x00718fb1
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
-extern int32_t __stdcall GetExitCodeThread(void *thread, uint32_t *exit_code);
-extern int32_t __stdcall CloseHandle(void *handle);
 extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error); // 0x498f20
 extern uint8_t ui_check_for_pause_game(void); // 0x49c1a0
 extern void virtual_keyboard_process_input(void); // 0x4a8be0
@@ -117,7 +115,7 @@ void interface_tick(void)
     // UNSURE note in the file header -- the last use is preserved literally rather than resolved.
     uint8_t event_scratch[16] = {0};
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     ui_time_milliseconds = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     if (loading_thread != (loading_thread_record *)0) {

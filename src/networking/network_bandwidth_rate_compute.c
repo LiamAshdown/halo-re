@@ -19,6 +19,7 @@
 // or register game involved; preserved exactly either way, per the task's no-invented-behaviour
 // rule.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,7 +27,6 @@
 #include "networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 // Reinterprets a possibly-wrapped int32 millisecond/byte counter as unsigned, the way this
 // function's disassembly does with an explicit "add 2^32 if negative" after the float convert.
@@ -47,7 +47,7 @@ void network_bandwidth_rate_compute(network_bandwidth_graph *graph)
     int32_t now_ms;
     float elapsed_seconds;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     elapsed_seconds = as_unsigned_float(now_ms - base_ms) * 0.001f;
 

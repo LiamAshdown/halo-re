@@ -25,6 +25,8 @@
 // register convention: no parameters.
 //   // blam-cc: none -> returns char * (always autopatch_proxy_server)
 
+#include "win32.h"
+#include <ctype.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -60,15 +62,7 @@ extern char autopatch_proxy_server[0x100]; // 0x007227d0, 0x007228cf is its last
 
 extern int32_t InternetQueryOptionA(void *internet, uint32_t option, void *buffer,
     uint32_t *buffer_length); // 0x0069ffd0 wininet delay-load slot
-extern void *__stdcall LoadLibraryA(const char *name);                 // 0x0063a0a0 IAT
-extern void *__stdcall GetProcAddress(void *module, const char *name); // 0x0063a098 IAT
-extern int32_t __stdcall FreeLibrary(void *module);                    // 0x0063a2c4 IAT
-extern void *__stdcall GlobalFree(void *memory);                       // 0x0063a0bc IAT
-extern int32_t __stdcall WideCharToMultiByte(uint32_t code_page, uint32_t flags, const uint16_t *wide,
-    int32_t wide_length, char *multi_byte, int32_t multi_byte_length, const char *default_char,
-    int32_t *used_default_char);                             // 0x0063a184 IAT
 extern char *_strncpy(char *dest, const char *source, uint32_t count); // 0x623a90, CRT
-extern int _tolower(int c);                                  // 0x624687, CRT
 extern char *_strtok(char *string, const char *delimiters);  // 0x62553c, CRT
 extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 

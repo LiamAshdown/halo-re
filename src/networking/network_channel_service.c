@@ -16,6 +16,7 @@
 // callers (0x4daef0, 0x4db100) push 0 for it.
 // blam-cc: EAX -> timeout_ms, EDI -> channel, stack -> out_new_child
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -42,10 +43,9 @@ char network_channel_service(network_channel *channel, int32_t timeout_ms, netwo
     {
         // QueryPerformanceCounter-derived milliseconds, matching the pattern used throughout
         // this module (see network_channel_record_timestamp.c for the canonical form).
-        extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
         extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
         large_integer counter;
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     }
 

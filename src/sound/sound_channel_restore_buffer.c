@@ -14,11 +14,11 @@
 //   invented a should_wait parameter for it. Returns 0 after restoring, 1 when the buffer was
 //   not lost, the GetStatus HRESULT when that failed, 0x800401f0 for a NULL buffer.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
 
-extern void __stdcall Sleep(uint32_t milliseconds); // import 0x0063a29c
 
 
 // blam-cc: ESI -> buffer, EBX -> was_restored_out

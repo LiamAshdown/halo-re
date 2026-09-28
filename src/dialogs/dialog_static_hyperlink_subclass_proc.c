@@ -21,28 +21,12 @@
 //   WNDPROCs (ret 0x10)." All four parameters are Ghidra-recognized stack arguments already, no
 //   register-passed arguments to remap.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "interface.h"
 #include "dialogs.h"
 
-extern void *__stdcall GetPropA(void *hwnd, const char *name);              // import 0x63a324
-extern void *__stdcall RemovePropA(void *hwnd, const char *name);           // import 0x63a330
-extern int32_t __stdcall SendMessageA(void *hwnd, uint32_t message, uint32_t wparam,
-                                       int32_t lparam);                     // import 0x63a334
-extern int32_t __stdcall PtInRect(const win32_rect *rect, win32_point point); // import 0x63a338
-extern void *__stdcall GetCapture(void);                                    // import 0x63a33c
-extern int32_t __stdcall InvalidateRect(void *hwnd, const win32_rect *rect, int32_t erase); // import 0x63a344
-extern void *__stdcall SetCapture(void *hwnd);                              // import 0x63a350
-extern int32_t __stdcall ReleaseCapture(void);                              // import 0x63a358
-extern void *__stdcall LoadCursorA(void *instance, const char *name);       // import 0x63a374
-extern void *__stdcall SetCursor(void *cursor);                             // import 0x63a378
-extern int32_t __stdcall ClientToScreen(void *hwnd, win32_point *point);    // import 0x63a37c
-extern int32_t __stdcall CallWindowProcA(void *prev_wnd_proc, void *hwnd, uint32_t message, uint32_t wparam,
-                                          int32_t lparam);                  // import 0x63a384
-extern int32_t __stdcall SetWindowLongA(void *hwnd, int32_t index, int32_t value); // import 0x63a3f4
-extern int32_t __stdcall GetWindowRect(void *hwnd, win32_rect *rect);       // import 0x63a414
-extern int32_t __stdcall DeleteObject(void *object);                       // import 0x63a084
 
 extern int32_t dialog_hyperlink_hovered; // 0x00722bc8, this module; written only here, read by
                                          // dialog_static_hyperlink_parent_proc 0x57e2a0 (WM_CTLCOLORSTATIC)

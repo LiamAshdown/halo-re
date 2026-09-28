@@ -5,20 +5,20 @@
 // into a channel's timestamp field, used elsewhere for timeout comparisons." channel+4 matches
 // types/networking.h's network_channel.last_activity_ms exactly.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 void network_channel_record_timestamp(network_channel *channel)
 {
     large_integer counter;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 }
 

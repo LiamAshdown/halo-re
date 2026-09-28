@@ -20,6 +20,7 @@
 // staging block), and 0x0087ac08 is a WORD store; the phase 3 file had all three wrong.
 // UNSURE: 0x0087ac00/0x0087ac08 have no established name anywhere; declared as opaque bytes.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -50,7 +51,6 @@ extern char scenario_load(char *scenario_path); // 0x53e6a0, foreign (game modul
     // blam-cc: EAX -> scenario_path (0x4c961d mov eax,ebp; the callee hands EAX to 0x442290)
 extern void game_state_load_checkpoint(void);    // 0x538280, foreign (game module)
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210, foreign (math module)
-extern uint32_t __stdcall QueryPerformanceCounter(int64_t *counter);
 extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
 
 // Loads a scenario per `request`, seeds the game timer and pending-pause bookkeeping, and (on
@@ -103,7 +103,7 @@ after_load:
     main_globals_data.load_core = main_globals_data.load_core_next_session;
     main_globals_data.load_core_next_session = 0;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     counter_ms = counter * 1000;
     main_globals_data.last_activity_time_ms = (int32_t)(counter_ms / performance_counter_frequency);
 

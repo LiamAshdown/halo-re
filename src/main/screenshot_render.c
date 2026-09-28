@@ -24,6 +24,7 @@
 // is always freshly zeroed immediately before, so its path field is always empty at this point)
 // is simplified to the single strncpy it always reduces to, per that same file's precedent.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -55,7 +56,6 @@ extern char * targa_export(BitmapData *bitmap, file_reference_record *destinatio
 extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); // 0x43fb70, foreign
 extern void bitmap_data_free(BitmapData *bitmap); // 0x43f880, foreign; blam-cc: ESI -> bitmap (it tests esi
     // first and releases +0x24 / +0x28 / +0x2c; src/rasterizer declares it (void))
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 // Renders each active viewport tiled n by n (n = screenshot_scale, clamped to 1..3) into a
 // freshly allocated bitmap sized to the full game window at that scale, and saves each n by n

@@ -52,6 +52,7 @@
 // alpha is opacity ([esp+0x6f8], 0x466014 / 0x466298). 0x873d40 only supplies the font
 // (+0x64, else +0x54).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -104,7 +105,6 @@ extern void ui_draw_filled_rectangle(void); // 0x449780, not in this batch; UNSU
 extern uint8_t unit_find_weapon_index_by_flag(int32_t unknown_0); // 0x570520, not in this batch; UNSURE exact meaning
 extern char *network_address_to_string(void); // 0x440570, not in this batch; UNSURE exact args
 extern int16_t network_channel_get_remote_address(void); // 0x441ce0, not in this batch; UNSURE exact args
-extern char *__stdcall inet_ntoa(uint32_t addr); // Winsock
 
 // FIXED 2026-09-28: both inputs are stack arguments (0x4656ad reads the player at +4, 0x4656da and 0x465739 the
 //   opacity at +8); the earlier version took the player from EAX, the opacity one slot late and the result
@@ -314,8 +314,8 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
             address_text = network_address_to_string();
         } else {
             uint32_t raw = *(uint32_t *)0x006869b4; // UNSURE: byte-swap target, kept literal
-            address_text = inet_ntoa(((raw << 0x10 | (raw & 0xff00) | (raw >> 0x10 & 0xff)) << 8) |
-                                      (raw >> 0x18));
+            { struct in_addr in; in.s_addr = ((raw << 0x10 | (raw & 0xff00) | (raw >> 0x10 & 0xff)) << 8) |
+                                      (raw >> 0x18); address_text = inet_ntoa(in); }
             port = *(uint16_t *)0x00698208;
         }
 

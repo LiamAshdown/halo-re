@@ -5,12 +5,12 @@
 //   GlobalAlloc the buckets (8 bytes each, cleared), no entries, freelist or blocks; initialized.
 // blam-cc: ESI -> table, EAX -> bucket_count
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 void hash_table_initialize(hash_table *table, int32_t bucket_count)
 {

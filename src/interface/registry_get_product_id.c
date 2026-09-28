@@ -5,6 +5,7 @@
 // Games\\Halo"; win32 RegOpenKeyExA/RegQueryValueExA/RegCloseKey.
 // register convention: __cdecl, no parameters.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -12,18 +13,11 @@
 #include "networking.h"
 #include "interface.h"
 
-typedef void *HKEY;
-typedef unsigned long DWORD;
-typedef long LSTATUS;
 #define HKEY_LOCAL_MACHINE ((HKEY)0x80000002)
 #define KEY_QUERY_VALUE 0x0001
 #define KEY_WOW64_32KEY 0x0200
 #define KEY_READ_32 0x00020019 // matches the literal 0x20019 used here
 
-extern LSTATUS __stdcall RegOpenKeyExA(HKEY key, const char *subkey, DWORD options, DWORD sam, HKEY *result);
-extern LSTATUS __stdcall RegQueryValueExA(HKEY key, const char *value_name, DWORD *reserved, DWORD *type,
-                                 uint8_t *data, DWORD *data_size);
-extern LSTATUS __stdcall RegCloseKey(HKEY key);
 
 extern uint8_t product_id_read;      // 0x00719340, set once the registry lookup has run
 extern uint32_t cached_product_id;   // 0x00719344, the 4 byte "PID" value
@@ -40,7 +34,7 @@ void *registry_get_product_id(void)
         size = 0x20;
         product_id_read = 1;
         status = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                                KEY_READ_32, &key);
+                                KEY_READ_32, (PHKEY)&key);
         if (status == 0) {
             status = RegQueryValueExA(key, "PID", 0, 0, (uint8_t *)&cached_product_id, &size);
             if (status != 0) {

@@ -20,6 +20,7 @@
 // network_game_settings_packet_send.c (client+0xae0+0x10); accessed the same way, via a raw
 // offset, not a named field.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include <wchar.h>
@@ -27,7 +28,6 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_channel_service_close_if_disconnected(network_channel *channel); // 0x4dd3f0
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -51,7 +51,7 @@ int32_t network_client_identity_tick(network_client_globals *client)
     int32_t local_player_id;
     int32_t i;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
 
     // FIXED in the review pass: 0x4db358 is `cmp BYTE PTR [edi],0x0` with edi = client+0xee4,

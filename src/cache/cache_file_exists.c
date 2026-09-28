@@ -14,14 +14,10 @@
 // the caller supplies the 0x800-byte buffer the header is read into, this function does not
 // allocate one itself.
 
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern void *__stdcall CreateFileA(const char *path, uint32_t access, uint32_t share, void *security,
-    uint32_t creation_disposition, uint32_t flags, void *template_file);
-extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read,
-    void *overlapped);
-extern void __stdcall CloseHandle(void *object);
 extern int32_t sprintf(char *buffer, const char *format, ...); // 00623693 _sprintf
 
 extern char map_path_prefix[]; // 0x006f16d8

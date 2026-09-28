@@ -24,6 +24,7 @@
 //   computed). That reuse is a compiler artifact and is not reproduced.
 // reconciled: R38 object_type_definition +0x0a/+0x0c/+0x0e/+0x10 -> scenario_placement_offset/scenario_palette_offset/scenario_placement_size/network_delta_message_type (int32, -1 = none)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -45,7 +46,6 @@ extern int32_t message_delta_encode_message(int32_t is_delta, int32_t definition
                                              void *changed, void *fields, void *types,
                                              int32_t count, char flag);         // 0x4ec940
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);                  // 0x0063a0ac IAT
 extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
 extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
 
@@ -102,7 +102,7 @@ int32_t unit_submit_periodic_network_update(int32_t hash_key, uint32_t param_2, 
         shield_recharging = (char)obj->unknown_122;
         is_delta = (uint8_t)(param_4 == 0);
 
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         timestamp_milliseconds = __alldiv(__allmul(counter.parts.low_part, counter.parts.high_part,
                                                    1000, 0),
                                           (int32_t)performance_frequency,

@@ -7,14 +7,13 @@
 // (0xa9c-byte) allocation, with flags hard-coded to k_network_channel_transmit_pending (4)
 // instead of being a parameter.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern uint32_t __stdcall GetTickCount(void);
 
 extern circular_buffer *circular_buffer_new(char *name, int32_t requested_size); // 0x4d0170, memory
     // module; redeclared returning a pointer, see network_channel_new.c's UNSURE note

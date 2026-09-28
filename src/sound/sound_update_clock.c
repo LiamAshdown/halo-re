@@ -10,6 +10,7 @@
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@ extern int64_t performance_frequency;   // 0x006ac8f8/0x006ac8fc
 extern int32_t sound_time;              // 0x0072520c, ms
 extern float sound_time_delta;          // 0x00725210, (new - old) * 0.03
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 // Advances the sound engine's millisecond clock from the CPU performance counter and
 // recomputes the per-tick blend weight (3% of the elapsed milliseconds) used by the
@@ -30,7 +30,7 @@ void sound_update_clock(void)
     int32_t new_time;
     float old_time;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     new_time = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     old_time = (float)sound_time;
     sound_time = new_time;

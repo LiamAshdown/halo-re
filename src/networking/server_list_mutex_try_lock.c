@@ -6,6 +6,7 @@
 // dereference of server_list_mutex here.
 // register convention: __cdecl, timeout_ms on the stack (Ghidra-recognized param).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@ extern network_thread_record *server_list_thread; // 0x007196ac, the worker reco
 extern network_mutex_record *server_list_mutex; // 0x007196a8
 extern server_list_globals server_list;      // 0x007196bc
 
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
 
 // Waits (with a timeout) on the shared server-browser query-result mutex, unless the mutex has
 // never been created, and returns a pointer to the shared server_list object on success (either

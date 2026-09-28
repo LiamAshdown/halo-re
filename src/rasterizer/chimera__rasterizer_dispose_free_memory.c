@@ -7,6 +7,7 @@
 //   geometry group pools and resets their counts to zero.
 // register convention: none -- __cdecl, no parameters.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,7 +19,6 @@ extern transparent_geometry_group *transparent_geometry_groups_secondary; // 0x0
 extern int16_t *transparent_geometry_group_sorted_indices;                // 0x0071d15c
 extern int32_t transparent_geometry_group_count;                          // 0x0071d154
 extern int32_t transparent_geometry_group_secondary_count;                // 0x0071d158
-extern uint32_t __stdcall GlobalFree(void *mem); // Win32
 
 // Releases rasterizer_misc_vertex_buffer's COM object and frees the transparent-geometry-group
 // pools and their sort-index buffer, resetting all counts to zero.

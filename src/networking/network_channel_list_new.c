@@ -7,14 +7,13 @@
 // and the "constructor refuses more than 0x40" note is this function's `in_AX < 0x41` check.
 // register convention: requested capacity in AX, the low 16 bits of EAX (in_AX).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *__stdcall GlobalFree(void *memory); // Win32
 
 // blam-cc: requested capacity in AX (in_AX, low 16 bits of EAX)
 // Allocates a network_channel_list and its parallel dedup array (GMEM_ZEROINIT, requested

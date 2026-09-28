@@ -22,6 +22,7 @@
 //     dangling, as in the original); the result is 1 only when every pass succeeded.
 // blam-cc: ECX -> parser, stack -> path, sound_device, adapter, caps, memory, video_memory, cpu_speed
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,15 +31,6 @@
 
 extern void *operator_new(uint32_t size); // 0x6277da, MSVC CRT (0x627db7 is a jmp to it)
 extern void free(void *block); // 0x6277e8, CRT free (0x627dbc is a jmp to it)
-extern uint32_t __stdcall GetFileVersionInfoSizeA(const char *filename, uint32_t *handle); // 0x638f3a, VERSION.dll (delay-load)
-extern int32_t __stdcall GetFileVersionInfoA(const char *filename, uint32_t handle, uint32_t length, void *data); // 0x638f4a
-extern int32_t __stdcall VerQueryValueA(const void *block, const char *sub_block, void **buffer, uint32_t *length); // 0x638f2a
-extern void *__stdcall CreateFileA(const char *path, uint32_t access, uint32_t share_mode, void *security,
-    uint32_t disposition, uint32_t flags, void *template_file); // 0x0063a2b8 IAT
-extern uint32_t __stdcall GetCurrentDirectoryA(uint32_t length, char *buffer); // 0x0063a14c IAT
-extern uint32_t __stdcall GetFileSize(void *file, uint32_t *high); // 0x0063a2b4 IAT
-extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
-extern int32_t __stdcall CloseHandle(void *object); // 0x0063a2f8 IAT
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *source, uint32_t count); // 0x57bc90
 

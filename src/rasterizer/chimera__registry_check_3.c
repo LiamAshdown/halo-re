@@ -7,26 +7,13 @@
 // pRamp), confirmed by the 3-argument call shape.
 // register convention: no parameters.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 
-typedef void *HKEY;
-typedef unsigned long DWORD;
-typedef unsigned char BYTE;
-typedef char *LPSTR;
-typedef void *LPSECURITY_ATTRIBUTES;
-typedef DWORD *LPDWORD;
-typedef void *HDC;
-typedef void *HWND;
 
-extern long __stdcall RegCreateKeyExA(HKEY key, const char *subkey, DWORD reserved, LPSTR class_name, DWORD options, DWORD sam, LPSECURITY_ATTRIBUTES sa, HKEY *result, LPDWORD disposition);
-extern long __stdcall RegSetValueExA(HKEY key, const char *value, DWORD reserved, DWORD type, const BYTE *data, DWORD data_size);
-extern long __stdcall RegCloseKey(HKEY key);
-extern HDC __stdcall GetDC(HWND wnd);
-extern long __stdcall ReleaseDC(HWND wnd, HDC dc);
-extern long __stdcall SetDeviceGammaRamp(HDC dc, void *ramp);
 
 extern uint8_t rasterizer_gamma_disabled;             // 0x0071d1e8
 extern int32_t rasterizer_gamma_captured;             // 0x0071d1ec
@@ -61,7 +48,7 @@ void chimera__registry_check_3(void)
         ReleaseDC(rasterizer_window_handle, dc);
 
         RegCreateKeyExA(k_HKEY_CURRENT_USER, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                         (LPSTR)0, 0, 0x20006, (LPSECURITY_ATTRIBUTES)0, &key, (LPDWORD)0);
+                         (LPSTR)0, 0, 0x20006, (LPSECURITY_ATTRIBUTES)0, (PHKEY)&key, (LPDWORD)0);
         RegSetValueExA(key, "gamma", 0, 4, zero_value, 4);
         RegCloseKey(key);
     }

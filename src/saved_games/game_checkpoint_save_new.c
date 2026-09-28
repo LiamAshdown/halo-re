@@ -8,6 +8,7 @@
 // convention).
 // register convention: no parameters.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@
 extern uint8_t game_state_write_in_progress; // 0x006e3000
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 
-extern void __stdcall Sleep(uint32_t milliseconds);
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern uint8_t game_checkpoint_get_next_filename(char *out_name, char *directory); // 0x538ae0
 extern uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_name, char *target_name); // 0x5387e0

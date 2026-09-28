@@ -23,6 +23,7 @@
 // of any other size fails the exact-count read and is left checksum_valid = 0.
 // register convention: __cdecl, no parameters.
 
+#include "win32.h"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -54,10 +55,6 @@ extern void saved_games_report_last_error(void); // 0x556170, this module
 extern int32_t savegame_find_first(const char *root, void *out_find_data); // 0x551bc0, game module; blam-cc: EAX out_find_data, stack root
 extern uint8_t savegame_find_next(void *out_find_data, int32_t handle); // 0x551d30, game module; blam-cc: EAX out_find_data, ECX handle
 extern uint8_t user_save_path_remove(int32_t handle); // 0x5516d0, game module; blam-cc: EAX handle
-extern int32_t __stdcall FindClose(void *handle); // Win32
-extern int32_t __stdcall CloseHandle(void *object); // Win32
-extern uint32_t __stdcall WaitForSingleObject(void *object, uint32_t milliseconds); // Win32
-extern int32_t __stdcall ReleaseMutex(void *mutex); // Win32
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
 extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // CRT
 extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT

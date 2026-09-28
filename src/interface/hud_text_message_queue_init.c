@@ -8,6 +8,7 @@
 // ui_network_wait_timeout_start.c (this session).
 // register convention: none (void).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@ extern growable_array hud_text_message_queue; // 0x006b37e8, element size 0x14 (
 extern int64_t performance_frequency;          // 0x006ac8f8/0x006ac8fc
 extern int32_t hud_text_message_time_base;      // 0x0071922c
 
-extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 
 // Initializes the empty HUD text-message queue and stamps the current time (in milliseconds) as
 // its base for later message expiry calculations.
@@ -31,7 +31,7 @@ uint32_t hud_text_message_queue_init(void)
     hud_text_message_queue.count = 0;
     hud_text_message_queue.data = (void *)0;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     hud_text_message_time_base = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     return 1;
 }

@@ -15,12 +15,12 @@
 
 // reconciled: copies history bytes 4..0x307 (0xc1 dwords) like the original; the draft copied all 0x308 bytes
 //   from offset 0, shifting every field and writing 4 bytes past the caller's stack buffer (a jump to 0 later).
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 
-extern void *__stdcall QueryPerformanceCounter(void *out); // Win32
 extern data_array *update_server_queues;          // 0x006f1d90
 extern int32_t update_server_tick;                 // 0x006f1d8c
 extern update_record update_server_history[32];     // 0x006f1d94
@@ -31,7 +31,7 @@ void update_server_queue_get_history_entry(int32_t *out_record, int32_t *out_tic
     uint8_t counter_scratch[8]; // QueryPerformanceCounter's LARGE_INTEGER out-param, discarded
     uint8_t *entry = 0;
 
-    QueryPerformanceCounter(counter_scratch);
+    QueryPerformanceCounter((LARGE_INTEGER *)counter_scratch);
 
     if (queue_handle != k_datum_index_none) {
         entry = (uint8_t *)update_server_queues->data + (uint32_t)(uint16_t)queue_handle * update_server_queues->size;

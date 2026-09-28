@@ -13,6 +13,7 @@
 // UNSURE: virtual_keyboard_open's argument meaning (0x12, 0xc) was not resolved (outside this
 // session's range).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,8 +30,6 @@ extern uint8_t server_browser_join_target_has_password; // 0x00719454, see UNSUR
 extern int32_t DAT_00719410;                    // see UNSURE
 extern uint32_t master_server_request_flags;    // 0x0071969c
 
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
-extern int32_t __stdcall ReleaseMutex(void *handle);                              // Win32
 extern int32_t FUN_006174d0(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library
 extern void virtual_keyboard_open(int32_t screen_id, int32_t field_id); // foreign, outside this session's range
 

@@ -12,10 +12,10 @@
 // EAX-return convention despite the void prototype; preserved as void here for fidelity to the
 // decompile.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 // blam-cc: name as the recognized parameter, requested size in EAX
 // Allocates and initializes a new circular_buffer with capacity requested_size + 1 (one slot is

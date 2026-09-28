@@ -6,10 +6,10 @@
 //   random_seed_global to 0x20f3f660 first so the tables are reproducible).
 // register convention: __cdecl, no arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "math.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 import thunk
 extern void periodic_function_build_table(periodic_function_t type, uint8_t *out); // 0x4ccdb0
 extern void periodic_function_build_transition_table(transition_function_t type, uint8_t *table); // 0x4cccb0
 

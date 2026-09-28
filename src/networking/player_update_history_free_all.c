@@ -6,13 +6,13 @@
 // register convention: none; param_1 is a plain stack argument (__cdecl, one pointer param).
 // UNSURE: none.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalFree(void *memory);
 
 // Frees every node of a player_update_history's linked list and clears its head/tail.
 void player_update_history_free_all(player_update_history *history)

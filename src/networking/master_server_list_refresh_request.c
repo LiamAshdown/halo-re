@@ -8,6 +8,7 @@
 // UNSURE: 0x006953fc (the computed deadline) and 0x00719488 (a flag set alongside it) have no
 // documented names in networking_types_notes.md; declared here only by address.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@ extern int32_t DAT_006953fc; // see UNSURE, a millisecond deadline
 extern uint8_t DAT_00719488; // see UNSURE
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 // blam-cc: __cdecl, no arguments
 void master_server_list_refresh_request(void)
@@ -28,7 +28,7 @@ void master_server_list_refresh_request(void)
     int32_t now_ms;
 
     master_server_request_flags = master_server_request_flags | 8;
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     DAT_006953fc = now_ms + 10000;
     DAT_00719488 = 1;

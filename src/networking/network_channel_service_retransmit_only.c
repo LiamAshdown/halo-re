@@ -8,13 +8,13 @@
 // fixed low byte of 1; this rewrite just returns 1.
 // register convention: channel in EDI (unaff_EDI). blam-cc: EDI -> channel
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 extern void network_channel_scan_retransmit_timeouts(network_channel *channel); // 0x4dd9d0, this batch
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
@@ -24,7 +24,7 @@ int32_t network_channel_service_retransmit_only(network_channel *channel)
 {
     large_integer counter; // UNSURE: result unused beyond the QPC call's own side effects
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     network_channel_scan_retransmit_timeouts(channel);
     if (channel->outgoing.empty == 0) {
         network_channel_stream_flush(&channel->outgoing, channel, 1); // FIXED: 0x4dd34f pushes 1

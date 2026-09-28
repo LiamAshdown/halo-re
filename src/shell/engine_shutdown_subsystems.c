@@ -11,6 +11,7 @@
 // as untyped externs named after their address, not the contested cross-module names.
 // reconciled: R06 external_00746f9c -> ScenarioStructureBSP *global_structure_bsp (scenario.h); R07 0x00746f94 comment: scenario_game_globals *, not sound
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,8 +33,6 @@ extern void *external_00686b58;      // GlobalFree'd if non-null, then cleared
 extern void *external_00686b5c;      // GlobalFree'd if non-null, then cleared
 extern uint32_t external_00686b54;   // cleared to 0
 
-extern void *__stdcall GlobalFree(void *handle);
-extern uint32_t __stdcall timeEndPeriod(uint32_t period_ms); // winmm, delay-load slot 0x0069ffdc
 
 extern void cache_file_unload(void);                     // 0x00442430
 extern void data_file_close(void);                        // 0x00442a50

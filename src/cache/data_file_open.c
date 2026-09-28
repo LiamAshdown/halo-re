@@ -17,14 +17,10 @@
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
 
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern void *__stdcall CreateFileA(const char *path, uint32_t access, uint32_t share, void *security,
-    uint32_t creation_disposition, uint32_t flags, void *template_file);
-extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method);
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *__stdcall GlobalFree(void *memory);
 extern int32_t sprintf(char *buffer, const char *format, ...); // 00623693 _sprintf
 extern int32_t printf(const char *format, ...); // 0062427c _printf
 extern void os_platform_identify(void); // 0x5427e0

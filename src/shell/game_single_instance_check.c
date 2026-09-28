@@ -6,6 +6,7 @@
 // shell_instance_mode / shell_instance_index in shell.h exactly.
 // register convention: __cdecl, mode is the recognized parameter.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,14 +21,6 @@ extern char *shell_instance_mutex_names[9];  // 0x0069eab8
 extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x0057ea70
 extern void _exit(int32_t code);
 
-extern int32_t __stdcall GetVersionExA(os_version_info_a *info);
-extern void *__stdcall CreateMutexA(void *security_attributes, int32_t initial_owner, const char *name);
-extern uint32_t __stdcall GetLastError(void);
-extern void __stdcall CloseHandle(void *handle);
-extern void *__stdcall FindWindowA(const char *class_name, const char *window_name);
-extern int32_t __stdcall GetWindowPlacement(void *hwnd, window_placement *placement);
-extern int32_t __stdcall SetForegroundWindow(void *hwnd);
-extern int32_t __stdcall ShowWindow(void *hwnd, int32_t cmd);
 
 // Enforces a single running instance of Halo by taking a named mutex; if another copy already
 // holds it, brings that window to the foreground and terminates the current process.
@@ -46,7 +39,7 @@ void game_single_instance_check(int32_t mode)
     shell_instance_index = -1;
 
     version.size = 0x94;
-    GetVersionExA(&version);
+    GetVersionExA((LPOSVERSIONINFOA)&version);
 
     if (mode == k_shell_instance_mode_multiple) {
         first_index = 1;
@@ -95,7 +88,7 @@ find_running_instance:
         window = FindWindowA("Halo", "Halo");
         if (window != 0) {
             placement.length = 0x2c;
-            GetWindowPlacement(window, &placement);
+            GetWindowPlacement(window, (WINDOWPLACEMENT *)&placement);
             SetForegroundWindow(window);
             if (placement.show_command == 2 /* SW_SHOWMINIMIZED */) {
                 ShowWindow(window, 9 /* SW_RESTORE */);

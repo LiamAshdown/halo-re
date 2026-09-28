@@ -8,12 +8,10 @@
 // parameter because it is never reassigned in this function -- exposed here as the sole
 // parameter per the EAX,ECX,EDX,EBX,ESI,EDI,stack order.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *__stdcall GlobalReAlloc(void *mem, uint32_t bytes, uint32_t flags);
-extern void *__stdcall GlobalFree(void *mem);
 
 #define GMEM_MOVEABLE 0x0002
 

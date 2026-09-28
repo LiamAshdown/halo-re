@@ -8,10 +8,10 @@
 // register convention: name as the recognized parameter (param_1); maximum_count as the
 // recognized parameter (param_2); element size in BX (unaff_BX).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 extern char *strncpy(char *dst, const char *src, uint32_t count); // 00623a90 _strncpy
 
 // blam-cc: element size in EBX, then the recognized stack parameters (name, maximum_count)

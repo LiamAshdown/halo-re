@@ -8,6 +8,7 @@
 // Ghidra exactly; not "fixed" to a more sensible reset value.
 // register convention: no parameters; operates on the shared ui_lists global directly.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -16,7 +17,6 @@
 #include "interface.h"
 
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
-extern void *__stdcall GlobalFree(void *mem);
 
 // Frees every GlobalAlloc'd name and data blob across all three UI selection lists, then frees
 // each list's own backing storage and resets its element_size/count to -1.

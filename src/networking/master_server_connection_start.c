@@ -17,6 +17,7 @@
 // two interpretations agree at every use site; cast through here rather than changing the
 // header's declared type.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,7 +33,6 @@ extern int32_t mutex_create(network_mutex_record **out_handle); // 0x440510, thi
 extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
                                        network_thread_record **out_handle); // 0x440460, this module
 extern uint32_t __stdcall sig__setup_master_server_connection_sig(void *parameter); // 0x4b5f80, the thread routine
-extern int32_t __stdcall CloseHandle(void *object); // Win32
 
 // Resets the master-server request state, creates the server-list mutex, and starts the
 // background thread that owns the master-server connection. On thread-creation failure, tears

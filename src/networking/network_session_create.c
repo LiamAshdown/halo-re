@@ -23,13 +23,13 @@
 // every other evidence in this file's neighbourhood says is live in that register at the call
 // site, so it is passed explicitly here.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 extern uint8_t network_session_active; // 0x0071c2c2
 extern network_client_globals network_client_storage; // 0x00872de0
 extern void message_delta_protocol_initialize(void); // 0x4ec2f0

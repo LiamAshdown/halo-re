@@ -8,18 +8,13 @@
 // register convention: plain __cdecl (Ghidra's own recognized signature).
 // blam-cc: data, length, digest_out (all stack parameters).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __stdcall CryptCreateHash(uint32_t provider, uint32_t algorithm_id, uint32_t key, uint32_t flags,
-                                uint32_t *hash_out); // import 0x63a054
-extern int32_t __stdcall CryptHashData(uint32_t hash, const uint8_t *data, uint32_t data_length, uint32_t flags); // import 0x63a05c
-extern int32_t __stdcall CryptGetHashParam(uint32_t hash, uint32_t param, uint8_t *data, uint32_t *data_length,
-                                  uint32_t flags); // import 0x63a048
-extern int32_t __stdcall CryptDestroyHash(uint32_t hash); // import 0x63a058
 
 extern uint32_t crypt_provider; // 0x00722bcc
 

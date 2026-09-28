@@ -26,6 +26,7 @@
 // network_connection_initiate; preserved as a write into the same combined scratch buffer used
 // for local_134, at its own computed offset, rather than folded into session_info.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include <wchar.h>
@@ -33,7 +34,6 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint32_t network_local_address; // 0x006869b0
@@ -60,9 +60,9 @@ uint32_t network_join_handshake_tick(network_client_globals *client)
     int32_t i;
     int32_t loopback_ip;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     channel = client->channel;
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     channel->last_activity_ms = now_ms;
 

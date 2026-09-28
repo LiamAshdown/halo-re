@@ -20,6 +20,7 @@
 // The `if (iVar1 != -1) return;` / `break` pair right after a match is found is unreachable dead
 // code (the loop counter is never -1 at that point) and is kept verbatim rather than simplified.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,8 +28,6 @@
 #include "networking.h"
 #include <string.h>
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *__stdcall GlobalFree(void *memory);
 
 // Scans the pool for a free (pending == 0) slot already large enough for both requested
 // capacities; if one exists, returns its index without doing anything else. Otherwise grows the

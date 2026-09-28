@@ -9,6 +9,7 @@
 // register convention: __cdecl, no arguments.
 // phase 4 review (disassembly 0x4c6e80..0x4c6f23: no drift (unsigned divide, 16 bit shift counter).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,7 +21,6 @@
 
 extern main_frame_rate_average frame_rate_average_data; // 0x00719ab0
 
-extern uint32_t __stdcall QueryPerformanceCounter(int64_t *counter); // import 0x63a0ac
 extern int64_t performance_counter_frequency; // 0x006ac8f8, foreign (math module)
 
 // Returns the mean of the first `count` recorded frame times (or 1 ms if none have been recorded
@@ -51,7 +51,7 @@ uint32_t game_frame_rate_average_update(void)
         frame_rate_average_data.count = 0x10;
     }
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     frame_rate_average_data.sample_time_ms = (int32_t)((counter * 1000) / performance_counter_frequency);
 
     return average;

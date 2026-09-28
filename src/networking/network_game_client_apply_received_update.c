@@ -30,6 +30,7 @@
 // +0x1d), consistent with out/phase4/networking_types_notes.md's note that the message-delta
 // wire record has no declared type in this module.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -46,7 +47,6 @@ extern uint8_t message_delta_decode_compound_field(void *decode_context, void *d
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
 extern char network_client_check_connection_quality(void); // 0x4e0080, this batch (UNSURE args here; see its own file)
 extern void network_game_client_apply_position_update(void *state, uint32_t *packet, void *param_3, void *object); // 0x4dff70, this batch
-extern uint32_t __stdcall GetTickCount(void);
 extern void network_player_update_history_log_write(const char *format, ...); // 0x4e7f90, other module
 
 // Stages `machine`'s connect_state, dispatches the message record by its type (either merges

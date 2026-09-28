@@ -17,6 +17,7 @@
 // arrives in ESI (`unaff_ESI` in Ghidra's decompile) and is never reloaded from a stack slot.
 // // blam-cc: ESI -> graph
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -24,7 +25,6 @@
 #include "networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 extern void network_bandwidth_graph_update_columns(int32_t new_sample,
     network_bandwidth_graph *graph); // 0x4d81c0, this batch
@@ -41,7 +41,7 @@ void network_bandwidth_graph_new_sample(network_bandwidth_graph *graph)
                  graph->history[316] + graph->history[315];
     graph->displayed_rate = (float)recent_sum * 0.25f;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     graph->last_sample_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     graph->pending_sample = 0;
 }

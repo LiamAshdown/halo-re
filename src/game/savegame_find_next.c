@@ -14,6 +14,7 @@
 // UNSURE: `hFindFile` (see above); string_convert_ascii_to_unicode's real effect (elided argument, same as
 //   savegame_find_first.c).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -24,7 +25,6 @@
 extern char *user_save_path_default; // 0x00721f28
 extern char *user_save_path_lookup(uint32_t user_id); // this batch, 0x5516a0
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX dst, EDI capacity, EBX source
-extern uint32_t __stdcall FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
 
 // blam-cc: EAX -> find_data, ECX -> handle
 // If `handle` is registered (its root_path is not the default sentinel) and FindNextFileA
@@ -39,7 +39,7 @@ uint32_t savegame_find_next(win32_find_dataa *find_data, uint32_t handle)
     if (handle != 0 && find_data != 0) {
         char *root_path = user_save_path_lookup(handle);
         if (root_path != user_save_path_default &&
-            FindNextFileA((void *)handle, find_data) != 0) { // UNSURE: see header note on `handle`
+            FindNextFileA((void *)handle, (LPWIN32_FIND_DATAA)find_data) != 0) { // UNSURE: see header note on `handle`
             result = 1;
             if (find_data->cFileName[0] != '.' && (find_data->dwFileAttributes & 0x10) != 0) {
                 char *scratch = (char *)find_data + 0x140;

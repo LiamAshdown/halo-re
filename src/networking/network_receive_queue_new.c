@@ -9,6 +9,7 @@
 // register convention: __cdecl, no arguments.
 // UNSURE: none.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 
 extern void network_channels_open(void);
 extern void network_handle_registry_close_all(void); // 0x441bb0
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 // blam-cc: __cdecl, no arguments
 // Ensures the main channels are open and any stale handles are swept, then allocates and

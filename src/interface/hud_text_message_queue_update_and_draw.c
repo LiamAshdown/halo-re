@@ -10,6 +10,7 @@
 // state set) closes once the queue has drained. Each entry is drawn clipped to {0x32, 0, 0x1ae, 0x280}.
 // blam-cc: stack -> widget
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,7 +33,6 @@ extern uint32_t hud_text_draw_flags_006e4734;        // 0x006e4734, TYPES-GAP
 extern int32_t hud_text_draw_unknown_006e4730;        // 0x006e4730, TYPES-GAP
 extern uint16_t missing_string_text[];               // 0x00671fac, L"<missing string>"
 
-extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, EAX
 extern int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag);
     // 0x4a3d90, EAX text, EBX top (the running bottom), stack string index; returns the entry height
@@ -52,7 +52,7 @@ uint32_t hud_text_message_queue_update_and_draw(widget_instance *widget)
     int32_t now_ms;
     int32_t elapsed;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     // 0x4a3eb5..0x4a3ed1: fild of the difference, +2^32 when negative (unsigned), * 0.08 (0x673038), __ftol
     elapsed = (int32_t)(long long)((double)(uint32_t)(now_ms - hud_text_message_time_base) * (double)0.08f);

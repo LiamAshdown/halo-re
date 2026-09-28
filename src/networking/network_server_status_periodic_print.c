@@ -8,13 +8,13 @@
 // blam-cc: stack -> server
 // UNSURE: DAT_0071c2f0 (the "last printed" timestamp) has no established name elsewhere.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_server_status_last_print_ms; // 0x0071c2f0 (UNSURE name)
 extern void sv_status(void); // 0x4e2e50, this batch
@@ -25,11 +25,11 @@ uint32_t network_server_status_periodic_print(network_server_globals *server)
 {
     large_integer counter;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     if ((server->flags >> 2 & 1) != 0) {
         int32_t now_ms;
 
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
         if ((uint32_t)(now_ms - network_server_status_last_print_ms) > 15000) {
             sv_status();

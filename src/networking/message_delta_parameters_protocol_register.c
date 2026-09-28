@@ -15,6 +15,8 @@
 // strlen(scope)+2+strlen(name) bytes are ever written -- and is preserved here rather than
 // "fixed", per the no-invented-behaviour rule.
 
+#include "win32.h"
+#include <string.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,11 +27,6 @@ extern uint8_t message_delta_parameters_enabled;              // 0x0071cfa8
 extern int32_t message_delta_parameter_count;                 // 0x0071cfb0
 extern message_delta_parameter message_delta_parameters[];    // 0x006b86c0
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern char *strdup(const char *s);
-extern int32_t strlen(const char *s);
-extern void *memcpy(void *dest, const void *src, int32_t count);
-extern char *strcpy(char *dest, const char *src);
 extern char message_delta_parameters_protocol_find_registered(char *name, void **out_value); // 0x4ec110, this module
 extern int32_t message_delta_parameters_protocol_parse_value_from_config(char *format, void *out_value); // 0x4ec0d0, this module
 

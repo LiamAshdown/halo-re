@@ -19,6 +19,7 @@
 // Note: when GetRenderTarget fails the original releases the render target slot (still NULL
 //   unless D3D wrote it) and leaks the offscreen surface (0x43ed87 -> 0x43eff5). Kept verbatim.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -47,10 +48,6 @@ extern int32_t __stdcall BinkDoFrame(bink_movie_prefix *bink);                  
 extern void __stdcall BinkNextFrame(bink_movie_prefix *bink);                             // import 0x6a005c
 extern int32_t __stdcall BinkCopyToBuffer(bink_movie_prefix *bink, void *dest, int32_t dest_pitch,
     uint32_t dest_height, uint32_t dest_x, uint32_t dest_y, uint32_t flags);             // import 0x6a0054
-extern int32_t __stdcall PeekMessageA(win32_msg *message, void *window, uint32_t filter_min,
-    uint32_t filter_max, uint32_t remove);                                                // import 0x63a368
-extern int32_t __stdcall TranslateMessage(const win32_msg *message);                      // import 0x63a36c
-extern int32_t __stdcall DispatchMessageA(const win32_msg *message);                      // import 0x63a364
 
 typedef int32_t (__stdcall *d3d_test_cooperative_level_fn)(void *device);
 typedef int32_t (__stdcall *d3d_create_offscreen_plain_surface_fn)(void *device, uint32_t width,
@@ -108,9 +105,9 @@ void movie_play_bink(const char *movie_path)
     bink = BinkOpen(movie_path, 0);
     if (bink != 0) {
         do {
-            if (PeekMessageA(&message, 0, 0, 0, 1 /* PM_REMOVE */) != 0) {
+            if (PeekMessageA((LPMSG)&message, 0, 0, 0, 1 /* PM_REMOVE */) != 0) {
                 do {
-                    TranslateMessage(&message);
+                    TranslateMessage((const MSG *)&message);
                     if (message.message == 0x100) {             // WM_KEYDOWN
                         if (message.wparam == 0x1b || message.wparam == 0x20) {
                             skip_key_down = 1;
@@ -124,8 +121,8 @@ void movie_play_bink(const char *movie_path)
                             skip = 1;
                         }
                     }
-                    DispatchMessageA(&message);
-                } while (PeekMessageA(&message, 0, 0, 0, 1) != 0);
+                    DispatchMessageA((const MSG *)&message);
+                } while (PeekMessageA((LPMSG)&message, 0, 0, 0, 1) != 0);
                 if (skip != 0) {
                     break;
                 }

@@ -10,6 +10,7 @@
 //   (state == 2); the state becomes 0; returns 1.
 // blam-cc: stack -> widget, event, out_handled (cdecl); returns AL
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 #include "interface.h"
 
 extern growable_array hud_text_message_queue; // 0x006b37e8
-extern void *__stdcall GlobalFree(void *memory); // 0x0063a0bc IAT
 extern int32_t hud_text_message_cycle_state_00719230; // 0x00719230, compared as a dword
 extern void chimera__main_menu_music(uint8_t finalize_render_frame); // 0x4921a0, blam-cc: BL
 

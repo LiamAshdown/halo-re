@@ -15,13 +15,13 @@
 // network_channel_queue_message.c already documents for the encode side.
 // register/parameter convention: fully recovered cdecl (channel is the only parameter).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern uint32_t __stdcall GetTickCount(void);
 extern int32_t network_rate_override; // 0x00710308
 extern int32_t network_rate_table[]; // 0x00697edc
 

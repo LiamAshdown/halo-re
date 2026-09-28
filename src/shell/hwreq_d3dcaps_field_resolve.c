@@ -22,6 +22,7 @@
 // per-field behaviour are unchanged (hwreq_token_match_keyword has no side effects beyond the
 // peek, so checking the same keywords via a loop instead of nested ifs is observably identical).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,7 +30,6 @@
 #include "shell.h"
 
 extern uint32_t hwreq_token_match_keyword(const char *keyword, hwreq_parser *parser); // 0x00578fa0
-extern int32_t __stdcall GetVersionExA(os_version_info_a *info); // import 0x63a150
 extern const char *hwreq_parser_evaluate_condition(hwreq_parser *parser, int32_t kind,
                                                      uint32_t value); // 0x00579690
 
@@ -134,7 +134,7 @@ const char *hwreq_d3dcaps_field_resolve(hwreq_parser *parser)
         uint32_t detected;
 
         version.size = 0x94;
-        GetVersionExA(&version);
+        GetVersionExA((LPOSVERSIONINFOA)&version);
 
         // Verified against objdump 0x579628..0x57967f: NT (platform_id==2) picks winxp/win2k by
         // build number when major_version==5, else defaults to winxp; Win9x (platform_id!=2)

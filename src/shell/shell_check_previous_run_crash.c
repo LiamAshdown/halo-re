@@ -16,23 +16,13 @@
 //   set by shell_winmain via GetModuleFileNameA, but that address is outside this module's own
 //   .bss clusters).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __stdcall RegOpenKeyExA(void *key, const char *subkey, uint32_t reserved, uint32_t desired_access,
-                              void **result_key); // import 0x63a014
-extern int32_t __stdcall RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type, uint8_t *data,
-                                 uint32_t *data_size); // import 0x63a018
-extern int32_t __stdcall RegCreateKeyExA(void *key, const char *subkey, uint32_t reserved, char *class_name, uint32_t options,
-                                uint32_t desired_access, void *security_attributes, void **result_key,
-                                uint32_t *disposition); // import 0x63a008
-extern int32_t __stdcall RegSetValueExA(void *key, const char *value_name, uint32_t reserved, uint32_t type,
-                               const uint8_t *data, uint32_t data_size); // import 0x63a00c
-extern int32_t __stdcall RegCloseKey(void *key); // import 0x63a010
-extern uint32_t __stdcall GetFileAttributesA(const char *path); // import 0x63a0b4
 
 extern char *shell_module_path; // 0x006a32e8, UNSURE: see file header
 
@@ -64,7 +54,7 @@ int32_t shell_check_previous_run_crash(void)
     uint32_t length;
 
     RegOpenKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                  0x20019, &key);
+                  0x20019, (PHKEY)&key);
     exit_flag_size = 0x10;
     exit_flag[0] = 0;
     RegQueryValueExA(key, "ExitFlag", 0, 0, exit_flag, &exit_flag_size);
@@ -93,7 +83,7 @@ int32_t shell_check_previous_run_crash(void)
     }
 
     RegCreateKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0,
-                     0x20006, 0, 0, &key, 0);
+                     0x20006, 0, 0, (PHKEY)&key, 0);
     if (bytes_equal(exit_flag, (const uint8_t *)"bad 1", 6)) {
         RegSetValueExA(key, "ExitFlag", 0, 1 /* REG_SZ */, (const uint8_t *)"bad 2", 6);
     } else {

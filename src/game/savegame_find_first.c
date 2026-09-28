@@ -22,6 +22,7 @@
 //   the trailing scratch buffer's own size/ownership (assumed caller-allocated, at least
 //   MAX_PATH*2 bytes, since it ends up holding "root_path\filename\").
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,9 +33,6 @@
 extern int32_t user_save_path_register(uint32_t user_id, char *path); // this batch, 0x551650
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX dst, EDI capacity, EBX source
 extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
-extern void *__stdcall FindFirstFileA(const char *pattern, win32_find_dataa *out_data); // Win32
-extern uint32_t __stdcall FindNextFileA(void *find_handle, win32_find_dataa *out_data); // Win32
-extern uint32_t __stdcall FindClose(void *find_handle); // Win32
 
 // blam-cc: EAX -> find_data, stack -> root_path
 // Starts a directory enumeration under `root_path`, registers the resulting handle against
@@ -54,7 +52,7 @@ int32_t savegame_find_first(char *root_path, win32_find_dataa *find_data)
     }
 
     _sprintf(pattern, "%s\\*.*", root_path);
-    handle = FindFirstFileA(pattern, find_data);
+    handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)find_data);
     if (handle == (void *)0xffffffff) {
         return (int32_t)handle;
     }
@@ -112,7 +110,7 @@ int32_t savegame_find_first(char *root_path, win32_find_dataa *find_data)
             if (exhausted) {
                 break;
             }
-            if (FindNextFileA(handle, find_data) == 0) {
+            if (FindNextFileA(handle, (LPWIN32_FIND_DATAA)find_data) == 0) {
                 exhausted = 1;
             }
         }

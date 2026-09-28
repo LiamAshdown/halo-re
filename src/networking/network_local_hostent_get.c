@@ -10,6 +10,7 @@
 // void * returned straight from gethostbyname, same treatment as
 // src/networking/network_join_hostname_resolved_callback.c.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,12 +21,6 @@ extern char network_local_hostname_buffer[0x100]; // 0x006a4040
 extern uint8_t network_hostname_ready;             // 0x006f14cc
 
 extern void network_hostname_thread_proc(char *hostname_buffer); // 0x441510, this module
-extern void *__stdcall CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
-                           void *parameter, uint32_t creation_flags, uint32_t *thread_id);
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms);
-extern int32_t __stdcall TerminateThread(void *thread, uint32_t exit_code);
-extern int32_t __stdcall CloseHandle(void *object); // Win32
-extern void *__stdcall gethostbyname(const char *name);
 
 int network_local_hostent_get(void **out_hostent)
 {
@@ -34,7 +29,7 @@ int network_local_hostent_get(void **out_hostent)
     uint32_t thread_id;
 
     network_hostname_ready = 0;
-    thread_handle = CreateThread(0, 0x10400, network_hostname_thread_proc,
+    thread_handle = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)network_hostname_thread_proc, // ends in ExitThread
                                   network_local_hostname_buffer, 0, &thread_id);
     if (thread_handle != 0) {
         wait_result = WaitForSingleObject(thread_handle, 10000);

@@ -34,6 +34,7 @@
 // against the current millisecond clock) is preserved exactly as decompiled without
 // simplification, since its edge-case behaviour around clock wraparound is not safe to guess.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -42,7 +43,6 @@
 #include <string.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int32_t network_rcon_connection_id; // 0x0069fdfc (UNSURE name)
@@ -79,7 +79,7 @@ int32_t network_server_check_machine_timeout(network_server_globals *server, net
     uint32_t timer_14;
     int32_t result;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
     timer_18 = (uint32_t)machine->timer_18;
     timer_14 = (uint32_t)machine->timer_14;

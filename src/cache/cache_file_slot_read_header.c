@@ -32,6 +32,7 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
@@ -44,10 +45,7 @@ extern void os_platform_identify(void);                            // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern int32_t sprintf(char *buffer, const char *format, ...);     // 0x623693 _sprintf
 
-extern void __stdcall GetFileTime(void *file, file_time *last_write, void *last_access, void *creation); // 0x0063a2d4 IAT
 extern void *ReadFileEx_exref;  // 0x0063a27c IAT slot holding ReadFileEx, passed by value
-extern uint32_t __stdcall SetFilePointer(void *file, int32_t distance, void *distance_high, uint32_t method); // 0x0063a2b0 IAT
-extern int32_t __stdcall ReadFile(void *file, void *buffer, uint32_t bytes_to_read, uint32_t *bytes_read, void *overlapped); // 0x0063a2d8 IAT
 
 // blam-cc: request in ESI, size in EBX, offset in EDX, completion_routine in EDI (the three
 // named stack arguments are all Ghidra shows); 0x442c70, outside this module
@@ -82,7 +80,7 @@ void cache_file_slot_read_header(int32_t slot_index)
     slot = &cache_file_slots[slot_index];
     sprintf(path, "%s\\cache%03d.map", profile_directory, slot_index);
 
-    GetFileTime(slot->file, &slot->last_write_time, (void *)0, (void *)0);
+    GetFileTime(slot->file, (LPFILETIME)&slot->last_write_time, (void *)0, (void *)0);
 
     header_read_ok = 0;
     request.completion.flag = &header_read_ok;

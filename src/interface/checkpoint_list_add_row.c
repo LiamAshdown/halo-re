@@ -12,6 +12,7 @@
 //   Record bytes +0x02..+0x03 are stack garbage in the binary; zeroed here.
 // blam-cc: stack -> index, name, level_index, difficulty, game_time, time, user_data (cdecl); returns AL
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,8 +24,6 @@
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"
-extern int32_t __stdcall GetTimeFormatA(uint32_t locale, uint32_t flags, const void *time, const char *format, char *out, int32_t size); // import 0x63a100
-extern int32_t __stdcall GetDateFormatA(uint32_t locale, uint32_t flags, const void *time, const char *format, char *out, int32_t size); // import 0x63a104
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX dest
 extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob, uint32_t data_size, uint8_t is_default); // 0x4a7ba0, blam-cc: EAX group_index, CL is_default
 

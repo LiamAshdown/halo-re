@@ -16,6 +16,7 @@
 // passed as NULL. wcslen and string_convert_unicode_to_ascii (the "no path given" branch's length/format
 // helpers) are outside this batch's evidence and are modeled minimally.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,9 +27,6 @@ extern game_variant_history_entry *game_variant_history; // 0x00687b0c
 extern uint32_t game_variant_history_count;              // 0x00687b10
 extern uint32_t game_variant_history_capacity;            // 0x00687b14
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // Win32
-extern void *__stdcall GlobalReAlloc(void *mem, uint32_t bytes, uint32_t flags); // Win32
-extern void *__stdcall GlobalFree(void *mem); // Win32
 
 extern uint32_t game_engine_is_map_and_variant_valid(const char *map_path, const char *variant_name); // 0x463920, this batch
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);

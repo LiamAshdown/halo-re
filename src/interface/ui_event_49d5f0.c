@@ -13,6 +13,7 @@
 //   1.
 // blam-cc: stack -> widget, event, out_handled (cdecl); returns AL
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,7 +30,6 @@ extern int32_t ui_list_current; // 0x00692c04
 extern uint8_t ui_list_has_default; // 0x007192f8
 extern void map_list_get_friendly_level_name(wchar_t *destination, char *map_path, int32_t destination_capacity); // 0x494f50, blam-cc: EAX map_path, ESI capacity
 extern uint32_t growable_array_add_element(growable_array *array); // 0x4cf810, blam-cc: ESI array
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
 
 uint8_t ui_event_49d5f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

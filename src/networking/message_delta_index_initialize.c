@@ -6,11 +6,11 @@
 //   and slot 0 taken (1).
 // blam-cc: cdecl
 
+#include "win32.h"
 #include "message_delta_codec.h"
 
 extern void hash_table_initialize(hash_table *table, int32_t bucket_count); // 0x4f0470, ESI table, EAX buckets
 extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value); // 0x4f0530
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 uint8_t message_delta_index_initialize(message_delta_field_type *field_type)
 {

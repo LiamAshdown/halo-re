@@ -35,6 +35,7 @@
 //   (a screen bounds rectangle), 0x0069c648 (the present counter of
 //   rasterizer_capture_and_present) and 0x006e474a (text tab stops) are provisional.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -61,7 +62,6 @@ extern float hud_text_draw_color_b;               // 0x006e4744
 extern int16_t hud_text_draw_background_mode;     // 0x006e4748
 extern int16_t hud_text_draw_tab_stops[6];        // 0x006e474a UNSURE name
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
 extern uint8_t input_get_key_state(int16_t key_index); // 0x490b50, input; blam-cc: ECX
 extern void rasterizer_frame_statistics_graph_init(void); // 0x512700, this module (fg_init)
 extern void fg_add_sample(int32_t index, float sample);   // 0x512d90, this module;
@@ -131,7 +131,7 @@ void rasterizer_frame_statistics_draw(void)
         frame_statistics_key_b_latch = 0;
     }
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     milliseconds = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
     delta = milliseconds - (uint32_t)frame_statistics_last_time;
     frame_statistics_last_time = (int32_t)milliseconds;
@@ -170,7 +170,7 @@ void rasterizer_frame_statistics_draw(void)
     restore_color[2] = 1.0f;
     restore_color[3] = 1.0f;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     milliseconds = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
     elapsed = (int64_t)(uint64_t)milliseconds - frame_statistics_unknown_d0;
 

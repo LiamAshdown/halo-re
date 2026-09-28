@@ -12,6 +12,7 @@
 // register convention: __cdecl; scenario_name and difficulty are the recognized stack
 // parameters (Ghidra's param_1/param_2), matching the caller's (name, difficulty) order.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,7 +30,6 @@ extern int16_t campaign_level_find_index_for_path(char *scenario_name); // 0x4c8
 extern void *_fopen(const char *path, char *mode); // 0x624186, fopen-shaped wrapper
 extern int32_t _fprintf(void *stream, const char *format, ...);
 extern void _fclose(void *file); // _fclose
-extern uint32_t __stdcall GetLocalTime(win32_systemtime *time); // Win32
 extern uint32_t strlen(const char *str);
 extern char *strcpy(char *dest, const char *source);
 
@@ -51,7 +51,7 @@ void game_checkpoint_write_stats_file(char *scenario_name, int32_t difficulty)
 
     file = _fopen(path, unknown_0065fd30);
     if (file != 0) {
-        GetLocalTime(&now);
+        GetLocalTime((LPSYSTEMTIME)&now);
         level = campaign_level_find_index_for_path(scenario_name);
         _fprintf(file, "%d,%d,%d\n", (int32_t)level, difficulty, game_time->game_time);
         _fprintf(file, "%hu,%hu,%hu\n", now.month, now.day, now.year);

@@ -7,18 +7,13 @@
 // register convention: plain __cdecl, no parameters.
 // blam-cc: (no arguments)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __stdcall RegCreateKeyExA(void *key, const char *subkey, uint32_t reserved, char *class_name, uint32_t options,
-                                uint32_t desired_access, void *security_attributes, void **result_key,
-                                uint32_t *disposition); // import 0x63a008
-extern int32_t __stdcall RegSetValueExA(void *key, const char *value_name, uint32_t reserved, uint32_t type,
-                               const uint8_t *data, uint32_t data_size); // import 0x63a00c
-extern int32_t __stdcall RegCloseKey(void *key); // import 0x63a010
 
 // Opens (creating if necessary) HKLM\Software\Microsoft\Microsoft Games\Halo and writes its
 // ExitFlag REG_SZ value to "clean", recording that this run did not crash.
@@ -27,7 +22,7 @@ void shell_registry_set_exit_flag_clean(void)
     void *key;
 
     RegCreateKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0,
-                     0x20006, 0, 0, &key, 0);
+                     0x20006, 0, 0, (PHKEY)&key, 0);
     RegSetValueExA(key, "ExitFlag", 0, 1 /* REG_SZ */, (const uint8_t *)"clean", 6);
     RegCloseKey(key);
 }

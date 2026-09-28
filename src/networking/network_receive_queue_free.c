@@ -16,6 +16,7 @@
 // network_connection_stats_end was not traced past this module; preserved as an unmodified
 // pass-through exactly as decompiled.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,7 +29,6 @@ extern void FUN_00614830(int32_t socket, network_receive_queue *queue); // forei
 extern void network_connection_stats_end(int32_t connection_id, int16_t connection_key); // 0x440d20, this module
 extern void network_receive_queue_close_socket(network_receive_queue *queue); // 0x442040, this module
 extern void network_handle_registry_close_all(void); // 0x441bb0, this module
-extern void *__stdcall GlobalFree(void *memory); // Win32
 
 // blam-cc: queue pointer in EAX (in_EAX); connection_id in EBX and connection_key in DI are an
 // unmodified pass-through into network_connection_stats_end (see UNSURE above)

@@ -6,6 +6,7 @@
 // 0x006927c4 as ui_network_wait_start_time and 0x00718fcd as ui_network_wait_active.
 // register convention: none (void).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@ extern int32_t ui_network_wait_start_time; // 0x006927c4, -1 when no wait is run
 extern int64_t performance_frequency;      // 0x006ac8f8/0x006ac8fc
 extern uint8_t ui_network_wait_active;     // 0x00718fcd
 
-extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 
 // If no wait is currently timed, samples the performance counter and converts it to milliseconds
 // as the new wait start time. Always marks the wait as active.
@@ -26,7 +26,7 @@ void ui_network_wait_timeout_start(void)
     if (ui_network_wait_start_time == -1) {
         large_integer counter;
 
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         ui_network_wait_start_time = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     }
     ui_network_wait_active = 1;

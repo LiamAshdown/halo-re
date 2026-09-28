@@ -14,6 +14,7 @@
 // register convention: source_directory in ESI, source_name in EDI, target_name is the
 // recognized stack parameter.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,9 +24,6 @@
 #include "saved_games.h"
 
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
-extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
-extern int32_t __stdcall FindClose(void *find_handle); // Win32
-extern int32_t __stdcall CopyFileA(const char *existing_path, const char *new_path, int32_t fail_if_exists); // Win32
 
 // blam-cc: source_directory in ESI, source_name in EDI, then the recognized stack parameter
 // (target_name)
@@ -42,7 +40,7 @@ uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_nam
     char target_path[256];
 
     _sprintf(check_path, "%s%s.sav", source_directory, source_name);
-    find_handle = FindFirstFileA(check_path, &find_data);
+    find_handle = FindFirstFileA(check_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle == (void *)0xffffffff) {
         return 0;
     }

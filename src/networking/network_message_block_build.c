@@ -19,13 +19,13 @@
 // UNSURE: when buffer is already non-NULL its capacity is never checked against length, so a
 // caller must already guarantee it is large enough.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 // blam-cc: existing buffer (or NULL) in EAX, source pointer in ECX, flags in DL, byte
 // length in param_1 (stack)

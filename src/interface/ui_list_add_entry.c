@@ -11,6 +11,7 @@
 // register convention: name/id/data/size as the four recognized parameters; group index in EAX
 // (in_EAX) and is_default in CL (in_CL, the low byte of ECX), both unresolved register reads.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -21,7 +22,6 @@
 
 extern uint8_t ui_list_has_default;  // 0x007192f8
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 extern int32_t wcslen(const uint16_t *s); // 0x625b7a, UNSURE: appears to be wcslen
 extern uint32_t growable_array_add_element(growable_array *array); // 0x4cf810, established in src/memory/
 

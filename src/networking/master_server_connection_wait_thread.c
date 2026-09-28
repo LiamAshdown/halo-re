@@ -15,6 +15,7 @@
 // The QueryPerformanceCounter/__allmul/__alldiv shape is folded into plain int64_t arithmetic,
 // matching network_update.c's precedent for the same idiom.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,10 +29,6 @@ extern int32_t master_server_connection_last_tick_ms_0072520c; // 0x0072520c, se
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 
 extern void sound_idle_update(void); // foreign, outside this session's range
-extern int32_t __stdcall GetExitCodeThread(void *thread, uint32_t *exit_code);
-extern void __stdcall Sleep(uint32_t milliseconds);
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
-extern int32_t __stdcall CloseHandle(void *object); // Win32
 
 // blam-cc: __cdecl, no arguments
 // Polls the master-server connection thread every 20ms until it exits, pumping FUN_00549960
@@ -50,7 +47,7 @@ void master_server_connection_wait_thread(void)
         if (exited != 0 && exit_code != 0x103) {
             break;
         }
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
         if (0x84 < (uint32_t)(now_ms - master_server_connection_last_tick_ms_0072520c)) {
             sound_idle_update();

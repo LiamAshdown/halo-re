@@ -10,12 +10,12 @@
 // register convention: the queue to initialize in ESI (unaff_ESI); no stack parameters.
 //   // blam-cc: ESI -> queue
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t size); // Win32
 
 // blam-cc: ESI -> queue
 // Allocates and zeroes 30 records of 0x14 bytes each (storage), allocates a 30-entry pointer

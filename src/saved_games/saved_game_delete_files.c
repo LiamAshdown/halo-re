@@ -9,6 +9,7 @@
 // file helpers; handle is the fixed current-profile handle (0x00714dd4).
 // register convention: name in EDI; no recognized stack parameters.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -21,9 +22,6 @@ extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
-extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
-extern int32_t __stdcall FindClose(void *find_handle); // Win32
-extern int32_t __stdcall DeleteFileA(const char *path); // Win32
 
 // blam-cc: name in EDI
 // Deletes "<current profile directory><name>.bin" and "<name>.sav", but only if the .sav
@@ -40,7 +38,7 @@ uint8_t saved_game_delete_files(char *name)
 
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     _sprintf(check_path, "%s%s.sav", directory, name);
-    find_handle = FindFirstFileA(check_path, &find_data);
+    find_handle = FindFirstFileA(check_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle == (void *)0xffffffff) {
         return 0;
     }

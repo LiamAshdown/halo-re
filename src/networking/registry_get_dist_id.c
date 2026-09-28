@@ -5,17 +5,13 @@
 // networking_functions.md summary.
 // register convention: no register-passed arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall RegOpenKeyExA(void *key, const char *subkey, uint32_t options, uint32_t sam,
-                              void **result);
-extern int32_t __stdcall RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type,
-                                 uint8_t *data, uint32_t *data_size);
-extern int32_t __stdcall RegCloseKey(void *key);
 
 // Reads the installed game's "DistID" (distribution/channel id) DWORD value from the registry.
 // Returns 0 if the key or value could not be read.
@@ -26,7 +22,7 @@ uint32_t registry_get_dist_id(void)
     void *key;
 
     if (RegOpenKeyExA((void *)0x80000002, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0x20019,
-                       &key) == 0) {
+                       (PHKEY)&key) == 0) {
         if (RegQueryValueExA(key, "DistID", 0, 0, (uint8_t *)&dist_id, &size) != 0) {
             dist_id = 0;
         }

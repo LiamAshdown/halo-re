@@ -19,6 +19,7 @@
 // ever having copied any file) -- kept exactly as found, not "fixed".
 // register convention: saved-game handle in EAX; new_name as the one stack argument.
 
+#include "win32.h"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -36,7 +37,6 @@ extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root
     uint32_t out_path_size); // 0x551710, blam-cc: EAX save_game_name (src/game/XCreateSaveGame.c: validity_token)
 extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path); // 0x5519a0, blam-cc: EAX save_game_name, ECX root_path
 extern uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir); // 0x53cb70, this module
-extern int32_t __stdcall CopyFileA(const char *existing_path, const char *new_path, int32_t fail_if_exists); // Win32
 extern int32_t __snprintf(char *buffer, uint32_t count, const char *format, ...); // CRT
 extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
 extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)

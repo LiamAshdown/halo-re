@@ -9,6 +9,7 @@
 //   outstanding and sleeps 10 ms. Finally frees the browser (ServerBrowserFree 0x616f30) and returns 0.
 // blam-cc: __stdcall (a thread routine; the parameter is unused)
 
+#include "win32.h"
 #include "tags.h"
 
 extern uint8_t server_browser_join_requested;    // 0x00719491
@@ -22,7 +23,6 @@ extern void network_channel_gap_4ba660(void *sb, uint32_t reason, void *server, 
 extern void *ServerBrowserNew(const char *queryForGamename, const char *queryFromGamename, const char *queryFromKey,
     int32_t queryFromVersion, int32_t maxConcurrentUpdates, int32_t queryVersion, void *callback, void *instance); // 0x616eb0
 extern void ServerBrowserFree(void *sb);         // 0x616f30
-extern void __stdcall Sleep(uint32_t milliseconds);
 
 uint32_t __stdcall sig__setup_master_server_connection_sig(void *parameter)
 {

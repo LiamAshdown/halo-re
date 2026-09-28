@@ -6,13 +6,11 @@
 // register convention: array pointer in ESI (unaff_ESI), index in EDI (unaff_EDI); exposed in
 // that order (ESI before EDI) per the EAX,ECX,EDX,EBX,ESI,EDI,stack rule.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 
 extern void *memmove(void *dst, const void *src, uint32_t count); // 006236f0 _memmove
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern void *__stdcall GlobalReAlloc(void *mem, uint32_t bytes, uint32_t flags);
-extern void *__stdcall GlobalFree(void *mem);
 
 #define GMEM_MOVEABLE 0x0002
 

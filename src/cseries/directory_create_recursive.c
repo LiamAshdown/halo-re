@@ -11,13 +11,11 @@
 // Returns the byte in AL.
 //   // blam-cc: stack -> path
 
+#include "win32.h"
 #include "tags.h"
 #include "cseries.h"
 #include <string.h>
 
-extern uint32_t __stdcall SetErrorMode(uint32_t mode);                                  // Win32
-extern uint32_t __stdcall GetFileAttributesA(const char *path);                         // Win32
-extern uint32_t __stdcall CreateDirectoryA(const char *path, void *security_attributes); // Win32
 
 // Creates `path` and every missing parent directory along it. If `path` already exists (per
 // GetFileAttributesA), returns 1 immediately. Otherwise walks the path one '\\'-delimited

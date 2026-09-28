@@ -23,6 +23,7 @@
 // reproduced literally; their meaning at the UI widget layer is outside this module.
 // register convention: no parameters, no return value.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -54,8 +55,6 @@ extern int64_t performance_frequency;              // 0x006ac8f8/0x006ac8fc
 
 extern uint8_t input_get_key_state(int16_t key_index); // this module, 0x490b50, blam-cc: ECX
 extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); // this module, 0x492340
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
-extern uint32_t __stdcall GetDoubleClickTime(void); // 0x0063a3b8 IAT
 
 // blam-cc: virtual_key_id claims/releases one direction's repeat slot; see file header.
 static void menu_direction_update(menu_repeat_state *state, uint8_t active, int32_t now_ms,
@@ -142,7 +141,7 @@ void input_menu_generate_events(void)
     accept_fired = 0;
     back_fired = 0;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
@@ -279,7 +278,7 @@ void input_menu_generate_events(void)
 
     {
         uint32_t double_click_ms = GetDoubleClickTime();
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
         if (mouse_double_click_time == 0) {

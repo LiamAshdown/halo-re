@@ -35,6 +35,7 @@
 //     return EXCEPTION_CONTINUE_SEARCH (0).
 // register convention: __stdcall, one stack argument (EXCEPTION_POINTERS *), ret 4.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -51,64 +52,6 @@
 #define CRASH_EXCEPT if (0)
 #endif
 
-extern int32_t __stdcall VirtualProtect(void *address, uint32_t size, uint32_t new_protect,
-                                        uint32_t *old_protect);                // import 0x63a298
-extern void *__stdcall GetCurrentProcess(void);                                // import 0x63a2c0
-extern int32_t __stdcall TerminateProcess(void *process, uint32_t exit_code);  // import 0x63a164
-extern void *__stdcall LoadLibraryA(const char *file_name);                    // import 0x63a0a0
-extern void *__stdcall GetProcAddress(void *module, const char *proc_name);    // import 0x63a098
-extern int32_t __stdcall ShowCursor(int32_t show);                             // import 0x63a3f0
-extern int32_t __stdcall ShowWindow(void *window, int32_t command);            // import 0x63a400
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t size);             // import 0x63a0b0
-extern void *__stdcall GlobalLock(void *memory);                               // import 0x63a13c
-extern int32_t __stdcall GlobalUnlock(void *memory);                           // import 0x63a144
-extern void *__stdcall GlobalFree(void *memory);                               // import 0x63a0bc
-extern int32_t __stdcall MultiByteToWideChar(uint32_t code_page, uint32_t flags, const char *multi_byte,
-                                             int32_t multi_byte_length, uint16_t *wide,
-                                             int32_t wide_length);             // import 0x63a168
-extern void *__stdcall GetModuleHandleA(const char *module_name);              // import 0x63a16c
-extern void *__stdcall CreateDialogIndirectParamA(void *instance, const void *dialog_template,
-                                                  void *parent, void *dialog_proc,
-                                                  int32_t init_param);         // import 0x63a394
-extern int32_t __stdcall SetWindowPos(void *window, void *insert_after, int32_t x, int32_t y, int32_t cx,
-                                      int32_t cy, uint32_t flags);             // import 0x63a398
-extern int32_t __stdcall PeekMessageA(win32_msg *message, void *window, uint32_t filter_min,
-                                      uint32_t filter_max, uint32_t remove);   // import 0x63a368
-extern int32_t __stdcall DispatchMessageA(const win32_msg *message);           // import 0x63a364
-extern int32_t __stdcall DestroyWindow(void *window);                          // import 0x63a3d0
-extern void *__stdcall CreateFileMappingA(void *file, win32_security_attributes *attributes,
-                                          uint32_t protect, uint32_t size_high, uint32_t size_low,
-                                          const char *name);                   // import 0x63a2a0
-extern void *__stdcall MapViewOfFile(void *mapping, uint32_t access, uint32_t offset_high,
-                                     uint32_t offset_low, uint32_t size);      // import 0x63a2ac
-extern int32_t __stdcall UnmapViewOfFile(const void *view);                    // import 0x63a2a8
-extern void *__stdcall CreateEventA(win32_security_attributes *attributes, int32_t manual_reset,
-                                    int32_t initial_state, const char *name);  // import 0x63a288
-extern void *__stdcall CreateMutexA(win32_security_attributes *attributes, int32_t initial_owner,
-                                    const char *name);                         // import 0x63a300
-extern int32_t __stdcall DuplicateHandle(void *source_process, void *source, void *target_process,
-                                         uint32_t *target, uint32_t access, int32_t inherit,
-                                         uint32_t options);                    // import 0x63a174
-extern uint32_t __stdcall GetCurrentProcessId(void);                           // import 0x63a0c4
-extern uint32_t __stdcall GetCurrentThreadId(void);                            // import 0x63a170
-extern uint32_t __stdcall GetModuleFileNameA(void *module, char *buffer, uint32_t size); // import 0x63a110
-extern uint32_t __stdcall GetTempPathA(uint32_t size, char *buffer);           // import 0x63a154
-extern uint32_t __stdcall GetCurrentDirectoryA(uint32_t size, char *buffer);   // import 0x63a14c
-extern int32_t __cdecl wsprintfA(char *buffer, const char *format, ...);       // import 0x63a3b0
-extern int32_t __stdcall CreateProcessA(const char *application, char *command_line, void *process_attributes,
-                                        void *thread_attributes, int32_t inherit_handles,
-                                        uint32_t creation_flags, void *environment,
-                                        const char *current_directory, win32_startup_info_a *startup_info,
-                                        win32_process_information *process_information); // import 0x63a160
-extern uint32_t __stdcall GetPriorityClass(void *process);                     // import 0x63a15c
-extern int32_t __stdcall SetPriorityClass(void *process, uint32_t priority_class); // import 0x63a158
-extern uint32_t __stdcall MsgWaitForMultipleObjects(uint32_t count, void **handles, int32_t wait_all,
-                                                    uint32_t milliseconds, uint32_t wake_mask); // import 0x63a40c
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t milliseconds); // import 0x63a310
-extern int32_t __stdcall ReleaseMutex(void *mutex);                            // import 0x63a2fc
-extern int32_t __stdcall SetEvent(void *event);                                // import 0x63a294
-extern int32_t __stdcall CloseHandle(void *handle);                            // import 0x63a2f8
-extern void __stdcall ExitProcess(uint32_t exit_code);                         // import 0x63a2c8
 
 extern uint16_t *wcscpy(uint16_t *dest, const uint16_t *source);               // 0x625bba CRT
 extern uint32_t mbstowcs(uint16_t *dest, const char *source, uint32_t count);  // 0x626ba4 CRT
@@ -274,11 +217,11 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
         GlobalUnlock(template_memory);
 
         dialog = CreateDialogIndirectParamA(GetModuleHandleA(0), template_memory, 0,
-                                            (void *)dialog_center_on_screen, 0);
+                                            (DLGPROC)((void *)dialog_center_on_screen), 0);
         ShowWindow(dialog, 5 /* SW_SHOW */);
         SetWindowPos(dialog, (void *)-1 /* HWND_TOPMOST */, 0, 0, 0, 0, 3 /* SWP_NOSIZE | SWP_NOMOVE */);
-        while (PeekMessageA(&message, dialog, 0, 0, 1 /* PM_REMOVE */)) {
-            DispatchMessageA(&message);
+        while (PeekMessageA((LPMSG)&message, dialog, 0, 0, 1 /* PM_REMOVE */)) {
+            DispatchMessageA((const MSG *)&message);
         }
     } CRASH_EXCEPT {
         crash_report_fault_and_exit(exception_pointers);
@@ -288,7 +231,7 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
     attributes.length = sizeof(attributes);
     attributes.security_descriptor = 0;
     attributes.inherit_handle = 1;
-    mapping = CreateFileMappingA((void *)-1, &attributes, 4 /* PAGE_READWRITE */, 0, k_dw_shared_memory_size, 0);
+    mapping = CreateFileMappingA((void *)-1, (LPSECURITY_ATTRIBUTES)&attributes, 4 /* PAGE_READWRITE */, 0, k_dw_shared_memory_size, 0);
     if (mapping == 0) {
         crash_report_fault_and_exit(exception_pointers);
     }
@@ -298,10 +241,10 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
     }
     memset(shared, 0, sizeof(dw_shared_memory));
 
-    event_done = CreateEventA(&attributes, 0, 0, 0);
-    event_alive = CreateEventA(&attributes, 0, 0, 0);
-    mutex = CreateMutexA(&attributes, 0, 0);
-    if (!DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &shared->process,
+    event_done = CreateEventA((LPSECURITY_ATTRIBUTES)&attributes, 0, 0, 0);
+    event_alive = CreateEventA((LPSECURITY_ATTRIBUTES)&attributes, 0, 0, 0);
+    mutex = CreateMutexA((LPSECURITY_ATTRIBUTES)&attributes, 0, 0);
+    if (!DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), (LPHANDLE)&shared->process,
                          0x1f0fff /* PROCESS_ALL_ACCESS */, 1, 0)) {
         crash_report_fault_and_exit(exception_pointers);
     }
@@ -340,7 +283,7 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
         wsprintfA(dxdiag_command, "dxdiag.exe /whql:off /t %s", temp_path);
         if (CreateProcessA(0, dxdiag_command, 0, 0, 0,
                            0x4000020 /* CREATE_DEFAULT_ERROR_MODE | NORMAL_PRIORITY_CLASS */, 0, 0,
-                           &startup_info, &process_information)) {
+                           (LPSTARTUPINFOA)&startup_info, (LPPROCESS_INFORMATION)&process_information)) {
             priority_class = GetPriorityClass(GetCurrentProcess());
             SetPriorityClass(GetCurrentProcess(), 0x40 /* IDLE_PRIORITY_CLASS */);
             do {
@@ -352,11 +295,11 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
                     }
                     strcpy(file_list, temp_path);   // overwrites the "|", see the header
                 }
-                while (PeekMessageA(&wait_message, dialog, 0, 0, 1)) {
+                while (PeekMessageA((LPMSG)&wait_message, dialog, 0, 0, 1)) {
                     if (wait_message.message == 0x111 /* WM_COMMAND */) {
                         wait_result = 0x102;        // WAIT_TIMEOUT: stop waiting
                     }
-                    DispatchMessageA(&wait_message);
+                    DispatchMessageA((const MSG *)&wait_message);
                 }
             } while (wait_result != 0 && wait_result != 0x102);
             SetPriorityClass(GetCurrentProcess(), priority_class);
@@ -403,7 +346,7 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
     process_information.thread_id = 0;
     wsprintfA(watson_command, ".\\Watson\\dw15.exe -x -s %u", (uint32_t)mapping);
     CRASH_TRY {
-        if (!CreateProcessA(0, watson_command, 0, 0, 1, 0x4000020, 0, 0, &startup_info, &process_information)) {
+        if (!CreateProcessA(0, watson_command, 0, 0, 1, 0x4000020, 0, 0, (LPSTARTUPINFOA)&startup_info, (LPPROCESS_INFORMATION)&process_information)) {
             crash_report_fault_and_exit(exception_pointers);
         }
         while (keep_waiting != 0) {

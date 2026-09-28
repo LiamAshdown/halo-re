@@ -16,6 +16,7 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
@@ -27,7 +28,6 @@ extern data_file sounds_data_file;               // 0x006ac4a8
 extern data_file bitmaps_data_file;              // 0x006ac4e8
 extern void *ReadFileEx_exref;                   // 0x0063a27c IAT slot holding ReadFileEx
 
-extern uint32_t __stdcall WaitForSingleObjectEx(void *handle, uint32_t timeout_ms, int32_t alertable); // 0x0063a28c IAT
 
 // blam-cc: request in ESI, size in EBX, offset in EDX, completion_routine in EDI; the three
 // named arguments are the stack ones. Recovered by disassembly at this call site

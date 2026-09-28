@@ -8,6 +8,7 @@
 // register convention: no register-passed arguments.
 // UNSURE: FUN_0061bd40 (a foreign teardown call at the end).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,8 +20,6 @@ extern int32_t autopatch_download_active_count;              // 0x007227c8, UNSU
 extern network_thread_record *autopatch_download_thread;     // 0x007227c4
 extern network_mutex_record *autopatch_download_mutex;       // 0x007227c0
 
-extern int32_t __stdcall GetExitCodeThread(void *thread, uint32_t *exit_code);
-extern int32_t __stdcall CloseHandle(void *object);
 extern int32_t FUN_0061bd40(void); // foreign, UNSURE
 
 // Signals the download pool's worker thread to stop, waits for it to exit (STILL_ACTIVE ==

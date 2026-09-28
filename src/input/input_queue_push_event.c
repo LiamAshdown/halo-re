@@ -10,6 +10,7 @@
 // register convention: queue index in EAX (in_AX), record pointer in EDI (unaff_EDI); the
 // controller_index field of *record is written as an output parameter.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -21,7 +22,6 @@
 
 extern input_event_queue event_queue;                    // 0x00712cc0
 extern int64_t performance_frequency;                           // 0x006ac8f8/0x006ac8fc
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);  // 0x0063a0ac IAT
 extern void *memmove(void *dst, const void *src, uint32_t count); // 0x006236f0 _memmove
 
 // blam-cc: queue index in EAX, record pointer in EDI
@@ -36,7 +36,7 @@ void input_queue_push_event(int16_t queue_index, ui_input_event *record)
     ui_input_event *slots;
 
     if (event_queue.push_disabled == 0) {
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
 
         record->controller_index = queue_index;

@@ -28,6 +28,7 @@
 // (0x3f800000 == 1.0f, 0x3eaa7efa ~ 0.3333f) are written through a `uint32_t*` reinterpretation
 // of the `alpha` field to avoid any floating-point literal rounding.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -90,13 +91,11 @@ extern void server_browser_query_results_ingest(void); // 0x4baae0, outside this
 extern int32_t FUN_006175d0(void *entry); // foreign, GameSpy library
 extern void server_browser_player_list_populate(void *entry); // 0x4b73e0, this module
 extern int32_t server_browser_selected_variant_description_build(void *entry); // 0x4b74e0, this module
-extern int32_t __stdcall ReleaseMutex(void *handle); // Win32
 extern int32_t FUN_00616ff0(void *engine); // foreign, GameSpy library
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, memory module
 extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index); // 0x4b6160, this module, see UNSURE
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
     // the bound (0x1f at the 0x4b84e0 call sites) rides in EDX and is not modeled here // foreign, see UNSURE
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self); // 0x4b8b40, this
     // module; its `widget` parameter is a raw byte pointer there because the body walks it by
@@ -438,7 +437,7 @@ scroll_fade_settled:
         /* fallthrough */
     default:
         master_server_last_result = 0;
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
         if (DAT_006b5e88 <= (uint32_t)(now_ms - master_server_connection_last_tick_ms)) {
             master_server_connection_last_tick_ms = now_ms;

@@ -8,10 +8,10 @@
 // after the call, so the Win32 return value passes straight through).
 //   // blam-cc: EAX -> size
 
+#include "win32.h"
 #include "tags.h"
 #include "cseries.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t size); // Win32, 0x0063a0b0 import thunk
 
 // Thin wrapper allocating a fixed (GMEM_FIXED, flags=0) block of `size` bytes via GlobalAlloc.
 void *memory_global_alloc(uint32_t size)

@@ -11,6 +11,7 @@
 // register convention: __cdecl, text as the recognized parameter. The text is wide: every caller
 // (chat_dispatch_incoming, chimera__kill_feed, game_engine_on_player_death) builds a wchar_t line.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,7 +32,6 @@ extern chat_gui_set_property_int_fn chat_gui_set_property_int; // 0x00721ee8
 extern chat_gui_finalize_fn chat_gui_finalize;  // 0x00721ed0
 extern chat_gui_release_fn chat_gui_release;    // 0x00721ec8
 
-extern int32_t __stdcall QueryPerformanceCounter(int64_t *count);
 extern uint32_t hud_chat_listbox_remove_oldest(void); // 0x4ab240
 
 // Appends a new line of text to the on-screen chat/message listbox GUI control, evicting the
@@ -59,7 +59,7 @@ void chimera__multiplayer_message(const wchar_t *text)
         }
     }
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (counter * 1000) / performance_frequency;
     hud_chat_message_expiry[hud_chat_message_count] = (int32_t)now_ms + 8000;
     hud_chat_message_count = hud_chat_message_count + 1;

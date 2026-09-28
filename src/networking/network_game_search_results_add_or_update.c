@@ -16,6 +16,7 @@
 // plain 0/1 return, matching the "callers only read the low byte" idiom used throughout this
 // module.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include <wchar.h>
@@ -24,7 +25,6 @@
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
@@ -52,7 +52,7 @@ int32_t network_game_search_results_add_or_update(network_game_search_entry *res
             memset(entry, 0, sizeof(network_game_search_entry));
             continue;
         }
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
         if (6000 < now_ms - entry->received_ms) {
             memset(entry, 0, sizeof(network_game_search_entry));
@@ -102,7 +102,7 @@ int32_t network_game_search_results_add_or_update(network_game_search_entry *res
     entry->identity[4] = *(const uint32_t *)(announcement + 0x10);
     entry->identity[5] = *(const uint32_t *)(announcement + 0x14);
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     entry->received_ms = now_ms;
 

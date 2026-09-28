@@ -25,6 +25,7 @@
 //   unbalanced); the viewport is the full D3DVIEWPORT9 {0, 0, width, height, 0.0, 1.0}; the splash is redrawn with
 //   mode 1; the result is a byte.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -53,7 +54,6 @@ extern int32_t rasterizer_dx9_effects_initialize(void);  // 0x5300d0
 extern void rasterizer_vertex_buffer_slot_recreate_lost(void);    // 0x530690, outside this session's range
 extern int32_t rasterizer_lens_flare_occlusion_queries_create(void); // 0x536f70
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
-extern void __stdcall Sleep(uint32_t ms); // Win32
 
 typedef int32_t (__stdcall *d3d_set_software_vertex_processing_fn)(void *device, int32_t software); // +0x134
 typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, uint32_t stage, void *texture);          // +0x104

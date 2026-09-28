@@ -5,6 +5,7 @@
 // sleeping 20ms while slots are active and 1000ms once the pool goes idle, until told to stop.
 // register convention: no register-passed arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@ extern int32_t autopatch_download_active_count; // 0x007227c8, UNSURE: per types
                                                  // to request the worker thread exit)
 
 extern int32_t autopatch_download_pool_tick(void); // 0x576bc0, this module
-extern void __stdcall Sleep(uint32_t milliseconds);
 
 // Background worker thread that repeatedly polls the download pool until told to stop.
 uint32_t autopatch_download_worker_thread(void)

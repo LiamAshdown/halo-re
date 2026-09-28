@@ -10,6 +10,7 @@
 // checker's alias for file_reference_record*, so ESI (read at 0x555691) looked unclaimed. Body
 // already used ref correctly; reworded the blam-cc line to the standard "REG -> name" form.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -21,9 +22,6 @@
 extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
 extern void saved_games_report_last_error(void); // 0x556170, this module
 
-extern int32_t __stdcall RemoveDirectoryA(const char *path); // Win32
-extern int32_t __stdcall SetFileAttributesA(const char *path, uint32_t attributes); // Win32
-extern int32_t __stdcall DeleteFileA(const char *path); // Win32
 
 // blam-cc: ESI -> ref
 // Deletes the directory or file described by ref (built to its full path). Returns 1 on

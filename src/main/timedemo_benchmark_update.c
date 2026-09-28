@@ -28,6 +28,7 @@
 //   its name comes from the game module and is doubtful in this context.
 // reconciled: R03 0x006ac5b2 identified as camera.h director.look_input_consumed (comment only)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -80,18 +81,6 @@ extern void main_queue_map_change(char *map_name);                  // this modu
 extern char hs_compile_and_evaluate(const char *command);           // 0x484400, foreign (hs)
 extern uint32_t user_profile_signin_state_is_valid(void);           // 0x551620, foreign (game), UNSURE name
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186      // 0x624186, CRT fopen wrapper
-extern uint32_t __stdcall GetModuleFileNameA(void *module, char *path, uint32_t size); // import 0x63a110
-extern int32_t __stdcall GetDateFormatA(uint32_t locale, uint32_t flags, const void *time,
-    const char *format, char *out, int32_t size);                   // import 0x63a104
-extern int32_t __stdcall GetTimeFormatA(uint32_t locale, uint32_t flags, const void *time,
-    const char *format, char *out, int32_t size);                   // import 0x63a100
-extern uint32_t __stdcall GetFileVersionInfoSizeA(const char *path, uint32_t *handle); // 0x638f3a
-extern int32_t __stdcall GetFileVersionInfoA(const char *path, uint32_t handle, uint32_t size,
-    void *data);                                                    // 0x638f4a
-extern int32_t __stdcall VerQueryValueA(const void *block, const char *sub_block, void **buffer,
-    uint32_t *length);                                              // 0x638f2a
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t size);  // import 0x63a0b0
-extern void *__stdcall GlobalFree(void *memory);                    // import 0x63a0bc
 
 // Once per presented frame while -timedemo runs: samples the frame time into the timedemo
 // buckets, keeps the local player idle, and steps the benchmark script (a30 at frame 100, then

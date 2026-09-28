@@ -18,6 +18,7 @@
 // register convention: EAX -> address_string; player_name is the one ordinary cdecl stack
 // parameter. blam-cc: EAX -> address_string, stack -> player_name
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,7 +28,6 @@
 #include <string.h>
 
 extern uint32_t network_game_socket_port; // 0x00698208
-extern uint32_t __stdcall inet_addr(const char *address); // Winsock
 extern int32_t interface_loading_screen_text_buffer; // 0x006b2f28, UNSURE identity/type; see
     // network_join_request_resolve_host.c for the same global under this name
 extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source); // 0x557990, this module's established signature

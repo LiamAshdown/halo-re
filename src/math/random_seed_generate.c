@@ -7,10 +7,10 @@
 //   sphere_point_table_init @0x4cd0e0 to seed local_random_seed.
 // register convention: __cdecl, no arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "math.h"
 
-extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformanceFrequency() result, owned by the timing/system module
 
 extern int rand(void); // 0x006240cf _rand
@@ -28,8 +28,8 @@ uint32_t random_seed_generate(void)
     uint32_t scaled_a;
     uint32_t scaled_b;
 
-    QueryPerformanceCounter(&counter_a);
-    QueryPerformanceCounter(&counter_b);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter_a);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter_b);
     rand_value = (uint32_t)rand();
 
     scaled_a = (uint32_t)((counter_a.quad_part * 1000) / performance_frequency);

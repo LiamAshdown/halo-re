@@ -10,6 +10,7 @@
 // register convention: no register-passed arguments.
 // win32 INPUT_RECORD/KEY_EVENT_RECORD come from types/interface.h (win32_input_record).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,9 +21,6 @@
 extern uint8_t console_win32_attached; // 0x006b2f18
 extern void *console_input_handle;     // 0x006b2dcc, win32 console input handle (not otherwise named)
 
-extern int32_t __stdcall GetNumberOfConsoleInputEvents(void *console_input, uint32_t *events);
-extern int32_t __stdcall ReadConsoleInputA(void *console_input, win32_input_record *buffer,
-                                  uint32_t length, uint32_t *events_read);
 extern void input_record_windows_key_message(int32_t key_or_char, int32_t message); // 0x490d10, input module
 // blam-cc: EAX -> key_or_char, ECX -> message (0x100 WM_KEYDOWN, 0x102 WM_CHAR, 0x104
 // WM_SYSKEYDOWN, 0x106 WM_SYSCHAR; only the first two are ever produced here)
@@ -46,7 +44,7 @@ void console_process_input_events(void)
         return;
     }
     for (i = 0; i < event_count; i++) {
-        if (ReadConsoleInputA(console_input_handle, &record, 1, &events_read) != 0 &&
+        if (ReadConsoleInputA(console_input_handle, (PINPUT_RECORD)&record, 1, &events_read) != 0 &&
             record.EventType == 1) {
             if (record.KeyEvent.bKeyDown != 0) {
                 input_record_windows_key_message(record.KeyEvent.wVirtualKeyCode, 0x100);

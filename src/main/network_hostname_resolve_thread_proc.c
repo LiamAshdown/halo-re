@@ -10,6 +10,7 @@
 // UNSURE: `hostent` itself is a Winsock structure, not a Blam type; kept as an opaque void *
 // returned straight from gethostbyname, same treatment as network_local_hostent_get.c.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "interface.h"
@@ -18,8 +19,6 @@
 extern void *hostname_resolve_result;      // 0x00719b6c, this module; struct hostent * from gethostbyname
 extern int32_t hostname_resolve_complete;  // 0x00719b68, this module; set once the lookup returns
 
-extern void *__stdcall gethostbyname(const char *name);
-extern void __stdcall ExitThread(uint32_t exit_code);
 
 // blam-cc: hostname as the recognized parameter (__stdcall thread proc)
 uint32_t network_hostname_resolve_thread_proc(char *hostname)

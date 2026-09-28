@@ -15,12 +15,12 @@
 //   which moves EAX into ESI before calling.
 // blam-cc: hash_table_grow_freelist(hash_table *table /*ESI*/)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
 
 void hash_table_grow_freelist(hash_table *table)
 {

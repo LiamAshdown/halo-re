@@ -17,13 +17,13 @@
 // the reliable-retransmit-pool "store" step) is reconstructed purely from this call site's
 // literal argument shapes.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern void network_channel_reliable_pool_store(network_channel *channel, void *message, uint8_t *out_flag,
@@ -41,7 +41,7 @@ void network_connection_send_keepalive(network_client_globals *client)
                                    //         contents are not visible in the decompilation
     uint8_t out_flag;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
 
     endpoint = &client->connection;

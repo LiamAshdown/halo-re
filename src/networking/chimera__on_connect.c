@@ -25,13 +25,13 @@
 // its call site; reconstructed as (target_address, client) since target_address is exactly what
 // was just copied into client's endpoint fields a few lines above.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 extern int16_t network_join_error_code; // 0x00718fa4, the pending join/disconnect error
                                         // string index; -1 means none. WORD-sized everywhere
@@ -64,7 +64,7 @@ int8_t chimera__on_connect(const uint32_t *target_address, network_client_global
     attempt = &client->connect_attempt;
     attempt->unknown_00 = 0;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     started_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     attempt->elapsed_counter = 0;

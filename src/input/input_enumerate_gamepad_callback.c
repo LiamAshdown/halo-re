@@ -14,6 +14,7 @@
 // step logs (input_error_log_once), releases the half-made device and continues.
 // blam-cc: __stdcall (a DirectInput callback: instance, reference)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -37,7 +38,6 @@ extern int32_t input_device_count_by_guid(const uint32_t *guid); // 0x491d30
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX, EDI, EBX
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, EDX, stack
 extern int32_t __stdcall input_enumerate_gamepad_object_callback(const di_device_object_instance *object, void *reference); // 0x491c50
-extern void *__stdcall GetActiveWindow(void);
 
 typedef int32_t (__stdcall *idirectinputdevice8_getcapabilities_proc)(void *self, di_device_caps *caps);
 typedef int32_t (__stdcall *idirectinputdevice8_enumobjects_proc)(void *self, void *callback, void *reference,

@@ -7,6 +7,7 @@
 // FIXED (register inputs, objdump): ESI carries ref (read at 0x555890, mov eax,[esi+0x108]);
 // the note named the param "reference record" instead of "ref", so it did not parse.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -16,7 +17,6 @@
 #include "saved_games.h"
 
 extern void saved_games_report_last_error(void); // 0x556170, this module
-extern int32_t __stdcall CloseHandle(void *object); // Win32
 
 // blam-cc: ref in ESI
 // Closes ref's open handle and clears it. Returns 1 on success, 0 on failure (after reporting

@@ -20,15 +20,13 @@
 // pass its own ESI/sentinel value (always 0 on its path per the UNSURE note above) but is out of
 // scope for this pass.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *__stdcall LocalFree(void *memory);
-extern void *__stdcall CloseHandle(void *handle);
-extern void *__stdcall FreeSid(void *sid);
 
 // Releases the SID, ACL/security-descriptor buffer, and token handles allocated inside
 // security_check_write_access, each compared against `sentinel` (always NULL on the known path)

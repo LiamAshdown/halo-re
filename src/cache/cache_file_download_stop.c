@@ -10,11 +10,10 @@
 // --stop-address=0x44353c bin/halo.exe) confirms there are no register or stack arguments.
 // register convention: none (void).
 
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // 0x0063a310 IAT
-extern void __stdcall SetEvent(void *event); // 0x0063a294 IAT
 
 extern map_download_state *map_download; // 0x006869c0
 

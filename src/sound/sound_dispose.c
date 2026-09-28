@@ -14,6 +14,7 @@
 //   globals sound_cache_initialized (0x006ac534, cleared before the entry table is freed) and
 //   sound_cache_base (0x006ac52c, cleared at the end), which the draft had dropped.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -28,7 +29,6 @@ extern struct cache *sound_cache;       // 0x006ac530
 extern void *sound_cache_base;          // 0x006ac52c, types/cache.h
 extern uint8_t sound_cache_initialized; // 0x006ac534, types/cache.h
 
-extern void __stdcall GlobalFree(void *block); // import 0x0063a0bc
 
 static void sound_dispose_zero_and_free(void *block, int32_t dword_count)
 {

@@ -7,6 +7,7 @@
 // dest, format, directory (ESI), name (the function's own recognized stack parameter).
 // register convention: __cdecl; name is the recognized stack parameter.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,8 +20,6 @@ extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
-extern void *__stdcall FindFirstFileA(const char *path, win32_find_dataa *find_data); // Win32
-extern int32_t __stdcall FindClose(void *find_handle); // Win32
 
 // Checks whether "<current profile directory><name>.sav" exists on disk.
 uint8_t saved_game_file_exists(char *name)
@@ -34,7 +33,7 @@ uint8_t saved_game_file_exists(char *name)
     found = 0;
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     _sprintf(path, "%s%s.sav", directory, name);
-    find_handle = FindFirstFileA(path, &find_data);
+    find_handle = FindFirstFileA(path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)0xffffffff) {
         found = 1;
         FindClose(find_handle);

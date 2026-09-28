@@ -18,6 +18,7 @@
 // this call site never materializes explicitly; &console->edit is the only state object this
 // function otherwise touches, so it is supplied here as the inferred argument.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -35,7 +36,6 @@ extern int16_t queued_key_event_read_index;  // 0x006b16fa, int16 (word compares
 extern int16_t queued_key_event_write_index; // 0x006b16fc, int16
 extern ui_key_event queued_key_events[];     // 0x006b16fe, UNSURE: ring array, capacity unknown
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern void widget_text_edit_process_key(text_edit_state *state, ui_key_event *event); // 0x44c290
 
 // Per-frame developer-console update: while a scripted/queued key stream is active (state byte
@@ -55,7 +55,7 @@ uint8_t console_process_queued_input(void)
         return 0;
     }
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     console_active->key_event_count = 0;
 

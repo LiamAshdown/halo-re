@@ -7,13 +7,13 @@
 // exactly (same object network_machine_reset.c clears).
 // register convention: machine in ESI (unaff_ESI). blam-cc: ESI -> machine, stack -> duration_ms
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 // blam-cc: ESI -> machine
@@ -22,7 +22,7 @@ void network_machine_timer_start(network_machine *machine, int32_t duration_ms)
     large_integer counter;
     int32_t now_ms;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     machine->timer_14 = now_ms;
     machine->unknown_10 = 1;

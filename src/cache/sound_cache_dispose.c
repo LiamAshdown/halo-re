@@ -11,6 +11,7 @@
 // register convention: none; plain __cdecl with no parameters.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -21,7 +22,6 @@ extern void *sound_decode_buffer;       // 0x006f17ec
 extern int32_t sound_decode_buffer_size; // 0x006f17f0
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void *__stdcall GlobalFree(void *memory); // 0x0063a0bc IAT
 
 extern void sound_permutation_release_page(SoundPermutation *permutation); // this module, sound_permutation_release_page.c
 

@@ -17,6 +17,7 @@
 // value rather than named constants, since no symbolic names for these circular_buffer_write
 // return codes are documented anywhere in this module.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -24,7 +25,6 @@
 #include "networking.h"
 #include <string.h>
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_pending_connection_count; // 0x006f16d0, UNSURE: reused here per globals list
 
@@ -42,7 +42,7 @@ char network_channel_transmit(network_channel *channel)
     uint8_t scratch[0x5000];
     int32_t send_result;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     incoming = channel->incoming;
     available = incoming->write_cursor - incoming->read_cursor;
     done = 1;
@@ -130,7 +130,7 @@ char network_channel_transmit(network_channel *channel)
             }
             break;
         }
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
         send_result = circular_buffer_write(scratch, incoming_available, channel->endpoint->incoming); // UNSURE: stream arg
         (void)send_result;
@@ -142,7 +142,7 @@ char network_channel_transmit(network_channel *channel)
         }
         available = incoming->capacity - available;
     } while (done != 0);
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     return done;
 }
 

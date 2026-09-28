@@ -8,6 +8,7 @@
 // entry is 0xa4 bytes (game_variant_history_entry), with path/name (its own two GlobalAlloc'd
 // pointers) at +0x00/+0x04.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,7 +19,6 @@ extern uint32_t game_variant_history_count;              // 0x00687b10
 extern uint32_t game_variant_history_capacity;            // 0x00687b14
 extern int32_t game_variant_history_current;              // 0x00687b18
 
-extern void *__stdcall GlobalFree(void *handle); // Win32
 
 void game_engine_free_custom_variant_cache(void)
 {

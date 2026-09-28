@@ -6,13 +6,13 @@
 // Uses the same [remaining_ms, last_tick_ms] layout as network_timer_advance.c.
 // register convention: timer in ESI (unaff_ESI). blam-cc: ESI -> timer, stack -> duration_ms
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 
@@ -21,7 +21,7 @@ void network_timer_start(network_timer_pair *timer, int32_t duration_ms)
 {
     large_integer counter;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     timer->remaining_ms = duration_ms;
     timer->last_tick_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 }

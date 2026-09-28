@@ -18,6 +18,7 @@
 // linked directly, so its prototype is declared locally as a function-pointer type instead of
 // an extern.
 
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 #include "memory.h"
@@ -29,13 +30,6 @@ extern void *texture_cache_memory;   // 0x006ac550, VirtualAlloc 0x4000 bytes
 extern void *sound_cache_memory;     // 0x006ac554, VirtualAlloc sound_cache_size_megabytes << 20
 extern int32_t sound_cache_size_megabytes; // 0x006869c4, read but not owned by this module
 
-extern void *__stdcall VirtualAlloc(void *address, uint32_t size, uint32_t allocation_type, uint32_t protect); // 0x0063a09c IAT
-extern void *__stdcall LoadLibraryA(const char *name);                       // 0x0063a0a0 IAT
-extern void *__stdcall GetProcAddress(void *module, const char *name);       // 0x0063a098 IAT
-extern void *__stdcall GetCurrentProcess(void);                              // 0x0063a2c0 IAT
-extern int32_t __stdcall FreeLibrary(void *module);                          // 0x0063a2c4 IAT
-extern int32_t __stdcall MessageBoxA(void *owner, const char *text, const char *caption, uint32_t type); // 0x0063a370 IAT
-extern void __stdcall ExitProcess(uint32_t exit_code);                       // 0x0063a2c8 IAT, does not return
 
 typedef uint32_t (*get_mapped_file_name_a_t)(void *process, void *address, char *filename, uint32_t size);
 

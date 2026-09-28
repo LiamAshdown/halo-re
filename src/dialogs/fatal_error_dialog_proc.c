@@ -30,6 +30,7 @@
 // "Safe Mode" is not recoverable from this function alone.
 // reconciled: R15 0x00722bc0 / 0x00722c58 are shell.h globals (int32_t fatal_error_remember_choice, char fatal_error_system_specs[0x100])
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -37,21 +38,6 @@
 #include "shell.h"
 #include "interface.h"
 
-extern int32_t __stdcall GetWindowRect(void *hwnd, win32_rect *rect);        // import 0x63a414
-extern void *__stdcall GetDesktopWindow(void);                               // import 0x63a418
-extern int32_t __stdcall GetClientRect(void *hwnd, win32_rect *rect);        // import 0x63a3b4
-extern int32_t __stdcall MoveWindow(void *hwnd, int32_t x, int32_t y, int32_t width, int32_t height,
-                                     int32_t repaint);                       // import 0x63a408
-extern int32_t __stdcall SetWindowTextA(void *hwnd, const char *text);       // import 0x63a35c
-extern int32_t __stdcall SetDlgItemTextA(void *dialog, int32_t item_id, const char *text); // import 0x63a390
-extern void *__stdcall GetDlgItem(void *dialog, int32_t item_id);            // import 0x63a34c
-extern int32_t __stdcall EnableWindow(void *hwnd, int32_t enable);           // import 0x63a360
-extern int32_t __stdcall IsDlgButtonChecked(void *dialog, int32_t item_id);  // import 0x63a354
-extern int32_t __stdcall EndDialog(void *dialog, int32_t result);            // import 0x63a380
-extern int32_t __stdcall DestroyWindow(void *window);                        // import 0x63a3d0
-extern int32_t __stdcall ShellExecuteA(void *hwnd, const char *operation, const char *file,
-                                        const char *parameters, const char *directory,
-                                        int32_t show_cmd); // delay-load import 0x69ffb8 (shell32.dll)
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 
 extern int32_t dialog_static_hyperlink_install(void *control); // 0x57e4c0, this module; blam-cc: ESI -> control

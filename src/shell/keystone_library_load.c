@@ -9,6 +9,7 @@
 // recovered as literals; by usage they are almost certainly the default C-locale name "C" and a
 // ".%d" codepage format, matching the standard "switch off the C locale before mbstowcs" idiom.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -42,14 +43,7 @@ extern uint16_t *keystone_current_directory; // 0x00721ea8
 extern int32_t safe_mode;                    // 0x007196f4 (32 bit BOOL)
 
 extern char *_setlocale(int32_t category, const char *locale);
-extern uint32_t __stdcall GetACP(void);
-extern int32_t wsprintfA(char *buffer, const char *format, ...);
-extern uint32_t __stdcall GetCurrentDirectoryA(uint32_t buffer_size, char *buffer);
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t size);
-extern void *__stdcall GlobalFree(void *memory);
 extern uint32_t _mbstowcs(uint16_t *dest, const char *src, uint32_t count);
-extern void *__stdcall LoadLibraryA(const char *file_name);
-extern void *__stdcall GetProcAddress(void *module, const char *proc_name);
 
 // Loads the Keystone UI middleware DLL and resolves all of its Call_Ks*/Call_KW*/Call_KC*
 // entry points into globals, unless networking-only mode (safe_mode) disables the UI.

@@ -16,6 +16,7 @@
 // bytes / 3 fields, and that note is flagged for the memory module, not acted on here.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -30,8 +31,6 @@ extern char file_open_mode_w[];          // 0x0065ff44, likely "w"
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void cache_build_status_bitmap(struct cache *self, uint8_t *bitmap); // 0x4d1ca0
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 IAT
-extern void *__stdcall GlobalFree(void *memory); // 0x0063a0bc IAT
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 extern uint32_t _fwrite(const void *buffer, uint32_t size, uint32_t count, void *file); // 0x6243e9 _fwrite
 extern void _fclose(void *file); // _fclose

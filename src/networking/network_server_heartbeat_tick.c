@@ -21,13 +21,13 @@
 // network_game_server_handle_client_join.c, though it is not an enumerated
 // network_machine_flags value.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int32_t time_query_performance_counter_ms(void); // other module; returns a tick value here (UNSURE)
@@ -55,7 +55,7 @@ uint8_t network_server_heartbeat_tick(network_server_globals *server)
     base = (uint8_t *)server;
     timer = (network_timer_pair *)(base + 0x9c8);
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     result = 1;
 

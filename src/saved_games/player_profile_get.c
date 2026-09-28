@@ -17,6 +17,7 @@
 // thread first, exactly like player_profile_verify_thread_wait_and_clear (0x539a40).
 // register convention: out_buffer in ECX; index is the recognized stack parameter.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,10 +29,6 @@
 extern network_thread_record *player_profile_thread; // 0x0072127c
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 
-extern uint32_t __stdcall GetExitCodeThread(void *thread, uint32_t *exit_code); // Win32
-extern uint32_t __stdcall CloseHandle(void *handle); // Win32
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
-extern uint32_t __stdcall ReleaseMutex(void *mutex); // Win32
 extern void player_profile_initialize(saved_player_profile *profile, int32_t local_player_index,
     uint8_t merge_existing); // 0x53a1c0
 extern uint16_t *saved_game_get_display_name(int32_t handle); // 0x53c600, not in this batch

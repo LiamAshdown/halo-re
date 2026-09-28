@@ -30,11 +30,10 @@
 //   The fill-with-0xffff loop below is written as a plain per-element loop rather than the
 //   decompile's dword-then-leftover-word split; both produce the identical final table.
 
+#include "win32.h"
 #include "tags.h"
 #include "math.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // 0x0063a0b0 import thunk
-extern void *__stdcall GlobalFree(void *block); // 0x0063a0bc import thunk; returns NULL on success, like the Win32 original
 extern int16_t sphere_mesh_get_face_point(sphere_mesh *mesh, int16_t *next_point_index, int16_t apex,
                                            int16_t vertex_a, int16_t vertex_b, int16_t row, int16_t col,
                                            sphere_mesh_edge_cache *edge_cache,

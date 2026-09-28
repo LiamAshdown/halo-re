@@ -26,6 +26,7 @@
 // how their results are (or are not) used here.
 // reconciled: R55 per-level progress byte is profile +0x11e, not +0x11c (+0x11c is the flags word): 0x49c8f0 copies the profile to esp+0x20 and reads [esp+edi+0x13e] (0x49ca5e)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -71,7 +72,6 @@ extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profi
 extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
 extern void _wcscpy(uint16_t *dest, const uint16_t *src);
 extern int32_t __stricmp(const char *a, const char *b);
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t size);
 
 // Builds the campaign level-selection list. If more than one known level exists, delegates
 // entirely to the co-op variant ui_build_level_select_list_coop. Otherwise rebuilds the 10-slot known-level table

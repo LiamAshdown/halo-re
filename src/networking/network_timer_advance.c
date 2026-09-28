@@ -8,13 +8,13 @@
 // header-declared struct.
 // register convention: timer in ESI (unaff_ESI). blam-cc: ESI -> timer
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 
@@ -28,7 +28,7 @@ void network_timer_advance(network_timer_pair *timer)
     int32_t previous_tick_ms;
     int32_t elapsed;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     previous_tick_ms = timer->last_tick_ms;
     timer->last_tick_ms = now_ms;

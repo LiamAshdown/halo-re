@@ -22,6 +22,7 @@
 // UNSURE: FUN_00616f80/fa0/fc0, FUN_006171a0/d0 and FUN_00617290 are foreign GameSpy library
 // calls; only their observed argument shapes are kept, not real names or full signatures.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -49,8 +50,6 @@ extern int32_t FUN_006171d0(void *engine, int32_t flag, uint32_t address, uint16
 extern int32_t FUN_006171a0(void *engine, int32_t flag, int32_t unused_a, void *buffer,
                               int32_t buffer_length, int32_t unused_b); // foreign
 extern int32_t FUN_00617290(void *engine, void *server_record, int32_t flag_a, int32_t flag_b); // foreign
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // Win32
-extern int32_t __stdcall ReleaseMutex(void *handle); // Win32
 
 // blam-cc: __cdecl, no arguments
 void master_server_process_pending_requests(void)

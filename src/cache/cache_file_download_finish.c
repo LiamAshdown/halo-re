@@ -18,15 +18,10 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms); // 0x0063a310 IAT
-extern void __stdcall SetEvent(void *event); // 0x0063a294 IAT
-extern void __stdcall GetSystemTime(system_time *out_time); // 0x0063a2d0 IAT
-extern void __stdcall SystemTimeToFileTime(system_time *in_time, file_time *out_time); // 0x0063a2e8 IAT
-extern void __stdcall SetFileTime(void *file, file_time *creation, file_time *last_access,
-    file_time *last_write); // 0x0063a2dc IAT
 
 extern void cache_file_slot_read_header(int32_t slot_index); // blam-cc: EAX; this module, 0x4435e0
 
@@ -53,10 +48,10 @@ void cache_file_download_finish(void)
     }
 
     slot_index = map_download_slot_index;
-    GetSystemTime(&now);
-    SystemTimeToFileTime(&now, &cache_file_slots[slot_index].last_write_time);
-    SetFileTime(cache_file_slots[slot_index].file, &cache_file_slots[slot_index].last_write_time,
-        (file_time *)0, (file_time *)0);
+    GetSystemTime((LPSYSTEMTIME)&now);
+    SystemTimeToFileTime((const SYSTEMTIME *)&now, (LPFILETIME)&cache_file_slots[slot_index].last_write_time);
+    SetFileTime(cache_file_slots[slot_index].file, (const FILETIME *)&cache_file_slots[slot_index].last_write_time,
+        (const FILETIME *)((file_time *)0), (const FILETIME *)((file_time *)0));
     cache_file_slot_read_header(slot_index);
 
     map_download_in_progress = 0;

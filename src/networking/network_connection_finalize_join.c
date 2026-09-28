@@ -43,6 +43,7 @@
 // the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
 // the encoded bits from &network_join_message_header; the C passed placeholders or dropped the arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -54,7 +55,6 @@ extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern void *network_summary_log_file;           // 0x006a6140, FILE *
 extern char network_build_string[];              // 0x00719879
 extern int32_t _fprintf(void *stream, const char *format, ...);
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int16_t network_game_mode; // 0x00719720
 extern char network_game_scenario_load_request(network_game_session *session); // 0x4de6d0
@@ -101,7 +101,7 @@ int32_t network_connection_finalize_join(uint16_t *connection)
     iVar6 = *(int32_t *)((uint8_t *)connection + 0xadc); // channel
     connection[0x76c] = 0xffff; // client->unknown_ed8 = 0xffff
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     *(int32_t *)(iVar6 + 4) = now_ms; // channel->last_activity_ms = now_ms
 
@@ -159,7 +159,7 @@ have_machine:
 
 after_search:
     iVar6 = *(int32_t *)((uint8_t *)connection + 0xadc); // channel
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     *(int32_t *)(iVar6 + 4) = now_ms;
 

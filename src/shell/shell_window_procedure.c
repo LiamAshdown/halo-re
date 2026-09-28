@@ -48,6 +48,7 @@
 //   companion of sound_pause) are both in this module's address range but outside this pass's
 //   function list; referenced here by their Ghidra names, not renamed.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -57,9 +58,6 @@
 #include "main.h"
 #include "shell.h"
 
-typedef void *HWND;
-typedef void *HDC;
-typedef void *HBITMAP;
 
 // Minimal GDI BITMAP layout: only the fields GetObjectA's caller reads are named (bmWidth,
 // bmHeight); the rest is exactly the 0x18-byte buffer size the call site passes.
@@ -70,22 +68,6 @@ typedef struct win32_bitmap {
     uint8_t unknown_0c[0xc]; // 0x0c bmWidthBytes/bmPlanes/bmBitsPixel/bmBits, unread here
 } win32_bitmap;               // size 0x18
 
-extern int32_t __stdcall DefWindowProcA(HWND hwnd, uint32_t message, uint32_t wparam,
-                                         int32_t lparam);                        // import 0x63a3c4
-extern void __stdcall PostQuitMessage(int32_t exit_code);                        // import 0x63a3a8
-extern HWND __stdcall GetForegroundWindow(void);                                 // import 0x63a3bc
-extern void *__stdcall SetCursor(void *cursor);                                  // import 0x63a378
-extern int32_t __stdcall ValidateRect(HWND hwnd, const win32_rect *rect);        // import 0x63a3cc
-extern HDC __stdcall GetDC(HWND hwnd);                                           // import 0x63a3ec
-extern int32_t __stdcall ReleaseDC(HWND hwnd, HDC dc);                           // import 0x63a3fc
-extern int32_t __stdcall GetClientRect(HWND hwnd, win32_rect *rect);             // import 0x63a3b4
-extern int32_t __stdcall GetObjectA(void *object, int32_t buffer_size, void *buffer); // import 0x63a074
-extern int32_t __stdcall StretchBlt(HDC dst_dc, int32_t x, int32_t y, int32_t width, int32_t height,
-                                     HDC src_dc, int32_t src_x, int32_t src_y, int32_t src_width,
-                                     int32_t src_height, uint32_t raster_op);     // import 0x63a070
-extern int32_t __stdcall ShowWindow(HWND hwnd, int32_t command);                 // import 0x63a400
-extern HWND __stdcall GetDesktopWindow(void);                                    // import 0x63a418
-extern int32_t __stdcall SetForegroundWindow(HWND hwnd);                         // import 0x63a3dc
 
 extern uint32_t time_query_performance_counter_ms(void);       // 0x449210, foreign (math)
 extern void input_directinput_acquire_devices(void);           // 0x490620, foreign (input)

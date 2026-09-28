@@ -10,6 +10,7 @@
 // register convention: __fastcall-like, ECX -> hostname (in_ECX, unresolved register read).
 // blam-cc: ECX -> hostname
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "interface.h"
@@ -19,11 +20,6 @@ extern int32_t hostname_resolve_complete; // 0x00719b68, this module (network_ho
 extern void *hostname_resolve_result;     // 0x00719b6c, this module (network_hostname_resolve_thread_proc.c)
 
 extern uint32_t network_hostname_resolve_thread_proc(char *hostname); // 0x4c8340, this module
-extern void *__stdcall CreateThread(void *security_attributes, uint32_t stack_size, void *start_address,
-                           void *parameter, uint32_t creation_flags, uint32_t *thread_id);
-extern uint32_t __stdcall WaitForSingleObject(void *handle, uint32_t timeout_ms);
-extern int32_t __stdcall TerminateThread(void *thread, uint32_t exit_code);
-extern int32_t __stdcall CloseHandle(void *object);
 
 // blam-cc: ECX -> hostname
 // Resolves hostname on a worker thread, waiting up to 10 seconds; kills the thread if it hasn't
@@ -37,7 +33,8 @@ char network_hostname_resolve_with_timeout(char *hostname)
 
     hostname_resolve_complete = 0;
     thread_handle = CreateThread(0, k_main_hostname_thread_stack_size,
-                                  network_hostname_resolve_thread_proc, hostname, 0, &thread_id);
+                                  (LPTHREAD_START_ROUTINE)network_hostname_resolve_thread_proc, hostname, 0,
+                                  &thread_id); // the routine ends in ExitThread (never returns)
     if (thread_handle != 0) {
         wait_result = WaitForSingleObject(thread_handle, k_main_hostname_resolve_timeout_ms);
         if (wait_result == 0x102) {

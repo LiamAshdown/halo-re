@@ -11,6 +11,7 @@
 //   / 12 dword zero loop matching WNDCLASSEXA exactly) since the project headers do not carry
 //   Win32 SDK types.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,29 +29,6 @@ extern void *shell_module_handle;                                   // 0x00722bb
 extern void *rasterizer_window_icon_bitmap; // 0x0071d188, HBITMAP
 extern void *rasterizer_window_icon_dc;     // 0x0071d184, HDC
 
-extern void *__stdcall LoadIconA(void *hinstance, const char *name);
-extern void *__stdcall LoadCursorA(void *hinstance, const char *name);
-extern int32_t __stdcall RegisterClassExA(win32_wndclassexa *wc);
-extern void *__stdcall GetDesktopWindow(void);
-extern int32_t __stdcall GetWindowRect(void *hwnd, win32_rect *rect);
-extern int32_t __stdcall AdjustWindowRect(win32_rect *rect, uint32_t style, int32_t menu);
-extern void *__stdcall CreateWindowExA(uint32_t ex_style, const char *class_name, const char *title, uint32_t style,
-                              int32_t x, int32_t y, int32_t w, int32_t h, void *parent, void *menu,
-                              void *hinstance, void *param);
-extern uint32_t __stdcall GetLastError(void);
-extern uint32_t __stdcall FormatMessageA(uint32_t flags, const void *source, uint32_t message_id, uint32_t language_id,
-                                char **buffer, uint32_t size, void *arguments);
-extern int32_t __stdcall MessageBoxA(void *hwnd, const char *text, const char *caption, uint32_t type);
-extern int32_t __stdcall UnregisterClassA(const char *class_name, void *hinstance);
-extern void *__stdcall LocalFree(void *mem);
-extern void *__stdcall LoadBitmapA(void *hinstance, const char *name);
-extern void *__stdcall GetDC(void *hwnd);
-extern void *__stdcall CreateCompatibleDC(void *hdc);
-extern void *__stdcall SelectObject(void *hdc, void *object);
-extern int32_t __stdcall SetForegroundWindow(void *hwnd);
-extern int32_t __stdcall SetActiveWindow(void *hwnd);
-extern void *__stdcall SetFocus(void *hwnd);
-extern int32_t __stdcall ShowWindow(void *hwnd, int32_t cmd_show);
 
 // blam-cc: EAX -> height, unaff_EBX -> width
 // Registers the game window class and creates/centers a `width` by `height` window on the
@@ -81,7 +59,7 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
     wc.background_brush = 0;
     wc.menu_name = 0;
     wc.class_name = (uint32_t)rasterizer_window_class_name;
-    RegisterClassExA(&wc);
+    RegisterClassExA((const WNDCLASSEXA *)&wc);
 
     GetWindowRect(GetDesktopWindow(), &rect);
     rect.top = (uint32_t)((rect.bottom - rect.top) - height) >> 1;
@@ -96,7 +74,7 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
     if (hwnd == (void *)0) {
         char *message_buffer = (char *)0;
         uint32_t message_id = GetLastError();
-        FormatMessageA(0x1300, (const void *)0, message_id, 0x400, &message_buffer, 0, (void *)0);
+        FormatMessageA(0x1300, (const void *)0, message_id, 0x400, (LPSTR)&message_buffer, 0, (void *)0);
         MessageBoxA((void *)0, message_buffer, "ERROR - failed to create window", 0x40);
         UnregisterClassA(rasterizer_window_class_name, rasterizer_hinstance);
         LocalFree(message_buffer);

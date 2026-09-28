@@ -19,10 +19,10 @@
 // indistinguishable from a completed read except through that return value, which the one caller
 // ignores in favour of reading the flag itself. Reproduced literally.
 
+#include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern uint32_t __stdcall SleepEx(uint32_t milliseconds, int32_t alertable); // 0x0063a290 IAT
 
 // blam-cc: flag in ESI
 // Blocks the calling thread in an alertable wait until `*flag` is set by an IO completion APC.

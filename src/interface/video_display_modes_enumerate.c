@@ -21,6 +21,7 @@
 // Survivors go to video_resolution_add (EAX height; width, refresh rate on the stack).
 // register convention: EBX the D3DFORMAT; no stack arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -40,8 +41,6 @@ extern void *d3d_device;                    // 0x0071d174
 
 extern int _stricmp(const char *a, const char *b); // 0x628d8b
 extern void video_resolution_add(int32_t height, int32_t width, int32_t refresh_rate); // 0x4badc0, blam-cc: EAX height
-extern void *__stdcall GetDesktopWindow(void);                     // import 0x0063a418
-extern int __stdcall GetWindowRect(void *window, win32_rect *rect); // import 0x0063a414
 
 static uint8_t video_mode_memory_limit_applies(void)
 {

@@ -12,6 +12,7 @@
 // register convention: the flag in BL, no stack arguments.
 //   // blam-cc: BL -> inactive
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
@@ -32,7 +33,6 @@ extern void input_directinput_acquire_devices(void);      // 0x490620
 extern void input_reset_state_and_axis_configs(void);     // 0x490aa0
 extern void chat_close(void);                             // 0x4aa900
 extern int32_t time_query_performance_counter_ms(void);   // 0x449210
-extern int32_t __stdcall ShowWindow(void *hwnd, int32_t cmd_show);
 
 // blam-cc: BL -> inactive
 // Reacts to the application losing or regaining focus.

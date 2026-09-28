@@ -20,6 +20,7 @@
 // loop finds an index (the computed pointer cannot be NULL); preserved literally rather than
 // simplified away.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,7 +28,6 @@
 #include "networking.h"
 
 extern void update_server_push_player_tick_history(void); // other module (UNSURE)
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern void game_engine_tick(void); // other module, already named
 extern char network_game_session_finalize_and_add_player(network_player_entry *entry,
     network_server_globals *server, network_machine *machine); // 0x4df840, this batch
@@ -48,7 +48,7 @@ void network_game_server_per_frame_tick(network_player_entry *entry, int16_t upd
             do {
                 server->unknown_9b8 = server->unknown_9b8 + 1;
                 update_server_push_player_tick_history();
-                QueryPerformanceCounter(&counter);
+                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
                 remaining = remaining - 1;
             } while (remaining != 0);
         }

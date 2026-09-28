@@ -12,12 +12,12 @@
 //   this session's range) is presumably the texture-create step that turns it into a hardware
 //   texture.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes); // Win32
 // blam-cc: EAX -> bitmap
 extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); // 0x43fb70
 // blam-cc: ESI -> bitmap

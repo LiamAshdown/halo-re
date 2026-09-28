@@ -34,6 +34,7 @@
 //     intro movies, pumps messages and paces frames. Renamed main_loop.
 //   - The -? / -help path shows the message box and returns without the exit path.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -112,27 +113,6 @@ extern uint8_t port_overridden;              // 0x0071c2d0
 extern uint32_t connect_address_raw;         // 0x006869b0 inet_addr result, then the swapped address
 extern uint32_t connect_address;             // 0x006869a4 byte swapped copy
 
-extern void *__stdcall LoadLibraryA(const char *file_name);                    // import 0x63a0a0
-extern void *__stdcall GetProcAddress(void *module, const char *proc_name);    // import 0x63a098
-extern int32_t __stdcall FreeLibrary(void *module);                            // import 0x63a2c4
-extern void __stdcall SetLastError(uint32_t code);                             // import 0x63a280
-extern int32_t __stdcall VirtualProtect(void *address, uint32_t size, uint32_t new_protect,
-                                        uint32_t *old_protect);                // import 0x63a298
-extern void __stdcall ExitProcess(uint32_t code);                              // import 0x63a2c8
-extern int32_t __stdcall CloseHandle(void *handle);                            // import 0x63a2f8
-extern int32_t __stdcall MessageBoxA(void *hwnd, const char *text, const char *caption, uint32_t type); // import 0x63a370
-extern void *__stdcall LoadCursorA(void *hinstance, const char *cursor_name); // import 0x63a374
-extern int16_t __stdcall GetAsyncKeyState(int32_t vkey);                      // import 0x63a420
-extern int32_t __stdcall RegOpenKeyExA(void *key, const char *subkey, uint32_t options, uint32_t sam,
-                                       void **result);                         // import 0x63a014
-extern int32_t __stdcall RegQueryValueExA(void *key, const char *value_name, uint32_t *reserved, uint32_t *type,
-                                          uint8_t *data, uint32_t *data_size); // import 0x63a018
-extern int32_t __stdcall RegCloseKey(void *key);                               // import 0x63a010
-extern uint32_t __stdcall GetTempPathA(uint32_t buffer_size, char *buffer);    // import 0x63a154
-extern int32_t __stdcall GetDiskFreeSpaceExA(const char *path, large_integer *free_bytes_available,
-                                             large_integer *total_bytes,
-                                             large_integer *total_free_bytes); // import 0x63a138
-extern uint32_t __stdcall inet_addr(const char *address);                      // delay-load slot 0x0069fffc
 extern int32_t atol(const char *string);                                       // 0x625926 CRT
 
 typedef int32_t (__cdecl *eula_show_fn)(const char *registry_path, const char *eula_file, int32_t unknown_2,
@@ -233,7 +213,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         firstrun = 0;
         firstrun_size = 4;
         RegOpenKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                      0x20019 /* KEY_READ */, &hkey);
+                      0x20019 /* KEY_READ */, (PHKEY)&hkey);
         RegQueryValueExA(hkey, "FIRSTRUN", 0, 0, (uint8_t *)&firstrun, &firstrun_size);
         RegCloseKey(hkey);
         if (firstrun == 0) {
@@ -363,7 +343,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
             }
         }
         GetTempPathA(sizeof(temp_path), temp_path);
-        GetDiskFreeSpaceExA(temp_path, &free_bytes_available, 0, 0);
+        GetDiskFreeSpaceExA(temp_path, (PULARGE_INTEGER)&free_bytes_available, 0, 0);
         if (free_bytes_available.parts.high_part <= 0 &&
             (free_bytes_available.parts.high_part < 0 ||
              free_bytes_available.parts.low_part < (uint32_t)(required_disk_space << 20))) {

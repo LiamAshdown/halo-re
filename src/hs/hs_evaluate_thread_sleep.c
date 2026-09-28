@@ -6,6 +6,7 @@
 // WRITTEN 2026-09-28 from objdump 0x482640..0x482680: Sleep for the long milliseconds; returns 0.
 // blam-cc: stack -> function_index, thread_index, first (cdecl)
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -15,7 +16,6 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
-extern void __stdcall Sleep(uint32_t milliseconds); // 0x0063a29c IAT
 
 void hs_evaluate_thread_sleep(int16_t function_index, uint32_t thread_index, char first)
 {

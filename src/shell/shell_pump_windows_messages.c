@@ -5,6 +5,7 @@
 // (0x00721eb0) matches its typedef in shell.h exactly (root, hwnd, unknown, message).
 // register convention: __cdecl, no arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -16,9 +17,6 @@ extern void *keystone_module;                  // 0x00721e9c
 extern void *shell_window;                     // 0x007461c4
 extern keystone_translate_accelerator_fn keystone_translate_accelerator; // 0x00721eb0
 
-extern int32_t __stdcall PeekMessageA(void *message, void *hwnd, uint32_t filter_min, uint32_t filter_max, uint32_t remove);
-extern void __stdcall TranslateMessage(void *message);
-extern void __stdcall DispatchMessageA(void *message);
 
 // Drains the Win32 message queue each frame, routing messages through the Keystone UI
 // accelerator translator when the UI library is loaded and otherwise through the normal
@@ -29,19 +27,19 @@ void shell_pump_windows_messages(void)
     int32_t has_message;
     int32_t handled;
 
-    has_message = PeekMessageA(message, 0, 0, 0, 1);
+    has_message = PeekMessageA((LPMSG)message, 0, 0, 0, 1);
     while (has_message != 0) {
         if (keystone_root == 0 || keystone_module == 0) {
-            TranslateMessage(message);
-            DispatchMessageA(message);
+            TranslateMessage((const MSG *)message);
+            DispatchMessageA((const MSG *)message);
         } else {
             handled = (int32_t)keystone_translate_accelerator(keystone_root, shell_window, 0, message);
             if (handled == 0) {
-                TranslateMessage(message);
-                DispatchMessageA(message);
+                TranslateMessage((const MSG *)message);
+                DispatchMessageA((const MSG *)message);
             }
         }
-        has_message = PeekMessageA(message, 0, 0, 0, 1);
+        has_message = PeekMessageA((LPMSG)message, 0, 0, 0, 1);
     }
 }
 

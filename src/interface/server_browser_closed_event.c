@@ -10,6 +10,7 @@
 //   dropped; 1.
 // blam-cc: stack -> widget, event, out_handled (cdecl); returns AL
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -42,7 +43,6 @@ extern uint8_t server_browser_filter_ping_limit_index;    // 0x00719490
 extern void master_server_connection_wait_thread(void);  // 0x4b6070
 extern void ServerBrowserFree(void *sb);                  // 0x616f30
 extern void server_list_reset(uint8_t *entry);            // 0x4b65f0, EAX
-extern void *__stdcall GlobalFree(void *memory);
 extern void ticker_text_buffer_reset(void *self);         // 0x4b8a00, EDI
 extern uint32_t autopatch_download_pool_shutdown(void);   // 0x576db0
 extern void saved_item_select(int32_t item);              // 0x495be0, EBX

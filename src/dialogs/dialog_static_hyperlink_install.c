@@ -18,17 +18,10 @@
 //   Not skipped here: that is a module-placement note, not a library-code misattribution. See
 //   dialog_static_hyperlink_subclass_proc.c for the same note.
 
+#include "win32.h"
 #include "tags.h"
 #include "dialogs.h"
 
-extern void *__stdcall GetParent(void *hwnd);                                           // import 0x63a32c
-extern int32_t __stdcall GetWindowLongA(void *hwnd, int32_t index);                     // import 0x63a348
-extern int32_t __stdcall SetWindowLongA(void *hwnd, int32_t index, int32_t value);      // import 0x63a3f4
-extern int32_t __stdcall SetPropA(void *hwnd, const char *name, void *data);            // import 0x63a340
-extern int32_t __stdcall SendMessageA(void *hwnd, uint32_t message, uint32_t wparam,
-                                       int32_t lparam);                                  // import 0x63a334
-extern int32_t __stdcall GetObjectA(void *object, int32_t buffer_size, void *buffer);   // import 0x63a074
-extern void *__stdcall CreateFontIndirectA(const win32_logfonta *logfont);              // import 0x63a06c
 
 // The two subclass procs are referenced only as values (push 0x57e350 at 0x57e526,
 // push 0x57e2a0 at 0x57e4f8, cmp eax,0x57e2a0 at 0x57e4e8), declared here so their addresses
@@ -79,7 +72,7 @@ int32_t dialog_static_hyperlink_install(void *control)
     SetPropA(control, "Old_Font", previous_font);
     GetObjectA(previous_font, k_dialog_logfont_size, &logfont);
     logfont.underline = 1;
-    underlined_font = CreateFontIndirectA(&logfont);
+    underlined_font = CreateFontIndirectA((const LOGFONTA *)&logfont);
     SetPropA(control, "Font", underlined_font);
     SendMessageA(control, k_dialog_message_set_font, (uint32_t)underlined_font, 0);
     SetPropA(control, "Static", (void *)1);

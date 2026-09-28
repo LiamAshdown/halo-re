@@ -36,6 +36,7 @@
 // register convention: no parameters; returns a bool in AL.
 //   // blam-cc: none
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -78,12 +79,6 @@ extern void path_split_components(char **dir_start_out, char *path, char **ext_f
     char **name_end_out, char **ext_start_out, uint8_t split_extension);                // 0x556000, blam-cc: EBX, ESI, EDI, then stack
 extern int __snprintf(char *buffer, uint32_t count, const char *format, ...);           // 0x623a2d, CRT
 extern int _sprintf(char *buffer, const char *format, ...);                             // 0x623693, CRT
-extern uint32_t __stdcall GetModuleFileNameA(void *module, char *file_name, uint32_t size);       // 0x0063a110 IAT
-extern uint32_t __stdcall GetCurrentProcessId(void);                                              // 0x0063a0c4 IAT
-extern int32_t __stdcall CreateProcessA(const char *application_name, char *command_line,
-    void *process_attributes, void *thread_attributes, int32_t inherit_handles,
-    uint32_t creation_flags, void *environment, const char *current_directory,
-    win32_startupinfo *startup_info, win32_process_information *process_information); // 0x0063a160 IAT
 
 static uint32_t autopatch_string_length(const char *string)
 {
@@ -190,7 +185,7 @@ uint8_t autopatch_launch_updater(void)
     startup.cb = 0x44;
     _sprintf(line, "%s waitprocessid=%d", "haloupdate.exe", GetCurrentProcessId());
     // 0x4000020 = CREATE_DEFAULT_ERROR_MODE | NORMAL_PRIORITY_CLASS
-    if (CreateProcessA(0, line, 0, 0, 0, 0x4000020, 0, 0, &startup, &process)) {
+    if (CreateProcessA(0, line, 0, 0, 0, 0x4000020, 0, 0, (LPSTARTUPINFOA)&startup, (LPPROCESS_INFORMATION)&process)) {
         main_globals_data.return_to_main_menu = 0;
         main_globals_data.quit = 1;
         movie_playback_abort = 1;

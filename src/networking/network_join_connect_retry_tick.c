@@ -15,13 +15,13 @@
 // UNSURE: the `-0x18` last_error comparison and the `-1 < (char)endpoint->flags` sign test have
 // no further-resolved meaning beyond their evidenced role here.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int16_t network_join_error_code; // 0x00718fa4, WORD-sized
 extern int32_t network_signal_quality_glyph(void); // 0x440610, not in this batch
@@ -49,11 +49,11 @@ int32_t network_join_connect_retry_tick(network_client_globals *client)
     network_connection_attempt_state *attempt;
     int32_t ok;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     channel = client->channel;
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     endpoint = channel->endpoint;

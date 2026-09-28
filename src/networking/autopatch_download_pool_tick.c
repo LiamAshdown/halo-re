@@ -7,6 +7,7 @@
 // FUN_0061c030, then is reset to the free state (-1).
 // register convention: no register-passed arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@ extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
 extern void FUN_0061c020(void); // foreign, UNSURE
 extern void FUN_0061c030(int32_t request_id); // foreign, UNSURE
-extern void *__stdcall GlobalFree(void *mem);
 
 // Advances/cleans up the small asynchronous download slot table and returns the count of still
 // (non-free) slots.

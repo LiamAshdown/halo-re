@@ -5,6 +5,7 @@
 // keystone_library_load resolves.
 // register convention: __cdecl, no arguments, no return value.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,7 +31,6 @@ extern keystone_unknown_fn keystone_window_add_dirty_control;                // 
 extern keystone_release_fn keystone_release;                                 // 0x00721eac
 extern chat_gui_set_state_fn keystone_window_show;                           // 0x00721edc
 
-extern void *__stdcall FreeLibrary(void *module);
 
 // Unloads keystone.dll and clears all of its cached UI entry-point function pointers.
 void keystone_library_unload(void)

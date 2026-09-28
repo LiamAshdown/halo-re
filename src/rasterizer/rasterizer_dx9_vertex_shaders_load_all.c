@@ -8,6 +8,7 @@
 //   chunk for those, per types/rasterizer.h's rasterizer_vertex_shader doc paragraph).
 // register convention: none -- __cdecl, no arguments.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -16,7 +17,6 @@
 extern void *rasterizer_device; // 0x0071d174
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 extern const char *rasterizer_shader_file_name; // 0x00722bbc
-extern void *__stdcall GlobalFree(void *mem); // Win32
 
 // blam-cc: ECX -> path, stack -> (out_buffer, out_size)
 extern uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, const char *path); // 0x5199f0

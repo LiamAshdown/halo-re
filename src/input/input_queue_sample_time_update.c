@@ -8,6 +8,7 @@
 // never read in the image." Same millisecond computation as input_time_base_resync 0x48b470.
 // register convention: no parameters, no return value.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@
 
 extern uint32_t input_queue_sample_time;                      // 0x00712c34
 extern int64_t performance_frequency;                          // 0x006ac8f8/0x006ac8fc
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac IAT
 
 // Refreshes input_queue_sample_time from QueryPerformanceCounter. Nothing in this image reads
 // the value back.
@@ -27,7 +27,7 @@ void input_queue_sample_time_update(void)
 {
     large_integer counter;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     input_queue_sample_time = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
 }
 

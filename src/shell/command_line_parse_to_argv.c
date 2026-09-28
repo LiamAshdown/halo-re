@@ -11,6 +11,7 @@
 // reuse) rather than a simplified rewrite, to avoid silently changing edge-case behaviour on
 // malformed input.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@
 
 extern char empty_string_0065512c; // 0x0065512c, the shared MSVC empty std::string/char literal
 extern int32_t _isspace(int32_t c);
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t size);
 
 // Tokenizes the raw Halo command line into a GlobalAlloc'd argv-style array of substring
 // pointers, writing the token count out through out_count. argv[0] is always the shared empty

@@ -9,6 +9,7 @@
 //   read at 0x555a9e but missing from the machine-checked "blam-cc" annotation; reworded so
 //   the checker recognizes it.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,8 +19,6 @@
 #include "saved_games.h"
 
 extern void saved_games_report_last_error(void); // 0x556170, this module
-extern int32_t __stdcall WriteFile(void *file, const void *buffer, uint32_t size, uint32_t *bytes_transferred,
-    void *overlapped); // Win32
 
 // blam-cc: EDX -> ref, ECX -> buffer, ESI -> size
 // Writes exactly size bytes from buffer to ref's open handle. Returns 1 on success, 0 on

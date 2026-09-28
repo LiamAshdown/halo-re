@@ -11,6 +11,7 @@
 //   at 0x555b21 but missing from the machine-checked "blam-cc" annotation; reworded so the
 //   checker recognizes it.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,8 +23,6 @@
 extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
 extern void saved_games_report_last_error(void); // 0x556170, this module
 
-extern int32_t __stdcall GetFileAttributesExA(const char *path, int32_t info_level_id,
-    win32_file_attribute_data *out_data); // Win32
 
 // blam-cc: ESI -> ref, stack -> out_size
 // Retrieves ref's full-path file size (low dword only) without opening it. Returns 1 on

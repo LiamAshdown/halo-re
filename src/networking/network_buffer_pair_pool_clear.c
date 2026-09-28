@@ -13,6 +13,7 @@
 // and a data pointer to size*8 bytes) that happens to sit right after ban_list's own fields in
 // memory, but nothing in this batch proves they are related.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,7 +26,6 @@ extern int32_t network_buffer_pair_pool_unknown_element_flag; // 0x006b85a8, set
 extern int32_t network_buffer_pair_pool_count; // 0x006b85ac
 extern network_buffer_pair *network_buffer_pair_pool_data; // 0x006b85b0
 
-extern void *__stdcall GlobalFree(void *mem);
 
 // Frees both allocations of every entry in the pool, then resets the pool to empty (count and
 // the unknown flag both -1, data pointer freed and cleared).

@@ -5,10 +5,10 @@
 //   (the descriptor is taken only when kind 13  table flag is 1).
 // blam-cc: cdecl
 
+#include "win32.h"
 #include "message_delta_codec.h"
 
 extern void hash_table_dispose(hash_table *table); // 0x4f04c0, EDI table
-extern void *__stdcall GlobalFree(void *memory);
 
 void message_delta_index_teardown(message_delta_field_type *field_type)
 {

@@ -7,6 +7,7 @@
 // TYPES-GAP: COORD / CONSOLE_SCREEN_BUFFER_INFO are plain win32 console API structs, not engine
 // types; declared locally rather than added to types/interface.h.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,14 +18,6 @@
 extern uint8_t console_win32_attached;  // 0x006b2f18
 extern void *console_output_handle;     // 0x006b2dd0
 
-extern int32_t __stdcall GetConsoleScreenBufferInfo(void *console_output,
-                                           win32_console_screen_buffer_info *info);
-extern int32_t __stdcall FillConsoleOutputCharacterA(void *console_output, char character,
-                                            uint32_t length, win32_coord write_coord,
-                                            uint32_t *chars_written);
-extern int32_t __stdcall FillConsoleOutputAttribute(void *console_output, uint16_t attributes,
-                                           uint32_t length, win32_coord write_coord,
-                                           uint32_t *chars_written);
 
 // Blanks every cell of the attached win32 console window: fills the whole buffer with spaces in
 // the current attribute, then reapplies that attribute over the same region.

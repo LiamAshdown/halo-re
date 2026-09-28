@@ -18,14 +18,13 @@
 // the implicit EAX-return convention that file's header already documents); the extern below
 // intentionally redeclares it returning a pointer to match how every caller must use it.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalAlloc(uint32_t flags, uint32_t bytes);
-extern uint32_t __stdcall GetTickCount(void);
 
 extern network_channel_list *network_channel_list_new(int16_t requested_capacity); // 0x441960, this module
 extern int32_t network_channel_list_add(network_receive_queue *entry, network_channel_list *list); // 0x441a40, this module

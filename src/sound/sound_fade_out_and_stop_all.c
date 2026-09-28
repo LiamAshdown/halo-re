@@ -16,6 +16,7 @@
 // time_query_performance_counter_ms (outside this module) returns QueryPerformanceCounter * 1000 / frequency, the
 //   same millisecond clock as the wait loop (checked).
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -39,13 +40,12 @@ extern void sound_schedule_gain_fade(datum_index fade_in_handle, int16_t fade_cu
 extern void sound_idle_update(void); // 0x549960
 extern void sound_stop_all(void); // 0x54adb0
 extern void data_delete_all(data_array *array); // 0x4d0580
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 static int32_t sound_fade_now_ms(void)
 {
     large_integer counter;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     return (int32_t)((counter.quad_part * 1000) / performance_frequency);
 }
 

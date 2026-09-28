@@ -22,6 +22,7 @@
 // matching src/networking/network_local_hostent_get.c / network_initialize.c's treatment of
 // Winsock's hostent as opaque.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "interface.h"
@@ -41,10 +42,7 @@ extern int16_t network_join_error_code; // 0x00718fa4, foreign (interface module
 extern void network_dispatch_initialize(void); // 0x4414c0, foreign (networking module)
 extern char network_hostname_resolve_with_timeout(char *hostname); // 0x4c8370, this module
 extern uint8_t network_game_client_connect_to_address_async(char *address, char *password); // 0x4c8500, this module
-extern void *__stdcall gethostbyname(const char *name);
-extern char *__stdcall inet_ntoa(uint32_t addr); // Winsock, struct in_addr passed by value as uint32
 extern char *strchr(const char *string, int character); // CRT strchr (0x6257e0: the MSVC asm strchr)
-extern void *__stdcall GlobalFree(void *handle);
 
 // Resolves host_port_string (a "host" or "host:port" string, GlobalAlloc'd by the caller) and
 // stages the result for the main loop to connect to: on success, formats the resolved dotted
@@ -70,7 +68,7 @@ uint32_t __stdcall network_game_client_connect_by_hostname(char *host_port_strin
     if (network_hostname_resolve_with_timeout(host_port_string) != 0) {
         host = gethostbyname(host_port_string);
         if (host != 0) {
-            address_text = inet_ntoa(**(uint32_t **)((char *)host + 0xc));
+            address_text = inet_ntoa(**(struct in_addr **)((char *)host + 0xc));
             if (port == 0) {
                 strncpy(main_globals_data.connect_address, address_text, 0x1f);
                 main_globals_data.connect_address[0x1f] = 0;

@@ -13,6 +13,7 @@
 // foreign GameSpy transport calls; the final `& 0xffff0000` return mask is preserved literally
 // without a guess at its meaning.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,14 +29,13 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the tim
 extern void network_connection_stats_log_tick(void); // 0x440d80, this module
 extern void FUN_00614540(int32_t socket); // foreign GameSpy transport call, "pump" a channel
 extern void gamespy_think_all(void);          // 0x6154f0, GameSpy
-extern int32_t __stdcall QueryPerformanceCounter(large_integer *counter);
 
 uint32_t network_update(void)
 {
     large_integer counter;
     uint32_t result;
 
-    QueryPerformanceCounter(&counter);
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     network_high_res_clock_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     if (network_update_unknown_869bf == 1) {

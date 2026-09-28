@@ -20,6 +20,7 @@
 // "%d" format is the literal at 0x006607a0 (not a pointer read), the player count at +0x124 is
 // zero-extended; heap_reallocate gets the old text in EAX and widget_memory_pool in ESI.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -38,7 +39,6 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint16_t decimal_format_006607a0[]; // 0x006607a0, L"%d"
 
 extern uint8_t network_game_search_entry_is_fresh(const uint8_t *entry); // 0x4da770, blam-cc: ESI entry; reads entry+0x12d and a QPC age
-extern int __stdcall QueryPerformanceCounter(large_integer *counter); // 0x0063a0ac import thunk
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
 extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
@@ -86,7 +86,7 @@ void server_list_menu_update(widget_instance *widget)
                 large_integer counter;
                 int32_t now_ms;
 
-                QueryPerformanceCounter(&counter);
+                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
                 now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
                 if (now_ms - *entry <= 0x1770 && *(int16_t *)((uint8_t *)entry + 0x112) == 1 &&
                     *((int8_t *)entry + 0x45 * 4) == 0) {
@@ -158,7 +158,7 @@ void server_list_menu_update(widget_instance *widget)
         widget_instance *r9 = r8->next_sibling;
         widget_instance *r10 = r9->next_sibling;
 
-        QueryPerformanceCounter(&counter);
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
         if (widget->selection_index < 0) {

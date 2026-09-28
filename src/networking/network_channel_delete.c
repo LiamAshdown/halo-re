@@ -13,13 +13,13 @@
 // UNSURE: network_receive_queue_free's own file documents connection_id/connection_key as an
 // unresolved pass-through this far up the call chain too; supplied here as 0/0 placeholders.
 
+#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern void *__stdcall GlobalFree(void *memory);
 
 extern void network_receive_queue_free(network_receive_queue *queue, int32_t connection_id,
     int16_t connection_key); // 0x441c80, this module
