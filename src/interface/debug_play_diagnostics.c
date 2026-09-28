@@ -138,7 +138,7 @@ void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, c
                 uint8_t *shader = (uint8_t *)tag_instances[ref->shader.tag_id.index].data;
 
                 standalone_log("DIAG fpdraw   part %d shader_type=%d part_flags=%x triangles=%d", p,
-                    *(int16_t *)(shader + 0x24), part->base.flags, part->base.triangle_count);
+                    *(int16_t *)&((struct Shader *)shader)->shader_type, part->base.flags, part->base.triangle_count);
             }
         }
     }

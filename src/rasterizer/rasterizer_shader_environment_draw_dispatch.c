@@ -50,7 +50,7 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, ui
     rasterizer_model_draw_context *context;
     uint8_t *overlay;
 
-    debug_fp_dispatch_note(console_debug_toggle_6893ec, rasterizer_active_model_mode, *(int16_t *)(shader + 0x24),
+    debug_fp_dispatch_note(console_debug_toggle_6893ec, rasterizer_active_model_mode, *(int16_t *)&((struct Shader *)shader)->shader_type,
         primitive_count, shader_environment_draw, shader_environment_draw_simple,
         rasterizer_active_model_context ? (void *)(uintptr_t)rasterizer_active_model_context->group_parameters.shader : 0);
         // TEMPORARY first-person diagnostics
@@ -86,7 +86,7 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, ui
         return;
     }
     if (rasterizer_active_model_mode == 0) {
-        if (*(int16_t *)(shader + 0x24) == 3) {
+        if (*(int16_t *)&((struct Shader *)shader)->shader_type == 3) {
             ((rasterizer_part_draw_procedure)shader_environment_draw_simple)(
                 shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot);
         } else {

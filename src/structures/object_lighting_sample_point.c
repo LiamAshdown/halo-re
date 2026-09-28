@@ -149,7 +149,7 @@ uint8_t object_lighting_sample_point(uint8_t flags, real_point3d *point, render_
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
     shader = (uint8_t *)tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;
 
-    if (*(int16_t *)(shader + 0x24) != 3 ||                  // Shader.shader_type: environment
+    if (*(int16_t *)&((struct Shader *)shader)->shader_type != 3 ||                  // Shader.shader_type: environment
         *(int32_t *)&bsp->lightmaps_bitmap.tag_id == -1 ||
         (int16_t)lightmap->bitmap == -1 ||
         *(int32_t *)(shader + 0x94) == -1) {                 // ShaderEnvironment.base_map.tag_id
