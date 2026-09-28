@@ -39,8 +39,8 @@ int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow
     int16_t index = *dialogue_index;
     int16_t result = 0;
 
-    if (chain == -1 && *(datum_index *)(obj + 0x384) != k_datum_index_none && index != -1) {
-        uint8_t *dialogue = (uint8_t *)tag_instances[*(datum_index *)(obj + 0x384) & 0xffff].data;
+    if (chain == -1 && ((unit_object *)obj)->unit.dialogue_tag_index != k_datum_index_none && index != -1) {
+        uint8_t *dialogue = (uint8_t *)tag_instances[((unit_object *)obj)->unit.dialogue_tag_index & 0xffff].data;
 
         for (;;) {
             chain = *(int32_t *)(dialogue + index * 16 + 0x1c);
@@ -54,18 +54,18 @@ int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow
         }
     }
     if (((obj[0x106] & 4) == 0 || requested_priority == 0xa) && chain != -1) {
-        int16_t current = *(int16_t *)(obj + 0x388);
+        int16_t current = ((unit_object *)obj)->unit.current_speech.priority;
 
         if (current == 0) {
             result = 2;
         } else {
-            int16_t pending = *(int16_t *)(obj + 0x3b8);
+            int16_t pending = ((unit_object *)obj)->unit.pending_speech.priority;
             int16_t highest = (current > pending) ? current : pending;
             int16_t table;
             uint8_t allowed = 0;
 
             if ((requested_priority == 2 || requested_priority == 7 || requested_priority == 10) &&
-                obj[0x3f4] != 0 && *(int16_t *)(obj + 0x3fa) == 0 && requested_priority > highest) {
+                obj[0x3f4] != 0 && ((unit_object *)obj)->unit.speech_duration_ticks == 0 && requested_priority > highest) {
                 highest = pending;
                 current = 0;
             }
@@ -81,13 +81,13 @@ int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow
                     if (interval == 3.4028235e+38f) {
                         allowed = 1;
                     } else {
-                        allowed = (uint8_t)(*(int16_t *)(obj + 0x3fe) + *(int16_t *)(obj + 0x3fa) <
+                        allowed = (uint8_t)(((unit_object *)obj)->unit.speech_tail_ticks + ((unit_object *)obj)->unit.speech_duration_ticks <
                             (int16_t)(int32_t)(interval * 30.0f));
                     }
                     if (allowed) {
                         if (requested_priority > highest) {
                             result = 1;
-                        } else if (requested_priority > *(int16_t *)(obj + 0x3b8)) {
+                        } else if (requested_priority > ((unit_object *)obj)->unit.pending_speech.priority) {
                             if (current == 2 || current == 7 || requested_priority == 6 || allowed) {
                                 result = 1;
                             }

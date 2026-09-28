@@ -116,20 +116,20 @@ void unit_network_create_update_apply(void *incoming_record)
     *(real *)(biped + 0x534) = message.shield_vitality;
     biped[0x538] = message.shield_stunned;
     memcpy(biped + 0x52c, message.grenade_counts, 2);
-    *(real *)(biped + 0xe4) = *(real *)(biped + 0x534) * 3.0f;   // shield vitality (0x672c3c = 3.0)
+    ((unit_object *)biped)->base.shield_vitality = *(real *)(biped + 0x534) * 3.0f;   // shield vitality (0x672c3c = 3.0)
     biped[0x527] = message.update_sequence;
-    *(uint32_t *)(biped + 0xe0) = *(uint32_t *)(biped + 0x530);  // body vitality
-    *(int16_t *)(biped + 0x480) = (int16_t)*(int8_t *)(biped + 0x321);
+    *(uint32_t *)&((unit_object *)biped)->base.body_vitality = *(uint32_t *)(biped + 0x530);  // body vitality
+    ((unit_object *)biped)->unit.saved_control.zoom_level = (int16_t)((unit_object *)biped)->unit.desired_zoom_level;
     biped[0x526] = 1;
     biped[0x528] = 0;
     biped[0x475] = 1;
-    *(int16_t *)(biped + 0x104) = biped[0x538] == 1;
+    ((unit_object *)biped)->base.shield_stun_ticks = biped[0x538] == 1;
     memcpy(biped + 0x4ac, biped + 0x494, 12);
     *(int16_t *)(biped + 0x31e) = *(int16_t *)(biped + 0x52c);
     if (message.flag_80000 != 0) {
-        *(uint32_t *)(biped + 0x204) |= 0x80000;
+        ((unit_object *)biped)->unit.flags |= 0x80000;
     } else {
-        *(uint32_t *)(biped + 0x204) &= ~0x80000u;
+        ((unit_object *)biped)->unit.flags &= ~0x80000u;
     }
     *(uint32_t *)(biped + 0x344) = message.scalar_344;
 }

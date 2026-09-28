@@ -60,14 +60,20 @@ def index_folded(text):
             dest, folded = reg, value << int(m3.group(1), 16)
         else:
             continue
-        # the next use of dest as an index: [base+dest] -> [base+folded]
-        for j in range(i + 2, min(i + 6, len(ins))):
-            if re.search(r"\[(\w+)\+%s\]" % dest, ins[j][1]):
-                ins[j][1] = re.sub(r"\[(\w+)\+%s\]" % dest,
-                                   lambda mm: "[%s+%Xh]" % (mm.group(1), folded) if folded else "[%s]" % mm.group(1),
-                                   ins[j][1])
+        # the next use of dest as an index, as long as dest is not written first: [base+dest] -> [base+folded]
+        for j in range(i + 2, min(i + 16, len(ins))):
+            op3, args3 = ins[j]
+            if re.search(r"\[(\w+)\+%s\]|\[%s\+(\w+)\]" % (dest, dest), args3):
+                args3 = re.sub(r"\[(\w+)\+%s\]" % dest,
+                               lambda mm: "[%s+%Xh]" % (mm.group(1), folded) if folded else "[%s]" % mm.group(1), args3)
+                args3 = re.sub(r"\[%s\+(\w+)\]" % dest,
+                               lambda mm: "[%s+%Xh]" % (mm.group(1), folded) if folded else "[%s]" % mm.group(1), args3)
+                ins[j][1] = args3
                 skip.update((i, i + 1))
                 break
+            first = args3.split(",")[0].strip()
+            if first == dest or op3 in ("call", "ret") or op3.startswith("j"):
+                break               # dest overwritten, or control flow: stop tracking
     out = []
     for i, (op, args) in enumerate(ins):
         if i in skip:

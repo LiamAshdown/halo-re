@@ -14,6 +14,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *object_data;    // 0x008603b0

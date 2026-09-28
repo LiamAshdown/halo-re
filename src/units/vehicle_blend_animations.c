@@ -23,6 +23,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "models.h"
+#include "units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -105,9 +106,9 @@ void vehicle_blend_animations(datum_index object_index, real_orientation *orient
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[2] * 0xb4), fraction, orientations);
     }
     if (count > 3 && indices[3] != -1) {
-        double forward_speed = (double)*(float *)(obj + 0x70) * *(float *)(obj + 0x7c) +
-            (double)*(float *)(obj + 0x6c) * *(float *)(obj + 0x78) +
-            (double)*(float *)(obj + 0x68) * *(float *)(obj + 0x74);
+        double forward_speed = (double)((unit_object *)obj)->base.velocity.k * ((unit_object *)obj)->base.forward.k +
+            (double)((unit_object *)obj)->base.velocity.j * ((unit_object *)obj)->base.forward.j +
+            (double)((unit_object *)obj)->base.velocity.i * ((unit_object *)obj)->base.forward.i;
 
         forward_speed = clamp_unit(clamp_unit(forward_speed) / fabs(*(float *)(vehicle_tag + 0x2f8)));
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[3] * 0xb4), forward_speed, orientations);

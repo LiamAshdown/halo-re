@@ -51,7 +51,7 @@ void unit_update_animation_timers(uint32_t unit_index)
 
     if (obj[0x205] & 0x1) {
         unit_choose_dialogue_variant(unit_index);
-        *(uint32_t *)(obj + 0x204) &= 0xfffffeff;
+        ((unit_object *)obj)->unit.flags &= 0xfffffeff;
     }
     if (*(int16_t *)(obj + 0x3e8) > 0) {
         int16_t value = (int16_t)(*(int16_t *)(obj + 0x3e8) - 1);
@@ -64,9 +64,9 @@ void unit_update_animation_timers(uint32_t unit_index)
     }
     count_down(obj + 0x3ec);
     count_down(obj + 0x3ec);
-    if (*(int16_t *)(obj + 0x388) > 0) {
-        if (*(int16_t *)(obj + 0x3f8) > 0) {
-            *(int16_t *)(obj + 0x3f8) = (int16_t)(*(int16_t *)(obj + 0x3f8) - 1);
+    if (((unit_object *)obj)->unit.current_speech.priority > 0) {
+        if (((unit_object *)obj)->unit.speech_delay_ticks > 0) {
+            ((unit_object *)obj)->unit.speech_delay_ticks = (int16_t)(((unit_object *)obj)->unit.speech_delay_ticks - 1);
             goto tail;
         }
         if (obj[0x3f4] == 0) {
@@ -85,43 +85,43 @@ void unit_update_animation_timers(uint32_t unit_index)
                 position = *(Point3D *)global_zero_vector3d_pointer;
                 forward = *(Vector3D *)global_forward3d_pointer;
             }
-            if (*(datum_index *)(obj + 0x38c) != k_datum_index_none) {
-                *(datum_index *)(obj + 0x400) = sound_start_at_object_marker(unit_index, &position, &forward,
-                    *(datum_index *)(obj + 0x38c), node, 1.0f, 0);
+            if (((unit_object *)obj)->unit.current_speech.sound_tag != k_datum_index_none) {
+                ((unit_object *)obj)->unit.speech_sound_handle = sound_start_at_object_marker(unit_index, &position, &forward,
+                    ((unit_object *)obj)->unit.current_speech.sound_tag, node, 1.0f, 0);
             }
-            ai_communication_gate_line_played(*(int16_t *)(obj + 0x388), (ai_communication_record *)(obj + 0x398),
+            ai_communication_gate_line_played(((unit_object *)obj)->unit.current_speech.priority, (ai_communication_record *)(obj + 0x398),
                 unit_index);
             obj[0x3f4] = 1;
         }
         count_down(obj + 0x3fc);
-        if (*(int16_t *)(obj + 0x3fa) > 0) {
-            int16_t value = (int16_t)(*(int16_t *)(obj + 0x3fa) - 1);
+        if (((unit_object *)obj)->unit.speech_duration_ticks > 0) {
+            int16_t value = (int16_t)(((unit_object *)obj)->unit.speech_duration_ticks - 1);
 
-            *(int16_t *)(obj + 0x3fa) = value;
+            ((unit_object *)obj)->unit.speech_duration_ticks = value;
             if (value == 0) {
-                *(datum_index *)(obj + 0x400) = k_datum_index_none;
+                ((unit_object *)obj)->unit.speech_sound_handle = k_datum_index_none;
             }
             goto tail;
         }
         if (obj[0x3f6] == 0) {
-            ai_communication_play_event_line(unit_index, (int16_t)*(uint16_t *)(obj + 0x38a), 0, k_datum_index_none,
+            ai_communication_play_event_line(unit_index, (int16_t)*(uint16_t *)&((unit_object *)obj)->unit.current_speech.scream_type, 0, k_datum_index_none,
                 (uint32_t *)(obj + 0x398));
             obj[0x3f6] = 1;
         }
         count_down(obj + 0x3fe);
-        if (*(int16_t *)(obj + 0x3fe) == 0) {
-            *(int16_t *)(obj + 0x3fc) = 0;
+        if (((unit_object *)obj)->unit.speech_tail_ticks == 0) {
+            ((unit_object *)obj)->unit.speech_lipsync_ticks = 0;
         }
     }
 tail:
-    if (*(int16_t *)(obj + 0x3fc) == 0 && obj[0x3f5] == 0) {
+    if (((unit_object *)obj)->unit.speech_lipsync_ticks == 0 && obj[0x3f5] == 0) {
         ai_propagate_communication_reaction(unit_index, (ai_communication_order *)(obj + 0x398));
         obj[0x3f5] = 1;
     }
-    if (*(int16_t *)(obj + 0x388) > 0 && *(int16_t *)(obj + 0x3fa) == 0 && *(int16_t *)(obj + 0x3fe) == 0) {
-        *(int16_t *)(obj + 0x388) = 0;
+    if (((unit_object *)obj)->unit.current_speech.priority > 0 && ((unit_object *)obj)->unit.speech_duration_ticks == 0 && ((unit_object *)obj)->unit.speech_tail_ticks == 0) {
+        ((unit_object *)obj)->unit.current_speech.priority = 0;
     }
-    if (*(int16_t *)(obj + 0x388) == 0 && *(int16_t *)(obj + 0x3b8) > 0) {
+    if (((unit_object *)obj)->unit.current_speech.priority == 0 && ((unit_object *)obj)->unit.pending_speech.priority > 0) {
         unit_commit_speech(unit_index, obj + 0x3b8, 3);
     }
 }

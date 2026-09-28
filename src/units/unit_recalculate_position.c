@@ -34,7 +34,7 @@ void unit_recalculate_position(uint32_t object_index)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
     real_point3d *current = (real_point3d *)(obj + 0x5c);
-    real_point3d anchor = *(real_point3d *)(obj + 0x1c);
+    real_point3d anchor = *(real_point3d *)&((unit_object *)obj)->base.network_position.x;
     real_point3d previous = *current;
     real_point3d *target = &anchor;
     real_point3d midpoint;

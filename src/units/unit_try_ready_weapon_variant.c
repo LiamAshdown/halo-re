@@ -37,7 +37,7 @@ uint8_t unit_try_ready_weapon_variant(uint32_t unit_index, const real_vector2d *
     if (!unit_animation_state_allows_melee((int8_t)unit[0x2a3])) {
         return 0;
     }
-    if (*(int16_t *)(unit + 0xb4) == 0 && (unit[0x4cc] & 1) != 0) {
+    if (((unit_object *)unit)->base.type == 0 && (unit[0x4cc] & 1) != 0) {
         return 0;
     }
     if (!unit_try_set_animation_state(unit_index, 0x27)) {

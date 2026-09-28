@@ -31,7 +31,7 @@ uint8_t unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_co
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     int16_t index;
-    datum_index dialogue = *(datum_index *)(obj + 0x384);
+    datum_index dialogue = ((unit_object *)obj)->unit.dialogue_tag_index;
     int32_t sound;
     int32_t result;
     unit_speech speech;

@@ -45,14 +45,14 @@ uint32_t unit_snap_to_min_ground_height(uint32_t object_index)
         return 0;
     }
     jump_speed = *(float *)((uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data + 0x3b4);
-    if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
+    if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
         jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * *(float *)(obj + 0x424)) *
             jump_speed;
     }
-    if (cheat_super_jump && *(datum_index *)(obj + 0x218) != k_datum_index_none) {
+    if (cheat_super_jump && ((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
         jump_speed = jump_speed * 4.0f;
     }
-    velocity = *(real_vector3d *)(obj + 0x68);
+    velocity = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;
     up_speed = velocity.j * up->j + velocity.k * up->k + velocity.i * up->i;
     if (!(up_speed >= jump_speed)) {
         float delta = jump_speed - up_speed;
@@ -61,9 +61,9 @@ uint32_t unit_snap_to_min_ground_height(uint32_t object_index)
         velocity.j = delta * up->j + velocity.j;
         velocity.k = delta * up->k + velocity.k;
     }
-    actor_index = *(datum_index *)(obj + 0x1f8);
+    actor_index = ((unit_object *)obj)->unit.swarm_actor_index;
     if (actor_index == k_datum_index_none) {
-        actor_index = *(datum_index *)(obj + 0x1f4);
+        actor_index = ((unit_object *)obj)->unit.actor_index;
     }
     if (actor_index != k_datum_index_none) {
         uint8_t skip_clamp = (obj[0x2a3] == 0x27 || obj[0x2a3] == 0x28) ? 1 : 0;
@@ -73,7 +73,7 @@ uint32_t unit_snap_to_min_ground_height(uint32_t object_index)
             return 0;
         }
     }
-    *(real_vector3d *)(obj + 0x68) = velocity;
+    *(real_vector3d *)&((unit_object *)obj)->base.velocity.i = velocity;
     *(uint32_t *)(obj + 0x4cc) |= 1;
     obj[0x504] = 0;
     *(int32_t *)(obj + 0x4d8) = -1;

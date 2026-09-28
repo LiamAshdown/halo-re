@@ -38,7 +38,7 @@ void unit_melee_lunge_damage_tick(uint32_t unit_index)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    datum_index target = *(datum_index *)(obj + 0x11c);
+    datum_index target = ((unit_object *)obj)->base.parent_object;
     uint8_t hit = 0;
     real_plane3d plane;                     // L14: first the sweep vector, then the hit surface plane
     real_point3d start;
@@ -52,9 +52,9 @@ void unit_melee_lunge_damage_tick(uint32_t unit_index)
     }
     if (obj[0x28a] == 0 && object_collision_context_build(target, &context)) {
         object_get_position(&start, unit_index);
-        plane.normal.i = *(float *)(obj + 0x74) * 0.2f;
-        plane.normal.j = *(float *)(obj + 0x78) * 0.2f;
-        plane.normal.k = *(float *)(obj + 0x7c) * 0.2f;
+        plane.normal.i = ((unit_object *)obj)->base.forward.i * 0.2f;
+        plane.normal.j = ((unit_object *)obj)->base.forward.j * 0.2f;
+        plane.normal.k = ((unit_object *)obj)->base.forward.k * 0.2f;
         start.x -= plane.normal.i * 0.5f;
         start.y -= plane.normal.j * 0.5f;
         start.z -= plane.normal.k * 0.5f;
@@ -82,19 +82,19 @@ void unit_melee_lunge_damage_tick(uint32_t unit_index)
     dd.location_cluster_index = -1;
     dd.multiplier = 1.0f;
     dd.responsible_object = unit_index;
-    dd.team_index = *(int16_t *)(obj + 0xb8);
-    dd.responsible_player = *(datum_index *)(obj + 0x218);
+    dd.team_index = ((unit_object *)obj)->base.owner_team;
+    dd.responsible_player = ((unit_object *)obj)->unit.controlling_player;
     dd.random_blend = 0.033333335f;
     if (hit) {
         dd.epicentre = hit_point;
         dd.origin = hit_point;
-        dd.direction = *(real_vector3d *)(obj + 0x74);
+        dd.direction = *(real_vector3d *)&((unit_object *)obj)->base.forward.i;
         dd.flags |= 2;
         obj[0x28a] = 10;
-        object_apply_damage(&dd, *(datum_index *)(obj + 0x11c), record.node_index, record.region_index,
+        object_apply_damage(&dd, ((unit_object *)obj)->base.parent_object, record.node_index, record.region_index,
             *(int16_t *)((uint8_t *)&record + 0x1a), (uint32_t)(uintptr_t)&plane);
     } else {
-        object_apply_damage(&dd, *(datum_index *)(obj + 0x11c), -1, -1, -1, 0);
+        object_apply_damage(&dd, ((unit_object *)obj)->base.parent_object, -1, -1, -1, 0);
     }
     obj[0x28a]--;
 }

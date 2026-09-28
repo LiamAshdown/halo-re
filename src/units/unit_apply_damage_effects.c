@@ -100,8 +100,8 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 {
     uint8_t *self = OBJECT_DATA(object_index);
     uint8_t *vehicle = OBJECT_DATA(vehicle_index);
-    uint8_t *nodes = self + *(int16_t *)(self + 0x1f2);
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *nodes = self + ((unit_object *)self)->base.nodes.offset;
+    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -115,22 +115,22 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
     model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (*(datum_index *)(vehicle + 0x324) == object_index && vehicle[0x2a3] != 0x25 &&
-        *(datum_index *)(self + 0x11c) != k_datum_index_none) {
-        unit_try_set_animation_state(*(datum_index *)(self + 0x11c), 0x25);
+    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
+        ((unit_object *)self)->base.parent_object != k_datum_index_none) {
+        unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
     }
-    *(datum_index *)(self + 0x32c) = vehicle_index;
-    *(int32_t *)(self + 0x330) = game_time->game_time;
-    if (*(datum_index *)(self + 0x324) == object_index) {
-        *(datum_index *)(self + 0x324) = k_datum_index_none;
+    ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
+    ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
+    if (((unit_object *)self)->unit.driver_unit_index == object_index) {
+        ((unit_object *)self)->unit.driver_unit_index = k_datum_index_none;
     }
-    if (*(datum_index *)(self + 0x328) == object_index) {
-        *(datum_index *)(self + 0x328) = k_datum_index_none;
+    if (((unit_object *)self)->unit.gunner_unit_index == object_index) {
+        ((unit_object *)self)->unit.gunner_unit_index = k_datum_index_none;
     }
     object_snap_to_parent_marker_and_detach(object_index);
-    position.x = offset.x + *(float *)(self + 0x5c);
-    position.y = offset.y + *(float *)(self + 0x60);
-    position.z = offset.z + *(float *)(self + 0x64) - default_translation.z;
+    position.x = offset.x + ((unit_object *)self)->base.position.x;
+    position.y = offset.y + ((unit_object *)self)->base.position.y;
+    position.z = offset.z + ((unit_object *)self)->base.position.z - default_translation.z;
     object_set_position_and_orientation(object_index, 0, 0, &position);
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
@@ -138,8 +138,8 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         matrix4x3_multiply((real_matrix4x3 *)(reloaded + *(int16_t *)(reloaded + 0x1f2)),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
-    *(real_vector3d *)(self + 0x74) = basis.forward;
-    *(real_vector3d *)(self + 0x80) = basis.up;
+    *(real_vector3d *)&((unit_object *)self)->base.forward.i = basis.forward;
+    *(real_vector3d *)&((unit_object *)self)->base.up.i = basis.up;
     {
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
@@ -152,13 +152,13 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
-    *(int16_t *)(self + 0x2f0) = -1;
+    ((unit_object *)self)->unit.vehicle_seat_index = -1;
     self[0x2a7] = 2;
-    if (*(datum_index *)(vehicle + 0x324) == object_index) {
-        *(datum_index *)(vehicle + 0x324) = k_datum_index_none;
+    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
+        ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
-    if (*(datum_index *)(vehicle + 0x328) == object_index) {
-        *(datum_index *)(vehicle + 0x328) = k_datum_index_none;
+    if (((unit_object *)vehicle)->unit.gunner_unit_index == object_index) {
+        ((unit_object *)vehicle)->unit.gunner_unit_index = k_datum_index_none;
     }
     unit_recompute_seat_occupants(vehicle_index);
     unit_pick_and_ready_next_weapon(object_index);
@@ -167,8 +167,8 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 
         unit_update_animation_state_machine(object_index, request);
     }
-    *(real_point3d *)(self + *(int16_t *)(self + 0x1ea) + 0x10) = default_translation;
-    if (*(int16_t *)(self + 0xb4) == 0) {
+    *(real_point3d *)(self + ((unit_object *)self)->base.node_function_values.offset + 0x10) = default_translation;
+    if (((unit_object *)self)->base.type == 0) {
         unit_reset_orientation_and_find_position(object_index, vehicle_index); // EDI = the seat parent
     }
     object_recalculate_bounding_radius_recursive(object_index);
@@ -180,7 +180,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     if (network_game_mode == 1) {
-        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
+        uint8_t *player = (uint8_t *)datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && *(int16_t *)(player + 2) == -1) {
             *(int32_t *)(player + 0x180) = 0;
@@ -194,7 +194,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 // 0x559505 / 0x559a59: a client drops the prediction history of a local player's unit.
 static void biped_free_local_player_history(uint8_t *self)
 {
-    datum_index player_index = *(datum_index *)(self + 0x218);
+    datum_index player_index = ((unit_object *)self)->unit.controlling_player;
     int16_t index = (int16_t)player_index;
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
@@ -227,7 +227,7 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
 
     memset(&record, 0, sizeof(record));
     if (is_local == 1) {
-        float recent = *(float *)(obj + 0xf8) + *(float *)(obj + 0xf4);
+        float recent = ((unit_object *)obj)->base.recent_body_damage + ((unit_object *)obj)->base.recent_shield_damage;
 
         if (recent > 0.0f) {
             *(int16_t *)(obj + 0x404) = *(int16_t *)(effect_block + 0x2);
@@ -241,7 +241,7 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
             }
         }
     }
-    unit_flags = *(uint32_t *)(obj + 0x204);
+    unit_flags = ((unit_object *)obj)->unit.flags;
     if (unit_flags & 0x10) {
         float left = *(float *)(obj + 0x37c) - *(float *)(effect_block + 0x1c);
 
@@ -253,8 +253,8 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
     if (is_local == 1) {
         violent = (uint8_t)(killed && !(*(float *)(effect_block + 0x30) < 2.0f));
         if (!killed && (unit_flags & 0x2000) && *(float *)(unit_tag + 0x22c) > 0.0f &&
-            *(float *)(unit_tag + 0x230) > 0.0f && *(float *)(obj + 0xe0) > 0.0f &&
-            *(float *)(obj + 0xf8) > *(float *)(unit_tag + 0x22c)) {
+            *(float *)(unit_tag + 0x230) > 0.0f && ((unit_object *)obj)->base.body_vitality > 0.0f &&
+            ((unit_object *)obj)->base.recent_body_damage > *(float *)(unit_tag + 0x22c)) {
             float ticks = (random_real_range(0.0f, 1.0f) + *(float *)(unit_tag + 0x230)) * 30.0f;
 
             obj[0x106] |= 4;
@@ -267,21 +267,21 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
     }
 
     // 0x567691: an AI unit killed in a seat leaves it
-    if (*(datum_index *)(obj + 0x218) == k_datum_index_none && killed && (effect_block[0x4] & 0x80) &&
+    if (((unit_object *)obj)->unit.controlling_player == k_datum_index_none && killed && (effect_block[0x4] & 0x80) &&
         (*(uint32_t *)(unit_tag + 0x17c) & 0x40000)) {
         uint8_t *self;
         datum_index vehicle_index;
 
-        if (*(datum_index *)(obj + 0x11c) == k_datum_index_none) {
+        if (((unit_object *)obj)->base.parent_object == k_datum_index_none) {
             goto stunned;
         }
         self = (uint8_t *)object_try_and_get(unit_index, 3);
         if (self == 0 || network_game_mode == 1 ||
-            (vehicle_index = *(datum_index *)(self + 0x11c)) == k_datum_index_none ||
-            *(int16_t *)(self + 0x2f0) == -1) {
+            (vehicle_index = ((unit_object *)self)->base.parent_object) == k_datum_index_none ||
+            ((unit_object *)self)->unit.vehicle_seat_index == -1) {
             goto record_check;
         }
-        if (*(int16_t *)(self + 0xb4) == 1) {
+        if (((unit_object *)self)->base.type == 1) {
             uint8_t *me = OBJECT_DATA(unit_index);
 
             if (*(datum_index *)(me + 0x11c) != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {
@@ -324,7 +324,7 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
             }
             self[0x2a3] = 0x1b;
             actor_notify_weapon_pickup_once(unit_index);
-            if (*(int32_t *)(self + 4) == 0) {
+            if (((unit_object *)self)->base.network_role == 0) {
                 unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
             }
         }
@@ -338,7 +338,7 @@ stunned:
 
 record_check:
     if ((dd->flags & 0x10) == 0 && (killed || knocked_down || (obj[0x106] & 4) == 0) &&
-        (*(uint32_t *)(obj + 0x204) & 0x800000) == 0 && (*(uint32_t *)(effect_block + 0x4) & 0x10) == 0) {
+        (((unit_object *)obj)->unit.flags & 0x800000) == 0 && (*(uint32_t *)(effect_block + 0x4) & 0x10) == 0) {
         uint32_t effect_flags = *(uint32_t *)(effect_block + 0x4);
         real_vector2d direction;
         real_vector2d forward;
@@ -349,8 +349,8 @@ record_check:
 
         direction.i = dd->direction.i;
         direction.j = dd->direction.j;
-        forward.i = *(float *)(obj + 0x74);
-        forward.j = *(float *)(obj + 0x78);
+        forward.i = ((unit_object *)obj)->base.forward.i;
+        forward.j = ((unit_object *)obj)->base.forward.j;
         if (vector2d_normalize_with_length(&direction) > 0.0f && vector2d_normalize_with_length(&forward) > 0.0f) {
             angle = vector2d_angle_between(&forward, &direction);
             has_direction = 1;
@@ -379,8 +379,8 @@ record_check:
             record.no_direction = 1;
         }
         record.player_value = 0;
-        if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
-            uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(obj + 0x218), player_data);
+        if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
+            uint8_t *player = (uint8_t *)datum_get(((unit_object *)obj)->unit.controlling_player, player_data);
 
             if (player != 0) {
                 record.player_value = *(uint32_t *)(player + 0x2c);
@@ -394,7 +394,7 @@ record_check:
 
 local_reactions:
     if (is_local == 1) {
-        datum_index unit_player = *(datum_index *)(obj + 0x218);
+        datum_index unit_player = ((unit_object *)obj)->unit.controlling_player;
 
         if (dd->responsible_player != k_datum_index_none && unit_player != k_datum_index_none &&
             current_game_engine != 0 && current_game_engine->unknown_64 != 0) {
@@ -413,7 +413,7 @@ local_reactions:
     if (body_damage > 0.0f || shield_damage > 0.0f) {
         unit_validate_and_clear_weapon_switch(unit_index);
     }
-    if (is_local == 1 && *(int16_t *)(obj + 0xb4) == 0) {
+    if (is_local == 1 && ((unit_object *)obj)->base.type == 0) {
         if (killed) {
             actor_reassign_vehicle_seat(dd->responsible_object, unit_index, *(uint16_t *)(effect_block + 0x2));
         } else if ((obj[0x106] & 4) == 0) {
@@ -423,7 +423,7 @@ local_reactions:
     }
 
     // 0x567f73: player screen shake
-    if (*(datum_index *)(obj + 0x218) != k_datum_index_none && *(float *)(effect_block + 0x20) > 0.0f &&
+    if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none && *(float *)(effect_block + 0x20) > 0.0f &&
         (current_game_engine != 0 || is_dedicated_server_flag)) {
         uint8_t *shake = (uint8_t *)global_globals->player_information.pointer;
         float step = dd->random_blend * *(float *)(effect_block + 0x20);
@@ -462,13 +462,13 @@ local_reactions:
 
     if (is_local == 1 && (killed || knocked_down)) {
         unit_release_transient_state(unit_index, knocked_down);
-        if (*(int32_t *)(obj + 0x4) == 0 && killed == 1) {
+        if (((unit_object *)obj)->base.network_role == 0 && killed == 1) {
             record.unit = unit_index;
             unit_broadcast_state_change_event(record);
             if ((OBJECT_HEADER(unit_index).flags & 8) == 0) {
                 network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
             }
-            *(int32_t *)(obj + 0x4) = 3;
+            ((unit_object *)obj)->base.network_role = 3;
         }
     }
 }

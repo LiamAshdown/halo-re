@@ -72,7 +72,7 @@ uint32_t unit_update_marker_traction_effects(uint32_t object_index)
     }
     physics = (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x8c) & 0xffff].data;
     matrix4x3_from_forward_up((real_vector3d *)(obj + 0x80), (real_vector3d *)(obj + 0x74), &basis);
-    basis.position = *(real_point3d *)(obj + 0x5c);
+    basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
 
     for (i = 0; (int32_t)i < *(int32_t *)(node_array + 0x68); i++) {
         uint8_t *entry = *(uint8_t **)(node_array + 0x6c) + (int32_t)i * 0x14;

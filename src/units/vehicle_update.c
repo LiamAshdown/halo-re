@@ -97,7 +97,7 @@ uint32_t vehicle_update(uint32_t object_index)
         *(int32_t *)(obj + 0x5ac) = game_time->game_time;
     }
 
-    if (*(datum_index *)(obj + 0x11c) != k_datum_index_none) {
+    if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
         // 0x570fa7: riding something, frozen
         F(obj, 0x8c) = 0.0f;
         F(obj, 0x90) = 0.0f;
@@ -105,9 +105,9 @@ uint32_t vehicle_update(uint32_t object_index)
         F(obj, 0x68) = 0.0f;
         F(obj, 0x6c) = 0.0f;
         F(obj, 0x70) = 0.0f;
-        *(uint32_t *)(obj + 0x10) &= ~0x20u;
+        ((unit_object *)obj)->base.flags &= ~0x20u;
     } else {
-        uint32_t control = *(uint32_t *)(obj + 0x208);
+        uint32_t control = ((unit_object *)obj)->unit.control_flags;
         real_vector3d a;     // [esp+0x18]
         real_vector3d b;     // [esp+0x24]
         float angle;         // [esp+0x10]
@@ -133,7 +133,7 @@ uint32_t vehicle_update(uint32_t object_index)
         b = a;
         angle = (float)atan2(b.j * F(obj, 0x228) + b.k * F(obj, 0x22c) + b.i * F(obj, 0x224),
                              F(obj, 0x22c) * forward->k + F(obj, 0x228) * forward->j + F(obj, 0x224) * forward->i);
-        if ((*(int32_t *)(obj + 0x4) == 2 || *(int32_t *)(obj + 0x4) == 1) && obj[0x18] == 1) {
+        if ((((unit_object *)obj)->base.network_role == 2 || ((unit_object *)obj)->base.network_role == 1) && obj[0x18] == 1) {
             unit_any_flagged_seat_occupied(object_index);
         }
 
@@ -157,7 +157,7 @@ uint32_t vehicle_update(uint32_t object_index)
                     spin = F(tag, 0x344);
                 }
                 spin *= sign;
-                *(uint32_t *)(obj + 0x10) &= ~0x20u;
+                ((unit_object *)obj)->base.flags &= ~0x20u;
                 if (direction == 2 || direction == 1) {
                     float k = -forward->k;
 
@@ -229,12 +229,12 @@ uint32_t vehicle_update(uint32_t object_index)
             if (((flags & 1) && F(obj, 0x4d4) != 0.0f) || ((flags & 2) && F(obj, 0x4dc) != 0.0f) ||
                 ((flags & 4) && F(obj, 0x338) != 0.0f) || ((flags & 8) && F(obj, 0x33c) != 0.0f) ||
                 ((flags & 0x20) && F(obj, 0x4d8) != 0.0f)) {
-                *(uint32_t *)(obj + 0x10) &= ~0x20u;
+                ((unit_object *)obj)->base.flags &= ~0x20u;
             }
         }
-        if (*(datum_index *)(tag + 0x8c) != k_datum_index_none && !(*(uint32_t *)(obj + 0x10) & 0x20)) {
+        if (*(datum_index *)(tag + 0x8c) != k_datum_index_none && !(((unit_object *)obj)->base.flags & 0x20)) {
             // 0x571505: run the physics
-            b = *(real_vector3d *)(obj + 0x68);
+            b = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;
             switch (*(int16_t *)(tag + 0x2f4)) {
             case 0: vehicle_calculate_turret_controls(object_index, contact_points, (float *)node_output); break; // EDI = [esp+0x88]
             case 1: vehicle_calculate_steering_wheel_controls(object_index, contact_points, (float *)node_output); break;
@@ -252,10 +252,10 @@ uint32_t vehicle_update(uint32_t object_index)
                 unit_update_steering_deviation_effects(object_index, &b, contact_points);
             }
             unit_update_ground_contact_counter(object_index, contact_points);
-            if (*(uint32_t *)(obj + 0x10) & 0x20) {
+            if (((unit_object *)obj)->base.flags & 0x20) {
                 *(int16_t *)(obj + 0x4ce) = 15;
             }
-            if (!(*(uint32_t *)(obj + 0x10) & 0x1000000) &&
+            if (!(((unit_object *)obj)->base.flags & 0x1000000) &&
                 ((1u << (*(uint8_t *)(tag + 0x2f4) & 0x1f)) & 0x28)) {
                 // 0x571686: stay inside the altitude band
                 float floor_z = F(global_structure_bsp, 0x10);
@@ -278,7 +278,7 @@ uint32_t vehicle_update(uint32_t object_index)
             uint8_t *impact = (uint8_t *)global_globals->falling_damage.pointer;
 
             if (F(obj, 0x70) < -F(impact, 0x8c)) {
-                datum_index child = *(datum_index *)(obj + 0x118);
+                datum_index child = ((unit_object *)obj)->base.first_child_object;
 
                 while (child != k_datum_index_none) {
                     uint8_t *child_obj = OBJECT_DATA(child);

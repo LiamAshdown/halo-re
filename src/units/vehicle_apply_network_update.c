@@ -82,7 +82,7 @@ void vehicle_apply_network_update(datum_index vehicle_index, void **message, uin
         return;
     }
     vehicle[0x527] = record[5];
-    *(uint32_t *)(vehicle + 0x10) |= 0x8000000;
+    ((unit_object *)vehicle)->base.flags |= 0x8000000;
     if (record[6] != 0) {
         vehicle[0x526] = record[4];
         memcpy(vehicle + 0x528, &baseline, sizeof(baseline));
@@ -99,17 +99,17 @@ void vehicle_apply_network_update(datum_index vehicle_index, void **message, uin
     vehicle[0x44] = 1;
     vehicle[0x28] = 1;
     if (baseline.object_flag_5 == 0) {
-        *(uint32_t *)(vehicle + 0x10) &= ~0x20u;
+        ((unit_object *)vehicle)->base.flags &= ~0x20u;
     }
     memcpy(vehicle + 0x68, &baseline.velocity, 12);
     memcpy(vehicle + 0x8c, &baseline.angular_velocity, 12);
     memcpy(vehicle + 0x74, &baseline.forward, 12);
     memcpy(vehicle + 0x80, &baseline.up, 12);
     unit_propagate_position_delta_to_children(&baseline.position, vehicle_index);
-    dx = baseline.position.x - *(real *)(vehicle + 0x5c);
-    dy = baseline.position.y - *(real *)(vehicle + 0x60);
-    dz = baseline.position.z - *(real *)(vehicle + 0x64);
-    if ((real)sqrt(dx * dx + dy * dy + dz * dz) > 10.0f || (*(uint32_t *)(vehicle + 0x10) & 0x20) != 0 ||
+    dx = baseline.position.x - ((unit_object *)vehicle)->base.position.x;
+    dy = baseline.position.y - ((unit_object *)vehicle)->base.position.y;
+    dz = baseline.position.z - ((unit_object *)vehicle)->base.position.z;
+    if ((real)sqrt(dx * dx + dy * dy + dz * dz) > 10.0f || (((unit_object *)vehicle)->base.flags & 0x20) != 0 ||
         baseline.up.j * ((real *)(vehicle + 0x80))[1] + baseline.up.k * ((real *)(vehicle + 0x80))[2] +
                 baseline.up.i * ((real *)(vehicle + 0x80))[0] < 0.70710677f) {
         memcpy(vehicle + 0x1c, &baseline.position, 12);
@@ -123,7 +123,7 @@ void vehicle_apply_network_update(datum_index vehicle_index, void **message, uin
     latency = timing != 0 ? timing[1] : (int32_t)record;
     if (latency > 10) {
         vehicle[0x54] = 1;
-        *(int32_t *)(vehicle + 0x58) = *(int32_t *)(record + 8) - latency_base;
+        *(int32_t *)&((unit_object *)vehicle)->base.network_timestamp = *(int32_t *)(record + 8) - latency_base;
     } else {
         vehicle[0x54] = 0;
     }

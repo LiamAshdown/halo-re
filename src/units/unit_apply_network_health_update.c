@@ -89,22 +89,22 @@ void unit_apply_network_health_update(uint32_t object_index, void *message)
         return;
     }
     unit[0x528] = record[5];
-    *(uint32_t *)(unit + 0x10) |= 0x8000000;
+    ((unit_object *)unit)->base.flags |= 0x8000000;
     if (record[6] != 0) {
         unit[0x527] = record[4];
         memcpy(unit + 0x52c, &block, sizeof(block));
     }
     shield = block.shield_vitality * 3.0f;
     *(int16_t *)(unit + 0x31e) = (int16_t)block.grenade_counts;
-    *(uint32_t *)(unit + 0xe0) = block.body_vitality;
+    *(uint32_t *)&((unit_object *)unit)->base.body_vitality = block.body_vitality;
     if (record[7] == 1) {
-        *(real *)(unit + 0xe4) = shield;
+        ((unit_object *)unit)->base.shield_vitality = shield;
     }
     *(uint32_t *)(unit + 0x540) = block.grenade_counts;
     *(uint32_t *)(unit + 0x544) = block.body_vitality;
     *(real *)(unit + 0x548) = shield;
     *(uint32_t *)(unit + 0x54c) = block.shield_stunned;
-    *(int16_t *)(unit + 0x104) = (uint8_t)block.shield_stunned == 1;
+    ((unit_object *)unit)->base.shield_stun_ticks = (uint8_t)block.shield_stunned == 1;
     unit[0x475] = 1;
     unit[0x53c] = 1;
 }

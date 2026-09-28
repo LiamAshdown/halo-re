@@ -170,7 +170,7 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
             point.z = point.z - *(float *)(tag + 0x42c);
         }
         if (anchor_object != k_datum_index_none && !skip_reposition) {
-            *(real_point3d *)(unit + 0x5c) = point;
+            *(real_point3d *)&((unit_object *)unit)->base.position.x = point;
             object_recalculate_bounding_radius_recursive(anchor_object);
             object_set_position_and_relink(&point, anchor_object, &location);
         }

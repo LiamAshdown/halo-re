@@ -23,6 +23,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
 
 extern uint32_t random_seed_global; // 0x00719cd0
 

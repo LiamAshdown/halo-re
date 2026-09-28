@@ -76,7 +76,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
     uint8_t force = 0;
     uint16_t advance;
 
-    if (*(datum_index *)(unit + 0x11c) == k_datum_index_none && (unit[0x106] & 4) == 0) {
+    if (((unit_object *)unit)->base.parent_object == k_datum_index_none && (unit[0x106] & 4) == 0) {
         int16_t base_state = -1;
 
         switch ((int8_t)unit[0x2a6]) {
@@ -91,7 +91,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
         if (unit[0x20f] != 0xff) {
             base_state = (int8_t)unit[0x20f];
         }
-        if (*(uint32_t *)(unit + 0x208) & 0x200) {
+        if (((unit_object *)unit)->unit.control_flags & 0x200) {
             base_state = 1;
         }
         if (unit[0x28b] != 0) {
@@ -110,8 +110,8 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
         *(int16_t *)(unit + 0x2b2) = -1;
     }
 
-    if (*(int16_t *)(unit + 0xd0) != -1) {
-        advance = unit_reset_light_effect(unit + 0xd0, *(uint32_t *)(unit + 0xcc), unit_index);
+    if (((unit_object *)unit)->base.animation_index != -1) {
+        advance = unit_reset_light_effect(unit + 0xd0, *(uint32_t *)&((unit_object *)unit)->base.animation_graph, unit_index);
         if (advance == 1) {
             switch ((int8_t)unit[0x2a3]) {
             case 0x1e: case 0x1f: case 0x29:
@@ -131,7 +131,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
                 if (unit_tag[0x17c] & 2) {
                     if (unit[0x10] & 0x20) {
                         delete_now = 1;
-                    } else if (*(int16_t *)(unit + 0xb4) == 0) {
+                    } else if (((unit_object *)unit)->base.type == 0) {
                         uint8_t *biped = state_machine_object(unit_index);
                         uint8_t *biped_tag = (uint8_t *)tag_instances[*(datum_index *)biped & 0xffff].data;
 
@@ -145,45 +145,45 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
                     unit_pick_random_spawned_actor_count(unit_index);
                     break;
                 }
-                if (*(int16_t *)(unit + 0xb4) == 0) {
+                if (((unit_object *)unit)->base.type == 0) {
                     unit_reset_ground_adjust_state(unit_index);
                 }
                 unit[0x298] |= 4;
-                *(int16_t *)(unit + 0xd2) -= 1;
+                ((unit_object *)unit)->base.animation_frame -= 1;
                 break;
             }
             case 0x1a: {
-                datum_index parent_index = *(datum_index *)(unit + 0x11c);
+                datum_index parent_index = ((unit_object *)unit)->base.parent_object;
                 uint8_t *parent = state_machine_object(parent_index);
                 uint8_t *parent_tag = (uint8_t *)tag_instances[*(datum_index *)parent & 0xffff].data;
-                uint8_t seat_flags = *(*(uint8_t **)(parent_tag + 0x2e8) + *(int16_t *)(unit + 0x2f0) * 0x11c);
+                uint8_t seat_flags = *(*(uint8_t **)(parent_tag + 0x2e8) + ((unit_object *)unit)->unit.vehicle_seat_index * 0x11c);
 
                 object_set_collision_enabled(unit_index, (uint8_t)(~seat_flags & 1));
                 if (*(datum_index *)(parent + 0x324) == unit_index) {
-                    unit_notify_weapon_removed_dup((int32_t)*(datum_index *)(unit + 0x11c));
+                    unit_notify_weapon_removed_dup((int32_t)((unit_object *)unit)->base.parent_object);
                 }
                 break;
             }
             case 0x1b: {
                 uint8_t *animations =
-                    *(uint8_t **)((uint8_t *)tag_instances[*(datum_index *)(unit + 0xcc) & 0xffff].data + 0x78);
+                    *(uint8_t **)((uint8_t *)tag_instances[((unit_object *)unit)->base.animation_graph & 0xffff].data + 0x78);
                 void *model = tag_instances[*(datum_index *)(unit_tag + 0x34) & 0xffff].data;
                 real_vector3d delta;
                 real_matrix4x3 world;
                 real_matrix4x3 *matrix;
 
-                model_animation_get_frame_delta(*(int16_t *)(unit + 0xd2),
-                    animations + *(int16_t *)(unit + 0xd0) * 0xb4, &delta, model);
+                model_animation_get_frame_delta(((unit_object *)unit)->base.animation_frame,
+                    animations + ((unit_object *)unit)->base.animation_index * 0xb4, &delta, model);
                 matrix = object_get_world_matrix(unit_index, &world);
                 matrix4x3_transform_vector(&delta, &delta, matrix);
                 unit_detach_from_seat(unit_index, 1, 1, 1);
-                *(float *)(unit + 0x68) = delta.i + *(float *)(unit + 0x68);
-                *(float *)(unit + 0x6c) = delta.j + *(float *)(unit + 0x6c);
-                *(float *)(unit + 0x70) = delta.k + *(float *)(unit + 0x70);
+                ((unit_object *)unit)->base.velocity.i = delta.i + ((unit_object *)unit)->base.velocity.i;
+                ((unit_object *)unit)->base.velocity.j = delta.j + ((unit_object *)unit)->base.velocity.j;
+                ((unit_object *)unit)->base.velocity.k = delta.k + ((unit_object *)unit)->base.velocity.k;
                 break;
             }
             case 0x25: case 0x26:
-                *(int16_t *)(unit + 0xd2) -= 1;
+                ((unit_object *)unit)->base.animation_frame -= 1;
                 break;
             case 0x27:
                 result = 1;

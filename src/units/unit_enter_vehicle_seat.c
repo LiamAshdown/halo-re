@@ -79,13 +79,13 @@ uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uin
     object_reorient_relative_to_marker(vehicle_index, marker_name, unit_index, (char *)"");
 
     unit = OBJECT_DATA(unit_index);
-    *(int16_t *)(unit + 0x2f0) = seat_index;
-    *(datum_index *)(unit + 0x11c) = vehicle_index;
+    ((unit_object *)unit)->unit.vehicle_seat_index = seat_index;
+    ((unit_object *)unit)->base.parent_object = vehicle_index;
     unit_recompute_seat_occupants(vehicle_index);
 
     unit = OBJECT_DATA(unit_index);
-    *(int16_t *)(unit + 0x2f4) =
-        unit_find_next_zone_permitted_weapon_slot(unit_index, *(uint16_t *)(unit + 0x2f2), 0);
+    ((unit_object *)unit)->unit.desired_weapon_index =
+        unit_find_next_zone_permitted_weapon_slot(unit_index, *(uint16_t *)&((unit_object *)unit)->unit.current_weapon_index, 0);
     unit_ready_desired_weapon(unit_index, 1);
     if (unit_set_or_test_seat_and_weapon_label(unit_index, (char *)(seat + 4), unit_get_current_weapon_label(unit_index),
             1) == 0) {

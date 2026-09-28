@@ -99,7 +99,7 @@ void unit_find_nearest_valid_surface_plane(uint32_t unit_index) // blam-cc: ECX 
     }
     *(int32_t *)(obj + 0x4d8) = best_surface;
     *(real_plane3d *)(obj + 0x514) = best_plane;
-    *(real_vector3d *)(obj + 0x80) = best_plane.normal;
+    *(real_vector3d *)&((unit_object *)obj)->base.up.i = best_plane.normal;
 }
 
 #if 0

@@ -56,15 +56,15 @@ uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, co
     if (*(int16_t *)(record + 0x20) != 0) {
         return 0;
     }
-    if (unit[0x2a3] == 0x1c && *(int16_t *)(unit + 0xd0) != -1) {
-        uint8_t *current = animations + *(int16_t *)(unit + 0xd0) * 0xb4;
+    if (unit[0x2a3] == 0x1c && ((unit_object *)unit)->base.animation_index != -1) {
+        uint8_t *current = animations + ((unit_object *)unit)->base.animation_index * 0xb4;
 
         if (*(int16_t *)(current + 0x42) == *(int16_t *)(record + 0x42)) {
             int16_t frame_count = *(int16_t *)(current + 0x34);
-            uint16_t frame = *(uint16_t *)(unit + 0xd2);
+            uint16_t frame = *(uint16_t *)&((unit_object *)unit)->base.animation_frame;
 
             if ((int32_t)(int16_t)frame + 2 == (int32_t)frame_count) {
-                *(uint16_t *)(unit + 0xd2) = (uint16_t)(frame - 1);
+                *(uint16_t *)&((unit_object *)unit)->base.animation_frame = (uint16_t)(frame - 1);
                 return 0;
             }
             if ((int16_t)frame < frame_count) {

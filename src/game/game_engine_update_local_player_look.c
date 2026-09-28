@@ -25,6 +25,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "game.h"
+#include "units.h"
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern Globals *global_globals;                              // 0x00746fa0

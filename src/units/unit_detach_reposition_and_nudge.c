@@ -50,34 +50,34 @@ void unit_detach_reposition_and_nudge(uint32_t unit_index) // blam-cc: EDI -> un
     uint8_t *object;
     uint8_t *tag;
 
-    if (*(datum_index *)(self + 0x11c) == k_datum_index_none) {
+    if (((unit_object *)self)->base.parent_object == k_datum_index_none) {
         return;
     }
-    object_get_position(&parent_position, *(datum_index *)(self + 0x11c));
+    object_get_position(&parent_position, ((unit_object *)self)->base.parent_object);
     object_get_position(&position, unit_index);
     push.i = position.x - parent_position.x;
     push.j = position.y - parent_position.y;
     push.k = position.z - parent_position.z;
     if (vector3d_normalize_with_length(&push) == 0.0f) {
-        push = *(real_vector3d *)(self + 0x74);
+        push = *(real_vector3d *)&((unit_object *)self)->base.forward.i;
     }
     push.i = push.i * 0.02f;
     push.j = push.j * 0.02f;
     push.k = push.k * 0.02f;
     object_snap_to_parent_marker_and_detach(unit_index);
-    position = *(real_point3d *)(self + 0x5c);
+    position = *(real_point3d *)&((unit_object *)self)->base.position.x;
     scenario_structure_bsp_locate_point_nudge_up(&position);
     object = OBJECT_DATA(unit_index);
     object_unlink_cluster_or_notify_parent(unit_index);
     *(real_point3d *)(object + 0x5c) = position;
     object_recalculate_bounding_radius(unit_index);
     object_set_cluster_and_parent(unit_index, 0);
-    *(uint32_t *)(self + 0x204) &= 0xffff7fffu;
-    *(uint32_t *)(self + 0x10) &= 0xffffffdfu;
+    ((unit_object *)self)->unit.flags &= 0xffff7fffu;
+    ((unit_object *)self)->base.flags &= 0xffffffdfu;
     self[0x474] = 1;
-    *(float *)(self + 0x68) = push.i + *(float *)(self + 0x68);
-    *(float *)(self + 0x6c) = push.j + *(float *)(self + 0x6c);
-    *(float *)(self + 0x70) = push.k + *(float *)(self + 0x70);
+    ((unit_object *)self)->base.velocity.i = push.i + ((unit_object *)self)->base.velocity.i;
+    ((unit_object *)self)->base.velocity.j = push.j + ((unit_object *)self)->base.velocity.j;
+    ((unit_object *)self)->base.velocity.k = push.k + ((unit_object *)self)->base.velocity.k;
     object = OBJECT_DATA(unit_index);
     tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
     if (*(int32_t *)(tag + 0x34) != -1 && (object[0x10] & 1)) {

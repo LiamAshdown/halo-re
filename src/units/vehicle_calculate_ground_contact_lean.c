@@ -103,7 +103,7 @@ void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record
     force.k = delta.k * mass * throttle;
     matrix3x3_from_forward_up(object_up, forward, &current);
 
-    basis[0] = *(real_vector3d *)(obj + 0x224);
+    basis[0] = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
     basis[2].i = -basis[0].k * basis[0].i + world_up->i;
     basis[2].j = -basis[0].k * basis[0].j + world_up->j;
     basis[2].k = -basis[0].k * basis[0].k + world_up->k;
@@ -111,8 +111,8 @@ void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record
         basis[2] = *global_forward3d_pointer;
     }
     rider = obj;
-    if (*(datum_index *)(obj + 0x324) != (datum_index)0xffffffff) {
-        rider = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(obj + 0x324) & 0xffff].data;
+    if (((unit_object *)obj)->unit.driver_unit_index != (datum_index)0xffffffff) {
+        rider = (uint8_t *)((object_header *)object_data->data)[((unit_object *)obj)->unit.driver_unit_index & 0xffff].data;
     }
     if (*(datum_index *)(rider + 0x1f4) == (datum_index)0xffffffff) {
         real pitch = *(real *)(tag + 0x364);

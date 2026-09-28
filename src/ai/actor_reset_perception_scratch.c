@@ -21,6 +21,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
 
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 extern data_array *object_data; // 0x008603b0

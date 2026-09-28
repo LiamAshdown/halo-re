@@ -45,7 +45,7 @@ uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const real_ve
     if (!unit_animation_state_allows_melee(state)) {
         return 0;
     }
-    if (*(int16_t *)(unit + 0xb4) == 0) {
+    if (((unit_object *)unit)->base.type == 0) {
         airborne = unit[0x4cc] & 1;
     }
     if (forced) {

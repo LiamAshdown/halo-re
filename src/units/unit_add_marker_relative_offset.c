@@ -27,17 +27,17 @@ void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, floa
                                      uint32_t param_4, uint32_t param_5, real_point3d *accumulator)
 {
     uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    datum_index parent_index = *(datum_index *)(unit + 0x11c);
+    datum_index parent_index = ((unit_object *)unit)->base.parent_object;
     real_point3d reference;
     int have_reference = 0;
 
     if (parent_index == k_datum_index_none && (unit[0x106] & 4) == 0) {
-        if (*(int16_t *)(unit + 0xb4) == 0) {
+        if (((unit_object *)unit)->base.type == 0) {
             unit_compute_marker_offset_position(unit_index, (real_vector3d *)param_4, (int16_t)param_2, accumulator,
                 world_point, (float *)param_5);
             return;
         }
-    } else if (*(int16_t *)(unit + 0xb4) == 0 && parent_index != k_datum_index_none) {
+    } else if (((unit_object *)unit)->base.type == 0 && parent_index != k_datum_index_none) {
         uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[parent_index & 0xffff].data;
 
         if (*(int16_t *)(parent + 0xb4) == 1 && unit_predict_aim_target_position(parent_index, &reference) != -1) {

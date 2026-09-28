@@ -63,16 +63,16 @@ void unit_scripting_set_or_drop_weapon(int32_t *message)
     if (decoded.weapon_key != 0) {
         weapon = (datum_index)keys[decoded.weapon_key];
     }
-    if (unit_get_weapon_object_index(unit_index, *(int16_t *)(unit + 0x2f2)) != weapon) {
+    if (unit_get_weapon_object_index(unit_index, ((unit_object *)unit)->unit.current_weapon_index) != weapon) {
         for (i = 0; i < 4; i++) {
             if (((datum_index *)(unit + 0x2f8))[i] == weapon) {
-                *(int16_t *)(unit + 0x2f4) = (int16_t)i;
+                ((unit_object *)unit)->unit.desired_weapon_index = (int16_t)i;
                 unit_ready_desired_weapon(unit_index, 1);
                 break;
             }
         }
     }
-    current_index = *(int16_t *)(unit + 0x2f2);
+    current_index = ((unit_object *)unit)->unit.current_weapon_index;
     if (current_index != -1) {
         current = ((datum_index *)(unit + 0x2f8))[current_index];
     }

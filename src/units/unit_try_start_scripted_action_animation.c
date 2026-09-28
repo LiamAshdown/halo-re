@@ -69,7 +69,7 @@ uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t co
     *(int16_t *)(object + 0xd2) = 0;
     unit[0x298] |= 1;
     unit[0x2a3] = 0x1d;
-    if (direction != 0 && *(int16_t *)(unit + 0xb4) == 0 && *(datum_index *)(unit + 0x11c) == k_datum_index_none) {
+    if (direction != 0 && ((unit_object *)unit)->base.type == 0 && ((unit_object *)unit)->base.parent_object == k_datum_index_none) {
         unit_set_throw_aim_direction(unit_index, direction);
     }
     return 1;

@@ -24,15 +24,15 @@ uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_
     uint8_t *obj = (uint8_t *)object_try_and_get(unit_index, 3);
     float dot;
 
-    if (obj == 0 || *(int16_t *)(obj + 0xb4) != 0) {
+    if (obj == 0 || ((unit_object *)obj)->base.type != 0) {
         return 0;
     }
     if (*(uint32_t *)((uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data + 0x17c) & 0x10000) {
         return 0;
     }
-    dot = (*(float *)(obj + 0xa8) - world_point->z) * *(float *)(obj + 0x268) +
-          (*(float *)(obj + 0xa4) - world_point->y) * *(float *)(obj + 0x264) +
-          (*(float *)(obj + 0xa0) - world_point->x) * *(float *)(obj + 0x260);
+    dot = (((unit_object *)obj)->base.bounding_center.z - world_point->z) * ((unit_object *)obj)->unit.looking_vector.k +
+          (((unit_object *)obj)->base.bounding_center.y - world_point->y) * ((unit_object *)obj)->unit.looking_vector.j +
+          (((unit_object *)obj)->base.bounding_center.x - world_point->x) * ((unit_object *)obj)->unit.looking_vector.i;
     if (!(dot > 0.0f)) {
         const char *name = unit_get_seat_or_state_name(unit_index);
         const char *asleep = unit_base_animation_state_names[0];

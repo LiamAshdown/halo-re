@@ -37,13 +37,13 @@ void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t ve
     if (vector3d_normalize_with_length(forward) == 0.0f) {
         *forward = *global_forward3d_pointer;
     }
-    *(real_vector3d *)(obj + 0x80) = *global_up3d_pointer;
+    *(real_vector3d *)&((unit_object *)obj)->base.up.i = *global_up3d_pointer;
     *(uint32_t *)(obj + 0x4cc) |= 1;
     if (!(uint8_t)unit_find_placement_position(object_index, vehicle_index, 0, 2.0f, 1, 0, 1, 0, 0)) {
         uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[vehicle_index & 0xffff].data;
-        real_point3d center = *(real_point3d *)(vehicle + 0xa0);    // [esp+0xc]
+        real_point3d center = *(real_point3d *)&((unit_object *)vehicle)->base.bounding_center.x;    // [esp+0xc]
 
-        unit_find_placement_position(object_index, vehicle_index, 0, *(float *)(vehicle + 0xac), 1, 0, 0, 0,
+        unit_find_placement_position(object_index, vehicle_index, 0, ((unit_object *)vehicle)->base.bounding_radius, 1, 0, 0, 0,
             (real_vector3d *)&center);
     }
 }

@@ -52,14 +52,14 @@ int32_t vehicle_encode_network_create(datum_index vehicle_index, int32_t buffer,
     if (vehicle_index != (datum_index)0xffffffff) {
         key = hash_table_get(keys, (int32_t)vehicle_index);
     }
-    if (*(int32_t *)(vehicle + 0xc4) != -1) {
-        creator = hash_table_get(keys, *(int32_t *)(vehicle + 0xc4));
+    if (*(int32_t *)&((unit_object *)vehicle)->base.creator_object != -1) {
+        creator = hash_table_get(keys, *(int32_t *)&((unit_object *)vehicle)->base.creator_object);
         if (creator == -1) {
             creator = 0;
         }
     }
-    if (*(int32_t *)(vehicle + 0xc0) != -1) {
-        machine = hash_table_get((hash_table *)(machine_table + 0xc), *(int32_t *)(vehicle + 0xc0));
+    if (*(int32_t *)&((unit_object *)vehicle)->base.owner_linkage != -1) {
+        machine = hash_table_get((hash_table *)(machine_table + 0xc), *(int32_t *)&((unit_object *)vehicle)->base.owner_linkage);
         if (machine == -1) {
             machine = 0;
         }
@@ -69,7 +69,7 @@ int32_t vehicle_encode_network_create(datum_index vehicle_index, int32_t buffer,
     }
     record.definition = *(datum_index *)vehicle;
     record.network_key = key;
-    record.owner_team = *(int16_t *)(vehicle + 0xb8);
+    record.owner_team = ((unit_object *)vehicle)->base.owner_team;
     record.creator_key = creator;
     record.machine_key = machine;
     for (i = 0; i < 4; i++) {

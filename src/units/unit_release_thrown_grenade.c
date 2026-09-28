@@ -61,19 +61,19 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
     if (unit[0x28d] != 2) {
         return;
     }
-    grenade = *(datum_index *)(unit + 0x294);
+    grenade = ((unit_object *)unit)->unit.throwing_grenade_projectile;
     if (grenade == k_datum_index_none) {
         unit[0x28d] = 3;
         return;
     }
     object_snap_to_parent_marker_and_detach(grenade);
-    if (*(datum_index *)(unit + 0x1f4) != k_datum_index_none) {
+    if (((unit_object *)unit)->unit.actor_index != k_datum_index_none) {
         real_point3d position;                  // [esp+0x40]
 
-        object_get_position(&position, *(datum_index *)(unit + 0x294));
-        actor_compute_grenade_throw_vector(*(datum_index *)(unit + 0x1f4), &position, &velocity);
+        object_get_position(&position, ((unit_object *)unit)->unit.throwing_grenade_projectile);
+        actor_compute_grenade_throw_vector(((unit_object *)unit)->unit.actor_index, &position, &velocity);
     } else {
-        if (*(datum_index *)(unit + 0x218) != k_datum_index_none) {
+        if (((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
             // 0x56e4de: a player throws from the camera, offset by the globals' grenade offsets
             uint8_t *info = (uint8_t *)global_globals->player_information.pointer;
             real_vector3d forward = *aim;       // [esp+0x28]
@@ -107,7 +107,7 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
 
     // 0x56e644: an early release lobs weaker
     if (early) {
-        real progress = (real)*(int16_t *)(unit + 0x28e) / (real)*(int16_t *)(unit + 0x290);
+        real progress = (real)((unit_object *)unit)->unit.throwing_grenade_counter / (real)((unit_object *)unit)->unit.throwing_grenade_duration;
 
         if (progress < 1.0f) {
             real lob = random_real_range(0.02f, 0.046666667f);
@@ -129,7 +129,7 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
         delta.j = velocity.j - *(float *)(object + 0x6c);
         delta.k = velocity.k - *(float *)(object + 0x70);
         object_apply_impulse_and_spin(grenade, &delta);
-        *(datum_index *)(unit + 0x294) = k_datum_index_none;
+        ((unit_object *)unit)->unit.throwing_grenade_projectile = k_datum_index_none;
         unit[0x28d] = 3;
         unit_get_camera_position(object_index, &camera);
         if (!object_reposition_to_spawn_location(grenade, &camera, k_datum_index_none)) {
@@ -137,7 +137,7 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
             return;
         }
     }
-    if (*(int32_t *)(unit + 0x4) == 0 && network_game_mode == 2 && !object_is_delete_pending(grenade)) {
+    if (((unit_object *)unit)->base.network_role == 0 && network_game_mode == 2 && !object_is_delete_pending(grenade)) {
         *(int32_t *)(OBJECT_DATA(grenade) + 0x4) = 0;
         object_type_override_call_0x68(grenade);
         int32_t bits = projectile_send_creation(grenade);

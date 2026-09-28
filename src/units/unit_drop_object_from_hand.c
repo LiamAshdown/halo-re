@@ -100,7 +100,7 @@ void unit_drop_object_from_hand(uint32_t unit_index, uint32_t object_index)
     if (!object_reposition_to_spawn_location(object_index, &camera, k_datum_index_none) && current_game_engine == 0) {
         object_delete(object_index);
     }
-    if (*(uint32_t *)(unit + 0x204) & 0x100000) {
+    if (((unit_object *)unit)->unit.flags & 0x100000) {
         role = *(int32_t *)(OBJECT_DATA(object_index) + 0x4);
         if (role == 0) {
             object_delete_unparented(object_index);

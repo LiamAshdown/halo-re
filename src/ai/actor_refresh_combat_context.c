@@ -28,6 +28,7 @@
 #include "ai.h"
 #include "game.h"
 #include <string.h>
+#include "units.h"
 
 extern data_array *actor_data;        // 0x00880360
 extern data_array *swarm_data;        // 0x0088035c

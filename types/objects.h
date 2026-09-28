@@ -41,6 +41,7 @@
 // size under a 32-bit data organization.
 
 #include <stddef.h> // offsetof
+#define HALO_TYPES_OBJECTS_H // lets later headers add views that embed object (unit_object)
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;

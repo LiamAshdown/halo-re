@@ -113,7 +113,7 @@ uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state)
         if (seat_type >= 0 && seat_type < *(int32_t *)(weapon_block + 0x98)) {
             overlay = (*(int16_t **)(weapon_block + 0x9c))[seat_type];
         }
-        *(int16_t *)(unit + 0x29a) = animation_choose_random_permutation(graph, overlay, 1);
+        ((unit_object *)unit)->unit.animation_instance = animation_choose_random_permutation(graph, overlay, 1);
         count = 6;
         if (no_state) {
             int16_t idle = (*(int32_t *)(unit_block + 0x40) > 9) ? (*(int16_t **)(unit_block + 0x44))[9] : -1;

@@ -57,10 +57,10 @@ void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force)
     uint8_t *unit = (uint8_t *)OBJECT_HEADER(unit_index).data;
     uint8_t *unit_tag = OBJECT_TAG(unit);
     datum_index desired_weapon = k_datum_index_none;
-    int16_t current = *(int16_t *)(unit + 0x2f2);
+    int16_t current = ((unit_object *)unit)->unit.current_weapon_index;
 
-    if (*(int16_t *)(unit + 0x2f4) != -1) {
-        desired_weapon = *(datum_index *)(unit + 0x2f8 + *(int16_t *)(unit + 0x2f4) * 4);
+    if (((unit_object *)unit)->unit.desired_weapon_index != -1) {
+        desired_weapon = *(datum_index *)(unit + 0x2f8 + ((unit_object *)unit)->unit.desired_weapon_index * 4);
     }
     if (current != -1) {
         datum_index weapon = *(datum_index *)(unit + 0x2f8 + current * 4);
@@ -78,16 +78,16 @@ void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force)
             *(uint32_t *)(weapon_obj + 0x10) |= 1;
             OBJECT_HEADER(weapon).flags &= 0xfd;
             item_set_holder(weapon, unit_index);
-            *(int16_t *)(unit + 0x2f2) = -1;
+            ((unit_object *)unit)->unit.current_weapon_index = -1;
         }
     }
-    if (*(int16_t *)(unit + 0x2f2) != -1) {
+    if (((unit_object *)unit)->unit.current_weapon_index != -1) {
         unit_validate_and_clear_weapon_switch(unit_index);
         return;
     }
     if (desired_weapon == k_datum_index_none) {
         unit_set_or_test_seat_and_weapon_label(unit_index, unit_get_seat_or_state_name(unit_index), "unarmed", 1);
-        *(int16_t *)(unit + 0x2f2) = -1;
+        ((unit_object *)unit)->unit.current_weapon_index = -1;
         unit_validate_and_clear_weapon_switch(unit_index);
         return;
     }
@@ -117,8 +117,8 @@ void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force)
         }
         object_reorient_relative_to_marker(unit_index, (char *)(weapon_anim + 0x40), desired_weapon,
             (char *)(weapon_anim + 0x20));
-        desired = *(int16_t *)(unit + 0x2f4);
-        *(int16_t *)(unit + 0x2f2) = desired;
+        desired = ((unit_object *)unit)->unit.desired_weapon_index;
+        ((unit_object *)unit)->unit.current_weapon_index = desired;
         if (desired != -1) {
             *(int32_t *)(unit + 0x308 + desired * 4) = game_time->game_time;
         }

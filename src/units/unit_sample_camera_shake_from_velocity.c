@@ -37,9 +37,9 @@ void unit_sample_camera_shake_from_velocity(uint32_t unit_index) // blam-cc: EBX
     collision_result hit;
 
     unit_get_camera_position(unit_index, &camera_position);
-    delta.i = *(float *)(obj + 0x23c) * 25.0f;
-    delta.j = *(float *)(obj + 0x240) * 25.0f;
-    delta.k = *(float *)(obj + 0x244) * 25.0f;
+    delta.i = ((unit_object *)obj)->unit.aiming_vector.i * 25.0f;
+    delta.j = ((unit_object *)obj)->unit.aiming_vector.j * 25.0f;
+    delta.k = ((unit_object *)obj)->unit.aiming_vector.k * 25.0f;
     if (collision_test_movement_segment(0x22, &camera_position, &delta, unit_index, &hit) &&
         hit.plane.normal.k > 0.95f) {
         real_point3d position = hit.point;

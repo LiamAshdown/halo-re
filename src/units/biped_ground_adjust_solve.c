@@ -82,7 +82,7 @@ void biped_ground_adjust_solve(uint32_t object_index, real_matrix4x3 *nodes)
         return;
     }
 
-    physics_model_build_from_sphere_query(0xc0a8, (real_point3d *)(obj + 0x5c), *(float *)(obj + 0xac) + 0.0625f,
+    physics_model_build_from_sphere_query(0xc0a8, (real_point3d *)(obj + 0x5c), ((unit_object *)obj)->base.bounding_radius + 0.0625f,
         0.0f, tolerance, object_index, &ground_adjust_physics_model);
 
     success_bits[0] = 0;

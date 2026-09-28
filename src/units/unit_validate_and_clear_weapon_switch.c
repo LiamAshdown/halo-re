@@ -33,7 +33,7 @@ void unit_validate_and_clear_weapon_switch(uint32_t unit_index)
         if (*(int16_t *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 2) != -1 &&
             obj[0x320] != 0xff) {
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-            int16_t slot = *(int16_t *)(unit + 0x2f2);
+            int16_t slot = ((unit_object *)unit)->unit.current_weapon_index;
 
             if (slot != -1 && *(datum_index *)(unit + 0x2f8 + slot * 4) != k_datum_index_none) {
                 uint8_t *weapon = (uint8_t *)((object_header *)object_data->data)

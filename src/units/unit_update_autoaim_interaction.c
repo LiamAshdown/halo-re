@@ -41,9 +41,9 @@ void unit_update_autoaim_interaction(uint32_t unit_index)
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *tracked = (uint8_t *)global_globals->falling_damage.pointer;
 
-    *(uint32_t *)(obj + 0x204) &= ~0x02000000u;
+    ((unit_object *)obj)->unit.flags &= ~0x02000000u;
     obj[0x107] &= 0xf7;
-    *(uint32_t *)(obj + 0x204) &= ~0x00000080u;
+    ((unit_object *)obj)->unit.flags &= ~0x00000080u;
 
     if (tracked != 0) {
         datum_index damage_effect = *(datum_index *)(tracked + 0x78);
@@ -73,8 +73,8 @@ void unit_update_autoaim_interaction(uint32_t unit_index)
         }
     }
 
-    if ((*(uint16_t *)(obj + 0x106) & 4) == 0) {
-        *(uint16_t *)(obj + 0x106) |= 0x20;
+    if ((((unit_object *)obj)->base.vitality_flags & 4) == 0) {
+        ((unit_object *)obj)->base.vitality_flags |= 0x20;
     }
 }
 

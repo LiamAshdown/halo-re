@@ -76,14 +76,14 @@ int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t
     if (object_index != 0xffffffff) {
         key = hash_table_get(keys, (int32_t)object_index);
     }
-    if (*(int32_t *)(biped + 0xc4) != -1) {
-        creator = hash_table_get(keys, *(int32_t *)(biped + 0xc4));
+    if (*(int32_t *)&((unit_object *)biped)->base.creator_object != -1) {
+        creator = hash_table_get(keys, *(int32_t *)&((unit_object *)biped)->base.creator_object);
         if (creator == -1) {
             creator = 0;
         }
     }
-    if (*(int32_t *)(biped + 0xc0) != -1) {
-        machine = hash_table_get((hash_table *)(machine_table + 0xc), *(int32_t *)(biped + 0xc0));
+    if (*(int32_t *)&((unit_object *)biped)->base.owner_linkage != -1) {
+        machine = hash_table_get((hash_table *)(machine_table + 0xc), *(int32_t *)&((unit_object *)biped)->base.owner_linkage);
         if (machine == -1) {
             machine = 0;
         }
@@ -93,7 +93,7 @@ int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t
     }
     record.definition = *(datum_index *)biped;
     record.network_key = key;
-    record.owner_team = *(int16_t *)(biped + 0xb8);
+    record.owner_team = ((unit_object *)biped)->base.owner_team;
     record.machine_key = machine;
     record.creator_key = creator;
     memcpy(record.forward, biped + 0x74, 12);
@@ -101,7 +101,7 @@ int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t
     memcpy(record.position, biped + 0x5c, 12);
     memcpy(record.velocity, biped + 0x68, 12);
     memcpy(record.block_188, biped + 0x188, 0x30);
-    record.flag_80000 = (uint8_t)((*(uint32_t *)(biped + 0x204) >> 0x13) & 1);
+    record.flag_80000 = (uint8_t)((((unit_object *)biped)->unit.flags >> 0x13) & 1);
     record.scalar_344 = *(uint32_t *)(biped + 0x344);
     record.update_sequence = biped[0x527];
     record.body_vitality = *(uint32_t *)(biped + 0x530);

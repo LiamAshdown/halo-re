@@ -39,6 +39,7 @@
 #include "cache.h"
 #include "ai.h"
 #include <stdint.h>
+#include "units.h"
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern data_array *actor_data;           // 0x00880360

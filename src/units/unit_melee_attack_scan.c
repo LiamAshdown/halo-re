@@ -132,7 +132,7 @@ void unit_melee_attack_scan(uint32_t unit_index)
     // 0x56f85a: the weapon's melee damage, else the unit's
     damage_effect = 0xffffffff;
     {
-        int16_t weapon_slot = *(int16_t *)(obj + 0x2f2);
+        int16_t weapon_slot = ((unit_object *)obj)->unit.current_weapon_index;
 
         if (weapon_slot != -1) {
             datum_index weapon_index = *(datum_index *)(obj + 0x2f8 + weapon_slot * 4);
@@ -168,13 +168,13 @@ void unit_melee_attack_scan(uint32_t unit_index)
         memset(&dd, 0, sizeof(dd));
         dd.flags |= 1;
         dd.damage_effect_tag = damage_effect;
-        dd.responsible_player = *(datum_index *)(obj + 0x218);
+        dd.responsible_player = ((unit_object *)obj)->unit.controlling_player;
         dd.responsible_object = unit_index;
-        dd.team_index = *(int16_t *)(obj + 0xb8);
-        dd.location_leaf_index = *(int32_t *)(obj + 0x98);
-        *(int32_t *)&dd.location_cluster_index = *(int32_t *)(obj + 0x9c);
+        dd.team_index = ((unit_object *)obj)->base.owner_team;
+        dd.location_leaf_index = ((unit_object *)obj)->base.location_leaf_index;
+        *(int32_t *)&dd.location_cluster_index = *(int32_t *)&((unit_object *)obj)->base.location_cluster_index;
         dd.epicentre = origin;
-        dd.origin = *(real_point3d *)(obj + 0xa0);
+        dd.origin = *(real_point3d *)&((unit_object *)obj)->base.bounding_center.x;
         dd.direction = *aim;
         dd.random_blend = 1.0f;
         dd.multiplier = 1.0f;
@@ -191,9 +191,9 @@ void unit_melee_attack_scan(uint32_t unit_index)
                 device_machine_melee_attacked(best_object);
             }
             if (speed_scale > 0.0f) {
-                float f = (*(float *)(obj + 0x70) * *(float *)(obj + 0x7c) +
-                           *(float *)(obj + 0x6c) * *(float *)(obj + 0x78) +
-                           *(float *)(obj + 0x74) * *(float *)(obj + 0x68)) * 30.0f / speed_scale;
+                float f = (((unit_object *)obj)->base.velocity.k * ((unit_object *)obj)->base.forward.k +
+                           ((unit_object *)obj)->base.velocity.j * ((unit_object *)obj)->base.forward.j +
+                           ((unit_object *)obj)->base.forward.i * ((unit_object *)obj)->base.velocity.i) * 30.0f / speed_scale;
 
                 if (f < 0.0f) {
                     f = 0.0f;
@@ -202,7 +202,7 @@ void unit_melee_attack_scan(uint32_t unit_index)
                 }
                 dd.random_blend = f;
             }
-            if (*(int16_t *)(obj + 0xb4) == 0 && *(int8_t *)(obj + 0x501) > 0x0f) {
+            if (((unit_object *)obj)->base.type == 0 && *(int8_t *)(obj + 0x501) > 0x0f) {
                 dd.random_blend = 1.5f;
             }
             if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 0) {
@@ -224,8 +224,8 @@ void unit_melee_attack_scan(uint32_t unit_index)
             dd.responsible_object = k_datum_index_none;
             dd.team_index = -1;
             dd.location_cluster_index = -1;
-            dd.epicentre = *(real_point3d *)(obj + 0xa0);
-            dd.origin = *(real_point3d *)(obj + 0xa0);
+            dd.epicentre = *(real_point3d *)&((unit_object *)obj)->base.bounding_center.x;
+            dd.origin = *(real_point3d *)&((unit_object *)obj)->base.bounding_center.x;
             dd.direction.i = -aim->i;
             dd.direction.j = -aim->j;
             dd.direction.k = -aim->k;

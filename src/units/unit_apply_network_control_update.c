@@ -85,8 +85,8 @@ void unit_apply_network_control_update(unit_network_control_packet *packet) // b
     unit = (uint8_t *)object_try_and_get(unit_index, 3);
     if (unit != 0) {
         unit[0x106] |= 4;
-        *(real *)(unit + 0xe0) = 0.0f;
-        *(real *)(unit + 0xe4) = 0.0f;
+        ((unit_object *)unit)->base.body_vitality = 0.0f;
+        ((unit_object *)unit)->base.shield_vitality = 0.0f;
     }
     if (message.update_stance == 1) {
         unit_update_stance_and_jump(unit_index, message.stance_flags[0], message.stance_flags[1],
@@ -94,8 +94,8 @@ void unit_apply_network_control_update(unit_network_control_packet *packet) // b
             message.weapon_class_index, throttle, 1);
     }
     unit = (uint8_t *)object_try_and_get(unit_index, 3);
-    if (unit != 0 && *(datum_index *)(unit + 0x218) != (datum_index)0xffffffff) {
-        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(unit + 0x218), player_data);
+    if (unit != 0 && ((unit_object *)unit)->unit.controlling_player != (datum_index)0xffffffff) {
+        uint8_t *player = (uint8_t *)datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
 
         if (player != 0) {
             *(uint32_t *)(player + 0x2c) = message.player_2c;
@@ -104,7 +104,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet) // b
     unit_release_transient_state_and_detach(unit_index, message.stance_flags[1]);
     unit = (uint8_t *)object_try_and_get(unit_index, 3);
     if (unit != 0) {
-        *(int32_t *)(unit + 0x4) = 3;
+        ((unit_object *)unit)->base.network_role = 3;
     }
     if ((((object_header *)object_data->data)[unit_index & 0xffff].flags & 8) == 0) {
         network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);

@@ -52,11 +52,11 @@ uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_ind
     if (network_game_mode == 1 && force_flag != 1) {
         return 0;
     }
-    vehicle_index = *(datum_index *)(self + 0x11c);
-    if (vehicle_index == k_datum_index_none || *(int16_t *)(self + 0x2f0) == -1) {
+    vehicle_index = ((unit_object *)self)->base.parent_object;
+    if (vehicle_index == k_datum_index_none || ((unit_object *)self)->unit.vehicle_seat_index == -1) {
         return 0;
     }
-    if (*(int16_t *)(self + 0xb4) == 1) {
+    if (((unit_object *)self)->base.type == 1) {
         unit_detach_from_seat(unit_index, 1, force_flag, 1);
         return 0;
     }
@@ -87,7 +87,7 @@ uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_ind
     }
     self[0x2a3] = 0x1b;
     actor_notify_weapon_pickup_once(unit_index);
-    if (*(int32_t *)(self + 4) == 0) {
+    if (((unit_object *)self)->base.network_role == 0) {
         unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
     }
     return 1;

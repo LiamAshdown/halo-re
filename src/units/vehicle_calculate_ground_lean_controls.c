@@ -101,7 +101,7 @@ void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_tr
     lean_scale = f2 * throttle;
     *(real *)(obj + 0x4f0) = lean_scale;
 
-    facing = *(real_vector3d *)(obj + 0x224);
+    facing = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
     up.i = -(facing.i * facing.k);
     up.j = -(facing.j * facing.k);
     up.k = 1.0f - facing.k * facing.k;

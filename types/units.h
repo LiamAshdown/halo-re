@@ -56,6 +56,7 @@
 // below was assigned to one extension or the other by which function touches it, and the
 // handful that stayed ambiguous are called out in the notes file.
 
+#include <stddef.h> // offsetof
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
@@ -593,6 +594,17 @@ typedef struct unit_data {
                                         //       unit_update reads it back
     uint8_t unknown_4c0[12];            // 0x4c0 untouched by this module
 } unit_data;                            // size 0x2d8 (object 0x1f4 .. 0x4cc)
+
+#ifdef HALO_TYPES_OBJECTS_H
+// A unit object as one struct: the common object header (types/objects.h) followed by unit_data,
+// so a field is one fixed offset from the object like the original code uses (bipeds and vehicles
+// append their own data after 0x4cc).
+typedef struct unit_object {
+    object base;                        // 0x000
+    unit_data unit;                     // 0x1f4
+} unit_object;
+typedef char unit_object_unit_at_1f4[offsetof(unit_object, unit) == 0x1f4 ? 1 : -1];
+#endif
 
 // ---------------------------------------------------------------------------
 // unit_state_change_record  (0x20 bytes, passed BY VALUE to 0x566c00, which replaces the unit with
