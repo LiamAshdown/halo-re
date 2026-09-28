@@ -45,7 +45,6 @@ extern char *shell_fatal_error_argument;                           // 0x00722bbc
 extern void os_platform_identify(void);                            // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 
-extern void *ReadFileEx_exref;  // 0x0063a27c IAT slot holding ReadFileEx, passed by value
 
 // blam-cc: request in ESI, size in EBX, offset in EDX, completion_routine in EDI (the three
 // named stack arguments are all Ghidra shows); 0x442c70, outside this module
@@ -99,7 +98,7 @@ void cache_file_slot_read_header(int32_t slot_index)
             }
         }
     } else {
-        cache_io_read_file_ex_retry(ReadFileEx_exref, slot->file, &slot->header, &request,
+        cache_io_read_file_ex_retry((void *)ReadFileEx, slot->file, &slot->header, &request,
             k_cache_file_header_size, 0, (void *)code_address_cache_io_completion_routine);
         // 0x443669: the APC is the ORIGINAL routine's address (mov edi,0x443b00). Windows calls it __stdcall
         // (ret 0xc); passing the cdecl C rewrite cache_io_completion_routine directly left the APC dispatcher
@@ -188,7 +187,7 @@ void FUN_004435e0(void)
   }
   else {
     local_134 = (int *)(&DAT_006a9434 + iVar5);
-    FUN_00442c70(ReadFileEx_exref,*puVar1,local_134);
+    FUN_00442c70((void *)ReadFileEx,*puVar1,local_134);
     FUN_00442ce0();
     lpCreationTime = local_138;
     piVar6 = local_134;

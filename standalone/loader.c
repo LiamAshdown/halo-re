@@ -4,10 +4,10 @@
    data sections back where they were:
      1. The first instance starts a suspended copy of itself and reserves 0x400000..0x891000 in it before its
         loader initialises (the same trick harness/difftest_main.c uses), so no heap or DLL can land there.
-     2. The child commits the range, copies the data image linked into this exe (standalone/image/*.asm: .rdata,
-        initialised .data, .tls, .rsrc and the few .text ranges read as data; every code pointer in it is already
-        our C function's address, relocated by the linker) to the original addresses, and fills both import tables
-        (normal and delay-load) with GetProcAddress.
+     2. The child commits the range and copies the data image linked into this exe (standalone/image/*.asm:
+        .rdata, initialised .data, .tls and .rsrc; every code pointer in it is already our C function's address,
+        relocated by the linker) to the original addresses. The retail import slots in it stay unfilled: the C calls
+        Windows and the third-party DLLs through this exe's own (delay-)imports.
      3. It changes to the Halo install folder (maps\, binkw32.dll, vorbis.dll live there) and calls the rewritten
         shell_winmain, as the original CRT entry did.
    A call to a function we have no C for lands in standalone_missing_function (the trap stubs in
@@ -86,13 +86,6 @@ int standalone_devmode(void)
         cached = (line && strstr(line, "-devmode")) || GetEnvironmentVariableA("HALO_DEVMODE", NULL, 0) ? 1 : 0;
     }
     return cached;
-}
-
-static void unresolved_import_trap(void)
-{
-    log_line("an import that could not be resolved was called");
-    MessageBoxA(NULL, "An unresolved import was called; see halo_standalone.log.", "Halo standalone", MB_OK | MB_ICONERROR);
-    ExitProcess(4);
 }
 
 /* First-boot diagnostics: every exception (first chance, so the game's own handlers still run) is logged with EIP,
@@ -267,33 +260,10 @@ static void preload_system_dinput8(void)
     log_line("preloaded %s: %s", path, h ? "ok" : "FAILED");
 }
 
-static void fill_imports(void)
-{
-    int i, missing = 0;
-    for (i = 0; i < standalone_import_count; i++) {
-        const standalone_import *im = &standalone_imports[i];
-        HMODULE h = LoadLibraryA(im->dll);
-        FARPROC p = 0;
-        if (h) p = GetProcAddress(h, im->name ? im->name : (const char *)(ULONG_PTR)im->ordinal);
-        if (!p) {
-            log_line("import not resolved: %s!%s", im->dll, im->name ? im->name : "(ordinal)");
-            p = (FARPROC)unresolved_import_trap;
-            missing++;
-        }
-        if (im->name && strcmp(im->name, "CreateFileA") == 0 && p != (FARPROC)unresolved_import_trap) {
-            g_create_file_a = (create_file_a_fn)p;
-            p = (FARPROC)standalone_create_file_a;
-        }
-        *(FARPROC *)im->slot = p;
-        if (im->module_handle_slot && h) *(HMODULE *)im->module_handle_slot = h;
-    }
-    log_line("filled %d import slots (%d unresolved)", standalone_import_count, missing);
-}
-
-/* The C calls Windows through this exe's own import table (each API is declared __stdcall and links against the SDK
-   import libraries), so the CreateFileA data override must also sit in this module's import address table, not only
-   in the retail slot fill_imports patches. Only relative paths with a copy under override\ are redirected, so the
-   loader's and the CRT's own file opens are unaffected. */
+/* The C calls Windows through this exe's own import table (the SDK headers and import libraries; nothing uses the
+   retail image's import slots any more), so the CreateFileA data override sits in this module's import address
+   table. Only relative paths with a copy under override\ are redirected, so the loader's and the CRT's own file
+   opens are unaffected. */
 static void hook_own_create_file_a(void)
 {
     unsigned char *base = (unsigned char *)GetModuleHandleA(NULL);
@@ -304,7 +274,7 @@ static void hook_own_create_file_a(void)
     int hooked = 0;
 
     if (!real || !dir->VirtualAddress) return;
-    if (!g_create_file_a) g_create_file_a = (create_file_a_fn)real;
+    g_create_file_a = (create_file_a_fn)real;
     for (d = (IMAGE_IMPORT_DESCRIPTOR *)(base + dir->VirtualAddress); d->Name; d++) {
         IMAGE_THUNK_DATA *thunk = (IMAGE_THUNK_DATA *)(base + d->FirstThunk);
         for (; thunk->u1.Function; thunk++) {
@@ -445,7 +415,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, i
     if (!map_image()) return 2;
     preload_system_dinput8();
     SetDllDirectoryA(standalone_halo_folder);
-    fill_imports();
     hook_own_create_file_a();
     emulate_crt_startup();
     if (!SetCurrentDirectoryA(standalone_halo_folder)) {

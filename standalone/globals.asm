@@ -3974,8 +3974,6 @@ PUBLIC _rcon_connection_id
 _rcon_connection_id EQU 069FDFCh
 PUBLIC _rcon_out_channel_key
 _rcon_out_channel_key EQU 0871DE0h
-PUBLIC _ReadFileEx_exref
-_ReadFileEx_exref EQU 063A27Ch
 PUBLIC _recorded_animation_angle_scale
 _recorded_animation_angle_scale EQU 0672DD8h
 PUBLIC _recorded_animation_codecs_by_version

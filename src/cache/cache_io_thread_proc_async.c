@@ -26,7 +26,6 @@ extern int16_t cache_file_index;                 // 0x006ac494, active slot, -1 
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern data_file sounds_data_file;               // 0x006ac4a8
 extern data_file bitmaps_data_file;              // 0x006ac4e8
-extern void *ReadFileEx_exref;                   // 0x0063a27c IAT slot holding ReadFileEx
 
 
 // blam-cc: request in ESI, size in EBX, offset in EDX, completion_routine in EDI; the three
@@ -58,7 +57,7 @@ uint32_t cache_io_thread_proc_async(void *parameter)
     void *file_handle;
     data_file *source;
 
-    read_function = ReadFileEx_exref;
+    read_function = (void *)ReadFileEx;
     for (;;) {
         do {
             wait_result = WaitForSingleObjectEx(cache_io_event, 0xffffffff, 1);
@@ -113,7 +112,7 @@ void cache_io_thread_proc_async(void)
   undefined4 uVar7;
   char *pcVar8;
 
-  pcVar2 = ReadFileEx_exref;
+  pcVar2 = (void *)ReadFileEx;
   do {
     do {
       DVar3 = WaitForSingleObjectEx(DAT_006ac498,0xffffffff,1);

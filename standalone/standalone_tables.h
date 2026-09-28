@@ -9,18 +9,8 @@ typedef struct standalone_piece {
     unsigned long size;
 } standalone_piece;
 
-typedef struct standalone_import {
-    unsigned long slot;               /* IAT slot address in the mapped image */
-    const char *dll;
-    const char *name;                 /* NULL: import by ordinal */
-    unsigned short ordinal;
-    unsigned long module_handle_slot; /* delay-load: where the module handle is cached, else 0 */
-} standalone_import;
-
 extern const standalone_piece standalone_pieces[];
 extern const int standalone_piece_count;
-extern const standalone_import standalone_imports[];
-extern const int standalone_import_count;
 typedef struct standalone_code_entry {
     unsigned long address;            /* an original function start */
     void *target;                     /* our C function for it (0 when the link left it unresolved) */

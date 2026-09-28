@@ -35,7 +35,6 @@ def c_string(s):
 
 def write_tables():
     pieces = json.load(open(os.path.join(SA, "image", "pieces.json")))
-    imports = json.load(open(os.path.join(OUT, "imports.json")))
     lines = ['#include "standalone_tables.h"', "",
              "const char standalone_halo_folder[] = %s;" % c_string(HALO_FOLDER), ""]
     # the data image the loader copies to the original addresses (standalone/image/<label>.asm)
@@ -44,16 +43,7 @@ def write_tables():
     for p in pieces:
         lines.append("    { %s, 0x%08xUL, halo_image_%s, 0x%08xUL }," % (c_string(p["label"]), p["va"], p["label"],
                                                                        p["size"]))
-    lines += ["};", "const int standalone_piece_count = %d;" % len(pieces), "",
-              "const standalone_import standalone_imports[] = {"]
-    for s in imports:
-        if s["name"].startswith("#"):
-            name, ordinal = "0", int(s["name"][1:])
-        else:
-            name, ordinal = c_string(s["name"]), 0
-        lines.append("    { 0x%08xUL, %s, %s, %d, 0x%08xUL }," % (s["slot"], c_string(s["dll"]), name, ordinal,
-                                                                   s.get("module_handle_slot", 0) if s["delay"] else 0))
-    lines += ["};", "const int standalone_import_count = %d;" % len(imports), ""]
+    lines += ["};", "const int standalone_piece_count = %d;" % len(pieces), ""]
     open(os.path.join(OUT, "standalone_tables.c"), "w").write("\n".join(lines) + "\n")
 
 
