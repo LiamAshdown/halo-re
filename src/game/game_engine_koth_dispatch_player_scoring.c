@@ -35,7 +35,7 @@ extern int32_t king_alt_player_score[];       // 0x006b118c, this batch
 extern int32_t king_alt_score_target;         // 0x006b1148, this batch
 
 extern void unit_reset_gauge_if_flagged(void); // 0x4633a0, UNSURE exact identity
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40, this batch
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void game_engine_koth_alt_scorer_tick(uint32_t player_index); // 0x46c230, this batch
 extern void game_engine_koth_update_occupant_table(uint32_t index); // 0x46c320, this batch
 
@@ -109,7 +109,7 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
                         // UNSURE: Ghidra shows this void call's result assigned to the return
                         // value (a leaked-register artifact, like the "always -1" case in
                         // game_engine_find_player_holding_object.c); `result` is left unchanged.
-                        game_engine_queue_multiplayer_sound(0);
+                        game_engine_queue_multiplayer_sound(0x2a, 0xffffffff, 0); // 0x46c5a4..0x46c5ad (EDX, the zero remainder, is the broadcast)
                     }
                     // UNSURE: weapon_obj + 0x2b8, not a named weapon_data field
                     *(int16_t *)((uint8_t *)weapon_obj + 0x2b8) = (int16_t)(score / 30);

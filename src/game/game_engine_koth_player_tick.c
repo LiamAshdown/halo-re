@@ -15,6 +15,8 @@
 // register convention: player index in the stack parameter (Ghidra's own param_1).
 // UNSURE: player + 0xc4 is written here as a 16-bit increment, narrower than types/game.h's
 //   int32_t objective_time; kept literal rather than reconciled.
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -32,7 +34,7 @@ extern int32_t king_bucket_credit_ticks[16];     // 0x006b0ec0
 extern game_variant game_engine_variant;         // 0x006f1c88 (score_limit aliased 0x006f1ce0)
 
 extern uint8_t game_engine_koth_player_in_hill_bounds(uint32_t player_index); // 0x46aa60, this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index);        // 0x46be40, this batch
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern uint8_t game_engine_get_teams_enabled(void); // 0x462bf0; returns a bool in AL
 extern void game_engine_begin_end_game_sequence(void); // 0x45fd90
 
@@ -80,17 +82,16 @@ void game_engine_koth_player_tick(uint32_t player_index)
             //   0x46ac6c: the constant 0x2a
             if (limit_ticks - bucket == 900) {
                 game_engine_queue_multiplayer_sound(game_engine_get_teams_enabled() != 0
-                    ? 5 + 2 * (p->team != 0) : 3);
+                    ? 5 + 2 * (p->team != 0) : 3, 0xffffffff, 1);
             }
             if (limit_ticks - bucket == 0x708) {
                 game_engine_queue_multiplayer_sound(game_engine_get_teams_enabled() != 0
-                    ? 4 + 2 * (p->team != 0) : 2);
+                    ? 4 + 2 * (p->team != 0) : 2, 0xffffffff, 1);
             }
             bucket = king_bucket_credit_ticks[p->team];
             if (bucket > 0 && bucket % 0x96 == 0 && bucket < limit_ticks) {
-                // 0x46ac66 also loads EDI (the recipient player) here; the established
-                // single-parameter signature cannot carry it. UNSURE.
-                game_engine_queue_multiplayer_sound(0x2a);
+                // 0x46ac66 loads EDI (the recipient) from the first argument.
+                game_engine_queue_multiplayer_sound(0x2a, player_index, 1);
             }
             if (limit_ticks <= king_bucket_credit_ticks[p->team]) {
                 game_engine_begin_end_game_sequence();

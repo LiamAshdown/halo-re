@@ -75,7 +75,7 @@ extern int game_engine_find_valid_starting_locations(real_point3d *origin,
     int32_t max_results, int32_t *results); // 0x461080, this batch
 extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team,
     real_point3d *origin, float max_horizontal_dist, float max_height_delta); // 0x461180, this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern int16_t unit_get_local_player_weapon_index(datum_index unit_index); // 0x4726b0, blam-cc:
     // EAX -> unit_index. RENAMED from symbols/functions.txt's unit_get_local_player_weapon_index:
     // objdump 0x4726b0..0x4726eb resolves unit -> object+0x218 (controlling_player) and returns
@@ -203,7 +203,7 @@ void game_engine_update_teleporter(uint32_t player_index)
 
             // Not obstructed: play the teleport cue for a local player and queue its effect.
             if (p->local_player_index != -1) {
-                game_engine_queue_multiplayer_sound(0);
+                game_engine_queue_multiplayer_sound(0x1b, 0xffffffff, 0); // 0x4618ff..0x461909
                 if (p->local_player_index != -1) {
                     // UNSURE: this ~14-dword struct and its ten DAT_ constants are outside this
                     // batch's evidence; preserved as a literal field-for-field fill.

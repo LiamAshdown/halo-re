@@ -14,6 +14,8 @@
 // UNSURE: game_engine_ctf_is_flag_eligible_for_capture's own (team, flag_id) arguments are
 //   elided at this call site; modeled as this function's own team/usage_id, which are the only
 //   matching values in scope.
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -27,7 +29,7 @@ extern uint32_t ctf_team_captured_flags_mask[]; // 0x006b12d4, this batch
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_option_7c aliased 0x006f1d04)
 extern int32_t ctf_neutral_flag_id; // 0x006b1314
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40, this batch
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void game_engine_ctf_on_flag_captured(uint32_t flag_index); // 0x46dde0, this batch
 extern uint8_t game_engine_ctf_is_flag_eligible_for_capture(uint32_t team, int32_t flag_id); // 0x46df30, this batch
 extern int32_t game_engine_ctf_pick_random_flag(int32_t exclude_flag_index); // 0x46dfe0, this batch
@@ -43,7 +45,7 @@ void game_engine_ctf_score_flag(uint32_t team, int32_t scenario_flag_index)
         return;
     }
 
-    game_engine_queue_multiplayer_sound(1);
+    game_engine_queue_multiplayer_sound(0x1a, team, 1); // 0x46e0bc..0x46e0cb: EDI is the first argument (a player handle)
     if (ctf_globals_live.team_flag_id[idx] == -1) {
         ctf_globals_live.team_flag_id[idx] = usage_id;
     }

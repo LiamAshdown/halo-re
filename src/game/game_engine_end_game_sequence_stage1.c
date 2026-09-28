@@ -12,6 +12,8 @@
 //   describe ("_game_engine_state_ending = 1 ... 7.0 s timer", "_game_engine_state_ended = 2 ...
 //   set by the second countdown stage").
 // register convention: no parameters.
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -21,7 +23,7 @@
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 extern float game_engine_end_game_timer;          // 0x0087aa08
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void widget_close_all(void); // 0x498650
 
 // Enters the "ending" end-of-game state: starts the 7-second countdown, queues the end-of-game
@@ -30,7 +32,7 @@ void game_engine_end_game_sequence_stage1(void)
 {
     game_engine_state_value = _game_engine_state_ending;
     game_engine_end_game_timer = 7.0f;
-    game_engine_queue_multiplayer_sound(0);
+    game_engine_queue_multiplayer_sound(1, 0xffffffff, 0); // 0x4670c2..0x4670dc
     widget_close_all();
 }
 

@@ -72,7 +72,7 @@ extern void game_engine_ctf_respawn_team_flag(int32_t team, real_point3d *forwar
     uint16_t forwarded_name_index);                                        // 0x468430, this batch
 extern void game_engine_ctf_notify_both_teams(int32_t team, int32_t forwarded_broadcast_enabled,
     uint32_t forwarded_message_type, datum_index forwarded_subject, char forwarded_broadcast); // 0x468460, this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index);       // 0x46be40
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void game_engine_broadcast_kill_feed_to_team(int32_t broadcast_enabled, int32_t team,
     uint32_t forwarded_message_type, datum_index forwarded_subject, char forwarded_broadcast); // 0x460ba0
 extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index,
@@ -164,7 +164,7 @@ void ctf_engine_flag_tick(uint32_t flag_handle, object *flag_obj)
                     flag_handle = *(uint32_t *)((uint8_t *)&ctf_team_flag_object[0] + (int16_t)toggled * 4);
                     flag_obj = ((object_header *)object_headers->data)[flag_handle & 0xffff].data;
                     item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
-                    game_engine_queue_multiplayer_sound(1);
+                    game_engine_queue_multiplayer_sound(0x25 + (*(int16_t *)((uint8_t *)flag_obj + 0xb8) != 0), 0xffffffff, 1); // 0x468e5d..0x468e79
                     game_engine_ctf_reset_team_return_credit(flag_handle, (datum_index)0xffffffff, (real_point3d *)0); // UNSURE forwarded args
                     custom_waypoints[2] = (custom_waypoint){0};
                     custom_waypoints[3] = (custom_waypoint){0};
@@ -222,7 +222,7 @@ notify_teams:
     if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) != 0) {
         // UNSURE: broadcast_enabled/message_type/subject/broadcast below are local
         // reconstructions -- see header note (1).
-        game_engine_queue_multiplayer_sound(1);
+        game_engine_queue_multiplayer_sound(team != 0 ? 9 : 0xc, 0xffffffff, 1); // 0x469026..0x469037
         ctf_team_return_credit_active[team] = 0;
         ctf_team_return_credit_ticks[team] = 0;
         game_engine_broadcast_kill_feed_to_team((team != 0) ? 9 : 0xc, team, 0x2b,

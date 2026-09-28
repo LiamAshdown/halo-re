@@ -16,7 +16,7 @@ EXT = {
     'teams': 'extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc',
     'network_game_mode': 'extern int16_t network_game_mode; // 0x00719720',
     'game_time': 'extern uint8_t *game_time; // 0x006f1d6c (game_time_globals *, +0x0c the tick)',
-    'sound': 'extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast (the C models only the sound)',
+    'sound': 'extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast',
     'format_d': 'extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX dest',
     'format_time': 'extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest); // 0x466530, blam-cc: ECX ticks',
     'gamespy_team_score': 'extern void FUN_00616640(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)',

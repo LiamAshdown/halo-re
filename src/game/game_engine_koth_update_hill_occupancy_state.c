@@ -16,6 +16,8 @@
 //   `occupant_candidate` is consequently always -1 in this transcription, matching Ghidra's own
 //   rendering, not a corrected per-element occupant id.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -30,7 +32,7 @@ extern uint8_t king_hill_single_occupant_flag;      // 0x006c0f3f, UNSURE identi
 extern king_globals king_hill_state_globals;        // 0x006b1050
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40, this batch
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 
 void game_engine_koth_update_hill_occupancy_state(void)
 {
@@ -65,7 +67,7 @@ void game_engine_koth_update_hill_occupancy_state(void)
                     king_hill_state_globals.occupant = (datum_index)0xffffffff;
                     return;
                 }
-                game_engine_queue_multiplayer_sound(1);
+                game_engine_queue_multiplayer_sound(0x27, 0xffffffff, 1); // 0x46ae57..0x46ae60
                 king_hill_state_globals.hill_ticks = 0;
                 king_hill_state_globals.occupant = (datum_index)0xffffffff;
                 return;
@@ -125,7 +127,7 @@ void game_engine_koth_update_hill_occupancy_state(void)
             if (team0_count != 0) {
                 king_hill_state_globals.hill_state = _king_hill_contested;
                 if (king_hill_state_globals.hill_ticks > 300) {
-                    game_engine_queue_multiplayer_sound(1);
+                    game_engine_queue_multiplayer_sound(0x27, 0xffffffff, 1); // 0x46ad56..0x46ad60
                 }
                 king_hill_state_globals.hill_ticks = 0;
                 return;
@@ -142,7 +144,7 @@ void game_engine_koth_update_hill_occupancy_state(void)
     }
 check_streak:
     if (king_hill_state_globals.hill_ticks == 300) {
-        game_engine_queue_multiplayer_sound(1);
+        game_engine_queue_multiplayer_sound(0x28, 0xffffffff, 1); // 0x46aea3..0x46aeac
     }
 }
 

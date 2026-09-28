@@ -14,6 +14,8 @@
 // register convention: flag index is the function's own stack parameter (__cdecl).
 // UNSURE: player + 0xc6's real field name.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -28,7 +30,7 @@ extern uint32_t ctf_team_captured_flags_mask[]; // 0x006b12d4, inside ctf_global
     // batch) showed it participating in 32-bit bitmask arithmetic indexed by team
 extern game_variant game_engine_variant;   // 0x006f1c88 (ctf_option_7c aliased 0x006f1d04)
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40, this batch
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void game_engine_check_bucket_scores_and_end_round(void);      // 0x46db70, this batch
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
     int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject); // 0x460c10
@@ -43,7 +45,7 @@ void game_engine_ctf_on_flag_captured(uint32_t flag_index)
     uint8_t new_record = 0;
 
     ctf_team_captured_flags_mask[flag_index & 0xffff] = 0;
-    game_engine_queue_multiplayer_sound(1);
+    game_engine_queue_multiplayer_sound(0x2a, flag_index, 1); // 0x46de12..0x46de26, EDI still the argument
 
     *(int16_t *)((uint8_t *)p + 0xc4) = elapsed;
     if (*(int16_t *)((uint8_t *)p + 0xc6) != 0) {

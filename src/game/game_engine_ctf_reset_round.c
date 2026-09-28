@@ -4,6 +4,8 @@
 // name confidence: 0.6   rewrite confidence: 0.85
 // WRITTEN 2026-09-28 from objdump 0x468820..0x468836: queues multiplayer sound 0x16 (player -1, not broadcast).
 // blam-cc: cdecl (called through the engine definition)
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -11,9 +13,9 @@
 #include "game.h"
 #include <wchar.h>
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast (the C models only the sound)
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 
 void game_engine_ctf_reset_round(void)
 {
-    game_engine_queue_multiplayer_sound(0x16);
+    game_engine_queue_multiplayer_sound(0x16, 0xffffffff, 0);
 }

@@ -12,6 +12,8 @@
 // register convention: player index on the stack (param_1); team in_EAX.
 //   // blam-cc: stack -> player_index, EAX -> team, EBX -> forwarded_commit
 // UNSURE: forwarded_commit's identity (see the profile-cache-sync sibling).
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +25,7 @@ extern int16_t network_game_mode; // 0x00719720
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 
 extern void game_engine_player_profile_cache_sync_all(int32_t commit, void *callback_extra_arg); // 0x466cb0
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
     int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject); // 0x460c10
 
@@ -42,7 +44,7 @@ void game_engine_ctf_player_touch_flag(uint32_t player_index, int32_t team, int3
     if (network_game_mode == 2) {
         game_engine_player_profile_cache_sync_all(forwarded_commit, (void *)0xffffffff);
     }
-    game_engine_queue_multiplayer_sound(1);
+    game_engine_queue_multiplayer_sound(p->team != 0 ? 0xa : 0xd, 0xffffffff, 1); // 0x46895b..0x46896d
     game_engine_broadcast_kill_feed_by_relationship(player_index, 0x21, 0x23, 0x22, player_index);
 }
 

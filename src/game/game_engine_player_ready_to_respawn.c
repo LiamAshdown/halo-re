@@ -13,6 +13,8 @@
 // UNSURE: this function calls FUN_00460f30/FUN_00460e40 with zero visible arguments in Ghidra's
 // own rendering; both need the same player index this function itself receives in EAX, so it is
 // passed explicitly here rather than modeled as some other unrecoverable register.
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -26,7 +28,7 @@ extern game_time_globals *game_time;                 // 0x006f1d6c
 
 extern uint8_t game_engine_player_is_eliminated(uint32_t player_index); // 0x460f30, this batch
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_index); // 0x460e40, this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 
 // blam-cc: EAX -> player_index
 uint8_t game_engine_player_ready_to_respawn(uint32_t player_index)
@@ -59,7 +61,7 @@ uint8_t game_engine_player_ready_to_respawn(uint32_t player_index)
             if (p->local_player_index != -1 &&
                 (p->respawn_timer == 0x5a || p->respawn_timer == 0x3c ||
                  p->respawn_timer == 0x1e || p->respawn_timer == 1)) {
-                game_engine_queue_multiplayer_sound(0);
+                game_engine_queue_multiplayer_sound(p->respawn_timer == 1 ? 0x1f : 0x1d, 0xffffffff, 0); // 0x461004..0x461034
             }
             p->respawn_timer = p->respawn_timer - 1;
             ready = (p->respawn_timer == 0);

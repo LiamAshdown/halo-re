@@ -1,7 +1,7 @@
 // game_engine_queue_multiplayer_sound  (Ghidra: game_engine_queue_multiplayer_sound, already
 //   named)
 // address 0x46be40, size 101 bytes
-// name confidence: 0.5   rewrite confidence: 0.25
+// name confidence: 0.5   rewrite confidence: 0.85
 // evidence: types/game.h multiplayer_sound_request (0x006b10f0, player/sound_index/
 //   remaining_ticks/broadcast at 0x00/0x04/0x08/0x0c) and multiplayer_sound_queue_count
 //   (0x006b1140); multiplayer_sound_enabled[] (0x00688328); game_engine_get_multiplayer_sound_
@@ -41,28 +41,36 @@ extern void game_engine_play_multiplayer_sound(int32_t sound_index, datum_index 
     uint8_t broadcast); // 0x46bd00, this batch
 extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_index); // 0x46bde0, this batch
 
-// Queues announcer sound `sound_index` (forced to a non-hosting no-op unless actually hosting;
-// see UNSURE for the player/broadcast simplification), refusing once 5 are already queued, and
-// immediately starts playback via game_engine_play_multiplayer_sound if this is the only entry.
-void game_engine_queue_multiplayer_sound(int32_t sound_index)
+// FIXED 2026-09-28 from objdump 0x46be40..0x46bea4: the real inputs are ESI sound, EDI player and the stack
+//   broadcast byte (forced to 0 unless hosting); every caller was retrofitted to pass all three from the binary.
+// Queues the sound for the player, refusing once 5 are queued, and starts playback when it is the only entry
+// (or at once when the sound is disabled).
+void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast)
 {
-    uint8_t broadcast = (network_game_mode == 2) ? 1 : 0;
+    int32_t count;
 
+    if (network_game_mode != 2) {
+        broadcast = 0;
+    }
     if (multiplayer_sound_enabled[sound_index] != 0) {
-        int32_t duration = game_engine_get_multiplayer_sound_duration_ticks(sound_index);
-        if (multiplayer_sound_queue_count < k_maximum_queued_multiplayer_sounds) {
-            multiplayer_sound_request *slot = &multiplayer_sound_queue[multiplayer_sound_queue_count];
-            slot->player = (datum_index)0xffffffff; // UNSURE: modeled as "no specific recipient"
+        int32_t duration = game_engine_get_multiplayer_sound_duration_ticks(sound_index) + 5;
+
+        count = multiplayer_sound_queue_count;
+        if (count < k_maximum_queued_multiplayer_sounds) {
+            multiplayer_sound_request *slot = &multiplayer_sound_queue[count];
+
+            slot->player = player;
             slot->sound_index = sound_index;
-            slot->remaining_ticks = duration + 5;
-            multiplayer_sound_queue_count++;
+            slot->remaining_ticks = duration;
             slot->broadcast = broadcast;
+            count++;
+            multiplayer_sound_queue_count = count;
         }
-        if (multiplayer_sound_queue_count != 1) {
+        if (count != 1) {
             return;
         }
     }
-    game_engine_play_multiplayer_sound(sound_index, (datum_index)0xffffffff, broadcast);
+    game_engine_play_multiplayer_sound(sound_index, player, broadcast);
 }
 
 #if 0

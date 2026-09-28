@@ -14,6 +14,8 @@
 // added as a parameter here so the register is accounted for, but left unused in the body since
 // game_engine_queue_multiplayer_sound.c is outside this batch and its C signature has no way to
 // receive it.
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +25,7 @@
 extern game_time_globals *game_time;         // 0x006f1d6c
 extern int32_t ctf_notify_throttle_tick;     // 0x006b0eb4
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 
 // Queues the "flag carried" announcer sound at most once every 4 seconds (120 ticks).
 // blam-cc: EDI -> target_player
@@ -31,7 +33,7 @@ void game_engine_ctf_notify_flag_carried_throttled(int32_t target_player)
 {
     (void)target_player; // see FIXED note above: genuine input, not forwardable here
     if (ctf_notify_throttle_tick < game_time->game_time) {
-        game_engine_queue_multiplayer_sound(1);
+        game_engine_queue_multiplayer_sound(0x1c, (datum_index)target_player, 1); // 0x4689f1..0x4689f8
         ctf_notify_throttle_tick = game_time->game_time + 0x78;
     }
 }

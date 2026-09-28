@@ -23,6 +23,8 @@
 // `subject`, the one player-like handle this function receives) and flagged individually;
 // treat the specific %s/%d fill-ins as unverified. The *branching structure itself* -- which
 // case reaches which fallback label, and in what order calls happen -- is transcribed exactly.
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -40,7 +42,7 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
     // 0x466530, this module; blam-cc: ECX -> ticks, stack -> (unused, dest)
 extern char input_get_last_used_binding(void *out_140_bytes); // 0x48bde0, not in this batch
@@ -115,7 +117,8 @@ uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_
             wchar_t *text = (tag_id == k_datum_index_none) ? L""
                 : text_string_list_get_string(tag_id, (int16_t)adjusted_type); // UNSURE index
             wcsncpy(out, text, buffer_size);
-            game_engine_queue_multiplayer_sound(0); // UNSURE args
+            // FIXED 2026-09-28: this group queues no sound -- the only five calls to 0x46be40 in the
+            //   function sit in the adjusted-type 0x0e..0x12 arms (0x45eced..0x45eeb7).
             break;
         }
         case 0x08: {
@@ -154,7 +157,13 @@ uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_
                     : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 string_format_wide_va_bounded(out, fmt, subject); // UNSURE args
             }
-            game_engine_queue_multiplayer_sound(0); // UNSURE args
+            // FIXED 2026-09-28 from the arms at 0x45ec87/0x45ecfa/0x45ed6c/0x45eddf/0x45ee52 (jump table
+            //   0x45f198 entries 0x0e..0x12): sounds 0x10, 0x0f, 0x0e, 0x11, 0x12, no player, no broadcast.
+            {
+                static const uint8_t arm_sound[5] = { 0x10, 0x0f, 0x0e, 0x11, 0x12 };
+
+                game_engine_queue_multiplayer_sound(arm_sound[adjusted_type - 0x0e], 0xffffffff, 0);
+            }
             break;
         }
         case 0x13: {

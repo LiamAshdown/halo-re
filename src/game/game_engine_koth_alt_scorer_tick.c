@@ -7,6 +7,8 @@
 //   (0x20), player_data (0x0087a480); game_engine_begin_end_game_sequence already committed.
 // register convention: player index in in_EAX.
 //   // blam-cc: EAX -> player_index
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -15,11 +17,13 @@
 
 extern data_array *player_data;  // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
+extern void *current_game_engine; // 0x006f1d20
+extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc
 extern int32_t king_alt_player_score[]; // 0x006b118c, UNSURE exact size (indexed by player index)
 extern int32_t king_alt_team_score[16]; // 0x006b114c (indexed by player::team)
 extern int32_t king_alt_score_target;   // 0x006b1148
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40, this batch
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void game_engine_begin_end_game_sequence(void); // 0x45fd90
 
 // blam-cc: EAX -> player_index
@@ -34,10 +38,12 @@ void game_engine_koth_alt_scorer_tick(uint32_t player_index)
         king_alt_player_score[player_index & 0xffff]++;
         king_alt_team_score[p->team]++;
         if (king_alt_score_target - king_alt_team_score[p->team] == 900) {
-            game_engine_queue_multiplayer_sound(1);
+            game_engine_queue_multiplayer_sound(current_game_engine != 0 && game_engine_teams_enabled_flag != 0
+                ? 5 + 2 * (p->team != 0) : 3, 0xffffffff, 1); // 0x46c27d..0x46c2a8
         }
         if (king_alt_score_target - king_alt_team_score[p->team] == 0x708) {
-            game_engine_queue_multiplayer_sound(1);
+            game_engine_queue_multiplayer_sound(current_game_engine != 0 && game_engine_teams_enabled_flag != 0
+                ? 4 + 2 * (p->team != 0) : 2, 0xffffffff, 1); // 0x46c2c8..0x46c2f5
         }
     }
 

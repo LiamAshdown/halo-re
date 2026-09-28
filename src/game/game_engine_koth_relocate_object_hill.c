@@ -12,6 +12,8 @@
 //   through to ctf_flag_object_clear_carrier.
 //   // blam-cc: EAX -> object_index, EBX -> forwarded_flag_object_index, EDI ->
 //   //   forwarded_position
+// FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
+//   call(s) here now pass all three as the binary loads them (they passed one value before).
 
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +26,7 @@ extern data_array *object_headers;       // 0x008603b0
 extern game_variant game_engine_variant; // 0x006f1c88 (unknown_90 aliased 0x006f1d18)
 
 extern void game_engine_koth_find_marker_position(real_point3d *out_position, int16_t type_filter); // 0x46beb0, this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40, this batch
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *position); // 0x4666c0
 
 // blam-cc: EAX -> object_index, EBX -> forwarded_flag_object_index, EDI -> forwarded_position
@@ -41,7 +43,7 @@ void game_engine_koth_relocate_object_hill(uint32_t object_index,
         game_engine_koth_find_marker_position(&discarded_position, 1); // UNSURE: type_filter guess
 
         if (game_engine_variant.unknown_90 < 3) {
-            game_engine_queue_multiplayer_sound(1);
+            game_engine_queue_multiplayer_sound(0x1e, 0xffffffff, 1); // 0x46c1fd..0x46c207
         }
         ctf_flag_object_clear_carrier(forwarded_flag_object_index, forwarded_position);
         *(uint32_t *)((uint8_t *)obj + 0x22c) &= 0xffffffbf;
