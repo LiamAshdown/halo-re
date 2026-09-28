@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "items.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -67,7 +68,7 @@ void player_check_vehicle_boarding_interaction(uint32_t player_index, uint32_t c
     int32_t weapon_count;
     int16_t i;
 
-    if (*(datum_index *)(item + 0x11c) != k_datum_index_none || *(datum_index *)(item + 0x200) == unit_index) {
+    if (((struct item_object *)item)->base.parent_object != k_datum_index_none || ((struct item_object *)item)->item.ignore_object_index == unit_index) {
         return;
     }
     for (i = 0; i < 4; i++) {

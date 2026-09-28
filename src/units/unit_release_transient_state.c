@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include "networking.h"
 #include "ai.h"
+#include "items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -234,8 +235,8 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
         datum_index weapon_index = (slot != -1) ? *(datum_index *)(unit + 0x2f8 + slot * 4) : k_datum_index_none;
         uint8_t *weapon = OBJECT_DATA(weapon_index);
 
-        *(int16_t *)(weapon + 0x230) = 0;
-        *(float *)(weapon + 0x234) = transition_function_evaluate((transition_function_t)4, 0.0f);
+        *(int16_t *)&((struct weapon_object *)weapon)->weapon.control_flags = 0;
+        ((struct weapon_object *)weapon)->weapon.primary_trigger = transition_function_evaluate((transition_function_t)4, 0.0f);
     }
     *(uint32_t *)(OBJECT_DATA(unit_index) + 0x204) &= 0xfdffffff;
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {

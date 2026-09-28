@@ -1,5 +1,5 @@
 // item_detonation_timer_start  (Ghidra: FUN_004bd450; renamed per types/items.h:
-// "FUN_004bd450 seeds it exactly once (if (*(short *)(item + 0x1f8) == 0))")
+// "FUN_004bd450 seeds it exactly once (if (*(short *)&((struct item_object *)item)->item.detonation_countdown == 0))")
 // address 0x4bd450, size 169 bytes
 // name confidence: 0.5   rewrite confidence: 0.65
 // evidence: types/items.h item_data.detonation_countdown (0x1f8); types/tags.h Item
@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "items.h"
 #include "effects.h"
+#include "units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14

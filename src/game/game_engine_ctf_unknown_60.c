@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
+#include "items.h"
 
 extern data_array *player_data; // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
@@ -29,7 +32,7 @@ uint8_t game_engine_ctf_unknown_60(datum_index unit_index, datum_index item_inde
     }
     weapon = (uint8_t *)object_try_and_get(item_index, 4);
     if (weapon != 0 && (uint8_t)weapon_must_be_readied(item_index) != 0 && (weapon[0x22c] & 0x40) == 0 &&
-        *(int16_t *)(weapon + 0xb8) == *(int32_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0x20)) {
+        ((struct weapon_object *)weapon)->base.owner_team == *(int32_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0x20)) {
         return 0;
     }
     return 1;

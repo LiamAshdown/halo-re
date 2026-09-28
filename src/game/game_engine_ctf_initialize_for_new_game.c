@@ -19,6 +19,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#include "objects.h"
+#include "units.h"
+#include "items.h"
 
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode; // 0x00719720
@@ -115,7 +118,7 @@ uint8_t game_engine_ctf_initialize_for_new_game(void)
         if (i >= 0 && i < *(int32_t *)&global_scenario->player_starting_locations.count) {
             equipment = (uint8_t *)global_scenario->player_starting_locations.pointer + i * 0x34;
         }
-        type = *(int16_t *)(equipment + 0x10);
+        type = *(int16_t *)&((struct equipment_object *)equipment)->base.flags;
         if (type != 0 && type != 1) {
             continue;
         }
@@ -131,15 +134,15 @@ uint8_t game_engine_ctf_initialize_for_new_game(void)
                 }
             }
         } else {
-            belongs = *(int16_t *)(equipment + 0x14) == 0 && *(int16_t *)(equipment + 0x16) == 0 &&
-                *(int16_t *)(equipment + 0x18) == 0 && *(int16_t *)(equipment + 0x1a) == 0;
+            belongs = *(int16_t *)&((struct equipment_object *)equipment)->base.cluster_stamp == 0 && *(int16_t *)(equipment + 0x16) == 0 &&
+                *(int16_t *)&((struct equipment_object *)equipment)->base.network_position_valid == 0 && *(int16_t *)(equipment + 0x1a) == 0;
         }
         if (belongs) {
             float own = distance_squared((real_point3d *)equipment, ctf_team_flag_stand_position[type % 2]);
             float other = distance_squared((real_point3d *)equipment, ctf_team_flag_stand_position[(type + 1) % 2]);
 
             if (game_engine_variant.ctf_option_7c != 0 ? own < other : own > other) {
-                *(int16_t *)(equipment + 0x10) = 3;
+                *(int16_t *)&((struct equipment_object *)equipment)->base.flags = 3;
             }
         }
     }

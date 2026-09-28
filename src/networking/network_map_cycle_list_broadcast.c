@@ -22,6 +22,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+#include "objects.h"
+#include "units.h"
+#include "items.h"
 
 
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -54,7 +57,7 @@ void network_map_cycle_list_broadcast(void)
     if (item != 0) {
         do {
             scratch[count].unknown_00 = *(uint8_t *)((uint8_t *)item + 0x67);
-            scratch[count].unknown_04 = *(uint32_t *)((uint8_t *)item + 0xdc);
+            scratch[count].unknown_04 = *(uint32_t *)&((struct item_object *)item)->base.maximum_shield_vitality;
             entries[count] = &scratch[count];
             count = count + 1;
             item = data_iterator_next(&iterator);

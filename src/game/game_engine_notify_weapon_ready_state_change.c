@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+#include "units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -52,13 +53,13 @@ uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, dat
     if (((*(uint32_t *)((uint8_t *)weapon_definition + 0x308) >> 3) & 1) == 0) {
         return 1;
     }
-    if ((*(uint32_t *)((uint8_t *)weapon + 0x22c) & 0x20) != 0) {
-        *(uint32_t *)((uint8_t *)weapon + 0x22c) &= 0xffffffdf;
+    if ((((struct weapon_object *)weapon)->weapon.flags & 0x20) != 0) {
+        ((struct weapon_object *)weapon)->weapon.flags &= 0xffffffdf;
         if (current_game_engine->object_expired != 0) {
             ((void (*)(datum_index))current_game_engine->object_expired)(weapon_index);
         }
     }
-    *(uint32_t *)((uint8_t *)weapon + 0x22c) |= 0x20;
+    ((struct weapon_object *)weapon)->weapon.flags |= 0x20;
     if (current_game_engine->unknown_40 != 0) {
         return ((uint8_t (*)(datum_index, datum_index))current_game_engine->unknown_40)
             (weapon_index, player_index_from_unit_index(unit_index));

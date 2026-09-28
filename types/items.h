@@ -563,6 +563,20 @@ typedef struct weapon_data {
                                      //       that was accepted, kept for interpolation
 } weapon_data;                       // size 0x114 (object 0x22c .. 0x340)
 
+// Weapon and equipment objects as one struct each: object header, item_data, then the type's own data.
+typedef struct weapon_object {
+    object base;                        // 0x000
+    item_data item;                     // 0x1f4
+    weapon_data weapon;                 // 0x22c
+} weapon_object;
+typedef struct equipment_object {
+    object base;                        // 0x000
+    item_data item;                     // 0x1f4
+    equipment_data equipment;           // 0x22c
+} equipment_object;
+typedef char weapon_object_weapon_at_22c[offsetof(weapon_object, weapon) == 0x22c ? 1 : -1];
+typedef char equipment_object_equipment_at_22c[offsetof(equipment_object, equipment) == 0x22c ? 1 : -1];
+
 // ---------------------------------------------------------------------------
 // weapon_hud_ammo_state  (weapon_build_hud_ammo_state, 0x4c29d0)
 // The caller-supplied output record. The per-magazine rows are spelled with an explicit

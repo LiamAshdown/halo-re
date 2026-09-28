@@ -78,7 +78,7 @@ void trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint
     if (D(item, 0x11c) != k_datum_index_none && object_try_and_get(D(item, 0x11c), 3) != 0) {
         holder = D(item, 0x11c);
     }
-    if ((*(uint32_t *)(item + 0x10) & 1) && D(item, 0x11c) != k_datum_index_none) {
+    if ((((struct item_object *)item)->base.flags & 1) && D(item, 0x11c) != k_datum_index_none) {
         marker_object = D(item, 0x11c);
     }
     marker_count = (int16_t)object_get_node_local_transform(marker_object,
