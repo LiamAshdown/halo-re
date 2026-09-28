@@ -2287,3 +2287,11 @@ Relinked: unresolved 1, traps 127.
 - Stored pointers without C: hs 142, interface 94, game 90, networking 86, shell 28, units 2, main 1, memory 1.
 - NEXT: interface handlers 64..160 bytes (46), then the larger ones (50), then the hs parse procs.
 - Build-time independence: not started. Run-time independence: not started.
+- (iteration 3, continued) commits 922df93, 99900dc: 43 mid-size (64..160 byte) interface handlers + the list row
+  formatter ui_list_default_item_format (0x4a8310), which resolved two unbound '?' names. Direct traps 119 -> 117
+  (interface direct traps 0). Interface stored pointers 94 -> 51. Tools: scratchpad/who.py ADDR... (C definition
+  or extern for an address), scratchpad/uigen_lib.py (shared generator for ui_event / game_data_input files).
+- OPEN (networking phase): network_staged_message_commit (0x4da250) C ignores the AX word that 0x4a1570/0x4a15e0
+  pass (declared there as a second argument). 0x4a44f0 (checkpoint list open) needs its row callback 0x4a4280
+  (0x266 bytes, GetDateFormatA/GetTimeFormatA, only referenced from 0x4a44f0) -- do both together.
+- NEXT: the 50 large interface handlers (>= 160 bytes, incl. 0x4a44f0 + 0x4a4280), then hs parse procs.
