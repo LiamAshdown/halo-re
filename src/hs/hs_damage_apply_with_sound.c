@@ -22,8 +22,8 @@ extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x
     // objects module, 0x4f6900, UNSURE args
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern void object_apply_damage(void *dd, uint32_t object_index, int16_t param_3, int16_t param_4,
-    int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void object_apply_damage(void *dd, uint32_t object_index, int16_t hit_node_index, int16_t hit_region_index,
+    int16_t hit_material_index, uint32_t hit_plane); // 0x4ee5e0
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly global_matg_multiplayer)
 

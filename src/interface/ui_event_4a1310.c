@@ -24,7 +24,7 @@
 #include <wchar.h>
 
 extern void saved_game_allocate_new_slot(uint16_t *out_name); // 0x53ca80, blam-cc: EBX out_name
-extern uint32_t saved_game_create_custom_variant(uint32_t param_1, uint16_t *name); // 0x53bb50, blam-cc: ECX name too
+extern uint32_t saved_game_create_custom_variant(uint32_t unused, uint16_t *name); // 0x53bb50, blam-cc: ECX name too
 extern void saved_item_select(int32_t item); // 0x495be0, blam-cc: EBX -> item
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself

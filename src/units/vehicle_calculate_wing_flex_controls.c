@@ -44,7 +44,7 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
                                     real_vector3d *stack_operand); // 0x4052c0, UNSURE args here
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points,
-                          void *param_4, void *param_5); // 0x507840, UNSURE signature
+                          void *extra_force, void *extra_torque); // 0x507840, UNSURE signature
 extern void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index); // 0x574bc0, this batch
 extern double sqrt(double x);
 extern double fabs(double x);

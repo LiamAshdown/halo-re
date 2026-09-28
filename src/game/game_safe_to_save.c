@@ -16,7 +16,7 @@ extern uint8_t debug_print_safety_checks; // 0x00719aa9, TYPES-GAP
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
 extern void console_print_va(const char *format, ...); // 0x4c6920
 
-extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param_1);   // UNSURE module: "ai_enemies_can_see_player"
+extern uint8_t ai_scan_for_recent_combat_activity(uint32_t hard_difficulty);   // UNSURE module: "ai_enemies_can_see_player"
 extern uint8_t item_any_detonating(void);               // UNSURE module: "dangerous_items_near_player"
 extern uint8_t effect_check_object_collisions(void);               // UNSURE module: "dangerous_effects_near_player"
 extern uint8_t unit_any_dying_or_seat_transition(void);               // UNSURE module: "any_unit_is_dangerous"

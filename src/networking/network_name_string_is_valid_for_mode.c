@@ -19,7 +19,7 @@ extern void *tag_lookup(const char *tag_path); // foreign, UNSURE shape
 extern int32_t text_get_character_metrics(uint8_t ch); // foreign, UNSURE shape: this call site
     // passes only the character in Ghidra's own decompile; a font handle almost certainly also
     // flows through an unresolved register
-extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *param_2); // foreign, UNSURE shape
+extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *character); // foreign, UNSURE shape
 extern uint8_t ui_wide_string_has_non_whitespace(void); // foreign, UNSURE shape
 
 // Checks that every character of `name` is renderable in the small UI font and, for mode 3

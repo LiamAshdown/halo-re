@@ -60,7 +60,7 @@ extern void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angl
                                                  uint8_t *contact_points); // 0x5734d0
 extern void vehicle_calculate_mounted_controls_dispatch(uint32_t unit_index, void *out_transform,
                                                         void *out_record); // 0x573ee0, ESI, ECX, EDX
-extern void object_physics_tick(uint32_t object_index, void *powered_states, void *param_3,
+extern void object_physics_tick(uint32_t object_index, void *powered_states, void *mass_points,
                                 real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
 extern void unit_update_marker_skid_effects(uint32_t unit_index, uint8_t *contact_points); // 0x575460
 extern uint32_t unit_update_marker_traction_effects(uint32_t object_index); // 0x575170

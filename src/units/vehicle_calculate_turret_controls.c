@@ -28,8 +28,8 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern double fmod(double x, double y); // CRT fmod (0x628cca: _CIfmod, x87 fprem; name entry "fmod" at 0x006844f0)
-extern void object_physics_tick(uint32_t unit_index, uint32_t param_2, void *transform,
-                          uint32_t param_4, uint32_t param_5); // 0x507840, UNSURE signature
+extern void object_physics_tick(uint32_t unit_index, uint32_t powered_states, void *transform,
+                          uint32_t extra_force, uint32_t extra_torque); // 0x507840, UNSURE signature
 
 // Computes the dual-axis (pitch/yaw) turret control transform for a vehicle-type unit each
 // tick, accumulating and wrapping left/right wheel-rotation-shaped angle accumulators, and

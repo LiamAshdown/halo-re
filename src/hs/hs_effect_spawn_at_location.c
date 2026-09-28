@@ -21,9 +21,9 @@
 extern double fcos(double x); // CRT
 extern double fsin(double x);
 
-extern void effect_new_with_color(uint32_t effect, uint32_t param_2, void *param_3, int32_t param_4,
-    int32_t param_5, real_point3d *position, real_vector3d *forward, float param_8, float param_9,
-    int32_t param_10, int32_t param_11, int32_t param_12); // effects module, 0x450980
+extern void effect_new_with_color(uint32_t effect, uint32_t creator_object_index, void *velocity, int32_t ctx_08,
+    int32_t ctx_0c, real_point3d *position, real_vector3d *forward, float a_scale, float b_scale,
+    int32_t color, int32_t tint_source, int32_t force_create); // effects module, 0x450980
 
 extern Scenario *global_scenario;      // 0x00746f8c
 extern void *global_origin3d_pointer;         // 0x00696714, PTR_DAT_00696714, UNSURE

@@ -31,7 +31,7 @@ extern data_array *prop_data;   // 0x008802c0
 
 extern void actor_target_reset_combat_flags(datum_index target_prop_index, datum_index actor_index, uint32_t unused,
     uint8_t already_noticed); // 0x41baf0, ECX, stack
-extern datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t param_2, char kind); // 0x43e270
+extern datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind); // 0x43e270
 extern void actor_target_data_refresh(datum_index actor_index, datum_index prop_index, void *scratch, uint32_t param4,
                          uint32_t flag); // 0x41c4b0, outside this rewrite's range
 extern void actor_target_update_tracking_speed(datum_index actor_index, datum_index prop_index, void *scratch); // 0x41c8f0, outside this rewrite's range

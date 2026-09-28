@@ -25,10 +25,10 @@
 
 extern void *data_iterator_next(data_iterator *iterator);        // memory module, 0x4d05d0
 extern char hs_object_hierarchy_test(datum_index object_index);  // this module, 0x487c10
-extern void unit_detach_from_seat(datum_index object_index, int32_t param_2, int32_t param_3,
-    int32_t param_4);                                             // units module, 0x56c640
+extern void unit_detach_from_seat(datum_index object_index, int32_t suppress_trigger, int32_t require_client_flag,
+    int32_t fire_trigger_event);                                             // units module, 0x56c640
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
-extern void object_delete_recursive(datum_index object_index, int32_t param_2); // objects module, 0x4f59d0
+extern void object_delete_recursive(datum_index object_index, int32_t recurse_siblings); // objects module, 0x4f59d0
 
 // hs_object_iterator_state: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)
 

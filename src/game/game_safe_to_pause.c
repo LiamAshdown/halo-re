@@ -18,7 +18,7 @@ extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, obj
 extern uint8_t item_any_detonating(void); // UNSURE module: "dangerous_items_near_player"
 extern uint8_t effect_check_object_collisions(void); // UNSURE module: "dangerous_effects_near_player"
 extern uint8_t unit_any_dying_or_seat_transition(void); // UNSURE module: "any_unit_is_dangerous"
-extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param_1); // UNSURE module: "ai_enemies_can_see_player"
+extern uint8_t ai_scan_for_recent_combat_activity(uint32_t hard_difficulty); // UNSURE module: "ai_enemies_can_see_player"
 
 // Returns whether it is currently safe to pause: no nearby dangerous projectiles, items,
 // effects or units. A quieter subset of game_safe_to_save's checks (no AI-visibility check, no
