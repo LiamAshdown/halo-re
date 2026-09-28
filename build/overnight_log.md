@@ -2545,3 +2545,21 @@ Relinked: unresolved 1, traps 127.
   0x4a0268 -- its 7 entries are case labels inside retail code (0x4a013e..0x4a0162), which were never runnable in
   the standalone (DEP fault, no code_entries match). Rewrite it as a C switch.
 - OPEN: networking call audit (iteration 13). Long tail: promote image regions to typed C.
+
+## Iteration 16 (2026-09-28) -- step 3 clean-up: no retail .text, no self-redirects
+- traps before/after: 0 / 0; unresolved 0 (HALO_NO_RETAIL=1).
+- FIXED ui_controls_options_populate_from_profile (0x4a0050): the third row is a switch compiled to a .text jump
+  table (index bytes 0x4a0284 by value-1, not 0x4a0283): 3/5/10/15/25 -> selection 1..5, else 0, then rows 4-5.
+  The C called the retail case labels as functions and returned early (would have faulted in the standalone).
+- Image: both .text pieces dropped (the switch table; DIOBJECTDATAFORMAT 0x613400, reachable only through the retail
+  c_dfDIKeyboard 0x64dfdc -- the C links c_dfDIKeyboard / c_dfDIMouse2 from dinput8.lib). The image is .rdata,
+  initialised .data, .tls, .rsrc; verify_image_source: identical apart from 3064 relocated pointers;
+  gen_image_source reproduces the committed files.
+- Link: code entries now require the object to define its function -- 9 fragment/clone files (objects 0x4efea0..
+  0x4f9540, ranges inside functions whose C covers them) had entries resolving to their own retail address (a
+  jump there would redirect to itself forever). 5533 entries; no symbol resolves into retail .text any more.
+- Checked: the 667 cp_trap_ stubs are all slots in tables only the retail runtime walks (D3DX vtables/tables 366
+  targets, CRT/EH scope and unwind tables, __xi/__xc init tables, the unused zlib deflate configuration_table at
+  0x65c70c, gamespy's GOAGetUniqueID pointer 0x683dac -- no retail or C reference to any of them). Kept as named
+  diagnostic stubs.
+- OPEN: networking call audit (iteration 13). Long tail: promote image regions to typed C.
