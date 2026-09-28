@@ -14,11 +14,11 @@
 //   because iVar2 (== ECX at the call) is read again afterward for object_names.pointer.
 //   // blam-cc: ECX -> scenario, stack -> name
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x00623693 _sprintf
 extern int16_t scenario_object_name_find_index(Scenario *scenario, char *name);
     // blam-cc: ECX -> scenario, stack -> name; objects module, 0x0053ebb0, not yet rewritten
 

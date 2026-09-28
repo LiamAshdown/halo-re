@@ -1,0 +1,210 @@
+{
+ "src\\cache\\cache_file_load.c": [
+  "strlen"
+ ],
+ "src\\cache\\data_file_open.c": [
+  "printf"
+ ],
+ "src\\cseries\\profile_path_initialize.c": [
+  "printf"
+ ],
+ "src\\game\\multiplayer_game_variant_description_generate.c": [
+  "swprintf",
+  "wcscat",
+  "wcscpy"
+ ],
+ "src\\hs\\hs_report_expected_enum_values.c": [
+  "strcat"
+ ],
+ "src\\input\\input_apply_named_device_default_profile.c": [
+  "_wcsicmp"
+ ],
+ "src\\input\\input_axis_direction_name_to_index.c": [
+  "_stricmp"
+ ],
+ "src\\input\\input_joystick_axis_name_to_index.c": [
+  "strstr"
+ ],
+ "src\\input\\input_keyboard_key_name_to_index.c": [
+  "_stricmp"
+ ],
+ "src\\input\\input_mouse_axis_name_to_index.c": [
+  "_stricmp"
+ ],
+ "src\\input\\input_mouse_button_name_to_index.c": [
+  "_stricmp"
+ ],
+ "src\\interface\\chat_submit_input.c": [
+  "wcslen"
+ ],
+ "src\\interface\\chimera__console_out.c": [
+  "strstr"
+ ],
+ "src\\interface\\chimera__console_out_copy.c": [
+  "strlen"
+ ],
+ "src\\interface\\console_draw_input_line.c": [
+  "strcpy",
+  "strlen"
+ ],
+ "src\\interface\\console_printf_verbose.c": [
+  "strstr"
+ ],
+ "src\\interface\\console_update_display.c": [
+  "strcmp"
+ ],
+ "src\\interface\\hud_messaging_update.c": [
+  "qsort"
+ ],
+ "src\\interface\\hud_text_message_queue_add.c": [
+  "wcslen"
+ ],
+ "src\\interface\\map_list_add_entry.c": [
+  "strstr"
+ ],
+ "src\\interface\\player_help_screen_select_by_name.c": [
+  "_tolower",
+  "strstr"
+ ],
+ "src\\interface\\server_list_menu_update.c": [
+  "strstr"
+ ],
+ "src\\interface\\string_replace_all_in_place.c": [
+  "strstr",
+  "strlen"
+ ],
+ "src\\interface\\ui_build_level_select_list.c": [
+  "wcslen"
+ ],
+ "src\\interface\\ui_button_prompt_index_from_string.c": [
+  "wcslen"
+ ],
+ "src\\interface\\ui_list_add_entry.c": [
+  "wcslen"
+ ],
+ "src\\interface\\ui_network_client_connect_and_save.c": [
+  "wcslen"
+ ],
+ "src\\interface\\ui_network_host_setup_defaults_init.c": [
+  "wcslen"
+ ],
+ "src\\interface\\ui_string_replace_all.c": [
+  "wcslen"
+ ],
+ "src\\interface\\ui_widget_draw_formatted_prompt_string.c": [
+  "wcslen"
+ ],
+ "src\\interface\\ui_widget_text_from_hud_objective.c": [
+  "wcslen"
+ ],
+ "src\\interface\\virtual_keyboard_character_is_legal.c": [
+  "strchr"
+ ],
+ "src\\interface\\virtual_keyboard_open.c": [
+  "wcslen"
+ ],
+ "src\\interface\\virtual_keyboard_process_input.c": [
+  "wcslen"
+ ],
+ "src\\main\\console_process_command.c": [
+  "strchr"
+ ],
+ "src\\main\\network_game_client_connect_by_hostname.c": [
+  "strchr"
+ ],
+ "src\\main\\render_frame_all_views.c": [
+  "strstr"
+ ],
+ "src\\math\\math_initialize.c": [
+  "stricmp",
+  "void"
+ ],
+ "src\\networking\\autopatch_get_proxy_settings.c": [
+  "strstr"
+ ],
+ "src\\networking\\autopatch_temp_name_generate.c": [
+  "srand",
+  "rand"
+ ],
+ "src\\networking\\map_list_matching_substring.c": [
+  "strstr"
+ ],
+ "src\\networking\\network_banlist_load.c": [
+  "strchr"
+ ],
+ "src\\networking\\network_random_offset.c": [
+  "srand",
+  "rand"
+ ],
+ "src\\networking\\network_session_host_qr2_server_key.c": [
+  "_splitpath"
+ ],
+ "src\\networking\\parse_time_duration_string.c": [
+  "strchr"
+ ],
+ "src\\networking\\sv_find_client_by_name_or_index.c": [
+  "atol"
+ ],
+ "src\\rasterizer\\rasterizer_editbox_log_dump.c": [
+  "void",
+  "void"
+ ],
+ "src\\rasterizer\\rasterizer_initialize_direct3d.c": [
+  "sscanf"
+ ],
+ "src\\saved_games\\game_checkpoint_enumerate_files.c": [
+  "strchr",
+  "strstr"
+ ],
+ "src\\saved_games\\game_checkpoint_read_stats_file.c": [
+  "strlen",
+  "strcpy"
+ ],
+ "src\\saved_games\\game_checkpoint_write_stats_file.c": [
+  "strlen",
+  "strcpy"
+ ],
+ "src\\saved_games\\player_profile_rename.c": [
+  "strstr"
+ ],
+ "src\\saved_games\\player_profile_set_default_server_options.c": [
+  "wcslen"
+ ],
+ "src\\saved_games\\saved_game_create_default_profile.c": [
+  "memset"
+ ],
+ "src\\saved_games\\saved_game_get_directory_by_handle.c": [
+  "strstr"
+ ],
+ "src\\saved_games\\saved_game_load_checkpoint.c": [
+  "strstr"
+ ],
+ "src\\saved_games\\saved_game_load_checkpoint_by_name.c": [
+  "strcmp"
+ ],
+ "src\\shell\\exception_filter_crash_reporter.c": [
+  "wcscpy",
+  "mbstowcs",
+  "_strlwr"
+ ],
+ "src\\shell\\hwreq_parser_parse_block.c": [
+  "atol"
+ ],
+ "src\\shell\\shell_detect_hardware_specs.c": [
+  "_strlwr",
+  "sscanf"
+ ],
+ "src\\shell\\shell_parse_config_txt.c": [
+  "sscanf"
+ ],
+ "src\\shell\\shell_winmain.c": [
+  "atol"
+ ],
+ "src\\shell\\tree_erase_one.c": [
+  "__declspec"
+ ],
+ "src\\units\\unit_detach_child_at_named_seat.c": [
+  "_tolower",
+  "strstr"
+ ]
+}

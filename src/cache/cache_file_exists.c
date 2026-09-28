@@ -14,11 +14,11 @@
 // the caller supplies the 0x800-byte buffer the header is read into, this function does not
 // allocate one itself.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern int32_t sprintf(char *buffer, const char *format, ...); // 00623693 _sprintf
 
 extern char map_path_prefix[]; // 0x006f16d8
 

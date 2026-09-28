@@ -23,21 +23,19 @@
 //   (0x57a629..0x57a642) shows it runs there exactly like on the success path, so it is restored
 //   here -- otherwise a failed propertyset block would leak the name string's heap buffer.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __strnicmp(const char *a, const char *b, uint32_t n); // 0x6375da CRT
 extern void hwreq_parser_report_error(hwreq_parser *this, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
 extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
 extern hwreq_property_set **hwreq_property_set_map_index(msvc_std_string *key, msvc_std_map *map); // 0x57b6e0, blam-cc: key in EDI, map on the stack; library code, not in the function list; map::operator[], returns the (possibly freshly inserted) value slot
 extern void hwreq_property_set_flags_destruct(hwreq_property_set *set); // 0x57b990, blam-cc: set in EBX; library code, not in the function list
 extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
-extern void *operator_new(uint32_t size); // 0x6277da CRT
-extern void free(void *block); // 0x6277e8 CRT
 
 // Scans forward from the parser's cursor for "propertyset" directives, parsing each one's
 // "= \"name\" { ... }" form into a freshly allocated property set that is registered in
@@ -58,7 +56,7 @@ uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *this)
     hwreq_property_set **slot;
 
     for (;;) {
-        if (__strnicmp((char *)this->cursor, "propertyset", 11) == 0) {
+        if (_strnicmp((char *)this->cursor, "propertyset", 11) == 0) {
             cursor = (char *)this->cursor + 11;
             c = *cursor;
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
@@ -98,7 +96,7 @@ uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *this)
                 this->line_start = this->cursor;
                 this->line_number = this->line_number + 1;
 
-                set = (hwreq_property_set *)operator_new(k_hwreq_property_set_size);
+                set = (hwreq_property_set *)malloc(k_hwreq_property_set_size);
                 if (set != 0) {
                     set->flags.first = 0;
                     set->flags.last = 0;
@@ -130,14 +128,14 @@ uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *this)
 
                 goto skip_line_and_continue;
             }
-        } else if (__strnicmp((char *)this->cursor, "vendor", 6) == 0) {
+        } else if (_strnicmp((char *)this->cursor, "vendor", 6) == 0) {
             c = ((char *)this->cursor)[6];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 break;
             }
         }
 
-        if (__strnicmp((char *)this->cursor, "applytoall", 10) == 0) {
+        if (_strnicmp((char *)this->cursor, "applytoall", 10) == 0) {
             c = ((char *)this->cursor)[10];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 break;

@@ -14,6 +14,7 @@
 // UNSURE: text_string_list_get_string's real signature is not recovered; declared here as
 // (tag_index, string_index) purely from this call site's evidence.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include <wchar.h>
@@ -23,7 +24,6 @@
 
 extern int32_t tag_lookup(const char *path); // foreign, tags module
 extern uint16_t *text_string_list_get_string(int32_t tag_index, int32_t string_index); // foreign, see UNSURE
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
 // blam-cc: output buffer in ESI (unaff_ESI), capacity in EBX (unaff_EBX), string_index is a
 // stack parameter
@@ -40,7 +40,7 @@ void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t st
         "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
     if (tag_index != -1) {
         source = text_string_list_get_string(tag_index, string_index);
-        _wcsncpy(buffer, source, capacity - 1);
+        wcsncpy(buffer, source, capacity - 1);
         buffer[capacity - 1] = 0;
     }
 }

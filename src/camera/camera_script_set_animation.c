@@ -25,6 +25,7 @@
 //   result to float with FILD/FSTP), not a float division; preserved exactly -- a fractional
 //   frame_count/30 is truncated toward zero before becoming the float ticks-remaining value.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -33,7 +34,6 @@
 
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern camera_script_globals camera_script; // 0x006869d0
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 // hs camera animation set: looks up `name` (case-insensitively) among the ModelAnimations tag
 // `animation_tag`'s animations, and if found points camera_script_globals at it in animation
@@ -61,7 +61,7 @@ void camera_script_set_animation(datum_index animation_tag, char *name)
     for (;;) {
         anim = (ModelAnimationsAnimation *)((uint8_t *)tag->animations.pointer +
                                             index * sizeof(ModelAnimationsAnimation));
-        if (__stricmp(name, anim->name.string) == 0) {
+        if (_stricmp(name, anim->name.string) == 0) {
             break;
         }
         index = index + 1;

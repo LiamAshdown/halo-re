@@ -16,10 +16,10 @@
 // expression Ghidra printed for it.
 // register convention: char *name in EAX (in_EAX).
 
+#include "crt.h"
 #include "tags.h"
 #include "cache.h"
 
-extern char *strrchr(const char *str, int ch); // 00623bc0 _strrchr
 
 extern int16_t map_download_slot_index; // 0x006ac472, 0xffff (-1) when idle
 extern char map_download_name[0x20];    // 0x006ac474

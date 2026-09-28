@@ -23,6 +23,7 @@
 // literally; it looks like leftover register reuse from the compiler rather than a
 // meaningful result, but semantics are preserved as-is.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -41,7 +42,6 @@ extern void network_player_assign_random_color(void); // 0x4df790, this batch;
     // UNSURE: takes `entry` in EAX, matching its own documented "stores at param_1+0x18"
 extern uint32_t network_player_entry_add(network_player_entry *entry, network_game_session *session); // 0x4de4e0, this batch;
     // blam-cc: EAX = entry (unaffected pass-through), ECX = session
-extern wchar_t *_wcsstr(const wchar_t *string, const wchar_t *needle); // CRT
 
 // Rejects the '%' and '|' escape characters from a candidate player name, regenerates a
 // fresh random name on any collision or reserved character, and assigns a random colour to
@@ -65,8 +65,8 @@ uint32_t network_game_session_finalize_and_add_player(network_player_entry *entr
     if (entry->name[0] == L'\0') {
         network_game_generate_unique_random_name();
     }
-    hit = _wcsstr((wchar_t *)entry->name, reserved);
-    if (hit != 0 || (hit = _wcsstr((wchar_t *)entry->name, reserved + 2), hit != 0)) {
+    hit = wcsstr((wchar_t *)entry->name, reserved);
+    if (hit != 0 || (hit = wcsstr((wchar_t *)entry->name, reserved + 2), hit != 0)) {
         network_game_generate_unique_random_name();
     }
     if (network_player_name_collision_check() == 0) {

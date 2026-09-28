@@ -25,6 +25,7 @@
 // reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 // reconciled: R11 0x0069c65c/0x0069c660 externs default_clip_near/far -> rasterizer.h rasterizer_default_z_near/z_far
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -66,7 +67,6 @@ extern double tan(double x);
 extern double atan2(double y, double x);
 
 extern void sound_update(void); // 0x549810, foreign (sound module)
-extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern void viewport_split_rect_compute(int32_t view_count, int32_t view_index,
     Rectangle2D *window, Rectangle2D *out_viewport); // 0x4c8da0, this module
 extern void render_view_camera_fill(observer_camera *observer, render_view *view); // 0x4c9050, this module

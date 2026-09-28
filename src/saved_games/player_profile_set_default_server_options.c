@@ -10,6 +10,7 @@
 // dead call rather than omitted.
 // register convention: profile in ESI.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,16 +21,14 @@
 
 extern uint16_t empty_string[]; // 0x00660c34, L"" (src/game and src/networking use the same name)
 
-extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen, not this module
-extern void _wcscpy(uint16_t *dest, const uint16_t *src);
 
 // blam-cc: profile in ESI
 void player_profile_set_default_server_options(saved_player_profile *profile)
 {
     wcslen(L"Halo");
-    _wcscpy(profile->server_name, L"Halo");
+    wcscpy(profile->server_name, L"Halo");
     wcslen(empty_string);
-    _wcscpy(profile->server_password, L"");
+    wcscpy(profile->server_password, L"");
     profile->unknown_ebe = 0;
     profile->unknown_ebf = 3;
     profile->unknown_fc2[0] = 0;

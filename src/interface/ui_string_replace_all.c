@@ -15,6 +15,7 @@
 // TYPES-GAP: wcslen (0x625b7a) is used across many modules as wide strlen with no agreed
 // name yet; kept as wcslen per that cross-module precedent.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,9 +27,6 @@
 extern heap *widget_memory_pool; // 0x006926c4
 
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80
-extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
-extern wchar_t *_wcsstr(const wchar_t *string, const wchar_t *needle); // CRT
-extern void *_memmove(void *dest, const void *source, uint32_t size);
 
 // Replaces every occurrence of `search` inside `*buffer` with `replacement`, growing `*buffer`
 // through the widget heap if needed. Returns the number of replacements, or -1 if growth failed.
@@ -52,13 +50,13 @@ int32_t ui_string_replace_all(wchar_t *search, uint16_t *replacement, wchar_t **
 
     if (search_length < (int32_t)replacement_length) {
         // Replacement grows the string: count occurrences first, then reallocate and copy.
-        match = _wcsstr(original, search);
+        match = wcsstr(original, search);
         if (match == (wchar_t *)0) {
             return 0;
         }
         do {
             count = count + 1;
-            match = _wcsstr(match + search_length, search);
+            match = wcsstr(match + search_length, search);
         } while (match != (wchar_t *)0);
 
         base = (wchar_t *)heap_reallocate(original,
@@ -67,7 +65,7 @@ int32_t ui_string_replace_all(wchar_t *search, uint16_t *replacement, wchar_t **
         if (base == (wchar_t *)0) {
             return -1;
         }
-        match = _wcsstr(base, search);
+        match = wcsstr(base, search);
         if (match != (wchar_t *)0) {
             do {
                 uint16_t *src;
@@ -76,7 +74,7 @@ int32_t ui_string_replace_all(wchar_t *search, uint16_t *replacement, wchar_t **
                 uint32_t tail_bytes;
 
                 tail_bytes = (uint32_t)((total_length - (int32_t)((match - base))) - search_length) * 2;
-                _memmove(match + replacement_length, match + search_length, tail_bytes);
+                memmove(match + replacement_length, match + search_length, tail_bytes);
 
                 src = replacement;
                 dst = match;
@@ -90,13 +88,13 @@ int32_t ui_string_replace_all(wchar_t *search, uint16_t *replacement, wchar_t **
                 }
 
                 total_length = total_length + (replacement_length - search_length);
-                match = _wcsstr(base, search);
+                match = wcsstr(base, search);
             } while (match != (wchar_t *)0);
         }
         *buffer = base;
     } else {
         // Replacement is the same length or shorter: rewrite in place, shrinking as we go.
-        match = _wcsstr(original, search);
+        match = wcsstr(original, search);
         if (match == (wchar_t *)0) {
             return 0;
         }
@@ -117,10 +115,10 @@ int32_t ui_string_replace_all(wchar_t *search, uint16_t *replacement, wchar_t **
             if (search_length > (int32_t)replacement_length) {
                 uint32_t tail_bytes = (uint32_t)((total_length - (int32_t)((match - original))) -
                                                   (int32_t)replacement_length) * 2;
-                _memmove(match + replacement_length, match + search_length, tail_bytes);
+                memmove(match + replacement_length, match + search_length, tail_bytes);
                 total_length = total_length - (search_length - replacement_length);
             }
-            match = _wcsstr(original, search);
+            match = wcsstr(original, search);
         } while (match != (wchar_t *)0);
         return count;
     }

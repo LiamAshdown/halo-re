@@ -19,6 +19,7 @@
 //   (key + value to copy into the new node).
 // UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern, not rewritten here.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,7 +31,6 @@ typedef struct hwreq_map_value_type {
     uint32_t value;       // 0x1c hwreq_property_set *
 } hwreq_map_value_type; // size 0x20
 
-extern void *operator_new(uint32_t size); // 0x6277da
 extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
@@ -38,7 +38,7 @@ extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_s
 hwreq_map_node *tree_node_allocate(uint32_t left, uint32_t parent, uint32_t right, uint8_t color,
                                     const hwreq_map_value_type *source)
 {
-    hwreq_map_node *node = (hwreq_map_node *)operator_new(sizeof(hwreq_map_node));
+    hwreq_map_node *node = (hwreq_map_node *)malloc(sizeof(hwreq_map_node));
 
     if (node != 0) {
         node->left = left;

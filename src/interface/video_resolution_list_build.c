@@ -5,6 +5,7 @@
 // register convention: __cdecl, no arguments. Verified against objdump 0x4bad40..0x4badb4
 // in the phase-4 review; the enumeration takes the D3D format 0x16 in EBX.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@ extern int32_t video_resolution_count;            // 0x007196cc
 extern void video_display_modes_enumerate(uint32_t format); // 0x4baba0, blam-cc: EBX format
 extern int video_resolution_compare(const video_resolution *a, const video_resolution *b); // 0x4bab50, this module
 extern uint32_t video_refresh_rate_compare(const uint32_t *a, const uint32_t *b); // 0x4bab80, this module
-extern void _qsort(void *base, uint32_t count, uint32_t size, int (__cdecl *compare)());
 
 void __cdecl video_resolution_list_build(void)
 {
@@ -29,12 +29,12 @@ void __cdecl video_resolution_list_build(void)
     memset(video_resolutions, 0, sizeof(video_resolutions));
 
     video_display_modes_enumerate(0x16); // D3DFMT_X8R8G8B8, EBX
-    _qsort(video_resolutions, (uint32_t)video_resolution_count, sizeof(video_resolution),
-          (int (__cdecl *)())video_resolution_compare);
+    qsort(video_resolutions, (uint32_t)video_resolution_count, sizeof(video_resolution),
+          (int (__cdecl *)(const void *, const void *))video_resolution_compare);
 
     for (i = 0; i < video_resolution_count; i++) {
-        _qsort(video_resolutions[i].refresh_rates, video_resolutions[i].refresh_rate_count,
-              sizeof(int32_t), (int (__cdecl *)())video_refresh_rate_compare);
+        qsort(video_resolutions[i].refresh_rates, video_resolutions[i].refresh_rate_count,
+              sizeof(int32_t), (int (__cdecl *)(const void *, const void *))video_refresh_rate_compare);
     }
 }
 

@@ -6,12 +6,13 @@
 // convention (handle = 0x00714dd4); game_state_write_persistent_storage(crc_slot /*EAX,
 // &write_buffer[0x148]*/, buffer, header_size, total_size); game_checkpoint_write_stats_file
 // (scenario_name, difficulty) matches Ghidra's own recovered call. Started by
-// game_state_allocate_buffer via __beginthread; loops forever, waiting on
+// game_state_allocate_buffer via _beginthread; loops forever, waiting on
 // game_state_write_event, flushing game_state_write_buffer to savegame.bin in 0x4000-byte
 // chunks, and -- only for a checkpoint write (game_state_write_is_checkpoint) -- also writing
 // the checkpoint stats file and rotating the autosave pair via saved_game_copy_files_to_target.
 // register convention: no parameters, no return value (thread entry point).
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"

@@ -39,6 +39,7 @@
 // reconciled: R28 raw object +0xc4 store -> creator_object
 // reconciled: R04 0x006f1d20 uint8_t network_predicted_state_flag -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -106,8 +107,6 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *s
     int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, EAX bits, ECX server
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
     // src/hs/hs_compile_source.c and src/hs/hs_sound_get_gain_reference.c
-extern char *strrchr(const char *str, int ch); // 0x623bc0 _strrchr
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 
 // FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX, ECX; placement, role arrive(s) on the stack (2 stack argument(s)).
 // blam-cc: stack -> placement, role

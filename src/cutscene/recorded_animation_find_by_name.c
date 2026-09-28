@@ -9,13 +9,13 @@
 // register convention: EBX = name (in_EBX), ESI = scenario (in_ESI); blam-cc: (EBX, ESI) ->
 // (name, scenario), following the EAX/ECX/EDX/EBX/ESI/EDI register order (EAX/ECX/EDX unused).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 // blam-cc: EBX -> name, ESI -> scenario
 // Case-insensitively searches scenario->recorded_animations for an entry whose name matches,
@@ -29,7 +29,7 @@ int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario)
         do {
             ScenarioRecordedAnimation *entries =
                 (ScenarioRecordedAnimation *)scenario->recorded_animations.pointer;
-            if (__stricmp(entries[index].name.string, name) == 0) {
+            if (_stricmp(entries[index].name.string, name) == 0) {
                 return index;
             }
             index += 1;

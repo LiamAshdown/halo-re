@@ -25,6 +25,7 @@
 //   builtin definition's own +0xc (`mov bl,[eax+0xc]`), not a fourth argument; every caller (the collectors at
 //   0x483930..0x483c50) pushes exactly three.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
@@ -32,7 +33,6 @@
 
 extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
 extern uint8_t hs_gametype_flags_applicable(uint8_t flags); // 0x00483600, this batch
-extern int32_t __strnicmp(const char *a, const char *b, int32_t count); // 0x006375da
 
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count]; // 0x0068b398
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0
@@ -65,7 +65,7 @@ void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int3
                       (uint8_t)hs_global_definitions[global_index]->gametype_flags), applicable != 0))) &&
                 (hs_autocomplete_count < hs_autocomplete_maximum_count)) {
                 prefix_length = (int32_t)strlen(hs_autocomplete_prefix);
-                if (__strnicmp(candidate, hs_autocomplete_prefix, prefix_length) == 0) {
+                if (_strnicmp(candidate, hs_autocomplete_prefix, prefix_length) == 0) {
                     hs_autocomplete_results[hs_autocomplete_count] = candidate;
                     hs_autocomplete_count = hs_autocomplete_count + 1;
                 }

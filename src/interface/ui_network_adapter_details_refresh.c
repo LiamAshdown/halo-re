@@ -13,6 +13,7 @@
 // parameter. The per-entry blob layout (a type dword at +8, a name string at +8 in uint16 units)
 // is a TYPES-GAP guess from the arithmetic alone.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,7 +31,6 @@ extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_fo
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
 extern heap *widget_memory_pool; // 0x006926c4
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 
 void ui_network_adapter_details_refresh(widget_instance *widget)
 {
@@ -84,7 +84,7 @@ void ui_network_adapter_details_refresh(widget_instance *widget)
 
         c3->text = heap_reallocate(c3->text, 0x40, widget_memory_pool);
         if (c3->text != (void *)0) {
-            _wcsncpy((uint16_t *)c3->text, blob + 4, 0x1f);
+            wcsncpy((uint16_t *)c3->text, blob + 4, 0x1f);
             ((uint16_t *)c3->text)[0x1f] = 0;
         }
     }

@@ -15,6 +15,7 @@
 // buffer and the file_reference helpers' own signatures, not confirmed in objdump for this
 // specific call site.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,8 +33,6 @@ extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); 
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, not in this batch
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, not in this batch
 extern uint8_t saved_game_delete_by_handle(int32_t handle); // 0x53c960, this module
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
-extern void *memset(void *dest, int32_t value, uint32_t count);
 
 // blam-cc: name in ECX
 // Creates a new player-profile save slot named `name`, writes a freshly initialized default
@@ -57,7 +56,7 @@ uint32_t saved_game_create_default_profile(uint16_t *name)
 
     memset(&file, 0, sizeof(file));
     player_profile_initialize(&file.profile, 0, 1);
-    _wcsncpy(file.profile.name, name, 0xb);
+    wcsncpy(file.profile.name, name, 0xb);
 
     file.checksum = 0xffffffff;
     crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);

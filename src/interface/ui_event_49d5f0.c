@@ -13,6 +13,7 @@
 //   1.
 // blam-cc: stack -> widget, event, out_handled (cdecl); returns AL
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -24,7 +25,6 @@
 extern uint8_t *map_list; // 0x00712dcc, map_list_entry[] (0xc bytes, +0 the map path)
 extern int32_t map_list_count; // 0x00712dd0
 extern uint8_t saved_game_last_mp_map_read(uint8_t *out_data); // 0x53d670
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current; // 0x00692c04
 extern uint8_t ui_list_has_default; // 0x007192f8
@@ -43,7 +43,7 @@ uint8_t ui_event_49d5f0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (saved_game_last_mp_map_read((uint8_t *)last_map) != 0) {
         widget->selection_index = 0;
         if (count > 0) {
-            while (__stricmp(last_map, *(char **)(map_list + widget->selection_index * 0xc)) != 0) {
+            while (_stricmp(last_map, *(char **)(map_list + widget->selection_index * 0xc)) != 0) {
                 widget->selection_index++;
                 if (widget->selection_index >= count) {
                     break;

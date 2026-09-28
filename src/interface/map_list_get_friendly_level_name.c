@@ -19,6 +19,7 @@
 // Phase-4 review: a known map draws string map_list[index].map_id, not string index (objdump
 // 0x494f82); the fallback is string_convert_ascii_to_unicode (EAX dest, EDI bytes, EBX source).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,8 +33,6 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern int32_t map_list_find_known_map_index(char *map_path); // 0x494ff0
 extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0; blam-cc: ECX -> tag, DX -> index
 extern map_list_entry *map_list; // 0x00712dcc
-extern char *_strrchr(const char *s, int32_t c);
-extern wchar_t *_wcsncpy(wchar_t *dst, const wchar_t *src, uint32_t count);
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source); // 0x557990, 8-bit to wide copy
     // blam-cc: EAX -> dest, EDI -> dest_bytes, EBX -> source (review queue name string_convert_ascii_to_unicode)
 
@@ -56,12 +55,12 @@ void map_list_get_friendly_level_name(wchar_t *destination, char *map_path,
     if (-1 < index && index < 0x13 && index != -1) {
         // objdump 0x494f82..0x494f91: the string index is map_list[index].map_id, not index
         source = (wchar_t *)text_string_list_get_string(map_list_tag, (int16_t)map_list[index].map_id);
-        _wcsncpy(destination, source, destination_capacity - 1);
+        wcsncpy(destination, source, destination_capacity - 1);
         destination[destination_capacity - 1] = L'\0';
         return;
     }
 
-    filename = _strrchr(map_path, '\\');
+    filename = strrchr(map_path, '\\');
     if (filename != (char *)0) {
         string_convert_ascii_to_unicode((uint16_t *)destination, destination_capacity * 2, filename + 1);
         return;

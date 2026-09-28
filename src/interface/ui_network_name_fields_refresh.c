@@ -9,6 +9,7 @@
 // UNSURE: set_profile_name's implicit widget/EBX argument, same as FUN_004a2cb0.c and
 // FUN_004a4650.c, modeled as the outer `widget` parameter.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,7 +24,6 @@ extern uint8_t profile_globals_block[0x60a4];             // 0x00712dd8
 
 extern heap *widget_memory_pool; // 0x006926c4
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
 
 void ui_network_name_fields_refresh(widget_instance *widget)
@@ -37,7 +37,7 @@ void ui_network_name_fields_refresh(widget_instance *widget)
     buffer = (uint16_t *)heap_reallocate(control->text, 0x40, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
-        _wcsncpy(buffer, network_host_name_field_00719238, 0x1f);
+        wcsncpy(buffer, network_host_name_field_00719238, 0x1f);
         ((uint16_t *)control->text)[0x1f] = 0;
     }
     if (row->parent->focused_child == row) {
@@ -49,7 +49,7 @@ void ui_network_name_fields_refresh(widget_instance *widget)
     buffer = (uint16_t *)heap_reallocate(control->text, 0x12, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
-        _wcsncpy(buffer, network_host_subname_007191f0, 8);
+        wcsncpy(buffer, network_host_subname_007191f0, 8);
         ((uint16_t *)control->text)[8] = 0;
     }
 

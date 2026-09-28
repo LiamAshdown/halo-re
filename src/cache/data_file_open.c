@@ -17,12 +17,11 @@
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern int32_t sprintf(char *buffer, const char *format, ...); // 00623693 _sprintf
-extern int32_t printf(const char *format, ...); // 0062427c _printf
 extern void os_platform_identify(void); // 0x5427e0
 
 extern int32_t data_file_read_header(data_file *file, int32_t expected_file_id); // blam-cc:

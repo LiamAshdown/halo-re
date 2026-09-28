@@ -15,6 +15,7 @@
 // UNSURE: whether the always-empty-path branches are genuinely intentional defensive code or a
 // compiler artifact of a helper this was inlined from; reproduced literally either way.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,9 +28,7 @@ extern char default_player_profiles_directory[0x100]; // 0x00721849
 
 extern void player_profile_initialize(saved_player_profile *profile, int32_t local_player_index,
     uint8_t merge_existing); // 0x53a1c0
-extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // 0x623a2d
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
-extern char *strncpy(char *dst, const char *src, uint32_t count); // 00623a90 _strncpy
 extern void path_remove_last_component(char *path); // 0x555f80, this module
 extern uint8_t file_reference_create(file_reference_record *ref); // this module
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // this module
@@ -47,7 +46,7 @@ void player_profile_write_default_files(void)
 
     for (local_player_index = 0; local_player_index < 2; local_player_index = local_player_index + 1) {
         player_profile_initialize(&file.profile, local_player_index, 0);
-        __snprintf(name, 0xff, "%s\\%02d.sav", default_player_profiles_directory, local_player_index);
+        _snprintf(name, 0xff, "%s\\%02d.sav", default_player_profiles_directory, local_player_index);
 
         {
             uint8_t *zero = (uint8_t *)&ref;

@@ -23,18 +23,14 @@
 // UNSURE: FUN_00624186 (the file-open helper, called with a path and a second, unexamined
 //   argument) is foreign/unexamined.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 
-extern void *fopen(const char *path, const char *mode); // 0x624186 _fopen
 // FIXED 2026-09-28 (retail-independence loop): the second fopen argument is the mode "a+b" (0x00660144, pushed at
 //   0x4fa66d); the earlier 0 would crash in the CRT, and fopen_00624186 bound to nothing (a direct trap).
-extern int32_t _fprintf(void *file, const char *format, ...); // 0x623de2
-extern void _fclose(void *file); // 0x6241e5
-extern void qsort(void *base, int32_t count, int32_t stride,
-    int (*compare)(const void *, const void *)); // 0x623410
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, this batch
 extern void objects_get_statistics(void *out); // 0x4f7950, this batch (object_statistics)
@@ -122,29 +118,29 @@ void objects_dump_memory(void)
             fraction = *(float *)(stats_buffer + 4);
             overflow_count = *(int16_t *)stats_buffer; // UNSURE: the alias described in the file header
 
-            _fprintf(file, "#%d objects (#%d active) using %3.2f%% of available memory\n\n", -1, -1, (double)(fraction * 100.0f));
-            _fprintf(file, "OBJECTS BY TYPE\n");
-            _fprintf(file, "number (active) [garbage/   dead/outside/at-rest] maxsize totsize\n");
+            fprintf(file, "#%d objects (#%d active) using %3.2f%% of available memory\n\n", -1, -1, (double)(fraction * 100.0f));
+            fprintf(file, "OBJECTS BY TYPE\n");
+            fprintf(file, "number (active) [garbage/   dead/outside/at-rest] maxsize totsize\n");
             for (i = 0; i < k_maximum_object_types; i++) {
                 object_dump_write(&by_type[i], file);
             }
-            _fprintf(file, "\n");
-            _fprintf(file, "OBJECTS BY DEFINITION\n");
-            _fprintf(file, "number (active) [garbage/   dead/outside/at-rest] maxsize totsize\n");
+            fprintf(file, "\n");
+            fprintf(file, "OBJECTS BY DEFINITION\n");
+            fprintf(file, "number (active) [garbage/   dead/outside/at-rest] maxsize totsize\n");
             for (i = 0; i < definition_count; i++) {
-                _fprintf(file, "% 6d (% 6d) [% 7d/% 7d/% 7d/% 7d] % 7d % 7d %s\r\n",
+                fprintf(file, "% 6d (% 6d) [% 7d/% 7d/% 7d/% 7d] % 7d % 7d %s\r\n",
                     by_definition[i].count, by_definition[i].active_count, by_definition[i].garbage_count,
                     by_definition[i].dead_count, by_definition[i].outside_map_count, by_definition[i].at_rest_count,
                     by_definition[i].maximum_size, by_definition[i].total_size); // UNSURE: the %s name argument
                     // is dropped here exactly as the original's own fprintf call is (one fewer
                     // argument than the by-type path's object_dump_write, which does supply it)
             }
-            _fprintf(file, "\n");
+            fprintf(file, "\n");
             if (overflow_count > 0) {
-                _fprintf(file, "WARNING: overflowed MAXIMUM_DUMPS (%d), this dump does not include %d objects that would not fit!\n", 0x400);
+                fprintf(file, "WARNING: overflowed MAXIMUM_DUMPS (%d), this dump does not include %d objects that would not fit!\n", 0x400);
             }
-            _fprintf(file, "\n");
-            _fclose(file);
+            fprintf(file, "\n");
+            fclose(file);
         }
     }
 }

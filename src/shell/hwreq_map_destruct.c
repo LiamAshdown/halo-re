@@ -8,6 +8,7 @@
 // register convention: EAX = this (msvc_std_map *, in_EAX).
 // blam-cc: hwreq_map_destruct(msvc_std_map *this /*EAX*/)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -16,7 +17,6 @@
 
 extern hwreq_map_node **tree_erase_range(hwreq_map_node **out, hwreq_map_node *first,
     hwreq_map_node *last, msvc_std_map *tree); // 0x57c310, same pass
-extern void _free(void *ptr); // 0x6277e8
 
 void hwreq_map_destruct(msvc_std_map *this)
 {
@@ -25,7 +25,7 @@ void hwreq_map_destruct(msvc_std_map *this)
 
     tree_erase_range(&dummy_out, (hwreq_map_node *)head->left, head, this);
 
-    _free((void *)this->head);
+    free((void *)this->head);
     this->head = 0;
     this->size = 0;
 }

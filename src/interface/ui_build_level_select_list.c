@@ -26,6 +26,7 @@
 // how their results are (or are not) used here.
 // reconciled: R55 per-level progress byte is profile +0x11e, not +0x11c (+0x11c is the flags word): 0x49c8f0 copies the profile to esp+0x20 and reads [esp+edi+0x13e] (0x49ca5e)
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -69,9 +70,6 @@ extern uint8_t game_state_read_checkpoint_summary(uint8_t *corrupt_flag, int16_t
     char *out_scenario_name); // 0x538320, EAX corrupt_flag, ESI out_difficulty, EDI out_scenario_name
 extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profile,
     int16_t *out_level); // 0x539e00, ECX out_type, EDX profile, ESI out_level
-extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
-extern void _wcscpy(uint16_t *dest, const uint16_t *src);
-extern int32_t __stricmp(const char *a, const char *b);
 
 // Builds the campaign level-selection list. If more than one known level exists, delegates
 // entirely to the co-op variant ui_build_level_select_list_coop. Otherwise rebuilds the 10-slot known-level table
@@ -177,7 +175,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
             if (is_selected) {
                 ui_list_has_default = 1;
             }
-            _wcscpy(item->name, entry_name);
+            wcscpy(item->name, entry_name);
         }
         i = i + 1;
     } while (i < 10);
@@ -192,7 +190,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
     if (level_select_flags_0071916b == 1) {
         level_select_frame_00719168 = 0; // UNSURE: shares storage with DAT_00719167 per Ghidra
         for (i = 0; i < 10; i++) {
-            int32_t cmp = __stricmp(level_select_current_path_00719068, known_campaign_levels_00692acc[i].path);
+            int32_t cmp = _stricmp(level_select_current_path_00719068, known_campaign_levels_00692acc[i].path);
             int16_t saved_frame = level_select_frame_00719168;
 
             if (cmp == 0) {

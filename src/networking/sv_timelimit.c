@@ -7,6 +7,7 @@
 //   // blam-cc: EAX -> argument_count, stack -> arguments
 // reconciled: R04 0x006f1d20 void * network_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 extern int32_t sv_timelimit_minutes; // 0x00699608
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
-extern int32_t __stricmp(const char *a, const char *b); // CRT, case-insensitive strcmp
 extern void chimera__console_out(const char *format, ...); // 0x496b50
 
 // Console command: gets or sets the game time limit in minutes (-1 default, 0 infinite, else
@@ -33,10 +33,10 @@ void sv_timelimit(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -
         }
         {
             char *arg = (char *)arguments[0];
-            if (__stricmp(arg, "-1") == 0 || __stricmp(arg, "default") == 0) {
+            if (_stricmp(arg, "-1") == 0 || _stricmp(arg, "default") == 0) {
                 sv_timelimit_minutes = -1;
                 changed = 1;
-            } else if (__stricmp(arg, "0") == 0 || __stricmp(arg, "infinite") == 0) {
+            } else if (_stricmp(arg, "0") == 0 || _stricmp(arg, "infinite") == 0) {
                 sv_timelimit_minutes = 0;
                 changed = 1;
             } else {

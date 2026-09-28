@@ -8,12 +8,12 @@
 //   descending.
 // blam-cc: cdecl (qsort comparator over server pointers)
 
+#include "crt.h"
 #include "tags.h"
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 extern const char *SBServerGetStringValue(void *server, const char *key, const char *default_value); // 0x617490 SBServerGetStringValue
 extern int32_t SBServerGetIntValue(void *server, const char *key, int32_t default_value); // 0x617c10 SBServerGetIntValue
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 // the final tie-break on the element addresses, in the sort direction
 static int32_t address_order(const void *a, const void *b)
@@ -29,7 +29,7 @@ static int32_t key_order(const void *a, const void *b, const char *key)
 {
     const char *string_b = SBServerGetStringValue(*(void **)b, key, "");
     const char *string_a = SBServerGetStringValue(*(void **)a, key, "");
-    int32_t result = __stricmp(string_a, string_b);
+    int32_t result = _stricmp(string_a, string_b);
 
     return server_browser_sort_ascending != 0 ? result : -result;
 }

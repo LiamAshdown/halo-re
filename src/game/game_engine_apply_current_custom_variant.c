@@ -12,6 +12,7 @@
 // attributed to this module anywhere in this batch's evidence; kept as raw externs with generic
 // names.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,7 +30,6 @@ extern int32_t unknown_0087aaec;   // 0x0087aaec, UNSURE identity
 extern int32_t default_time_limit_scale; // 0x00699608, UNSURE identity
 extern int32_t unknown_0087aaf8;   // 0x0087aaf8, UNSURE identity
 
-extern char *_strncpy(char *dest, const char *src, size_t count); // 0x623a90
 
 void game_engine_apply_current_custom_variant(void)
 {
@@ -47,7 +47,7 @@ void game_engine_apply_current_custom_variant(void)
     }
 
     entry = &game_variant_history[game_variant_history_current];
-    _strncpy(game_engine_pending_variant_name, entry->name, 0x3f);
+    strncpy(game_engine_pending_variant_name, entry->name, 0x3f);
 
     mode = unknown_0071c40c;
     mode_is_1 = (mode == 1);

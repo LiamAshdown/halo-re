@@ -10,6 +10,7 @@
 // state); the incoming EAX low byte is dead (only its top 24 bits, always zero on entry,
 // survive into the low byte of the return value on the "did something" path).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,8 +29,6 @@ extern void ai_release_actors_filtered(datum_index encounter_index, int32_t plat
     // registers happen to hold rather than real inputs. Left as a single-argument prototype;
     // resolve together with 0x42ab00's own rewrite.
 extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0, stack, AL
-extern int32_t sprintf(char *buffer, const char *format, ...); // 00623693 _sprintf
-extern char *strrchr(const char *str, int ch); // 00623bc0 _strrchr
 
 // Iterates a prioritized list of things AI cleanup still needs to release -- whole encounters
 // and encounterless (unassigned) actors interleaved -- one entry per call. state points at a

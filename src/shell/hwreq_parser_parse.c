@@ -22,6 +22,7 @@
 //     dangling, as in the original); the result is 1 only when every pass succeeded.
 // blam-cc: ECX -> parser, stack -> path, sound_device, adapter, caps, memory, video_memory, cpu_speed
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -29,9 +30,6 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *operator_new(uint32_t size); // 0x6277da, MSVC CRT (0x627db7 is a jmp to it)
-extern void free(void *block); // 0x6277e8, CRT free (0x627dbc is a jmp to it)
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *source, uint32_t count); // 0x57bc90
 
 extern uint8_t hwreq_parser_find_requirements_section(hwreq_parser *parser); // 0x57ae50, blam-cc: ESI -> parser
@@ -48,7 +46,7 @@ extern const char hwreq_version_root_block[]; // 0x006600e8 "\\"
 
 static hwreq_property_set *hwreq_property_set_new(hwreq_parser *parser)
 {
-    hwreq_property_set *set = (hwreq_property_set *)operator_new(sizeof(hwreq_property_set));
+    hwreq_property_set *set = (hwreq_property_set *)malloc(sizeof(hwreq_property_set));
 
     if (set == 0) {
         return 0;
@@ -99,7 +97,7 @@ uint8_t hwreq_parser_parse(hwreq_parser *parser, const char *path, const shell_s
         uint32_t info_size = GetFileVersionInfoSizeA((const char *)&parser->adapter, &handle);
 
         if (info_size != 0) {
-            void *info = operator_new(info_size);
+            void *info = malloc(info_size);
             void *fixed;
             uint32_t fixed_length;
 
@@ -134,7 +132,7 @@ uint8_t hwreq_parser_parse(hwreq_parser *parser, const char *path, const shell_s
     }
 
     size = GetFileSize(file, 0);
-    buffer = (char *)operator_new(size + 0x10);
+    buffer = (char *)malloc(size + 0x10);
     parser->file_buffer = (uint32_t)buffer;
     ReadFile(file, buffer, size, &bytes_read, 0);
     CloseHandle(file);

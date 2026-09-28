@@ -15,11 +15,11 @@
 //   "fallback" technique name) they read as a forced-fallback flag and a specific sentinel value
 //   (0x270d) that also selects the plain fallback path.
 
+#include "crt.h"
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
 
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 extern d3d_caps9 rasterizer_caps;                                    // 0x007c10c0

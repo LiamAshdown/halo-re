@@ -9,6 +9,7 @@
 //   the vehicle) and each is sent to the first still-free listed seat it can use (0x40e260, which strikes the
 //   seat from the shared list). Without the override the first already-boarding actor ends the pass.
 // blam-cc: EAX -> ai_reference, stack -> (vehicle_index, seat_name, allow_boarding_actors)
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,7 +24,6 @@ extern void object_get_position(real_point3d *out, uint32_t object_index);      
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
 extern int object_sort_by_flag_then_distance(const void *a, const void *b); // 0x433c70, library code, not rewritten in this batch
-extern void _qsort(void *base, int32_t count, int32_t size, int (*compare)(const void *, const void *)); // 0x623410
 extern int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector,
                                                        int16_t *out_indices, int16_t max_indices); // 0x56a310
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
@@ -68,7 +68,7 @@ void ai_object_process_nearby_actors(uint32_t ai_reference, datum_index vehicle_
                 a = ai_reference_actor_iterator_next(&iterator);
             }
 
-            _qsort(candidates, candidate_count, sizeof(ai_nearby_actor_candidate), object_sort_by_flag_then_distance);
+            qsort(candidates, candidate_count, sizeof(ai_nearby_actor_candidate), object_sort_by_flag_then_distance);
 
             {
                 int16_t i;

@@ -10,6 +10,7 @@
 //   compile error buffer and points the error offset at the call node's source offset.
 // blam-cc: stack -> function_index, node_index (cdecl)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
@@ -20,7 +21,6 @@ extern char *hs_compile_error;          // 0x006b14d4
 extern int32_t hs_compile_error_offset; // 0x006b14d8
 extern char hs_compile_error_buffer[k_hs_error_buffer_size]; // 0x006b14dc
 extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420
-extern int _sprintf(char *buffer, const char *format, ...); // 0x623693
 
 #define HS_NODE(index) ((uint8_t *)hs_syntax_data->data + ((index) & 0xffff) * 0x14)
 
@@ -47,7 +47,7 @@ char hs_parse_function_arguments(int16_t function_index, datum_index node_index)
         return ok;
     }
     if (i != definition->parameter_count || argument != k_datum_index_none) {
-        _sprintf(hs_compile_error_buffer, "the \"%s\" call requires exactly %d arguments.", definition->name,
+        sprintf(hs_compile_error_buffer, "the \"%s\" call requires exactly %d arguments.", definition->name,
             (int32_t)definition->parameter_count);
         hs_compile_error = hs_compile_error_buffer;
         hs_compile_error_offset = *(int32_t *)(HS_NODE(node_index) + 0xc);

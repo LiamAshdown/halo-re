@@ -8,13 +8,11 @@
 // register convention: none; __cdecl, format plus varargs on the stack.
 // UNSURE: DAT_00710320's exact meaning beyond "server player-update-history logging enabled".
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include <stdio.h>
 #include <stdarg.h>
-extern int _fclose(void *file);                                           // game CRT
-extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
-extern int _fprintf(void *file, const char *format, ...);                // game CRT
 
 extern uint8_t network_player_update_log_enabled; // 0x00710320
 extern char *network_player_update_history_log_path; // 0x0069a2c8, "ServerPlayerUpdateHistory.log"
@@ -34,11 +32,11 @@ void network_player_update_history_log_write(const char *format, ...)
     vsprintf(buffer, format, args);
     va_end(args);
     if (network_player_update_log_enabled == 1) {
-        file = (FILE *)_fopen(network_player_update_history_log_path,
+        file = (FILE *)fopen(network_player_update_history_log_path,
             network_player_update_log_file_mode_string);
         if (file != 0) {
-            _fprintf(file, buffer);
-            _fclose(file);
+            fprintf(file, buffer);
+            fclose(file);
         }
     }
 }

@@ -7,6 +7,7 @@
 // widget_instance::text's documented 0x3c offset in types/interface.h.
 // register convention: cdecl, the one recognized stack parameter (widget).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,7 +19,6 @@ extern uint16_t global_text_field_00719278[0x40]; // 0x00719278, TYPES-GAP
 
 extern heap *widget_memory_pool; // 0x006926c4
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 
 void ui_widget_text_ensure_and_refresh(widget_instance *widget)
 {
@@ -35,7 +35,7 @@ void ui_widget_text_ensure_and_refresh(widget_instance *widget)
         }
     }
     if (widget->text != (void *)0) {
-        _wcsncpy((uint16_t *)widget->text, global_text_field_00719278, 0x3f);
+        wcsncpy((uint16_t *)widget->text, global_text_field_00719278, 0x3f);
         ((uint16_t *)widget->text)[0x3f] = 0;
     }
 }

@@ -6,13 +6,14 @@
 // an explicit int32_t[k_qsort_dword_stack_depth] pending-partition stack instead of recursion,
 // falling back to qsort_dword_array_shortsort under k_qsort_dword_shortsort_cutoff elements)
 // specialised to 4-byte elements and a byte-returning comparator. It is Bungie's own copy, not
-// the linked CRT routine (the linked _qsort is elsewhere), and it stays in cseries even though
+// the linked CRT routine (the linked qsort is elsewhere), and it stays in cseries even though
 // its address range was first grouped into the cutscene batch (see out/phase4/cutscene's
 // README.md "Known gaps"). Two callers, per cseries.h and the types notes: ai 0x413d0f and
 // structures 0x552d0b.
 // register convention: element count in EAX; elements pointer in ECX; the comparator on the
 // stack (the caller pops 4 bytes after the call).
 
+#include "crt.h"
 #include "tags.h"
 #include "cseries.h"
 

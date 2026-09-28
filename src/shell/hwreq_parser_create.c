@@ -2,7 +2,7 @@
 // address 0x57b4c0, size 88 bytes
 // name confidence: 0.6   rewrite confidence: 0.85
 // evidence: matches its own name and out/phase4/shell_functions.md summary: "Allocates and
-//   default-constructs a new hardware-requirements parser object." objdump: operator_new(0x6b8)
+//   default-constructs a new hardware-requirements parser object." objdump: malloc(0x6b8)
 //   (k_hwreq_parser_size), then hwreq_parser_construct 0x579ef0 on success.
 // register convention: plain __cdecl, no parameters (objdump: "push ecx" only to align the SEH
 //   frame, no argument reads).
@@ -10,13 +10,13 @@
 // UNSURE: the compiler-generated x86 SEH frame is compiler plumbing, not application logic, and
 //   is omitted here.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *operator_new(uint32_t size); // 0x6277da CRT
 extern hwreq_parser *hwreq_parser_construct(hwreq_parser *this); // 0x579ef0
 
 // Allocates a hardware-requirements parser object and default-constructs it; returns NULL if
@@ -25,7 +25,7 @@ hwreq_parser *hwreq_parser_create(void)
 {
     hwreq_parser *parser;
 
-    parser = (hwreq_parser *)operator_new(k_hwreq_parser_size);
+    parser = (hwreq_parser *)malloc(k_hwreq_parser_size);
     if (parser == 0) {
         return 0;
     }

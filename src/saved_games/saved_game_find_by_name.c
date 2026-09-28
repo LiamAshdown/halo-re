@@ -17,6 +17,7 @@
 // (EAX = EDI at 0x53d58c), not entry.index.
 // register convention: name and type as ordinary stack arguments (already resolved by Ghidra).
 
+#include "crt.h"
 #include "win32.h"
 #include <string.h>
 #include "tags.h"
@@ -37,7 +38,6 @@ extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uin
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
 extern uint32_t savegame_slot_handle_pack(uint32_t slot_index, uint32_t type_nibble, uint8_t flag_bit_30,
     uint8_t flag_bit_31); // 0x53e630, FUN_0053e630 (src/game); blam-cc: EAX slot, ECX type, DL bit 30, stack byte bit 31
-extern int32_t __strnicmp(const char *a, const char *b, uint32_t count); // CRT
 
 // blam-cc: plain stack arguments (name, type)
 // Under both module mutexes, opens the save-game index file and scans every entry for one whose
@@ -73,7 +73,7 @@ int32_t saved_game_find_by_name(char *name, int16_t type)
                         break;
                     }
                     if (entry.type == type &&
-                        __strnicmp(name, entry.path, name_length) == 0) {
+                        _strnicmp(name, entry.path, name_length) == 0) {
                         handle = savegame_slot_handle_pack(i, entry.type, entry.builtin, entry.checksum_valid);
                         break;
                     }

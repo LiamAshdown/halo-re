@@ -9,6 +9,7 @@
 //   options, 0x35 the packed game type options, 0x36 bit 7 of 0x006f1cc0; every other key is empty.
 // blam-cc: cdecl (a qr2 server key callback)
 
+#include "crt.h"
 #include "tags.h"
 #include <string.h>
 #include <wchar.h>
@@ -33,7 +34,6 @@ extern uint32_t server_browser_gametype5_flags_pack(int32_t *values); // 0x57696
 extern int32_t players_active_count(void); // 0x45c6a0
 extern uint8_t game_engine_get_teams_enabled(void); // 0x462bf0
 extern int32_t network_server_password_is_set(void *server); // 0x4e08e0, blam-cc: EAX server
-extern void _splitpath(const char *path, char *drive, char *dir, char *fname, char *ext);
 
 void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *user_data)
 {

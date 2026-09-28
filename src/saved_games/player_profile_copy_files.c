@@ -3,8 +3,8 @@
 // name confidence: 0.6   rewrite confidence: 0.8
 // evidence: already named by Ghidra/CEA. out/phase4/saved_games_functions.md summary "Copies a
 // player profile's blam.sav, savegame.bin, and all checkpoint save files into a new destination
-// directory." Ghidra's decompiled body drops a parameter: two of the __snprintf calls it shows
-// with only 3 of their 5 real arguments (`__snprintf(local_340,0xff,"%s%s")`) actually push a
+// directory." Ghidra's decompiled body drops a parameter: two of the _snprintf calls it shows
+// with only 3 of their 5 real arguments (`_snprintf(local_340,0xff,"%s%s")`) actually push a
 // second format argument from ESI, confirmed by objdump 0x53cb70..0x53ce7c never assigning ESI
 // before its first use -- it is a genuine second incoming register argument (the source
 // directory), separate from the stack-passed destination directory (param_1/dest_dir). Every
@@ -23,6 +23,7 @@
 // register convention: source directory in ESI; destination directory as the one stack
 // argument.
 
+#include "crt.h"
 #include "win32.h"
 #include <string.h>
 #include "tags.h"
@@ -33,8 +34,6 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern int32_t __snprintf(char *buffer, uint32_t count, const char *format, ...); // CRT
-extern char *_strrchr(char *s, int32_t c); // CRT
 
 // blam-cc: source directory in ESI; destination directory as the one stack argument
 // Copies blam.sav, savegame.bin (and, alongside it, a same-stem "*.sav" file -- see the header
@@ -53,8 +52,8 @@ uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
     void *find_handle;
     win32_find_dataa find_data;
 
-    __snprintf(dest_path, 0xff, "%s%s", dest_dir, "blam.sav");
-    __snprintf(source_path, 0xff, "%s%s", source_dir, "blam.sav");
+    _snprintf(dest_path, 0xff, "%s%s", dest_dir, "blam.sav");
+    _snprintf(source_path, 0xff, "%s%s", source_dir, "blam.sav");
     dest_path[0xff] = '\0';
     source_path[0xff] = '\0';
     result = (uint8_t)CopyFileA(source_path, dest_path, 0);
@@ -62,8 +61,8 @@ uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
         return 0;
     }
 
-    __snprintf(dest_path, 0xff, "%s%s", dest_dir, "savegame.bin");
-    __snprintf(source_path, 0xff, "%s%s", source_dir, "savegame.bin");
+    _snprintf(dest_path, 0xff, "%s%s", dest_dir, "savegame.bin");
+    _snprintf(source_path, 0xff, "%s%s", source_dir, "savegame.bin");
     dest_path[0xff] = '\0';
     source_path[0xff] = '\0';
     result = (uint8_t)CopyFileA(source_path, dest_path, 0);
@@ -71,12 +70,12 @@ uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
         return 0;
     }
 
-    dot = _strrchr(dest_path, '.');
+    dot = strrchr(dest_path, '.');
     if (dot != 0) {
         *dot = '\0';
     }
     strcat(dest_path, ".sav");
-    dot = _strrchr(source_path, '.');
+    dot = strrchr(source_path, '.');
     if (dot != 0) {
         *dot = '\0';
     }
@@ -86,12 +85,12 @@ uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
         return result;
     }
 
-    __snprintf(search_path, 0xff, "%scheckpoints\\*.sav", source_dir);
+    _snprintf(search_path, 0xff, "%scheckpoints\\*.sav", source_dir);
     find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)-1) {
         do {
-            __snprintf(dest_path, 0xff, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
-            __snprintf(source_path, 0xff, "%scheckpoints\\%s", source_dir, find_data.cFileName);
+            _snprintf(dest_path, 0xff, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
+            _snprintf(source_path, 0xff, "%scheckpoints\\%s", source_dir, find_data.cFileName);
             copy_ok = (uint8_t)CopyFileA(source_path, dest_path, 0);
             if (copy_ok == 0) {
                 break;
@@ -103,12 +102,12 @@ uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
         return result;
     }
 
-    __snprintf(search_path, 0xff, "%scheckpoints\\*.bin", source_dir);
+    _snprintf(search_path, 0xff, "%scheckpoints\\*.bin", source_dir);
     find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)-1) {
         do {
-            __snprintf(dest_path, 0xff, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
-            __snprintf(source_path, 0xff, "%scheckpoints\\%s", source_dir, find_data.cFileName);
+            _snprintf(dest_path, 0xff, "%scheckpoints\\%s", dest_dir, find_data.cFileName);
+            _snprintf(source_path, 0xff, "%scheckpoints\\%s", source_dir, find_data.cFileName);
             if ((uint8_t)CopyFileA(source_path, dest_path, 0) == 0) {
                 break;
             }

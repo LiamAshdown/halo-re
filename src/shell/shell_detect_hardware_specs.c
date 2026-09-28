@@ -39,6 +39,7 @@
 // register convention: no arguments. hex_string_to_uint 0x57d7f0 takes the string in EDX;
 //   hex_string_to_bytes 0x57d830 takes the destination in ECX and the source in EDX.
 
+#include "crt.h"
 #include "win32.h"
 #include <dsound.h>
 #include "tags.h"
@@ -49,8 +50,6 @@
 #include <string.h>
 
 
-extern char *_strlwr(char *string);                                            // 0x6276c6 CRT
-extern int32_t sscanf(const char *buffer, const char *format, ...);            // 0x626572 CRT
 
 extern int32_t hex_string_to_uint(char *string);                               // 0x57d7f0, string in EDX
 extern void hex_string_to_bytes(uint8_t *dest, const char *source);            // 0x57d830, dest in ECX, source in EDX

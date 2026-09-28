@@ -10,6 +10,7 @@
 // visible arguments at all for that call, but local_100 is otherwise never written before its use
 // as the wcsncpy source).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +23,6 @@ extern int16_t new_profile_name_entry_player_00692b00;  // 0x00692b00, TYPES-GAP
 extern uint8_t new_profile_name_flag_0071916e;           // 0x0071916e, TYPES-GAP
 
 extern void saved_game_allocate_new_slot(uint16_t *out_default_name); // 0x53ca80, blam-cc: EBX out_default_name
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind); // 0x4a89a0, blam-cc: ESI destination
 
 uint8_t ui_new_profile_name_entry_open(void *widget, int16_t *event, uint8_t *out_handled)
@@ -32,7 +32,7 @@ uint8_t ui_new_profile_name_entry_open(void *widget, int16_t *event, uint8_t *ou
     (void)widget;
     (void)out_handled;
     saved_game_allocate_new_slot(default_name);
-    _wcsncpy(new_profile_name_buffer_006b37f4, default_name, 0xb);
+    wcsncpy(new_profile_name_buffer_006b37f4, default_name, 0xb);
     new_profile_name_buffer_006b37f4[0xb] = 0; // word store at 0x006b380a
     new_profile_name_entry_player_00692b00 = event[1]; // offset +2
     new_profile_name_flag_0071916e = 0;

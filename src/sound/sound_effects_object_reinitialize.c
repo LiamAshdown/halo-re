@@ -5,7 +5,7 @@
 // evidence: out/phase4/sound_functions.md "Enables or disables the global EAX sound effects
 // object, (re)initializing it against the current listener by trying EAX3, EAX2, then EAX1
 // backends in order."; same probe sequence as sound_effects_object_detect_mode.c (0x551270),
-// confirmed identical by the shared operator_new sizes and vtable pointers, but with an explicit
+// confirmed identical by the shared malloc sizes and vtable pointers, but with an explicit
 // channels argument (&directsound_channels[0], 0) at every initialize() call -- used to correct
 // that file's own initialize() argument guess.
 // register convention: __cdecl, stack -> enable.
@@ -16,6 +16,7 @@
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
@@ -29,7 +30,6 @@ extern sound_effect_object_vtable sound_eax3_vtable; // 0x00671d28
 extern sound_effect_object_vtable sound_eax2_vtable; // 0x00671d04
 extern sound_effect_object_vtable sound_eax1_vtable; // 0x00671d4c
 
-extern void *operator_new(uint32_t size); // 0x6277da, MSVC CRT
 extern void sound_effects_object_shutdown(void); // this module, 0x551420
 extern int sound_effects_object_apply_all_channels(void); // this module, 0x551480
 
@@ -63,7 +63,7 @@ void __cdecl sound_effects_object_reinitialize(int enable)
         }
     }
 
-    global_sound_effect_object = (sound_effect_object *)operator_new(0xe8);
+    global_sound_effect_object = (sound_effect_object *)malloc(0xe8);
     if (global_sound_effect_object != 0) {
         global_sound_effect_object->vtable = &sound_eax3_vtable;
         global_sound_effect_object->supported_properties = 0;
@@ -76,7 +76,7 @@ void __cdecl sound_effects_object_reinitialize(int enable)
         }
     }
 
-    global_sound_effect_object = (sound_effect_object *)operator_new(0xe8);
+    global_sound_effect_object = (sound_effect_object *)malloc(0xe8);
     if (global_sound_effect_object != 0) {
         global_sound_effect_object->vtable = &sound_eax2_vtable;
         global_sound_effect_object->supported_properties = 0;
@@ -89,7 +89,7 @@ void __cdecl sound_effects_object_reinitialize(int enable)
         }
     }
 
-    global_sound_effect_object = (sound_effect_object *)operator_new(0x1c);
+    global_sound_effect_object = (sound_effect_object *)malloc(0x1c);
     if (global_sound_effect_object == 0) {
         return;
     }

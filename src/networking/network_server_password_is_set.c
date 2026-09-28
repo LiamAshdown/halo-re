@@ -7,6 +7,7 @@
 // register convention: EAX = server (network_server_globals *).
 // blam-cc: EAX -> server
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -14,12 +15,11 @@
 #include "networking.h"
 #include <wchar.h>
 
-extern int32_t _wcsncmp(const wchar_t *a, const wchar_t *b, int32_t count);
 
 // True if `server`'s join password is not the empty string.
 int32_t network_server_password_is_set(network_server_globals *server)
 {
-    return _wcsncmp((wchar_t *)server->password, L"", 8) != 0;
+    return wcsncmp((wchar_t *)server->password, L"", 8) != 0;
 }
 
 #if 0

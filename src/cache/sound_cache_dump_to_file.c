@@ -16,6 +16,7 @@
 // bytes / 3 fields, and that note is flagged for the memory module, not acted on here.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -31,12 +32,8 @@ extern char file_open_mode_w[];          // 0x0065ff44, likely "w"
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void cache_build_status_bitmap(struct cache *self, uint8_t *bitmap); // 0x4d1ca0
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
-extern uint32_t _fwrite(const void *buffer, uint32_t size, uint32_t count, void *file); // 0x6243e9 _fwrite
-extern void _fclose(void *file); // _fclose
 
 // UNSURE: see file header note above.
-extern void *_fopen(const char *path, char *mode); // 0x624186, fopen-shaped wrapper
 
 // Writes a diagnostic dump of the sound cache's page usage statistics and per-entry list to
 // sound_cache_dump.txt: total sounds resident, MB used/free, and allocated/used-this-frame/
@@ -72,7 +69,7 @@ void sound_cache_dump_to_file(void)
     sound_count = 0;
 
     bitmap = (uint8_t *)GlobalAlloc(0, sound_cache_page_count);
-    file = _fopen("sound_cache_dump.txt", file_open_mode_w);
+    file = fopen("sound_cache_dump.txt", file_open_mode_w);
 
     for (scan = line, bit = 0x100; bit != 0; bit--) {
         scan[0] = 0; scan[1] = 0; scan[2] = 0; scan[3] = 0;
@@ -126,14 +123,14 @@ void sound_cache_dump_to_file(void)
 
         for (scan = line; *scan != '\0'; scan++) {
         }
-        _fwrite(line, 1, (uint32_t)(scan - (line + 1)), file);
+        fwrite(line, 1, (uint32_t)(scan - (line + 1)), file);
 
         entry_number = 1;
         for (scan = line, bit = 0x100; bit != 0; bit--) {
             scan[0] = 0; scan[1] = 0; scan[2] = 0; scan[3] = 0;
             scan += 4;
         }
-        _fwrite("[sounds in cache]\n\n", 1, 0x12, file);
+        fwrite("[sounds in cache]\n\n", 1, 0x12, file);
 
         iterator.data = sound_cache_entries;
         iterator.next_index = 0;
@@ -148,13 +145,13 @@ void sound_cache_dump_to_file(void)
                     permutation->samples.size, permutation->buffer_size);
                 for (scan = line; *scan != '\0'; scan++) {
                 }
-                _fwrite(line, 1, (uint32_t)(scan - (line + 1)), file);
+                fwrite(line, 1, (uint32_t)(scan - (line + 1)), file);
                 entry_number++;
             }
             entry = (sound_cache_entry *)data_iterator_next(&iterator);
         }
 
-        _fclose(file);
+        fclose(file);
     }
 
     GlobalFree(bitmap);

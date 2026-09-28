@@ -14,6 +14,7 @@
 // pattern the header comments on data_array::valid describe.
 // reconciled: R07 0x00746f94 tag_cache_render_states_* (TYPES-GAP) -> scenario.h scenario_game_globals *global_scenario_game_globals (0x7c-byte scenario game-state block)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -88,7 +89,6 @@ extern void breakable_surfaces_reset(void); // 0x4ffd40, objects (breakable_surf
 extern void decal_and_font_system_reset(void);                                               // UNSURE module
 extern void game_state_build_header(void);                                     // 0x538000
 extern void ambient_color_randomize(void);                                                  // UNSURE module
-extern void __control87(uint32_t new_word, uint32_t mask); // MSVC CRT
 
 // Resets game state (objects, scripts, particle/effect pools, network server) to begin a new
 // game on the currently loaded map.
@@ -116,7 +116,7 @@ void game_start_new_map(void)
     }
 
     game_engine_load_from_variant(&game_engine_active_variant); // objdump 0x45b09a: EBX = 0x0087ab20
-    __control87(0x9001f, 0xfffff);
+    _control87(0x9001f, 0xfffff);
     decal_and_font_system_reset();
     game_state_build_header();
 

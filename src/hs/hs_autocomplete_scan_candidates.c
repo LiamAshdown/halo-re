@@ -4,18 +4,18 @@
 // evidence: iterates a char* table from index `start` to `end`, testing each entry against
 // hs_autocomplete_prefix and appending matches to hs_autocomplete_results -- the same
 // test-and-append logic as hs_autocomplete_test_candidate (0x483690), duplicated inline here
-// (its callee list carries only __strnicmp, not that function) rather than calling it; kept
+// (its callee list carries only _strnicmp, not that function) rather than calling it; kept
 // inline in this rewrite to match the compiled shape exactly.
 // register convention: `table` is recognized directly by Ghidra; `end` and `start` are
 // unrecognized (in_AX / in_CX), which by the blam-cc convention are the first and second
 // register slots, EAX/AX and ECX/CX.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
 
-extern int32_t __strnicmp(const char *a, const char *b, int32_t count); // 0x006375da
 
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0
 extern char *hs_autocomplete_prefix;          // 0x006b14a4
@@ -39,7 +39,7 @@ void hs_autocomplete_scan_candidates(char **table, int16_t end, int16_t start)
             candidate = *entry;
             if (hs_autocomplete_count < hs_autocomplete_maximum_count) {
                 prefix_length = (int32_t)strlen(hs_autocomplete_prefix);
-                if (__strnicmp(candidate, hs_autocomplete_prefix, prefix_length) == 0) {
+                if (_strnicmp(candidate, hs_autocomplete_prefix, prefix_length) == 0) {
                     hs_autocomplete_results[hs_autocomplete_count] = candidate;
                     hs_autocomplete_count = hs_autocomplete_count + 1;
                 }

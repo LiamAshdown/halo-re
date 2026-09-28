@@ -31,6 +31,7 @@
 // the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
 // the encoded bits from challenge; the C passed placeholders or dropped the arguments.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include <wchar.h>
@@ -42,7 +43,6 @@ extern uint32_t network_game_variant_template_table[]; // 0x00712dd8, UNSURE nam
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
 // blam-cc: stack -> client, template_row
 char network_game_settings_ack_send(uint8_t *client, int16_t template_row)
@@ -68,7 +68,7 @@ char network_game_settings_ack_send(uint8_t *client, int16_t template_row)
     }
     *(uint8_t *)(frame + 0x23) = (uint8_t)template_row;
     *(uint8_t *)(frame + 0x22) = *client;
-    _wcsncpy((wchar_t *)(frame + 0x6), (const wchar_t *)(frame + 0x48), 0xb);
+    wcsncpy((wchar_t *)(frame + 0x6), (const wchar_t *)(frame + 0x48), 0xb);
     *(uint16_t *)(frame + 0x1e) = *(uint16_t *)(frame + 0x160);
     *(uint16_t *)(frame + 0x20) = 0xffff;
     *(uint8_t *)(frame + 0x24) = 0xff;

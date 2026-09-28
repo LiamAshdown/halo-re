@@ -47,6 +47,7 @@
 // and then overwritten with 0 on the failure path (4e3332 then 4e333c); this rewrite skips the
 // redundant intermediate store since it is not observable.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -56,9 +57,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-extern int _fclose(void *file);                                           // game CRT
-extern char *_fgets(char *s, int n, void *file);                          // game CRT
-extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
 
 extern char network_banlist_full_path[0x104];        // 0x0071c308, see sv_banlist_file.c
 extern char network_ban_file_read_mode_string[];      // 0x0066d81c, "rt"
@@ -66,7 +64,6 @@ extern char network_ban_indefinite_marker[];          // 0x0066b038, "--"
 
 extern char *network_log_path_resolve(char *requested_path); // this module, 0x4e40a0
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186     // 0x624186, fopen-shaped CRT wrapper
-extern char *strchr(const char *string, int character); // CRT strchr (0x6257e0: the MSVC asm strchr)
 extern void string_trim_whitespace(char **string_ptr);       // this module, 0x4e4040, blam-cc: EDI -> string_ptr
 extern ban_list_entry *ban_list_get_or_add_entry(char *name, char *cd_key_hash); // this module, 0x4e3890
 
@@ -90,12 +87,12 @@ void network_banlist_load(void)
     long ban_count;
     ban_list_entry *entry;
 
-    file = (FILE *)_fopen(network_log_path_resolve(network_banlist_full_path),
+    file = (FILE *)fopen(network_log_path_resolve(network_banlist_full_path),
                                  network_ban_file_read_mode_string);
     if (file == 0) {
         return;
     }
-    while (_fgets(line, 0x200, file) != 0) {
+    while (fgets(line, 0x200, file) != 0) {
         if (line[0] == '#') {
             continue;
         }
@@ -150,7 +147,7 @@ void network_banlist_load(void)
         entry->expiry_time = 0;
         entry->indefinite = 1;
     }
-    _fclose(file);
+    fclose(file);
 }
 
 #if 0

@@ -11,6 +11,7 @@
 // reuse) rather than a simplified rewrite, to avoid silently changing edge-case behaviour on
 // malformed input.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -19,7 +20,6 @@
 #include "shell.h"
 
 extern char empty_string_0065512c; // 0x0065512c, the shared MSVC empty std::string/char literal
-extern int32_t _isspace(int32_t c);
 
 // Tokenizes the raw Halo command line into a GlobalAlloc'd argv-style array of substring
 // pointers, writing the token count out through out_count. argv[0] is always the shared empty
@@ -57,10 +57,10 @@ char **command_line_parse_to_argv(char *command_line, int32_t *out_count)
         do {
             if (command_line[i] == '-') {
                 in_flag = 1;
-                if (i != 0 && (command_line[i - 1] == '\0' || _isspace((uint8_t)command_line[i - 1]) != 0)) {
+                if (i != 0 && (command_line[i - 1] == '\0' || isspace((uint8_t)command_line[i - 1]) != 0)) {
                     command_line[i - 1] = '\0';
                 }
-            } else if (_isspace((uint8_t)command_line[i]) != 0 && in_flag) {
+            } else if (isspace((uint8_t)command_line[i]) != 0 && in_flag) {
                 command_line[i] = '\0';
                 in_flag = 0;
             }
@@ -100,7 +100,7 @@ char **command_line_parse_to_argv(char *command_line, int32_t *out_count)
             if (command_line[i] == '\0') {
                 i++;
             } else {
-                while (_isspace((uint8_t)command_line[i]) != 0) {
+                while (isspace((uint8_t)command_line[i]) != 0) {
                     i++;
                 }
                 *out = command_line + i;
@@ -115,7 +115,7 @@ char **command_line_parse_to_argv(char *command_line, int32_t *out_count)
 
                 {
                     char *tail = command_line + i - 1;
-                    while (_isspace((uint8_t)*tail) != 0) {
+                    while (isspace((uint8_t)*tail) != 0) {
                         *tail = '\0';
                         tail--;
                     }

@@ -9,6 +9,7 @@
 // register convention: saved-game handle in EAX (matches out/phase4/saved_games_types_notes.md
 // "saved-game handle in EAX for 0x53c600 / 0x53c9f0 / 0x53ce80 / 0x53d080").
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,7 +21,6 @@
 extern uint16_t saved_game_display_name_buffer[0x80]; // 0x006e3008
 
 extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry); // 0x53e0e0, FUN_0053e0e0 (src/game)
-extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
 
 // blam-cc: saved-game handle in EAX
 // Resolves handle to its index-file slot (bits 16..27) and, if it is in range and the index
@@ -37,7 +37,7 @@ uint16_t *saved_game_get_display_name(int32_t handle)
     if (slot_index < 999) {
         found = savegame_index_read_slot(slot_index, &entry);
         if (found != 0) {
-            _wcsncpy(saved_game_display_name_buffer, entry.display_name, 0x7f);
+            wcsncpy(saved_game_display_name_buffer, entry.display_name, 0x7f);
             saved_game_display_name_buffer[0x7f] = 0;
         }
     }

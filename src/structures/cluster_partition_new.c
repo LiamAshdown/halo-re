@@ -11,7 +11,7 @@
 //     src/objects/objects_initialize.c's own UNSURE note about where those globals come from.
 //   - EDI: the same two call sites load it with `mov edi,0x66e944` ("collideable object") /
 //     `mov edi,0x66e92c` ("noncollideable object") -- a category NAME string. Ghidra's
-//     decompiled `_sprintf(local_200,"cluster %s")` silently drops this exact register argument;
+//     decompiled `sprintf(local_200,"cluster %s")` silently drops this exact register argument;
 //     disassembly at 0x551e68 (`push edi` / `push offset "cluster %s"` / `push eax` / call
 //     sprintf) shows it is pushed as the vararg. The other call site's rewrite
 //     (src/objects/objects_initialize.c) is not touched by this file; its two
@@ -28,6 +28,7 @@
 //   arena allocator, or whether some other function clears it before first use; nothing in this
 //   function or its two known callers zeroes it.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -42,7 +43,6 @@ extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d0
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
     // 0x5380d0; name and maximum_count on the stack, element_size in EBX
     // (blam-cc: EBX -> element_size)
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x00623693 _sprintf
 
 // Reserves a new cluster-reference partition for one object category (e.g. "collideable" /
 // "noncollideable"): an 0x800-byte, CRC-tracked per-cluster head table, and two named,

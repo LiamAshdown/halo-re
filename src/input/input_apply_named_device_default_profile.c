@@ -12,6 +12,7 @@
 // saving; both were missing and are fixed here.
 // register convention: device_name (wide string) in EDI (unaff_EDI)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -26,7 +27,6 @@
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; cache module, 0x4425d0
-extern int32_t _wcsicmp(const uint16_t *a, const uint16_t *b); // 0x6277ed, libc
 
 extern uint32_t saved_game_create_default_profile(uint16_t *name); // saved_games module, 0x00539ab0;
     // blam-cc: ECX -> name (0x490226 also pushes a 0 that the callee's rewrite does not read)

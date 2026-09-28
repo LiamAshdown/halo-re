@@ -26,6 +26,7 @@
 //   (CONCAT31); only the low byte is meaningful, matching the house simplification used
 //   throughout this codebase (see src/memory/bit_stream_write_bit.c).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -38,7 +39,6 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern char *unit_base_animation_state_names[6]; // 0x0069fde4, PTR_DAT_0069fde4
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
                                                 uint8_t apply) // blam-cc: see file header
@@ -55,7 +55,7 @@ uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_l
             (ModelAnimationsAnimationGraphUnitSeat *)(*(uint8_t **)(graph + 0x10) + seat_i * 0x64);
         int16_t weapon_slot;
 
-        if (seat_label != 0 && __stricmp(seat_label, seat->label.string) != 0) {
+        if (seat_label != 0 && _stricmp(seat_label, seat->label.string) != 0) {
             continue;
         }
         for (weapon_slot = 0; weapon_slot < (int32_t)seat->weapons.count; weapon_slot++) {
@@ -75,7 +75,7 @@ uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_l
                 if (strcmp(weapon_label, "unarmed") == 0 && weapon_type->label.string[0] == '\0') {
                     break;
                 }
-                if (__stricmp(weapon_label, weapon_type->label.string) == 0) {
+                if (_stricmp(weapon_label, weapon_type->label.string) == 0) {
                     break;
                 }
             }
@@ -96,7 +96,7 @@ uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_l
                 }
                 unit->animation_definition_index = (int8_t)seat_i;
                 for (i = 0; i < 6; i++) {
-                    if (__stricmp(seat_label, unit_base_animation_state_names[i]) == 0) {
+                    if (_stricmp(seat_label, unit_base_animation_state_names[i]) == 0) {
                         base_state = (int8_t)i;
                         break;
                     }

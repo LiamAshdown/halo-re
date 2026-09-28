@@ -6,10 +6,10 @@
 // register convention: string pointer as the recognized parameter (param_1); maximum length in
 // CX (in_CX); byte_stream* in ESI (unaff_ESI).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 
-extern char *strncpy(char *dst, const char *src, uint32_t count); // 00623a90 _strncpy
 
 // blam-cc: max_length in CX, stream in ESI, string as the recognized parameter
 // Writes a NUL-terminated copy of `string` into `stream`, capped to the first max_length

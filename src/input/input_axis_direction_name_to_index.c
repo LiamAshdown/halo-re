@@ -6,6 +6,7 @@
 // input_keyboard_key_name_to_index.c, bounded to 2 entries and a 9-wide-character buffer.
 // register convention: name pointer as the recognized parameter (param_1)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@
 #include <string.h>
 
 extern void input_get_axis_direction_name(int16_t direction_index, uint16_t *out_name); // this module, 0x491180
-extern int32_t _stricmp(const char *a, const char *b); // 0x628d8b, libc
 
 // Resolves an axis-direction display name string (ASCII, case-insensitive) back to its numeric
 // direction index (0 or 1), or 0xffff if neither matches.

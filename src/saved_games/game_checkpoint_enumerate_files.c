@@ -20,6 +20,7 @@
 // register convention: __cdecl; include_autosaves, sort_newest_first, callback and user_data
 // are the recognized stack parameters (Ghidra's own param_1..param_4).
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -33,13 +34,8 @@ extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern uint8_t checkpoint_sort_newest_first; // 0x0069e7e8
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
-extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
-extern char *strchr(const char *str, int32_t ch); // 0x6257e0, CRT strrchr-shaped, not this module
-extern char *strstr(const char *haystack, const char *needle); // 0x625430, CRT strstr-shaped, not this module
 extern int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *name,
     int32_t *out_game_time, win32_systemtime *out_time); // 0x538c60
-extern void _qsort(void *base, uint32_t count, uint32_t element_size,
-    int32_t (*compare)(const void *a, const void *b));
 extern int32_t saved_game_checkpoint_compare(const checkpoint_file_entry *a, const checkpoint_file_entry *b); // 0x538e30
 
 int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first,
@@ -64,14 +60,14 @@ int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_
 
     entries = (checkpoint_file_entry *)GlobalAlloc(0, k_maximum_checkpoint_files * sizeof(checkpoint_file_entry));
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
-    _sprintf(search_path, "%s%s", directory, "checkpoints\\*.sav");
+    sprintf(search_path, "%s%s", directory, "checkpoints\\*.sav");
 
     found_count = 0;
     find_handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)0xffffffff) {
         entry = entries;
         do {
-            _sprintf(name, "%s%s", "checkpoints\\", find_data.cFileName);
+            sprintf(name, "%s%s", "checkpoints\\", find_data.cFileName);
             extension = strchr(name, '.');
             if (extension != 0) {
                 *extension = 0;
@@ -89,7 +85,7 @@ int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_
                     entry->kind = _checkpoint_kind_checkpoint;
 
                     basename = strchr(name, '\\') + 1;
-                    _sprintf(entry->name, "%s", basename);
+                    sprintf(entry->name, "%s", basename);
                     if (strstr(basename, "autosave") == basename && basename[8] == 0) {
                         entry->kind = _checkpoint_kind_autosave;
                     } else if (strstr(basename, "autosave1") == basename && basename[9] == 0) {
@@ -105,7 +101,7 @@ int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_
     }
 
     checkpoint_sort_newest_first = sort_newest_first;
-    _qsort(entries, found_count, sizeof(checkpoint_file_entry),
+    qsort(entries, found_count, sizeof(checkpoint_file_entry),
         (int32_t (*)(const void *, const void *))saved_game_checkpoint_compare);
 
     accepted = 0;

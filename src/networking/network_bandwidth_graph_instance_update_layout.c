@@ -27,6 +27,7 @@
 // Since types/*.h cannot be edited, the label buffer is reached by raw offset from the struct
 // pointer rather than through a (missing) named field.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -39,7 +40,7 @@ extern network_screen_point game_window_bottom_right;  // 0x0069c638
 
 extern void network_bandwidth_graph_instance_history_reset(network_bandwidth_graph *graph); // 0x4d8080, this batch
 
-// UNSURE: Ghidra's callee is __snprintf; since the buffer size it enforces (0x200, matching the
+// UNSURE: Ghidra's callee is _snprintf; since the buffer size it enforces (0x200, matching the
 // label buffer exactly) is not itself meaningfully different from an unbounded sprintf here,
 // plain sprintf (declared by <stdio.h> below) is used for fidelity with what Ghidra shows.
 extern const char *network_bandwidth_units_label_table[2];     // 0x0065d428, indexed by units_index

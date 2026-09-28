@@ -10,6 +10,7 @@
 // prose note already said "this in ECX" but never named the actual parameter (this_parser), and
 // had no machine-readable "// blam-cc:" line, so the checker saw no register mapping at all.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 #include "shell.h"
 
 extern void hwreq_parser_destruct(hwreq_parser *parser); // 0x0057a010
-extern void _free(void *memory);
 
 // Scalar deleting destructor for the hardware-requirements parser object: destructs it via
 // hwreq_parser_destruct and frees its storage.
@@ -25,7 +25,7 @@ void hwreq_parser_scalar_deleting_destructor(hwreq_parser *this_parser)
 {
     if (this_parser != 0) {
         hwreq_parser_destruct(this_parser);
-        _free(this_parser);
+        free(this_parser);
     }
 }
 

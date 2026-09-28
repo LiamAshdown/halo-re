@@ -3,19 +3,19 @@
 // address 0x4d77c0, size 144 bytes
 // name confidence: 0.55   rewrite confidence: 0.85
 // evidence: out/phase4/models_types_notes.md ModelMarker/ModelMarkerInstance section:
-//   "0x4d77c0 binary-searches the names with __stricmp, so the block must be sorted." Standard
+//   "0x4d77c0 binary-searches the names with _stricmp, so the block must be sorted." Standard
 //   binary search over GBXModel.markers (stride 0x40, ModelMarker), name field first.
 // register convention: model tag id in EAX (in_EAX); name as the recognized stack parameter
 //   (param_1).
 //   // blam-cc: EAX -> model_tag_id, stack -> name
 
+#include "crt.h"
 #include "tags.h"
 #include "math.h"
 #include "cache.h"
 #include "models.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 // Binary-searches a model's sorted marker group table (GBXModel.markers, ModelMarker.name
 // first) for a case-insensitive match, returning its index or -1. Also returns -1 for an
@@ -37,7 +37,7 @@ int16_t model_marker_group_index_from_name(datum_index model_tag_id, const char 
     hi = (int16_t)(model->markers.count - 1);
     while (lo <= hi) {
         int16_t mid = (int16_t)((hi + lo) / 2);
-        int32_t cmp = __stricmp(name, markers[mid].name.string);
+        int32_t cmp = _stricmp(name, markers[mid].name.string);
 
         if (cmp == 0) {
             return mid;

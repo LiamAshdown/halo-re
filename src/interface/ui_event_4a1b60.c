@@ -10,6 +10,7 @@
 //   committed selection +0x3c); otherwise selects and focuses child 1. Returns 1.
 // blam-cc: stack -> widget, event, out_handled (cdecl); returns AL
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 #include "interface.h"
 
 extern uint8_t level_select_flags_0071916b; // 0x0071916b, TYPES-GAP
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 extern char level_select_current_path_00719068[0x106]; // 0x00719068, TYPES-GAP
 extern char unknown_00719779[]; // 0x00719779, UNSURE: current scenario/level name buffer
 extern int16_t level_select_frame_00719168; // 0x00719168, TYPES-GAP
@@ -28,7 +28,7 @@ uint8_t ui_event_4a1b60(widget_instance *widget, int16_t *event, uint8_t *out_ha
     int16_t selection = 1;
     int32_t i;
 
-    if (level_select_flags_0071916b == 1 && __stricmp(level_select_current_path_00719068, unknown_00719779) == 0) {
+    if (level_select_flags_0071916b == 1 && _stricmp(level_select_current_path_00719068, unknown_00719779) == 0) {
         selection = level_select_frame_00719168;
     }
     for (i = 0; i < selection && child != 0; i++) {

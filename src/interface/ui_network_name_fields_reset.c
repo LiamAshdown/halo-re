@@ -8,6 +8,7 @@
 // uninitialized wide buffer here) is used regardless via wcsncpy, matching the original exactly.
 // register convention: none (void).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,7 +24,6 @@ extern uint8_t network_host_name_flag_00719276;         // 0x00719276, TYPES-GAP
 extern uint16_t network_host_subname_007191f0[9];        // 0x007191f0
 
 extern void player_profile_set_default_server_options(void); // 0x53a150, foreign (profile module), UNSURE
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 
 uint32_t ui_network_name_fields_reset(void)
 {
@@ -37,7 +37,7 @@ uint32_t ui_network_name_fields_reset(void)
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
     }
 
-    _wcsncpy(network_host_name_field_00719238, unused_name_source, 0x1f);
+    wcsncpy(network_host_name_field_00719238, unused_name_source, 0x1f);
     network_host_name_flag_00719276 = 0;
     network_host_subname_007191f0[0] = 0;
     return 1;

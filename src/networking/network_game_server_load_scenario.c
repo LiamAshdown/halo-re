@@ -13,13 +13,13 @@
 // declared here as generic per-round counters reset before every scenario load.
 // reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
-extern int _fprintf(void *file, const char *format, ...);                // game CRT
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t network_scenario_round_counter_a; // 0x00699f44 (UNSURE name)
@@ -44,7 +44,7 @@ char network_game_server_load_scenario(void)
     ok = network_game_scenario_load_request(&server->session);
     if ((server->flags >> 2 & 1) != 0 && debug_log_level > 2 &&
         network_statistics_logging_enabled != 0 && network_summary_log_file != 0) {
-        _fprintf(network_summary_log_file, "%s\t", network_build_string);
+        fprintf(network_summary_log_file, "%s\t", network_build_string);
     }
     return ok;
 }

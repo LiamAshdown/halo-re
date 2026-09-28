@@ -8,6 +8,7 @@
 //   the widget heap *0x006926c4) with wcsncpy and terminated.
 // blam-cc: stack -> widget
 
+#include "crt.h"
 #include <wchar.h>
 #include "tags.h"
 #include "memory.h"
@@ -19,7 +20,6 @@ extern uint8_t *hud_messaging; // 0x006b3a40
 extern Scenario *global_scenario; // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool; // 0x006926c4
-extern int32_t wcslen(const uint16_t *s); // 0x625b7a
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
 
 void ui_widget_text_from_hud_objective(widget_instance *widget)

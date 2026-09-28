@@ -6,12 +6,12 @@
 // k_cache_file_slot_count.
 // register convention: filename in EDI (unaff_EDI).
 
+#include "crt.h"
 #include "tags.h"
 #include "cache.h"
 
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 // blam-cc: filename in EDI (unaff_EDI)
 // Searches the fixed 6-entry array of open cache-file slots for one whose header name matches
@@ -22,7 +22,7 @@ int16_t cache_file_find_slot_by_name(char *filename)
 
     slot_index = 0;
     do {
-        if (__stricmp(filename, cache_file_slots[slot_index].header.name) == 0) {
+        if (_stricmp(filename, cache_file_slots[slot_index].header.name) == 0) {
             return slot_index;
         }
         slot_index = slot_index + 1;

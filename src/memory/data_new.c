@@ -8,11 +8,11 @@
 // register convention: name as the recognized parameter (param_1); maximum_count as the
 // recognized parameter (param_2); element size in BX (unaff_BX).
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
 
-extern char *strncpy(char *dst, const char *src, uint32_t count); // 00623a90 _strncpy
 
 // blam-cc: element size in EBX, then the recognized stack parameters (name, maximum_count)
 // Allocates and initializes a Blam data_array: header with name (copied, truncated to 31 chars

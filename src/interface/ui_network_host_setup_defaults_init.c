@@ -17,6 +17,7 @@
 // register convention: cdecl, the one stack parameter (widget).
 // reconciled: R56 0x00712dd8 uint8_t saved_profile_records[3][0x2004] -> saved_games.h saved_player_profile_slot saved_player_profile_slots[k_maximum_local_player_profiles] (one 0x2004-byte slot; a second would overlap 0x00714dde); same bytes copied/read
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -39,8 +40,6 @@ extern int32_t resolution_selected_value_00699584;  // 0x00699584
 extern uint8_t network_capability_flag_006894a2;    // 0x006894a2
 
 extern void player_profile_set_default_server_options(uint8_t *out_profile);     // 0x53a150, blam-cc: ESI out_profile; builds the default profile
-extern uint32_t wcslen(const uint16_t *s);    // wcslen
-extern void _wcscpy(uint16_t *dest, const uint16_t *src);
 
 uint8_t ui_network_host_setup_defaults_init(widget_instance *widget)
 {
@@ -63,9 +62,9 @@ uint8_t ui_network_host_setup_defaults_init(widget_instance *widget)
     }
 
     wcslen((const uint16_t *)(profile + 0xd8c));
-    _wcscpy(network_host_name_00719170, (const uint16_t *)(profile + 0xd8c));
+    wcscpy(network_host_name_00719170, (const uint16_t *)(profile + 0xd8c));
     wcslen((const uint16_t *)(profile + 0xeac));
-    _wcscpy(network_host_subname_007191f0, (const uint16_t *)(profile + 0xeac));
+    wcscpy(network_host_subname_007191f0, (const uint16_t *)(profile + 0xeac));
 
     choice = (profile[0xfc0] > 4) ? 4 : profile[0xfc0];
     last_row = resolution_row_count_table_0065bfb4[choice] - 1;

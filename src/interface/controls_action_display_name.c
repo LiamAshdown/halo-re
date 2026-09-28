@@ -10,6 +10,7 @@
 // register convention: EAX device, EDI action name.
 //   // blam-cc: device -> EAX, action_name -> EDI
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,7 +26,6 @@ extern uint8_t controls_enumerate_next_assignable_action(int32_t device, int16_t
                                                           uint8_t accept_reserved_on_retry); // 0x4b43e0, blam-cc: EAX device, ECX record, EDI action_name
 extern void input_get_binding_display_name(uint8_t *binding, uint16_t *out_name); // 0x48c7f0; blam-cc: EAX -> binding, ECX -> out_name
 extern uint32_t wcslen_halo(const uint16_t *text); // 0x625b7a, wcslen
-extern uint16_t *_wcscpy(uint16_t *dest, const uint16_t *source); // 0x625bba: the CRT's wcscpy (copies through the NUL, returns dest)
 
 // blam-cc: device -> EAX, action_name -> EDI
 uint16_t *controls_action_display_name(int32_t device, const char *action_name)
@@ -37,7 +37,7 @@ uint16_t *controls_action_display_name(int32_t device, const char *action_name)
         input_get_binding_display_name((uint8_t *)record, controls_action_name_buffer);
     }
     if (controls_action_name_buffer[0] == 0) {
-        _wcscpy(controls_action_name_buffer, hud_text_unbound); // 0x625bba ignores the third (length) push
+        wcscpy(controls_action_name_buffer, hud_text_unbound); // 0x625bba ignores the third (length) push
     }
     return controls_action_name_buffer;
 }

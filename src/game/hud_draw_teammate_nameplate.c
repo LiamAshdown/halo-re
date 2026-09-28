@@ -12,6 +12,7 @@
 // UNSURE: hud_draw_teammate_nameplate_text and FUN_006283c0 are outside this batch's range; FUN_006283c0's return is
 // treated as a plain float (a per-frame time delta or fade weight) multiplied by 0.5.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,7 @@
 #include <string.h>
 #include <wchar.h>
 
-// wcsncpy (0x00627a94 _wcsncpy) comes from <wchar.h>; memset is inlined by the compiler.
+// wcsncpy (0x00627a94 wcsncpy) comes from <wchar.h>; memset is inlined by the compiler.
 extern data_array *player_data; // 0x0087a480
 
 extern datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle); // 0x45e340, this batch

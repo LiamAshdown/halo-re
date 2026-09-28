@@ -19,6 +19,7 @@
 // DAT_007102dc (a wait-tick counter) are not attested elsewhere in this module. The failure-path
 // record dereference (`**(int **)(queue->records + read_index*4)`) is transcribed literally.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,7 +32,6 @@ extern uint16_t local_player_name_filter[]; // 0x0071c420, UNSURE name/purpose
 extern uint8_t position_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick,
     real_point3d *out); // this module (a later batch), 0x47a100
 extern void player_update_history_log_printf_filtered(int32_t level, const char *format, ...); // 0x4e5f20
-extern int32_t _wcscmp(const uint16_t *a, const uint16_t *b); // 0x627d17, CRT
 extern void unit_snap_position_if_far(real_point3d *new_position, object *obj); // this batch, 0x4772e0
 extern double sqrt(double x); // x87 FSQRT
 
@@ -57,7 +57,7 @@ void apply_remote_player_position_update(player *plr, object *unit_obj)
         float dist = (float)sqrt(dx * dx + dy * dy + dz * dz);
 
         player_update_history_log_printf_filtered(1, "Waited [%d], dist [%f].", wait_tick_counter, (double)dist);
-        if (_wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
+        if (wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
             wait_tick_counter = 0;
         }
         plr->unknown_1ec = plr->unknown_1ec + 1;
@@ -85,7 +85,7 @@ void apply_remote_player_position_update(player *plr, object *unit_obj)
             int32_t *head_record = *(int32_t **)((uint8_t *)queue->records + read_index * 4);
             player_update_history_log_printf_filtered(1, "Can't update pos: [%d] != [%d]",
                                                         target_tick, *head_record);
-            if (_wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
+            if (wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
                 wait_tick_counter = wait_tick_counter + 1;
             }
         }

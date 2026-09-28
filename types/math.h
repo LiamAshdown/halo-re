@@ -1,3 +1,6 @@
+#ifndef HALO_TYPES_MATH_H   /* guarded: <process.h> includes <math.h>, which finds this file on the include path */
+#define HALO_TYPES_MATH_H
+
 // Blam math module (halo.exe 1.0.10 retail, 0x401050..0x4cf7a0, 99 functions).
 // Layouts recovered from the decompiled module plus direct reads of the .rdata
 // constant tables in bin/halo.exe. Offsets in comments are byte offsets from the
@@ -389,3 +392,5 @@ typedef struct projection_axis_pair {
 //   default 0x004cc0d0 (scalar), SSE 0x004cc250, 3DNow! 0x004cc3a0
 
 #pragma pack(pop)
+
+#endif

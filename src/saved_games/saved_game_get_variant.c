@@ -28,6 +28,7 @@
 // is reproduced as a dead write to an unused local rather than folded into the struct.
 // register convention: __cdecl, plain stack arguments (handle, out).
 
+#include "crt.h"
 #include "win32.h"
 #include <string.h>
 #include "tags.h"
@@ -47,7 +48,6 @@ extern uint16_t *saved_game_get_display_name(int32_t handle); // 0x53c600, this 
 extern uint8_t saved_game_open_file_by_handle(int32_t handle, file_reference_record *out_ref); // 0x53c9f0, this module
 extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size); // 0x555a20, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
-extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
 
 // blam-cc: __cdecl, plain stack arguments (handle, out)
 // Fills *out with a full game_variant for handle: if handle is non-negative (checksum bit clear,
@@ -88,7 +88,7 @@ uint8_t saved_game_get_variant(int32_t handle, game_variant *out)
         memcpy(&defaults, defaults_ptr, sizeof(defaults));
         dead_word = 0;
         display_name = saved_game_get_display_name(handle);
-        _wcsncpy(defaults.name, display_name, 0x17);
+        wcsncpy(defaults.name, display_name, 0x17);
         defaults.name[0x17] = 0;
         memcpy(out, &defaults, sizeof(*out));
         return 1;
@@ -110,7 +110,7 @@ uint8_t saved_game_get_variant(int32_t handle, game_variant *out)
                     memcpy(&defaults, defaults_ptr, sizeof(defaults));
                     dead_word = 0;
                     display_name = saved_game_get_display_name(handle);
-                    _wcsncpy(defaults.name, display_name, 0x17);
+                    wcsncpy(defaults.name, display_name, 0x17);
                     defaults.name[0x17] = 0;
                     memcpy(out, &defaults, sizeof(*out));
                 }

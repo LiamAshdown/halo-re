@@ -27,6 +27,7 @@
 // UNSURE: ServerBrowserNew (master-server query engine constructor, 8 arguments) and LAB_004ba660
 // (a callback address outside this session's range) are declared only by observed shape.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -86,7 +87,6 @@ extern int32_t autopatch_download_start(const char *source); // 0x576e60, outsid
 extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index); // 0x4b6160, this module, see UNSURE
 extern int32_t tag_lookup(const char *path); // foreign, tags module
 extern uint16_t *text_string_list_get_string(int32_t tag_index, int32_t string_index); // foreign, see UNSURE
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 extern void server_list_reset(void); // 0x4b65f0, this module
 extern void join_game_server_browser_tick(network_ui_widget *root); // 0x4b80f0, this module
 
@@ -132,7 +132,7 @@ int32_t server_browser_open(network_ui_widget *root)
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
         if (tag_index != -1) {
             source = text_string_list_get_string(tag_index, 0);
-            _wcsncpy(DAT_00719498, source, 0xff);
+            wcsncpy(DAT_00719498, source, 0xff);
             DAT_00719696 = 0;
         }
     }

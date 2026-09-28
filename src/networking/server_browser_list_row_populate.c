@@ -25,6 +25,7 @@
 // DAT_00660c34 (passed to FUN_00625b7a on the two "leave blank" paths) are declared only by
 // address.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -43,8 +44,6 @@ extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_byte
 extern wchar_t string_widen_scratch[0x400]; // 0x006b5e90, the 0x800-byte shared target
 extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...); // 0x557910, blam-cc: EDX count;
     // the bound (0x1f at the 0x4b84e0 call sites) rides in EDX and is not modeled here // foreign
-extern wchar_t *_wcscpy(wchar_t *dest, const wchar_t *source);
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
 // blam-cc: row widget in EAX (in_EAX), flag1 in CL (in_CL), flag2 in DL (in_DL)
 void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,
@@ -67,14 +66,14 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w2->label_text = text;
     if (text != 0) {
         wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, server_name);
-        _wcsncpy(w2->label_text, source, 0x3f);
+        wcsncpy(w2->label_text, source, 0x3f);
         *(uint16_t *)((uint8_t *)w2->label_text + 0x7e) = 0;
     }
     w1 = w2->next_sibling;
     text = (wchar_t *)heap_reallocate(0, 0x40, &widget_memory_pool);
     w1->label_text = text;
     if (text != 0) {
-        _wcsncpy(text, map_name, 0x1f);
+        wcsncpy(text, map_name, 0x1f);
         *(uint16_t *)((uint8_t *)w1->label_text + 0x3e) = 0;
     }
     w1 = w1->next_sibling;
@@ -85,7 +84,7 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w2->label_text = text;
     if (text != 0) {
         wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, gametype_name);
-        _wcsncpy(w2->label_text, source, 0x1f);
+        wcsncpy(w2->label_text, source, 0x1f);
         *(uint16_t *)((uint8_t *)w2->label_text + 0x3e) = 0;
     }
     w1 = w2->next_sibling;
@@ -93,7 +92,7 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w1->label_text = text;
     if (text != 0) {
         if (count_a == -1 || count_b == -1) {
-            _wcscpy(text, L""); // FIXED 2026-09-28: the wcslen (0x625b7a) before it is the inlined copy's unused length
+            wcscpy(text, L""); // FIXED 2026-09-28: the wcslen (0x625b7a) before it is the inlined copy's unused length
         } else {
             string_format_wide_va_bounded(0x1f, text, L"%d / %d", count_a, count_b); // FIXED: EDX = 0x1f at 0x4b6925
             *(uint16_t *)((uint8_t *)w1->label_text + 0x3e) = 0;
@@ -108,7 +107,7 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
             *(uint16_t *)((uint8_t *)w1->label_text + 0xe) = 0;
             return;
         }
-        _wcscpy(text, L"");
+        wcscpy(text, L"");
     }
 }
 

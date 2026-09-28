@@ -23,6 +23,7 @@
 // of any other size fails the exact-count read and is left checksum_valid = 0.
 // register convention: __cdecl, no parameters.
 
+#include "crt.h"
 #include "win32.h"
 #include <string.h>
 #include "tags.h"
@@ -56,8 +57,6 @@ extern int32_t savegame_find_first(const char *root, void *out_find_data); // 0x
 extern uint8_t savegame_find_next(void *out_find_data, int32_t handle); // 0x551d30, game module; blam-cc: EAX out_find_data, ECX handle
 extern uint8_t user_save_path_remove(int32_t handle); // 0x5516d0, game module; blam-cc: EAX handle
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
-extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // CRT
-extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 
 // blam-cc: __cdecl, no parameters
@@ -107,7 +106,7 @@ void saved_game_list_rebuild_index(void)
                     }
                     memset(&entry, 0, sizeof(entry));
 
-                    path_len = __snprintf(entry.path, 0xff, "%s%s", find_data.save_game_directory, "blam.sav");
+                    path_len = _snprintf(entry.path, 0xff, "%s%s", find_data.save_game_directory, "blam.sav");
                     entry_type = -1;
                     if (path_len < 1) {
                         goto try_variant;
@@ -130,7 +129,7 @@ void saved_game_list_rebuild_index(void)
                     goto have_candidate;
 
                 try_variant:
-                    path_len = __snprintf(entry.path, 0xff, "%s%s", find_data.save_game_directory, "blam.lst");
+                    path_len = _snprintf(entry.path, 0xff, "%s%s", find_data.save_game_directory, "blam.lst");
                     if (0 < path_len) {
                         memset(&ref, 0, sizeof(ref));
                         ref.signature = k_file_reference_signature;
@@ -154,7 +153,7 @@ void saved_game_list_rebuild_index(void)
                     goto next_entry;
 
                 have_candidate:
-                    _wcsncpy(entry.display_name, find_data.save_game_name, 0x7f);
+                    wcsncpy(entry.display_name, find_data.save_game_name, 0x7f);
                     entry.type = entry_type;
 
                     opened = file_reference_open(&ref, 1);

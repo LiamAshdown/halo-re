@@ -7,6 +7,7 @@
 // bytes at console_active + 0x94 match terminal_console::prompt exactly.
 // register convention: none (void).
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +21,6 @@ extern void *console_output_handle;       // 0x006b2dd0, win32 console output ha
 extern terminal_console *console_active;  // 0x006b2f0c
 extern char console_window_title[0x20];   // 0x006b2dd8
 
-extern char *_strncpy(char *dest, const char *source, uint32_t count);
 extern void console_draw_input_line(void); // 0x4970a0
 
 // While a win32 console is attached, forces its cursor back to visible, refreshes the window
@@ -36,7 +36,7 @@ void console_restore_cursor(void)
             info.bVisible = 1;
             SetConsoleCursorInfo(console_output_handle, &info);
         }
-        _strncpy(console_window_title, console_active->prompt, 0x1f);
+        strncpy(console_window_title, console_active->prompt, 0x1f);
         console_draw_input_line();
     }
 }

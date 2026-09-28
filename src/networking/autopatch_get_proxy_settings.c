@@ -25,6 +25,7 @@
 // register convention: no parameters.
 //   // blam-cc: none -> returns char * (always autopatch_proxy_server)
 
+#include "crt.h"
 #include "win32.h"
 #include <ctype.h>
 #include "tags.h"
@@ -62,9 +63,6 @@ extern char autopatch_proxy_server[0x100]; // 0x007227d0, 0x007228cf is its last
 
 extern int32_t InternetQueryOptionA(void *internet, uint32_t option, void *buffer,
     uint32_t *buffer_length); // 0x0069ffd0 wininet delay-load slot
-extern char *_strncpy(char *dest, const char *source, uint32_t count); // 0x623a90, CRT
-extern char *_strtok(char *string, const char *delimiters);  // 0x62553c, CRT
-extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 
 static const uint16_t k_agent_halopc[] = { 'H', 'a', 'l', 'o', 'P', 'C', 0 }; // 0x6720d0
 static const uint16_t k_bungie_url[] = { 'h', 't', 't', 'p', ':', '/', '/', 'w', 'w', 'w', '.',
@@ -104,7 +102,7 @@ char *autopatch_get_proxy_settings(void)
     query_length = 0x3ff;
     if (InternetQueryOptionA(0, 0x26, query_buffer, &query_length) && query_length > 1 &&
         ((internet_proxy_info *)query_buffer)->proxy != 0) {
-        _strncpy(proxy_list, ((internet_proxy_info *)query_buffer)->proxy, 0x400);
+        strncpy(proxy_list, ((internet_proxy_info *)query_buffer)->proxy, 0x400);
         proxy_list[0x3ff] = 0;
     }
 
@@ -154,7 +152,7 @@ char *autopatch_get_proxy_settings(void)
     }
 
     token_count = 0;
-    token = _strtok(proxy_list, " ;");
+    token = strtok(proxy_list, " ;");
     if (token == 0) {
         return autopatch_proxy_server;
     }
@@ -167,7 +165,7 @@ char *autopatch_get_proxy_settings(void)
             }
             goto copy_proxy;
         }
-        token = _strtok(0, " ;");
+        token = strtok(0, " ;");
     } while (token != 0);
     if (token_count <= 0) {
         return autopatch_proxy_server;
@@ -178,7 +176,7 @@ copy_proxy:
     while (strstr(proxy, "http://") == proxy) {
         proxy += 7;
     }
-    _strncpy(autopatch_proxy_server, proxy, 0x100);
+    strncpy(autopatch_proxy_server, proxy, 0x100);
     autopatch_proxy_server[0xff] = 0;
     return autopatch_proxy_server;
 }

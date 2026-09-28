@@ -2,18 +2,18 @@
 // address 0x483690, size 81 bytes
 // name confidence: 0.4   rewrite confidence: 0.75
 // evidence: tests `candidate` case-insensitively against hs_autocomplete_prefix
-// (__strnicmp over strlen(prefix) bytes) and, on a match, appends it to hs_autocomplete_results
+// (_strnicmp over strlen(prefix) bytes) and, on a match, appends it to hs_autocomplete_results
 // if there is room -- the innermost building block of the chimera__autocomplete_* family
 // documented in out/phase4/hs_types_notes.md.
 // register convention: the candidate string is unrecognized by Ghidra (unaff_EDI); by the
 // blam-cc convention this is the sixth register slot, EDI.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
 
-extern int32_t __strnicmp(const char *a, const char *b, int32_t count); // 0x006375da
 
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0
 extern char *hs_autocomplete_prefix;          // 0x006b14a4
@@ -29,7 +29,7 @@ void hs_autocomplete_test_candidate(char *candidate)
 
     if (hs_autocomplete_count < hs_autocomplete_maximum_count) {
         prefix_length = (int32_t)strlen(hs_autocomplete_prefix);
-        if (__strnicmp(candidate, hs_autocomplete_prefix, prefix_length) == 0) {
+        if (_strnicmp(candidate, hs_autocomplete_prefix, prefix_length) == 0) {
             hs_autocomplete_results[hs_autocomplete_count] = candidate;
             hs_autocomplete_count = hs_autocomplete_count + 1;
         }

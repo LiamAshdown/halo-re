@@ -5,7 +5,7 @@
 //   actor.next_in_encounter(0x2c)/active(0x08)/unknown_0c(0x0c); encounter.units_active(0x0d)/
 //   unknown_2a/unknown_10. Record layout {tiebreak, pad, handle, priority} confirmed against
 //   ai_squad_priority_compare @0x42ac90 (this rewrite). Calls data_iterator_next (0x4d05d0,
-//   memory module) and the C library _qsort.
+//   memory module) and the C library qsort.
 //   UNSURE: the encounter-branch's record handle is written from a local that the original
 //   only ever sets to -1 right before this loop and never updates inside it, so every
 //   encounter-derived record's handle is genuinely always k_datum_index_none, not a real
@@ -17,6 +17,7 @@
 //   // blam-cc: stack -> out_list
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

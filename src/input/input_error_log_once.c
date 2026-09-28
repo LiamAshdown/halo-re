@@ -7,6 +7,7 @@
 // Ghidra recovered a full __cdecl signature, so no register-convention guesswork is needed.
 // register convention: __cdecl, both arguments on the stack (error_code, format)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@
 #include <stdarg.h>
 
 extern int32_t input_last_error; // 0x0068e544
-extern int32_t _vsprintf(char *buffer, const char *format, va_list args); // 0x625963, libc
 
 // Formats description (printf-style, with any varargs) into a scratch buffer, but only the
 // first time error_code is seen; repeats of the same HRESULT-like code are suppressed. Every
@@ -33,7 +33,7 @@ void input_error_log_once(int32_t error_code, char *description, ...)
     if (error_code != input_last_error) {
         input_last_error = error_code;
         va_start(args, description);
-        _vsprintf(message, description, args);
+        vsprintf(message, description, args);
         va_end(args);
     }
 }

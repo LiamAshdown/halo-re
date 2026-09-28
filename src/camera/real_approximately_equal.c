@@ -7,18 +7,18 @@
 // decompiler artifact of the FCOM/FNSTSW sequence, not real behaviour).
 // register convention: __cdecl, both values on the stack (Ghidra's recognized param_1, param_2).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
 
-extern int32_t __isnan(double x); // 0x624494, MSVC CRT
 
 // Returns whether a and b are equal within a small epsilon (0.001), guarding against NaN.
 uint8_t real_approximately_equal(float a, float b)
 {
     float difference;
 
-    if (__isnan((double)(a - b)) != 0) {
+    if (_isnan((double)(a - b)) != 0) {
         return 0;
     }
     difference = a - b;

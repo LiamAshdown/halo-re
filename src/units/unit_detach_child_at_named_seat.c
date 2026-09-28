@@ -6,6 +6,7 @@
 //   compared). Returns how many started their exit animation (a vehicle unit detached is not counted).
 // blam-cc: stack -> unit_index, seat_marker_name
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
@@ -198,8 +199,6 @@ static void biped_free_local_player_history(uint8_t *self)
 }
 
 extern object *object_iterator_next(void *iterator); // 0x4f6f20, stack
-extern int32_t _tolower(int32_t c); // 0x624687
-extern char *strstr(const char *haystack, const char *needle); // 0x625430
 
 // the 0x10-byte iterator this function builds on its stack (0x56abc8)
 typedef struct unit_seat_iterator {

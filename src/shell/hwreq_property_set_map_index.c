@@ -6,6 +6,7 @@
 //   (tree_hint_insert_unique 0x57ba50) and the local key copy released. Returns the address of the node's value.
 // blam-cc: EDI key, stack -> map (callee pops 4)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,7 +24,6 @@ extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_s
     uint32_t count); // 0x57b830, blam-cc: ECX this, stack right, pos, count
 extern hwreq_map_node *tree_hint_insert_unique(msvc_std_map *tree, hwreq_map_node **result_holder,
     hwreq_map_node *hint, const hwreq_map_value_type *value); // 0x57ba50
-extern void _free(void *ptr); // 0x6277e8
 
 hwreq_property_set **hwreq_property_set_map_index(msvc_std_string *key, msvc_std_map *map)
 {
@@ -43,7 +43,7 @@ hwreq_property_set **hwreq_property_set_map_index(msvc_std_string *key, msvc_std
         tree_hint_insert_unique(map, &inserted, node, &pair);
         node = inserted;
         if (pair.key.capacity >= 0x10) {
-            _free((void *)pair.key.buffer.heap_buffer);
+            free((void *)pair.key.buffer.heap_buffer);
         }
     }
     return (hwreq_property_set **)&node->value;

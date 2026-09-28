@@ -20,6 +20,7 @@
 //   this matches every other "opaque zero-arg call" resolved elsewhere in this pass by trusting
 //   the live register rather than Ghidra's rendering.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,7 +28,6 @@
 #include "shell.h"
 
 extern void hwreq_map_node_key_destruct(hwreq_map_node *node); // 0x57cde0, same pass
-extern void _free(void *ptr); // 0x6277e8
 
 // blam-cc: ECX -> map_self, stack -> node
 void tree_destroy_subtree(void *map_self, hwreq_map_node *node)
@@ -36,7 +36,7 @@ void tree_destroy_subtree(void *map_self, hwreq_map_node *node)
         hwreq_map_node *left = (hwreq_map_node *)node->left;
         tree_destroy_subtree(map_self, (hwreq_map_node *)node->right);
         hwreq_map_node_key_destruct(node);
-        _free(node);
+        free(node);
         node = left;
     }
 }

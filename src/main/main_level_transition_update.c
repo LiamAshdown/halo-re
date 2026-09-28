@@ -21,10 +21,11 @@
 // &request.map_name and BL = 1 (the phase 3 file called it without arguments).
 // UNSURE: FUN_00624236 (0x624236) is undocumented elsewhere; its address and (path, mode)
 // call shape match the CRT _access family used throughout this codebase (e.g. 0x623a90
-// _strncpy, 0x623693 _sprintf), so it is declared as _access here.
+// strncpy, 0x623693 sprintf), so it is declared as _access here.
 // reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
 // reconciled: R13 network_scenario_load_request.seed (+0x06) -> difficulty (campaign difficulty, lands at game globals +0x0e)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

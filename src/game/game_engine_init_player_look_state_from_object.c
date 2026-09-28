@@ -10,10 +10,11 @@
 // register convention: local-player index in AX (Ghidra's `in_AX`), unit handle in EDX (Ghidra's
 // `in_EDX`).
 //   // blam-cc: EDX -> unit, AX -> local_player_index
-// UNSURE: the trailing `__isnan` calls compute a boolean that is never stored or branched on
+// UNSURE: the trailing `_isnan` calls compute a boolean that is never stored or branched on
 // (Ghidra's own rendering shows the same); transcribed literally as dead diagnostic code rather
 // than removed, since the task requires preserving every call and its order.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,7 +28,6 @@ extern data_array *object_headers;                          // 0x008603b0
 
 extern double atan2(double y, double x); // x87 FPATAN
 extern double sqrt(double x);            // x87 FSQRT
-extern int32_t __isnan(double x); // 0x624494, MSVC CRT
 
 // blam-cc: EDX -> unit, AX -> local_player_index
 // Zeroes and reinitializes local_player_index's look-state record exactly like
@@ -66,8 +66,8 @@ void game_engine_init_player_look_state_from_object(datum_index unit, int16_t lo
         look->desired_grenade_index = (int16_t)u->desired_grenade_index;
         look->desired_zoom_level = (int16_t)u->desired_zoom_level;
 
-        if (!__isnan((double)look->pitch) && look->pitch <= 1.4922565f && -1.4922565f <= look->pitch) {
-            __isnan((double)look->yaw); // UNSURE: dead diagnostic, see header
+        if (!_isnan((double)look->pitch) && look->pitch <= 1.4922565f && -1.4922565f <= look->pitch) {
+            _isnan((double)look->yaw); // UNSURE: dead diagnostic, see header
         }
     }
 }

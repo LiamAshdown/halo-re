@@ -9,6 +9,7 @@
 // note wrote "text -> EAX" (name first, "->" separator) which the checker's parser does not
 // recognize -- only "EAX -> text" or "text in EAX" forms are.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 #include "interface.h"
 
 #define WCTYPE_SPACE 0x0008
-extern int32_t _iswctype(uint16_t ch, int32_t mask);
 
 // blam-cc: EAX -> text
 // Returns true as soon as a non-whitespace wide character is found, or false if the string is
@@ -26,7 +26,7 @@ uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text)
 {
     uint16_t ch = *text;
     while (ch != 0) {
-        if (!_iswctype(ch, WCTYPE_SPACE)) {
+        if (!iswctype(ch, WCTYPE_SPACE)) {
             return 1;
         }
         text = text + 1;

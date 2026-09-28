@@ -9,6 +9,7 @@
 //   +-5000 on every axis. A resulting jump of more than 2 snaps it onto the anchor after all.
 // blam-cc: EAX -> object_index
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +23,6 @@ extern uint8_t DAT_00689471;    // 0x00689471, the smoothing toggle
 extern uint8_t object_nudge_position_by_velocity(uint32_t object_index, real_point3d *out); // 0x4f7c40, EAX, stack
 extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index); // 0x4f52c0, ESI, EDI
 extern double sqrt(double x);      // a single x87 FSQRT
-extern int __isnan(double x);      // 0x624494, msvcrt
 extern uint8_t real_is_valid(float value); // 0x4476c0
 
 static uint8_t coordinate_in_range(float value)
@@ -49,7 +49,7 @@ void unit_recalculate_position(uint32_t object_index)
         midpoint.x = (previous.x + nudged.x) * 0.5f;
         midpoint.y = (previous.y + nudged.y) * 0.5f;
         midpoint.z = (previous.z + nudged.z) * 0.5f;
-        if (!__isnan((double)midpoint.x) && coordinate_in_range(midpoint.x) &&
+        if (!_isnan((double)midpoint.x) && coordinate_in_range(midpoint.x) &&
             real_is_valid(midpoint.y) && coordinate_in_range(midpoint.y) &&
             real_is_valid(midpoint.z) && coordinate_in_range(midpoint.z)) {
             target = &midpoint;

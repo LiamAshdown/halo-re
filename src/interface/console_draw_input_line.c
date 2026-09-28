@@ -6,15 +6,16 @@
 // chimera__console_out_copy after either changes. The "%s %s" string is confirmed by
 // out/phase4 naming hints against this exact address.
 // register convention: no register-passed arguments.
-// UNSURE: after formatting "%s %s" with __snprintf, the function immediately does what is
+// UNSURE: after formatting "%s %s" with _snprintf, the function immediately does what is
 // arithmetically an in-place strcpy(line + strlen(title), input) -- Ghidra shows this as a
 // byte-copy loop indexed through a 16-bit-truncated pointer difference that only resolves
 // correctly because the compiler folded a compile-time-constant global address into it. The
-// net, reproducible effect is that it overwrites the separating space __snprintf just wrote and
+// net, reproducible effect is that it overwrites the separating space _snprintf just wrote and
 // re-pastes input right after title with no space between them; preserved verbatim, not "fixed".
 // TYPES-GAP: COORD / CONSOLE_SCREEN_BUFFER_INFO are plain win32 console API structs, not engine
 // types; declared locally rather than added to types/interface.h.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -29,9 +30,6 @@ extern char console_window_title[0x20];  // 0x006b2dd8
 extern void *console_output_handle;      // 0x006b2dd0
 
 extern void console_position_cursor(void); // 0x4971a0
-extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...);
-extern char *strcpy(char *dest, const char *source);
-extern uint32_t strlen(const char *s);
 
 // Draws "<window title> <input line>" over the last row of the attached win32 console window.
 void console_draw_input_line(void)
@@ -43,7 +41,7 @@ void console_draw_input_line(void)
     uint32_t length;
 
     if (console_win32_attached != 0 && console_active != (terminal_console *)0) {
-        __snprintf(line, 0x11e, "%s %s", console_window_title, console_active->input);
+        _snprintf(line, 0x11e, "%s %s", console_window_title, console_active->input);
         strcpy(line + strlen(console_window_title), console_active->input);
         if (GetConsoleScreenBufferInfo(console_output_handle, &info) != 0) {
             bottom_left.X = 0;

@@ -26,6 +26,7 @@
 //   // blam-cc: local_player_index -> AX
 // reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
+#include "crt.h"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -68,7 +69,6 @@ extern const uint16_t hud_text_no_button_icon[]; // 0x0066a94c, L"<no button ico
 
 extern int32_t __ftol(double x); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
 extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpow
-extern void qsort(void *base, uint32_t count, uint32_t size, int32_t (*compare)(const void *, const void *)); // 0x623410
 extern uint8_t game_engine_local_player_score_is_nonpositive(datum_index player_index); // 0x466340, blam-cc: EAX player_index; UNSURE: a per player HUD visibility test
 extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0; blam-cc: EAX -> out, ECX -> packed
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900

@@ -13,6 +13,7 @@
 // exactly as decompiled; not fixed.
 // register convention: name in EAX
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -27,7 +28,6 @@
 extern char joystick_axis_prefix[0x18]; // 0x0065b908, "axis"
 extern char decimal_suffixes[0x20][3];  // 0x0065b988, "0" .. "31"
 
-extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern int16_t input_axis_direction_name_to_index(char *name); // this module, 0x4911f0
 
 // blam-cc: name in EAX

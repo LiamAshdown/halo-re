@@ -7,6 +7,7 @@
 // buffer) match the call order sprintf/WriteFile use them in.
 // register convention: size in EDI; name and buffer are the recognized stack parameters.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -18,7 +19,6 @@
 
 extern char game_state_core_directory[0x100]; // 0x006e2efc
 
-extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
 
 // blam-cc: size in EDI, then the recognized stack parameters (name, buffer)
 // Ensures game_state_core_directory exists, then writes size bytes of buffer to
@@ -32,7 +32,7 @@ uint8_t game_state_write_profile_file(int32_t size, char *name, const void *buff
 
     result = 0;
     CreateDirectoryA(game_state_core_directory, 0);
-    _sprintf(path, "%s\\%s", game_state_core_directory, name);
+    sprintf(path, "%s\\%s", game_state_core_directory, name);
     file = CreateFileA(path, 0x40000000, 0, 0, 2 /* CREATE_ALWAYS */, 0x80 /* FILE_FLAG_RANDOM_ACCESS */, 0);
     if (file != (void *)0xffffffff) {
         if (WriteFile(file, buffer, size, &bytes_written, 0) != 0 && bytes_written == (uint32_t)size) {

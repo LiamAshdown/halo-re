@@ -20,6 +20,7 @@
 // register convention: none, __cdecl with no parameters; returns a bool in AL.
 // reconciled: R80 0x0071cfc4 uint32_t* cinematic_globals -> render.h cinematic_screen_effect_globals *cinematic_screen_effect_state
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -116,8 +117,6 @@ extern uint8_t command_line_check_flag(const char *flag, const char **out_value)
 extern int32_t shell_parse_config_txt(uint32_t adapter, void *direct3d);         // 0x57d410, ECX adapter, EDX direct3d
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern void crc32_build_table(crc32_table *table);                               // 0x4d0330, blam-cc: table in EDX
-extern int32_t __stricmp(const char *a, const char *b);                          // 0x628d8b
-extern int sscanf(const char *buffer, const char *format, ...);                  // 0x626572
 
 // Win32
 
@@ -139,7 +138,7 @@ static int command_line_has_switch(const char *name)
     for (i = 0; i < command_line_argc; i++) {
         const char *argument = command_line_argv[i];
 
-        if (argument[0] == '-' && __stricmp(name, argument) == 0) {
+        if (argument[0] == '-' && _stricmp(name, argument) == 0) {
             return 1;
         }
     }

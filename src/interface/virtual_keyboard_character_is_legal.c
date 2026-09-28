@@ -17,6 +17,7 @@
 // register reads.
 //   // blam-cc: validation_mode -> EAX, character -> CL
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,9 +26,6 @@
 #include "interface.h"
 
 extern uint8_t *virtual_keyboard_blacklist_charset; // 0x00692d78, UNSURE: passed to strchr
-extern int32_t strchr(uint8_t *charset, uint8_t ch); // 0x6257e0, UNSURE signature, membership test
-extern int32_t _isdigit(uint32_t ch);
-extern int32_t _isalnum(uint32_t ch);
 
 // blam-cc: validation_mode -> EAX, character -> CL
 // Filters a typed character against the current virtual-keyboard field's allowed character set:
@@ -39,13 +37,13 @@ uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t cha
     if (validation_mode != 3) {
         if (validation_mode != 4) {
             if (validation_mode != 5) {
-                int32_t blocked = strchr(virtual_keyboard_blacklist_charset, character);
+                const char *blocked = strchr(virtual_keyboard_blacklist_charset, character);
                 return (uint8_t)(1 - (blocked != 0));
             }
-            return (uint8_t)_isdigit(character); // the caller tests AL of the CRT result
+            return (uint8_t)isdigit(character); // the caller tests AL of the CRT result
         }
         if (character != '.' && character != '-' && character != ':') {
-            if (!_isalnum(character)) {
+            if (!isalnum(character)) {
                 return 0;
             }
         }

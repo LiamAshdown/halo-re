@@ -19,6 +19,7 @@
 // ever having copied any file) -- kept exactly as found, not "fixed".
 // register convention: saved-game handle in EAX; new_name as the one stack argument.
 
+#include "crt.h"
 #include "win32.h"
 #include <string.h>
 #include "tags.h"
@@ -37,11 +38,6 @@ extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root
     uint32_t out_path_size); // 0x551710, blam-cc: EAX save_game_name (src/game/XCreateSaveGame.c: validity_token)
 extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path); // 0x5519a0, blam-cc: EAX save_game_name, ECX root_path
 extern uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir); // 0x53cb70, this module
-extern int32_t __snprintf(char *buffer, uint32_t count, const char *format, ...); // CRT
-extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
-extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
-extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
-extern int32_t _wcscmp(const uint16_t *a, const uint16_t *b); // CRT
 
 // blam-cc: saved-game handle in EAX; new_name as the one stack argument
 // Renames the saved-game (profile or playlist) identified by handle to new_name: creates a
@@ -71,7 +67,7 @@ uint8_t player_profile_rename(int32_t handle, uint16_t *new_name)
     if (*new_name == 0) {
         return 1;
     }
-    if (_wcscmp(entry.display_name, new_name) == 0) {
+    if (wcscmp(entry.display_name, new_name) == 0) {
         return 1;
     }
 
@@ -86,8 +82,8 @@ uint8_t player_profile_rename(int32_t handle, uint16_t *new_name)
         char old_directory[0x100];
         char *trunc;
 
-        __snprintf(dest_path, 0xff, "%s%s", directory, "blam.sav");
-        _strncpy(old_directory, entry.path, 0xff);
+        _snprintf(dest_path, 0xff, "%s%s", directory, "blam.sav");
+        strncpy(old_directory, entry.path, 0xff);
         trunc = strstr(old_directory, "blam.sav");
         if (trunc != 0) {
             *trunc = '\0';
@@ -98,8 +94,8 @@ uint8_t player_profile_rename(int32_t handle, uint16_t *new_name)
         if (result == 1) {
         finalize:
             XDeleteSaveGame(entry.display_name, savegames_directory);
-            _strncpy(entry.path, dest_path, 0xff);
-            _wcsncpy(entry.display_name, new_name, 0x7f);
+            strncpy(entry.path, dest_path, 0xff);
+            wcsncpy(entry.display_name, new_name, 0x7f);
             entry.path[0xff] = 0;
             entry.display_name[0x7f] = 0;
             savegame_index_write_slot((int32_t)slot_index, &entry);
@@ -115,12 +111,12 @@ uint8_t player_profile_rename(int32_t handle, uint16_t *new_name)
         {
             char dest_path[0x100];
 
-            __snprintf(dest_path, 0xff, "%s%s", directory, "blam.lst");
+            _snprintf(dest_path, 0xff, "%s%s", directory, "blam.lst");
             result = (uint8_t)CopyFileA(entry.path, dest_path, 1);
             if (result == 1) {
                 XDeleteSaveGame(entry.display_name, savegames_directory);
-                _strncpy(entry.path, dest_path, 0xff);
-                _wcsncpy(entry.display_name, new_name, 0x7f);
+                strncpy(entry.path, dest_path, 0xff);
+                wcsncpy(entry.display_name, new_name, 0x7f);
                 entry.path[0xff] = 0;
                 entry.display_name[0x7f] = 0;
                 savegame_index_write_slot((int32_t)slot_index, &entry);

@@ -9,6 +9,7 @@
 // Review fix: the result is returned in AL only (mov al,bl / mov al,1 at 0x5427a7 / 0x5427ce; the
 //   upper EAX bytes hold stale _stricmp / argc values), so the return type is uint8_t.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 
 extern char **shell_argv; // 0x00721e90
 extern int32_t shell_argc; // 0x00721e94
-extern int32_t __stricmp(const char *a, const char *b);
 
 // Looks up a named '-flag' in the parsed command line and reports whether it is present,
 // optionally returning its following value argument through out_value.
@@ -32,7 +32,7 @@ uint8_t command_line_check_flag(const char *flag_name, const char **out_value)
 
     for (i = 0; i < shell_argc; i++) {
         token = shell_argv[i];
-        if (token[0] == '-' && __stricmp(flag_name, token) == 0) {
+        if (token[0] == '-' && _stricmp(flag_name, token) == 0) {
             if (out_value != 0 && i + 1 < shell_argc) {
                 char *next_token = shell_argv[i + 1];
                 if (next_token[0] != '-') {

@@ -11,6 +11,7 @@
 //   "<seat marker> enter-hint".
 // blam-cc: EAX -> unit_index, stack -> (vehicle_index, seat_index, out_entry, out_seat, out_hint)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +23,6 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
 extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model,
@@ -52,7 +52,7 @@ uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t vehicle_
     char hint_name[0x100];
 
     for (i = 0; i < *(int32_t *)(graph + 0xc); i++) {
-        if (__stricmp((char *)(*(uint8_t **)(graph + 0x10) + i * 0x64), (char *)(seat + 0x4)) == 0) {
+        if (_stricmp((char *)(*(uint8_t **)(graph + 0x10) + i * 0x64), (char *)(seat + 0x4)) == 0) {
             block = *(uint8_t **)(graph + 0x10) + i * 0x64;
             break;
         }

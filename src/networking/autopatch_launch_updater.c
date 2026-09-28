@@ -29,13 +29,14 @@
 //   through EDI (src/saved_games/path_split_components.c calls them ext_start_out and
 //   ext_fallback_out), so module_path ends up as the bare executable name, e.g. "halo.exe".
 // UNSURE: each line is NUL-terminated at line[0x400] (`mov BYTE PTR [esp+0x7a0],0` against a
-//   0x400-byte __snprintf limit on the buffer at esp+0x3a0), one byte past a 0x400 buffer; the
+//   0x400-byte _snprintf limit on the buffer at esp+0x3a0), one byte past a 0x400 buffer; the
 //   frame has room for it (the next local starts at esp+0x7a8), so the buffer is declared 0x401
 //   bytes here. 0x007196d4's owner is unresolved (src names it movie_playback_abort).
 // NOTE: the PROCESS_INFORMATION handles are never closed; kept as the original does.
 // register convention: no parameters; returns a bool in AL.
 //   // blam-cc: none
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -77,8 +78,6 @@ extern void path_append_extension(char *destination, const char *suffix);       
 extern void path_build_full(char *source, char *destination, int16_t location);         // 0x5560d0, blam-cc: EAX source, EDX destination, CX location
 extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
     char **name_end_out, char **ext_start_out, uint8_t split_extension);                // 0x556000, blam-cc: EBX, ESI, EDI, then stack
-extern int __snprintf(char *buffer, uint32_t count, const char *format, ...);           // 0x623a2d, CRT
-extern int _sprintf(char *buffer, const char *format, ...);                             // 0x623693, CRT
 
 static uint32_t autopatch_string_length(const char *string)
 {
@@ -151,22 +150,22 @@ uint8_t autopatch_launch_updater(void)
     path_append_component(module_path, file_name);
     path_append_extension(module_path, extension);
 
-    __snprintf(line, 0x400, "gamemode 1\n");
+    _snprintf(line, 0x400, "gamemode 1\n");
     line[0x400] = 0;
     if (!file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;
     }
-    __snprintf(line, 0x400, "url \"%s\"\n", autopatch_update_url);
+    _snprintf(line, 0x400, "url \"%s\"\n", autopatch_update_url);
     line[0x400] = 0;
     if (!file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;
     }
-    __snprintf(line, 0x400, "updateversion \"%s\"\n", autopatch_update_version);
+    _snprintf(line, 0x400, "updateversion \"%s\"\n", autopatch_update_version);
     line[0x400] = 0;
     if (!file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;
     }
-    __snprintf(line, 0x400, "gamecommand \"%s %s\"\n", module_path, shell_command_line);
+    _snprintf(line, 0x400, "gamecommand \"%s %s\"\n", module_path, shell_command_line);
     line[0x400] = 0;
     if (!file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;
@@ -183,7 +182,7 @@ uint8_t autopatch_launch_updater(void)
         ((uint8_t *)&startup)[i] = 0;
     }
     startup.cb = 0x44;
-    _sprintf(line, "%s waitprocessid=%d", "haloupdate.exe", GetCurrentProcessId());
+    sprintf(line, "%s waitprocessid=%d", "haloupdate.exe", GetCurrentProcessId());
     // 0x4000020 = CREATE_DEFAULT_ERROR_MODE | NORMAL_PRIORITY_CLASS
     if (CreateProcessA(0, line, 0, 0, 0, 0x4000020, 0, 0, (LPSTARTUPINFOA)&startup, (LPPROCESS_INFORMATION)&process)) {
         main_globals_data.return_to_main_menu = 0;

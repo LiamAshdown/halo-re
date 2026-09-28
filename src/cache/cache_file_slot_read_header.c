@@ -32,6 +32,7 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
@@ -43,7 +44,6 @@ extern char *shell_fatal_error_argument;                           // 0x00722bbc
 
 extern void os_platform_identify(void);                            // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
-extern int32_t sprintf(char *buffer, const char *format, ...);     // 0x623693 _sprintf
 
 extern void *ReadFileEx_exref;  // 0x0063a27c IAT slot holding ReadFileEx, passed by value
 

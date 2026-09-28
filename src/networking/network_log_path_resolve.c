@@ -24,6 +24,7 @@
 // function was written before ESI's role was known and declares it as taking no arguments; that
 // file is outside this batch and is not corrected here.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 
@@ -31,7 +32,6 @@ extern uint8_t network_log_path_buffer[0x104]; // 0x006b85b8
 extern char network_log_path_format[];         // 0x0065efec, UNSURE: assumed to be "%s"
 
 extern int32_t security_check_write_access(void); // 0x542840, foreign module
-extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // 0x623a2d, CRT
 
 // blam-cc: ESI -> requested_path
 // Zeroes the shared path buffer, then formats requested_path into it with "%s" if the process
@@ -42,10 +42,10 @@ char *network_log_path_resolve(char *requested_path) // blam-cc: ESI -> requeste
 {
     network_log_path_buffer[0] = 0;
     if (security_check_write_access() != 0) {
-        __snprintf((char *)network_log_path_buffer, 0x104, network_log_path_format, requested_path);
+        _snprintf((char *)network_log_path_buffer, 0x104, network_log_path_format, requested_path);
     }
     if (network_log_path_buffer[0] == 0) {
-        __snprintf((char *)network_log_path_buffer, 0x104, network_log_path_format, requested_path);
+        _snprintf((char *)network_log_path_buffer, 0x104, network_log_path_format, requested_path);
     }
     return (char *)network_log_path_buffer;
 }

@@ -23,6 +23,7 @@
 // the current time left T and P(0) = the remaining offset (c0), so P(T - dt) is exactly the part
 // of the offset covered during this tick and is added onto the running state.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
@@ -32,7 +33,6 @@ extern float observer_dt;           // 0x006ac658
 extern int16_t observer_parameter_float_counts[5];   // 0x00686ae0, {3,3,1,1,6}
 extern int16_t observer_derivative_float_counts[5];  // 0x00686aec, {3,3,1,1,3}
 
-extern int32_t __isnan(double x); // 0x624494, MSVC CRT
 extern double sqrt(double x);     // FSQRT
 extern double fabs(double x);     // FABS
 
@@ -110,11 +110,11 @@ void observer_evaluate_spline_value_and_orthonormalize(int16_t local_player_inde
 
         check = (forward->k * forward->k + forward->j * forward->j + forward->i * forward->i) -
             1.0f;
-        if (__isnan((double)check) == 0 && fabs((double)check) < 0.001) {
+        if (_isnan((double)check) == 0 && fabs((double)check) < 0.001) {
             check = (up->k * up->k + up->j * up->j + up->i * up->i) - 1.0f;
-            if (__isnan((double)check) == 0 && fabs((double)check) < 0.001) {
+            if (_isnan((double)check) == 0 && fabs((double)check) < 0.001) {
                 check = up->j * forward->j + up->k * forward->k + up->i * forward->i;
-                if (__isnan((double)check) == 0 && fabs((double)check) < 0.001) {
+                if (_isnan((double)check) == 0 && fabs((double)check) < 0.001) {
                     return;
                 }
             }

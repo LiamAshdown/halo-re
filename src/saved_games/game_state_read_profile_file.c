@@ -9,6 +9,7 @@
 // this one raises a fatal error dialog instead of returning a status.
 // register convention: name in EAX, size in EDI, buffer is the recognized stack parameter.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -20,7 +21,6 @@
 
 extern char game_state_core_directory[0x100]; // 0x006e2efc
 
-extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 
 // blam-cc: name in EAX, size in EDI, then the recognized stack parameter (buffer)
@@ -32,7 +32,7 @@ void game_state_read_profile_file(char *name, int32_t size, void *buffer)
     void *file;
     uint32_t bytes_read;
 
-    _sprintf(path, "%s\\%s", game_state_core_directory, name);
+    sprintf(path, "%s\\%s", game_state_core_directory, name);
     file = CreateFileA(path, 0x80000000, 0, 0, 3 /* OPEN_EXISTING */, 0x80 /* FILE_FLAG_RANDOM_ACCESS */, 0);
     if (file == (void *)0xffffffff ||
         ReadFile(file, buffer, size, &bytes_read, 0) == 0 ||

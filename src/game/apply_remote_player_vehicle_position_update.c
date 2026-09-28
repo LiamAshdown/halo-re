@@ -19,6 +19,7 @@
 // this batch) is called with no recovered arguments. DAT_007102e0 mirrors
 // apply_remote_player_position_update's own wait-counter pattern.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -36,7 +37,6 @@ extern uint8_t vehicle_update_queue_find_and_remove(circular_queue *queue, int32
     vehicle_update_record *out); // this module (a later batch), 0x47a2c0
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void player_update_history_log_printf_filtered(int32_t level, const char *format, ...); // 0x4e5f20
-extern int32_t _wcscmp(const uint16_t *a, const uint16_t *b); // 0x627d17, CRT
 extern void unit_propagate_position_delta_to_children(void); // 0x570cb0, units module, not in this batch; UNSURE args
 extern double sqrt(double x); // x87 FSQRT
 
@@ -76,7 +76,7 @@ void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj)
                 parent_obj->up = record.body.up;
             }
         }
-        if (_wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
+        if (wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
             vehicle_wait_tick_counter = 0;
         }
     } else {
@@ -98,7 +98,7 @@ void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj)
             int32_t *head_record = *(int32_t **)((uint8_t *)queue->records + read_index * 4);
             player_update_history_log_printf_filtered(1, "Can't update pos: [%d] != [%d]",
                                                         target_tick, *head_record);
-            if (_wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
+            if (wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
                 vehicle_wait_tick_counter = vehicle_wait_tick_counter + 1;
             }
         }

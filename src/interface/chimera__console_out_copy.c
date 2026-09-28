@@ -9,6 +9,7 @@
 // UNSURE: 0x00718f80 is a plain reentrancy guard around chimera__rcon_out with no name recovered
 // elsewhere in this module; kept as an anonymous extern.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -29,8 +30,6 @@ extern void *console_output_handle;       // 0x006b2dd0, win32 console output ha
 extern void chimera__rcon_out(int32_t rcon_handle);      // 0x4e50c0, networking module
 extern void console_clear_bottom_line(int32_t clear_all); // 0x497010
 extern void console_draw_input_line(void);                 // 0x4970a0
-extern char *_strncpy(char *dest, const char *source, uint32_t count);
-extern uint32_t strlen(const char *s);
 extern void string_replace_all_in_place(char *buffer, char *search, char *replacement); // 0x496df0
 
 // blam-cc: EAX -> text
@@ -51,7 +50,7 @@ void chimera__console_out_copy(char *text)
     }
     if (console_win32_attached != 0) {
         line[0] = '\0';
-        _strncpy(line, text, 0x100);
+        strncpy(line, text, 0x100);
         string_replace_all_in_place(line, console_echo_prefix, DAT_0065fb2c);
         string_replace_all_in_place(line, DAT_00669ae0, DAT_0065fb14);
         length = strlen(line);

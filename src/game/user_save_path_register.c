@@ -7,6 +7,7 @@
 //   a 0x105-byte path buffer (0x00721f30, stride 0x105).
 // register convention: none -- both are genuine stack parameters (Ghidra's own param_1/param_2).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -15,17 +16,16 @@
 extern uint32_t user_save_path_keys[k_maximum_user_save_paths]; // 0x00722758
 extern char user_save_paths[k_maximum_user_save_paths][k_user_save_path_slot_stride]; // 0x00721f30
 
-extern char *_strncpy(char *dest, const char *src, uint32_t count); // MSVC CRT
 
 // Finds the first free (user id 0) slot, copies `path` into it (up to 0x104 chars, per
-// _strncpy's own count), stores `user_id`, and returns the slot index; returns -1 if all 8
+// strncpy's own count), stores `user_id`, and returns the slot index; returns -1 if all 8
 // slots are taken.
 int32_t user_save_path_register(uint32_t user_id, char *path)
 {
     int32_t i = 0;
     do {
         if (user_save_path_keys[i] == 0) {
-            _strncpy(user_save_paths[i], path, 0x104);
+            strncpy(user_save_paths[i], path, 0x104);
             user_save_path_keys[i] = user_id;
             return i;
         }

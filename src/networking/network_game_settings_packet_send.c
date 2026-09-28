@@ -43,6 +43,7 @@
 // the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
 // the encoded bits from challenge; the C passed placeholders or dropped the arguments.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include <wchar.h>
@@ -59,7 +60,6 @@ extern void gcd_compute_response(void *a, void *request, uint8_t *out); // 0x617
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
 // blam-cc: EBX -> client, stack -> request
 void network_game_settings_packet_send(network_client_globals *client, const uint8_t *request)
@@ -133,7 +133,7 @@ compare_done:
     *(uint32_t *)(frame + 0x08) = *(uint32_t *)((uint8_t *)client + 0xb0a);
     *(uint32_t *)(frame + 0x0c) = *(uint32_t *)((uint8_t *)client + 0xb0e);
     *(uint8_t *)&client->pad_ee2 = 0;
-    _wcsncpy((wchar_t *)(frame + 0x10), (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
+    wcsncpy((wchar_t *)(frame + 0x10), (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
     frame[0x6b] = *((uint8_t *)client + 0xf4c); // UNSURE: one byte past the struct; see file header
     *(uint16_t *)(frame + 0x20) = 0;
     gcd_compute_response(game_variant_description_template_source, (void *)request, frame + 0x22);
@@ -145,7 +145,7 @@ compare_done:
 
     *(uint8_t *)(frame + 0x8a) = request[0xc];
     frame[0x8b] = 0;
-    _wcsncpy((wchar_t *)(frame + 0x6e), (const wchar_t *)(frame + 0x92), 0xb);
+    wcsncpy((wchar_t *)(frame + 0x6e), (const wchar_t *)(frame + 0x92), 0xb);
     frame[0x8c] = *(uint8_t *)&client->unknown_f10;
     *(uint16_t *)(frame + 0x84) = 0;
     *(uint16_t *)(frame + 0x86) = *(uint16_t *)(frame + 0x1aa); // local_2012 = local_1eee (inside the copied template)

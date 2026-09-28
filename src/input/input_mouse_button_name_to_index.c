@@ -6,6 +6,7 @@
 // input_keyboard_key_name_to_index.c, bounded by k_control_mouse_button_count instead.
 // register convention: name pointer as the recognized parameter (param_1)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@
 #include <string.h>
 
 extern void input_get_mouse_button_name(int16_t button_index, uint16_t *out_name); // this module, 0x490f20
-extern int32_t _stricmp(const char *a, const char *b); // 0x628d8b, libc
 
 // Resolves a mouse button display name string (ASCII, case-insensitive) back to its numeric
 // button index (0 .. k_control_mouse_button_count - 1), or 0xffff if none match.

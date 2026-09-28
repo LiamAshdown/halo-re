@@ -41,6 +41,7 @@
 // UNSURE: render_infos only enables the shared device setup and the text colour reset; it
 //   draws nothing itself here (the table of rates is drawn by 0x512e80).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -71,7 +72,6 @@ extern void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *d
     // 0x5148b0, rasterizer module; blam-cc: EAX -> clip_rect_override, ECX -> dest_rect_override,
     // stack -> (cursor, flags, text). src/rasterizer types the two stack slots as opaque
     // uint32_t position_or_color1/2; 0x512e80 passes a Point2DInt out cursor and -4 there.
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

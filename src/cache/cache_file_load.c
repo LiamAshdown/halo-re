@@ -18,6 +18,7 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -31,8 +32,6 @@ extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc:
 extern void model_load_vertex_buffers(cache_file_tag_header *header); // blam-cc: header in EAX.
     // Ghidra: chimera__on_map_load_client, misattributed
     // (out/phase4/cache_types_notes.md item 2); 0x442d10
-extern char *strrchr(const char *str, int ch); // 00623bc0 _strrchr
-extern uint32_t strlen(const char *str);
 
 extern uint8_t cache_file_loaded;                  // 0x006a8150
 extern cache_file_header cache_file_current_header; // 0x006a8154

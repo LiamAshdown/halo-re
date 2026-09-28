@@ -9,11 +9,11 @@
 // register convention: the searched name is unrecognized by Ghidra (unaff_EBX); by the
 // blam-cc convention this is the fourth register slot, EBX.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x00628d8b
 
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count]; // 0x0068b398
 extern Scenario *global_scenario;          // 0x00746f8c
@@ -32,7 +32,7 @@ hs_global_reference hs_find_global_by_name(char *name)
 
     index = 0;
     do {
-        if (__stricmp(name, hs_global_definitions[index]->name) == 0) {
+        if (_stricmp(name, hs_global_definitions[index]->name) == 0) {
             return (hs_global_reference)(index | k_hs_global_builtin_bit);
         }
         index = index + 1;
@@ -43,7 +43,7 @@ hs_global_reference hs_find_global_by_name(char *name)
         if (0 < count) {
             globals = (ScenarioGlobal *)global_scenario->globals.pointer;
             for (i = 0; i < count; i++) {
-                if (__stricmp(name, globals[i].name.string) == 0) {
+                if (_stricmp(name, globals[i].name.string) == 0) {
                     return (hs_global_reference)(i & k_hs_global_index_mask);
                 }
             }

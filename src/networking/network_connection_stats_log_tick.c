@@ -16,6 +16,7 @@
 // join_game_server_browser_tick, FUN_00449210 and the fopen mode string at 0x0065fd30.
 // reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -24,8 +25,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
-extern int _fprintf(void *file, const char *format, ...);                // game CRT
 
 extern uint8_t debug_log_level;                   // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
@@ -75,22 +74,22 @@ void network_connection_stats_log_tick(void)
             strcat(path_buf, date_buf);
             strcat(path_buf, ".xls");
 
-            network_connection_stats_log_file = _fopen(path_buf, network_summary_log_mode_string);
-            _fprintf((FILE *)network_connection_stats_log_file,
+            network_connection_stats_log_file = fopen(path_buf, network_summary_log_mode_string);
+            fprintf((FILE *)network_connection_stats_log_file,
                     "\tEach connection has five columns (see headers below). One empty column "
                     "separates each connection. Note: resend traffic is considered unreliable.\n");
-            _fprintf((FILE *)network_connection_stats_log_file,
+            fprintf((FILE *)network_connection_stats_log_file,
                     "Time\tPackets Sent\tTotal Sent\tReliable Sent\tUnreliable Sent\tResends Sent\n");
         }
         if (100 < (uint32_t)(now - network_connection_log_last_row_ms)) {
             network_connection_log_last_row_ms = now;
-            _fprintf((FILE *)network_connection_stats_log_file, "%d",
+            fprintf((FILE *)network_connection_stats_log_file, "%d",
                     (uint32_t)(now - network_connection_log_start_ms) / 1000);
             if (0 < network_connection_stats_count) {
-                _fprintf((FILE *)network_connection_stats_log_file, "\t");
+                fprintf((FILE *)network_connection_stats_log_file, "\t");
                 for (i = 0; i < network_connection_stats_count; i++) {
                     control_char = (i != network_connection_stats_count - 1) ? 9 : 0;
-                    _fprintf((FILE *)network_connection_stats_log_file, "%d\t%d\t%d\t%d\t%d\t%c",
+                    fprintf((FILE *)network_connection_stats_log_file, "%d\t%d\t%d\t%d\t%d\t%c",
                             network_connection_stats[i].interval_packets_sent,
                             network_connection_stats[i].interval_bytes_sent,
                             network_connection_stats[i].interval_reliable_bytes_sent,
@@ -116,7 +115,7 @@ void network_connection_stats_log_tick(void)
                     }
                 }
             }
-            _fprintf((FILE *)network_connection_stats_log_file, "\n");
+            fprintf((FILE *)network_connection_stats_log_file, "\n");
         }
     }
 }

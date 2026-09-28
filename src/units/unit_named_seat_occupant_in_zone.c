@@ -6,6 +6,7 @@
 //   types/objects.h object_iterator; the same zone-list walk as unit_mark_zone_occupants_flag.c.
 // blam-cc: param_1 -> unit_index, param_2 -> seat_label, param_3 -> zone_list_index.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,7 +19,6 @@ extern tag_instance *tag_instances;         // 0x0087bc14
 extern data_array *object_list_header_data; // 0x0087a464
 extern data_array *object_list_link_array;  // 0x0087a468
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 extern object * object_iterator_next(object_iterator *iterator); // 0x4f6f20
 
 uint8_t unit_named_seat_occupant_in_zone(uint32_t unit_index, char *seat_label, uint32_t zone_list_index)
@@ -35,7 +35,7 @@ uint8_t unit_named_seat_occupant_in_zone(uint32_t unit_index, char *seat_label, 
     UnitSeat *seats = (UnitSeat *)unit_tag->seats.pointer;
 
     for (int16_t seat_index = 0; seat_index < (int32_t)unit_tag->seats.count; seat_index++) {
-        if (__stricmp(seat_label, seats[seat_index].label.string) != 0) {
+        if (_stricmp(seat_label, seats[seat_index].label.string) != 0) {
             continue;
         }
 

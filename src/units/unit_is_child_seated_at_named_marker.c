@@ -7,6 +7,7 @@
 //   (0x2f0).
 // blam-cc: param_1 -> unit_index, param_2 -> seat_label, unaff_EBX -> child_object_index.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -17,7 +18,6 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 uint8_t unit_is_child_seated_at_named_marker(uint32_t unit_index, char *seat_label, uint32_t child_object_index)
 {
@@ -34,7 +34,7 @@ uint8_t unit_is_child_seated_at_named_marker(uint32_t unit_index, char *seat_lab
     object *child = ((object_header *)object_data->data)[child_object_index & 0xffff].data;
 
     for (int16_t seat_index = 0; seat_index < (int32_t)unit_tag->seats.count; seat_index++) {
-        if ((__stricmp(seat_label, seats[seat_index].label.string) == 0) &&
+        if ((_stricmp(seat_label, seats[seat_index].label.string) == 0) &&
             (child->parent_object == unit_index) &&
             (((unit_data *)((uint8_t *)child + k_unit_data_offset))->vehicle_seat_index == seat_index)) {
             return 1;

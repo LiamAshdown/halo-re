@@ -16,6 +16,7 @@
 // points) is not confidently reducible to a structured form without risking a behaviour change.
 // reconciled: R02 0x006b2ce8 int16 campaign_option_table -> int32 joystick_slot_devices[4] (0x49cff3 is a DWORD cmp)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -42,7 +43,6 @@ extern char last_profile_name[];                                // 0x00718e80
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error); // 0x498f20
 extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name); // 0x53d080
 extern void saved_game_last_profile_clear(char *name);     // 0x53d220
-extern void _strncpy(char *dest, const char *src, uint32_t count);
 
 // Validates the requested difficulty/option index (when more than one is configured), then starts
 // a new campaign game at the first level; reports error 0x13 and forces single-option mode if the
@@ -71,7 +71,7 @@ uint32_t ui_start_campaign_from_level_one(void *param_1, int16_t *param_2)
 
     campaign_start_pending_00696564 = 1;
     selected_level_start_flags_00719754_byte3 = 0;
-    _strncpy(selected_level_path_00719779, known_campaign_level_one_path_00692acc, 0xff);
+    strncpy(selected_level_path_00719779, known_campaign_level_one_path_00692acc, 0xff);
     selected_level_active_00719878 = 0;
     selected_level_pending_00719778 = 1;
     network_game_mode = 0;

@@ -38,15 +38,13 @@
 //   Only MaxOverallGraphicDetail merges into this->flags (0x57b223 loads [ebp+0x18]). The first
 //   rewrite had applied the 0x57b223 reading to both.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __strnicmp(const char *a, const char *b, uint32_t n); // 0x6375da CRT
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
-extern int32_t atol(const char *string); // 0x625926 CRT
 extern void hwreq_parser_report_error(hwreq_parser *this, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
 extern int32_t hwreq_token_parse_number(hwreq_parser *this); // 0x578b20, blam-cc: this in EAX; below this module's rewrite range; -1 on error
 extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
@@ -109,19 +107,19 @@ uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
             this->line_number = this->line_number + 1;
         }
 
-        if (__strnicmp((char *)this->cursor, "vendor", 6) == 0) {
+        if (_strnicmp((char *)this->cursor, "vendor", 6) == 0) {
             c = ((char *)this->cursor)[6];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 return 1;
             }
         }
-        if (__strnicmp((char *)this->cursor, "audiovendor", 11) == 0) {
+        if (_strnicmp((char *)this->cursor, "audiovendor", 11) == 0) {
             c = ((char *)this->cursor)[11];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 return 1;
             }
         }
-        if (__strnicmp((char *)this->cursor, "Requirements", 12) == 0) {
+        if (_strnicmp((char *)this->cursor, "Requirements", 12) == 0) {
             c = ((char *)this->cursor)[12];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 return 1;
@@ -136,7 +134,7 @@ uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
 
         c = *cursor;
         if (c == '\r' || *(uint16_t *)cursor == 0x2f2f || (c >= '0' && c <= '9') ||
-            (__strnicmp(cursor, "unknown", 7) == 0 &&
+            (_strnicmp(cursor, "unknown", 7) == 0 &&
              (c = cursor[7], c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t'))) {
             // blank line, "//" comment, a bare number, or "unknown": nothing to do this line
         } else if (hwreq_token_match_keyword("break", this)) {

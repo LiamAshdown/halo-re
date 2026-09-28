@@ -45,12 +45,11 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern char *strrchr(const char *str, int ch); // 00623bc0 _strrchr
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 extern void os_platform_identify(void); // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern void interface_handle_quit_request(void); // 0x499170

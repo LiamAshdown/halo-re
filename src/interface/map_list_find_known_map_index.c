@@ -19,6 +19,7 @@
 // address Ghidra attributes to local_104[0] (a common stack-slot-reuse artifact), so it is
 // rewritten as the plain "lowercase each byte in place, stop at NUL" loop that reading gives.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,7 +32,6 @@
 extern map_list_entry *map_list; // 0x00712dcc
 extern int32_t map_list_count;   // 0x00712dd0
 
-extern char *_strncpy(char *dst, const char *src, uint32_t count);
 
 // blam-cc: EAX -> map_path
 // Lowercases a local copy of `map_path` and linear-scans map_list for an entry whose path
@@ -42,7 +42,7 @@ int32_t map_list_find_known_map_index(char *map_path)
     char *cursor;
     int32_t index;
 
-    _strncpy(local_path, map_path, 0x103);
+    strncpy(local_path, map_path, 0x103);
     for (cursor = local_path; *cursor != '\0'; cursor++) {
         *cursor = (char)_tolower((uint8_t)*cursor);
     }

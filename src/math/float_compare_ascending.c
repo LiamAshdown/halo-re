@@ -4,14 +4,15 @@
 // evidence: out/phase4/math_functions.md; __cdecl signature already recovered by Ghidra
 //   (`int __cdecl float_compare_ascending(float *param_1, float *param_2)`), zero callers
 //   inside this module's slice -- almost certainly a qsort() comparator (the module already
-//   uses `_qsort` @0x623410 as a callee elsewhere in the ai/math boundary).
+//   uses `qsort` @0x623410 as a callee elsewhere in the ai/math boundary).
 // Parameters are const void * (the qsort comparator type) to agree with the extern in
-//   src/ai/actor_squad_action_execute.c, whose two _qsort calls sort 8-byte records whose
+//   src/ai/actor_squad_action_execute.c, whose two qsort calls sort 8-byte records whose
 //   first member is the float key.
 // register convention: __cdecl, both arguments on the stack; no register-passed arguments.
 //   Confirmed against objdump: `mov ecx,[esp+0x4]` / `mov edx,[esp+0x8]` load both pointers
 //   from the stack immediately, with no register argument read before that.
 
+#include "crt.h"
 #include "tags.h"
 #include "math.h"
 

@@ -14,11 +14,12 @@
 // (param_1), block_count (param_2), block_shift (param_3), maximum_count (param_4, int16),
 // release_procedure (param_5), in_use_procedure (param_6).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
 
-// strncpy (0x00623a90 _strncpy) comes from <string.h>.
+// strncpy (0x00623a90 strncpy) comes from <string.h>.
 extern void data_delete_all(data_array *array); // 0x4d0580, below this batch's assigned range
 
 void cache_new(char *name, cache *self, int32_t block_count, int32_t block_shift,

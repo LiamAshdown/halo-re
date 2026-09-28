@@ -7,6 +7,7 @@
 // register convention: input string in EBX (unaff_EBX), unresolved register read.
 // blam-cc: EBX -> text
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -16,8 +17,6 @@
 
 extern uint16_t *ui_button_caption[0x28]; // 0x00692708, first entry is the a-button token
 
-extern uint32_t wcslen(uint16_t *s); // 0x625b7a, UNSURE: wide string length
-extern int32_t __wcsnicmp(uint16_t *a, uint16_t *b, uint32_t count);
 
 // blam-cc: EBX -> text
 // Looks up which button-prompt token (e.g. "a-button") `text` begins with, returning its index
@@ -29,7 +28,7 @@ int16_t ui_button_prompt_index_from_string(uint16_t *text)
     do {
         uint32_t token_length = wcslen(ui_button_caption[index]);
 
-        if (__wcsnicmp(text, ui_button_caption[index], token_length) == 0) {
+        if (_wcsnicmp(text, ui_button_caption[index], token_length) == 0) {
             break;
         }
         index = index + 1;

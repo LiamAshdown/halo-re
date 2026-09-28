@@ -8,18 +8,18 @@
 //   against objdump -d -M intel bin/halo.exe (scratchpad/halo_disasm.txt, 0x4d6ab0..0x4d6b00):
 //   a plain linear scan (not the binary search animation_graph_marker_group... i.e.
 //   model_marker_group_index_from_name/0x4d77c0 uses), comparing `name` against each
-//   animation's TagString (which starts at the animation's own base address) with __stricmp,
-//   pushed as __stricmp(name, &animations[i]).
+//   animation's TagString (which starts at the animation's own base address) with _stricmp,
+//   pushed as _stricmp(name, &animations[i]).
 // register convention: animation graph tag id in EAX (in_EAX), name in EBX (unaff_EBX).
 //   // blam-cc: EAX -> animation_graph_tag, EBX -> name
 
+#include "crt.h"
 #include "tags.h"
 #include "math.h"
 #include "cache.h"
 #include "models.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 // Linear search of an animation graph's animations block for one whose name matches (case
 // insensitive). Returns its index, or -1 if none matches.
@@ -33,7 +33,7 @@ int16_t animation_graph_find_animation_by_name(datum_index animation_graph_tag, 
     animations = (ModelAnimationsAnimation *)graph->animations.pointer;
 
     for (i = 0; (int32_t)i < graph->animations.count; i++) {
-        if (__stricmp(name, (const char *)&animations[i]) == 0) {
+        if (_stricmp(name, (const char *)&animations[i]) == 0) {
             return i;
         }
     }

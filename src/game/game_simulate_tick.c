@@ -22,6 +22,7 @@
 // effects_update_all (1/30 s normally, 1/60 s in slow motion) is likely a "seconds per simulated
 // tick" setter but its real name/role could not be confirmed from this batch's evidence.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -38,7 +39,6 @@ extern uint8_t unknown_00699f40[];           // 0x00699f40, TYPES-GAP: message q
 extern int32_t unknown_0071cc24;             // 0x0071cc24, TYPES-GAP: message queue count
 extern uint8_t unknown_0071cc20[];           // 0x0071cc20, TYPES-GAP: message queue buffer
 
-extern void __control87(uint32_t new_word, uint32_t mask); // MSVC CRT
 extern void game_engine_flag_local_player_units(void);      // 0x45b590, this module
 extern void team_pair_overrides_tick(void);                  // 0x45bcf0, this module
 extern void game_engine_tick(void);                          // 0x45ff30, this module
@@ -69,7 +69,7 @@ extern void network_server_broadcast_object_type_changes(void); // 0x45b680, thi
 void game_simulate_tick(uint32_t predict_pass)
 {
     DAT_0087ab18 = 1;
-    __control87(0x9001f, 0xfffff);
+    _control87(0x9001f, 0xfffff);
     game_engine_flag_local_player_units();
     team_pair_overrides_tick();
 

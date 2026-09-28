@@ -13,6 +13,7 @@
 // Phase-4 review: checked instruction by instruction against the disassembly appended in the
 // #if 0 block; no semantic difference found.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -22,7 +23,6 @@ extern uint8_t debug_sound;         // 0x00724a4d
 extern data_array *sound_data;      // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 
 // blam-cc: EAX -> sound_handle
 // When sound debug display is enabled, formats "<tag path>|n<obstruction> <occlusion>" for

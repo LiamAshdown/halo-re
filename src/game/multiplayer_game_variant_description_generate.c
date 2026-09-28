@@ -81,6 +81,7 @@
 // 0x96/0x12c/0x1c2, and the frame layout (`options` at esp+0x20, `engine_extra` at esp+0x18,
 // `line` at esp+0x68, `is_custom_variant` at esp+0x13, the oddball block at esp+0x268).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -92,9 +93,6 @@
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern wchar_t *unicode_string_list_get_string(char *path, int16_t index); // 0x4b8d30, this module (src/game/unicode_string_list_get_string.c)
 extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self); // 0x4b8a60, networking module
-extern int swprintf(wchar_t *buffer, size_t count, const wchar_t *format, ...); // CRT, 0x625bd6 (FID_conflict)
-extern wchar_t *wcscat(wchar_t *dest, const wchar_t *src);  // CRT, 0x625b90
-extern wchar_t *wcscpy(wchar_t *dest, const wchar_t *src);  // CRT, 0x625bba
 
 // The four packed-option decoders, already rewritten in the networking module. Each takes its
 // destination buffer by pointer/register; see those files for the exact blam-cc register

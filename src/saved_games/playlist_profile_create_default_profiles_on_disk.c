@@ -26,6 +26,7 @@
 // register convention: __cdecl, no parameters.
 // reconciled: R37 game_variant.unknown_94 -> uint16 variant_flags (bit 0 built-in, high byte default index)
 
+#include "crt.h"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -53,10 +54,6 @@ extern uint8_t file_reference_write(file_reference_record *ref, const void *buff
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
 
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
-extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // CRT
-extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
-extern void _strncat(char *dest, const char *source, uint32_t count); // CRT
-extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
 
 // blam-cc: __cdecl, no parameters
 // For each of the k_default_game_variant_count built-in variant builders: builds the default
@@ -99,9 +96,9 @@ void playlist_profile_create_default_profiles_on_disk(void)
         // files deterministic instead of copying whatever this frame's stack held into them.
         memset(variant_file.padding_09c, 0, sizeof(variant_file.padding_09c));
 
-        __snprintf(path, 0xff, "%s\\%02d", default_playlists_directory, i);
+        _snprintf(path, 0xff, "%s\\%02d", default_playlists_directory, i);
         directory_ensure_empty(path);
-        _strncat(path, "\\blam.lst", 0xff);
+        strncat(path, "\\blam.lst", 0xff);
 
         source_name = missing_string_text;
         name_list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
@@ -115,7 +112,7 @@ void playlist_profile_create_default_profiles_on_disk(void)
             }
         }
 
-        _wcsncpy(variant_file.variant.name, source_name, 0x17);
+        wcsncpy(variant_file.variant.name, source_name, 0x17);
         variant_file.variant.name[0x17] = 0;
         variant_file.variant.variant_flags =
             (int16_t)((uint16_t)variant_file.variant.variant_flags | ((uint16_t)(uint8_t)i << 8));
@@ -140,7 +137,7 @@ void playlist_profile_create_default_profiles_on_disk(void)
                 end++;
                 *end = '\0';
             }
-            _strncpy(end, path, 0xff - (uint32_t)strlen(ref.path));
+            strncpy(end, path, 0xff - (uint32_t)strlen(ref.path));
             ref.path[0xff] = '\0';
         }
         ref.flags |= _file_reference_is_file_bit;

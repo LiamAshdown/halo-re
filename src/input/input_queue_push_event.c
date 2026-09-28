@@ -10,6 +10,7 @@
 // register convention: queue index in EAX (in_AX), record pointer in EDI (unaff_EDI); the
 // controller_index field of *record is written as an output parameter.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -22,7 +23,6 @@
 
 extern input_event_queue event_queue;                    // 0x00712cc0
 extern int64_t performance_frequency;                           // 0x006ac8f8/0x006ac8fc
-extern void *memmove(void *dst, const void *src, uint32_t count); // 0x006236f0 _memmove
 
 // blam-cc: queue index in EAX, record pointer in EDI
 // Pushes record onto queue queue_index (0..3): stamps record->controller_index with the queue

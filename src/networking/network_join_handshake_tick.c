@@ -26,6 +26,7 @@
 // network_connection_initiate; preserved as a write into the same combined scratch buffer used
 // for local_134, at its own computed offset, rather than folded into session_info.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -43,7 +44,6 @@ extern char network_channel_service(network_channel *channel, int32_t timeout_ms
 extern int32_t network_game_process_incoming_messages(network_client_globals *client); // 0x4db180, this batch
 extern void network_connection_send_keepalive(network_client_globals *client); // 0x4d9400
 extern void network_debug_fill_canary_buffer(void); // 0x4e0790, UNSURE argument; not in this batch
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 extern int32_t network_connection_initiate(network_client_globals *connection, const uint32_t *target,
     const uint32_t *session_info); // 0x4d8cf0
 
@@ -96,7 +96,7 @@ uint32_t network_join_handshake_tick(network_client_globals *client)
         *(int16_t *)(frame + 28) = 4;
         *(int16_t *)(frame + 30) = (int16_t)network_game_socket_port;
         *(int16_t *)(frame + 370) = 1;
-        _wcsncpy((wchar_t *)(frame + 38), (const wchar_t *)network_server->password, 8);
+        wcsncpy((wchar_t *)(frame + 38), (const wchar_t *)network_server->password, 8);
         *(int16_t *)(frame + 54) = 0;
 
         network_debug_fill_canary_buffer(); // UNSURE argument; see file header

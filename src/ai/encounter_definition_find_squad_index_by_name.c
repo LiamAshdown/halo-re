@@ -9,13 +9,13 @@
 // stack argument.
 //   // blam-cc: ESI -> encounter_definition, stack -> name
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 #include <string.h>
 
-extern int32_t __strnicmp(const char *a, const char *b, size_t n); // 0x6375da
 
 // blam-cc: ESI -> encounter_definition, stack -> name
 // Linear-searches one ScenarioEncounter's squads for one whose name matches (case-
@@ -32,7 +32,7 @@ int32_t encounter_definition_find_squad_index_by_name(ScenarioEncounter *encount
 
     index = 0;
     cursor = (uint8_t *)encounter_definition->squads.pointer;
-    while (__strnicmp((char *)cursor, name, 0x20) != 0) {
+    while (_strnicmp((char *)cursor, name, 0x20) != 0) {
         index = index + 1;
         cursor += sizeof(ScenarioSquad);
         if (encounter_definition->squads.count <= index) {

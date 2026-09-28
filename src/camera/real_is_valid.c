@@ -5,16 +5,16 @@
 // "observer assertion helpers"; a plain NaN guard.
 // register convention: __cdecl, single stack parameter (Ghidra's recognized param_1).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
 
-extern int32_t __isnan(double x); // 0x624494, MSVC CRT
 
 // Returns whether value is a valid (non-NaN) float.
 uint8_t real_is_valid(float value)
 {
-    return (uint8_t)(__isnan((double)value) == 0);
+    return (uint8_t)(_isnan((double)value) == 0);
 }
 
 #if 0

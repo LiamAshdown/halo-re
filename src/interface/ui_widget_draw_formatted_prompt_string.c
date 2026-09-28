@@ -23,6 +23,7 @@
 // ARGB8888) is stored in a local that nothing reads; ui_button_prompt_draw_icon takes only the icon in ESI.
 // It is reproduced for fidelity.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -45,9 +46,6 @@ extern float hud_text_draw_color_b;        // 0x006e4744
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern uint16_t *ui_button_caption[0x28];  // 0x00692708
 
-extern void _wcscpy(uint16_t *dest, const uint16_t *src); // 0x625bba
-extern uint16_t *_wcschr(uint16_t *s, uint16_t c);        // 0x625b58
-extern uint32_t wcslen(const uint16_t *s);          // 0x625b7a, wide strlen
 extern int32_t __ftol(double x);                          // 0x6391b4
 extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out_bounds,
                          const uint16_t *text); // 0x5562d0, measure a span
@@ -89,9 +87,9 @@ void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_tex
     Rectangle2D cursor_rect = *bounds;
     uint16_t *cursor = formatted_prompt_scratch;
 
-    _wcscpy(formatted_prompt_scratch, text);
+    wcscpy(formatted_prompt_scratch, text);
     for (;;) {
-        uint16_t *percent = _wcschr(cursor, 0x25);
+        uint16_t *percent = wcschr(cursor, 0x25);
         uint16_t *next;
         int16_t token;
 

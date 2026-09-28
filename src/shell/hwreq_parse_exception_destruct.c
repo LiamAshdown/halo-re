@@ -10,8 +10,9 @@
 //   frame pop is the only tail activity).
 // blam-cc: hwreq_parse_exception_destruct(hwreq_parse_exception *this /*ECX*/)
 // UNSURE: FUN_00627e1c (`exception::~exception`, the Dinkumware base-class destructor) and
-//   `_free` are opaque CRT calls, not rewritten here.
+//   `free` are opaque CRT calls, not rewritten here.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,7 +27,6 @@ typedef struct hwreq_parse_exception {
 } hwreq_parse_exception; // size 0x28, see hwreq_parse_exception_construct.c
 
 extern void *logic_error_vtable; // 0x00655080
-extern void _free(void *ptr); // 0x6277e8
 extern void exception_destruct(hwreq_parse_exception *this); // 0x627e1c, UNSURE: opaque Dinkumware `exception::~exception`
 
 void hwreq_parse_exception_destruct(hwreq_parse_exception *this)
@@ -34,7 +34,7 @@ void hwreq_parse_exception_destruct(hwreq_parse_exception *this)
     this->vtable = (uint32_t)&logic_error_vtable;
 
     if (this->message.capacity > 0xf) {
-        _free((void *)this->message.buffer.heap_buffer);
+        free((void *)this->message.buffer.heap_buffer);
     }
     this->message.capacity = 0xf;
     this->message.size = 0;

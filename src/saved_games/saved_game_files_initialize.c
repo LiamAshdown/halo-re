@@ -14,6 +14,7 @@
 // register convention: __cdecl, no parameters.
 // reconciled: R10 profile_directory is char[0x105] (k_profile_directory_storage_size; shell zeroes 0x41 dwords + 1 byte at 0x540ef9)
 
+#include "crt.h"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -51,8 +52,6 @@ extern char directory_create_recursive(char *path); // 0x449250, foreign module
 extern void player_profile_initialize(saved_player_profile *profile, int32_t local_player_index,
     uint8_t merge_existing); // 0x53a1c0, this module
 extern void player_profile_write_default_files(void); // 0x53a610, this module
-extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // CRT
-extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
 
 // blam-cc: __cdecl, no parameters
 // One-time module init: zeroes the saved-game-files globals block, copies profile_directory as
@@ -74,24 +73,24 @@ void saved_game_files_initialize(void)
         zero_cursor += 4;
     }
 
-    _strncpy(saved_game_root_directory, profile_directory, 0xff);
-    __snprintf(hdmu_map_path, 0xff, "%s\\%s\\%s", saved_game_root_directory, "saved", "hdmu.map");
-    __snprintf(savegames_directory, 0xff, "%s\\%s", saved_game_root_directory, "savegames");
-    __snprintf(saved_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved");
+    strncpy(saved_game_root_directory, profile_directory, 0xff);
+    _snprintf(hdmu_map_path, 0xff, "%s\\%s\\%s", saved_game_root_directory, "saved", "hdmu.map");
+    _snprintf(savegames_directory, 0xff, "%s\\%s", saved_game_root_directory, "savegames");
+    _snprintf(saved_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved");
     directory_create_recursive(saved_directory);
-    __snprintf(player_profiles_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved\\player_profiles");
+    _snprintf(player_profiles_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved\\player_profiles");
     directory_create_recursive(player_profiles_directory);
-    __snprintf(default_player_profiles_directory, 0xff, "%s\\%s", saved_game_root_directory,
+    _snprintf(default_player_profiles_directory, 0xff, "%s\\%s", saved_game_root_directory,
         "saved\\player_profiles\\default_profile");
     directory_create_recursive(default_player_profiles_directory);
-    __snprintf(playlists_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved\\playlists");
+    _snprintf(playlists_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved\\playlists");
     directory_create_recursive(playlists_directory);
-    __snprintf(default_playlists_directory, 0xff, "%s\\%s", saved_game_root_directory,
+    _snprintf(default_playlists_directory, 0xff, "%s\\%s", saved_game_root_directory,
         "saved\\playlists\\default_playlist");
     directory_create_recursive(default_playlists_directory);
-    __snprintf(last_profile_path, 0xff, "%s\\%s", saved_game_root_directory, "lastprof.txt");
-    __snprintf(last_game_variant_path, 0xff, "%s\\%s", saved_game_root_directory, "lastmpvr.txt");
-    __snprintf(last_multiplayer_map_path, 0xff, "%s\\%s", saved_game_root_directory, "lastmpmp.txt");
+    _snprintf(last_profile_path, 0xff, "%s\\%s", saved_game_root_directory, "lastprof.txt");
+    _snprintf(last_game_variant_path, 0xff, "%s\\%s", saved_game_root_directory, "lastmpvr.txt");
+    _snprintf(last_multiplayer_map_path, 0xff, "%s\\%s", saved_game_root_directory, "lastmpmp.txt");
 
     savegame_index_dirty = 1;
     saved_game_files_mutex = 0;

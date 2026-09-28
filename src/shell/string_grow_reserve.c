@@ -11,7 +11,7 @@
 // register convention (confirmed via objdump): ECX = this, stack arguments = new_capacity
 //   (param_1, recognized by Ghidra), preserve_count (a 2nd stack argument at [ebp+0xc] that
 //   Ghidra's own decompile of this function never recognized -- read only after the
-//   operator_new call, past where Ghidra stopped tracking it as a parameter).
+//   malloc call, past where Ghidra stopped tracking it as a parameter).
 // UNSURE: Ghidra split this function's tail into a second, separately-named "function",
 //   string_copy_into_new_buffer 0x57c76c -- but objdump shows the only path into 0x57c76c is a
 //   fall-through `jmp` from this function's own body (0x57c741) or a "load a fixed address into
@@ -24,14 +24,13 @@
 //   integer division, which is arithmetically equivalent for every value the string library
 //   would pass through it.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *operator_new(uint32_t size); // 0x6277da
-extern void _free(void *ptr); // 0x6277e8
 
 // blam-cc: ECX -> this, stack -> new_capacity, preserve_count
 void string_grow_reserve(msvc_std_string *this, uint32_t new_capacity, uint32_t preserve_count)
@@ -50,7 +49,7 @@ void string_grow_reserve(msvc_std_string *this, uint32_t new_capacity, uint32_t 
         capacity = new_capacity; // original request, pre-|0xf (0xffffffff case is left alone)
     }
 
-    new_buffer = (char *)operator_new(capacity + 1);
+    new_buffer = (char *)malloc(capacity + 1);
 
     if (preserve_count != 0) {
         const char *old_buffer = (this->capacity < 0x10) ? this->buffer.inline_buffer : (const char *)this->buffer.heap_buffer;
@@ -61,7 +60,7 @@ void string_grow_reserve(msvc_std_string *this, uint32_t new_capacity, uint32_t 
     }
 
     if (this->capacity > 0xf) {
-        _free((void *)this->buffer.heap_buffer);
+        free((void *)this->buffer.heap_buffer);
     }
 
     this->buffer.inline_buffer[0] = 0;

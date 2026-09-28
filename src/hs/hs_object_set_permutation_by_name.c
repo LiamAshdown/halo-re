@@ -17,12 +17,12 @@
 // group/field names (a model tag's permutations block, most likely) are not established anywhere
 // in types/tags.h under those exact offsets for this module, so raw offsets are kept.
 
+#include "crt.h"
 #include "tags.h"
 #include "cache.h"
 #include "memory.h"
 #include "hs.h"
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x00628d8b
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
     char use_matched_index); // 0x4f6c60, EAX object, stack (name, region, use)
 
@@ -55,7 +55,7 @@ void hs_object_set_permutation_by_name(datum_index object_index, void *param_2, 
                 index = 0;
                 if (0 < permutation_count) {
                     do {
-                        if (__stricmp((char *)(*(int32_t *)(definition + 200) + index * 0x4c),
+                        if (_stricmp((char *)(*(int32_t *)(definition + 200) + index * 0x4c),
                                 name) == 0) {
                             match_index = index;
                             break;

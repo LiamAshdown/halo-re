@@ -13,6 +13,7 @@
 // register convention: saved-game handle in EAX; out_directory buffer in ESI. No stack
 // arguments.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,8 +23,6 @@
 #include "saved_games.h"
 
 extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry); // 0x53e0e0, FUN_0053e0e0 (src/game)
-extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
-extern char *strstr(char *haystack, const char *needle); // 0x625430, outside this batch (CRT-like substring search)
 
 // blam-cc: saved-game handle in EAX; out_directory in ESI
 // Resolves handle to its index-file slot and, if found and its type is a player profile or game
@@ -54,7 +53,7 @@ uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory)
     if (entry.type != _saved_game_type_player_profile && entry.type != _saved_game_type_game_variant) {
         return 0;
     }
-    _strncpy(out_directory, entry.path, 0xff);
+    strncpy(out_directory, entry.path, 0xff);
     out_directory[0xff] = '\0';
     needle = (entry.type == _saved_game_type_player_profile) ? "blam.sav" : "blam.lst";
     name_start = strstr(out_directory, needle);

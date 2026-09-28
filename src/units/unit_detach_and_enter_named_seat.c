@@ -13,6 +13,7 @@
 //   seat's animation label is set on the unit (0x5651e0: EAX unit, stack label, 0, 0).
 // blam-cc: stack -> (unit_index, target_parent_index, seat_marker_name)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
@@ -53,7 +54,6 @@ extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
 extern uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index); // 0x56cc10, EDI, ESI
 extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
 extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
@@ -206,7 +206,7 @@ void unit_detach_and_enter_named_seat(uint32_t unit_index, uint32_t target_paren
     for (i = 0; i < *(int32_t *)(vehicle_tag + 0x2e4); i++) {
         char *seat_label = (char *)(*(uint8_t **)(vehicle_tag + 0x2e8) + i * 0x11c + 0x4);
 
-        if (__stricmp(seat_marker_name, seat_label) != 0) {
+        if (_stricmp(seat_marker_name, seat_label) != 0) {
             continue;
         }
         if (unit_is_seat_occupied((int32_t)target_parent_index, i)) {

@@ -10,13 +10,13 @@
 // The SEH frame (ExceptionList save/restore around the whole body) is MSVC /EHsc boilerplate
 // with no C-level effect here (nothing in the body can throw) and is dropped from the rewrite.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t _strncmp(const char *a, const char *b, uint32_t count);
 
 extern int32_t cpu_identification_state; // 0x00721e88
 extern char cpu_vendor_string[0x10];     // 0x006e35ac
@@ -50,10 +50,10 @@ int32_t cpu_get_type(int32_t mode)
 
     switch (mode) {
     case k_cpu_query_vendor:
-        if (_strncmp(cpu_vendor_string, "AuthenticAMD", 0xc) == 0) return k_cpu_vendor_amd;
-        if (_strncmp(cpu_vendor_string, "GenuineIntel", 0xc) == 0) return k_cpu_vendor_intel;
-        if (_strncmp(cpu_vendor_string, "CyrixInstead", 0xc) == 0) return k_cpu_vendor_cyrix;
-        if (_strncmp(cpu_vendor_string, "CentaurHauls", 0xc) == 0) return k_cpu_vendor_centaur;
+        if (strncmp(cpu_vendor_string, "AuthenticAMD", 0xc) == 0) return k_cpu_vendor_amd;
+        if (strncmp(cpu_vendor_string, "GenuineIntel", 0xc) == 0) return k_cpu_vendor_intel;
+        if (strncmp(cpu_vendor_string, "CyrixInstead", 0xc) == 0) return k_cpu_vendor_cyrix;
+        if (strncmp(cpu_vendor_string, "CentaurHauls", 0xc) == 0) return k_cpu_vendor_centaur;
         return k_cpu_vendor_unknown;
 
     case k_cpu_query_model:

@@ -8,6 +8,7 @@
 // (unaff_ESI). // blam-cc: EAX -> mode, ESI -> client
 // UNSURE: none.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
@@ -21,7 +22,6 @@ extern int32_t join_ui_state; // 0x00718f8c
 extern int16_t network_game_mode; // 0x00719720
 extern int32_t some_global_0068e688; // 0x0068e688
 extern const char network_ellipsis_dots[]; // 0x00697e7c, "................"
-extern void _strncpy(char *dest, const char *source, uint32_t count);
 
 
 // blam-cc: EAX -> mode, ESI -> client
@@ -45,7 +45,7 @@ void network_join_status_text_update(int32_t mode, network_client_globals *clien
         } else if (count > 0x10) {
             count = 0x10;
         }
-        _strncpy(dots, network_ellipsis_dots, count);
+        strncpy(dots, network_ellipsis_dots, count);
         console_printf_verbose("Connecting%s", dots);
         join_ui_countdown = attempt->elapsed_counter;
         if (join_ui_state != 1 && join_ui_state != 2) {

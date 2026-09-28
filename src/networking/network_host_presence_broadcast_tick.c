@@ -18,6 +18,7 @@
 // the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
 // the encoded bits from challenge; the C passed placeholders or dropped the arguments.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -29,7 +30,6 @@
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern char cache_file_request_map(int32_t unknown); // 0x442640, UNSURE argument
 extern char network_build_string[]; // 0x00719879
-extern void _strncpy(uint8_t *dest, const char *source, int32_t count);
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
@@ -52,7 +52,7 @@ void network_host_presence_broadcast_tick(network_client_globals *client)
         client->unknown_ed4 = now_ms;
         if (cache_file_request_map(1) != 0) { // UNSURE argument
             memset(buffer, 0, sizeof(buffer));
-            _strncpy(buffer, network_build_string, 0x100);
+            strncpy(buffer, network_build_string, 0x100);
 
             // 0x4dae54: eax = 0x15; 0x4dae50: edx = the staged announcement scratch.
             challenge = (int32_t *)network_prepare_challenge_packet(0x15, buffer);

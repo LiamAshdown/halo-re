@@ -2,7 +2,7 @@
 // address 0x496df0, size 158 bytes
 // name confidence: 0.4   rewrite confidence: 0.55
 // evidence: sole caller chimera__console_out_copy @0x496e90 calls this twice, immediately after
-// _strncpy(local_buffer, in_EAX, 0x100) -- cdecl _strncpy returns its destination pointer in EAX,
+// strncpy(local_buffer, in_EAX, 0x100) -- cdecl strncpy returns its destination pointer in EAX,
 // which is why the buffer to edit arrives here as an unrecognized (in_EAX) register argument
 // instead of a third stack parameter. It replaces every occurrence of the search token with the
 // replacement token in place, shifting the tail of the buffer with memmove; unlike the wide,
@@ -12,6 +12,7 @@
 // and replacement token as the two recognized stack parameters.
 // blam-cc: EAX -> buffer, then (search, replacement) on the stack
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,9 +20,6 @@
 #include "networking.h"
 #include "interface.h"
 
-extern void *_memmove(void *dest, const void *source, uint32_t size);
-extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
-extern uint32_t strlen(const char *s);
 
 // blam-cc: EAX -> buffer, then (search, replacement) on the stack
 // Replaces every occurrence of `search` inside `buffer` with `replacement`, in place. Assumes
@@ -46,8 +44,8 @@ void string_replace_all_in_place(char *buffer, char *search, char *replacement)
         while ((cursor = strstr(cursor, search)) != (char *)0) {
             uint32_t tail_size = (uint32_t)(buffer_end - cursor) - 1;
 
-            _memmove(cursor, replacement, replacement_length);
-            _memmove(cursor + replacement_length, cursor + search_length, tail_size);
+            memmove(cursor, replacement, replacement_length);
+            memmove(cursor + replacement_length, cursor + search_length, tail_size);
         }
     }
 }

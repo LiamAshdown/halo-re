@@ -18,6 +18,7 @@
 // read) -- blam-cc: ECX. The tag group passed to tag_lookup is hardcoded to 'ustr'
 // (0x75737472), not a caller argument.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -38,7 +39,6 @@ extern wchar_t missing_string_text[];          // 0x00671fac, L"<missing string>
 extern wchar_t unicode_string_list_scratch_buffer; // 0x006b5c58
 
 extern datum_index tag_lookup(tag_group group, char *path);       // 0x442550
-extern wchar_t *_wcscpy(wchar_t *dest, const wchar_t *source);    // 0x625bba (CRT)
 
 // blam-cc: path in EAX, index in ECX (low 16 bits only)
 // Looks up the unicode_string_list tag named `path` and returns its `index`'th string, copied
@@ -70,7 +70,7 @@ wchar_t *unicode_string_list_get_string(char *path, int16_t index)
         }
     }
 
-    _wcscpy(&unicode_string_list_scratch_buffer, source);
+    wcscpy(&unicode_string_list_scratch_buffer, source);
     return &unicode_string_list_scratch_buffer;
 }
 

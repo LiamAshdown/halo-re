@@ -35,6 +35,7 @@
 //     return EXCEPTION_CONTINUE_SEARCH (0).
 // register convention: __stdcall, one stack argument (EXCEPTION_POINTERS *), ret 4.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -53,9 +54,6 @@
 #endif
 
 
-extern uint16_t *wcscpy(uint16_t *dest, const uint16_t *source);               // 0x625bba CRT
-extern uint32_t mbstowcs(uint16_t *dest, const char *source, uint32_t count);  // 0x626ba4 CRT
-extern char *_strlwr(char *string);                                            // 0x6276c6 CRT
 
 extern void chimera__registry_check_3(void);                                   // 0x5226c0 (rasterizer), restores the gamma ramp
 extern void rasterizer_service_deferred_windowed_ops(void);                    // 0x5180d0 (rasterizer)

@@ -16,6 +16,7 @@
 // into user_data") and with this function's own use of *out_name as its success flag
 // afterward. Confirmed in objdump: 0x538b47 pushes ESI (out_name) as the 4th argument.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -25,7 +26,6 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
 extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first,
     checkpoint_enumerate_proc callback, void *user_data); // 0x538e70
 extern uint8_t game_checkpoint_reclaim_slot_callback(int32_t index, const char *name, int32_t level_index,
@@ -43,8 +43,8 @@ uint8_t game_checkpoint_get_next_filename(char *out_name, char *directory)
     void *find_handle;
 
     for (index = 0; index <= 99; index = index + 1) {
-        _sprintf(out_name, "checkpoints\\checkpoint%d", index);
-        _sprintf(path, "%s%s.sav", directory, out_name);
+        sprintf(out_name, "checkpoints\\checkpoint%d", index);
+        sprintf(path, "%s%s.sav", directory, out_name);
         find_handle = FindFirstFileA(path, (LPWIN32_FIND_DATAA)&find_data);
         if (find_handle == (void *)0xffffffff) {
             return 1;

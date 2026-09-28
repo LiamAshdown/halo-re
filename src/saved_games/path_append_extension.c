@@ -7,6 +7,7 @@
 // register convention: destination buffer in ESI, suffix string in EBX (confirmed by objdump
 // 0x555f20..0x555f73, identical shape to path_append_component's prologue).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -15,7 +16,6 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
 
 // blam-cc: destination in ESI, suffix in EBX
 void path_append_extension(char *destination, const char *suffix)
@@ -32,7 +32,7 @@ void path_append_extension(char *destination, const char *suffix)
             end++;
             *end = '\0';
         }
-        _strncpy(end, suffix, 0xff - (uint32_t)(end - destination));
+        strncpy(end, suffix, 0xff - (uint32_t)(end - destination));
         destination[0xff] = '\0';
     }
     return;

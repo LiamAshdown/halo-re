@@ -28,6 +28,7 @@
 // (0x3f800000 == 1.0f, 0x3eaa7efa ~ 0.3333f) are written through a `uint32_t*` reinterpretation
 // of the `alpha` field to avoid any floating-point literal rounding.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -112,7 +113,6 @@ extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_byte
 extern wchar_t string_widen_scratch[0x400]; // 0x006b5e90, the 0x800-byte shared target
 extern int32_t tag_lookup(const char *path); // foreign, tags module
 extern uint16_t *text_string_list_get_string(int32_t tag_index, int32_t string_index); // foreign, see UNSURE
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
 // blam-cc: list-panel widget as param_1
 int32_t join_game_server_browser_tick(network_ui_widget *param_1)
@@ -494,7 +494,7 @@ scroll_fade_settled:
                     "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
                 if (tag_idx != -1) {
                     src = text_string_list_get_string(tag_idx, 0);
-                    _wcsncpy(DAT_00719498, src, 0xff);
+                    wcsncpy(DAT_00719498, src, 0xff);
                     DAT_00719696 = 0;
                 }
                 if (server_browser_selected_index == -1) {

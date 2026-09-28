@@ -19,6 +19,7 @@
 //   cannot exceed the string max size.
 // blam-cc: ECX -> value, stack -> this, where, count
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -36,8 +37,6 @@ extern int32_t hwreq_device_list_size(const msvc_std_vector *this); // 0x57b5b0
 extern hwreq_string_pair *copy_backward_string_pair(hwreq_string_pair *first, hwreq_string_pair *last,
     hwreq_string_pair *dest_end); // 0x57cf10, blam-cc: EBX -> first, ECX -> last, EAX -> dest_end
 extern void hwreq_pair_vector_throw_length_error(void); // 0x57c130, throws length_error("vector<T> too long")
-extern void *operator_new(uint32_t size); // 0x6277da, MSVC CRT
-extern void free(void *block); // 0x6277e8, CRT free
 
 static uint32_t pair_count(uint32_t from, uint32_t to)
 {
@@ -71,7 +70,7 @@ void hwreq_pair_vector_insert_n(msvc_std_vector *this, hwreq_string_pair *where,
             if (capacity < size + count) {
                 capacity = (uint32_t)hwreq_device_list_size(this) + count;
             }
-            new_first = (hwreq_string_pair *)operator_new(capacity * sizeof(hwreq_string_pair));
+            new_first = (hwreq_string_pair *)malloc(capacity * sizeof(hwreq_string_pair));
             cursor = uninit_copy_string_pair((hwreq_string_pair *)this->first, where, new_first);
             uninit_fill_n_string_pair(cursor, count, &temporary);
             uninit_copy_string_pair(where, (hwreq_string_pair *)this->last, cursor + count);

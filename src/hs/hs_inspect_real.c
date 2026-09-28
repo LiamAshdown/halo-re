@@ -5,16 +5,16 @@
 // WRITTEN 2026-09-28 from objdump 0x489ad0..: sprintf(buffer, "%f", (double)value-as-float).
 // blam-cc: stack -> type, value, buffer (cdecl)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
-extern int _sprintf(char *buffer, const char *format, ...); // 0x623693
 
 void hs_inspect_real(int16_t type, int32_t value, char *buffer)
 {
     union { int32_t i; float f; } bits;
 
     bits.i = value;
-    _sprintf(buffer, "%f", (double)bits.f);
+    sprintf(buffer, "%f", (double)bits.f);
 }

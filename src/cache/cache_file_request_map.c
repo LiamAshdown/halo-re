@@ -24,11 +24,11 @@
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
 
-extern char *strrchr(const char *str, int ch); // 00623bc0 _strrchr
 extern void interface_handle_quit_request(void); // 0x499170
 
 extern int16_t cache_file_find_slot_by_name(char *name); // blam-cc: EDI; 0x443770

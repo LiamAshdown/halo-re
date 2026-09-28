@@ -13,6 +13,7 @@
 //   Confirmed against objdump -d -M intel bin/halo.exe: 0x4fa490 mov edx,[eax] at entry.
 //   // blam-cc: EAX -> record, stack -> file
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +23,6 @@
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t _fprintf(void *file, const char *format, ...); // 0x623de2
 
 void object_dump_write(object_memory_dump_record *record, void *file) // blam-cc: EAX -> record, stack -> file
 {
@@ -36,7 +36,7 @@ void object_dump_write(object_memory_dump_record *record, void *file) // blam-cc
         name = tag_instances[record->definition_tag & 0xffff].path;
     }
 
-    _fprintf(file, "% 6d (% 6d) [% 7d/% 7d/% 7d/% 7d] % 7d % 7d %s\r\n",
+    fprintf(file, "% 6d (% 6d) [% 7d/% 7d/% 7d/% 7d] % 7d % 7d %s\r\n",
         record->count, record->active_count, record->garbage_count, record->dead_count,
         record->outside_map_count, record->at_rest_count, record->maximum_size,
         record->total_size, name);

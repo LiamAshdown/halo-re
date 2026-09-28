@@ -10,18 +10,18 @@
 //   hwreq_string_destruct.c also receives its `this` in ESI).
 // blam-cc: hwreq_map_node_key_destruct(hwreq_map_node *node /*ESI*/)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void _free(void *ptr); // 0x6277e8
 
 void hwreq_map_node_key_destruct(hwreq_map_node *node)
 {
     if (node->key.capacity > 0xf) {
-        _free((void *)node->key.buffer.heap_buffer);
+        free((void *)node->key.buffer.heap_buffer);
     }
     node->key.capacity = 0xf;
     node->key.size = 0;

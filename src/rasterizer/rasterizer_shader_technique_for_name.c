@@ -13,13 +13,13 @@
 // UNSURE: on a total failure (no "<name>_ps_<major>_<minor>" validates) this returns whatever the
 //   very last GetTechniqueByName call returned, which is not necessarily NULL; not corrected.
 
+#include "crt.h"
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 
 typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, const char *name);
 typedef int32_t (__stdcall *d3dx_validate_technique_fn)(void *effect, void *technique);

@@ -14,13 +14,11 @@
 //   since it is not a FUN_ stub and out/phase4/hs_types_notes.md does not list it as
 //   misattributed, but this should be reconsidered as hs_parse_enum.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x00623693 _sprintf
-extern int32_t __stricmp(const char *a, const char *b);        // 0x00628d8b
-extern char *strcat(char *dst, const char *src);                // CRT, statically linked
 
 extern data_array *hs_syntax_data;                 // 0x0087a474
 extern char *hs_compiled_source;                    // 0x006b14c0
@@ -51,7 +49,7 @@ char hs_report_expected_enum_values(datum_index node_index)
     match_index = 0;
     if (0 < def->count) {
         do {
-            if (__stricmp(hs_compiled_source + node->source_offset, def->names[match_index]) == 0)
+            if (_stricmp(hs_compiled_source + node->source_offset, def->names[match_index]) == 0)
                 break;
             match_index = match_index + 1;
         } while (match_index < def->count);

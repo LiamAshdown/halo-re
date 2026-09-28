@@ -13,6 +13,7 @@
 //   (0x578eb5..0x578ec2); the first rewrite used a private string helper and leaked it.
 // register convention: parser in ECX (mov esi,ecx at 0x578d14), property_set on the stack, ret 4.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,8 +21,6 @@
 #include "shell.h"
 
 extern void hwreq_property_set_upsert(hwreq_property_set *property_set, char *key, char *value); // 0x00578410
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b CRT
-extern void free(void *block); // 0x6277e8 CRT
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
 extern hwreq_property_set **hwreq_property_set_map_index(msvc_std_string *key, msvc_std_map *map); // 0x57b6e0, blam-cc: key in EDI, map on the stack; library code (map::operator[]), not in the function list
 
@@ -116,7 +115,7 @@ have_value:
 
     hwreq_property_set_upsert(property_set, name, value);
 
-    if (__stricmp("OverallGraphicDetail", name) == 0) {
+    if (_stricmp("OverallGraphicDetail", name) == 0) {
         msvc_std_string value_string;
 
         value_string.size = 0;

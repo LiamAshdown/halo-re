@@ -7,13 +7,13 @@
 // register convention: keyword in EDX, parser in EDI.
 // blam-cc: EDX -> keyword (1st parameter), EDI -> parser (2nd parameter)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __strnicmp(const char *a, const char *b, uint32_t count);
 
 // Tests whether the parser's cursor is currently positioned at the given keyword, followed by a
 // valid delimiter character, without consuming the token.
@@ -27,7 +27,7 @@ uint32_t hwreq_token_match_keyword(const char *keyword, hwreq_parser *parser)
     while (*p != '\0') p++;
     length = (uint32_t)(p - keyword);
 
-    if (__strnicmp((char *)parser->cursor, keyword, length) == 0) {
+    if (_strnicmp((char *)parser->cursor, keyword, length) == 0) {
         delimiter = ((char *)parser->cursor)[length];
         if (delimiter == '>' || delimiter == '<' || delimiter == '!' || delimiter == '=' ||
             delimiter == ' ' || delimiter == '\r' || delimiter == '\t') {

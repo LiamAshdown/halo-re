@@ -6,11 +6,11 @@
 // the same as real_approximately_equal (see that file for the CONCAT31 decompiler artifact note).
 // register convention: vector pointer in EAX (in_EAX); no stack parameters.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
 
-extern int32_t __isnan(double x); // 0x624494, MSVC CRT
 
 // blam-cc: EAX -> v
 // Returns whether v is approximately unit length (|v|^2 - 1, within 0.001), guarding against NaN.
@@ -19,7 +19,7 @@ uint8_t vector3d_is_unit_length(Vector3D *v)
     float length_squared_minus_one;
 
     length_squared_minus_one = (v->i * v->i + v->j * v->j + v->k * v->k) - 1.0f;
-    if (__isnan((double)length_squared_minus_one) != 0) {
+    if (_isnan((double)length_squared_minus_one) != 0) {
         return 0;
     }
     if (length_squared_minus_one < 0.0f) {

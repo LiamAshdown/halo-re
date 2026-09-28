@@ -8,6 +8,7 @@
 // named in the same header's globals list.
 // register convention: no register-passed arguments.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,8 +23,6 @@ extern int32_t console_last_cursor_column;    // 0x006b2ef8
 
 extern void console_draw_input_line(void);    // 0x4970a0
 extern void console_position_cursor(void);    // 0x4971a0
-extern char *_strncpy(char *dest, const char *source, uint32_t count);
-extern int32_t strcmp(const char *a, const char *b); // inlined byte-compare loop in the original
 
 // Per-frame refresh of the attached win32 console window: if the input line text changed since
 // the last draw, redraws the input line and remembers the new text; then, independently, if the
@@ -33,7 +32,7 @@ void console_update_display(void)
     if (console_win32_attached != 0 && console_active != (terminal_console *)0) {
         if (strcmp(console_last_line, console_active->input) != 0) {
             console_draw_input_line();
-            _strncpy(console_last_line, console_active->input, 0xff);
+            strncpy(console_last_line, console_active->input, 0xff);
         }
         if (console_last_cursor_column != (int32_t)console_active->edit.cursor) {
             console_last_cursor_column = (int32_t)console_active->edit.cursor;

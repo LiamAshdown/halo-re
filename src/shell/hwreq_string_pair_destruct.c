@@ -7,26 +7,26 @@
 // register convention: pair pointer is the recognized stack parameter (thiscall folded to a
 // normal parameter by Ghidra).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void _free(void *memory);
 
 // Destructs a heap-embedded pair of strings, releasing any out-of-line buffers each string owns.
 void hwreq_string_pair_destruct(hwreq_string_pair *pair)
 {
     if (pair->second.capacity > k_msvc_string_inline_capacity) {
-        _free((void *)pair->second.buffer.heap_buffer);
+        free((void *)pair->second.buffer.heap_buffer);
     }
     pair->second.capacity = k_msvc_string_inline_capacity;
     pair->second.size = 0;
     pair->second.buffer.inline_buffer[0] = 0;
 
     if (pair->first.capacity > k_msvc_string_inline_capacity) {
-        _free((void *)pair->first.buffer.heap_buffer);
+        free((void *)pair->first.buffer.heap_buffer);
     }
     pair->first.size = 0;
     pair->first.capacity = k_msvc_string_inline_capacity;

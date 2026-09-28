@@ -26,6 +26,7 @@
 //     a failed open skips the write but still appends the entry.
 // register convention: __cdecl, ushort type and wchar_t *name as ordinary stack arguments.
 
+#include "crt.h"
 #include "win32.h"
 #include <string.h>
 #include "tags.h"
@@ -62,8 +63,6 @@ extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root
 extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path); // 0x5519a0, blam-cc: EAX save_game_name, ECX root_path
                                                                     // (see saved_game_delete_by_handle.c)
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
-extern int32_t __snprintf(char *buffer, uint32_t count, const char *format, ...); // CRT
-extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
 
 // blam-cc: __cdecl, plain stack arguments (type, name)
 // Registers a new saved-game (type 0: blam.sav) or playlist (type 1: blam.lst) slot named
@@ -131,7 +130,7 @@ uint32_t saved_game_create_slot(uint16_t type, uint16_t *name)
     }
 
     memset(&entry, 0, sizeof(entry));
-    _wcsncpy(entry.display_name, name, 0x7f);
+    wcsncpy(entry.display_name, name, 0x7f);
     entry.display_name[0x7f] = 0;
     entry.type = (int16_t)type;
     entry.index = (int16_t)entry_count;
@@ -141,7 +140,7 @@ uint32_t saved_game_create_slot(uint16_t type, uint16_t *name)
     saved_type = (int32_t)type;
 
     if (type == 0) {
-        __snprintf(entry.path, 0xff, "%s%s", directory, "blam.sav");
+        _snprintf(entry.path, 0xff, "%s%s", directory, "blam.sav");
         body_size = 0x1ffc;
         storage_handle = game_state_open_persistent_storage(directory);
         if (storage_handle != (void *)-1) {
@@ -152,7 +151,7 @@ uint32_t saved_game_create_slot(uint16_t type, uint16_t *name)
             saved_type = -1;
             goto rollback;
         }
-        __snprintf(entry.path, 0xff, "%s%s", directory, "blam.lst");
+        _snprintf(entry.path, 0xff, "%s%s", directory, "blam.lst");
         body_size = 0x98;
     }
 

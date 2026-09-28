@@ -19,6 +19,7 @@
 // register convention: __cdecl, plain stack arguments (param_1 [unused], name).
 // reconciled: R37 game_variant.unknown_94 -> uint16 variant_flags (bit 0 built-in, high byte default index)
 
+#include "crt.h"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -37,7 +38,6 @@ extern uint8_t saved_game_delete_by_handle(int32_t handle); // 0x53c960, this mo
 extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); // 0x5558f0, this module
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
-extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
 
 // blam-cc: __cdecl, plain stack arguments (param_1 [unused], name)
 // Creates a new game-variant slot named name, opens its file, fills it with the classic-slayer
@@ -69,7 +69,7 @@ uint32_t saved_game_create_custom_variant(uint32_t param_1, uint16_t *name)
         memcpy(&file.variant, defaults_ptr, sizeof(file.variant));
         file.variant.variant_flags = (int16_t)((uint16_t)file.variant.variant_flags & 0xfffe);
         game_variant_sanitize_options(&file.variant);
-        _wcsncpy(file.variant.name, name, 0x17);
+        wcsncpy(file.variant.name, name, 0x17);
         file.variant.name[0x17] = 0;
         file.checksum = 0xffffffff;
         crc32_update(&file.checksum, &file.variant, sizeof(file.variant));

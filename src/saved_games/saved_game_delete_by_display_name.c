@@ -11,11 +11,12 @@
 // called with the handle pushed on the stack and ECX = the out-profile buffer address;
 // saved_game_delete_by_handle is called with EDI = the handle; both exits load EDI with the
 // wide name buffer before calling input_apply_named_device_default_profile (matched by its own
-// prologue passing EDI on to __wcsicmp).
+// prologue passing EDI on to _wcsicmp).
 // Phase 4 review: matched objdump 0x53b9b0..0x53bad8; player_profile_get is (index, ECX
 // out_buffer), the call now passes (handle, &profile).
 // register convention: search name (narrow C string) in ECX. No stack arguments.
 
+#include "crt.h"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -32,7 +33,6 @@ extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, ui
 extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); // 0x53a770, blam-cc: ECX out_buffer
 extern uint8_t saved_game_delete_by_handle(int32_t handle); // 0x53c960, this module, blam-cc: EDI handle
 extern void input_apply_named_device_default_profile(const uint16_t *name); // 0x4901b0, blam-cc: EDI name
-extern int32_t __wcsicmp(const uint16_t *a, const uint16_t *b); // CRT (0x6277ed)
 
 // blam-cc: search name (narrow) in ECX
 // Converts the caller's narrow search name to a bounded (0x1ff character) wide string, then
@@ -70,7 +70,7 @@ void saved_game_delete_by_display_name(const char *name)
             profile = default_player_profile;
         } else {
             ok = player_profile_get(handle, &profile);
-            if (ok != 0 && (profile.flags & 0x2) != 0 && __wcsicmp(name_wide, profile.name) == 0) {
+            if (ok != 0 && (profile.flags & 0x2) != 0 && _wcsicmp(name_wide, profile.name) == 0) {
                 if (handle != -1) {
                     saved_game_delete_by_handle(handle);
                 }

@@ -6,10 +6,10 @@
 // of maximum_count elements."
 // register convention: data_array* in ESI (unaff_ESI).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 
-extern char *strncpy(char *dst, const char *src, uint32_t count); // 00623a90 _strncpy
 
 // blam-cc: array in ESI
 // Resets an entire data_array to empty: clears last_index/actual_count, reseeds next_identifier

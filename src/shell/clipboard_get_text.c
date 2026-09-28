@@ -7,6 +7,7 @@
 // GetClipboardData is then called unconditionally regardless of whether the clipboard was
 // actually opened; preserved exactly as decompiled (likely a genuine bug in the original).
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -14,7 +15,6 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern char *_strncpy(char *dest, const char *src, uint32_t count);
 
 extern void *shell_window; // 0x007461c4
 
@@ -35,7 +35,7 @@ uint32_t clipboard_get_text(char *buffer, uint32_t capacity)
     } else {
         locked_text = (char *)GlobalLock(clipboard_handle);
         if (locked_text != 0) {
-            _strncpy(buffer, locked_text, capacity);
+            strncpy(buffer, locked_text, capacity);
             GlobalUnlock(clipboard_handle);
             CloseClipboard();
             return 1;

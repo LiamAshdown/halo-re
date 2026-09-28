@@ -15,6 +15,7 @@
 // possible; this function was not independently re-derived from objdump beyond the parameter
 // convention above.
 
+#include "crt.h"
 #include "win32.h"
 #include <string.h>
 #include "tags.h"
@@ -34,7 +35,6 @@ extern win32_find_dataa file_enumeration_find_data; // 0x0069fba0
 extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
 extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
 extern void path_remove_last_component(char *path); // 0x555f80, this module
-extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
 
 
 // blam-cc: plain stack arguments (out_entry, out_write_time)
@@ -77,7 +77,7 @@ uint8_t file_enumerate_find_next(file_reference_record *out_entry, uint32_t *out
                 dest++;
             }
             remaining = (uint32_t)(0xff - ((int32_t)dest - (int32_t)search_path));
-            _strncpy(dest, "*.*", remaining);
+            strncpy(dest, "*.*", remaining);
             search_path[0xff] = '\0';
             handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&file_enumeration_find_data);
             file_enumeration_handles[depth] = handle;

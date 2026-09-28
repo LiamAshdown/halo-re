@@ -12,6 +12,7 @@
 // what that block's non-NULL-ness signals beyond "a game is active").
 // reconciled: R04 0x006f1d20 void * network_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +23,6 @@ extern int32_t sv_friendly_fire_mode; // 0x0071c40c
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
     // engine callback block")
 
-extern int32_t __stricmp(const char *a, const char *b); // CRT, case-insensitive strcmp
 extern void chimera__console_out(const char *format, ...); // 0x496b50
 
 // Console command: gets or sets the friendly-fire mode (0/default, 1/off, 2/shields, 3/on),
@@ -39,16 +39,16 @@ void sv_friendly_fire(uint32_t argument_count, int32_t *arguments) // blam-cc: E
         }
         {
             char *arg = (char *)arguments[0];
-            if (__stricmp(arg, "0") == 0 || __stricmp(arg, "default") == 0) {
+            if (_stricmp(arg, "0") == 0 || _stricmp(arg, "default") == 0) {
                 sv_friendly_fire_mode = 0;
                 changed = 1;
-            } else if (__stricmp(arg, "1") == 0 || __stricmp(arg, "off") == 0) {
+            } else if (_stricmp(arg, "1") == 0 || _stricmp(arg, "off") == 0) {
                 sv_friendly_fire_mode = 1;
                 changed = 1;
-            } else if (__stricmp(arg, "2") == 0 || __stricmp(arg, "shields") == 0) {
+            } else if (_stricmp(arg, "2") == 0 || _stricmp(arg, "shields") == 0) {
                 sv_friendly_fire_mode = 2;
                 changed = 1;
-            } else if (__stricmp(arg, "3") == 0 || __stricmp(arg, "on") == 0) {
+            } else if (_stricmp(arg, "3") == 0 || _stricmp(arg, "on") == 0) {
                 sv_friendly_fire_mode = 3;
                 changed = 1;
             } else {

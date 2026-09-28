@@ -15,6 +15,7 @@
 // register convention: maximum_length and field_kind as the two recognized parameters
 // (Ghidra's own param_1/param_2), destination buffer in ESI (unaff_ESI, unresolved register).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -31,7 +32,6 @@ extern uint8_t unknown_00712ccc[0x100];           // 0x00712ccc, UNSURE: not par
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern int32_t time_query_performance_counter_ms(void);                // 0x449210, UNSURE: appears to be a millisecond clock (see interface.h progress_screen_fade_end_time note)
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
-extern int32_t wcslen(const uint16_t *s);   // 0x625b7a, UNSURE: appears to be wcslen
 
 extern void **directinput_keyboard_device; // 0x006b1800, UNSURE: DirectInput device COM pointer
 extern uint8_t directinput_unknown_buffer_1[0x6d]; // 0x006b1620 (0x1b dwords + 1 byte cleared)

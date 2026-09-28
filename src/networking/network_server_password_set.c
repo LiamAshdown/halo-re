@@ -7,6 +7,7 @@
 // register convention: EAX = source (const wchar_t *), ESI = server (network_server_globals *).
 // blam-cc: EAX -> source, ESI -> server
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -14,13 +15,12 @@
 #include "networking.h"
 #include <wchar.h>
 
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
 // Copies up to 8 wide characters from `source` into `server`'s password field and forces a
 // NUL terminator.
 void network_server_password_set(const wchar_t *source, network_server_globals *server)
 {
-    _wcsncpy((wchar_t *)server->password, source, 8);
+    wcsncpy((wchar_t *)server->password, source, 8);
     server->password[8] = 0;
 }
 

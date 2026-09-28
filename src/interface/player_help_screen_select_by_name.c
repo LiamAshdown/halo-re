@@ -16,6 +16,7 @@
 // its result is used here (the input is already lowercased, so it functions as case-insensitive
 // substring matching against the lowercase needles).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -39,9 +40,6 @@ extern char player_help_name_c40[]; // 0x00669a40 FIXED: an array (the binary pu
 extern char player_help_name_d20[]; // 0x00669a3c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 extern char player_help_name_d40[]; // 0x00669a38 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 
-extern char *_strncpy(char *dest, const char *source, uint32_t count);
-extern int32_t _tolower(int32_t c);
-extern int32_t strstr(char *haystack, char *needle); // 0x625430, TYPES-GAP, UNSURE signature
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,
     datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
@@ -59,7 +57,7 @@ void player_help_screen_select_by_name(int16_t value)
     if (current_profile_tag_index == (datum_index)-1) {
         return;
     }
-    _strncpy(name, tag_instances[(int16_t)current_profile_tag_index].path, 0xff);
+    strncpy(name, tag_instances[(int16_t)current_profile_tag_index].path, 0xff);
 
     for (p = name; *p != 0; p++) {
         *p = (char)_tolower((uint8_t)*p);

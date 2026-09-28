@@ -17,6 +17,7 @@
 // UNSURE: the loop does not terminate when the selected id can never be loaded; kept.
 // register convention: cdecl, the one stack parameter (widget).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
@@ -35,9 +36,7 @@ extern void ui_profile_carousel_slot_cache_populate(int32_t count, const int32_t
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
 extern uint16_t *text_string_list_get_string(datum_index tag, int16_t index); // 0x5578c0, blam-cc: ECX tag, DX index
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910, blam-cc: EDX max chars
-extern void _qsort(void *base, uint32_t count, uint32_t size, int32_t (*compare)(const void *, const void *));
 extern int32_t ui_carousel_slot_compare_valid_first(const void *a, const void *b); // 0x4a7630
 
 void player_profile_1wide_list_update(widget_instance *widget)
@@ -70,9 +69,9 @@ void player_profile_1wide_list_update(widget_instance *widget)
                     if (names != (datum_index)-1) {
                         source = text_string_list_get_string(names, (int16_t)(flags >> 8));
                     }
-                    _wcsncpy(name, source, 0xb);
+                    wcsncpy(name, source, 0xb);
                 } else {
-                    _wcsncpy(name, (const uint16_t *)(profile + 2), 0xb);
+                    wcsncpy(name, (const uint16_t *)(profile + 2), 0xb);
                 }
                 name[0xb] = 0;
 
@@ -131,7 +130,7 @@ void player_profile_1wide_list_update(widget_instance *widget)
         {
             int32_t count = widget->item_count;
             int32_t valid = 0;
-            _qsort(ids, (uint32_t)count, 4, ui_carousel_slot_compare_valid_first);
+            qsort(ids, (uint32_t)count, 4, ui_carousel_slot_compare_valid_first);
             while (valid < count && ids[valid] != -1) {
                 valid++;
             }

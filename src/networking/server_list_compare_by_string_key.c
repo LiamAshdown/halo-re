@@ -12,6 +12,7 @@
 // UNSURE: SBServerGetStringValue's default-value argument is not visible at either call site; assumed to
 // be an empty string, matching this module's other SBServerGetStringValue call sites.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -21,7 +22,6 @@
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 
 extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library
-extern int32_t __stricmp(const char *a, const char *b);
 
 // blam-cc: entry-pointer-pointer `a` in EAX (in_EAX), `b` in ECX (in_ECX), key string in EDX
 int32_t server_list_compare_by_string_key(void **a, void **b, const char *key)
@@ -32,7 +32,7 @@ int32_t server_list_compare_by_string_key(void **a, void **b, const char *key)
 
     string_b = SBServerGetStringValue(*b, key, "");
     string_a = SBServerGetStringValue(*a, key, "");
-    result = __stricmp(string_a, string_b);
+    result = _stricmp(string_a, string_b);
     if (server_browser_sort_ascending == 0) {
         result = -result;
     }

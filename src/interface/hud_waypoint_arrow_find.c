@@ -8,6 +8,7 @@
 // register convention: EDI name; the result is in AX.
 //   // blam-cc: name -> EDI
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,7 +19,6 @@
 
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 
 // blam-cc: name -> EDI
 // Index of the HUD waypoint arrow called name, -1 when there is none or no HUD globals tag.
@@ -32,7 +32,7 @@ int16_t hud_waypoint_arrow_find(const char *name)
     for (i = 0; (int32_t)i < (int32_t)hud_globals_tag_data->waypoint_arrows.count; i++) {
         const HUDGlobalsWaypointArrow *arrow =
             (const HUDGlobalsWaypointArrow *)hud_globals_tag_data->waypoint_arrows.pointer + i;
-        if (__stricmp(name, arrow->name.string) == 0) {
+        if (_stricmp(name, arrow->name.string) == 0) {
             return i;
         }
     }

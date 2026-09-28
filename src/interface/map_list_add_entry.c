@@ -23,6 +23,7 @@
 // carried from the first strlen when no extension is found) are true no-ops and are not
 // reproduced; see the #if 0 block for the literal sequence.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -38,8 +39,6 @@ extern map_list_entry *map_list;     // 0x00712dcc
 extern int32_t map_list_count;       // 0x00712dd0
 extern int32_t map_list_capacity;    // 0x00712dd4
 
-extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
-extern char *_strrchr(const char *s, int32_t c);
 extern uint8_t cache_file_exists(char *name, cache_file_header *header_out); // 0x442bb0
 
 // blam-cc: EAX -> path, stack -> map_id
@@ -88,7 +87,7 @@ void map_list_add_entry(char *path, int32_t map_id)
     }
 
     // 0x495220..0x49522f: the name after the last backslash, or the whole path when there is none
-    filename = _strrchr(entry->path, '\\');
+    filename = strrchr(entry->path, '\\');
     filename = (filename != (char *)0) ? filename + 1 : entry->path;
     entry->cache_file_exists = cache_file_exists(filename, &header);
     map_list_count = map_list_count + 1;

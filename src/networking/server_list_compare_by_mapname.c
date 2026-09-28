@@ -19,6 +19,7 @@
 // `server_browser_sort_ascending`, distinct from server_browser_sort_column (0x00719489) which
 // server_browser_sort_comparator_select.c already documents.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,7 +32,6 @@ extern uint8_t server_browser_sort_ascending; // 0x006953f8, see UNSURE
 
 extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library
 extern void map_list_get_friendly_level_name(const char *map_name, wchar_t out_buffer[0x20]); // foreign, outside this session's range
-extern int32_t _wcscmp(const wchar_t *a, const wchar_t *b);
 
 // blam-cc: entry-pointer-pointer `a` in EAX (in_EAX), `b` in ECX (in_ECX)
 int32_t server_list_compare_by_mapname(void **a, void **b)
@@ -52,7 +52,7 @@ int32_t server_list_compare_by_mapname(void **a, void **b)
     map_name_b = SBServerGetStringValue(entry_b, "mapname", "");
     map_list_get_friendly_level_name(map_name_a, friendly_a);
     map_list_get_friendly_level_name(map_name_b, friendly_b);
-    result = _wcscmp(friendly_a, friendly_b);
+    result = wcscmp(friendly_a, friendly_b);
     if (server_browser_sort_ascending == 0) {
         result = -result;
     }

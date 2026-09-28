@@ -28,6 +28,7 @@
 // gametype check) both when the filter byte is 0 and when it is anything above 5; reproduced
 // with the same fallthrough.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -55,7 +56,6 @@ extern char *SBServerGetStringValue(void *entry, const char *key, const char *de
 extern uint8_t autopatch_version_string_is_outdated(const char *gamever); // 0x5781c0, outside this
     // session's range; returns its answer in AL, which is all Ghidra's `cVar1` reads here
 extern int32_t map_list_find_known_map_index(const char *mapname); // foreign, outside this session's range
-extern int32_t __stricmp(const char *a, const char *b);
 
 // blam-cc: entry pointer in EAX (in_EAX)
 uint8_t server_browser_server_passes_filter(void *entry)
@@ -176,7 +176,7 @@ uint8_t server_browser_server_passes_filter(void *entry)
         default:
             goto skip_gametype_check;
         }
-        probe = __stricmp(gametype_name, gametype_filter_name);
+        probe = _stricmp(gametype_name, gametype_filter_name);
         if (probe != 0) {
             return 0;
         }

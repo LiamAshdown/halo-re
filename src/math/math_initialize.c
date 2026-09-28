@@ -9,13 +9,13 @@
 //   cpu_get_type(0x1d)) -- both externs below use the corrected names.
 // register convention: __cdecl, no arguments.
 
+#include "crt.h"
 #include "tags.h"
 #include "math.h"
 
 extern void sphere_point_table_init(void); // 0x4cd0e0
 extern void periodic_function_tables_init(void); // 0x4cc8d0
 extern int cpu_get_type(int feature); // 0x5402a0, system module
-extern int stricmp(const char *a, const char *b); // 0x00628d8b __stricmp
 
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0, scalar
 extern void matrix4x3_multiply_sse(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc250 -- true SSE build, see header note

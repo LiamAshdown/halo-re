@@ -6,6 +6,7 @@
 // register convention: EAX = server (network_server_globals *), ESI = dest (wchar_t *).
 // blam-cc: EAX -> server, ESI -> dest
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -13,12 +14,11 @@
 #include "networking.h"
 #include <wchar.h>
 
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
 // Copies `server`'s password (up to 8 wide characters) into `dest` and NUL-terminates it.
 void network_server_password_get(network_server_globals *server, wchar_t *dest)
 {
-    _wcsncpy(dest, (wchar_t *)server->password, 8);
+    wcsncpy(dest, (wchar_t *)server->password, 8);
     dest[8] = 0;
 }
 

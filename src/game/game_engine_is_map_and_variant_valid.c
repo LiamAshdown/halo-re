@@ -14,6 +14,7 @@
 // decompilation does not surface.
 // reconciled: R81 0x00712dcc/0x00712dd0 -> interface.h map_list_entry *map_list / int32_t map_list_count (network_map_list_entry dropped: name -> path, valid -> cache_file_exists)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -24,7 +25,6 @@
 extern int32_t map_list_count; // 0x00712dd0, interface.h
 extern map_list_entry *map_list; // 0x00712dcc, interface.h, stride 0xc
 
-extern char *_strrchr(const char *str, int32_t ch); // 0x623bc0
 extern int32_t map_list_find_known_map_index(void); // 0x494ff0
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
     // 0x4622d0, this module; blam-cc: ECX -> name, stack -> out. A NULL `out` only tests
@@ -33,7 +33,7 @@ uint32_t game_engine_is_map_and_variant_valid(const char *map_path, const char *
 {
     int32_t map_index;
 
-    _strrchr(map_path, '\\');
+    strrchr(map_path, '\\');
     map_index = map_list_find_known_map_index();
 
     if (map_index != -1 && -1 < map_index && map_index < map_list_count &&

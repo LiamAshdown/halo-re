@@ -16,6 +16,7 @@
 //   D shown, B's frame 0x12.
 // blam-cc: EAX -> widget, stack -> profile_record
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,7 +33,6 @@ extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); 
 extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profile,
     int16_t *out_level); // 0x539e00, ECX out_type, EDX profile, ESI out_level
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index); // 0x5578c0, ECX list, EDX index
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 
 // blam-cc: EAX -> widget, stack -> profile_record
 void player_profile_details_widget_refresh(widget_instance *widget, const uint8_t *profile_record)
@@ -81,9 +81,9 @@ void player_profile_details_widget_refresh(widget_instance *widget, const uint8_
                 ? text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
                 : default_player_profile_name_0066a750;
 
-            _wcsncpy((uint16_t *)a->text, source, 0xb);
+            wcsncpy((uint16_t *)a->text, source, 0xb);
         } else {
-            _wcsncpy((uint16_t *)a->text, (const uint16_t *)(profile_record + 2), 0xb);
+            wcsncpy((uint16_t *)a->text, (const uint16_t *)(profile_record + 2), 0xb);
         }
         ((uint16_t *)a->text)[0xb] = 0;
     }

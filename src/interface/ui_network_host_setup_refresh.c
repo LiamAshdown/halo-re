@@ -17,6 +17,7 @@
 // and the resolution-table double-clamp are all preserved exactly as decompiled without an
 // attempt to simplify or rationalize them.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -41,7 +42,6 @@ extern uint8_t profile_globals_block[0x60a4];         // 0x00712dd8
 
 extern heap *widget_memory_pool; // 0x006926c4
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern void string_convert_ascii_to_unicode(void); // 0x557990, UNSURE args
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
@@ -61,7 +61,7 @@ void ui_network_host_setup_refresh(widget_instance *widget)
     buffer = (uint16_t *)heap_reallocate(control->text, 0x80, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
-        _wcsncpy(buffer, network_host_name_00719170, 0x3f);
+        wcsncpy(buffer, network_host_name_00719170, 0x3f);
         ((uint16_t *)control->text)[0x3f] = 0;
     }
     if (row->parent->focused_child == row) {
@@ -73,7 +73,7 @@ void ui_network_host_setup_refresh(widget_instance *widget)
     buffer = (uint16_t *)heap_reallocate(control->text, 0x12, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
-        _wcsncpy(buffer, network_host_subname_007191f0, 8);
+        wcsncpy(buffer, network_host_subname_007191f0, 8);
         ((uint16_t *)control->text)[8] = 0;
     }
     if (row->parent->focused_child == row) {

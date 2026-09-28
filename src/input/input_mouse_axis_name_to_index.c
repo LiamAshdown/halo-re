@@ -9,6 +9,7 @@
 // reproduced as a plain early return.
 // register convention: name pointer and out_direction as the two recognized parameters
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,7 +24,6 @@
 
 extern void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *out_name);
     // this module, 0x491010
-extern int32_t _stricmp(const char *a, const char *b); // 0x628d8b, libc
 
 // Resolves a mouse axis-plus-direction display name string (ASCII, case-insensitive) back to
 // its axis index (0 .. k_control_mouse_axis_count - 1) and direction (1 or 0, written to

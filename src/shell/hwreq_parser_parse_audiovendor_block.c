@@ -22,13 +22,13 @@
 //   edx; mov edx,eax").
 // blam-cc: this in EAX (only parameter).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __strnicmp(const char *a, const char *b, uint32_t n); // 0x6375da CRT
 extern void hwreq_parser_report_error(hwreq_parser *this, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
 extern int32_t hwreq_token_parse_number(hwreq_parser *this); // 0x578b20, blam-cc: this in EAX; below this module's rewrite range; -1 on error
 extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
@@ -58,7 +58,7 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
     uint8_t ok;
 
     for (;;) {
-        if (__strnicmp((char *)this->cursor, "audiovendor", 11) == 0) {
+        if (_strnicmp((char *)this->cursor, "audiovendor", 11) == 0) {
             c = ((char *)this->cursor)[11];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 cursor = (char *)this->cursor + 11;
@@ -71,7 +71,7 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
                     cursor++;
                     this->cursor = (uint32_t)cursor;
 
-                    if (__strnicmp(cursor, "unknown", 7) == 0 &&
+                    if (_strnicmp(cursor, "unknown", 7) == 0 &&
                         (c = cursor[7], c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t')) {
                         vendor_id = (int32_t)this->sound_device.vendor_id;
                     } else {
@@ -107,7 +107,7 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
                         this->line_start = this->cursor;
                         this->line_number = this->line_number + 1;
 
-                        if (!(__strnicmp((char *)this->cursor, "audiovendor", 11) == 0 &&
+                        if (!(_strnicmp((char *)this->cursor, "audiovendor", 11) == 0 &&
                               (c = ((char *)this->cursor)[11],
                                c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t'))) {
                             cursor = (char *)this->cursor;
@@ -135,19 +135,19 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
                     }
 
                     for (;;) {
-                        if (__strnicmp((char *)this->cursor, "audiovendor", 11) == 0) {
+                        if (_strnicmp((char *)this->cursor, "audiovendor", 11) == 0) {
                             c = ((char *)this->cursor)[11];
                             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                                 return 1;
                             }
                         }
-                        if (__strnicmp((char *)this->cursor, "vendor", 6) == 0) {
+                        if (_strnicmp((char *)this->cursor, "vendor", 6) == 0) {
                             c = ((char *)this->cursor)[6];
                             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                                 return 1;
                             }
                         }
-                        if (__strnicmp((char *)this->cursor, "unknown", 7) == 0) {
+                        if (_strnicmp((char *)this->cursor, "unknown", 7) == 0) {
                             c = ((char *)this->cursor)[7];
                             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                                 device_id = (int32_t)this->sound_device.device_id;
@@ -203,7 +203,7 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
                     }
                 }
             }
-        } else if (__strnicmp((char *)this->cursor, "applytoall", 10) == 0) {
+        } else if (_strnicmp((char *)this->cursor, "applytoall", 10) == 0) {
             c = ((char *)this->cursor)[10];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 return 1;

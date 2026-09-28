@@ -16,6 +16,7 @@
 // plain 0/1 return, matching the "callers only read the low byte" idiom used throughout this
 // module.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -26,7 +27,6 @@
 #include "networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
 // blam-cc: EBX -> announcement, stack -> results
 int32_t network_game_search_results_add_or_update(network_game_search_entry *results,
@@ -111,7 +111,7 @@ int32_t network_game_search_results_add_or_update(network_game_search_entry *res
     if (*name_source == L'\0') {
         name_source = L"???";
     }
-    _wcsncpy((wchar_t *)entry->name, name_source, 0x3f);
+    wcsncpy((wchar_t *)entry->name, name_source, 0x3f);
     entry->name[63] = 0;
 
     entry->game_engine_index = *(const int16_t *)(announcement + 0x154);

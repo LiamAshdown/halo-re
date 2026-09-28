@@ -16,6 +16,7 @@
 // read as a case-insensitive substring test from its two string-shaped arguments.
 // reconciled: R81 0x00712dcc/0x00712dd0 -> interface.h map_list_entry *map_list / int32_t map_list_count (network_map_list_entry dropped: name -> path, valid -> cache_file_exists)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,7 +32,6 @@
 extern int32_t map_list_count; // 0x00712dd0
 extern map_list_entry *map_list; // 0x00712dcc, stride 0xc
 
-extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
 extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX
 extern void *console_color_00686af8; // 0x00686af8, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)

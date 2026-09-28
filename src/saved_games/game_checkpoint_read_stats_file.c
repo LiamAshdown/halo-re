@@ -11,6 +11,7 @@
 // checked against the caller game_checkpoint_enumerate_files); name, out_game_time and out_time
 // are the recognized stack parameters, in that order.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,11 +24,6 @@ extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern char unknown_0066d81c[]; // 0x0066d81c, fopen mode "rt"
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
-extern void *_fopen(const char *path, char *mode); // 0x624186, fopen-shaped wrapper
-extern int32_t _fscanf(void *stream, const char *format, ...);
-extern void _fclose(void *file); // _fclose
-extern uint32_t strlen(const char *str);
-extern char *strcpy(char *dest, const char *source);
 
 // blam-cc: out_difficulty in EBX, then the recognized stack parameters (name, out_game_time, out_time)
 // Reads back "checkpoints\<name>.sav" as written by game_checkpoint_write_stats_file: a first
@@ -51,15 +47,15 @@ int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *name, int
     strcpy(path + strlen(path), name);
     strcpy(path + strlen(path), ".sav");
 
-    file = _fopen(path, unknown_0066d81c);
+    file = fopen(path, unknown_0066d81c);
     if (file != 0) {
         time.year = 0; time.month = 0; time.day_of_week = 0; time.day = 0;
         time.hour = 0; time.minute = 0; time.second = 0; time.milliseconds = 0;
 
-        _fscanf(file, "%d,%d,%d", &level, &difficulty, &game_time_ticks);
-        _fscanf(file, "%hu,%hu,%hu\n", &time.month, &time.day, &time.year);
-        _fscanf(file, "%hu,%hu,%hu\n", &time.hour, &time.minute, &time.second);
-        _fclose(file);
+        fscanf(file, "%d,%d,%d", &level, &difficulty, &game_time_ticks);
+        fscanf(file, "%hu,%hu,%hu\n", &time.month, &time.day, &time.year);
+        fscanf(file, "%hu,%hu,%hu\n", &time.hour, &time.minute, &time.second);
+        fclose(file);
 
         if (out_difficulty != 0) {
             *out_difficulty = difficulty;

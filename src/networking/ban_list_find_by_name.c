@@ -7,6 +7,7 @@
 // (only FUN_xxxxxx placeholders get renamed).
 // register convention: __cdecl, one recognized parameter.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -14,7 +15,6 @@
 #include "networking.h"
 
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see network_banlist_save.c
-extern int32_t __stricmp(const char *a, const char *b); // CRT, case-insensitive strcmp
 
 // Linear-searches the ban list for an entry whose stored CD-key hash (+0x0d) case-insensitively
 // matches `key`. Returns the matching entry, or 0 if none matches.
@@ -27,7 +27,7 @@ ban_list_entry *ban_list_find_by_name(char *key)
     if (0 < ban_list.count) {
         i = 0;
         do {
-            if (__stricmp(entries[i].cd_key_hash, key) == 0) {
+            if (_stricmp(entries[i].cd_key_hash, key) == 0) {
                 return &entries[i];
             }
             row = row + 1;

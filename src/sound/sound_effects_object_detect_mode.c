@@ -5,7 +5,7 @@
 // evidence: out/phase4/sound_functions.md "Probes for EAX3, EAX2, then EAX1 sound-effects
 // backend support in order, selects the first available implementation, and formats a 'Sound
 // effect mode set to %s' status string."; out/phase4/sound_types_notes.md attributes the
-// 0xe8/0x1c operator_new sizes here to sound_eax_effect_object/sound_effect_object
+// 0xe8/0x1c malloc sizes here to sound_eax_effect_object/sound_effect_object
 // (types/sound.h). directsound_eax_enabled/available (0x00746121/0x00746120) and
 // sound_effect_object_state (0x00746130) match the header's globals list.
 // register convention: EAX -> channel_index, EDI -> channel (the directsound_channel being
@@ -18,6 +18,7 @@
 // sites, but sound_effects_object_reinitialize.c (0x5514d0) makes the identical three calls with
 // explicit arguments (&directsound_channels[0], 0); used here on that evidence.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
@@ -31,8 +32,6 @@ extern sound_effect_object_vtable sound_eax3_vtable; // 0x00671d28
 extern sound_effect_object_vtable sound_eax2_vtable; // 0x00671d04
 extern sound_effect_object_vtable sound_eax1_vtable; // 0x00671d4c
 
-extern void *operator_new(uint32_t size); // 0x6277da, MSVC CRT
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 
 // Probes EAX3, then EAX2, then EAX1 support (constructing and initializing a fresh sound effect
 // object for each attempt, discarding it on failure) and keeps the first one that initializes
@@ -52,7 +51,7 @@ int32_t sound_effects_object_detect_mode(int16_t channel_index, directsound_chan
             global_sound_effect_object->vtable->shutdown(global_sound_effect_object);
         }
 
-        global_sound_effect_object = (sound_effect_object *)operator_new(0xe8);
+        global_sound_effect_object = (sound_effect_object *)malloc(0xe8);
         if (global_sound_effect_object != 0) {
             global_sound_effect_object->vtable = &sound_eax3_vtable;
             global_sound_effect_object->supported_properties = 0;
@@ -66,7 +65,7 @@ int32_t sound_effects_object_detect_mode(int16_t channel_index, directsound_chan
             }
         }
 
-        global_sound_effect_object = (sound_effect_object *)operator_new(0xe8);
+        global_sound_effect_object = (sound_effect_object *)malloc(0xe8);
         if (global_sound_effect_object != 0) {
             global_sound_effect_object->vtable = &sound_eax2_vtable;
             global_sound_effect_object->supported_properties = 0;
@@ -80,7 +79,7 @@ int32_t sound_effects_object_detect_mode(int16_t channel_index, directsound_chan
             }
         }
 
-        global_sound_effect_object = (sound_effect_object *)operator_new(0x1c);
+        global_sound_effect_object = (sound_effect_object *)malloc(0x1c);
         if (global_sound_effect_object != 0) {
             global_sound_effect_object->vtable = &sound_eax1_vtable;
             global_sound_effect_object->supported_properties = 0;

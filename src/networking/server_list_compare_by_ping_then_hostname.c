@@ -18,6 +18,7 @@
 // the two *array element addresses* themselves (not the entries), which only gives a stable
 // sort relative to qsort's own element movement, not to entry identity; preserved exactly.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,7 +30,6 @@ extern char DAT_0066b090[]; // see UNSURE, presumably "ping"
 
 extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
 extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library, string accessor
-extern int32_t __stricmp(const char *a, const char *b);
 
 int32_t server_list_compare_by_ping_then_hostname(void **a, void **b)
 {
@@ -52,7 +52,7 @@ int32_t server_list_compare_by_ping_then_hostname(void **a, void **b)
     if (ping_diff == 0) {
         hostname_b = SBServerGetStringValue(*b, "hostname", "");
         hostname_a = SBServerGetStringValue(*a, "hostname", "");
-        hostname_diff = __stricmp(hostname_a, hostname_b);
+        hostname_diff = _stricmp(hostname_a, hostname_b);
         if (server_browser_sort_ascending == 0) {
             hostname_diff = -hostname_diff;
         }

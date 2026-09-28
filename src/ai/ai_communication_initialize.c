@@ -19,6 +19,7 @@
 // conversation-index field (also offset 0x28 within the first table) is not established
 // here. Treated as opaque byte arrays, matching how Ghidra itself decompiled the walk.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -38,7 +39,6 @@ extern int32_t game_state_cursor;  // 0x006e2dcc
 extern uint32_t game_state_crc;    // 0x006e2dd4
 
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
-extern char *_strncpy(char *dest, const char *src, uint32_t count); // 00623a90
 
 // blam-cc: (no arguments)
 // Initializes the AI conversation/communication subsystem: counts the two static
@@ -119,7 +119,7 @@ void ai_communication_initialize(void)
     for (i = 0; i < 0x38; i++) {
         header[i] = 0;
     }
-    _strncpy((char *)dest, "ai conversation", 0x1f);
+    strncpy((char *)dest, "ai conversation", 0x1f);
     ai_conversation_data = (data_array *)dest;
     ai_conversation_data->maximum_count = 8;
     ai_conversation_data->size = 0x64;

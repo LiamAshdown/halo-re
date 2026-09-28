@@ -18,6 +18,7 @@
 // were not shown by Ghidra for this address's two calls (both "ustr" by convention, matching every
 // other unicode_string_list lookup in this module) and are guessed accordingly.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -33,7 +34,6 @@ extern uint16_t default_profile_name_suffix_00671fac[]; // 0x00671fac
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
 extern uint16_t *text_string_list_get_string(void); // 0x5578c0, UNSURE args
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 
 // blam-cc: both recognized stack parameters
 void multiplayer_settings_select_list_update_item(widget_instance *widget, const uint16_t *record)
@@ -82,7 +82,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
                             *(uint16_t *)((uint8_t *)source + ((size & 0xfffffffe) - 2)) = 0;
                         }
                     }
-                    _wcsncpy(desc_buf, source, 0xff);
+                    wcsncpy(desc_buf, source, 0xff);
                     desc_buf[0xff] = 0;
                 }
             }
@@ -95,7 +95,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
 
         name_widget->text = name_buf;
         if (name_buf != (uint16_t *)0) {
-            _wcsncpy(name_buf, record, 0x7f);
+            wcsncpy(name_buf, record, 0x7f);
             name_buf[0x7f] = 0;
         }
     }
@@ -121,7 +121,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
         if (variant_strings_tag != (datum_index)-1 && desc_widget->text != (void *)0) {
             uint16_t *text = text_string_list_get_string();
 
-            _wcsncpy((uint16_t *)desc_widget->text, text, 0xff);
+            wcsncpy((uint16_t *)desc_widget->text, text, 0xff);
             ((uint16_t *)desc_widget->text)[0xff] = 0;
         }
         icon_widget->hidden = 1;
@@ -140,7 +140,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
     if (variant_strings_tag != (datum_index)-1 && desc_widget->text != (void *)0) {
         uint16_t *text = text_string_list_get_string();
 
-        _wcsncpy((uint16_t *)desc_widget->text, text, 0xff);
+        wcsncpy((uint16_t *)desc_widget->text, text, 0xff);
         ((uint16_t *)desc_widget->text)[0xff] = 0;
     }
 }

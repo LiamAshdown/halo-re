@@ -9,6 +9,7 @@
 // recovered as literals; by usage they are almost certainly the default C-locale name "C" and a
 // ".%d" codepage format, matching the standard "switch off the C locale before mbstowcs" idiom.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -42,8 +43,6 @@ extern chat_gui_set_state_fn keystone_window_show;                           // 
 extern uint16_t *keystone_current_directory; // 0x00721ea8
 extern int32_t safe_mode;                    // 0x007196f4 (32 bit BOOL)
 
-extern char *_setlocale(int32_t category, const char *locale);
-extern uint32_t _mbstowcs(uint16_t *dest, const char *src, uint32_t count);
 
 // Loads the Keystone UI middleware DLL and resolves all of its Call_Ks*/Call_KW*/Call_KC*
 // entry points into globals, unless networking-only mode (safe_mode) disables the UI.
@@ -59,7 +58,7 @@ void keystone_library_load(void)
     char *current_directory;
     uint32_t wide_length;
 
-    current_locale = (uint8_t *)_setlocale(2 /* LC_CTYPE */, 0);
+    current_locale = (uint8_t *)setlocale(2 /* LC_CTYPE */, 0);
     compare = 0;
     less_than = 0;
     equal = 1;
@@ -73,16 +72,16 @@ void keystone_library_load(void)
     }
     if (compare == 0) {
         wsprintfA(codepage_locale, locale_codepage_format, GetACP());
-        _setlocale(2, codepage_locale);
+        setlocale(2, codepage_locale);
     }
 
     current_directory_size = GetCurrentDirectoryA(0, 0);
     current_directory = (char *)GlobalAlloc(0, current_directory_size);
     GetCurrentDirectoryA(current_directory_size, current_directory);
 
-    wide_length = _mbstowcs(0, current_directory, 0);
+    wide_length = mbstowcs(0, current_directory, 0);
     keystone_current_directory = (uint16_t *)GlobalAlloc(0, (wide_length + 1) * 2);
-    _mbstowcs(keystone_current_directory, current_directory, wide_length + 1);
+    mbstowcs(keystone_current_directory, current_directory, wide_length + 1);
     GlobalFree(current_directory);
 
     if (safe_mode != 0) {

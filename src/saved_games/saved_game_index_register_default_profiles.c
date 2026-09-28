@@ -21,6 +21,7 @@
 // saved_game_index_register_default_playlists.c; the 0x2000-byte read matches blam.sav exactly.
 // register convention: no parameters (already resolved: void).
 
+#include "crt.h"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -45,9 +46,6 @@ extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uin
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
-extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // CRT
-extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
-extern void _wcsncpy(uint16_t *dest, const uint16_t *source, uint32_t count); // CRT
 
 // blam-cc: no parameters
 // For each built-in default profile index 0..k_default_player_profile_count-1: builds
@@ -94,7 +92,7 @@ int16_t saved_game_index_register_default_profiles(void)
                 }
             }
 
-            __snprintf(path, 0xff, "%s\\%02d.sav", default_player_profiles_directory, (int32_t)i);
+            _snprintf(path, 0xff, "%s\\%02d.sav", default_player_profiles_directory, (int32_t)i);
 
             memset(&ref, 0, sizeof(ref));
             ref.signature = k_file_reference_signature;
@@ -111,7 +109,7 @@ int16_t saved_game_index_register_default_profiles(void)
                     end++;
                     *end = '\0';
                 }
-                _strncpy(end, path, 0xff - (uint32_t)strlen(ref.path));
+                strncpy(end, path, 0xff - (uint32_t)strlen(ref.path));
                 ref.path[0xff] = '\0';
             }
             ref.flags |= _file_reference_is_file_bit;
@@ -119,8 +117,8 @@ int16_t saved_game_index_register_default_profiles(void)
             exists = file_reference_exists(&ref);
             if (exists != 0) {
                 memset(&entry, 0, sizeof(entry));
-                _strncpy(entry.path, path, 0xff);
-                _wcsncpy(entry.display_name, source_name, 0x7f);
+                strncpy(entry.path, path, 0xff);
+                wcsncpy(entry.display_name, source_name, 0x7f);
                 entry.type = _saved_game_type_player_profile;
                 entry.builtin = 1;
 

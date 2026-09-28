@@ -12,13 +12,13 @@
 //   0x579bd0's parse method, which is not a Ghidra function).
 // blam-cc: this in ESI (only parameter).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __strnicmp(const char *a, const char *b, uint32_t n); // 0x6375da CRT
 extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's current cursor, parsing every "applytoall { ... }" block it
@@ -32,7 +32,7 @@ uint8_t hwreq_parser_scan_for_applytoall_or_vendor(hwreq_parser *this)
     uint8_t result;
 
     for (;;) {
-        if (__strnicmp((char *)this->cursor, "applytoall", 10) == 0) {
+        if (_strnicmp((char *)this->cursor, "applytoall", 10) == 0) {
             c = ((char *)this->cursor)[10];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 // consume the "applytoall" line
@@ -53,7 +53,7 @@ uint8_t hwreq_parser_scan_for_applytoall_or_vendor(hwreq_parser *this)
                 }
                 // fall through: skip the rest of the block's closing line and keep scanning
             }
-        } else if (__strnicmp((char *)this->cursor, "vendor", 6) == 0) {
+        } else if (_strnicmp((char *)this->cursor, "vendor", 6) == 0) {
             c = ((char *)this->cursor)[6];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 break; // leave the cursor at the start of the "vendor" line

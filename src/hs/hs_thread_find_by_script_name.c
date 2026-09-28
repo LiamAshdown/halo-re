@@ -5,13 +5,13 @@
 //   its first field, a TagString).
 // register convention: none (void); name is an ordinary recognized parameter (param_1).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
 extern datum_index datum_next(int16_t after_index, data_array *array);
     // blam-cc: DX -> after_index, EDI -> array; memory module, 0x4d0630
-extern int32_t __stricmp(const char *a, const char *b); // 0x00628d8b
 
 extern data_array *hs_thread_data; // 0x0087a470
 extern Scenario *global_scenario;  // 0x00746f8c
@@ -29,7 +29,7 @@ datum_index hs_thread_find_by_script_name(char *name)
     while (thread_handle != k_datum_index_none) {
         thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & 0xffff) * 0x218);
         if (thread->script_index != -1 &&
-            __stricmp(scripts[thread->script_index].name.string, name) == 0) {
+            _stricmp(scripts[thread->script_index].name.string, name) == 0) {
             return thread_handle;
         }
         thread_handle = datum_next((int16_t)thread_handle, hs_thread_data);

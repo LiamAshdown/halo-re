@@ -15,12 +15,13 @@
 //
 // record type: ai_nearby_actor_candidate (types/ai.h, size 0xc). The only caller,
 //   ai_object_process_nearby_actors @0x433cc0 (src/ai/ai_object_process_nearby_actors.c),
-//   fills a 0x40-entry stack array of these and passes it to _qsort with width 0xc. An
+//   fills a 0x40-entry stack array of these and passes it to qsort with width 0xc. An
 //   earlier draft of this file declared a private copy of the same layout as a TYPES-GAP;
 //   it was dropped in favour of the ai.h struct so the record has one definition.
 // Parameters are const void * (the qsort comparator type) so the definition agrees with the
 //   extern in src/ai/ai_object_process_nearby_actors.c.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

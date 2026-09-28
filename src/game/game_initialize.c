@@ -13,9 +13,10 @@
 //
 // UNSURE: most pool sizes/globals here belong to other modules (objects, sound, ai, hs,
 // saved_games) and are not named in types/game.h; kept as raw globals with TYPES-GAP markers.
-// __control87 is the MSVC CRT FPU-control-word setter.
+// _control87 is the MSVC CRT FPU-control-word setter.
 // reconciled: R07 0x00746f94 tag_cache_render_states_* (TYPES-GAP) -> scenario.h scenario_game_globals *global_scenario_game_globals (0x7c-byte scenario game-state block); R79 0x006b8d78 effect_something_006b8d78 -> physics.h breakable_surface_globals *breakable_surface_state
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -74,7 +75,6 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 extern void saved_game_files_initialize(void);                       // 0x53c260
 extern void game_sound_initialize(void);                              // 0x543a30
 extern void detail_objects_globals_allocate(void); // UNSURE module
-extern void __control87(uint32_t new_word, uint32_t mask); // MSVC CRT
 
 // One-time post-map-load initialization that bump-allocates every particle/effect/render-state
 // pool, sets the FPU control word, allocates the simulation tick record, loads the active game
@@ -102,7 +102,7 @@ void game_initialize(void)
         cursor = cursor + 1;
     }
 
-    __control87(0x9001f, 0xfffff);
+    _control87(0x9001f, 0xfffff);
     game_engine_allocate_tick_record();
     game_engine_load_from_variant(&game_engine_active_variant); // objdump 0x45aa24: EBX = 0x0087ab20
     team_pair_table_allocate();

@@ -17,6 +17,7 @@
 // thread first, exactly like player_profile_verify_thread_wait_and_clear (0x539a40).
 // register convention: out_buffer in ECX; index is the recognized stack parameter.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -32,7 +33,6 @@ extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 extern void player_profile_initialize(saved_player_profile *profile, int32_t local_player_index,
     uint8_t merge_existing); // 0x53a1c0
 extern uint16_t *saved_game_get_display_name(int32_t handle); // 0x53c600, not in this batch
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern uint8_t saved_game_open_file_by_handle(int32_t handle, file_reference_record *out_reference); // 0x53c9f0, not in this batch
 extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size); // this module
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
@@ -44,7 +44,7 @@ static void player_profile_build_default(saved_player_profile *profile, int32_t 
 
     player_profile_initialize(profile, 0, 0);
     name = saved_game_get_display_name(handle);
-    _wcsncpy(profile->name, name, 0xb);
+    wcsncpy(profile->name, name, 0xb);
 }
 
 // blam-cc: out_buffer in ECX, then the recognized stack parameter (index)

@@ -20,6 +20,7 @@
 // network_game_settings_packet_send.c (client+0xae0+0x10); accessed the same way, via a raw
 // offset, not a named field.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -39,7 +40,6 @@ extern void network_client_globals_dispose(void); // 0x4dde70, not in this batch
 extern void network_client_globals_create(void); // 0x4dde50, not in this batch
 extern uint8_t network_session_unknown_3ac_source; // 0x0071c2c1, UNSURE name; see file header
 extern void network_client_begin_connect(const wchar_t *name); // 0x4dc8d0, this batch (not yet rewritten at time of writing)
-extern wchar_t *_wcsncpy(wchar_t *dest, const wchar_t *source, int32_t count);
 
 // blam-cc: stack -> client
 int32_t network_client_identity_tick(network_client_globals *client)
@@ -74,7 +74,7 @@ int32_t network_client_identity_tick(network_client_globals *client)
         local_player_id = -1;
         // client+0xaf0 lands two bytes into connect_attempt.session_info, which the binary
         // reads as UTF-16 text; kept as a raw offset because the field is unaligned there.
-        _wcsncpy(name, (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
+        wcsncpy(name, (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
 
         if (network_server == 0) {
             if (*(int32_t *)(network_local_player_index_table + 4) != -1) {

@@ -10,6 +10,7 @@
 // UNSURE: DAT_00660c34 is a shared "blank" wide-string constant referenced by several already-
 // rewritten files' wcslen (wide strlen) calls; reused here with the same name.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -20,9 +21,7 @@
 extern growable_array hud_text_message_queue; // 0x006b37e8
 extern uint16_t empty_wide_string_00660c34[];  // 0x00660c34
 
-extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
 extern int32_t growable_array_add_element(growable_array *array); // 0x4cf810
-extern int32_t __wtol(const uint16_t *s);
 
 // blam-cc: EAX -> text, EBX -> start_time, stack -> tag
 // Appends `text` to the HUD text-message queue with `start_time` as its arrival time, recognizing
@@ -49,7 +48,7 @@ int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t t
     if (text[0] == '\\') {
         body = text + 1;
         if (text[1] == 's') {
-            int32_t delay = __wtol(text + 2);
+            int32_t delay = _wtol(text + 2);
 
             message->text = empty_wide_string_00660c34;
             message->end_time = delay * 0x10 + start_time;

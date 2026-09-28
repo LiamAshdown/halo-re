@@ -5,13 +5,13 @@
 // WRITTEN 2026-09-28 from objdump 0x489b30..: sprintf(buffer, "%s", (char *)value).
 // blam-cc: stack -> type, value, buffer (cdecl)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
-extern int _sprintf(char *buffer, const char *format, ...); // 0x623693
 
 void hs_inspect_string(int16_t type, int32_t value, char *buffer)
 {
-    _sprintf(buffer, "%s", (char *)value);
+    sprintf(buffer, "%s", (char *)value);
 }

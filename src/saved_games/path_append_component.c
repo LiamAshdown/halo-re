@@ -10,6 +10,7 @@
 // objdump 0x555ec0..0x555f13: `cmp byte[ebx],0` gates the whole body, `mov eax,esi` walks the
 // destination to find its end).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -18,7 +19,6 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern void _strncpy(char *dest, const char *source, uint32_t count); // CRT
 
 // blam-cc: destination in ESI, component in EBX
 void path_append_component(char *destination, const char *component)
@@ -35,7 +35,7 @@ void path_append_component(char *destination, const char *component)
             end++;
             *end = '\0';
         }
-        _strncpy(end, component, 0xff - (uint32_t)(end - destination));
+        strncpy(end, component, 0xff - (uint32_t)(end - destination));
         destination[0xff] = '\0';
     }
     return;

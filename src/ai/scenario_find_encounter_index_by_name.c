@@ -12,13 +12,13 @@
 // argument.
 //   // blam-cc: ESI -> scenario, stack -> name
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 #include <string.h>
 
-extern int32_t __strnicmp(const char *a, const char *b, size_t n); // 0x6375da
 
 // blam-cc: ESI -> scenario, stack -> name
 // Linear-searches Scenario.encounters for one whose name matches (case-insensitively, up to
@@ -34,7 +34,7 @@ int32_t scenario_find_encounter_index_by_name(Scenario *scenario, char *name)
 
     index = 0;
     cursor = (uint8_t *)scenario->encounters.pointer;
-    while (__strnicmp((char *)cursor, name, 0x20) != 0) {
+    while (_strnicmp((char *)cursor, name, 0x20) != 0) {
         index = index + 1;
         cursor += sizeof(ScenarioEncounter);
         if (scenario->encounters.count <= index) {

@@ -17,17 +17,18 @@
 //     derives it.
 //   - on success: main_queue_map_change_by_name_or_clear (0x4c87a0, EDI = path, `mov edi,...` at
 //     0x49d807 is still live at the call) and, for the first map_list entry whose path compares
-//     equal (__stricmp, 0x628d8b), saved_game_last_mp_map_clear (0x53d5e0, cdecl) with that
+//     equal (_stricmp, 0x628d8b), saved_game_last_mp_map_clear (0x53d5e0, cdecl) with that
 //     entry's path, which writes it to lastmpmp.txt. The loop bound is map_list_count read at
 //     entry (EBX).
 //   - on failure: widget_play_sound_effect (0x498e90, AX = 4).
 //   Returns the cache_file_exists result (AL, saved at esp+0xf).
-//   0x49d850 (the `add esp,8` after the __stricmp call) was recorded by modules.json as a function
+//   0x49d850 (the `add esp,8` after the _stricmp call) was recorded by modules.json as a function
 //   of its own; it is covered by this file (see out/phase4/orphans_notes.md).
 // UNSURE: the name; the sound effect id 4's meaning.
 // register convention: the widget as the one stack argument (`mov eax,[esp+0x4]` at entry).
 //   // blam-cc: stack -> widget
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -41,8 +42,6 @@ extern int32_t ui_list_current;      // 0x00692c04
 extern map_list_entry *map_list;     // 0x00712dcc
 extern int32_t map_list_count;       // 0x00712dd0
 
-extern char *_strrchr(const char *s, int32_t c);                             // 0x623bc0, CRT
-extern int32_t __stricmp(const char *a, const char *b);                      // 0x628d8b, CRT
 extern uint8_t cache_file_exists(char *name, cache_file_header *header_out); // 0x442bb0, blam-cc: EAX name, ESI header_out
 extern void main_queue_map_change_by_name_or_clear(char *name);              // 0x4c87a0, blam-cc: EDI name
 extern void saved_game_last_mp_map_clear(const void *data);                  // 0x53d5e0, cdecl
@@ -67,7 +66,7 @@ uint8_t ui_map_select_confirm_choice(widget_instance *widget)
     }
     path = map_list[map_index].path;
 
-    file_name = _strrchr(path, '\\');
+    file_name = strrchr(path, '\\');
     file_name = (file_name != 0) ? file_name + 1 : path;
     exists = cache_file_exists(file_name, &header);
     if (!exists) {
@@ -77,7 +76,7 @@ uint8_t ui_map_select_confirm_choice(widget_instance *widget)
 
     main_queue_map_change_by_name_or_clear(path);
     for (i = 0; i < count; i++) {
-        if (__stricmp(path, map_list[i].path) == 0) {
+        if (_stricmp(path, map_list[i].path) == 0) {
             saved_game_last_mp_map_clear(map_list[i].path);
             return exists;
         }

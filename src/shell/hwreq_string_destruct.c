@@ -9,18 +9,18 @@
 //   parameter -- string destructors are frequently inlined/tail-called this way under LTCG).
 // blam-cc: hwreq_string_destruct(msvc_std_string *this /*ESI*/)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void _free(void *ptr); // 0x6277e8
 
 void hwreq_string_destruct(msvc_std_string *this)
 {
     if (this->capacity > 0xf) {
-        _free((void *)this->buffer.heap_buffer);
+        free((void *)this->buffer.heap_buffer);
     }
     this->capacity = 0xf;
     this->size = 0;

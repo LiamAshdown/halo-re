@@ -21,13 +21,11 @@
 // caller. UNSURE: the fopen mode 0x0066b87c is a single ASCII 'a' (confirmed by reading
 // bin/halo.exe's .rdata), i.e. C's "a" (append, no explicit text/binary suffix).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include <stdio.h>
 #include <stdarg.h>
-extern int _fclose(void *file);                                           // game CRT
-extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
-extern int _fprintf(void *file, const char *format, ...);                // game CRT
 
 extern uint32_t player_update_log_categories_default;  // 0x00710314
 extern uint32_t player_update_log_categories_filtered;  // 0x00710318
@@ -58,12 +56,12 @@ void player_update_history_log_write(uint32_t category_flags, int32_t use_filter
     if ((player_update_log_flags & 2) == 0) {
         return;
     }
-    file = (FILE *)_fopen(player_update_history_log_path, player_update_log_file_mode_string);
+    file = (FILE *)fopen(player_update_history_log_path, player_update_log_file_mode_string);
     if (file == 0) {
         return;
     }
-    _fprintf(file, buffer);
-    _fclose(file);
+    fprintf(file, buffer);
+    fclose(file);
 }
 
 #if 0

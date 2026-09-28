@@ -28,6 +28,7 @@
 // extraction; assumed to be a plain text mode such as "w").
 // reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -36,8 +37,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-extern void *_fopen(const char *path, const char *mode);                 // 0x624186 (game CRT)
-extern int _fprintf(void *file, const char *format, ...);                // game CRT
 
 extern uint8_t debug_log_level;                  // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
@@ -50,7 +49,7 @@ extern int32_t time_query_performance_counter_ms(void);        // foreign module
 extern char *join_game_server_browser_tick(void);          // foreign module (> 0x4b80f0), log base directory path
 extern char directory_create_recursive(char *path); // 0x449250, foreign module
 // time(), localtime(), strftime() and fopen() come from <time.h>/<stdio.h> above; the retail
-// binary calls the 32-bit-time-specific CRT entry points (_time32, _localtime, _fsopen) for
+// binary calls the 32-bit-time-specific CRT entry points (_time32, localtime, _fsopen) for
 // the same effect, per the _rand -> rand renaming precedent in src/math/random_seed_generate.c.
 
 void network_stats_summary_log_open(void)
@@ -75,8 +74,8 @@ void network_stats_summary_log_open(void)
             strcat(path_buf, date_buf);
             strcat(path_buf, ".xls");
 
-            network_summary_log_file = _fopen(path_buf, network_summary_log_mode_string);
-            _fprintf((FILE *)network_summary_log_file,
+            network_summary_log_file = fopen(path_buf, network_summary_log_mode_string);
+            fprintf((FILE *)network_summary_log_file,
                     "Map\tLength (seconds)\tAvg # Players\tPackets Sent\tPackets Received\t"
                     "Packets Sent/sec\tPackets Received/sec\tBytes Sent\tBytes Received\t"
                     "Bytes Sent/sec\tBytes Received/sec\tBits Sent/sec/conn\t"

@@ -10,12 +10,12 @@
 // register convention: the searched name is unrecognized by Ghidra (in_EDX); by the blam-cc
 // convention this is the third register slot, EDX.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x00628d8b
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
@@ -28,11 +28,11 @@ int16_t hs_find_function_by_name(char *name)
     int16_t index;
 
     strcpy(alias, "player_effect_set_max_rumble");
-    if (__stricmp(name, alias) == 0) {
+    if (_stricmp(name, alias) == 0) {
         name = "player_effect_set_max_vibrate";
     }
     for (index = 0; index < k_hs_function_count; index++) {
-        if (__stricmp(hs_function_definitions[index]->name, name) == 0) {
+        if (_stricmp(hs_function_definitions[index]->name, name) == 0) {
             return index;
         }
     }

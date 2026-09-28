@@ -17,6 +17,7 @@
 //   Ghidra's own recognized param_1/param_2), the qsort comparator signature.
 // blam-cc: file_reference_compare_full_path(const file_reference_record *a, const file_reference_record *b)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,7 +30,6 @@ extern void path_build_full(char *source, char *destination, int16_t location); 
 extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
     char **name_end_out, char **ext_start_out, uint8_t split_extension); // 0x556000, this module
 extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
-extern int32_t __stricmp(const char *a, const char *b);
 
 int32_t file_reference_compare_full_path(const file_reference_record *a, const file_reference_record *b)
 {
@@ -60,7 +60,7 @@ int32_t file_reference_compare_full_path(const file_reference_record *a, const f
     name_b[0] = 0;
     path_append_component(name_b, scratch);
 
-    return __stricmp(name_a, name_b);
+    return _stricmp(name_a, name_b);
 }
 
 #if 0

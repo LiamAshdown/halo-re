@@ -10,6 +10,7 @@
 // register convention: plain __cdecl, no parameters.
 // blam-cc: (no arguments)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +23,6 @@ extern int16_t conversation_line_count;  // 0x006f0ca0
 extern int32_t conversation_line_base;   // 0x006f0ca4
 extern data_array *ai_conversation_data; // 0x008802d4
 
-extern char *_strncpy(char *dest, const char *src, uint32_t count); // 00623a90
 
 // blam-cc: (no arguments)
 // Resets the AI communication timers and the ai_conversation data_array to a clean state,
@@ -72,7 +72,7 @@ void ai_communication_reset(void)
     ai_conversation_data->next_index = 0;
     ai_conversation_data->last_index = 0;
     ai_conversation_data->actual_count = 0;
-    _strncpy((char *)&ai_conversation_data->next_identifier, ai_conversation_data->name, 2);
+    strncpy((char *)&ai_conversation_data->next_identifier, ai_conversation_data->name, 2);
     ai_conversation_data->next_identifier |= 0x8000;
     ai_conversation_data->valid = 1;
 

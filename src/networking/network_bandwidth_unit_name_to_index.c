@@ -11,13 +11,13 @@
 // register convention: the string to match arrives in EDI (unaff_EDI). // blam-cc: EDI -> name
 // UNSURE: none.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
 extern const char *network_bandwidth_units_label_table[2]; // 0x0065d428
 
 int32_t network_bandwidth_unit_name_to_index(const char *name) // blam-cc: EDI -> name
@@ -26,7 +26,7 @@ int32_t network_bandwidth_unit_name_to_index(const char *name) // blam-cc: EDI -
 
     i = 0;
     do {
-        if (__stricmp(name, network_bandwidth_units_label_table[i]) == 0) {
+        if (_stricmp(name, network_bandwidth_units_label_table[i]) == 0) {
             return i;
         }
         i = i + 1;

@@ -12,14 +12,13 @@
 // src/networking/network_channels_close.c's decompile of the same callee shows one socket
 // argument; the value being tested by the surrounding `if` is passed explicitly here to match.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
-extern int _fclose(void *file);                                           // game CRT
-extern int _fprintf(void *file, const char *format, ...);                // game CRT
 
 extern uint8_t network_winsock_initialized;    // 0x006869b8
 extern int32_t network_query_socket;           // 0x006f14c8
@@ -59,10 +58,10 @@ int32_t network_shutdown(void)
         network_game_socket = 0;
     }
     if (network_summary_log_file != 0) {
-        _fclose((FILE *)network_summary_log_file);
+        fclose((FILE *)network_summary_log_file);
     }
     if (network_connection_stats_log_file != 0) {
-        _fprintf((FILE *)network_connection_stats_log_file, "\n\n");
+        fprintf((FILE *)network_connection_stats_log_file, "\n\n");
         total_sent = 0;
         total_received = 0;
         now = time_query_performance_counter_ms();
@@ -90,7 +89,7 @@ int32_t network_shutdown(void)
             if ((int32_t)((uint32_t)connection_duration_ms / 1000) < 0) {
                 connection_seconds = connection_seconds + 4.2949673e+09f;
             }
-            _fprintf((FILE *)network_connection_stats_log_file,
+            fprintf((FILE *)network_connection_stats_log_file,
                     "Connection [%d]  Live for[%d] seconds  Was address[%s]  Total Sent[%d]  "
                     "Total Received[%d]  Bytes sent per second[%f]\n",
                     i, (uint32_t)connection_duration_ms / 1000, address_buf,
@@ -102,13 +101,13 @@ int32_t network_shutdown(void)
         if (total_sent < 0) {
             total_sent_f = total_sent_f + 4.2949673e+09f; // 32-bit tick wraparound
         }
-        _fprintf((FILE *)network_connection_stats_log_file,
+        fprintf((FILE *)network_connection_stats_log_file,
                 "total data sent[%d]  total received[%d] total time in seconds[%d]  "
                 "bytes sent per second[%f]\n",
                 total_sent, total_received, total_elapsed_sec,
                 (double)(total_sent_f / (float)total_elapsed_sec));
-        _fprintf((FILE *)network_connection_stats_log_file, "Log file closed\n");
-        _fclose((FILE *)network_connection_stats_log_file);
+        fprintf((FILE *)network_connection_stats_log_file, "Log file closed\n");
+        fclose((FILE *)network_connection_stats_log_file);
         network_connection_stats_log_file = 0;
     }
     network_winsock_initialized = 0;

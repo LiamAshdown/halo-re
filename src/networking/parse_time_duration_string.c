@@ -13,13 +13,13 @@
 // pointer plus a character, returning nonzero on membership) is consistent with a "does this
 // char appear in this string" test such as strchr, so this rewrite treats it as one.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include <ctype.h>
 #include <stdlib.h>
 
 extern uint8_t default_time_unit_table[]; // 0x00699568, used when unit_table is NULL
-extern int32_t strchr(uint8_t *table, int32_t ch); // foreign (< this module), UNSURE: strchr-shaped
 
 // Parses a leading unsigned integer from `string`, then an optional one-character unit suffix
 // (falling back to default_unit if the suffix is not one strchr recognizes in unit_table,

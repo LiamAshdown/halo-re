@@ -14,6 +14,7 @@
 // (the first argument is the save name -- see FIXED below; the old "validity_token" reading was wrong)
 //   XCreateSaveGame.c); string_convert_unicode_to_ascii's exact argument list (guessed by analogy).
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +24,6 @@
 // win32_find_dataa is types/game.h's (the Win32 WIN32_FIND_DATAA layout, 0x140 bytes).
 
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, ESI dest, EDI source, stack capacity
-extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
 
 // blam-cc: EAX -> save_game_name, ECX -> root_path
 // Deletes every file directly under "<root_path>\<name>\" (skipping dotfiles and an entry
@@ -49,9 +49,9 @@ uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path)
     }
 
     string_convert_unicode_to_ascii((uint8_t *)name, (uint16_t *)save_game_name, 0x80); // 0x5519c4: ESI = name, EDI = the argument
-    _sprintf(root_with_slash, "%s\\%s\\", root_path, name);
+    sprintf(root_with_slash, "%s\\%s\\", root_path, name);
 
-    _sprintf(pattern, "%s*.*", root_with_slash);
+    sprintf(pattern, "%s*.*", root_with_slash);
     last_delete_ok = 0;
     find_handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle != (void *)0xffffffff) {
@@ -69,7 +69,7 @@ uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path)
                         b = b + 1;
                     }
                     if (!matches_checkpoints) {
-                        _sprintf(delete_path, "%s%s", root_with_slash, find_data.cFileName);
+                        sprintf(delete_path, "%s%s", root_with_slash, find_data.cFileName);
                         last_delete_ok = DeleteFileA(delete_path);
                         if (last_delete_ok == 0) {
                             break;
@@ -81,7 +81,7 @@ uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path)
         FindClose(find_handle);
     }
 
-    _sprintf(pattern, "%scheckpoints\\*.*", root_with_slash);
+    sprintf(pattern, "%scheckpoints\\*.*", root_with_slash);
     result = 0;
     if (last_delete_ok != 0) {
         find_handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)&find_data);
@@ -100,14 +100,14 @@ uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path)
                         b = b + 1;
                     }
                     if (!matches_checkpoints) {
-                        _sprintf(delete_path, "%scheckpoints\\%s", root_with_slash, find_data.cFileName);
+                        sprintf(delete_path, "%scheckpoints\\%s", root_with_slash, find_data.cFileName);
                         DeleteFileA(delete_path);
                     }
                 }
                 has_more = FindNextFileA(find_handle, (LPWIN32_FIND_DATAA)&find_data);
             } while (has_more != 0);
             FindClose(find_handle);
-            _sprintf(pattern, "%scheckpoints", root_with_slash);
+            sprintf(pattern, "%scheckpoints", root_with_slash);
             removed_checkpoints_dir = RemoveDirectoryA(pattern);
         } else {
             // UNSURE: when the checkpoints-dir search finds nothing, `removed_checkpoints_dir`

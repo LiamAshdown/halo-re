@@ -11,6 +11,7 @@
 // stack. // blam-cc: EAX -> color, stack -> format, ...
 // reconciled: R01 0x0087ac06 int32 console_verbosity -> uint8 debug_log_level (the binary reads a byte)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,8 +26,6 @@ extern data_array *terminal_messages;      // 0x006b2f00, "terminal output"
 extern char console_echo_prefix[];         // 0x00669140, matched by chimera__console_out
 
 extern datum_index console_message_new(void); // 0x496420
-extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
-extern int32_t __vsnprintf(char *buffer, uint32_t limit, const char *format, va_list args);
 extern void chimera__console_out_copy(char *text); // 0x496e90
 
 // blam-cc: EAX -> color, stack -> format, ...
@@ -59,7 +58,7 @@ void console_printf_verbose(ColorARGB *color, char *format, ...)
     message->color = *color;
 
     va_start(args, format);
-    __vsnprintf(message->text, 0xfe, format, args);
+    _vsnprintf(message->text, 0xfe, format, args);
     va_end(args);
 
     message->is_command_echo = strstr(message->text, console_echo_prefix) != (char *)0;

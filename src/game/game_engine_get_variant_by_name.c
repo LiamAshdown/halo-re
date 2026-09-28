@@ -9,13 +9,13 @@
 // test existence) is this function's own stack parameter.
 //   // blam-cc: ECX -> name, stack -> out
 // UNSURE: this rewrite restructures Ghidra's ~35-deep nested if/else chain of identical
-// `__stricmp(name, "literal") -> call defaults -> break` arms into an equivalent table scan; the
+// `_stricmp(name, "literal") -> call defaults -> break` arms into an equivalent table scan; the
 // comparison order (and therefore which name wins on any ambiguity) is preserved exactly.
 // CORRECTED (phase 4 review, objdump --start-address=0x4622d0 --stop-address=0x462a80):
 //   1. `dynamic_variant_name` does not exist. Ghidra prints the 36th comparison's operand as
 //      PTR_s_g_objects_equipment_00667450_0x13_00660888; 0x00660888 is not a pointer, it is the
 //      string literal "ctf" (objdump -s -j .rdata: 63 74 66 00). The arm is therefore
-//      __stricmp(name, "ctf") and FUN_00467450 is game_engine_variant_defaults_stalker.
+//      _stricmp(name, "ctf") and FUN_00467450 is game_engine_variant_defaults_stalker.
 //   2. `requested_name_wide` is not a parameter. It is the 24-wchar local buffer immediately
 //      after the staging variant (Ghidra's local_1c0), and string_convert_ascii_to_unicode fills it -- that call
 //      takes EAX = &buffer and EDI = 0x30 (objdump 0x4629bc..0x4629d0), both of which Ghidra
@@ -29,6 +29,7 @@
 // The custom-variant scan's "-1 means call game_engine_apply_current_custom_variant and keep
 // scanning" behavior (rather than stopping) is transcribed exactly as decompiled, odd as it looks.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -40,8 +41,6 @@ typedef void (*game_engine_variant_defaults_fn)(game_variant *out);
 
 extern uint8_t playlist_profiles_need_defaults; // 0x0069e8d0
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b
-extern int32_t __wcsicmp(const wchar_t *a, const wchar_t *b); // 0x6277ed
 
 extern void game_engine_apply_current_custom_variant(void); // 0x463b90, this batch
 extern void game_engine_variant_defaults_classic_slayer(game_variant *out); // 0x463c40, this batch
@@ -141,7 +140,7 @@ uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out)
     size_t i;
 
     for (i = 0; i < sizeof(k_builtin_variants) / sizeof(k_builtin_variants[0]); i++) {
-        if (__stricmp(name, k_builtin_variants[i].name) == 0) {
+        if (_stricmp(name, k_builtin_variants[i].name) == 0) {
             if (out == 0) {
                 return 1;
             }
@@ -151,19 +150,19 @@ uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out)
         }
     }
 
-    if (matched == 0 && __stricmp(name, "ctf") == 0) {
+    if (matched == 0 && _stricmp(name, "ctf") == 0) {
         if (out == 0) {
             return 1;
         }
         game_engine_variant_defaults_stalker(&staging);
         matched = 1;
-    } else if (matched == 0 && __stricmp(name, "crazy_king") == 0) {
+    } else if (matched == 0 && _stricmp(name, "crazy_king") == 0) {
         if (out == 0) {
             return 1;
         }
         game_engine_variant_defaults_crazy_king(&staging);
         matched = 1;
-    } else if (matched == 0 && __stricmp(name, "assault") != 0) {
+    } else if (matched == 0 && _stricmp(name, "assault") != 0) {
         // Not any built-in name at all: search the saved/custom game variant list.
         int32_t slots[100];       // matches Ghidra's local_190 [100]
         int32_t slot_count = 100; // in: capacity; out: how many slots were enumerated (EBX)
@@ -183,7 +182,7 @@ uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out)
                 continue;
             }
             if (saved_game_get_variant(slots[slot_index], &staging) != 0 &&
-                __wcsicmp((const wchar_t *)staging.name, requested_name_wide) == 0) {
+                _wcsicmp((const wchar_t *)staging.name, requested_name_wide) == 0) {
                 if (out == 0) {
                     return 1;
                 }

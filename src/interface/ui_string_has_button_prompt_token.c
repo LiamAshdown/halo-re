@@ -9,6 +9,7 @@
 // register convention: text in EAX (in_EAX), unresolved register read.
 // blam-cc: EAX -> text
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -16,7 +17,6 @@
 #include "networking.h"
 #include "interface.h"
 
-extern uint16_t *_wcschr(uint16_t *s, uint16_t c);
 extern int16_t ui_button_prompt_index_from_string(uint16_t *text); // 0x49ac30, blam-cc: EBX -> text; -1 when no token matches
 
 // blam-cc: EAX -> text
@@ -26,7 +26,7 @@ uint8_t ui_string_has_button_prompt_token(uint16_t *text)
 {
     uint16_t *percent;
 
-    while (text != (uint16_t *)0 && (percent = _wcschr(text, L'%')) != (uint16_t *)0) {
+    while (text != (uint16_t *)0 && (percent = wcschr(text, L'%')) != (uint16_t *)0) {
         text = percent + 1;
         if (ui_button_prompt_index_from_string(text) != 0xffff) {
             return 1;

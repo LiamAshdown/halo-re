@@ -17,15 +17,13 @@
 // lookup); stack -> out_packed_reference.
 //   // blam-cc: EAX -> reference_string, ECX -> scenario, stack -> out_packed_reference
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
 #include <string.h>
 
-extern int32_t __stricmp(const char *a, const char *b);                    // 0x628d8b
-extern char *_strrchr(const char *s, int c);                               // 0x623bc0
-extern void *_strncpy(char *dest, const char *src, size_t count);          // 0x623a90
 
 extern int32_t scenario_find_encounter_index_by_name(Scenario *scenario, char *name); // 0x432200, this batch
 extern int32_t encounter_definition_find_squad_index_by_name(ScenarioEncounter *encounter_definition, char *name); // 0x432260, this batch
@@ -42,12 +40,12 @@ uint8_t ai_reference_parse(char *reference_string, Scenario *scenario, uint32_t 
     uint32_t packed = 0xffffffff;
     char *slash;
 
-    if (__stricmp(reference_string, "none") == 0) {
+    if (_stricmp(reference_string, "none") == 0) {
         *out_packed_reference = 0xffffffff;
         return 1;
     }
 
-    slash = _strrchr(reference_string, '/');
+    slash = strrchr(reference_string, '/');
     if (slash == 0) {
         int32_t encounter_index = scenario_find_encounter_index_by_name(scenario, reference_string);
         if (encounter_index != -1) {
@@ -59,7 +57,7 @@ uint8_t ai_reference_parse(char *reference_string, Scenario *scenario, uint32_t 
             char encounter_name[32];
             int32_t encounter_index;
 
-            _strncpy(encounter_name, reference_string, name_length);
+            strncpy(encounter_name, reference_string, name_length);
             encounter_name[name_length] = '\0';
 
             encounter_index = scenario_find_encounter_index_by_name(scenario, encounter_name);

@@ -8,6 +8,7 @@
 // then compares case-insensitively with stricmp.
 // register convention: name pointer as the recognized parameter (param_1)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -21,7 +22,6 @@
 #include <string.h>
 
 extern void input_get_keyboard_key_name(int16_t key_index, uint16_t *out_name); // this module, 0x490e30
-extern int32_t _stricmp(const char *a, const char *b); // 0x628d8b, libc
 
 // Resolves a keyboard key display name string (ASCII, case-insensitive) back to its numeric key
 // index (0 .. k_control_keyboard_key_count - 1), or 0xffff if none match.

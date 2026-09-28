@@ -1,6 +1,6 @@
 // actor_target_scan_potential_targets  (Ghidra: actor_target_scan_potential_targets; named per
 //   ai_target_distance_qsort_compare.c, which documents itself as the qsort comparator this
-//   function passes to _qsort)
+//   function passes to qsort)
 // address 0x41d7e0, size 2847 bytes
 // name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED end to end against objdump 0x41d7e0..0x41e2fe (calls, acceptance tree, both finalize passes))
 // evidence: types/ai.h actor.first_prop/swarm/swarm_index/cluster_unit_index/unknown_3a0/
@@ -46,6 +46,7 @@
 // three-global families applies" slot object_get_root_parent_placement.c and
 // object_test_in_atmosphere_zone.c both flag as unresolved; reused here rather than re-litigated.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -67,8 +68,6 @@ extern ScenarioStructureBSP *global_structure_bsp;    // 0x00746f9c
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern int32_t object_cluster_stamp;           // 0x008603cc
 
-extern void _qsort(void *base, int32_t count, int32_t size,
-                   int32_t (*cmp)(const void *, const void *)); // 0x623410
 extern int ai_target_distance_qsort_compare(void *record_a, void *record_b); // 0x41d7a0, this module
 
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, sibling session
@@ -402,7 +401,7 @@ merged:
         int16_t bound = list_a.entry_count;
 
         if (list_a.seen_count < 4) {
-            _qsort(list_a.entries, list_a.entry_count, sizeof(ai_target_candidate),
+            qsort(list_a.entries, list_a.entry_count, sizeof(ai_target_candidate),
                    (int32_t (*)(const void *, const void *))ai_target_distance_qsort_compare);
             if (list_a.entry_count > 0) {
                 do {
@@ -455,7 +454,7 @@ list_a_evict:
         if (cap < 5) cap = 4;
 
         if (combined < cap) {
-            _qsort(list_b.entries, list_b.entry_count, sizeof(ai_target_candidate),
+            qsort(list_b.entries, list_b.entry_count, sizeof(ai_target_candidate),
                    (int32_t (*)(const void *, const void *))ai_target_distance_qsort_compare);
             if (list_b.entry_count > 0) {
                 do {

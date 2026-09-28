@@ -16,17 +16,17 @@
 // UNSURE: see rewrite confidence note above -- the is_nil=0 write is preserved verbatim even
 //   though it looks backwards for a sentinel.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void *operator_new(uint32_t size); // 0x6277da
 
 hwreq_map_node *tree_head_node_allocate(void)
 {
-    hwreq_map_node *node = (hwreq_map_node *)operator_new(sizeof(hwreq_map_node));
+    hwreq_map_node *node = (hwreq_map_node *)malloc(sizeof(hwreq_map_node));
 
     if (node != 0) {
         node->left = 0;

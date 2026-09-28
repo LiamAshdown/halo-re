@@ -13,14 +13,13 @@
 //   The existing value keeps its buffer when it fits (the private helper freed and reallocated).
 // register convention: __stdcall, ret 0xc.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b CRT
-extern void free(void *block); // 0x6277e8 CRT
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
 
 extern hwreq_string_pair *hwreq_string_pair_construct(hwreq_string_pair *dest, msvc_std_string *first,
@@ -50,7 +49,7 @@ void hwreq_property_set_upsert(hwreq_property_set *property_set, char *key, char
     while (cursor != end) {
         first_text = (cursor->first.capacity < 0x10) ? cursor->first.buffer.inline_buffer
                                                        : (const char *)cursor->first.buffer.heap_buffer;
-        if (__stricmp(first_text, key) == 0) {
+        if (_stricmp(first_text, key) == 0) {
             msvc_string_assign_n(&cursor->second, value, hwreq_string_length(value));
             return;
         }

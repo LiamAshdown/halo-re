@@ -7,7 +7,7 @@
 // evidence: types/objects.h object (definition_tag 0x000, region_permutations 0x180);
 //   types/tags.h Object.model, GBXModel.regions, ModelRegion (name, permutations),
 //   ModelRegionPermutation (name); global 0x008603b0 object_data, global 0x0087bc14
-//   tag_instances; callee __stricmp (0x628d8b, libc).
+//   tag_instances; callee _stricmp (0x628d8b, libc).
 // register convention: object index in EAX, name/region/flag are stack parameters in Ghidra's
 //   own declared order. Confirmed against objdump -d -M intel bin/halo.exe: 0x4f6c72 masks eax
 //   as the index before any stack access, and 0x4f6cc2 mov ax,[esp+0x20] reads the region
@@ -16,6 +16,7 @@
 // UNSURE: when a name match is found but use_matched_index is false, the stored permutation
 //   index is forced to 0 rather than the matched index -- preserved exactly, meaning unclear.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -25,7 +26,6 @@
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b, libc
 
 void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
     char use_matched_index) // blam-cc: EAX -> object_index, stack -> name, region_filter, use_matched_index
@@ -50,7 +50,7 @@ void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t r
                 ModelRegionPermutation *permutations = (ModelRegionPermutation *)region->permutations.pointer;
                 int16_t permutation_index;
                 for (permutation_index = 0; permutation_index < (int16_t)region->permutations.count; permutation_index++) {
-                    if (__stricmp(permutations[permutation_index].name.string, name) == 0) {
+                    if (_stricmp(permutations[permutation_index].name.string, name) == 0) {
                         int16_t stored = permutation_index;
                         if (use_matched_index == 0) {
                             stored = 0;

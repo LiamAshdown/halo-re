@@ -24,6 +24,7 @@
 // shell_display_fatal_error_dialog 0x57ea70's own Ghidra decompile confirms a 3-parameter
 // signature (resource_id, message, is_fatal); its third argument here is 1.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -34,9 +35,6 @@
 // The IDirect3D9 slot typedefs (d3d9_get_adapter_identifier_fn / d3d9_get_device_caps_fn) and the
 // hwreq_parser_vtable slot typedefs (hwreq_*_fn) are in types/shell.h.
 
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b CRT
-extern int32_t sscanf(const char *buffer, const char *format, ...); // 0x626572 CRT
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern hwreq_parser *hwreq_parser_create(void); // 0x57b4c0
 extern void config_reset_system_requirements(void); // 0x57cfe0
 extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70
@@ -103,7 +101,7 @@ char *shell_parse_config_txt(uint32_t adapter_index, d3d9_interface *d3d)
     video_memory = display_adapters[0].video_memory;
 
     for (i = 0; i < display_adapter_count; i++) {
-        if (__stricmp(display_adapters[i].driver_name, identifier.device_name) == 0) {
+        if (_stricmp(display_adapters[i].driver_name, identifier.device_name) == 0) {
             video_memory = display_adapters[i].video_memory;
         }
     }
@@ -132,7 +130,7 @@ char *shell_parse_config_txt(uint32_t adapter_index, d3d9_interface *d3d)
 
         found = 0;
         for (property_index = 0; property_index < k_shell_config_property_count; property_index++) {
-            if (__stricmp((const char *)config_properties[property_index].name, name) == 0) {
+            if (_stricmp((const char *)config_properties[property_index].name, name) == 0) {
                 found = 1;
                 break;
             }
@@ -179,19 +177,19 @@ char *shell_parse_config_txt(uint32_t adapter_index, d3d9_interface *d3d)
         name = ((hwreq_get_indexed_string_fn)vt->get_requirement_name)(hardware_requirements, i);
         value = ((hwreq_get_indexed_string_fn)vt->get_requirement_value)(hardware_requirements, i);
 
-        if (__stricmp(name, "CpuSpeed") == 0) {
+        if (_stricmp(name, "CpuSpeed") == 0) {
             sscanf(value, "%d", &required_cpu_speed);
         }
-        if (__stricmp(name, "Memory") == 0) {
+        if (_stricmp(name, "Memory") == 0) {
             sscanf(value, "%d", &required_memory);
         }
-        if (__stricmp(name, "VideoMemory") == 0) {
+        if (_stricmp(name, "VideoMemory") == 0) {
             sscanf(value, "%d", &required_video_memory);
         }
-        if (__stricmp(name, "DirectX") == 0) {
+        if (_stricmp(name, "DirectX") == 0) {
             sscanf(value, "%d.%d.%d.%d", &directx_scratch, &directx_scratch, &directx_scratch, &required_directx_build);
         }
-        if (__stricmp(name, "DiskSpace") == 0) {
+        if (_stricmp(name, "DiskSpace") == 0) {
             sscanf(value, "%d", &required_disk_space);
         }
     }

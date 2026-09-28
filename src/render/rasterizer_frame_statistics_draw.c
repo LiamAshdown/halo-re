@@ -35,6 +35,7 @@
 //   (a screen bounds rectangle), 0x0069c648 (the present counter of
 //   rasterizer_capture_and_present) and 0x006e474a (text tab stops) are provisional.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -77,7 +78,6 @@ extern void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *d
     // 0x5148b0, rasterizer module; blam-cc: EAX -> clip_rect_override, ECX -> dest_rect_override,
     // stack -> (cursor, flags, text). src/rasterizer types the two stack slots as opaque
     // uint32_t position_or_color1/2; 0x512e80 passes a Point2DInt out cursor and -4 there.
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 _sprintf
 
 static void set_text_state(const float color[4], const int16_t tab_stops[6])
 {

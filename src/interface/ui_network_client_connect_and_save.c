@@ -14,6 +14,7 @@
 // 0) the host name is copied to its +0xfc2, otherwise the binary copies to address 0xfc2 (the
 // sbb/not/and select yields NULL); the earlier rewrite had that test inverted.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,8 +31,6 @@ extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
 extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI out, EDI wide source
 extern uint8_t network_game_client_connect_to_address_async(char *name, char *address); // 0x4c8500
 extern void saved_item_select(int32_t profile_index); // 0x495be0, blam-cc: EBX profile_index
-extern uint32_t wcslen(const uint16_t *s); // wide strlen
-extern void _wcscpy(uint16_t *dest, const uint16_t *src);
 extern uint8_t saved_item_has_unsaved_changes(void); // 0x495ea0
 extern uint8_t player_profile_save(void); // 0x495d40
 
@@ -52,7 +51,7 @@ uint8_t ui_network_client_connect_and_save(void)
     {
         uint8_t *record = ((selected_saved_item & 0xf) == 0) ? saved_item_working_copy : (uint8_t *)0;
         wcslen(network_host_name_field_00719238);
-        _wcscpy((uint16_t *)(record + 0xfc2), network_host_name_field_00719238);
+        wcscpy((uint16_t *)(record + 0xfc2), network_host_name_field_00719238);
     }
     if (saved_item_has_unsaved_changes() != 0) {
         player_profile_save();

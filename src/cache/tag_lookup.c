@@ -7,10 +7,10 @@
 // evidence: types/cache.h tag_instance / cache_file_tag_header layouts and globals list.
 // register convention: tag_group group in EDI (unaff_EDI); char *path is an ordinary parameter.
 
+#include "crt.h"
 #include "tags.h"
 #include "cache.h"
 
-extern int32_t __stricmp(const char *a, const char *b);
 
 extern uint8_t cache_file_loaded;              // 0x006a8150
 extern cache_file_tag_header *tag_header;      // 0x006a8954
@@ -30,7 +30,7 @@ datum_index tag_lookup(tag_group group, char *path)
 
     for (index = 0; index < tag_header->tag_count; index++) {
         if (tag_instances[index].group_tag == group) {
-            if (__stricmp(path, tag_instances[index].path) == 0) {
+            if (_stricmp(path, tag_instances[index].path) == 0) {
                 return tag_instances[index].tag_id;
             }
         }

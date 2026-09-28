@@ -27,6 +27,7 @@
 //   (campaign_level_entry table 0x692acc, 4 bytes per entry) goes to 0x719779 (255 chars), 0x719757 = 0,
 //   0x719878 = 0, 0x719778 = 1, 0x719739 = 0, returns 1. Otherwise (or any other player count) it plays sound
 //   effect 4 and returns 0. The draft called the scan with no arguments (EDX was garbage: the crash).
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -56,7 +57,6 @@ extern void player_profile_scan_campaign_progress(int16_t *out_type, saved_playe
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory);
     // 0x53d080, blam-cc: EAX -> handle, ESI -> out_directory
 extern void saved_game_last_profile_clear(char *name);  // 0x53d220
-extern void _strncpy(char *dest, const char *src, uint32_t count);
 
 // Copies local player `player`'s profile block and tests whether `level_id` is available to it.
 static uint8_t level_unlocked_for(int16_t player, int32_t level_id)
@@ -102,7 +102,7 @@ uint8_t ui_level_select_confirm_choice(widget_instance *widget)
         return unlocked;
     }
     selected_level_start_flags_00719754_byte3 = 0;
-    _strncpy(selected_level_path_00719779, known_campaign_levels_00692acc[level_id].path, 0xff);
+    strncpy(selected_level_path_00719779, known_campaign_levels_00692acc[level_id].path, 0xff);
     selected_level_active_00719878 = 0;
     selected_level_pending_00719778 = 1;
     network_wait_flag_00719739 = 0;

@@ -21,6 +21,7 @@
 //   the numeric HRESULT-shaped return constants (0x57 = ERROR_INVALID_PARAMETER,
 //   0x80004005 = E_FAIL) are Win32/COM values, not reinterpreted.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -31,8 +32,6 @@ extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source,
     // UNSURE: EAX -> out_name, stack -> max_length (guessed -- builds the checkpoint/save name)
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, blam-cc: EAX dst, EDI capacity_bytes, EBX source
     // UNSURE: EAX -> text, ECX -> length (guessed -- writes the "Name=" info file)
-extern int _sprintf(char *dest, const char *format, ...); // MSVC CRT
-extern char *_strncpy(char *dest, const char *src, uint32_t count); // MSVC CRT
 
 // blam-cc: EAX -> save_game_name, stack -> root_path, mode, out_path, out_path_size
 // FIXED (step 1, objdump -d 0x551710..0x55199d): EAX is the save game's Unicode name -- the source of the ASCII name
@@ -67,12 +66,12 @@ uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, 
     }
 
     string_convert_unicode_to_ascii((uint8_t *)name, (uint16_t *)save_game_name, 0x80);
-    _sprintf(slot_dir, "%s\\%s\\", root_path, name);
-    _sprintf(slot_path, "%s%s", slot_dir, name);
-    _sprintf(info_line, "Name=%s\n", name);
+    sprintf(slot_dir, "%s\\%s\\", root_path, name);
+    sprintf(slot_path, "%s%s", slot_dir, name);
+    sprintf(info_line, "Name=%s\n", name);
     string_convert_ascii_to_unicode((uint16_t *)checkpoint_dir, 0x80, info_line); // result unused (buffer reused below)
 
-    _sprintf(slot_file_no_slash, "%s\\%s", root_path, name);
+    sprintf(slot_file_no_slash, "%s\\%s", root_path, name);
 
     root_attrs = GetFileAttributesA(root_path);
     if (root_attrs == 0xffffffff && CreateDirectoryA(root_path, 0) == 0) {
@@ -118,7 +117,7 @@ uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, 
             while (checkpoint_dir[end] != '\0') {
                 end = end + 1;
             }
-            _strncpy(checkpoint_dir + end, "checkpoints\\", 0xd);
+            strncpy(checkpoint_dir + end, "checkpoints\\", 0xd);
         }
 
         if (CreateDirectoryA(checkpoint_dir, 0) == 0) {
@@ -135,7 +134,7 @@ uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, 
         WriteFile(file, slot_path, length, &bytes_written, 0);
         CloseHandle(file);
         if ((uint32_t)length == bytes_written) {
-            _strncpy(out_path, slot_dir, out_path_size);
+            strncpy(out_path, slot_dir, out_path_size);
             return 0;
         }
     }

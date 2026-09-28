@@ -16,12 +16,11 @@
 //   (hs_parse_primitive, 0x486420) and is out of this batch's range, so the exact per-type values
 //   it passes are inferred only from the one in-range caller.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
 
-extern int32_t sprintf(char *buffer, const char *format, ...); // 0x00623693 _sprintf
-extern int32_t __stricmp(const char *a, const char *b);        // 0x00628d8b
 
 extern data_array *hs_syntax_data;                 // 0x0087a474
 extern char *hs_compiled_source;                    // 0x006b14c0
@@ -47,7 +46,7 @@ char hs_parse_scenario_datum(datum_index node_index, int16_t name_offset, TagRef
 
     for (i = 0; i < (int16_t)array->count; i++) {
         element = (char *)array->pointer + i * stride;
-        if (__stricmp(element + name_offset, hs_compiled_source + node->source_offset) == 0) {
+        if (_stricmp(element + name_offset, hs_compiled_source + node->source_offset) == 0) {
             node->data.long_value = i;
             return 1;
         }

@@ -8,14 +8,13 @@
 // (out_buffer, capacity).
 // blam-cc: EAX -> property_set (1st parameter), EBX -> key (2nd parameter)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __stricmp(const char *a, const char *b);
-extern char *_strncpy(char *dest, const char *src, uint32_t count);
 
 // Looks up a key in the device-override list and, if found, copies its associated value string
 // into the caller-supplied buffer.
@@ -33,7 +32,7 @@ uint32_t hwreq_device_override_list_find(hwreq_property_set *property_set, const
     while (cursor != end) {
         first_text = (cursor->first.capacity < 0x10) ? cursor->first.buffer.inline_buffer
                                                        : (const char *)cursor->first.buffer.heap_buffer;
-        if (__stricmp(first_text, key) == 0) {
+        if (_stricmp(first_text, key) == 0) {
             break;
         }
         cursor++;
@@ -44,7 +43,7 @@ uint32_t hwreq_device_override_list_find(hwreq_property_set *property_set, const
 
     second_text = (cursor->second.capacity < 0x10) ? cursor->second.buffer.inline_buffer
                                                      : (const char *)cursor->second.buffer.heap_buffer;
-    _strncpy(out_value, second_text, capacity);
+    strncpy(out_value, second_text, capacity);
     return 1;
 }
 

@@ -2,15 +2,15 @@
 // address 0x4cf890, size 96 bytes
 // name confidence: 0.6   rewrite confidence: 0.85
 // evidence: same growable_array struct as growable_array_add_element (0x4cf810); callee
-// _memmove and GlobalAlloc/GlobalFree/GlobalReAlloc confirm the same three-field layout.
+// memmove and GlobalAlloc/GlobalFree/GlobalReAlloc confirm the same three-field layout.
 // register convention: array pointer in ESI (unaff_ESI), index in EDI (unaff_EDI); exposed in
 // that order (ESI before EDI) per the EAX,ECX,EDX,EBX,ESI,EDI,stack rule.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
 
-extern void *memmove(void *dst, const void *src, uint32_t count); // 006236f0 _memmove
 
 #define GMEM_MOVEABLE 0x0002
 

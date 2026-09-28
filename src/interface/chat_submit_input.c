@@ -5,6 +5,7 @@
 // library table with chimera__chat_open.c/chat_close.c.
 // register convention: __cdecl, no parameters.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -23,7 +24,6 @@ extern chat_gui_get_property_string_fn chat_gui_get_property_string; // 0x00721e
 extern chat_gui_release_fn chat_gui_release;          // 0x00721ec8
 
 extern int32_t chat_default_team_channel(void); // 0x4ab1e0
-extern int32_t wcslen(const uint16_t *s); // 0x625b7a, UNSURE: appears to be wcslen
 extern void chimera__chat_out(uint8_t team_index); // 0x4aab00
 extern void chat_close(void); // 0x4aa900
 

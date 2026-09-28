@@ -12,6 +12,7 @@
 // TYPES-GAP: DAT_006e35c0 (a command-line-ish string pointer compared against "xdemo") and
 // DAT_00692af8 are not documented anywhere in types/interface.h.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,7 +29,6 @@ extern int16_t ui_unknown_718fa4;        // 0x00718fa4
 extern uint8_t main_menu_music_pending;  // 0x00718fc6
 extern datum_index ui_cached_tag_00692af8; // 0x00692af8, TYPES-GAP, UNSURE name
 
-extern int32_t __stricmp(const char *a, const char *b);
 extern void input_time_base_resync(void); // 0x48b470
 extern void input_queue_sample_time_update(void); // 0x492210, UNSURE
 extern void player_profile_check_storage_and_defaults(void); // 0x49c680, UNSURE
@@ -51,7 +51,7 @@ void chimera__load_main_menu(void)
     ui_input_batch_mode = 0;
     if (main_menu_reload_pending == 1) {
         if (command_line_00706e35c0 != (char *)0) {
-            __stricmp(command_line_00706e35c0, "xdemo");
+            _stricmp(command_line_00706e35c0, "xdemo");
         }
         ui_input_batch_mode = 1;
         loading_thread_result = 0;

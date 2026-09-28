@@ -14,6 +14,7 @@
 // register convention: source_directory in ESI, source_name in EDI, target_name is the
 // recognized stack parameter.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -23,7 +24,6 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
 
 // blam-cc: source_directory in ESI, source_name in EDI, then the recognized stack parameter
 // (target_name)
@@ -39,19 +39,19 @@ uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_nam
     char source_path[256];
     char target_path[256];
 
-    _sprintf(check_path, "%s%s.sav", source_directory, source_name);
+    sprintf(check_path, "%s%s.sav", source_directory, source_name);
     find_handle = FindFirstFileA(check_path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle == (void *)0xffffffff) {
         return 0;
     }
     FindClose(find_handle);
 
-    _sprintf(target_path, "%s%s.bin", source_directory, target_name);
-    _sprintf(source_path, "%s%s.bin", source_directory, source_name);
+    sprintf(target_path, "%s%s.bin", source_directory, target_name);
+    sprintf(source_path, "%s%s.bin", source_directory, source_name);
     CopyFileA(source_path, target_path, 0);
 
-    _sprintf(source_path, "%s%s.sav", source_directory, source_name);
-    _sprintf(target_path, "%s%s.sav", source_directory, target_name);
+    sprintf(source_path, "%s%s.sav", source_directory, source_name);
+    sprintf(target_path, "%s%s.sav", source_directory, target_name);
     CopyFileA(source_path, target_path, 0);
     return 1;
 }

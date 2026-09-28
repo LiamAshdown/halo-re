@@ -9,6 +9,7 @@
 //   size drops (never below 0) and the successor goes to *result_holder, whose address is returned.
 // blam-cc: stack -> tree, result_holder, node (callee pops 0xc)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,7 +33,6 @@ extern hwreq_map_node *tree_find_min(hwreq_map_node **subtree_root_left_field); 
 extern hwreq_map_node *tree_find_max(hwreq_map_node *node); // 0x57cd20, blam-cc: EAX
 extern void tree_rotate_left(hwreq_map_node *x, msvc_std_map *tree); // 0x57cb10
 extern void tree_rotate_right(hwreq_map_node *x, msvc_std_map *tree); // 0x57cb90
-extern void _free(void *ptr); // 0x6277e8
 extern void *out_of_range_vtable; // 0x00655098
 extern uint8_t out_of_range_throw_info[]; // 0x00673560, _ThrowInfo for std::out_of_range
 
@@ -169,12 +169,12 @@ hwreq_map_node **tree_erase_one(msvc_std_map *tree, hwreq_map_node **result_hold
         fix->color = 1;
     }
     if (erased->key.capacity >= 0x10) {
-        _free((void *)erased->key.buffer.heap_buffer);
+        free((void *)erased->key.buffer.heap_buffer);
     }
     erased->key.capacity = 0xf;
     erased->key.size = 0;
     erased->key.buffer.inline_buffer[0] = 0;
-    _free(erased);
+    free(erased);
     if (tree->size > 0) {
         tree->size--;
     }

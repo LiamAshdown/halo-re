@@ -7,6 +7,7 @@
 // objdump 0x47d840: EDX = the source ai (+0x0), stack (target ai +0x4, 1, is "advance" by the string +0x8); returns 0.
 // blam-cc: stack -> function_index, thread_index, first (cdecl)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -16,7 +17,6 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern int32_t __stricmp(const char *a, const char *b); // 0x00628d8b
 extern void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index, char notify,
     char is_platoon_merge); // 0x433590, EDX source, stack (target, notify, platoon)
 
@@ -31,10 +31,10 @@ void hs_evaluate_ai_migrate_and_speak(int16_t function_index, uint32_t thread_in
         char advance = 0;
 
         // 0x47d877: "advance" selects the platoon merge; the "retreat" compare's result is unused
-        if (__stricmp(verb, "advance") == 0) {
+        if (_stricmp(verb, "advance") == 0) {
             advance = 1;
         } else {
-            __stricmp(verb, "retreat");
+            _stricmp(verb, "retreat");
         }
         ai_squads_merge((uint32_t)arguments[0], (uint32_t)arguments[1], 1, advance);
         hs_thread_return(0, thread_index);

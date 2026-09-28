@@ -13,11 +13,12 @@
 //   "halo( " and its terminator (copied as a dword, a word and a byte); 0x006b70d8
 //   terminal.input[0] = 0; 0x006b79dc history_count = 0; 0x006b79de / 0x006b79e0
 //   history_newest_index / history_browse_index = -1; 0x006b7021 enabled = whether any argument
-//   that starts with '-' equals "-console" (__stricmp against 0x0066b248, shell_argv 0x00721e90,
+//   that starts with '-' equals "-console" (_stricmp against 0x0066b248, shell_argv 0x00721e90,
 //   shell_argc 0x00721e94).
 // register convention: no parameters.
 //   // blam-cc: none
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,7 +31,6 @@ extern console_globals console_globals_data; // 0x006b7020
 extern ColorARGB console_default_color;      // 0x00696554
 extern char **shell_argv;                    // 0x00721e90
 extern int32_t shell_argc;                   // 0x00721e94
-extern int32_t __stricmp(const char *a, const char *b); // 0x628d8b, CRT
 
 // Resets the console: default input color, the "halo( " prompt, an empty input line and
 // history, and enables it when the command line carries -console.
@@ -50,7 +50,7 @@ void console_initialize(void)
 
     for (i = 0; i < shell_argc; i++) {
         char *argument = shell_argv[i];
-        if (argument[0] == '-' && __stricmp("-console", argument) == 0) {
+        if (argument[0] == '-' && _stricmp("-console", argument) == 0) {
             console_globals_data.enabled = 1;
             return;
         }

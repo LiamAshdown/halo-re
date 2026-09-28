@@ -10,6 +10,7 @@
 // UNSURE: saved_game_create_default_profile/player_profile_get_or_cached_default/saved_game_create_default_profile's second call and saved_game_allocate_new_slot's
 // output-buffer argument are all foreign (profile module) with no established precedent found.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -35,7 +36,6 @@ extern uint8_t split_screen_quit_prompt_unknown_71973c; // 0x0071973c, TYPES-GAP
 extern int32_t saved_game_create_default_profile(int16_t player_index); // 0x539ab0, foreign (profile module), UNSURE
 extern uint8_t player_profile_get_or_cached_default(void); // 0x539bc0, foreign (profile module), UNSURE
 extern void saved_game_allocate_new_slot(uint16_t *out_default_name); // 0x53ca80
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
 extern void saved_item_select(int32_t selection_id); // 0x495be0, UNSURE signature
 extern void main_queue_map_change(void); // 0x4c8740
@@ -60,7 +60,7 @@ uint32_t ui_new_profile_name_entry_commit(void)
         profile_id = saved_game_create_default_profile(new_profile_name_entry_player_00692b00);
         if (profile_id == -1) {
             saved_game_allocate_new_slot(default_name);
-            _wcsncpy(new_profile_name_buffer_006b37f4, default_name, 0xb);
+            wcsncpy(new_profile_name_buffer_006b37f4, default_name, 0xb);
             new_profile_name_terminator_006b380a = 0;
             profile_id = saved_game_create_default_profile(new_profile_name_entry_player_00692b00);
             if (profile_id == -1) {

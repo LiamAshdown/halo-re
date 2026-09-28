@@ -21,6 +21,7 @@
 // SHGetFolderPathA argument list, both of which the disassembly (0x4493ce..0x4493ed) restores.
 // This rewrite reproduces the bug rather than "fixing" the argument order.
 
+#include "crt.h"
 #include "tags.h"
 #include "cseries.h"
 #include <stdio.h>
@@ -35,9 +36,7 @@ typedef int32_t (__stdcall *sh_get_folder_path_proc)(void *owner, int32_t csidl,
 extern void *sh_get_folder_path; // 0x0074626c FARPROC, foreign (shell module)
 
 extern uint8_t command_line_check_flag(const char *flag_name, const char **out_value); // 0x542760, blam-cc: EDI out_value
-extern int32_t printf(const char *format, ...);                       // 0x62427c _printf
-extern int32_t __snprintf(char *dest, uint32_t count, const char *format, ...); // 0x623a2d
-// strncpy (0x623a90 _strncpy) is declared by <string.h> above.
+// strncpy (0x623a90 strncpy) is declared by <string.h> above.
 extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70
 
 // Determines and stores the player's profile directory path into the profile_directory global:
@@ -58,7 +57,7 @@ void profile_path_initialize(void)
     result = ((sh_get_folder_path_proc)sh_get_folder_path)(0, k_csidl_personal, 0, 0,
                                                              documents_path);
     if (result >= 0) {
-        __snprintf(profile_directory, k_cseries_path_length, "%s\\My Games\\Halo",
+        _snprintf(profile_directory, k_cseries_path_length, "%s\\My Games\\Halo",
                    documents_path);
         return;
     }

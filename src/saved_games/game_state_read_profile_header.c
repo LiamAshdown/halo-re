@@ -8,6 +8,7 @@
 // function's own recognized stack parameter.
 // register convention: name in EAX, size in EDI, buffer is the recognized stack parameter.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -19,7 +20,6 @@
 
 extern char game_state_core_directory[0x100]; // 0x006e2efc
 
-extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
 
 // blam-cc: name in EAX, size in EDI, then the recognized stack parameter (buffer)
 // Opens "<game_state_core_directory>\<name>" and reads exactly size bytes into buffer,
@@ -32,7 +32,7 @@ uint8_t game_state_read_profile_header(char *name, int32_t size, void *buffer)
     uint8_t result;
 
     result = 0;
-    _sprintf(path, "%s\\%s", game_state_core_directory, name);
+    sprintf(path, "%s\\%s", game_state_core_directory, name);
     file = CreateFileA(path, 0x80000000, 0, 0, 3 /* OPEN_EXISTING */, 0x80 /* FILE_FLAG_RANDOM_ACCESS */, 0);
     if (file != (void *)0xffffffff) {
         if (ReadFile(file, buffer, size, &bytes_read, 0) != 0 && bytes_read == (uint32_t)size) {

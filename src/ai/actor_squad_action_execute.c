@@ -13,6 +13,7 @@
 //   23 look random, 24 look player, 25 look object, 26 set radius, 27 teleport.
 // blam-cc: EAX -> aim_state, stack -> (actor_index, check_object_index, command_list_index, state)
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -73,7 +74,6 @@ extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_v
 extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta); // 0x56d160, EAX, DX, stack
 extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
     uint8_t interpolate); // 0x5702a0, stack, EDI, EAX, stack
-extern void _qsort(void *base, int32_t count, int32_t size, int32_t (*cmp)(const void *, const void *)); // 0x623410
 extern int32_t float_compare_ascending(const void *a, const void *b); // 0x405360
 extern const char DAT_0065512c[]; // 0x0065512c, the empty string: a seat name filter matching every seat
 
@@ -375,7 +375,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
             }
         }
         if (sample_count > 1) {
-            _qsort(samples, sample_count, 8, float_compare_ascending);
+            qsort(samples, sample_count, 8, float_compare_ascending);
         }
         if (entry->atom_modifier >= 0 && entry->atom_modifier < 5) {
             seat_flags = entry->atom_modifier;

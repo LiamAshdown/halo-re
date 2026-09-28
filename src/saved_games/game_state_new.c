@@ -9,6 +9,7 @@
 // out/phase4/saved_games_types_notes.md "register conventions"); name and maximum_count are
 // the recognized stack parameters (param_1, param_2).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +23,6 @@ extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint32_t game_state_crc; // 0x006e2dd4
 
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
-extern char *strncpy(char *dst, const char *src, uint32_t count); // 00623a90 _strncpy
 
 // blam-cc: element size in EBX, then the recognized stack parameters (name, maximum_count)
 // Carves a new data_array header + storage block out of the game-state arena, folding the

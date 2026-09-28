@@ -13,6 +13,7 @@
 // suggests an intermediate int-to-double-to-int round trip that optimized away. The net
 // effect (rand() truncated back to an int) is preserved either way.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -21,9 +22,6 @@
 
 extern uint8_t network_random_seeded; // 0x006f0ca8, one-time seed flag
 
-extern int32_t _time32(int32_t *time_ptr); // 0x006240f1 FID_conflict:__time32
-extern void srand(uint32_t seed);          // 0x006240c2, CRT srand
-extern int rand(void);                     // 0x006240cf _rand
 extern int32_t __ftol(int32_t value);      // 0x006391b4, see UNSURE note above
 
 // blam-cc: base offset in ESI (unaff_ESI)

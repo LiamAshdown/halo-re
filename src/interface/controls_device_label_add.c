@@ -12,6 +12,7 @@
 // register convention: wide name in the one recovered parameter (param_1, stack per
 // Ghidra); device type/id as the second stack argument.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,14 +23,13 @@
 extern controls_device_label controls_device_labels[0x10]; // 0x006932e8
 extern int32_t controls_device_label_count;                 // 0x00719440
 
-extern uint16_t *_wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t n);
 
 void controls_device_label_add(const uint16_t *name, int32_t device_type)
 {
     int i;
     for (i = 0; i < 0x10; i++) {
         if (controls_device_labels[i].name[0] == 0) {
-            _wcsncpy(controls_device_labels[i].name, name, 0x104);
+            wcsncpy(controls_device_labels[i].name, name, 0x104);
             controls_device_labels[i].name[0x104] = 0; // objdump 0x4b4876: word store at +0x208
             controls_device_labels[i].device_type = device_type;
             controls_device_label_count++;

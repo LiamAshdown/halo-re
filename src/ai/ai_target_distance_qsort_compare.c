@@ -1,7 +1,7 @@
 // ai_target_distance_qsort_compare  (Ghidra: ai_target_distance_qsort_compare, already named)
 // address 0x41d7a0, size 57 bytes, cdecl
 // name confidence: 0.6   rewrite confidence: 0.7
-// evidence: qsort comparator passed to _qsort inside actor_target_scan_potential_targets
+// evidence: qsort comparator passed to qsort inside actor_target_scan_potential_targets
 //   (0x41d7e0); orders two candidate-target records ascending by a float at +8. The records
 //   are a small local sort structure that actor_target_scan_potential_targets builds (each
 //   holding, among other things, a copy of the matching prop's distance), not a prop pointer
@@ -11,6 +11,7 @@
 // TYPES-GAP: no header defines the local {..., distance} sort record built by
 // actor_target_scan_potential_targets; only the +8 float this function reads is named here.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 

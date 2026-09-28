@@ -17,6 +17,7 @@
 // players beyond the visible window can be rescued this way; not derived from any named
 // constant. debug_print_enabled/console_printf_verbose (a printf-style debug logger) are UNSURE identities.
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,7 +30,7 @@ extern uint8_t debug_print_enabled_flag; // 0x00689412, compared against 0x45 ('
 extern int32_t game_engine_build_sorted_player_list(uint8_t invert_low_stat,
     scoreboard_entry entries[16], int32_t mode); // 0x45cc90; invert_low_stat travels in AL
 extern void console_printf_verbose(const char *format, ...); // 0x496a80, not in this batch; UNSURE exact identity
-// memmove (0x006236f0 _memmove) comes from <string.h>.
+// memmove (0x006236f0 memmove) comes from <string.h>.
 
 // blam-cc: EBX -> max_count, stack -> out
 // Writes at most `max_count` scoreboard_entry records to `out`, taken from the sorted scoreboard

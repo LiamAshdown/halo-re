@@ -20,6 +20,7 @@
 // "%d" format is the literal at 0x006607a0 (not a pointer read), the player count at +0x124 is
 // zero-extended; heap_reallocate gets the old text in EAX and widget_memory_pool in ESI.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -40,10 +41,8 @@ extern uint16_t decimal_format_006607a0[]; // 0x006607a0, L"%d"
 
 extern uint8_t network_game_search_entry_is_fresh(const uint8_t *entry); // 0x4da770, blam-cc: ESI entry; reads entry+0x12d and a QPC age
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
-extern void _wcsncpy(uint16_t *dest, const uint16_t *src, uint32_t count);
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
-extern char *strstr(const char *haystack, const char *needle); // 0x625430, strstr: non-NULL on a match
 
 void server_list_menu_update(widget_instance *widget)
 {
@@ -114,7 +113,7 @@ void server_list_menu_update(widget_instance *widget)
         row->text = buf;
         if (buf != (uint16_t *)0) {
             if (entry[300] == 1) {
-                _wcsncpy(buf, (const uint16_t *)(entry + 0x1c), 0xf);
+                wcsncpy(buf, (const uint16_t *)(entry + 0x1c), 0xf);
                 ((uint16_t *)row->text)[0xf] = 0;
             } else {
                 datum_index tag = tag_lookup(0x75737472, "ui\\multiplayer_game_text");

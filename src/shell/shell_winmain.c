@@ -34,6 +34,7 @@
 //     intro movies, pumps messages and paces frames. Renamed main_loop.
 //   - The -? / -help path shows the message box and returns without the exit path.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -113,7 +114,6 @@ extern uint8_t port_overridden;              // 0x0071c2d0
 extern uint32_t connect_address_raw;         // 0x006869b0 inet_addr result, then the swapped address
 extern uint32_t connect_address;             // 0x006869a4 byte swapped copy
 
-extern int32_t atol(const char *string);                                       // 0x625926 CRT
 
 typedef int32_t (__cdecl *eula_show_fn)(const char *registry_path, const char *eula_file, int32_t unknown_2,
                                         int32_t unknown_3);                     // eula.dll EBUEula, add esp,0x10

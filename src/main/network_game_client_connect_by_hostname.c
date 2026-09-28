@@ -22,6 +22,7 @@
 // matching src/networking/network_local_hostent_get.c / network_initialize.c's treatment of
 // Winsock's hostent as opaque.
 
+#include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -42,7 +43,6 @@ extern int16_t network_join_error_code; // 0x00718fa4, foreign (interface module
 extern void network_dispatch_initialize(void); // 0x4414c0, foreign (networking module)
 extern char network_hostname_resolve_with_timeout(char *hostname); // 0x4c8370, this module
 extern uint8_t network_game_client_connect_to_address_async(char *address, char *password); // 0x4c8500, this module
-extern char *strchr(const char *string, int character); // CRT strchr (0x6257e0: the MSVC asm strchr)
 
 // Resolves host_port_string (a "host" or "host:port" string, GlobalAlloc'd by the caller) and
 // stages the result for the main loop to connect to: on success, formats the resolved dotted

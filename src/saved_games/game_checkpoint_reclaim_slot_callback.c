@@ -13,6 +13,7 @@
 // register convention: __cdecl, all seven parameters on the stack (Ghidra's own
 // checkpoint_enumerate_proc order).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -21,7 +22,6 @@
 #include "interface.h"
 #include "saved_games.h"
 
-extern int32_t _sprintf(char *dest, const char *format, ...); // 0x623693
 
 uint8_t game_checkpoint_reclaim_slot_callback(int32_t index, const char *name, int32_t level_index,
     int32_t difficulty, int32_t game_time_ticks, const win32_systemtime *time, void *user_data)
@@ -29,7 +29,7 @@ uint8_t game_checkpoint_reclaim_slot_callback(int32_t index, const char *name, i
     char *out_name = (char *)user_data;
 
     if (out_name[0] == 0) {
-        _sprintf(out_name, "checkpoints\\%s", name);
+        sprintf(out_name, "checkpoints\\%s", name);
     }
     return 1;
 }

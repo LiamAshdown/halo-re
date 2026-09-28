@@ -13,6 +13,7 @@
 // register convention: __cdecl, buffer and has_more on the stack.
 //   // blam-cc: stack -> buffer, has_more
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,7 +27,6 @@ extern data_array *actor_data;     // 0x00880360
 
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
 extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0
-extern int _sprintf(char *buffer, const char *format, ...); // 0x623693
 
 // blam-cc: stack -> buffer, has_more
 // Iterates every active actor as part of AI global cleanup, releasing each currently
@@ -61,7 +61,7 @@ int ai_release_inactive_swarms(char *buffer, uint8_t *has_more)
         a = actor_iterator_next(&iterator);
     }
 
-    _sprintf(buffer, "%d swarm units", (int)total);
+    sprintf(buffer, "%d swarm units", (int)total);
     *has_more = 0;
     return total > 0;
 }

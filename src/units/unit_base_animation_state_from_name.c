@@ -12,6 +12,7 @@
 // register convention: name pointer in EDI (unaff_EDI); no stack arguments.
 //   // blam-cc: EDI -> name
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +20,6 @@
 #include "units.h"
 
 extern char *unit_base_animation_state_names[6]; // 0x0069fde4
-extern int __stricmp(const char *a, const char *b); // 0x628d8b, MSVC 7.1 CRT
 
 // Case-insensitively matches `name` against unit_base_animation_state_names and returns the
 // matching unit_base_animation_state, or _unit_base_animation_state_none if none matches.
@@ -28,7 +28,7 @@ int16_t unit_base_animation_state_from_name(const char *name)
     int16_t index;
 
     for (index = 0; index < 6; index++) {
-        if (__stricmp(name, unit_base_animation_state_names[index]) == 0) {
+        if (_stricmp(name, unit_base_animation_state_names[index]) == 0) {
             return index;
         }
     }

@@ -11,13 +11,13 @@
 //   load at entry).
 // blam-cc: this in ESI (only parameter).
 
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t __strnicmp(const char *a, const char *b, uint32_t n); // 0x6375da CRT
 extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's cursor for a line beginning "Requirements" followed by a
@@ -30,7 +30,7 @@ uint8_t hwreq_parser_find_requirements_section(hwreq_parser *this)
     char c;
 
     for (;;) {
-        if (__strnicmp((char *)this->cursor, "Requirements", 12) == 0) {
+        if (_strnicmp((char *)this->cursor, "Requirements", 12) == 0) {
             c = ((char *)this->cursor)[12];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 break;
