@@ -43,7 +43,7 @@ void unit_start_seat_overlay_animation_b(uint32_t unit_index, int16_t command) /
 
     Object *obj_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
     void *graph = tag_instances[obj_tag->animation_graph.tag_id.index].data;
-    uint8_t *unit_block = *(uint8_t **)((uint8_t *)graph + 0x10);
+    uint8_t *unit_block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer;
     ModelAnimationsAnimationGraphUnitSeat *unit_seat =
         (ModelAnimationsAnimationGraphUnitSeat *)(unit_block + unit->animation_definition_index * 100);
     ModelAnimationsAnimationGraphWeapon *weapon_anim =

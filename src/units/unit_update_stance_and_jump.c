@@ -64,10 +64,10 @@ extern void unit_set_throw_aim_direction(uint32_t object_index, real_vector2d *d
 // The graph's int16 table (+0x40, +0x3c entries) at an index, -1 outside it.
 static int16_t animation_table_lookup(uint8_t *graph, int32_t index)
 {
-    if (index < 0 || index >= *(int32_t *)(graph + 0x3c)) {
+    if (index < 0 || index >= *(int32_t *)&((ModelAnimations *)graph)->unit_damage.count) {
         return -1;
     }
-    return (*(int16_t **)(graph + 0x40))[index];
+    return (*(int16_t **)&((ModelAnimations *)graph)->unit_damage.pointer)[index];
 }
 
 void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction,
@@ -188,7 +188,7 @@ void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8
             }
         }
     } else {
-        uint8_t *animation_data = *(uint8_t **)(graph + 0x78) + animation * 0xb4;
+        uint8_t *animation_data = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer + animation * 0xb4;
 
         if (OBJECT_U8(obj, 0x2a3) == 0x21) {
             unit_release_thrown_grenade(unit_index, 1);

@@ -35,7 +35,7 @@ uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternat
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     Object *obj_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
     void *graph = tag_instances[obj_tag->animation_graph.tag_id.index].data;
-    uint8_t *unit_block = *(uint8_t **)((uint8_t *)graph + 0x10);
+    uint8_t *unit_block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer;
     ModelAnimationsAnimationGraphUnitSeat *unit_seat =
         (ModelAnimationsAnimationGraphUnitSeat *)(unit_block + unit->animation_definition_index * 100);
     ModelAnimationsAnimationGraphWeapon *weapon_anim =
@@ -51,7 +51,7 @@ uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternat
         return 0;
     }
 
-    uint8_t *animations = *(uint8_t **)((uint8_t *)graph + 0x78);
+    uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + animation_index * 0xb4);
 
     animation_get_frame_info_distance(anim, (float *)param_1, (float *)param_2); // 0x56435e: ECX = the animation

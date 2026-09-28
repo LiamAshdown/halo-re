@@ -42,11 +42,11 @@ datum_index player_get_vehicle(datum_index player_index)
         return (datum_index)-1;
     }
     unit = object_try_and_get(p->unit, 3);
-    if (unit == 0 || *(const datum_index *)((const uint8_t *)unit + 0x11c) == (datum_index)-1 ||
-        *(const int16_t *)((const uint8_t *)unit + 0x2f0) == -1) {
+    if (unit == 0 || ((unit_object *)unit)->base.parent_object == (datum_index)-1 ||
+        ((unit_object *)unit)->unit.vehicle_seat_index == -1) {
         return (datum_index)-1;
     }
-    return *(const datum_index *)((const uint8_t *)unit + 0x11c);
+    return ((unit_object *)unit)->base.parent_object;
 }
 
 #if 0

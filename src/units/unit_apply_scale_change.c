@@ -69,7 +69,7 @@ void unit_apply_scale_change(uint32_t unit_index, unit_scale_request *request) /
             // Same "+0x78 flat animation array" chain as object_animation_get_frames_remaining.c,
             // but resolved via the tag's own animation_graph instead of the runtime object's.
             void *graph = tag_instances[obj_tag->animation_graph.tag_id.index].data;
-            uint8_t *animations = *(uint8_t **)((uint8_t *)graph + 0x78);
+            uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
             ModelAnimationsAnimation *anim =
                 (ModelAnimationsAnimation *)(animations + obj->animation_index * 0xb4);
             int32_t remaining = (int32_t)anim->frame_count - 4;

@@ -40,6 +40,7 @@
 #include "objects.h"
 #include "items.h"
 #include "interface.h"
+#include "units.h"
 
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern data_array *object_data; // 0x008603b0
@@ -176,13 +177,13 @@ void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     break;
                 case 8: case 9: case 14: case 18: // triggered
                     if (type == 18) {
-                        triggered = ammo->age == 0.0f && (*(uint32_t *)(unit + 0x208) & 0x800) != 0;
+                        triggered = ammo->age == 0.0f && (((unit_object *)unit)->unit.control_flags & 0x800) != 0;
                     } else if (type == 8) {
                         triggered = ammo->magazines[0].rounds_loaded == 0 && ammo->magazines[0].rounds_unloaded == 0 &&
-                                    (*(uint32_t *)(unit + 0x208) & 0x800) != 0; // test dl,ch with dl = 8
+                                    (((unit_object *)unit)->unit.control_flags & 0x800) != 0; // test dl,ch with dl = 8
                     } else if (type == 9) {
                         triggered = unit[0x31e] == 0 && unit[0x31f] == 0 && unit[0x28d] == 0 &&
-                                    (*(uint32_t *)(unit + 0x208) & 0x2000) != 0;
+                                    (((unit_object *)unit)->unit.control_flags & 0x2000) != 0;
                     }
                     if (!triggered) {
                         int32_t duration = (int32_t)lrint((double)(overlay->flash_period * 30.0f));

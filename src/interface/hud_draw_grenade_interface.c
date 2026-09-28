@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#include "units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -46,9 +47,9 @@ extern void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list, ui
 void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_index)
 {
     uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    int16_t slot = *(int16_t *)(unit + 0x2f2);
+    int16_t slot = ((unit_object *)unit)->unit.current_weapon_index;
     datum_index weapon = slot != -1 ? *(datum_index *)(unit + 0x2f8 + slot * 4) : (datum_index)-1;
-    int8_t grenade = *(int8_t *)(unit + 0x31c); // current grenade index
+    int8_t grenade = ((unit_object *)unit)->unit.current_grenade_index; // current grenade index
     uint8_t *parent;
     datum_index hud_tag;
     GrenadeHUDInterface *hud;
@@ -59,7 +60,7 @@ void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_ind
     if (weapon_prevents_grenade_throwing(weapon) != 0 || grenade == -1) {
         return;
     }
-    parent = (uint8_t *)object_try_and_get(*(datum_index *)(unit + 0x11c), 3);
+    parent = (uint8_t *)object_try_and_get(((unit_object *)unit)->base.parent_object, 3);
     if (parent != 0 && (*(datum_index *)(parent + 0x324) == unit_index || *(datum_index *)(parent + 0x328) == unit_index)) {
         return;
     }
@@ -99,7 +100,7 @@ void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_ind
     if (*(datum_index *)&hud->total_grenades_overlay_bitmap.tag_id != (datum_index)-1) {
         uint16_t types;
 
-        count = *(int8_t *)(unit + 0x31e + *(int8_t *)(unit + 0x31c));
+        count = *(int8_t *)(unit + 0x31e + ((unit_object *)unit)->unit.current_grenade_index);
         types = (uint16_t)((count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0));
         types = types == 0 ? 4 : (uint16_t)(types & 0xfffb);
         hud_draw_overlays((uint16_t *)hud, (const hud_overlay_list *)&hud->total_grenades_overlay_bitmap,

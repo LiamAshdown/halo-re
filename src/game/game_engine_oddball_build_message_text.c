@@ -65,7 +65,7 @@ uint8_t game_engine_oddball_build_message_text(datum_index recipient, int32_t me
             return 0;
         }
         string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x27 ? 0xa6 : 0xa5), player + 4,
-            king_alt_team_score[*(int32_t *)(player + 0x20)] / 30);
+            king_alt_team_score[((struct player *)player)->team] / 30);
         return 1;
     case 0x29:
         player = (uint8_t *)datum_get(subject, player_data);
@@ -76,7 +76,7 @@ uint8_t game_engine_oddball_build_message_text(datum_index recipient, int32_t me
             const uint16_t *place = place_text(recipient);
 
             string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0x9b), place,
-                king_alt_team_score[*(int32_t *)(player + 0x20)] / 30);
+                king_alt_team_score[((struct player *)player)->team] / 30);
         }
         return 1;
     default:

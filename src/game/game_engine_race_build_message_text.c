@@ -64,7 +64,7 @@ uint8_t game_engine_race_build_message_text(datum_index recipient, int32_t messa
         return 1;
     case 0x20:
         string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xaa), (int32_t)*(int16_t *)(player + 0xc6),
-            (double)((float)*(int16_t *)(player + 0xc4) * 0.033333335f));
+            (double)((float)*(int16_t *)&((struct player *)player)->objective_time * 0.033333335f));
         return 1;
     case 0x21:
     case 0x22:

@@ -32,6 +32,6 @@ void game_engine_slayer_player_new_life(datum_index player_index)
     }
     slayer_player_score[player_index & 0xffff] = 0;
     if (current_game_engine == 0 || game_engine_teams_enabled_flag == 0) {
-        slayer_team_score[*(int32_t *)(player + 0x20)] = 0;
+        slayer_team_score[((struct player *)player)->team] = 0;
     }
 }

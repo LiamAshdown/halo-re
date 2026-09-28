@@ -64,7 +64,7 @@ extern uint8_t vector3d_rotate_toward(real_vector3d *target, real_vector3d *sour
 uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing)
 {
     uint8_t *player = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
-    datum_index unit = *(datum_index *)(player + 0x34);
+    datum_index unit = ((struct player *)player)->unit;
     datum_index target = (datum_index)k_datum_index_none;
     uint32_t aim_unit = unit_noop_569670(unit);
     uint8_t *aim_unit_obj = (uint8_t *)((object_header *)object_data->data)[aim_unit & 0xffff].data;
@@ -86,7 +86,7 @@ uint32_t camera_observer_update(datum_index player_index, real_point3d *observer
         real_point3d probe_origin;
         real_vector3d probe_delta;
 
-        unit = *(datum_index *)(player + 0x34);
+        unit = ((struct player *)player)->unit;
         if (camera_get_seat_camera_state(unit, &seat_state) == 0) {
             first_person_camera_deterministic((Point3D *)&camera_position, unit, (Vector3D *)&camera_direction);
         } else {
@@ -96,7 +96,7 @@ uint32_t camera_observer_update(datum_index player_index, real_point3d *observer
         target_direction = *fallback_facing;
         memset(record, 0, sizeof(record));
         if (camera_observer_find_best_target(&camera_position, (observer_target_cone *)cone, &camera_direction,
-                *(datum_index *)(player + 0x34), (int16_t)*(uint16_t *)(player + 0x20), record)) {
+                ((struct player *)player)->unit, (int16_t)*(uint16_t *)&((struct player *)player)->team, record)) {
             target_direction.i = *(real *)(record + 0x04) - observer_position->x;
             target_direction.j = *(real *)(record + 0x08) - observer_position->y;
             target_direction.k = *(real *)(record + 0x0c) - observer_position->z;
@@ -120,7 +120,7 @@ uint32_t camera_observer_update(datum_index player_index, real_point3d *observer
         probe_delta.i = camera_direction.i * 128.0f;
         probe_delta.j = camera_direction.j * 128.0f;
         probe_delta.k = camera_direction.k * 128.0f;
-        collision_test_movement_segment(0x1000e9, &probe_origin, &probe_delta, *(datum_index *)(player + 0x34), record);
+        collision_test_movement_segment(0x1000e9, &probe_origin, &probe_delta, ((struct player *)player)->unit, record);
 
         look_direction.i = *(real *)(record + 0x18) - observer_position->x;
         look_direction.j = *(real *)(record + 0x1c) - observer_position->y;
@@ -136,8 +136,8 @@ uint32_t camera_observer_update(datum_index player_index, real_point3d *observer
             (real)cos((double)cone[4]));
     }
 
-    *(datum_index *)(player + 0x40) = target;
-    *(int32_t *)(player + 0x44) = game_time->game_time;
+    ((struct player *)player)->observer_target = target;
+    ((struct player *)player)->observer_state = game_time->game_time;
     return (uint32_t)target;
 }
 

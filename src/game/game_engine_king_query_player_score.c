@@ -3,7 +3,7 @@
 // address 0x46ba90, size 162 bytes
 // name confidence: 0.6   rewrite confidence: 0.85
 // WRITTEN 2026-09-28 from objdump 0x46ba90..0x46bb31: GameSpy player query: for key 0x16 and an active player at
-//   the index, formats *(int16_t *)(player + 0xc4) as ASCII minutes:seconds (0x466600, 0x100 characters) and writes
+//   the index, formats *(int16_t *)&((struct player *)player)->objective_time as ASCII minutes:seconds (0x466600, 0x100 characters) and writes
 //   it into the report (0x615590); returns 1, else 0.
 // blam-cc: cdecl (called through the engine definition)
 
@@ -28,7 +28,7 @@ uint8_t game_engine_king_query_player_score(int32_t key, int32_t index, void *bu
     if (player == 0 || key != 0x16) {
         return 0;
     }
-    game_time_format_minutes_seconds_ascii((uint32_t)(*(int16_t *)(player + 0xc4)), 0x100, text);
+    game_time_format_minutes_seconds_ascii((uint32_t)(*(int16_t *)&((struct player *)player)->objective_time), 0x100, text);
     qr2_buffer_add(buffer, text);
     return 1;
 }

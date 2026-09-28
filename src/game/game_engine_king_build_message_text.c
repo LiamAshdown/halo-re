@@ -53,7 +53,7 @@ uint8_t game_engine_king_build_message_text(datum_index recipient, int32_t messa
         {
             const uint16_t *place = place_text(recipient);
 
-            seconds = king_bucket_credit_ticks[*(int32_t *)(player + 0x20)] / 30;
+            seconds = king_bucket_credit_ticks[((struct player *)player)->team] / 30;
             string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0x9b), place, seconds);
         }
         return 1;
@@ -62,7 +62,7 @@ uint8_t game_engine_king_build_message_text(datum_index recipient, int32_t messa
         if (player == 0) {
             return 0;
         }
-        seconds = king_bucket_credit_ticks[*(int32_t *)(player + 0x20)] / 30;
+        seconds = king_bucket_credit_ticks[((struct player *)player)->team] / 30;
         string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x21 ? 0x9c : 0x9d), player + 4, seconds);
         return 1;
     default:

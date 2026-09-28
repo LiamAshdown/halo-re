@@ -58,7 +58,7 @@ void unit_update_footstep_and_idle_triggers(uint32_t unit_index) // blam-cc: in_
 
     if (obj->animation_index != -1) {
         void *graph = tag_instances[obj->animation_graph & 0xffff].data;
-        uint8_t *animations = *(uint8_t **)((uint8_t *)graph + 0x78);
+        uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
         ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + obj->animation_index * 0xb4);
 
         if (is_turning) {

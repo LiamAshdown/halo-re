@@ -95,11 +95,11 @@ char network_game_settings_ack_send(uint8_t *client, int16_t template_row)
         channel = *(uint8_t **)(client + 0xadc);
         bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
         total_bits = bits_to_send + 1;
-        if ((*(uint8_t *)(channel + 0xa8c) & 1) != 0) {
+        if ((*(uint8_t *)&((network_channel *)channel)->flags & 1) != 0) {
             return 1;
         }
-        free_bits = ((*(int32_t *)(channel + 0x24) + *(int32_t *)(channel + 0x1c) * -8) -
-                     *(int32_t *)(channel + 0x20)) + 1;
+        free_bits = ((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit + *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
+                     *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1;
         break;
     default:
         return 1;
@@ -108,11 +108,11 @@ char network_game_settings_ack_send(uint8_t *client, int16_t template_row)
     result = 1;
     if (total_bits <= free_bits || (result = network_channel_stream_flush((network_channel_stream *)(channel + 0x10), (network_channel *)channel, 1), result != 0)) {
 
-        *(int32_t *)(channel + 0xa80) = *(int32_t *)(channel + 0xa80) + bits_to_send + 1;
+        ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + bits_to_send + 1;
         { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
-        *(uint8_t *)(channel + 0x2c) = 0;
+        ((network_channel *)channel)->outgoing.empty = 0;
         bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
-        *(uint8_t *)(channel + 0x2c) = 0;
+        ((network_channel *)channel)->outgoing.empty = 0;
     }
     return result;
 }

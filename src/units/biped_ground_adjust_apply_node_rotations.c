@@ -46,8 +46,8 @@ void biped_ground_adjust_apply_node_rotations(uint32_t object_index, real_matrix
     uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(object_tag + 0x44) & 0xffff].data;
     int32_t i;
 
-    for (i = 0; i < *(int32_t *)(graph + 0x68); i++) {
-        uint8_t *graph_nodes = *(uint8_t **)(graph + 0x6c);
+    for (i = 0; i < *(int32_t *)&((ModelAnimations *)graph)->nodes.count; i++) {
+        uint8_t *graph_nodes = *(uint8_t **)&((ModelAnimations *)graph)->nodes.pointer;
         int16_t parent_index;
         real_vector3d saved;
         real_vector3d current;

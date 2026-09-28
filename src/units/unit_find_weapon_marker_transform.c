@@ -51,9 +51,9 @@ uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t vehicle_
     real_matrix4x3 entry;
     char hint_name[0x100];
 
-    for (i = 0; i < *(int32_t *)(graph + 0xc); i++) {
-        if (_stricmp((char *)(*(uint8_t **)(graph + 0x10) + i * 0x64), (char *)(seat + 0x4)) == 0) {
-            block = *(uint8_t **)(graph + 0x10) + i * 0x64;
+    for (i = 0; i < *(int32_t *)&((ModelAnimations *)graph)->units.count; i++) {
+        if (_stricmp((char *)(*(uint8_t **)&((ModelAnimations *)graph)->units.pointer + i * 0x64), (char *)(seat + 0x4)) == 0) {
+            block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer + i * 0x64;
             break;
         }
     }
@@ -64,7 +64,7 @@ uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t vehicle_
     if (enter_animation == -1) {
         return 0;
     }
-    animation = (ModelAnimationsAnimation *)(*(uint8_t **)(graph + 0x78) + enter_animation * 0xb4);
+    animation = (ModelAnimationsAnimation *)(*(uint8_t **)&((ModelAnimations *)graph)->animations.pointer + enter_animation * 0xb4);
     object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &seat_marker, 1);
     animation_get_frame_orientations(animation, (GBXModel *)model, 0, orientations);
     matrix4x3_from_quaternion(&orientations[0].rotation, &root);

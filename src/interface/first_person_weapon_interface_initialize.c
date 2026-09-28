@@ -24,6 +24,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "units.h"
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data; // 0x008603b0, "objects"
@@ -79,7 +80,7 @@ void first_person_weapon_interface_initialize(int16_t local_player_index)
 
     unit = *(struct object **)((char *)object_data->data + 8 +
                                 (uint16_t)fp->unit_index * 0xc);
-    current_weapon_slot = *(int16_t *)((char *)unit + 0x2f2); // unit::current_weapon_index
+    current_weapon_slot = ((unit_object *)unit)->unit.current_weapon_index; // unit::current_weapon_index
     if (current_weapon_slot == -1) {
         first_person_weapon_interface_tick_reset(local_player_index);
         return;

@@ -80,9 +80,9 @@ int32_t network_game_record_message_send(network_client_globals *client, const u
     channel = (uint8_t *)client->channel;
     bits_to_send = (uint32_t)(*record >> 4) * 8;
     total_bits = bits_to_send + 1;
-    if ((*(uint8_t *)(channel + 0xa8c) & 1) == 0) {
-        if (((*(int32_t *)(channel + 0x24) + *(int32_t *)(channel + 0x1c) * -8) -
-                 *(int32_t *)(channel + 0x20)) + 1 < total_bits) {
+    if ((*(uint8_t *)&((network_channel *)channel)->flags & 1) == 0) {
+        if (((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit + *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
+                 *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1 < total_bits) {
             retransmit_ok = network_channel_stream_flush((network_channel_stream *)(channel + 0x10), (network_channel *)channel, 1);
             if (retransmit_ok == 0) {
                 return 0;
@@ -90,11 +90,11 @@ int32_t network_game_record_message_send(network_client_globals *client, const u
         }
         {
 
-            *(int32_t *)(channel + 0xa80) = *(int32_t *)(channel + 0xa80) + total_bits;
+            ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + total_bits;
             { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
-            *(uint8_t *)(channel + 0x2c) = 0;
+            ((network_channel *)channel)->outgoing.empty = 0;
             bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(record), bits_to_send);
-            *(uint8_t *)(channel + 0x2c) = 0;
+            ((network_channel *)channel)->outgoing.empty = 0;
         }
     }
     return 1;

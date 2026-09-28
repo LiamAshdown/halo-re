@@ -26,7 +26,7 @@ int32_t unit_get_animation_frames_remaining(uint32_t unit_index, int16_t *out_an
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     void *graph = tag_instances[obj->animation_graph & 0xffff].data;
-    uint8_t *animations = *(uint8_t **)((uint8_t *)graph + 0x78);
+    uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + obj->animation_index * 0xb4);
 
     *out_animation_state = unit->animation_state;

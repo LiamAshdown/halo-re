@@ -72,14 +72,14 @@ void vehicle_blend_animations(datum_index object_index, real_orientation *orient
         return;
     }
     graph = (uint8_t *)tag_instances[graph_tag & 0xffff].data;
-    if (*(int32_t *)(graph + 0x24) == 0) {
+    if (*(int32_t *)&((ModelAnimations *)graph)->vehicles.count == 0) {
         return;
     }
-    entry = *(uint8_t **)(graph + 0x28);
+    entry = *(uint8_t **)&((ModelAnimations *)graph)->vehicles.pointer;
     if (entry == 0) {
         return;
     }
-    animations = *(uint8_t **)(graph + 0x78);
+    animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     count = *(int32_t *)(entry + 0x5c);
     indices = *(int16_t **)(entry + 0x60);
 

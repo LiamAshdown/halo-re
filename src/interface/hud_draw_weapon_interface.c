@@ -25,6 +25,7 @@
 #include "objects.h"
 #include "items.h"
 #include "interface.h"
+#include "units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -43,7 +44,7 @@ extern void hud_draw_grenade_interface(int16_t local_player_index, datum_index u
 void hud_draw_weapon_interface(player *p)
 {
     uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data;
-    int16_t slot = *(int16_t *)(unit + 0x2f2);
+    int16_t slot = ((unit_object *)unit)->unit.current_weapon_index;
     datum_index weapon = slot != -1 ? *(datum_index *)(unit + 0x2f8 + slot * 4) : (datum_index)-1;
     uint8_t no_weapon = 0;
     weapon_hud_ammo_state ammo;
@@ -53,8 +54,8 @@ void hud_draw_weapon_interface(player *p)
         int16_t seat;
 
         unit = (uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data;
-        parent = *(datum_index *)(unit + 0x11c);
-        seat = *(int16_t *)(unit + 0x2f0);
+        parent = ((unit_object *)unit)->base.parent_object;
+        seat = ((unit_object *)unit)->unit.vehicle_seat_index;
         if (parent == (datum_index)-1 || seat == -1) {
             no_weapon = 1;
         } else {

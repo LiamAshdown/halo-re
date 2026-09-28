@@ -39,7 +39,7 @@ uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out
     int16_t slot;
 
     unit = (uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data;
-    slot = *(int16_t *)(unit + 0x2f2); // unit current_weapon_index
+    slot = ((unit_object *)unit)->unit.current_weapon_index; // unit current_weapon_index
     weapon = (datum_index)-1;
     if (slot != -1) {
         weapon = *(datum_index *)(unit + 0x2f8 + slot * 4); // unit weapons[slot]
@@ -51,11 +51,11 @@ uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out
         uint8_t *seats;
 
         unit = (uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data;
-        parent = *(datum_index *)(unit + 0x11c); // object parent_object
+        parent = ((unit_object *)unit)->base.parent_object; // object parent_object
         if (parent == (datum_index)-1) {
             return 0;
         }
-        seat = *(int16_t *)(unit + 0x2f0); // unit vehicle_seat_index
+        seat = ((unit_object *)unit)->unit.vehicle_seat_index; // unit vehicle_seat_index
         if (seat == -1) {
             return 0;
         }
@@ -64,7 +64,7 @@ uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out
         if ((seats[seat * 0x11c] & 8) == 0) {
             return 0;
         }
-        parent = *(datum_index *)(unit + 0x11c);
+        parent = ((unit_object *)unit)->base.parent_object;
         parent_object = (uint8_t *)((object_header *)object_data->data)[parent & 0xffff].data;
         weapon = unit_get_weapon_object_index(parent, *(int16_t *)(parent_object + 0x2f2));
         if (weapon == (datum_index)-1) {

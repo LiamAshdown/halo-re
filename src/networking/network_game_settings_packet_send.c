@@ -159,9 +159,9 @@ compare_done:
         channel = client->channel;
         bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
         if ((channel->flags & 1) == 0) {
-            if ((((*(int32_t *)((uint8_t *)channel + 0x24) +
-                   *(int32_t *)((uint8_t *)channel + 0x1c) * -8) -
-                  *(int32_t *)((uint8_t *)channel + 0x20)) + 1 < bits_to_send + 1) &&
+            if ((((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit +
+                   *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
+                  *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) &&
                 (retransmit_ok = network_channel_stream_flush(&channel->outgoing, channel, 1), retransmit_ok == 0)) {
                 return;
             }

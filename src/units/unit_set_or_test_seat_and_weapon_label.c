@@ -50,9 +50,9 @@ uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_l
     uint8_t found = 0;
     int16_t seat_i;
 
-    for (seat_i = 0; seat_i < *(int32_t *)(graph + 0xc); seat_i++) {
+    for (seat_i = 0; seat_i < *(int32_t *)&((ModelAnimations *)graph)->units.count; seat_i++) {
         ModelAnimationsAnimationGraphUnitSeat *seat =
-            (ModelAnimationsAnimationGraphUnitSeat *)(*(uint8_t **)(graph + 0x10) + seat_i * 0x64);
+            (ModelAnimationsAnimationGraphUnitSeat *)(*(uint8_t **)&((ModelAnimations *)graph)->units.pointer + seat_i * 0x64);
         int16_t weapon_slot;
 
         if (seat_label != 0 && _stricmp(seat_label, seat->label.string) != 0) {

@@ -140,11 +140,11 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
     if (network_game_mode == 1) {
         uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
 
-        if (player != 0 && *(int16_t *)(player + 2) == -1) {
-            *(int32_t *)(player + 0x180) = 0;
-            *(int32_t *)(player + 0x17c) = 0;
-            *(int32_t *)(player + 0x1e0) = 0;
-            *(int32_t *)(player + 0x1dc) = 0;
+        if (player != 0 && ((struct player *)player)->local_player_index == -1) {
+            ((struct player *)player)->position_updates.read_index = 0;
+            ((struct player *)player)->position_updates.write_index = 0;
+            ((struct player *)player)->vehicle_updates.read_index = 0;
+            ((struct player *)player)->vehicle_updates.write_index = 0;
         }
     }
 }
@@ -178,7 +178,7 @@ uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_obje
                 uint8_t *player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
 
                 if (*(int16_t *)player != 0 && (salt == 0 || *(int16_t *)player == salt) &&
-                    *(int16_t *)(player + 2) != -1 && network_client != 0) {
+                    ((struct player *)player)->local_player_index != -1 && network_client != 0) {
                     player_update_history_free_all(*(void **)&network_client->update_history);
                 }
             }

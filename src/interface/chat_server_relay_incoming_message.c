@@ -123,7 +123,7 @@ void chat_server_relay_incoming_message(void **context, void *machine)
         while ((entry = (uint8_t *)data_iterator_next(&iterator)) != 0) {
             uint8_t *unit = (uint8_t *)object_try_and_get(*(datum_index *)(entry + 0x34), 3);
 
-            if (unit != 0 && *(datum_index *)(unit + 0x11c) == vehicle && *(int8_t *)(entry + 0x64) != -1) {
+            if (unit != 0 && ((unit_object *)unit)->base.parent_object == vehicle && *(int8_t *)(entry + 0x64) != -1) {
                 network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_server, 1, network_message_scratch,
                                                 (uint32_t)bits, 1, 0, 1, 3);
             }

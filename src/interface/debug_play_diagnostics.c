@@ -12,6 +12,8 @@
 #include "ai.h"
 #include "interface.h"
 #include "cache.h"
+#include "objects.h"
+#include "units.h"
 
 extern void __cdecl standalone_log(const char *format, ...);
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
@@ -36,7 +38,7 @@ void debug_play_diagnostics(void)
     if (fp->unit_index != (datum_index)0xffffffff) {
         uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + 8 + (fp->unit_index & 0xffff) * 0xc);
 
-        player_team = *(int16_t *)(unit + 0xb8);
+        player_team = ((unit_object *)unit)->base.owner_team;
     }
     standalone_log("DIAG fp attached=%d unit=%08x weapon=%08x state=%d anim=%d frame=%d weapon_hud=%d device_hud=%d "
                    "anim14=%d",

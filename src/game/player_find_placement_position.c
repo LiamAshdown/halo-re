@@ -57,7 +57,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
 uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point)
 {
     uint8_t *player = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;   // [ebp-0x14]
-    uint32_t unit_index = *(datum_index *)(player + 0x34);                              // [ebp-0xc]
+    uint32_t unit_index = ((struct player *)player)->unit;                              // [ebp-0xc]
     uint8_t *unit = OBJECT_DATA(unit_index);                                             // [ebp-0x4]
     uint8_t placed = 0;                                                                  // bl
     real_vector3d facing;                                                                // [ebp-0x24]
@@ -112,14 +112,14 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
             }
         }
     }
-    *(int16_t *)(player + 0x3c) = -1;
+    ((struct player *)player)->bsp_cluster = -1;
     if (placed) {
         uint8_t *volumes = *(uint8_t **)((uint8_t *)global_scenario + 0x3a0);
         int16_t v;
 
         for (v = 0; (int32_t)v < *(int32_t *)((uint8_t *)global_scenario + 0x39c); v++) {
             uint8_t *volume = *(uint8_t **)((uint8_t *)global_scenario + 0x3a0) + v * 8;
-            datum_index player_unit = *(datum_index *)(player + 0x34);
+            datum_index player_unit = ((struct player *)player)->unit;
 
             (void)volumes;
             if (*(int16_t *)(volume + 0x2) == global_structure_bsp_index && player_unit != k_datum_index_none &&
@@ -159,8 +159,8 @@ uint8_t player_find_placement_position(uint32_t player_index, datum_index target
     *(real_vector3d *)(unit + 0x224) = facing;
     *(real_vector3d *)(unit + 0x230) = facing;
     *(real_vector3d *)(unit + 0x254) = facing;
-    if (*(int16_t *)(player + 0x2) != -1) {
-        game_engine_compute_look_angles_from_vector(&facing, *(int16_t *)(player + 0x2));
+    if (((struct player *)player)->local_player_index != -1) {
+        game_engine_compute_look_angles_from_vector(&facing, ((struct player *)player)->local_player_index);
     }
     {
         datum_index effect = *(datum_index *)((uint8_t *)global_globals->player_information.pointer + 0xc4);

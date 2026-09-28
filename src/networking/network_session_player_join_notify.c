@@ -73,9 +73,9 @@ void network_session_player_join_notify(network_client_globals *client, const ui
         bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
         total_bits = bits_to_send + 1;
         if ((channel->flags & 1) == 0) {
-            if (total_bits <= ((*(int32_t *)((uint8_t *)channel + 0x24) +
-                                 *(int32_t *)((uint8_t *)channel + 0x1c) * -8) -
-                                *(int32_t *)((uint8_t *)channel + 0x20)) + 1 ||
+            if (total_bits <= ((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit +
+                                 *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
+                                *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1 ||
                 (retransmit_ok = network_channel_stream_flush(&channel->outgoing, channel, 1), retransmit_ok != 0)) {
 
                 channel->send_budget = channel->send_budget + total_bits;

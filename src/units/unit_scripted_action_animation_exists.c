@@ -42,7 +42,7 @@ uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t comma
 
     Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
     uint8_t *graph = (uint8_t *)tag_instances[unit_tag->base.animation_graph.tag_id.index & 0xffff].data;
-    uint8_t *units_block = *(uint8_t **)(graph + 0x10);
+    uint8_t *units_block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer;
     int8_t seat_block_index = ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->animation_definition_index; // animation_definition_index
     uint8_t *weapons_array = *(uint8_t **)(units_block + 0x5c + seat_block_index * 100);
     int8_t weapon_index = ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->animation_weapon_index; // animation_weapon_index

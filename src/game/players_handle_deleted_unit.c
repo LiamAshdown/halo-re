@@ -11,6 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include <stdint.h>
+#include "math.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *player_data; // 0x0087a480
@@ -33,7 +37,7 @@ void players_handle_deleted_unit(uint32_t object_index)
     iterator.signature = (uint32_t)(uintptr_t)player_data ^ k_data_iterator_signature;
     for (player = (uint8_t *)data_iterator_next(&iterator); player != 0;
          player = (uint8_t *)data_iterator_next(&iterator)) {
-        if (*(uint32_t *)(player + 0x34) == object_index) {
+        if (*(uint32_t *)&((struct player *)player)->unit == object_index) {
             player_reset_after_unit_change(iterator.index);
         }
     }

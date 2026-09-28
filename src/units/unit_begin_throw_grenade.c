@@ -79,7 +79,7 @@ uint8_t unit_begin_throw_grenade(uint32_t unit_index, const real_vector2d *direc
         unit->throwing_grenade_state = 1;
         unit->throwing_grenade_counter = 0;
         uint8_t *graph = (uint8_t *)tag_instances[unit_tag->base.animation_graph.tag_id.index & 0xffff].data;
-        ModelAnimationsAnimation *animations = (ModelAnimationsAnimation *)(*(uint8_t **)(graph + 0x78));
+        ModelAnimationsAnimation *animations = (ModelAnimationsAnimation *)(*(uint8_t **)&((ModelAnimations *)graph)->animations.pointer);
         unit->throwing_grenade_duration = (animations[unit_obj->animation_index].key_frame_index - unit_obj->animation_frame) + 1;
 
         // 0x56e1b9: a given direction aims the throw; without one, the unit's aiming vector (+0x23c) flattened to

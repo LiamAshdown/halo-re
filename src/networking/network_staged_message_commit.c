@@ -47,19 +47,19 @@ int32_t network_staged_message_commit(network_client_globals *client)
     if (challenge != 0) {
         channel = (uint8_t *)client->channel;
         bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
-        if ((*(uint8_t *)(channel + 0xa8c) & 1) == 0) {
-            if ((((*(int32_t *)(channel + 0x24) + *(int32_t *)(channel + 0x1c) * -8) -
-                  *(int32_t *)(channel + 0x20)) + 1 < bits_to_send + 1) &&
+        if ((*(uint8_t *)&((network_channel *)channel)->flags & 1) == 0) {
+            if ((((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit + *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
+                  *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) &&
                 (retransmit_ok = network_channel_stream_flush((network_channel_stream *)(channel + 0x10), (network_channel *)channel, 1), retransmit_ok == 0)) {
                 return 1;
             }
             {
 
-                *(int32_t *)(channel + 0xa80) = *(int32_t *)(channel + 0xa80) + bits_to_send + 1;
+                ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + bits_to_send + 1;
                 { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
-                *(uint8_t *)(channel + 0x2c) = 0;
+                ((network_channel *)channel)->outgoing.empty = 0;
                 bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
-                *(uint8_t *)(channel + 0x2c) = 0;
+                ((network_channel *)channel)->outgoing.empty = 0;
             }
         }
         return 1;

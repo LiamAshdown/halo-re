@@ -2,7 +2,7 @@
 //   stored pointer trapped as unlisted_46ba40)
 // address 0x46ba40, size 74 bytes
 // name confidence: 0.6   rewrite confidence: 0.85
-// WRITTEN 2026-09-28 from objdump 0x46ba40..0x46ba89: for a valid player handle: *(int16_t *)(player + 0xc4) = 0;
+// WRITTEN 2026-09-28 from objdump 0x46ba40..0x46ba89: for a valid player handle: *(int16_t *)&((struct player *)player)->objective_time = 0;
 // blam-cc: cdecl (called through the engine definition)
 
 #include "tags.h"
@@ -19,6 +19,6 @@ void game_engine_king_player_round_reset(datum_index player_index)
     uint8_t *player = (uint8_t *)datum_get(player_index, player_data);
 
     if (player != 0) {
-        *(int16_t *)(player + 0xc4) = 0;
+        *(int16_t *)&((struct player *)player)->objective_time = 0;
     }
 }

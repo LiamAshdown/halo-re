@@ -36,7 +36,7 @@ void game_engine_race_update(datum_index player_index)
 
     *(int32_t *)(player + 0x74) = 0x16;
     *(datum_index *)(player + 0x78) = player_index;
-    unit_index = *(datum_index *)(player + 0x34);
+    unit_index = ((struct player *)player)->unit;
     if (unit_index == 0xffffffff) {
         return;
     }

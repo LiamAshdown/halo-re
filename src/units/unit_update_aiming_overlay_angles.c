@@ -79,7 +79,7 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
     uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
     uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
     uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x44) & 0xffff].data;
-    uint8_t *animations = *(uint8_t **)(graph + 0x78);
+    uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     uint8_t *block;
     float aim_yaw;
     float aim_pitch;
@@ -102,7 +102,7 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
     if ((*(uint32_t *)(unit_tag + 0x17c) & 0x800) || unit[0x2a0] == 0xff) {
         return;
     }
-    block = *(uint8_t **)(graph + 0x10) + (int8_t)unit[0x2a0] * 0x64;
+    block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)unit[0x2a0] * 0x64;
 
     if (unit[0x2a8] != 0xff) {
         int16_t emotion = (*(int32_t *)(block + 0x40) > 0xb) ? (*(int16_t **)(block + 0x44))[0xb] : -1;

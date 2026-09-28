@@ -47,10 +47,10 @@ void hud_unit_meters_update_for_player(int16_t local_player_index)
             if (unit_index != (datum_index)-1) {
                 uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
                 hud_unit_meter_state *state = &hud_unit_meters->players[local_player_index];
-                float shield = *(float *)(unit + 0xe4);
+                float shield = ((unit_object *)unit)->base.shield_vitality;
 
                 if (state->displayed_health == -1.0f) {
-                    state->displayed_health = *(float *)(unit + 0xe0);
+                    state->displayed_health = ((unit_object *)unit)->base.body_vitality;
                 }
                 if (state->displayed_shield == -1.0f) {
                     state->displayed_shield = shield;
@@ -65,7 +65,7 @@ void hud_unit_meters_update_for_player(int16_t local_player_index)
                     if (elapsed < 0xf) {
                         state->shield_drain_time = 0.0f;
                     } else {
-                        state->displayed_shield = *(float *)(unit + 0xe4);
+                        state->displayed_shield = ((unit_object *)unit)->base.shield_vitality;
                         state->shield_drain_time = (float)(game_time->game_time - state->shield_update_time) *
                                                        0.03333333507180214f + state->shield_drain_time;
                         state->shield_update_time = game_time->game_time;

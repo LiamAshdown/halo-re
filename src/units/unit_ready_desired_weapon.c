@@ -101,7 +101,7 @@ void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force)
 
         unit_set_or_test_seat_and_weapon_label(unit_index, unit_get_seat_or_state_name(unit_index), weapon_label, 1);
         graph = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x44) & 0xffff].data;
-        weapon_anim = *(uint8_t **)(*(uint8_t **)(graph + 0x10) + (int8_t)unit[0x2a0] * 0x64 + 0x5c) +
+        weapon_anim = *(uint8_t **)(*(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)unit[0x2a0] * 0x64 + 0x5c) +
             (int8_t)unit[0x2a1] * 0xbc;
         object_set_cluster_and_parent(desired_weapon, 0);
         weapon_obj = (uint8_t *)OBJECT_HEADER(desired_weapon).data;

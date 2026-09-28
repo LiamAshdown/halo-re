@@ -61,11 +61,11 @@ char biped_ground_adjust_solve_node(uint32_t object_index, real_point3d *referen
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
     uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(object_tag + 0x44) & 0xffff].data;
-    uint8_t *graph_nodes = *(uint8_t **)(graph + 0x6c);
+    uint8_t *graph_nodes = *(uint8_t **)&((ModelAnimations *)graph)->nodes.pointer;
     uint8_t *self_node = graph_nodes + node_index * 0x40;
     int16_t parent_index = *(int16_t *)(self_node + 0x24);
     uint8_t *parent_node = graph_nodes + parent_index * 0x40;
-    float tolerance = *(float *)(graph + 0x60);
+    float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
     char updated = 0;
 
     if (fabs((double)tolerance) < 9.999999747378752e-05 || tolerance < 0.0f || tolerance > 0.07f) {

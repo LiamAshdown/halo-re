@@ -75,15 +75,15 @@ void hud_unit_sounds_update(player *p, uint8_t hud_enabled)
     hud = (UnitHUDInterface *)tag_instances[hud_tag & 0xffff].data;
 
     mask = 0;
-    if ((unit[0x10] & 4) != 0 || !(*(float *)(unit + 0xe0) > 0.0f)) {
+    if ((unit[0x10] & 4) != 0 || !(((unit_object *)unit)->base.body_vitality > 0.0f)) {
         state->last_unit = (datum_index)-1;
     } else if (hud_enabled != 0 && cinematic_globals_ptr->in_progress == 0) {
-        float shield = *(float *)(unit + 0xe4);
-        float health = *(float *)(unit + 0xe0);
+        float shield = ((unit_object *)unit)->base.shield_vitality;
+        float health = ((unit_object *)unit)->base.body_vitality;
 
         if (state->displayed_shield != -1.0f && game_engine_object_flag_bit3_clear(local_player_to_player_index(p->local_player_index)) != 0 &&
             (hud_unit_meters->flags & 4) == 0) {
-            mask = (*(uint16_t *)(unit + 0x106) >> 12) & 1;
+            mask = (((unit_object *)unit)->base.vitality_flags >> 12) & 1;
             if (state->displayed_shield > shield) {
                 mask |= 2;
             }

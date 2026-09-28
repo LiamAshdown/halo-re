@@ -46,7 +46,7 @@ void game_engine_ctf_update(datum_index player_index)
     if (network_game_mode != 2) {
         return;
     }
-    unit_index = *(datum_index *)(player + 0x34);
+    unit_index = ((struct player *)player)->unit;
     if (unit_index == 0xffffffff) {
         return;
     }
@@ -65,7 +65,7 @@ void game_engine_ctf_update(datum_index player_index)
     if (weapon_must_be_readied(weapon) == 0) {
         return;
     }
-    team = *(int32_t *)(player + 0x20);
+    team = ((struct player *)player)->team;
     if (game_engine_ctf_point_within_team_flag_radius(1.0f, team, (real_point3d *)(unit + 0x5c)) == 0) {
         return;
     }

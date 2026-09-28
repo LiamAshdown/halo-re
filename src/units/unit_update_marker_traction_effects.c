@@ -63,10 +63,10 @@ uint32_t unit_update_marker_traction_effects(uint32_t object_index)
         return 0;
     }
     graph = (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x44) & 0xffff].data;
-    if (*(int32_t *)(graph + 0x24) == 0) {
+    if (*(int32_t *)&((ModelAnimations *)graph)->vehicles.count == 0) {
         return 0;
     }
-    node_array = *(uint8_t **)(graph + 0x28);
+    node_array = *(uint8_t **)&((ModelAnimations *)graph)->vehicles.pointer;
     if (node_array == 0) {
         return 0;
     }

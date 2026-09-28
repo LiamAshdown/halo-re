@@ -33,6 +33,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "game.h"
 
 extern data_array *object_data;                    // 0x008603b0
 extern uint8_t *object_network_id_table;             // 0x00687130, +0x28: network key -> object index
@@ -98,7 +99,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet) // b
         uint8_t *player = (uint8_t *)datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
 
         if (player != 0) {
-            *(uint32_t *)(player + 0x2c) = message.player_2c;
+            *(uint32_t *)&((struct player *)player)->respawn_timer = message.player_2c;
         }
     }
     unit_release_transient_state_and_detach(unit_index, message.stance_flags[1]);

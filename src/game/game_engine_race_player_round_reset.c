@@ -38,14 +38,14 @@ void game_engine_race_player_round_reset(datum_index player_index, uint8_t team_
 
         if (player_salt != 0 && (salt == 0 || player_salt == salt)) {
             if (game_engine_variant.ctf_value_80 == 2) {
-                uint32_t team = *(uint32_t *)(player + 0x20);
+                uint32_t team = *(uint32_t *)&((struct player *)player)->team;
 
                 if ((uint32_t)team_flag == team) {
                     team = team_flag != 1;
                 }
                 game_engine_bucket_scores_extra[team] += *(int16_t *)(player + 0xc6);
             }
-            *(int16_t *)(player + 0xc4) = 0;
+            *(int16_t *)&((struct player *)player)->objective_time = 0;
             *(int16_t *)(player + 0xc6) = 0;
             *(int16_t *)(player + 0xc8) = 0;
             *(int32_t *)(player + 0x88) = game_time->game_time;

@@ -29,7 +29,7 @@ void game_engine_race_player_changed_object(datum_index player_index)
     }
     player = (uint8_t *)datum_get(player_index, player_data);
     if (player != 0 && game_engine_variant.ctf_value_80 == 2) {
-        game_engine_bucket_scores_extra[*(int32_t *)(player + 0x20)] += *(int16_t *)(player + 0xc6);
+        game_engine_bucket_scores_extra[((struct player *)player)->team] += *(int16_t *)(player + 0xc6);
     }
     game_engine_check_bucket_scores_and_end_round();
 }

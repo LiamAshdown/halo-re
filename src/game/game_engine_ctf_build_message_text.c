@@ -59,7 +59,7 @@ uint8_t game_engine_ctf_build_message_text(datum_index recipient, int32_t messag
         if (player == 0) {
             return 0;
         }
-        team = *(int32_t *)(player + 0x20);
+        team = ((struct player *)player)->team;
         string_format_wide_va_bounded(count, (uint16_t *)text, game_text((int16_t)(0x8d + message_type - 0x21)),
             ctf_team_flag_touch_count[team], ctf_team_flag_touch_count[(team + 1) % 2]);
         return 1;

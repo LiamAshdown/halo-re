@@ -48,7 +48,7 @@ uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t co
     unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
     {
         uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x44) & 0xffff].data;
-        uint8_t *units_block = *(uint8_t **)(graph + 0x10);
+        uint8_t *units_block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer;
         uint8_t *weapons = *(uint8_t **)(units_block + (int8_t)unit[0x2a0] * 0x64 + 0x5c);
 
         weapon_record = weapons + (int8_t)unit[0x2a1] * 0xbc;
