@@ -30,8 +30,8 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t *globals_tag_data;   // 0x00746fa0
 
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
-                                 int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
+                                 int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
 extern const real_point3d *global_zero_point3d_pointer; // 0x006966f8

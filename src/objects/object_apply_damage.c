@@ -109,13 +109,13 @@ static player *player_try_get(datum_index player_index)
     return (player *)record;
 }
 
-void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int16_t param_4,
-    int16_t param_5, uint32_t param_6)
+void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t hit_node_index, int16_t hit_region_index,
+    int16_t hit_material_index, uint32_t hit_plane)
 {
-    datum_index target_index = param_2;
-    int16_t node_index = param_3;
-    int16_t region_index = param_4;
-    int16_t material_index = param_5;
+    datum_index target_index = target_object_index;
+    int16_t node_index = hit_node_index;
+    int16_t region_index = hit_region_index;
+    int16_t material_index = hit_material_index;
     uint8_t *target = object_get(target_index);
     uint8_t *effect_block = tag_get(dd->damage_effect_tag) + 0x1c4;
     int32_t target_role = *(int32_t *)(target + 0x4);
@@ -422,7 +422,7 @@ void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int
                 amount = 0.0f;
             }
             object_apply_body_damage(id, (i == 0) ? region_index : -1, (i == 0) ? node_index : -1,
-                (void *)(uintptr_t)((i == 0) ? param_6 : 0), geometry, material, effect_block, dd, &notify_flags,
+                (void *)(uintptr_t)((i == 0) ? hit_plane : 0), geometry, material, effect_block, dd, &notify_flags,
                 &body_damage, &material_multiplier, amount, target_is_local);
             remaining = 0;
         }

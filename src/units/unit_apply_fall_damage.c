@@ -32,8 +32,8 @@ extern uint8_t DAT_0087abc1;        // UNSURE global (cheat/debug toggle)
 extern game_engine_definition *current_game_engine;  // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag); // 0x4ed990
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
-                                 int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
+                                 int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
 extern int32_t player_index_from_unit_index(uint32_t unit_index); // UNSURE module
 extern void object_delete(uint32_t object_index);   // 0x4f5bd0, UNSURE exact signature
 

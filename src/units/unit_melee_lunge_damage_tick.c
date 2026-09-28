@@ -31,8 +31,8 @@ extern uint8_t object_collision_context_build(uint32_t object_index, object_coll
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags,
     real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result); // 0x504f60, stack
 extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); // 0x4cbf10, EAX, ECX, EDX
-extern void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int16_t param_4,
-    int16_t param_5, uint32_t param_6); // 0x4ee5e0, stack
+extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index,
+    int16_t material_index, uint32_t plane); // 0x4ee5e0, stack
 
 void unit_melee_lunge_damage_tick(uint32_t unit_index)
 {

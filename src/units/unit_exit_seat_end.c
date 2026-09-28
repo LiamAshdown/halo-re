@@ -33,7 +33,7 @@ extern int8_t object_collision_context_test_segment(void *out_plane, int32_t mas
                                                              //   entirely register/stack-resident
                                                              //   here and not recoverable
 extern void matrix4x3_transform_plane(void); // 0x4cbf10, UNSURE: register args  // real signature (matrix4x3_transform_plane.c): void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); Ghidra recovered 0 of 3 args at this call site
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, uint32_t param_3); // 0x4ee5e0,  // real signature (object_apply_damage.c): void object_apply_damage(damage_data *dd, uint32_t param_2, int16_t param_3, int16_t param_4, int16_t param_5, uint32_t param_6); Ghidra recovered 3 of 6 args at this call site
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, uint32_t param_3); // 0x4ee5e0,  // real signature (object_apply_damage.c): void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane); Ghidra recovered 3 of 6 args at this call site
     // UNSURE: only 3 arguments are visible at this call site, fewer than the 6-parameter
     // signature established elsewhere in this module (see unit_cause_melee_damage.c); the
     // remaining parameters are presumably also inherited from the caller's frame

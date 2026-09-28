@@ -61,8 +61,8 @@ extern ProjectileMaterialResponse projectile_default_material_response; // 0x006
 extern int16_t network_game_mode; // 0x00719720, 0 local, 1 client, 2 host
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
-                                 int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
+                                 int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
     // param_3 = collision_result.marker_index (the node hit), param_4 =
     // collision_result.unknown_3c, param_5 = collision_result.unknown_4e // 0x4ee5e0, see
     // src/objects/object_damage_apply_line_of_sight.c

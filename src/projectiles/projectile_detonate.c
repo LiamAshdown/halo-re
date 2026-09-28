@@ -76,8 +76,8 @@ extern void object_set_position_and_relink(real_point3d *position, uint32_t obje
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
-                                 int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
+                                 int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610, objects module, UNSURE signature
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
     uint32_t ignore_object_index); // 0x4f7b70, stack, ECX

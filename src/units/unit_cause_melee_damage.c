@@ -42,8 +42,8 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
                              uint32_t exclude_object, void *scratch); // 0x505880
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
-                                 int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
+                                 int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
 extern void damage_apply_area_effect(damage_data *request, uint32_t param_2); // 0x4edd30  // real signature (damage_apply_area_effect.c): void damage_apply_area_effect(damage_data *dd); Ghidra recovered 2 of 1 args at this call site
 extern void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index); // 0x56f210
 

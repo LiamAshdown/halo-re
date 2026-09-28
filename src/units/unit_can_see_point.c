@@ -41,8 +41,8 @@ extern uint8_t *globals_tag_data;    // 0x00746fa0
 
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
                              uint32_t exclude_object, void *scratch); // 0x505880
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t param_3,
-                                 int16_t param_4, int16_t param_5, uint32_t param_6); // 0x4ee5e0
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
+                                 int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
 extern void unit_apply_impulse_to_seat(uint32_t unit_index, real_vector3d *impulse); // 0x571cb0, this batch
 extern void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index); // 0x56f210, this batch
 extern void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index,

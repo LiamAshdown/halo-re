@@ -90,7 +90,7 @@ extern void object_set_position_and_relink(real_point3d *position, uint32_t obje
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
                                                                 // args, see file header
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index,
-    int16_t param_4, int16_t material_index, uint32_t param_6); // 0x4ee5e0, objects module
+    int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0, objects module
 extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_position,
     float sample_radius, float x_margin, float y_margin, uint32_t exclude_object_index,
     real_point3d *out_position); // 0x507170, this module
