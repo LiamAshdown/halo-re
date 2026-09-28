@@ -9,8 +9,13 @@
 #include "tags.h"
 #include <string.h>
 #include <wchar.h>
+#include "math.h"
+#include "memory.h"
+#include "objects.h"
+#include "units.h"
+#include "game.h"
 
-extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
+extern game_engine_definition *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
 extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int
 extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id); // 0x615560 qr2_keybuffer_add

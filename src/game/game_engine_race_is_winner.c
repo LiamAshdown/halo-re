@@ -15,7 +15,7 @@
 #include <wchar.h>
 
 extern data_array *player_data; // 0x0087a480
-extern void *current_game_engine; // 0x006f1d20
+extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc
 extern uint8_t game_engine_team_has_scoring_capacity(int32_t team); // 0x46e250
 extern uint32_t game_engine_is_object_winning(uint32_t handle); // 0x463660, blam-cc: EAX

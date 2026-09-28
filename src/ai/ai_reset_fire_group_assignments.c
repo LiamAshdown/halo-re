@@ -34,7 +34,7 @@ extern data_array *object_data;      // 0x008603b0
 extern uint8_t *ai_globals_ptr_raw;  // 0x00880354
 extern Scenario *global_scenario;
 extern uint8_t *team_pair_table;     // 0x006b0b84
-extern void *current_game_engine;    // 0x006f1d20
+extern game_engine_definition *current_game_engine;
 extern uint8_t *local_player_globals; // 0x0087a478
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 

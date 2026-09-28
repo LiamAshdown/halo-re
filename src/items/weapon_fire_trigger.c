@@ -39,7 +39,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t weapon_infinite_ammo;              // 0x0087abc9
 extern random_seed random_seed_global;            // 0x00719cd0
 extern int16_t network_game_mode;                 // 0x00719720
-extern void *current_game_engine;                 // 0x006f1d20, non-NULL = multiplayer engine loaded
+extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;             // 0x0087abc2
 extern uint8_t weapon_client_side_projectiles;     // 0x006894c0
 extern game_time_globals *game_time; // 0x006f1d6c

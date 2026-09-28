@@ -14,7 +14,7 @@
 #include <wchar.h>
 
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
-extern void *current_game_engine; // 0x006f1d20
+extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc
 
 void game_engine_king_reset_round(void)

@@ -20,12 +20,14 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "units.h"
+#include "game.h"
 
 extern int32_t network_session;  // 0x0071c2d4, pointer; +8 is its connection state
 extern int32_t network_client;   // 0x0071c2d8, pointer; +0xb14 is its connection state
 extern int16_t map_difficulty_or_kind; // 0x00719720: 1 single player, 2 multiplayer
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
-extern void *current_game_engine; // 0x006f1d20
+extern game_engine_definition *current_game_engine;
 extern uint8_t g_control_binding_secondary_active; // 0x008607a1
 extern uint8_t g_control_binding_state; // 0x008607a0
 extern data_array *object_data; // 0x008603b0

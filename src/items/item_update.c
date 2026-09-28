@@ -31,7 +31,7 @@
 extern data_array *object_data;        // 0x008603b0
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern game_time_globals *game_time;   // 0x006f1d6c
-extern void *current_game_engine;      // 0x006f1d20
+extern game_engine_definition *current_game_engine;
 extern int16_t game_connection_role;   // 0x00719720
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern uint8_t *global_structure_collision_bsp; // 0x00746f98, +0x40 the surfaces (0xc each)

@@ -35,7 +35,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 extern uint8_t *ai_update_stagger;  // 0x006ef910
-extern void *current_game_engine;   // 0x006f1d20
+extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip; // 0x0087abc2
 extern uint8_t *game_globals_pointer;  // 0x00746fa0
 extern char *s_stand;                  // 0x0069fdec "stand"
