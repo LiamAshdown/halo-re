@@ -2639,3 +2639,12 @@ Relinked: unresolved 1, traps 127.
 - NEXT: continue the prototype mismatches -- data_packet_group_encode_packet (9 callers declare 4 params, the
   definition has 10: check 0x4d0ae0's real convention), network_session_send_to_machine (7 vs 9),
   gamespy_array_length, tag_lookup, then game/ and interface/.
+
+## 2026-09-28 -- HALO_NO_RETAIL removed (user request: always no retail)
+- The build tools always call retail_guard.forbid_retail(); there is no retail mode. Build commands are now plain:
+  python tools/msvc_build.py; python tools/gen_standalone.py > /dev/null && python tools/gen_standalone_link.py
+- Retail extraction moved to the maintenance tool tools/freeze_retail_inputs.py (never part of a build; reproduces
+  standalone/frozen/ byte for byte and writes build/standalone/halo_image.bin for verify_image_source.py).
+  tools/gen_image_source.py is the other maintenance tool (regenerates standalone/image/*.asm).
+- Boot test on user request: loads the saved campaign checkpoint (mission "Halo"), 60 s, no crash besides the known
+  Keystone thread AV.
