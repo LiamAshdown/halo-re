@@ -46,9 +46,9 @@ void actor_mode_uncover_enter(datum_index actor_index)
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     t = (float)(random_seed_global >> 16) * 1.5259022e-05f;
     ticks = (int32_t)(((hi - lo) * t + lo) * 30.0f);
-    *(int32_t *)(act + 0xc4) = ticks;
-    *(int32_t *)(act + 0xc8) = ticks;
-    if (*(int16_t *)(act + 0xa4) == 0 && ((actor *)act)->target_unit_index != k_datum_index_none &&
+    ((struct actor *)act)->mode_data.uncover.duration_ticks = ticks;
+    ((struct actor *)act)->mode_data.uncover.remaining_ticks = ticks;
+    if (((struct actor *)act)->mode_data.uncover.stage == 0 && ((actor *)act)->target_unit_index != k_datum_index_none &&
         *(int16_t *)(act + 0x6e) < 3) {
         uint8_t *target = (uint8_t *)prop_data->data + (((actor *)act)->target_unit_index & 0xffff) * 0x138;
 

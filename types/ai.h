@@ -260,11 +260,24 @@ typedef struct actor_mode_converse_data {
     datum_index partner_prop;           // 0x10 the partner's prop (actor_mode_converse_replace_reference swaps it)
 } actor_mode_converse_data;
 
+typedef struct actor_mode_uncover_data {
+    uint8_t unknown_00[8];              // 0x00
+    int16_t stage;                      // 0x08 update branches on 0 / 1
+    uint8_t unknown_0a[0x0a];           // 0x0a
+    real_point3d position;              // 0x14 the position to uncover; update copies it to the destination
+    uint8_t unknown_20[4];              // 0x20
+    int32_t stage_ticks;                // 0x24 counted up, reset to 0; stage 0 acts at 30
+    int32_t duration_ticks;             // 0x28 set on enter
+    int32_t remaining_ticks;            // 0x2c copied from duration_ticks and counted down by the tick
+} actor_mode_uncover_data;
+typedef char actor_mode_uncover_data_remaining_at_2c[offsetof(actor_mode_uncover_data, remaining_ticks) == 0x2c ? 1 : -1];
+
 typedef union actor_mode_data {
     uint8_t raw[0x84];
     actor_mode_wait_data wait;
     actor_mode_flee_data flee;
     actor_mode_converse_data converse;
+    actor_mode_uncover_data uncover;
 } actor_mode_data;                      // size 0x84
 typedef char actor_mode_data_size[sizeof(actor_mode_data) == 0x84 ? 1 : -1];
 

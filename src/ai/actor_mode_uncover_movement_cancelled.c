@@ -21,7 +21,7 @@ void actor_mode_uncover_movement_cancelled(datum_index actor_index)
 {
     uint8_t *mode_data = ACTOR(actor_index) + 0x9c;
 
-    if (*(int16_t *)(mode_data + 0x8) == 1) {
+    if (((actor_mode_uncover_data *)mode_data)->stage == 1) {
         *(int16_t *)(mode_data + 0xa) = -1;
         mode_data[0x1] = 1;
     }

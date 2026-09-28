@@ -42,7 +42,7 @@ void actor_mode_uncover_tick(datum_index actor_index)
         return;
     }
     actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
-    kind = *(int16_t *)(act + 0xa4);
+    kind = ((struct actor *)act)->mode_data.uncover.stage;
     act[0x9c] = 0;
     if (kind == 0) {
         if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4) {
@@ -54,19 +54,19 @@ void actor_mode_uncover_tick(datum_index actor_index)
     } else if (kind == 1) {
         if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4 ||
             ((actor_tag[0] & 4) &&
-             vector3d_distance_squared((real_point3d *)(act + 0xb0), (real_point3d *)(act + 0x12c)) < 100.0f)) {
+             vector3d_distance_squared(&((struct actor *)act)->mode_data.uncover.position, (real_point3d *)(act + 0x12c)) < 100.0f)) {
             act[0x9c] = 1;
         }
     }
     if (act[0x504]) {
-        *(int32_t *)(act + 0xc0) = 0;
+        ((struct actor *)act)->mode_data.uncover.stage_ticks = 0;
     } else {
-        *(int32_t *)(act + 0xc0) += 1;
-        if (kind == 0 && *(int32_t *)(act + 0xc0) >= 30) {
+        ((struct actor *)act)->mode_data.uncover.stage_ticks += 1;
+        if (kind == 0 && ((struct actor *)act)->mode_data.uncover.stage_ticks >= 30) {
             actor_push_recognition_entry(actor_index, ((actor *)act)->firing_position_index, 0);
         }
     }
-    kind = *(int16_t *)(act + 0xa4);
+    kind = ((struct actor *)act)->mode_data.uncover.stage;
     if (kind == 0) {
         if (((actor *)act)->target_unit_index != k_datum_index_none) {
             target_visible = (uint8_t)(*(int16_t *)(PROP(((actor *)act)->target_unit_index) + 0x32) > 0);
@@ -76,15 +76,15 @@ void actor_mode_uncover_tick(datum_index actor_index)
         keep_going = (uint8_t)(act[0xbc] == 0);
     }
     if (((actor *)act)->firing_position_index != -1 && keep_going && (act[0x162] || target_visible || act[0x504])) {
-        *(int32_t *)(act + 0xc8) = *(int32_t *)(act + 0xc4);
+        ((struct actor *)act)->mode_data.uncover.remaining_ticks = ((struct actor *)act)->mode_data.uncover.duration_ticks;
     } else {
         act[0x9e] = 1;
-        if (*(int32_t *)(act + 0xc8) > 0) {
-            *(int32_t *)(act + 0xc8) -= 1;
+        if (((struct actor *)act)->mode_data.uncover.remaining_ticks > 0) {
+            ((struct actor *)act)->mode_data.uncover.remaining_ticks -= 1;
         }
         *(int32_t *)(act + 0xcc) += 1;
     }
-    done = (uint8_t)(*(int32_t *)(act + 0xc8) == 0 || *(int32_t *)(act + 0xcc) >= 360);
+    done = (uint8_t)(((struct actor *)act)->mode_data.uncover.remaining_ticks == 0 || *(int32_t *)(act + 0xcc) >= 360);
     if (kind == 1 && act[0xbc]) {
         done = 1;
     }

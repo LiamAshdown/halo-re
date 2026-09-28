@@ -35,7 +35,7 @@ void actor_mode_uncover_update(datum_index actor_index)
         uint8_t forced = 0;
         int16_t kind = *(int16_t *)(p + 0x38);
 
-        if (*(int16_t *)(act + 0xa4) == 0) {
+        if (((struct actor *)act)->mode_data.uncover.stage == 0) {
             if (act[0x162]) {
                 act[0x454] = 1;
                 act[0x455] = 1;
@@ -53,11 +53,11 @@ void actor_mode_uncover_update(datum_index actor_index)
         } else {
             ((actor *)act)->vocalization_unknown_3e8 = 5;
         }
-        if (*(int16_t *)(act + 0xa4) == 0) {
+        if (((struct actor *)act)->mode_data.uncover.stage == 0) {
             ((actor *)act)->vocalization_unknown_3ec = 2;
-        } else if (*(int16_t *)(act + 0xa4) == 1) {
+        } else if (((struct actor *)act)->mode_data.uncover.stage == 1) {
             ((actor *)act)->vocalization_unknown_3ec = 3;
-            *(real_point3d *)(act + 0x3f0) = *(real_point3d *)(act + 0xb0);
+            *(real_point3d *)(act + 0x3f0) = ((struct actor *)act)->mode_data.uncover.position;
         }
     }
     *(int16_t *)(act + 0x3fc) = 3;
