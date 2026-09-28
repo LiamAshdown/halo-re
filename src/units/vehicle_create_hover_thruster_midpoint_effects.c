@@ -52,7 +52,7 @@ void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index)
     int16_t i;
     static char *names[4] = { "incident", "normal", "reflected", "midpoint" };
 
-    if (*(int32_t *)(tag + 0x3ec) == -1 || !(*(real *)(obj + 0x338) > 0.0f)) {
+    if (*(int32_t *)(tag + 0x3ec) == -1 || !(((struct vehicle_object *)obj)->unit.unknown_338 > 0.0f)) {
         return;
     }
     count = (int16_t)object_get_node_local_transform(unit_index, "hover thrusters", markers, 0xf);
@@ -69,7 +69,7 @@ void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index)
         if (!collision_test_movement_segment(0x61, marker_position, &delta, unit_index, &result)) {
             continue;
         }
-        v = -*(real *)(marker + 0x44) * (1.0f - result.t) * *(real *)(obj + 0x338);
+        v = -*(real *)(marker + 0x44) * (1.0f - result.t) * ((struct vehicle_object *)obj)->unit.unknown_338;
         if (v < 0.0f) {
             continue;
         }

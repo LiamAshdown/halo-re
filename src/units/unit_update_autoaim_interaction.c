@@ -48,7 +48,7 @@ void unit_update_autoaim_interaction(uint32_t unit_index)
     if (tracked != 0) {
         datum_index damage_effect = *(datum_index *)(tracked + 0x78);
         if (damage_effect != k_datum_index_none) {
-            uint8_t *source = (uint8_t *)object_try_and_get(*(datum_index *)(obj + 0x410), 0xffffffff);
+            uint8_t *source = (uint8_t *)object_try_and_get(*(datum_index *)&((struct unit_object *)obj)->unit.unknown_410, 0xffffffff);
             damage_data dd;
 
             memset(&dd, 0, sizeof(dd));
@@ -64,7 +64,7 @@ void unit_update_autoaim_interaction(uint32_t unit_index)
                 datum_index creator = ((struct object *)source)->creator_object;
                 dd.responsible_player = *(datum_index *)&((struct object *)source)->owner_linkage;
                 if (creator == k_datum_index_none) {
-                    creator = *(datum_index *)(obj + 0x410);
+                    creator = *(datum_index *)&((struct unit_object *)obj)->unit.unknown_410;
                 }
                 dd.responsible_object = creator;
                 dd.team_index = ((struct object *)source)->owner_team;

@@ -12,6 +12,8 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *player_data; // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
@@ -26,7 +28,7 @@ void game_engine_slayer_player_new_life(datum_index player_index)
 {
     uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200);
 
-    *(int32_t *)(player + 0x88) = -1;
+    ((struct player *)player)->unknown_88 = -1;
     if (network_game_mode != 2) {
         return;
     }

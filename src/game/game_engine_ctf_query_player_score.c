@@ -11,6 +11,8 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *player_data; // 0x0087a480
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX handle, ESI array
@@ -24,6 +26,6 @@ uint8_t game_engine_ctf_query_player_score(int32_t key, int32_t index, void *buf
     if (player == 0 || key != 0x16) {
         return 0;
     }
-    qr2_buffer_add_int(buffer, *(int16_t *)(player + 0xc8));
+    qr2_buffer_add_int(buffer, ((struct player *)player)->unknown_c8);
     return 1;
 }

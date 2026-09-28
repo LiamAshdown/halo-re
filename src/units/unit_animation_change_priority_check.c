@@ -100,7 +100,7 @@ int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow
     *dialogue_index = index;
     *chain_value = chain;
     if (out_unknown_3f0 != 0) {
-        *out_unknown_3f0 = *(uint32_t *)(obj + 0x3f0);
+        *out_unknown_3f0 = ((struct unit_object *)obj)->unit.unknown_3f0;
     }
     return result;
 }

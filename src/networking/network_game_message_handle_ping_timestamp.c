@@ -26,6 +26,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "objects.h"
+#include "units.h"
 
 extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
@@ -54,7 +56,7 @@ uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_s
         if (player != 0) {
             int32_t stored_time = *(int32_t *)((uint8_t *)server + 0x9c0);
             int32_t now = time_query_performance_counter_ms();
-            *(int32_t *)(player + 0xdc) = now - stored_time;
+            ((struct player *)player)->unknown_dc = now - stored_time;
         }
     }
     return 1;

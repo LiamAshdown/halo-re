@@ -48,7 +48,7 @@ void unit_validate_and_clear_weapon_switch(uint32_t unit_index)
     }
     obj[0x320] = 0xff;
     obj[0x321] = 0xff;
-    *(float *)(obj + 0x348) = 0.0f;
+    ((struct unit_object *)obj)->unit.unknown_348 = 0.0f;
     unit_invalidate_local_player_zoom_level(unit_index);
 }
 

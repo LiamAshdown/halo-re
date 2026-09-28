@@ -118,7 +118,7 @@ uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state)
         if (no_state) {
             int16_t idle = (*(int32_t *)(unit_block + 0x40) > 9) ? (*(int16_t **)(unit_block + 0x44))[9] : -1;
 
-            *(int16_t *)(unit + 0x29c) = animation_choose_random_permutation(graph, idle, 1);
+            ((struct unit_object *)unit)->unit.unknown_29c = animation_choose_random_permutation(graph, idle, 1);
         }
         object_copy_default_node_transforms(unit_index, count);
     } else if (changed) {

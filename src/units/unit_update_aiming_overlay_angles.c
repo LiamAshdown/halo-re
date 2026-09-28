@@ -160,7 +160,7 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
     if (((unit_object *)unit)->unit.current_weapon_index == -1 && ((unit_object *)unit)->unit.controlling_player == k_datum_index_none) {
         return;
     }
-    if (*(int16_t *)(unit + 0x29c) != -1) {
+    if (((struct unit_object *)unit)->unit.unknown_29c != -1) {
         uint8_t *screen = block + 0x20;
         float look_yaw;
         float look_pitch;
@@ -170,7 +170,7 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
         look_yaw -= aim_yaw;
         look_pitch -= aim_pitch;
         aiming_screen_limits(screen, (float *)(unit + 0x2c8));
-        animation_aiming_screen_blend(animations + *(int16_t *)(unit + 0x29c) * 0xb4, screen, look_yaw, look_pitch,
+        animation_aiming_screen_blend(animations + ((struct unit_object *)unit)->unit.unknown_29c * 0xb4, screen, look_yaw, look_pitch,
             output);
     }
 }

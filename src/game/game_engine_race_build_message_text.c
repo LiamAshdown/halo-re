@@ -17,6 +17,8 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#include "objects.h"
+#include "units.h"
 
 extern data_array *player_data; // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88
@@ -73,7 +75,7 @@ uint8_t game_engine_race_build_message_text(datum_index recipient, int32_t messa
         return 1;
     case 0x26:
         string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xad),
-            (double)((float)*(int16_t *)(player + 0xc8) * 0.033333335f));
+            (double)((float)((struct player *)player)->unknown_c8 * 0.033333335f));
         return 1;
     default: // 0x16
         if (datum_get(recipient, player_data) == 0) {

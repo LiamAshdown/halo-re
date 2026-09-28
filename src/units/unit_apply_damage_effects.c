@@ -230,24 +230,24 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
         float recent = ((unit_object *)obj)->base.recent_body_damage + ((unit_object *)obj)->base.recent_shield_damage;
 
         if (recent > 0.0f) {
-            *(int16_t *)(obj + 0x404) = *(int16_t *)(effect_block + 0x2);
-            *(int16_t *)(obj + 0x406) = 0x2d;
-            if (recent < *(float *)(obj + 0x408)) {
-                recent = *(float *)(obj + 0x408);
+            ((struct unit_object *)obj)->unit.unknown_404 = *(int16_t *)(effect_block + 0x2);
+            ((struct unit_object *)obj)->unit.unknown_406 = 0x2d;
+            if (recent < ((struct unit_object *)obj)->unit.unknown_408) {
+                recent = ((struct unit_object *)obj)->unit.unknown_408;
             }
-            *(float *)(obj + 0x408) = recent;
+            ((struct unit_object *)obj)->unit.unknown_408 = recent;
             if (dd->responsible_object != k_datum_index_none) {
-                *(datum_index *)(obj + 0x40c) = dd->responsible_object;
+                ((struct unit_object *)obj)->unit.unknown_40c = dd->responsible_object;
             }
         }
     }
     unit_flags = ((unit_object *)obj)->unit.flags;
     if (unit_flags & 0x10) {
-        float left = *(float *)(obj + 0x37c) - *(float *)(effect_block + 0x1c);
+        float left = ((struct unit_object *)obj)->unit.unknown_37c - *(float *)(effect_block + 0x1c);
 
-        *(float *)(obj + 0x37c) = left;
+        ((struct unit_object *)obj)->unit.unknown_37c = left;
         if (left < 0.0f) {
-            *(float *)(obj + 0x37c) = 0.0f;
+            ((struct unit_object *)obj)->unit.unknown_37c = 0.0f;
         }
     }
     if (is_local == 1) {
@@ -262,7 +262,7 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
             if (1.0f > ticks) {
                 ticks = 1.0f;
             }
-            *(int16_t *)(obj + 0x420) = (int16_t)(int32_t)ticks;
+            ((struct unit_object *)obj)->unit.unknown_420 = (int16_t)(int32_t)ticks;
         }
     }
 
@@ -440,23 +440,23 @@ local_reactions:
         } else if (!(cap < 1.0f)) {
             cap = 1.0f;
         }
-        if (cap > *(float *)(obj + 0x424)) {
-            float value = step + *(float *)(obj + 0x424);
+        if (cap > ((struct unit_object *)obj)->unit.unknown_424) {
+            float value = step + ((struct unit_object *)obj)->unit.unknown_424;
 
-            *(float *)(obj + 0x424) = value;
+            ((struct unit_object *)obj)->unit.unknown_424 = value;
             if (value > cap) {
-                *(float *)(obj + 0x424) = cap;
+                ((struct unit_object *)obj)->unit.unknown_424 = cap;
             }
         }
         add = (int16_t)(int32_t)(*(float *)(effect_block + 0x28) * 30.0f);
         low = (int16_t)(int32_t)(*(float *)(shake + 0x8c) * 30.0f);
         high = (int16_t)(int32_t)(*(float *)(shake + 0x90) * 30.0f);
-        if (*(int16_t *)(obj + 0x428) < low) {
-            *(int16_t *)(obj + 0x428) = low;
+        if (((struct unit_object *)obj)->unit.unknown_428 < low) {
+            ((struct unit_object *)obj)->unit.unknown_428 = low;
         }
-        *(int16_t *)(obj + 0x428) += add;
-        if (*(int16_t *)(obj + 0x428) > high) {
-            *(int16_t *)(obj + 0x428) = high;
+        ((struct unit_object *)obj)->unit.unknown_428 += add;
+        if (((struct unit_object *)obj)->unit.unknown_428 > high) {
+            ((struct unit_object *)obj)->unit.unknown_428 = high;
         }
     }
 

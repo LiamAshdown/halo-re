@@ -32,6 +32,8 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+#include "objects.h"
+#include "units.h"
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
@@ -79,7 +81,7 @@ void network_player_ping_field_update_and_report(void *decode_context) // blam-c
         if (player_index != 0xff && (int16_t)(uint16_t)player_index < player_data->maximum_count) {
             uint8_t *player = (uint8_t *)player_data->data + player_data->size * (int16_t)(uint16_t)player_index;
             if (*(int16_t *)player != 0) {
-                *(int32_t *)(player + 0xdc) = new_value;
+                ((struct player *)player)->unknown_dc = new_value;
             }
         }
 
