@@ -29,7 +29,7 @@ void unit_update_ground_contact_counter(uint32_t unit_index, uint8_t *contact_po
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
+    uint8_t *physics_tag = tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     int32_t count = *(int32_t *)(physics_tag + 0x74);
     int32_t i;

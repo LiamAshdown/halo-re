@@ -51,8 +51,8 @@ void object_initialize_change_colors(uint32_t object_index, ColorRGB *colors) //
         ColorRGB *final_color = (ColorRGB *)(obj + 0x1b8 + i * 0xc);
 
         *working = colors[i];
-        if (i < *(int32_t *)(tag + 0x164)) {
-            uint8_t *change_color = *(uint8_t **)(tag + 0x168) + i * 0x2c;
+        if (i < *(int32_t *)&((Object *)tag)->change_colors.count) {
+            uint8_t *change_color = *(uint8_t **)&((Object *)tag)->change_colors.pointer + i * 0x2c;
             // x87: each product is a float operand times a float constant (0x672e80, 0x672e7c, 0x672e78, 0x672e74)
             double seed = (double)position[2] * (double)744.12415f + (double)position[0] * (double)315.89313f +
                 (double)position[1] * (double)587.12946f + (double)i * (double)431.12894f;

@@ -223,7 +223,7 @@ uint32_t vehicle_update(uint32_t object_index)
             physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4dc), target * F(tag, 0x2f8), 2.0f);
         }
 
-        if (*(datum_index *)(tag + 0x8c) != k_datum_index_none) {
+        if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none) {
             uint32_t flags = *(uint32_t *)(tag + 0x2f0);
 
             if (((flags & 1) && F(obj, 0x4d4) != 0.0f) || ((flags & 2) && F(obj, 0x4dc) != 0.0f) ||
@@ -232,7 +232,7 @@ uint32_t vehicle_update(uint32_t object_index)
                 ((unit_object *)obj)->base.flags &= ~0x20u;
             }
         }
-        if (*(datum_index *)(tag + 0x8c) != k_datum_index_none && !(((unit_object *)obj)->base.flags & 0x20)) {
+        if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none && !(((unit_object *)obj)->base.flags & 0x20)) {
             // 0x571505: run the physics
             b = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;
             switch (*(int16_t *)(tag + 0x2f4)) {
@@ -301,7 +301,7 @@ uint32_t vehicle_update(uint32_t object_index)
     }
 
     // 0x571828
-    if (*(datum_index *)(tag + 0x44) != k_datum_index_none) {
+    if (*(datum_index *)&((Unit *)tag)->base.animation_graph.tag_id != k_datum_index_none) {
         int8_t request[2] = {0, 0};
 
         unit_update_animation_state_machine(object_index, request);

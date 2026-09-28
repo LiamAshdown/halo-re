@@ -63,7 +63,7 @@ void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *
                                 deviation.k * deviation.k));
 
         if (length > 0.02) {
-            uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
+            uint8_t *physics_tag = tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
             int32_t count = *(int32_t *)(physics_tag + 0x74);
             int32_t i = 0;
 

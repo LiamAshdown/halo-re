@@ -133,7 +133,7 @@ uint8_t unit_update(uint32_t unit_index)
         ((unit_object *)obj)->unit.control_flags = 0;
     }
 
-    if ((*(uint32_t *)(tag + 0x17c) & 0x800) == 0) {
+    if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x800) == 0) {
         // 0x562742: the scripted control flash (+0x210 ticks of +0x214 bits)
         int32_t ticks = *(int32_t *)(obj + 0x210);
 
@@ -259,7 +259,7 @@ uint8_t unit_update(uint32_t unit_index)
 
 controls:
     // 0x562ba8
-    if ((*(uint32_t *)(tag + 0x17c) & 0x400) == 0) {
+    if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x400) == 0) {
         if ((obj[0x106] & 4) == 0 && !unit_updates_suppressed) {
             if ((((unit_object *)obj)->base.vitality_flags & 0x400) != 0) {
                 unit_drop_current_weapon(unit_index, 1);
@@ -321,9 +321,9 @@ controls:
         }
 
         // 0x562dce: aim and look follow their desired directions
-        speed_scale = (obj[0x288] == 1) ? *(float *)(tag + 0x26c) : 1.0f;
-        rate = speed_scale * *(float *)(tag + 0x264) * 0.033333335f;
-        acceleration = speed_scale * *(float *)(tag + 0x268) * 0.0011111111f;
+        speed_scale = (obj[0x288] == 1) ? ((Unit *)tag)->casual_aiming_modifier : 1.0f;
+        rate = speed_scale * ((Unit *)tag)->aiming_velocity_maximum * 0.033333335f;
+        acceleration = speed_scale * ((Unit *)tag)->aiming_acceleration_maximum * 0.0011111111f;
         previous_aim = *(real_vector3d *)&((unit_object *)obj)->unit.aiming_vector.i;
         zero_vector = global_zero_vector3d_pointer;
         if (rate == 0.0f && acceleration == 0.0f) {
@@ -348,9 +348,9 @@ controls:
         {
             float change = 0.0f;
 
-            if (*(float *)(tag + 0x264) != 0.0f) {
+            if (((Unit *)tag)->aiming_velocity_maximum != 0.0f) {
                 change = vector3d_angle_between_4cd4f0(&previous_aim, (real_vector3d *)(obj + 0x23c)) /
-                    (*(float *)(tag + 0x264) * 0.033333335f);
+                    (((Unit *)tag)->aiming_velocity_maximum * 0.033333335f);
                 if (change < 0.0f) {
                     change = 0.0f;
                 } else if (change > 1.0f) {
@@ -359,8 +359,8 @@ controls:
             }
             obj[0x323] = (uint8_t)(int32_t)(change * 255.0f);
         }
-        rate = speed_scale * *(float *)(tag + 0x270) * 0.033333335f;
-        acceleration = speed_scale * *(float *)(tag + 0x274) * 0.0011111111f;
+        rate = speed_scale * ((Unit *)tag)->looking_velocity_maximum * 0.033333335f;
+        acceleration = speed_scale * ((Unit *)tag)->looking_acceleration_maximum * 0.0011111111f;
         if (rate == 0.0f && acceleration == 0.0f) {
             *(real_vector3d *)&((unit_object *)obj)->unit.looking_vector.i = *(real_vector3d *)&((unit_object *)obj)->unit.desired_looking_vector.i;
             unit_clamp_direction_to_aim_or_look_bounds(unit_index, (real_vector3d *)(obj + 0x260), 0);
@@ -456,7 +456,7 @@ controls:
     }
 
     // 0x5632ca
-    if ((*(uint32_t *)(tag + 0x17c) & 0x800) == 0) {
+    if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x800) == 0) {
         int16_t seat;
 
         if ((obj[0x298] & 2) != 0) {
@@ -465,8 +465,8 @@ controls:
             *(float *)(obj + 0x368) = *(float *)(obj + 0x374) * LOOK_BLEND_NEW + *(float *)(obj + 0x368) * LOOK_BLEND_OLD;
             *(float *)(obj + 0x36c) = *(float *)(obj + 0x378) * LOOK_BLEND_NEW + *(float *)(obj + 0x36c) * LOOK_BLEND_OLD;
         }
-        for (seat = 0; seat < *(int32_t *)(tag + 0x2cc); seat++) {
-            uint8_t *powered = *(uint8_t **)(tag + 0x2d0) + seat * 0x44;
+        for (seat = 0; seat < *(int32_t *)&((Unit *)tag)->powered_seats.count; seat++) {
+            uint8_t *powered = *(uint8_t **)&((Unit *)tag)->powered_seats.pointer + seat * 0x44;
             float *power = (float *)(obj + 0x338 + seat * 4);
             uint8_t occupied;
 
@@ -582,14 +582,14 @@ controls:
                 }
                 if (toggle_light && ((((unit_object *)obj)->unit.flags & 0x80000) != 0 || *(float *)(obj + 0x344) > 0.2f) &&
                     ((unit_object *)obj)->base.parent_object == k_datum_index_none) {
-                    effect_new_on_object(unit_index, *(datum_index *)(tag + 0x194), unit_index, -1, 0.0f, 0.0f, 0, 0);
+                    effect_new_on_object(unit_index, *(datum_index *)&((Unit *)tag)->integrated_light_toggle.tag_id, unit_index, -1, 0.0f, 0.0f, 0, 0);
                     ((unit_object *)obj)->unit.flags ^= 0x80000;
                 }
             }
         }
         flags = ((unit_object *)obj)->unit.flags;
         if ((flags & 0x80000) != 0) {
-            if ((*(uint32_t *)(tag + 0x17c) & 0x1000000) == 0) {
+            if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x1000000) == 0) {
                 *(float *)(obj + 0x344) -= 0.00027777778f;
             }
             if (((unit_object *)obj)->base.parent_object != k_datum_index_none || (obj[0x106] & 4) != 0) {

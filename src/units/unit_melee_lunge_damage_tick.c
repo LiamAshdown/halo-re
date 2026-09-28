@@ -47,7 +47,7 @@ void unit_melee_lunge_damage_tick(uint32_t unit_index)
     object_node_collision_result record;
     damage_data dd;
 
-    if (obj[0x289] != 4 || target == k_datum_index_none || *(datum_index *)(tag + 0x294) == k_datum_index_none) {
+    if (obj[0x289] != 4 || target == k_datum_index_none || *(datum_index *)&((Unit *)tag)->melee_damage.tag_id == k_datum_index_none) {
         return;
     }
     if (obj[0x28a] == 0 && object_collision_context_build(target, &context)) {
@@ -77,7 +77,7 @@ void unit_melee_lunge_damage_tick(uint32_t unit_index)
         }
     }
     memset(&dd, 0, sizeof(dd));
-    dd.damage_effect_tag = *(datum_index *)(tag + 0x294);
+    dd.damage_effect_tag = *(datum_index *)&((Unit *)tag)->melee_damage.tag_id;
     dd.material_type = -1;
     dd.location_cluster_index = -1;
     dd.multiplier = 1.0f;

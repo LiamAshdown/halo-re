@@ -63,7 +63,7 @@ void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_tr
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)(tag + 0x8c) & 0xffff].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint16_t flags = *(uint16_t *)(obj + 0x4cc);
     real max_speed = *(real *)(tag + 0x2f8);
     real speed = *(real *)(obj + 0x4d4);

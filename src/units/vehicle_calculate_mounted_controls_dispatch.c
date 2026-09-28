@@ -45,7 +45,7 @@ void vehicle_calculate_mounted_controls_dispatch(uint32_t unit_index, void *out_
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
+    uint8_t *physics_tag = tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
 
     if (*(float *)physics_tag > 0.0f) {
         vehicle_calculate_ground_contact_lean_alt(unit_index, out_record, out_transform);

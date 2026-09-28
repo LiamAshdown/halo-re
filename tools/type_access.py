@@ -23,8 +23,11 @@ def header_of(struct):
 
 def layout(struct, pre):
     if struct not in _layouts:
-        h = header_of(struct)
-        _layouts[struct] = tg.layout(struct, h, pre) if h else []
+        h = header_of(struct) if struct not in tg.SUB else None
+        try:
+            _layouts[struct] = tg.layout(struct, h, pre) if h else []
+        except SystemExit:          # a one-line or unparsable definition: treat as a leaf
+            _layouts[struct] = []
     return _layouts[struct]
 
 

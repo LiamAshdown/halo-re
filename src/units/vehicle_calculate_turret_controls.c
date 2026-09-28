@@ -47,7 +47,7 @@ void vehicle_calculate_turret_controls(uint32_t unit_index, void *param_2, float
     float *out_transform = powered_states; // EDI
     float forward = vehicle->forward_velocity;
     float turning = vehicle->turning_velocity;
-    uint8_t *physics_tag = tag_instances[*(uint32_t *)((uint8_t *)tag + 0x8c) & 0xffff].data;
+    uint8_t *physics_tag = tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     float wrapped;
 
     vehicle->left_wheel_rotation = (forward - turning) + vehicle->left_wheel_rotation;

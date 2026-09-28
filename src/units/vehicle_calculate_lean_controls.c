@@ -51,7 +51,7 @@ void vehicle_calculate_lean_controls(uint32_t unit_index, void *param_2, float *
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)(tag + 0x8c) & 0xffff].data;
+    uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);
     real_vector3d *up = (real_vector3d *)(obj + 0x80);

@@ -45,7 +45,7 @@ void unit_update_marker_skid_effects(uint32_t unit_index, uint8_t *contact_point
     if (*(int32_t *)(tag + 0x3dc) == -1) {
         return;
     }
-    physics_tag = (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x8c) & 0xffff].data;
+    physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     count = *(int32_t *)(physics_tag + 0x74);
     for (i = 0; (int32_t)i < count; i++) {
         uint8_t *contact = contact_points + (int32_t)i * 0x130;

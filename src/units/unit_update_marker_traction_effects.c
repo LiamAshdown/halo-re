@@ -59,10 +59,10 @@ uint32_t unit_update_marker_traction_effects(uint32_t object_index)
     real max_rise = 0.0f;
     int16_t i;
 
-    if (*(int32_t *)(tag + 0x44) == -1) {
+    if (*(int32_t *)&((Unit *)tag)->base.animation_graph.tag_id == -1) {
         return 0;
     }
-    graph = (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x44) & 0xffff].data;
+    graph = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.animation_graph.tag_id & 0xffff].data;
     if (*(int32_t *)&((ModelAnimations *)graph)->vehicles.count == 0) {
         return 0;
     }
@@ -70,7 +70,7 @@ uint32_t unit_update_marker_traction_effects(uint32_t object_index)
     if (node_array == 0) {
         return 0;
     }
-    physics = (uint8_t *)tag_instances[*(uint32_t *)(tag + 0x8c) & 0xffff].data;
+    physics = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     matrix4x3_from_forward_up((real_vector3d *)(obj + 0x80), (real_vector3d *)(obj + 0x74), &basis);
     basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
 

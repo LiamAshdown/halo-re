@@ -37,7 +37,7 @@ void unit_apply_impulse_to_seat(uint32_t unit_index, real_vector3d *impulse)
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *tag = tag_instances[obj->definition_tag & 0xffff].data;
 
-    if (*(int32_t *)(tag + 0x8c) == -1) {
+    if (*(int32_t *)&((Unit *)tag)->base.physics.tag_id == -1) {
         return;
     }
 
