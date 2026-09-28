@@ -2492,3 +2492,20 @@ Relinked: unresolved 1, traps 127.
   handlers) and server-browser UI handlers in the ui event table (0x4b61a0, 0x4b6370, 0x4b63c0, 0x4b6570, 0x4b7920,
   0x4b7a80, 0x4b7c40); units 2: 0x571f20 / 0x5726e0 (table at 0x69b61c). NEXT: write those (they would execute image
   code at run time), then step 2.
+### iteration 13 (2026-09-28) -- commits aeacbac..HEAD, relinked (0 unresolved, traps 0)
+- MILESTONE: STEP 1 DONE -- scratchpad/missing_functions.txt is empty (no stored code pointer and no direct call
+  lacks C); traps 0, unresolved 0.
+- networking: all 28 message-delta field kinds' table functions and codecs (0x4e89c0..0x4ebc20; shared
+  src/networking/message_delta_codec.h with the inlined absolute bit-stream seek): integers, reals, booleans,
+  strings, wide strings, structure arrays, compound records, pointers, the index cache (with hash_table_initialize /
+  dispose written in src/objects), flags, grenade counts, quantized reals, unit normals (vector3d_to_angles),
+  locality positions, digital throttle, weapon/grenade indices, velocities through the waypoint table, item
+  placement. FIXED: vector3d_quantize picks its level count by connection mode inside (the C took it as an argument)
+  and waypoint_table_quantize_initialize uses integer level counts (the C treated them as floats).
+- interface: the 7 server-browser widget events (filter panel open/apply/cancel/back, the button row, list rows
+  with double-click join, browser close saving the filters into the profile).
+- units: vehicle_encode_network_create 0x571f20 and vehicle_apply_network_update 0x5726e0.
+- OPEN: (a) the networking call audit (network_game_action_apply's ~45 handlers get no args; gt2Connect called with
+  1 of 8; the biped siblings unit_build_network_update / unit_apply_network_health_update model their
+  message_delta calls and object index wrongly -- the vehicle versions written today show the real shapes).
+- NEXT: step 2 (build-time independence).
