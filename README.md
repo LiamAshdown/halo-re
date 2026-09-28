@@ -22,6 +22,19 @@ See PLAN.md for the phased multi-agent plan. This file is the operational refere
 - out/                    exports: functions.json, functions.csv, halo_decompiled.c, slices/, phase1/ (gitignored except JSON)
 - vendor/                 shallow clones of OpenSauce, chimera, invader, halo-re, halocea (gitignored)
 
+## Build halo_rebuilt.exe (the rewritten game, standalone)
+Needs Visual Studio 2022 (C, MASM, x86), the DirectX SDK (June 2010) and an installed Halo PC to run against.
+From source only, no Python and no retail binary:
+
+    cmake -S . -B build/cmake -G "Visual Studio 17 2022" -A Win32
+    cmake --build build/cmake --config Release --parallel
+
+(or open build/cmake/halo.sln in Visual Studio; cache variables DXSDK_DIR, HALO_FOLDER, HALO_FX_OVERRIDE).
+The same build with the Python tools: `python tools\msvc_build.py` then `python tools\gen_standalone_link.py`
+(output build\standalone\halo_rebuilt.exe). Graphics need shaders\fx.bin converted by `tools\convert_fx.py` in
+override\shaders\ next to the exe. Committed generated sources: after adding or renaming functions run
+`python tools\gen_link_sources.py`; when a link reports new globals, `python tools\update_globals.py`.
+
 ## Binary facts
 - Retail Halo PC, NOT Custom Edition. PE32 x86, MSVC 7.1, linked 2014-05-13, no SafeDisc, not packed
 - Image base 0x400000, entry 0x627f06, .text 0x401000-0x639596, 6592 functions after analysis
