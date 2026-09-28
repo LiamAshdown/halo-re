@@ -2366,3 +2366,25 @@ Relinked: unresolved 1, traps 127.
 - Stored pointers: networking 83, game 27, units 2, hs 1. Direct traps 95.
 - NEXT: the 27 large engine callbacks (0x4684a0 886, 0x469300 1079, 0x46cac0 / 0x46e480 message-text switches, ...;
   race allow_grenade_counts 0x46e980 needs 0x46d6f0 too).
+### iteration 6 (2026-09-28) -- commits dbd9214..c396eba, relinked (0 unresolved, 95 direct traps)
+- Multiplayer game engine callbacks: the remaining 27 written (gen_engine4..14.py) -- every engine slot now has C:
+  inits, reset_objects, updates, unknown_48/68/70 hooks, the five profile_post_update decoders (shared end-of-message
+  seek as a static), profiles_updated encoders, the five build_message_text overrides, race vehicle spawn
+  (0x46e980 + 0x46d6f0 + tag picker 0x46d5d0 as statics), oddball carrier helpers (0x46c8e0/0x46c910/0x46cef0).
+- FIXED (callers passed wrong/made-up arguments, each checked against every binary call site):
+  * game_engine_queue_multiplayer_sound (0x46be40) takes ESI sound, EDI player, stack broadcast: 22 C callers mostly
+    passed the broadcast flag as the sound; all now pass the binary's values (kill-feed arms 0x0e..0x12 get
+    0x10/0x0f/0x0e/0x11/0x12; the 7/9..0x0c group queues none).
+  * game_engine_send_end_game_notification (EAX reason): callers pass 1 / 3 / 2 (they passed none).
+  * on_player_death calls slot +0x68 with (killer, death_object, victim, is_suicide) (it passed none).
+  * ctf reset_team_return_credit (0x468840), player_drop_flag (0x4688b0), relocate_object_hill (0x46c1a0): EBX/EDI
+    are loaded inside (the object and its stand / found position), not forwarded; flag tick's missing 0x469080 call
+    added; player flag tick resets the flag, not the player.
+  * kill feed by relationship (0x460c10) forwards BL and the recipient; kill feed to team (0x460ba0) is ESI message,
+    BL broadcast, stack team; notify_both_teams (0x468460) takes only EAX; touch_flag commits the cache with EBX = 1.
+  * relocate_hill_marker (0x46bfe0) takes ESI = ball index (owner team + marker type filter); callers pass i.
+  * place text 0x4633f0 takes the rank from game_engine_compare_score_to_others (it returned string 0).
+- Stored pointers without C: networking 83, units 2 (0x571f20, 0x5726e0), hs 1 (0x48b150); game 0.
+  Direct traps 95 (networking 61, shell 22 + cseries 7 = GameSpy SDK and friends).
+- NEXT: networking (83 stored pointers, 61 direct traps, the '?' names, GameSpy 0x614000..0x61e000), then units
+  0x571f20 / 0x5726e0 and hs 0x48b150; then step 2 (build-time independence).
