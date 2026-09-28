@@ -52,9 +52,9 @@ void vehicle_calculate_animation_controls(uint32_t unit_index)
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);
     real_vector3d *up = (real_vector3d *)(obj + 0x80);
-    float forward_velocity = *(float *)(obj + 0x4d4);
-    float sideways_velocity = *(float *)(obj + 0x4d8);
-    float turning_velocity = *(float *)(obj + 0x4dc);
+    float forward_velocity = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
+    float sideways_velocity = ((struct vehicle_object *)obj)->vehicle.sideways_velocity;
+    float turning_velocity = ((struct vehicle_object *)obj)->vehicle.turning_velocity;
     float max_forward = fabsf(tag->maximum_forward_speed);     // esp+0x14
     float max_reverse = fabsf(tag->maximum_reverse_speed);     // esp+0x18
     float max_speed = (max_forward > max_reverse) ? max_forward : max_reverse;           // esp+0x10
@@ -139,10 +139,10 @@ void vehicle_calculate_animation_controls(uint32_t unit_index)
             value = fabsf(up->k * velocity->k + up->j * velocity->j + up->i * velocity->i) / max_speed;
             break;
         case 0x14:
-            value = *(float *)(obj + 0x4e4) / tag->wheel_circumference;
+            value = ((struct vehicle_object *)obj)->vehicle.left_wheel_rotation / tag->wheel_circumference;
             break;
         case 0x15:
-            value = *(float *)(obj + 0x4e8) / tag->wheel_circumference;
+            value = ((struct vehicle_object *)obj)->vehicle.right_wheel_rotation / tag->wheel_circumference;
             break;
         case 0x16:
             value = fabsf(forward_velocity - turning_velocity) / max_speed;
@@ -151,7 +151,7 @@ void vehicle_calculate_animation_controls(uint32_t unit_index)
             value = fabsf(turning_velocity + forward_velocity) / max_speed;
             break;
         case 0x18: case 0x19: case 0x1a: case 0x1b:
-            value = *(float *)(obj + 0x4e0) / tag->wheel_circumference;
+            value = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / tag->wheel_circumference;
             break;
         case 0x20: {
             real_vector3d parallel;      // esp+0x54
@@ -165,10 +165,10 @@ void vehicle_calculate_animation_controls(uint32_t unit_index)
             break;
         }
         case 0x21:
-            value = *(float *)(obj + 0x4ec);
+            value = ((struct vehicle_object *)obj)->vehicle.ground_lean;
             break;
         case 0x22:
-            value = *(float *)(obj + 0x4f0);
+            value = ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction;
             break;
         case 0x23: {
             float lean = fabsf(forward->k * velocity->k + forward->j * velocity->j + forward->i * velocity->i) / max_speed;
@@ -184,7 +184,7 @@ void vehicle_calculate_animation_controls(uint32_t unit_index)
             break;
         }
         case 0x24:
-            value = ((vector3d_length(velocity) / tag->maximum_forward_speed) * *(float *)(obj + 0x4f0) - 0.05f) *
+            value = ((vector3d_length(velocity) / tag->maximum_forward_speed) * ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction - 0.05f) *
                 1.1764706f;
             break;
         default: // 0xd and anything past 0x24: 0, unclamped

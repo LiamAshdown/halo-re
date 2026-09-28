@@ -85,7 +85,7 @@ void vehicle_blend_animations(datum_index object_index, real_orientation *orient
 
     if (count > 0 && indices[0] != -1) {
         animation_aiming_screen_blend((ModelAnimationsAnimation *)(animations + indices[0] * 0xb4),
-            (animation_aiming_screen *)entry, *(real *)(obj + 0x4dc), 0.0f, orientations);
+            (animation_aiming_screen *)entry, ((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, orientations);
     }
     if (count > 1 && indices[1] != -1) {
         double speed = vector3d_scalar_triple_product((real_vector3d *)(obj + 0x80), (real_vector3d *)(obj + 0x74),
@@ -95,7 +95,7 @@ void vehicle_blend_animations(datum_index object_index, real_orientation *orient
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[1] * 0xb4), clamp_unit(speed), orientations);
     }
     if (count > 2 && indices[2] != -1) {
-        float steering = *(float *)(obj + 0x4d4);
+        float steering = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
         double fraction;
 
         if (steering < 0.0f) {
@@ -119,7 +119,7 @@ void vehicle_blend_animations(datum_index object_index, real_orientation *orient
         int32_t frames = *(int16_t *)((uint8_t *)animation + 0x22);
 
         if (*(float *)(vehicle_tag + 0x310) > 0.0f) {
-            fraction = *(float *)(obj + 0x4e0) / *(float *)(vehicle_tag + 0x310);
+            fraction = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / *(float *)(vehicle_tag + 0x310);
         }
         animation_overlay_interpolated_frame_orientations(animation, (float)((double)frames * fraction), orientations);
     }

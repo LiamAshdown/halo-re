@@ -88,13 +88,13 @@ uint32_t vehicle_update(uint32_t object_index)
     static uint8_t node_output[0xc00];     // [esp+0x88]
     static uint8_t contact_points[0x2600]; // [esp+0xc88]
 
-    if (network_game_mode == 2 && *(int32_t *)(obj + 0x5ac) != -1 && vehicle_network_update_period != 0 &&
-        game_time->game_time >= *(int32_t *)(obj + 0x5ac) + vehicle_network_update_period) {
+    if (network_game_mode == 2 && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
+        game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
         if (vector3d_distance((real_point3d *)(obj + 0x5b4), (real_point3d *)(obj + 0x5c)) > 1.5f &&
             unit_get_recently_updated_flag(object_index) == 1 && !unit_has_child_of_type5(object_index)) {
             unit_set_facing_from_index_table(object_index);
         }
-        *(int32_t *)(obj + 0x5ac) = game_time->game_time;
+        ((struct vehicle_object *)obj)->vehicle.network_update_tick = game_time->game_time;
     }
 
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
@@ -140,7 +140,7 @@ uint32_t vehicle_update(uint32_t object_index)
         {
             uint8_t direction = obj[0x4d1];
 
-            if ((*(uint16_t *)(obj + 0x4cc) & 0x10) && direction != 0 && obj[0x4d2] < 0x1e && up->k <= 0.9f) {
+            if ((((struct vehicle_object *)obj)->vehicle.flags & 0x10) && direction != 0 && obj[0x4d2] < 0x1e && up->k <= 0.9f) {
                 // 0x571130: flipping back over
                 float sign = (direction == 2 || direction == 4) ? 0.3f : -0.3f;
                 float spin;
@@ -182,7 +182,7 @@ uint32_t vehicle_update(uint32_t object_index)
                 }
                 obj[0x4d2]++;
             } else {
-                *(uint16_t *)(obj + 0x4cc) &= 0xffef;
+                ((struct vehicle_object *)obj)->vehicle.flags &= 0xffef;
                 obj[0x4d2] = 0;
                 obj[0x4d1] = 0;
             }

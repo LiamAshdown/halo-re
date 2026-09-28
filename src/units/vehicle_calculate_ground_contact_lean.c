@@ -70,7 +70,7 @@ void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint8_t *powered = (uint8_t *)out_record;
-    real speed = *(real *)(obj + 0x4d4);
+    real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real mass = *(real *)(physics + 0x8);
     real throttle = *(real *)(obj + 0x338);
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
@@ -137,7 +137,7 @@ void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record
 
     spin_rate = (real)sqrt((double)(angular_velocity->i * angular_velocity->i + angular_velocity->j * angular_velocity->j +
         angular_velocity->k * angular_velocity->k)) / *(real *)(tag + 0x314);
-    lean = *(real *)(obj + 0x4f0);
+    lean = ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction;
     if (spin_rate > lean) {
         step = (1.0f - lean) * (1.0f - lean) * 0.2f;
         if (!(step >= 0.01f)) {
@@ -158,7 +158,7 @@ void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record
             step = spin_rate - lean;
         }
     }
-    *(real *)(obj + 0x4f0) = step + lean;
+    ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction = step + lean;
 
     *(real *)(powered + 0x18) = throttle;
     memcpy(powered + 0x1c, global_identity_quaternion_pointer, 16);

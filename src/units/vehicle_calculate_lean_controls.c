@@ -69,12 +69,12 @@ void vehicle_calculate_lean_controls(uint32_t unit_index, void *mass_points, flo
 
     speed_factor = (real)fabs((double)((real)sqrt((double)(velocity->i * velocity->i + velocity->j * velocity->j +
         velocity->k * velocity->k)) * 2.5f));
-    half_turn = *(real *)(obj + 0x4dc) * 0.5f;
+    half_turn = ((struct vehicle_object *)obj)->vehicle.turning_velocity * 0.5f;
     if (!(speed_factor <= 1.0f)) {
         speed_factor = 1.0f;
     }
     steer = (1.0f - speed_factor) * half_turn;
-    *(real *)(ps + 0x04) = *(real *)(obj + 0x4d4);
+    *(real *)(ps + 0x04) = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     *(uint32_t *)(ps + 0x0c) = 0x3b449ba6; // 0.003
     *(real *)(ps + 0x1c) = 0.0f;
     *(real *)(ps + 0x20) = 0.0f;

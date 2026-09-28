@@ -23,10 +23,10 @@ void biped_network_baseline_take(uint32_t object_index)
         return;
     }
     obj[0x527]++;
-    *(float *)(obj + 0x534) = ((unit_object *)obj)->base.shield_vitality * 0.33333334f;
-    *(uint32_t *)(obj + 0x530) = *(uint32_t *)&((unit_object *)obj)->base.body_vitality;
+    ((struct biped_object *)obj)->biped.network_shield_vitality = ((unit_object *)obj)->base.shield_vitality * 0.33333334f;
+    *(uint32_t *)&((struct biped_object *)obj)->biped.network_body_vitality = *(uint32_t *)&((unit_object *)obj)->base.body_vitality;
     obj[0x526] = 1;
     obj[0x528] = 0;
     obj[0x538] = (uint8_t)(((unit_object *)obj)->base.shield_stun_ticks > 0);
-    *(int16_t *)(obj + 0x52c) = *(int16_t *)(obj + 0x31e);
+    ((struct biped_object *)obj)->biped.network_grenade_counts = *(int16_t *)(obj + 0x31e);
 }

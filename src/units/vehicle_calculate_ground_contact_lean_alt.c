@@ -58,7 +58,7 @@ void vehicle_calculate_ground_contact_lean_alt(uint32_t unit_index, void *out_re
     uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint8_t *powered = (uint8_t *)out_record;
     real max_speed = *(real *)(tag + 0x2f8);
-    real speed = *(real *)(obj + 0x4d4);
+    real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real throttle;
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);

@@ -64,9 +64,9 @@ void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_tr
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
-    uint16_t flags = *(uint16_t *)(obj + 0x4cc);
+    uint16_t flags = ((struct vehicle_object *)obj)->vehicle.flags;
     real max_speed = *(real *)(tag + 0x2f8);
-    real speed = *(real *)(obj + 0x4d4);
+    real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real throttle = *(real *)(obj + 0x338);
     real clamped, f2, k, delta, lean_scale, dot, x_force, y_force, angle, per_tick, torque_scale;
     real_vector3d facing, up, force, torque;
@@ -91,15 +91,15 @@ void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_tr
     clamped = !(speed >= 0.0f) ? 0.0f : (speed <= max_speed ? speed : max_speed);
     f2 = (clamped / max_speed) * (clamped / max_speed);
     k = (flags & 4) ? 0.25f : ((flags & 8) ? 1.0f : 0.75f);
-    delta = k * ((1.0f - f2) * throttle) - *(real *)(obj + 0x4ec);
+    delta = k * ((1.0f - f2) * throttle) - ((struct vehicle_object *)obj)->vehicle.ground_lean;
     if (!(delta >= -0.05f)) {
         delta = -0.05f;
     } else if (!(delta <= 0.05f)) {
         delta = 0.05f;
     }
-    *(real *)(obj + 0x4ec) = delta + *(real *)(obj + 0x4ec);
+    ((struct vehicle_object *)obj)->vehicle.ground_lean = delta + ((struct vehicle_object *)obj)->vehicle.ground_lean;
     lean_scale = f2 * throttle;
-    *(real *)(obj + 0x4f0) = lean_scale;
+    ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction = lean_scale;
 
     facing = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
     up.i = -(facing.i * facing.k);
@@ -113,7 +113,7 @@ void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_tr
 
     dot = velocity->i * forward->i + velocity->j * forward->j + velocity->k * forward->k;
     x_force = (speed - dot) * lean_scale * *(real *)(physics + 0x8) * 0.05f;
-    y_force = ((real)fabs((double)(dot / max_speed)) * 1.05f + *(real *)(obj + 0x4ec) * 1.3f) *
+    y_force = ((real)fabs((double)(dot / max_speed)) * 1.05f + ((struct vehicle_object *)obj)->vehicle.ground_lean * 1.3f) *
         *(real *)(physics + 0x8) * 0.0035651792f;
     force.i = object_up->i * y_force + forward->i * x_force;
     force.j = object_up->j * y_force + forward->j * x_force;

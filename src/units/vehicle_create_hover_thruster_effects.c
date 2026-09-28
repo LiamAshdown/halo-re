@@ -70,7 +70,7 @@ void vehicle_create_hover_thruster_effects(uint32_t unit_index)
 
         vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &effect_random_seed, 0.0f,
             0.2617994f);
-        length = (i < hover_count ? *(real *)(obj + 0x4ec) : *(real *)(obj + 0x4f0)) * 6.0f + 2.0f;
+        length = (i < hover_count ? ((struct vehicle_object *)obj)->vehicle.ground_lean : ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction) * 6.0f + 2.0f;
         delta.i = direction.i * length;
         delta.j = direction.j * length;
         delta.k = direction.k * length;
