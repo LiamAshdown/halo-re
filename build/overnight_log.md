@@ -2587,3 +2587,23 @@ Relinked: unresolved 1, traps 127.
   message handlers 0x4dc190/0x4dc240/0x4dc2e0/0x4dc410 declare (client, uint8_t*, int16_t*, int32_t*) but receive
   (client, record, length, sender); gt2Connect called with 1 of 8 args; unit_build_network_update; the 0x614850 /
   0x61e550 dump-setter names.
+
+## Iteration 18 (2026-09-28) -- networking call audit, part 2 (message handlers, host path)
+- traps before/after: 0 / 0; unresolved 0 (HALO_NO_RETAIL=1); image verify identical.
+- Client message handlers (behind network_game_message_decode_dispatch): 0x4dc190/0x4dc240/0x4dc2e0/0x4dc410 and
+  0x4dbc00/0x4dbd40/0x4dbe50 took the length as a pointer or declared data_packet_group_decode_packet with 8 / 6
+  arguments (it takes 7, remaining length first in EAX) -- expected class came out 0 or every argument shifted.
+  Now: length reduced by 2 in place and passed by address; join_finalize / table_index_apply / disconnect_notify /
+  timer get their real arguments; settings request reads the engine-version byte from the body.
+- Server path: network_game_process_incoming_message 0x4e1c60 and its 13 handlers (0x4e24d0..0x4e2930) rewritten
+  from the disassembly (the dispatcher passed nothing to eleven of them); network_game_broadcast_player_set_changed
+  takes the one argument its callers pass and broadcasts via network_session.
+- Host receive chain rewritten: network_channel_drain_bitstream 0x4e1290 (real bit stream per item),
+  network_channel_dispatch_bitstream_unit 0x4e18b0 (ECX stream, ESI machine), network_client_drain_queued_updates
+  0x4e1f40 (decode context; types 0xd/0xf/0x1a/0x34/0x36 with their registers), chat_server_relay_incoming_message
+  0x4aabd0 (decodes into locals, relays by scope).
+- unit_apply_network_health_update 0x55b5f0: its own object and decode into the health block copy.
+- OPEN: gt2Connect called with 1 of 8 args; unit_build_network_update; the 0x614850 / 0x61e550 dump-setter names;
+  network_game_server_handle_client_join's register pass-throughs (object_count / BL); several callees' C carry
+  parameter names that do not match what the binary passes (network_game_settings_broadcast_send's "round" is the
+  server) -- behaviour kept positional.
