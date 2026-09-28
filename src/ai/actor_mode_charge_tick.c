@@ -21,7 +21,7 @@ void actor_mode_charge_tick(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
 
-    if (*(int16_t *)(act + 0xa0) == 3 && act[0xa7] && !act[0xa2] && !act[0x15c]) {
-        *(int16_t *)(act + 0xaa) += 1;
+    if (((struct actor *)act)->mode_data.charge.stage == 3 && act[0xa7] && !act[0xa2] && !act[0x15c]) {
+        ((struct actor *)act)->mode_data.charge.stage_ticks += 1;
     }
 }

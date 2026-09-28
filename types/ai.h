@@ -287,6 +287,16 @@ typedef struct actor_mode_search_data {
 } actor_mode_search_data;
 typedef char actor_mode_search_data_elapsed_at_28[offsetof(actor_mode_search_data, elapsed_ticks) == 0x28 ? 1 : -1];
 
+typedef struct actor_mode_charge_data {
+    uint8_t unknown_00[4];              // 0x00
+    int16_t stage;                      // 0x04 1..4
+    uint8_t unknown_06[8];              // 0x06 (0x06 and 0x0b are flags the tick tests)
+    int16_t stage_ticks;                // 0x0e counted up by the tick, reset by update
+    int32_t stage_start_time;           // 0x10 game_time when update last reset stage_ticks
+    uint8_t unknown_14[0x10];           // 0x14 four dwords update copies to actor + 0x444 (0x1c/0x20 compared as floats)
+} actor_mode_charge_data;
+typedef char actor_mode_charge_data_start_at_10[offsetof(actor_mode_charge_data, stage_start_time) == 0x10 ? 1 : -1];
+
 typedef union actor_mode_data {
     uint8_t raw[0x84];
     actor_mode_wait_data wait;
@@ -294,6 +304,7 @@ typedef union actor_mode_data {
     actor_mode_converse_data converse;
     actor_mode_uncover_data uncover;
     actor_mode_search_data search;
+    actor_mode_charge_data charge;
 } actor_mode_data;                      // size 0x84
 typedef char actor_mode_data_size[sizeof(actor_mode_data) == 0x84 ? 1 : -1];
 

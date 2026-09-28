@@ -31,7 +31,7 @@ void actor_mode_charge_update(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     uint32_t actor_flags = *(uint32_t *)actor_tag;
-    int16_t kind = *(int16_t *)(act + 0xa0);
+    int16_t kind = ((struct actor *)act)->mode_data.charge.stage;
 
     ((actor *)act)->vocalization_unknown_3ec = 2;
     *(int16_t *)(act + 0x3fc) = 4;
@@ -42,7 +42,7 @@ void actor_mode_charge_update(datum_index actor_index)
     } else {
         ((actor *)act)->vocalization_unknown_3e8 = 5;
     }
-    if (*(int16_t *)(act + 0xa0) == 1) {
+    if (((struct actor *)act)->mode_data.charge.stage == 1) {
         act[0x426] = (uint8_t)(act[0xc1] == 0);
         act[0x427] = (uint8_t)(act[0xc1] == 0);
     } else if (!act[0x428] && (actor_flags & 0x10000)) {
@@ -62,16 +62,16 @@ void actor_mode_charge_update(datum_index actor_index)
         *(int32_t *)(act + 0x450) = *(int32_t *)(act + 0xbc);
         act[0xa7] = 1;
         act[0xa8] = 0;
-        *(int32_t *)(act + 0xac) = game_time->game_time;
-        *(int16_t *)(act + 0xaa) = 0;
+        ((struct actor *)act)->mode_data.charge.stage_start_time = game_time->game_time;
+        ((struct actor *)act)->mode_data.charge.stage_ticks = 0;
     }
     if (actor_flags & 0x100000) {
-        if (act[0x378] || *(int16_t *)(act + 0xa0) == 2 || *(int16_t *)(act + 0xa0) == 3) {
+        if (act[0x378] || ((struct actor *)act)->mode_data.charge.stage == 2 || ((struct actor *)act)->mode_data.charge.stage == 3) {
             act[0x428] = (uint8_t)(act[0xc4] && !act[0x427]);
         }
     }
     act[0x424] = 0;
     act[0x425] = 0;
     act[0x42a] = 1;
-    act[0x454] = (uint8_t)(*(int16_t *)(act + 0xa0) != 1);
+    act[0x454] = (uint8_t)(((struct actor *)act)->mode_data.charge.stage != 1);
 }
