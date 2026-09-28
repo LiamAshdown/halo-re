@@ -17,8 +17,8 @@
 extern data_array *actor_data; // 0x00880360
 
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
-    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
+    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
     real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
     datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack

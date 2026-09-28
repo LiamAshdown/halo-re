@@ -71,8 +71,8 @@ extern uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t 
 extern uint8_t path_find_run(path_find_context *context);                  // 0x43a8b0, not yet rewritten
 extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare); // 0x449590, EAX count, ECX elements, stack compare
 extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction, real_point3d *point); // 0x4cde30, EAX, ECX, EDX
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
-    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
+    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
 extern void unit_get_aiming_vector(uint32_t unit_index, real_vector3d *out); // 0x5696f0, ECX, EAX
 
 extern uint8_t actor_firing_position_compare(int32_t element, int32_t other); // 0x4127b0, src/ai/actor_firing_position_compare.c

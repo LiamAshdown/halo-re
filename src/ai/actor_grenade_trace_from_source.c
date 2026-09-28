@@ -25,8 +25,8 @@
 extern data_array *actor_data; // 0x00880360
 
 // 0x569190, not yet rewritten (a different module): refreshes some per-actor cached point.
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
-    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
+    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
 // 0x505880, not yet rewritten (a different module): a generic trace/raycast request.
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 

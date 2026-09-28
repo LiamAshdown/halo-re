@@ -26,8 +26,8 @@ extern data_array *prop_data; // 0x008802c0
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point,
-    uint32_t param_4, uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
+    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
     real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
     datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack

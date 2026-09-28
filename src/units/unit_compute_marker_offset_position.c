@@ -6,10 +6,10 @@
 //   tag offsets 0x400/0x404 are UNSURE (not yet named -- likely a pair of marker-position
 //   fields blended by base_animation_state).
 // register convention: object index in ECX, a direction vector in EDX, a mode selector in the
-//   low 16 bits of EBX, and the output position accumulator in ESI; param_1/param_2 are
+//   low 16 bits of EBX, and the output position accumulator in ESI; base_position/offsets are
 //   Ghidra-recognized stack parameters.
 //   // blam-cc: ECX -> object_index, EDX -> reference_direction, BX -> mode, ESI -> out_position,
-//   //           stack -> param_1, param_2
+//   //           stack -> base_position, offsets
 // reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 
 #include "tags.h"
@@ -33,14 +33,14 @@ extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x
 
 // Fills out_position with a blend-mode-dependent offset position for a unit marker/attachment
 // point. Mode 0 just copies the object's position. Any other mode seeds out_position from
-// param_1, and mode 3 additionally offsets it along reference_direction and a perpendicular
-// built from param_2. The Z component is then blended between the Unit tag's two marker Z
+// base_position, and mode 3 additionally offsets it along reference_direction and a perpendicular
+// built from offsets. The Z component is then blended between the Unit tag's two marker Z
 // offsets (0x400/0x404, UNSURE) by a fraction that is 0/1 for modes 1/2, or the biped's
 // crouch_fraction (rate-limited toward the base_animation_state==3 "crouching" target when
 // mid-transition) for every other mode.
 void unit_compute_marker_offset_position(uint32_t object_index, real_vector3d *reference_direction,
-                                          int16_t mode, real_point3d *out_position, float *param_1,
-                                          float *param_2)
+                                          int16_t mode, real_point3d *out_position, float *base_position,
+                                          float *offsets)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
@@ -52,14 +52,14 @@ void unit_compute_marker_offset_position(uint32_t object_index, real_vector3d *r
     if (mode == 0) {
         object_get_position(out_position, object_index); // 0x55a1a3: EAX = out (esi), ECX = the unit
     } else {
-        *out_position = *(real_point3d *)param_1;
+        *out_position = *(real_point3d *)base_position;
         if (mode == 3) {
-            out_position->x += param_2[0] * reference_direction->i;
-            out_position->y += param_2[0] * reference_direction->j;
-            out_position->z += param_2[0] * reference_direction->k;
-            out_position->x += param_2[1] * -reference_direction->j;
-            out_position->y += param_2[1] * reference_direction->i;
-            out_position->z = (out_position->z + param_2[1] * 0.0f) + param_2[2];
+            out_position->x += offsets[0] * reference_direction->i;
+            out_position->y += offsets[0] * reference_direction->j;
+            out_position->z += offsets[0] * reference_direction->k;
+            out_position->x += offsets[1] * -reference_direction->j;
+            out_position->y += offsets[1] * reference_direction->i;
+            out_position->z = (out_position->z + offsets[1] * 0.0f) + offsets[2];
             return;
         }
     }

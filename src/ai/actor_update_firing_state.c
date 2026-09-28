@@ -61,8 +61,8 @@ extern uint8_t weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_
     uint8_t *out_used_straight_line); // 0x4c2b40, EAX, CX, stack
 extern real weapon_trigger_projectile_time_fraction(datum_index item_index, int16_t trigger_index, real elapsed); // 0x4c2be0, EAX, CX, stack
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t param_2, float *world_point, uint32_t param_4,
-    uint32_t param_5, real_point3d *accumulator); // 0x569190, stack, EAX
+extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point, uint32_t reference_direction,
+    uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX
 extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta); // 0x56d160, EAX, DX, stack
 
 #define F(p, o) (*(float *)((p) + (o)))
