@@ -42,7 +42,7 @@ extern char game_engine_announce_time_remaining(void); // 0x45cae0, not in this 
 extern void game_engine_begin_end_game_sequence(void); // 0x45fd90, this batch
 extern void sound_class_set_gain_by_name(const char *class_name, float gain, int32_t ticks); // 0x545390
 extern void game_engine_end_game_sequence_stage2(void); // 0x4670f0, not in this batch
-extern void game_engine_send_end_game_notification(void); // 0x4671d0, not in this batch
+extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
 extern void network_server_advance_connect_state(void); // 0x4df290, not in this batch
 
 extern char idle_ambient_sound_class_name[]; // 0x0065512c, UNSURE exact contents (a sound class name)
@@ -118,7 +118,7 @@ void game_engine_tick(void)
         game_engine_end_game_timer = game_engine_end_game_timer - 0.033333335f;
         if (game_engine_end_game_timer <= 0.0f && network_game_mode == 2) {
             game_engine_end_game_sequence_stage2();
-            game_engine_send_end_game_notification();
+            game_engine_send_end_game_notification(2); // FIXED 2026-09-28: 0x4601bf loads EAX = 2
             network_server_advance_connect_state();
         }
     }

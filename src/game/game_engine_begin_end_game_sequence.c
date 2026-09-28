@@ -18,7 +18,7 @@ extern game_engine_state game_engine_state_value; // 0x0087aa10, renamed to avoi
 extern uint8_t *network_session;       // 0x0071c2d4
 extern float game_engine_end_game_timer; // 0x0087aa08
 
-extern void game_engine_send_end_game_notification(void); // 0x4671d0, not in this batch
+extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void widget_close_all(void); // 0x498650
 
@@ -34,7 +34,7 @@ void game_engine_begin_end_game_sequence(void)
         game_engine_end_game_timer = 7.0f;
         game_engine_queue_multiplayer_sound(1, 0xffffffff, 0); // 0x45fdb1..0x45fdcf
         widget_close_all();
-        game_engine_send_end_game_notification();
+        game_engine_send_end_game_notification(1); // FIXED 2026-09-28: 0x45fddd loads EAX = 1
     }
 }
 

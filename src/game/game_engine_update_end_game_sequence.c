@@ -30,7 +30,7 @@ extern uint8_t unknown_007124a0;                    // UNSURE identity/owning mo
 extern uint8_t unknown_007124a1;                    // UNSURE identity/owning module
 
 extern void game_engine_end_game_sequence_stage3(void); // 0x467180, not in this batch
-extern void game_engine_send_end_game_notification(void); // 0x4671d0, not in this batch
+extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
 extern char input_get_key_state(void); // 0x490b50, not in this batch
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 extern void chat_close(void); // 0x4aa900
@@ -56,7 +56,7 @@ void game_engine_update_end_game_sequence(float delta_time)
             return;
         }
         game_engine_end_game_sequence_stage3();
-        game_engine_send_end_game_notification();
+        game_engine_send_end_game_notification(3); // FIXED 2026-09-28: 0x45ff17 loads EAX = 3
         return;
     }
 
