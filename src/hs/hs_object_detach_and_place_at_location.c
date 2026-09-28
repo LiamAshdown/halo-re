@@ -42,7 +42,7 @@ extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
     real_point3d *position); // 0x4f51c0, stack, EDI position
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-    uint32_t param_4); // 0x4f6080
+    uint32_t maximum_markers); // 0x4f6080
 extern void object_reset_velocity_and_wake(uint32_t object_index); // 0x4f5160
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
 extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset); // 0x475c60

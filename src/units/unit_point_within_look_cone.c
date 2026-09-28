@@ -26,7 +26,7 @@ extern char ai_marker_name_a[]; // 0x0066bfa0, shared with unit_get_primary_eye_
 extern double fcos(double x);
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-                                                uint32_t param_4); // 0x4f6080
+                                                uint32_t maximum_markers); // 0x4f6080
 
 uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point)
     // blam-cc: param_1, in_ECX, unaff_EDI

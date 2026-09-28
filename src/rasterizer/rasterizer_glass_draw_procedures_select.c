@@ -21,7 +21,7 @@ extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c
 extern void *rasterizer_glass_draw_procedures[3];                // 0x007c0480
 
 extern void rasterizer_glass_tint_draw_fixed_function(transparent_geometry_group *group);   // 0x523980
-extern void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group *group, uint32_t param_2); // 0x523b90
+extern void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group *group, uint32_t reflection_kind); // 0x523b90
 extern void rasterizer_glass_diffuse_draw_fixed_function(transparent_geometry_group *group); // 0x523d10
 extern void rasterizer_glass_tint_draw(transparent_geometry_group *group); // 0x522930
 extern void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t reflection_kind); // 0x522c60

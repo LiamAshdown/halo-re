@@ -49,7 +49,7 @@ extern char ai_marker_name_a[]; // 0x0066bfa0
 
 extern void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uint8_t status); // 0x42ba80
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-    uint32_t param_4); // 0x4f6080
+    uint32_t maximum_markers); // 0x4f6080
 extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
 extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, EAX
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,

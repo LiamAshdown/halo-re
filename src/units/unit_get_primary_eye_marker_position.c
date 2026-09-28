@@ -22,7 +22,7 @@
 extern char ai_marker_name_a[]; // 0x0066bfa0, UNSURE exact text
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-                                                uint32_t param_4); // 0x4f6080
+                                                uint32_t maximum_markers); // 0x4f6080
 
 void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out) // blam-cc: ECX -> object_index, ESI -> out
 {

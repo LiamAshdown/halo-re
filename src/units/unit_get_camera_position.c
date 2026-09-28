@@ -39,7 +39,7 @@ extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-                                                uint32_t param_4); // 0x4f6080
+                                                uint32_t maximum_markers); // 0x4f6080
 
 void unit_get_camera_position(uint32_t unit_index, real_point3d *out) // blam-cc: in_ECX -> unit_index, unaff_EDI -> out
 {

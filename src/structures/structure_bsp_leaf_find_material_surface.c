@@ -26,7 +26,7 @@
 // UNSURE: 0x4ce8c0's own contract (math module, not rewritten). It is called with three triangle
 //   vertices, the query point and two opaque forwarded values, and its boolean result gates the
 //   match, which is what makes "point inside this triangle" the reading; its last two arguments
-//   (this function's param_6 / param_7, themselves forwarded straight from
+//   (this function's out_barycentric_u / out_barycentric_v, themselves forwarded straight from
 //   structure_bsp_resolve_position_to_surface's own caller) are not resolved here.
 
 #include "tags.h"
@@ -53,8 +53,8 @@ extern uint8_t triangle_point_barycentric_2d(real_point3d *a, real_point3d *v_ec
 uint8_t structure_bsp_leaf_find_material_surface(real_point3d *point, int32_t accepted_plane,
                                                   int16_t *out_lightmap_index,
                                                   int16_t *out_material_index,
-                                                  int32_t *out_surface, void *param_6,
-                                                  void *param_7, int32_t raw_child)
+                                                  int32_t *out_surface, void *out_barycentric_u,
+                                                  void *out_barycentric_v, int32_t raw_child)
 {
     int32_t leaf_index = raw_child & 0x7fffffff;
     ScenarioStructureBSPLeaf *leaf =
@@ -117,7 +117,7 @@ uint8_t structure_bsp_leaf_find_material_surface(real_point3d *point, int32_t ac
         // 0x555141..0x55514d: EAX = &triangle[0], EDX = &triangle[1], ECX = &triangle[2] -- the definition's second
         // parameter is the ECX one, so triangle[2] goes second
         if (triangle_point_barycentric_2d(&triangle[0], &triangle[2], &triangle[1], point,
-                                          (real *)param_6, (real *)param_7)) {
+                                          (real *)out_barycentric_u, (real *)out_barycentric_v)) {
             *out_surface = surface_index;
             return 1;
         }

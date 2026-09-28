@@ -9,9 +9,9 @@
 //   an object_headers element, tag_instance.data at +0x14 of a 0x20-stride tag_instances element);
 //   callee name object_set_permutation_by_name.
 // register convention: object index in EAX (in_EAX); permutation name string in EBX (unaff_EBX);
-//   the value forwarded unchanged to object_set_permutation_by_name (param_2) as the recognized
+//   the value forwarded unchanged to object_set_permutation_by_name (permutation_name) as the recognized
 //   stack parameter.
-//   // blam-cc: EBX -> name, stack -> object_index, param_2
+//   // blam-cc: EBX -> name, stack -> object_index, permutation_name
 // UNSURE: the two-level tag lookup (object's own tag -> a referenced tag's permutations list at
 // definition+200/+0xc4, stride 0x4c) is preserved exactly by offset, but the intermediate tag
 // group/field names (a model tag's permutations block, most likely) are not established anywhere
@@ -33,7 +33,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 // by object_index's own tag definition (offset 0x34 of that definition), and forwards the
 // matched index (or -1 for an empty name, not found, or a missing reference) to
 // object_set_permutation_by_name.
-void hs_object_set_permutation_by_name(datum_index object_index, void *param_2, char *name)
+void hs_object_set_permutation_by_name(datum_index object_index, void *permutation_name, char *name)
 {
     void **object_data;
     uint32_t referenced_tag_id;
@@ -67,7 +67,7 @@ void hs_object_set_permutation_by_name(datum_index object_index, void *param_2, 
         }
         // FIXED (0x48871d..0x488731): EAX = the object, stack (permutation name, region index, 1); the
         //   draft dropped the object.
-        object_set_permutation_by_name(object_index, (char *)param_2, (int16_t)match_index, 1);
+        object_set_permutation_by_name(object_index, (char *)permutation_name, (int16_t)match_index, 1);
     }
 }
 

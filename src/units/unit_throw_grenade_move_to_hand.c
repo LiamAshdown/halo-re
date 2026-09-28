@@ -34,7 +34,7 @@ extern real vector3d_normalize_with_length(real_vector3d *v);                   
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);    // 0x4cd670, UNSURE signature
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role); // 0x4f53a0, UNSURE signature
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0, UNSURE signature
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t param_4); // 0x4f6080
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers); // 0x4f6080
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index); // 0x4f6440, UNSURE signature
 
 void unit_throw_grenade_move_to_hand(uint32_t unit_index)

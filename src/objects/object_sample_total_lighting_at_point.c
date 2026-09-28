@@ -47,8 +47,8 @@ extern uint8_t light_render_unknown_7c0;               // 0x008607c0, UNSURE nam
 extern data_array *light_data;                         // 0x00860b14
 
 extern uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position,
-    real_point3d *position, int16_t *out_lightmap_index, void *param_7, real_vector3d *direction,
-    int16_t *out_material_index, int32_t *out_surface, void *param_6);
+    real_point3d *position, int16_t *out_lightmap_index, void *out_barycentric_v, real_vector3d *direction,
+    int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u);
     // 0x555190, blam-cc: EAX start_position, ESI position, EDI out_lightmap_index, EBX param_7, rest on the stack
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
     // 0x43f250, blam-cc: EAX bitmap_tag_index, DX bitmap_data_index

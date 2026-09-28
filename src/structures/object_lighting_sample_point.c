@@ -60,9 +60,9 @@ extern real_vector3d object_lightmap_probe_direction[1];      // 0x0065dd94, (0,
 extern real_vector3d object_lighting_probe_sideways[4];  // 0x0065dda0, (+-10, 0, 0), (0, +-10, 0)
 
 extern uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position,
-    real_point3d *position, int16_t *out_lightmap_index, void *param_7, real_vector3d *direction,
-    int16_t *out_material_index, int32_t *out_surface, void *param_6);
-    // 0x555190, blam-cc: EAX start_position, ESI position, EDI out_lightmap_index, EBX param_7, rest on the stack
+    real_point3d *position, int16_t *out_lightmap_index, void *out_barycentric_v, real_vector3d *direction,
+    int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u);
+    // 0x555190, blam-cc: EAX start_position, ESI position, EDI out_lightmap_index, EBX out_barycentric_v, rest on the stack
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
     // 0x43f250, blam-cc: EAX bitmap_tag_index, DX bitmap_data_index
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);

@@ -42,7 +42,7 @@ extern const ColorRGB *global_white_color; // 0x00686b04. Ghidra names the
 extern datum_index datum_new(data_array *array); // 0x4d0480
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
-    object_marker *marker, uint32_t param_4); // 0x4f6080, objects module
+    object_marker *marker, uint32_t maximum_markers); // 0x4f6080, objects module
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
     real_vector3d *out_angular_velocity); // 0x4f6aa0, objects module
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector,

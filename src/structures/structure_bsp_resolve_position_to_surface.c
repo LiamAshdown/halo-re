@@ -22,9 +22,9 @@
 //           collision_result, recorded here rather than edited into that header from this module.
 //     +0x4c surface_flags    -> bit 0 gates the retry; with it clear the walk gives up.
 // register convention: EAX -> start_position, ESI -> position (in/out), EDI -> out_lightmap_index,
-//   EBX -> param_7 (forwarded). Stack: direction, out_material_index, out_surface, param_6.
-//   // blam-cc: EAX -> start_position, ESI -> position, EDI -> out_lightmap_index, EBX -> param_7
-// UNSURE: the two forwarded opaque values (param_6 / param_7) end up as the last two arguments of
+//   EBX -> out_barycentric_v (forwarded). Stack: direction, out_material_index, out_surface, out_barycentric_u.
+//   // blam-cc: EAX -> start_position, ESI -> position, EDI -> out_lightmap_index, EBX -> out_barycentric_v
+// UNSURE: the two forwarded opaque values (out_barycentric_u / out_barycentric_v) end up as the last two arguments of
 //   0x4ce8c0 inside structure_bsp_leaf_find_material_surface and are never inspected on this path.
 // reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
@@ -45,21 +45,21 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
 
 // blam-cc: EAX -> raw_child, stack -> the rest
 extern uint8_t structure_bsp_leaf_find_material_surface(real_point3d *point, int32_t accepted_plane,
-    int16_t *out_lightmap_index, int16_t *out_material_index, int32_t *out_surface, void *param_6,
-    void *param_7, int32_t raw_child); // 0x554fa0, this module
+    int16_t *out_lightmap_index, int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u,
+    void *out_barycentric_v, int32_t raw_child); // 0x554fa0, this module
 
 // Walks forward from `start_position` along `direction`, casting a collision segment each step,
 // until one of the surfaces it hits resolves to a BSP surface whose lightmap actually has a
 // bitmap. `position` ends holding the contact point of the accepted hit. Each failed step nudges
 // the position 1/4096 further along the direction and tries again, but only while the last hit
 // surface's flags bit 0 allows it; otherwise the walk fails.
-// blam-cc: EAX -> start_position, ESI -> position, EDI -> out_lightmap_index, EBX -> param_7
+// blam-cc: EAX -> start_position, ESI -> position, EDI -> out_lightmap_index, EBX -> out_barycentric_v
 uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position,
                                                    real_point3d *position,
-                                                   int16_t *out_lightmap_index, void *param_7,
+                                                   int16_t *out_lightmap_index, void *out_barycentric_v,
                                                    real_vector3d *direction,
                                                    int16_t *out_material_index,
-                                                   int32_t *out_surface, void *param_6)
+                                                   int32_t *out_surface, void *out_barycentric_u)
 {
     collision_result result;
 
@@ -75,7 +75,7 @@ uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position,
 
         if (structure_bsp_leaf_find_material_surface(position,
                 (int32_t)(result.plane_index & 0x7fffffff), out_lightmap_index, out_material_index,
-                out_surface, param_6, param_7, result.leaf.leaf_index)) {
+                out_surface, out_barycentric_u, out_barycentric_v, result.leaf.leaf_index)) {
             lightmaps = (ScenarioStructureBSPLightmap *)global_structure_bsp->lightmaps.pointer;
             if (lightmaps[*out_lightmap_index].bitmap != 0xffff) {
                 return 1;

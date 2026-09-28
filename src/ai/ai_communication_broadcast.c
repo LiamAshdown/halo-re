@@ -78,7 +78,7 @@ extern void ai_communication_play_event_line(datum_index object_index, int16_t e
     datum_index explicit_speaker_actor_index, uint32_t *event_record); // 0x42eee0
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-    uint32_t param_4); // 0x4f6080
+    uint32_t maximum_markers); // 0x4f6080
 extern uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command,
     const real_vector2d *direction); // 0x569530
 extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index,

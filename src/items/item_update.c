@@ -62,7 +62,7 @@ extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d 
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-    uint32_t param_4); // 0x4f6080
+    uint32_t maximum_markers); // 0x4f6080
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern int8_t breakable_surface_is_intact(int16_t bit_index); // 0x4ffda0, AX
 extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer); // 0x4bd080, EAX, stack

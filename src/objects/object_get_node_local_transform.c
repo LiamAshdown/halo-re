@@ -9,7 +9,7 @@
 //   _object_mirrored_geometry_bit, nodes.offset 0x1f2); types/math.h real_matrix4x3
 //   (scale/forward/left/up/position); callee model_markers_get_by_name 0x4d7850.
 // register convention (corrected, see FIXED below): all four arguments on the stack -- object index,
-//   marker name, destination object_marker*, and param_4, forwarded unchanged to
+//   marker name, destination object_marker*, and maximum_markers, forwarded unchanged to
 //   model_markers_get_by_name.
 // UNSURE: when re-deriving the identity-fallback field offsets by hand from the decompiled
 //   pointer arithmetic (param_3 is a short* here, so "param_3+N" is a byte offset of 2*N), the
@@ -37,18 +37,18 @@ extern int16_t model_markers_get_by_name(datum_index model_tag_id, const char *n
 // FIXED (objdump 0x4f6080): all four arguments are on the stack in declaration order ([esp+4] object index,
 //   [esp+0x10] from entry the flag); the notes named EAX/ECX/EDX, which the original never reads.
 int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-                                         uint32_t param_4)
-    // blam-cc: stack -> object_index, marker_name, marker, param_4
+                                         uint32_t maximum_markers)
+    // blam-cc: stack -> object_index, marker_name, marker, maximum_markers
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     void *node_array = (uint8_t *)obj + obj->nodes.offset;
     // 0x4f60b2..0x4f60e4: ECX = the object definition's model tag (+0x34), EAX = the marker name; on the stack
     // the region permutations (+0x180), no node remap, the node matrices, the mirrored bit (flags bit 12),
-    // the output marker and param_4 as the maximum
+    // the output marker and maximum_markers as the maximum
     int32_t result = model_markers_get_by_name(
         *(datum_index *)((uint8_t *)tag_instances[obj->definition_tag & 0xffff].data + 0x34), marker_name,
         (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1),
-        marker, (int16_t)param_4);
+        marker, (int16_t)maximum_markers);
 
     if ((int16_t)result == 0) {
         marker->node_index = 0;

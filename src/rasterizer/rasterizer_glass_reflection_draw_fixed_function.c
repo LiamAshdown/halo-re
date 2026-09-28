@@ -11,7 +11,7 @@
 // rasterizer_glass_tint_draw_fixed_function.c's vertex-type dispatch, with a fixed literal decal color
 // (0x3cffffff) instead of one packed from group->tint, and delegating to
 // rasterizer_glass_reflection_draw (0x522c60) for vertex type 4.
-// register convention: param_1, param_2 as the recognized parameters (param_2's role is not
+// register convention: param_1, reflection_kind as the recognized parameters (reflection_kind's role is not
 // established here; forwarded unchanged to the vertex-type-4 delegate).
 
 #include "tags.h"
@@ -36,7 +36,7 @@ typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group *group, uint32_t param_2)
+void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group *group, uint32_t reflection_kind)
 {
     int16_t vertex_type;
     void **vtable;
@@ -56,7 +56,7 @@ void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group 
     }
 
     if (vertex_type == 4) {
-        rasterizer_glass_reflection_draw(group, (int16_t)param_2);
+        rasterizer_glass_reflection_draw(group, (int16_t)reflection_kind);
         return;
     }
 

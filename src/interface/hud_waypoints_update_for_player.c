@@ -28,7 +28,7 @@ extern Scenario *global_scenario; // 0x00746f8c
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f1888
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-                                               uint32_t param_4); // 0x4f6080
+                                               uint32_t maximum_markers); // 0x4f6080
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern void object_get_center_of_mass_and_scale(real_point3d *out_center, uint32_t object_index,
                                                 float *out_radius); // 0x4088e0, blam-cc: EAX out_center, ECX object_index

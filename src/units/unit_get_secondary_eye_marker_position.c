@@ -18,7 +18,7 @@
 extern char ai_marker_name_b[]; // 0x00672034, "body" (an array: its address is the marker name)
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-                                                uint32_t param_4); // 0x4f6080
+                                                uint32_t maximum_markers); // 0x4f6080
 
 void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out) // blam-cc: ECX -> object_index, ESI -> out
 {
