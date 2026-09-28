@@ -9,7 +9,7 @@
 // blam-cc: stack -> object_index, force_full_scan
 //
 // UNSURE: actor+0xa8 (read/cleared here only when force_full_scan and actor.mode == 12,
-// _actor_mode_conversation) falls inside types/ai.h's actor.mode_data union at offset 0x0c;
+// _actor_mode_conversation) falls inside types/ai.h's actor.mode_data.raw union at offset 0x0c;
 // not independently named there.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
@@ -77,8 +77,8 @@ void ai_conversation_clear_object_references(datum_index object_index, uint8_t f
                         referenced = 1;
                     }
                     if (force_full_scan != 0) {
-                        if (a->mode == 12 && *(int32_t *)(a->mode_data + 0x0c) == (int32_t)object_index) {
-                            *(int32_t *)(a->mode_data + 0x0c) = -1;
+                        if (a->mode == 12 && *(int32_t *)(a->mode_data.raw + 0x0c) == (int32_t)object_index) {
+                            *(int32_t *)(a->mode_data.raw + 0x0c) = -1;
                         }
                         if (a->conversation_participant == object_index) {
                             a->conversation_participant = (datum_index)k_datum_index_none;

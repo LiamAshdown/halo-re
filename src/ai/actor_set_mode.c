@@ -2,7 +2,7 @@
 // address 0x40d8d0, size 236 bytes
 // name confidence: 0.5   rewrite confidence: 0.7
 // evidence: types/ai.h actor_mode_definition (exit_proc +0x18, combat_grade +0x04,
-//   data_size +0x00, enter_proc +0x08, table at 0x00655254) and actor.mode_data /
+//   data_size +0x00, enter_proc +0x08, table at 0x00655254) and actor.mode_data.raw /
 //   recognition[4] / awareness_level, all cited as established by this function.
 // register convention: already a full C signature in the decompilation
 //   (actor_index, mode, mode_data pointer); no unresolved registers.
@@ -17,7 +17,7 @@ extern actor_mode_definition actor_mode_definitions[16];  // 0x00655254
 
 // Central actor mode setter: runs the outgoing mode's exit callback, clamps or raises
 // awareness_level depending on the new mode's combat_grade, clears the recognition-history
-// ring, copies up to data_size bytes of mode-specific data into actor.mode_data, commits
+// ring, copies up to data_size bytes of mode-specific data into actor.mode_data.raw, commits
 // the new mode number and mode_changed flag, then runs the new mode's enter callback.
 void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data)
 {
@@ -50,7 +50,7 @@ void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data)
     data_size = actor_mode_definitions[mode].data_size;
     if (data_size != 0 && mode_data != 0) {
         uint8_t *src = (uint8_t *)mode_data;
-        uint8_t *dst = self->mode_data;
+        uint8_t *dst = self->mode_data.raw;
         uint32_t n;
         for (n = data_size >> 2; n != 0; n--) {
             *(uint32_t *)dst = *(uint32_t *)src;

@@ -27,7 +27,7 @@ int16_t ai_count_actors_in_mode9_group(int32_t group_id)
     actor_iterator_new(&iterator, 0);
     a = actor_iterator_next(&iterator);
     while (a != 0) {
-        if (a->mode == _actor_mode_vocalize && *(int32_t *)a->mode_data == group_id) {
+        if (a->mode == _actor_mode_vocalize && *(int32_t *)a->mode_data.raw == group_id) {
             count = count + 1;
         }
         a = actor_iterator_next(&iterator);

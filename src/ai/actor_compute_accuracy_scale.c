@@ -35,8 +35,8 @@ float actor_compute_accuracy_scale(datum_index actor_index)
         scale = *(float *)((uint8_t *)tag_data + 0x384); // UNSURE offset
     }
 
-    if (self->mode == 11 && self->mode_data[0x54] != 0) { // UNSURE offset (mode_data union)
-        scale = *(float *)&self->mode_data[0x58]; // UNSURE offset
+    if (self->mode == 11 && self->mode_data.raw[0x54] != 0) { // UNSURE offset (mode_data union)
+        scale = *(float *)&self->mode_data.raw[0x58]; // UNSURE offset
     }
     if (self->mode == 9) {
         return 0.7f;

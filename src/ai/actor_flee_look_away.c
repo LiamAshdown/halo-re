@@ -32,7 +32,7 @@ uint32_t actor_flee_look_away(datum_index actor_index)
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     result = 0;
-    if (self->mode == _actor_mode_death && self->mode_data[0xab - 0x9c] != 0) {
+    if (self->mode == _actor_mode_death && self->mode_data.raw[0xab - 0x9c] != 0) {
         // 0x40d4f0: a look order from the flee mode's request (+0x9c), then guard (mode 6) with it
         uint8_t order[0x84];    // [esp+0x8]
 

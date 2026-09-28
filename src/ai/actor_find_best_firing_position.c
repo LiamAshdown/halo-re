@@ -14,7 +14,7 @@
 //   * four callees -- encounter_build_firing_position_claims, actor_get_ranged_attack_vector, unit_get_aiming_vector and
 //     actor_target_get_relationship_object -- are invoked with no visible arguments at all.
 //     What is passed below is what the live values in the frame allow.
-//   * actor+0xb8 is read as a prop handle. It falls inside actor.mode_data (offset 0x1c),
+//   * actor+0xb8 is read as a prop handle. It falls inside actor.mode_data.raw (offset 0x1c),
 //     which is consistent with mode 4 keeping a prop there, but is not independently proven.
 //   * actor+0x270, which types/ai.h calls target_unit_index, is indexed into prop_data at
 //     stride 0x138 here, i.e. it is a prop handle and not a unit object handle. Preserved as
@@ -156,8 +156,8 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
     // ------------------------------------------------------------------ threat block
     if (query->have_explicit_target == 0) {
         prop_index = (datum_index)0xffffffff;
-        if (self->mode == 4 && *(uint32_t *)&self->mode_data[0x1c] != 0xffffffff) {
-            prop_index = *(datum_index *)&self->mode_data[0x1c];
+        if (self->mode == 4 && *(uint32_t *)&self->mode_data.raw[0x1c] != 0xffffffff) {
+            prop_index = *(datum_index *)&self->mode_data.raw[0x1c];
         } else {
             prop_index = (datum_index)self->target_unit_index; // a prop handle here, see UNSURE
         }

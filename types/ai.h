@@ -224,6 +224,24 @@ typedef struct actor_recognition_entry {
     int16_t firing_position_index;    // 0x02 index into the encounter ScenarioFiringPosition block
 } actor_recognition_entry; // size 0x4
 
+// actor.mode_data: the current mode's state, laid out per mode (actor_set_mode copies the mode's initial data,
+// actor_mode_definition.data_size bytes). raw is the byte view; the per-mode views name what each mode's
+// functions (actor_mode_<mode>_*) use, relative to actor + 0x9c.
+typedef struct actor_mode_wait_data {
+    uint8_t unknown_00[3];              // 0x00
+    uint8_t unknown_03;                 // 0x03 (actor + 0x9f) while clear, countdown_0c runs
+    uint8_t unknown_04[4];              // 0x04
+    int32_t start_game_time;            // 0x08 game_time when waiting began; process gives up after 2700 ticks
+    int16_t countdown_0c;               // 0x0c counted down by the tick while unknown_03 is clear
+    int16_t countdown_150;              // 0x0e counted down by the tick; process re-arms it at 150
+    int16_t random_countdown;           // 0x10 counted down by the tick; re-armed at 300..599 (random)
+} actor_mode_wait_data;
+typedef union actor_mode_data {
+    uint8_t raw[0x84];
+    actor_mode_wait_data wait;
+} actor_mode_data;                      // size 0x84
+typedef char actor_mode_data_size[sizeof(actor_mode_data) == 0x84 ? 1 : -1];
+
 typedef struct actor {
     int16_t identifier;               // 0x00 datum_header
     uint8_t unknown_02[2];            // 0x02
@@ -290,7 +308,7 @@ typedef struct actor {
     uint8_t unknown_98;               // 0x98 actor_new sets 0
     uint8_t flying;                   // 0x99 Actor.flags bit 21 "flying"; read by every steering and step-test routine
     uint8_t unknown_9a[2];            // 0x9a
-    uint8_t mode_data[0x84];          // 0x9c actor_set_mode memcpys actor_mode_definition.data_size bytes here.
+    actor_mode_data mode_data;        // 0x9c actor_set_mode memcpys actor_mode_definition.data_size bytes here.
                                       //   0x84 and not 0xbc: actor_play_first_valid_vocalization
                                       //   @0x40e260 reserves exactly 132 bytes of stack for the block it
                                       //   hands to actor_set_mode, and the two points below are refreshed

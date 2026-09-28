@@ -69,7 +69,7 @@ void actor_react_to_registered_danger(const real_point3d *point, datum_index act
     }
 
     if (self->awareness_level > 1 && self->vocalization_line < 4 &&
-        (self->mode != 11 || self->mode_data[3] != 0) && self->vocalization_unknown_3e8 < 7) {
+        (self->mode != 11 || self->mode_data.raw[3] != 0) && self->vocalization_unknown_3e8 < 7) {
         float wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 1.8f : 0.9f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {

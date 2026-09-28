@@ -32,8 +32,8 @@ uint8_t actor_targets_share_descriptor(datum_index actor_a, datum_index actor_b)
     self_a = (actor *)((uint8_t *)actor_data->data + (actor_a & 0xffff) * sizeof(actor));
     self_b = (actor *)((uint8_t *)actor_data->data + (actor_b & 0xffff) * sizeof(actor));
 
-    desc_a = (self_a->mode == 7 || self_a->mode == 5) ? (int16_t *)&self_a->mode_data[8] : (int16_t *)0;
-    desc_b = (self_b->mode == 7 || self_b->mode == 5) ? (int16_t *)&self_b->mode_data[8] : (int16_t *)0;
+    desc_a = (self_a->mode == 7 || self_a->mode == 5) ? (int16_t *)&self_a->mode_data.raw[8] : (int16_t *)0;
+    desc_b = (self_b->mode == 7 || self_b->mode == 5) ? (int16_t *)&self_b->mode_data.raw[8] : (int16_t *)0;
 
     if (desc_a == (int16_t *)0 || desc_b == (int16_t *)0) {
         return 0;

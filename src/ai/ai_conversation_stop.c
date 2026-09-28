@@ -68,7 +68,7 @@ void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t
             a->conversation_index = (datum_index)k_datum_index_none;
             a->conversation_participant = (datum_index)k_datum_index_none;
             if (a->mode == 12) {
-                *(int32_t *)a->mode_data = -1;
+                *(int32_t *)a->mode_data.raw = -1;
             }
         }
     }

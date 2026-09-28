@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.5
 // evidence: types/ai.h actor.unknown_2e8[4] (0x2ec), actor.awareness_level (0x6a),
 //   actor.vocalization_line/variant/state (0x544/0x546/0x548),
-//   actor.vocalization_unknown_54c/550/554/558, actor.mode (0x6c), actor.mode_data[3] (0x9f),
+//   actor.vocalization_unknown_54c/550/554/558, actor.mode (0x6c), actor.mode_data.raw[3] (0x9f),
 //   actor.unknown_6e; prop.is_unit (0x60), prop.unknown_e0; types/tags.h
 //   Actor.event_look_time_modifier[2] (0xd4/0xd8, matches the 0.5/2.0-clamped random
 //   multiplier read here identically to actor_queue_perceived_sighting_dialogue @0x421c20).
@@ -104,7 +104,7 @@ void actor_queue_directional_reaction_event(const real_vector3d *direction, datu
     actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
 
     if (self->awareness_level > 1 && self->vocalization_line < 12 &&
-        (self->mode != 11 || self->mode_data[3] != 0) &&
+        (self->mode != 11 || self->mode_data.raw[3] != 0) &&
         (kind != 1 || datum_get(payload, prop_data) != 0)) {
         wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 5.0f : 2.5f;
 

@@ -1,7 +1,7 @@
 // actor_scan_ally_death_panic_reaction  (Ghidra: actor_scan_ally_death_panic_reaction, renamed)
 // address 0x4233d0, size 275 bytes
 // name confidence: 0.35   rewrite confidence: 0.9
-// evidence: types/ai.h actor.unknown_39c, actor.target_unit_index (0x270), actor.mode_data
+// evidence: types/ai.h actor.unknown_39c, actor.target_unit_index (0x270), actor.mode_data.raw
 //   (mode==4 is _actor_mode_death); prop.is_unit (0x60), prop.owner_actor_index (0x1c),
 //   prop.object_index (0x18); types/tags.h Actor.friend_killed_panic_chance (0x2a0),
 //   Actor.more_flags bit 0x20 "panic_in_groups". Calls random_real (math module),
@@ -62,8 +62,8 @@ void actor_scan_ally_death_panic_reaction(datum_index target_prop_index, datum_i
                 actor *owner = &((actor *)actor_data->data)[owner_actor_index & 0xffff];
                 if (owner->mode == _actor_mode_death) {
                     // mode_data[0x1c]: a prop index recorded for the killer, valid only in
-                    // death mode; see types/ai.h's actor.mode_data union.
-                    uint32_t killer_prop = *(uint32_t *)&owner->mode_data[0x1c];
+                    // death mode; see types/ai.h's actor.mode_data.raw union.
+                    uint32_t killer_prop = *(uint32_t *)&owner->mode_data.raw[0x1c];
                     if (killer_prop != (uint32_t)k_datum_index_none) {
                         prop *killer = &((prop *)prop_data->data)[killer_prop & 0xffff];
                         payload = actor_find_prop_for_object(killer->object_index, actor_index); // 0x4234c5: ECX = actor (ebx)

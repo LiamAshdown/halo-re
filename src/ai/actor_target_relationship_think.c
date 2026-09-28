@@ -67,7 +67,7 @@
 // UNSURE: a dead store (Ghidra's local_88, the actor's tag-data pointer, written once and never
 // read again) is dropped; it has no observable effect.
 // UNSURE: actor+0xb8, read in prop.kind case 4/5 only when actor.mode==4, falls inside
-// actor.mode_data (the per-mode union at actor+0x9c..0x11f) at relative offset 0x1c; accessed
+// actor.mode_data.raw (the per-mode union at actor+0x9c..0x11f) at relative offset 0x1c; accessed
 // as a raw offset since types/ai.h does not further break down mode_data's per-mode shape.
 
 #include "tags.h"
@@ -497,7 +497,7 @@ restart:
         }
 
         if (target_prop_index == self->unknown_3ac ||
-            (self->mode == 4 && *(uint32_t *)&self->mode_data[0x1c] == target_prop_index)) { // UNSURE, see file header
+            (self->mode == 4 && *(uint32_t *)&self->mode_data.raw[0x1c] == target_prop_index)) { // UNSURE, see file header
             penalty = 0;
         } else if (target_prop_index == self->target_unit_index) {
             penalty = (target->noticed_c != 0) ? 1 : 0;

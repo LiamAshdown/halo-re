@@ -20,7 +20,7 @@
 // outside this session's range; declared here to match only what is directly observable at
 // the call sites. datum_get's real arguments almost certainly are the just-resolved speaker
 // handle, but Ghidra shows none.
-//   UNSURE: actor+0x9f falls inside actor.mode_data (a per-mode union); read here as a
+//   UNSURE: actor+0x9f falls inside actor.mode_data.raw (a per-mode union); read here as a
 //   one-byte "already talking" gate for mode 11 (flee) specifically.
 //   UNSURE: local_8/local_4 (written to actor.vocalization_unknown_554/_558) and the upper
 //   16 bits of actor.vocalization_unknown_54c are never assigned anywhere in the

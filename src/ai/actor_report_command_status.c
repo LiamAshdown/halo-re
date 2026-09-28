@@ -8,7 +8,7 @@
 // register convention: actor index in EAX, the sole real parameter.
 //   // blam-cc: EAX -> actor_index
 // UNSURE: actor+0xa2 (a "reported already" byte) and actor+0xd8 (a datum, presumably a prop
-//   index given the 0x138 stride below) both fall inside actor.mode_data (a per-mode
+//   index given the 0x138 stride below) both fall inside actor.mode_data.raw (a per-mode
 //   union, see types/ai.h); not independently confirmed.
 
 #include "tags.h"
@@ -35,7 +35,7 @@ extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b); // 0x45bdb0,
 int32_t actor_report_command_status(uint32_t actor_index)
 {
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    uint8_t *already_reported = (uint8_t *)a->mode_data + (0xa2 - 0x9c);
+    uint8_t *already_reported = (uint8_t *)a->mode_data.raw + (0xa2 - 0x9c);
     uint32_t event_code = 0;
 
     if (*already_reported != 0) {
@@ -61,7 +61,7 @@ int32_t actor_report_command_status(uint32_t actor_index)
     }
 
     {
-        datum_index target_prop_index = *(datum_index *)((uint8_t *)a->mode_data + (0xd8 - 0x9c));
+        datum_index target_prop_index = *(datum_index *)((uint8_t *)a->mode_data.raw + (0xd8 - 0x9c));
         datum_index target_object = (datum_index)k_datum_index_none;
         int32_t target_state = -1;
 

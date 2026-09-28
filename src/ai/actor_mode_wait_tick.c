@@ -27,26 +27,26 @@ void actor_mode_wait_tick(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
     datum_index unit_index = ((actor *)act)->unit_index;
 
-    if (*(int16_t *)(act + 0xac) > 0) {
-        *(int16_t *)(act + 0xac) -= 1;
-        if (*(int16_t *)(act + 0xac) == 0) {
+    if (((struct actor *)act)->mode_data.wait.random_countdown > 0) {
+        ((struct actor *)act)->mode_data.wait.random_countdown -= 1;
+        if (((struct actor *)act)->mode_data.wait.random_countdown == 0) {
             if (unit_index != k_datum_index_none) {
                 ai_communication_broadcast(0x11, unit_index, -1, -1, -1, -1, 0);
             }
             random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            *(int16_t *)(act + 0xac) = (int16_t)((((random_seed_global >> 16) * 300) >> 16) + 300);
+            ((struct actor *)act)->mode_data.wait.random_countdown = (int16_t)((((random_seed_global >> 16) * 300) >> 16) + 300);
         }
     }
-    if (*(int16_t *)(act + 0xaa) > 0) {
-        *(int16_t *)(act + 0xaa) -= 1;
-        if (*(int16_t *)(act + 0xaa) == 0) {
+    if (((struct actor *)act)->mode_data.wait.countdown_150 > 0) {
+        ((struct actor *)act)->mode_data.wait.countdown_150 -= 1;
+        if (((struct actor *)act)->mode_data.wait.countdown_150 == 0) {
             if (act[0x9d] && unit_index != k_datum_index_none) {
                 ai_communication_broadcast(0x14, unit_index, -1, -1, -1, -1, 0);
             }
             act[0x9c] = 1;
         }
     }
-    if (!act[0x9f] && *(int16_t *)(act + 0xa8) > 0) {
-        *(int16_t *)(act + 0xa8) -= 1;
+    if (!((struct actor *)act)->mode_data.wait.unknown_03 && ((struct actor *)act)->mode_data.wait.countdown_0c > 0) {
+        ((struct actor *)act)->mode_data.wait.countdown_0c -= 1;
     }
 }

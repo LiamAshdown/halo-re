@@ -43,7 +43,7 @@ void actor_queue_recognized_target_dialogue(datum_index actor_index, datum_index
     Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
 
     if (self->awareness_level > 1 && self->vocalization_line < 6 &&
-        (self->mode != 11 || self->mode_data[3] != 0)) {
+        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
         int16_t recent = self->vocalization_unknown_3e8;
         prop *target = (prop *)datum_get(target_prop_index, prop_data);
 

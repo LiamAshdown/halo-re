@@ -37,14 +37,14 @@ uint8_t actor_mode_wait_process(datum_index actor_index)
     if (!act[0x4c]) {
         return act[0x9c];
     }
-    act[0x9f] = 0;
+    ((struct actor *)act)->mode_data.wait.unknown_03 = 0;
     actor_find_nearest_grenade_ally(actor_index, act[0x1cc]);
     if (act[0x9d]) {
         if (*(datum_index *)(act + 0x1d0) == k_datum_index_none) {
-            if (*(int16_t *)(act + 0xaa) == 0) {
-                *(int16_t *)(act + 0xaa) = 150;
+            if (((struct actor *)act)->mode_data.wait.countdown_150 == 0) {
+                ((struct actor *)act)->mode_data.wait.countdown_150 = 150;
             }
-        } else if (game_time->game_time >= *(int32_t *)(act + 0xa4) + 2700) {
+        } else if (game_time->game_time >= ((struct actor *)act)->mode_data.wait.start_game_time + 2700) {
             act[0x9c] = 1;
         }
     } else {
@@ -63,10 +63,10 @@ uint8_t actor_mode_wait_process(datum_index actor_index)
                 follow = act[0xa0] == 0;
             }
             if (follow && distance > 3.5f) {
-                act[0x9f] = 1;
+                ((struct actor *)act)->mode_data.wait.unknown_03 = 1;
                 act[0x9c] = 0;
             } else {
-                act[0x9f] = 0;
+                ((struct actor *)act)->mode_data.wait.unknown_03 = 0;
                 act[0x9c] = 0;
             }
         }
@@ -75,7 +75,7 @@ decided:
     if (act[0x6]) {
         return act[0x9c];
     }
-    if (act[0x9f]) {
+    if (((struct actor *)act)->mode_data.wait.unknown_03) {
         uint8_t done = act[0x9c];
 
         if (!actor_movement_set_destination_near_target(*(datum_index *)(act + 0x1d0), actor_index, 8.0f)) {

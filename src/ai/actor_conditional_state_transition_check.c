@@ -29,17 +29,17 @@ uint8_t actor_conditional_state_transition_check(datum_index actor_index)
     if (self->mode != _actor_mode_vehicle) {
         return 0;
     }
-    sub_state = *(int16_t *)&self->mode_data[4];
+    sub_state = *(int16_t *)&self->mode_data.raw[4];
     if (sub_state == 2 || sub_state == 3) {
-        if (self->mode_data[7] != 0 || self->mode_data[8] != 0) {
+        if (self->mode_data.raw[7] != 0 || self->mode_data.raw[8] != 0) {
             return actor_evaluate_combat_state_transition(actor_index);
         }
-        flag = self->mode_data[0x29];
+        flag = self->mode_data.raw[0x29];
     } else {
         if (sub_state != 4 && sub_state != 5) {
             return 0;
         }
-        flag = self->mode_data[0x29];
+        flag = self->mode_data.raw[0x29];
     }
     if (flag == 0) {
         return 0;

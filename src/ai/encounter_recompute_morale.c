@@ -151,7 +151,7 @@ void encounter_recompute_morale(datum_index encounter_index)
         enc->unknown_2e = enc->unknown_2e + (int16_t)((uint16_t)counts * weight);
 
         engaged = (uint8_t)(6 < a->unknown_6e);
-        if (engaged != 0 && a->mode == 4 && 0 < *(int16_t *)(a->mode_data + 0x0c)) { // actor + 0xa8 lies inside actor.mode_data
+        if (engaged != 0 && a->mode == 4 && 0 < *(int16_t *)(a->mode_data.raw + 0x0c)) { // actor + 0xa8 lies inside actor.mode_data.raw
             engaged = 0;
         }
         enc->average_vitality = sample + enc->average_vitality;

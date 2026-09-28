@@ -8,7 +8,7 @@
 // register convention: actor index in EAX; selection mode, current/target index and an
 //   optional in/out "last direction" flag are ordinary stack parameters.
 //   // blam-cc: EAX -> actor_index, stack -> select_mode, position_index, direction_flag
-// UNSURE: actor+0x12c/0x130/0x134 fall inside actor.mode_data (a per-mode union, see
+// UNSURE: actor+0x12c/0x130/0x134 fall inside actor.mode_data.raw (a per-mode union, see
 //   types/ai.h); read here as a cached float position but not independently confirmed.
 //   UNSURE: actor.unknown_68 compared against ScenarioMovePosition.sequence_id -- likely a
 //   per-formation-slot "sequence" filter, name not recovered.

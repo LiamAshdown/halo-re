@@ -25,7 +25,7 @@
 // other constructor (0x561030). Reproduced exactly via a local struct definition that
 // extends unit_speech's tail with three named fields, flagged UNSURE rather than folded
 // into units.h.
-// UNSURE: actor.mode_data sub-fields at +0x4/+0x5/+0xc (absolute actor+0xa0/+0xa1/+0xa8)
+// UNSURE: actor.mode_data.raw sub-fields at +0x4/+0x5/+0xc (absolute actor+0xa0/+0xa1/+0xa8)
 // have no established meaning; kept as raw offsets into mode_data. object+0x388 (unit_data
 // current_speech.sound_tag, read back here as an int16 category compared against 6) and the
 // DAT_00725204 tick threshold are likewise not otherwise attributed.

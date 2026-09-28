@@ -8,7 +8,7 @@
 //   ammo state, squad-wide low-ammo signaling, and morale".
 // register convention: actor index in EAX, the sole real parameter.
 //   // blam-cc: EAX -> actor_index
-// UNSURE: actor+0x9e/0xa1 fall inside actor.mode_data (a per-mode union); read here as two
+// UNSURE: actor+0x9e/0xa1 fall inside actor.mode_data.raw (a per-mode union); read here as two
 //   flee-mode flags.
 
 #include "tags.h"
@@ -45,7 +45,7 @@ uint8_t actor_wants_reload_or_swap(uint32_t actor_index)
     }
 
     if (a->mode == _actor_mode_flee) {
-        if (a->mode_data[0x9e - 0x9c] == 0 && a->mode_data[0xa1 - 0x9c] == 0) {
+        if (a->mode_data.raw[0x9e - 0x9c] == 0 && a->mode_data.raw[0xa1 - 0x9c] == 0) {
             return 1;
         }
     }

@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump (branch-for-branch; offsets 0x6a/0x6c/0x72/0x74/0x78/0x268/0x34a, ai_globals +3/+4/+6).)
 // evidence: types/ai.h actor.idle_counter(0x4a)/needs_new_path(0x4c)/mode(0x6c); ai_globals.
 //   stagger_claimed(0x03)/stagger_threshold(0x04)/stagger_highest(0x06). Offset 0xa0 falls
-//   inside actor.mode_data (mode_data[4], meaningful only in vehicle mode).
+//   inside actor.mode_data.raw (mode_data[4], meaningful only in vehicle mode).
 // register convention: EAX -> actor_index.
 //   // blam-cc: EAX -> actor_index
 
@@ -23,7 +23,7 @@ extern ai_globals *ai_globals_ptr; // 0x00880354
 void actor_update_idle_stagger(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    int16_t vehicle_substate = *(int16_t *)&self->mode_data[4]; // UNSURE offset (mode_data union)
+    int16_t vehicle_substate = *(int16_t *)&self->mode_data.raw[4]; // UNSURE offset (mode_data union)
     int fast = self->mode == _actor_mode_vehicle &&
                (vehicle_substate == 2 || vehicle_substate == 3 || vehicle_substate == 4 || vehicle_substate == 5);
 

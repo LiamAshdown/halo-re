@@ -78,7 +78,7 @@ void encounter_evaluate_support_needs(datum_index encounter_index, datum_index s
 
         if (not_self != 0 && a->unknown_1cc == phase) {
             if (a->mode == 5) {
-                if (*(int16_t *)(a->mode_data + 8) == 0) { // actor + 0xa4, inside mode_data
+                if (*(int16_t *)(a->mode_data.raw + 8) == 0) { // actor + 0xa4, inside mode_data
                     if (a->unknown_6e < 3) {
                         mode5_count = mode5_count + 1;
                     }
@@ -86,7 +86,7 @@ void encounter_evaluate_support_needs(datum_index encounter_index, datum_index s
                     engaged_count = engaged_count + 1;
                 }
             } else if (a->mode == 7) {
-                if (*(int16_t *)(a->mode_data + 8) != 0) { // actor + 0xa4, inside mode_data
+                if (*(int16_t *)(a->mode_data.raw + 8) != 0) { // actor + 0xa4, inside mode_data
                     engaged_count = engaged_count + 1;
                 } else {
                     mode7_count = mode7_count + 1;

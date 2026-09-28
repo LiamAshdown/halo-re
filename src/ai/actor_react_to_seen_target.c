@@ -101,7 +101,7 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
     actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
 
     if (self->awareness_level > 1 && self->vocalization_line < 8 &&
-        (self->mode != 11 || self->mode_data[3] != 0)) {
+        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
         int16_t recent = self->vocalization_unknown_3e8;
 
         prop *validated = (prop *)datum_get(target_prop_index, prop_data);

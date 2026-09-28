@@ -69,7 +69,7 @@ uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t 
 
     urgent = (uint8_t)(self->vocalization_unknown_3e8 > 6);
 
-    if ((line < 13 && self->mode == _actor_mode_flee && self->mode_data[3] == 0) ||
+    if ((line < 13 && self->mode == _actor_mode_flee && self->mode_data.raw[3] == 0) ||
         (urgent != 0 && line < 4)) {
         return 0;
     }

@@ -32,22 +32,22 @@ uint8_t actor_update_special_mode(datum_index actor_index)
     mode = self->mode;
 
     if (mode == 5) {
-        if (self->mode_data[1] == 0) {
+        if (self->mode_data.raw[1] == 0) {
             return 0;
         }
-        if (*(int16_t *)&self->mode_data[8] == 0) {
+        if (*(int16_t *)&self->mode_data.raw[8] == 0) {
             actor_set_target_alert_stage1(self->target_unit_index, actor_index);
         }
     } else if (mode == 7) {
-        if (self->mode_data[0] == 0) {
+        if (self->mode_data.raw[0] == 0) {
             return 0;
         }
-        if (*(int16_t *)&self->mode_data[8] == 0) {
+        if (*(int16_t *)&self->mode_data.raw[8] == 0) {
             actor_set_target_alert_stage2(self->target_unit_index, actor_index);
             return actor_update_melee_combat_action(actor_index);
         }
     } else if (mode == 8) {
-        if (self->mode_data[0] == 0) {
+        if (self->mode_data.raw[0] == 0) {
             return 0;
         }
         actor_set_target_alert_stage3(self->target_unit_index, actor_index);

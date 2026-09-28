@@ -150,7 +150,7 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
                         // FIXED (0x4363de..0x4363e2): EAX = this actor, SI = 0, stack = 0
                         zone_mask = zone_mask | actor_get_firing_position_group_mask(current, 0, 0);
                     }
-                } else if (a->awareness_level == 2 && *(int16_t *)(a->mode_data + 0) != 0) {
+                } else if (a->awareness_level == 2 && *(int16_t *)(a->mode_data.raw + 0) != 0) {
                     squad_mask = squad_mask | (1 << (a->squad_index & 0x1f));
                 }
 

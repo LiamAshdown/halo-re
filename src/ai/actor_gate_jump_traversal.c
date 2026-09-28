@@ -7,7 +7,7 @@
 // register convention: actor index in EAX, a height/distance threshold and two flags/values
 //   as the recognized stack parameters.
 //   // blam-cc: EAX -> actor_index, stack -> threshold/allow_broadcast/broadcast_threshold
-// UNSURE: actor+0xa8 falls inside actor.mode_data (a per-mode union); read/written here as
+// UNSURE: actor+0xa8 falls inside actor.mode_data.raw (a per-mode union); read/written here as
 //   an int16 "climb ready" counter while actor.mode==4.
 
 #include "tags.h"
@@ -37,12 +37,12 @@ uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char 
     }
 
     if (a->mode == 4) {
-        int16_t climb = *(int16_t *)(a->mode_data + (0xa8 - 0x9c));
+        int16_t climb = *(int16_t *)(a->mode_data.raw + (0xa8 - 0x9c));
         if (climb > 0) {
             if (climb <= a->unknown_308) {
                 climb = a->unknown_308;
             }
-            *(int16_t *)(a->mode_data + (0xa8 - 0x9c)) = climb;
+            *(int16_t *)(a->mode_data.raw + (0xa8 - 0x9c)) = climb;
             a->unknown_308 = 0;
             return 0;
         }

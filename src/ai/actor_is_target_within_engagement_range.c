@@ -12,7 +12,7 @@
 // UNSURE: actor.active_movement+4 (its destination field, a real_point3d per types/ai.h) is
 //   read here as a plain int16 firing-position id instead, which is consistent with that
 //   field being a per-kind union (as the header already notes) when active_movement.type==3.
-//   actor+0xb8 falls inside actor.mode_data; read here as a prop_data index whose prop+0x38
+//   actor+0xb8 falls inside actor.mode_data.raw; read here as a prop_data index whose prop+0x38
 //   (an already-named but undecoded field) selects a squadmate status.
 
 #include "tags.h"
@@ -61,7 +61,7 @@ uint8_t actor_is_target_within_engagement_range(uint32_t actor_index)
         return 0;
     }
 
-    leader_prop_index = *(datum_index *)(a->mode_data + (0xb8 - 0x9c));
+    leader_prop_index = *(datum_index *)(a->mode_data.raw + (0xb8 - 0x9c));
     if (leader_prop_index != (datum_index)k_datum_index_none) {
         prop *p = &((prop *)prop_data->data)[leader_prop_index & 0xffff];
         if (p->unknown_38 != 0 && p->unknown_38 != 1) {

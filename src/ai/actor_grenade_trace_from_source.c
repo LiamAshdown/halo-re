@@ -7,7 +7,7 @@
 // register convention: actor index in EAX; the target point is a real_point3d in ESI
 //   (unaff_ESI).
 //   // blam-cc: EAX -> actor_index, ESI -> target_point
-// UNSURE: actor+0x120/0x124/0x128 fall inside actor.mode_data (a per-mode union, see
+// UNSURE: actor+0x120/0x124/0x128 fall inside actor.mode_data.raw (a per-mode union, see
 //   types/ai.h); read here as a cached source point but not independently confirmed.
 //   UNSURE: when movement_completed is clear and movement_action_complete is set, the
 //   original calls FUN_00569190 to refresh actor+0x4ac (inside the unattributed run at

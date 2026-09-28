@@ -1,7 +1,7 @@
 // actor_check_vehicle_mode_timeout  (Ghidra: actor_check_vehicle_mode_timeout, renamed)
 // address 0x428270, size 76 bytes
 // name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
-// evidence: types/ai.h actor.mode(0x6c)==_actor_mode_vehicle(10) and actor.mode_data (the
+// evidence: types/ai.h actor.mode(0x6c)==_actor_mode_vehicle(10) and actor.mode_data.raw (the
 //   per-mode union at 0x9c..0x11f); offsets 0xa0/0xa7/0xac used here fall inside that union
 //   at mode_data[4]/[0xb]/[0x10] and have no individual names since they are only meaningful
 //   in vehicle mode. Phase-4 summary: "For an actor in vehicle mode with a particular
@@ -26,9 +26,9 @@ uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index)
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
     if (self->mode == _actor_mode_vehicle &&
-        *(int16_t *)&self->mode_data[4] == 3 &&
-        self->mode_data[0xb] != 0) {
-        int32_t deadline = *(int32_t *)&self->mode_data[0x10] + 0x1e;
+        *(int16_t *)&self->mode_data.raw[4] == 3 &&
+        self->mode_data.raw[0xb] != 0) {
+        int32_t deadline = *(int32_t *)&self->mode_data.raw[0x10] + 0x1e;
         return (int32_t)game_time->game_time <= deadline;
     }
     return 0;

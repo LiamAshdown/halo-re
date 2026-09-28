@@ -3,13 +3,13 @@
 // name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump.)
 // evidence: phase-4 summary "determines whether the actor should stay at its current
 // combat status level rather than escalating, based on morale and scripted command
-// restrictions"; reads actor.mode_data bytes at +8 and +5 (mode-specific), the "vitality
+// restrictions"; reads actor.mode_data.raw bytes at +8 and +5 (mode-specific), the "vitality
 // grade" at +0x6e and the scripted-restriction counter at +0x1e4.
 // register convention: actor_index in EAX (no declared parameter, Ghidra's in_EAX);
 // param_1/param_2 are the two declared int16 parameters, passed on the stack.
 // blam-cc: EAX -> actor_index, stack -> param_1, param_2
 // UNSURE: the two mode_data bytes (offsets 0x08 and 0x05 within the union) are not named
-// by types/ai.h for any specific mode; kept as raw offsets into actor.mode_data.
+// by types/ai.h for any specific mode; kept as raw offsets into actor.mode_data.raw.
 
 #include "tags.h"
 #include "memory.h"
@@ -25,11 +25,11 @@ uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t thresho
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
-    if (self->mode_data[8] != 0) {
+    if (self->mode_data.raw[8] != 0) {
         return (uint8_t)(threshold_b <= self->unknown_6e);
     }
-    if (0 < *(int16_t *)&self->mode_data[0] && self->unknown_6e < threshold_a &&
-        (self->unknown_1e4 < 1 || self->mode_data[5] != 0)) {
+    if (0 < *(int16_t *)&self->mode_data.raw[0] && self->unknown_6e < threshold_a &&
+        (self->unknown_1e4 < 1 || self->mode_data.raw[5] != 0)) {
         return 0;
     }
     return 1;

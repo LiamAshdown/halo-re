@@ -13,11 +13,11 @@
 //   // blam-cc: EAX -> object_list_header_handle
 //
 // UNSURE:
-//  - actor + 0x9c and + 0xa4 / + 0xa8 are inside actor.mode_data, so the command-list lookup
+//  - actor + 0x9c and + 0xa4 / + 0xa8 are inside actor.mode_data.raw, so the command-list lookup
 //    below only makes sense while the actor is in the flee mode whose mode_data holds a
 //    command-list index at +0x00 and a command cursor at +0x08.
 //  - The grade produced by the command-list branch is ((~flags & 0x10) | 0x20) >> 4, i.e. 3
-//    when bit 4 of actor.mode_data[0x0c] is clear and 2 when it is set.
+//    when bit 4 of actor.mode_data.raw[0x0c] is clear and 2 when it is set.
 //  - actor.unknown_94 is a tick stamp; a member hurt within the last 150 ticks grades 1.
 
 #include "tags.h"
@@ -133,11 +133,11 @@ int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle)
                 a = &((actor *)actor_data->data)[unit->actor_index & 0xffff];
                 if (a->mode == _actor_mode_flee) {
                     command_list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)
-                        [*(int16_t *)(a->mode_data + 0x00)];
-                    command_index = (int32_t)(uint32_t)a->mode_data[8];
+                        [*(int16_t *)(a->mode_data.raw + 0x00)];
+                    command_index = (int32_t)(uint32_t)a->mode_data.raw[8];
                     if (command_index < command_list->commands.count &&
                         (uint8_t *)command_list->commands.pointer + command_index * 0x20 != 0) {
-                        grade = (uint32_t)((((uint8_t)~a->mode_data[0x0c] & 0x10) | 0x20) >> 4);
+                        grade = (uint32_t)((((uint8_t)~a->mode_data.raw[0x0c] & 0x10) | 0x20) >> 4);
                     } else {
                         grade = 1;
                     }

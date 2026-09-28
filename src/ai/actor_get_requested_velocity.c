@@ -45,7 +45,7 @@ uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index
             return 1;
         }
         if (self->unknown_530[0] != 0) { // 0x530
-            if (self->mode == 10 && *(int16_t *)&self->mode_data[4] == 3) { // 0xa0
+            if (self->mode == 10 && *(int16_t *)&self->mode_data.raw[4] == 3) { // 0xa0
                 skip_clamp = 1;
             }
             out_velocity->j = *(float *)&self->unknown_530[8] *

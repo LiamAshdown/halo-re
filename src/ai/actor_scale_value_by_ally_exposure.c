@@ -14,7 +14,7 @@
 // a branch -- the low byte of the *pointer itself*, not a real status code -- or the literal 1
 // on the early-bail path. This is decompiler noise from a function whose real return type is
 // void; the rewrite returns nothing and only mutates *value, matching the actual behavior.
-// UNSURE: ally_actor+0xa8 falls inside types/ai.h's opaque actor.mode_data union (0x9c..0x11f)
+// UNSURE: ally_actor+0xa8 falls inside types/ai.h's opaque actor.mode_data.raw union (0x9c..0x11f)
 // and has no individual field name; accessed as a raw offset from the actor base.
 
 #include "tags.h"

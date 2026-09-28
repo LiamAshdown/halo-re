@@ -36,7 +36,7 @@ void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index 
         Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
 
         if (self->awareness_level > 1 && self->vocalization_line < 2 &&
-            (self->mode != 11 || self->mode_data[3] != 0) &&
+            (self->mode != 11 || self->mode_data.raw[3] != 0) &&
             self->vocalization_unknown_3e8 < 7) {
             float wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 2.6f : 1.3f;
 

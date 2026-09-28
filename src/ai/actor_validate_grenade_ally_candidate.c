@@ -42,7 +42,7 @@ uint8_t actor_validate_grenade_ally_candidate(datum_index candidate_actor, uint8
     if (candidate != (actor *)0 && 1 < candidate->unknown_6e && candidate->unknown_6e < 4 &&
         (candidate->mode == 7 || candidate->mode == 5 ||
          (caller_type_flag == 0 && candidate->mode == 8) ||
-         (candidate->mode == 6 && candidate->mode_data[8] == 0 && 0 < *(int16_t *)&candidate->mode_data[0]))) {
+         (candidate->mode == 6 && candidate->mode_data.raw[8] == 0 && 0 < *(int16_t *)&candidate->mode_data.raw[0]))) {
         type_entry = (actor_type_table_entry *)actor_type_procs[candidate->type];
         if (type_entry->unknown_0c != caller_type_flag) {
             return 1;
