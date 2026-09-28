@@ -26,7 +26,7 @@
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_globals;       // 0x00746fa0, the grenade type table pointer sits at +300
+extern Globals *global_globals;
 extern float k_physics_gravity;   // 0x0069c52c
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
@@ -63,7 +63,7 @@ uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point)
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
 
-    entry = *(uint8_t **)(global_globals + 300) + (int32_t)variant->grenade_type * 0x44;
+    entry = (uint8_t *)global_globals->grenades.pointer + (int32_t)variant->grenade_type * 0x44;
     projectile_definition = (void *)0;
     if (entry != (uint8_t *)0) {
         projectile_tag = *(uint32_t *)(entry + 0x40);

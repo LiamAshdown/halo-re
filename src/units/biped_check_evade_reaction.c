@@ -22,7 +22,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
-extern uint8_t *global_globals;   // 0x00746fa0, +0x174 player info, +0x18c/0x190 grenade tables (types/units.h)
+extern Globals *global_globals;
 extern float k_physics_gravity;      // 0x0069c52c, UNSURE
 
 // object_get_position (0x4f6900, defined in src/objects/object_get_position.c) writes the
@@ -52,7 +52,7 @@ void biped_check_evade_reaction(uint32_t object_index)
         unit->animation_state != 0x1d && (int8_t)biped->unknown_501 > 0x1e &&
         (biped->unknown_4f8 == -1 ||
          (int32_t)(biped->unknown_4f8 + 0xf) < game_time->game_time)) {
-        void *table = *(void **)(global_globals + 0x18c);
+        void *table = (void *)global_globals->falling_damage.pointer;
         real_point3d ground;   // [esp+0x1c]
         real_point3d position; // [esp+0x10]
 

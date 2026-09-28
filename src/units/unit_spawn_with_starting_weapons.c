@@ -26,7 +26,7 @@
 
 extern data_array *object_data;                    // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
-extern uint8_t *machine_table;                     // 0x00687558, +0x28: machine key -> index
+extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];       // 0x006870d8
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
@@ -82,7 +82,7 @@ void unit_spawn_with_starting_weapons(void *command_record)
         creator = ((int32_t *)object_network_id_table->handles)[message.creator_key];
     }
     if (message.machine_key != 0) {
-        machine = (*(int32_t **)(machine_table + 0x28))[message.machine_key];
+        machine = (*(int32_t **)&machine_table->handles)[message.machine_key];
     }
     memset(placement, 0, sizeof(placement));
     *(datum_index *)(placement + 0x00) = message.definition;

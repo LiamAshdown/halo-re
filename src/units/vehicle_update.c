@@ -38,7 +38,7 @@ extern int32_t vehicle_network_update_period; // 0x006f1cf0
 extern game_time_globals *game_time;    // 0x006f1d6c
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 extern uint8_t *global_structure_bsp;  // 0x00746f9c, +0x10 floor / +0x14 ceiling (0 = none)
-extern uint8_t *global_globals;       // 0x00746fa0
+extern Globals *global_globals;
 
 extern double atan2(double y, double x); // fpatan
 extern double fabs(double x);
@@ -275,7 +275,7 @@ uint32_t vehicle_update(uint32_t object_index)
 
         // 0x571744: hard landings hurt the riders
         if ((*(uint32_t *)(tag + 0x2f0) & 0x40) && !unit_updates_suppressed) {
-            uint8_t *impact = *(uint8_t **)(global_globals + 0x18c);
+            uint8_t *impact = (uint8_t *)global_globals->falling_damage.pointer;
 
             if (F(obj, 0x70) < -F(impact, 0x8c)) {
                 datum_index child = *(datum_index *)(obj + 0x118);

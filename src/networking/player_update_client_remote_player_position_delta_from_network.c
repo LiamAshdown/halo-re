@@ -29,9 +29,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+#include "objects.h"
 
 extern data_array *player_data; // 0x0087a480
-extern void *machine_table; // 0x00687558, see player_update_client_remote_player_action_update_from_network.c
+extern network_id_table *machine_table;
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
@@ -61,7 +62,7 @@ void player_update_client_remote_player_position_delta_from_network(int32_t **de
     header = (remote_player_update_header *)decode_context[0x11];
     remapped_index = -1;
     if (header->player_index != 0) {
-        int32_t *table_base = *(int32_t **)((uint8_t *)machine_table + 0x28);
+        int32_t *table_base = *(int32_t **)&machine_table->handles;
         remapped_index = table_base[header->player_index];
     }
     // note: no write-back into header->player_index on this path

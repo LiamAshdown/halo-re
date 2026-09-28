@@ -12,13 +12,13 @@
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, EAX value, ECX thread
 
-extern uint8_t *global_globals; // 0x00746fa0, the Globals tag data
+extern Globals *global_globals;
 extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count); // 0x45a800
 
 void hs_evaluate_cheat_all_vehicles(int16_t function_index, uint32_t thread_index, char first)
 {
-    if (*(int32_t *)(global_globals + 0x164) != 0) {
-        uint8_t *element = *(uint8_t **)(global_globals + 0x168);
+    if (*(int32_t *)&global_globals->multiplayer_information.count != 0) {
+        uint8_t *element = (uint8_t *)global_globals->multiplayer_information.pointer;
 
         cheat_spawn_objects_near_camera(*(TagDependency **)(element + 0x24), (int16_t)*(uint16_t *)(element + 0x20));
     }

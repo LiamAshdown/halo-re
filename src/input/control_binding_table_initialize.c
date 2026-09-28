@@ -38,7 +38,7 @@
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc, UNSURE: nonzero -> "secondary control word in use", see below
 extern uint8_t g_control_binding_state;     // 0x008607a0, UNSURE: not independently typed
 extern uint8_t g_control_binding_secondary_active; // 0x008607a1, UNSURE: not independently typed
-extern uint8_t *global_globals; // 0x00746fa0, src/ai; +0x168 offset UNSURE, see file header
+extern Globals *global_globals;
 extern uint32_t current_game_engine; // 0x006f1d20, UNSURE: nonzero selects the per-profile default source
 extern uint32_t control_word_extract_field(uint32_t which_word, uint32_t field_index); // 0x4f3680, same pass
 
@@ -83,7 +83,7 @@ void control_binding_table_initialize(void)
             if (current_game_engine == 0) {
                 ((control_binding_half *)(cell - 4))->profile_default = -1;
             } else {
-                ((control_binding_half *)(cell - 4))->profile_default = *(int32_t *)(*(int32_t *)(*(uint8_t **)(global_globals + 0x168) + 0x24) + 0xc + offset);
+                ((control_binding_half *)(cell - 4))->profile_default = *(int32_t *)(*(int32_t *)((uint8_t *)global_globals->multiplayer_information.pointer + 0x24) + 0xc + offset);
             }
 
             offset += 0x10;

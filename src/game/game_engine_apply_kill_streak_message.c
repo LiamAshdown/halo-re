@@ -19,8 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
 
-extern uint8_t *machine_table; // 0x00687558, +0x28 array, stride 4, machine id -> player handle
+extern network_id_table *machine_table;
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590, blam-cc: EAX -> event,
     // ECX -> out_values
@@ -47,7 +48,7 @@ uint8_t game_engine_apply_kill_streak_message(int32_t **envelope)
     {
         uint32_t player_handle = 0xffffffff;
         if (decoded.machine_id != 0) {
-            player_handle = *(uint32_t *)(*(uint8_t **)(machine_table + 0x28) + decoded.machine_id * 4);
+            player_handle = *(uint32_t *)(*(uint8_t **)&machine_table->handles + decoded.machine_id * 4);
         }
         player_add_kill_streak(decoded.slot, decoded.amount, player_handle);
     }

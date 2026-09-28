@@ -21,10 +21,11 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+#include "objects.h"
 
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_client_vehicle_ack_enabled; // 0x006894a1
-extern void *machine_table; // 0x00687558 (via player_unit_has_parent's own
+extern network_id_table *machine_table;
     // callee chain; not read directly here)
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI

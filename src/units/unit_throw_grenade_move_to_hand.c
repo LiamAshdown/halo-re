@@ -23,7 +23,7 @@
 #include "units.h"
 
 extern data_array *object_data;      // 0x008603b0
-extern uint8_t *global_globals;    // 0x00746fa0
+extern Globals *global_globals;
 extern uint8_t weapon_bottomless_clip; // 0x0087abc2
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 extern uint32_t game_engine_unknown_aa00;    // 0x0087aa00
@@ -42,7 +42,7 @@ void unit_throw_grenade_move_to_hand(uint32_t unit_index)
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     int8_t grenade_type = unit->current_grenade_index;
-    uint8_t *grenade_table = *(uint8_t **)(global_globals + 300);
+    uint8_t *grenade_table = (uint8_t *)global_globals->grenades.pointer;
 
     if (((unit->controlling_player == k_datum_index_none) ||
          ((weapon_bottomless_clip == 0) &&

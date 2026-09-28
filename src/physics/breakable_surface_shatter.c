@@ -32,7 +32,7 @@
 extern uint8_t breakable_surfaces_enabled;                          // 0x00689470, the breakable_surfaces global
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;   // 0x00746f98
 extern uint8_t *global_structure_bsp;                           // 0x00746f9c
-extern uint8_t *global_globals;                                   // 0x00746fa0
+extern Globals *global_globals;
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 extern random_seed effect_random_seed;                              // 0x00719cd4
 extern const projection_axis_pair k_projection_axes[6];             // 0x0065c29c
@@ -124,7 +124,7 @@ void breakable_surface_shatter(uint16_t breakable_surface_index, damage_data *da
         uint8_t *collision_materials = *(uint8_t **)(global_structure_bsp + 0xa8);
         int16_t global_material = I16(collision_materials, I16(first_surface, 0xa) * 0x14 + 0x12);
 
-        shatter = *(uint8_t **)(global_globals + 0x198) + global_material * 0x374 + 0x2d4;
+        shatter = (uint8_t *)global_globals->materials.pointer + global_material * 0x374 + 0x2d4;
     }
     queue[0] = collision_surface_index;
 

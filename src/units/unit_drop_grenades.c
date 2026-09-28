@@ -22,7 +22,7 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern uint8_t *global_globals;    // 0x00746fa0
+extern Globals *global_globals;
 extern int16_t network_game_mode; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc, an ARRAY (was a pointer variable)
 
@@ -39,7 +39,7 @@ extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_obj
 // blam-cc: stack -> unit_index
 void unit_drop_grenades(uint32_t unit_index)
 {
-    uint8_t *grenade_type_table = *(uint8_t **)(global_globals + 0x12c); // UNSURE table identity
+    uint8_t *grenade_type_table = (uint8_t *)global_globals->grenades.pointer; // UNSURE table identity
     int32_t table_offset = 0;
     int grenade_type;
 

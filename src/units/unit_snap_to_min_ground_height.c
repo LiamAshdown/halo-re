@@ -17,7 +17,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_globals;   // 0x00746fa0, +0x174 player info (types/units.h)
+extern Globals *global_globals;
 extern uint8_t cheat_super_jump;    // 0x0087abc4
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 
@@ -46,7 +46,7 @@ uint32_t unit_snap_to_min_ground_height(uint32_t object_index)
     }
     jump_speed = *(float *)((uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data + 0x3b4);
     if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
-        jump_speed = (1.0f - *(float *)(*(uint8_t **)(global_globals + 0x174) + 0x84) * *(float *)(obj + 0x424)) *
+        jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * *(float *)(obj + 0x424)) *
             jump_speed;
     }
     if (cheat_super_jump && *(datum_index *)(obj + 0x218) != k_datum_index_none) {

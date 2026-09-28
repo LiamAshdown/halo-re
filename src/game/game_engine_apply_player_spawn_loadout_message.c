@@ -34,7 +34,7 @@
 #include "units.h"
 #include "game.h"
 
-extern uint8_t *machine_table;               // 0x00687558, +0x28 array, stride 4
+extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table; // 0x00687130
 extern Scenario *global_scenario;            // 0x00746f8c
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -91,7 +91,7 @@ void game_engine_apply_player_spawn_loadout_message(void **envelope)
         datum_index owner_handle = (datum_index)0xffffffff;
         uint32_t player_handle;
         if (message.machine_id != 0) {
-            owner_handle = (datum_index)(*(int32_t **)(machine_table + 0x28))[message.machine_id];
+            owner_handle = (datum_index)(*(int32_t **)&machine_table->handles)[message.machine_id];
         }
         player_handle = (uint32_t)owner_handle;
 

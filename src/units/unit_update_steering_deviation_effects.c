@@ -28,7 +28,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_globals;   // 0x00746fa0
+extern Globals *global_globals;
 
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
                                  int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
@@ -45,7 +45,7 @@ void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
-    uint8_t *fall_table = *(uint8_t **)(global_globals + 0x18c);
+    uint8_t *fall_table = (uint8_t *)global_globals->falling_damage.pointer;
     int32_t impact_effect_tag = *(int32_t *)(fall_table + 0x48);
 
     if (impact_effect_tag == -1 && *(int32_t *)((uint8_t *)tag + 0x3cc) == -1) {

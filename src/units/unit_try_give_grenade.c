@@ -20,7 +20,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_globals;   // 0x00746fa0
+extern Globals *global_globals;
 extern data_array *player_data;     // 0x0087a480
 
 extern int32_t player_index_from_unit_index(uint32_t unit_index); // 0x474db0, UNSURE signature
@@ -35,7 +35,7 @@ uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index) //
     object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
-    int16_t *max_count_ptr = (int16_t *)(*(uint8_t **)(global_globals + 300) + grenade_type * 0x44);
+    int16_t *max_count_ptr = (int16_t *)((uint8_t *)global_globals->grenades.pointer + grenade_type * 0x44);
     if ((max_count_ptr != (int16_t *)0) && (unit->grenade_counts[grenade_type] < *max_count_ptr)) {
         unit->grenade_counts[grenade_type] += 1;
         unit_obj->flags |= 0x4000000;

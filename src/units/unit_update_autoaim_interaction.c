@@ -24,7 +24,7 @@
 #include "units.h"
 
 extern data_array *object_data;   // 0x008603b0
-extern uint8_t *global_globals; // 0x00746fa0
+extern Globals *global_globals;
 
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
@@ -39,7 +39,7 @@ extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t 
 void unit_update_autoaim_interaction(uint32_t unit_index)
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tracked = *(uint8_t **)(global_globals + 0x18c);
+    uint8_t *tracked = (uint8_t *)global_globals->falling_damage.pointer;
 
     *(uint32_t *)(obj + 0x204) &= ~0x02000000u;
     obj[0x107] &= 0xf7;

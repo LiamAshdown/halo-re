@@ -30,7 +30,7 @@
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
-extern uint8_t *global_globals;    // 0x00746fa0
+extern Globals *global_globals;
 extern char ai_marker_name_a[];  // 0x0066bfa0
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
@@ -185,7 +185,7 @@ void unit_melee_attack_scan(uint32_t unit_index)
                 breakable_surface_apply_damage(&dd, (int32_t)breakable_index, breakable_surface);
             }
         } else {
-            float speed_scale = *(float *)(*(uint8_t **)(global_globals + 0x174) + 0x34);
+            float speed_scale = *(float *)((uint8_t *)global_globals->player_information.pointer + 0x34);
 
             if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 7) {
                 device_machine_melee_attacked(best_object);

@@ -18,7 +18,7 @@
 #include "game.h"
 #include "objects.h"
 
-extern uint8_t *machine_table;               // 0x00687558, +0x28 array, stride 4
+extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table; // 0x00687130
 extern data_array *player_data;              // 0x0087a480
 
@@ -61,7 +61,7 @@ uint8_t game_engine_apply_player_interaction_message(void **envelope)
     {
         uint32_t primary_handle = 0xffffffff;
         if (message.machine_id != 0) {
-            primary_handle = (uint32_t)(*(int32_t **)(machine_table + 0x28))[message.machine_id];
+            primary_handle = (uint32_t)(*(int32_t **)&machine_table->handles)[message.machine_id];
         }
 
         {

@@ -23,8 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "objects.h"
+#include "units.h"
 
-extern uint8_t *machine_table;     // 0x00687558, UNSURE identity; +0x28 array, stride 4, machine id -> handle
+extern network_id_table *machine_table;
 extern player_globals *local_player_globals; // 0x0087a478
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590, blam-cc:
@@ -45,7 +47,7 @@ void game_engine_handle_kill_feed_network_event(int32_t **message)
         if (message_delta_decode_compound_field(message, decoded) != 0) {
             datum_index killer = (datum_index)0xffffffff;
             if (decoded[0] != 0) {
-                killer = *(datum_index *)(*(uint8_t **)(machine_table + 0x28) + decoded[0] * 4);
+                killer = *(datum_index *)(*(uint8_t **)&machine_table->handles + decoded[0] * 4);
             }
             chimera__kill_feed(local_player_globals->local_players[0], (int32_t)killer,
                                 (uint32_t)decoded[1], (datum_index)decoded[2], 0);

@@ -47,7 +47,7 @@ extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480, types/units.h
 extern real_point3d *global_origin3d_pointer; // 0x00696714
-extern uint8_t *global_globals;   // 0x00746fa0, +0x174 is the player_information block
+extern Globals *global_globals;
 extern uint8_t *cinematic_globals_ptr; // 0x006f187c, UNSURE: +9 gates the old-physics override
 extern uint8_t *object_update_gate_globals; // 0x006b0b80, +2 is the double-speed switch
 extern game_engine_definition *current_game_engine;  // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
@@ -285,7 +285,7 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
             float sideways_speed;
             float player_speed_scale;
 
-            player_info = *(GlobalsPlayerInformation **)(global_globals + 0x174);
+            player_info = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
 
             if (cinematic_globals_ptr[9] != 0 || (biped_flags & 0x00001000) != 0) {
                 player_info_copy = *player_info;               // 0x3d-dword block move

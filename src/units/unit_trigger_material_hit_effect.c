@@ -19,7 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 
-extern uint8_t *global_globals;   // 0x00746fa0
+extern Globals *global_globals;
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t material_table_warning_issued;        // UNSURE: one-time-init latch for the fallback record
 extern int32_t material_table_bad_index;        // UNSURE: a field of the fallback record, zeroed on init
@@ -41,14 +41,14 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
 {
     uint8_t *material_record;
 
-    if (material_index < 0 || material_index >= *(int32_t *)(global_globals + 0x194)) {
+    if (material_index < 0 || material_index >= *(int32_t *)&global_globals->materials.count) {
         if (material_table_warning_issued == 0) {
             material_table_bad_index = -1;
             material_table_warning_issued = 1;
         }
         material_record = material_table_fallback;
     } else {
-        material_record = *(uint8_t **)(global_globals + 0x198) + material_index * 0x374;
+        material_record = (uint8_t *)global_globals->materials.pointer + material_index * 0x374;
     }
 
     if (*(datum_index *)(material_record + 0x370) != k_datum_index_none) {

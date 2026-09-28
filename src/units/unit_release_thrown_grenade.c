@@ -22,7 +22,7 @@
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *global_globals;   // 0x00746fa0, +0x174 the player information block
+extern Globals *global_globals;
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern int16_t network_game_mode;   // 0x00719720
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
@@ -75,7 +75,7 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
     } else {
         if (*(datum_index *)(unit + 0x218) != k_datum_index_none) {
             // 0x56e4de: a player throws from the camera, offset by the globals' grenade offsets
-            uint8_t *info = *(uint8_t **)(global_globals + 0x174);
+            uint8_t *info = (uint8_t *)global_globals->player_information.pointer;
             real_vector3d forward = *aim;       // [esp+0x28]
             real_vector3d right;                // [esp+0x34]
             real_vector3d up;                   // [esp+0x40]

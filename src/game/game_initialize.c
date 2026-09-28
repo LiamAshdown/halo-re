@@ -23,6 +23,8 @@
 #include "game.h"
 #include "physics.h"
 #include "scenario.h"
+#include "objects.h"
+#include "effects.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -42,7 +44,7 @@ extern data_array *weather_particle_data;       // 0x0087abcc, TYPES-GAP
 extern void *particle_system_data;        // 0x0087abd4, TYPES-GAP
 extern data_array *particle_system_particle_data; // 0x0087abd8, TYPES-GAP
 extern void *sound_class_gains;        // 0x00746140, TYPES-GAP
-extern uint32_t *player_effect_globals_pointer;       // 0x006f1884, TYPES-GAP
+extern player_effect_globals *player_effect_globals_pointer;
 extern void *recorded_animations;    // 0x006b0a10, TYPES-GAP
 extern uint32_t *cinematic_globals_ptr; // 0x006f187c, TYPES-GAP (7 dwords)
 
@@ -151,7 +153,7 @@ void game_initialize(void)
     game_sound_initialize();
 
     size = 0x128;
-    player_effect_globals_pointer = (uint32_t *)(game_state_cursor + game_state_base);
+    player_effect_globals_pointer = (player_effect_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x128;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     ai_initialize_for_new_map();
