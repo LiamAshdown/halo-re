@@ -56,7 +56,7 @@ uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state)
 {
     uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
     uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
-    datum_index graph = *(datum_index *)(unit_tag + 0x44);
+    datum_index graph = *(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id;
     uint8_t *graph_data = (uint8_t *)tag_instances[graph & 0xffff].data;
     uint8_t *unit_block = *(uint8_t **)(graph_data + 0x10) + (int8_t)unit[0x2a0] * 0x64;
     uint8_t *weapon_block = *(uint8_t **)(unit_block + 0x5c) + (int8_t)unit[0x2a1] * 0xbc;

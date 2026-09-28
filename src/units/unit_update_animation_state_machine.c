@@ -106,7 +106,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
     }
 
     if (*(int16_t *)(unit + 0x2b2) != -1 &&
-        unit_reset_light_effect(unit + 0x2b2, *(uint32_t *)(unit_tag + 0x44), unit_index) == 2) {
+        unit_reset_light_effect(unit + 0x2b2, *(uint32_t *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, unit_index) == 2) {
         *(int16_t *)(unit + 0x2b2) = -1;
     }
 
@@ -167,7 +167,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
             case 0x1b: {
                 uint8_t *animations =
                     *(uint8_t **)((uint8_t *)tag_instances[((unit_object *)unit)->base.animation_graph & 0xffff].data + 0x78);
-                void *model = tag_instances[*(datum_index *)(unit_tag + 0x34) & 0xffff].data;
+                void *model = tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id & 0xffff].data;
                 real_vector3d delta;
                 real_matrix4x3 world;
                 real_matrix4x3 *matrix;
@@ -199,7 +199,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
     }
 
     if (*(int16_t *)(unit + 0x2aa) != -1 &&
-        unit_reset_light_effect(unit + 0x2aa, *(uint32_t *)(unit_tag + 0x44), unit_index) == 2) {
+        unit_reset_light_effect(unit + 0x2aa, *(uint32_t *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, unit_index) == 2) {
         uint8_t *reloaded;
 
         object_copy_default_node_transforms(unit_index, 6);
@@ -209,7 +209,7 @@ uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *
     }
 
     if (*(int16_t *)(unit + 0x2ae) != -1) {
-        advance = unit_reset_light_effect(unit + 0x2ae, *(uint32_t *)(unit_tag + 0x44), unit_index);
+        advance = unit_reset_light_effect(unit + 0x2ae, *(uint32_t *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, unit_index);
         if ((advance == 2 || advance == 4) && ((int8_t)unit[0x2a3] < 3 || (int8_t)unit[0x2a3] > 4)) {
             unit[0x2a5] = 0;
             *(int16_t *)(unit + 0x2ae) = -1;

@@ -73,9 +73,9 @@ datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle)
 
     for (i = 0; i < candidate_count; i++) {
         uint8_t *candidate = (uint8_t *)((object_header *)object_data->data)[candidates[i] & 0xffff].data;
-        real dx = *(real *)(candidate + 0x5c) - camera.x;
-        real dy = *(real *)(candidate + 0x60) - camera.y;
-        real dz = *(real *)(candidate + 0x64) - camera.z;
+        real dx = ((struct object *)candidate)->position.x - camera.x;
+        real dy = ((struct object *)candidate)->position.y - camera.y;
+        real dz = ((struct object *)candidate)->position.z - camera.z;
         real distance_squared = dz * dz + dx * dx + dy * dy;
 
         // 0x45e454..0x45e475: a unit whose +0x37c is below 1.0 qualifies outright; otherwise only the player the

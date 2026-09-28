@@ -78,7 +78,7 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
 {
     uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 0xc + 8);
     uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
-    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x44) & 0xffff].data;
+    uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     uint8_t *block;
     float aim_yaw;
@@ -99,7 +99,7 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
     }
     unit[0x2b6] = 0;
     unit[0x2b7] = 0;
-    if ((*(uint32_t *)(unit_tag + 0x17c) & 0x800) || unit[0x2a0] == 0xff) {
+    if ((*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x800) || unit[0x2a0] == 0xff) {
         return;
     }
     block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)unit[0x2a0] * 0x64;
@@ -138,7 +138,7 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
         }
     }
 
-    if (*(uint32_t *)(unit_tag + 0x17c) & 0x400) {
+    if (*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x400) {
         return;
     }
     state = (int8_t)unit[0x2a3];

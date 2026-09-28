@@ -48,6 +48,8 @@
 #include "cache.h"
 #include "effects.h"
 #include "sound.h"
+#include "units.h"
+#include "game.h"
 
 extern random_seed random_seed_global;               // 0x00719cd0
 extern random_seed effect_random_seed;                // 0x00719cd4
@@ -177,7 +179,7 @@ void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *
             if (creator != 0) {
                 uint8_t *owner = (uint8_t *)datum_get(*(datum_index *)(creator + 0x218), player_data);
 
-                if (owner != 0 && *(int16_t *)(owner + 2) != -1) {
+                if (owner != 0 && ((struct player *)owner)->local_player_index != -1) {
                     first_person = 1;
                 }
             }

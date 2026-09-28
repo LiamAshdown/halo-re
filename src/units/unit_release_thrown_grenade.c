@@ -97,7 +97,7 @@ void unit_release_thrown_grenade(uint32_t object_index, uint8_t early)
             object_set_position_and_relink(&launch, grenade, 0);
         }
         {
-            real speed = *(float *)(unit_tag + 0x2c0) * 0.033333335f;
+            real speed = ((struct Unit *)unit_tag)->grenade_velocity * 0.033333335f;
 
             velocity.i = speed * aim->i;
             velocity.j = speed * aim->j;

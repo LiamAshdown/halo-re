@@ -78,7 +78,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
         uint8_t *seat = *(uint8_t **)(parent_tag + 0x2e8) + ((unit_object *)unit)->unit.vehicle_seat_index * 0x11c;
         real_matrix4x3 *nodes = (real_matrix4x3 *)(unit + ((unit_object *)unit)->base.nodes.offset);
         uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
-        uint8_t *model = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x34) & 0xffff].data;
+        uint8_t *model = (uint8_t *)tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id & 0xffff].data;
         uint8_t *root_node = *(uint8_t **)(model + 0xbc);
         real_vector3d root_offset = *(real_vector3d *)(root_node + 0x28);
         real_matrix4x3 *root_matrix = (real_matrix4x3 *)(root_node + 0x68);
@@ -116,11 +116,11 @@ static void hs_unit_leave_seat(uint32_t object_index)
 
         unit = OBJ(object_index);
         unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
-        if (*(datum_index *)(unit_tag + 0x34) != k_datum_index_none) {
+        if (*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id != k_datum_index_none) {
             if ((((unit_object *)unit)->base.flags & 1) != 0) {
                 object_for_each_light_attachment(object_index, 0, 1);
             }
-            if (*(datum_index *)(unit_tag + 0x34) != k_datum_index_none) {
+            if (*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id != k_datum_index_none) {
                 ((unit_object *)unit)->base.flags &= ~1u;
                 ((uint8_t *)&((object_header *)object_data->data)[object_index & 0xffff])[2] |= 2;
             }

@@ -10,7 +10,7 @@ MAP = {"actor_data": "actor", "prop_data": "prop", "player_data": "player", "enc
        "light_data": "light", "particle_system_data": "particle_system", "decal_data": "decal",
        "game_looping_sound_data": "game_looping_sound", "swarm_data": "swarm",
        "particle_system_particle_data": "particle_system_particle"}
-OBJ_INIT = re.compile(r"uint8_t \*(\w+) = \(uint8_t \*\)\(\(object_header \*\)object_data->data\)\[[^]]*\]\.data;")
+OBJ_INIT = re.compile(r"uint8_t \*(\w+) = \(uint8_t \*\)\(\(object_header \*\)object_data->data\)\[[^;]*?\]\.data;")
 INIT = re.compile(r"uint8_t \*(\w+) = \(uint8_t \*\)(\w+)->data \+ \([^;]*& 0xffff\) \* (0x[0-9a-f]+);")
 
 
@@ -51,6 +51,9 @@ def main():
         (r"uint8_t \*(\w+) = \(*\(selected_saved_item & 0xf\) == 0\)* \? saved_item_working_copy : [^;]*;", "saved_player_profile", 0x1ffc),
         (r"uint8_t \*(\w+) = \(*\(selected_saved_item & 0xf\) != 0\)* \? \(uint8_t \*\)0 : saved_item_working_copy;", "saved_player_profile", 0x1ffc),
         (r"uint8_t \*(\w+) = \(selected_saved_item & 0xf\) == 1 \? saved_item_working_copy : 0;", "game_variant", 0x98),
+        (r"uint8_t \*(\w+) = \(uint8_t \*\)datum_get\([^;]*,\s*player_data\);", "player", 0x200),
+        # a unit's definition tag: every biped/vehicle tag starts with the Unit tag (offsets below 0x2f0)
+        (r"uint8_t \*(\w+) = \(uint8_t \*\)tag_instances\[\*\(datum_index \*\)unit & 0xffff\]\.data;", "Unit", 0x2f0),
     ]
     for f in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
         live = open(f, encoding="utf-8").read().split("\n#if 0")[0]

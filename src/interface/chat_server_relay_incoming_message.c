@@ -108,7 +108,7 @@ void chat_server_relay_incoming_message(void **context, void *machine)
         }
         chat_relay_iterator_begin(&iterator);
         while ((entry = (uint8_t *)data_iterator_next(&iterator)) != 0) {
-            if (*(int32_t *)(entry + 0x20) == *(int32_t *)(sender_player + 0x20) && *(int8_t *)(entry + 0x64) != -1) {
+            if (*(int32_t *)(entry + 0x20) == ((struct player *)sender_player)->team && *(int8_t *)(entry + 0x64) != -1) {
                 network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_server, 1, network_message_scratch,
                                                 (uint32_t)bits, 1, 0, 1, 3);
             }

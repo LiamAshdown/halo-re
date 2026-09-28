@@ -31,9 +31,9 @@ void hs_evaluate_object_set_collideable(int16_t function_index, uint32_t thread_
 
             // object +0x10 bit 0x1000000 = not collideable: set when the boolean is false
             if (*(uint8_t *)&arguments[1] == 0) {
-                *(uint32_t *)(object + 0x10) |= 0x1000000;
+                ((struct object *)object)->flags |= 0x1000000;
             } else {
-                *(uint32_t *)(object + 0x10) &= 0xfeffffff;
+                ((struct object *)object)->flags &= 0xfeffffff;
             }
         }
         hs_thread_return(0, thread_index);

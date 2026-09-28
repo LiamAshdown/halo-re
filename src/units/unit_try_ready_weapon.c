@@ -58,7 +58,7 @@ uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const real_ve
     if (!unit_try_set_animation_state(unit_index, new_state) && !forced) {
         return 0;
     }
-    if (*(uint32_t *)(unit_tag + 0x17c) & 0x100) {
+    if (*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x100) {
         unit[0x2a3] = 0x19;
     }
     if (direction != 0) {
