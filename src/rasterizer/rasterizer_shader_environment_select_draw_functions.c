@@ -23,8 +23,8 @@ extern d3d_caps9 rasterizer_caps;            // 0x007c10c0
 extern void *shader_environment_draw_simple; // 0x007c0470 procedure for shader_type 3
 extern void *shader_environment_draw;        // 0x007c0474 procedure for the other types
 
-extern void FUN_005276c0(void);  // 0x5276c0 not a Ghidra function; environment draw, one stream
-extern void FUN_00527ae0(void);  // 0x527ae0 not a Ghidra function; environment draw, fixed function
+extern void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); // 0x5276c0
+extern void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot); // 0x527ae0
 extern void rasterizer_shader_environment_draw_pixel_shader(void); // 0x528050, environment draw, pixel shader
 extern void rasterizer_shader_model_draw_limited(void);      // 0x528be0
 extern void rasterizer_shader_model_draw_fixed_function(void); // 0x529230
@@ -33,12 +33,12 @@ extern void rasterizer_shader_model_draw_pixel_shader(void);  // 0x529e00
 void rasterizer_shader_environment_select_draw_functions(void)
 {
     if ((int32_t)rasterizer_caps.max_streams <= 1) {
-        shader_environment_draw_simple = (void *)FUN_005276c0;
+        shader_environment_draw_simple = (void *)rasterizer_shader_environment_draw_single_stream;
         shader_environment_draw = (void *)rasterizer_shader_model_draw_limited;
         return;
     }
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
-        shader_environment_draw_simple = (void *)FUN_00527ae0;
+        shader_environment_draw_simple = (void *)rasterizer_shader_environment_draw_fixed_function;
         shader_environment_draw = (void *)rasterizer_shader_model_draw_fixed_function;
         return;
     }
