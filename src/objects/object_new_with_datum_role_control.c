@@ -103,8 +103,8 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     // their own call sites show none. Unified on the empty list -- it asserts no prototype and so
     // does not contradict either set of call sites.
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, int32_t force, int32_t param_6); // 0x4e1a80, EAX bits, ECX server
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
+    int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); // 0x4e1a80, EAX bits, ECX server
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
     // src/hs/hs_compile_source.c and src/hs/hs_sound_get_gain_reference.c
 

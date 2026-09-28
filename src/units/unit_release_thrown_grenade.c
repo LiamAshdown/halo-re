@@ -43,8 +43,8 @@ extern void object_delete(uint32_t object_index);            // 0x4f5bd0, EAX
 extern uint8_t object_is_delete_pending(uint32_t object_index); // 0x4f5c10, EAX
 extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, ESI
 extern int32_t projectile_send_creation(uint32_t projectile_index); // 0x4c0b10 (pushes the scratch buffer too)
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1, void *data,
-    int32_t param_3, int32_t param_4, char force, int32_t param_6); // 0x4e1a80, EAX, ECX, stack
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
+    int32_t immediate, int32_t flush_after, char force, int32_t unused); // 0x4e1a80, EAX, ECX, stack
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 

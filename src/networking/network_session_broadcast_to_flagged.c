@@ -5,9 +5,9 @@
 // whose table entry has an extra qualifying flag bit set, on top of being established."
 // Identical structure to network_session_broadcast_to_all.c, with an added flags-bit-0x04
 // test.
-// register convention: ECX = server (network_server_globals *), stack = param_1, data,
-// param_3, param_4, force (char), param_6.
-// blam-cc: EAX -> body_bit_count, ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6 (see FIXED below)
+// register convention: ECX = server (network_server_globals *), stack = status_bit, data,
+// immediate, flush_after, force (char), unused.
+// blam-cc: EAX -> body_bit_count, ECX -> server, stack -> status_bit, data, immediate, flush_after, force, unused (see FIXED below)
 
 #include "tags.h"
 #include "memory.h"
@@ -22,10 +22,10 @@ extern char network_channel_queue_message(network_channel *channel, uint32_t hea
 // the enumerated network_machine_flags).
 // FIXED (objdump 0x4e1a8d, 0x4e1aef..0x4e1b13): the original also takes EAX -- the message length in bits, which it
 // forwards in EBX to network_channel_queue_message -- and queues on each qualifying machine's channel (EDI) with
-// stack (data, &status, 1, param_3, param_4); the sixth push (param_6) is not read by the callee.
-// blam-cc: EAX -> body_bit_count, ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6
-char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t param_1,
-    void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6)
+// stack (data, &status, 1, immediate, flush_after); the sixth push (unused) is not read by the callee.
+// blam-cc: EAX -> body_bit_count, ECX -> server, stack -> status_bit, data, immediate, flush_after, force, unused
+char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit,
+    void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused)
 {
     char ok;
     int32_t i;
@@ -49,9 +49,9 @@ char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server
             uint8_t status;
             char sent;
 
-            status = (uint8_t)(param_1 != 0);
-            sent = network_channel_queue_message(channel, (uint32_t)data, (uint32_t)&status, 1, (char)param_3,
-                                                 (char)param_4, body_bit_count);
+            status = (uint8_t)(status_bit != 0);
+            sent = network_channel_queue_message(channel, (uint32_t)data, (uint32_t)&status, 1, (char)immediate,
+                                                 (char)flush_after, body_bit_count);
             if (sent == 0) {
                 ok = 0;
             }

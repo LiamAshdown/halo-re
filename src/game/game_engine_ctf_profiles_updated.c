@@ -21,8 +21,8 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern void *network_server_pointer; // 0x0071c2d4 (network_server_globals *)
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, blam-cc: EAX buffer, EDX size
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t param_1,
-    void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6); // 0x4e1a80, blam-cc: EAX bits, ECX server
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit,
+    void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused); // 0x4e1a80, blam-cc: EAX bits, ECX server
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server, uint32_t param_1, void *data,
     uint32_t param_3, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); // 0x4e1930, blam-cc: EAX machine, ESI server
 extern int32_t ctf_touch_counts_network[3]; // 0x0087a9e0 (team 0 / team 1 touch counts, active team)

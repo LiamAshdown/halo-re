@@ -65,7 +65,7 @@ extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, 
 // count, as the binary pushes and tests (the buffer is the network scratch 0x871de0, named below after another use).
 extern int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t bit_budget); // 0x55aed0
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server,
-    int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6); // 0x4e1a80, EAX, ECX
+    int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused); // 0x4e1a80, EAX, ECX
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle,
     int32_t value, int32_t machine_index); // 0x477a80, EAX, stack
 extern void observer_new(observer *this); // 0x447740, blam-cc: EDX
