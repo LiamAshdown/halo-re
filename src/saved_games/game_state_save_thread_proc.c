@@ -73,10 +73,10 @@ void game_state_save_thread_proc(void)
 
         if (is_checkpoint != 0) {
             saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
-            game_state_write_persistent_storage((uint32_t *)(game_state_write_buffer + 0x148),
+            game_state_write_persistent_storage(&((game_state_header *)game_state_write_buffer)->file_checksum,
                 game_state_write_buffer, k_game_state_header_size, k_game_state_size);
-            game_checkpoint_write_stats_file((char *)(game_state_write_buffer + 4),
-                *(int16_t *)(game_state_write_buffer + 0x126));
+            game_checkpoint_write_stats_file(((game_state_header *)game_state_write_buffer)->scenario_name,
+                ((game_state_header *)game_state_write_buffer)->difficulty);
             saved_game_copy_files_to_target(directory, "checkpoints\\autosave", "checkpoints\\autosave1");
             saved_game_copy_files_to_target(directory, "savegame", "checkpoints\\autosave");
         }

@@ -39,13 +39,13 @@ extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); 
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
 
-// blam-cc: __cdecl, plain stack arguments (param_1 [unused], name)
+// blam-cc: __cdecl, plain stack arguments (unused, name)
 // Creates a new game-variant slot named name, opens its file, fills it with the classic-slayer
 // default options (variant_flags's built-in bit cleared, since this is a user-created variant),
 // sanitizes it, stamps name over its name field, crcs and writes it, and rolls back (deletes the
 // slot) if the seek or write fails. Returns the new slot's packed handle, or 0xffffffff on any
 // failure.
-uint32_t saved_game_create_custom_variant(uint32_t param_1, uint16_t *name)
+uint32_t saved_game_create_custom_variant(uint32_t unused, uint16_t *name)
 {
     uint32_t handle;
     file_reference_record ref;
@@ -55,7 +55,7 @@ uint32_t saved_game_create_custom_variant(uint32_t param_1, uint16_t *name)
     uint8_t seeked;
     uint8_t written;
 
-    (void)param_1; // UNSURE: unused, see header comment
+    (void)unused; // UNSURE: unused, see header comment
 
     handle = saved_game_create_slot(1, name);
     if (handle == 0xffffffff) {
