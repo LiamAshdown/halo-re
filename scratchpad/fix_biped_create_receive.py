@@ -1,20 +1,8 @@
-// unit_network_create_update_apply  (Ghidra: unit_network_create_update_apply, renamed)
-// address 0x55b110, size 702 bytes
-// name confidence: 0.35   rewrite confidence: 0.85 (see REWRITTEN; the UNSURE note below is superseded)
-// evidence: the writes into the newly created object at the end all match documented
-//   biped_data fields exactly by offset (network_body_vitality 0x530, network_shield_vitality
-//   0x534, network_shield_stunned 0x538, network_grenade_counts 0x52c, network_update_sequence
-//   0x527, saved_control.zoom_level-derived 0x480, network_baseline_valid-adjacent 0x475,
-//   unknown_526/0x528) and unit_data (control_flags bit 0x80000 0x204, desired_grenade_index
-//   0x31e, saved_control.looking_vector 0x4ac). object.body_vitality (0xe0) and shield_vitality
-//   (0xe4) also match objects.h.
-// UNSURE: the whole first half of the function -- everything read out of local_10c..local_44
-//   before the object is created -- is populated by vector3d_cross_product /
-//   vector3d_normalize_with_length calls whose arguments Ghidra could not bind, and by direct
-//   reads of the incoming network record (*in_EAX) that Ghidra also lost. This rewrite treats
-//   that half as an opaque "decode the incoming creation record into an object_placement_data"
-//   step and does not claim to know its exact field layout; it is preserved as a raw byte
-//   buffer matching Ghidra's own stack allocation size.
+p = "C:\\Users\\Liam-\\halo-re\\src\\units\\unit_network_create_update_apply.c"
+t = open(p, encoding="utf-8").read()
+cut = t.index("\n#if 0")
+head_comment = t[:t.index("#include")]
+new = head_comment.rstrip("\n") + '''
 // REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x55b110..0x55b3c8): the biped creation
 // receiver (network action 0x1d), the counterpart of the vehicle one (0x572110). The message decodes (0x4ec590, EAX
 // context, ECX destination; the original tests == 1) into a 0x8c-byte record: definition, network key, owner
@@ -133,127 +121,6 @@ void unit_network_create_update_apply(void *incoming_record)
     }
     *(uint32_t *)(biped + 0x344) = message.scalar_344;
 }
-
-#if 0
-Original Ghidra decompilation (0x55b110):
-
-void FUN_0055b110(void)
-
-{
-  char cVar1;
-  undefined4 *in_EAX;
-  uint uVar2;
-  int iVar3;
-  undefined4 uVar4;
-  undefined4 uVar5;
-  undefined4 *puVar6;
-  undefined4 *puVar7;
-  undefined4 local_128;
-  int local_120;
-  int local_11c;
-  undefined4 local_10c;
-  undefined4 local_108;
-  undefined4 local_104;
-  undefined4 local_100;
-  undefined4 local_fc;
-  undefined4 local_f8;
-  undefined4 local_f4;
-  undefined4 local_f0;
-  undefined4 local_ec;
-  undefined4 local_e8 [12];
-  char local_b8;
-  undefined4 local_b4;
-  undefined1 local_b0;
-  undefined2 local_af;
-  undefined4 local_ac;
-  undefined4 local_a8;
-  undefined1 local_a4;
-  undefined1 local_98 [12];
-  undefined4 local_8c [10];
-  undefined4 local_64;
-  undefined4 local_60;
-  undefined4 local_5c;
-  undefined4 local_58;
-  undefined4 local_54;
-  undefined4 local_50;
-  undefined4 local_4c;
-  undefined4 local_48;
-  undefined4 local_44;
-  undefined4 local_34 [13];
-
-  if (*(int *)*in_EAX == 0) {
-    cVar1 = FUN_004ec590();
-    if (cVar1 == '\x01') {
-      vector3d_cross_product(&local_10c);
-      vector3d_cross_product(local_98);
-      vector3d_normalize_with_length();
-      vector3d_normalize_with_length();
-      uVar5 = 0xffffffff;
-      if (local_11c != 0) {
-        uVar5 = *(undefined4 *)(*(int *)(PTR_DAT_00687130 + 0x28) + local_11c * 4);
-      }
-      uVar4 = 0xffffffff;
-      if (local_120 != 0) {
-        uVar4 = *(undefined4 *)(*(int *)(PTR_DAT_00687558 + 0x28) + local_120 * 4);
-      }
-      puVar6 = local_8c;
-      for (iVar3 = 0x22; iVar3 != 0; iVar3 = iVar3 + -1) {
-        *puVar6 = 0;
-        puVar6 = puVar6 + 1;
-      }
-      local_8c[2] = uVar4;
-      local_64 = local_f4;
-      local_5c = local_ec;
-      local_60 = local_f0;
-      local_58 = local_10c;
-      local_50 = local_104;
-      local_54 = local_108;
-      local_4c = local_100;
-      local_8c[3] = uVar5;
-      local_44 = local_f8;
-      local_48 = local_fc;
-      puVar6 = local_e8;
-      puVar7 = local_34;
-      for (iVar3 = 0xc; iVar3 != 0; iVar3 = iVar3 + -1) {
-        *puVar7 = *puVar6;
-        puVar6 = puVar6 + 1;
-        puVar7 = puVar7 + 1;
-      }
-      uVar2 = object_new_with_datum_role_control(local_8c,1);
-      if (uVar2 != 0xffffffff) {
-        FUN_004e9cd0(local_128);
-        iVar3 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (uVar2 & 0xffff) * 0xc);
-        *(undefined4 *)(iVar3 + 0x530) = local_ac;
-        *(undefined4 *)(iVar3 + 0x534) = local_a8;
-        *(undefined1 *)(iVar3 + 0x538) = local_a4;
-        *(undefined2 *)(iVar3 + 0x52c) = local_af;
-        *(float *)(iVar3 + 0xe4) = *(float *)(iVar3 + 0x534) * 3.0;
-        *(undefined1 *)(iVar3 + 0x527) = local_b0;
-        *(undefined4 *)(iVar3 + 0xe0) = *(undefined4 *)(iVar3 + 0x530);
-        *(short *)(iVar3 + 0x480) = (short)*(char *)(iVar3 + 0x321);
-        *(undefined1 *)(iVar3 + 0x526) = 1;
-        *(undefined1 *)(iVar3 + 0x528) = 0;
-        *(undefined1 *)(iVar3 + 0x475) = 1;
-        *(ushort *)(iVar3 + 0x104) = (ushort)(*(char *)(iVar3 + 0x538) == '\x01');
-        *(undefined4 *)(iVar3 + 0x4ac) = *(undefined4 *)(iVar3 + 0x494);
-        *(undefined4 *)(iVar3 + 0x4b0) = *(undefined4 *)(iVar3 + 0x498);
-        *(undefined4 *)(iVar3 + 0x4b4) = *(undefined4 *)(iVar3 + 0x49c);
-        *(undefined2 *)(iVar3 + 0x31e) = *(undefined2 *)(iVar3 + 0x52c);
-        if (local_b8 == '\0') {
-          uVar2 = *(uint *)(iVar3 + 0x204) & 0xfff7ffff;
-        }
-        else {
-          uVar2 = *(uint *)(iVar3 + 0x204) | 0x80000;
-        }
-        *(uint *)(iVar3 + 0x204) = uVar2;
-        *(undefined4 *)(iVar3 + 0x344) = local_b4;
-        return;
-      }
-    }
-  }
-  else {
-    FUN_004ec670();
-  }
-  return;
-}
-#endif
+'''
+open(p, "w", encoding="utf-8", newline="\n").write(new + t[cut:])
+print("ok")
