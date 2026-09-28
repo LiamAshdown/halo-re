@@ -1,40 +1,36 @@
-// network_join_request_reset_state  (Ghidra: FUN_004e0ab0, unnamed)
+// network_join_request_reset_state  (Ghidra: FUN_004e0ab0)
 // address 0x4e0ab0, size 63 bytes
-// name confidence: 0.35   rewrite confidence: 0.7
-// evidence: out/phase4/networking_functions.md: "Calls two parameterless helper routines,
-// likely resetting some channel/session state as part of the join-request handshake."
-// register convention: none visible.
-// FIXED (register inputs, objdump): EAX carries a network_machine * (read at 0x4e0ab4,
-//   `mov esi,eax`), matching the exact machine->channel / machine->unknown_52 / machine->unknown_5c
-//   pattern already established by network_machine_reset.c (0x4df690) and
-//   network_session_host_reject_or_cleanup_client.c (0x575ff0, ESI -> channel, initialized to
-//   -1 == network_machine::unknown_5c). The rewrite previously called both helpers with no
-//   arguments at all. A stack value read at 0x4e0adb ([esp+0x20], this function's first stack
-//   argument) and machine->unknown_52's address are also loaded before the second call, but
-//   network_session_host_reject_or_cleanup_client's own established signature takes only the
-//   channel value, so those two are left unmodeled (UNSURE, may reflect an incomplete
-//   convention on that callee, which is outside this file). Likewise the loopback-address
-//   substitution at 0x4e0ac9..0x4e0ad5 only feeds EDX, which neither call consumes under the
-//   currently established signatures, so it has no modeled effect here.
-//   // blam-cc: EAX -> machine
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN 2026-09-28 from objdump 0x4e0ab0..0x4e0aee: EAX machine, stack response: the CD key check of a joining
+//   machine with its remote ip (the local address 0x006869b0 for loopback 127.0.0.1), its challenge (+0x52) and CD
+//   key local id (+0x5c). (Name kept.)
+// blam-cc: EAX -> machine, stack -> response
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include <string.h>
+#include <wchar.h>
 
-extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
-extern int32_t network_session_host_reject_or_cleanup_client(int32_t channel); // 0x575ff0, this module; blam-cc: ESI -> channel
+extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, blam-cc: EAX channel, ECX out
+extern uint32_t network_local_address; // 0x006869b0
+extern uint8_t network_session_host_reject_or_cleanup_client(const char *response, const char *challenge, uint32_t ip,
+    int32_t local_id); // 0x575ff0, blam-cc: EAX response, ECX challenge, EDX ip, ESI local_id
 
-// blam-cc: EAX -> machine
-int32_t network_join_request_reset_state(network_machine *machine)
+uint8_t network_join_request_reset_state(network_machine *machine, const char *response)
 {
     network_resolved_address address;
+    uint32_t ip;
 
-    network_channel_remote_address_or_default(machine ? machine->channel : 0, &address);
-    // 0x4e0adf..0x4e0ae2: unconditional, not guarded by the machine-null check above.
-    return network_session_host_reject_or_cleanup_client(machine->unknown_5c);  // the original returns this call's result (EAX) unchanged
+    network_channel_remote_address_or_default(machine != 0 ? machine->channel : 0, &address);
+    ip = *(uint32_t *)&address;
+    if (ip == 0x7f000001) {
+        ip = network_local_address;
+    }
+    return network_session_host_reject_or_cleanup_client(response, (const char *)machine + 0x52, ip,
+        *(int32_t *)((uint8_t *)machine + 0x5c));
 }
 
 #if 0

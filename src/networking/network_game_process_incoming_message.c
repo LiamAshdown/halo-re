@@ -37,8 +37,10 @@ extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
     const uint8_t *buffer, void *out_a, void *out_b, int32_t expected_class); // 0x4d09d0
 extern uint32_t network_game_message_handle_keepalive(int32_t *record); // 0x4e2110, this batch
-extern uint32_t network_game_server_handle_join_password(network_server_globals *server); // 0x4e21d0, case 0xe
-extern uint32_t network_game_server_handle_join_confirm(void);    // 0x4e2400, this batch, case 0xf
+extern char network_game_server_handle_join_password(network_machine *machine, network_server_globals *server, uint8_t *buffer,
+    int32_t length); // 0x4e21d0, case 0xe, blam-cc: EBX machine
+extern char network_game_server_handle_join_confirm(network_machine *machine, network_server_globals *server, uint8_t *buffer,
+    int32_t length); // 0x4e2400, case 0xf, blam-cc: EAX machine, ECX server, EDX buffer
 extern uint32_t network_game_message_handle_settings_relay(void); // 0x4e24d0, this batch, case 0x10
 extern uint32_t network_game_message_handle_player_count_broadcast(void); // 0x4e2530, case 0x11
 extern uint32_t network_game_message_handle_player_entry_update(void);    // 0x4e2580, case 0x12
@@ -87,9 +89,9 @@ uint32_t network_game_process_incoming_message(int32_t length, network_machine *
         }
         break;
     case 0x0e:
-        return network_game_server_handle_join_password(server);
+        return network_game_server_handle_join_password(machine, server, (uint8_t *)record, length); // FIXED 2026-09-28: 0x4e1ce9
     case 0x0f:
-        return network_game_server_handle_join_confirm();
+        return network_game_server_handle_join_confirm(machine, server, (uint8_t *)record, length); // FIXED 2026-09-28: 0x4e1d00
     case 0x10:
         return network_game_message_handle_settings_relay();
     case 0x11:

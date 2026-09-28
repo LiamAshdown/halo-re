@@ -1,65 +1,57 @@
-// network_session_host_reject_or_cleanup_client  (Ghidra: FUN_00575ff0; named per this rewrite)
+// network_session_host_reject_or_cleanup_client  (Ghidra: FUN_00575ff0)
 // address 0x575ff0, size 162 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
-// evidence: out/phase4/networking_functions.md summary: "Looks up an entry in a small
-// client/machine table and performs one of two cleanup calls on a network channel handle
-// depending on whether the entry was found." Calls ban_list_check_and_reject_player (already
-// named in this module) and searches a 16-entry, 0x60-byte-stride table off network_server
-// (0x0071c2d4) -- the same stride as types/networking.h's network_machine -- for an entry
-// matching a channel handle pinned in ESI.
-// register convention: a channel/connection value pinned in ESI (unaff_ESI, unresolved register
-// read) throughout; no recognized stack parameters.
-// UNSURE: FUN_0061aa50, FUN_0061b110, FUN_0061b350 and FUN_0061b3f0 are foreign (GameSpy/CD-key)
-// helpers outside this module; their exact roles are not established here. The 0x414 base offset
-// into network_server does not line up cleanly with network_machine[0] at +0x3b8, so the exact
-// field being scanned is not pinned either.
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN 2026-09-28 from objdump 0x575ff0..0x576091: the host's CD key check for a joining machine:
+//   gcd_authenticate_user(game id 0x0069fdfc, local id, ip, challenge, response,
+//   network_session_host_cd_key_callback, 0), then the ban list check on the key hash (gcd_getkeyhash, EDI). Not
+//   banned: 1. Banned: reason 6 to the machine with that local id (or NULL), the key is disconnected from gcd (every
+//   key for local id -1), 0. (Name kept; it authenticates.)
+// blam-cc: EAX -> response, ECX -> challenge, EDX -> ip, ESI -> local_id
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include <string.h>
+#include <wchar.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
-extern void *autopatch_download_mutex_or_similar; // 0x0069fdfc, UNSURE: exact type/name
+extern int32_t network_cd_key_game_id; // 0x0069fdfc
+extern void FUN_0061b110(int32_t game_id, int32_t local_id, uint32_t ip, const char *challenge, const char *response,
+    void *callback, void *instance); // 0x61b110 gcd_authenticate_user
+extern const char *FUN_0061aa50(int32_t game_id, int32_t local_id); // 0x61aa50 gcd_getkeyhash
+extern void FUN_0061b350(int32_t game_id, int32_t local_id); // 0x61b350 gcd_disconnect_user
+extern void FUN_0061b3f0(int32_t game_id); // 0x61b3f0 gcd_disconnect_all
+extern uint8_t ban_list_check_and_reject_player(char *key); // 0x4e3820, blam-cc: EDI key
+extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine,
+    network_server_globals *server); // 0x4e0af0
+extern void network_session_host_cd_key_callback(int32_t game_id, int32_t local_id, int32_t authenticated,
+    const char *message, void *instance); // 0x5760a0
 
-extern void FUN_0061b110(void *handle); // foreign, UNSURE
-extern void FUN_0061aa50(void *handle);  // foreign, UNSURE
-extern char ban_list_check_and_reject_player(void); // 0x4e3820, this module (elided args)
-extern void network_server_notify_or_resend_challenge(network_server_globals *server); // this module range, UNSURE args
-extern void FUN_0061b350(void *handle); // foreign, UNSURE
-extern void FUN_0061b3f0(void *handle); // foreign, UNSURE
-
-// blam-cc: ESI -> channel (unresolved)
-// Looks up a matching entry in the server's machine table for the pinned channel value; if the
-// connecting player is banned, rejects it immediately. Otherwise tears down the server-side
-// bookkeeping for the (found or not-found) slot and releases the channel through one of two
-// cleanup paths depending on whether a match was found.
-int32_t network_session_host_reject_or_cleanup_client(int32_t channel)
+uint8_t network_session_host_reject_or_cleanup_client(const char *response, const char *challenge, uint32_t ip, int32_t local_id)
 {
-    char banned;
+    network_server_globals *server;
+    network_machine *machine = 0;
     int32_t i;
-    uint8_t *entry;
 
-    FUN_0061b110(autopatch_download_mutex_or_similar);
-    FUN_0061aa50(autopatch_download_mutex_or_similar);
-    banned = ban_list_check_and_reject_player();
-    if (banned == 0) {
+    FUN_0061b110(network_cd_key_game_id, local_id, ip, challenge, response, (void *)network_session_host_cd_key_callback, 0);
+    if (ban_list_check_and_reject_player((char *)FUN_0061aa50(network_cd_key_game_id, local_id)) == 0) {
         return 1;
     }
-    entry = (uint8_t *)network_server + 0x414;
+    server = network_server;
     for (i = 0; i < 0x10; i++) {
-        if (*(int32_t *)entry == channel) {
+        if (*(int32_t *)((uint8_t *)server + 0x414 + i * 0x60) == local_id) {
+            machine = (network_machine *)((uint8_t *)server + 0x3b8 + i * 0x60);
             break;
         }
-        entry = entry + 0x60;
     }
-    network_server_notify_or_resend_challenge(network_server);
-    if (channel != -1) {
-        FUN_0061b350(autopatch_download_mutex_or_similar);
-        return 0;
+    network_server_notify_or_resend_challenge(6, machine, server);
+    if (local_id == -1) {
+        FUN_0061b3f0(network_cd_key_game_id);
+    } else {
+        FUN_0061b350(network_cd_key_game_id, local_id);
     }
-    FUN_0061b3f0(autopatch_download_mutex_or_similar);
     return 0;
 }
 

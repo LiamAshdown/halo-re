@@ -1,66 +1,56 @@
-// network_game_server_handle_join_confirm  (Ghidra: FUN_004e2400; named per this rewrite)
+// network_game_server_handle_join_confirm  (Ghidra: FUN_004e2400)
 // address 0x4e2400, size 200 bytes
-// name confidence: 0.4   rewrite confidence: 0.3
-// evidence: out/phase4/networking_functions.md: "Handles message type 0xf, the next step of
-// the join handshake after FUN_004e21d0, finalizing or retrying the connection." `in_ECX`'s
-// offset+4 test matches network_server_globals::unknown_004 exactly as in
-// network_game_server_handle_join_password.c; `in_EAX`'s offset+0xc matches
-// network_machine::machine_id.
-// register convention: EAX = machine (network_machine *, implicit), ECX = server
-// (network_server_globals *, implicit), EDX = buffer (implicit) -- all three follow the same
-// fully-implicit passthrough pattern this whole message-dispatch cluster uses (see
-// network_game_process_incoming_message.c).
-//   // blam-cc: EAX -> machine, ECX -> server, EDX -> buffer
-// UNSURE (major): network_game_session_finalize_and_add_player, network_server_notify_or_resend_challenge
-// and network_game_broadcast_player_set_changed are each called here with zero visible
-// arguments in Ghidra's own decompile; declared and called with no arguments, matching Ghidra
-// literally, rather than inventing plausible values for their established (non-empty)
-// parameter lists documented in their own files.
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN 2026-09-28 from objdump 0x4e2400..0x4e24c7: EAX machine, ECX server, EDX buffer, stack length: while
+//   the host is not in a game, the decoded body is the player to add; failure sends reason 3, success broadcasts the
+//   player set and sends a type 0xa accept. Returns 1.
+// blam-cc: EAX -> machine, ECX -> server, EDX -> buffer, stack -> length
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include <string.h>
+#include <wchar.h>
 
+extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, blam-cc: EAX type, EDX payload
+extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t param_1, void *data,
+    uint32_t bits, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority); // 0x4e1930, blam-cc: EAX machine_id, ESI server
 extern data_packet_group network_game_messages_group; // 0x006994f8
-extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
-    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
-extern char network_game_session_finalize_and_add_player(void); // 0x4df840, this module,
-    // called here with no visible arguments (UNSURE, see header)
-extern void network_server_notify_or_resend_challenge(void); // 0x4e0af0, this module,
-    // called here with no visible arguments (UNSURE, see header)
-extern char network_game_broadcast_player_set_changed(void); // 0x4e1bf0, this module,
-    // called here with no visible arguments (UNSURE, see header)
-extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0
-extern char network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits,
-    int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority); // 0x4e1930
+extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group, void *decoded_body,
+    uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class); // 0x4d09d0, blam-cc: EAX remaining_length
+extern uint32_t network_game_session_finalize_and_add_player(network_player_entry *entry, network_server_globals *server,
+    network_machine *machine); // 0x4df840, blam-cc: EAX entry, ECX server, EDX machine
+extern uint32_t network_game_broadcast_player_set_changed(network_server_globals *server, uint8_t *param_1); // 0x4e1bf0 (reads its stack server)
+extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine,
+    network_server_globals *server); // 0x4e0af0
 
-// blam-cc: EAX -> machine, ECX -> server, EDX -> buffer
-// Decodes the join-confirm payload; on failure to finalize the player
-// (network_game_session_finalize_and_add_player), notifies/resends the challenge instead.
-// On success, broadcasts the updated player set and, if accepted, sends a final accept packet
-// back to the joining machine.
-uint32_t network_game_server_handle_join_confirm(network_machine *machine, network_server_globals *server, uint8_t *buffer)
+char network_game_server_handle_join_confirm(network_machine *machine, network_server_globals *server, uint8_t *buffer,
+    int32_t length)
 {
-    uint8_t decoded_body[32];
-    int16_t out_a, out_b;
+    uint16_t out_version;
+    int16_t out_type;
+    uint8_t body[0x20];
+    int16_t remaining;
 
     if (server->unknown_004 != 0 && server->unknown_004 != 1) {
         return 1;
     }
-    if (data_packet_group_decode_packet(&network_game_messages_group, decoded_body, buffer + 2,
-                                         &out_a, &out_b, 3) == 0) {
+    remaining = (int16_t)(length - 2);
+    if (data_packet_group_decode_packet(&remaining, &network_game_messages_group, body, buffer + 2, &out_type, &out_version, 3) == 0) {
         return 1;
     }
-    if (network_game_session_finalize_and_add_player() == 0) {
-        network_server_notify_or_resend_challenge();
-    } else if (network_game_broadcast_player_set_changed() != 0) {
+    if (network_game_session_finalize_and_add_player((network_player_entry *)body, server, machine) == 0) {
+        network_server_notify_or_resend_challenge(3, machine, server);
+        return 1;
+    }
+    if (network_game_broadcast_player_set_changed(server, (uint8_t *)server) != 0) {
         uint32_t payload = 0;
-        uint16_t *packet = network_prepare_challenge_packet(0, &payload); // UNSURE: message type inferred as 0 (local_24 zeroed before the call)
+        uint16_t *packet = network_prepare_challenge_packet(0xa, &payload);
+
         if (packet != 0 && machine->machine_id != -1) {
-            network_session_send_to_machine(0, packet, (int32_t)(*packet >> 4) << 3, 1, 0, 1, 3);
-            return 1;
+            network_session_send_to_machine(machine->machine_id, server, 0, packet, (uint32_t)(*packet >> 4) << 3, 1, 0, 1, 3);
         }
     }
     return 1;
