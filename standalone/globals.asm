@@ -3364,8 +3364,6 @@ PUBLIC _player_effect_globals_pointer
 _player_effect_globals_pointer EQU 06F1884h
 PUBLIC _player_effect_reentry_count
 _player_effect_reentry_count EQU 0719CCCh
-PUBLIC _player_globals
-_player_globals EQU 087A478h
 PUBLIC _player_globals_0087a478
 _player_globals_0087a478 EQU 087A478h
 PUBLIC _player_globals_ptr
@@ -4238,8 +4236,6 @@ PUBLIC _scan_code_to_key
 _scan_code_to_key EQU 065BD58h
 PUBLIC _scenario_load_staging
 _scenario_load_staging EQU 06B0B80h
-PUBLIC _scenario_structure_bsp
-_scenario_structure_bsp EQU 0746F9Ch
 PUBLIC _screen_effect_techniques
 _screen_effect_techniques EQU 071D210h
 PUBLIC _screen_flash_pass

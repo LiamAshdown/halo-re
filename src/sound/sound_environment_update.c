@@ -45,12 +45,13 @@
 #include "scenario.h"
 #include "sound.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
+#include "game.h"
 
-extern uint8_t *player_globals;               // 0x0087a478, +0x04 local player 0's object index
+extern player_globals *local_player_globals;  // 0x0087a478
 extern int16_t local_player_0_cluster_index;  // 0x006ac6e0, observers[0].camera.cluster_index
 extern real_point3d camera_point;             // 0x006ac6d0, observers[0].camera.position
 extern bsp_leaf_reference camera_leaf;        // 0x006ac6dc, observers[0].camera.leaf_index / cluster_index
-extern uint8_t *scenario_structure_bsp;       // 0x00746f9c, same pass
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94
 extern SoundEnvironment k_default_sound_environment; // 0x0065e508
 extern tag_instance *tag_instances;           // 0x0087bc14
@@ -59,43 +60,43 @@ extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point
 
 void sound_environment_update(uint32_t *out_environment_ptr, void **out_environment_slot, uint8_t *out_changed)
 {
-    uint8_t *structure_bsp = scenario_structure_bsp;
+    ScenarioStructureBSP *structure_bsp = global_structure_bsp;
     uint32_t sound_tag_id = 0xffffffff;
     uint32_t environment_default = 0xffffffff;
     uint8_t is_water = 0;
-    uint8_t *cluster_record;
+    ScenarioStructureBSPCluster *cluster_record;
     int16_t fog_id;
 
-    if (*(int32_t *)(player_globals + 4) == -1 || local_player_0_cluster_index == -1) {
+    if (*(int32_t *)&local_player_globals->local_players /* local player 0 */ == -1 || local_player_0_cluster_index == -1) {
         goto skip_environment_lookup;
     }
 
-    cluster_record = (uint8_t *)(uintptr_t)(*(uint32_t *)(structure_bsp + 0x138) + local_player_0_cluster_index * 0x68);
+    cluster_record = (ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer + local_player_0_cluster_index;
 
     {
         int16_t region = scenario_location_fog_region(&camera_leaf, &camera_point);
         if (region != -1) {
-            region = *(int16_t *)(*(uint32_t *)(structure_bsp + 0x188) + region * 0x28 + 0x24);
+            region = (int16_t)((ScenarioStructureBSPFogRegion *)structure_bsp->fog_regions.pointer)[region].fog;
         }
         if (region == -1) {
             fog_id = -0x8000;
         } else {
-            uint32_t material_tag = *(uint32_t *)(*(uint32_t *)(structure_bsp + 0x194) + region * 0x88 + 0x2c);
-            if (material_tag == 0xffffffff) {
+            uint32_t fog_tag_id = *(uint32_t *)&((ScenarioStructureBSPFogPalette *)structure_bsp->fog_palette.pointer)[region].fog.tag_id;
+            if (fog_tag_id == 0xffffffff) {
                 fog_id = -0x8000;
             } else {
-                uint8_t *material = tag_instances[material_tag & 0xffff].data;
-                uint32_t env_tag = *(uint32_t *)(material + 0x110);
+                Fog *fog_tag = (Fog *)tag_instances[fog_tag_id & 0xffff].data;
+                uint32_t env_tag = *(uint32_t *)&fog_tag->sound_environment.tag_id;
                 if (env_tag == 0xffffffff) {
                     fog_id = -0x8000;
                 } else {
-                    uint8_t *env_tag_data = tag_instances[env_tag & 0xffff].data;
-                    if (*(int16_t *)(env_tag_data + 4) < -0x7fff) {
+                    SoundEnvironment *env_tag_data = (SoundEnvironment *)tag_instances[env_tag & 0xffff].data;
+                    if (env_tag_data->priority < -0x7fff) {
                         fog_id = -0x8000;
                     } else {
-                        fog_id = *(int16_t *)(env_tag_data + 4);
-                        environment_default = *(uint32_t *)(material + 0x100);
-                        is_water = *material & 1;
+                        fog_id = env_tag_data->priority;
+                        environment_default = *(uint32_t *)&fog_tag->background_sound.tag_id;
+                        is_water = *(uint8_t *)&fog_tag->flags & 1;
                         sound_tag_id = env_tag;
                     }
                 }
@@ -104,19 +105,19 @@ void sound_environment_update(uint32_t *out_environment_ptr, void **out_environm
     }
 
     {
-        int16_t location_fog_id = *(int16_t *)(cluster_record + 6);
-        if (location_fog_id != -1) {
-            uint32_t override_tag = *(uint32_t *)(*(uint32_t *)(structure_bsp + 0x20c) + location_fog_id * 0x50 + 0x2c);
+        int16_t sound_environment_index = (int16_t)cluster_record->sound_environment;
+        if (sound_environment_index != -1) {
+            uint32_t override_tag = *(uint32_t *)&((ScenarioStructureBSPSoundEnvironmentPalette *)structure_bsp->sound_environment_palette.pointer)[sound_environment_index].sound_environment.tag_id;
             if (override_tag != 0xffffffff) {
-                uint8_t *override_data = tag_instances[override_tag & 0xffff].data;
-                if (fog_id < *(int16_t *)(override_data + 4)) {
-                    int16_t override_priority = *(int16_t *)(cluster_record + 4);
+                SoundEnvironment *override_data = (SoundEnvironment *)tag_instances[override_tag & 0xffff].data;
+                if (fog_id < override_data->priority) {
+                    int16_t background_sound_index = (int16_t)cluster_record->background_sound;
                     is_water = 0;
                     sound_tag_id = override_tag;
-                    if (override_priority == -1 || override_priority >= *(int32_t *)(structure_bsp + 0x1fc)) {
+                    if (background_sound_index == -1 || background_sound_index >= (int32_t)structure_bsp->background_sound_palette.count) {
                         environment_default = 0xffffffff;
                     } else {
-                        environment_default = *(uint32_t *)(*(uint32_t *)(structure_bsp + 0x200) + override_priority * 0x74 + 0x2c);
+                        environment_default = *(uint32_t *)&((ScenarioStructureBSPBackgroundSoundPalette *)structure_bsp->background_sound_palette.pointer)[background_sound_index].background_sound.tag_id;
                     }
                 }
             }

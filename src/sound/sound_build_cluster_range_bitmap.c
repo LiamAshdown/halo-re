@@ -25,7 +25,7 @@
 #include "camera.h"
 #include "sound.h"
 
-extern uint8_t *global_structure_bsp;    // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words]; // 0x00746160
 extern player_globals *local_player_globals; // 0x0087a478
 extern observer observers[1]; // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17)
@@ -35,8 +35,8 @@ extern observer observers[1]; // 0x006ac65c, camera.h; observers[i].camera is th
 // current cluster (observers[0].camera.cluster_index), gated on a local player existing.
 void sound_build_cluster_range_bitmap(void)
 {
-    int32_t cluster_count = *(int32_t *)(global_structure_bsp + 0x134);
-    uint8_t *distance_table = *(uint8_t **)(global_structure_bsp + 0x220); // UNSURE, see file header
+    int32_t cluster_count = (int32_t)global_structure_bsp->clusters.count;
+    uint8_t *distance_table = (uint8_t *)global_structure_bsp->sound_pas_data.pointer; // UNSURE, see file header
     int32_t word_count = (cluster_count + 0x1f) >> 5;
     int32_t i;
 

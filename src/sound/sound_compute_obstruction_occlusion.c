@@ -26,7 +26,7 @@
 #include "camera.h"
 #include "sound.h"
 
-extern uint8_t *global_structure_bsp;                   // 0x00746f9c
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern observer observers[1];                            // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17)
 
 extern uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b,
@@ -67,8 +67,8 @@ void sound_compute_obstruction_occlusion(sound_location *location, int16_t liste
     }
 
     {
-        int32_t cluster_count = *(int32_t *)(global_structure_bsp + 0x134);
-        uint32_t *occlusion_bitmap = *(uint32_t **)(global_structure_bsp + 0x14c);
+        int32_t cluster_count = (int32_t)global_structure_bsp->clusters.count;
+        uint32_t *occlusion_bitmap = (uint32_t *)global_structure_bsp->cluster_data.pointer;
         int32_t word_index = ((cluster_count + 0x1f) >> 5) * listener_cluster + (location->cluster_index >> 5);
 
         if ((occlusion_bitmap[word_index] & (1u << (location->cluster_index & 0x1f))) != 0) {
