@@ -20,6 +20,12 @@
 // `client` is supplied for the elided ESI slot by the same reasoning applied throughout this
 // batch.
 
+// FIXED 2026-09-28 (networking call audit, from the disassembly): the dispatcher (0x4db6b0) passes (client, record,
+// length, sender) -- the length is an int, which the original reduces by 2 in its own argument slot and hands to
+// data_packet_group_decode_packet by address (EAX) as the remaining length; that call takes 7 arguments (remaining,
+// group, body, record + 2, out_type, out_version_used, expected class), not 8 (the extra one made the class 0);
+// network_disconnect_notify_dropped_machines gets the client (EBX).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -32,13 +38,13 @@ extern data_packet_group network_game_messages_group; // 0x006994f8
 
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
-    void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,
-    uint16_t *out_version_used, int16_t expected_class); // 0x4d09d0
-extern void network_client_timer_schedule(network_client_globals *client, int32_t delay_ms, uint32_t event_id); // 0x4d9ed0, elided ESI
+    void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
+    int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
+extern void network_client_timer_schedule(int32_t delay_ms, int32_t context, network_client_globals *client); // stack x2, ESI client // 0x4d9ed0, elided ESI
 
 // blam-cc: EAX -> client
 int32_t network_game_message_decode_replicated_command(network_client_globals *client, uint8_t *param_1,
-    int16_t *param_2, int32_t *param_3)
+    int32_t param_2, int32_t *param_3)
 {
     network_resolved_address sender;
     int16_t out_type;
@@ -50,12 +56,12 @@ int32_t network_game_message_decode_replicated_command(network_client_globals *c
         return 1;
     }
     if (client->state == 4 &&
-        data_packet_group_decode_packet(param_2, &network_game_messages_group, decoded_body,
-            param_1 + 2, &out_type, &input, 0, 6) != 0) {
+        data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
+            decoded_body, param_1 + 2, &out_type, (uint16_t *)&input, 6) != 0) {
         if (network_game_mode != 1) {
             return 1;
         }
-        network_client_timer_schedule(client, decoded_body[0], decoded_body[1]);
+        network_client_timer_schedule((int32_t)decoded_body[0], (int32_t)decoded_body[1], client);
         return 1;
     }
     return 0;

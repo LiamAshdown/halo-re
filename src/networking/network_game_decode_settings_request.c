@@ -18,6 +18,10 @@
 // UNSURE: `DAT_0069b350` is not declared in types/networking.h; named generically from its
 // boolean-cast source.
 
+// FIXED 2026-09-28 (networking call audit, from the disassembly): the third argument is the record length (an int);
+// the original reduces it by 2 in its own slot and passes its address (EAX) as data_packet_group_decode_packet's
+// remaining length -- that argument was missing from the declaration, so every other argument was shifted by one.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,27 +30,27 @@
 
 
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
-extern int32_t data_packet_group_decode_packet(data_packet_group *group, void *decoded_body,
-    const uint8_t *buffer, int16_t *out_a, int16_t *out_b, int32_t expected_class); // 0x4d09d0
+extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
+    void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
+    int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern uint32_t network_engine_version_match_flag; // 0x0069b350, UNSURE name
 extern void network_game_settings_packet_send(network_client_globals *client, const uint8_t *request); // 0x4d94c0
 
 // blam-cc: ESI -> client; stack -> buffer, capacity, expected_sequence
 int32_t network_game_decode_settings_request(network_client_globals *client, const uint8_t *buffer,
-                                              void *capacity, const int32_t *expected_sequence)
+                                              int32_t length, const int32_t *expected_sequence)
 {
     network_resolved_address sender;
-    uint8_t decoded_body[8];
+    uint8_t decoded_body[0x94];   // the engine-version byte is +0x08 (0x4dbc7c)
     int16_t out_a, out_b;
-    char engine_match_byte; // Ghidra's local_8c, an extra byte decode_packet writes past decoded_body
 
     network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *expected_sequence && client->state == 1) { // UNSURE: mode field
-        if (data_packet_group_decode_packet(&network_game_messages_group, decoded_body, buffer + 2,
-                                             &out_a, &out_b, 2) != 0) {
-            network_engine_version_match_flag = (engine_match_byte == 1);
-            network_game_settings_packet_send(client, decoded_body); // UNSURE argument
+        if (data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group,
+                                             decoded_body, buffer + 2, &out_a, (uint16_t *)&out_b, 2) != 0) {
+            network_engine_version_match_flag = (decoded_body[8] == 1);
+            network_game_settings_packet_send(client, decoded_body); // 0x4dbc87: stack body, EBX client
             return 1;
         }
     }

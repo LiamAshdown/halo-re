@@ -25,6 +25,12 @@
 // (values observed: 2, 3, 4); the header's field name could not be changed here (do not edit
 // types/*.h), so it is used as declared with this note.
 
+// FIXED 2026-09-28 (networking call audit, from the disassembly): the dispatcher (0x4db6b0) passes (client, record,
+// length, sender) -- the length is an int, which the original reduces by 2 in its own argument slot and hands to
+// data_packet_group_decode_packet by address (EAX) as the remaining length; that call takes 7 arguments (remaining,
+// group, body, record + 2, out_type, out_version_used, expected class), not 8 (the extra one made the class 0);
+// network_disconnect_notify_dropped_machines gets the client (EBX).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -36,11 +42,11 @@ extern data_packet_group network_game_messages_group; // 0x006994f8
 
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
-    void *decoded_body, uint8_t *buffer, int16_t *out_type, byte_stream *input,
-    uint16_t *out_version_used, int16_t expected_class); // 0x4d09d0
+    void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
+    int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 extern int8_t network_game_state_update_receive(network_client_globals *client, void *decoded_body); // 0x4d9d20, elided
     // register args unresolved; the visible params are this function's own best-guess mapping
-extern void network_disconnect_notify_dropped_machines(void); // 0x4d9340, elided register args unresolved
+extern void network_disconnect_notify_dropped_machines(network_client_globals *client); // 0x4d9340, elided register args unresolved
 
 // blam-cc: EAX -> client
 // Rejects the message unless the caller's expected sequence matches the guard's local
@@ -49,7 +55,7 @@ extern void network_disconnect_notify_dropped_machines(void); // 0x4d9340, elide
 // network_game_state_update_receive; if that fails, or if the message was rejected up front by class/type, it runs
 // the shared disconnect-notification cleanup (network_disconnect_notify_dropped_machines).
 char network_game_client_decode_state_update_chunk(network_client_globals *client, uint8_t *param_1,
-    int16_t *param_2, int32_t *param_3)
+    int32_t param_2, int32_t *param_3)
 {
     char result;
     network_resolved_address sender;
@@ -62,14 +68,14 @@ char network_game_client_decode_state_update_chunk(network_client_globals *clien
     if ((sender.address.ipv4 != *param_3) || (client->state != 3)) {
         return 1;
     }
-    if (data_packet_group_decode_packet(param_2, &network_game_messages_group, decoded_body,
-            param_1 + 2, &out_type, &input, 0, 4) != 0) {
+    if (data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
+            decoded_body, param_1 + 2, &out_type, (uint16_t *)&input, 4) != 0) {
         result = network_game_state_update_receive(client, decoded_body);
         if (result != 0) {
             return result;
         }
     }
-    network_disconnect_notify_dropped_machines();
+    network_disconnect_notify_dropped_machines(client);
     return result;
 }
 
