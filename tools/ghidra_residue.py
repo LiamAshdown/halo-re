@@ -28,8 +28,11 @@ def live(text):
 
 
 def counts(path):
-    t = live(re.sub(r"/\*.*?\*/", "", open(path, encoding="utf-8", errors="replace").read(), flags=re.S))
+    # #if 0 blocks first: a stray /* (e.g. inside a // comment) would otherwise let the comment strip swallow an
+    # "#if 0" line and count the original decompilation as live code
+    t = live(open(path, encoding="utf-8", errors="replace").read())
     t = re.sub(r"//[^\n]*", "", t)
+    t = re.sub(r"/\*.*?\*/", "", t, flags=re.S)
     return len(OFFSET.findall(t)), len(NAMES.findall(t)), len(TYPES.findall(t))
 
 
