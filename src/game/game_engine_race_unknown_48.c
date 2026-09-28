@@ -1,0 +1,40 @@
+// game_engine_race_unknown_48  (not a Ghidra function; the race game engine definition's +0x48 slot (unknown_48); no C existed, so that
+//   stored pointer trapped as unlisted_46e400)
+// address 0x46e400, size 118 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x46e400..0x46e475: at game tick 2 queues sound 0x22 (teams) or 0x14; with teams,
+//   a team without scoring capacity (0x46e250, team 0 then 1) begins the end game sequence; then the catch-up speed
+//   boost (tail call).
+// blam-cc: cdecl (called through the engine definition)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include <wchar.h>
+
+extern uint8_t *game_time; // 0x006f1d6c (game_time_globals *, +0x0c the tick)
+extern void *current_game_engine; // 0x006f1d20
+extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc
+extern void game_engine_queue_multiplayer_sound(int32_t sound_index); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast (the C models only the sound)
+extern uint8_t game_engine_team_has_scoring_capacity(int32_t team); // 0x46e250
+extern void game_engine_begin_end_game_sequence(void); // 0x45fd90
+extern void game_engine_apply_catchup_speed_boost(void); // 0x46e310
+
+void game_engine_race_unknown_48(void)
+{
+    uint8_t teams = current_game_engine != 0 ? game_engine_teams_enabled_flag : 0;
+
+    if (*(int32_t *)(game_time + 0xc) == 2) {
+        game_engine_queue_multiplayer_sound(teams ? 0x22 : 0x14);
+    }
+    if (current_game_engine != 0 && game_engine_teams_enabled_flag != 0) {
+        if (game_engine_team_has_scoring_capacity(0) == 0) {
+            game_engine_begin_end_game_sequence();
+        }
+        if (game_engine_team_has_scoring_capacity(1) == 0) {
+            game_engine_begin_end_game_sequence();
+        }
+    }
+    game_engine_apply_catchup_speed_boost();
+}

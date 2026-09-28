@@ -1,6 +1,6 @@
 // game_time_format_minutes_seconds  (Ghidra: game_time_format_minutes_seconds, already named)
 // address 0x466530, size 198 bytes
-// name confidence: 0.55   rewrite confidence: 0.7
+// name confidence: 0.55   rewrite confidence: 0.85
 // evidence: the three "DAT_"/"PTR_s_parameter_handles_..." operands Ghidra shows are all
 //   compile-time wide-string format templates, read straight out of bin/halo.exe (.rdata):
 //   0x006607a8 = L" " (a single space), 0x006607a0 = L"%d", 0x00660798 = L"0%d", and the
@@ -14,40 +14,27 @@
 #include "tags.h"
 #include <wchar.h>
 
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
+// FIXED 2026-09-28 (retail-independence loop), from objdump 0x466530..0x4665f5: every string_format_wide_va_bounded
+//   call passes its character count in EDX (0x40 for the two parts, the caller's second argument -- 0x100 at every
+//   call site -- for the result), which the earlier version dropped; the tick count is signed (idiv by 30 and 60);
+//   the formats are L" " (0x006607a8), L"%d" (0x006607a0), L"0%d" (0x00660798) and L"%s:%s" (0x0066078c).
+extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, blam-cc: EDX count
 
-// blam-cc: ECX -> ticks, stack -> (unused, dest)
-// Formats a tick count (30 ticks/second) as a "minutes:seconds" wide string into `dest`, e.g.
-// "5:07". Minutes are left blank (a single space) when zero; seconds are zero-padded below 10.
-// `unused` is Ghidra's own param_1, which no instruction in this function ever reads. Its one
-// caller in this module (game_engine_build_kill_feed_message_text, objdump 0x45f0fe) passes
-// its own `buffer_size` there, so it is declared as an integer.
-void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest)
+void game_time_format_minutes_seconds(uint32_t ticks, uint32_t count, wchar_t *dest)
 {
-    (void)unused;
-    int32_t total_seconds;
-    int32_t minutes;
-    int32_t seconds;
-    wchar_t minutes_text[64];
-    wchar_t seconds_text[64];
-
-    total_seconds = ticks / 30;
-    minutes = total_seconds / 60;
-    seconds = total_seconds % 60;
+    int32_t total_seconds = (int32_t)ticks / 30;
+    int32_t minutes = total_seconds / 60;
+    int32_t seconds = total_seconds - minutes * 60;
+    uint16_t minutes_text[0x40];
+    uint16_t seconds_text[0x40];
 
     if (minutes == 0) {
-        string_format_wide_va_bounded(minutes_text, L" ");
+        string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L" ");
     } else {
-        string_format_wide_va_bounded(minutes_text, L"%d", minutes);
+        string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L"%d", minutes);
     }
-
-    if (seconds < 10) {
-        string_format_wide_va_bounded(seconds_text, L"0%d", seconds);
-    } else {
-        string_format_wide_va_bounded(seconds_text, L"%d", seconds);
-    }
-
-    string_format_wide_va_bounded(dest, L"%s:%s", minutes_text, seconds_text);
+    string_format_wide_va_bounded(0x40, seconds_text, (const uint16_t *)(seconds <= 9 ? L"0%d" : L"%d"), seconds);
+    string_format_wide_va_bounded(count, (uint16_t *)dest, (const uint16_t *)L"%s:%s", minutes_text, seconds_text);
 }
 
 #if 0

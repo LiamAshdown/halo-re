@@ -38,15 +38,15 @@ EXT = {
 def P(expr):
     return '((uint8_t *)player_data->data + ((%s) & 0xffff) * 0x200)' % expr
 
-def emit(addr, size, name, note, ext, sig, body, extra_inc=''):
+def emit(addr, size, name, note, ext, sig, body, extra_inc='', helper=''):
     engine, slot, field = SLOT_OF.get(addr, ('?', '?', '?'))
     lines = textwrap.wrap('WRITTEN 2026-09-28 from objdump 0x%x..0x%x: %s' % (addr, addr + size - 1, note), 113)
     wr = ''.join(('// ' if k == 0 else '//   ') + l + '\n' for k, l in enumerate(lines))
     src = ('// %s  (not a Ghidra function; the %s game engine definition\'s %s slot (%s); no C existed, so that\n'
            '//   stored pointer trapped as unlisted_%x)\n// address 0x%x, size %d bytes\n'
            '// name confidence: 0.6   rewrite confidence: 0.85\n%s// blam-cc: cdecl (called through the engine definition)\n\n'
-           '#include "tags.h"\n#include "memory.h"\n#include "math.h"\n#include "game.h"\n#include <wchar.h>\n%s\n%s\n\n%s\n{\n%s}\n'
-           % (name, engine, slot, field, addr, addr, size, wr, extra_inc, '\n'.join(EXT[e] for e in ext), sig % name, body))
+           '#include "tags.h"\n#include "memory.h"\n#include "math.h"\n#include "cache.h"\n#include "game.h"\n#include <wchar.h>\n%s\n%s\n\n%s\n{\n%s}\n'
+           % (name, engine, slot, field, addr, addr, size, wr, extra_inc, '\n'.join(EXT[e] for e in ext) + ('\n\n' + helper.rstrip('\n') if helper else ''), sig % name, body))
     p = 'src/game/%s.c' % name
     assert not os.path.exists(p), p
     open(p, 'w', encoding='utf-8').write(src)
