@@ -21,6 +21,7 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include <string.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
