@@ -32,11 +32,12 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "game.h"
 
 extern data_array *object_data; // 0x008603b0
 extern memory_pool *object_memory_pool; // 0x006b8cb4
 extern object_globals *object_globals_pointer; // 0x006b8cbc
-extern uint8_t *game_time; // 0x006f1d6c, tick at +0xc
+extern game_time_globals *game_time; // 0x006f1d6c
 extern void *ai_gc_callback_table; // 0x0065ddd0, UNSURE: see file header
 extern char console_error_category_objects[]; // 0x0065efec, UNSURE: a console category tag FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 
@@ -162,7 +163,7 @@ void objects_garbage_collection(void)
         uint8_t stale;
         uint32_t last = object_globals_pointer->unknown_8c;
 
-        stale = (uint8_t)(last == 0xffffffff || !((int32_t)last + 0x96 >= *(int32_t *)(game_time + 0xc)));
+        stale = (uint8_t)(last == 0xffffffff || !((int32_t)last + 0x96 >= game_time->game_time));
 
         for (;;) {
             uint8_t significant = 0;
@@ -247,7 +248,7 @@ void objects_garbage_collection(void)
         }
     }
 
-    object_globals_pointer->unknown_8c = *(uint32_t *)(game_time + 0xc);
+    object_globals_pointer->unknown_8c = (uint32_t)game_time->game_time;
     object_globals_pointer->unknown_02[0] = 0;
 }
 

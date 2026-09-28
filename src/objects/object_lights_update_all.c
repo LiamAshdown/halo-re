@@ -33,8 +33,9 @@
 #include "objects.h"
 #include "structures.h"
 #include "rasterizer.h"
+#include "game.h"
 
-extern uint8_t *game_time; // 0x006f1d6c, tick count at +0xc
+extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *light_data; // 0x00860b14
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -112,7 +113,7 @@ static const char *light_owner_marker_name(uint8_t *light)
 
 void object_lights_update_all(void)
 {
-    int32_t tick = *(int32_t *)(game_time + 0xc);
+    int32_t tick = game_time->game_time;
     datum_index handle;
     int16_t i;
 

@@ -15,6 +15,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "game.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,7 +31,7 @@ static uint8_t *object_definition(uint8_t *object)
 }
 
 extern int16_t map_difficulty_or_kind; // 0x00719720
-extern uint8_t *game_time; // 0x006f1d6c
+extern game_time_globals *game_time; // 0x006f1d6c
 extern void vehicle_reset_state(uint32_t object_index); // 0x570b00
 
 uint8_t vehicle_create(datum_index object_index)
@@ -52,7 +53,7 @@ uint8_t vehicle_create(datum_index object_index)
         object[0x527] = 0;
         object[0x9] = 0;
     }
-    *(uint32_t *)(object + 0x5ac) = *(uint32_t *)(game_time + 0xc);
+    *(uint32_t *)(object + 0x5ac) = (uint32_t)game_time->game_time;
     for (i = 0; i < 3; i++) {
         ((uint32_t *)(object + 0x5b4))[i] = ((uint32_t *)(object + 0x5c))[i];
     }

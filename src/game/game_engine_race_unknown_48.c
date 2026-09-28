@@ -15,7 +15,7 @@
 #include "game.h"
 #include <wchar.h>
 
-extern uint8_t *game_time; // 0x006f1d6c (game_time_globals *, +0x0c the tick)
+extern game_time_globals *game_time; // 0x006f1d6c
 extern void *current_game_engine; // 0x006f1d20
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
@@ -27,7 +27,7 @@ void game_engine_race_unknown_48(void)
 {
     uint8_t teams = current_game_engine != 0 ? game_engine_teams_enabled_flag : 0;
 
-    if (*(int32_t *)(game_time + 0xc) == 2) {
+    if (game_time->game_time == 2) {
         game_engine_queue_multiplayer_sound(teams ? 0x22 : 0x14, 0xffffffff, 0);
     }
     if (current_game_engine != 0 && game_engine_teams_enabled_flag != 0) {

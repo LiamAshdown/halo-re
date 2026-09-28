@@ -31,12 +31,13 @@
 #include "cache.h"
 #include "effects.h"
 #include "projectiles.h"
+#include "game.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern data_array *decal_data;                       // 0x0087abe4
 extern random_seed effect_random_seed;               // 0x00719cd4
-extern int32_t *game_time;                           // 0x006f1d6c, +0x0c current tick
+extern game_time_globals *game_time; // 0x006f1d6c
 extern const decal_type_parameters k_decal_type_parameters[4]; // 0x006573f8
 extern cache *rasterizer_decal_vertex_cache_handle;  // 0x0071d1c0, the decal geometry cache
 extern void *rasterizer_decal_vertex_cache;          // 0x0071d1bc, IDirect3DVertexBuffer
@@ -577,7 +578,7 @@ void decal_place(datum_index decal_tag_index, collision_result *placement, real_
         }
 
         self->position = placement->point;
-        self->creation_game_time = game_time[3];
+        self->creation_game_time = game_time->game_time;
         self->sequence_index = (uint8_t)sequence_index;
         self->unknown_1b = (uint8_t)sprite_bitmap_index;
         self->unknown_1a = 0;

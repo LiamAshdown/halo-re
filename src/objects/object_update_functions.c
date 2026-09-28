@@ -39,10 +39,11 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "game.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t *game_time;          // 0x006f1d6c, tick count at +0xc
+extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real periodic_function_evaluate(periodic_function_t type, double time);
     // 0x4cc9b0, blam-cc: AX -> type, stack -> time
@@ -60,7 +61,7 @@ void object_update_functions(uint32_t object_index) // blam-cc: EAX -> object_in
 {
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
     Object *definition = (Object *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    float phase = (float)(int32_t)((object_index & 0xffff) * 0x39 + *(int32_t *)(game_time + 0xc)) * 0.033333335f;
+    float phase = (float)(int32_t)((object_index & 0xffff) * 0x39 + game_time->game_time) * 0.033333335f;
     int16_t i;
 
     for (i = 0; i < (int32_t)definition->functions.count; i++) {

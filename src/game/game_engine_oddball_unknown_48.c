@@ -19,7 +19,7 @@
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *player_data; // 0x0087a480
-extern uint8_t *game_time; // 0x006f1d6c (game_time_globals *, +0x0c the tick)
+extern game_time_globals *game_time; // 0x006f1d6c
 extern void *current_game_engine; // 0x006f1d20
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc
 extern int16_t network_game_mode; // 0x00719720
@@ -36,7 +36,7 @@ void game_engine_oddball_unknown_48(void)
     int32_t count;
     int32_t i;
 
-    if (*(int32_t *)(game_time + 0xc) == 0x3c) {
+    if (game_time->game_time == 0x3c) {
         uint8_t teams = current_game_engine != 0 ? game_engine_teams_enabled_flag : 0;
 
         game_engine_queue_multiplayer_sound(teams != 0 ? 0x21 : 0x13, 0xffffffff, 0);

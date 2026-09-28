@@ -27,10 +27,11 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "game.h"
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0,
     // established; blam-cc: ECX -> object_index, stack -> type_mask
-extern int32_t *game_time; // 0x006f1d6c; +0x0c is the current game tick
+extern game_time_globals *game_time; // 0x006f1d6c
 
 // UNSURE overall (see file header): whether object_index has flag bit 2 of the byte at +0x106
 // set, and if so, whether the linked index at +0x41c (offset by 0x1e ticks) is still within
@@ -49,7 +50,7 @@ uint8_t effect_first_person_screen_timer_active(datum_index object_index)
 
         if (linked != -1) {
             linked = linked + 0x1e;
-            if (linked < game_time[3]) {
+            if (linked < game_time->game_time) {
                 return 1;
             }
         }

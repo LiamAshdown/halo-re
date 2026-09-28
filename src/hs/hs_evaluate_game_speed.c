@@ -10,12 +10,13 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "game.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first); // 0x48a850
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern uint8_t *game_time; // 0x006f1d6c
+extern game_time_globals *game_time; // 0x006f1d6c
 
 void hs_evaluate_game_speed(int16_t function_index, uint32_t thread_index, char first)
 {
@@ -24,7 +25,7 @@ void hs_evaluate_game_speed(int16_t function_index, uint32_t thread_index, char 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    *(float *)(game_time + 0x18) = *(float *)&arguments[0];
+    game_time->speed = *(float *)&arguments[0];
     hs_thread_return(0, thread_index);
     }
 }

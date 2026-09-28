@@ -32,6 +32,7 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+#include "game.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -41,7 +42,7 @@ extern int16_t network_game_mode;                 // 0x00719720
 extern void *current_game_engine;                 // 0x006f1d20, non-NULL = multiplayer engine loaded
 extern uint8_t weapon_bottomless_clip;             // 0x0087abc2
 extern uint8_t weapon_client_side_projectiles;     // 0x006894c0
-extern void *game_time;                   // 0x006f1d6c, +0x0c is the game tick
+extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real random_real(void); // 0x4019f0, math module
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
@@ -238,7 +239,7 @@ uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index)
         }
     }
 
-    wd->last_fire_game_time = *(int32_t *)((uint8_t *)game_time + 0x0c);
+    wd->last_fire_game_time = game_time->game_time;
 
     {
         int8_t action = is_misfire ? (int8_t)((trigger_index != 0) + 2) : (int8_t)(trigger_index != 0);

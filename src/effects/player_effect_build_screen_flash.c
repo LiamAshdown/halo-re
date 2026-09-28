@@ -9,7 +9,7 @@
 //   and player_effect.flash (player_screen_flash, +0x18: type +0x00, color +0x28 => +0x40
 //   absolute, intensity +0x24 => +0x3c absolute); global 0x006b7020 console_globals.active (main.h, R08) and
 //   0x00687218 screen_flash_pass[8] (types/effects.h globals list); src/effects/decal_update_fade.c
-//   for game_time[3].
+//   for game_time->game_time.
 // register convention: an output descriptor pointer in EBX (unaff_EBX, at least 6 dwords: type,
 //   pad, alpha, then 4 dwords of color); a local player index in CX (in_CX).
 //   // blam-cc: unaff_EBX -> out, in_CX -> local_player_index
@@ -24,10 +24,11 @@
 #include "effects.h"
 #include "interface.h"
 #include "main.h"
+#include "game.h"
 
 extern console_globals console_globals_data;                  // 0x006b7020, main.h; +0x00 active = console open
 extern player_effect_globals *player_effect_globals_pointer;  // 0x006f1884
-extern int32_t *game_time;                             // 0x006f1d6c
+extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t screen_flash_pass[8];                           // 0x00687218
 
 extern real transition_function_evaluate(int16_t type, real phase); // 0x4ccac0, math module;
@@ -49,7 +50,7 @@ void player_effect_build_screen_flash(uint32_t *out, int16_t local_player_index)
 
     if (globals->scripted_flash_ticks != -1 &&
         (globals->scripted_flash_fade_in != 0 ||
-         game_time[3] - globals->scripted_flash_start_tick <= (int32_t)globals->scripted_flash_ticks)) {
+         game_time->game_time - globals->scripted_flash_start_tick <= (int32_t)globals->scripted_flash_ticks)) {
         float fraction;
 
         *(uint16_t *)out = 1;
@@ -58,7 +59,7 @@ void player_effect_build_screen_flash(uint32_t *out, int16_t local_player_index)
         if (globals->scripted_flash_ticks < 1) {
             fraction = 1.0f;
         } else {
-            float t = (float)(game_time[3] - globals->scripted_flash_start_tick) /
+            float t = (float)(game_time->game_time - globals->scripted_flash_start_tick) /
                       (float)(int32_t)globals->scripted_flash_ticks;
 
             if (!(t >= 0.0f)) {
@@ -95,7 +96,7 @@ void player_effect_build_screen_flash(uint32_t *out, int16_t local_player_index)
             } else {
                 *(float *)&out[1] = self->flash.intensity;
             }
-            self->flash_ticks = (int16_t)(self->flash_ticks - *(int16_t *)((uint8_t *)game_time + 0x10));
+            self->flash_ticks = (int16_t)(self->flash_ticks - game_time->ticks_this_frame);
         }
     }
 }

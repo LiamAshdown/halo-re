@@ -15,7 +15,7 @@
 #include <wchar.h>
 
 extern data_array *player_data; // 0x0087a480
-extern uint8_t *game_time; // 0x006f1d6c (game_time_globals *, +0x0c the tick)
+extern game_time_globals *game_time; // 0x006f1d6c
 extern game_variant game_engine_variant; // 0x006f1c88
 extern real_point3d *ctf_team_flag_stand_position[2]; // 0x006b0e88
 extern double pow(double x, double y); // C runtime (libcmt; the retail copy is the CRT pow)
@@ -41,7 +41,7 @@ float game_engine_ctf_unknown_70(datum_index player_index, real_point3d *positio
         distance_squared = 10.0f;
     }
     weight = 1.0f / distance_squared;
-    if (*(int32_t *)(game_time + 0xc) <= 0x1e) {
+    if (game_time->game_time <= 0x1e) {
         return weight;
     }
     if (distance_squared > 1.0f) {

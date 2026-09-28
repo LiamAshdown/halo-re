@@ -23,9 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "game.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void *game_time; // 0x006f1d6c, +0x0c the game tick
+extern game_time_globals *game_time; // 0x006f1d6c
 
 // The weapon and equipment rows' override_call_7c hook. Stamps object.network_update_tick with the
 // current game tick, restarting the age clock that weapon_is_old_enough / equipment_is_old_enough
@@ -36,7 +37,7 @@ void item_stamp_age_timestamp(uint32_t object_index) // blam-cc: stack -> object
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
-    obj->network_update_tick = *(int32_t *)((uint8_t *)game_time + 0xc);
+    obj->network_update_tick = game_time->game_time;
 }
 
 #if 0

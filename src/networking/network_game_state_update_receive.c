@@ -30,7 +30,7 @@
 #include "networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
-extern uint32_t game_time; // 0x006f1d6c + 0xc, UNSURE name/owner
+extern game_time_globals *game_time; // 0x006f1d6c
 extern random_seed random_seed_global; // 0x00719cd0
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern void network_disconnect_notify_dropped_machines(network_client_globals *client); // 0x4d9340
@@ -66,7 +66,7 @@ int32_t network_game_state_update_receive(network_client_globals *client, uint8_
     }
 
     if (*(uint32_t *)record <= (uint32_t)client->unknown_ecc ||
-        (network_server == 0 && game_time == *(uint32_t *)(record + 8) &&
+        (network_server == 0 && (uint32_t)game_time->game_time == *(uint32_t *)(record + 8) &&
          *(uint32_t *)(record + 4) != random_seed_global)) {
         network_disconnect_notify_dropped_machines(client);
     }

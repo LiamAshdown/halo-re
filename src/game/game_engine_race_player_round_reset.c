@@ -19,7 +19,7 @@
 extern data_array *player_data; // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
-extern uint8_t *game_time; // 0x006f1d6c (game_time_globals *, +0x0c the tick)
+extern game_time_globals *game_time; // 0x006f1d6c
 extern int32_t game_engine_bucket_scores_extra[16]; // 0x006b1358
 extern uint32_t ctf_team_captured_flags_mask[]; // 0x006b12d4
 extern void game_engine_check_bucket_scores_and_end_round(void); // 0x46db70
@@ -48,7 +48,7 @@ void game_engine_race_player_round_reset(datum_index player_index, uint8_t team_
             *(int16_t *)(player + 0xc4) = 0;
             *(int16_t *)(player + 0xc6) = 0;
             *(int16_t *)(player + 0xc8) = 0;
-            *(int32_t *)(player + 0x88) = *(int32_t *)(game_time + 0xc);
+            *(int32_t *)(player + 0x88) = game_time->game_time;
             ctf_team_captured_flags_mask[player_index & 0xffff] = 0;
         }
     }

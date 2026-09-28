@@ -34,10 +34,11 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "game.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern double sqrt(double x);
-extern uint8_t *game_time;  // 0x006f1d6c, UNSURE: foreign module; +0x10 is a tick delta
+extern game_time_globals *game_time; // 0x006f1d6c
 extern float glow_particle_time_scale; // 0x007c3110, UNSURE: foreign module
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
@@ -190,7 +191,7 @@ void glow_update(uint32_t object_index, glow *entry /*EDI*/) // blam-cc: stack -
     }
 
     *(int16_t *)((uint8_t *)entry + 600) = (int16_t)(*(int16_t *)((uint8_t *)entry + 600) +
-        *(int16_t *)(game_time + 0x10));
+        game_time->ticks_this_frame);
 
     if (entry->marker_count > 1) {
         glow_particle *p;
@@ -215,7 +216,7 @@ void glow_update(uint32_t object_index, glow *entry /*EDI*/) // blam-cc: stack -
                 int16_t *age = (int16_t *)((uint8_t *)p + 0x50);
                 int16_t *lifetime = (int16_t *)((uint8_t *)p + 0x52);
 
-                *age = (int16_t)(*age + *(int16_t *)(game_time + 0x10));
+                *age = (int16_t)(*age + game_time->ticks_this_frame);
                 glow_particle_compute_fade(entry, p);
 
                 if ((*((uint8_t *)glow_tag_data + 0x28) & 0x10) != 0) {
@@ -250,7 +251,7 @@ void glow_update(uint32_t object_index, glow *entry /*EDI*/) // blam-cc: stack -
     }
 
     if (*(float *)((uint8_t *)glow_tag_data + 0xfc) > 0.01f &&
-        *(int16_t *)(game_time + 0x10) != 0) {
+        game_time->ticks_this_frame != 0) {
         float threshold = 30.0f / *(float *)((uint8_t *)glow_tag_data + 0xfc);
         int16_t timer;
 

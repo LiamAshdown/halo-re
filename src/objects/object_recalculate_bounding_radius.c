@@ -32,10 +32,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "models.h"
+#include "game.h"
 
 extern data_array *object_data;          // 0x008603b0
 extern tag_instance *tag_instances;      // 0x0087bc14
-extern uint8_t *game_time;               // 0x006f1d6c, current tick at +0x0c
+extern game_time_globals *game_time; // 0x006f1d6c
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
 
 extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model,

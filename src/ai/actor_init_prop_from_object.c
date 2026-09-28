@@ -23,12 +23,13 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#include "game.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t game_time; // 0x006f1d6c, UNSURE: a tick/time-globals pointer
+extern game_time_globals *game_time; // 0x006f1d6c
 
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b); // 0x45bdb0, ECX, EDX
@@ -88,7 +89,7 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
         } else {
             p->has_parent = 1;
             p->owner_actor_index = *(datum_index *)(object + 0x1f8);
-            p->unknown_28 = *(int32_t *)(game_time + 0xc);
+            p->unknown_28 = game_time->game_time;
         }
 
         if (p->is_parented != 0) {

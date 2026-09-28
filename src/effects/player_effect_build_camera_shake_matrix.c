@@ -32,9 +32,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "game.h"
 
 extern player_effect_globals *player_effect_globals_pointer; // 0x006f1884
-extern int32_t *game_time;                             // 0x006f1d6c
+extern game_time_globals *game_time; // 0x006f1d6c
 extern real_matrix4x3 *k_render_identity_matrix_ptr;           // 0x0069673c, UNSURE identity
                                     // (see src/game's own "render_ptr_9673c" for this address)
 extern random_seed effect_random_seed;                         // 0x00719cd4
@@ -93,7 +94,7 @@ void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_
                 fraction = 1.0f - fraction;
             }
             t = fraction * t;
-            *(int16_t *)(g + 0x11c) = (int16_t)(ticks - *(int16_t *)((uint8_t *)game_time + 0x10));
+            *(int16_t *)(g + 0x11c) = (int16_t)(ticks - game_time->ticks_this_frame);
         } else if ((*(uint32_t *)(g + 0x120) & 2) != 0) {
             *(uint32_t *)(g + 0x120) &= ~(uint32_t)1;
         }
@@ -154,7 +155,7 @@ void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_
             rotation.position.x = t * *(real *)(self + 0x0c) + k * *(real *)(self + 0x00);
             rotation.position.y = t * *(real *)(self + 0x10) + k * *(real *)(self + 0x04);
             rotation.position.z = t * *(real *)(self + 0x14) + k * *(real *)(self + 0x08);
-            *(int16_t *)(self + 0xe0) = (int16_t)(*(int16_t *)(self + 0xe0) - *(int16_t *)((uint8_t *)game_time + 0x10));
+            *(int16_t *)(self + 0xe0) = (int16_t)(*(int16_t *)(self + 0xe0) - game_time->ticks_this_frame);
             *out = rotation;
         }
 
@@ -187,7 +188,7 @@ void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_
             }
             self[0xe8] &= 0xfb;
             player_effect_random_shake_offset(&second, a + *(real *)(self + 0xd4), b + *(real *)(self + 0xd8));
-            dt = *(int16_t *)((uint8_t *)game_time + 0x10);
+            dt = game_time->ticks_this_frame;
             *(int16_t *)(self + 0xdc) = (int16_t)(*(int16_t *)(self + 0xdc) + dt);
             if (*(int16_t *)(self + 0xdc) > 0) {
                 *(int16_t *)(self + 0xdc) = 0;

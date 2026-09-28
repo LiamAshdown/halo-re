@@ -10,12 +10,13 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "game.h"
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern int32_t game_state_revert_time; // 0x006e2ddc
-extern uint8_t *game_time; // 0x006f1d6c
+extern game_time_globals *game_time; // 0x006f1d6c
 
 void hs_evaluate_game_reverted(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)(game_state_revert_time == *(int32_t *)(game_time + 0xc)), thread_index);
+    hs_thread_return((int32_t)(game_state_revert_time == game_time->game_time), thread_index);
 }

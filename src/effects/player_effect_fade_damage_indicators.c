@@ -16,9 +16,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "game.h"
 
 extern player_effect_globals *player_effect_globals_pointer; // 0x006f1884
-extern int32_t *game_time;                            // 0x006f1d6c; +0x0c current game
+extern game_time_globals *game_time; // 0x006f1d6c
                                     // tick, +0x10 tick delta (int16), per src/objects/glow_update.c
 
 // Fades one local player's four directional damage indicators upward toward 255 by the current
@@ -27,7 +28,7 @@ void player_effect_fade_damage_indicators(int16_t local_player_index, uint32_t *
 {
     player_effect *self = &player_effect_globals_pointer->players[local_player_index];
     uint8_t *indicators = self->damage_indicator_alpha;
-    int16_t delta = *(int16_t *)((uint8_t *)game_time + 0x10);
+    int16_t delta = game_time->ticks_this_frame;
     int i;
 
     *out_previous_indicators = *(uint32_t *)indicators;

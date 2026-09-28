@@ -22,9 +22,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "game.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void *game_time; // 0x006f1d6c, +0x0c the game tick
+extern game_time_globals *game_time; // 0x006f1d6c
 extern int32_t k_weapon_minimum_age_ticks; // 0x006894c4, UNSURE name
 
 // The weapon row's "is old enough" hook (object_type_definition +0x74). An object that has never
@@ -38,7 +39,7 @@ uint8_t weapon_is_old_enough(uint32_t object_index) // blam-cc: stack -> object_
     if (stamp == -1) {
         return 1;
     }
-    return stamp + k_weapon_minimum_age_ticks <= *(int32_t *)((uint8_t *)game_time + 0xc);
+    return stamp + k_weapon_minimum_age_ticks <= game_time->game_time;
 }
 
 #if 0

@@ -63,11 +63,12 @@
 #include "objects.h"
 #include "physics.h"
 #include <string.h>
+#include "game.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Globals *game_globals;       // 0x00746fa0
-extern void *game_time;     // 0x006f1d6c, +0x0c is the game tick (types/game.h
+extern game_time_globals *game_time; // 0x006f1d6c
                                     // game_time; same global src/items and src/devices use)
 extern float k_impact_damage_scale_table[]; // 0x0069c54c, indexed by material type per
                                              // types/physics.h's k_physics_impact_damage_scale
@@ -190,7 +191,7 @@ uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t
             // last_seat_change_tick (types/units.h): a unit that just dismounted from this very
             // object within the last 90 ticks is never hurt by it.
             if (*self_object_index == *(uint32_t *)((uint8_t *)candidate_obj + 0x32c) &&
-                *(int32_t *)((uint8_t *)game_time + 0x0c) <=
+                game_time->game_time <=
                     (int32_t)(*(uint32_t *)((uint8_t *)candidate_obj + 0x330) + 0x5a)) {
                 return 1;
             }

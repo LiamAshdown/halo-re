@@ -22,9 +22,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "game.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void *game_time; // 0x006f1d6c, +0x0c the game tick
+extern game_time_globals *game_time; // 0x006f1d6c
 
 // The item sub-row's query_create hook (object_type_definition +0x28), run for every freshly
 // activated weapon, equipment or garbage object (all three chain through this row). Sets two
@@ -36,7 +37,7 @@ uint8_t item_new(uint32_t object_index) // blam-cc: stack -> object_index
     item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     obj->flags |= 0x6000; // UNSURE: unnamed object_flags bits 0x2000 | 0x4000
-    id->held_game_time = *(int32_t *)((uint8_t *)game_time + 0xc);
+    id->held_game_time = game_time->game_time;
     id->ignore_object_index = (datum_index)k_datum_index_none;
 
     return 1;

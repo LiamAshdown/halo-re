@@ -9,9 +9,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "game.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void *game_time;         // 0x006f1d6c, +0x0c the game tick
+extern game_time_globals *game_time; // 0x006f1d6c
 extern int32_t k_biped_minimum_age_ticks; // 0x006893d0
 
 uint8_t biped_is_old_enough(uint32_t object_index)
@@ -22,5 +23,5 @@ uint8_t biped_is_old_enough(uint32_t object_index)
     if (stamp == -1) {
         return 1;
     }
-    return (uint8_t)(*(int32_t *)((uint8_t *)game_time + 0xc) >= stamp + k_biped_minimum_age_ticks);
+    return (uint8_t)(game_time->game_time >= stamp + k_biped_minimum_age_ticks);
 }
