@@ -29,7 +29,7 @@ extern data_array *player_data; // 0x0087a480
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void object_get_position(real_point3d *out, datum_index object_index); // 0x4f6900, blam-cc: EAX -> out, ECX -> object_index (matches src/objects/object_get_position.c)
 extern double sqrt(double x); // a single x87 FSQRT instruction
-extern float FUN_006283c0(void); // 0x6283c0, not in this batch; UNSURE purpose
+extern double pow(double base, double exponent); // C runtime (the retail copy is the CRT _CIpow at 0x6283c0)
 
 // blam-cc: EAX -> self_index, unaff_ESI -> point
 float game_engine_rate_location_ally_bonus(uint32_t self_index, real_point3d *point)
@@ -59,7 +59,8 @@ float game_engine_rate_location_ally_bonus(uint32_t self_index, real_point3d *po
                 distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
 
                 if (1.0f <= distance && distance <= 6.0f) {
-                    bonus = bonus + FUN_006283c0();
+                    // FIXED 2026-09-28: 0x461d23..0x461d3f computes pow(1 - (distance - 1) * 0.2, 0.6) (0x00673008 is the double 0.6f).
+                    bonus = bonus + (float)pow((double)(1.0f - (distance - 1.0f) * 0.2f), (double)0.6f);
                 }
             }
             element = data_iterator_next(&iter);

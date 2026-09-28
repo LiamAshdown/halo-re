@@ -24,7 +24,7 @@ extern data_array *player_data; // 0x0087a480
 
 extern datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle); // 0x45e340, this batch
 extern void hud_draw_teammate_nameplate_text(wchar_t *text, int32_t value); // 0x461f20, not in this batch
-extern float FUN_006283c0(void); // 0x6283c0, not in this batch; UNSURE exact meaning
+extern double pow(double base, double exponent); // C runtime (the retail copy is the CRT _CIpow at 0x6283c0)
 
 // blam-cc: EAX -> player
 // Advances `player`'s nameplate-target hysteresis counter (player+0x80, 0..15) toward whatever
@@ -71,7 +71,10 @@ void hud_draw_teammate_nameplate(datum_index player_handle)
                 memset(name, 0, sizeof(name));
                 wcsncpy(name, tracked->name, 0x0b);
                 name[0x0b] = 0;
-                hud_draw_teammate_nameplate_text(name, FUN_006283c0() * 0.5f);
+                // FIXED 2026-09-28: 0x45e5e8..0x45e649: the scale is pow(min(+0x80, 10) * 0.1, 1.9) * 0.5
+                //   (0x00672c30 is the double 1.9f).
+                hud_draw_teammate_nameplate_text(name,
+                    (float)pow((double)((float)(p->unknown_80 < 10 ? p->unknown_80 : 10) * 0.1f), (double)1.9f) * 0.5f);
                 return;
             }
         }

@@ -35,7 +35,7 @@
 // passes the address of that just-filled block as EAX, which is the only value that makes
 // sense of the surrounding code (see hud_draw_world_relative_text.c for the struct shape).
 // register convention: `subject_player` in EAX (in_EAX, a player identifier to specially select,
-//   or -1), `text_scale` as a stack float parameter (Ghidra's own recognized param_2).
+//   or -1), `opacity` as a stack float parameter (Ghidra's own recognized param_2).
 // UNSURE (pervasive, see above): the exact struct layout each hud_draw_world_relative_text call
 //   builds; DAT_00873d40 (a globals-tag-like font source, offsets +0x54/+0x64/+0x70);
 //   the network-address formatting block (network_address_to_string/
@@ -49,7 +49,7 @@
 // draw sites load it from the ColorARGB that 0x006851fc points to (opaque white, 0x00655138):
 // 0x465ff2 mov edx,ds:0x6851fc; [edx+4]/[edx+8]/[edx+0xc] -> 0x6e473c/0x6e4740/0x6e4744
 // (0x466050..0x46607b), and 0x466162 the same into locals stored at 0x4662e9..0x466309. The
-// alpha is text_scale ([esp+0x6f8], 0x466014 / 0x466298). 0x873d40 only supplies the font
+// alpha is opacity ([esp+0x6f8], 0x466014 / 0x466298). 0x873d40 only supplies the font
 // (+0x64, else +0x54).
 
 #include "tags.h"
@@ -106,7 +106,10 @@ extern char *network_address_to_string(void); // 0x440570, not in this batch; UN
 extern int16_t network_channel_get_remote_address(void); // 0x441ce0, not in this batch; UNSURE exact args
 extern char *inet_ntoa(uint32_t addr); // Winsock
 
-// blam-cc: EAX -> subject_player, stack -> (text_scale, unknown_param_2)
+// FIXED 2026-09-28: both inputs are stack arguments (0x4656ad reads the player at +4, 0x4656da and 0x465739 the
+//   opacity at +8); the earlier version took the player from EAX, the opacity one slot late and the result
+//   text alpha from a third argument that no caller passes.
+// blam-cc: stack -> subject_player, opacity
 // Renders the in-game multiplayer scoreboard overlay: a header row (column labels plus the
 // "Ping" literal and a live player-count string from the active game engine), one row per
 // visible player (name/status/ping/score-ish stat columns, prefixed with '*' for a to-be-
@@ -114,8 +117,7 @@ extern char *inet_ntoa(uint32_t addr); // Winsock
 // screen wizard-state prompt, and, when a network session or client is active, the server's
 // address (dotted-quad while hosting/local, resolved via network_address_to_string otherwise)
 // formatted as "name (address[:port])".
-void game_engine_rasterize_in_game_score(datum_index subject_player, float text_scale,
-                                          int32_t unknown_param_2)
+void game_engine_rasterize_in_game_score(datum_index subject_player, float opacity)
 {
     uint8_t teams_enabled;
     wchar_t result_text[80];          // local_260
@@ -138,7 +140,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
     // call entirely. It renders `result_text` at row 0 (so, with no background box) in a flat
     // 0.7 grey. UNSURE: params.alpha comes from [esp+0x6e8], i.e. a SECOND stack parameter
     // this function has that Ghidra does not surface at all -- modelled as `unknown_param_2`.
-    *(int32_t *)&params.alpha = unknown_param_2; // raw dword copy (the binary moves it with mov)
+    params.alpha = opacity; // the binary copies the dword with mov
     params.red = 0.7f;
     params.green = 0.7f;
     params.blue = 0.7f;
@@ -153,7 +155,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
         bg_color.i = 0.125f;
         bg_color.j = 0.125f;
         bg_color.k = 0.125f; // UNSURE: local_6b8/local_6bc's exact role beyond this color triple
-        (void)color_real_to_argb_pack(text_scale * 0.69f, &bg_color);
+        (void)color_real_to_argb_pack(opacity * 0.69f, &bg_color);
         ui_draw_filled_rectangle(); // UNSURE: exact purpose
     }
 
@@ -282,7 +284,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
             if (hud_text_draw_font_tag_id == -1) {
                 hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x54);
             }
-            hud_text_draw_color_alpha = text_scale;
+            hud_text_draw_color_alpha = opacity;
             hud_text_draw_color_or_flags = 0xffffu;
             hud_text_draw_column = 0;
             hud_text_draw_unknown_4730 = 0;
@@ -339,7 +341,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float text_
             if (hud_text_draw_font_tag_id == -1) {
                 hud_text_draw_font_tag_id = *(int32_t *)((uint8_t *)unknown_00873d40 + 0x54);
             }
-            hud_text_draw_color_alpha = text_scale;
+            hud_text_draw_color_alpha = opacity;
             hud_text_draw_color_g = global_white_argb->green;
             hud_text_draw_color_b = global_white_argb->blue;
             hud_text_draw_color_or_flags = 0xffffu;

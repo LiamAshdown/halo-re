@@ -30,11 +30,8 @@ extern game_engine_state game_engine_state_value; // 0x0087aa10, renamed to not 
                                                    // game_engine_state enum tag in types/game.h
 
 extern void hud_draw_teammate_nameplate(datum_index player_handle); // 0x45e520, this batch
-extern void game_engine_rasterize_in_game_score(datum_index player_handle, float opacity,
-    int32_t unknown_param_2); // 0x465690, this module; blam-cc: EAX -> player_handle,
-    // stack -> (opacity, unknown_param_2). UNSURE: nothing here supplies the second stack
-    // argument the callee reads at [esp+0x6e8]; passed as 0.
-extern float FUN_006283c0(void); // 0x6283c0, not in this batch; UNSURE exact meaning
+extern void game_engine_rasterize_in_game_score(datum_index subject_player, float opacity); // 0x465690, blam-cc: stack -> subject_player, opacity
+extern double pow(double base, double exponent); // C runtime (the retail copy is the CRT _CIpow at 0x6283c0)
 
 // Fades the teammate-nameplate HUD element in or out for the current local player, then, once
 // it is at least partly visible, draws the in-game scoreboard line for that player at the
@@ -76,8 +73,8 @@ void hud_update_teammate_nameplate_fade(void)
         opacity = 1.0f;
     }
 
-    game_engine_rasterize_in_game_score(player_handle, FUN_006283c0(), 0); // UNSURE: not
-        // `opacity`; matches Ghidra literally. The third argument is not visible here.
+    // FIXED 2026-09-28: 0x45f2f0..0x45f304 passes (player, pow(opacity, 1.9)) -- two stack arguments.
+    game_engine_rasterize_in_game_score(player_handle, (float)pow((double)opacity, (double)1.9f));
     game_engine_nameplate_fade_opacity_array[local_player] = opacity;
 }
 
