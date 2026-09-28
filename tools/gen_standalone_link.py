@@ -263,6 +263,8 @@ def main():
     extra.append(assemble(os.path.join(OUT, "code_pointers.asm"), os.path.join(OUT, "code_pointers.obj")))
     image_objs, alternates = image_source()
     extra += image_objs
+    # the engine globals at their fixed original addresses: committed source (tools/update_globals.py maintains it)
+    extra.append(assemble(os.path.join(SA, "globals.asm"), os.path.join(OUT, "globals.obj")))
     LINK_OPTIONS[:] = alternates
 
     # only objects whose source still exists: a renamed or deleted .c leaves its old object behind, which would link
@@ -395,6 +397,8 @@ def main():
             report["C runtime (libcmt)"] += 1
             continue
         if k == "data" and a is not None:
+            # a global standalone/globals.asm does not list yet: resolved from its declaration's address comment for
+            # this link; tools/update_globals.py adds it to the committed file
             data_eq.append("PUBLIC %s\n%s EQU 0%Xh" % (s, s, a)); report["global (absolute)"] += 1; continue
         if a is None and kind.get(n) == "data":
             left.append((s, "data declared without an address"))   # never a trap: code would read or write it
@@ -425,6 +429,9 @@ def main():
              "bound from a nearby comment (check each; %d):" % len(nearby_used)] +             ["   %s -> 0x%x (%s)" % x for x in nearby_used]
     open(os.path.join(OUT, "link_report.txt"), "w").write("\n".join(lines) + "\n")
     print("\n".join(lines[:6]))
+    if report["global (absolute)"]:
+        print("NOTE: %d globals are not in standalone/globals.asm (resolved from their address comments this time); "
+              "add them with: python tools/update_globals.py" % report["global (absolute)"])
     print("left unresolved:", len(left), "| after second link:", len(unres2), "| traps:", len(traps))
 
 
