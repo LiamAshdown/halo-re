@@ -2480,3 +2480,15 @@ Relinked: unresolved 1, traps 127.
   0x6208a0..0x622e10, ~69 functions) and 0x576a70.
 - OPEN (unchanged): the networking C-to-C call audit (e.g. network_game_action_apply calls ~45 handlers with no args;
   the binary passes EAX = the action entry and ESI; network_channel_attempt_connect calls gt2Connect with 1 of 8 args).
+### iteration 12 (2026-09-28) -- commits 1aee489..c7766ab, relinked (0 unresolved, traps 8 -> 0)
+- MILESTONE: 0 direct traps (build/standalone/traps.txt is empty; unresolved 0).
+- gamespy: ghttp (~60 functions, src/gamespy/ghttp.h: connection table + lock, the 8-state request machine, status /
+  headers / redirects / chunked bodies, save-to-file, url-encoded and multipart posting, buffers) and the patch
+  tracker ptCheckForPatch (hpcup.bungie.net/motd/vercheck.asp) with its completion callback.
+- networking: autopatch progress callback 0x576a70; FIXED autopatch_download_start's save path -- the binary passes
+  ghttpSaveEx 9 arguments with EDX as the file name (the C passed only the URL).
+- Still missing (scratchpad/missing_functions.txt): 85 functions reached only through stored code pointers in .data --
+  networking 83: the message-delta field type table at 0x69a2f8.. (0x4e89c0..0x4ebc20, ~75 encode/decode/compare
+  handlers) and server-browser UI handlers in the ui event table (0x4b61a0, 0x4b6370, 0x4b63c0, 0x4b6570, 0x4b7920,
+  0x4b7a80, 0x4b7c40); units 2: 0x571f20 / 0x5726e0 (table at 0x69b61c). NEXT: write those (they would execute image
+  code at run time), then step 2.
