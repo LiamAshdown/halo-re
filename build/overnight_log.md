@@ -2526,3 +2526,22 @@ Relinked: unresolved 1, traps 127.
 - Caveats: a NEW code_address_ thunk needs one retail run (or a hand entry in code_address_ret.json); a new C
   function at an address not in code_pointer_slots.json gets no data pointer until a retail refresh.
 - NEXT: step 3 (image source replacing halo_image.bin). OPEN: networking call audit (iteration 13).
+
+## Iteration 15 (2026-09-28) -- retail-independence STEP 3 core DONE (run-time independence)
+- traps before/after: 0 / 0; unresolved 0 (HALO_NO_RETAIL=1 build + link).
+- tools/gen_image_source.py (retail-only, one-time) wrote standalone/image/*.asm + pieces.json (1.3 MB): .rdata,
+  initialised .data, .tls, .rsrc, and from .text only the two ranges read as data (DIOBJECTDATAFORMAT[256] at
+  0x613400; the switch table at 0x4a0268). Every code-pointer slot is `dd halo_code_<addr>`, bound by
+  /ALTERNATENAME to the C rewrite (2397 targets) or the existing named cp_trap_ stub (667 dead retail D3DX/CRT
+  library slots -- same as the old loader patching).
+- Verified statically BEFORE switching (tools/verify_image_source.py, commit bac03e1): identical to halo_image.bin
+  apart from the 3064 relocated pointers, each equal to what the loader's table patched.
+- Switched (ffbf996): loader memcpy's the linked pieces; the halo_image.bin read, fix_code_pointers and the
+  standalone_code_pointers table are removed. Re-verified after the switch against the map (C symbol addresses).
+  The exe no longer contains "halo_image.bin". NOT RUN (static only) -- the user should smoke-test a boot.
+- Dropped from the image: .text original code (2.33 MB, never read as data; still reserved, zero, non-executable
+  so a stray jump still faults as before).
+- OPEN: ui_controls_options_populate_from_profile (src/interface) dispatches through the retail switch table at
+  0x4a0268 -- its 7 entries are case labels inside retail code (0x4a013e..0x4a0162), which were never runnable in
+  the standalone (DEP fault, no code_entries match). Rewrite it as a C switch.
+- OPEN: networking call audit (iteration 13). Long tail: promote image regions to typed C.
