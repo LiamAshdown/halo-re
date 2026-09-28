@@ -29,23 +29,24 @@ extern void game_engine_koth_find_marker_position(real_point3d *out_position, in
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *position); // 0x4666c0
 
-// blam-cc: EAX -> object_index, EBX -> forwarded_flag_object_index, EDI -> forwarded_position
+// FIXED 2026-09-28: 0x46c1b1 copies EAX into EBX and 0x46c20f points EDI at the position 0x46beb0 found (type
+//   filter: the object's +0xb8, 0x46c1cb) before ctf_flag_object_clear_carrier; nothing is forwarded.
+// blam-cc: EAX -> object_index
 // While hosting, finds a new (discarded) hill position, plays a sound if fewer than 3 hills have
 // been used so far, forwards flag_object_index/position to ctf_flag_object_clear_carrier, and
 // clears an equipment-runtime bit on the object.
-void game_engine_koth_relocate_object_hill(uint32_t object_index,
-    datum_index forwarded_flag_object_index, real_point3d *forwarded_position)
+void game_engine_koth_relocate_object_hill(uint32_t object_index)
 {
     if (network_game_mode == 2) {
         object *obj = ((object_header *)object_headers->data)[object_index & 0xffff].data;
         real_point3d discarded_position;
 
-        game_engine_koth_find_marker_position(&discarded_position, 1); // UNSURE: type_filter guess
+        game_engine_koth_find_marker_position(&discarded_position, *(int16_t *)((uint8_t *)obj + 0xb8));
 
         if (game_engine_variant.unknown_90 < 3) {
             game_engine_queue_multiplayer_sound(0x1e, 0xffffffff, 1); // 0x46c1fd..0x46c207
         }
-        ctf_flag_object_clear_carrier(forwarded_flag_object_index, forwarded_position);
+        ctf_flag_object_clear_carrier(object_index, &discarded_position);
         *(uint32_t *)((uint8_t *)obj + 0x22c) &= 0xffffffbf;
     }
 }

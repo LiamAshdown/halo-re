@@ -33,7 +33,10 @@ extern void game_engine_koth_find_marker_position(real_point3d *out_position, in
 // Outside game_engine_index 1/2, if the map has a multiplayer "ball" tag, builds a placement
 // block for it, finds a new type-1 marker position, spawns the marker object there, and clears
 // its header's in-PVS-pass bit (marking it pending-delete-eligible if not already active).
-void game_engine_koth_relocate_hill_marker(void)
+// FIXED 2026-09-28: ESI is the ball index -- 0x46c01a stores it as the placement owner team and 0x46c018 passes
+//   it as 0x46beb0's type filter (ECX); every caller loads ESI with its loop index.
+// blam-cc: ESI -> ball_index
+void game_engine_koth_relocate_hill_marker(int32_t ball_index)
 {
     if (game_engine_variant.unknown_8c < 1 || game_engine_variant.unknown_8c > 2) {
         GlobalsMultiplayerInformation *mp_info =
@@ -47,7 +50,8 @@ void game_engine_koth_relocate_hill_marker(void)
             uint8_t header_flags;
 
             object_placement_data_initialize(&placement, ball_tag, (datum_index)0xffffffff);
-            game_engine_koth_find_marker_position(&placement.position, 1); // UNSURE: type_filter
+            placement.owner_team = (int16_t)ball_index;
+            game_engine_koth_find_marker_position(&placement.position, (int16_t)ball_index); // was 1 (UNSURE); fixed
                 // is register-passed (CX) at the real call site and not visible here; guessed
 
             new_object = object_new(&placement);

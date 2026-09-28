@@ -22,7 +22,7 @@ extern int32_t king_alt_team_scores_network[16]; // 0x0087a680, the first of 0x5
 extern int32_t oddball_ball_timers_006b11cc[16]; // 0x006b11cc, UNSURE name
 extern int32_t king_hill_occupant_last_tick[16]; // 0x006b124c
 extern uint32_t king_hill_occupant_table[16]; // 0x006b120c
-extern void game_engine_koth_relocate_hill_marker(void); // 0x46bfe0
+extern void game_engine_koth_relocate_hill_marker(int32_t ball_index); // 0x46bfe0, blam-cc: ESI ball_index
 
 uint8_t game_engine_oddball_initialize_for_new_game(void)
 {
@@ -45,7 +45,7 @@ uint8_t game_engine_oddball_initialize_for_new_game(void)
         if (mode > 0 && mode <= 2) {
             for (i = 0; i < game_engine_variant.unknown_90; i++) {
                 oddball_ball_timers_006b11cc[i] = 0;
-                game_engine_koth_relocate_hill_marker();
+                game_engine_koth_relocate_hill_marker(i);
             }
         } else {
             int32_t delay = 0;

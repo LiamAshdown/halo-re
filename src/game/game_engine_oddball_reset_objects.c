@@ -23,7 +23,7 @@ extern int32_t king_alt_player_score[]; // 0x006b118c (oddball player score)
 extern uint32_t king_hill_occupant_table[16]; // 0x006b120c
 extern int32_t king_hill_occupant_last_tick[16]; // 0x006b124c
 extern int32_t oddball_ball_timers_006b11cc[16]; // 0x006b11cc
-extern void game_engine_koth_relocate_hill_marker(void); // 0x46bfe0
+extern void game_engine_koth_relocate_hill_marker(int32_t ball_index); // 0x46bfe0, blam-cc: ESI ball_index
 extern uint8_t custom_waypoints[]; // 0x006f1888 (custom_waypoint, 0x20 bytes each)
 
 void game_engine_oddball_reset_objects(void)
@@ -43,7 +43,7 @@ void game_engine_oddball_reset_objects(void)
         if (game_engine_variant.unknown_8c > 0 && game_engine_variant.unknown_8c <= 2) {
             for (i = 0; i < count; i++) {
                 oddball_ball_timers_006b11cc[i] = 0;
-                game_engine_koth_relocate_hill_marker();
+                game_engine_koth_relocate_hill_marker(i);
             }
             count = game_engine_variant.unknown_90;
         } else {

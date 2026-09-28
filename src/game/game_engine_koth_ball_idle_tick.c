@@ -36,8 +36,7 @@ extern int32_t king_hill_idle_timeout;           // 0x006883a0
 extern uint8_t item_get_effective_position(datum_index object_index, real_point3d *out_position); // 0x4bd740
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position,
     float height_offset, datum_index player_filter, int16_t team_filter); // 0x462260
-extern void game_engine_koth_relocate_object_hill(uint32_t object_index,
-    datum_index forwarded_flag_object_index, real_point3d *forwarded_position); // 0x46c1a0, this batch
+extern void game_engine_koth_relocate_object_hill(uint32_t object_index); // 0x46c1a0, blam-cc: EAX object_index
 extern uint8_t weapon_must_be_readied(void); // 0x4c2ea0, UNSURE exact identity
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void chimera__kill_feed(datum_index recipient, int32_t param_1, uint32_t message_type,
@@ -83,7 +82,7 @@ void game_engine_koth_ball_idle_tick(uint32_t object_handle, object *obj)
                 element = data_iterator_next(&iter);
             }
         }
-        game_engine_koth_relocate_object_hill(object_handle, (datum_index)0xffffffff, (real_point3d *)0);
+        game_engine_koth_relocate_object_hill(object_handle);
     }
     tick = game_time->game_time;
     if (network_game_mode != 2) {
