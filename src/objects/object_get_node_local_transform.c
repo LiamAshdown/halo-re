@@ -3,7 +3,7 @@
 // name confidence: 0.85 (types/objects.h names and cites this exact address as
 //   "object_get_node_local_transform" in both the object_marker struct comment and the
 //   object.region_permutations field comment)
-// rewrite confidence: 0.5
+// rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4f6080..0x4f617b (6 stack args to 0x4d7850 + ECX model / EAX name; identity fallback; mirrored flag 0x1000).)
 // evidence: types/objects.h object_marker (node_index 0x00, transform real_matrix4x3 0x04,
 //   node_transform real_matrix4x3 0x38); object (region_permutations 0x180, flags 0x10 with
 //   _object_mirrored_geometry_bit, nodes.offset 0x1f2); types/math.h real_matrix4x3

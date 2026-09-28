@@ -1,6 +1,6 @@
 // object_physics_context_build  (Ghidra: FUN_005074b0; renamed)
 // address 0x5074b0, size 220 bytes
-// name confidence: 0.4   rewrite confidence: 0.35
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x5074b0..0x50758b (EBX object, EAX context; cross EAX=left ECX=forward stack=up; -COM through a temporary).)
 // evidence: types/physics.h object_physics_context struct comment, written specifically about
 //   this function: "0x005074b0 fails when the Object tag has no physics reference, that is when
 //   tag offset 0x8c is -1. The matrix is the model space to world transform with the scale

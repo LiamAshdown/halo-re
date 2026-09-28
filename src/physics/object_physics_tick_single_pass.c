@@ -420,7 +420,7 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
             mp->water_friction_force[2] + mp->air_friction_force[2] + mp->powered_force_k;
 
         mp->torque_i = mp->total_force_k * mp->offset_y - mp->offset_z * mp->total_force_j;
-        mp->torque_j = mp->offset_x * mp->total_force_k - mp->total_force_i * mp->offset_z;
+        mp->torque_j = mp->total_force_i * mp->offset_z - mp->offset_x * mp->total_force_k; // 0x50ace7 (FIXED 2026-09-28: the draft had the sign flipped)
         mp->torque_k = mp->total_force_j * mp->offset_x - mp->total_force_i * mp->offset_y;
 
         total_force.i += mp->total_force_i;

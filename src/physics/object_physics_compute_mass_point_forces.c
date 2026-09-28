@@ -3,7 +3,12 @@
 //   explains the phase2 antenna_* name was wrong: every field this function touches belongs to
 //   the object Physics tag's mass_points block, not the antenna widget)
 // address 0x507cc0, size 3403 bytes -- the largest function in this batch.
-// name confidence: 0.5   rewrite confidence: 0.3
+// name confidence: 0.5   rewrite confidence: 0.85
+// REWRITTEN 2026-09-28 against objdump 0x507cc0..0x508a0a (full decode). Fixed: torque.j had the wrong sign
+//   (every vehicle's per-mass-point torque about world y was inverted); the ground normal force scales by
+//   Physics.mass, not the mass point's mass; the material friction scale applies when Physics.mass <= 7500
+//   (the draft inverted it); the leaf lookup uses the structure collision BSP 0x746f90 (the draft passed
+//   0x746f98). Sums follow the original k, j, i orders.
 // evidence: types/physics.h mass_point_state's full word-by-word field table (source: this
 //   function, out/phase4/physics_types_notes.md section 2) is used directly below in place of
 //   every puVar12[N] offset; types/tags.h Physics/PhysicsMassPoint/PhysicsPoweredMassPoint field
@@ -40,7 +45,7 @@
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 
 extern data_array *object_data;                     // 0x008603b0
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
+extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (0x507f32 ECX)
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern Globals *game_globals;                        // 0x00746fa0
 extern real_vector3d *global_reference_vector_0069672c; // 0x0069672c
@@ -117,18 +122,18 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
             (real_matrix4x3 *)&context->scale); // UNSURE: out and point are register arguments
 
         if (powered_state == 0) {
-            mp->forward_i = mp_def->forward.i * context->forward_i + mp_def->forward.j * context->left_i +
-                mp_def->forward.k * context->up_i;
-            mp->forward_j = mp_def->forward.i * context->forward_j + mp_def->forward.j * context->left_j +
-                mp_def->forward.k * context->up_j;
-            mp->forward_k = mp_def->forward.i * context->forward_k + mp_def->forward.j * context->left_k +
-                mp_def->forward.k * context->up_k;
-            mp->up_i = mp_def->up.i * context->forward_i + mp_def->up.j * context->left_i +
-                mp_def->up.k * context->up_i;
-            mp->up_j = mp_def->up.i * context->forward_j + mp_def->up.j * context->left_j +
-                mp_def->up.k * context->up_j;
-            mp->up_k = mp_def->up.i * context->forward_k + mp_def->up.j * context->left_k +
-                mp_def->up.k * context->up_k;
+            mp->forward_i = mp_def->forward.k * context->up_i + mp_def->forward.j * context->left_i +
+                mp_def->forward.i * context->forward_i;
+            mp->forward_j = mp_def->forward.k * context->up_j + mp_def->forward.j * context->left_j +
+                mp_def->forward.i * context->forward_j;
+            mp->forward_k = mp_def->forward.k * context->up_k + mp_def->forward.j * context->left_k +
+                mp_def->forward.i * context->forward_k;
+            mp->up_i = mp_def->up.k * context->up_i + mp_def->up.j * context->left_i +
+                mp_def->up.i * context->forward_i;
+            mp->up_j = mp_def->up.k * context->up_j + mp_def->up.j * context->left_j +
+                mp_def->up.i * context->forward_j;
+            mp->up_k = mp_def->up.k * context->up_k + mp_def->up.j * context->left_k +
+                mp_def->up.i * context->forward_k;
         } else {
             // 0x507dcc..0x507dd8: combined (a full real_matrix4x3 at ebp-0x94) = context matrix * the powered state's
             // matrix, through matrix4x3_multiply_procedure. FIXED 2026-09-28: the draft used float[9] (36 bytes) for the
@@ -136,18 +141,18 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
             // (combined[0] is the scale).
             real_matrix4x3 combined;
             matrix4x3_multiply(&context->scale, &powered_state->matrix_scale, &combined);
-            mp->forward_i = mp_def->forward.i * combined.forward.i + mp_def->forward.j * combined.left.i +
-                mp_def->forward.k * combined.up.i;
-            mp->forward_j = mp_def->forward.i * combined.forward.j + mp_def->forward.j * combined.left.j +
-                mp_def->forward.k * combined.up.j;
-            mp->forward_k = mp_def->forward.i * combined.forward.k + mp_def->forward.j * combined.left.k +
-                mp_def->forward.k * combined.up.k;
-            mp->up_i = mp_def->up.i * combined.forward.i + mp_def->up.j * combined.left.i + mp_def->up.k * combined.up.i;
-            mp->up_j = mp_def->up.i * combined.forward.j + mp_def->up.j * combined.left.j + mp_def->up.k * combined.up.j;
-            mp->up_k = mp_def->up.i * combined.forward.k + mp_def->up.j * combined.left.k + mp_def->up.k * combined.up.k;
+            mp->forward_i = mp_def->forward.k * combined.up.i + mp_def->forward.j * combined.left.i +
+                mp_def->forward.i * combined.forward.i;
+            mp->forward_j = mp_def->forward.k * combined.up.j + mp_def->forward.j * combined.left.j +
+                mp_def->forward.i * combined.forward.j;
+            mp->forward_k = mp_def->forward.k * combined.up.k + mp_def->forward.j * combined.left.k +
+                mp_def->forward.i * combined.forward.k;
+            mp->up_i = mp_def->up.k * combined.up.i + mp_def->up.j * combined.left.i + mp_def->up.i * combined.forward.i;
+            mp->up_j = mp_def->up.k * combined.up.j + mp_def->up.j * combined.left.j + mp_def->up.i * combined.forward.j;
+            mp->up_k = mp_def->up.k * combined.up.k + mp_def->up.j * combined.left.k + mp_def->up.i * combined.forward.k;
         }
 
-        mp->leaf_index = bsp3d_node_find_leaf(0, global_structure_collision_bsp, (real_point3d *)&mp->position_x);
+        mp->leaf_index = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
             ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index].cluster;
 
@@ -189,13 +194,15 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
                 material = &((GlobalsMaterial *)game_globals->materials.pointer)[material_index];
             }
 
-            ground_friction = (material->ground_friction_scale <= 0.0f ||
-                definition->mass < 7500.0f) ? definition->ground_friction :
+            // 0x50808f / 0x50809f: the material scale applies only to objects of at most 7500 mass (the draft
+            // had the mass test inverted)
+            ground_friction = (!(material->ground_friction_scale > 0.0f) ||
+                !(definition->mass <= 7500.0f)) ? definition->ground_friction :
                 definition->ground_friction * material->ground_friction_scale;
-            ground_normal_k1 = (material->ground_friction_normal_k1_scale <= 0.0f) ?
+            ground_normal_k1 = !(material->ground_friction_normal_k1_scale > 0.0f) ?
                 definition->ground_normal_k1 :
                 definition->ground_normal_k1 * material->ground_friction_normal_k1_scale;
-            ground_normal_k0 = (material->ground_friction_normal_k0_scale <= 0.0f) ?
+            ground_normal_k0 = !(material->ground_friction_normal_k0_scale > 0.0f) ?
                 definition->ground_normal_k0 :
                 definition->ground_normal_k0 * material->ground_friction_normal_k0_scale;
             ground_depth_scale = definition->ground_depth;
@@ -207,10 +214,11 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
                 ground_damp_fraction_scale *= material->ground_damp_fraction_scale;
             }
 
-            tangential_speed = mp->resting_plane_i * mp->velocity_i + mp->resting_plane_j * mp->velocity_j +
-                mp->resting_plane_k * mp->velocity_k;
+            tangential_speed = mp->velocity_k * mp->resting_plane_k + mp->velocity_j * mp->resting_plane_j +
+                mp->velocity_i * mp->resting_plane_i;
+            // 0x50816f: the OBJECT's mass (Physics +0x08), not the mass point's
             mp->ground_normal_magnitude = ((mp->ground_depth / ground_depth_scale) * k_physics_gravity -
-                tangential_speed * ground_damp_fraction_scale) * mp_def->mass;
+                tangential_speed * ground_damp_fraction_scale) * definition->mass;
             mp->ground_normal_force_i = mp->ground_normal_magnitude * mp->resting_plane_i;
             mp->ground_normal_force_j = mp->ground_normal_magnitude * mp->resting_plane_j;
             mp->ground_normal_force_k = mp->ground_normal_magnitude * mp->resting_plane_k;
@@ -226,19 +234,19 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
 
                 if (powered_def != 0 && (powered_def->flags & 0x01) != 0 && powered_state->ground_friction != 0.0f) {
                     float lean = real_inverse_lerp_clamped(mp->resting_plane_k, ground_normal_k0, ground_normal_k1);
-                    float alignment = mp->resting_plane_i * mp->up_i + mp->up_j * mp->resting_plane_j +
-                        mp->up_k * mp->resting_plane_k;
+                    float alignment = mp->up_k * mp->resting_plane_k + mp->up_j * mp->resting_plane_j +
+                        mp->resting_plane_i * mp->up_i;
                     float scale;
                     float push_i, push_j, push_k;
                     float d;
 
                     if (alignment < 0.0f) alignment = 0.0f;
                     else if (alignment > 1.0f) alignment = 1.0f;
-                    scale = alignment * alignment * lean * lean * friction_magnitude;
+                    scale = lean * (alignment * alignment * lean) * friction_magnitude;
 
-                    d = -(-(powered_state->ground_friction) * mp->forward_i * mp->resting_plane_i +
+                    d = -((-(powered_state->ground_friction) * mp->forward_k) * mp->resting_plane_k +
                           (-(powered_state->ground_friction) * mp->forward_j) * mp->resting_plane_j +
-                          (-(powered_state->ground_friction) * mp->forward_k) * mp->resting_plane_k);
+                          (-(powered_state->ground_friction) * mp->forward_i) * mp->resting_plane_i);
                     push_i = d * mp->resting_plane_i + -(powered_state->ground_friction) * mp->forward_i;
                     push_j = d * mp->resting_plane_j + -(powered_state->ground_friction) * mp->forward_j;
                     push_k = d * mp->resting_plane_k + -(powered_state->ground_friction) * mp->forward_k;
@@ -295,8 +303,8 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
 
             if (powered_def != 0) {
                 if ((powered_def->flags & 0x08) != 0 && powered_state->water_lift != 0.0f) {
-                    float lift = (float)fabs((double)(mp->velocity_i * mp->forward_i +
-                        mp->forward_j * mp->velocity_j + mp->forward_k * mp->velocity_k)) *
+                    float lift = (float)fabs((double)(mp->forward_k * mp->velocity_k +
+                        mp->forward_j * mp->velocity_j + mp->velocity_i * mp->forward_i)) *
                         powered_state->water_lift * definition->mass * water_fade;
                     mp->powered_force_i += lift * mp->up_i;
                     mp->powered_force_j += lift * mp->up_j;
@@ -346,18 +354,18 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
                 (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
         if (powered_def != 0 && (powered_def->flags & 0x10) != 0 && powered_state->air_lift != 0.0f) {
-            float lift = (float)fabs((double)(mp->velocity_i * mp->forward_i + mp->forward_j * mp->velocity_j +
-                mp->forward_k * mp->velocity_k)) * definition->mass * powered_state->air_lift;
+            float lift = (float)fabs((double)(mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j +
+                mp->forward_i * mp->velocity_i)) * definition->mass * powered_state->air_lift;
             mp->powered_force_i += lift * mp->up_i;
             mp->powered_force_j += lift * mp->up_j;
             mp->powered_force_k += lift * mp->up_k;
         }
 
-        if (mp->velocity_k * mp->velocity_k + mp->velocity_j * mp->velocity_j +
-            mp->velocity_i * mp->velocity_i >= 0.0011111111f) {
-            mp->flags &= ~(uint32_t)_mass_point_at_rest_bit;
-        } else {
+        if (mp->velocity_i * mp->velocity_i + mp->velocity_j * mp->velocity_j +
+            mp->velocity_k * mp->velocity_k < 0.0011111111f) {
             mp->flags |= _mass_point_at_rest_bit;
+        } else {
+            mp->flags &= ~(uint32_t)_mass_point_at_rest_bit;
         }
         mp->flags = (mp->ground_depth <= 0.0f) ? (mp->flags & ~(uint32_t)_mass_point_ground_contact_bit) :
             (mp->flags | _mass_point_ground_contact_bit);
@@ -386,8 +394,8 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
                     float lean = real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0,
                         powered_def->antigrav_normal_k1);
                     float fade = (clearance <= 0.0f) ? 1.0f : 1.0f - clearance / powered_def->antigrav_height;
-                    float dot_nv = result.plane.normal.i * mp->velocity_i + result.plane.normal.k * mp->velocity_k +
-                        result.plane.normal.j * mp->velocity_j;
+                    float dot_nv = result.plane.normal.j * mp->velocity_j + result.plane.normal.k * mp->velocity_k +
+                        result.plane.normal.i * mp->velocity_i;
                     float push = (fade * fade * k_physics_gravity - dot_nv * powered_def->antigrav_damp_fraction) *
                         powered_state->antigrav * powered_def->antigrav_strength * definition->mass * lean;
 
@@ -410,7 +418,7 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
             mp->powered_force_k;
 
         mp->torque_i = mp->total_force_k * mp->offset_y - mp->offset_z * mp->total_force_j;
-        mp->torque_j = mp->offset_x * mp->total_force_k - mp->total_force_i * mp->offset_z;
+        mp->torque_j = mp->total_force_i * mp->offset_z - mp->total_force_k * mp->offset_x; // 0x508989 (draft had the sign flipped)
         mp->torque_k = mp->total_force_j * mp->offset_x - mp->total_force_i * mp->offset_y;
 
         out_force->i += mp->total_force_i;
