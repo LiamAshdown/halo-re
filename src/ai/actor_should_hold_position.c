@@ -31,7 +31,7 @@ uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition)
 
     if (self->unknown_60c == 1) {
         prop *p = (prop *)((uint8_t *)prop_data->data + (self->unknown_610 & 0xffff) * sizeof(prop));
-        if (3 < p->kind && p->kind < 6) {
+        if (3 < p->state && p->state < 6) {
             self->unknown_3bc = 1;
             self->unknown_5f4 = 0;
             return 0;

@@ -61,11 +61,11 @@ void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shar
 
         if (force_d == 0) {
             if (no_noticed_b) {
-                if (p->kind > 1 && p->kind < 4) {
+                if (p->state > 1 && p->state < 4) {
                     // 0x40cd7a loads EAX from actor.target_unit_index just before this call.
                     actor_target_get_relationship_object(a->target_unit_index);
                 }
-                *out_f = actor_firing_position_near_point(actor_index, (real_point3d *)((uint8_t *)p + 0xf0), *(uint32_t *)&((struct prop *)p)->path_surface_index, 1);
+                *out_f = actor_firing_position_near_point(actor_index, (real_point3d *)((uint8_t *)p + 0xf0), *(uint32_t *)&((struct prop *)p)->pathfinding_surface_index, 1);
             }
         } else {
             *out_a = 0;

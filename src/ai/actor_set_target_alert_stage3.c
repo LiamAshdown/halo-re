@@ -41,8 +41,8 @@ void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index ac
     }
 
     target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
-    if (target->kind == 4) {
-        target->kind = 5;
+    if (target->state == 4) {
+        target->state = 5;
     }
     target->noticed_c = 1;
 

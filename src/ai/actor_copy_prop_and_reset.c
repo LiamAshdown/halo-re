@@ -36,22 +36,22 @@ void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop)
     dest->actor_index = actor_index;
     dest->next_in_actor = next_in_actor;
 
-    dest->kind = 4;
-    dest->unknown_3a = 900;
-    dest->unknown_3c = 0;
+    dest->state = 4;
+    dest->orphan_timer = 900;
+    dest->inspection_ticks = 0;
     dest->noticed_a = 0;
     dest->noticed_b = 0;
     dest->noticed_c = 0;
     {
-        float dx = dest->last_known_position.x - dest->unknown_80.x;
-        float dy = dest->last_known_position.y - dest->unknown_80.y;
-        float dz = dest->last_known_position.z - dest->unknown_80.z;
+        float dx = dest->last_known_position.x - dest->last_perceived_position.x;
+        float dy = dest->last_known_position.y - dest->last_perceived_position.y;
+        float dz = dest->last_known_position.z - dest->last_perceived_position.z;
         dest->unknown_40 = *(uint32_t *)&dx;
         dest->unknown_44 = *(uint32_t *)&dy;
         dest->unknown_48 = *(uint32_t *)&dz;
     }
-    dest->unknown_d4 = *global_origin3d_pointer;
-    dest->unknown_123 = 0;
+    dest->velocity = *global_origin3d_pointer;
+    dest->speed_class = 0;
 }
 
 #if 0

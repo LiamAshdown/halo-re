@@ -34,7 +34,7 @@ uint8_t actor_target_is_close_and_recognized(datum_index object_index, uint32_t 
         return 0;
     }
     p = &((prop *)prop_data->data)[prop_index & 0xffff];
-    if (p->distance < 5.0f && (p->unknown_38 == 0 || p->unknown_38 == 1)) {
+    if (p->distance < 5.0f && (p->obstruction == 0 || p->obstruction == 1)) {
         return 1;
     }
     return 0;

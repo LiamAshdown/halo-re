@@ -83,16 +83,16 @@ uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t 
             return 0;
         }
         if (line < 8) {
-            if ((target->is_unit == 0 && target->is_vault == 0) ||
-                (target->is_vault != 0 && awareness > 2)) {
+            if ((target->enemy == 0 && target->dead == 0) ||
+                (target->dead != 0 && awareness > 2)) {
                 if (urgent != 0 ||
-                    (((target->is_parented == 0 || line < 4) && target->unknown_5c != -1) &&
-                     game_time->game_time < target->unknown_5c + 600)) {
+                    (((target->is_parented == 0 || line < 4) && target->last_attention_time != -1) &&
+                     game_time->game_time < target->last_attention_time + 600)) {
                     return 0;
                 }
-                target->unknown_5c = game_time->game_time;
-                if (target->unknown_58 <= target->unknown_54) {
-                    target->unknown_58 = target->unknown_54;
+                target->last_attention_time = game_time->game_time;
+                if (target->interest_satisfied <= target->interest) {
+                    target->interest_satisfied = target->interest;
                 }
             }
         }

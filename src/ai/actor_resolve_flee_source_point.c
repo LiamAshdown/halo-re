@@ -73,7 +73,7 @@ uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_v
             return 0;
         }
         // UNSURE: see file header -- reinterpreting three unnamed uint32_t as a point.
-        target_point = (real_point3d *)&target_prop->unknown_104;
+        target_point = (real_point3d *)&target_prop->head_position_x;
         out->i = target_point->x - self->aim_origin.x;
         out->j = target_point->y - self->aim_origin.y;
         out->k = target_point->z - self->aim_origin.z;
@@ -93,9 +93,9 @@ uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_v
             return 0;
         }
         target_prop = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
-        out->i = target_prop->aim_offset.x - self->aim_origin.x;
-        out->j = target_prop->aim_offset.y - self->aim_origin.y;
-        out->k = target_prop->aim_offset.z - self->aim_origin.z;
+        out->i = target_prop->center_of_mass.x - self->aim_origin.x;
+        out->j = target_prop->center_of_mass.y - self->aim_origin.y;
+        out->k = target_prop->center_of_mass.z - self->aim_origin.z;
         break;
 
     case 3:

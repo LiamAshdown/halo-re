@@ -81,7 +81,7 @@ void ai_recompute_all_relationship_flags(void)
 
             tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
             object_team = ((struct object *)tracked_object)->owner_team;
-            p->object_type = object_team;
+            p->team = object_team;
             actor_team = a->team;
 
             hostile = 1;
@@ -94,7 +94,7 @@ void ai_recompute_all_relationship_flags(void)
             } else {
                 hostile = (actor_team != object_team);
             }
-            p->is_unit = hostile;
+            p->enemy = hostile;
 
             marked = 0;
             if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
@@ -102,7 +102,7 @@ void ai_recompute_all_relationship_flags(void)
                 uint32_t bit = *(uint32_t *)(team_pair_data + 0x94 + (pair >> 5) * 4);
                 marked = (bit & (1u << (pair & 0x1f))) != 0;
             }
-            p->unknown_61 = marked;
+            p->allegiance = marked;
 
             p->engaged = actor_target_update_active_flag(actor_index, current_prop_index); // FIXED: EDI = the prop (0x42bc33)
             p->desirability = actor_rate_potential_target(actor_index, current_prop_index);

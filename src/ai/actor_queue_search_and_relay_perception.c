@@ -36,7 +36,7 @@ void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index
     prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
     datum_index owner_index;
 
-    actor_queue_search_position(actor_index, 0, 1, (real_vector3d *)&p->unknown_e0,
+    actor_queue_search_position(actor_index, 0, 1, (real_vector3d *)&p->direction,
                                 0xffffffff, 0, 90, prop_index, 150, 0);
 
     owner_index = p->owner_actor_index;

@@ -163,27 +163,27 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         }
         if (prop_index != (datum_index)0xffffffff) {
             target = &((prop *)prop_data->data)[prop_index & 0xffff];
-            if (query->unknown_42 != 0 && target->kind > 1 && target->kind < 4) {
+            if (query->unknown_42 != 0 && target->state > 1 && target->state < 4) {
                 actor_target_get_relationship_object(prop_index); // UNSURE: EAX at this call site not re-derived
             }
             query->have_target = 1;
             query->target_position = target->last_known_position;
-            query->target_surface_index = *(uint32_t *)&((struct prop *)target)->path_surface_index;
-            query->target_surface_point = *(real_point3d *)&((struct prop *)target)->ground_position.x;
+            query->target_surface_index = *(uint32_t *)&((struct prop *)target)->pathfinding_surface_index;
+            query->target_surface_point = *(real_point3d *)&((struct prop *)target)->pathfinding_point.x;
             query->target_unknown_640 = ((struct prop *)target)->cluster_index;
             query->target_distance = target->distance;
             query->target_prop_index = prop_index;
-            query->target_aim_position = *(real_point3d *)&((struct prop *)target)->unknown_104;
+            query->target_aim_position = *(real_point3d *)&((struct prop *)target)->head_position_x;
             query->target_relationship_object = target->relationship_object_index;
-            query->target_unknown_658 = target->unknown_20;
+            query->target_unknown_658 = target->danger_radius;
 
-            if (query->unknown_41 == 0 || ((struct prop *)target)->unknown_8c == -1) {
-                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->unknown_104;
+            if (query->unknown_41 == 0 || ((struct prop *)target)->last_seen_time == -1) {
+                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->head_position_x;
             } else {
-                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->unknown_90;
+                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->last_seen_position_x;
             }
 
-            if (target->kind > 3 && target->kind < 6) {
+            if (target->state > 3 && target->state < 6) {
                 query->have_target_vault_point = 1;
                 query->target_vault_point = *(real_point3d *)&((struct prop *)target)->unknown_40;
             }
@@ -270,7 +270,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         while (query->danger_sphere_count < 0x20 && p != (datum_index)0xffffffff) {
             prop *pr = &((prop *)prop_data->data)[p & 0xffff];
             p = pr->next_in_actor;
-            if (pr->kind > 1 && pr->kind < 4 && pr->is_unit == 0 && pr->is_vault == 0 &&
+            if (pr->state > 1 && pr->state < 4 && pr->enemy == 0 && pr->dead == 0 &&
                 pr->is_parented == 0) {
                 query->danger_spheres[query->danger_sphere_count].position =
                     pr->last_known_position;
@@ -307,10 +307,10 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                     break;
                 }
                 pr = &((prop *)prop_data->data)[p & 0xffff];
-                kind = pr->kind;
+                kind = pr->state;
                 p = pr->next_in_actor;
-                if (kind > 1 && kind < 4 && pr->is_vault == 0) {
-                    if (pr->is_unit == 0 &&
+                if (kind > 1 && kind < 4 && pr->dead == 0) {
+                    if (pr->enemy == 0 &&
                         (pr->is_parented != 0 || pr->relationship_object_index == -1) &&
                         actor_get_ranged_attack_vector(current, actor_index, (real_vector3d *)&hazard_direction) != 0) { // 0x4132fc: EAX = the prop
                         actor_firing_position_hazard *h = &query->hazards[query->hazard_count];
@@ -322,8 +322,8 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                         query->hazard_count = query->hazard_count + 1;
                         query->hazard_count_kind_01 = query->hazard_count_kind_01 + 1;
                     }
-                    if (pr->is_unit != 0 &&
-                        ((pr->engaged != 0 && (pr->is_parented != 0 || pr->unknown_12f != 0)) ||
+                    if (pr->enemy != 0 &&
+                        ((pr->engaged != 0 && (pr->is_parented != 0 || pr->shooting != 0)) ||
                          (actor_definition->more_flags & 1) != 0 /* avoid_all_enemy_attack_vectors */)) {
                         actor_firing_position_hazard *h = &query->hazards[query->hazard_count];
                         h->kind = 2;

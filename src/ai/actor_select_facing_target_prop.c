@@ -105,25 +105,25 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
         cur = &((prop *)prop_data->data)[next_handle & 0xffff];
         next_handle = cur->next_in_actor;
 
-        if (!(cur->kind > 1 && cur->kind < 4 && cur->unknown_32 != 0)) {
-            cur->unknown_58 = 0.0f;
+        if (!(cur->state > 1 && cur->state < 4 && cur->visual_perception != 0)) {
+            cur->interest_satisfied = 0.0f;
             continue;
         }
-        if (cur->unknown_54 <= 0.0f) {
+        if (cur->interest <= 0.0f) {
             continue;
         }
 
-        if (cur->unknown_5c == -1) {
+        if (cur->last_attention_time == -1) {
             score = 1.0f;
         } else {
-            score = ((float)now - (float)cur->unknown_5c) * 0.0016666667f - 1.0f; // 1/600
+            score = ((float)now - (float)cur->last_attention_time) * 0.0016666667f - 1.0f; // 1/600
         }
-        score = (cur->unknown_54 - cur->unknown_58) / cur->unknown_54 + score;
+        score = (cur->interest - cur->interest_satisfied) / cur->interest + score;
         if (1.0f < score) {
             score = 1.0f;
         }
-        score = score * cur->unknown_54;
-        still_valid = (cur->unknown_58 < cur->unknown_54) ? 1 : 0;
+        score = score * cur->interest;
+        still_valid = (cur->interest_satisfied < cur->interest) ? 1 : 0;
 
         if (score <= 0.0f) {
             continue;
@@ -132,7 +132,7 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
         if (skip_lane_test) {
             uint8_t accepted;
             if (require_trust == 0 || !still_valid) {
-                accepted = point3d_within_horizontal_cone((real_point3d *)&cur->unknown_e0, &self->position_cache_a, aiming_cos_threshold);
+                accepted = point3d_within_horizontal_cone((real_point3d *)&cur->direction, &self->position_cache_a, aiming_cos_threshold);
             } else {
                 accepted = 1; // trusted and still valid: accept without a directional check
             }
@@ -144,7 +144,7 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
                 best_found = 1;
             }
         } else {
-            uint8_t accepted = actor_point_in_directional_lane((real_point3d *)&cur->unknown_e0, &self->position_cache_b,
+            uint8_t accepted = actor_point_in_directional_lane((real_point3d *)&cur->direction, &self->position_cache_b,
                                                                  &self->position_cache_a, looking_cos_threshold, side_thresholds);
             if (accepted && best_score < score) {
                 best_handle = current_handle;
@@ -157,8 +157,8 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
     }
 
     if (best_found && best_handle != (datum_index)k_datum_index_none) {
-        best_prop->unknown_58 = best_prop->unknown_54;
-        best_prop->unknown_5c = now;
+        best_prop->interest_satisfied = best_prop->interest;
+        best_prop->last_attention_time = now;
         out_result->candidate = best_handle;
         out_result->flag = 1;
         *out_in_front = best_in_front;

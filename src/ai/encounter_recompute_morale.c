@@ -160,8 +160,8 @@ void encounter_recompute_morale(datum_index encounter_index)
         if (a->target_unit_index != (datum_index)k_datum_index_none) {
             p = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
             enc->unknown_43 = 1;
-            if (a->team < 0 || 9 < a->team || p->object_type < 0 || 9 < p->object_type ||
-                (pair = (int16_t)((int32_t)p->object_type + a->team * 10),
+            if (a->team < 0 || 9 < a->team || p->team < 0 || 9 < p->team ||
+                (pair = (int16_t)((int32_t)p->team + a->team * 10),
                  (team_pair_data->secondary_bits[pair >> 5] & (1 << (pair & 0x1f))) == 0)) {
                 any_unfriendly_target = 1;
             }
@@ -172,11 +172,11 @@ void encounter_recompute_morale(datum_index encounter_index)
                 any_flag_8d = 1;
             }
             if (a->combat_status < 7) {
-                if (p->kind < 2 || 3 < p->kind) {
+                if (p->state < 2 || 3 < p->state) {
                     obj = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
                     counts = *((uint8_t *)obj + 0x106) & 4;
                 } else {
-                    counts = p->is_vault;
+                    counts = p->dead;
                 }
                 if (counts != 0) {
                     goto tally_vocalization;

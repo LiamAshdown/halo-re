@@ -57,7 +57,7 @@ uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_in
     }
     target = PROP(resolved);
     current = resolved;
-    if (target->kind >= 2 && target->kind <= 3) {
+    if (target->state >= 2 && target->state <= 3) {
         result = 0;
     } else if (target->pair_index != k_datum_index_none) {
         // 0x41f84c: already paired; refresh the pair
@@ -69,8 +69,8 @@ uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_in
             actor_copy_prop_and_reset(pair, pair_reference);
             target->object_index = paired->object_index;
         } else {
-            paired->kind = 4;
-            paired->unknown_3c = 0;
+            paired->state = 4;
+            paired->inspection_ticks = 0;
             fresh = 1;
         }
         actor_target_data_refresh(actor_index, pair, scratch, (char)fresh, 1);
@@ -87,7 +87,7 @@ uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_in
 
                 copy->object_index = target->object_index;
                 copy->owner_actor_index = target->owner_actor_index;
-                copy->has_parent = target->has_parent;
+                copy->swarm_owned = target->swarm_owned;
             }
         } else {
             actor_target_data_refresh(actor_index, resolved, scratch, 0, 0);
@@ -102,10 +102,10 @@ uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_in
 
     // 0x41f960
     if (owner_reference == k_datum_index_none ||
-        (pair_reference != k_datum_index_none && PROP(pair_reference)->unknown_32 >= 2)) {
-        target->unknown_b8 = 1;
-        target->unknown_b0 = 0;
-        target->unknown_b4 = owner_reference;
+        (pair_reference != k_datum_index_none && PROP(pair_reference)->visual_perception >= 2)) {
+        target->has_current_information = 1;
+        target->information_age = 0;
+        target->information_source_actor = owner_reference;
     }
     target->engaged = actor_target_update_active_flag(actor_index, current);
     target->desirability = actor_rate_potential_target(actor_index, current);

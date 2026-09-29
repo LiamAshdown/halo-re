@@ -154,16 +154,16 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
 
     case 5:
         target = &((prop *)prop_data->data)[*(uint32_t *)&self->active_movement.destination & 0xffff];
-        if (target->kind < 4 || target->kind > 5) {
+        if (target->state < 4 || target->state > 5) {
             // 0x41a670 leaves EAX holding active_movement.destination, the prop handle.
             actor_target_get_relationship_object(*(datum_index *)&self->active_movement.destination);
         }
         if (self->flying != 0) {
-            self->unknown_488 = *(real_point3d *)&((struct prop *)target)->aim_offset.x;
+            self->unknown_488 = *(real_point3d *)&((struct prop *)target)->center_of_mass.x;
         } else {
-            self->unknown_488 = *(real_point3d *)&((struct prop *)target)->ground_position.x;
+            self->unknown_488 = *(real_point3d *)&((struct prop *)target)->pathfinding_point.x;
         }
-        self->unknown_494 = *(uint32_t *)&((struct prop *)target)->path_surface_index;
+        self->unknown_494 = *(uint32_t *)&((struct prop *)target)->pathfinding_surface_index;
         self->unknown_498 = *(uint32_t *)&self->active_movement.destination.y;
         break;
 

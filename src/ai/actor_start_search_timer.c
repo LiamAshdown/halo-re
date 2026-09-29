@@ -50,8 +50,8 @@ void actor_start_search_timer(datum_index actor_index, datum_index prop_index)
 
     actor_target_get_relationship_object(prop_index);
 
-    actor_queue_search_position(actor_index, &target->ground_position, 2, 0,
-                                target->path_surface_index, 0x3fc00000 /* 1.25f */, 90,
+    actor_queue_search_position(actor_index, &target->pathfinding_point, 2, 0,
+                                target->pathfinding_surface_index, 0x3fc00000 /* 1.25f */, 90,
                                 prop_index, 90, 1);
 }
 

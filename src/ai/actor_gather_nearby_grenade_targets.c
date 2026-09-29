@@ -74,7 +74,7 @@ int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int1
         p = &((prop *)prop_data->data)[prop_cursor & 0xffff];
         next_prop = p->next_in_actor;
 
-        if (p->is_unit == 0 && p->is_vault == 0 && p->kind == 3 &&
+        if (p->enemy == 0 && p->dead == 0 && p->state == 3 &&
             p->relationship_object_index == -1) {
             tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
             if (tracked_object->type == _object_type_biped) {

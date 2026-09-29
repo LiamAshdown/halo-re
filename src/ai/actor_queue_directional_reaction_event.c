@@ -77,12 +77,12 @@ void actor_queue_directional_reaction_event(const real_vector3d *direction, datu
         }
     }
     if (target != 0) {
-        look_source = &target->unknown_e0;
+        look_source = &target->direction;
     }
 
     self->unknown_2e8[4] = 1;
 
-    if ((target == 0 || target->is_unit != 0) && self->awareness_level < 3) {
+    if ((target == 0 || target->enemy != 0) && self->awareness_level < 3) {
         actor_record_look_at_point(actor_index, (const uint32_t *)look_source, 5, target_prop_index);
         actor_queue_search_position(actor_index, 0, 5, (real_vector3d *)look_source,
                                     0xffffffff, 0, 90, target_prop_index, 150, 0);

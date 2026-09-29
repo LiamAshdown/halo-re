@@ -43,13 +43,13 @@ uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index tar
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
 
-    kind = target->kind;
+    kind = target->state;
     active = 0;
 
-    if ((((1 < kind && kind < 4) && target->is_unit != 0) && target->is_vault == 0) &&
-        (((target->unknown_9c != 0 &&
+    if ((((1 < kind && kind < 4) && target->enemy != 0) && target->dead == 0) &&
+        (((target->engaged_ticks != 0 &&
            (self->target_unit_index == target_prop_index || self->tally.unit_props_unseen == 0)) ||
-          ((target->unknown_135 != 0 || target->unknown_136 != 0) &&
+          ((target->is_vehicle_gunner != 0 || target->is_vehicle_driver != 0) &&
            (self->unknown_161 == 0 && self->tally.group_a_marked_135 == 0))) ||
          (target->actor_type == 0xf))) {
         active = 1;

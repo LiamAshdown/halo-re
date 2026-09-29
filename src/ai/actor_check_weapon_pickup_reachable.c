@@ -53,10 +53,10 @@ uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *recor
         unit_add_marker_relative_offset(a->unit_index, 2, (float *)&positions[firing_position_index], 0, 0, &self_position);
         status = (int16_t)actor_evaluate_engagement_reachability(
             *(int16_t *)((uint8_t *)&positions[firing_position_index] + 0xe), p->cluster_index,
-            (real_point3d *)&p->unknown_104, &self_position, 1, 0, p->relationship_object_index,
+            (real_point3d *)&p->head_position_x, &self_position, 1, 0, p->relationship_object_index,
             a->active_unit_index != (datum_index)k_datum_index_none);
 
-        if (p->kind > 1 && p->kind < 4) {
+        if (p->state > 1 && p->state < 4) {
             result = (status == 0);
         }
         if (status == 0 || status == 3) {

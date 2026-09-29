@@ -48,19 +48,19 @@ void actor_queue_recognized_target_dialogue(datum_index actor_index, datum_index
         prop *target = (prop *)datum_get(target_prop_index, prop_data);
 
         if (target != 0) {
-            if ((target->is_unit == 0 && target->is_vault == 0) ||
-                (target->is_vault != 0 && self->awareness_level > 2)) {
+            if ((target->enemy == 0 && target->dead == 0) ||
+                (target->dead != 0 && self->awareness_level > 2)) {
                 if (recent > 6) {
                     return;
                 }
-                if (target->is_parented == 0 && target->unknown_5c != -1 &&
-                    (int32_t)game_time->game_time < target->unknown_5c + 600) {
+                if (target->is_parented == 0 && target->last_attention_time != -1 &&
+                    (int32_t)game_time->game_time < target->last_attention_time + 600) {
                     return;
                 }
-                target->unknown_5c = (int32_t)game_time->game_time;
-                target->unknown_58 = (target->unknown_58 <= target->unknown_54)
-                                          ? target->unknown_54
-                                          : target->unknown_58;
+                target->last_attention_time = (int32_t)game_time->game_time;
+                target->interest_satisfied = (target->interest_satisfied <= target->interest)
+                                          ? target->interest
+                                          : target->interest_satisfied;
             }
 
             {

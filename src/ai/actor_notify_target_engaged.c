@@ -30,9 +30,9 @@ void actor_notify_target_engaged(datum_index target_prop_index, datum_index acto
     actor *notifier = &((actor *)actor_data->data)[actor_index & 0xffff];
     datum_index unit_index;
 
-    if (target->is_vault == 0) {
+    if (target->dead == 0) {
         unit_index = notifier->unit_index;
-        if (unit_index != (datum_index)k_datum_index_none && target->is_unit != 0) {
+        if (unit_index != (datum_index)k_datum_index_none && target->enemy != 0) {
             ai_communication_broadcast(5 - (alternate_event != 0), unit_index, target->object_index, 3,
                                        (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
         }

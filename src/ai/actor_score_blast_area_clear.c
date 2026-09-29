@@ -56,9 +56,9 @@ uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius
                 }
                 p = (prop *)((uint8_t *)prop_data->data + (prop_cursor & 0xffff) * sizeof(prop));
                 prop_cursor = p->next_in_actor;
-                if (2 <= p->kind && p->kind <= 3 && p->is_vault == 0) break;
+                if (2 <= p->state && p->state <= 3 && p->dead == 0) break;
             }
-            if (p->is_unit == 0) {
+            if (p->enemy == 0) {
                 done_with_hostiles = 1;
                 break;
             }
@@ -75,7 +75,7 @@ uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius
                                     counted[counted_count] = owner;
                                     counted_count++;
                                 }
-                                if (p->has_parent == 0) {
+                                if (p->swarm_owned == 0) {
                                     score++;
                                 } else {
                                     actor *owner_actor = (actor *)((uint8_t *)actor_data->data +

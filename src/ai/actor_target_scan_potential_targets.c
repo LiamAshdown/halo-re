@@ -159,7 +159,7 @@ void actor_target_scan_potential_targets(datum_index actor_index) // blam-cc: st
 
         next = p->next_in_actor;
 
-        if (p->kind < 4 || 5 < p->kind) {
+        if (p->state < 4 || 5 < p->state) {
             float dist_sq = p->distance * p->distance;
             actor *owner = (p->owner_actor_index == k_datum_index_none)
                                ? (actor *)0
@@ -172,12 +172,12 @@ void actor_target_scan_potential_targets(datum_index actor_index) // blam-cc: st
                 accept = 1;
             } else if (owner != (actor *)0 && !(owner->active != 0 && owner->keep_unit_alive == 0)) {
                 accept = 0;
-            } else if (p->unknown_63 != 0 || 0 < p->unknown_6a) {
+            } else if (p->in_use != 0 || 0 < p->retain_timer) {
                 accept = 1;
             } else if (1600.0f < dist_sq) {
                 accept = 0;
-            } else if (!p->is_vault) {
-                if (!p->is_unit) {
+            } else if (!p->dead) {
+                if (!p->enemy) {
                     accept = dist_sq < 225.0f;
                     if (3 < self->combat_status) {
                         unit_bucket = 1;
@@ -226,12 +226,12 @@ shared_threshold:
                     goto not_accepted;
                 }
 encounter_gate_open:
-                if (p->unknown_20 <= 0.0f) {
-                    if (!p->is_unit || p->unknown_76 < 0x97) {
+                if (p->danger_radius <= 0.0f) {
+                    if (!p->enemy || p->dead_ticks < 0x97) {
                         int16_t grade = actor_get_current_mode_combat_grade(actor_index);
                         if (grade < 2) {
                             float grade_threshold = 16.0f;
-                            if (!p->is_unit && self->awareness_level < 3) {
+                            if (!p->enemy && self->awareness_level < 3) {
                                 grade_threshold = 64.0f;
                             }
                             if (dist_sq < grade_threshold) {
@@ -275,7 +275,7 @@ merged:
             // Stamp every object this candidate touches as visited this tick: the owner's
             // whole unit cluster (or, for a swarmed owner, every swarm component unit), then
             // the tracked object itself.
-            if (p->has_parent && p->owner_actor_index != k_datum_index_none) {
+            if (p->swarm_owned && p->owner_actor_index != k_datum_index_none) {
                 actor *owner2 = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
                 datum_index cluster_head = owner2->swarm_index;
                 if (cluster_head == k_datum_index_none) {
@@ -309,7 +309,7 @@ merged:
             }
 
             if (accept) {
-                ai_target_candidate_list *list = p->is_unit ? &list_a : &list_b;
+                ai_target_candidate_list *list = p->enemy ? &list_a : &list_b;
                 if (unit_bucket) {
                     if (list->entry_count < 0x80) {
                         list->entries[list->entry_count].object_index = p->object_index;
@@ -317,11 +317,11 @@ merged:
                         list->entries[list->entry_count].distance = dist_sq * 0.6944444f;
                         list->entry_count++;
                     }
-                } else if (!p->is_vault) {
+                } else if (!p->dead) {
                     list->seen_count++;
                 }
             } else {
-                if ((p->kind < 4 || 5 < p->kind) && p->pair_index != k_datum_index_none) {
+                if ((p->state < 4 || 5 < p->state) && p->pair_index != k_datum_index_none) {
                     actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(p->pair_index)); // ESI -1, EDI the prop
                     actor_unlink_prop(actor_index, p->pair_index); // EAX actor, EDI the prop
                     datum_delete(prop_data, p->pair_index);
@@ -426,7 +426,7 @@ list_a_evict:
                 do {
                     if (list_a.entries[i].prop_index != k_datum_index_none) {
                         prop *existing = &props[list_a.entries[i].prop_index & 0xffff];
-                        if ((existing->kind < 4 || 5 < existing->kind) &&
+                        if ((existing->state < 4 || 5 < existing->state) &&
                             existing->pair_index != k_datum_index_none) {
                             actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(existing->pair_index)); // ESI -1, EDI the prop
                             actor_unlink_prop(actor_index, existing->pair_index); // EAX actor, EDI the prop
@@ -484,7 +484,7 @@ list_b_evict:
             do {
                 if (list_b.entries[i].prop_index != k_datum_index_none) {
                     prop *existing = &props[list_b.entries[i].prop_index & 0xffff];
-                    if ((existing->kind < 4 || 5 < existing->kind) &&
+                    if ((existing->state < 4 || 5 < existing->state) &&
                         existing->pair_index != k_datum_index_none) {
                         actor_replace_object_reference(actor_index, 0xffffffff, (uint32_t)(existing->pair_index)); // ESI -1, EDI the prop
                         actor_unlink_prop(actor_index, existing->pair_index); // EAX actor, EDI the prop

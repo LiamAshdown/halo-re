@@ -30,14 +30,14 @@ uint8_t actor_target_get_backup_priority(datum_index target_prop_index)
 
     target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
 
-    if (1 < target->kind && target->kind < 4 && target->engaged != 0) {
+    if (1 < target->state && target->state < 4 && target->engaged != 0) {
         if (target->seen != 0) {
             return 4;
         }
-        if (target->unknown_12f != 0) {
-            return (uint8_t)(((int8_t)target->unknown_122 <= 1) + 2); // 0x420ea3: signed byte compare
+        if (target->shooting != 0) {
+            return (uint8_t)(((int8_t)target->aiming_at_actor_class <= 1) + 2); // 0x420ea3: signed byte compare
         }
-        if (1 < target->unknown_32) {
+        if (1 < target->visual_perception) {
             return 1;
         }
     }

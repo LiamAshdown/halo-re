@@ -43,7 +43,7 @@ void actor_update_target_combat_status(datum_index actor_index)
     target = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
     target_obj = ((object_header *)object_data->data)[target->object_index & 0xffff].data;
 
-    switch (target->kind) {
+    switch (target->state) {
     case 0:
         status = 0;
         self->target_unit_index = k_datum_index_none;
@@ -54,25 +54,25 @@ void actor_update_target_combat_status(datum_index actor_index)
         break;
     case 2:
     case 3:
-        if (target->is_vault != 0) {
+        if (target->dead != 0) {
             status = 2;
         } else if (target->seen != 0) {
             status = 0xb;
-        } else if (2 <= target->unknown_32) {
+        } else if (2 <= target->visual_perception) {
             status = 10;
-        } else if (target->unknown_38 != 0 && target->unknown_38 != 1) {
+        } else if (target->obstruction != 0 && target->obstruction != 1) {
             status = 7;
-        } else if (2 < (int8_t)target->unknown_122 || !(target->distance < 6.0f)) { // 0x4201d4: test ah,5 / jp
+        } else if (2 < (int8_t)target->aiming_at_actor_class || !(target->distance < 6.0f)) { // 0x4201d4: test ah,5 / jp
             status = 8;
         } else {
             status = 9;
         }
         break;
     case 4:
-        status = (int16_t)((target->unknown_b8 != 0) + 5);
+        status = (int16_t)((target->has_current_information != 0) + 5);
         break;
     case 5:
-        if (target->is_vault != 0) {
+        if (target->dead != 0) {
             status = 2;
         } else {
             status = (int16_t)(4 - (target->noticed_c != 0));
@@ -86,12 +86,12 @@ void actor_update_target_combat_status(datum_index actor_index)
 
     self->target_combat_status = status;
 
-    if (target->kind < 2 || 3 < target->kind) {
+    if (target->state < 2 || 3 < target->state) {
         self->unknown_27c = (uint8_t)(~(target_obj->vitality_flags >> 2) & 1);
     } else {
-        self->unknown_27c = (uint8_t)(target->is_vault == 0);
-        if (0 < target->unknown_32) {
-            self->unknown_26c = target->unknown_8c;
+        self->unknown_27c = (uint8_t)(target->dead == 0);
+        if (0 < target->visual_perception) {
+            self->unknown_26c = target->last_seen_time;
         }
     }
 }

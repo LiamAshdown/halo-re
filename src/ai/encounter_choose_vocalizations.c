@@ -137,15 +137,15 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                 p = &((prop *)prop_data->data)[prop_index & 0xffff];
                 next_prop = p->next_in_actor;
 
-                if (p->is_vault == 0) {
+                if (p->dead == 0) {
                     continue;
                 }
 
-                if (p->is_unit == 0) {
+                if (p->enemy == 0) {
                     range = 9.0f;
                     bucket = 2;
                     bias = 0.4f;
-                } else if ((actor_definition[4] & 0x40) == 0 && p->unknown_76 < 0xd2) {
+                } else if ((actor_definition[4] & 0x40) == 0 && p->dead_ticks < 0xd2) {
                     range = 10.0f;
                     bucket = 0;
                     bias = 0.7f;
@@ -164,7 +164,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                     if (proximity <= 1.5f) {
                         boost = 1.5f;
                     }
-                    freshness = (float)(int32_t)p->unknown_76 * 0.004166667f;
+                    freshness = (float)(int32_t)p->dead_ticks * 0.004166667f;
                     if (1.0f <= freshness) {
                         freshness = 1.0f;
                     }
@@ -172,7 +172,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                     if (p->is_parented != 0) {
                         score = score + 2.0f;
                     }
-                    if (p->is_unit != 0) {
+                    if (p->enemy != 0) {
                         has_unit_prop = 1;
                     }
                     inserted = ai_insert_scored_candidate_pair(&buckets[bucket * 2], current,

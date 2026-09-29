@@ -43,7 +43,7 @@ uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point
 
         if (self->unknown_60c == 1 && self->unknown_610 != (uint32_t)-1) {
             prop *p = (prop *)((uint8_t *)prop_data->data + (self->unknown_610 & 0xffff) * sizeof(prop));
-            if (1 < p->kind && p->kind < 4) {
+            if (1 < p->state && p->state < 4) {
                 result = p->object_index;
             }
         }

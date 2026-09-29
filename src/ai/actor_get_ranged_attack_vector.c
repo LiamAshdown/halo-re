@@ -51,7 +51,7 @@ uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_inde
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
 
-    if (target->has_parent != 0) {
+    if (target->swarm_owned != 0) {
         return 0;
     }
 
@@ -66,13 +66,13 @@ uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_inde
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     *out_vector = unit->aiming_vector;
 
-    if (target->unknown_12f == 0 && (int8_t)self->tally.unit_props > 0) {
+    if (target->shooting == 0 && (int8_t)self->tally.unit_props > 0) {
         prop_index = self->first_prop;
         while (prop_index != k_datum_index_none) {
             ally = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * sizeof(prop));
             prop_index = ally->next_in_actor;
 
-            if ((1 < ally->kind && ally->kind < 4) && ally->is_unit != 0) {
+            if ((1 < ally->state && ally->state < 4) && ally->enemy != 0) {
                 delta.i = ally->last_known_position.x - target->last_known_position.x;
                 delta.j = ally->last_known_position.y - target->last_known_position.y;
                 delta.k = ally->last_known_position.z - target->last_known_position.z;
@@ -91,7 +91,7 @@ uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_inde
 
     // UNSURE: this fallback returns whatever raw byte was in target.unknown_12f (cVar6 in the
     // original), not a fixed 0/1 -- preserved exactly rather than coerced to bool.
-    return target->unknown_12f;
+    return target->shooting;
 }
 
 #if 0

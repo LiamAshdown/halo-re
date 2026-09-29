@@ -768,119 +768,159 @@ typedef struct prop {
     datum_index next_in_actor;        // 0x08 next prop in actor.first_prop list
     datum_index pair_index;           // 0x0c the paired prop allocated by 0x43e910 / 0x43e980
     int16_t actor_type;               // 0x10 the owning actor type, or 6 for a swarm prop, or -1
-    int16_t object_type;              // 0x12 object+0xb8 of the tracked object
-    uint8_t has_parent;               // 0x14 set when the tracked object has a parent unit (object+0x1f8)
+    int16_t team;                     // 0x12 the tracked object's owner team (0x43e706)
+    uint8_t swarm_owned;              // 0x14 set when the object has a swarm actor (object+0x1f8), not a parent
     uint8_t unknown_15;               // 0x15
     int16_t unknown_16;               // 0x16
     datum_index object_index;         // 0x18 the tracked object
     datum_index owner_actor_index;    // 0x1c the actor that currently owns the tracked object, or none
-    float unknown_20;                 // 0x20 copied from the object type definition at +0x284
-    int16_t kind;                     // 0x24 0..1 are reserved kinds, 4..5 the shared / vault kinds, 6 the parented kind
+    float danger_radius;              // 0x20 Unit.ai_danger_radius (object tag +0x284), copied by 0x43e640; tracking
+                                      //    passes it to actor_danger_register_point
+    int16_t state;                    // 0x24 0..3 perception states, 4 / 5 the uninspected / inspected orphan (the
+                                      //    CEA _prop_state_*), 6 parented
     uint8_t unknown_26[2];            // 0x26
-    int32_t unknown_28;               // 0x28 the tick a parented prop was created
-    datum_index unknown_2c;           // 0x2c
-    int16_t unknown_30;               // 0x30
-    int16_t unknown_32;               // 0x32
-    int32_t unknown_34;               // 0x34
-    int16_t unknown_38;               // 0x38
-    int16_t unknown_3a;               // 0x3a
-    int16_t unknown_3c;               // 0x3c
+    int32_t swarm_reassign_time;      // 0x28 game time of the last swarm reassignment: stamped at init for a
+                                      //    swarm-owned object, 0x41c4b0 reassigns at most every 90 ticks
+    datum_index acknowledge_progress; // 0x2c a float accumulator in this slot: state 1 adds the inverse (non-combat /
+                                      //    guard / combat) perception time per tick, >= 1.0 acknowledges (state 3)
+    int16_t perception_level;         // 0x30 max of the visual / auditory / 0x36 channels (0..3); drives states 0 ->
+                                      //    1 -> 3 and 3 -> 2
+    int16_t visual_perception;        // 0x32 0..3 from the perception range / field-of-view test 0x41bb30 against
+                                      //    head_position; >= 2 reads as seen
+    int32_t auditory_perception;      // 0x34 low int16: actor_target_hearing_check (0x41c030) 0/2/3, or 3 for
+                                      //    stimulus types 1/2; the high int16 at 0x36 is a separate channel
+    int16_t obstruction;              // 0x38 actor_evaluate_engagement_reachability (0x42b270) from the actor to
+                                      //    head_position: 0 clear, 1 partly blocked, 2..4 blocked
+    int16_t orphan_timer;             // 0x3a 900 when actor_copy_prop_and_reset makes the orphan copy (state 4);
+                                      //    counts down by usage, the orphan is deleted below 0
+    int16_t inspection_ticks;         // 0x3c ticks the orphan has been looked at; at 45 (300 when nearly dead) state
+                                      //    4 becomes 5 (inspected orphan)
     uint8_t unknown_3e[2];            // 0x3e
     uint32_t unknown_40;              // 0x40
     uint32_t unknown_44;              // 0x44
     uint32_t unknown_48;              // 0x48
-    int16_t unknown_4c;               // 0x4c
-    uint8_t unknown_4e;               // 0x4e 0x43e640 zeroes it
+    int16_t lost_timer;               // 0x4c 10 (60 when seen) on entering state 2; while set and near
+                                      //    last_perceived_position the prop stays in state 2
+    uint8_t dead_confirmed;           // 0x4e 0x41c4b0: an orphan whose object is dead, not feigning, unperceived and
+                                      //    still; later non-forced refreshes skip it
     uint8_t unknown_4f;               // 0x4f
     float desirability;               // 0x50 actor_rate_potential_target writes the score here
-    float unknown_54;                 // 0x54
-    float unknown_58;                 // 0x58 actor_begin_vocalization raises it to unknown_54
-    int32_t unknown_5c;               // 0x5c
-    uint8_t is_unit;                  // 0x60 0x45bd50 classifies the tracked object; 46 functions branch on it
-    uint8_t unknown_61;               // 0x61 0x45bdb0
+    float interest;                   // 0x54 actor_compute_target_priority_weight (0x414590), the CEA
+                                      //    actor_look_compute_prop_interest; the idle look selector (0x414a90) scores
+                                      //    on it
+    float interest_satisfied;         // 0x58 raised to interest when the prop is looked at or vocalized about; 0
+                                      //    while not visually perceived
+    int32_t last_attention_time;      // 0x5c game time of the last look / vocalization at it (-1 never); gates
+                                      //    re-vocalizing for 600 ticks
+    uint8_t enemy;                    // 0x60 teams_are_enemies(object team, actor team) (0x43e640); the CEA name
+    uint8_t allegiance;               // 0x61 team_pair_flag_test(actor team, object team), the bitmap hs
+                                      //    ai_allegiance_broken tests; recomputed by
+                                      //    ai_recompute_all_relationship_flags
     uint8_t unknown_62;               // 0x62 0x45be00 of object_type
-    uint8_t unknown_63;               // 0x63
+    uint8_t in_use;                   // 0x63 set while the actor references the prop (target, vocalization / search
+                                      //    slots, ...), mirrored to the pair; an in-use prop is never dropped
     uint8_t combat_dirty;             // 0x64 actor_target_reset_combat_flags sets it
     uint8_t unknown_65;               // 0x65
-    int16_t unknown_66;               // 0x66 0x43e640 sets 0xffff
-    int16_t unknown_68;               // 0x68
-    int16_t unknown_6a;               // 0x6a 0x43e640 zeroes it
+    int16_t stimulus_type;            // 0x66 highest stimulus heard (0..3; weapon fire 1, a unit scream 2), -1 none;
+                                      //    1 sets shooting
+    int16_t stimulus_timer;           // 0x68 30 (150 for type 3) with stimulus_type; at 0 stimulus_type goes back to
+                                      //    -1
+    int16_t retain_timer;             // 0x6a 30 on a newly created shared prop; while > 0 the prop is never dropped
     int16_t seen_state;               // 0x6c actor_target_reset_seen_flags sets 0xffff
     int16_t unknown_6e;               // 0x6e
     float unknown_70;                 // 0x70 0x43e640 zeroes it
     uint8_t seen;                     // 0x74 actor_target_reset_seen_flags clears it
     uint8_t unknown_75;               // 0x75
-    int16_t unknown_76;               // 0x76 0x43e640 sets 1000 for a vault prop, otherwise 0
-    float unknown_78;                 // 0x78
-    int32_t unknown_7c;               // 0x7c
-    real_point3d unknown_80;          // 0x80
-    int32_t unknown_8c;               // 0x8c
-    uint32_t unknown_90;              // 0x90
-    uint32_t unknown_94;              // 0x94
-    uint32_t unknown_98;              // 0x98
-    int16_t unknown_9c;               // 0x9c
+    int16_t dead_ticks;               // 0x76 0 while alive, then +1 per tick (1000 for an object already dead at
+                                      //    init); the CEA actor_perception_desire_prop dead_ticks
+    int16_t sighted_ticks;            // 0x78 consecutive ticks with visual_perception >= 2, up to 0x7fff (a short:
+                                      //    0x41abd0 reads and writes it 16-bit; it was declared float)
+    uint8_t pad_7a[2];                // 0x7a
+    int32_t last_perceived_time;      // 0x7c game time perception_level was last nonzero, -1 never
+    real_point3d last_perceived_position; // 0x80 last_known_position when perception_level was last nonzero
+    int32_t last_seen_time;           // 0x8c game time visual_perception was last nonzero, -1 never; copied to the
+                                      //    actor at 0x26c
+    uint32_t last_seen_position_x;    // 0x90 head_position when last seen (x); a real_point3d in three dword slots
+    uint32_t last_seen_position_y;    // 0x94
+    uint32_t last_seen_position_z;    // 0x98
+    int16_t engaged_ticks;            // 0x9c 1 when actor_target_mark_engaged (0x41fa80) marks it, 0 when cleared,
+                                      //    counts up to 0x7fff
     uint8_t unknown_9e[2];            // 0x9e
-    int32_t unknown_a0;               // 0xa0 0x43e640 sets -1
+    int32_t last_engaged_time;        // 0xa0 game time of the last engagement mark, -1 none; unmarked 150 ticks later
     uint8_t engaged;                  // 0xa4 0x41fa80 marks the target actively engaged
     uint8_t unknown_a5;               // 0xa5
-    int16_t unknown_a6;               // 0xa6
-    int16_t unknown_a8;               // 0xa8
+    int16_t friends_killed;           // 0xa6 allies this target killed (0x423220); compared with
+                                      //    Actor.friends_killed_trigger
+    int16_t friends_killed_timer;     // 0xa8 750 per kill; each expiry takes one off friends_killed
     int16_t shots_fired;              // 0xaa actor_target_reset_shot_counters zeroes 0xaa, 0xac and 0xae
     int16_t shots_hit;                // 0xac
     int16_t shots_unknown_ae;         // 0xae
-    int16_t unknown_b0;               // 0xb0
+    int16_t information_age;          // 0xb0 ticks since the information about it was last refreshed (-1 none); past
+                                      //    59 has_current_information clears
     uint8_t unknown_b2[2];            // 0xb2
-    int32_t unknown_b4;               // 0xb4 0x43e640 sets -1
-    uint8_t unknown_b8;               // 0xb8 0x43e640 zeroes it
+    int32_t information_source_actor; // 0xb4 the friend actor that handed the prop over (0x41f7d0), -1 none
+    uint8_t has_current_information;  // 0xb8 set on fresh information (from a friend, or seen); expires after 60
+                                      //    ticks
     uint8_t noticed_a;                // 0xb9 set by 0x41fb00 (unit+0xb9), cleared by actor_target_reset_combat_flags
     uint8_t noticed_b;                // 0xba set by 0x41fb60 (unit+0xba)
     uint8_t noticed_c;                // 0xbb set by 0x41fbc0
     real_point3d last_known_position; // 0xbc
-    real_point3d aim_offset;          // 0xc8 0x41c4b0 refreshes the aim marker offsets
-    real_point3d unknown_d4;          // 0xd4
-    real_point3d unknown_e0;          // 0xe0
-    int32_t path_surface_index;       // 0xec actor_target_data_refresh @0x41c4b0 resets it to -1
+    real_point3d center_of_mass;      // 0xc8 the "body" marker position (0x41c4b0); the CEA name
+    real_point3d velocity;            // 0xd4 the object velocity (0x41c4b0); zeroed for an orphan
+    real_point3d direction;           // 0xe0 normalized last_known_position - the actor's sense position; its length
+                                      //    goes to distance
+    int32_t pathfinding_surface_index; // 0xec the CEA name
                                       //   and actor_movement_action_resolve @0x41a460 hands it to
                                       //   the pathfinder as the destination surface index. The
                                       //   header used to frame 0xec..0xf7 as one real_point3d,
                                       //   which is one dword low: 0x41a460 reads the point at
                                       //   0xf0/0xf4/0xf8 and the surface index at 0xec.
-    real_point3d ground_position;     // 0xf0 the destination a non-flying actor steers to for a
+    real_point3d pathfinding_point;   // 0xf0 the CEA name (actor_move_to_prop)
                                       //   type-5 movement action; the flying path uses aim_offset
-    float unknown_fc;                 // 0xfc
+    float location_leaf_index;        // 0xfc the root object's bsp leaf (a dword, not a float); with cluster_index
+                                      //    the location for water / weather and hearing
     int16_t cluster_index;            // 0x100 the BSP cluster the tracked object was last seen in, or -1
     int16_t unknown_102;              // 0x102
-    uint32_t unknown_104;             // 0x104
-    uint32_t unknown_108;             // 0x108
-    uint32_t unknown_10c;             // 0x10c
+    uint32_t head_position_x;         // 0x104 the "head" marker's world position (x); a real_point3d in three dword
+                                      //    slots; the perception and LOS target point
+    uint32_t head_position_y;         // 0x108
+    uint32_t head_position_z;         // 0x10c
     int32_t relationship_object_index;// 0x110 actor_target_get_relationship_object caches it lazily
     float unknown_114;                // 0x114
-    uint8_t unknown_118;              // 0x118
+    uint8_t in_water;                 // 0x118 scenario_location_get_water_and_weather at the body marker
     uint8_t unknown_119[3];           // 0x119
     float distance;                   // 0x11c the ascending sort key of ai_target_distance_qsort_compare
-    uint8_t unknown_120;              // 0x120
-    uint8_t unknown_121;              // 0x121
-    int8_t unknown_122;               // 0x122 signed: every ordered compare in the binary is jg / jle (2026-09-28)
-    uint8_t unknown_123;              // 0x123
-    uint8_t unknown_124;              // 0x124
-    uint8_t unknown_125;              // 0x125
-    uint8_t unknown_126;              // 0x126
-    uint8_t is_vault;                 // 0x127 Unit type definition byte +0x106 bit 2; 29 functions branch on it
-    uint8_t unknown_128;              // 0x128 set when is_vault and the object seat count is 0
-    uint8_t unknown_129;              // 0x129
-    uint8_t unknown_12a;              // 0x12a
-    uint8_t unknown_12b;              // 0x12b
+    uint8_t perception_range_class;   // 0x120 always 2; the range class (0.4 / 0.6 / 0.8 / 1.0 x vision range) the
+                                      //    perception test uses
+    uint8_t distance_class;           // 0x121 distance bucket: < 1, < 6, < 10, < 30, else 4
+    int8_t aiming_at_actor_class;     // 0x122 how directly the target unit aims back at the actor: 0 dead-on .. 4
+                                      //    facing away
+    uint8_t speed_class;              // 0x123 the object's speed bucket 0..3
+    uint8_t closing_speed_class;      // 0x124 relative closing speed bucket 0..6 (3 static, 6 closing fast)
+    uint8_t child_unit_count;         // 0x125 children that are bipeds or vehicles
+    uint8_t just_created;             // 0x126 set on a new shared prop; tracking runs its drop test once and clears
+                                      //    it
+    uint8_t dead;                     // 0x127 the object's vitality bit 2 (dead), read by init and tracking; the CEA
+                                      //    name
+    uint8_t dead_not_feigning;        // 0x128 dead and the unit's feign-death countdown (unit+0x420) is 0
+    uint8_t just_died;                // 0x129 dead now but not last tick; relationship_think runs the ally-death
+                                      //    panic scan and clears it
+    uint8_t just_sighted;             // 0x12a visual_perception rose from 0; relationship_think notifies the
+                                      //    engagement and clears it
+    uint8_t owner_not_in_combat;      // 0x12b the owning actor's awareness_level < 3
     uint8_t unknown_12c;              // 0x12c
     uint8_t unknown_12d;              // 0x12d
     uint8_t is_parented;              // 0x12e 0x43e640 sets it when the tracked object has a parent (object+0x30)
-    uint8_t unknown_12f;              // 0x12f
-    uint8_t unknown_130;              // 0x130
-    uint8_t unknown_131;              // 0x131
-    uint8_t unknown_132;              // 0x132
-    uint8_t unknown_133;              // 0x133
-    uint8_t unknown_134;              // 0x134
-    uint8_t unknown_135;              // 0x135
-    uint8_t unknown_136;              // 0x136
+    uint8_t shooting;                 // 0x12f stimulus_type 1 (weapon fire)
+    uint8_t flying;                   // 0x130 Biped.flags bit 2 (flying); 0 for non-bipeds
+    uint8_t camouflaged;              // 0x131 unit active camouflage (unit+0x37c) above 0.5
+    uint8_t flashlight_on;            // 0x132 unit flags bit 19
+    uint8_t disregarded;              // 0x133 unit flags bit 10, the bit hs ai_disregard sets; perception is zeroed
+                                      //    while set
+    uint8_t preferred_target;         // 0x134 unit flags bit 11, the bit hs ai_prefer_target sets
+    uint8_t is_vehicle_gunner;        // 0x135 the parent vehicle's gunner is this object
+    uint8_t is_vehicle_driver;        // 0x136 the parent vehicle's driver is this object and it causes collision
+                                      //    damage
     uint8_t unknown_137;              // 0x137
 } prop;                 // size 0x138
 // global 0x008802c0: data_array *prop_data           element size 0x138, capacity 0x300

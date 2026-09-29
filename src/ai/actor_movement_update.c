@@ -450,8 +450,8 @@ void actor_movement_update(datum_index actor_index)
         if (a->target_unit_index != (datum_index)k_datum_index_none) {
             prop *target_prop = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
             target_object = target_prop->object_index;
-            facing.i = target_prop->unknown_e0.x;
-            facing.j = target_prop->unknown_e0.y;
+            facing.i = target_prop->direction.x;
+            facing.j = target_prop->direction.y;
             if (vector2d_normalize_with_length(&facing) == 0.0f) {
                 facing.i = a->facing.i;
                 facing.j = a->facing.j;

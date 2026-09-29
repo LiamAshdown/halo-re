@@ -45,7 +45,7 @@ void actor_scan_ally_death_panic_reaction(datum_index target_prop_index, datum_i
     Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
     prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
 
-    if (target->is_unit == 0 && (actor_tag->more_flags & 0x20) != 0 /* panic_in_groups */ &&
+    if (target->enemy == 0 && (actor_tag->more_flags & 0x20) != 0 /* panic_in_groups */ &&
         self->unknown_39c < (int32_t)game_time->game_time) {
         float chance = actor_tag->friend_killed_panic_chance;
 

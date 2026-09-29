@@ -45,9 +45,9 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
     uint8_t *far_out)
 {
     datum_index owner_index = ((prop *)p)->owner_actor_index;
-    float radius = ((struct prop *)p)->unknown_20;
-    int16_t pinned_ticks = ((struct prop *)p)->unknown_6a;
-    int16_t since_fired = ((struct prop *)p)->unknown_76;
+    float radius = ((struct prop *)p)->danger_radius;
+    int16_t pinned_ticks = ((struct prop *)p)->retain_timer;
+    int16_t since_fired = ((struct prop *)p)->dead_ticks;
     uint8_t *owner = 0;
 
     *far_out = 0;
@@ -144,7 +144,7 @@ datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object
     while (cursor != k_datum_index_none) {
         datum_index current = cursor;
         uint8_t *p = (uint8_t *)prop_data->data + (cursor & 0xffff) * 0x138;
-        int16_t prop_kind = ((prop *)p)->kind;
+        int16_t prop_kind = ((prop *)p)->state;
         float distance = ((prop *)p)->distance;
         uint8_t far_flag;
 

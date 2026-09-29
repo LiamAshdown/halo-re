@@ -70,7 +70,7 @@ void encounter_release_stale_props(datum_index encounter_index)
             p = &props[prop_index & 0xffff];
             next_prop = p->next_in_actor;
 
-            if (3 < p->kind && p->kind < 6 && p->is_unit != 0 &&
+            if (3 < p->state && p->state < 6 && p->enemy != 0 &&
                 prop_index != a->target_unit_index) {
                 props[p->pair_index & 0xffff].pair_index = (datum_index)k_datum_index_none;
                 actor_replace_object_reference(current, k_datum_index_none, prop_index); // 0x4383a2: ESI = -1, EDI = the prop

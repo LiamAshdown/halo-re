@@ -60,13 +60,13 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
 
-    if (target->unknown_133 != 0 || target->is_unit == 0) {
+    if (target->disregarded != 0 || target->enemy == 0) {
         return 0.0f;
     }
 
     bonus_a = 0;
-    if ((-1 < target->kind && target->kind < 2) ||
-        ((target->is_vault != 0 && 0x95 < target->unknown_76) || target->actor_type == 0xf)) {
+    if ((-1 < target->state && target->state < 2) ||
+        ((target->dead != 0 && 0x95 < target->dead_ticks) || target->actor_type == 0xf)) {
         return 0.0f;
     }
 
@@ -76,7 +76,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
     bonus_b = 0;
     bonus_c = 0;
 
-    if (self->swarm == 0 && target->unknown_9c < 1) {
+    if (self->swarm == 0 && target->engaged_ticks < 1) {
         bonus_a = (int8_t)actor_has_unshielded_threat_weapon(actor_index);
 
         if (bonus_a == 0) {
@@ -86,10 +86,10 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
             threshold = (self->unknown_378 == 0) ? variant_def->berserk_melee_range
                                                  : variant_def->melee_range;
 
-            if (2.0f <= target->distance || (bonus_a = 5, target->kind == 5)) {
+            if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {
                 if (target->relationship_object_index == -1) {
-                    if (target->unknown_130 == 0 || ((struct Actor *)actor_def)->melee_leap_velocity != 0.0f) {
-                        if (target->unknown_118 == self->unknown_15d) {
+                    if (target->flying == 0 || ((struct Actor *)actor_def)->melee_leap_velocity != 0.0f) {
+                        if (target->in_water == self->unknown_15d) {
                             // FIXED (0x41fec2): beyond the melee threshold -> 2 (0x41ff0a),
                             //   within it -> 3; the old C left 0 / 5 in place for the far case
                             bonus_a = (target->distance >= threshold) ? 2 : 3;
@@ -112,8 +112,8 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
             //   through to the team check; the old C returned 2 for it
             if (override_tag != (uint8_t *)0 && target->distance >= *(float *)(override_tag + 0x40c)) {
                 bonus_a = 2;
-            } else if (target->unknown_118 == self->unknown_15d) {
-                if (2.0f <= target->distance || (bonus_a = 5, target->kind == 5)) {
+            } else if (target->in_water == self->unknown_15d) {
+                if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {
                     // 0x41ff44 / 0x41ff5e: definition +0xa0 and +0x74
                     if (target->distance >= *(const float *)((const uint8_t *)variant_def + 0xa0)) {
                         bonus_a = 2;
@@ -130,18 +130,18 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
         }
     }
 
-    if (target->is_vault == 0) {
-        if (self->swarm == 0 && target->seen != 0 && target->unknown_9c == 0) {
+    if (target->dead == 0) {
+        if (self->swarm == 0 && target->seen != 0 && target->engaged_ticks == 0) {
             bonus_d = 6;
-        } else if (target->kind < 2 || 3 < target->kind) {
-            bonus_d = (target->unknown_b8 == 0) ? (int8_t)(target->kind == 4) + 1 : 3;
+        } else if (target->state < 2 || 3 < target->state) {
+            bonus_d = (target->has_current_information == 0) ? (int8_t)(target->state == 4) + 1 : 3;
         } else if (self->swarm != 0) {
             bonus_d = 4;
-        } else if (0 < target->unknown_9c) {
+        } else if (0 < target->engaged_ticks) {
             bonus_d = 3;
-        } else if (target->unknown_38 != 0 && target->unknown_38 != 1) {
+        } else if (target->obstruction != 0 && target->obstruction != 1) {
             bonus_d = 3;
-        } else if (target->unknown_12f != 0 && (int8_t)target->unknown_122 < 2) {
+        } else if (target->shooting != 0 && (int8_t)target->aiming_at_actor_class < 2) {
             // FIXED: Ghidra compares prop+0x122 as a signed char.
             bonus_d = 5;
         } else {
@@ -159,7 +159,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
         bonus_b = 1;
     }
 
-    if (target->unknown_134 != 0) {
+    if (target->preferred_target != 0) {
         bonus_c = 2;
     }
 

@@ -175,8 +175,8 @@ void actor_update_crouch_state(datum_index actor_index)
                  prop_index = p->next_in_actor) {
                 p = &((prop *)prop_data->data)[prop_index & 0xffff];
 
-                if (p->kind > 1 && p->kind < 4 && p->is_unit == 0 && p->is_vault == 0 &&
-                    p->has_parent == 0 &&
+                if (p->state > 1 && p->state < 4 && p->enemy == 0 && p->dead == 0 &&
+                    p->swarm_owned == 0 &&
                     (p->is_parented != 0 || p->relationship_object_index == -1)) {
 
                     // objdump: the 12 bytes 0x420970 fills at [esp+0x58] are the same slot
@@ -193,7 +193,7 @@ void actor_update_crouch_state(datum_index actor_index)
                         }
 
                         if ((int32_t)actor_definition->flags < 0 && p->is_parented != 0 &&
-                            p->unknown_12f != 0 &&
+                            p->shooting != 0 &&
                             vector3d_magnitude_squared(&flank_offset) < 1.0f &&
                             (self->unknown_504 != 0 || *countdown_360 > 0)) {
 

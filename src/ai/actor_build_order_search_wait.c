@@ -80,10 +80,10 @@ int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order)
         // 0x40466c loads EAX from actor+0x1e8 just before this call.
         actor_target_get_relationship_object(a->unknown_1e8);
         *(int16_t *)((uint8_t *)order + 0x24) = 2;
-        *(float *)((uint8_t *)order + 0x28) = ((struct prop *)p)->ground_position.x;
-        *(float *)((uint8_t *)order + 0x2c) = ((struct prop *)p)->ground_position.y;
-        *(float *)((uint8_t *)order + 0x30) = ((struct prop *)p)->ground_position.z;
-        *(int32_t *)((uint8_t *)order + 0x34) = ((struct prop *)p)->path_surface_index;
+        *(float *)((uint8_t *)order + 0x28) = ((struct prop *)p)->pathfinding_point.x;
+        *(float *)((uint8_t *)order + 0x2c) = ((struct prop *)p)->pathfinding_point.y;
+        *(float *)((uint8_t *)order + 0x30) = ((struct prop *)p)->pathfinding_point.z;
+        *(int32_t *)((uint8_t *)order + 0x34) = ((struct prop *)p)->pathfinding_surface_index;
     }
     return 1;
 }

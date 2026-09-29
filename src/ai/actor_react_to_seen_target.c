@@ -65,7 +65,7 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
     Actor *actor_tag;
     prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
 
-    if (target->is_unit == 0) {
+    if (target->enemy == 0) {
         object *tracked = ((object_header *)object_data->data)[target->object_index & 0xffff].data;
         unit_data *unit = (unit_data *)((uint8_t *)tracked + k_unit_data_offset);
 
@@ -94,7 +94,7 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
             }
         }
     } else {
-        actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&target->unknown_e0,
+        actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&target->direction,
                                     0xffffffff, 0, 90, target_prop_index, 150, 0);
     }
 
@@ -106,19 +106,19 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
 
         prop *validated = (prop *)datum_get(target_prop_index, prop_data);
         if (validated != 0) {
-            if ((validated->is_unit == 0 && validated->is_vault == 0) ||
-                (validated->is_vault != 0 && self->awareness_level > 2)) {
+            if ((validated->enemy == 0 && validated->dead == 0) ||
+                (validated->dead != 0 && self->awareness_level > 2)) {
                 if (recent > 6) {
                     return;
                 }
-                if (validated->is_parented == 0 && validated->unknown_5c != -1 &&
-                    (int32_t)game_time->game_time < validated->unknown_5c + 600) {
+                if (validated->is_parented == 0 && validated->last_attention_time != -1 &&
+                    (int32_t)game_time->game_time < validated->last_attention_time + 600) {
                     return;
                 }
-                validated->unknown_5c = (int32_t)game_time->game_time;
-                validated->unknown_58 = (validated->unknown_58 <= validated->unknown_54)
-                                             ? validated->unknown_54
-                                             : validated->unknown_58;
+                validated->last_attention_time = (int32_t)game_time->game_time;
+                validated->interest_satisfied = (validated->interest_satisfied <= validated->interest)
+                                             ? validated->interest
+                                             : validated->interest_satisfied;
             }
 
             {

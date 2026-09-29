@@ -112,7 +112,7 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
                     buckets[idx].unknown_00 = (int16_t)priority;
                 }
             }
-        } else if (2 <= p->kind && p->kind <= 3 && !p->is_unit &&
+        } else if (2 <= p->state && p->state <= 3 && !p->enemy &&
                    p->owner_actor_index != k_datum_index_none && p->distance < 8.0f) {
             actor *owner = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
 
@@ -125,7 +125,7 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
                 if (own_prop_index != k_datum_index_none) {
                     prop *own_prop = &props[own_prop_index & 0xffff];
 
-                    if (2 <= own_prop->kind && own_prop->kind <= 3 && own_prop->engaged) {
+                    if (2 <= own_prop->state && own_prop->state <= 3 && own_prop->engaged) {
                         int16_t idx = ai_group_bucket_find_or_add(
                             buckets, (int32_t)requested->object_index, &bucket_count, 16);
                         if (idx != -1) {
@@ -157,7 +157,7 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
             int16_t trigger = actor_def->unreachable_danger_trigger;
             uint8_t flagged = 0;
 
-            if (claimant->unknown_135 != 0 || claimant->unknown_136 != 0) {
+            if (claimant->is_vehicle_gunner != 0 || claimant->is_vehicle_driver != 0) {
                 trigger = actor_def->vehicle_danger_trigger;
             }
             if (claimant->is_parented) {
@@ -187,7 +187,7 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
                 claimant->shots_hit++;
             }
 
-            if (*(int16_t *)&claimant->unknown_78 >= 0x2d || b->unknown_00 >= 4) { // UNSURE, see file header
+            if (claimant->sighted_ticks >= 0x2d ||b->unknown_00 >= 4) { // UNSURE, see file header
                 if (claimant->shots_unknown_ae > 0 &&
                     claimant->shots_hit >= claimant->shots_unknown_ae) {
                     if (b->unknown_00 < 7) b->unknown_00 = 7;
@@ -196,7 +196,7 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
                     if (b->unknown_00 < 8) b->unknown_00 = 8;
                 }
                 if (actor_def->friends_killed_trigger > 0 &&
-                    claimant->unknown_a6 >= actor_def->friends_killed_trigger) {
+                    claimant->friends_killed >= actor_def->friends_killed_trigger) {
                     if (b->unknown_00 < 9) b->unknown_00 = 9;
                 }
                 if (actor_def->friends_retreating_trigger > 0 &&

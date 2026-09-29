@@ -36,7 +36,7 @@ void actor_queue_velocity_search_from_prop(datum_index prop_index, datum_index a
 {
     prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
 
-    actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&p->unknown_e0,
+    actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&p->direction,
                                 0xffffffff, 0, 90, prop_index, 150, 0);
 }
 

@@ -174,20 +174,20 @@ float ai_communication_rate_speaker(datum_index actor_index, datum_index object_
                     p = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * k_prop_size);
                     if (p->distance <= radius) {
                         reach_mode = 2;
-                        if (p->kind < 2 || 3 < p->kind) {
-                            if (p->is_unit != 0) {
+                        if (p->state < 2 || 3 < p->state) {
+                            if (p->enemy != 0) {
                                 goto check_b;
                             }
                             // Both of these are read as int16 by the original even though
                             // types/ai.h declares prop.unknown_34 as an int32.
                             if (allow_unreachable == 0 &&
-                                *(int16_t *)&((struct prop *)p)->unknown_34 < 2 &&
+                                *(int16_t *)&((struct prop *)p)->auditory_perception < 2 &&
                                 *(int16_t *)((uint8_t *)p + 0x36) < 2) {
-                                if (((struct prop *)p)->unknown_132 == 0) {
-                                    reach_mode = (int32_t)*(int8_t *)&p->unknown_120;
+                                if (((struct prop *)p)->flashlight_on == 0) {
+                                    reach_mode = (int32_t)*(int8_t *)&p->perception_range_class;
                                 }
                                 // 0x42fe54..0x42fe76: BX = the prop's +0x38 status, range class from 0x41be10
-                                reach = actor_dispatch_look_handler_by_posture(((struct prop *)p)->unknown_38,
+                                reach = actor_dispatch_look_handler_by_posture(((struct prop *)p)->obstruction,
                                                      actor_index, &a->aim_origin, (uint8_t *)p + 0x104,
                                                      (uint8_t)reach_mode, 1,
                                                      actor_target_get_priority_class(actor_index, prop_index));
@@ -217,7 +217,7 @@ check_b:
                 if (prop_index != (datum_index)k_datum_index_none) {
                     p = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * k_prop_size);
                     if (p->distance <= radius) {
-                        if ((1 < p->kind && p->kind < 4) || p->is_unit == 0) {
+                        if ((1 < p->state && p->state < 4) || p->enemy == 0) {
                             scratch.score = (1.0f - p->distance / radius) * 10.0f + scratch.score;
                             matched_b = 1;
                         }

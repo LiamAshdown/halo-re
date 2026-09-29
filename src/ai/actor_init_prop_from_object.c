@@ -50,62 +50,64 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
     p = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * sizeof(prop));
 
     p->actor_index = actor_index;
-    p->unknown_66 = -1;
+    p->stimulus_type = -1;
     p->seen_state = -1;
     p->object_index = object_index;
     p->seen = 0;
     p->unknown_70 = 0.0f;
-    p->unknown_b0 = -1;
-    p->unknown_b8 = 0;
-    p->unknown_b4 = -1;
-    p->unknown_7c = -1;
-    p->unknown_8c = -1;
-    p->unknown_4e = 0;
+    p->information_age = -1;
+    p->has_current_information = 0;
+    p->information_source_actor = -1;
+    p->last_perceived_time = -1;
+    p->last_seen_time = -1;
+    p->dead_confirmed = 0;
     p->owner_actor_index = (datum_index)0xffffffff;
     p->pair_index = (datum_index)0xffffffff;
-    p->unknown_6a = 0;
-    p->unknown_a0 = -1;
+    p->retain_timer = 0;
+    p->last_engaged_time = -1;
 
     if (object_index != (datum_index)0xffffffff) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + 8 + (object_index & 0xffff) * 0xc);
         uint8_t *object_type = (uint8_t *)tag_instances[*(uint16_t *)object & 0xffff].data;
         uint8_t is_vault;
 
-        p->object_type = ((struct object *)object)->owner_team; // 0x43e706: prop +0x12 = the object team (types/ai.h calls it object_type); the draft wrote +0x16
+        p->team = ((struct object *)object)->owner_team; // 0x43e706: prop +0x12 = the object team (types/ai.h calls it object_type); the draft wrote +0x16
         // 0x43e6fb..0x43e731: CX = the object's team, DX = the actor's (+0x3e); then DX object, CX actor; then
         // BX actor, stack object
-        p->is_unit = teams_are_enemies(p->object_type, ((struct actor *)self)->team);
-        p->unknown_61 = team_pair_flag_test(((struct actor *)self)->team, p->object_type);
-        p->unknown_62 = team_pair_override_get_flag(((struct actor *)self)->team, p->object_type);
+        p->enemy = teams_are_enemies(p->team, ((struct actor *)self)->team);
+        p->allegiance = team_pair_flag_test(((struct actor *)self)->team, p->team);
+        p->unknown_62 = team_pair_override_get_flag(((struct actor *)self)->team, p->team);
 
         is_vault = (*(uint8_t *)&((struct object *)object)->vitality_flags >> 2) & 1; // 0x43e73d: the object's firing bit, not the tag's
-        p->is_vault = is_vault;
-        p->unknown_20 = *(float *)(object_type + 0x284);
-        p->unknown_128 = (is_vault != 0) && (*(int16_t *)(object + 0x420) == 0);
-        p->unknown_76 = (is_vault != 0) ? 1000 : 0;
+        p->dead = is_vault;
+        p->danger_radius = *(float *)(object_type + 0x284);
+        p->dead_not_feigning = (is_vault != 0) && (*(int16_t *)(object + 0x420) == 0);
+        p->dead_ticks = (is_vault != 0) ? 1000 : 0;
         p->is_parented = *(int32_t *)&((struct object *)object)->owner_linkage != -1;
 
         if (*(int32_t *)(object + 0x1f8) == -1) {
             p->owner_actor_index = *(datum_index *)(object + 0x1f4);
         } else {
-            p->has_parent = 1;
+            p->swarm_owned = 1;
             p->owner_actor_index = *(datum_index *)(object + 0x1f8);
-            p->unknown_28 = game_time->game_time;
+            p->swarm_reassign_time = game_time->game_time;
         }
 
+        // FIXED 2026-09-29: these three stores go to +0x10 (actor_type) in the original (0x43e7xx, Ghidra
+        // below: *(iVar5 + 0x10) = 6 / owner actor type / 0xffff); the draft wrote state (+0x24)
         if (p->is_parented != 0) {
-            p->kind = 6;
+            p->actor_type = 6;
             p->next_in_actor = self->first_prop;
             self->first_prop = prop_index;
             return;
         }
         if (p->owner_actor_index != (datum_index)0xffffffff) {
-            p->kind = ((actor *)((uint8_t *)actor_data->data + (p->owner_actor_index & 0xffff) * sizeof(actor)))->type;
+            p->actor_type = ((actor *)((uint8_t *)actor_data->data + (p->owner_actor_index & 0xffff) * sizeof(actor)))->type;
             p->next_in_actor = self->first_prop;
             self->first_prop = prop_index;
             return;
         }
-        p->kind = -1;
+        p->actor_type = -1;
     }
 
     p->next_in_actor = self->first_prop;

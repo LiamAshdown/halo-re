@@ -69,7 +69,7 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
     Actor *actor_tag;
     prop *validated;
 
-    if (target->is_vault != 0) {
+    if (target->dead != 0) {
         goto broadcast_check;
     }
 
@@ -81,15 +81,15 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
 
         validated = (prop *)datum_get(target_prop_index, prop_data);
         if (validated != 0) {
-            if ((validated->is_unit == 0 && validated->is_vault == 0) ||
-                (validated->is_vault != 0 && self->awareness_level > 2)) {
+            if ((validated->enemy == 0 && validated->dead == 0) ||
+                (validated->dead != 0 && self->awareness_level > 2)) {
                 if (recent <= 6) {
-                    if (validated->is_parented == 0 && validated->unknown_5c != -1 &&
-                        (int32_t)game_time->game_time >= validated->unknown_5c + 600) {
-                        validated->unknown_5c = (int32_t)game_time->game_time;
-                        validated->unknown_58 = (validated->unknown_58 <= validated->unknown_54)
-                                                     ? validated->unknown_54
-                                                     : validated->unknown_58;
+                    if (validated->is_parented == 0 && validated->last_attention_time != -1 &&
+                        (int32_t)game_time->game_time >= validated->last_attention_time + 600) {
+                        validated->last_attention_time = (int32_t)game_time->game_time;
+                        validated->interest_satisfied = (validated->interest_satisfied <= validated->interest)
+                                                     ? validated->interest
+                                                     : validated->interest_satisfied;
                     }
                 }
             }
@@ -122,18 +122,18 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
     // labels rather than restructured, since the branch nest is easy to get subtly wrong):
     // param_3 (already_noticed here) is reused by the original as scratch storage exactly as
     // shown, and priority (bVar16 in the original) likewise.
-    if (target->is_unit != 0) {
+    if (target->enemy != 0) {
         // UNSURE: threshold derivation ("< 0.5" on the forward-facing dot product) is kept
         // literal; roughly a 60-degree half-cone.
-        float facing_dot = target->unknown_e0.z * self->facing.k
-                          + target->unknown_e0.y * self->facing.j
-                          + target->unknown_e0.x * self->facing.i;
+        float facing_dot = target->direction.z * self->facing.k
+                          + target->direction.y * self->facing.j
+                          + target->direction.x * self->facing.i;
         int outside_cone = facing_dot < 0.5f; // bVar8
         int priority = 0;                     // bVar16
 
         if (self->combat_status == 0) {
             already_noticed = 0;
-            if (self->awareness_level < 3 && target->unknown_12f != 0 &&
+            if (self->awareness_level < 3 && target->shooting != 0 &&
                 target->distance < actor_tag->surprise_distance && priority < 4) {
                 priority = 3;
             }
@@ -149,7 +149,7 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
         }
 
     shared_check:
-        if (target->unknown_12f == 0 || !(target->distance < actor_tag->surprise_distance)) {
+        if (target->shooting == 0 || !(target->distance < actor_tag->surprise_distance)) {
             if (priority == 0) goto notify_unit;
         } else if (outside_cone) {
             if (priority > 7) goto notify_unit;
@@ -157,11 +157,11 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
             goto notify_unit;
         }
 
-        actor_record_look_at_point(actor_index, (const uint32_t *)&target->unknown_e0, (int16_t)priority, target_prop_index);
+        actor_record_look_at_point(actor_index, (const uint32_t *)&target->direction, (int16_t)priority, target_prop_index);
 
     notify_unit:
         if (self->combat_status < 3 && already_noticed == 0 &&
-            target->unknown_32 < 2 && self->unit_index != (datum_index)k_datum_index_none) {
+            target->visual_perception < 2 && self->unit_index != (datum_index)k_datum_index_none) {
             ai_communication_broadcast(6, self->unit_index, target->object_index, 3,
                                        (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
         }
@@ -171,7 +171,7 @@ broadcast_check:
     // UNSURE: the sentinel actor.type != 15 and the global gate byte at 0x0087abc6 (no name
     // established elsewhere) both come straight from the disassembly; ai_types_notes.md does
     // not attribute either. actor+0x4 is actor.type (types/ai.h).
-    if (target->is_parented != 0 && target->is_unit != 0 && target->is_vault == 0 &&
+    if (target->is_parented != 0 && target->enemy != 0 && target->dead == 0 &&
         self->type != 15 && ai_debug_gate_87abc6 != 0) {
         if (self->swarm == 0) {
             datum_index unit_index = self->unit_index;

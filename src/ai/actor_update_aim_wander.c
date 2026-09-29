@@ -142,9 +142,9 @@ void actor_update_aim_wander(datum_index actor_index)
     // the (possibly bombarded) target
     if (((ActorVariant *)variant)->bombardment_range > 0.0f && ((struct actor *)a)->unknown_60c == 1) {
         uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->unknown_610 & 0xffff) * 0x138;
-        int16_t kind = ((struct prop *)prop)->kind;
+        int16_t kind = ((struct prop *)prop)->state;
 
-        bombard = (kind < 2 || kind > 3 || ((struct prop *)prop)->unknown_32 == 0) ? 1 : 0;
+        bombard = (kind < 2 || kind > 3 || ((struct prop *)prop)->visual_perception == 0) ? 1 : 0;
     }
     target = *(real_point3d *)&((actor *)a)->wander_unknown_62c;
     if (bombard) {

@@ -37,8 +37,8 @@ uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *o
 
     if (self->target_unit_index != (datum_index)k_datum_index_none) {
         prop *target_prop = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
-        if (target_prop->is_unit != 0 && target_prop->is_vault == 0) {
-            int16_t kind = target_prop->kind;
+        if (target_prop->enemy != 0 && target_prop->dead == 0) {
+            int16_t kind = target_prop->state;
             if ((1 < kind && kind < 4) || kind == 4) {
                 float min_range = *(float *)((uint8_t *)variant + 0x194);
                 float max_range = *(float *)((uint8_t *)variant + 0x198);

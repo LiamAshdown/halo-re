@@ -197,7 +197,7 @@ uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
 
         while (prop_index != k_datum_index_none) {
             uint8_t *p = (uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138;
-            int16_t kind = ((prop *)p)->kind;
+            int16_t kind = ((prop *)p)->state;
 
             prop_index = ((prop *)p)->next_in_actor;
             if (kind >= 2 && kind <= 3 && p[0x12e] && p[0x60] && *(datum_index *)&((prop *)p)->relationship_object_index == driving) {

@@ -78,8 +78,8 @@ void actor_choose_best_target(datum_index actor_index)
          prop_index = p->next_in_actor) {
         p = &((prop *)prop_data->data)[prop_index & 0xffff];
 
-        if (p->kind > 1 && p->kind < 4 && p->is_vault == 0) {
-            if (p->is_unit == 0) {
+        if (p->state > 1 && p->state < 4 && p->dead == 0) {
+            if (p->enemy == 0) {
                 tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
                 owning_actor_index = *(datum_index *)((uint8_t *)tracked_object + 0x1f4);
                 target_actor = (actor *)0;
@@ -111,7 +111,7 @@ void actor_choose_best_target(datum_index actor_index)
                 }
 
                 in_group_c = 0;
-                if (p->unknown_38 == 0 || p->unknown_38 == 1) {
+                if (p->obstruction == 0 || p->obstruction == 1) {
                     in_group_b = 1;
                     in_group_c = (uint8_t)(p->distance < 3.0f);
                 }
@@ -120,7 +120,7 @@ void actor_choose_best_target(datum_index actor_index)
                     self->tally.group_a_total = (uint8_t)(self->tally.group_a_total + 1);
                     if (p->unknown_12d != 0) {
                         self->tally.group_a_marked = (uint8_t)(self->tally.group_a_marked + 1);
-                        if (p->unknown_12d != 0 && p->unknown_135 != 0) {
+                        if (p->unknown_12d != 0 && p->is_vehicle_gunner != 0) {
                             self->tally.group_a_marked_135 =
                                 (uint8_t)(self->tally.group_a_marked_135 + 1);
                         }
@@ -157,15 +157,15 @@ void actor_choose_best_target(datum_index actor_index)
                     }
                 }
             } else {
-                low_priority_kind = (uint8_t)(p->unknown_32 < 2);
+                low_priority_kind = (uint8_t)(p->visual_perception < 2);
                 threat_class = 0;
                 self->tally.unit_props = (uint8_t)(self->tally.unit_props + 1);
 
-                if (low_priority_kind && (p->unknown_12f == 0 || p->unknown_38 != 0)) {
+                if (low_priority_kind && (p->shooting == 0 || p->obstruction != 0)) {
                     // the whole classification below is skipped
                 } else {
                     if (!low_priority_kind) {
-                        if (p->unknown_9c == 0) {
+                        if (p->engaged_ticks == 0) {
                             self->tally.unit_props_unseen =
                                 (uint8_t)(self->tally.unit_props_unseen + 1);
                         }
@@ -179,13 +179,13 @@ void actor_choose_best_target(datum_index actor_index)
                             threat_class = 8;
                         }
                     }
-                    if (p->unknown_12f != 0) {
+                    if (p->shooting != 0) {
                         self->tally.threat_class_4 = (uint8_t)(self->tally.threat_class_4 + 1);
                         if (threat_class < 5) {
                             threat_class = 4;
                         }
                     }
-                    if ((int8_t)p->unknown_122 < 3) {
+                    if ((int8_t)p->aiming_at_actor_class < 3) {
                         if (!low_priority_kind) {
                             self->tally.threat_class_2 = (uint8_t)(self->tally.threat_class_2 + 1);
                             if (threat_class < 3) {
@@ -199,15 +199,15 @@ void actor_choose_best_target(datum_index actor_index)
                                 }
                             }
                         }
-                        if ((int8_t)p->unknown_122 < 2) {
-                            if (p->unknown_12f != 0) {
+                        if ((int8_t)p->aiming_at_actor_class < 2) {
+                            if (p->shooting != 0) {
                                 self->tally.threat_class_5 =
                                     (uint8_t)(self->tally.threat_class_5 + 1);
                                 if (threat_class < 6) {
                                     threat_class = 5;
                                 }
                             }
-                            if ((int8_t)p->unknown_122 < 1) {
+                            if ((int8_t)p->aiming_at_actor_class < 1) {
                                 if (!low_priority_kind) {
                                     self->tally.threat_class_3 =
                                         (uint8_t)(self->tally.threat_class_3 + 1);
@@ -215,7 +215,7 @@ void actor_choose_best_target(datum_index actor_index)
                                         threat_class = 3;
                                     }
                                 }
-                                if (p->unknown_12f != 0) {
+                                if (p->shooting != 0) {
                                     self->tally.threat_class_6 =
                                         (uint8_t)(self->tally.threat_class_6 + 1);
                                     if (threat_class < 7) {

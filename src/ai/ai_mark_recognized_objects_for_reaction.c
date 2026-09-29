@@ -68,10 +68,10 @@ void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uin
                 current_prop_index = prop_cursor;
                 p = &((prop *)prop_data->data)[current_prop_index & 0xffff];
                 prop_cursor = p->next_in_actor;
-                if (p->object_type == other_team) {
-                    p->unknown_61 = 1;
+                if (p->team == other_team) {
+                    p->allegiance = 1;
                     p->unknown_62 = 0;
-                    p->is_unit = status;
+                    p->enemy = status;
                     p->engaged = actor_target_update_active_flag(actor_index, current_prop_index); // FIXED: EDI = the prop (0x42bb29)
                     p->desirability = actor_rate_potential_target(actor_index, current_prop_index);
                 }

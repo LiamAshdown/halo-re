@@ -235,7 +235,7 @@ clear_wait:
                     if (prop_index != (datum_index)k_datum_index_none) {
                         p = (prop *)((uint8_t *)prop_data->data +
                                      (prop_index & 0xffff) * k_prop_size);
-                        if (1 < p->kind && p->kind < 4 && p->distance < nearest) {
+                        if (1 < p->state && p->state < 4 && p->distance < nearest) {
                             nearest = p->distance;
                         }
                     }

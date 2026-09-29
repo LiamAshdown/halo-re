@@ -54,7 +54,7 @@ void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_i
 
     self->unknown_8d = 1;
 
-    if (target->is_unit != 0) {
+    if (target->enemy != 0) {
         return;
     }
 
@@ -78,8 +78,8 @@ void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_i
     {
         prop *ally = &((prop *)prop_data->data)[relevant & 0xffff];
 
-        if (ally->is_unit != 0) {
-            if (ally->unknown_32 > 0 && (int8_t)ally->unknown_122 <= 2) { // 0x42333d: signed byte compare
+        if (ally->enemy != 0) {
+            if (ally->visual_perception > 0 && (int8_t)ally->aiming_at_actor_class <= 2) { // 0x42333d: signed byte compare
                 float chance = actor_tag->friend_killed_panic_chance;
                 int roll_ok;
 
@@ -100,8 +100,8 @@ void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_i
             }
 
             if (ally->engaged != 0) {
-                ally->unknown_a6 = ally->unknown_a6 + 1;
-                ally->unknown_a8 = 0x2ee;
+                ally->friends_killed = ally->friends_killed + 1;
+                ally->friends_killed_timer = 0x2ee;
             }
         }
     }

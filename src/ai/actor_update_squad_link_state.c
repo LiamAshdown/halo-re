@@ -78,8 +78,8 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
         if (combat_grade != 2) {
             if (self->target_unit_index != (datum_index)k_datum_index_none) {
                 prop *target = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
-                if (target->is_parented != 0 && target->is_unit != 0 && target->is_vault == 0) {
-                    int16_t kind = target->kind;
+                if (target->is_parented != 0 && target->enemy != 0 && target->dead == 0) {
+                    int16_t kind = target->state;
                     // 0x429387: kinds 2..3 always count, kinds 4..5 only for a grade 3 (combat) mode
                     if ((kind >= 2 && kind <= 3) || (kind >= 4 && kind <= 5 && combat_grade == 3)) {
                         stale = 0;

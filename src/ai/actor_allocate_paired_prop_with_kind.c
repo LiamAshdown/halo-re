@@ -40,9 +40,9 @@ datum_index actor_allocate_paired_prop_with_kind(datum_index actor_index, datum_
         actor_copy_prop_and_reset(new_prop, reference_prop);
         existing->pair_index = new_prop;
         created->pair_index = existing_prop;
-        kind = reference->kind;
+        kind = reference->state;
         if (kind >= 4 && kind <= 5) {
-            created->kind = kind;
+            created->state = kind;
         }
     }
     return new_prop;
