@@ -47,13 +47,13 @@ void hs_damage_apply_at_location(int16_t location_index, uint32_t damage_effect)
 
     memset(&request, 0, sizeof(request));
     request.damage_effect = damage_effect;
-    request.unknown_10 = 0xffff;
+    request.team_index = 0xffff;
     request.causer = 0xffffffff;
     request.attacker = 0xffffffff;
     request.sound_index = 0xffff;
     request.scale_a = 1.0f;
     request.scale_b = 1.0f;
-    request.unknown_4c = 0xffff; // FIXED: material type -1 (0x488993)
+    request.material_type = 0xffff; // FIXED: material type -1 (0x488993)
     *(Point3D *)&request.position = location->position;
     *(Point3D *)&request.direction = location->position;
 

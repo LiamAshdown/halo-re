@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_functions.md summary ("Periodically (every second) builds and
 // queues a short broadcast-style message carrying a global status string, consistent with a
 // hosted-game LAN presence announcement"). client+0xed4 matches types/networking.h's
-// network_client_globals::unknown_ed4 exactly.
+// network_client_globals::last_presence_broadcast_ms exactly.
 // register convention: the client pointer arrives in EAX (in_EAX). // blam-cc: EAX -> client
 // UNSURE: `cache_file_request_map(1)`'s real signature/argument meaning is not resolved here;
 // declared generically from this call site.
@@ -48,8 +48,8 @@ void network_host_presence_broadcast_tick(network_client_globals *client)
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
-    if (client->unknown_ed4 + 1000 < now_ms) {
-        client->unknown_ed4 = now_ms;
+    if (client->last_presence_broadcast_ms + 1000 < now_ms) {
+        client->last_presence_broadcast_ms = now_ms;
         if (cache_file_request_map(1) != 0) { // UNSURE argument
             memset(buffer, 0, sizeof(buffer));
             strncpy(buffer, network_build_string, 0x100);

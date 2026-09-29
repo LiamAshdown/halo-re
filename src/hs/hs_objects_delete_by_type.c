@@ -54,10 +54,10 @@ void hs_objects_delete_by_type(uint32_t tag_id)
             object = *(hs_object_record **)((uint8_t *)object_data->data +
                 (object_index & 0xffff) * 0x0c + 8);
             // role 0 unparents (EDI object) and then deletes like role 3 (the binary falls through)
-            if (object->unknown_04 == 0) {
+            if (object->network_role == 0) {
                 object_delete_unparented(object_index);
                 object_delete_recursive(object_index, 0);
-            } else if (object->unknown_04 == 3) {
+            } else if (object->network_role == 3) {
                 object_delete_recursive(object_index, 0);
             }
         }

@@ -254,7 +254,7 @@ typedef enum network_channel_flags {
 typedef struct network_channel {
     network_receive_queue *endpoint; // 0x000
     int32_t last_activity_ms;  // 0x004 network_channel_record_timestamp, QPC milliseconds
-    int32_t unknown_008;       // 0x008
+    int32_t accept_callback;      // 0x008
     circular_buffer *incoming; // 0x00c named "transport-incoming"
     network_channel_stream outgoing;    // 0x010 the message staging stream: every queue/send
                                //       path does `lea esi,[channel+0x10]` before calling
@@ -350,7 +350,7 @@ typedef struct network_scenario_load_request {
                                //      to game globals +0x08, so this lands at game globals
                                //      +0x0e, which the checkpoint loader compares with
                                //      0x00696564 (0x5382c7). The network path sets it to 1,
-                               //      then overwrites it from session->unknown_19e.
+                               //      then overwrites it from session->difficulty.
     uint32_t salt;             // 0x08 defaults to 0xdeadbeef, else session+0x3a4
     char map_name[0x100];      // 0x0c strncpy of 0x7f from session+0x84
 } network_scenario_load_request; // size 0x10c
@@ -437,7 +437,7 @@ typedef struct network_game_session {
     game_variant variant;      // 0x104 see types/game.h
     uint8_t unknown_19c;       // 0x19c
     uint8_t maximum_players;   // 0x19d initialized to 16
-    int16_t unknown_19e;       // 0x19e seeded from 0x00696564
+    int16_t difficulty;         // 0x19e seeded from 0x00696564
     int16_t player_count;      // 0x1a0 the value the summary log averages
     network_player_entry players[16]; // 0x1a2
     uint8_t unknown_3a2[10];   // 0x3a2
@@ -494,7 +494,7 @@ typedef struct network_server_globals {
     int32_t unknown_9b8;       // 0x9b8 cleared by host_new, along with 0x9c4..0x9d4
     uint8_t unknown_9bc[0x3c]; // 0x9bc
     uint8_t unknown_9f8;       // 0x9f8
-    uint8_t unknown_9f9;       // 0x9f9
+    uint8_t scenario_announcement_sent;      // 0x9f9
     uint8_t unknown_9fa;       // 0x9fa
     uint8_t pad_9fb;           // 0x9fb
     uint16_t password[9];      // 0x9fc wcsncpy of 8 wide chars plus a forced NUL at 0xa0c
@@ -592,15 +592,15 @@ typedef struct network_client_globals {
     network_game_session session; // 0xb14 the same block the server embeds at +0x008
     int32_t unknown_ec4;       // 0xec4
     int32_t unknown_ec8;       // 0xec8
-    int32_t unknown_ecc;       // 0xecc
-    int32_t unknown_ed0;       // 0xed0
-    int32_t unknown_ed4;       // 0xed4
-    uint16_t unknown_ed8;      // 0xed8 initialized to 0xffff
+    int32_t last_state_update_sequence;      // 0xecc
+    int32_t last_state_update_ms;      // 0xed0
+    int32_t last_presence_broadcast_ms;      // 0xed4
+    uint16_t player_config_value;     // 0xed8 initialized to 0xffff
     uint16_t state;            // 0xeda see network_client_state; NOT padding, see 0x4d8bb0
     int16_t unknown_edc;       // 0xedc
     uint16_t unknown_ede;      // 0xede bits 1 and 2 cleared at create
-    uint8_t unknown_ee0;       // 0xee0
-    uint8_t unknown_ee1;       // 0xee1
+    uint8_t dropped_notice_shown;      // 0xee0
+    uint8_t wait_timeout_active;      // 0xee1
     uint16_t pad_ee2;          // 0xee2
     network_client_timer_record timer; // 0xee4 the first five dwords of the zeroed run
     network_resolved_address server_address; // 0xef8 filled by 0x4dd390 from

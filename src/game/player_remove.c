@@ -9,7 +9,7 @@
 //   / player_profile_cache_count (game_engine_player_profile_cache_find.c, this module).
 // objdump -d -M intel --start-address=0x473bb0 --stop-address=0x473c50 bin/halo.exe pins every
 // register, including that player_delete's "machine_index" argument at this call site is
-// actually the low byte of player::unknown_64, sign-extended -- not a real machine index.
+// actually the low byte of player::machine_index, sign-extended -- not a real machine index.
 // register convention: player_handle in EAX (unaff_EAX/in_EAX in Ghidra's read of it).
 //   // blam-cc: EAX -> player_handle
 //
@@ -17,7 +17,7 @@
 // uses that result unchecked as `player_profile_cache[index].in_use = 0` -- with index -1 that
 // is `*(uint8_t *)((uint8_t *)player_profile_cache - 0x30) = 0`, a write just before the array.
 // Transcribed exactly; not "fixed".
-// UNSURE: why player::unknown_64's low byte is passed to player_delete as its machine_index
+// UNSURE: why player::machine_index's low byte is passed to player_delete as its machine_index
 // argument is not recoverable from this function alone.
 
 #include "win32.h"
@@ -44,7 +44,7 @@ extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
 // Deletes this player's slot out of update_client_queues, and -- only while hosting -- also
 // frees update_server_queues's matching slot's queue storage and deletes that slot too (both
 // queue arrays are indexed the same way as player_data, so the player's own handle doubles as
-// the datum handle into each). Passes the low byte of player::unknown_64 to player_delete as its
+// the datum handle into each). Passes the low byte of player::machine_index to player_delete as its
 // machine_index (see UNSURE above), then runs the two networking-side cleanups and clears the
 // player's player-profile-cache entry, decrementing the cache count.
 void player_remove(datum_index player_handle)

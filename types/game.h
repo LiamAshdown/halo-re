@@ -198,7 +198,7 @@ typedef struct game_variant {
     uint8_t friendly_fire_mode; // 0x6c 0..3 (UI clamps to 0..3, default 1); object_apply_damage switches on it (alias 0x006f1cf4)
     uint8_t pad_6d[3];         // 0x6d
     int32_t betrayal_penalty;  // 0x70 on_player_death multiplies it by player+0xc0
-    uint8_t unknown_74;        // 0x74
+    uint8_t team_switch_restricted; // 0x74 when set, a client team-change request is only honored if game_engine_team_close_game_check passes (alias 0x006f1cfc)
     uint8_t pad_75[3];         // 0x75
     int32_t game_time_limit;    // 0x78 slayer default 36000 ticks (20 minutes)
     uint8_t ctf_option_7c;     // 0x7c the four bytes 0x7c..0x7f are only normalized when
@@ -464,7 +464,7 @@ typedef struct player {
                                        //      rep movsd of 8 dwords from the caller
                                        //      player-identifier record into 0x48
     int32_t unknown_60;                // 0x60 tail of that same 0x20-byte copy
-    int16_t unknown_64;                // 0x64
+    int16_t machine_index;             // 0x64 network machine slot that owns the player; only the low byte is read and compared against the machine table (game_engine_notify_kill_event, network_session_autoban_player)
     int8_t team_index;                 // 0x66 0x45c440 assigns it round-robin in team games
     int8_t team_index_desired;         // 0x67 the requested team it is derived from
     int16_t kill_streak[2];            // 0x68 slot 0 also sets object flag 0x10 and stamps
@@ -475,7 +475,7 @@ typedef struct player {
     datum_index engine_message;      // 0x74 pending game-engine HUD message id (KOTH writes 0x23/0x29; game_engine_pick_hud_hint clears the respawn ids 0x17..0x1a); -1 none
     datum_index engine_message_subject; // 0x78 the player that message is about; -1 none
     datum_index nameplate_target;     // 0x7c tracked teammate handle the nameplate HUD keeps (hud_draw_teammate_nameplate); -1 none
-    int32_t unknown_80;                // 0x80 read by the nameplate HUD (0x45e520)
+    int32_t nameplate_hysteresis;      // 0x80 counter 0..0xf: hud_draw_teammate_nameplate ticks it up while the candidate matches nameplate_target, down otherwise, and only switches target at 0
     int32_t last_death_tick;           // 0x84 game_time when this player last died; the
                                        //      odd-man-out test orders players by it
     int32_t unknown_88;                // 0x88 part of the profile block
@@ -512,12 +512,12 @@ typedef struct player {
                                        //      it back on the way in when the engine is king
     int16_t unknown_c8;                // 0xc8 flag touches; also mirrored by the profile
     uint8_t unknown_ca[0xd0 - 0xca];   // 0xca
-    datum_index unknown_d0;            // 0xd0 constructors write -1
+    datum_index removal_tick;          // 0xd0 game_time at which game_engine_flag_local_player_units marks the player for deletion; constructors write -1 (none)
     uint8_t unknown_d4;                // 0xd4
     uint8_t marked_for_deletion;       // 0xd5 1 makes 0x474e10 call player_remove; every
                                        //      respawn / scoreboard path skips such a player
     uint8_t unknown_d6[0xdc - 0xd6];   // 0xd6
-    int32_t unknown_dc;                // 0xdc
+    int32_t ping_ms;                   // 0xdc round-trip time: now minus the ping-timestamp send time (network_game_message_handle_ping_timestamp); shown on the scoreboard
     int32_t medal_streak_count;        // 0xe0 0x479eb0 bumps it and fires the medal event
                                        //      once it reaches the threshold at 0x006894a4
     int32_t medal_streak_timer;        // 0xe4 seeded negative from 0x0069956c; the streak is

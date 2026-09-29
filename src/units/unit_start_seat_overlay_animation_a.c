@@ -1,7 +1,7 @@
 // unit_start_seat_overlay_animation_a  (Ghidra: unit_start_seat_overlay_animation_a)
 // address 0x565e00, size 349 bytes
 // name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.35
-// evidence: types/units.h unit_data.overlays[0] (0x2aa), .unknown_2a4 (0x2a4),
+// evidence: types/units.h unit_data.overlays[0] (0x2aa), .overlay_animation_command (0x2a4),
 //   .animation_definition_index/.animation_weapon_index/.animation_weapon_type_index (0x2a0/
 //   0x2a1/0x2a2); types/objects.h object.definition_tag (0x000), Object.animation_graph
 //   (tag+0x44); types/tags.h ModelAnimationsAnimationGraphUnitSeat (weapons at 0x58),
@@ -33,7 +33,7 @@ void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command) /
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     if (command == 0) {
-        unit->unknown_2a4 = 0;
+        unit->overlay_animation_command = 0;
         unit->overlays[0].animation_index = -1;
         return;
     }
@@ -84,7 +84,7 @@ void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command) /
         unit->overlays[0].animation_index = animation_choose_random_permutation(
             *(datum_index *)&obj_tag->animation_graph.tag_id, animation_index, 1); // 0x565f2d
         unit->overlays[0].frame = 0;
-        unit->unknown_2a4 = (int8_t)command;
+        unit->overlay_animation_command = (int8_t)command;
     }
 }
 

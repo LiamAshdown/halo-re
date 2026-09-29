@@ -230,7 +230,7 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
         float recent = ((unit_object *)obj)->base.recent_body_damage + ((unit_object *)obj)->base.recent_shield_damage;
 
         if (recent > 0.0f) {
-            ((struct unit_object *)obj)->unit.unknown_404 = *(int16_t *)(effect_block + 0x2);
+            ((struct unit_object *)obj)->unit.threat_reaction_event_kind = *(int16_t *)(effect_block + 0x2);
             ((struct unit_object *)obj)->unit.threat_reaction_delay_ticks = 0x2d;
             if (recent < ((struct unit_object *)obj)->unit.threat_reaction_damage) {
                 recent = ((struct unit_object *)obj)->unit.threat_reaction_damage;
@@ -243,11 +243,11 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
     }
     unit_flags = ((unit_object *)obj)->unit.flags;
     if (unit_flags & 0x10) {
-        float left = ((struct unit_object *)obj)->unit.unknown_37c - *(float *)(effect_block + 0x1c);
+        float left = ((struct unit_object *)obj)->unit.active_camo_amount - *(float *)(effect_block + 0x1c);
 
-        ((struct unit_object *)obj)->unit.unknown_37c = left;
+        ((struct unit_object *)obj)->unit.active_camo_amount = left;
         if (left < 0.0f) {
-            ((struct unit_object *)obj)->unit.unknown_37c = 0.0f;
+            ((struct unit_object *)obj)->unit.active_camo_amount = 0.0f;
         }
     }
     if (is_local == 1) {
@@ -262,7 +262,7 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
             if (1.0f > ticks) {
                 ticks = 1.0f;
             }
-            ((struct unit_object *)obj)->unit.unknown_420 = (int16_t)(int32_t)ticks;
+            ((struct unit_object *)obj)->unit.knockdown_ticks = (int16_t)(int32_t)ticks;
         }
     }
 

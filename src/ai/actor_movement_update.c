@@ -39,7 +39,7 @@
 //     the 16-bit actor+0x42e and is zeroed outright in the failed-vehicle-direction branch at
 //     0x416c7e. Ghidra renders that load as the dead local_3c = CONCAT22(...) artefact, because
 //     the same slot earlier received the avoidance sampler scale out-parameter. The previous
-//     draft passed actor.unknown_50a instead, which is an output of that call, not an input.
+//     draft passed actor.steer_axis instead, which is an output of that call, not an input.
 //  3. The flipped-vehicle recovery direction at 0x416cee is a *three*-component normalize of
 //     (object.up.i, object.up.j, 0): 0x416d0c stores an explicit 0.0 into the third slot and
 //     0x416d14 calls vector3d_normalize_with_length (0x401990). The previous draft called the
@@ -251,7 +251,7 @@ void actor_movement_update(datum_index actor_index)
         // ---- on foot -----------------------------------------------------------------
         if (a->order_committed != 0) {
             a->desired_direction_valid = 0;
-            a->unknown_50a = 0;
+            a->steer_axis = 0;
             actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->unknown_161 != 0) ? 1 : 0);
             actor_base[0x58e] = 0;
             movement_mode = 0;
@@ -377,7 +377,7 @@ void actor_movement_update(datum_index actor_index)
             }
         } else {
             a->desired_direction_valid = 0;
-            a->unknown_50a = 0;
+            a->steer_axis = 0;
             actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->unknown_161 != 0) ? 1 : 0);
             movement_mode = 0;
         }
@@ -389,14 +389,14 @@ void actor_movement_update(datum_index actor_index)
         }
     }
 
-    if (a->desired_direction_valid != 0 && a->unknown_506 == 0) {
+    if (a->desired_direction_valid != 0 && a->steer_arrived == 0) {
         actor_movement_apply_steering(
             cached_axis, sidestep_mode,
             actor_index, want_avoid_check, avoid_threshold, order_failed,
             steering_maximum, oversteer_min, oversteer_max, avoidance_scale, throttle_maximum,
             (real_vector3d *)&a->desired_direction, (real_vector3d *)&a->position_cache_a,
-            &a->unknown_50a, &a->queued_look_vector, &a->unknown_507, &a->unknown_506);
-        if (a->unknown_506 != 0) {
+            &a->steer_axis, &a->queued_look_vector, &a->steer_turning, &a->steer_arrived);
+        if (a->steer_arrived != 0) {
             a->desired_direction_valid = 0;
         }
     }
@@ -407,14 +407,14 @@ void actor_movement_update(datum_index actor_index)
     } else if (face_along_heading) {
         a->position_cache_a = *(const real_point3d *)&a->facing;
         actor_base[0x58e] = 0;
-        a->unknown_50a = 0;
+        a->steer_axis = 0;
         actor_base[0x58d] = 0;
     } else if (actor_base[0x590] != 0) {
         a->position_cache_a.x = a->unknown_594[1]; // 0x598
         a->position_cache_a.y = a->unknown_594[2]; // 0x59c
         a->position_cache_a.z = a->unknown_594[3]; // 0x5a0
         actor_base[0x58e] = 1;
-        a->unknown_50a = 0;
+        a->steer_axis = 0;
         actor_base[0x58d] = 0;
     }
 

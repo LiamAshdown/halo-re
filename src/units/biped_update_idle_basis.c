@@ -2,7 +2,7 @@
 // address 0x55e840, size 157 bytes
 // name confidence: 0.3   rewrite confidence: 0.9 (checked against objdump 0x55e840..0x55e8dc)
 // evidence: biped_data.flags bit 0x20 / ground_adjust_iteration / ground_adjust_iteration_limit
-//   (0x524/0x525, types/units.h); biped_data.unknown_501 ("ticks in the current grounded
+//   (0x524/0x525, types/units.h); biped_data.flags_bit0_ticks ("ticks in the current grounded
 //   state"); unit_data.animation_state (0x2a3); Biped.biped_flags bit 0x400.
 // register convention: object index in ESI, a 2-byte animation-state output array in EDI.
 //   // blam-cc: ESI -> object_index, EDI -> state_out
@@ -39,7 +39,7 @@ void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out)
         return;
     }
 
-    if ((int8_t)biped->unknown_501 > 2 && (tag->biped_flags & 0x400) == 0) {
+    if ((int8_t)biped->flags_bit0_ticks > 2 && (tag->biped_flags & 0x400) == 0) {
         if (unit->animation_state == 0x18) {
             unit_rotate_basis_about_axis(object_index); // 0x55e8b0: EAX = object
         }

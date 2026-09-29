@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.3
 // evidence: out/phase4/networking_functions.md summary ("Displays a disconnect-notification
 // error message for each machine that dropped from the session"). client+0xee0 matches
-// types/networking.h's network_client_globals::unknown_ee0 exactly.
+// types/networking.h's network_client_globals::dropped_notice_shown exactly.
 // register convention: the client pointer arrives in EBX (unaff_EBX). // blam-cc: EBX -> client
 // UNSURE (major, preserved exactly): as decompiled, the while loop can run at most once --
 // after the first `display_error` call, the loop-continuation test can only ever re-select -1
@@ -41,7 +41,7 @@ void network_disconnect_notify_dropped_machines(network_client_globals *client)
     if (network_disconnect_notice_shown != 0) {
         return;
     }
-    if (client->unknown_ee0 == 0) {
+    if (client->dropped_notice_shown == 0) {
         player_index = -1;
         if (*(int32_t *)&local_player_globals[4] != -1) {
             player_index = 0;
@@ -57,7 +57,7 @@ void network_disconnect_notify_dropped_machines(network_client_globals *client)
             player_index_16 = (int16_t)next;
         }
     }
-    client->unknown_ee0 = 1;
+    client->dropped_notice_shown = 1;
 }
 
 #if 0

@@ -47,12 +47,12 @@ void weather_update_local_player(void)
         int16_t cluster_index;
         int32_t new_definition_index = -1;
 
-        instance->unknown_14 = render_cluster_index;
-        instance->unknown_10 = render_leaf_index;
-        // 0x458acf..0x458ae6: EBX = &render_camera_global (0x7c3114), push &instance->unknown_10 (the leaf),
+        instance->sample_cluster_index = render_cluster_index;
+        instance->sample_leaf_index = render_leaf_index;
+        // 0x458acf..0x458ae6: EBX = &render_camera_global (0x7c3114), push &instance->sample_leaf_index (the leaf),
         // push &instance->cluster_index -- the callee writes the index straight into the instance
         instance->in_sky = scenario_location_get_water_and_weather(&render_camera_global,
-            (bsp_leaf_reference *)&instance->unknown_10, &instance->cluster_index);
+            (bsp_leaf_reference *)&instance->sample_leaf_index, &instance->cluster_index);
         cluster_index = instance->cluster_index;
 
         if (cluster_index != -1) {

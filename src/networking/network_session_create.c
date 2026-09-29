@@ -69,11 +69,11 @@ network_client_globals *network_session_create(void)
         client->state = 0;
         client->unknown_edc = 0;
         client->unknown_ec8 = 0;
-        client->unknown_ecc = 0;
-        client->unknown_ed0 = 0;
-        client->unknown_ee1 = 0;
-        client->unknown_ed8 = 0xffff;
-        client->unknown_ee0 = 0;
+        client->last_state_update_sequence = 0;
+        client->last_state_update_ms = 0;
+        client->wait_timeout_active = 0;
+        client->player_config_value = 0xffff;
+        client->dropped_notice_shown = 0;
         // The 12-dword run at +0xee4: the timer record (5 dwords), unknown_ef8[6] and
         // unknown_f10, which the next statement then sets to -1.
         run = (int32_t *)&client->timer;

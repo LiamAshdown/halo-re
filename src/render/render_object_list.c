@@ -36,7 +36,7 @@
 //   arguments of widget_list_notify; both are corrected.
 // register convention: stack = (data, parent_effect, object_index).
 //   // blam-cc: stack=(data, parent_effect, object_index)
-// UNSURE: unit +0x37c / +0x380 (unit_data.unknown_37c / unknown_380, most likely the active
+// UNSURE: unit +0x37c / +0x380 (unit_data.active_camo_amount / unknown_380, most likely the active
 //   camouflage amount and its fade).
 
 #include "tags.h"
@@ -119,11 +119,11 @@ void render_object_list(object_render_data *data, render_model_effect *parent_ef
                         ((object_header *)object_data->data)[(uint16_t)object_index].data;
                     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
-                    if (unit->unknown_37c > 0.0f) {
+                    if (unit->active_camo_amount > 0.0f) {
                         effect.centroid = obj->bounding_center;
                         effect.type = _render_model_effect_active_camouflage;
                         effect.object_index = object_index;
-                        effect.unit_37c = unit->unknown_37c;
+                        effect.unit_37c = unit->active_camo_amount;
                         effect.unit_380 = unit->unknown_380;
                     }
                 }

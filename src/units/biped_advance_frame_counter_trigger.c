@@ -1,7 +1,7 @@
 // biped_advance_frame_counter_trigger  (Ghidra: biped_advance_frame_counter_trigger, renamed)
 // address 0x55eb90, size 143 bytes
 // name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x55eb90..0x55ec1e)
-// evidence: biped_data.unknown_4d0/unknown_4d1/unknown_508 (types/units.h, see
+// evidence: biped_data.frame_counter/frame_counter_limit/unknown_508 (types/units.h, see
 //   biped_update_animation_frame_trigger); 0x006f187c is a globals structure whose +9 byte gates
 //   several trigger paths (UNSURE, not named elsewhere in this batch).
 
@@ -18,8 +18,8 @@ extern uint8_t unit_updates_suppressed; // 0x0071c419
 
 extern void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index); // 0x560590, next batch: fires a numbered unit trigger event
 
-// Advances the biped's animation frame counter (unknown_4d0); once it reaches the loaded
-// threshold (unknown_4d1), invalidates the cached comparison (unknown_508). Then, unless updates
+// Advances the biped's animation frame counter (frame_counter); once it reaches the loaded
+// threshold (frame_counter_limit), invalidates the cached comparison (unknown_508). Then, unless updates
 // are globally suppressed, fires paired trigger events (ids 5) once the counter reaches exactly
 // 2, or if the comparison is unresolved and the threshold is small. Reports state 0x15 or 0x16
 // depending on whether the comparison flag reads 1.
@@ -27,15 +27,15 @@ void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    int8_t frame_count = biped->unknown_4d0 + 1;
+    int8_t frame_count = biped->frame_counter + 1;
 
-    biped->unknown_4d0 = frame_count;
-    if (biped->unknown_4d1 <= frame_count) {
+    biped->frame_counter = frame_count;
+    if (biped->frame_counter_limit <= frame_count) {
         biped->unknown_508 = -1;
     }
 
     if (cinematic_globals_ptr[9] == 0 && unit_updates_suppressed == 0 &&
-        (frame_count == 2 || (biped->unknown_508 == -1 && biped->unknown_4d1 < 2))) {
+        (frame_count == 2 || (biped->unknown_508 == -1 && biped->frame_counter_limit < 2))) {
         // unit_index rides in EBX (see that function's header); Ghidra bound only the two
         // stack arguments, which are its 2nd and 3rd parameters.
         unit_fire_animation_sound_trigger(object_index, 5, 0);

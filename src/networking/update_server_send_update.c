@@ -7,13 +7,13 @@
 // channel." Ghidra's own decompile carries a "Removing unreachable block" warning and is full of
 // `puStack_NN = (uint *)0x4dexxxx` pseudo-assignments that are call-site return-address/stack
 // bookkeeping artifacts, not real data flow; this rewrite drops those and keeps only the
-// operations that write real fields. client->state (state==3), client->unknown_ecc,
-// client->unknown_ee0/unknown_edc, network_client->channel (+0xadc), and the channel free-space/
+// operations that write real fields. client->state (state==3), client->last_state_update_sequence,
+// client->dropped_notice_shown/unknown_edc, network_client->channel (+0xadc), and the channel free-space/
 // send_budget/empty fields all match the established fields used throughout this batch;
 // everything inside the position/orientation packet-encode path (the message_delta_encode_single_value call and its
 // stack-built argument block, the trig-based direction vector, and the 13-dword record copied
 // into `local_68`) is preserved structurally but NOT verified field-by-field -- this is by far
-// the least confident file in this batch. The `if (client->unknown_ee0 == 0) ... else ...`
+// the least confident file in this batch. The `if (client->dropped_notice_shown == 0) ... else ...`
 // branch is byte-identical in both arms in Ghidra's own decompile (consistent with the
 // "removing unreachable block" note) and is collapsed to the one assignment here.
 // UNSURE: FUN_00472aa0/FUN_00472b00/update_server_dispose/update_client_stage_entry/ui_network_wait_timeout_check/ui_network_wait_timeout_start/
@@ -102,7 +102,7 @@ char update_server_send_update(uint32_t *tick_count, char frame_time_overflow)
     }
     if (network_client->state == 3) {
         now_ms = time_query_performance_counter_ms();
-        reliable_seq = network_client->unknown_ecc & 0x7fffffff;
+        reliable_seq = network_client->last_state_update_sequence & 0x7fffffff;
         player_id = local_player_globals->maximum_count; // UNSURE: +0xc read as a word, see header
         memcpy(control, update_client_staged, sizeof(control));
         history_byte = 0;

@@ -9,7 +9,7 @@
 //   (the 0x120..0x137 byte run this function is one of the three "heavy readers"
 //   ai_types_notes.md cites for prop); types/objects.h object.type/vitality_flags
 //   (_object_type_biped, _object_health_frozen_bit); types/units.h unit_data.flags (0x204),
-//   unit_data.aiming_vector (0x23c), unit_data.unknown_37c, unit_data.unknown_420,
+//   unit_data.aiming_vector (0x23c), unit_data.active_camo_amount, unit_data.knockdown_ticks,
 //   unit_data.actor_index/swarm_actor_index (0x1f4/0x1f8); types/tags.h Actor.melee_fudge_factor
 //   (0x37c) and the "suicidal_melee_attack" flags bit (bit 27, per ActorFlags' documented
 //   order); encounter.initially_blind/41/42/44/45/58 (established by actor_target_scan_potential_
@@ -319,12 +319,12 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
         } else {
             p->unknown_130 = 0;
         }
-        p->unknown_131 = (0.5f < unit->unknown_37c);
+        p->unknown_131 = (0.5f < unit->active_camo_amount);
         p->unknown_132 = (uint8_t)(unit->flags >> 0x13) & 1;
 
         {
             uint8_t frozen = (unit_obj->vitality_flags & _object_health_frozen_bit) != 0;
-            uint8_t stun_pending = frozen && unit->unknown_420 != 0;
+            uint8_t stun_pending = frozen && unit->knockdown_ticks != 0;
 
             p->unknown_129 = (frozen && p->is_vault == 0) ? 1 : 0;
             p->is_vault = frozen;

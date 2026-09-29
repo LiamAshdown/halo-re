@@ -9,7 +9,7 @@
 // (network_client_state_dispatch.c's client+0xeda, etc). connection+0x56e (byte 0xadc) is
 // channel; connection+0x58a (byte 0xb14) is &client->session; connection+0x760 (byte 0xec0) is
 // session.unknown_3ac; connection+0x766..0x769 (bytes 0xecc, 0xece, 0xed0, 0xed2) span exactly
-// unknown_ecc and unknown_ed0.
+// last_state_update_sequence and last_state_update_ms.
 // register convention: __cdecl, single stack parameter `connection` (the client).
 // // blam-cc: stack -> connection
 // UNSURE (major): the player-machine search loop (`*connection` compared against
@@ -99,7 +99,7 @@ int32_t network_connection_finalize_join(uint16_t *connection)
     }
 
     iVar6 = *(int32_t *)((uint8_t *)connection + 0xadc); // channel
-    connection[0x76c] = 0xffff; // client->unknown_ed8 = 0xffff
+    connection[0x76c] = 0xffff; // client->player_config_value = 0xffff
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
@@ -208,7 +208,7 @@ after_search:
         connection[0x767] = 0;
         connection[0x768] = 0;
         connection[0x769] = 0;
-        *((uint8_t *)connection + 0xee1) = 0; // unknown_ee1 = 0
+        *((uint8_t *)connection + 0xee1) = 0; // wait_timeout_active = 0
         widget_close_all();
         game_engine_init_tick_record_for_mode();
         game_engine_reset_all_players();

@@ -1,7 +1,7 @@
 // biped_is_idle_eligible  (Ghidra: biped_is_idle_eligible, renamed)
 // address 0x55e8e0, size 82 bytes
 // name confidence: 0.4   rewrite confidence: 0.55
-// evidence: biped_data.unknown_501 (types/units.h), object.vitality_flags bit 4 (objects.h),
+// evidence: biped_data.flags_bit0_ticks (types/units.h), object.vitality_flags bit 4 (objects.h),
 //   Biped.biped_flags bit 4 (types/tags.h).
 // register convention: object index in EAX (in_EAX).
 //   // blam-cc: EAX -> object_index
@@ -27,7 +27,7 @@ uint32_t biped_is_idle_eligible(uint32_t object_index)
     Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    return (int8_t)biped->unknown_501 > 3 &&
+    return (int8_t)biped->flags_bit0_ticks > 3 &&
            ((tag->biped_flags & 4) == 0 || (obj->vitality_flags & 4) != 0);
 }
 

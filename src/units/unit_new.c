@@ -114,7 +114,7 @@ uint8_t unit_new(uint32_t object_index)
     unit->animation_weapon_index = -1;
     unit->animation_weapon_type_index = -1;
     unit->animation_state = -1;
-    unit->unknown_2a4 = 0;
+    unit->overlay_animation_command = 0;
     unit->unknown_2a5 = 0;
     unit->animation_instance = -1;
     unit->unknown_29c = -1;
@@ -165,7 +165,7 @@ uint8_t unit_new(uint32_t object_index)
         *field++ = (uint32_t)-1;
     }
 
-    unit->unknown_404 = 0;
+    unit->threat_reaction_event_kind = 0;
     unit->threat_reaction_delay_ticks = 0;
     unit->threat_reaction_damage = 0.0f;
     unit->threat_reaction_object = (datum_index)-1;

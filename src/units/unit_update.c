@@ -205,15 +205,15 @@ uint8_t unit_update(uint32_t unit_index)
                         }
                     }
                 }
-                ((struct unit_object *)obj)->unit.unknown_37c += step;
-                if (((struct unit_object *)obj)->unit.unknown_37c > 1.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_37c = 1.0f;
+                ((struct unit_object *)obj)->unit.active_camo_amount += step;
+                if (((struct unit_object *)obj)->unit.active_camo_amount > 1.0f) {
+                    ((struct unit_object *)obj)->unit.active_camo_amount = 1.0f;
                     ((struct unit_object *)obj)->unit.unknown_422 = 0;
                 }
             } else {
-                ((struct unit_object *)obj)->unit.unknown_37c -= 0.008333334f;
-                if (((struct unit_object *)obj)->unit.unknown_37c < 0.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_37c = 0.0f;
+                ((struct unit_object *)obj)->unit.active_camo_amount -= 0.008333334f;
+                if (((struct unit_object *)obj)->unit.active_camo_amount < 0.0f) {
+                    ((struct unit_object *)obj)->unit.active_camo_amount = 0.0f;
                 }
             }
             if ((obj[0x204] & 0x20) != 0) {
@@ -236,7 +236,7 @@ uint8_t unit_update(uint32_t unit_index)
                     goto controls;
                 }
             }
-            if (((struct unit_object *)obj)->unit.unknown_420 > 0 && (obj[0x10] & 0x20) != 0 && --((struct unit_object *)obj)->unit.unknown_420 == 0) {
+            if (((struct unit_object *)obj)->unit.knockdown_ticks > 0 && (obj[0x10] & 0x20) != 0 && --((struct unit_object *)obj)->unit.knockdown_ticks == 0) {
                 // 0x562b11: the knock-down is over
                 if (((unit_object *)obj)->base.body_vitality > 0.0f) {
                     int16_t state = (int16_t)((~(obj[0x298] >> 3) & 1) | 0x22);
@@ -493,9 +493,9 @@ controls:
     }
     // 0x563453: a delayed threat reaction
     if (((struct unit_object *)obj)->unit.threat_reaction_delay_ticks > 0 && --((struct unit_object *)obj)->unit.threat_reaction_delay_ticks == 0) {
-        actor_react_to_threat_event(unit_index, ((struct unit_object *)obj)->unit.threat_reaction_object, *(uint16_t *)&((struct unit_object *)obj)->unit.unknown_404,
+        actor_react_to_threat_event(unit_index, ((struct unit_object *)obj)->unit.threat_reaction_object, *(uint16_t *)&((struct unit_object *)obj)->unit.threat_reaction_event_kind,
             ((struct unit_object *)obj)->unit.threat_reaction_damage, 0, 1);
-        ((struct unit_object *)obj)->unit.unknown_404 = 0;
+        ((struct unit_object *)obj)->unit.threat_reaction_event_kind = 0;
         ((struct unit_object *)obj)->unit.threat_reaction_object = k_datum_index_none;
         *(int32_t *)&((struct unit_object *)obj)->unit.threat_reaction_damage = 0;
     }

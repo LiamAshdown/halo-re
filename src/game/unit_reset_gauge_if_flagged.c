@@ -5,7 +5,7 @@
 // evidence: out/phase4/game_functions.md's summary ("Resets a per-team floating-point
 // gauge/timer field to 0.5 when a particular team status bit is set") does not match the body,
 // which reads a single unit's own unit_flags (types/units.h, bit 0x10 = _unit_flag_unknown_10)
-// and, if set, writes 0.5 into that same unit's unknown_37c gauge; types/game.h player::unit
+// and, if set, writes 0.5 into that same unit's active_camo_amount gauge; types/game.h player::unit
 // (+0x34).
 // register convention: a player index in EAX (in_EAX).
 //   // blam-cc: EAX -> player_index
@@ -40,7 +40,7 @@ void unit_reset_gauge_if_flagged(uint32_t player_index)
     unit = (unit_data *)((uint8_t *)
         ((object_header *)object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
     if ((unit->flags & _unit_flag_unknown_10) != 0) {
-        unit->unknown_37c = 0.5f;
+        unit->active_camo_amount = 0.5f;
     }
 }
 

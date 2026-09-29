@@ -191,7 +191,7 @@ have_targets:
                 squad_considered_mask[word] |= bit;
                 total_occupancy = total_occupancy + squad_state->unknown_18;
 
-                if (squad_state->unknown_10 != 0) { // "has valid platoon" gate (encounter_squad_state+0x10)
+                if (squad_state->automatic_migration != 0) { // "has valid platoon" gate (encounter_squad_state+0x10)
                     encounter_platoon_state *platoon_state;
                     int16_t platoon_index = squad_definition->platoon;
                     uint32_t trigger;

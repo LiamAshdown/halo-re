@@ -62,10 +62,10 @@ void actor_movement_advance_waypoint(datum_index actor_index)
             ex = next[0] - cur[0];
             ey = next[1] - cur[1];
 
-            // When unknown_506 is already set, Ghidra skips the whole reject test below and
+            // When steer_arrived is already set, Ghidra skips the whole reject test below and
             // falls straight through to advancing the cursor (i.e. behaves as if rejected).
-            if (self->unknown_506 == 0) {
-                if (self->desired_direction_valid == 0 || self->unknown_507 == 0) {
+            if (self->steer_arrived == 0) {
+                if (self->desired_direction_valid == 0 || self->steer_turning == 0) {
                     float dist2 = dx * dx + dy * dy;
                     reject = dist2 < 0.0225f;
                 } else {
@@ -83,10 +83,10 @@ void actor_movement_advance_waypoint(datum_index actor_index)
             }
 
             self->unknown_4c0[2] = self->unknown_4c0[2] + 1;
-            self->unknown_506 = 0;
+            self->steer_arrived = 0;
         }
 
-        if (self->unknown_506 != 0 && self->unknown_4c0[0] != 0) {
+        if (self->steer_arrived != 0 && self->unknown_4c0[0] != 0) {
             self->movement_action_complete = 0;
             self->movement_completed = 1;
             self->movement_timer = 0;
@@ -112,7 +112,7 @@ void actor_movement_advance_waypoint(datum_index actor_index)
         float sign = (self->avoidance_sample_scale <= 0.9f) ? 1.0f : -1.0f;
         float scale = sign * 3.0f;
         self->desired_direction_valid = 1;
-        self->unknown_506 = 0;
+        self->steer_arrived = 0;
         self->desired_direction.x = scale * self->facing.i;
         self->desired_direction.y = scale * self->facing.j;
         self->desired_direction.z = scale * self->facing.k;
@@ -124,7 +124,7 @@ void actor_movement_advance_waypoint(datum_index actor_index)
     }
 
     self->desired_direction_valid = 0;
-    self->unknown_506 = 0;
+    self->steer_arrived = 0;
     self->movement_completed = 1;
     self->movement_action_complete = 0;
     self->movement_completed = 1;

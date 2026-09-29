@@ -761,10 +761,10 @@ typedef struct weather_instance {
                                     //      weather_instance_update (0x458429); render_frame stores
                                     //      that frame delta at 0x50bec2. Not a per-tick delta (R45)
     float intensity;                // 0x0c scales the per type target count
-    uint32_t unknown_10;            // 0x10 copied from 0x007c3344, handed to FUN_0053ed60 as the
+    uint32_t sample_leaf_index;           // 0x10 copied from 0x007c3344, handed to FUN_0053ed60 as the
                                     //      sample point and to the render submit as the field
                                     //      origin. UNSURE of its real type
-    int16_t unknown_14;             // 0x14 copied from 0x007c3348
+    int16_t sample_cluster_index;            // 0x14 copied from 0x007c3348
     int16_t unknown_16;             // 0x16 never written
     int16_t cluster_index;          // 0x18 FUN_0053ed60 output, -1 when outside the BSP
     uint8_t in_sky;                 // 0x1a FUN_0053ed60 return; picks render mode 5 or 7
@@ -848,16 +848,16 @@ typedef enum player_effect_flags {
 // ---------------------------------------------------------------------------
 typedef struct player_screen_flash {
     int16_t type;                   // 0x00 index into the table at 0x00687218
-    int16_t unknown_02;             // 0x02
+    int16_t priority;               // 0x02
     uint32_t unknown_04;            // 0x04
     uint32_t unknown_08;            // 0x08
     uint32_t unknown_0c;            // 0x0c
     float duration;                 // 0x10 seconds; multiplied by the caller scale and 30 to
                                     //      give the tick count
-    uint32_t unknown_14;            // 0x14
+    uint32_t fade_function;         // 0x14
     uint32_t unknown_18;            // 0x18
     uint32_t unknown_1c;            // 0x1c
-    uint32_t unknown_20;            // 0x20
+    uint32_t maximum_intensity;         // 0x20
     float intensity;                // 0x24 the descriptor bounds blended by the caller falloff
                                     //      and clamped to the maximum
     ColorARGB color;                // 0x28
@@ -868,9 +868,9 @@ typedef struct player_screen_flash {
 // ---------------------------------------------------------------------------
 typedef struct player_camera_impulse {
     float duration;                 // 0x00 seconds, scaled to ticks the same way
-    uint32_t unknown_04;            // 0x04
-    float unknown_08;               // 0x08
-    float unknown_0c;               // 0x0c
+    uint32_t fade_function;          // 0x04
+    float rotation;                 // 0x08
+    float pushback;                 // 0x0c
     float magnitude_minimum;        // 0x10 bounds of the random magnitude the direction is
     float magnitude_maximum;        // 0x14 scaled by
     float intensity;                // 0x18 the blend the next impulse must beat to replace this
@@ -888,15 +888,15 @@ typedef struct player_camera_impulse {
 // ---------------------------------------------------------------------------
 typedef struct player_camera_shake {
     float duration;                 // 0x00 seconds, scaled to ticks
-    uint32_t unknown_04;            // 0x04
-    uint32_t unknown_08;            // 0x08
-    uint32_t unknown_0c;            // 0x0c
+    uint32_t falloff_function;           // 0x04
+    uint32_t random_translation;           // 0x08
+    uint32_t random_rotation;           // 0x0c
     uint32_t unknown_10;            // 0x10
     uint32_t unknown_14;            // 0x14
     uint32_t unknown_18;            // 0x18
-    uint32_t unknown_1c;            // 0x1c
-    float unknown_20;               // 0x20 also multiplied by the caller scale and 30
-    uint32_t unknown_24;            // 0x24
+    uint32_t wobble_function;           // 0x1c
+    float wobble_period;            // 0x20 also multiplied by the caller scale and 30
+    uint32_t wobble_weight;          // 0x24
     float intensity;                // 0x28 the blend the next shake must beat to replace this
                                     //      one
     uint32_t unknown_2c;            // 0x2c

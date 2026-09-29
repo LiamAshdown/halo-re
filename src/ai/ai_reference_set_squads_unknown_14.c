@@ -22,7 +22,7 @@ void ai_reference_set_squads_unknown_14(uint32_t packed_reference, char flag)
     ai_reference_squad_iterator_new(packed_reference, &iterator);
     state = ai_reference_squad_iterator_next(&iterator);
     while (state != 0) {
-        state->unknown_14 = value;
+        state->dormant_disallowed = value;
         state = ai_reference_squad_iterator_next(&iterator);
     }
 }

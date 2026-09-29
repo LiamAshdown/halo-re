@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_functions.md summary ("Decodes a small per-player
 // configuration value from the server and stores it directly into the connection context during
 // the join handshake"). client+0xed8 matches types/networking.h's
-// network_client_globals::unknown_ed8 exactly.
+// network_client_globals::player_config_value exactly.
 // register convention: client in ESI (unaff_ESI); stack -> buffer, capacity, expected_sequence.
 // blam-cc: ESI -> client; stack -> buffer, capacity, expected_sequence
 // UNSURE: `data_packet_group_decode_packet`'s 2nd argument (the decode destination) is literally
@@ -45,7 +45,7 @@ int32_t network_game_client_decode_player_config_value(network_client_globals *c
         length = length - 2;
         if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, &decoded_value,
                                             (uint8_t *)buffer + 2, &out_type, &out_version, 2) != 0) {
-            client->unknown_ed8 = (uint16_t)decoded_value;
+            client->player_config_value = (uint16_t)decoded_value;
         }
     }
     return 1;

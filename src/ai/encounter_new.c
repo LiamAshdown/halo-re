@@ -89,14 +89,14 @@ void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition,
             squad_state = &encounter_squad_states[(int16_t)(enc->first_squad + squad_index)];
             squad_definition = &((ScenarioSquad *)definition->squads.pointer)[squad_index];
 
-            squad_state->unknown_11 = 0;
+            squad_state->timer_started = 0;
             if ((squad_definition->flags & 8) == 0) {
                 squad_state->squad_delay_ticks = (int16_t)__ftol(
                     (double)(squad_definition->squad_delay_time * ticks_per_second));
             } else {
                 squad_state->squad_delay_ticks = 999;
             }
-            squad_state->unknown_10 = (uint8_t)((squad_definition->flags >> 5) & 1);
+            squad_state->automatic_migration = (uint8_t)((squad_definition->flags >> 5) & 1);
 
             encounter_squad_reset_starting_location_mask(encounter_index, squad_index);
 
@@ -120,7 +120,7 @@ void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition,
     platoon_index = 0;
     if (0 < enc->platoon_count) {
         do {
-            encounter_platoon_states[(int16_t)(enc->first_platoon + platoon_index)].unknown_00 =
+            encounter_platoon_states[(int16_t)(enc->first_platoon + platoon_index)].defending =
                 (uint8_t)((((ScenarioPlatoon *)definition->platoons.pointer)[platoon_index].flags
                     >> 2) & 1);
             platoon_index = platoon_index + 1;

@@ -92,7 +92,7 @@ void player_effect_build_screen_flash(uint32_t *out, int16_t local_player_index)
             if (self->flash.duration > 0.0f) {
                 float fraction = ((float)(int32_t)self->flash_ticks / self->flash.duration) * self->flash.intensity;
 
-                *(float *)&out[1] = transition_function_evaluate(*(int16_t *)&self->flash.unknown_14, fraction);
+                *(float *)&out[1] = transition_function_evaluate(*(int16_t *)&self->flash.fade_function, fraction);
             } else {
                 *(float *)&out[1] = self->flash.intensity;
             }

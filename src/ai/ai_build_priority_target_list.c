@@ -54,11 +54,11 @@ void ai_build_priority_target_list(ai_priority_target_list *out_list)
         if (out_list->count > 0xff) {
             break;
         }
-        if (a->active == 0 && a->unknown_0c != (datum_index)k_datum_index_none) {
+        if (a->active == 0 && a->deactivation_tick != (datum_index)k_datum_index_none) {
             ai_priority_target_record *rec = &out_list->records[out_list->count];
             rec->tiebreak = 1;
             rec->handle = actor_index;
-            rec->priority = (int32_t)a->unknown_0c;
+            rec->priority = (int32_t)a->deactivation_tick;
             out_list->count = out_list->count + 1;
         }
         actor_index = next;

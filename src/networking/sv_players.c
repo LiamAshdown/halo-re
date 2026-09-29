@@ -3,7 +3,7 @@
 // name confidence: 0.75   rewrite confidence: 0.3
 // evidence: out/phase4/networking_functions.md; CEA-pdb match on "sv_players is a server-only
 // function!"; types/networking.h network_player_entry array at server+0x1aa (session+0x1a2);
-// types/game.h player::unknown_dc/medal_streak_count/medal_streak_timer at the exact offsets
+// types/game.h player::ping_ms/medal_streak_count/medal_streak_timer at the exact offsets
 // (+0xdc/+0xe0/+0xe4) this function reads off the resolved player pointer. This is also the
 // function out/phase4/networking_types_notes.md documents as spanning the mid-body address
 // 0x4e2d4b ("network_game_server_add_player_to_game__hook_add_player", misattributed, not a
@@ -102,7 +102,7 @@ void sv_players(void)
                     tk_timer = 0;
                     name_display = (uint16_t *)k_empty_string;
                 } else {
-                    score = p->unknown_dc;
+                    score = p->ping_ms;
                     tk_num = p->medal_streak_count;
                     tk_timer = (p->medal_streak_timer < 0) ? 0 : p->medal_streak_timer / 30;
                     name_display = name_buf;

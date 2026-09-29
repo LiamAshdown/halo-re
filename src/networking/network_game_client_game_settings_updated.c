@@ -83,7 +83,7 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
     *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1; // UNSURE, see host_round_reset
     *(int32_t *)((uint8_t *)host + 0x9b8) = 0;
     *(int32_t *)((uint8_t *)host + 0x9c4) = 0;
-    host->unknown_9f9 = 0;
+    host->scenario_announcement_sent = 0;
     host->unknown_9fa = 0;
     *(uint8_t *)((uint8_t *)host + 0x9f8) = 0;
 

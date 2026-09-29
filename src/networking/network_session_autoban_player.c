@@ -6,12 +6,12 @@
 // to a session machine slot, skips already-disconnecting machines, logs 'AUTOBAN: Banning %S.',
 // then calls network_banlist_add_ban followed by FUN_004e0af0 to disconnect/kick the machine."
 // types/networking.h network_machine (machine_id at +0x0c, channel at +0x00), player (identifier
-// at +0x00, name at +0x04, unknown_64 at +0x64); disassembly (objdump -d -M intel, bin/halo.exe)
+// at +0x00, name at +0x04, machine_index at +0x64); disassembly (objdump -d -M intel, bin/halo.exe)
 // for the register convention and for the field this batch had not otherwise resolved.
 // register convention: ECX -> player_handle. Confirmed by disassembly: `cmp ecx,0xffffffff`
 // against the incoming register at function entry, with no stack args.
 //   // blam-cc: ECX -> player_handle
-// UNSURE: `movsx bx, BYTE PTR [edx+0x64]` reads only the low BYTE of player::unknown_64 (declared
+// UNSURE: `movsx bx, BYTE PTR [edx+0x64]` reads only the low BYTE of player::machine_index (declared
 // int16_t in types/game.h) and sign-extends it; modeled here as a byte read through the address
 // of that field rather than redeclaring it, since the field's true width/meaning is not resolved
 // by this batch. It is then compared against network_machine::machine_id (also int16_t) to find
@@ -82,7 +82,7 @@ uint8_t network_session_autoban_player(datum_index player_handle) // blam-cc: EC
     if (salt != 0 && target_player->identifier != salt) {
         return 0;
     }
-    machine_key = *(int8_t *)&target_player->unknown_64; // UNSURE: low byte only, see file header
+    machine_key = *(int8_t *)&target_player->machine_index; // UNSURE: low byte only, see file header
     machine = 0;
     for (i = 0; i < k_network_maximum_machines; i++) {
         if (network_server->machines[i].machine_id == machine_key) {
@@ -156,7 +156,7 @@ network_server->machines[]:
   4e36ee: sar edi,0x10              ; salt = (int16_t)(player_handle >> 16)
   4e36fb: mov esi,[0x87a480]        ; esi = player_data
   4e3719: mov cx,[edx+ebx]          ; target_player->identifier, edx = target_player
-  4e3736: movsx bx,byte ptr [edx+0x64]  ; machine_key = low byte of target_player->unknown_64
+  4e3736: movsx bx,byte ptr [edx+0x64]  ; machine_key = low byte of target_player->machine_index
   4e373c: mov ebp,[0x71c2d4]        ; ebp = network_server
   4e3746: lea esi,[ebp+0x3c4]       ; &network_server->machines[0].machine_id
   4e3750-4e375c: loop, stride 0x60, 16 iterations

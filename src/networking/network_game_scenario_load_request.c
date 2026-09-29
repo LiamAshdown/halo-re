@@ -5,7 +5,7 @@
 // evidence: out/phase4/networking_functions.md: "Prepares and issues a scenario_load() request
 // for the network game using the requested map name and seed, then, when hosting, opens a
 // channel for every connected machine and returns whether the map is now loaded." session at
-// param_1: server_name (+0x84), unknown_19e (+0x19e) and unknown_3ac (+0x3ac, the map-loaded
+// param_1: server_name (+0x84), difficulty (+0x19e) and unknown_3ac (+0x3ac, the map-loaded
 // flag already established in network_host_shutdown_or_defer.c) all match
 // types/networking.h's network_game_session.
 // FIXED in the review pass: the first draft of this file declared the staged record with
@@ -59,7 +59,7 @@ char network_game_scenario_load_request(network_game_session *session)
     request.difficulty = 1;
     request.salt = 0xdeadbeef;
     strncpy(request.map_name, session->server_name, 0x7f);
-    request.difficulty = session->unknown_19e;
+    request.difficulty = session->difficulty;
 
     if (network_game_mode > 0) {
         if (network_game_mode < 3) {

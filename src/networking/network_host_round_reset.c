@@ -25,7 +25,7 @@ void network_host_round_reset(network_server_globals *host)
     *(uint32_t *)&host->unknown_9bc[0x18] = 0; // 0x9d4
     host->unknown_9b8 = 0;
     *(uint32_t *)&host->unknown_9bc[0x08] = 0; // 0x9c4
-    host->unknown_9f9 = 0;
+    host->scenario_announcement_sent = 0;
     host->unknown_9fa = 0;
     host->unknown_9f8 = 0;
     *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1; // UNSURE, see header

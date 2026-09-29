@@ -85,7 +85,7 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->swarm_index = (datum_index)k_datum_index_none;
     self->unknown_07 = 1;
     self->active = 0;
-    self->unknown_0c = (datum_index)k_datum_index_none;
+    self->deactivation_tick = (datum_index)k_datum_index_none;
     self->keep_unit_alive = 1;
     self->unknown_12 = 1;
     self->idle_counter = 0;

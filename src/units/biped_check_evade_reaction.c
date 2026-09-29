@@ -37,7 +37,7 @@ extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reactio
 
 // Rate-limited (every 15 ticks) evasion check: if the unit is unattached, not a special weapon
 // type (Biped tag flags 0x84 clear), unattended (flags bit 0x1000 clear), has an actor and isn't
-// mid scripted-action, and has been grounded (unknown_501) more than 30 ticks, probes for a
+// mid scripted-action, and has been grounded (flags_bit0_ticks) more than 30 ticks, probes for a
 // nearby open position via unit_test_placement_candidate; if none is found, or a clearance/height
 // test against the grenade-table radius fails, dispatches an evade reaction (code 0).
 void biped_check_evade_reaction(uint32_t object_index)
@@ -49,7 +49,7 @@ void biped_check_evade_reaction(uint32_t object_index)
 
     if ((obj->vitality_flags & 4) == 0 && (tag->biped_flags & 0x84) == 0 &&
         (unit->flags & 0x1000) == 0 && unit->actor_index != k_datum_index_none &&
-        unit->animation_state != 0x1d && (int8_t)biped->unknown_501 > 0x1e &&
+        unit->animation_state != 0x1d && (int8_t)biped->flags_bit0_ticks > 0x1e &&
         (biped->last_flee_reaction_tick == -1 ||
          (int32_t)(biped->last_flee_reaction_tick + 0xf) < game_time->game_time)) {
         void *table = (void *)global_globals->falling_damage.pointer;

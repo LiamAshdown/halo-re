@@ -6,13 +6,13 @@
 // related field, scans an iterator of entries to compute an elapsed-time delta, and queues a
 // short reliable status message reporting it"). player_data (0x0087a480) offsets +0x20/+0x22/
 // +0x34 match types/memory.h's data_array exactly; player+0x02/+0x67/+0xdc match types/game.h's
-// player::local_player_index/team_index_desired/unknown_dc. Ghidra's own decompile carries a
+// player::local_player_index/team_index_desired/ping_ms. Ghidra's own decompile carries a
 // "Removing unreachable block" warning.
 // register convention: none recovered by Ghidra; every value this function reads before its
 // first real call is either a global or an elided register output. // blam-cc: none
 // UNSURE (major): `FUN_004ec590` is called with no visible arguments and its result is read back
 // through two locals (`local_58`, a player-table index; `local_54`, a value to store into that
-// player's unknown_dc) that Ghidra shows as uninitialized until that call -- the classic
+// player's ping_ms) that Ghidra shows as uninitialized until that call -- the classic
 // register-output-not-tracked pattern used throughout this codebase. Modeled as two extra local
 // variables assigned from that call's own (unrecoverable) implicit outputs; since no value can
 // be recovered, they are left uninitialized here exactly as Ghidra shows, which the compiler is
@@ -81,7 +81,7 @@ void network_player_ping_field_update_and_report(void *decode_context) // blam-c
         if (player_index != 0xff && (int16_t)(uint16_t)player_index < player_data->maximum_count) {
             uint8_t *player = (uint8_t *)player_data->data + player_data->size * (int16_t)(uint16_t)player_index;
             if (*(int16_t *)player != 0) {
-                ((struct player *)player)->unknown_dc = new_value;
+                ((struct player *)player)->ping_ms = new_value;
             }
         }
 
@@ -98,7 +98,7 @@ void network_player_ping_field_update_and_report(void *decode_context) // blam-c
                     if (team_index != -1 && network_game_mode == 2) {
                         int32_t base = *(int32_t *)((uint8_t *)network_server + 0x9c0);
                         int32_t now = time_query_performance_counter_ms();
-                        ((player *)element)->unknown_dc = now - base;
+                        ((player *)element)->ping_ms = now - base;
                         return;
                     }
                     break;

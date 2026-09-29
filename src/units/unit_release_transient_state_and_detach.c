@@ -42,7 +42,7 @@ void unit_release_transient_state_and_detach(uint32_t unit_index, uint8_t is_lig
     unit_data *unit = (unit_data *)((uint8_t *)self_obj + k_unit_data_offset);
 
     if (!is_light_reset) {
-        unit->unknown_420 = 0;
+        unit->knockdown_ticks = 0;
         if (unit->controlling_player != k_datum_index_none) {
             player_reset_after_unit_change(unit->controlling_player);
             unit->controlling_player = k_datum_index_none;
@@ -100,7 +100,7 @@ void unit_release_transient_state_and_detach(uint32_t unit_index, uint8_t is_lig
         unit_drop_object_from_hand(unit_index, unit->equipment_object_index);
         unit->equipment_object_index = k_datum_index_none;
     }
-    if (unit->unknown_28c == 0) {
+    if (unit->death_fire_wildly_ticks == 0) {
         unit_drop_current_weapon(unit_index, 1);
     }
     unit->overlays[1].animation_index = -1;

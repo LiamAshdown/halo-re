@@ -507,7 +507,7 @@ typedef struct damage_data {
     float random_blend;             // 0x40 1.0; blends the fixed and random damage amounts
     float multiplier;               // 0x44 1.0; divided by the child count when a vehicle
                                     //      spreads damage across its seated bipeds
-    uint32_t unknown_48;            // 0x48
+    uint32_t victim_vitality;       // 0x48 object_apply_damage stores the damaged object's shield_vitality or clamped body_vitality (float bits) once damage is reported
     int16_t material_type;          // 0x4c 0xffff; the collision material of the damaged
                                     //      surface. 0x4ffde0 hands it to 0x53e7c0 (the matg
                                     //      materials block, stride 0x374) and scales by

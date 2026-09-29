@@ -44,7 +44,7 @@ game_variant * game_engine_variant_defaults_race(game_variant *variant_options)
     defaults.time_limit = 900;
     defaults.friendly_fire_mode = 1;
     defaults.betrayal_penalty = 0;
-    defaults.unknown_74 = 0;
+    defaults.team_switch_restricted = 0;
     defaults.game_time_limit = 36000;
     defaults.ctf_option_7c = 0;
     defaults.ctf_value_80 = 0;

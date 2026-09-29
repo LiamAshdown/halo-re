@@ -380,7 +380,7 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
     }
 
     // A grounded AI actor that has only just landed gets a much tighter step allowance.
-    if ((biped->flags & 1) != 0 && biped->unknown_501 < 0x16 &&
+    if ((biped->flags & 1) != 0 && biped->flags_bit0_ticks < 0x16 &&
         unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
         solve.unknown_5c = 0.1f;
         solve.unknown_60 = 0.5f;
@@ -434,13 +434,13 @@ step_crouch:
 
     // The last supporting surface is remembered for 60 ticks after leaving the ground.
     if (solve.result_surface_index == k_datum_index_none) {
-        if (biped->unknown_4d3 < 1) {
+        if (biped->last_ground_object_ticks < 1) {
             biped->last_ground_object_index = k_datum_index_none;
         } else {
-            biped->unknown_4d3 = biped->unknown_4d3 - 1;
+            biped->last_ground_object_ticks = biped->last_ground_object_ticks - 1;
         }
     } else {
-        biped->unknown_4d3 = 0x3c;
+        biped->last_ground_object_ticks = 0x3c;
         biped->last_ground_object_index = solve.result_surface_index;
     }
 

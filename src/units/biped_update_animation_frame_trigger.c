@@ -1,7 +1,7 @@
 // biped_update_animation_frame_trigger  (Ghidra: biped_update_animation_frame_trigger, renamed)
 // address 0x55eaa0, size 232 bytes
 // name confidence: 0.3   rewrite confidence: 0.9
-// evidence: biped_data.unknown_4d0/unknown_4d1/unknown_508 match types/units.h ("frame counter
+// evidence: biped_data.frame_counter/frame_counter_limit/unknown_508 match types/units.h ("frame counter
 //   0x55eb90 advances" / "the frame count it is compared against, loaded by 0x55eaa0" /
 //   "0x55eaa0 stores a 0/1 comparison result here").
 // register convention: a timing-table pointer in ECX, the biped's object base pointer directly

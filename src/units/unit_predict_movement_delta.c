@@ -5,7 +5,7 @@
 //   same offsets biped_update (0x5590a0) itself pre-processes before calling its movement
 //   solver -- object.parent_object/vitality_flags/position/forward/up (0x11c/0x106/0x05c/0x074/
 //   0x080, objects.h), unit_data.animation_state/control_flags/throttle/desired_facing_vector
-//   (0x2a3/0x208/0x278/0x224, types/units.h), biped_data.flags/unknown_501/unknown_502
+//   (0x2a3/0x208/0x278/0x224, types/units.h), biped_data.flags/flags_bit0_ticks/flags_bit1_ticks
 //   (0x4cc/0x501/0x502) -- confirming this runs the same pre-solve steps on a scratch copy
 //   before calling biped_integrate_movement (0x55bea0), then diffs the copy's post-solve
 //   position/forward/up against the live object's, scaled by a time fraction, to produce a
@@ -111,10 +111,10 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
                     copy_unit->throttle.k = global_origin3d_pointer->z;
                 }
 
-                copy_biped->unknown_501 = (copy_biped->flags & 1) ?
-                    ((copy_biped->unknown_501 < 0x7f) ? copy_biped->unknown_501 + 1 : copy_biped->unknown_501) : 0;
-                copy_biped->unknown_502 = (copy_biped->flags & 2) ?
-                    ((copy_biped->unknown_502 < 0x7f) ? copy_biped->unknown_502 + 1 : copy_biped->unknown_502) : 0;
+                copy_biped->flags_bit0_ticks = (copy_biped->flags & 1) ?
+                    ((copy_biped->flags_bit0_ticks < 0x7f) ? copy_biped->flags_bit0_ticks + 1 : copy_biped->flags_bit0_ticks) : 0;
+                copy_biped->flags_bit1_ticks = (copy_biped->flags & 2) ?
+                    ((copy_biped->flags_bit1_ticks < 0x7f) ? copy_biped->flags_bit1_ticks + 1 : copy_biped->flags_bit1_ticks) : 0;
 
                 output_flags[1] = (copy_unit->control_flags & 1) != 0; // UNSURE: local_56f
                 output_flags[0] = 0;

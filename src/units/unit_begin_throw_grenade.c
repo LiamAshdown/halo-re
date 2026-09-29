@@ -4,7 +4,7 @@
 // records timing/aim data, and starts the throw animation state machine."
 // evidence: types/units.h unit_data.current_weapon_index (0x2f2), .weapons[4] (0x2f8),
 //   .current_grenade_index (0x31c), .grenade_counts[2] (0x31e), .animation_state (0x2a3),
-//   .unknown_2a4 (0x2a4), .overlays[0] (0x2aa), .throwing_grenade_state (0x28d),
+//   .overlay_animation_command (0x2a4), .overlays[0] (0x2aa), .throwing_grenade_state (0x28d),
 //   .throwing_grenade_counter (0x28e), .throwing_grenade_duration (0x290); types/objects.h
 //   object.animation_index (0xd0), .animation_frame (0xd2); ModelAnimationsAnimation
 //   (0xb4 stride, animations reflexive pointer at ModelAnimations+0x78, established in
@@ -69,7 +69,7 @@ uint8_t unit_begin_throw_grenade(uint32_t unit_index, const real_vector2d *direc
         if (biped_check != (object *)0) {
             *((uint8_t *)biped_check + 0x505) = 0; // UNSURE: biped-extension field, out of scope
         }
-        unit->unknown_2a4 = 0;
+        unit->overlay_animation_command = 0;
         unit->overlays[0].animation_index = -1;
 
         if (unit_try_set_animation_state(unit_index, 0x21) == 0) { // UNSURE: state value assumed = throwing_grenade

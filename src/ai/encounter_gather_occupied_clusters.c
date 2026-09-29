@@ -190,7 +190,7 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
         }
 
         if (record_per_actor != 0) {
-            if (encounter_squad_states[(int16_t)(a->squad_index + enc->first_squad)].unknown_14
+            if (encounter_squad_states[(int16_t)(a->squad_index + enc->first_squad)].dormant_disallowed
                 != 0) {
                 visible = 0;
             }

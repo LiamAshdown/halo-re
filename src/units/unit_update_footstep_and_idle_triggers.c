@@ -6,10 +6,10 @@
 //   0xd2); types/tags.h ModelAnimationsAnimation (stride 0xb4, left_foot_frame_index at +0x40,
 //   right_foot_frame_index at +0x41); types/units.h unit_data.animation_state (0x2a3),
 //   .throttle (0x278), .base_animation_state (0x2a7); biped_data.movement_state (0x4d2) and
-//   unknown_503 (0x503).
+//   idle_trigger_counter (0x503).
 // register convention: object index in EAX.
 //   // blam-cc: in_EAX -> unit_index
-// UNSURE: out/phase4/units_types_notes.md documents biped_data.unknown_503 as "the latch 0x560410
+// UNSURE: out/phase4/units_types_notes.md documents biped_data.idle_trigger_counter as "the latch 0x560410
 //   toggles at the seat angle limit", but the code read here never touches a seat or turret
 //   field -- it counts ticks of biped_data.movement_state == 0 (standing) up to 4 and then fires
 //   unit_fire_animation_sound_trigger(3, 0) and (3, 1). The functions.md summary ("seat/turret
@@ -82,21 +82,21 @@ void unit_update_footstep_and_idle_triggers(uint32_t unit_index) // blam-cc: in_
 
 idle_timeout:
     if (biped->movement_state == 0) {
-        if (biped->unknown_503 < 1) {
+        if (biped->idle_trigger_counter < 1) {
             return;
         }
-        biped->unknown_503 = biped->unknown_503 + 1;
-        if (biped->unknown_503 < 4) {
+        biped->idle_trigger_counter = biped->idle_trigger_counter + 1;
+        if (biped->idle_trigger_counter < 4) {
             return;
         }
         unit_fire_animation_sound_trigger(unit_index, 3, 0);
         unit_fire_animation_sound_trigger(unit_index, 3, 1);
-        biped->unknown_503 = 0; // FIXED (0x56056d): the counter restarts after the idle trigger fires
+        biped->idle_trigger_counter = 0; // FIXED (0x56056d): the counter restarts after the idle trigger fires
     } else if (biped->movement_state == 1) {
-        biped->unknown_503 = 1;
+        biped->idle_trigger_counter = 1;
         return;
     } else {
-        biped->unknown_503 = 0;
+        biped->idle_trigger_counter = 0;
     }
 }
 

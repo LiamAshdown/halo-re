@@ -333,9 +333,9 @@ typedef struct actor {
     uint8_t unknown_07;               // 0x07 actor_new sets 1
     uint8_t active;                   // 0x08 actor_set_units_active and squad_activate gate on this
     uint8_t unknown_09;               // 0x09 actor_new sets 0
-    uint8_t unknown_0a;               // 0x0a
+    uint8_t force_active;               // 0x0a (hs ai_force_active_by_unit; keeps the units awake)
     uint8_t swarm_pending;            // 0x0b encounter_activate sets it when a swarm actor could not get a swarm
-    datum_index unknown_0c;           // 0x0c actor_new sets none
+    datum_index deactivation_tick;           // 0x0c actor_new sets none (tick the actor went inactive; none = never)
     uint8_t unknown_10[2];            // 0x10
     uint8_t unknown_12;               // 0x12 actor_new sets 1
     uint8_t keep_unit_alive;          // 0x13 actor_attach_to_unit marks the unit pending-delete when this is clear
@@ -560,7 +560,7 @@ typedef struct actor {
     uint8_t unknown_3ea[2];           // 0x3ea
     int16_t vocalization_unknown_3ec; // 0x3ec
     uint8_t unknown_3ee[14];          // 0x3ee
-    int16_t unknown_3fc;              // 0x3fc
+    int16_t idle_stance;              // 0x3fc selects Actor idle_facing set: 2 guard, 3..4 combat, else noncombat
     uint8_t unknown_3fe[2];           // 0x3fe
     actor_movement_action queued_movement;// 0x400 the action the setters at 0x417610..0x417910 write
     int16_t secondary_action;         // 0x418 0x417a60 queues it, actor_action_has_queued_secondary reads it
@@ -602,11 +602,11 @@ typedef struct actor {
     uint8_t unknown_4d0[52];          // 0x4d0
     uint8_t desired_direction_valid;              // 0x504 actor_new sets 0
     uint8_t unknown_505;              // 0x505 actor_new sets 0
-    uint8_t unknown_506;              // 0x506
-    uint8_t unknown_507;              // 0x507
+    uint8_t steer_arrived;              // 0x506 out of actor_movement_apply_steering: goal within accuracy radius
+    uint8_t steer_turning;              // 0x507 out of actor_movement_apply_steering: no step, facing outside turn cone
     uint8_t unknown_508;              // 0x508
     uint8_t unknown_509;              // 0x509
-    int16_t unknown_50a;              // 0x50a
+    int16_t steer_axis;              // 0x50a out of actor_movement_apply_steering: chosen strafe axis (-1 none, 0..3, 4 rotated)
     uint8_t unknown_50c[12];          // 0x50c
     real_point3d desired_direction;         // 0x518 look-direction source used by 0x4146c0 and 0x4287a0
     real_vector3d unknown_524;        // 0x524 steering scratch written by 0x4180c0
@@ -886,7 +886,7 @@ typedef struct encounter {
     int16_t squad_count;              // 0x06 ScenarioEncounter.squads.count
     int16_t first_platoon;            // 0x08 index of this encounter first encounter_platoon_state
     int16_t platoon_count;            // 0x0a ScenarioEncounter.platoons.count
-    uint8_t unknown_0c;               // 0x0c
+    uint8_t force_active;               // 0x0c hs ai_force_active
     uint8_t units_active;             // 0x0d encounter_add_actor calls actor_set_units_active when set
     int16_t activation_delay;         // 0x0e ticks remaining before encounters_update_activation re-evaluates this encounter; encounter_add_actor sets 0x96
     int32_t activation_tick;          // 0x10 encounter_new sets -1; encounter_activate stamps the current game tick
@@ -952,10 +952,10 @@ typedef struct encounter_squad_state {
     float unknown_08;                 // 0x08
     int16_t respawn_budget;           // 0x0c ScenarioSquad.respawn_total (999 when that is 0), only set when the squad has a respawn range; the reinforcement spawner decrements it
     int16_t unknown_0e;               // 0x0e
-    uint8_t unknown_10;               // 0x10 ScenarioSquad.flags bit 5
-    uint8_t unknown_11;               // 0x11 encounter_new zeroes it
+    uint8_t automatic_migration;               // 0x10 ScenarioSquad.flags bit 5 (hs ai_automatic_migration_target rewrites it)
+    uint8_t timer_started;               // 0x11 encounter_new zeroes it hs ai_timer_start sets it
     int16_t squad_delay_ticks;        // 0x12 ftol(ScenarioSquad.squad_delay_time * 30), or 999 when ScenarioSquad.flags bit 3 is set
-    uint8_t unknown_14;               // 0x14 read as a flag by encounter_gather_occupied_bsp_clusters
+    uint8_t dormant_disallowed;               // 0x14 read as a flag by encounter_gather_occupied_bsp_clusters hs ai_allow_dormant stores (allow == 0)
     uint8_t unknown_15;               // 0x15
     int16_t member_count;             // 0x16 encounter_add_actor increments, squad_remove_actor decrements
     int16_t unknown_18;               // 0x18
@@ -967,8 +967,10 @@ typedef struct encounter_squad_state {
 // One record per ScenarioPlatoon of the owning encounter, addressed as
 // encounter_platoon_states[encounter.first_platoon + actor.platoon_index].
 typedef struct encounter_platoon_state {
-    uint8_t unknown_00;               // 0x00 ScenarioPlatoon.flags bit 2
-    uint8_t unknown_01[3];            // 0x01
+    uint8_t defending;               // 0x00 ScenarioPlatoon.flags bit 2 hs ai_defend sets, ai_attack clears; ScenarioPlatoon.flags bit 2 start_in_defending_state
+    uint8_t maneuver_requested;       // 0x01 hs ai_retreat / ai_maneuver set it
+    uint8_t maneuver_disabled;        // 0x02 hs ai_maneuver_enable stores (enable == 0)
+    uint8_t unknown_03;               // 0x03
     int16_t member_count;             // 0x04 encounter_add_actor increments, squad_remove_actor decrements
     int16_t unknown_06;               // 0x06
     int16_t unknown_08;               // 0x08

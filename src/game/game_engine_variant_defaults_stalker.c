@@ -46,7 +46,7 @@ game_variant * game_engine_variant_defaults_stalker(game_variant *variant_option
     defaults.time_limit = 0x708;
     defaults.friendly_fire_mode = 1;
     defaults.betrayal_penalty = 300;
-    defaults.unknown_74 = 1;
+    defaults.team_switch_restricted = 1;
     defaults.game_time_limit = 36000;
     defaults.ctf_option_7c = 0;
     defaults.ctf_option_7e = 0;

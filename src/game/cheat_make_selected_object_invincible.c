@@ -2,7 +2,7 @@
 // symbols/review_queue.txt)
 // address 0x45a6c0, size 90 bytes
 // name confidence: 0.45   rewrite confidence: 0.5
-// evidence: types/game.h player::unit (0x34); types/units.h unit_data::unknown_37c (0x37c,
+// evidence: types/game.h player::unit (0x34); types/units.h unit_data::active_camo_amount (0x37c,
 //   0..1 fraction) and unit_data::flags (0x204, unit_flags bits 0x10/0x20 -- unnamed in
 //   types/units.h, kept as the numeric bits it documents).
 // register convention: no arguments.
@@ -38,7 +38,7 @@ void cheat_make_selected_object_invincible(void)
         unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
         unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
         unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-        unit->unknown_37c = 1.0f;
+        unit->active_camo_amount = 1.0f;
         if ((unit->flags & 0x10) != 0) {
             unit->flags = unit->flags | 0x20;
         }

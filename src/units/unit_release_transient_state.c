@@ -192,7 +192,7 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
     uint8_t *obj = OBJECT_DATA(unit_index);
 
     if (is_light_reset == 0) {
-        ((struct unit_object *)obj)->unit.unknown_420 = 0;
+        ((struct unit_object *)obj)->unit.knockdown_ticks = 0;
         object_list_membership_set(unit_index, 1);
         if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
             player_reset_after_unit_change(((unit_object *)obj)->unit.controlling_player);

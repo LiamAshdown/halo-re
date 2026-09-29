@@ -20,7 +20,7 @@
 // register convention: player handle in EBX (unaff_EBX, the incoming argument no prologue code
 //   initializes).
 //   // blam-cc: EBX -> player_handle
-// UNSURE: unit_data::unknown_37c / unknown_422 (types/units.h) are not named there yet; their
+// UNSURE: unit_data::active_camo_amount / unknown_422 (types/units.h) are not named there yet; their
 //   role as an active-camouflage countdown and a "value just changed" dirty flag is inferred
 //   from this function's own behaviour, not from units.h.
 
@@ -84,11 +84,11 @@ void unit_update_active_camouflage_depower(datum_index player_handle)
         }
     }
 
-    if (unit->unknown_37c >= 0.05f) { // 0x672be8
-        unit->unknown_37c = unit->unknown_37c - rate;
+    if (unit->active_camo_amount >= 0.05f) { // 0x672be8
+        unit->active_camo_amount = unit->active_camo_amount - rate;
         unit->unknown_422 = 1;
-        if (unit->unknown_37c < 0.05f) { // 0x672be8
-            unit->unknown_37c = 0.05f;   // 0x672be8
+        if (unit->active_camo_amount < 0.05f) { // 0x672be8
+            unit->active_camo_amount = 0.05f;   // 0x672be8
         }
     }
 }

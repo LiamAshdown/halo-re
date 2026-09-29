@@ -168,16 +168,16 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
         memcpy(&unit_ext->animation_state_flags, node->unit_state + 0x30, 0x48);
         memcpy(&unit_ext->unknown_34c, node->unit_state + 0x78, 0x30);
         biped_ext->flags = *(uint32_t *)(node->unit_state + 0xa8);
-        biped_ext->unknown_503 = node->unit_state[0xac];
-        biped_ext->unknown_501 = node->unit_state[0xad];
-        biped_ext->unknown_502 = node->unit_state[0xae];
+        biped_ext->idle_trigger_counter = node->unit_state[0xac];
+        biped_ext->flags_bit0_ticks = node->unit_state[0xad];
+        biped_ext->flags_bit1_ticks = node->unit_state[0xae];
         biped_ext->target_lock_lost_ticks = node->unit_state[0xaf];
         biped_ext->unknown_508 = *(int16_t *)(node->unit_state + 0xb0);
         biped_ext->crouch_fraction = *(float *)(node->unit_state + 0xb4);
         biped_ext->ground_normal = *(real_vector3d *)(node->unit_state + 0xb8);
         biped_ext->ground_plane_offset = *(uint32_t *)(node->unit_state + 0xc4);
-        biped_ext->unknown_4d0 = node->unit_state[0xc8];
-        biped_ext->unknown_4d1 = node->unit_state[0xc9];
+        biped_ext->frame_counter = node->unit_state[0xc8];
+        biped_ext->frame_counter_limit = node->unit_state[0xc9];
         biped_ext->movement_state = node->unit_state[0xca];
         biped_ext->ground_surface_index = *(datum_index *)(node->unit_state + 0xcc);
 

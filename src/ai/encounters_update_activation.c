@@ -158,7 +158,7 @@ void encounters_update_activation(void)
             }
         }
 
-        if (a->unknown_12 == 0 || a->unknown_0a != 0) {
+        if (a->unknown_12 == 0 || a->force_active != 0) {
             *(int16_t *)&a->unknown_10[0] = 0x5a;
             if (a->active != 1) {
                 if (a->swarm == 0 || (actor_create_swarm(current),
@@ -178,7 +178,7 @@ void encounters_update_activation(void)
                 actor_delete_swarm(current);
                 actor_set_units_active(current, 1);
                 a->active = 0;
-                a->unknown_0c = (datum_index)game_time->game_time;
+                a->deactivation_tick = (datum_index)game_time->game_time;
             }
         } else {
             *(int16_t *)&a->unknown_10[0] = (int16_t)(*(int16_t *)&a->unknown_10[0] - 0x1e);
@@ -195,7 +195,7 @@ void encounters_update_activation(void)
     while (enc != 0) {
         definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
             [iterator.index & 0xffff];
-        wants_active = (uint8_t)(0 < enc->unknown_3e || enc->unknown_0c != 0);
+        wants_active = (uint8_t)(0 < enc->unknown_3e || enc->force_active != 0);
 
         if ((int16_t)definition->precomputed_bsp_index == -1 ||
             (int16_t)definition->precomputed_bsp_index == global_structure_bsp_index) {

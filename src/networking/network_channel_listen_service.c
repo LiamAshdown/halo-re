@@ -6,7 +6,7 @@
 // matching existing child channel." listen_list (+0xa9c), its entries/capacity/last_index/
 // unknown_110 scan cursor (+0x104/+0x108/+0x10c/+0x110), children[16] (+0xaa0), connected
 // (+0xa98), parent (+0xa94) and child_busy (+0xae1) all match types/networking.h exactly.
-// UNSURE (significant): `piVar2[2]` (channel->unknown_008, offset +0x008) is called through as a
+// UNSURE (significant): `piVar2[2]` (channel->accept_callback, offset +0x008) is called through as a
 // function pointer when non-NULL ("accept override callback"), otherwise
 // network_listen_reject_pending_connection is used -- types/networking.h currently leaves this
 // field undocumented ("never read or written by the module" does NOT appear for it, but no
@@ -139,10 +139,10 @@ char network_channel_listen_service(network_channel *channel, network_channel **
             } else {
                 reject_code = 6;
             }
-            if (channel->unknown_008 == 0) {
+            if (channel->accept_callback == 0) {
                 network_listen_reject_pending_connection(reject_code);
             } else {
-                ((network_channel_accept_callback)(void *)(uint32_t)channel->unknown_008)(entry);
+                ((network_channel_accept_callback)(void *)(uint32_t)channel->accept_callback)(entry);
             }
         } else {
             for (i = 0; i < 0x10; i++) {

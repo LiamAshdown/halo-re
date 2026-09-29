@@ -7,7 +7,7 @@
 // is exactly network_server_globals::session (offset 0x008) + network_game_session's
 // unknown_3ac (0x3ac), i.e. server + 0x3b4. The write target
 // `(index & 0xffff) * 0x200 + 0xd0 + player_data->data` matches types/game.h's player
-// (stride 0x200) field unknown_d0 at offset 0xd0.
+// (stride 0x200) field removal_tick at offset 0xd0.
 // register convention: ESI = sender (int32_t datum/object handle), EAX = step_count (forwarded
 // to player_data_iterator_advance), stack = server (network_server_globals *).
 // blam-cc: EAX -> step_count, ESI -> sender, stack -> server
@@ -26,7 +26,7 @@ extern data_array *player_data; // 0x0087a480, stride 0x200 (game module)
 extern uint32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0, stack -> step_count
 
 // When the session flag at server->session.unknown_3ac is set, records `sender` as the last
-// object to update the resolved player's record (player->unknown_d0), provided the resolve
+// object to update the resolved player's record (player->removal_tick), provided the resolve
 // succeeded, the resolved index is non-zero, and sender is a valid handle.
 uint32_t network_object_record_last_sender(int32_t sender, int16_t step_count,
     network_server_globals *server)

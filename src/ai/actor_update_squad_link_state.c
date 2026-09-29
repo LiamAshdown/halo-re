@@ -64,9 +64,9 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
         enc = &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
     }
 
-    combined_flag = self->unknown_0a;
+    combined_flag = self->force_active;
     if (enc != 0) {
-        combined_flag |= enc->unknown_0c;
+        combined_flag |= enc->force_active;
     }
 
     if (self->unknown_12 == 0 || combined_flag != 0) {

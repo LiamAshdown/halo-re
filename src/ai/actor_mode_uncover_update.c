@@ -61,7 +61,7 @@ void actor_mode_uncover_update(datum_index actor_index)
             *(real_point3d *)(act + 0x3f0) = ((struct actor *)act)->mode_data.uncover.position;
         }
     }
-    ((struct actor *)act)->unknown_3fc = 3;
+    ((struct actor *)act)->idle_stance = 3;
     act[0x426] = act[0x9c];
     act[0x427] = act[0x9c];
     act[0x428] = 0;

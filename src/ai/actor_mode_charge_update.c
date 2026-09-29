@@ -35,7 +35,7 @@ void actor_mode_charge_update(datum_index actor_index)
     int16_t kind = ((struct actor *)act)->mode_data.charge.stage;
 
     ((actor *)act)->vocalization_unknown_3ec = 2;
-    ((struct actor *)act)->unknown_3fc = 4;
+    ((struct actor *)act)->idle_stance = 4;
     if ((kind == 2 || kind == 3) && act[0xa5] && !act[0x504] && !act[0x4a8]) {
         ((actor *)act)->vocalization_unknown_3e8 = 4;
     } else if (((struct actor *)act)->alert_level >= 5 && kind != 1) {

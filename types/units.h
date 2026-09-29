@@ -432,7 +432,7 @@ typedef struct unit_data {
                                         //       tick it down between melee damage pulses
     int8_t stun_ticks_remaining;                 // 0x28b countdown; 0x5705a0 seeds it with a random
                                         //       stun duration, unit_update decrements it
-    int8_t unknown_28c;                 // 0x28c countdown decremented by unit_update; both
+    int8_t death_fire_wildly_ticks;                 // 0x28c countdown decremented by unit_update; both
                                         //       seat-teardown paths require it to be 0
     int8_t throwing_grenade_state;      // 0x28d unit_throwing_grenade_state
     int16_t throwing_grenade_counter;   // 0x28e unit_begin_throw_grenade zeroes it,
@@ -458,7 +458,7 @@ typedef struct unit_data {
     int8_t animation_weapon_type_index; // 0x2a2 index into the types of that weapon at +0xb4,
                                         //       stride 0x3c
     int8_t animation_state;             // 0x2a3 unit_animation_state
-    int8_t unknown_2a4;                 // 0x2a4 0x563b50 refuses the aiming overlay unless
+    int8_t overlay_animation_command;                 // 0x2a4 0x563b50 refuses the aiming overlay unless
                                         //       this is 0; 0x565420 clears it
     int8_t unknown_2a5;                 // 0x2a5 0x566410 raises it to the command it started
     int8_t seat_command;                // 0x2a6 unit_control_data.animation_state
@@ -502,7 +502,7 @@ typedef struct unit_data {
     int8_t zoom_level;                  // 0x320 -1 when not zoomed
     int8_t desired_zoom_level;          // 0x321 unit_control_data.zoom_level; 0x5659c0 and
                                         //       0x565a70 force it back to -1
-    int8_t unknown_322;                 // 0x322 tick counter clamped at 0x7f, reset by
+    int8_t control_idle_ticks;                 // 0x322 tick counter clamped at 0x7f, reset by
                                         //       unit_update; 0x55e2d0 flees above 120
     int8_t aiming_change;                 // 0x323 written by unit_update from the same block
     datum_index driver_unit_index;      // 0x324 the child object in the first tracked seat;
@@ -531,7 +531,7 @@ typedef struct unit_data {
     float animation_controls_smoothed[3]; // 0x364 unit_update runs 0.7 * old + 0.3 * new;
                                         //       0x563b50 drives three graph animations by them
     float animation_controls[3];        // 0x370 the raw 0..1 values 0x56e820 computes
-    float unknown_37c;                  // 0x37c 0..1, stepped by 1/120 in unit_update and
+    float active_camo_amount;                  // 0x37c 0..1, stepped by 1/120 in unit_update and
                                         //       reduced by damage in 0x5674a0
     float unknown_380;                  // 0x380 0..1, stepped by 1/90 in unit_update
     datum_index dialogue_tag_index;     // 0x384 the unit_dialogue tag 0x560d00 walks
@@ -555,7 +555,7 @@ typedef struct unit_data {
     int16_t speech_lipsync_ticks;       // 0x3fc loaded from unit_speech.lipsync_ticks
     int16_t speech_tail_ticks;          // 0x3fe loaded from unit_speech.tail_ticks
     datum_index speech_sound_handle;    // 0x400 the handle 0x00543ce0 returned, -1 when idle
-    int16_t unknown_404;                // 0x404 passed as the second argument of 0x0042be40
+    int16_t threat_reaction_event_kind;                // 0x404 passed as the second argument of 0x0042be40
     int16_t threat_reaction_delay_ticks;                // 0x406 countdown; 0x5674a0 reloads it with 0x2d
     float threat_reaction_damage;                  // 0x408 damage accumulator, raised by 0x5674a0 and
                                         //       consumed by unit_update
@@ -566,7 +566,7 @@ typedef struct unit_data {
     float idle_turn_offset;             // 0x418 the second, tighter angle of the wander
     int32_t unknown_41c;                // 0x41c game tick stamp taken by 0x562030 and by both
                                         //       seat-teardown paths
-    int16_t unknown_420;                // 0x420 countdown, unit_update fires on the 0 edge
+    int16_t knockdown_ticks;                // 0x420 countdown, unit_update fires on the 0 edge
     int16_t unknown_422;                // 0x422 unit_update checks it against the network
                                         //       predicted-state flag
     float stun_amount;                  // 0x424 0..1 stun meter; 0x5674a0 raises it and
@@ -645,13 +645,13 @@ typedef struct biped_data {
                                         //       the 0x55bea0 landing latch, bit 5 (0x20) =
                                         //       the ground-adjust dirty bit 0x55ad00 sets
                                         //       and 0x55ad70 clears
-    int8_t unknown_4d0;                 // 0x4d0 frame counter 0x55eb90 advances
-    int8_t unknown_4d1;                 // 0x4d1 the frame count it is compared against,
+    int8_t frame_counter;                 // 0x4d0 frame counter 0x55eb90 advances
+    int8_t frame_counter_limit;                 // 0x4d1 the frame count it is compared against,
                                         //       loaded by 0x55eaa0
     int8_t movement_state;              // 0x4d2 biped_update maps the animation state onto
                                         //       0 (standing), 1 (moving) or 2 (other);
                                         //       unit_update_facing and 0x560410 branch on it
-    int8_t unknown_4d3;                 // 0x4d3 countdown reloaded with 0x3c (60 ticks) by the
+    int8_t last_ground_object_ticks;                 // 0x4d3 countdown reloaded with 0x3c (60 ticks) by the
                                         //       movement solvers every tick that
                                         //       last_ground_object_index is refreshed
     datum_index last_ground_object_index; // 0x4d4 the object the biped last stood on, as the
@@ -677,10 +677,10 @@ typedef struct biped_data {
     datum_index tracked_target;            // 0x4fc the target 0x55e0a0 is tracking
     int8_t tracked_target_ticks;                 // 0x500 how many ticks that target has been held;
                                         //       0x55e0a0 saturates it at 0xf1
-    int8_t unknown_501;                 // 0x501 ticks in the current grounded state, clamped
+    int8_t flags_bit0_ticks;                // 0x501 ticks flags bit 0 has been set, clamped
                                         //       at 0x7f by biped_update
-    int8_t unknown_502;                 // 0x502 the same counter for the second flag bit
-    int8_t unknown_503;                 // 0x503 latch 0x560410 toggles at the seat angle limit
+    int8_t flags_bit1_ticks;                // 0x502 the same counter for flags bit 1
+    int8_t idle_trigger_counter;                 // 0x503 latch 0x560410 toggles at the seat angle limit
     int8_t target_lock_lost_ticks;                 // 0x504 ticks without a target lock (0x55ec90)
     int8_t unknown_505;                 // 0x505 biped_update decays it by a quarter each tick
     int8_t unknown_506;                 // 0x506 the value unknown_505 is compared against

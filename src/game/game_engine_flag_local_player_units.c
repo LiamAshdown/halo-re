@@ -2,7 +2,7 @@
 // symbols/review_queue.txt)
 // address 0x45b590, size 225 bytes
 // name confidence: 0.3   rewrite confidence: 0.45
-// evidence: types/game.h player::unknown_d0 (0xd0), player::marked_for_deletion (0xd5),
+// evidence: types/game.h player::removal_tick (0xd0), player::marked_for_deletion (0xd5),
 //   player::unit (0x34); types/objects.h object::vitality_flags (0x106, uint16_t); this
 //   function only writes the high byte (0x107) with bit 0x20, i.e. vitality_flags bit 0x2000
 //   (_object_stunned_bit) -- kept as a raw byte write since the semantic fit for "belongs to the
@@ -46,8 +46,8 @@ void game_engine_flag_local_player_units(void)
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
         p = (player *)data_iterator_next(&iterator);
         while (p != (player *)0) {
-            if (p->unknown_d0 != k_datum_index_none && p->marked_for_deletion == 0 &&
-                (network_game_mode == 1 || current_tick == (int32_t)p->unknown_d0)) {
+            if (p->removal_tick != k_datum_index_none && p->marked_for_deletion == 0 &&
+                (network_game_mode == 1 || current_tick == (int32_t)p->removal_tick)) {
                 p->marked_for_deletion = 1;
                 if (p->unit == k_datum_index_none) {
                     player_remove(iterator.index);

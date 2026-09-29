@@ -4,11 +4,11 @@
 // FIXED from objdump 0x55e2d0..0x55e491: EDI -> object_index; both ground probes get the unit, the direction
 //   (global down, then the parent's velocity * 60 less gravity * 1800) and the normal out; the 0x26 test is the
 //   parent's angular velocity (+0x8c).
-// evidence: unit_data.actor_index (0x1f4/500 decimal, types/units.h), unit_data.unknown_322
+// evidence: unit_data.actor_index (0x1f4/500 decimal, types/units.h), unit_data.control_idle_ticks
 //   ("flees above 120" -- 0x78 hex == 120, types/units.h), biped_data.last_flee_reaction_tick ("0x55e190
 //   and 0x55e2d0 rate-limit their reactions to once every 15 ticks", types/units.h). Parent
 //   (vehicle) tag offset 0x17c bit 0x40 is UNSURE; parent object offset 0x4d0 could be either
-//   biped_data.unknown_4d0 or vehicle_data.airborne_ticks depending on the parent's real type,
+//   biped_data.frame_counter or vehicle_data.airborne_ticks depending on the parent's real type,
 //   kept as a raw offset.
 // register convention: object index in EDI, no other inputs.
 //   // blam-cc: EDI -> object_index
@@ -38,7 +38,7 @@ extern float k_physics_gravity; // 0x0069c52c
 
 // Evaluates whether a (typically vehicle-mounted) unit should flee or evade: gated on the
 // parent vehicle's Unit-tag flag 0x40 (UNSURE), the unit having an actor and not being mid
-// scripted-action, and unknown_322 having climbed past 120 ticks. Rate-limited to once every 15
+// scripted-action, and control_idle_ticks having climbed past 120 ticks. Rate-limited to once every 15
 // ticks via biped_data.last_flee_reaction_tick. Broadcasts one of three AI communication lines (0x26/0x27/
 // 0x28) depending on whether a nearby open position was found and how fast the unit is turning.
 void unit_evaluate_flee_reaction(uint32_t object_index)
@@ -51,7 +51,7 @@ void unit_evaluate_flee_reaction(uint32_t object_index)
 
     if ((*(uint8_t *)((uint8_t *)parent_tag + 0x17c) & 0x40) != 0 &&
         unit->actor_index != k_datum_index_none && unit->animation_state != 0x1d &&
-        (int8_t)unit->unknown_322 > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
+        (int8_t)unit->control_idle_ticks > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
         (biped->last_flee_reaction_tick == -1 ||
          (int32_t)(biped->last_flee_reaction_tick + 0xf) < game_time->game_time)) {
         real_vector3d direction;

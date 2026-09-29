@@ -76,7 +76,7 @@ datum_index player_new_network(datum_index requested_index, uint32_t machine_ind
         p->name[11] = 0;
 
         p->local_player_index = local_player_index;
-        p->unknown_dc = 0;
+        p->ping_ms = 0;
         p->medal_streak_count = 0;
         p->medal_streak_timer = 0;
         p->unit = (datum_index)-1;
@@ -90,7 +90,7 @@ datum_index player_new_network(datum_index requested_index, uint32_t machine_ind
         p->interaction_type = 0;
         p->interaction_object = (datum_index)-1;
 
-        p->unknown_d0 = (datum_index)-1;
+        p->removal_tick = (datum_index)-1;
         p->marked_for_deletion = 0;
         p->odd_man_out = 0;
         p->unknown_e8 = 0;

@@ -35,7 +35,7 @@ void player_effect_set_camera_shake(player_effect *self, player_camera_shake *de
     self->shake.duration = duration * self->shake.duration;
     self->shake_ticks = (int16_t)self->shake.duration;
     self->flags |= _player_effect_camera_shake_bit;
-    self->shake.unknown_20 = duration * self->shake.unknown_20;
+    self->shake.wobble_period = duration * self->shake.wobble_period;
 }
 
 #if 0

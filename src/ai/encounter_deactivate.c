@@ -67,7 +67,7 @@ void encounter_deactivate(datum_index encounter_index)
             actor_delete_swarm(current);
             actor_set_units_active(current, 1);
             a->active = 0;
-            a->unknown_0c = (datum_index)game_time->game_time;
+            a->deactivation_tick = (datum_index)game_time->game_time;
         }
     }
 }

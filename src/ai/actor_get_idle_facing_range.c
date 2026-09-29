@@ -6,10 +6,10 @@
 // pointer into the actor's Actor tag data: the three candidate offsets (0xdc, 0xf4, 0x10c)
 // are exactly Actor.noncombat_idle_facing / guard_idle_facing / combat_idle_facing
 // (offsetof against types/tags.h, #pragma pack(1)), each a float[2] pair, selected by
-// actor.unknown_3fc.
+// actor.idle_stance.
 // register convention: actor_index in EAX (Ghidra's in_EAX).
 // blam-cc: EAX -> actor_index
-// UNSURE: actor.unknown_3fc's own meaning (a posture/behavior-state selector: 2 -> guard,
+// UNSURE: actor.idle_stance's own meaning (a posture/behavior-state selector: 2 -> guard,
 // 3..4 -> combat, else -> noncombat) is not established beyond this use.
 
 #include "tags.h"
@@ -29,7 +29,7 @@ float *actor_get_idle_facing_range(datum_index actor_index)
     int16_t state;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    state = self->unknown_3fc;
+    state = self->idle_stance;
     definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
 
     if (state == 2) {

@@ -6,7 +6,7 @@
 // (per-player rows with ping, plus the server's IP:port) using the ui\multiplayer_game_text UI
 // tag and chimera__draw_16_bit_text"); types/game.h scoreboard_entry (0x1c bytes: player,
 // unknown_04, key_0..key_3, place) and player (local_player_index +0x02, team +0x20, unit +0x34,
-// marked_for_deletion +0xd5, deaths +0xae, unknown_dc +0xdc); already-committed sibling files in
+// marked_for_deletion +0xd5, deaths +0xae, ping_ms +0xdc); already-committed sibling files in
 // this same batch and the adjacent scoreboard-rendering module supplied almost everything else:
 //   - select_players_to_display.c / game_engine_get_default_multiplayer_string.c /
 //     hud_draw_world_relative_text.c (0x4653f0, this batch) / game_engine_multiplayer_ui_state_id
@@ -250,7 +250,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
                                                        : L"\t%s\t%s\t%s\t%d\t%d\t%d\t%d",
                                               team_text, p->name, status_text,
                                               visible[i].key_1, visible[i].key_3, visible[i].key_2,
-                                              p->unknown_dc);
+                                              p->ping_ms);
                     }
                 }
 

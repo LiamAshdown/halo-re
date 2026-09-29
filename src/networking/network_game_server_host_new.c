@@ -4,7 +4,7 @@
 // evidence: types/networking.h's own comment cites this address: "network_game_server_host_new
 // (0x4dec40) zeroes 0x284 dwords of 0x00861340, which is the size of network_server_globals."
 // Every field this function sets after the zero (flags bit1, session.message_callback,
-// session.unknown_19e, and the 16-entry machines[] init matching network_machine's
+// session.difficulty, and the 16-entry machines[] init matching network_machine's
 // channel/unknown_04/unknown_08/machine_id/flags/unknown_50/unknown_51/unknown_52/unknown_56/
 // unknown_5c fields, including the header's own "unaligned in the original" note on
 // unknown_52/unknown_56) matches types/networking.h exactly.
@@ -29,7 +29,7 @@ extern int32_t network_scenario_round_counter_a;                       // 0x0069
 extern uint8_t network_scenario_round_counter_b;                        // 0x0071cc24, UNSURE identity
 extern uint8_t unknown_00861d4e;                        // 0x00861d4e, UNSURE identity (beyond network_server_globals)
 extern uint8_t unknown_00861d4f;                        // 0x00861d4f, UNSURE identity
-extern int16_t pending_difficulty;                        // 0x00696564, UNSURE identity; seeds session.unknown_19e
+extern int16_t pending_difficulty;                        // 0x00696564, UNSURE identity; seeds session.difficulty
 
 extern void network_channels_open(void); // 0x441300, this module
 extern network_channel *network_channel_new(uint32_t flags); // 0x4dc9b0, this batch
@@ -60,7 +60,7 @@ void *network_game_server_host_new(void)
         host->unknown_004 = 0;
         network_game_session_reset(&host->session);
         host->session.message_callback = (void *)network_session_reject_pending_connection_callback; // 0x4e1410
-        host->session.unknown_19e = pending_difficulty;
+        host->session.difficulty = pending_difficulty;
         *(int32_t *)((uint8_t *)host + 0x3b0) = -1; // UNSURE: lands within session.unknown_3a2[10]
         for (i = 0; i < 16; i++) {
             machine = &host->machines[i];
@@ -82,7 +82,7 @@ void *network_game_server_host_new(void)
         *(uint32_t *)&host->unknown_9bc[0x10] = 0; // 0x9cc
         *(uint32_t *)&host->unknown_9bc[0x00] = 0; // 0x9c0 -- UNSURE: see header re 0x9bc range
         *(uint32_t *)&host->unknown_9bc[0x14] = 0; // 0x9d0
-        host->unknown_9f9 = 0;
+        host->scenario_announcement_sent = 0;
         host->unknown_9fa = 0;
         host->unknown_9f8 = 0;
         *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1; // see above

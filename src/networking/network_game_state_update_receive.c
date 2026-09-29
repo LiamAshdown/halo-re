@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_functions.md summary ("Processes an incoming sequenced
 // game-state update packet, growing the per-connection reassembly buffer as needed and handing
 // the payload off for application"). client+0xecc/+0xed0 match types/networking.h's
-// network_client_globals::unknown_ecc/unknown_ed0 exactly.
+// network_client_globals::last_state_update_sequence/last_state_update_ms exactly.
 // register convention: __cdecl-shaped stack parameters (client, the incoming record) per
 // Ghidra's own recovery. // blam-cc: stack -> client, record
 // UNSURE: client+0xcb4 lands at session-relative offset 0x1a0, exactly
@@ -65,7 +65,7 @@ int32_t network_game_state_update_receive(network_client_globals *client, uint8_
         *(int16_t *)(record + 0xe) = target_capacity;
     }
 
-    if (*(uint32_t *)record <= (uint32_t)client->unknown_ecc ||
+    if (*(uint32_t *)record <= (uint32_t)client->last_state_update_sequence ||
         (network_server == 0 && (uint32_t)game_time->game_time == *(uint32_t *)(record + 8) &&
          *(uint32_t *)(record + 4) != random_seed_global)) {
         network_disconnect_notify_dropped_machines(client);
@@ -86,11 +86,11 @@ int32_t network_game_state_update_receive(network_client_globals *client, uint8_
     }
 
     update_client_advance_read_cursor(local_buffer); // UNSURE argument
-    client->unknown_ecc = *(uint32_t *)record;
+    client->last_state_update_sequence = *(uint32_t *)record;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-    client->unknown_ed0 = now_ms;
+    client->last_state_update_ms = now_ms;
     return 1;
 }
 

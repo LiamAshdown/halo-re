@@ -30,7 +30,7 @@ void ai_actor_unlink_from_unassigned_list(datum_index actor_index)
         *link = a->next_in_encounter;
         a->unknown_09 = 0;
         a->next_in_encounter = (datum_index)k_datum_index_none;
-        a->unknown_0a = 0;
+        a->force_active = 0;
     }
 }
 

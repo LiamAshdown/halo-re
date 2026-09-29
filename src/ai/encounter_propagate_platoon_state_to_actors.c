@@ -90,7 +90,7 @@ void encounter_propagate_platoon_state_to_actors(datum_index encounter_index)
         platoon_index = member->platoon_index;
         if (platoon_index != -1) {
             platoon_state = &encounter_platoon_states[(int16_t)(self->first_platoon + platoon_index)];
-            attacking_flag = platoon_state->unknown_00;
+            attacking_flag = platoon_state->defending;
             if ((((uint8_t *)platoon_state)[1] == 0) || (((uint8_t *)platoon_state)[2] != 0)) {
                 ready = 0;
             } else {

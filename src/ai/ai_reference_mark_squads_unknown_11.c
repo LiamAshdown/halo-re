@@ -26,7 +26,7 @@ void ai_reference_mark_squads_unknown_11(uint32_t packed_reference)
         ai_reference_squad_iterator_new(packed_reference, &iterator);
         state = ai_reference_squad_iterator_next(&iterator);
         while (state != 0) {
-            state->unknown_11 = 1;
+            state->timer_started = 1;
             state = ai_reference_squad_iterator_next(&iterator);
         }
     }

@@ -2,7 +2,7 @@
 // address 0x45a720, size 114 bytes
 // name confidence: 0.45   rewrite confidence: 0.55
 // evidence: types/game.h player_globals::local_players (0x0087a478+4), player::unit (0x34);
-//   types/units.h unit_data::unknown_37c/flags. Same field writes as
+//   types/units.h unit_data::active_camo_amount/flags. Same field writes as
 //   cheat_make_selected_object_invincible.c (0x45a6c0), applied to a specific local player's
 //   unit instead of a debug-selected object.
 // register convention: local-player slot in AX (in_AX; only slot 0 is ever valid, matching
@@ -37,7 +37,7 @@ void cheat_make_player_invincible(int16_t local_player_slot)
             unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
             unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
             unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-            unit->unknown_37c = 1.0f;
+            unit->active_camo_amount = 1.0f;
             if ((unit->flags & 0x10) != 0) {
                 unit->flags = unit->flags | 0x20;
             }

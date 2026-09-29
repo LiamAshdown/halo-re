@@ -78,7 +78,7 @@ datum_index player_new_local(datum_index requested_handle, uint32_t machine_inde
         wcsncpy((wchar_t *)p->name, name_source, 11);
         p->name[11] = 0;
 
-        p->unknown_dc = 0;
+        p->ping_ms = 0;
         p->medal_streak_count = 0;
         p->medal_streak_timer = 0;
         p->local_player_index = local_player_index;
@@ -93,7 +93,7 @@ datum_index player_new_local(datum_index requested_handle, uint32_t machine_inde
         p->interaction_type = 0;
         p->interaction_object = (datum_index)-1;
 
-        p->unknown_d0 = (datum_index)-1;
+        p->removal_tick = (datum_index)-1;
         p->marked_for_deletion = 0;
         p->unknown_ec = (datum_index)-1;
         p->unknown_e8 = -1; // UNSURE: unknown_e8 is int32_t; player_new_network sets it to 0

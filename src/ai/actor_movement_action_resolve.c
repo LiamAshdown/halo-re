@@ -106,7 +106,7 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
     self->movement_action_complete = 0;
     self->movement_completed = 0;
     self->movement_timer = 0;
-    self->unknown_506 = 0;
+    self->steer_arrived = 0;
 
     switch (type) {
     case 2:

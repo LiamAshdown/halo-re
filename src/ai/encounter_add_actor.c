@@ -112,8 +112,8 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
 
     if (platoon_index != -1) {
         platoon_state = &encounter_platoon_states[(int16_t)(enc->first_platoon + platoon_index)];
-        a->platoon_defending_pending = platoon_state->unknown_00;
-        a->platoon_defending = platoon_state->unknown_00;
+        a->platoon_defending_pending = platoon_state->defending;
+        a->platoon_defending = platoon_state->defending;
         platoon_state->member_count = platoon_state->member_count + 1;
     }
     enc->dirty = 1;
