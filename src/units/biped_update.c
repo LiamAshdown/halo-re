@@ -396,9 +396,9 @@ tail:
         unit_snap_to_min_ground_height(object_index);
     }
     if ((obj[0x106] & 4) != 0 && (obj[0x10] & 0x20) != 0) {
-        (*(int16_t *)&((struct biped_object *)obj)->base.unknown_0bc)++;
+        (*(int16_t *)&((struct biped_object *)obj)->base.dead_rest_ticks)++;
     } else {
-        *(int16_t *)&((struct biped_object *)obj)->base.unknown_0bc = 0;
+        *(int16_t *)&((struct biped_object *)obj)->base.dead_rest_ticks = 0;
     }
     return 1;
 }

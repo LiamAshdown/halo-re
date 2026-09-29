@@ -8,7 +8,7 @@
 //   unit_refresh_targeting_flag_and_weapons) with actor_link_to_unit_cluster @0x4279f0, which has the identical
 //   sequence (see that file for the flags-before/flags-after re-read this preserves).
 //   UNSURE: object+0xbe (compared against 99) has no established field name; objects.h only
-//   names +0xbc as an opaque unknown_0bc dword, so +0xbe would be its upper 16 bits. Kept as
+//   names +0xbc as an opaque dead_rest_ticks dword, so +0xbe would be its upper 16 bits. Kept as
 //   a raw offset. ai_encounter_stamp_team_from_unit's real signature is unknown (outside this rewrite's range).
 
 #include "tags.h"

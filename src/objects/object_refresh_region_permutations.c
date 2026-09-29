@@ -11,7 +11,7 @@
 //   0x4f8f5f mov eax,ebx at entry with no stack access at all.
 //   // blam-cc: EBX -> object_index
 // UNSURE: the cached probability-group field at object+0xbe falls inside types/objects.h's
-//   documented uint32_t unknown_0bc (0xbc..0xbf); read/written here as a raw int16 at +0xbe
+//   documented uint32_t dead_rest_ticks (0xbc..0xbf); read/written here as a raw int16 at +0xbe
 //   rather than a named field.
 
 #include "tags.h"

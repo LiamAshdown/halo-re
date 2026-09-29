@@ -28,7 +28,7 @@
 //   built with a Ghidra CONCAT3/1 trick (high 24 bits reused from an unrelated live register,
 //   low byte a genuine boolean); only the boolean (whether the Object tag has a model) is
 //   passed through here. UNSURE: object+0xbe (the upper half of the undocumented
-//   object.unknown_0bc field) and object+0xc4 (object.creator_object) are written with
+//   object.dead_rest_ticks field) and object+0xc4 (object.creator_object) are written with
 //   placement->permutation_group and placement->role respectively, on raw offsets rather than
 //   named fields since types/objects.h does not split those dwords further.
 // reconciled: R28 object.unknown_0c4 -> datum_index creator_object (same offset 0xc4)

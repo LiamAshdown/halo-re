@@ -388,7 +388,7 @@ typedef struct object {
                                     //       0..9; object_placement_data_initialize (0x4f5411)
                                     //       copies the creating object's team (inheritance)
     int16_t render_cache_slot;      // 0x0ba -1 at create; object_reserve_render_cache_slot
-    uint32_t unknown_0bc;           // 0x0bc
+    uint32_t dead_rest_ticks;       // 0x0bc int16 counter (read through a cast): biped_update counts ticks a dead unit (vitality bit 4) has object flag 0x20 set, else 0; game_engine_cleanup_dropped_objects deletes past 900
     uint32_t owner_linkage;         // 0x0c0 seeded from the creating object at the same offset
     datum_index creator_object;     // 0x0c4 the creating object (formerly unknown_0c4), from
                                     //       object_placement_data 0x0c (0x4f5705);
