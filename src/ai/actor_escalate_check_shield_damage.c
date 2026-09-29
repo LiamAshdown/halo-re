@@ -29,7 +29,7 @@ uint8_t actor_escalate_check_shield_damage(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
 
-    if (!act[0x2ec] || !(((struct actor *)act)->unknown_1c0 > ((Actor *)actor_tag)->berserk_damage_amount) ||
+    if (!act[0x2ec] || !(((struct actor *)act)->recent_damage_taken > ((Actor *)actor_tag)->berserk_damage_amount) ||
         !(((struct actor *)act)->unknown_1b8 < ((Actor *)actor_tag)->berserk_damage_threshold)) {
         return 0;
     }

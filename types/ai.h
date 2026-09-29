@@ -429,7 +429,7 @@ typedef struct actor {
     uint8_t unknown_1b4[4];           // 0x1b4
     float unknown_1b8;                // 0x1b8
     uint8_t unknown_1bc[4];           // 0x1bc
-    float unknown_1c0;                // 0x1c0
+    float recent_damage_taken;        // 0x1c0 compared with Actor.cover_damage_threshold and berserk_damage_amount (only read in ai; writer is outside it)
     uint8_t unknown_1c4[4];           // 0x1c4
     uint8_t unknown_1c8;              // 0x1c8
     uint8_t unknown_1c9;              // 0x1c9 encounter_add_actor copies the platoon state byte here and to unknown_374
@@ -524,7 +524,7 @@ typedef struct actor {
     uint8_t ignores_glass;            // 0x376 actor_new rolls Actor.glass_ignorance_chance at Actor+0x90 once into this
     uint8_t unknown_377;              // 0x377
     uint8_t combat_alert_flag;        // 0x378 set by actor_set_combat_alert_flag; nonzero selects the alert stance, grenade and melee thresholds
-    uint8_t unknown_379;              // 0x379
+    uint8_t alert_response_sent;      // 0x379 set once actor_movement_update has turned toward the alert and broadcast 0x2a; actor_set_combat_alert_flag clears it
     uint8_t unknown_37a[2];           // 0x37a
     float search_wait_time;           // 0x37c 0x4028e0 reads this and unknown_388 as reaction wait thresholds
     float unknown_380;                // 0x380

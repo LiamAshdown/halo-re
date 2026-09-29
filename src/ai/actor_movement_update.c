@@ -441,7 +441,7 @@ void actor_movement_update(datum_index actor_index)
     if (a->secondary_action == -1 &&
         (a->unit_index == (datum_index)k_datum_index_none || unit_is_in_busy_animation_state(a->unit_index) == 0) &&
         a->active_unit_index == (datum_index)k_datum_index_none &&
-        a->unknown_15c == 0 && a->combat_alert_flag != 0 && a->unknown_379 == 0) {
+        a->unknown_15c == 0 && a->combat_alert_flag != 0 && a->alert_response_sent == 0) {
         real_vector2d facing;
         datum_index target_object = (datum_index)k_datum_index_none;
 
@@ -461,7 +461,7 @@ void actor_movement_update(datum_index actor_index)
         ai_communication_broadcast(0x2a, a->unit_index, target_object, 3,
                                    (datum_index)k_datum_index_none,
                                    (datum_index)k_datum_index_none, 0);
-        a->unknown_379 = 1;
+        a->alert_response_sent = 1;
     }
 
     if (vehicle_stuck) {

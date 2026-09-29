@@ -43,7 +43,7 @@ void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag)
         return;
     }
     self->combat_alert_flag = new_flag;
-    self->unknown_379 = 0;
+    self->alert_response_sent = 0;
 
     if (self->swarm == 0) {
         unit_obj = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
