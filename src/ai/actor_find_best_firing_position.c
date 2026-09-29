@@ -177,7 +177,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
             query->target_relationship_object = target->relationship_object_index;
             query->target_unknown_658 = target->unknown_20;
 
-            if (query->unknown_41 == 0 || ((struct prop *)target)->unknown_8c == -1) {
+            if (query->unknown_41 == 0 || ((struct prop *)target)->last_look_tick == -1) {
                 query->target_lead_position = *(real_point3d *)&((struct prop *)target)->unknown_104;
             } else {
                 query->target_lead_position = *(real_point3d *)&((struct prop *)target)->unknown_90;

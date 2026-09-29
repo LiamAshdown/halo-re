@@ -439,8 +439,8 @@ restart:
     case 2:
         if (target->unknown_30 < 1) {
             if (target->unknown_4c != 0) {
-                float dx = target->last_known_position.x - target->unknown_80.x;
-                float dy = target->last_known_position.y - target->unknown_80.y;
+                float dx = target->last_known_position.x - target->previous_known_position.x;
+                float dy = target->last_known_position.y - target->previous_known_position.y;
                 if (dx * dx + dy * dy <= 1.0f) {
                     break;
                 }

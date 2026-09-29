@@ -43,9 +43,9 @@ void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop)
     dest->noticed_b = 0;
     dest->noticed_c = 0;
     {
-        float dx = dest->last_known_position.x - dest->unknown_80.x;
-        float dy = dest->last_known_position.y - dest->unknown_80.y;
-        float dz = dest->last_known_position.z - dest->unknown_80.z;
+        float dx = dest->last_known_position.x - dest->previous_known_position.x;
+        float dy = dest->last_known_position.y - dest->previous_known_position.y;
+        float dz = dest->last_known_position.z - dest->previous_known_position.z;
         dest->unknown_40 = *(uint32_t *)&dx;
         dest->unknown_44 = *(uint32_t *)&dy;
         dest->unknown_48 = *(uint32_t *)&dz;

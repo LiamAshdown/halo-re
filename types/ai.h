@@ -799,9 +799,9 @@ typedef struct prop {
     uint8_t unknown_75;               // 0x75
     int16_t unknown_76;               // 0x76 0x43e640 sets 1000 for a vault prop, otherwise 0
     float unknown_78;                 // 0x78
-    int32_t unknown_7c;               // 0x7c
-    real_point3d unknown_80;          // 0x80
-    int32_t unknown_8c;               // 0x8c
+    int32_t last_known_tick;          // 0x7c game time last_known_position was last set from ground_position (actor_target_update_tracking_speed)
+    real_point3d previous_known_position; // 0x80 earlier last_known_position; the difference is stored as the 0x40 velocity estimate
+    int32_t last_look_tick;           // 0x8c game time of the last non-zero look-handler result (0x90..0x98 keep that result's point)
     uint32_t unknown_90;              // 0x90
     uint32_t unknown_94;              // 0x94
     uint32_t unknown_98;              // 0x98

@@ -91,7 +91,7 @@ void actor_update_target_combat_status(datum_index actor_index)
     } else {
         self->unknown_27c = (uint8_t)(target->is_vault == 0);
         if (0 < target->unknown_32) {
-            self->target_status_tick = target->unknown_8c;
+            self->target_status_tick = target->last_look_tick;
         }
     }
 }

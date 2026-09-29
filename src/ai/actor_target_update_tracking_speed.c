@@ -422,7 +422,7 @@ after_engage:
                         p->unknown_90 = ((struct prop *)p)->unknown_104;
                         p->unknown_94 = ((struct prop *)p)->unknown_108;
                         p->unknown_98 = ((struct prop *)p)->unknown_10c;
-                        p->unknown_8c = tick;
+                        p->last_look_tick = tick;
                     }
                 }
             }
@@ -471,7 +471,7 @@ after_engage:
 
         if (p->unknown_30 != 0) {
             p->last_known_position = p->ground_position;
-            p->unknown_7c = tick;
+            p->last_known_tick = tick;
         }
 
         if (2 <= p->kind && p->kind < 4 &&

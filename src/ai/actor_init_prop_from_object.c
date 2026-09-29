@@ -58,8 +58,8 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
     p->unknown_b0 = -1;
     p->unknown_b8 = 0;
     p->unknown_b4 = -1;
-    p->unknown_7c = -1;
-    p->unknown_8c = -1;
+    p->last_known_tick = -1;
+    p->last_look_tick = -1;
     p->unknown_4e = 0;
     p->owner_actor_index = (datum_index)0xffffffff;
     p->pair_index = (datum_index)0xffffffff;

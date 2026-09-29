@@ -102,8 +102,8 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
 
                 if (!skip_close_check) {
                     kind = p->kind;
-                    if ((kind < 4 || 5 < kind) && p->unknown_8c != -1 &&
-                        current_tick <= p->unknown_8c + 0x5a) {
+                    if ((kind < 4 || 5 < kind) && p->last_look_tick != -1 &&
+                        current_tick <= p->last_look_tick + 0x5a) {
                         return 1;
                     }
                     if ((kind < 4 || 5 < kind) && p->distance < 4.0f) {
