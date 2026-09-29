@@ -5,7 +5,7 @@
 //   at target-data+0x9c/+0xa0 (using the game-time global) based on param_1, then refreshes
 //   derived fields via the functions now named actor_target_update_active_flag (0x41fc60) and
 //   actor_rate_potential_target (0x41fd50), storing the latter into +0x50. Matches
-//   prop.unknown_9c/unknown_a0/engaged/desirability in types/ai.h.
+//   prop.unknown_9c/engaged_tick/engaged/desirability in types/ai.h.
 // register convention: EAX -> target_prop_index; param_1 (char) is Ghidra's recognized stack
 //   parameter, the mark/clear flag.
 //   // blam-cc: EAX -> target_prop_index, EBX -> actor_index, stack -> mark_engaged
@@ -37,12 +37,12 @@ void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_
 
     if (mark_engaged == 0) {
         target->unknown_9c = 0;
-        target->unknown_a0 = -1;
+        target->engaged_tick = -1;
     } else {
         if (target->unknown_9c == 0) {
             target->unknown_9c = 1;
         }
-        target->unknown_a0 = game_time->game_time;
+        target->engaged_tick = game_time->game_time;
     }
 
     target->engaged = actor_target_update_active_flag(actor_index, target_prop_index);

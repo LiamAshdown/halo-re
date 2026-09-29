@@ -89,7 +89,7 @@ uint8_t unit_new(uint32_t object_index)
     }
 
     unit->unknown_475 = 0;
-    unit->unknown_4bc = -1;
+    unit->control_source_id = -1;
     unit->equipment_object_index = (datum_index)-1;
     unit->weapons[0] = (datum_index)-1;
     unit->weapons[1] = (datum_index)-1;
@@ -166,15 +166,15 @@ uint8_t unit_new(uint32_t object_index)
     }
 
     unit->unknown_404 = 0;
-    unit->unknown_406 = 0;
-    unit->unknown_408 = 0.0f;
-    unit->unknown_40c = (datum_index)-1;
+    unit->threat_reaction_delay_ticks = 0;
+    unit->threat_reaction_damage = 0.0f;
+    unit->threat_reaction_object = (datum_index)-1;
     unit->unknown_41c = -1;
     unit->unknown_334 = -1;
     unit->unknown_336 = -1;
-    unit->unknown_344 = 1.0f;
-    unit->unknown_28b = 0;
-    unit->unknown_410 = -1;
+    unit->flashlight_battery = 1.0f;
+    unit->stun_ticks_remaining = 0;
+    unit->stun_responsible_object = -1;
     unit->ai_communication_count = 0;
     unit->ai_communication_tick = -1;
 

@@ -1,7 +1,7 @@
 // unit_find_nearest_valid_surface_plane  (Ghidra: unit_find_nearest_valid_surface_plane)
 // address 0x560630, size 446 bytes
 // name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.9
-// evidence: types/units.h biped_data.ground_surface_index/.ground_normal/.unknown_520
+// evidence: types/units.h biped_data.ground_surface_index/.ground_normal/.ground_plane_offset
 //   (0x4d8/0x514/0x520), and the comment "0x560630 found" on ground_surface_index; also writes
 //   object.up (0x80, "puVar1+0x80/0x84/0x88" here matches the current up-vector unit_update_up_vector
 //   (0x560800) reads).

@@ -284,7 +284,7 @@ void effect_spawn_particles(effect *self)
                     effect_random_velocity_vector(self, &effect_random_seed, (real_vector3d *)(pt + 0x20),
                         &raw_direction, &raw_velocity, *(real *)(pt + 0x84), *(real *)(pt + 0x88),
                         *(real *)(pt + 0x8c), a_bits, (uint8_t)b_bits);
-                    effect_spawn_particles_rotate_unscaled((real_vector3d *)&record.unknown_1c, raw_direction.i, raw_direction.j,
+                    effect_spawn_particles_rotate_unscaled((real_vector3d *)&record.direction, raw_direction.i, raw_direction.j,
                         raw_direction.k, m);
                     effect_spawn_particles_transform_normal(&record.velocity, raw_velocity.i, raw_velocity.j,
                         raw_velocity.k, m);
@@ -304,13 +304,13 @@ void effect_spawn_particles(effect *self)
                     }
                     effect_spawn_particles_transform_point(&position, record.position.x, record.position.y,
                         record.position.z, node);
-                    effect_spawn_particles_rotate_unscaled(&direction, record.unknown_1c.x, record.unknown_1c.y,
-                        record.unknown_1c.z, node);
+                    effect_spawn_particles_rotate_unscaled(&direction, record.direction.x, record.direction.y,
+                        record.direction.z, node);
                     effect_spawn_particles_transform_normal(&velocity, record.velocity.i, record.velocity.j,
                         record.velocity.k, node);
                 } else {
                     position = record.position;
-                    direction = *(real_vector3d *)&record.unknown_1c;
+                    direction = *(real_vector3d *)&record.direction;
                     velocity = record.velocity;
                 }
 
@@ -348,7 +348,7 @@ void effect_spawn_particles(effect *self)
                         record.gravity = *(real_vector3d *)global_origin3d_pointer;
                     }
                     record.position = position;
-                    *(real_vector3d *)&record.unknown_1c = direction;
+                    *(real_vector3d *)&record.direction = direction;
                     record.object_index = 0xffffffff;
                     record.marker_index = -1; // left stale by the binary; unused without an object
                     record.velocity.i = self->velocity.i * 30.0f + velocity.i;

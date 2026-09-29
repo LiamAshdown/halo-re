@@ -2768,3 +2768,15 @@ Start totals (live code): 7135 offsets, 896 Ghidra names, 74 Ghidra types.
 - iter 106 (ai): prop 0x32 perception_grade (result of the perception range test: 0 unseen .. 3 within 6 units), 0x38 engagement_reachability (actor_evaluate_engagement_reachability result, passed as the posture); actor's own unknown_38 untouched. ai gcc set unchanged.
 - iter 107 (game): game_variant 0x90 -> tracked_slot_count (loop bound over king_hill_occupant_table / oddball_ball_timers, <= 16; set by the oddball, juggernaut, stalker, accumulation... defaults). game gcc set unchanged.
 - iter 108 (game): game_variant oddball-engine fields (engine index 3 = oddball, 4 = king; the game_engine_koth_* functions that read them are really oddball code): 0x84 oddball_trait_with_ball (1 = invisible), 0x88 oddball_trait_without_ball, 0x8c oddball_style (0 oddball, 1 reverse tag/accumulation, 2 juggernaut/stalker), 0x90 tracked_slot_count -> ball_count. Player 0x88 etc. same-offset uses reverted. game gcc set unchanged.
+- unit_data 0x344 unknown_344 -> flashlight_battery: drains 1/3600 while light on, recharges 1/900, gates toggle at >0.2 in unit_update (0.85)
+- unit_data 0x28b -> stun_ticks_remaining (unit_enter_stunned_state seeds random duration, ==0 gate) (0.85)
+- unit_data 0x410 -> stun_responsible_object (stored by enter_stunned_state, used as source in autoaim) (0.8)
+- unit_data 0x4b8/0x4bc -> control_source_valid/control_source_id (unit_apply_control_block) (0.85)
+- unit_data 0x406/0x408/0x40c -> threat_reaction_delay_ticks/damage/object (delayed actor_react_to_threat_event in unit_update) (0.8)
+- biped 0x520 -> ground_plane_offset (plane d beside ground_normal, solve.ground_plane, default resting plane[3]) (0.9); 0x4fc/0x500 -> tracked_target/tracked_target_ticks (biped_update_target_lock_timer) (0.8); 0x504 -> target_lock_lost_ticks (unit_track_target_lock_timeout) (0.8)
+- object 0x122 -> shield_recharge_started (set by object_shield_recharge_start, consumed/cleared by unit network update) (0.8)
+- rasterizer_window_parameters.unknown_04 -> has_mirror (render_window.c assigns has_mirror; gates mirror/self-illum paths) high
+- rasterizer_model_draw_context/transparent_geometry_group unknown_04 -> object_index (render_model sets object_index; used as animation phase seed) medium-high
+- decal_type_parameters unknown_04 -> fallback_edge_angle, unknown_0c -> use_fallback_surfaces (decal_flood_surfaces / decal_place) medium-high
+- particle_creation_data unknown_1c -> direction (local var direction, rotated raw_direction) medium
+- cinematic_screen_effect_globals unknown_21/22 -> night_vision_masked/desaturation_masked (weapon block mirror names in header comment) medium

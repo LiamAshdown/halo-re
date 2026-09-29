@@ -432,7 +432,7 @@ typedef struct actor {
     float recent_damage_taken;        // 0x1c0 compared with Actor.cover_damage_threshold and berserk_damage_amount (only read in ai; writer is outside it)
     uint8_t unknown_1c4[4];           // 0x1c4
     uint8_t unknown_1c8;              // 0x1c8
-    uint8_t unknown_1c9;              // 0x1c9 encounter_add_actor copies the platoon state byte here and to unknown_374
+    uint8_t platoon_defending_pending; // 0x1c9 platoon state byte from encounter_add_actor / propagate; crouch update copies it to platoon_defending
     uint8_t unknown_1ca;              // 0x1ca
     uint8_t unknown_1cb;              // 0x1cb 0x434d40 sets it on every member of a squad
     uint8_t unknown_1cc;              // 0x1cc actor_new sets 0
@@ -519,7 +519,7 @@ typedef struct actor {
     uint8_t unknown_350[0x1c];        // 0x350 actor_new zeroes 0x1a dwords starting here, i.e. 0x350..0x3b7
     datum_index unknown_36c;          // 0x36c actor_new sets none
     datum_index unknown_370;          // 0x370 actor_new sets none
-    uint8_t unknown_374;              // 0x374 encounter_add_actor copies the platoon state byte here
+    uint8_t platoon_defending;        // 0x374 platoon defending flag; selects defending vs attacking firing groups
     uint8_t unknown_375;              // 0x375
     uint8_t ignores_glass;            // 0x376 actor_new rolls Actor.glass_ignorance_chance at Actor+0x90 once into this
     uint8_t unknown_377;              // 0x377
@@ -764,7 +764,7 @@ typedef struct prop {
     float unknown_20;                 // 0x20 copied from the object type definition at +0x284
     int16_t kind;                     // 0x24 0..1 are reserved kinds, 4..5 the shared / vault kinds, 6 the parented kind
     uint8_t unknown_26[2];            // 0x26
-    int32_t unknown_28;               // 0x28 the tick a parented prop was created
+    int32_t owner_refresh_tick;       // 0x28 tick a parented prop was created / its owner last reassigned (90-tick period)
     datum_index unknown_2c;           // 0x2c
     int16_t unknown_30;               // 0x30
     int16_t perception_grade;         // 0x32 last actor_dispatch_look_handler_by_posture result: 0 unseen, 1 seen, 2 within range, 3 within 6 units
@@ -807,7 +807,7 @@ typedef struct prop {
     uint32_t unknown_98;              // 0x98
     int16_t unknown_9c;               // 0x9c
     uint8_t unknown_9e[2];            // 0x9e
-    int32_t unknown_a0;               // 0xa0 0x43e640 sets -1
+    int32_t engaged_tick;             // 0xa0 game tick the prop was marked engaged, -1 when not; expires after 150 ticks
     uint8_t engaged;                  // 0xa4 0x41fa80 marks the target actively engaged
     uint8_t unknown_a5;               // 0xa5
     int16_t unknown_a6;               // 0xa6
@@ -908,11 +908,11 @@ typedef struct encounter {
     uint8_t unknown_32[2];            // 0x32
     float average_vitality;           // 0x34 encounter_recompute_morale sums one vitality sample per live member here and then divides by member_count
     datum_index first_pursuit;        // 0x38 head of the ai_pursuit ("recently seen object") list
-    uint8_t unknown_3c;               // 0x3c ScenarioEncounter.flags bit 1
+    uint8_t respawn_enabled;          // 0x3c ScenarioEncounter.flags bit 1 (respawn_enabled); gates reinforcements
     uint8_t unknown_3d;               // 0x3d
     int16_t unknown_3e;               // 0x3e squad_create zeroes it
-    uint8_t unknown_40;               // 0x40 ScenarioEncounter.flags bit 2
-    uint8_t unknown_41;               // 0x41 ScenarioEncounter.flags bit 3
+    uint8_t initially_blind;          // 0x40 ScenarioEncounter.flags bit 2 (initially_blind)
+    uint8_t initially_deaf;           // 0x41 ScenarioEncounter.flags bit 3 (initially_deaf)
     uint8_t unknown_42;               // 0x42 squad_create sets 1
     uint8_t unknown_43;               // 0x43
     uint8_t unknown_44;               // 0x44 squad_create zeroes it

@@ -75,7 +75,7 @@ void widget_instance_handle_input_event(widget_instance *widget, UIWidgetDefinit
     controller_matches = (widget->hidden == 0 &&
                            (widget->controller_index == -1 || widget->controller_index == event[1]));
 
-    if (widget->unknown_16[0] == 1) {
+    if (widget->close_when_controller_connected[0] == 1) {
         int16_t controller = widget->controller_index;
         widget_instance *ancestor = widget;
 

@@ -81,8 +81,8 @@ typedef struct widget_instance {
     uint8_t hidden;                    // 0x12 skipped by the focus and hit-test walks
     uint8_t pauses_game_time;          // 0x13 definition flags bit 1, drives ui_pause_depth
     uint8_t closing;                   // 0x14 widget_close latches this to stay reentrant
-    uint8_t unknown_15;                // 0x15 tested by main_menu_on_shown @0x498ab0
-    uint8_t unknown_16[2];             // 0x16
+    uint8_t is_error_dialog;           // 0x15 set to 1 only by display_error; tested by main_menu_on_shown @0x498ab0 and the draw walks (drawn for every controller)
+    uint8_t close_when_controller_connected[2]; // 0x16 [0] set for error string 0xd; input handler closes the widget once a joystick slot device is present
     int32_t creation_time;             // 0x18 copied from ui_time_milliseconds
     int32_t milliseconds_to_auto_close;      // 0x1c definition + 0x30, negatives clamped to 0
     int32_t milliseconds_auto_close_fade;    // 0x20 definition + 0x34, negatives clamped to 0
@@ -346,8 +346,8 @@ typedef struct first_person_weapon_interface {
     int16_t unknown_10;        // 0x0010
     int16_t shutdown_countdown; // 0x0012 reseeded to 0x1e by 0x4942e0
     int16_t animation_index;   // 0x0014 first person animation index, -1 when none
-    int16_t unknown_16;        // 0x0016
-    uint8_t unknown_18[2];     // 0x0018
+    int16_t animation_block_index; // 0x0016 index into the animation graph animations block, -1 none (animation_state_advance state)
+    uint8_t animation_frame[2];   // 0x0018 frame word paired with animation_block_index
     int16_t unknown_1a;        // 0x001a
     uint8_t unknown_1c[4];     // 0x001c
     int16_t unknown_20;        // 0x0020

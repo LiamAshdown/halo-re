@@ -132,11 +132,11 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
             animation_block = (ModelAnimationsAnimation *)animations->animations.pointer;
             list_entries = (int16_t *)list->animations.pointer;
 
-            if (fp->unknown_16 != -1) {
+            if (fp->animation_block_index != -1) {
                 // 0x4938ef..0x493918: EDI = &animations[fp +0x16], EAX = 0 (no model), stack (fp +0x18 word,
                 // fp +0x8c). The draft's extern swapped the animation and the model (NULL animation, crash).
-                animation_get_frame_orientations(&animation_block[fp->unknown_16], (GBXModel *)0,
-                             (int16_t)*(uint16_t *)fp->unknown_18, animation_control);
+                animation_get_frame_orientations(&animation_block[fp->animation_block_index], (GBXModel *)0,
+                             (int16_t)*(uint16_t *)fp->animation_frame, animation_control);
             } else {
                 model_nodes_get_default_transforms(model, animation_control);
             }

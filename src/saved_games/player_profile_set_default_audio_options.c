@@ -4,7 +4,7 @@
 // evidence: out/phase4/saved_games_functions.md summary calls this "network/connection-related
 // option fields", but every offset touched (0xb78..0xb7f) is the audio block per
 // out/phase4/saved_games_types_notes.md (master_volume 0xb78, effects_volume 0xb79,
-// music_volume 0xb7a, unknown_b7b..unknown_b7f) -- the same fields and the same machine-class
+// music_volume 0xb7a, unknown_b7b..sound_variety) -- the same fields and the same machine-class
 // gated values player_profile_initialize (0x53a1c0) sets inline; trusting the header's field
 // table over the summary's guess.
 // register convention: profile in EAX.
@@ -25,11 +25,11 @@ extern uint32_t physical_memory; // machine class threshold
 uint8_t player_profile_set_default_audio_options(saved_player_profile *profile)
 {
     if (safe_mode == 0 && 1000 < cpu_speed && 0x80 < physical_memory) {
-        profile->unknown_b7d = 1;
-        profile->unknown_b7f = 2;
+        profile->sound_quality = 1;
+        profile->sound_variety = 2;
     } else {
-        profile->unknown_b7d = 0;
-        profile->unknown_b7f = 1;
+        profile->sound_quality = 0;
+        profile->sound_variety = 1;
     }
     profile->unknown_b7e = 0;
     profile->unknown_b7c = 0;

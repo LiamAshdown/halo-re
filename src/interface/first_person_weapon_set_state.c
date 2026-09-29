@@ -167,8 +167,8 @@ void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pos
         first_person_weapon_snapshot_pose(local_player_index, blend_gap);
     }
     fp->state = new_state;
-    fp->unknown_16 = animation_stage;
-    *(int16_t *)fp->unknown_18 = 0;
+    fp->animation_block_index = animation_stage;
+    *(int16_t *)fp->animation_frame = 0;
 }
 
 #if 0

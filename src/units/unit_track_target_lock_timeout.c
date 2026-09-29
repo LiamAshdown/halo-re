@@ -2,7 +2,7 @@
 // address 0x55ec90, size 94 bytes
 // name confidence: 0.3   rewrite confidence: 0.55
 // evidence: biped_data.flags bit 0 "grounded" and unknown_508 (types/units.h),
-//   biped_data.unknown_504 ("ticks without a target lock (0x55ec90)" -- already attributed to
+//   biped_data.target_lock_lost_ticks ("ticks without a target lock (0x55ec90)" -- already attributed to
 //   this function by name), unit_data.control_flags bit 2 (_unit_control_flag_jump).
 // register convention: object index in EDX (in_EDX).
 //   // blam-cc: EDX -> object_index
@@ -30,10 +30,10 @@ void unit_track_target_lock_timeout(uint32_t object_index)
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     if ((biped->flags & 1) == 0 && biped->unknown_508 != 1) {
-        if ((int8_t)biped->unknown_504 < 0x7f) {
-            biped->unknown_504 = biped->unknown_504 + 1;
+        if ((int8_t)biped->target_lock_lost_ticks < 0x7f) {
+            biped->target_lock_lost_ticks = biped->target_lock_lost_ticks + 1;
         }
-        if ((unit->control_flags & 2) != 0 && (int8_t)biped->unknown_504 > 5) {
+        if ((unit->control_flags & 2) != 0 && (int8_t)biped->target_lock_lost_ticks > 5) {
             unit_snap_to_min_ground_height(object_index);
         }
     }

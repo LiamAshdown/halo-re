@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.8
 // evidence: types/ai.h prop (actor_index +0x04, pair_index +0x0c, owner_actor_index +0x1c,
 // unknown_20 "copied from the object type definition at +0x284", object_index +0x18,
-// unknown_4e "0x43e640 zeroes it", unknown_76 "0x43e640 sets 1000 for a vault prop", unknown_a0
+// unknown_4e "0x43e640 zeroes it", unknown_76 "0x43e640 sets 1000 for a vault prop", engaged_tick
 // "0x43e640 sets -1", is_vault "Unit type definition byte +0x106 bit 2", is_parented "0x43e640
 // sets it when the tracked object has a parent"); actor.first_prop(+0x50). phase-4 summary
 // "initializes a firing-position node's fields from its target object (cluster, cover flags,
@@ -64,7 +64,7 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
     p->owner_actor_index = (datum_index)0xffffffff;
     p->pair_index = (datum_index)0xffffffff;
     p->unknown_6a = 0;
-    p->unknown_a0 = -1;
+    p->engaged_tick = -1;
 
     if (object_index != (datum_index)0xffffffff) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + 8 + (object_index & 0xffff) * 0xc);
@@ -90,7 +90,7 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
         } else {
             p->has_parent = 1;
             p->owner_actor_index = *(datum_index *)(object + 0x1f8);
-            p->unknown_28 = game_time->game_time;
+            p->owner_refresh_tick = game_time->game_time;
         }
 
         if (p->is_parented != 0) {

@@ -424,7 +424,7 @@ typedef struct object {
     datum_index parent_object;      // 0x11c -1 when unattached; the chain every root walk follows
     uint8_t parent_marker_index;    // 0x120 0xff when unattached
     uint8_t unknown_121;            // 0x121
-    uint8_t unknown_122;            // 0x122 set by object_shield_recharge_start
+    uint8_t shield_recharge_started;            // 0x122 set by object_shield_recharge_start
     uint8_t function_valid_flags;   // 0x123 bit i is set when function_out_values[i] is live
     float function_in_values[4];    // 0x124 a_in..d_in, written by the owning object type
     float function_out_values[4];   // 0x134 written by object_update_functions, read by

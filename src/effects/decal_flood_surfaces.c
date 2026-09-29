@@ -275,7 +275,7 @@ void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator 
             edge_index = (int32_t)(&edge->forward_edge)[surface_is_right];
         } while (edge_index != (int32_t)surface->first_edge);
 
-        if (angle <= k_decal_type_parameters[decal_type].unknown_04 * 0.017453292f &&
+        if (angle <= k_decal_type_parameters[decal_type].fallback_edge_angle * 0.017453292f &&
             fallback_count < 0x400) {
             fallback_queue[fallback_count] = surface_index;
             fallback_count = fallback_count + 1;

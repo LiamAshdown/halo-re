@@ -305,7 +305,7 @@ static void draw_glass_shader(transparent_geometry_group *group, const uint8_t *
     set_sampler_state(0, 6, 2);
     set_sampler_state(0, 7, 2);
 
-    if (reflection_type == 2 && (rasterizer_window.unknown_04 == 0 || rasterizer_window.type != 1)) {
+    if (reflection_type == 2 && (rasterizer_window.has_mirror == 0 || rasterizer_window.type != 1)) {
         // dynamic mirror outside the mirror pass: only the fixed function path draws it
         if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
             ((transparent_geometry_draw_procedure2)rasterizer_glass_draw_procedures[2])(group, 2);

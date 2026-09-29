@@ -8,7 +8,7 @@
 //   match vehicle_reset_state.c (0x570b00, the vehicle row's own +0x50 column), which zeroes
 //   vehicle_data's live 0x4cc..0x520 span the same way this function zeroes the whole 0x84-byte
 //   biped_data extension (0x21 dwords = 0x84 bytes, exactly types/units.h's biped_data size),
-//   then reseeds ground_normal/unknown_520 (+0x514..+0x520) from the same k_default_resting_plane
+//   then reseeds ground_normal/ground_plane_offset (+0x514..+0x520) from the same k_default_resting_plane
 //   constant object_physics_mass_point_resolve_ground_contact.c already established (0x0069c53c),
 //   and finally marks last_flee_reaction_tick (the "reacted within the last 15 ticks" rate-limit stamp) with
 //   the standard datum_index/-1 style invalid sentinel this module uses throughout.
@@ -25,7 +25,7 @@ extern data_array *object_data;           // 0x008603b0
 extern float k_default_resting_plane[4];  // 0x0069c53c
 
 // object_type_definition "biped" row, +0x50 column. Clears the whole biped_data extension to
-// zero, reseeds its ground_normal/unknown_520 from the shared default resting plane, and marks
+// zero, reseeds its ground_normal/ground_plane_offset from the shared default resting plane, and marks
 // last_flee_reaction_tick's rate-limit stamp invalid.
 void biped_reset_state(uint32_t object_index)
 {
@@ -41,7 +41,7 @@ void biped_reset_state(uint32_t object_index)
     biped->ground_normal.i = k_default_resting_plane[0];
     biped->ground_normal.j = k_default_resting_plane[1];
     biped->ground_normal.k = k_default_resting_plane[2];
-    biped->unknown_520 = *(uint32_t *)&k_default_resting_plane[3];
+    biped->ground_plane_offset = *(uint32_t *)&k_default_resting_plane[3];
     biped->last_flee_reaction_tick = -1;
 }
 

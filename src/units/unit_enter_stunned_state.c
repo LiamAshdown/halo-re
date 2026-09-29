@@ -3,8 +3,8 @@
 // name confidence: 0.45 (phase2 proposal at 0.45, matches functions.md summary)
 // rewrite confidence: 0.4
 // evidence: types/units.h unit_data.flags (0x204, bit 0x80 = _unit_flag_disoriented),
-//   .unknown_28b (0x28b, "countdown; 0x5705a0 seeds it with a random stun duration"),
-//   .unknown_410 (0x410, "stored by 0x5705a0, read back by 0x570720"); types/objects.h
+//   .stun_ticks_remaining (0x28b, "countdown; 0x5705a0 seeds it with a random stun duration"),
+//   .stun_responsible_object (0x410, "stored by 0x5705a0, read back by 0x570720"); types/objects.h
 //   object.vitality_flags (0x106); callees unit_drop_current_weapon (0x56dec0), 0x570650
 //   (this batch).
 // register convention: unit object index in EDI (unaff_EDI); the responsible object index in a
@@ -37,7 +37,7 @@ void unit_enter_stunned_state(uint32_t unit_index, uint32_t responsible_object)
     unit->flags |= _unit_flag_disoriented;
     obj->vitality_flags = (obj->vitality_flags & 0xfffb) | 0x800;
 
-    if (unit->unknown_28b == 0) {
+    if (unit->stun_ticks_remaining == 0) {
         int16_t duration;
 
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
@@ -49,8 +49,8 @@ void unit_enter_stunned_state(uint32_t unit_index, uint32_t responsible_object)
             duration = 0xff;
         }
 
-        unit->unknown_28b = (int8_t)duration;
-        unit->unknown_410 = responsible_object;
+        unit->stun_ticks_remaining = (int8_t)duration;
+        unit->stun_responsible_object = responsible_object;
         unit_initialize_random_turn_angle(unit_index);
     }
 }

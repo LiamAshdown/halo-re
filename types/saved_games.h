@@ -361,12 +361,12 @@ typedef struct saved_player_profile {
     int16_t screen_height;         // 0xa6a 600 (480)
     int16_t refresh_rate;          // 0xa6c 60, or the -vidmode refresh
     uint8_t unknown_a6e;           // 0xa6e 2
-    uint8_t unknown_a6f;           // 0xa6f 2 on low-end, else from the current display mode
-    uint8_t unknown_a70;           // 0xa70 capability flags set from the machine class
-    uint8_t unknown_a71;           // 0xa71
-    uint8_t unknown_a72;           // 0xa72 rasterizer_decal_zbias_active on high-end
-    uint8_t unknown_a73;           // 0xa73
-    uint8_t unknown_a74;           // 0xa74
+    uint8_t vsync_mode;           // 0xa6f 2 on low-end, else from the current display mode
+    uint8_t specular_enabled;           // 0xa70 capability flags set from the machine class
+    uint8_t shadows_enabled;           // 0xa71
+    uint8_t decals_enabled;           // 0xa72 rasterizer_decal_zbias_active on high-end
+    uint8_t particles_enabled;           // 0xa73
+    uint8_t texture_quality;           // 0xa74
     uint8_t unknown_a75;           // 0xa75 2
     int8_t gamma;                  // 0xa76 rasterizer_gamma_exponent (0x0071d1e0), 0 -> 1, -1 -> -2
     uint8_t unknown_a77[0x101];    // 0xa77 never written by this module
@@ -376,9 +376,9 @@ typedef struct saved_player_profile {
     uint8_t music_volume;          // 0xb7a 6
     uint8_t unknown_b7b;           // 0xb7b 0; gated by two sound capability flags in the UI
     uint8_t unknown_b7c;           // 0xb7c 0; a boolean row in the UI
-    uint8_t unknown_b7d;           // 0xb7d 1 on a fast machine else 0; UI list 0..2
+    uint8_t sound_quality;           // 0xb7d 1 on a fast machine else 0; UI list 0..2
     uint8_t unknown_b7e;           // 0xb7e 0
-    uint8_t unknown_b7f;           // 0xb7f 2 on a fast machine else 1; UI list 0..2
+    uint8_t sound_variety;           // 0xb7f 2 on a fast machine else 1; UI list 0..2
     uint8_t unknown_b80[0x100];    // 0xb80 never written by this module
     // 0xc80 .. 0xd8b, carried over as one 0x10b-byte block
     uint8_t unknown_c80;           // 0xc80 3

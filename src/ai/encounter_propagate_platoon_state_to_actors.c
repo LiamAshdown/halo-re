@@ -97,7 +97,7 @@ void encounter_propagate_platoon_state_to_actors(datum_index encounter_index)
                 ready = 1;
             }
         }
-        member->unknown_1c9 = attacking_flag;
+        member->platoon_defending_pending = attacking_flag;
 
         if (ready != 0) {
             squad_definition = &((ScenarioSquad *)encounter_definition->squads.pointer)[member->squad_index];

@@ -65,7 +65,7 @@ void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dyna
         group->primitive_count = primitive_count;
         group->dynamic_vertex_slot = dynamic_vertex_slot;
         group->lightmap_bitmap = lightmap_bitmap;
-        group->unknown_04 = 0;
+        group->object_index = 0;
         group->sort_key = 0;
         group->shader = (uint32_t)shader;
         group->shader_permutation = 0;

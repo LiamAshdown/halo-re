@@ -231,13 +231,13 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
 
         if (recent > 0.0f) {
             ((struct unit_object *)obj)->unit.unknown_404 = *(int16_t *)(effect_block + 0x2);
-            ((struct unit_object *)obj)->unit.unknown_406 = 0x2d;
-            if (recent < ((struct unit_object *)obj)->unit.unknown_408) {
-                recent = ((struct unit_object *)obj)->unit.unknown_408;
+            ((struct unit_object *)obj)->unit.threat_reaction_delay_ticks = 0x2d;
+            if (recent < ((struct unit_object *)obj)->unit.threat_reaction_damage) {
+                recent = ((struct unit_object *)obj)->unit.threat_reaction_damage;
             }
-            ((struct unit_object *)obj)->unit.unknown_408 = recent;
+            ((struct unit_object *)obj)->unit.threat_reaction_damage = recent;
             if (dd->responsible_object != k_datum_index_none) {
-                ((struct unit_object *)obj)->unit.unknown_40c = dd->responsible_object;
+                ((struct unit_object *)obj)->unit.threat_reaction_object = dd->responsible_object;
             }
         }
     }

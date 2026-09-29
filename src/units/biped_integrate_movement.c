@@ -152,7 +152,7 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
     solve.sine_uphill_cutoff_angle = tag->sine_uphill_cutoff_angle;
     solve.uphill_velocity_scale = tag->uphill_velocity_scale;
     solve.ground_normal = biped->ground_normal;
-    solve.ground_plane = biped->unknown_520;
+    solve.ground_plane = biped->ground_plane_offset;
     solve.ground_surface_index = biped->ground_surface_index;
     solve.unknown_5c = 3.4028235e+38f;   // FLT_MAX
     solve.unknown_60 = 0.0f;
@@ -481,7 +481,7 @@ step_crouch:
                        : (biped->flags | 0x10);
 
     biped->ground_normal = solve.ground_normal;
-    biped->unknown_520 = solve.ground_plane;
+    biped->ground_plane_offset = solve.ground_plane;
 
     if (0.0f < solve.result_impact_speed) {
         biped_update_animation_frame_trigger(solve.result_impact_speed, (uint8_t *)tag, obj);

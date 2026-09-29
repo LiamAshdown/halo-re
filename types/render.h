@@ -335,9 +335,9 @@ typedef struct cinematic_screen_effect_globals {
     ColorRGB filter_desaturation_tint; // 0x14 replaced by *0x00686b14 while it equals
                                     //      *0x00686b0c (black)
     uint8_t filter_desaturation_is_additive; // 0x20
-    uint8_t unknown_21;             // 0x21 cleared by the filter setter only; the weapon block
+    uint8_t night_vision_masked;    // 0x21 cleared by the filter setter only; the weapon block
                                     //      keeps night_vision_masked here
-    uint8_t unknown_22;             // 0x22 cleared by the filter setter only; the weapon block
+    uint8_t desaturation_masked;    // 0x22 cleared by the filter setter only; the weapon block
                                     //      keeps desaturation_masked here
     uint8_t video_enabled;          // 0x23 1 from the video setter, 0 from the other two
     int16_t video_overbright_mode;  // 0x24

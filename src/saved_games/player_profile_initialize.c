@@ -123,11 +123,11 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
     player_profile_set_default_video_options(profile, (uint8_t)merge_existing);
 
     if (safe_mode == 0 && 1000 < cpu_speed && 0x80 < physical_memory) {
-        profile->unknown_b7d = 1;
-        profile->unknown_b7f = 2;
+        profile->sound_quality = 1;
+        profile->sound_variety = 2;
     } else {
-        profile->unknown_b7d = 0;
-        profile->unknown_b7f = 1;
+        profile->sound_quality = 0;
+        profile->sound_variety = 1;
     }
     profile->master_volume = 10;
     profile->unknown_c81 = 1;

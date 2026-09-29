@@ -96,7 +96,7 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
     group->flags = flags;
     group->primitive_count = primitive_count;
     group->vertex_buffer = vertex_buffer;
-    group->unknown_04 = 0;
+    group->object_index = 0;
     group->sort_key = 0;
     group->shader = (uint32_t)shader;
     group->index_buffer = 0;          // +0x48 (0x5223dc)

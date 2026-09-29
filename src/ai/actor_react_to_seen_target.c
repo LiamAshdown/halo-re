@@ -73,14 +73,14 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
 
         if (unit->controlling_player != (datum_index)k_datum_index_none) {
             uint8_t *player = (uint8_t *)player_data->data + (unit->controlling_player & 0xffff) * 0x200;
-            int32_t unknown_40 = *(int32_t *)&((struct player *)player)->observer_target;      // UNSURE: no established name
+            int32_t initially_blind = *(int32_t *)&((struct player *)player)->observer_target;      // UNSURE: no established name
             int32_t unknown_44 = ((struct player *)player)->observer_state;      // UNSURE: no established name
 
-            if (unknown_40 != -1 && (int32_t)game_time->game_time <= unknown_44 + 0x5a) { // 0x422f6e: jl exits
-                object *player_unit = ((object_header *)object_data->data)[unknown_40 & 0xffff].data;
+            if (initially_blind != -1 && (int32_t)game_time->game_time <= unknown_44 + 0x5a) { // 0x422f6e: jl exits
+                object *player_unit = ((object_header *)object_data->data)[initially_blind & 0xffff].data;
                 if (teams_are_enemies(player_unit->owner_team /* UNSURE, see file header */, self->team) != 0) {
                     // 0x422faf: the player's +0x40 object, not the seen unit
-                    actor_target_data_acquire(actor_index, (datum_index)unknown_40, k_datum_index_none, k_datum_index_none);
+                    actor_target_data_acquire(actor_index, (datum_index)initially_blind, k_datum_index_none, k_datum_index_none);
                 }
             }
         } else if (unit->actor_index != (datum_index)k_datum_index_none) {

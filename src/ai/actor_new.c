@@ -108,7 +108,7 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->flying = (uint8_t)(flags >> 0x15) & 1;              // ActorFlags bit 21 "flying"
     self->unknown_164 = -1;
     self->active_unit_index = (datum_index)k_datum_index_none;
-    self->unknown_1c9 = 0;
+    self->platoon_defending_pending = 0;
     self->unknown_1cc = 0;
     self->unknown_1d0 = (datum_index)k_datum_index_none;
     self->unknown_1d4 = 0;
@@ -140,7 +140,7 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->secondary_action = 0;
     self->movement_completed = 0;
     self->movement_goal_surface = 0xffffffff;
-    self->unknown_498 = 0xffffffff;
+    self->movement_goal_radius = 0xffffffff;
 
     memset(&self->movement_action_complete, 0, 0x17 * sizeof(uint32_t)); // 0x4a8..0x503
 

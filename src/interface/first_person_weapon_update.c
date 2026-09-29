@@ -122,7 +122,7 @@ void first_person_weapon_update(int16_t local_player_index)
         }
 
         // the tag id is reloaded from the weapon tag here, as the original does
-        if (animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, &fp->unknown_16,
+        if (animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, &fp->animation_block_index,
                          &frame_sound, 0) == 2) {
             first_person_weapon_update_state(local_player_index);
         }

@@ -3,7 +3,7 @@
 // name confidence: 0.4 (phase2 candidate)   rewrite confidence: 0.9 (VERIFIED against objdump 0x5639f0..0x563b10)
 // evidence: types/units.h unit_control_data (the whole 0x40-byte source record this function
 //   unpacks -- this IS the function the header cites as proof of that struct's layout),
-//   unit_data.saved_control/.unknown_4b8/.unknown_4bc (0x478/0x4b8/0x4bc), .throttle (0x278),
+//   unit_data.saved_control/.control_source_valid/.control_source_id (0x478/0x4b8/0x4bc), .throttle (0x278),
 //   .primary_trigger (0x284), .aiming_speed (0x288), .desired_weapon_index (0x2f4),
 //   .desired_grenade_index (0x31d), .desired_zoom_level (0x321), .control_flags (0x208),
 //   .desired_looking_vector/.looking_vector fields (0x254/0x25c... see body),
@@ -49,10 +49,10 @@ void unit_apply_control_block(uint32_t unit_index, const unit_control_data *cont
     unit->seat_command = control->animation_state;
 
     if (source_id != -1) {
-        unit->unknown_4bc = source_id;
-        unit->unknown_4b8 = 1;
+        unit->control_source_id = source_id;
+        unit->control_source_valid = 1;
     } else {
-        unit->unknown_4b8 = 0;
+        unit->control_source_valid = 0;
     }
 }
 

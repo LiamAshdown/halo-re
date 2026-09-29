@@ -4,7 +4,7 @@
 // evidence: Biped.jump_velocity (0x3b4, types/tags.h) used as the tag-defined minimum height;
 //   unit_data.stun_amount ("0..1 stun meter ... matg_stun_scale * this", types/units.h) matches
 //   the controlling_player-gated scale here; unit_data.swarm_actor_index/actor_index
-//   (0x1f8/0x1f4) and biped_data.unknown_504/previous_cached_surface_index (0x504/0x4f0) all match by offset.
+//   (0x1f8/0x1f4) and biped_data.target_lock_lost_ticks/previous_cached_surface_index (0x504/0x4f0) all match by offset.
 // UNSURE: FUN_00417fa0's exact contract (an actor-notification call whose return doubles as this
 //   function's early-exit value on failure); the global_globals+0x174 player-info field.
 

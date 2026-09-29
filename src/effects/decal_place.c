@@ -470,7 +470,7 @@ void decal_place(datum_index decal_tag_index, collision_result *placement, real_
                 surface_queue, &queue_count, fallback_queue, &fallback_count);
         } while (queue_cursor < (int16_t)queue_count);
 
-        if (*(const uint8_t *)&k_decal_type_parameters[definition->type].unknown_0c != 0 &&
+        if (*(const uint8_t *)&k_decal_type_parameters[definition->type].use_fallback_surfaces != 0 &&
             (int16_t)fallback_count > 0) {
             int16_t remaining = (int16_t)fallback_count;
 

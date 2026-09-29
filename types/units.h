@@ -357,7 +357,7 @@ typedef struct biped_movement_solver_data {
     float uphill_velocity_scale;        // 0x7c Biped tag 0x370
     real_vector3d ground_normal;        // 0x80 biped_data.ground_normal on entry, rewritten on
                                         //      exit (the callers copy all four dwords back)
-    uint32_t ground_plane;              // 0x8c biped_data.unknown_520
+    uint32_t ground_plane;              // 0x8c biped_data.ground_plane_offset
     datum_index ground_surface_index;   // 0x90 biped_data.ground_surface_index on entry
     uint32_t unknown_94;                // 0x94 neither integrator touches it
     uint32_t unknown_98;                // 0x98 neither integrator touches it
@@ -430,7 +430,7 @@ typedef struct unit_data {
     int8_t melee_state;                 // 0x289 unit_melee_state
     int8_t melee_damage_countdown;      // 0x28a 0x56fc80 and 0x56fd40 reload it with 10 and
                                         //       tick it down between melee damage pulses
-    int8_t unknown_28b;                 // 0x28b countdown; 0x5705a0 seeds it with a random
+    int8_t stun_ticks_remaining;                 // 0x28b countdown; 0x5705a0 seeds it with a random
                                         //       stun duration, unit_update decrements it
     int8_t unknown_28c;                 // 0x28c countdown decremented by unit_update; both
                                         //       seat-teardown paths require it to be 0
@@ -520,7 +520,7 @@ typedef struct unit_data {
     float gunner_seat_power;                  // 0x33c vehicle_update tests it against 0 with bit 8
     float integrated_light_power;                  // 0x340 0..1 ramp, unit_update steps it by 1/24 down
                                         //       and 1/6 up
-    float unknown_344;                  // 0x344 0..1; unit_update steps it by 1/900 up and
+    float flashlight_battery;                  // 0x344 0..1; unit_update steps it by 1/900 up and
                                         //       1/3600 down; packed into the network update
     float flashlight_ramp;                  // 0x348 0..1 ramp, 1/24 down and 1/12 up; zeroed by
                                         //       0x5659c0 and 0x565a70
@@ -556,11 +556,11 @@ typedef struct unit_data {
     int16_t speech_tail_ticks;          // 0x3fe loaded from unit_speech.tail_ticks
     datum_index speech_sound_handle;    // 0x400 the handle 0x00543ce0 returned, -1 when idle
     int16_t unknown_404;                // 0x404 passed as the second argument of 0x0042be40
-    int16_t unknown_406;                // 0x406 countdown; 0x5674a0 reloads it with 0x2d
-    float unknown_408;                  // 0x408 damage accumulator, raised by 0x5674a0 and
+    int16_t threat_reaction_delay_ticks;                // 0x406 countdown; 0x5674a0 reloads it with 0x2d
+    float threat_reaction_damage;                  // 0x408 damage accumulator, raised by 0x5674a0 and
                                         //       consumed by unit_update
-    datum_index unknown_40c;            // 0x40c the object 0x5674a0 recorded as responsible
-    int32_t unknown_410;                // 0x410 stored by 0x5705a0, read back by 0x570720
+    datum_index threat_reaction_object;            // 0x40c the object 0x5674a0 recorded as responsible
+    int32_t stun_responsible_object;                // 0x410 stored by 0x5705a0, read back by 0x570720
     float idle_turn_angle;              // 0x414 0x570650 seeds it from the current heading
                                         //       plus a random offset, 0x570840 wanders it
     float idle_turn_offset;             // 0x418 the second, tighter angle of the wander
@@ -588,9 +588,9 @@ typedef struct unit_data {
                                         //       and by the scripted spawn
     int8_t unknown_476[2];              // 0x476 alignment
     unit_control_data saved_control;    // 0x478 the server-side copy 0x5639f0 block-moves
-    int8_t unknown_4b8;                 // 0x4b8 1 when unknown_4bc holds a valid value
+    int8_t control_source_valid;                 // 0x4b8 1 when control_source_id holds a valid value
     int8_t unknown_4b9[3];              // 0x4b9 alignment
-    int32_t unknown_4bc;                // 0x4bc the source identifier of the control record;
+    int32_t control_source_id;                // 0x4bc the source identifier of the control record;
                                         //       unit_update reads it back
     uint8_t unknown_4c0[12];            // 0x4c0 untouched by this module
 } unit_data;                            // size 0x2d8 (object 0x1f4 .. 0x4cc)
@@ -674,14 +674,14 @@ typedef struct biped_data {
                                         //       melee_state is 3
     int32_t last_flee_reaction_tick;                // 0x4f8 tick stamp; 0x55e190 and 0x55e2d0 rate-limit
                                         //       their reactions to once every 15 ticks
-    datum_index unknown_4fc;            // 0x4fc the target 0x55e0a0 is tracking
-    int8_t unknown_500;                 // 0x500 how many ticks that target has been held;
+    datum_index tracked_target;            // 0x4fc the target 0x55e0a0 is tracking
+    int8_t tracked_target_ticks;                 // 0x500 how many ticks that target has been held;
                                         //       0x55e0a0 saturates it at 0xf1
     int8_t unknown_501;                 // 0x501 ticks in the current grounded state, clamped
                                         //       at 0x7f by biped_update
     int8_t unknown_502;                 // 0x502 the same counter for the second flag bit
     int8_t unknown_503;                 // 0x503 latch 0x560410 toggles at the seat angle limit
-    int8_t unknown_504;                 // 0x504 ticks without a target lock (0x55ec90)
+    int8_t target_lock_lost_ticks;                 // 0x504 ticks without a target lock (0x55ec90)
     int8_t unknown_505;                 // 0x505 biped_update decays it by a quarter each tick
     int8_t unknown_506;                 // 0x506 the value unknown_505 is compared against
     int8_t unknown_507;                 // 0x507 alignment
@@ -694,7 +694,7 @@ typedef struct biped_data {
                                         //       the standing and crouching heights with it
     float bank_angle;                  // 0x510 angle; 0x560800 takes its cos and sin
     real_vector3d ground_normal;        // 0x514 the supporting plane normal 0x560630 caches
-    uint32_t unknown_520;               // 0x520 written by 0x560630 alongside the normal
+    uint32_t ground_plane_offset;               // 0x520 written by 0x560630 alongside the normal
     uint8_t ground_adjust_iteration;    // 0x524 0x557a90 increments it up to 0x7f
     uint8_t ground_adjust_iteration_limit; // 0x525 0x55ad00 seeds it with 0x14; the solver
                                         //       stops once the iteration reaches it

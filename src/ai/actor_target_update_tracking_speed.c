@@ -12,7 +12,7 @@
 //   unit_data.aiming_vector (0x23c), unit_data.unknown_37c, unit_data.unknown_420,
 //   unit_data.actor_index/swarm_actor_index (0x1f4/0x1f8); types/tags.h Actor.melee_fudge_factor
 //   (0x37c) and the "suicidal_melee_attack" flags bit (bit 27, per ActorFlags' documented
-//   order); encounter.unknown_40/41/42/44/45/58 (established by actor_target_scan_potential_
+//   order); encounter.initially_blind/41/42/44/45/58 (established by actor_target_scan_potential_
 //   targets.c's "is_vault" gate and by this function's own tail drop-logic cross-check against
 //   actor.unknown_3a0). Already-rewritten callees this batch reuses verbatim: their exact
 //   register conventions were confirmed here by disassembling every call site (objdump -d -M
@@ -175,7 +175,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
     tick = game_time->game_time;
 
     team_gate = 0;
-    if ((enc != (encounter *)0 && enc->unknown_40 != 0) || self->awareness_level == 1) {
+    if ((enc != (encounter *)0 && enc->initially_blind != 0) || self->awareness_level == 1) {
         team_gate = 1;
     }
 
@@ -193,13 +193,13 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
                         encounter *owner_enc = &((encounter *)encounter_data->data)[owner->encounter_index & 0xffff];
                         // UNSURE: neither offset lands on a named encounter field; 0x3a is the
                         // salt half of first_pursuit (a datum_index) and 0x3c falls across
-                        // unknown_3c/unknown_3d. Reached raw, matching the disassembly exactly.
+                        // respawn_enabled/unknown_3d. Reached raw, matching the disassembly exactly.
                         if (team_kind == 1) {
                             match = (self->unknown_1d6[4] /* actor+0x1da */ ==
                                      (uint8_t)*(int16_t *)((uint8_t *)owner_enc + 0x3a));
                         } else if (team_kind == 2) {
                             match = (self->unknown_1d6[4] ==
-                                     (uint8_t)*(int16_t *)&((struct encounter *)owner_enc)->unknown_3c);
+                                     (uint8_t)*(int16_t *)&((struct encounter *)owner_enc)->respawn_enabled);
                         } else if (team_kind != 0) {
                             match = 0;
                         }
@@ -428,7 +428,7 @@ after_engage:
             }
             // prop+0x34/0x36: types/ai.h declares one int32_t unknown_34, but this function
             // writes independent int16 halves at +0x34 and +0x36 (see file header).
-            if (enc == (encounter *)0 || enc->unknown_41 == 0) {
+            if (enc == (encounter *)0 || enc->initially_deaf == 0) {
                 if (p->unknown_66 == 1 || p->unknown_66 == 2) {
                     *(int16_t *)&((struct prop *)p)->unknown_34 = 3;
                 } else {
@@ -528,7 +528,7 @@ after_engage:
         actor_target_mark_engaged(target_prop_index, actor_index, 0); // FIXED: EBX = the actor (EDI)
     }
 
-    if (p->unknown_a0 != -1 && p->unknown_a0 + 0x96 < tick) {
+    if (p->engaged_tick != -1 && p->engaged_tick + 0x96 < tick) {
         actor_target_mark_engaged(target_prop_index, actor_index, 0); // FIXED: EBX = the actor (EDI)
     }
 

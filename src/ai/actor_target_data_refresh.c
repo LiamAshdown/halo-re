@@ -114,8 +114,8 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
     }
 
     if (((target->has_parent != 0 && target->owner_actor_index != k_datum_index_none) && allow_reassign != 0) &&
-        target->unknown_28 + 0x5a <= game_time->game_time) {
-        target->unknown_28 = game_time->game_time;
+        target->owner_refresh_tick + 0x5a <= game_time->game_time) {
+        target->owner_refresh_tick = game_time->game_time;
         // UNSURE: real signature is object_find_nearest_squad_member(actor_index, reference,
         // exclude_index, stamp_group); called here with (&target->unknown_120-as-firing-block,
         // object_index, 0) per Ghidra's recovered args (self+0x120 through the target's own

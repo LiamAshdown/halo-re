@@ -63,9 +63,9 @@ void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition,
     enc->team = definition->team_index;
     enc->first_actor = (datum_index)k_datum_index_none;
     enc->first_pursuit = (datum_index)k_datum_index_none;
-    enc->unknown_40 = (uint8_t)((definition->flags >> 2) & 1);
-    enc->unknown_41 = (uint8_t)((definition->flags >> 3) & 1);
-    enc->unknown_3c = (uint8_t)((definition->flags >> 1) & 1);
+    enc->initially_blind = (uint8_t)((definition->flags >> 2) & 1);
+    enc->initially_deaf = (uint8_t)((definition->flags >> 3) & 1);
+    enc->respawn_enabled = (uint8_t)((definition->flags >> 1) & 1);
     enc->unknown_3e = 0;
     enc->unknown_46 = 0;
     enc->unknown_45 = 0;

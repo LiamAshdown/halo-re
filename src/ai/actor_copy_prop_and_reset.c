@@ -2,8 +2,8 @@
 // address 0x43e840, size 205 bytes
 // name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x43e840..0x43e90c (EAX dest, ECX src).)
 // evidence: types/ai.h prop (identifier/actor_index/next_in_actor/pair_index preserved
-// across the copy; kind(+0x24)=4 after; unknown_3a/unknown_3c reset; noticed_a/b/c(+0xb9..bb)
-// cleared; unknown_40/44/48 set to last_known_position(+0xbc) minus alerted_ticks(+0x80);
+// across the copy; kind(+0x24)=4 after; unknown_3a/respawn_enabled reset; noticed_a/b/c(+0xb9..bb)
+// cleared; initially_blind/44/48 set to last_known_position(+0xbc) minus alerted_ticks(+0x80);
 // unknown_d4(+0xd4, real_point3d) set from the module's {1,0,0}-ish constant; unknown_123
 // cleared). phase-4 summary "copies a firing-position node record into another slot and
 // resets its per-instance runtime state."

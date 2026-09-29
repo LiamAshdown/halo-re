@@ -148,7 +148,7 @@ void interface_tick(void)
                 uint8_t is_paused = ui_check_for_pause_game();
                 widget_instance *widget = ui_root_widget[0];
 
-                // Ghidra tests `widget != 0 && widget->unknown_15 == 1` (bVar4), then re-tests
+                // Ghidra tests `widget != 0 && widget->is_error_dialog == 1` (bVar4), then re-tests
                 // it or ui_split_screen in three mutually exclusive branches that all reduce,
                 // algebraically, to the same single condition: widget != NULL. See the header
                 // comment's control-flow note; simplified here rather than reproduced verbatim.

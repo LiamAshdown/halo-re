@@ -4,7 +4,7 @@
 // evidence: the four movement setters at 0x417610..0x417910 and actor_movement_action_stop
 // all tail-call it after writing active_movement; it turns the action's type-specific
 // parameters into a concrete world destination (actor.movement_goal_position), a destination surface
-// index (movement_goal_surface) and a destination radius (unknown_498), then asks the pathfinder
+// index (movement_goal_surface) and a destination radius (movement_goal_radius), then asks the pathfinder
 // whether that destination is reachable and stores the answer in movement_action_complete.
 // register convention: all three arguments are genuine stack parameters
 // (objdump: [esp+0x100f0 / 0x100f4 / 0x100f8] behind the 0x100ec frame).

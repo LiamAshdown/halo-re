@@ -156,7 +156,7 @@ void particle_new(particle_creation_data *creation_data)
             self->location.cluster_index = cluster;
 
             self->position = creation_data->position;
-            self->last_moving_velocity = *(real_vector3d *)&creation_data->unknown_1c;
+            self->last_moving_velocity = *(real_vector3d *)&creation_data->direction;
             self->velocity = creation_data->velocity;
             self->rotation = creation_data->rotation;
 

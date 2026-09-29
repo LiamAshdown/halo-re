@@ -171,11 +171,11 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
         biped_ext->unknown_503 = node->unit_state[0xac];
         biped_ext->unknown_501 = node->unit_state[0xad];
         biped_ext->unknown_502 = node->unit_state[0xae];
-        biped_ext->unknown_504 = node->unit_state[0xaf];
+        biped_ext->target_lock_lost_ticks = node->unit_state[0xaf];
         biped_ext->unknown_508 = *(int16_t *)(node->unit_state + 0xb0);
         biped_ext->crouch_fraction = *(float *)(node->unit_state + 0xb4);
         biped_ext->ground_normal = *(real_vector3d *)(node->unit_state + 0xb8);
-        biped_ext->unknown_520 = *(uint32_t *)(node->unit_state + 0xc4);
+        biped_ext->ground_plane_offset = *(uint32_t *)(node->unit_state + 0xc4);
         biped_ext->unknown_4d0 = node->unit_state[0xc8];
         biped_ext->unknown_4d1 = node->unit_state[0xc9];
         biped_ext->movement_state = node->unit_state[0xca];

@@ -492,12 +492,12 @@ controls:
         }
     }
     // 0x563453: a delayed threat reaction
-    if (((struct unit_object *)obj)->unit.unknown_406 > 0 && --((struct unit_object *)obj)->unit.unknown_406 == 0) {
-        actor_react_to_threat_event(unit_index, ((struct unit_object *)obj)->unit.unknown_40c, *(uint16_t *)&((struct unit_object *)obj)->unit.unknown_404,
-            ((struct unit_object *)obj)->unit.unknown_408, 0, 1);
+    if (((struct unit_object *)obj)->unit.threat_reaction_delay_ticks > 0 && --((struct unit_object *)obj)->unit.threat_reaction_delay_ticks == 0) {
+        actor_react_to_threat_event(unit_index, ((struct unit_object *)obj)->unit.threat_reaction_object, *(uint16_t *)&((struct unit_object *)obj)->unit.unknown_404,
+            ((struct unit_object *)obj)->unit.threat_reaction_damage, 0, 1);
         ((struct unit_object *)obj)->unit.unknown_404 = 0;
-        ((struct unit_object *)obj)->unit.unknown_40c = k_datum_index_none;
-        *(int32_t *)&((struct unit_object *)obj)->unit.unknown_408 = 0;
+        ((struct unit_object *)obj)->unit.threat_reaction_object = k_datum_index_none;
+        *(int32_t *)&((struct unit_object *)obj)->unit.threat_reaction_damage = 0;
     }
     if (!unit_updates_suppressed) {
         unit_melee_lunge_damage_tick(unit_index);
@@ -552,7 +552,7 @@ controls:
             ((unit_object *)obj)->unit.flags = flags & 0xdfffffff;
         }
         button = ((unit_object *)obj)->unit.control_flags & 0x10;
-        if (button != 0 || !(((struct unit_object *)obj)->unit.unknown_344 > 0.0f) || toggle) {
+        if (button != 0 || !(((struct unit_object *)obj)->unit.flashlight_battery > 0.0f) || toggle) {
             if (!valid_team_player) {
                 flags = ((unit_object *)obj)->unit.flags;
                 if ((flags & 0x4000000) != 0) {
@@ -580,7 +580,7 @@ controls:
                         toggle_light = 0;
                     }
                 }
-                if (toggle_light && ((((unit_object *)obj)->unit.flags & 0x80000) != 0 || ((struct unit_object *)obj)->unit.unknown_344 > 0.2f) &&
+                if (toggle_light && ((((unit_object *)obj)->unit.flags & 0x80000) != 0 || ((struct unit_object *)obj)->unit.flashlight_battery > 0.2f) &&
                     ((unit_object *)obj)->base.parent_object == k_datum_index_none) {
                     effect_new_on_object(unit_index, *(datum_index *)&((Unit *)tag)->integrated_light_toggle.tag_id, unit_index, -1, 0.0f, 0.0f, 0, 0);
                     ((unit_object *)obj)->unit.flags ^= 0x80000;
@@ -590,7 +590,7 @@ controls:
         flags = ((unit_object *)obj)->unit.flags;
         if ((flags & 0x80000) != 0) {
             if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x1000000) == 0) {
-                ((struct unit_object *)obj)->unit.unknown_344 -= 0.00027777778f;
+                ((struct unit_object *)obj)->unit.flashlight_battery -= 0.00027777778f;
             }
             if (((unit_object *)obj)->base.parent_object != k_datum_index_none || (obj[0x106] & 4) != 0) {
                 ((unit_object *)obj)->unit.flags = flags & 0xfff7ffff;
@@ -602,8 +602,8 @@ controls:
                 }
             }
         } else {
-            if (((struct unit_object *)obj)->unit.unknown_344 < 1.0f) {
-                ((struct unit_object *)obj)->unit.unknown_344 += 0.0011111111f;
+            if (((struct unit_object *)obj)->unit.flashlight_battery < 1.0f) {
+                ((struct unit_object *)obj)->unit.flashlight_battery += 0.0011111111f;
             }
             if (((struct unit_object *)obj)->unit.integrated_light_power != 0.0f) {
                 ((struct unit_object *)obj)->unit.integrated_light_power -= 0.041666668f;

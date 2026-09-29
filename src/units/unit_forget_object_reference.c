@@ -6,7 +6,7 @@
 //   (+0x3c) ...". Every field this function touches is a datum_index reference to some other
 //   object that types/units.h already names (throwing_grenade_projectile +0x294,
 //   driver_unit_index +0x324, gunner_unit_index +0x328, weapons[4] +0x2f8, equipment_object_index
-//   +0x318, unknown_40c "the object 0x5674a0 recorded as responsible" +0x40c), and every one of
+//   +0x318, threat_reaction_object "the object 0x5674a0 recorded as responsible" +0x40c), and every one of
 //   them is compared against the function's second parameter and cleared to -1 on a match, with
 //   current_weapon_index / desired_weapon_index also cleared and desired_weapon_index refreshed
 //   from unit_find_next_zone_permitted_weapon_slot when the current weapon slot was the one
@@ -71,8 +71,8 @@ void unit_forget_object_reference(uint32_t object_index, datum_index forgotten_o
     if (unit->equipment_object_index == forgotten_object_index) {
         unit->equipment_object_index = (datum_index)-1;
     }
-    if (unit->unknown_40c == forgotten_object_index) {
-        unit->unknown_40c = (datum_index)-1;
+    if (unit->threat_reaction_object == forgotten_object_index) {
+        unit->threat_reaction_object = (datum_index)-1;
     }
 }
 

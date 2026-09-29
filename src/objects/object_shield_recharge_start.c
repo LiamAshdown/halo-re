@@ -1,7 +1,7 @@
 // object_shield_recharge_start
 // address 0x4edba0, size 101 bytes
 // name confidence: 0.75 (out/phase4/objects_types_notes.md names this function directly:
-// "0x122 unknown_122 ... set by object_shield_recharge_start")
+// "0x122 shield_recharge_started ... set by object_shield_recharge_start")
 // rewrite confidence: 0.6
 // evidence: types/objects.h object.shield_vitality (0xe4), object.vitality_flags (0x106,
 // _object_shield_recharging_bit), object.shield_stun_ticks (0x104), object 0x122.

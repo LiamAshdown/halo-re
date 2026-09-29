@@ -1,7 +1,7 @@
 // ai_reference_set_unknown_1cb  (Ghidra: ai_reference_set_unknown_1cb; named for this rewrite)
 // address 0x434d40, size 64 bytes
 // name confidence: 0.3   rewrite confidence: 0.45
-// evidence: sets actor.unknown_1cb (types/ai.h: "0x434d40 sets it on every member of a
+// evidence: sets actor.charge_disallowed (types/ai.h: "0x434d40 sets it on every member of a
 // squad") to (flag == 0) for every actor a packed ai reference names.
 //   // blam-cc: EAX -> packed_reference, stack -> flag
 

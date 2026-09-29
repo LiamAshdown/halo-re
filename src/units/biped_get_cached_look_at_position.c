@@ -3,7 +3,7 @@
 // name confidence: 0.35   rewrite confidence: 0.7
 // evidence: types/units.h biped_data fields cached_surface_index ("the cached look-at result"),
 //   cached_position ("the cached look-at point 0x55ab30 refreshes"), cached_tick ("game tick that
-//   cache was last refreshed"), previous_cached_surface_index ("the previous value of cached_surface_index"), unknown_4fc
+//   cache was last refreshed"), previous_cached_surface_index ("the previous value of cached_surface_index"), tracked_target
 //   ("the target 0x55e0a0 is tracking") -- all already attributed to this function by name in
 //   the header, so used directly rather than re-derived.
 // reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)

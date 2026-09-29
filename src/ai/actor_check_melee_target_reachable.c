@@ -49,7 +49,7 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
 
     memset(&query, 0, sizeof(query));
     memset(&candidate, 0, sizeof(candidate));
-    query.unknown_41 = record[4];
+    query.initially_deaf = record[4];
     if (*(int16_t *)(record + 0xc) > 0) {
         query.goal_kind = 1;
         if (*(int16_t *)record > 0) {

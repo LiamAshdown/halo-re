@@ -143,7 +143,7 @@ void first_person_weapon_interface_initialize(int16_t local_player_index)
     if (weapon_hud_matched != 0 && fp->device_hud_valid != 0) {
         fp->weapon_index = weapon_index;
         fp->state = -1;
-        fp->unknown_16 = -1;
+        fp->animation_block_index = -1;
         fp->unknown_1a = -1;
         fp->unknown_20 = -1;
         fp->unknown_28 = 0.0f;

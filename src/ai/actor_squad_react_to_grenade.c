@@ -2,7 +2,7 @@
 // address 0x42a3a0, size 388 bytes
 // name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against 0x42a3a0 (jump table 0x42a524: 0 dialogue, 1 react, 2 panic scan, 3 release; +0x66/+0x68 update))
 // evidence: types/ai.h prop.unknown_66/68/12f/12e/127/combat_dirty(0x64)/unknown_30/34/36;
-//   encounter.unknown_41 (ScenarioEncounter.flags bit 3). Calls actor_queue_recognized_target_dialogue
+//   encounter.initially_deaf (ScenarioEncounter.flags bit 3). Calls actor_queue_recognized_target_dialogue
 //   (0x422550), actor_react_to_seen_target (0x422ec0), actor_scan_backup_and_panic_reaction
 //   (0x423220) and actor_set_units_active (0x427860), all already rewritten in this module,
 //   plus actor_target_data_release (0x41b980, already rewritten in an earlier session's

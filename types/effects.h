@@ -116,10 +116,10 @@ typedef enum effect_constants {
 typedef struct decal_type_parameters {
     float maximum_edge_angle;       // 0x00 degrees; 40.0 for scratch, splatter and burn, 10.0
                                     //      for painted_sign
-    float unknown_04;               // 0x04 110.0 for the first three, 10.0 for painted_sign;
+    float fallback_edge_angle;      // 0x04 110.0 for the first three, 10.0 for painted_sign;
                                     //      no reader in this module
     float radius_scale;             // 0x08 1.5 for every type
-    int32_t unknown_0c;             // 0x0c 1 for the first three, 0 for painted_sign
+    int32_t use_fallback_surfaces;  // 0x0c 1 for the first three, 0 for painted_sign
 } decal_type_parameters;            // size 0x10
 
 // ===========================================================================
@@ -649,7 +649,7 @@ typedef struct particle_creation_data {
     uint8_t unknown_0e;             // 0x0e becomes _particle_unknown_20_bit
     uint8_t unknown_0f;             // 0x0f
     real_point3d position;          // 0x10
-    real_point3d unknown_1c;        // 0x1c becomes particle.unknown_3c; UNSURE of its meaning
+    real_point3d direction;          // 0x1c becomes particle.unknown_3c; UNSURE of its meaning
     real_vector3d velocity;         // 0x28
     real_vector3d gravity;          // 0x34 folded into velocity, scaled by the current radius
                                     //      squared and the point_physics density at +0x04, only

@@ -59,7 +59,7 @@ uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor
             target->priority_weight_spent = paired->priority_weight_spent;
             target->last_selected_tick = paired->last_selected_tick;
             target->unknown_9c = paired->unknown_9c;
-            target->unknown_a0 = paired->unknown_a0;
+            target->engaged_tick = paired->engaged_tick;
             target->engaged = paired->engaged;
             target->unknown_a6 = paired->unknown_a6;
             target->unknown_a8 = paired->unknown_a8;

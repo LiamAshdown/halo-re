@@ -6,7 +6,7 @@
 //   and per-platoon counters as a side effect"). types/ai.h already names every counter it
 //   touches: encounter.member_count / live_count, encounter_squad_state.member_count,
 //   encounter_platoon_state.member_count, actor.next_in_encounter / encounter_index /
-//   squad_index / platoon_index, and actor.unknown_1c9 / unknown_374 ("encounter_add_actor
+//   squad_index / platoon_index, and actor.platoon_defending_pending / platoon_defending ("encounter_add_actor
 //   copies the platoon state byte here").
 // register convention: recovered from the disassembly
 //   (objdump -d -M intel --start-address=0x436770 --stop-address=0x4367d0 bin/halo.exe):
@@ -112,8 +112,8 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
 
     if (platoon_index != -1) {
         platoon_state = &encounter_platoon_states[(int16_t)(enc->first_platoon + platoon_index)];
-        a->unknown_1c9 = platoon_state->unknown_00;
-        a->unknown_374 = platoon_state->unknown_00;
+        a->platoon_defending_pending = platoon_state->unknown_00;
+        a->platoon_defending = platoon_state->unknown_00;
         platoon_state->member_count = platoon_state->member_count + 1;
     }
     enc->dirty = 1;

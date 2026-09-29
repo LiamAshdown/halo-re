@@ -44,7 +44,7 @@ void encounter_process_squad_reinforcements(datum_index encounter_index)
 
     self = (encounter *)((uint8_t *)encounter_data->data + (encounter_index & 0xffff) * sizeof(encounter));
 
-    if (self->unknown_3c == 0) {
+    if (self->respawn_enabled == 0) {
         return;
     }
     if (0xf < self->unknown_3e) {
