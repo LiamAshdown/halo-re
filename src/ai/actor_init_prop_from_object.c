@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.8
 // evidence: types/ai.h prop (actor_index +0x04, pair_index +0x0c, owner_actor_index +0x1c,
 // unknown_20 "copied from the object type definition at +0x284", object_index +0x18,
-// line_flags "0x43e640 zeroes it", unknown_76 "0x43e640 sets 1000 for a vault prop", engaged_tick
+// unknown_4e "0x43e640 zeroes it", unknown_76 "0x43e640 sets 1000 for a vault prop", engaged_tick
 // "0x43e640 sets -1", is_vault "Unit type definition byte +0x106 bit 2", is_parented "0x43e640
 // sets it when the tracked object has a parent"); actor.first_prop(+0x50). phase-4 summary
 // "initializes a firing-position node's fields from its target object (cluster, cover flags,

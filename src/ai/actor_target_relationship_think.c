@@ -7,7 +7,7 @@
 // communication events (ai_communication_broadcast with ids 8/0xf/0x19), and posture escalation
 // (actor_start_search_timer/actor_queue_velocity_search_from_prop). Walks actor.first_prop and, per prop, ages its perception and
 // engagement counters, advances prop.kind through a small state machine, and emits dialogue and
-// backup-request events; finishes by refreshing actor.target_timer and the per-actor "recheck due"
+// backup-request events; finishes by refreshing actor.unknown_54 and the per-actor "recheck due"
 // cache at actor+0x4e (unknown_4d[1]).
 // register convention: actor_index is a genuine stack parameter. Confirmed with objdump: every
 // call site does `push esi` (the actor index) immediately before `call 0x41abd0`, and this

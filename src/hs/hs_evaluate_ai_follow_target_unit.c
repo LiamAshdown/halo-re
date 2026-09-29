@@ -32,10 +32,10 @@ void hs_evaluate_ai_follow_target_unit(int16_t function_index, uint32_t thread_i
             uint8_t *encounter = (uint8_t *)encounter_data->data + ((uint32_t)arguments[0] & 0xffff) * 0x6c;
 
             if (arguments[1] == -1) {
-                ((struct encounter *)encounter)->unknown_62 = 0;
+                ((struct encounter *)encounter)->follow_mode = 0;
             } else {
-                ((struct encounter *)encounter)->unknown_62 = 2;
-                ((struct encounter *)encounter)->unknown_64 = arguments[1];
+                ((struct encounter *)encounter)->follow_mode = 2;
+                ((struct encounter *)encounter)->follow_target = arguments[1];
             }
         }
         hs_thread_return(0, thread_index);

@@ -6,14 +6,14 @@
 // ai_reference_actor_iterator_new, 0x432650, this batch, exactly like every sibling
 // function in this cluster), and EDI is a unit index the caller already resolved, passed
 // through unchanged to actor_find_or_create_shared_prop (outside this rewrite's range). For every actor the
-// reference names, marks its encounter's encounter+0xe (an ai.h respawn_delay_ticks byte pair) with
+// reference names, marks its encounter's encounter+0xe (an ai.h unknown_0e byte pair) with
 // 0x96 and reactivates the squad (encounter_activate, 0x437710, this batch) once, then calls
 // actor_find_or_create_shared_prop(unit_index, actor_index, 1, 0) and, on success, actor_squad_react_to_grenade
 // on the result.
 // register convention: confirmed by objdump: EAX -> packed_reference, EDI -> unit_index.
 //   // blam-cc: EAX -> packed_reference, EDI -> unit_index
 //
-// UNSURE: encounter.respawn_delay_ticks (types/ai.h has no name for it beyond "respawn_delay_ticks[2]") and
+// UNSURE: encounter.unknown_0e (types/ai.h has no name for it beyond "unknown_0e[2]") and
 // the exact roles of actor_find_or_create_shared_prop's four arguments are not established beyond their values.
 
 #include "tags.h"

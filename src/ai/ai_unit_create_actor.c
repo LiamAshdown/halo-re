@@ -6,7 +6,7 @@
 //   types/ai.h's primary evidence for the actor layout) and actor_attach_to_unit (0x427560),
 //   links the new actor onto the global unassigned list through
 //   ai_actor_link_to_unassigned_list (0x436940, already rewritten) and seeds exactly the
-//   fields types/ai.h already credits to "0x435420" (actor.unknown_60, follow_mode,
+//   fields types/ai.h already credits to "0x435420" (actor.unknown_60, unknown_62,
 //   unknown_68, command_list_index, command_list_countdown).
 // register convention: EAX -> actor_variant_tag, stack -> unit_index.
 //   // blam-cc: EAX -> actor_variant_tag, stack -> unit_index
@@ -16,7 +16,7 @@
 //    variant's own data, then the tag at +0x10, whose first dword is tested for bit 26).
 //    That matches ActorVariant -> actor_definition -> Actor.flags "swarm" bit, so the guard
 //    reads as "refuse to build a normal actor for a swarm variant".
-//  - The vtable check `actor.weighted_actor_count != actor_type_procs[actor.type][0x0d]` compares the
+//  - The vtable check `actor.unknown_06 != actor_type_procs[actor.type][0x0d]` compares the
 //    actor's swarm flag against the per-type procedure table's 14th dword; if they disagree
 //    the actor is deleted again. Preserved verbatim.
 //  - actor_new (0x426760) and actor_delete (0x427e60) are shown by Ghidra with fewer

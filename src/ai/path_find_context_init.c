@@ -4,7 +4,7 @@
 // evidence: types/ai.h path_find_context (0x1008c bytes = 0x4023 dwords, confirmed by this
 //   function's own zero loop); path_find_request (0x48 bytes = 0x12 dwords, confirmed by the
 //   copy loop here); (uint32_t)global_structure_bsp global and path_find_context.structure_bsp (+0x64 =
-//   dword index 0x19) and current_line_index (+0x48 = dword index 0x12), both already named.
+//   dword index 0x19) and unknown_48 (+0x48 = dword index 0x12), both already named.
 // register convention: EDX -> context; stack -> request, second_param.
 //   // blam-cc: EDX -> context, stack -> request, second_param
 // reconciled: R06 0x00746f9c is ScenarioStructureBSP *global_structure_bsp (was extern int32_t bsp_generation); ai.h path_find_context/actor_movement_context bsp_generation -> structure_bsp, bsp_index -> collision_bsp

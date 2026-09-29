@@ -10,7 +10,7 @@
 // (0x4beb30, outside this rewrite's range, UNSURE signature -- a curve/steering evaluator
 // judging by its nine arguments, all of which Ghidra did resolve).
 // UNSURE: swarm_component+0x02 (a flags word), +0x21 (a flag byte within the unnamed
-// weighted_actor_count[40] run) and +0x28/+0x2c (a stored 2D direction and scale, also within that
+// unknown_18[40] run) and +0x28/+0x2c (a stored 2D direction and scale, also within that
 // run) have no individual names in types/ai.h; accessed as raw offsets. prop.unknown_130
 // (checked against '\0' here) likewise has no established meaning beyond its raw offset.
 // register convention: Ghidra already resolved all four parameters as ordinary parameters.

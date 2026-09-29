@@ -90,11 +90,11 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->unknown_12 = 1;
     self->idle_counter = 0;
     self->first_prop = (datum_index)k_datum_index_none;
-    self->target_timer = (datum_index)k_datum_index_none;
+    self->unknown_54 = (datum_index)k_datum_index_none;
     self->firing_position_index = -1;
     self->unknown_60 = -1;
-    self->follow_mode = -1;
-    self->follow_target = -1;
+    self->unknown_62 = -1;
+    self->unknown_64 = -1;
     self->unknown_8e = 0;
     self->command_list_index = -1;
     self->last_obey_tick = -1;

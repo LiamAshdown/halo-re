@@ -2,8 +2,8 @@
 // address 0x438db0, size 107 bytes
 // name confidence: 0.3   rewrite confidence: 0.75
 // evidence: types/ai.h encounter (0x6c stride, confirmed by encounter_data element size);
-//   the three fields touched (any_actor_targeting/0x45 gate target_timer, unknown_47/0x48 gate
-//   speaker_participant, and any_actor_in_combat alone gates combat_timer) are still unnamed in the header, so
+//   the three fields touched (unknown_44/0x45 gate unknown_54, unknown_47/0x48 gate
+//   unknown_4a, and unknown_45 alone gates unknown_50) are still unnamed in the header, so
 //   the exact meaning of each timer is UNSURE; phase-4's one-line summary ("grenade-related
 //   cooldown timers") is kept as a hint only. Caller evidence: out/phase2/ai/07.md shows
 //   encounters_update calling this once per live encounter alongside encounter_process_squad_reinforcements (reinforcement
@@ -12,7 +12,7 @@
 // register convention: EAX -> encounter_index (blam-cc, matches the sibling calls in the
 //   same caller that pass the identical value explicitly).
 //
-// UNSURE: which specific cooldowns encounter.combat_timer/0x54/0x4a track; the header leaves
+// UNSURE: which specific cooldowns encounter.unknown_50/0x54/0x4a track; the header leaves
 // them unnamed. Preserved verbatim: decrement-by-0xf-while-nonzero on two datum-typed
 // fields when their gate byte is clear, snap-to-zero when the gate byte is set; and a
 // straight countdown-by-0xf (floor at zero) on a third field only while two other gate

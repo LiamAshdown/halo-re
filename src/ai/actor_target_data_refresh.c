@@ -90,7 +90,7 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
 
     if (force == 0 && 3 < target->kind && target->kind < 6) {
         // FIXED: Ghidra jumps straight to LAB_0041c867 when prop+0x4e is non-zero -- a
-        // non-zero line_flags SKIPS the whole refresh. The first rewrite inverted this and
+        // non-zero unknown_4e SKIPS the whole refresh. The first rewrite inverted this and
         // fell through into the reassign block instead.
         if (target->unknown_4e != 0) {
             goto after_reassign;

@@ -24,7 +24,7 @@
 // by objdump).
 //   // blam-cc: EAX -> instance_handle
 //
-// UNSURE: ai_conversation.unknown_10/combat_timer/unknown_58 have no established meaning
+// UNSURE: ai_conversation.unknown_10 has no established meaning
 // beyond "an object/unit reference the addressee logic resolves"; kept as raw header fields.
 
 #include "tags.h"
@@ -70,25 +70,25 @@ uint8_t ai_conversation_activate_next_participant(datum_index instance_handle)
         instance->speaker_participant = participant_index;
 
         if (participant_actor_handle == (datum_index)k_datum_index_none) {
-            instance->unknown_50 = (uint32_t)k_datum_index_none;
-            instance->unknown_54 = (uint32_t)k_datum_index_none;
-            instance->unknown_58 = (uint32_t)k_datum_index_none;
+            instance->speaker_actor = (uint32_t)k_datum_index_none;
+            instance->speaker_unit = (uint32_t)k_datum_index_none;
+            instance->addressee_unit = (uint32_t)k_datum_index_none;
             instance->unknown_60 = 1;
         } else {
             actor *participant_actor = &((actor *)actor_data->data)[participant_actor_handle & 0xffff];
             int16_t selection_type;
 
-            instance->unknown_50 = participant_actor_handle;
-            instance->unknown_54 = participant_actor->unit_index;
-            instance->unknown_58 = (uint32_t)k_datum_index_none;
+            instance->speaker_actor = participant_actor_handle;
+            instance->speaker_unit = participant_actor->unit_index;
+            instance->addressee_unit = (uint32_t)k_datum_index_none;
 
             if (line->addressee == 1) {
-                instance->unknown_58 = instance->unknown_10;
+                instance->addressee_unit = instance->unknown_10;
             } else if (line->addressee == 2 && line->addressee_participant >= 0 &&
                        line->addressee_participant < definition->participants.count) {
                 datum_index addressee_actor_handle = instance->participant_actor[line->addressee_participant];
                 if (addressee_actor_handle != (datum_index)k_datum_index_none) {
-                    instance->unknown_58 = ((actor *)actor_data->data)[addressee_actor_handle & 0xffff].unit_index;
+                    instance->addressee_unit = ((actor *)actor_data->data)[addressee_actor_handle & 0xffff].unit_index;
                 }
             }
 
@@ -98,7 +98,7 @@ uint8_t ai_conversation_activate_next_participant(datum_index instance_handle)
 
         {
             TagDependency *variants = &line->variant_1; // variant_1..variant_6, six contiguous 0x10-byte slots
-            int16_t variant_selector = ((int16_t *)&instance->unknown_06)[participant_index];
+            int16_t variant_selector = ((int16_t *)&instance->unknown_18)[participant_index];
             instance->line_variant_tag_id = *(uint32_t *)&variants[variant_selector].tag_id;
         }
 

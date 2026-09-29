@@ -22,7 +22,7 @@ extern Scenario *global_scenario; // 0x00746f8c
 // blam-cc: EAX -> actor_index, SI -> kind, stack -> search_override
 // Picks which of the seven per-squad firing position group masks applies to this actor
 // right now. platoon_defending (the platoon defending flag) selects the attacking or the
-// defending half; last_seen_aim_marker_z (the searching flag, overridable by the caller with 1 to force
+// defending half; unknown_98 (the searching flag, overridable by the caller with 1 to force
 // it on or 2 to force it off) selects the plain or the _search variant. kind 4 asks for the
 // guard variant of whichever half applies, kind 5 for pursuing, and kind 1 for
 // defending_guard unconditionally.

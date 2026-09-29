@@ -31,7 +31,7 @@
 //    5th stack arguments. Ghidra renders the param_8 store as `(float)param_8`; the
 //    disassembly shows a plain integer `mov`, so it is transcribed as one here.
 //  - prop+0x104 is used as a real_point3d (the prop's last known position); types/ai.h has
-//    it as three separate aim_marker_x/108/10c dwords. TYPES-GAP, not folded because only
+//    it as three separate aim_marker_x/y/z dwords. TYPES-GAP, not folded because only
 //    this file and actor_dispatch_look_handler_by_posture's other callers rely on it.
 //  - flags bit meanings (1, 2, 4, 8, 0x10) are named below from their effect only.
 

@@ -10,7 +10,7 @@
 //   flagged, and the list is grouped with the search radius (max(request radius, 0.2)). The point search starts
 //   at the previous point toward the waypoint (target surface = the waypoint's, the goal flag on the last
 //   waypoint when the path is still valid); with no result and flagged obstacles it is rerun ignoring them
-//   (weighted_actor_count = 1). No result fails the whole path (returns 0). A complete search continues from the waypoint
+//   (unknown_2a = 1). No result fails the whole path (returns 0). A complete search continues from the waypoint
 //   itself, a best-effort one from its best node (height from its surface); the node chain (up to 0x80, heights
 //   from their surface planes) is appended in path order to out_waypoints while it holds fewer than 4. Running
 //   out of room clears out_valid and stops (returns 1).
@@ -33,11 +33,11 @@ extern void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point
 extern void ai_search_partition_into_groups(ai_search_obstacle_list *list, float radius); // 0x43cb60, ESI, stack
 extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00,
     ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position,
-    int32_t surface_index, uint32_t weighted_actor_count, uint8_t unknown_29, uint8_t weighted_actor_count); // 0x43b790
+    int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a); // 0x43b790
 extern uint8_t ai_search_step(ai_search_context *context); // 0x43bcb0, EAX
 extern uint8_t ai_search_run(ai_search_context *context, uint8_t unknown_04, ai_search_obstacle_list *obstacles,
-    uint32_t unknown_00, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t weighted_actor_count,
-    uint8_t unknown_29, uint8_t weighted_actor_count); // 0x43be20, ESI, EDX, ECX, EAX, stack
+    uint32_t unknown_00, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t unknown_18,
+    uint8_t unknown_29, uint8_t unknown_2a); // 0x43be20, ESI, EDX, ECX, EAX, stack
 extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
     const real_plane3d *plane, const real_point2d *known); // 0x44d860
 
@@ -55,7 +55,7 @@ uint8_t ai_navigate_around_obstacles(path_find_context *context, int16_t count, 
     path_find_request *request = (path_find_request *)context;
     ModelCollisionGeometryBSP *collision_bsp = global_structure_collision_bsp;
     float radius = (request->pathfinding_radius > 0.2f) ? request->pathfinding_radius : 0.2f;
-    uint8_t *cache = *(uint8_t **)&((struct path_find_context *)context)->current_line_index;
+    uint8_t *cache = *(uint8_t **)&((struct path_find_context *)context)->unknown_48;
     ai_search_obstacle_list local_obstacles;
     ai_search_context local_search;
     path_find_waypoint path[0x80];

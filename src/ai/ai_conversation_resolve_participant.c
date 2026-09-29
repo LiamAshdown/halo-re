@@ -164,7 +164,7 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
                 actor_iterator.unknown_10 = 0;
                 actor_iterator.active = 1;
                 actor_iterator.actor_index = -1;
-                actor_iterator.weighted_actor_count = -1;
+                actor_iterator.unknown_18 = -1;
             }
         } else {
             ai_reference_actor_iterator_new(

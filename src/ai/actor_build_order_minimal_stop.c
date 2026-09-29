@@ -1,7 +1,7 @@
 // actor_build_order_minimal_stop  (Ghidra: actor_build_order_minimal_stop, renamed)
 // address 0x4078f0, size 68 bytes
 // name confidence: 0.35   rewrite confidence: 0.4
-// evidence: types/ai.h actor.swarm (0x06)/last_seen_aim_marker_z; phase-4 summary "a minimal 'stop/idle'
+// evidence: types/ai.h actor.swarm (0x06)/unknown_98; phase-4 summary "a minimal 'stop/idle'
 //   order, only valid while the actor is inactive" (this session reads the gate as
 //   actor.swarm rather than an inactive flag, per the actual byte tested).
 // register convention: actor index in EAX, order pointer in ESI.

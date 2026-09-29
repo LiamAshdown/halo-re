@@ -103,7 +103,7 @@ void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t st
         iterator.unknown_10 = 0;
         iterator.active = 1;
         iterator.actor_index = k_datum_index_none;
-        iterator.weighted_actor_count = -1;
+        iterator.unknown_18 = -1;
     }
     for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
         datum_index actor_index = iterator.actor_index;

@@ -41,16 +41,16 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
     uint8_t order[k_actor_mode_data_size];
     int16_t code = (int16_t)order_code;
 
-    if (code == -1 && ((struct actor *)act)->follow_target != -1 && ((struct actor *)act)->follow_target + 0x2d >= game_time->game_time) {
+    if (code == -1 && ((struct actor *)act)->unknown_64 != -1 && ((struct actor *)act)->unknown_64 + 0x2d >= game_time->game_time) {
         return 0;
     }
-    ((struct actor *)act)->follow_target = game_time->game_time;
+    ((struct actor *)act)->unknown_64 = game_time->game_time;
     if (code == -1) {
         code = ((struct actor *)act)->unknown_60;
         if (code != -1) {
             ((struct actor *)act)->unknown_60 = -1;
         } else {
-            code = ((struct actor *)act)->follow_mode;
+            code = ((struct actor *)act)->unknown_62;
             if (code == -1) {
                 code = 0;
             }

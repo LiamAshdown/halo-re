@@ -29,7 +29,7 @@ extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, 
 
 // blam-cc: stack -> object_index, force_full_scan
 // Clears every ai_conversation instance's direct references to object_index (its two
-// speaker-selection handles at target_timer/unknown_58, and unknown_10). When
+// speaker-selection handles at unknown_54/unknown_58, and unknown_10). When
 // force_full_scan is set, or the conversation's own definition requires it (flags bit 0),
 // also scans every flagged participant's unit for a match, clearing a conversation-mode
 // callback slot (actor mode_data+0x0c) and conversation_participant when found. Stops the
@@ -53,13 +53,13 @@ void ai_conversation_clear_object_references(datum_index object_index, uint8_t f
         definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
         referenced = 0;
 
-        if (instance->target_timer == (int32_t)object_index) {
+        if (instance->speaker_unit == (int32_t)object_index) {
             instance->unknown_63 = 1;
-            instance->target_timer = -1;
+            instance->speaker_unit = -1;
             referenced = 1;
         }
-        if (instance->unknown_58 == (int32_t)object_index) {
-            instance->unknown_58 = -1;
+        if (instance->addressee_unit == (int32_t)object_index) {
+            instance->addressee_unit = -1;
             referenced = 1;
         }
         if (instance->unknown_10 == object_index) {

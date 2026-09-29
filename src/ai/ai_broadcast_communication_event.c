@@ -65,7 +65,7 @@ void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t
         iterator.unknown_10 = 0;
         iterator.active = 1;
         iterator.actor_index = k_datum_index_none;
-        iterator.weighted_actor_count = -1;
+        iterator.unknown_18 = -1;
     }
     for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
         datum_index actor_index = iterator.actor_index;

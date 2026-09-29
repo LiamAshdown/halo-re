@@ -346,7 +346,7 @@ apply:
                 *(uint32_t *)((uint8_t *)unit_object + 0x204) & 0xfffffeffu;
         }
     }
-    instance->weighted_actor_count = 1;
+    instance->unknown_06 = 1;
     return ready;
 }
 

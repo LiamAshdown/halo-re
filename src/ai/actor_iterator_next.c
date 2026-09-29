@@ -2,7 +2,7 @@
 // address 0x436a70, size 154 bytes
 // name confidence: 0.5   rewrite confidence: 0.5
 // evidence: reads/writes exactly the types/ai.h actor_iterator_state fields
-// (weighted_actor_count/unknown_10/active/actor_index), and its first 0x0c bytes double as a
+// (unknown_18/unknown_10/active/actor_index), and its first 0x0c bytes double as a
 // types/memory.h data_iterator over encounter_data (actor_iterator_new, 0x436a30, this
 // batch, seeds filter_array/cursor/signature identically to a fresh data_iterator).
 // Advances through the live encounters' member lists (encounter.units_active/first_actor,
@@ -32,30 +32,30 @@ actor *actor_iterator_next(actor_iterator_state *iterator)
         return 0;
     }
 
-    next = iterator->unknown_06;
+    next = iterator->unknown_18;
     while (next == (datum_index)k_datum_index_none) {
         encounter *enc = data_iterator_next((data_iterator *)iterator);
         if (enc == 0) {
             if (iterator->unknown_10 == 0) {
-                iterator->unknown_06 = ai_globals_ptr->unknown_08;
+                iterator->unknown_18 = ai_globals_ptr->unknown_08;
                 iterator->unknown_10 = 1;
             }
             break;
         }
         if (iterator->active == 0 || enc->units_active != 0) {
-            iterator->unknown_06 = enc->first_actor;
+            iterator->unknown_18 = enc->first_actor;
         }
-        next = iterator->unknown_06;
+        next = iterator->unknown_18;
     }
 
     do {
-        next = iterator->unknown_06;
+        next = iterator->unknown_18;
         iterator->actor_index = next;
         if (next == (datum_index)k_datum_index_none) {
             return 0;
         }
         a = &((actor *)actor_data->data)[next & 0xffff];
-        iterator->unknown_06 = a->next_in_encounter;
+        iterator->unknown_18 = a->next_in_encounter;
     } while (iterator->active != 0 && a->active == 0);
 
     return a;

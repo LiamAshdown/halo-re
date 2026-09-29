@@ -40,7 +40,7 @@ void ai_communication_reset(void)
 
     ai_globals_ptr->communication_valid = 1;
     ai_globals_ptr->unknown_14 = (datum_index)0;
-    ai_globals_ptr->weighted_actor_count = (datum_index)0;
+    ai_globals_ptr->unknown_18 = (datum_index)0;
     ai_globals_ptr->unknown_1c = (datum_index)0;
     ai_globals_ptr->unknown_20 = (datum_index)0;
     ai_globals_ptr->unknown_24 = (datum_index)0;

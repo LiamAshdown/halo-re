@@ -3,7 +3,7 @@
 // name confidence: 0.9   rewrite confidence: 0.9 (VERIFIED against objdump; encounter handle FIXED)
 // evidence: types/ai.h ai_globals.unknown_08 (head of the unassigned actor list),
 //   actor.next_in_encounter(0x2c)/active(0x08)/unknown_0c(0x0c); encounter.units_active(0x0d)/
-//   weighted_actor_count/unknown_10. Record layout {tiebreak, pad, handle, priority} confirmed against
+//   unknown_2a/unknown_10. Record layout {tiebreak, pad, handle, priority} confirmed against
 //   ai_squad_priority_compare @0x42ac90 (this rewrite). Calls data_iterator_next (0x4d05d0,
 //   memory module) and the C library qsort.
 //   UNSURE: the encounter-branch's record handle is written from a local that the original

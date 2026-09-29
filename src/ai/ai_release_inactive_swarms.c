@@ -49,7 +49,7 @@ int ai_release_inactive_swarms(char *buffer, uint8_t *has_more)
     iterator.unknown_10 = 0;
     iterator.active = 0;
     iterator.actor_index = -1;
-    iterator.weighted_actor_count = -1;
+    iterator.unknown_18 = -1;
 
     a = actor_iterator_next(&iterator);
     while (a != 0) {
