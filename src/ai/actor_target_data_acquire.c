@@ -102,7 +102,7 @@ uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_in
 
     // 0x41f960
     if (owner_reference == k_datum_index_none ||
-        (pair_reference != k_datum_index_none && PROP(pair_reference)->unknown_32 >= 2)) {
+        (pair_reference != k_datum_index_none && PROP(pair_reference)->perception_grade >= 2)) {
         target->unknown_b8 = 1;
         target->unknown_b0 = 0;
         target->unknown_b4 = owner_reference;

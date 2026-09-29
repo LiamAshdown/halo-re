@@ -64,7 +64,7 @@ uint8_t actor_is_target_within_engagement_range(uint32_t actor_index)
     leader_prop_index = *(datum_index *)(a->mode_data.raw + (0xb8 - 0x9c));
     if (leader_prop_index != (datum_index)k_datum_index_none) {
         prop *p = &((prop *)prop_data->data)[leader_prop_index & 0xffff];
-        if (p->unknown_38 != 0 && p->unknown_38 != 1) {
+        if (p->engagement_reachability != 0 && p->engagement_reachability != 1) {
             return 1;
         }
         return 0;

@@ -4,7 +4,7 @@
 // evidence: types/ai.h actor.awareness_level/vocalization_*/mode/mode_data,
 //   actor.vocalization_unknown_3e8, actor.facing/facing_unknown_180/facing_unknown_18c
 //   (0x174/0x178/0x17c, dotted against the target direction as the visibility-cone test);
-//   prop.is_vault/is_unit/is_parented/priority_weight/58/5c/distance/unknown_12f/unknown_32/
+//   prop.is_vault/is_unit/is_parented/priority_weight/58/5c/distance/unknown_12f/perception_grade/
 //   look_point/object_index; types/tags.h Actor.event_look_time_modifier[2] (0xd4/0xd8, same
 //   pair as actor_queue_directional_reaction_event @0x422270) and Actor.surprise_distance
 //   (0x2b0, confirmed by hand-counting the Actor struct's fields up to that offset). Calls
@@ -161,7 +161,7 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
 
     notify_unit:
         if (self->alert_level < 3 && already_noticed == 0 &&
-            target->unknown_32 < 2 && self->unit_index != (datum_index)k_datum_index_none) {
+            target->perception_grade < 2 && self->unit_index != (datum_index)k_datum_index_none) {
             ai_communication_broadcast(6, self->unit_index, target->object_index, 3,
                                        (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
         }

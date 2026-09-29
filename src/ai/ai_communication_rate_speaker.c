@@ -187,7 +187,7 @@ float ai_communication_rate_speaker(datum_index actor_index, datum_index object_
                                     reach_mode = (int32_t)*(int8_t *)&p->unknown_120;
                                 }
                                 // 0x42fe54..0x42fe76: BX = the prop's +0x38 status, range class from 0x41be10
-                                reach = actor_dispatch_look_handler_by_posture(((struct prop *)p)->unknown_38,
+                                reach = actor_dispatch_look_handler_by_posture(((struct prop *)p)->engagement_reachability,
                                                      actor_index, &a->aim_origin, (uint8_t *)p + 0x104,
                                                      (uint8_t)reach_mode, 1,
                                                      actor_target_get_priority_class(actor_index, prop_index));

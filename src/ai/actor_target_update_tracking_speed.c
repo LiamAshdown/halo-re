@@ -59,7 +59,7 @@
 //     intervening EAX write.
 //
 // UNSURE, still substantially (Ghidra's own "Type propagation algorithm not settling" marker
-// covers this whole function): actor_evaluate_engagement_reachability (called twice, computing prop.unknown_38) is not
+// covers this whole function): actor_evaluate_engagement_reachability (called twice, computing prop.engagement_reachability) is not
 // yet rewritten anywhere in this module; its established extern (actor_check_weapon_pickup_
 // reachable.c) models it as 4 stack arguments, but disassembling 0x42b270 itself shows it reads
 // EAX and ECX (both 16-bit, compared against 0xffff) at entry before any stack argument -- the
@@ -128,7 +128,7 @@ extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int1
 // module under the name actor_dispatch_look_handler_by_posture. Disassembling 0x41bb30 itself
 // (`test bx,bx; je ...; cmp bx,1; jne <fallback>`) shows BX is a genuine register argument
 // tested at entry, gating whether the function runs its main body or takes a fallback path;
-// at all three call sites here it is loaded from prop.unknown_38 immediately before the call.
+// at all three call sites here it is loaded from prop.engagement_reachability immediately before the call.
 // The 6 stack arguments below were confirmed identical, slot for slot, across all three call
 // sites via a full esp-offset trace of the disassembly.
 extern int16_t actor_dispatch_look_handler_by_posture(int16_t kind, uint32_t actor_index, void *scratch, void *out_record,
@@ -306,7 +306,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
 
         {
             int16_t kind_flag = (!p->is_parented || !p->is_unit) ? 0 : 2;
-            p->unknown_38 = (int16_t)actor_evaluate_engagement_reachability(
+            p->engagement_reachability = (int16_t)actor_evaluate_engagement_reachability(
                 *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->unknown_104,
                 (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
                 self->active_unit_index != (datum_index)k_datum_index_none); // 0x41cee5: AX = block +0x28, EDI = the block
@@ -377,25 +377,25 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
             if (!team_gate) {
                 uint8_t rate_flag = p->unknown_132 ? 2 : p->unknown_120;
                 uint16_t priority_class = actor_target_get_priority_class(actor_index, target_prop_index);
-                result = actor_dispatch_look_handler_by_posture(p->unknown_38, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
+                result = actor_dispatch_look_handler_by_posture(p->engagement_reachability, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                        rate_flag, 1, priority_class);
                 if (result > 1) goto after_engage;
             }
             p->unknown_30 = result;
-            p->unknown_32 = result;
-            p->unknown_38 = 0;
+            p->perception_grade = result;
+            p->engagement_reachability = 0;
         }
 after_engage:
         if (!p->unknown_133) {
             uint8_t did_track = 0;
             if (!p->unknown_131) {
                 if (team_gate) {
-                    p->unknown_32 = 0;
+                    p->perception_grade = 0;
                     p->unknown_12a = 0;
                     did_track = 1;
                 }
             } else if (p->is_unit || (p->is_parented && 4.0f < p->distance)) {
-                p->unknown_32 = 0;
+                p->perception_grade = 0;
                 p->unknown_12a = 0;
                 did_track = 1;
             }
@@ -414,10 +414,10 @@ after_engage:
                 {
                     uint8_t rate_flag = p->unknown_132 ? 2 : p->unknown_120;
                     uint16_t priority_class = actor_target_get_priority_class(actor_index, target_prop_index);
-                    int16_t result = actor_dispatch_look_handler_by_posture(p->unknown_38, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
+                    int16_t result = actor_dispatch_look_handler_by_posture(p->engagement_reachability, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                                    rate_flag, use_urgent, priority_class);
-                    p->unknown_12a = (p->unknown_32 == 0 && result > 0);
-                    p->unknown_32 = result;
+                    p->unknown_12a = (p->perception_grade == 0 && result > 0);
+                    p->perception_grade = result;
                     if (result != 0) {
                         p->unknown_90 = ((struct prop *)p)->unknown_104;
                         p->unknown_94 = ((struct prop *)p)->unknown_108;
@@ -433,7 +433,7 @@ after_engage:
                     *(int16_t *)&((struct prop *)p)->unknown_34 = 3;
                 } else {
                     *(int16_t *)&((struct prop *)p)->unknown_34 =
-                        actor_target_hearing_check((uint8_t *)p + 0xfc, p->unknown_38, actor_index,
+                        actor_target_hearing_check((uint8_t *)p + 0xfc, p->engagement_reachability, actor_index,
                                                     scratch, /*gate=UNSURE-tag-word*/ 0, &p->last_known_position);
                 }
             } else {
@@ -444,7 +444,7 @@ after_engage:
                 *(int16_t *)((uint8_t *)p + 0x36) = 3;
             }
             if (p->unknown_132 != 0 && p->unknown_122 < 3 && p->unknown_121 < 3 &&
-                (p->unknown_38 == 0 || p->unknown_38 == 1)) {
+                (p->engagement_reachability == 0 || p->engagement_reachability == 1)) {
                 int16_t v = *(int16_t *)((uint8_t *)p + 0x36);
                 if (v < 2) v = 1;
                 *(int16_t *)((uint8_t *)p + 0x36) = v;
@@ -453,7 +453,7 @@ after_engage:
                 int16_t a = *(int16_t *)&((struct prop *)p)->unknown_34;
                 int16_t b = *(int16_t *)((uint8_t *)p + 0x36);
                 int16_t best = (a <= b) ? b : a;
-                int16_t chosen = p->unknown_32;
+                int16_t chosen = p->perception_grade;
                 if (chosen <= best) {
                     chosen = best;
                 }
@@ -466,7 +466,7 @@ after_engage:
             p->unknown_30 = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
             *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
-            p->unknown_32 = 0;
+            p->perception_grade = 0;
         }
 
         if (p->unknown_30 != 0) {
@@ -475,7 +475,7 @@ after_engage:
         }
 
         if (2 <= p->kind && p->kind < 4 &&
-            (1 < p->unknown_32 ||
+            (1 < p->perception_grade ||
              (p->noticed_b != 0 && p->unknown_b4 != -1 &&
               ((actor *)datum_get(p->unknown_b4, actor_data)) != (actor *)0 &&
               9 < ((actor *)datum_get(p->unknown_b4, actor_data))->target_combat_status &&
@@ -487,7 +487,7 @@ after_engage:
         }
     } else {
         int16_t kind_flag = (!p->is_parented || !p->is_unit) ? 0 : 2;
-        p->unknown_38 = (int16_t)actor_evaluate_engagement_reachability(
+        p->engagement_reachability = (int16_t)actor_evaluate_engagement_reachability(
             *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->unknown_104,
             (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
             self->active_unit_index != (datum_index)k_datum_index_none); // 0x41ce26
@@ -495,11 +495,11 @@ after_engage:
             p->unknown_30 = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
             *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
-            p->unknown_32 = 0;
+            p->perception_grade = 0;
         } else {
-            int16_t result = actor_dispatch_look_handler_by_posture(p->unknown_38, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
+            int16_t result = actor_dispatch_look_handler_by_posture(p->engagement_reachability, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                            p->unknown_120, 1, 2);
-            p->unknown_32 = result;
+            p->perception_grade = result;
             *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
             p->unknown_30 = result;

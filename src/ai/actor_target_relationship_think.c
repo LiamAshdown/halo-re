@@ -342,7 +342,7 @@ restart:
             }
         }
     }
-    if (target->unknown_32 < 2) {
+    if (target->perception_grade < 2) {
         target->unknown_78 = 0;
     } else if (target->unknown_78 < 0x7fff) {
         target->unknown_78 += 1;
@@ -485,7 +485,7 @@ restart:
         int penalty;
 
         if (target->kind == 4 &&
-            (target->unknown_32 > 1 ||
+            (target->perception_grade > 1 ||
              (self->unknown_60c == 1 && self->unknown_610 == target_prop_index &&
               game_time->game_time % 3 == 0))) {
             char nearly_dead = self->unknown_162[0];
@@ -523,13 +523,13 @@ tail:
             actor_scan_backup_and_panic_reaction(target_prop_index, actor_index); // 0x41b570: EAX prop, stack actor
             target->unknown_129 = 0;
         }
-        if (target->unknown_12a != 0 || (released != 0 && target->unknown_32 > 0)) {
+        if (target->unknown_12a != 0 || (released != 0 && target->perception_grade > 0)) {
             // 0x41b59b: EAX prop, ECX actor, DL = released and no conflict
             actor_notify_target_engaged(target_prop_index, actor_index, (uint8_t)(released != 0 && had_conflict == 0));
             target->unknown_12a = 0;
         }
         if (self->unknown_377 == 0 && target->is_unit == 0 && target->is_parented != 0 &&
-            target->unknown_32 > 1 && target->unknown_122 < 3 && target->distance < 7.0f) {
+            target->perception_grade > 1 && target->unknown_122 < 3 && target->distance < 7.0f) {
             self->unknown_377 = 1;
             ai_communication_broadcast(0x19, self->unit_index, target->object_index, 2, (uint32_t)-1, (uint32_t)-1, 0);
             actor_notify_target_engaged(target_prop_index, actor_index, 0); // 0x41b620: DL 0
@@ -589,7 +589,7 @@ tail:
                     char busy = (char)actor_is_burst_pending(actor_index);
                     if (busy != 0) {
                         char should_end = (char)actor_check_burst_length_exceeded(actor_index);
-                        if (should_end == 0 && target->unknown_12b != 0 && target->unknown_32 > 1) {
+                        if (should_end == 0 && target->unknown_12b != 0 && target->perception_grade > 1) {
                             ai_communication_broadcast(0xf, self->unit_index, target->object_index, 2, (uint32_t)-1, 2, 0);
                         }
                     }
@@ -613,7 +613,7 @@ apply_new_kind:
         target->unknown_b4 = -1;
         break;
     case 2:
-        target->unknown_4c = (uint16_t)((target->unknown_32 < 2) ? 10 : 60);
+        target->unknown_4c = (uint16_t)((target->perception_grade < 2) ? 10 : 60);
         break;
     case 3:
         released = (uint8_t)actor_target_data_release(target_prop_index, actor_index, &had_conflict);

@@ -37,7 +37,7 @@ uint8_t actor_target_get_backup_priority(datum_index target_prop_index)
         if (target->unknown_12f != 0) {
             return (uint8_t)(((int8_t)target->unknown_122 <= 1) + 2); // 0x420ea3: signed byte compare
         }
-        if (1 < target->unknown_32) {
+        if (1 < target->perception_grade) {
             return 1;
         }
     }

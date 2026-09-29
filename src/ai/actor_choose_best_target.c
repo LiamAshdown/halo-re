@@ -14,8 +14,8 @@
 // this function has just overwritten with `best`) instead of using `best` directly. That is
 // exactly what the original does -- the two are equal at that point -- and it is transcribed
 // literally rather than simplified.
-// UNSURE: prop.unknown_12d, unknown_12f, unknown_135, unknown_122, unknown_9c, unknown_32 and
-// unknown_38 keep their placeholder names; this function is a counter of them, not an
+// UNSURE: prop.unknown_12d, unknown_12f, unknown_135, unknown_122, unknown_9c, perception_grade and
+// engagement_reachability keep their placeholder names; this function is a counter of them, not an
 // explanation of them.
 // UNSURE: types/ai.h previously called actor+0x23c eye_position. The 0x7b-byte zeroing run at
 // the top of this function covers 0x1ec..0x266, so that name cannot be right; the region is
@@ -111,7 +111,7 @@ void actor_choose_best_target(datum_index actor_index)
                 }
 
                 in_group_c = 0;
-                if (p->unknown_38 == 0 || p->unknown_38 == 1) {
+                if (p->engagement_reachability == 0 || p->engagement_reachability == 1) {
                     in_group_b = 1;
                     in_group_c = (uint8_t)(p->distance < 3.0f);
                 }
@@ -157,11 +157,11 @@ void actor_choose_best_target(datum_index actor_index)
                     }
                 }
             } else {
-                low_priority_kind = (uint8_t)(p->unknown_32 < 2);
+                low_priority_kind = (uint8_t)(p->perception_grade < 2);
                 threat_class = 0;
                 self->tally.unit_props = (uint8_t)(self->tally.unit_props + 1);
 
-                if (low_priority_kind && (p->unknown_12f == 0 || p->unknown_38 != 0)) {
+                if (low_priority_kind && (p->unknown_12f == 0 || p->engagement_reachability != 0)) {
                     // the whole classification below is skipped
                 } else {
                     if (!low_priority_kind) {

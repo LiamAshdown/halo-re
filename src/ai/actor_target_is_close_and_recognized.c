@@ -20,7 +20,7 @@ extern datum_index actor_find_or_create_shared_prop(datum_index object_index, da
 
 // blam-cc: stack -> param_1 (unused), param_2 (unused), actor_index
 // Resolves actor_index to its prop record and returns 1 if it is within 5 world units and
-// its unknown_38 field is 0 or 1, else 0.
+// its engagement_reachability field is 0 or 1, else 0.
 uint8_t actor_target_is_close_and_recognized(datum_index object_index, uint32_t param_2, datum_index actor_index)
 {
     datum_index prop_index;
@@ -34,7 +34,7 @@ uint8_t actor_target_is_close_and_recognized(datum_index object_index, uint32_t 
         return 0;
     }
     p = &((prop *)prop_data->data)[prop_index & 0xffff];
-    if (p->distance < 5.0f && (p->unknown_38 == 0 || p->unknown_38 == 1)) {
+    if (p->distance < 5.0f && (p->engagement_reachability == 0 || p->engagement_reachability == 1)) {
         return 1;
     }
     return 0;

@@ -767,9 +767,9 @@ typedef struct prop {
     int32_t unknown_28;               // 0x28 the tick a parented prop was created
     datum_index unknown_2c;           // 0x2c
     int16_t unknown_30;               // 0x30
-    int16_t unknown_32;               // 0x32
+    int16_t perception_grade;         // 0x32 last actor_dispatch_look_handler_by_posture result: 0 unseen, 1 seen, 2 within range, 3 within 6 units
     int32_t unknown_34;               // 0x34
-    int16_t unknown_38;               // 0x38
+    int16_t engagement_reachability; // 0x38 actor_evaluate_engagement_reachability result; the range test only grades postures 0 and 1
     int16_t unknown_3a;               // 0x3a
     int16_t unknown_3c;               // 0x3c
     uint8_t unknown_3e[2];            // 0x3e

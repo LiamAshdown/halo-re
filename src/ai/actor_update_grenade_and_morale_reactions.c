@@ -54,7 +54,7 @@ char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
     if (((struct actor *)act)->unknown_3a8 > 0 && ((actor *)act)->active_unit_index == k_datum_index_none) {
         uint8_t *threat = (uint8_t *)prop_data->data + (((struct actor *)act)->unknown_3ac & 0xffff) * 0x138;
 
-        if (threat[0xa4] != 0 && (((struct prop *)threat)->unknown_38 == 0 || ((struct prop *)threat)->unknown_38 == 1) &&
+        if (threat[0xa4] != 0 && (((struct prop *)threat)->engagement_reachability == 0 || ((struct prop *)threat)->engagement_reachability == 1) &&
             (*(int32_t *)&((struct actor *)act)->unknown_36c == -1 || *(int32_t *)&((struct actor *)act)->unknown_36c + 0x1e <= now)) {
             *(int32_t *)&((struct actor *)act)->unknown_36c = now;
             if (actor_should_throw_grenade(actor_index, 1)) {

@@ -58,9 +58,9 @@ void actor_update_target_combat_status(datum_index actor_index)
             status = 2;
         } else if (target->seen != 0) {
             status = 0xb;
-        } else if (2 <= target->unknown_32) {
+        } else if (2 <= target->perception_grade) {
             status = 10;
-        } else if (target->unknown_38 != 0 && target->unknown_38 != 1) {
+        } else if (target->engagement_reachability != 0 && target->engagement_reachability != 1) {
             status = 7;
         } else if (2 < (int8_t)target->unknown_122 || !(target->distance < 6.0f)) { // 0x4201d4: test ah,5 / jp
             status = 8;
@@ -90,7 +90,7 @@ void actor_update_target_combat_status(datum_index actor_index)
         self->unknown_27c = (uint8_t)(~(target_obj->vitality_flags >> 2) & 1);
     } else {
         self->unknown_27c = (uint8_t)(target->is_vault == 0);
-        if (0 < target->unknown_32) {
+        if (0 < target->perception_grade) {
             self->target_status_tick = target->last_look_tick;
         }
     }

@@ -48,7 +48,7 @@ extern uint8_t actor_point_in_directional_lane(real_point3d *to_point, real_poin
 // blam-cc: EAX -> actor_index, stack -> require_trust, stack -> skip_lane_test,
 //   stack -> out_result, stack -> out_in_front
 // Walks actor.first_prop's chain looking for the highest-weighted prop of kind 2 or 3 (with
-// prop.unknown_32 set) that also passes a directional test against the actor's look cones,
+// prop.perception_grade set) that also passes a directional test against the actor's look cones,
 // and reports it through out_result / out_in_front. Every prop of the wrong kind has its
 // priority_weight_spent reset to 0 in passing; the winning prop has priority_weight_spent raised to priority_weight and
 // last_selected_tick stamped with the current tick, matching the pairing actor_begin_vocalization
@@ -105,7 +105,7 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
         cur = &((prop *)prop_data->data)[next_handle & 0xffff];
         next_handle = cur->next_in_actor;
 
-        if (!(cur->kind > 1 && cur->kind < 4 && cur->unknown_32 != 0)) {
+        if (!(cur->kind > 1 && cur->kind < 4 && cur->perception_grade != 0)) {
             cur->priority_weight_spent = 0.0f;
             continue;
         }

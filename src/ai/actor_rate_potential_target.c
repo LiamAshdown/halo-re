@@ -139,7 +139,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
             bonus_d = 4;
         } else if (0 < target->unknown_9c) {
             bonus_d = 3;
-        } else if (target->unknown_38 != 0 && target->unknown_38 != 1) {
+        } else if (target->engagement_reachability != 0 && target->engagement_reachability != 1) {
             bonus_d = 3;
         } else if (target->unknown_12f != 0 && (int8_t)target->unknown_122 < 2) {
             // FIXED: Ghidra compares prop+0x122 as a signed char.
