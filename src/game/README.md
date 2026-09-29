@@ -101,7 +101,7 @@ and `king_hill_state` enums are not repeated here; read them in the header.
 | `0x50` | `int32_t lives_per_round` | clamped >= 0; 0 means unlimited. A player whose death count (player+0xae) reaches it is eliminated |
 | `0x54` | `float health` | clamped to 0.25 .. 4.0; damage taken is scaled by 1 / health (0x461550) |
 | `0x58` | `int32_t score_limit` |  |
-| `0x5c` | `int32_t starting_equipment` | clamped to 0 .. 0xd |
+| `0x5c` | `int32_t weapon_set` | clamped to 0 .. 0xd; indexes var_weapon_set |
 | `0x60` | `uint32_t red_vehicle_set` | low nibble clamped to 0 .. 8; the upper bits are a packed 3-bit-per-slot table (the built-ins store 0x249240) |
 | `0x64` | `uint32_t blue_vehicle_set` | same packed 3-bit encoding as 0x60 |
 | `0x68` | `int32_t vehicle_respawn_time` | in ticks (the built-ins store 0x708 == 60 s) |

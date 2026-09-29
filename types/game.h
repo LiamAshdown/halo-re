@@ -255,7 +255,8 @@ typedef struct game_variant {
                                //      dealt is scaled by 1 / health (0x461550, called from
                                //      object_apply_damage). NOT a speed or time scale.
     int32_t score_limit;       // 0x58
-    int32_t starting_equipment;// 0x5c clamped to 0 .. 0xd
+    int32_t weapon_set;        // 0x5c clamped to 0 .. 0xd; the var_weapon_set string list (0x4b8da0), and the
+                               //      placement code swaps weapon classes by it (0x462c30)
     uint32_t red_vehicle_set;  // 0x60 low nibble clamped to 0 .. 8; the upper bits are a
                                //      packed 3-bit-per-slot table (the built-ins store
                                //      0x249240, i.e. every slot from index 2 up set to 1).

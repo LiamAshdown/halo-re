@@ -1194,32 +1194,35 @@ typedef struct server_browser_filters {
 // ---------------------------------------------------------------------------
 // the advertised custom-game option codecs  (0x576180 pack, 0x576460 unpack,
 // 0x5767d0 / 0x576890 the type-1 pair, 0x576900 / 0x576a10 the type-3 pair)
-// What the browser squeezes into the GameSpy key/value advertisement. The wide record is
-// narrower than game_variant and is not one: it is a flat block of scalars the packer reads
-// field by field, so only the offsets it touches are known and none of them is named by a
-// string. The low 3 bits of every packed code are the record's own type tag.
-// UNSURE throughout: every field name below except the type tag is positional.
+// What the browser squeezes into the GameSpy key/value advertisement. The wide record IS
+// game_variant seen from +0x34: network_session_host_qr2_server_key passes
+// server_browser_custom_options_pack(game_engine_variant + 0x34), and every field lines up with
+// the game_variant field at +0x34 (the value sets the packer accepts are the options screens'
+// value sets, and multiplayer_game_variant_description_generate labels each one from the
+// options' own string lists). Kept as its own type because the codecs are compiled against the
+// +0x34 base. The low 3 bits of every packed code are the record's own type tag.
 // ---------------------------------------------------------------------------
 typedef struct server_browser_custom_options {
-    uint8_t unknown_00[4];     // 0x00
-    uint32_t flags_a;          // 0x04
-    uint32_t unknown_08;       // 0x08
-    uint8_t unknown_0c;        // 0x0c
-    uint8_t pad_0d[3];         // 0x0d
-    int32_t unknown_10;        // 0x10
-    int32_t unknown_14;        // 0x14
-    int32_t unknown_18;        // 0x18
-    int32_t gametype_like;     // 0x1c 0, 1, 3 or 5; selects the sub-codec
-    uint32_t float_bits_20;    // 0x20 raw IEEE-754 bits of a float, moved as an integer
-    int32_t unknown_24;        // 0x24
-    uint32_t unknown_28;       // 0x28
-    uint32_t unknown_2c;       // 0x2c
-    uint32_t unknown_30;       // 0x30
-    int32_t unknown_34;        // 0x34
-    uint8_t unknown_38;        // 0x38
-    uint8_t pad_39[3];         // 0x39
-    int32_t unknown_3c;        // 0x3c
-    uint8_t unknown_40;        // 0x40
+    uint8_t teams;                 // 0x00 game_variant+0x34
+    uint8_t pad_01[3];             // 0x01
+    uint32_t flags;                // 0x04 game_variant+0x38 option bits
+    uint32_t objective_indicator;  // 0x08 game_variant+0x3c, 2 bits (0..2)
+    uint8_t odd_man_out;           // 0x0c game_variant+0x40
+    uint8_t pad_0d[3];             // 0x0d
+    int32_t respawn_time_growth;   // 0x10 game_variant+0x44, ticks: 0 / 150 / 300 / 450
+    int32_t respawn_time;          // 0x14 game_variant+0x48, same encoding; shown as "respawn+growth" seconds
+    int32_t suicide_penalty;       // 0x18 game_variant+0x4c, same encoding
+    int32_t lives_per_round;       // 0x1c game_variant+0x50: 0, 1, 3 or 5
+    uint32_t health_bits;          // 0x20 game_variant+0x54 health, the raw IEEE-754 bits (compared as integers)
+    int32_t score_limit;           // 0x24 game_variant+0x58
+    uint32_t weapon_set;           // 0x28 game_variant+0x5c, < 0xe (var_weapon_set)
+    uint32_t red_vehicle_set;      // 0x2c game_variant+0x60, low nibble < 9 (var_vehicle_set)
+    uint32_t blue_vehicle_set;     // 0x30 game_variant+0x64, low nibble < 9
+    int32_t vehicle_respawn_time;  // 0x34 game_variant+0x68, ticks: 0 / 30 / 60 / 90 / 120 / 180 / 300 s
+    uint8_t friendly_fire;         // 0x38 game_variant+0x6c, < 4 (var_friendly_fire)
+    uint8_t pad_39[3];             // 0x39
+    int32_t betrayal_penalty;      // 0x3c game_variant+0x70, ticks 0 / 150 / 300 / 450 (var_friendly_fire_penalty)
+    uint8_t team_autobalance;      // 0x40 game_variant+0x74, one packed bit
 } server_browser_custom_options; // at least 0x41
 
 // The type-1 sub-codec. Its two halves are not the same record: the packer reads four

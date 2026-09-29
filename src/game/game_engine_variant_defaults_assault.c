@@ -38,7 +38,7 @@ game_variant * game_engine_variant_defaults_assault(game_variant *variant_option
     defaults.lives_per_round = 0;
     defaults.health = 1.0f; // 0x3f800000
     defaults.score_limit = 5;
-    defaults.starting_equipment = 0;
+    defaults.weapon_set = 0;
     defaults.red_vehicle_set = 0x249240;
     defaults.blue_vehicle_set = 0x249240;
     defaults.vehicle_respawn_time = 900;

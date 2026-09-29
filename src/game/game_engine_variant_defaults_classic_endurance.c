@@ -24,7 +24,7 @@ game_variant * game_engine_variant_defaults_classic_endurance(game_variant *out)
     out->lives_per_round = 5;
     out->health = 1.0f;
     out->score_limit = 10;
-    out->starting_equipment = 0x0b;
+    out->weapon_set = 0x0b;
     out->red_vehicle_set = 0x42;
     out->blue_vehicle_set = 0x42;
     out->friendly_fire = 1;

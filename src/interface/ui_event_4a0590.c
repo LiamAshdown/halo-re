@@ -46,7 +46,7 @@ uint8_t ui_event_4a0590(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = widget->first_child;
     first_list_child(group)->selection_index = (int16_t)(((flags >> 2) & 1) != 0 ? 0 : 1);
     group = group->next_sibling;
-    value = *(uint32_t *)&((struct game_variant *)variant)->starting_equipment;
+    value = *(uint32_t *)&((struct game_variant *)variant)->weapon_set;
     first_list_child(group)->selection_index = (int16_t)(value <= 0xd ? value : 0);
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)((((struct game_variant *)variant)->flags >> 5) & 1);

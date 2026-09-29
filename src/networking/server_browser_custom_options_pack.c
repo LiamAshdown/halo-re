@@ -35,114 +35,114 @@ char *server_browser_custom_options_pack(server_browser_custom_options *options)
     uint32_t extra;
 
     low = 0x40000000;
-    if (options->gametype_like != 0) {
-        if (options->gametype_like == 1) {
+    if (options->lives_per_round != 0) {
+        if (options->lives_per_round == 1) {
             low = 0x40000001;
-        } else if (options->gametype_like == 3) {
+        } else if (options->lives_per_round == 3) {
             low = 0x40000002;
-        } else if (options->gametype_like == 5) {
+        } else if (options->lives_per_round == 5) {
             low = 0x40000003;
         }
     }
-    if (options->float_bits_20 != 0x3f000000) {
-        if (options->float_bits_20 == 0x3f800000) {
+    if (options->health_bits != 0x3f000000) {
+        if (options->health_bits == 0x3f800000) {
             low = low | 4;
-        } else if (options->float_bits_20 == 0x3fc00000) {
+        } else if (options->health_bits == 0x3fc00000) {
             low = low | 8;
-        } else if (options->float_bits_20 == 0x40000000) {
+        } else if (options->health_bits == 0x40000000) {
             low = low | 0xc;
-        } else if (options->float_bits_20 == 0x40400000) {
+        } else if (options->health_bits == 0x40400000) {
             low = low | 0x10;
-        } else if (options->float_bits_20 == 0x40800000) {
+        } else if (options->health_bits == 0x40800000) {
             low = low | 0x14;
         }
     }
-    low = low ^ (options->flags_a * 4 & 0x20);
-    if (options->unknown_14 != 0) {
-        if (options->unknown_14 == 0x96) {
+    low = low ^ (options->flags * 4 & 0x20);
+    if (options->respawn_time != 0) {
+        if (options->respawn_time == 0x96) {
             low = low | 0x40;
-        } else if (options->unknown_14 == 300) {
+        } else if (options->respawn_time == 300) {
             low = low | 0x80;
-        } else if (options->unknown_14 == 0x1c2) {
+        } else if (options->respawn_time == 0x1c2) {
             low = low | 0xc0;
         }
     }
-    if (options->unknown_10 != 0) {
-        if (options->unknown_10 == 0x96) {
+    if (options->respawn_time_growth != 0) {
+        if (options->respawn_time_growth == 0x96) {
             low = low | 0x100;
-        } else if (options->unknown_10 == 300) {
+        } else if (options->respawn_time_growth == 300) {
             low = low | 0x200;
-        } else if (options->unknown_10 == 0x1c2) {
+        } else if (options->respawn_time_growth == 0x1c2) {
             low = low | 0x300;
         }
     }
     {
-        uint32_t bit4 = options->flags_a & 0x10;
-        uint32_t bit3 = (uint32_t)(options->unknown_0c != 0) << 3;
+        uint32_t bit4 = options->flags & 0x10;
+        uint32_t bit3 = (uint32_t)(options->odd_man_out != 0) << 3;
         high = (bit3 | bit4) << 7 | low;
-        if (options->unknown_18 == 0) {
+        if (options->suicide_penalty == 0) {
             high = (bit3 | bit4) << 7 | low;
-        } else if (options->unknown_18 == 0x96) {
+        } else if (options->suicide_penalty == 0x96) {
             high = ((bit3 | bit4) << 7 | low) | 0x1000;
-        } else if (options->unknown_18 == 300) {
+        } else if (options->suicide_penalty == 300) {
             high = ((bit3 | bit4) << 7 | low) | 0x2000;
-        } else if (options->unknown_18 == 0x1c2) {
+        } else if (options->suicide_penalty == 0x1c2) {
             high = high | 0x3000;
         }
     }
-    high = high ^ ((options->flags_a & 4) << 0xc);
-    if ((int32_t)options->unknown_28 < 0xe) {
-        high = high ^ ((options->unknown_28 & 0xf) << 0xf);
+    high = high ^ ((options->flags & 4) << 0xc);
+    if ((int32_t)options->weapon_set < 0xe) {
+        high = high ^ ((options->weapon_set & 0xf) << 0xf);
     }
-    high = high ^ ((options->flags_a & 0x20) << 0xe);
-    if ((int32_t)options->unknown_08 < 3) {
-        high = high ^ ((options->unknown_08 & 3) << 0x14);
+    high = high ^ ((options->flags & 0x20) << 0xe);
+    if ((int32_t)options->objective_indicator < 3) {
+        high = high ^ ((options->objective_indicator & 3) << 0x14);
     }
-    high = ((((options->flags_a & 2) << 1 | (options->flags_a & 1)) << 5 | (options->flags_a & 0x40)) << 0x11) | high;
-    if (options->unknown_38 < 4) {
-        high = high ^ ((uint32_t)(options->unknown_38 & 3) << 0x19);
+    high = ((((options->flags & 2) << 1 | (options->flags & 1)) << 5 | (options->flags & 0x40)) << 0x11) | high;
+    if (options->friendly_fire < 4) {
+        high = high ^ ((uint32_t)(options->friendly_fire & 3) << 0x19);
     }
-    if (options->unknown_3c != 0) {
-        if (options->unknown_3c == 0x96) {
+    if (options->betrayal_penalty != 0) {
+        if (options->betrayal_penalty == 0x96) {
             high = high | 0x8000000;
-        } else if (options->unknown_3c == 300) {
+        } else if (options->betrayal_penalty == 300) {
             high = high | 0x10000000;
-        } else if (options->unknown_3c == 0x1c2) {
+        } else if (options->betrayal_penalty == 0x1c2) {
             high = high | 0x18000000;
         }
     }
 
     extra = 0;
-    if (options->unknown_34 == 0) {
+    if (options->vehicle_respawn_time == 0) {
         extra = 0;
-    } else if (options->unknown_34 == 900) {
+    } else if (options->vehicle_respawn_time == 900) {
         extra = 1;
-    } else if (options->unknown_34 == 0x708) {
+    } else if (options->vehicle_respawn_time == 0x708) {
         extra = 2;
-    } else if (options->unknown_34 == 0xa8c) {
+    } else if (options->vehicle_respawn_time == 0xa8c) {
         extra = 3;
-    } else if (options->unknown_34 == 0xe10) {
+    } else if (options->vehicle_respawn_time == 0xe10) {
         extra = 4;
-    } else if (options->unknown_34 == 0x1518) {
+    } else if (options->vehicle_respawn_time == 0x1518) {
         extra = 5;
-    } else if (options->unknown_34 == 9000) {
+    } else if (options->vehicle_respawn_time == 9000) {
         extra = 6;
     }
     {
-        uint32_t nibble1 = options->unknown_2c & 0xf;
+        uint32_t nibble1 = options->red_vehicle_set & 0xf;
         if (nibble1 < 9) {
             extra = extra | (nibble1 << 3);
         }
     }
     {
-        uint32_t nibble2 = options->unknown_30 & 0xf;
+        uint32_t nibble2 = options->blue_vehicle_set & 0xf;
         if (nibble2 < 9) {
             extra = (nibble2 << 7) | extra;
         }
     }
 
     sprintf(server_browser_custom_options_text, "%d,%d",
-            high ^ ((uint32_t)(options->unknown_40 != 0) << 0x1d), extra);
+            high ^ ((uint32_t)(options->team_autobalance != 0) << 0x1d), extra);
     return server_browser_custom_options_text;
 }
 

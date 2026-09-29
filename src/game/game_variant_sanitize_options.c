@@ -45,10 +45,10 @@ void game_variant_sanitize_options(game_variant *variant)
         variant->health = 4.0f;
     }
 
-    if (variant->starting_equipment < 0) {
-        variant->starting_equipment = 0;
-    } else if (variant->starting_equipment > 0xd) {
-        variant->starting_equipment = 0xd;
+    if (variant->weapon_set < 0) {
+        variant->weapon_set = 0;
+    } else if (variant->weapon_set > 0xd) {
+        variant->weapon_set = 0xd;
     }
 
     {

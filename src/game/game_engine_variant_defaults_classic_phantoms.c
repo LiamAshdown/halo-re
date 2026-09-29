@@ -23,7 +23,7 @@ game_variant * game_engine_variant_defaults_classic_phantoms(game_variant *out)
     out->suicide_penalty = 0x96;
     out->health = 1.0f;
     out->score_limit = 10;
-    out->starting_equipment = 0x0b;
+    out->weapon_set = 0x0b;
     out->red_vehicle_set = 0x42;
     out->blue_vehicle_set = 0x42;
     out->friendly_fire = 1;

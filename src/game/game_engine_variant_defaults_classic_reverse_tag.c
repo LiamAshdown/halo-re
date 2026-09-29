@@ -38,7 +38,7 @@ game_variant * game_engine_variant_defaults_classic_reverse_tag(game_variant *va
     defaults.lives_per_round = 0;
     defaults.health = 1.0f; // 0x3f800000
     defaults.score_limit = 2;
-    defaults.starting_equipment = 0xb;
+    defaults.weapon_set = 0xb;
     defaults.red_vehicle_set = 1;
     defaults.blue_vehicle_set = 1;
     defaults.vehicle_respawn_time = 0;

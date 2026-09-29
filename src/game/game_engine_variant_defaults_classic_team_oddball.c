@@ -31,7 +31,7 @@ game_variant * game_engine_variant_defaults_classic_team_oddball(game_variant *o
     out->health = 1.0f;
     out->score_limit = 2;
     out->suicide_penalty = 0x96;
-    out->starting_equipment = 0x0b;
+    out->weapon_set = 0x0b;
     out->red_vehicle_set = 1;
     out->blue_vehicle_set = 1;
     out->friendly_fire = 1;

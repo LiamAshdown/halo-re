@@ -38,7 +38,7 @@ game_variant * game_engine_variant_defaults_classic_ctf(game_variant *variant_op
     defaults.lives_per_round = 0;
     defaults.health = 1.0f; // 0x3f800000
     defaults.score_limit = 3;
-    defaults.starting_equipment = 0xb;
+    defaults.weapon_set = 0xb;
     defaults.red_vehicle_set = 0x42;
     defaults.blue_vehicle_set = 0x42;
     defaults.vehicle_respawn_time = 0;

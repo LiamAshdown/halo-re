@@ -53,7 +53,7 @@ uint8_t ui_event_49f300(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 0xd) {
-        ((struct game_variant *)variant)->starting_equipment = selection;
+        ((struct game_variant *)variant)->weapon_set = selection;
     }
     selection = first_list_child(group->next_sibling)->selection_index;
     if (selection == 0) {

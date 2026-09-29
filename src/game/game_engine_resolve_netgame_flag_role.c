@@ -87,7 +87,7 @@ int32_t game_engine_resolve_netgame_flag_role(uint32_t handle)
         return (int32_t)handle;
     }
 
-    switch (game_engine_variant.starting_equipment) {
+    switch (game_engine_variant.weapon_set) {
     case 1: /* 0x462e85 */
         switch (index) {
         case 3: case 4: case 6: case 7: case 0x0e: case 0x0f: index = 5; break;

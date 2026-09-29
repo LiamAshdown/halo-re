@@ -31,123 +31,123 @@ void server_browser_custom_options_unpack(char *text, server_browser_custom_opti
     sscanf(text, "%d,%d", &low, &high);
 
     switch (low & 3) {
-    case 1: out->gametype_like = 1; break;
-    case 2: out->gametype_like = 3; break;
-    case 3: out->gametype_like = 5; break;
-    default: out->gametype_like = 0; break;
+    case 1: out->lives_per_round = 1; break;
+    case 2: out->lives_per_round = 3; break;
+    case 3: out->lives_per_round = 5; break;
+    default: out->lives_per_round = 0; break;
     }
 
     switch ((low >> 2) & 7) {
-    case 0: out->float_bits_20 = 0x3f000000; break;
-    case 2: out->float_bits_20 = 0x3fc00000; break;
-    case 3: out->float_bits_20 = 0x40000000; break;
-    case 4: out->float_bits_20 = 0x40400000; break;
-    case 5: out->float_bits_20 = 0x40800000; break;
-    default: out->float_bits_20 = 0x3f800000; break;
+    case 0: out->health_bits = 0x3f000000; break;
+    case 2: out->health_bits = 0x3fc00000; break;
+    case 3: out->health_bits = 0x40000000; break;
+    case 4: out->health_bits = 0x40400000; break;
+    case 5: out->health_bits = 0x40800000; break;
+    default: out->health_bits = 0x3f800000; break;
     }
 
     if ((low & 0x20) == 0) {
-        out->flags_a = out->flags_a & 0xfffffff7;
+        out->flags = out->flags & 0xfffffff7;
     } else {
-        out->flags_a = out->flags_a | 8;
+        out->flags = out->flags | 8;
     }
 
     switch ((low >> 6) & 3) {
-    case 1: out->unknown_14 = 0x96; break;
-    case 2: out->unknown_14 = 300; break;
-    case 3: out->unknown_14 = 0x1c2; break;
-    default: out->unknown_14 = 0; break;
+    case 1: out->respawn_time = 0x96; break;
+    case 2: out->respawn_time = 300; break;
+    case 3: out->respawn_time = 0x1c2; break;
+    default: out->respawn_time = 0; break;
     }
 
     switch ((low >> 8) & 3) {
-    case 1: out->unknown_10 = 0x96; break;
-    case 2: out->unknown_10 = 300; break;
-    case 3: out->unknown_10 = 0x1c2; break;
-    default: out->unknown_10 = 0; break;
+    case 1: out->respawn_time_growth = 0x96; break;
+    case 2: out->respawn_time_growth = 300; break;
+    case 3: out->respawn_time_growth = 0x1c2; break;
+    default: out->respawn_time_growth = 0; break;
     }
 
-    out->unknown_0c = (uint8_t)((low >> 10) & 1);
+    out->odd_man_out = (uint8_t)((low >> 10) & 1);
 
     if ((low & 0x800) == 0) {
-        out->flags_a = out->flags_a & 0xffffffef;
+        out->flags = out->flags & 0xffffffef;
     } else {
-        out->flags_a = out->flags_a | 0x10;
+        out->flags = out->flags | 0x10;
     }
 
     switch ((low >> 0xc) & 3) {
-    case 1: out->unknown_18 = 0x96; break;
-    case 2: out->unknown_18 = 300; break;
-    case 3: out->unknown_18 = 0x1c2; break;
-    default: out->unknown_18 = 0; break;
+    case 1: out->suicide_penalty = 0x96; break;
+    case 2: out->suicide_penalty = 300; break;
+    case 3: out->suicide_penalty = 0x1c2; break;
+    default: out->suicide_penalty = 0; break;
     }
 
     if ((low & 0x4000) == 0) {
-        out->flags_a = out->flags_a & 0xfffffffb;
+        out->flags = out->flags & 0xfffffffb;
     } else {
-        out->flags_a = out->flags_a | 4;
+        out->flags = out->flags | 4;
     }
 
     {
         uint32_t nibble = (low >> 0xf) & 0xf;
-        out->unknown_28 = (nibble < 0xe) ? nibble : 0;
+        out->weapon_set = (nibble < 0xe) ? nibble : 0;
     }
 
     if ((low & 0x80000) == 0) {
-        out->flags_a = out->flags_a & 0xffffffdf;
+        out->flags = out->flags & 0xffffffdf;
     } else {
-        out->flags_a = out->flags_a | 0x20;
+        out->flags = out->flags | 0x20;
     }
 
     {
         uint32_t two_bits = (low >> 0x14) & 3;
-        out->unknown_08 = (two_bits <= 2) ? two_bits : 0;
+        out->objective_indicator = (two_bits <= 2) ? two_bits : 0;
     }
 
     if ((low & 0x400000) == 0) {
-        out->flags_a = out->flags_a & 0xfffffffe;
+        out->flags = out->flags & 0xfffffffe;
     } else {
-        out->flags_a = out->flags_a | 1;
+        out->flags = out->flags | 1;
     }
     if ((low & 0x800000) == 0) {
-        out->flags_a = out->flags_a & 0xffffffbf;
+        out->flags = out->flags & 0xffffffbf;
     } else {
-        out->flags_a = out->flags_a | 0x40;
+        out->flags = out->flags | 0x40;
     }
     if ((low & 0x1000000) == 0) {
-        out->flags_a = out->flags_a & 0xfffffffd;
+        out->flags = out->flags & 0xfffffffd;
     } else {
-        out->flags_a = out->flags_a | 2;
+        out->flags = out->flags | 2;
     }
 
     {
         uint8_t two_bits = (uint8_t)((low >> 0x19) & 3);
-        out->unknown_38 = (two_bits < 4) ? two_bits : 0;
+        out->friendly_fire = (two_bits < 4) ? two_bits : 0;
     }
 
     switch ((low >> 0x1b) & 3) {
-    case 1: out->unknown_3c = 0x96; break;
-    case 2: out->unknown_3c = 300; break;
-    case 3: out->unknown_3c = 0x1c2; break;
-    default: out->unknown_3c = 0; break;
+    case 1: out->betrayal_penalty = 0x96; break;
+    case 2: out->betrayal_penalty = 300; break;
+    case 3: out->betrayal_penalty = 0x1c2; break;
+    default: out->betrayal_penalty = 0; break;
     }
 
-    out->unknown_40 = (low & 0x20000000) == 0x20000000;
+    out->team_autobalance = (low & 0x20000000) == 0x20000000;
 
     switch (high & 7) {
-    case 1: out->unknown_34 = 900; break;
-    case 2: out->unknown_34 = 0x708; break;
-    case 3: out->unknown_34 = 0xa8c; break;
-    case 4: out->unknown_34 = 0xe10; break;
-    case 5: out->unknown_34 = 0x1518; break;
-    case 6: out->unknown_34 = 9000; break;
-    default: out->unknown_34 = 0; break;
+    case 1: out->vehicle_respawn_time = 900; break;
+    case 2: out->vehicle_respawn_time = 0x708; break;
+    case 3: out->vehicle_respawn_time = 0xa8c; break;
+    case 4: out->vehicle_respawn_time = 0xe10; break;
+    case 5: out->vehicle_respawn_time = 0x1518; break;
+    case 6: out->vehicle_respawn_time = 9000; break;
+    default: out->vehicle_respawn_time = 0; break;
     }
 
     {
         uint32_t nibble1 = (high >> 3) & 0xf;
         uint32_t nibble2 = (high >> 7) & 0xf;
-        out->unknown_2c = (nibble1 < 9) ? nibble1 : 0;
-        out->unknown_30 = (nibble2 < 9) ? nibble2 : 0;
+        out->red_vehicle_set = (nibble1 < 9) ? nibble1 : 0;
+        out->blue_vehicle_set = (nibble2 < 9) ? nibble2 : 0;
     }
 }
 
