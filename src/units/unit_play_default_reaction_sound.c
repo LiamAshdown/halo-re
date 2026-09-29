@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data; // 0x008603b0
 
@@ -32,8 +33,7 @@ extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t
     int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
     int32_t *chain_value); // 0x560d00, EAX, DL, stack
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20
-extern void ai_communication_record_line_played(datum_index object_index, int16_t tier,
-    int16_t communication_line_id, int16_t conversation_line_id); // 0x42f9e0, EAX, stack
+
 
 void unit_play_default_reaction_sound(uint32_t unit_index, datum_index sound_tag, datum_index sound_handle)
 {

@@ -77,6 +77,7 @@
 #include "objects.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -87,36 +88,25 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern real random_real(void); // 0x4019f0
 
 extern void actor_target_scan_potential_targets(datum_index actor_index); // 0x41d7e0
-extern void actor_danger_update_reaction(datum_index actor_index);        // 0x41eda0
+
 
 // blam-cc: EAX -> actor_index, ECX -> target_prop_index (objdump: `mov eax,esi` / `mov ecx,
 // [esp+0x2c]` immediately before `call 0x41be10`)
-extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index); // 0x41be10, not yet rewritten
+
 
 extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force, char allow_reassign); // 0x41c4b0
 extern void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target_prop_index, void *scratch); // 0x41c8f0
 
-extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, EAX, EDI
 
-extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50
-
-extern void actor_notify_target_engaged(datum_index target_prop_index, datum_index actor_index, uint8_t alternate_event); // 0x4220c0, EAX, ECX, DL
-extern void actor_start_search_timer(datum_index actor_index, datum_index prop_index); // 0x422130, EBX, EDI
-extern void actor_queue_velocity_search_from_prop(datum_index prop_index, datum_index actor_index); // 0x4221b0, EAX, stack
-extern void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_index actor_index); // 0x423220, EAX, stack
-extern uint8_t actor_is_burst_pending(datum_index actor_index); // 0x428180, not yet rewritten (phase2 name: actor_is_ranged_burst_active); UNSURE: no visible args at this call site
 extern uint8_t actor_check_burst_length_exceeded(datum_index actor_index); // 0x4281b0, not yet rewritten (phase2 name: actor_should_end_burst); UNSURE: no visible args at this call site
 
 // blam-cc: stack -> danger_type, danger_unknown_282; EBX -> danger_source (objdump:
 // `lea ebx,[esi+0x2b0]` immediately before `call 0x4234f0`)
-extern void actor_notify_squad_of_threat_direction(const real_point3d *point, datum_index actor_index, int16_t event_kind, int16_t grenade_type_code); // 0x4234f0, EBX, EDI, stack
 
-extern uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor_index, uint8_t *out_conflict_flag); // 0x41b980
-extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0
 
 extern datum_index actor_allocate_paired_prop(uint32_t actor_index, datum_index prop_index); // 0x43e910, not yet rewritten (phase2 name: actor_firing_position_node_new)
-extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, stack, ESI, EDI
-extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
+
+
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,

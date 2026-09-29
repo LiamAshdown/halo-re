@@ -21,6 +21,7 @@
 #include "ai.h"
 #include "units.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -35,23 +36,14 @@ extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real
 extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0, EAX, ECX
 extern real vector3d_magnitude_squared(real_vector3d *v);        // 0x401000, EAX
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
-extern uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind); // 0x40f670, EAX, stack
-extern uint8_t actor_target_is_visible_or_object_count_ok(datum_index actor_index, int16_t kind); // 0x40f700, EAX, stack
-extern void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3]); // 0x40f9b0, EAX, ECX
+
+
 extern uint8_t *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
-extern void actor_update_aim_wander(datum_index actor_index);        // 0x40fcb0
-extern void actor_reseed_movement_pause_timer(datum_index actor_index); // 0x4104e0
-extern uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition);  // 0x4105c0, EAX, EDX
-extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b); // 0x4106b0
-extern uint8_t actor_action_has_queued_secondary(datum_index actor_index); // 0x417b70, EAX
+
+
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0, EAX
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX
-extern void actor_set_override_target(datum_index actor_index, uint8_t enable, datum_index override_target); // 0x42a5e0, EAX, stack
-extern uint8_t actor_grenade_trajectory_blocked(real_vector3d *trajectory_direction, datum_index source_actor_index,
-    datum_index exclude_object_index, real_point3d *landing_position, int32_t *out_blocking_prop); // 0x42b190, EAX, ECX, stack
-extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
-    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
-    datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack
+
+
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 extern int32_t fistp_round(float x); // harness/x87_shims.c: FISTP in the current (round-to-nearest) mode

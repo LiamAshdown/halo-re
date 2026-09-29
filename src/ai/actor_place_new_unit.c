@@ -20,6 +20,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *object_data;     // 0x008603b0
@@ -35,7 +36,7 @@ extern void object_placement_data_initialize(object_placement_data *placement, d
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
-extern void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index); // 0x426cf0, EAX, stack
+
 extern datum_index actor_new_and_attach_to_unit(
     char reuse_existing, datum_index unit_index, datum_index actor_variant_tag,
     uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor,

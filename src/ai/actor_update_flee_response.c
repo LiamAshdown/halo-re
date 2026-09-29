@@ -14,11 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
-extern uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_vector3d *out,
-    datum_index actor_index); // 0x4146c0, EAX, EDI, stack
 
 // blam-cc: EDX -> actor_index
 // Tracks how long the flee condition at 0x3ec has held. While it is clear and the movement

@@ -11,12 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_object_list_update_vitality_fractions(datum_index object_list_header_handle, float body_delta,
-    float shield_delta); // 0x561cb0, blam-cc: EAX, stack
 
 void hs_evaluate_units_set_current_vitality(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -23,6 +23,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -31,12 +32,8 @@ extern data_array *object_data;     // 0x008603b0
 extern double fabs(double x);
 extern real random_real_range(real min, real max); // 0x401050
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data); // 0x421bc0
-extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348); // 0x421af0
-extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data); // 0x422070
+
+
 extern int8_t teams_are_enemies(int16_t a, int16_t b); // 0x45bd50, CX/DX; UNSURE, see file header
 
 // Variant table paired with the sighted/recognized/directional/danger dialogue families.

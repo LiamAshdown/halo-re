@@ -16,11 +16,12 @@
 #include "objects.h"
 #include "ai.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data; // 0x008802c0
 
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+
 extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out); // 0x568f50, ECX, ESI
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
                                         actor_vocalization_context *context); // 0x4142d0

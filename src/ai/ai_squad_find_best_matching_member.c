@@ -24,12 +24,11 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern Scenario *global_scenario;   // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_reference_squad_iterator *out_iterator); // 0x4324f0, this batch
-extern encounter_squad_state *ai_reference_squad_iterator_next(ai_reference_squad_iterator *iterator); // 0x4325b0, this batch
 
 // blam-cc: EAX -> packed_reference, stack -> requested_squad_index, requested_actor_data,
 //   requested_actor_variant_data, match_by_index

@@ -19,12 +19,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
-extern void actor_dispatch_type_vtable_0x1c(datum_index actor_index, uint32_t a, uint32_t b, uint32_t c); // 0x4266d0, ECX, stack
 
 // blam-cc: AL -> skip_clamp, ECX -> actor_index, EDX -> out_velocity, stack -> param_1, speed_limit
 uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index,

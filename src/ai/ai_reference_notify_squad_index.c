@@ -12,9 +12,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
-extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index,
-    uint8_t is_dead); // 0x42ab00, EAX, EDI, stack, BL
 
 // REWRITTEN from objdump. hs ai_erase (0x47d30f) lands here. A packed ai reference is the encounter in the low
 //   word, the kind in the top two bits and the sub-index in bits 16..23: kind 1 = platoon, kind 2 = squad. The

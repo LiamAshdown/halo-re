@@ -20,6 +20,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -32,11 +33,10 @@ extern Scenario *global_scenario;
 #define F(o) (*(float *)(actor + (o)))
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
-extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, EAX
-extern int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, int32_t position_index,
-    uint8_t *direction_flag); // 0x4014c0, EAX, stack
+
+
 extern real random_real_range(real min, real max); // 0x401050
-extern uint8_t actor_movement_set_destination_move_position(datum_index actor_index, int16_t move_position_index); // 0x417750, EDI, stack
+
 #include <string.h>
 
 uint8_t actor_mode_alert_process(uint32_t actor_index)

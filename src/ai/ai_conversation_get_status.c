@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *ai_conversation_data; // 0x008802d4

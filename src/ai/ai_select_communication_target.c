@@ -27,6 +27,7 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *object_data;       // 0x008603b0
@@ -37,7 +38,7 @@ extern int32_t ai_communication_quiet_until_tick; // 0x00725204, the tick before
 extern int16_t ai_communication_class_priority[8]; // 0x006558c4, per-class communication line id
 extern int32_t conversation_line_base; // 0x006f0ca4
 
-extern int32_t actor_classify_communication_object_type(datum_index actor_index); // 0x42f9a0, EAX
+
 extern datum_index ai_communication_select_speaker_by_team(int16_t match_mode, datum_index object_a,
     datum_index object_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class,
     uint32_t line_id, int16_t seat_filter, uint8_t flags, int16_t team); // 0x4300d0, stack, DI

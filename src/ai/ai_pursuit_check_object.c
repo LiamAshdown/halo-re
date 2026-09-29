@@ -15,11 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *ai_pursuit_data; // 0x008802d0
 
-extern datum_index squad_recent_object_get_or_create(datum_index encounter_index, int16_t type,
-    int32_t min_last_tick, char create_if_missing); // 0x436c60, this batch
 
 // blam-cc: EBX -> object_index, stack -> encounter_index, type, min_last_tick,
 //   create_if_missing, out_count, out_last_tick

@@ -24,6 +24,7 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;    // 0x008603b0
 extern ai_globals *ai_globals_ptr; // 0x00880354
@@ -33,8 +34,6 @@ extern int32_t conversation_line_base;  // 0x006f0ca4
 extern real DAT_00655ab4[]; // 0x00655ab4, stride 0x28 from &DAT_00655aa0 (the communication-line table)
 extern real DAT_00656b24[]; // 0x00656b24, stride 0x24 from &DAT_00656b08 (the conversation-line table)
 
-extern void actor_recompute_grenade_eligibility(datum_index actor_index); // 0x42f260, this batch
-extern int32_t actor_classify_communication_object_type(datum_index actor_index); // 0x42f9a0, this batch
 
 // blam-cc: EAX -> object_index, stack -> tier, communication_line_id, conversation_line_id
 // Refreshes the decaying "recent activity" tick (ai_globals.unknown_3f0/unknown_3fa) and,

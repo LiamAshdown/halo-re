@@ -22,15 +22,14 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;    // 0x00880360
 extern Scenario *global_scenario; // 0x00746f8c
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
-extern uint8_t actor_firing_position_evaluate(actor_firing_position_candidate *candidate, actor_firing_position_query *query, datum_index actor_index); // 0x412820, this module
-extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, this module
-extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context, uint8_t *out_path_ok); // 0x412ba0, this module
+
 
 // blam-cc: EBX -> query, EDI -> out_candidate; stack -> actor_index, out_previous_owner,
 //          path_context, out_path_ok (the goal kind is query +0x04)

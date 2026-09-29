@@ -24,6 +24,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;           // 0x00880360
 extern data_array *swarm_data;           // 0x0088035c
@@ -35,11 +36,7 @@ extern const real_vector2d *global_forward2d_pointer; // 0x006966e8, UNSURE name
 
 extern double sqrt(double x); // FSQRT
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origin,
-    real speed_limit, real gravity_scale, real *max_time, uint8_t use_high_arc,
-    real_vector3d *out_direction, real *max_speed_override, real *out_speed,
-    real *out_time_of_flight, real *out_range, real *out_half_gravity_term,
-    real *out_horizontal_speed); // 0x4beb30, EAX, ECX, ESI, EDI, stack
+
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 
 // blam-cc: stack -> actor_index, unit_index, radius, out_offset

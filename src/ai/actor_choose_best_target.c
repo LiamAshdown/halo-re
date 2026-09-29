@@ -26,14 +26,12 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *prop_data;   // 0x008802c0
 extern data_array *object_data; // 0x008603b0
 
-extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50, this module
-extern void actor_update_target_combat_status(datum_index actor_index); // 0x4200d0, this module, EAX -> actor_index
-extern void actor_update_awareness_level(datum_index actor_index);      // 0x420290, this module, EAX -> actor_index
 
 // blam-cc: stack -> actor_index
 void actor_choose_best_target(datum_index actor_index)

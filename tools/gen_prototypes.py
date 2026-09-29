@@ -9,7 +9,7 @@ For each function DEFINED in src/<module>/*.c that is also declared `extern` in 
     types/fn_<module>.h, every extern statement for it is removed from the .c files (outside #if 0 blocks), and each
     file that used one gets `#include "fn_<module>.h"` (the defining file includes it too, so the compiler checks the
     definition against the prototype);
-  * names whose extern declarations disagree are left alone (they are Ghidra operand-count losses etc. and are the
+  * names whose extern declarations disagree with each other, or whose callers' declaration differs from the definition's signature (parameter names ignored), are left alone (they are Ghidra operand-count losses etc. and are the
     interesting ones to fix by hand).
 The generated header is self-contained: it includes the type headers its prototypes need (found by name).
 Check with `python tools/host_gate.py --baseline HEAD` (new host-gcc failures = something the header broke)."""
@@ -30,6 +30,28 @@ def fn_name(decl):
 
 def norm(decl):
     return re.sub(r'\s+', ' ', decl).strip()
+
+
+BUILTIN = {"int", "char", "short", "long", "float", "double", "void", "unsigned", "signed", "const", "volatile"}
+
+
+def sig_key(decl):
+    """(return-type, [parameter types]) of a declaration with parameter names removed, for comparing signatures."""
+    d = norm(decl)
+    m = re.match(r'^(.*?\b\w+)\s*\((.*)\)$', d)
+    if not m or '(' in m.group(2):
+        return None                      # function-pointer parameters etc.: not comparable
+    head, params = m.group(1), m.group(2)
+    ret = re.sub(r'\s*\b\w+$', '', head).strip()
+    out = []
+    for p in [x.strip() for x in params.split(',')] if params.strip() else []:
+        toks = re.findall(r'\w+|\*|\[[^\]]*\]', p)
+        if len(toks) > 1 and re.fullmatch(r'\w+', toks[-1]) and toks[-1] not in BUILTIN and toks[-2] != 'struct':
+            toks = toks[:-1]
+        out.append(" ".join(toks))
+    if out == ["void"]:
+        out = []
+    return ret.replace(" *", "*"), out
 
 
 def live_parts(text):
@@ -86,16 +108,24 @@ def main():
                 if n:
                     variants[n][norm(m.group(1))].append(f)
                     first_comment.setdefault((n, norm(m.group(1))), (m.group(0), (m.group(2) or "").strip()))
-    defs = {}
+    defs, defsig = {}, {}
     for f, t in texts.items():
         for live, chunk in live_parts(t):
             if live:
-                for m in re.finditer(r'^[A-Za-z_][^;{}=\n]*?\b(\w+)\s*\(([^;{}]*)\)\s*\n\{', chunk, re.M):
-                    defs.setdefault(m.group(1), f)
+                for m in re.finditer(r'^([A-Za-z_][^;{}=\n]*?\b(\w+)\s*\(([^;{}]*)\))\s*\n\{', chunk, re.M):
+                    defs.setdefault(m.group(2), f)
+                    defsig.setdefault(m.group(2), m.group(1))
     for mod in args:
         src = os.path.join(ROOT, "src", mod) + os.sep
-        names = sorted(n for n, f in defs.items() if f.startswith(src) and n in variants and len(variants[n]) == 1)
-        skipped = sorted(n for n, f in defs.items() if f.startswith(src) and n in variants and len(variants[n]) > 1)
+        cand = sorted(n for n, f in defs.items() if f.startswith(src) and n in variants)
+        names, skipped = [], []
+        for n in cand:
+            ok = len(variants[n]) == 1
+            if ok:
+                (d,) = variants[n].keys()
+                a, b = sig_key(d), sig_key(defsig[n])
+                ok = a is not None and a == b        # callers must agree with the definition too
+            (names if ok else skipped).append(n)
         header = "fn_%s.h" % mod
         lines = []
         for n in names:

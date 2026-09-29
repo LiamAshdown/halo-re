@@ -18,6 +18,7 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *encounter_data;   // 0x008802c8
@@ -29,37 +30,13 @@ extern uint8_t *actor_type_procs[]; // 0x006853b8
 // read landed on process_proc's low word. Binary: [mode * 0x38 + 0x655258] == definitions[mode].combat_grade.
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-extern void ai_starting_location_derive_placement_flags(datum_index encounter_index, int16_t starting_location_index,
-    uint8_t *out_a, int16_t *out_b, uint8_t *out_c, int16_t *out_d, int16_t *out_edx, int16_t *out_esi); // 0x436d40, EAX, stack, EDX, ESI
-extern void encounter_evaluate_support_needs(datum_index encounter_index, datum_index self_actor_index, int16_t mode,
-    uint8_t phase, uint8_t *out_crowded, uint8_t *out_flanked, uint8_t *out_a, uint8_t *out_b,
-    uint8_t *out_reachable_a, uint8_t *out_reachable_b, uint8_t *out_any); // 0x436dc0, EAX, stack
-extern void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shared_flag, uint32_t actor_index,
-    int16_t mode_b, char force_c, char force_d, uint8_t *out_a, char *out_in_e, uint8_t *out_f, uint8_t *out_g,
-    uint8_t *out_h, uint8_t *out_i); // 0x40cc70, EAX, ECX, EDX, stack
-extern int32_t actor_build_order_wait_byte(uint32_t actor_index, uint8_t byte_a, uint32_t *order); // 0x4080c0, EAX, stack, ESI
-extern void actor_set_target_alert_stage1(datum_index target_prop_index, datum_index actor_index); // 0x41fb00, ECX, ESI
-extern int32_t actor_build_order_flee(uint32_t actor_index, uint8_t byte_a, uint32_t *order); // 0x4077d0, EAX, stack, EDX
-extern void actor_set_target_alert_stage2(datum_index target_prop_index, datum_index actor_index); // 0x41fb60, ECX, ESI
-extern datum_index actor_get_target_prop_object_index(datum_index actor_index); // 0x4283d0, EAX
+
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
-extern int32_t actor_build_order_minimal_stop(uint32_t actor_index, uint32_t *order); // 0x4078f0, EAX, ESI
-extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, EAX, SI, stack
-extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query,
-    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
-    uint8_t *out_path_ok); // 0x412ba0
-extern uint32_t actor_build_order_face_seat_marker(uint32_t actor_index, int16_t firing_position_index, uint32_t *order); // 0x408110, EAX, stack, EDX
-extern uint32_t actor_build_order_face_seat_marker_committed(uint32_t actor_index, int16_t firing_position_index,
-    uint8_t byte_a, uint32_t *order); // 0x407820, EAX, stack, EDX
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
-extern uint8_t ai_pursuit_note_object(datum_index object_index, datum_index encounter_index, int16_t type,
-    int32_t min_last_tick); // 0x436b10, EDX, stack, ECX, EAX
-extern int32_t actor_build_order_random_wait(uint32_t actor_index, uint8_t byte_a, uint32_t *order); // 0x409a90, EAX, stack, ECX
-extern int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order); // 0x4045a0, EAX, ESI
+
+
 extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code); // 0x409ea0
-extern void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index actor_index); // 0x41fbc0, EDX, ESI
-extern int32_t actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position); // 0x404510, EAX, EDX, EBX
+
 
 #define W(p, o) (*(int16_t *)((p) + (o)))
 #define D(p, o) (*(datum_index *)((p) + (o)))

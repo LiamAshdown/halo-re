@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -28,10 +29,9 @@ extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
-extern uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance, real_vector2d *direction,
-    uint16_t *variant, float step_up, uint8_t *out_flag, void *extra_param); // 0x417e50, stack, ECX
+
 extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command); // 0x569470, EAX, ECX
-extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]); // 0x417a60, EAX, stack
+
 
 // REWRITTEN from objdump 0x40de70..0x40e054 (misnamed: the actor sidesteps out of its target's line of fire).
 //   EBX: actor. On foot (+0x158), without a pending special (+0x418), not busy animating, not +0x504, with a

@@ -21,6 +21,7 @@
 #include "game.h"
 #include "ai.h"
 #include "networking.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -54,7 +55,7 @@ extern void unit_notify_weapon_removed(int32_t object_index); // 0x56ab10, EAX
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
                                                    int32_t stream); // 0x4d6280, EAX, DX, stack
 extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0, EAX, stack
-extern void actor_notify_weapon_pickup_once(datum_index object_index); // 0x42c370, ECX
+
 extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)

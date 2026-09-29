@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data; // 0x008802c0
 extern real_point3d *global_origin3d_pointer; // 0x00696714, UNSURE: same constant referenced elsewhere in this module

@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "ai.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -31,9 +32,8 @@ extern double ftan(double x);
 extern int32_t fistp_round(float x); // harness/x87_shims.c
 
 extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
-extern uint8_t actor_target_is_visible_or_object_count_ok(datum_index actor_index, int16_t kind); // 0x40f700, EAX, stack
-extern void actor_choose_random_point_near(real_point3d *inout_point, float radius); // 0x40faf0, ESI, stack
-extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b); // 0x4106b0, EAX, EDX, EDI out_a, ESI out_b
+
+
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0, EAX
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340

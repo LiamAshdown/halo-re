@@ -22,11 +22,11 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data;   // 0x008802c0
 extern data_array *object_data; // 0x008603b0
 
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, ECX actor, stack object
 
 // blam-cc: EAX -> member_prop_index, stack -> unused_param, require_is_unit
 // Selects the most relevant recent-attacker prop from a specific squad member's short-term

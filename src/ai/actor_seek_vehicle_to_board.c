@@ -18,6 +18,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -32,10 +33,7 @@ extern uint8_t *ai_globals_ptr; // 0x00880354
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
-extern uint8_t actor_vehicle_not_recently_left(datum_index actor_index, datum_index vehicle_index); // 0x40ac30, EAX, stack
-extern uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a,
-                                               float radius_b, uint8_t *order); // 0x408920, EBX, stack
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
+
 
 uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
 {

@@ -20,19 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h> // uintptr_t
 
-extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission,
-    int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
-    path_find_boundary_crossing *out_result); // 0x43de90, EBX map, EAX point A, stack
-extern uint8_t path_find_trace_cluster_boundary(void *map, int32_t edge_index, real_point2d *origin, float radius,
-    uint8_t side, uint8_t ignore_permission, real_point2d *out_point); // 0x43d4b0, ECX map, EAX edge, stack
-extern uint8_t ai_search_choose_shorter_corner(real_point2d *p, real_point2d *corner_a, real_point2d *q,
-    real_point2d *corner_b, real_point2d *r, real_point2d *out_point); // 0x43d240, ECX, EBX, EDX, stack
-extern void ai_search_find_circle_tangent_point(real_point2d *center, real_point2d *target, real_point2d *out_point,
-    float radius, uint8_t side); // 0x43cf60, ECX, EDX, ESI, stack
-extern void ai_search_find_circle_portal_crossing(real_point2d *center, real_point2d *portal, real_point2d *out_point,
-    real_point2d *fallback_reference, float radius); // 0x43d100, ECX, EDX, ESI, EDI, stack
+
 extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start,
     int32_t start_surface, real_point3d *end, int32_t target_surface,
     path_find_boundary_crossing *out_result); // 0x43d9b0, stack

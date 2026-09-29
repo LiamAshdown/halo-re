@@ -27,6 +27,7 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;    // 0x008603b0
 extern Scenario *global_scenario;  // 0x00746f8c
@@ -35,7 +36,7 @@ extern data_array *actor_data;     // 0x00880360
 
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
     int16_t squad_index); // 0x4290f0, EAX, EBX, stack
-extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
+
 
 // blam-cc: stack -> (object_index, packed_reference)
 void ai_unit_set_squad_reference(datum_index object_index, uint32_t packed_reference)

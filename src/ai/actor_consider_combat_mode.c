@@ -38,6 +38,7 @@
 #include "game.h"
 #include <string.h>
 #include "units.h"
+#include "fn_ai.h"
 
 // TYPES (folded into types/ai.h by the review pass): local model of the 0x38-byte result record actor_consider_combat_mode and its
 // siblings (0x402f80, 0x403180, 0x403630, 0x40c620...) build and pass around. Only the
@@ -50,11 +51,8 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real random_real(void); // 0x4019f0
-extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode, actor_combat_consideration *consideration); // 0x4028e0, EAX, CX, EDI
-extern int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point); // 0x4029e0, EAX, ESI
-extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
-    float radius); // 0x417910, EAX, stack
-extern void actor_movement_actions_cancel(datum_index actor_index); // 0x417a30, EAX
+
+
 extern uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t out_dx_to_key_frame,
     uint32_t out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index); // 0x5642c0, ECX, AL, stack, EBX, EDI
 

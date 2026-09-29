@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -38,22 +39,11 @@ extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale); // 0x401930, EAX, ECX, stack
 extern real vector3d_length(real_vector3d *v); // 0x401960, EAX
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
-extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode,
-                                                    actor_combat_consideration *consideration); // 0x4028e0, EAX, CX, EDI
+
 extern void *actor_get_threat_weapon_definition(int32_t actor_index); // 0x40f970, EAX
 extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
-extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
-                                                          float radius); // 0x417910, EAX, stack
-extern void actor_movement_actions_cancel(datum_index actor_index); // 0x417a30, EAX
-extern uint8_t actor_movement_action_is_complete(datum_index actor_index); // 0x41a960, EAX
-extern void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_index, uint8_t mark_engaged); // 0x41fa80, EAX, EBX, stack
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX
-extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origin,
-    real speed_limit, real gravity_scale, real *max_time, uint8_t use_high_arc,
-    real_vector3d *out_direction, real *max_speed_override, real *out_speed,
-    real *out_time_of_flight, real *out_range, real *out_half_gravity_term,
-    real *out_horizontal_speed); // 0x4beb30, EAX, ECX, ESI, EDI, stack
+
+
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
 extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const real_vector2d *direction); // 0x569a20, EDI, stack
 

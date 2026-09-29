@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern real_point2d *ai_default_2d_direction; // 0x006966ec, UNSURE: same fallback constant as ai_search_find_circle_tangent_point.c
 

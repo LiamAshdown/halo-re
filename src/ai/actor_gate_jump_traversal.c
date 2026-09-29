@@ -15,6 +15,7 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -23,8 +24,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some
 // sites are artefacts, not a reduced-arity overload.
-extern uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base,
-    uint16_t order_code, datum_index actor_index); // 0x40de20, stack, DL, CX, ESI
+
 
 uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast, int16_t broadcast_threshold)
 {

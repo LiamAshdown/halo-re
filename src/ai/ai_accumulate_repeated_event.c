@@ -19,13 +19,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
 extern int32_t game_engine_get_current_tick(void); // 0x470cd0
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
-extern void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type,
-    int16_t unused); // 0x429fc0, EAX, ECX, stack
+
 
 // blam-cc: stack -> event_type, position, event_id, window_ticks
 // Folds a newly observed event_id/position pair into ai_globals's 32-slot recent-event ring:

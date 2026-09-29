@@ -13,6 +13,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -23,9 +24,6 @@ extern tag_instance *tag_instances; // 0x0087bc14
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-extern uint8_t actor_build_guard_mode_data(datum_index actor_index, uint8_t *out); // 0x404360, EDX actor, stack out
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
-extern char actor_evaluate_combat_state_transition(uint32_t actor_index); // 0x40c620
 
 uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index)
 {

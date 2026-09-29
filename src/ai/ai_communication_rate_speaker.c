@@ -42,6 +42,7 @@
 #include "ai.h"
 #include <stdint.h>
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
@@ -52,15 +53,13 @@ extern data_array *prop_data;   // 0x008802c0
 // arguments at all).
 extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target,
     uint8_t stance_a, uint8_t check_facing, uint16_t range_class); // 0x41bb30, EBX, stack
-extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index); // 0x41be10, EAX, ECX
-extern int16_t ai_communication_line_fade_multiplier(uint32_t unit_index, int16_t priority, int16_t extra_delay,
-    uint8_t follow_fallback, uint8_t apply_fade, float *volume, int32_t *chain_value, int16_t *dialogue_index,
-    int16_t line_class); // 0x42f8c0, stack, EAX, ECX, BX
+
+
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
                                                     datum_index *out_player_object_index,
                                                     float *out_distance,
                                                     datum_index object_index); // 0x4303f0
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
     char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
 extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command); // 0x569470, EAX, ECX

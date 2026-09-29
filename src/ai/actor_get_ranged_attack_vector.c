@@ -24,13 +24,14 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *prop_data;   // 0x008802c0
 extern data_array *object_data; // 0x008603b0
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position); // 0x4281f0, EAX, EDX
+
 
 // blam-cc: EAX -> target_prop_index, ECX -> actor_index, stack -> out_vector
 // Produces an aim/attack direction for the actor's controlled unit (vehicle hardpoint or

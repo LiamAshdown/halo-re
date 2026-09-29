@@ -13,11 +13,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
 
-extern void actor_movement_action_cancel(datum_index actor_index); // 0x428650, EDI -> actor_index
 
 void ai_actor_link_to_unassigned_list(datum_index actor_index)
 {

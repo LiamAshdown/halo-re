@@ -23,17 +23,16 @@
 #include "objects.h"
 #include <string.h>
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *prop_data;      // 0x008802c0
 extern data_array *object_data;    // 0x008603b0
 extern data_array *encounter_data; // 0x008802c8
 
-extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, stack, ESI, EDI
-extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
-extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index, datum_index prop_index); // 0x43e640, EAX, EDX, stack
+
 extern datum_index datum_new(data_array *array); // 0x4d0480, EDX
-extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, EAX
+
 
 enum {
     k_prop_admit_drop,

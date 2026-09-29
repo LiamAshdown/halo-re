@@ -12,6 +12,7 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 

@@ -29,15 +29,13 @@
 #include "cache.h"
 #include "ai.h"
 #include "physics.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c, UNSURE: see file header
 
-extern void actor_update_target_lead_position(datum_index actor_index); // 0x429570, EAX -> actor_index
-extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission,
-    int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
-    path_find_boundary_crossing *out_result); // 0x43de90, EBX map, EAX point A, stack
+
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
                                                 ModelCollisionGeometryBSP *bsp,

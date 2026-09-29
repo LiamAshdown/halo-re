@@ -23,6 +23,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -30,12 +31,9 @@ extern data_array *swarm_data;      // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
 extern data_array *encounter_data;  // 0x008802c8
 
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x427c90
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
-extern void actor_unlink_unit(datum_index actor_index); // 0x427bc0
-extern void swarm_add_component(datum_index component_index, uint32_t unit_index, datum_index swarm_index); // 0x4279a0
+
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
-extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index); // 0x436710, EAX, ECX
+
 extern void object_mark_pending_delete(datum_index object_index); // 0x4f50f0, UNSURE signature
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
 

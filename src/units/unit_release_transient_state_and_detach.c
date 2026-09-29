@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *actor_data;      // 0x00880360
@@ -27,7 +28,7 @@ extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types
 extern random_seed random_seed_global;   // 0x00719cd0
 
 extern void actor_attempt_grenade_throw(uint32_t actor_index);          // 0x428ab0
-extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index); // 0x428e50, EAX, stack
+
 extern void player_reset_after_unit_change(uint32_t controlling_player);                  // 0x474e10, UNSURE signature
 extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0, CX, stack
 extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event); // 0x56c640, UNSURE signature

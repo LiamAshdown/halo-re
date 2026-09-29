@@ -21,17 +21,16 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index,
-    uint8_t *requested_actor_data, uint8_t *requested_actor_variant_data, char match_by_index); // 0x4333d0, this batch
+
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
     int16_t squad_index); // 0x4290f0, EAX, EBX, stack
-extern void actor_notify_squad_and_flag_danger(datum_index actor_index, uint8_t alternate_event,
-    uint8_t raise_danger_flag); // 0x423600, EAX, ECX, stack
+
 
 // blam-cc: ECX -> unit_index, stack -> packed_reference, notify
 void ai_unit_remap_actor_to_squad(datum_index unit_index, uint32_t packed_reference, char notify)

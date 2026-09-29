@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern void encounter_spawn_squads(uint32_t encounter_index, int32_t platoon_filter,
                                                 int32_t squad_filter); // 0x437510, this batch

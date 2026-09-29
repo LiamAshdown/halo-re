@@ -14,8 +14,8 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_ai.h"
 
-extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request); // 0x405390, EAX, EDX, ECX
 
 void actor_obey_member_tick(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index,
     void *component_record, int32_t secondary_record, uint32_t callback_extra)

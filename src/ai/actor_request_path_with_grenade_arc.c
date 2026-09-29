@@ -14,16 +14,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data; // 0x00880360
 
-extern int16_t actor_select_firing_position(datum_index actor_index, actor_firing_position_query *query,
-    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
-    uint8_t *out_path_ok); // 0x413e50, stack, EBX query, EDI candidate
-extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner,
-    path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok); // 0x414060, stack, CX, AL
-extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, EAX
 
 uint8_t actor_request_path_with_grenade_arc(uint32_t actor_index)
 {

@@ -21,15 +21,14 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data; // 0x008802c8
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *prop_data;      // 0x008802c0
 extern data_array *actor_data;     // 0x00880360
 
-extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, ESI new, EDI old, stack actor
-extern void squad_recent_object_list_clear(datum_index encounter_index); // 0x436c10
-extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX actor, EDI prop
+
 extern void datum_delete(data_array *array, datum_index handle);     // 0x4d0510
 
 // blam-cc: EAX -> encounter_index

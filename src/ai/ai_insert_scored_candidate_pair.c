@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // Preserved exactly as decompiled: the loop does not stop after inserting at slot 0, so if
 // slot 1's score (which may just have been overwritten by the shift) is *also* less than

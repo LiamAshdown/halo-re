@@ -13,13 +13,14 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
 extern data_array *ai_conversation_data; // 0x008802d4
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+
 
 void actor_mode_converse_update(datum_index actor_index)
 {

@@ -16,12 +16,13 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern Scenario *global_scenario; // 0x00746f8c
 
 extern void actor_clear_vocalization(uint32_t actor_index);   // 0x414560
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, this module,
+
                                                                  // blam-cc: EDX -> actor_index
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 

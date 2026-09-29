@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_category_matches_wildcard(int16_t category, int16_t other_category); // 0x433ba0, blam-cc: stack, AX
 
 void hs_evaluate_ai_allegiance(int16_t function_index, uint32_t thread_index, char first)
 {

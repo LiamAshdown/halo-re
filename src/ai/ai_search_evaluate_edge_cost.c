@@ -26,16 +26,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
-extern uint8_t ai_search_find_nearest_visible_point(ai_search_obstacle_list *list, int16_t exclude_index,
-                                                    real_point2d *origin, real_vector2d *direction, float radius,
-                                                    float max_distance, uint8_t require_unflagged,
-                                                    ai_search_nearest_point_result *out_result);
+
     // 0x43c8f0; EDI -> out_result, see its own file for the stack roles
-extern uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8_t ignore_permission,
-                                                            real_point2d *point, int32_t start_index,
-                                                            real_vector2d *direction, float max_distance,
-                                                            path_find_boundary_trace_result *out);
+
     // 0x43d790; EAX -> context
 
 // blam-cc: EBX -> direction, stack -> context .. out_result

@@ -16,6 +16,7 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // TYPES-GAP: see ai_reference_squad_iterator_new.c.
 extern data_array *encounter_data;                             // 0x008802c8

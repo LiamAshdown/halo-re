@@ -18,6 +18,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -27,10 +28,6 @@ extern data_array *prop_data; // 0x008802c0
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
-extern uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, int16_t formation_slot,
-                                                              path_find_context *path_context); // 0x417830, EDI, stack
-extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type); // 0x4141a0, EAX, CX, DL
 
 void actor_mode_flee_update(datum_index actor_index)
 {

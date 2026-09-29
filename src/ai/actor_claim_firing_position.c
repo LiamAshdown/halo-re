@@ -14,14 +14,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, this module,
+
                                                                  // blam-cc: EDX -> actor_index
-extern uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, int16_t formation_slot,
-    path_find_context *path_context); // 0x417830, EDI, stack
-extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type);                   // 0x4141a0, rewritten in this module
+
 
 // blam-cc: AL -> path_ok, CX -> firing_position_index, stack -> actor_index, previous_owner, path_context
 // Moves the actor onto a firing position. Passing -1 just stops the current movement action

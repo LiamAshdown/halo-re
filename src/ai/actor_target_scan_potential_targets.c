@@ -54,6 +54,7 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -68,17 +69,14 @@ extern ScenarioStructureBSP *global_structure_bsp;    // 0x00746f9c
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern int32_t object_cluster_stamp;           // 0x008603cc
 
-extern int ai_target_distance_qsort_compare(void *record_a, void *record_b); // 0x41d7a0, this module
 
-extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, sibling session
 extern int16_t object_get_root_parent_placement(uint32_t object_index,
     object_placement_cursor *out_cursor); // 0x4f5f70, blam-cc: EAX -> object_index, ESI -> out_cursor
-extern void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_cursor,
-    int16_t *candidates_a, int16_t *candidates_b); // 0x41e320, this module
+
 extern datum_index actor_find_or_allocate_prop(uint32_t actor_index, datum_index object_index, char flag); // 0x43e270, UNSURE signature
 extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force, char allow_reassign); // 0x41c4b0, this batch, UNSURE signature
-extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference); // 0x428470, stack, ESI, EDI
-extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove); // 0x43ea20, EAX, EDI
+
+
 extern void datum_delete(data_array *array, datum_index handle);  // 0x4d0510
 
 // TYPES-GAP: the local sort record ai_target_distance_qsort_compare.c already documents

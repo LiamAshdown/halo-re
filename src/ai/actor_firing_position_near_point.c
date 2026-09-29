@@ -19,18 +19,13 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Scenario *global_scenario;   // 0x00746f8c
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
-extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, this module
-extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
-    real_point3d *out_position, void *context, uint8_t *out_success); // 0x43a0a0, EAX, ECX, ESI, stack
-extern uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_id, real_point3d *point,
-    float *out_distance, float *out_secondary, real_vector3d *out_direction); // 0x43a310, EDI, EAX, stack
-extern uint8_t path_find_run(path_find_context *context);       // 0x43a8b0, not yet rewritten
 
 // blam-cc: EDX -> actor_index, stack -> point, start_surface_index, kind
 // Answers whether the actor has a firing position of the requested class within four world

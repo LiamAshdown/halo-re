@@ -22,6 +22,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -34,12 +35,8 @@ extern double sqrt(double x);
 extern double fabs(double x);
 
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, EAX, ECX
-extern void actor_movement_collect_obstacle_candidates(actor_movement_context *context); // 0x418ce0, stack
-extern int16_t actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float *sample,
-    real_point3d *out_end_point, actor_movement_context *context, float *out_distance,
-    uint8_t *out_clear_counter); // 0x418f70, EAX, ECX, EDX, EDI, stack; AX: 0 clear, 1 obstacle, 2 structure
-extern uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction, const real_vector3d *samples,
-    int16_t count, const float *values, float *out_index, float *out_value); // 0x419240, ECX, EBX, stack
+
+
 extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
 
 extern float actor_avoidance_samples_a[16][7]; // 0x00880380, two rays per direction

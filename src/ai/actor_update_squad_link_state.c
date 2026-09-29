@@ -22,14 +22,13 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *prop_data;      // 0x008802c0
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860
-extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0
 
 // blam-cc: stack -> actor_index
 // Per-tick housekeeping for an actor's link to its squad/encounter: releases a swarm actor

@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -49,7 +50,7 @@ extern player_effect_globals *player_effect_globals_pointer;
 extern void *recorded_animations;    // 0x006b0a10, TYPES-GAP
 extern uint32_t *cinematic_globals_ptr; // 0x006f187c, TYPES-GAP (7 dwords)
 
-extern void ai_initialize_for_new_map(void);           // 0x42a7c0, ai module
+
 extern void contrails_initialize(void);                 // 0x44c8b0
 extern void decals_initialize(void);                     // 0x44df90
 extern void team_pair_table_allocate(void);              // this batch, 0x45bc30

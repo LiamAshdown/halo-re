@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern data_array *actor_data;         // 0x00880360
@@ -39,8 +40,7 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position,
     real_vector3d *fallback_facing); // 0x4593b0, EAX, stack
-extern uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point,
-    real_vector3d *out_direction, float *out_698); // 0x40f7e0, EAX, EDX, EDI, stack
+
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role); // 0x4f53a0, EAX, stack
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed,

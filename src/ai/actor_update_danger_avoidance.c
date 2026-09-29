@@ -26,27 +26,24 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-extern uint8_t actor_action_has_queued_secondary(datum_index actor_index); // 0x417b70, EAX
+
 extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction,
     real_point3d *point); // 0x4cde30, EAX, ECX, EDX
-extern uint8_t actor_movement_action_is_complete(datum_index actor_index); // 0x41a960, EAX
+
 extern real segment3d_distance_squared_to_segment(real_point3d *b_start, real_point3d *a_start, real_vector3d *a_direction,
     real_vector3d *b_direction); // 0x4cdef0, stack, EBX, ESI, EDI
-extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type); // 0x4141a0
+
 extern real ray_intersect_sphere_distance(real_point3d *origin, real_point3d *center, real_vector3d *direction,
     real radius); // 0x4ce7d0
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
-extern uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, uint8_t *out_position,
-    real_vector3d *path_delta, uint8_t *in_danger); // 0x40bc40
-extern uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint32_t escape,
-    uint32_t extra, float distance); // 0x40e060, EAX path_delta, stack
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
+
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))

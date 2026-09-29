@@ -20,6 +20,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -28,8 +29,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real random_real(void);                       // 0x4019f0
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX index: the difficulty scale
-extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index); // 0x40d9c0, this module
-extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit); // 0x40db00, this module
+
 
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: stack -> actor_index

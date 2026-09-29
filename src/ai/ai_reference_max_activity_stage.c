@@ -9,10 +9,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
-extern int32_t ai_actor_get_activity_stage(datum_index actor_index); // 0x435680, this batch
+
 
 int16_t ai_reference_max_activity_stage(uint32_t packed_reference)
 {

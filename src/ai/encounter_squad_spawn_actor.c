@@ -48,19 +48,18 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern Scenario *global_scenario;   // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int16_t squad_pick_random_starting_location(datum_index encounter_index, int16_t squad_index);
+
     // 0x437220, blam-cc: AX -> squad_index, ECX -> encounter_index
-extern void ai_get_difficulty_request(int16_t request_code, uint8_t *out_flag_a, uint8_t *out_flag_b, float *out_value);
+
     // 0x42a950, blam-cc: AX, ECX, EDX, ESI
-extern uint8_t ai_drift_zone_bias(datum_index encounter_index, int16_t squad_offset, float bias);
+
     // 0x42a9d0, blam-cc: EAX -> encounter_index, stack -> squad_offset, bias
-extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index,
-    int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index,
-    const actor_placement_request *placement_request); // 0x427080, blam-cc: EAX -> placement_request, stack -> rest
+
 
 uint8_t encounter_squad_spawn_actor(datum_index encounter_index, int16_t squad_index, uint32_t unit_type_index,
     uint32_t unused)

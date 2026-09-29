@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *encounter_data;   // 0x008802c8
@@ -39,16 +40,13 @@ extern game_engine_definition *current_game_engine;
 extern player_globals *local_player_globals; // 0x0087a478
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x427c90, ECX, stack
+
 extern datum_index actor_new_and_attach_to_unit(char reuse_existing, datum_index unit_index, datum_index actor_variant_tag,
     uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor, char start_active,
     uint16_t unknown_60, int16_t unknown_62, uint16_t command_list_index, uint8_t unknown_68); // 0x426ac0
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
-extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, EAX, stack
-extern void actor_movement_action_cancel(datum_index actor_index); // 0x428650, EDI
-extern void actor_clear_target_state(datum_index actor_index); // 0x4286c0
-extern void encounter_deactivate(datum_index encounter_index); // 0x437870, EAX
+
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)

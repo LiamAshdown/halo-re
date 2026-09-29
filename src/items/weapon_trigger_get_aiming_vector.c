@@ -22,13 +22,11 @@
 #include "objects.h"
 #include "items.h"
 #include "projectiles.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
-    real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
-    uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed,
-    real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
+
     // 0x4beec0, src/ai; blam-cc: ECX target, EAX speed_in, the rest on the stack
 
 // Solves the aiming direction for a shot from origin to target with the projectile of the

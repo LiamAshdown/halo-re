@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index); // 0x432df0, blam-cc: EAX, EDI
 
 void hs_evaluate_ai_magically_see_unit(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -14,6 +14,7 @@
 #include "units.h"
 #include "hs.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;                // 0x008603b0
 extern data_array *object_list_header_data;    // 0x0087a464

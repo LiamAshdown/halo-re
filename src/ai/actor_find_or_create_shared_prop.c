@@ -25,18 +25,18 @@
 #include "objects.h"
 #include "ai.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 extern data_array *prop_data;   // 0x008802c0
 
-extern void actor_target_reset_combat_flags(datum_index target_prop_index, datum_index actor_index, uint32_t unused,
-    uint8_t already_noticed); // 0x41baf0, ECX, stack
+
 extern datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind); // 0x43e270
 extern void actor_target_data_refresh(datum_index actor_index, datum_index prop_index, void *scratch, uint32_t param4,
                          uint32_t flag); // 0x41c4b0, outside this rewrite's range
 extern void actor_target_update_tracking_speed(datum_index actor_index, datum_index prop_index, void *scratch); // 0x41c8f0, outside this rewrite's range
-extern uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_index target_prop_index); // 0x41f410, EAX, stack
+
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 
 // blam-cc: EAX -> object_index, stack -> actor_index, create_if_missing, flag

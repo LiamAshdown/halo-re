@@ -16,6 +16,7 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c

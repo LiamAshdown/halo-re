@@ -42,6 +42,7 @@
 #include "units.h"
 #include "physics.h"
 #include "projectiles.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -74,7 +75,7 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
 extern game_main_globals *main_game_globals; // 0x006b0b80
-extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index); // 0x428270, blam-cc: ECX -> actor_index (object+0x1f4 at both call sites)
+
 extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction,
     real radius); // 0x4ce6c0, ECX center, EAX origin, EDX direction, stack radius
 extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); // 0x4cbf10, EAX, ECX, EDX

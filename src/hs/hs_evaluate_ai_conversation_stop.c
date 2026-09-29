@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_conversation_stop_all(int16_t conversation_definition_index); // 0x4309c0, blam-cc: SI
 
 void hs_evaluate_ai_conversation_stop(int16_t function_index, uint32_t thread_index, char first)
 {

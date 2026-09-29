@@ -17,10 +17,11 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
-extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index); // 0x432df0, this batch
+
 
 // blam-cc: EAX -> packed_reference, ESI -> respawn_reference
 void ai_reference_respawn_placed_members(uint32_t packed_reference, uint32_t respawn_reference)

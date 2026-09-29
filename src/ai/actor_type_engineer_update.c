@@ -18,29 +18,15 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
 extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code); // 0x409ea0
-extern uint8_t actor_process_pending_command_list(datum_index actor_index); // 0x40a140
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold); // 0x40a1e0
+
+
 extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index); // 0x40ab80, EAX
-extern uint8_t actor_alert_from_squad_attack(datum_index actor_index); // 0x40a460, EDX
-extern uint8_t actor_alert_from_projectile(datum_index actor_index); // 0x40a5e0
-extern uint8_t actor_alert_from_flag_1b4(datum_index actor_index); // 0x40a6b0, EAX
-extern uint8_t actor_alert_from_damage(datum_index actor_index); // 0x40a500
-extern uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast,
-    int16_t broadcast_threshold); // 0x40a700, EAX
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index); // 0x40aaf0, EDI
-extern uint8_t actor_update_grenade_throw_decision(datum_index actor_index); // 0x40b770, EDI
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index); // 0x40c040
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2); // 0x40d610, EDI
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index); // 0x40d7a0, ESI
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index); // 0x40b920, EAX
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b); // 0x40d520
-extern uint32_t actor_flee_look_away(datum_index actor_index); // 0x40d4c0, EDI
-extern uint8_t actor_update_special_mode(datum_index actor_index); // 0x40d820, EAX
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index); // 0x40d580, EAX
+
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 

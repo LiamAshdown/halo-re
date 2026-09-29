@@ -14,13 +14,11 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
-    real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
-    uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front); // 0x4091d0
 
 int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry,
                                     real_vector3d *out_direction, real_point3d *out_hint)

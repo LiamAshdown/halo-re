@@ -13,9 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
-extern char actor_evaluate_combat_state_transition(uint32_t actor_index); // 0x40c620, other half of this session
+
 
 // blam-cc: ESI -> actor_index
 uint8_t actor_conditional_state_transition_check(datum_index actor_index)

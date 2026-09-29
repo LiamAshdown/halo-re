@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
@@ -29,9 +30,7 @@ extern data_array *actor_data;     // 0x00880360
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference,
     ai_reference_actor_iterator *out_iterator);                             // 0x432650
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0
-extern void actor_movement_action_cancel(datum_index actor_index);   // 0x428650, not yet rewritten
-extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index
-extern void encounters_recompute_dirty(void);                               // 0x435f00
+
 
 // blam-cc: EAX -> packed_reference
 // Pulls every actor a packed ai reference names out of its encounter and parks it on the

@@ -28,6 +28,7 @@
 #include "math.h"
 #include "game.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern uint8_t DAT_0087ab18;                 // 0x0087ab18, UNSURE: "simulation in progress" reentrancy flag
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
@@ -44,7 +45,7 @@ extern void game_engine_flag_local_player_units(void);      // 0x45b590, this mo
 extern void team_pair_overrides_tick(void);                  // 0x45bcf0, this module
 extern void game_engine_tick(void);                          // 0x45ff30, this module
 
-extern void ai_tick_dispatcher(void);                    // UNSURE module
+
 extern void recorded_animations_update(void);            // 0x44aa90, UNSURE module
 extern void effects_update_all(float seconds_per_tick);  // 0x450aa0, UNSURE module/role
 extern void player_effect_clear_dead_players(void);                    // UNSURE module

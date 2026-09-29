@@ -18,6 +18,7 @@
 #include "cache.h"
 #include "ai.h"
 #include "networking.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -28,7 +29,7 @@ extern network_client_globals *network_client;
 
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, stack, ECX
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, EDX
-extern void actor_notify_weapon_pickup_once(datum_index object_index); // 0x42c370, ECX
+
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)
 extern void player_update_history_free_all(void *history); // 0x4e6f20

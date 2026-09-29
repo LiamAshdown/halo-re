@@ -51,6 +51,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -83,7 +84,7 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
 extern game_main_globals *main_game_globals; // 0x006b0b80
-extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index); // 0x428270, blam-cc: ECX -> actor_index (object+0x1f4 at both call sites)
+
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
                                           float *pill_radius_out);    // 0x55a2e0, blam-cc: EAX position, ECX object, EBX radius, stack height
 extern void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);

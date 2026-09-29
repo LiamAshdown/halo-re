@@ -20,14 +20,13 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
 extern Scenario *global_scenario;   // 0x00746f8c
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern int32_t ai_weighted_random_index(int16_t weight_offset, void *base, int16_t stride, uint16_t count,
-    uint32_t *exclude_mask); // 0x432100, EDX, stack
 
 // REWRITTEN from objdump 0x4014c0..0x4017a7. EAX: actor; stack: (mode, current index, direction byte *). Picks one
 //   of the actor's squad move positions (ScenarioSquad +0xc4 count / +0xc8 block, 0x50 each). A position is taken

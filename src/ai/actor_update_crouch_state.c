@@ -36,6 +36,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -46,16 +47,15 @@ extern int32_t __ftol(double x); // 0x6391b4, MSVC float-to-long (truncating)
 
 extern float vector3d_magnitude_squared(const real_vector3d *v); // 0x401000, EAX -> v
 extern real vector3d_normalize_with_length(real_vector3d *v);    // 0x401990, ECX -> v
-extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type); // 0x4141a0, EAX, CX, DL
-extern uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_index actor_index,
-    real_vector3d *out_vector); // 0x420970, EAX, ECX, stack
+
+
 extern int16_t actor_evaluate_flank_offset(const real_vector3d *cover_direction,
                                            real_vector3d *out_offset,
                                            const real_point3d *threat_position,
                                            const real_point3d *candidate_position); // 0x420b10, this module
 extern void actor_scan_allies_for_backup_request(datum_index actor_index); // 0x420ec0, this module
-extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag); // 0x421a40, EAX, BL
-extern uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index);            // 0x424090, not yet rewritten
+
+
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 // 0x42d340, not yet rewritten (this module). Always seven stack arguments: every call
 // site in the binary cleans up 0x1c bytes, so the shorter forms Ghidra recovers at some

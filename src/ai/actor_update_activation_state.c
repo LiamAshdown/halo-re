@@ -23,29 +23,15 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data; // 0x00880360
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-extern uint8_t actor_update_squad_link_state(datum_index actor_index); // 0x429270
-extern void actor_update_idle_stagger(datum_index actor_index); // 0x429430, in this rewrite range, not yet written when this file was authored
-extern void actor_refresh_combat_context(datum_index actor_index); // 0x4297a0
-extern void actor_target_relationship_think(datum_index actor_index); // 0x41abd0
-extern void actor_choose_best_target(datum_index actor_index); // 0x4203a0
-extern void actor_update_crouch_state(datum_index actor_index); // 0x4213b0
-extern void actor_run_mode_transition_loop(datum_index actor_index); // 0x429ee0
-extern void actor_dispatch_type_vtable_0x18(datum_index actor_index); // 0x4266a0
-extern void actor_snapshot_orientation(datum_index actor_index); // 0x4294d0
-extern void actor_invoke_type_handler(uint32_t actor_index); // 0x409e70
-extern void actor_update_grenade_eligibility_state(datum_index actor_index); // 0x42f370
-extern void actor_schedule_grenade_throw(uint32_t actor_index); // 0x402f80
-extern void actor_movement_advance_waypoint(datum_index actor_index); // 0x4163e0
+
 extern void actor_update_flee_response(datum_index actor_index); // 0x414250
-extern void actor_movement_update(datum_index actor_index); // 0x416790
-extern void actor_update_look_target(datum_index actor_index); // 0x415480
-extern void actor_update_firing_state(datum_index actor_index); // 0x40e7b0
-extern void actor_apply_queued_look_to_unit(datum_index actor_index); // 0x42a640, in this rewrite range, not yet written when this file was authored
+
 
 // blam-cc: ESI -> actor_index
 // Per-tick actor combat-state update: validates via actor_update_squad_link_state; if it

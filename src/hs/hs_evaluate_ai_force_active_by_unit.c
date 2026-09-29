@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_unit_set_actor_unknown_0a(datum_index unit_index, uint8_t value); // 0x435540, blam-cc: EAX, stack
 
 void hs_evaluate_ai_force_active_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {

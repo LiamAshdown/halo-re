@@ -12,13 +12,12 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
-extern void actor_target_reset_seen_flags(datum_index actor_index);    // 0x41f9d0, EAX
-extern void actor_target_reset_shot_counters(datum_index actor_index); // 0x41fa20, EAX
 
 void actor_mode_guard_enter(datum_index actor_index)
 {

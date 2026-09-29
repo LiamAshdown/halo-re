@@ -11,13 +11,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *encounter_data; // 0x008802c8
 
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
-extern void actor_dispatch_perception_reset(datum_index actor_index); // 0x429000
 
 // Iterates all active actors and re-runs their perception-reset dispatcher.
 void ai_reset_all_actors_perception(void)

@@ -21,19 +21,15 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
-extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index, stack -> skip_counters
-extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, EDI -> actor_index
-extern void actor_unlink_unit(datum_index actor_index); // 0x427bc0
-extern void actor_delete_swarm(datum_index actor_index); // 0x4280b0
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x427c90
-extern void actor_clear_perceived_props(datum_index actor_index); // 0x427e00
+
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void ai_conversation_clear_participant(datum_index actor_index); // 0x430c70, UNSURE signature, not in this rewrite range
+
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array, EDX -> handle
 
 // blam-cc: EBX -> actor_index, stack -> flag

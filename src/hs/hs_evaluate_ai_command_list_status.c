@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle); // 0x434f20, blam-cc: EAX
 
 void hs_evaluate_ai_command_list_status(int16_t function_index, uint32_t thread_index, char first)
 {

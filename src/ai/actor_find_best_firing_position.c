@@ -39,6 +39,7 @@
 #include "cache.h"
 #include "ai.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -55,28 +56,20 @@ extern actor_firing_position_candidate *qsort_candidate_base;// 0x006f0c94
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
 extern real vector3d_normalize_with_length(real_vector3d *v);                // 0x401990
-extern void actor_firing_position_run_score_rules(datum_index actor_index, uint16_t count, actor_firing_position_query *query, actor_firing_position_candidate *candidates); // 0x4126f0
-extern uint8_t actor_firing_position_run_reject_rules(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *candidate); // 0x412730
-extern uint8_t actor_firing_position_probe_reject_rules(actor_firing_position_query *query, datum_index actor_index); // 0x412770, EDI, EBX
-extern void actor_report_firing_position_request(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *candidate); // 0x4120f0
+
+
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point, int32_t start_surface_index, int16_t kind); // 0x412960
-extern void encounter_build_firing_position_claims(datum_index encounter_index, datum_index *out_claims); // 0x4360d0, EAX, EBX
-extern void actor_build_path_find_request(datum_index actor_index, path_find_request *request); // 0x41a9c0, EAX, EBX
-extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0, this module,
+
+
                                                  // blam-cc: EAX -> target_prop_index
-extern uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_index actor_index, real_vector3d *out_vector); // 0x420970, EAX, ECX, stack
-extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
-    real_point3d *out_position, void *context, uint8_t *out_success); // 0x43a0a0, EAX, ECX, ESI, stack
-extern uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_id, real_point3d *point,
-    float *out_distance, float *out_secondary, real_vector3d *out_direction); // 0x43a310, EDI, EAX, stack
-extern uint8_t path_find_run(path_find_context *context);                  // 0x43a8b0, not yet rewritten
+
+
 extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare); // 0x449590, EAX count, ECX elements, stack compare
 extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction, real_point3d *point); // 0x4cde30, EAX, ECX, EDX
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
     uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
 extern void unit_get_aiming_vector(uint32_t unit_index, real_vector3d *out); // 0x5696f0, ECX, EAX
 
-extern uint8_t actor_firing_position_compare(int32_t element, int32_t other); // 0x4127b0, src/ai/actor_firing_position_compare.c
 
 // blam-cc: stack -> actor_index, query, out_candidate, out_previous_owner, path_context, out_path_ok
 // Gathers, scores and picks the actor best firing position. Returns the index of the winning

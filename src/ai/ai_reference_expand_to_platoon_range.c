@@ -22,6 +22,7 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // TYPES-GAP: the 3-dword out-parameter of ai_reference_expand_to_platoon_range. No existing
 // header struct matches; only this function and its callers use it.

@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index); // 0x435420, blam-cc: EAX, stack
 
 void hs_evaluate_ai_attach_free(int16_t function_index, uint32_t thread_index, char first)
 {

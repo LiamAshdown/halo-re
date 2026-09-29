@@ -23,8 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
-extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0
+
 extern uint8_t path_find_trace_bsp_boundary(void *context, uint8_t ignore_permission, real_point3d *point_a,
     int32_t start_edge, real_point3d *point_b, int32_t exclude_vertex, path_find_boundary_crossing *out_result); // 0x43d9b0, stack
 

@@ -26,14 +26,14 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *actor_data;      // 0x00880360, stride 0x724 (ai module)
 
 extern real random_real(void); // 0x4019f0
-extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority,
-                                              int16_t stimulus_value); // 0x42c2a0, EDX, BX, DI
+
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
     int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
     int32_t *chain_value); // 0x560d00, EAX, DL, stack

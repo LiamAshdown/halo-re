@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;  // 0x008802c8
 extern data_array *actor_data;      // 0x00880360
@@ -40,9 +41,7 @@ extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
     int16_t squad_index); // 0x4290f0, EAX, EBX, stack
-extern void actor_notify_squad_and_flag_danger(datum_index actor_index, uint8_t alternate_event,
-    uint8_t raise_danger_flag); // 0x423600, EAX, ECX, stack
-extern void encounters_recompute_dirty(void);                           // 0x435f00, not yet rewritten: re-runs morale for dirty squads
+
 
 // blam-cc: stack -> encounter_index
 void encounter_propagate_platoon_state_to_actors(datum_index encounter_index)

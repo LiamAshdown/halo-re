@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // TYPES (folded into types/ai.h by the review pass): see note above.
 

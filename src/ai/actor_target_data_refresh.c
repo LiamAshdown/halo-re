@@ -28,6 +28,7 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *prop_data;   // 0x008802c0
@@ -52,8 +53,8 @@ extern real vector3d_magnitude_squared(real_vector3d *v); // 0x401000, src/math;
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out); // 0x53ed60, EBX point, stack
 extern char unit_get_tag_flag_bit7(uint32_t unit_index); // 0x571c70, EAX
-extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group); // 0x41c2c0, this batch
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
+
+
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 // blam-cc: stack -> actor_index, target_prop_index, reference, force, allow_reassign

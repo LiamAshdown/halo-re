@@ -18,6 +18,7 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -47,10 +48,7 @@ extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t
     int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
     int32_t *chain_value); // 0x560d00, EAX, DL, stack
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20, EAX, ECX, DX
-extern void ai_communication_record_line_played(datum_index object_index, int16_t tier,
-    int16_t communication_line_id, int16_t conversation_line_id); // 0x42f9e0, EAX, stack
-extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index,
-    datum_index vehicle_object_index, int16_t line, int16_t variant); // 0x4302e0, EAX, EBX, EDI, stack
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 

@@ -17,24 +17,15 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
 extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code); // 0x409ea0
-extern uint8_t actor_process_pending_command_list(datum_index actor_index); // 0x40a140
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold); // 0x40a1e0
+
+
 extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index); // 0x40ab80, EAX
-extern uint8_t actor_escalate_check_leader_flag(datum_index actor_index); // 0x40a7f0, EAX
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index); // 0x40a9e0, EAX
-extern uint8_t actor_escalate_check_target_close(datum_index actor_index); // 0x40a950, EAX
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold); // 0x40aa70, EDI, stack
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index); // 0x40aaf0, EDI
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2); // 0x40d610, EDI
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index); // 0x40d7a0, ESI
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index); // 0x40b920, EAX
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b); // 0x40d520
-extern uint32_t actor_flee_look_away(datum_index actor_index); // 0x40d4c0, EDI
-extern uint8_t actor_update_special_mode(datum_index actor_index); // 0x40d820, EAX
+
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 

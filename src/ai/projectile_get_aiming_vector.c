@@ -44,15 +44,8 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "fn_ai.h"
 
-extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origin,
-    real speed_limit, real gravity_scale, real *max_time, uint8_t use_high_arc,
-    real_vector3d *out_direction, real *max_speed_override, real *out_speed,
-    real *out_time_of_flight, real *out_range, real *out_half_gravity_term,
-    real *out_horizontal_speed); // 0x4beb30, this module (same batch)
-extern uint8_t projectile_solve_straight_line(real_point3d *target, real_point3d *origin,
-    real speed, real *out_time_of_flight, real_vector3d *out_direction, real *out_speed_echo,
-    real *out_length); // 0x4bee20, this module (same batch)
 
 // Chooses between the gravity-arc and straight-line aiming solvers for a shot from *origin to
 // *target using tag's Projectile definition, and reports which one it used through

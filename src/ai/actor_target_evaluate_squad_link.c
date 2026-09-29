@@ -30,6 +30,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data;       // 0x00880360
@@ -43,15 +44,11 @@ extern double sqrt(double x);
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
-extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index,
-    char stamp_group); // 0x41c2c0, EAX, stack
+
+
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
-extern uint8_t actor_danger_register_point(datum_index actor_index, datum_index source_object_index, float radius,
-    float distance, char accept_flag, uint8_t unknown_byte); // 0x41ec90, EAX, EDX, stack
-extern uint8_t actor_danger_register_stationary_object(const float *reference, datum_index actor_index,
-    datum_index object_index, uint8_t unknown_byte); // 0x41ea60, EAX, stack
-extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, EAX
+
+
 extern datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind); // 0x43e270
 extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force,
     char allow_reassign); // 0x41c4b0

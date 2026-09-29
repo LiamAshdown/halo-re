@@ -18,11 +18,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
-extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0, this module,
+
                                                  // blam-cc: EAX -> target_prop_index
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point,
     uint32_t start_surface_index, int16_t kind); // 0x412960, EDX, stack

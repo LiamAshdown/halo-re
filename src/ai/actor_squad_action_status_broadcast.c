@@ -23,15 +23,16 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *actor_data;    // 0x00880360
 extern Scenario *global_scenario; // 0x00746f8c
 extern uint16_t global_structure_bsp_index; // 0x0069e8d8, UNSURE: compared against ScenarioCommandList.precomputed_bsp_index
 
-extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, uint16_t *caller_record); // 0x407040, this session
+
 extern void actor_clear_vocalization(uint32_t actor_index); // 0x414560
-extern void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra); // 0x406dd0
+
 
 // FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; actor_index arrive(s) on the stack (2 stack argument(s)).
 // blam-cc: ESI -> record, stack -> actor_index, command_list_index

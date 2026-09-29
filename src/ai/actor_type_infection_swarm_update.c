@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "units.h"
 #include "cache.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data;           // 0x00880360, 0x724-byte actors
@@ -43,8 +44,8 @@ extern const real_point3d *global_origin3d_pointer; // 0x00696714
 extern real random_real_range(real min, real max); // 0x401050
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX out, ECX a, stack b
-extern int32_t actor_pick_dialogue_variant_a(int16_t category); // 0x424aa0, AX
-extern int32_t actor_pick_dialogue_variant_b(int16_t category); // 0x424b80, AX
+
+
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX v, ECX axis
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id); // 0x5639f0, EAX, EDX, stack
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX

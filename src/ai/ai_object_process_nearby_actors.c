@@ -16,6 +16,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -26,8 +27,7 @@ extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iter
 extern int object_sort_by_flag_then_distance(const void *a, const void *b); // 0x433c70, library code, not rewritten in this batch
 extern int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector,
                                                        int16_t *out_indices, int16_t max_indices); // 0x56a310
-extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
-                                                   char *seat_name, int16_t seat_flags, int16_t count); // 0x40e260, EAX, ECX, stack
+
 
 void ai_object_process_nearby_actors(uint32_t ai_reference, datum_index vehicle_index, char *seat_name,
                                       char allow_boarding_actors)

@@ -29,25 +29,18 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254, stride 0x38
 
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index); // 0x4282c0, EAX
-extern uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_vector3d *out,
-    datum_index actor_index); // 0x4146c0, EAX reason, EDI out, stack actor
+
 extern uint8_t point3d_within_horizontal_cone(const real_point3d *to_point, const real_point3d *reference,
     real min_cos_threshold); // 0x414910, EAX, EDX, stack
-extern uint8_t actor_point_in_directional_lane(real_point3d *to_point, real_point3d *forward, real_point3d *cone_axis,
-    float min_cos_threshold, float side_thresholds[2]); // 0x414990, EAX, ECX, EDX, stack x2
-extern uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index actor_index, float *deviation_table,
-    uint8_t require_trust, uint8_t use_aiming_deviation, uint8_t force_fallback); // 0x414d00, EAX, stack x5
-extern void actor_look_randomize_direction(datum_index actor_index, float *deviation_table, real_vector3d *base_direction); // 0x414f50
-extern float *actor_get_idle_facing_range(datum_index actor_index); // 0x4150f0, EAX
-extern int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table); // 0x415150, EAX, stack, EDI
-extern uint8_t actor_reset_queued_look_vector(datum_index actor_index); // 0x417ae0
-extern void actor_update_facing_change_timer(datum_index actor_index); // 0x423670, EAX
+
+
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
 extern double cos(double x);

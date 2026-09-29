@@ -13,13 +13,14 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern Scenario *global_scenario;        // 0x00746f8c
 
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t reason_b); // 0x430ea0, this batch
+
 
 // blam-cc: stack -> actor_index
 // Removes actor_index from every ai_conversation instance's participant list: if the

@@ -19,13 +19,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *actor_data;     // 0x00880360
 
-extern void actor_propagate_unit_field(datum_index actor_index, int16_t value); // 0x4276e0, EAX, ESI
-extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0, no arguments (tail jump at 0x435bb3)
 
 // blam-cc: EAX -> encounter_index, CX -> team
 // Retargets a whole encounter onto a new team and tells every member about it.

@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_object_process_nearby_actors(uint32_t ai_reference, datum_index vehicle_index, char *seat_name, char allow_boarding_actors); // 0x433cc0, blam-cc: EAX ai
 
 void hs_evaluate_ai_go_to_vehicle_override(int16_t function_index, uint32_t thread_index, char first)
 {

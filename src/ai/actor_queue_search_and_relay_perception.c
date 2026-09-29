@@ -17,15 +17,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data;  // 0x008802c0
 extern data_array *actor_data; // 0x00880360
 
-extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348); // 0x421af0
-extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data); // 0x422070
 
 // blam-cc: EAX -> prop_index, EBX -> actor_index
 // Queues a priority-1 velocity-only search request from the prop, as

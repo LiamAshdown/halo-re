@@ -29,6 +29,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -42,7 +43,7 @@ extern void object_placement_data_initialize(object_placement_data *placement, d
 extern datum_index object_new(object_placement_data *placement); // 0x4f5460, UNSURE signature
 extern void object_delete(datum_index object_index); // 0x4f5bd0, UNSURE signature
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
-extern void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index); // 0x426cf0
+
 extern datum_index actor_new_and_attach_to_unit(
     char reuse_existing, datum_index unit_index, datum_index actor_variant_tag,
     uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor,

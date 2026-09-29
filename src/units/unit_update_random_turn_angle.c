@@ -18,12 +18,13 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data; // 0x008603b0
 extern random_seed random_seed_global;   // 0x00719cd0
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 
-extern uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, real_vector3d *out_direction); // 0x4287a0, EAX, ECX
+
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern double cos(double x); // fcos
 extern double sin(double x); // fsin

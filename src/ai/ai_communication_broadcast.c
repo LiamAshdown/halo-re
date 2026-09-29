@@ -23,6 +23,7 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern game_time_globals *game_time;   // 0x006f1d6c
@@ -61,28 +62,23 @@ extern datum_index ai_communication_select_speaker_in_reference(float radius, in
     uint32_t reference, datum_index object_a, datum_index object_b); // 0x42ff80, stack + EAX, EDI, EBX
 extern uint32_t team_pair_override_adjust_counter(int16_t index_a, int16_t index_b, int16_t delta_selector,
     uint8_t *out_flag); // 0x45bfc0, EAX + stack
-extern void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uint8_t status); // 0x42ba80
+
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
-extern int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16_t line_id,
-    int16_t sub_id, float *out_weight); // 0x42ec90
+
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
     datum_index *out_player_object_index, float *out_distance, datum_index object_index); // 0x4303f0, EBX
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
     int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
     int32_t *chain_value); // 0x560d00, EAX, DL, stack
 extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command); // 0x569470, EAX, ECX
-extern void ai_communication_record_line_played(datum_index object_index, int16_t tier,
-    int16_t communication_line_id, int16_t conversation_line_id); // 0x42f9e0, EAX + stack
-extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order); // 0x42e9c0
-extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force,
-    datum_index explicit_speaker_actor_index, uint32_t *event_record); // 0x42eee0
+
+
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
     uint32_t maximum_markers); // 0x4f6080
 extern uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command,
     const real_vector2d *direction); // 0x569530
-extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index,
-    datum_index vehicle_object_index, int16_t line, int16_t variant); // 0x4302e0, EAX, EBX, EDI, stack
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define ACTOR_DATA(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)

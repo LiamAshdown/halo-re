@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void encounter_set_team(datum_index encounter_index, int16_t team); // 0x435b30, blam-cc: EAX, CX
 
 void hs_evaluate_ai_set_team(int16_t function_index, uint32_t thread_index, char first)
 {

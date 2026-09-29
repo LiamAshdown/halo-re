@@ -11,13 +11,14 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_ai.h"
 
 extern data_array *hs_syntax_data;       // 0x0087a474
 extern char *hs_compiled_source;         // 0x006b14c0
 extern char *hs_compile_error;           // 0x006b14d4
 extern int32_t hs_compile_error_offset;  // 0x006b14d8
 extern Scenario *global_scenario; // 0x00746f8c
-extern uint8_t ai_reference_parse(char *reference_string, Scenario *scenario, uint32_t *out_packed_reference);
+
     // 0x432320, blam-cc: EAX -> reference_string, ECX -> scenario, stack -> out_packed_reference
 
 char hs_parse_ai(datum_index node_index)

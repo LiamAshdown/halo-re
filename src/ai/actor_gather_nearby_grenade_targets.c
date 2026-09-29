@@ -15,6 +15,7 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *encounter_data; // 0x008802c8
@@ -22,10 +23,6 @@ extern data_array *prop_data;      // 0x008802c0
 extern data_array *object_data;    // 0x008603b0
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, ECX actor, stack object
-extern void actor_grenade_avoidance_entry_init(ai_grenade_avoidance_entry *entry,
-                                                datum_index object_index,
-                                                datum_index prop_index); // 0x0042af50
 
 // blam-cc: stack -> source_actor_index, maximum_count, out_entries
 // Collects up to maximum_count nearby friendly targets that a thrown grenade should make

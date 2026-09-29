@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // TYPES-GAP: not established anywhere else in this module; a 2-field caller-owned record
 // (EDI) naming the scripted condition to test and, optionally, which platoon it applies to.

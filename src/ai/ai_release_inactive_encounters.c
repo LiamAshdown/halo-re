@@ -16,19 +16,19 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;              // 0x00880360
 extern data_array *encounter_data;          // 0x008802c8
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern Scenario *global_scenario;           // 0x00746f8c
 
-extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index,
-    uint8_t is_dead); // 0x42ab00, EAX, EDI, stack, BL
+
     // UNSURE: the call site only supplies one visible stack argument (-1); the callee's own
     // decompile also reads unaff_EDI and in_EAX, which appear to be whatever this caller's
     // registers happen to hold rather than real inputs. Left as a single-argument prototype;
     // resolve together with 0x42ab00's own rewrite.
-extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0, stack, AL
+
 
 // Iterates a prioritized list of things AI cleanup still needs to release -- whole encounters
 // and encounterless (unassigned) actors interleaved -- one entry per call. state points at a

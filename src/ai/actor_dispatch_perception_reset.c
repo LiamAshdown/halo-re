@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *swarm_data; // 0x0088035c
 
-extern void actor_reset_perception_scratch(datum_index unit_index); // 0x428f40
 
 // blam-cc: EAX -> actor_index
 // Runs the per-unit perception reset either once for a solo actor (using its own unit) or

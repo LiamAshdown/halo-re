@@ -23,6 +23,7 @@
 #include "scenario.h"
 #include "camera.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
@@ -67,8 +68,7 @@ extern uint32_t *cinematic_globals_ptr; // 0x006f187c, TYPES-GAP (7 dwords)
 extern Scenario *global_scenario; // 0x00746f8c
 extern uint8_t *object_globals_pointer; // TYPES-GAP
 
-extern void ai_reset_for_new_map(void);                 // 0x42a840
-extern void encounters_spawn_initial(void);                          // UNSURE module
+
 extern void camera_initialize(void);                       // 0x445580
 extern void observer_new(observer *this);                    // 0x447740, blam-cc: EDX -> this
 extern observer observers[];                                 // 0x006ac65c, one per local player (0x29c each)

@@ -15,6 +15,7 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -23,9 +24,7 @@ extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data; // 0x008802c0
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
                                                     char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
-extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
-                                                          float radius); // 0x417910, EAX, stack
+
 
 uint8_t actor_mode_converse_process(datum_index actor_index)
 {

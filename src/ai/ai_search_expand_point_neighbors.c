@@ -17,18 +17,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 #include <string.h>
 
-extern void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t point_index, real_point2d *position,
-    real_vector2d *edge_neg, float radius, real_vector2d *out_a, real *out_b); // 0x43c9a0, ECX, AX, EDX, ESI, stack
-extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission,
-    ai_search_obstacle_list *obstacle_list, int16_t exclude_index, real_point2d *point, int32_t start_surface_index,
-    float distance, float base_cost, uint8_t skip_direct, uint8_t apply_offset, uint8_t require_unflagged,
-    ai_search_edge_result *out_result, real_vector2d *direction); // 0x43b830, EBX direction, stack
-extern uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8_t ignore_permission,
-    real_point2d *point, int32_t start_index, real_vector2d *direction, float max_distance,
-    path_find_boundary_trace_result *out); // 0x43d790, EAX map, stack
+
 extern int16_t ai_search_add_node(ai_search_context *context, int16_t parent, real_point2d *position, int32_t surface_index,
     int16_t point_id, uint8_t side, float base_cost); // 0x43b5a0, EDI, BX, stack
 

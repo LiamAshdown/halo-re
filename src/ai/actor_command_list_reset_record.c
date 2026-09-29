@@ -11,6 +11,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_ai.h"
 #include <string.h>
 
 void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra,

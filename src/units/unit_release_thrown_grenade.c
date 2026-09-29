@@ -19,6 +19,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -35,8 +36,7 @@ extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack
-extern uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3d *grenade_position,
-    real_vector3d *out_vector); // 0x410a60, EBX, stack
+
 extern real random_real_range(real min, real max); // 0x401050
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity); // 0x4bef80, EAX, EDX
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,

@@ -21,16 +21,14 @@
 #include "ai.h"
 #include "objects.h"
 #include "projectiles.h" // Projectile
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Globals *global_globals;
 extern float k_physics_gravity;   // 0x0069c52c
 
-extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
-    real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
-    uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed,
-    real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
+
     // 0x4beec0, src/ai; blam-cc: ECX target, EAX speed_in, the rest on the stack
 
 // blam-cc: AX -> grenade_type, ESI -> direction; the rest on the stack

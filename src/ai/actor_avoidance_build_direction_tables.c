@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern double cos(double x); // FCOS
 extern double sin(double x); // FSIN

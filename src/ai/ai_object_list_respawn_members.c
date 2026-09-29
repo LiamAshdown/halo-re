@@ -15,11 +15,11 @@
 #include "math.h"
 #include "hs.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
 
-extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index); // 0x432df0, this batch
 
 // blam-cc: EAX -> object_list_header_handle, EBX -> packed_reference
 void ai_object_list_respawn_members(datum_index object_list_header_handle, uint32_t packed_reference)

@@ -11,11 +11,11 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
-extern void ai_reference_set_search_target_point(uint32_t packed_reference, uint32_t reference_value);
     // 0x434cc0, blam-cc: EAX, ESI
 
 void hs_evaluate_ai_try_to_fight(int16_t function_index, uint32_t thread_index, char first)

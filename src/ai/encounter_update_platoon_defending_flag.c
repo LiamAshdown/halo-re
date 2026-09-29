@@ -20,12 +20,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;  // 0x008802c8
 extern Scenario *global_scenario;   // 0x00746f8c
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 
-extern uint8_t encounter_evaluate_platoon_condition(datum_index encounter_index, const ai_platoon_condition *condition); // 0x439f20, EAX, EDI
 
 // blam-cc: stack -> encounter_index
 void encounter_update_platoon_defending_flag(datum_index encounter_index)

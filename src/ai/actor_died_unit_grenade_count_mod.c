@@ -24,11 +24,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern uint32_t random_seed_global; // 0x00719cd0
 
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
-extern void encounter_recompute_morale(datum_index encounter_index); // 0x437940, UNSURE signature, not in this rewrite range
+
 extern void weapon_set_loaded_ammo_fraction(float fraction); // 0x4c58c0, UNSURE signature
 extern void weapon_set_ammo_counts(int16_t *counts); // 0x4c5820, UNSURE signature
 

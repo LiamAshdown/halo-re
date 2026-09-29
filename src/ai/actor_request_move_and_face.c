@@ -18,18 +18,13 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern real random_real_range(real min, real max); // 0x401050
-extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, EAX, SI, stack
-extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query,
-    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
-    uint8_t *out_path_ok); // 0x412ba0
-extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner,
-    path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok); // 0x414060, stack, CX, AL
-extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type); // 0x4141a0, EAX, CX, DL
+
 
 uint8_t actor_request_move_and_face(datum_index actor_index)
 {

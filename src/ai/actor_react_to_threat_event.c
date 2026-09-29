@@ -15,12 +15,12 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0
-extern void actor_mark_prop_seen_with_delta(datum_index object_index, datum_index actor_index, float delta,
-    const real_vector3d *direction); // 0x428840, EAX, stack
+
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 extern void team_pair_override_refresh(int16_t index_b, int16_t index_a); // 0x45c090, EBX -> index_b, EDI -> index_a

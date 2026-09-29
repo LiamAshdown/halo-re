@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // TYPES-GAP: the caller-owned output record this function fills, one per adjacent edge.
 // Ghidra shows every field written via `(int)float_value` (a truncating cast, not a

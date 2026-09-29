@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_unit_dispatch_actor_event_d(datum_index unit_index, int32_t unused); // 0x435a00, blam-cc: EAX, ECX
 
 void hs_evaluate_ai_look_at_object(int16_t function_index, uint32_t thread_index, char first)
 {

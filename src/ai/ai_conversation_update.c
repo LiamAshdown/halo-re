@@ -24,6 +24,7 @@
 #include "objects.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -32,10 +33,9 @@ extern Scenario *global_scenario;    // 0x00746f8c
 extern data_array *actor_data;       // 0x00880360
 
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI
-extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t reason_b); // 0x430ea0
+
 extern int8_t ai_conversation_resolve_participants(datum_index instance_index, uint8_t *out_flag); // 0x430fc0
-extern uint8_t ai_conversation_activate_next_participant(datum_index instance_handle); // 0x431d10, EAX
-extern uint8_t ai_conversation_current_line_is_ready(datum_index instance_handle); // 0x431e70, EAX
+
 
 // REWRITTEN from objdump 0x430a70..0x430c5f. Per live conversation (definition: Scenario +0x46c, 0x74 each):
 //   - not yet active (+6): every 30 ticks since +0xc re-resolve its participants; stop (1, 0) when that fails;

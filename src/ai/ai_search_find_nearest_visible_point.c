@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern uint8_t ray2d_intersect_circle_distance(const real_vector2d *direction, const real_point2d *origin,
     const real_point2d *center, real *out_distance, real radius); // 0x43c380, EAX, ECX, EDX, ESI, stack

@@ -15,12 +15,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;             // 0x00880360
 extern data_array *encounter_data;         // 0x008802c8
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
 
-extern void encounter_squad_clear_spawn_delay(datum_index encounter_index, int16_t squad_index); // 0x439270, ECX, EDX
 
 uint8_t actor_wants_reload_or_swap(uint32_t actor_index)
 {

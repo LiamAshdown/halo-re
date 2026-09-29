@@ -14,6 +14,7 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;  // 0x008603b0
 extern Scenario *global_scenario;

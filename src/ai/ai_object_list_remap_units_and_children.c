@@ -20,15 +20,14 @@
 #include "hs.h"
 #include "ai.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;                // 0x008603b0
 extern data_array *object_list_reference_data; // 0x0087a468
 
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void ai_unit_remap_actor_to_squad(datum_index unit_index, uint32_t packed_reference, char notify); // 0x433970, this batch
-extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0, outside this rewrite's range, UNSURE signature
-extern void encounters_recompute_dirty(void); // 0x435f00, this batch
+
 
 // blam-cc: ECX -> object_list_header, EBX -> packed_reference, EDX -> notify (guessed)
 void ai_object_list_remap_units_and_children(datum_index object_list_header, uint32_t packed_reference, char notify)

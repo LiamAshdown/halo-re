@@ -13,6 +13,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -33,7 +34,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
     }
 }
 
-extern datum_index actor_get_squad_recent_attacker_target(datum_index actor_index, char require_is_unit); // 0x41f6b0
 
 uint8_t actor_alert_from_squad_attack(datum_index actor_index)
 {

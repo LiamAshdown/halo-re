@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -34,14 +35,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, seven stack arguments
 extern const real_vector3d *global_up3d_pointer; // 0x00696720
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
-extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
-                                                    int32_t parameter, uint32_t extra); // 0x417610, EAX, stack
-extern uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, int16_t formation_slot,
-                                                              path_find_context *path_context); // 0x417830, EDI, stack
-extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type); // 0x4141a0, EAX, CX, DL
-extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data); // 0x422070, EAX, EDX, ESI
-extern int32_t actor_report_command_status(uint32_t actor_index); // 0x4048b0, EAX
+
 
 void actor_mode_guard_update(datum_index actor_index)
 {

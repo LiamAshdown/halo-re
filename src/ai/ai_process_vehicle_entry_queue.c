@@ -18,15 +18,14 @@
 #include "ai.h"
 #include <string.h>
 #include "units.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern data_array *object_data;     // 0x008603b0
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index,
-    int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index,
-    const actor_placement_request *placement_request); // 0x427080, stack, EAX request
+
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
 extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970
 

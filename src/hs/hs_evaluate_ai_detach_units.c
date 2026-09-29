@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_object_list_clear_orders_with_weapon(datum_index object_list_header_handle); // 0x432ad0, blam-cc: ECX
 
 void hs_evaluate_ai_detach_units(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;                        // 0x00880354
 extern data_array *actor_data;                            // 0x00880360
@@ -32,11 +33,7 @@ extern Scenario *global_scenario;                         // 0x00746f8c
 extern encounter_squad_state *encounter_squad_states;     // 0x008802cc
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 
-extern void actor_propagate_unit_field(datum_index actor_index, int16_t value); // 0x4276e0, blam-cc: EAX, ESI
-extern uint8_t actor_toggle_active_state(uint8_t activate, datum_index actor_index); // 0x4277c0, blam-cc: AL, EDI
-extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
-extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0
-extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index); // 0x436710, blam-cc: EAX, ECX
+
 extern uint8_t encounter_activate(datum_index encounter_index);       // 0x437710, blam-cc: ECX -> encounter_index
 
 // blam-cc: DX -> squad_index, stack -> (actor_index, encounter_index, keep_team)

@@ -18,13 +18,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global;   // 0x00719cd0
 
-extern int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spawn_count,
-    datum_index source_actor_index, float health_scale); // 0x427280, EBX, EDX, stack
 
 int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index) // blam-cc: unaff_EDI -> unit_index
 {

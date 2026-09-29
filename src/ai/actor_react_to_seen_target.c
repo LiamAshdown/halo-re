@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -36,16 +37,11 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *player_data;     // 0x0087a480, stride 0x200 (no types/players.h yet)
 
 extern real random_real_range(real min, real max); // 0x401050
-extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348); // 0x421af0
-extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index); // 0x4221f0
+
+
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
 extern int8_t teams_are_enemies(int16_t a, int16_t b); // 0x45bd50, CX/DX
-extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
-    datum_index owner_reference, datum_index pair_reference); // 0x41f7d0
-extern void actor_forward_target_object_reference(datum_index actor_index, uint32_t param); // 0x428420, already rewritten in this module
+
 
 // Variant table paired with the sighted/recognized/directional/danger/flee dialogue families.
 extern int16_t actor_dialogue_variant_table_f[]; // 0x00655644

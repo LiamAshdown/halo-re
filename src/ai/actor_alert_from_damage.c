@@ -14,6 +14,7 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -36,7 +37,7 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
 
 extern data_array *object_data; // 0x008603b0
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, ECX actor, stack object
+
 
 uint8_t actor_alert_from_damage(datum_index actor_index)
 {

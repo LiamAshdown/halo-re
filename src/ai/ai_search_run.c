@@ -27,12 +27,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
-extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00,
-    ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c,
-    real_point2d *position, int32_t surface_index, uint32_t unknown_18,
-    uint8_t unknown_29, uint8_t unknown_2a); // 0x43b790, see src/ai/ai_search_context_init.c
-extern uint8_t ai_search_step(ai_search_context *context); // 0x43bcb0
+
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, R06
 
 // blam-cc: ESI -> context, EDX -> unknown_18, ECX -> unknown_29, EAX -> unknown_2a,

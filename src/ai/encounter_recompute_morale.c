@@ -31,6 +31,7 @@
 #include "objects.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;                        // 0x008802c8
 extern encounter_squad_state *encounter_squad_states;     // 0x008802cc
@@ -42,8 +43,6 @@ extern data_array *prop_data;                             // 0x008802c0
 extern team_pair_globals *team_pair_data;                 // 0x006b0b84
 extern game_time_globals *game_time;                      // 0x006f1d6c
 
-extern void encounter_release_stale_props(datum_index encounter_index);  // 0x4382b0
-extern void encounter_choose_vocalizations(datum_index encounter_index); // 0x438580
 
 // blam-cc: stack -> encounter_index
 // Rebuilds every aggregate the encounter, its squads and its platoons keep about their live

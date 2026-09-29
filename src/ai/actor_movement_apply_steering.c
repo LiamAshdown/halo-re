@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "ai.h"
 #include "units.h"
+#include "fn_ai.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -39,15 +40,8 @@ extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX out, ECX a, stack b
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
-extern void actor_update_target_lead_position(datum_index actor_index); // 0x429570, EAX
-extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, EAX
-extern void actor_movement_get_stopping_distances(datum_index actor_index, float *out_accelerate_stop_distance,
-                                                  float *out_stop_distance); // 0x4173a0, EAX, EBX, EDI
-extern void actor_movement_choose_strafe_axis(const real_vector3d *direction, uint8_t use_3d,
-                                              const real_vector3d *facing, const real_vector3d *reference,
-                                              real_vector3d *out_axis, int16_t *out_index); // 0x418a40, EAX, BL, ESI, EDI, stack
-extern void actor_movement_project_into_frame(uint8_t use_3d, const real_vector3d *frame_axis,
-                                              const real_vector3d *v, real_vector3d *out); // 0x418c20, AL, ECX, stack
+
+
 extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start, int32_t start_surface,
     real_point3d *end, int32_t target_surface, path_find_boundary_crossing *out_result); // 0x43d9b0
 

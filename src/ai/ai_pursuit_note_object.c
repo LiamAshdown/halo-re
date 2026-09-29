@@ -21,12 +21,11 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *ai_pursuit_data;      // 0x008802d0
 extern game_time_globals *game_time;     // 0x006f1d6c
 
-extern datum_index squad_recent_object_get_or_create(datum_index encounter_index, int16_t type,
-    int32_t min_last_tick, char create_if_missing); // 0x436c60, this batch
 
 // blam-cc: EAX -> min_last_tick, ECX -> type, EDX -> object_index, stack -> encounter_index
 uint8_t ai_pursuit_note_object(datum_index object_index, datum_index encounter_index, int16_t type,

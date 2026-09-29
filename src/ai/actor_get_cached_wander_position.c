@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254

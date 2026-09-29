@@ -15,14 +15,14 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void actor_clear_perceived_props(datum_index actor_index); // 0x427e00
-extern void actor_delete_swarm(datum_index actor_index); // 0x4280b0
+
 extern datum_index actor_create_swarm(datum_index actor_index); // 0x427f40
-extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860
+
 
 // blam-cc: EAX -> activate, EDI -> actor_index
 // Toggles the actor's active/dormant flag. Deactivating clears its perceived-prop list and

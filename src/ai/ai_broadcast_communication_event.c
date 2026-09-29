@@ -24,20 +24,16 @@
 #include "physics.h"
 #include <stdint.h>
 #include "units.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data; // 0x008802c8
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern uint8_t *global_structure_bsp; // 0x00746f9c (+0xe4 leaves, 0x10 each, +0x8 cluster word)
 
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, EAX
+
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
-extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref,
-    int16_t gate, real_point3d *listener_position); // 0x41c030, stack, EAX, ECX, EBX, ESI
-extern void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index actor_index); // 0x422780, EAX, ECX
-extern void actor_react_to_registered_danger(const real_point3d *point, datum_index actor_index, int32_t danger_object_index); // 0x422930, EAX, stack
-extern void actor_react_to_flee_point(datum_index actor_index, int32_t flee_source_object, const real_point3d *point); // 0x422c00, stack
+
 
 // REWRITTEN from objdump 0x429fc0..0x42a0d2. EAX: the sound's gate (loudness); ECX: its point; stack: (source object,
 //   event type, an unused word). Finds the point's leaf and cluster, then every actor under 7 (+0x6e) that hears it

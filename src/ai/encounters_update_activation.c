@@ -31,6 +31,7 @@
 #include "objects.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;      // 0x00746f9c
 extern ai_globals *ai_globals_ptr;               // 0x00880354
@@ -43,14 +44,12 @@ extern data_array *encounter_data;               // 0x008802c8
 extern Scenario *global_scenario;                // 0x00746f8c
 extern int16_t global_structure_bsp_index;                // 0x0069e8d8
 
-extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
-extern void actor_clear_perceived_props(datum_index actor_index);    // 0x427e00, not yet rewritten
+
 extern void actor_create_swarm(datum_index actor_index);     // 0x427f40, not yet rewritten
-extern void actor_delete_swarm(datum_index actor_index);     // 0x4280b0, not yet rewritten
-extern void encounter_gather_occupied_clusters(datum_index encounter_index,
-    uint32_t *out_clusters, uint8_t record_per_actor, uint32_t *other_clusters); // 0x436190
+
+
 extern uint8_t encounter_activate(datum_index encounter_index);   // 0x437710, blam-cc: ECX -> encounter_index
-extern void encounter_deactivate(datum_index encounter_index);    // 0x437870, blam-cc: EAX -> encounter_index
+
 extern void *data_iterator_next(data_iterator *iterator);         // 0x4d05d0, blam-cc: EDI -> iterator
 
 // Refreshes every unassigned actor's "the player cannot see me" flag, activating or

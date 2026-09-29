@@ -19,14 +19,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0, EAX a, ECX b
-extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0, EDX, ESI
-extern void path_find_simplify_waypoints(path_find_context *context, int16_t count, path_find_waypoint *waypoints,
-    int16_t *out_count, path_find_waypoint *out_waypoints, uint8_t *out_valid); // 0x43cc00, stack
-extern uint8_t ai_navigate_around_obstacles(path_find_context *context, int16_t count, path_find_waypoint *waypoints,
-    int16_t *out_count, path_find_waypoint *out_waypoints, uint8_t *out_valid); // 0x43be90, stack
+
 
 uint8_t path_find_reconstruct_path(path_find_context *context, uint8_t *out_result)
 {

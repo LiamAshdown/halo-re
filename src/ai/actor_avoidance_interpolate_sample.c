@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // blam-cc: ECX -> direction, EBX -> samples, stack -> count, values, out_index, out_value
 uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction,

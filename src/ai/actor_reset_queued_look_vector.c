@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714

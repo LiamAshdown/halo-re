@@ -14,12 +14,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
-extern void encounter_recompute_morale(datum_index encounter_index); // 0x437940
+
 
 // Re-runs the aggregate morale / combat-status recompute for every encounter whose member
 // list changed since the last pass.

@@ -21,6 +21,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_ai.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -46,8 +47,7 @@ extern void player_update_history_free_all(void *queue); // 0x4e6f20
 extern void device_control_touched(uint32_t object_index); // 0x44c090, EAX
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); // 0x4f6a20, EAX, EDI
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
-extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index,
-    uint8_t flag_pursue); // 0x42b810, EAX, ECX, stack
+
 extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key,
     uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key); // 0x478ff0, ECX, EDI, stack
 

@@ -18,11 +18,12 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern void actor_choose_random_point_near(real_point3d *inout_point, float radius); // 0x40faf0, this module
+
 
 // blam-cc: EAX -> actor_index, ECX -> out_point, stack -> out_target_handle, out_relationship
 uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point,

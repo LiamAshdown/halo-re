@@ -19,6 +19,7 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -28,13 +29,8 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern uint32_t random_seed_global;  // 0x00719cd0
 
 extern real random_real(void); // 0x4019f0
-extern uint8_t actor_should_throw_grenade(uint32_t actor_index, char force); // 0x40b840, EAX, stack
-extern uint8_t actor_consider_grenade_throw(datum_index actor_index); // 0x40dc30, stack
-extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3); // 0x40dd50, stack
-extern uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base,
-    uint16_t order_code, datum_index actor_index); // 0x40de20, stack, DL, CX, ESI
-extern uint8_t actor_evaluate_grenade_target_position(datum_index actor_index); // 0x40de70, EBX
-extern datum_index actor_get_target_prop_object_index(datum_index actor_index); // 0x4283d0, EAX
+
+
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, seven stack arguments
 

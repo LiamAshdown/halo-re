@@ -17,6 +17,7 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data;      // 0x00880360
@@ -26,8 +27,7 @@ extern const real_vector3d *global_forward3d_pointer; // 0x00696718, read here a
 
 extern real random_real(void); // 0x4019f0
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
-extern void actor_clear_recognition_history(datum_index actor_index, uint8_t keep_when_typed); // 0x414140
-extern void actor_dispatch_type_vtable_0x10(datum_index actor_index); // 0x426670
+
 
 // Allocates and default-initializes a new actor record for the unit type referenced by the
 // given ActorVariant tag: resolves the Actor tag it points at, allocates a datum, then writes

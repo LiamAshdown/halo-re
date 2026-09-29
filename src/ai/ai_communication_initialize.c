@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern int16_t communication_line_count;    // 0x006f0c98, UNSURE name
 extern int32_t communication_line_base;     // 0x006f0c9c, UNSURE name

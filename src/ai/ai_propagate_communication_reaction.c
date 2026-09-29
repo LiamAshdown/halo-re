@@ -38,6 +38,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;    // 0x008603b0
 extern data_array *encounter_data; // 0x008802c8
@@ -48,19 +49,14 @@ extern uint8_t *team_pair_data; // 0x006b0b84
 extern uint8_t ai_communication_lines[]; // 0x00655aa0, 0x28-byte rows
 extern char ai_marker_name_a[]; // 0x0066bfa0
 
-extern void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uint8_t status); // 0x42ba80
+
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
     uint32_t maximum_markers); // 0x4f6080
 extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, EAX
+
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
     char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
-extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref,
-    int16_t gate, real_point3d *listener_position); // 0x41c030, stack, EAX, ECX, EBX, ESI
-extern void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_header *order,
-    datum_index actor_index); // 0x42a540, EAX, ECX, EDX
-extern void ai_dispatch_queued_order(ai_queued_order *order, datum_index prop_index, datum_index actor_index); // 0x42f840, ECX, EDX, stack
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 

@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data; // 0x008802c8
 extern ai_globals *ai_globals_ptr; // 0x00880354

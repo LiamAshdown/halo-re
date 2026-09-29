@@ -18,6 +18,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -29,8 +30,8 @@ extern real random_real(void); // 0x4019f0
 extern real random_real_range(real min, real max); // 0x401050
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
 extern void unit_set_control_countdown(uint32_t unit_index, int32_t countdown, uint32_t extra_control_flags); // 0x563b20, EAX, stack
-extern void encounter_recompute_morale(datum_index encounter_index); // 0x437940
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60, EBX, stack
+
+
 extern void weapon_set_loaded_ammo_fraction(datum_index item_index, real fraction); // 0x4c58c0, EAX, stack
 extern void weapon_set_ammo_counts(datum_index item_index, int16_t *reserve_counts); // 0x4c5820, EAX, stack
 

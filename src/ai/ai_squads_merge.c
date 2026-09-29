@@ -31,6 +31,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;  // 0x008802c8
 extern Scenario *global_scenario;   // 0x00746f8c
@@ -39,23 +40,14 @@ extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern data_array *actor_data;      // 0x00880360
 extern int16_t global_structure_bsp_index;        // 0x0069e8d8, UNSURE: a designer-slot/leader sentinel value
 
-extern void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_reference_squad_iterator *out_iterator); // 0x4324f0, this batch
-extern encounter_squad_state *ai_reference_squad_iterator_next(ai_reference_squad_iterator *iterator); // 0x4325b0, this batch
-extern int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index,
-    uint8_t *requested_actor_data, uint8_t *requested_actor_variant_data, char match_by_index); // 0x4333d0, this batch
-extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
-extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only); // 0x436a30, this batch
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, this batch
-extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, this batch
-extern void encounter_add_actor(int16_t squad_index, datum_index actor_index,
-    datum_index encounter_index, uint8_t keep_team); // 0x436770, blam-cc: DX -> squad_index
+
     // UNSURE: the squad index arrives in DX and Ghidra did not attribute it to this call
     // site, so the actor's current squad_index is passed; encounter_add_actor writes it
     // straight back into the same field.
-extern void encounters_recompute_dirty(void); // 0x435f00, this batch
+
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
     int16_t squad_index); // 0x4290f0, EAX, EBX, stack
-extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0, outside this rewrite's range, UNSURE signature
+
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, already established elsewhere
 
 // REWRITTEN from objdump. hs ai_migrate (0x47d826) passes (EDX = source ai reference, stack = target reference, 0, 0).

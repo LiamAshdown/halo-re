@@ -30,23 +30,16 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *encounter_data;  // 0x008802c8
 extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern void *actor_type_procs[16];  // 0x006853b8
 
-extern datum_index actor_new(datum_index actor_variant_tag); // 0x426760, stack
-extern void actor_attach_to_unit(datum_index actor_index, datum_index unit_index); // 0x427560, stack
-extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, EAX, BL
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60, EBX, stack
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
-extern int32_t actor_lookup_small_table_entry(int16_t index); // 0x40e790, CX
-extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
-extern void ai_actor_link_to_unassigned_list(datum_index actor_index); // 0x436940, EAX
-extern void encounter_add_actor(int16_t squad_index, datum_index actor_index, datum_index encounter_index,
-    uint8_t keep_team); // 0x436770, DX, stack
-extern uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x4279f0
+
 
 #define ACTOR_AT(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
 

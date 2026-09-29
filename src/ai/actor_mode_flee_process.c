@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data; // 0x008802c0
@@ -31,11 +32,8 @@ extern game_time_globals *game_time; // 0x006f1d6c
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, seven stack arguments
-extern uint8_t actor_is_target_within_engagement_range(uint32_t actor_index); // 0x403dc0, EAX
-extern void actor_update_target_combat_status(datum_index actor_index); // 0x4200d0, EAX
-extern void actor_update_awareness_level(datum_index actor_index); // 0x420290, EAX
-extern uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *record); // 0x4041d0, EAX, stack
-extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order); // 0x403f00, stack, EBX
+
+
 extern uint8_t unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code); // 0x5614a0, ESI, stack
 
 uint8_t actor_mode_flee_process(datum_index actor_index)

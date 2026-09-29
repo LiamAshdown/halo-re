@@ -16,12 +16,13 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (no types/players.h yet)
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index); // 0x432df0, this batch
+
 
 // blam-cc: ESI -> packed_reference
 void ai_reference_respawn_all_players(uint32_t packed_reference)

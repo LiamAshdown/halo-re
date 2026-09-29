@@ -34,6 +34,7 @@
 #include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 #include <string.h>
 #include "networking.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -48,11 +49,8 @@ extern uint8_t network_object_index_cache[]; // 0x006870d8
 
 extern real random_real_range(real min, real max); // 0x401050
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
-extern void actor_notify_weapon_pickup_once(datum_index object_index); // 0x42c370, ECX
-extern int32_t actor_reassign_vehicle_seat(datum_index vehicle_object_index, datum_index self_object_index,
-    int32_t seat_selector); // 0x42b880, EBX, EDI, stack
-extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index,
-    int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay); // 0x42be40
+
+
 extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480, ESI, EDI
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)

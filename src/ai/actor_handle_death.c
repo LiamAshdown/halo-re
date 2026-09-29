@@ -22,15 +22,14 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
-extern uint16_t actor_consider_target_candidate(datum_index actor_index,
-                                                datum_index candidate_prop_index); // 0x4208a0, this module;
+
 // stack -> actor_index, EBX -> candidate_prop_index. The EBX value at 0x40ddcb is the same
 // previous-target prop handle the code has just written to the order record at +0x2c.
-extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order); // 0x403f00, stack, EBX order
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, this module
+
 
 uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3)
 {

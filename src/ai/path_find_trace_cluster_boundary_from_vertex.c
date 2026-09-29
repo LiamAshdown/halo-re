@@ -31,6 +31,7 @@
 #include "math.h"
 #include "ai.h"
 #include "physics.h"
+#include "fn_ai.h"
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
 extern int16_t global_structure_bsp_index;                 // 0x0069e8d8, physics.h

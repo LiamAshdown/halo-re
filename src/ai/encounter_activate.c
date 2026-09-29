@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;   // 0x008802c8
 extern Scenario *global_scenario;    // 0x00746f8c
@@ -27,7 +28,7 @@ extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
+
 extern void actor_create_swarm(datum_index actor_index);     // 0x427f40, not yet rewritten
 
 // blam-cc: ECX -> encounter_index

@@ -17,13 +17,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;                            // 0x00880360
 extern data_array *prop_data;                             // 0x008802c0
 extern actor_mode_definition actor_mode_definitions[16];  // 0x00655254
 
-extern char actor_evaluate_combat_state_transition(uint32_t actor_index); // 0x40c620, other half of this session
-extern uint8_t actor_update_melee_combat_action(datum_index actor_index);       // 0x40cdf0, this module
 
 // blam-cc: EDI -> actor_index, stack -> param_1, param_2
 uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2)

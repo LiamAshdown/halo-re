@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // blam-cc: EAX -> context, EDX -> index
 void path_find_heap_sift_up(path_find_context *context, int16_t index)

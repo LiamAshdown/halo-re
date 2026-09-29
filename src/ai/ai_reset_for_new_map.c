@@ -15,6 +15,7 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;       // 0x00880354
 extern data_array *actor_data;           // 0x00880360
@@ -23,8 +24,7 @@ extern data_array *swarm_component_data; // 0x00880358
 extern data_array *prop_data;            // 0x008802c0
 
 extern void data_delete_all(data_array *array); // 0x4d0580, blam-cc: ESI -> array
-extern void encounters_reset(void); // 0x435cb0, not in this rewrite range
-extern void ai_communication_reset(void); // 0x42d230, not in this rewrite range (resets communication timestamp tables)
+
 
 // Clears all AI data arrays (actors, swarms, position cache, props) and resets the AI
 // globals structure to its default state, e.g. when restarting or reloading a map.

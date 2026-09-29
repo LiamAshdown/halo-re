@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // blam-cc: EDX -> context, ECX -> index
 void ai_search_heap_sift_up(ai_search_context *context, int16_t index)

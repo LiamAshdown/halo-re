@@ -13,9 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
-extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, not yet rewritten (an engagement-range radius)
+
 
 // blam-cc: EAX -> actor_index
 uint8_t actor_movement_check_arrival(datum_index actor_index)

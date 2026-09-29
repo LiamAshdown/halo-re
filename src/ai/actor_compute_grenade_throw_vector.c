@@ -15,6 +15,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -22,8 +23,8 @@ extern real_vector3d *global_up3d_pointer; // 0x00696720
 
 extern double sqrt(double x);
 extern double fabs(double x);
-extern uint8_t actor_validate_grenade_impact_point(datum_index actor_index, real_point3d *candidate_point); // 0x410710, EAX, EDI
-extern uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point); // 0x410780
+
+
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820
 
 uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3d *grenade_position,

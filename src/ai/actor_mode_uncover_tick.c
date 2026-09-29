@@ -17,6 +17,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -27,7 +28,7 @@ extern data_array *prop_data; // 0x008802c0
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
-extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type); // 0x4141a0, EAX, CX, DL
+
 
 void actor_mode_uncover_tick(datum_index actor_index)
 {

@@ -18,12 +18,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *ai_conversation_data; // 0x008802d4
 
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t reason_b); // 0x430ea0, this batch
+
 
 // blam-cc: SI -> conversation_definition_index
 void ai_conversation_stop_all(int16_t conversation_definition_index)

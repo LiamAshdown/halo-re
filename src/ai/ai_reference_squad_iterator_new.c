@@ -18,6 +18,7 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // TYPES-GAP: the 5-dword state ai_reference_squad_iterator_new/_next (0x4324f0/0x4325b0)
 // share. No existing header struct matches.

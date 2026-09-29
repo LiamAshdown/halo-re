@@ -38,6 +38,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *ai_conversation_data; // 0x008802d4
@@ -51,7 +52,7 @@ extern uint32_t random_seed_global;      // 0x00719cd0
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
+
 extern void ai_reference_actor_iterator_new(uint32_t reference,
                                             ai_reference_actor_iterator *iterator); // 0x432650
 extern void *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0

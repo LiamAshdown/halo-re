@@ -16,13 +16,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data;      // 0x00880360
 extern void *actor_type_procs[16];  // 0x006853b8
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
 
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
 
 // Drives an actor's mode-transition state machine: each pass clears mode_changed, invokes
 // the per-type "unknown_14" callback, clears the whole look-at/search/perception scratch

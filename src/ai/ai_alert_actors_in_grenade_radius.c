@@ -23,6 +23,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern ai_globals *ai_globals_ptr;
@@ -31,17 +32,14 @@ extern data_array *prop_data;      // 0x008802c0
 extern data_array *encounter_data; // 0x008802c8
 extern uint8_t *global_structure_bsp; // 0x00746f9c (clusters.count +0x134, sound PAS +0x220)
 
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, EAX
+
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
 extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block,
-    real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
-extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref,
-    int16_t gate, real_point3d *listener_position); // 0x41c030, stack, stack, EAX, ECX, EBX, ESI
+
+
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
     char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
-extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index,
-    int16_t grenade_type); // 0x42a3a0, ESI, stack, EAX
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)

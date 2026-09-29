@@ -17,14 +17,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 
-extern void actor_unlink_unit(datum_index actor_index); // 0x427bc0
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x427c90
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
-extern void encounter_recompute_morale(datum_index encounter_index); // 0x437940, UNSURE signature, not in this rewrite range
 
 // blam-cc: EAX -> use_alternate_flag, stack -> actor_index, suppress_release
 // Marks the actor's (or each swarm member's) unit object with a vitality-flags status bit

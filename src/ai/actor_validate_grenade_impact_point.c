@@ -14,10 +14,11 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius, float safety_radius, real_point3d *point, int16_t *out_count); // this module, rewritten below
+
 
 // blam-cc: EAX -> actor_index, EDI -> candidate_point
 uint8_t actor_validate_grenade_impact_point(datum_index actor_index, real_point3d *candidate_point)

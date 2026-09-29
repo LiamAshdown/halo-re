@@ -28,16 +28,14 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *actor_data;       // 0x00880360
 extern uint8_t *actor_type_procs[]; // 0x006853b8, one definition pointer per actor type (+0xd swarm byte)
 
-extern datum_index actor_new(datum_index actor_variant_tag);          // 0x426760, stack
-extern void actor_attach_to_unit(datum_index actor_index, datum_index unit_index); // 0x427560
-extern void actor_delete(datum_index actor_index, uint32_t flag);     // 0x427e60, blam-cc: EBX -> actor_index, stack -> flag
-extern void ai_actor_link_to_unassigned_list(datum_index actor_index); // 0x436940
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 
 // blam-cc: EAX -> actor_variant_tag, stack -> unit_index

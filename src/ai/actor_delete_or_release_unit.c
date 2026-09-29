@@ -20,12 +20,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x427c90
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
+
 extern uint8_t actor_attempt_grenade_throw(datum_index actor_index); // 0x428ab0, in this rewrite range, not yet written when this file was authored
 extern void object_delete_recursive(datum_index object_index, uint32_t flag); // 0x4f59d0, UNSURE signature
 extern void object_delete_unparented(datum_index object_index); // 0x4f5aa0, UNSURE signature

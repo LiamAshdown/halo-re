@@ -23,21 +23,14 @@
 #include <stdint.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp;                         // 0x00746f9c
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // FABS
-extern void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point3d *center, float radius,
-    real_vector3d *direction, uint32_t self_object_a, uint32_t self_object_b); // 0x43c510, stack
-extern void ai_search_partition_into_groups(ai_search_obstacle_list *list, float radius); // 0x43cb60, ESI, stack
-extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00,
-    ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position,
-    int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a); // 0x43b790
-extern uint8_t ai_search_step(ai_search_context *context); // 0x43bcb0, EAX
-extern uint8_t ai_search_run(ai_search_context *context, uint8_t unknown_04, ai_search_obstacle_list *obstacles,
-    uint32_t unknown_00, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t unknown_18,
-    uint8_t unknown_29, uint8_t unknown_2a); // 0x43be20, ESI, EDX, ECX, EAX, stack
+
+
 extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
     const real_plane3d *plane, const real_point2d *known); // 0x44d860
 

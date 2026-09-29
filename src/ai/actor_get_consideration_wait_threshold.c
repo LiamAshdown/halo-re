@@ -18,6 +18,7 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 // TYPES (folded into types/ai.h by the review pass): see actor_consider_combat_mode.c for the full note; only the two fields this
 // function reads need to be correctly placed.
@@ -25,7 +26,6 @@
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, not yet rewritten (outside this session's range)
 
 // Computes the wait/reaction-time threshold the actor should use for consideration mode:
 //   2 or 3 - a melee-timing based search wait (mode 3 additionally floors it at the tag's

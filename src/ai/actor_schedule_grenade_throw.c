@@ -36,13 +36,14 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern real random_real_range(real min, real max); // 0x401050
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+
 extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out); // 0x568f50, ECX, ESI
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
 extern int32_t fistp_round(float x); // harness/x87_shims.c

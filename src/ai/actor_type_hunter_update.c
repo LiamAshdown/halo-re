@@ -18,21 +18,14 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
 extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code); // 0x409ea0
-extern uint8_t actor_process_pending_command_list(datum_index actor_index); // 0x40a140
+
 extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index); // 0x40ab80, EAX
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index); // 0x40a9e0, EAX
-extern uint8_t actor_escalate_check_weapon_range(datum_index actor_index); // 0x40a860, EAX
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold); // 0x40aa70, EDI, stack
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index); // 0x40aaf0, EDI
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index); // 0x40c040
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2); // 0x40d610, EDI
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index); // 0x40d7a0, ESI
-extern uint8_t actor_update_special_mode(datum_index actor_index); // 0x40d820, EAX
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index); // 0x40d580, EAX
+
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 

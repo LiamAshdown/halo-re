@@ -15,6 +15,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -25,8 +26,6 @@ extern game_time_globals *game_time; // 0x006f1d6c
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
-extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag); // 0x421a40, EAX, EBX
-extern char actor_evaluate_combat_state_transition(uint32_t actor_index); // 0x40c620
 
 uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold)
 {

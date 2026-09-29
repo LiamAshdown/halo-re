@@ -24,16 +24,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
 extern data_array *encounter_data; // 0x008802c8
 
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
-extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only); // 0x436a30, EAX, stack
-extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX, ECX
-extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0
 
 // blam-cc: EAX -> encounter_index, EDI -> platoon_index, stack -> squad_index
 // REWRITTEN from objdump. Encounter none walks every actor (actor_iterator_new(&iterator, 0), so inactive actors

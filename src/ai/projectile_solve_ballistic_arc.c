@@ -34,6 +34,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_ai.h"
 
 extern float k_physics_gravity; // 0x0069c52c, k_physics_gravity (types/physics.h); named
     // k_physics_gravity here to match src/ai/actor_solve_grenade_lob.c's existing extern

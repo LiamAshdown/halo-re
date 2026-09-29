@@ -23,12 +23,12 @@
 #include "objects.h"
 #include "ai.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 
-extern void actor_update_target_lead_position(datum_index actor_index); // 0x429570, EAX -> actor_index
 
 // blam-cc: EAX -> actor_index, EBX -> request
 void actor_build_path_find_request(datum_index actor_index, path_find_request *request)

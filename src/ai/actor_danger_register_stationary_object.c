@@ -32,6 +32,7 @@
 #include "cache.h"
 #include "ai.h"
 #include "units.h"
+#include "fn_ai.h"
 
 // sqrt/fabs are single x87 instructions (FSQRT/FABS) in the original code, which
 // Ghidra renders as the pseudo-functions SQRT()/ABS(); declared locally instead of via
@@ -44,7 +45,7 @@ extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, this batch
+
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 
 // blam-cc: stack -> actor_index, object_index, unknown_byte

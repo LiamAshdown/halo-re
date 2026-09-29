@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_object_list_detach_actors_from_encounters(datum_index object_list_header_handle); // 0x435260, EAX
 
 void hs_evaluate_ai_free_units(int16_t function_index, uint32_t thread_index, char first)
 {

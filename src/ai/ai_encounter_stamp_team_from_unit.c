@@ -17,12 +17,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *object_data;    // 0x008603b0
 extern game_engine_definition *current_game_engine;       // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
-extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0, outside this rewrite's range, UNSURE signature
 
 // blam-cc: EAX -> encounter_index, ECX -> unit_index
 void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index)

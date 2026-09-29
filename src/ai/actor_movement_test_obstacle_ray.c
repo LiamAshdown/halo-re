@@ -38,6 +38,7 @@
 #include "math.h"
 #include "ai.h"
 #include "physics.h"
+#include "fn_ai.h"
 
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 

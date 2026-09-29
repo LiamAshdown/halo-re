@@ -81,6 +81,7 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern double sqrt(double x); // FSQRT; declared locally because -I types shadows <math.h>
 static float sqrtf_(float x) { return (float)sqrt((double)x); }
@@ -92,26 +93,20 @@ extern data_array *encounter_data;   // 0x008802c8
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, EAX -> actor_index
+
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
     real_vector3d *out_angular_velocity); // 0x4f6aa0, EAX -> object_index, ESI -> out_velocity, EDI -> out_angular_velocity
-extern void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_index,
-    uint8_t mark_engaged); // 0x41fa80, EAX, EBX, stack
-extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, EAX -> actor_index, EDI -> target_prop_index
+
+
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX -> handle, ESI -> array
-extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50, stack args
-extern float actor_compute_target_priority_weight(datum_index prop_index, datum_index actor_index); // 0x414590, EAX -> prop_index, ECX -> actor_index
+
+
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
     actor_vocalization_context *context); // 0x4142d0, EAX -> actor_index, stack -> line, variant, context
-extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index,
-    void *target_ref, int16_t gate, real_point3d *listener_position); // 0x41c030, EAX -> actor_index, ECX -> target_ref, EBX -> gate, ESI -> listener_position, stack -> record, stance
-extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index); // 0x41be10, EAX -> actor_index, ECX -> target_prop_index
-extern uint8_t actor_danger_register_stationary_object(const float *reference, datum_index actor_index,
-    datum_index object_index, uint8_t unknown_byte); // 0x41ea60, EAX -> reference, stack -> actor_index, object_index, unknown_byte
-extern uint8_t actor_danger_register_point(datum_index actor_index, datum_index source_object_index,
-    float radius, float distance, char accept_flag, uint8_t unknown_byte); // 0x41ec90, EAX -> actor_index, EDX -> source_object_index, stack -> radius, distance, accept_flag, unknown_byte
+
+
 extern uint8_t actor_check_burst_length_exceeded(uint32_t actor_index); // 0x4281b0, EAX -> actor_index (disassembly-confirmed); not yet rewritten
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX -> actor_index; only AL is used here
+
 // SIGNATURE-CONFLICT: src/ai/actor_rate_potential_target.c models 0x428370 as returning a
 // bool+float x87 pair (types/ai.h bool_float_return); this call site reads only AL.
     // models this as returning a bool+float x87 pair, but only AL is used at this call site.
@@ -120,9 +115,7 @@ extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0
 // the callee also reads EAX/ECX (both 16-bit) at entry before those arguments are visible on
 // the stack, so the true convention is likely a register+stack mix this declaration does not
 // capture. Reused verbatim from actor_check_weapon_pickup_reachable.c ("not yet rewritten").
-extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
-    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
-    datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack
+
 
 // UNSURE: actor_dispatch_look_handler_by_posture is also called (with an incompatible 3-argument shape) elsewhere in this
 // module under the name actor_dispatch_look_handler_by_posture. Disassembling 0x41bb30 itself

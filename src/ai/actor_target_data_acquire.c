@@ -23,21 +23,20 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data; // 0x008802c0
 
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
     uint8_t create_if_missing, uint8_t flag); // 0x43eb30, EAX, stack
 extern datum_index actor_allocate_paired_prop(datum_index actor_index, datum_index existing_prop); // 0x43e910
-extern datum_index actor_allocate_paired_prop_with_kind(datum_index actor_index, datum_index existing_prop,
-    datum_index reference_prop); // 0x43e980
-extern void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop); // 0x43e840, EAX, ECX
+
+
 extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force,
     char allow_reassign); // 0x41c4b0
 extern void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target_prop_index,
     void *scratch); // 0x41c8f0
-extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, EAX, EDI
-extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50
+
 
 #define PROP(h) ((prop *)((uint8_t *)prop_data->data + ((h) & 0xffff) * sizeof(prop)))
 

@@ -17,6 +17,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -27,9 +28,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *prop_data;          // 0x008802c0
 extern game_time_globals *game_time;    // 0x006f1d6c
 extern int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search); // 0x40e540
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
-extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
-                                                          float radius); // 0x417910, EAX, stack
+
 
 uint8_t actor_mode_wait_process(datum_index actor_index)
 {

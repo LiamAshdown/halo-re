@@ -13,6 +13,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 // blam-cc: ECX -> context, EDX -> index
 void ai_search_heap_sift_down(ai_search_context *context, int16_t index)

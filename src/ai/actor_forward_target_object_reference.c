@@ -11,12 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
-extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
-    datum_index owner_reference, datum_index pair_reference); // 0x41f7d0
 
 // blam-cc: ECX -> actor_index, stack -> param
 // If the actor has a target (read as a prop index; see actor_get_target_prop_object_index),

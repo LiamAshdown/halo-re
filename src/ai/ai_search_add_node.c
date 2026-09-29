@@ -17,9 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
-extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index); // 0x43b450, EDX context, CX index
+
 
 int16_t ai_search_add_node(ai_search_context *context, int16_t parent, real_point2d *position, int32_t surface_index,
     int16_t point_id, uint8_t side, float base_cost)

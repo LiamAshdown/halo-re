@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // blam-cc: ESI -> list, EDX -> position, EBX -> exclude_index, stack -> extra_radius
 int16_t ai_search_find_covering_point(ai_search_obstacle_list *list, real_point2d *position,

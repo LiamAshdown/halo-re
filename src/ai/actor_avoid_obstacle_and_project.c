@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "physics.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *object_data;      // 0x008603b0

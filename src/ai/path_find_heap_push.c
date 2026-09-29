@@ -10,8 +10,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
-extern void path_find_heap_sift_up(path_find_context *context, int16_t index); // 0x43af70
 
 // blam-cc: EAX -> context, stack -> node, key
 void path_find_heap_push(path_find_context *context, int16_t node, int16_t key)

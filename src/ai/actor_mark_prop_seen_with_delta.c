@@ -13,13 +13,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data; // 0x008802c0
 
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
     char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
-extern void actor_queue_directional_reaction_event(const real_vector3d *direction, datum_index target_prop_index,
-    datum_index actor_index); // 0x422270, EAX, ECX, stack
+
 
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 

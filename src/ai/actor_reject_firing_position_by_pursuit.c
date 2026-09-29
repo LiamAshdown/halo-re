@@ -19,14 +19,12 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;     // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern uint8_t ai_pursuit_note_object(datum_index object_index, datum_index encounter_index, int16_t type,
-    int32_t min_last_tick); // 0x436b10, EDX object, stack encounter, CX type, EAX min_last_tick
-extern uint8_t ai_pursuit_check_object(datum_index object_index, datum_index encounter_index, int16_t type,
-    int32_t min_last_tick, char create_if_missing, int16_t *out_count, uint32_t *out_last_tick);
+
     // 0x436b90: EBX object, EAX min_last_tick, CX type, stack (encounter, out_count, out_last_tick); the
     // create_if_missing slot is the constant 0 the binary passes on to squad_recent_object_get_or_create
 

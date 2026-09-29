@@ -21,14 +21,14 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
     char create_if_missing, uint32_t flag); // 0x43eb30, EAX, stack
-extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index,
-    int16_t grenade_type); // 0x42a3a0, ESI, stack, EAX
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 

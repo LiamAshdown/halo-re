@@ -17,12 +17,13 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 
-extern datum_index ai_conversation_new(int16_t conversation_definition_index, uint8_t allow_eviction); // 0x431590, this batch
+
 extern int8_t ai_conversation_resolve_participants(datum_index instance_index, uint8_t *out_flag); // 0x430fc0, deferred in this batch; UNSURE signature
-extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t reason_b); // 0x430ea0, this batch
+
 
 // blam-cc: AX -> conversation_definition_index, stack -> allow_eviction
 // Creates a new ai_conversation instance for conversation_definition_index (when it is a

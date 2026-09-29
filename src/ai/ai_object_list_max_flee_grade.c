@@ -28,6 +28,7 @@
 #include "game.h"
 #include "hs.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern game_time_globals *game_time;           // 0x006f1d6c
 extern data_array *object_list_header_data;    // 0x0087a464
@@ -38,7 +39,6 @@ extern Scenario *global_scenario;              // 0x00746f8c
 extern data_array *swarm_data;                 // 0x0088035c
 extern data_array *swarm_component_data;       // 0x00880358
 
-extern uint32_t ai_actor_type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference); // 0x434ed0, AX, EDX
 
 // blam-cc: EAX -> object_list_header_handle
 int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle)

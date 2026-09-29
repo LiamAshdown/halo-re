@@ -11,6 +11,7 @@
 #include "math.h"
 #include "cseries.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern actor_firing_position_candidate *qsort_candidate_base; // 0x006f0c94
 

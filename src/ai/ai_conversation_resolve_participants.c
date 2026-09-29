@@ -41,6 +41,7 @@
 #include <stdint.h>
 #include "units.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern data_array *actor_data;           // 0x00880360
@@ -51,9 +52,8 @@ extern Scenario *global_scenario;        // 0x00746f8c
 extern datum_index *object_name_list; // 0x006b8cb8, 0x200 entries
 
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
-extern int32_t ai_conversation_get_run_to_player_range(ai_conversation_range_lookup *out, uint32_t conversation_index); // 0x402cf0, EDX, ESI
+
+
 extern uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point); // 0x56c100, stack, ECX, EDI
 extern int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *out_resolved,
                                                   uint8_t *out_wants_alternate,

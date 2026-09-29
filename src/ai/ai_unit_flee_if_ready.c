@@ -16,10 +16,10 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t command_list_index, int16_t *record); // 0x407140, stack, ESI record
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, this module
+
 
 // blam-cc: ECX -> unit_index, stack -> readiness_param
 void ai_unit_flee_if_ready(datum_index unit_index, uint32_t readiness_param)

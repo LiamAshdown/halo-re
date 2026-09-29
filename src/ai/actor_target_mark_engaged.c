@@ -19,12 +19,11 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data;      // 0x008802c0
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, blam-cc: EAX -> actor_index, EDI -> target_prop_index
-extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index);        // 0x41fd50
 
 // blam-cc: EAX -> target_prop_index, EBX -> actor_index, stack -> mark_engaged
 // Marks (or clears) the given prop (target-data record) as actively engaged and refreshes its

@@ -18,6 +18,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data; // 0x008802c0
@@ -28,18 +29,7 @@ extern data_array *prop_data; // 0x008802c0
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
     uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX
-extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
-    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
-    datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack
-extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator); // 0x43ecd0, EAX, stack
-extern uint8_t actor_targets_share_descriptor(datum_index actor_a, datum_index actor_b); // 0x40e380, EAX, ECX
-extern uint8_t ai_pursuit_note_object(datum_index object_index, datum_index encounter_index, int16_t type,
-                                      int32_t min_last_tick); // 0x436b10, EDX, stack, CX, EAX
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
-extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
-                                                          float radius); // 0x417910, EAX, stack
-extern uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, int16_t formation_slot,
-                                                              path_find_context *path_context); // 0x417830, EDI, stack
+
 
 uint8_t actor_mode_search_process(datum_index actor_index)
 {

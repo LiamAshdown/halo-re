@@ -23,12 +23,13 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 extern data_array *prop_data;   // 0x008802c0
 
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 
 // REWRITTEN from objdump 0x41f6b0..0x41f7c2. Stack: (actor, require_flag). Of the 4 recent damage records on the

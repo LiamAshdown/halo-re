@@ -26,11 +26,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern real_point3d *global_origin3d_pointer; // 0x00696714, a pointer to a constant vector (UNSURE: likely but not confirmed identical to the {1,0,0} constant at 0x00696718 referenced elsewhere in this module)
 
 extern double sqrt(double x); // FSQRT
-extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0, EDX, ESI
+
 extern void path_find_closest_point_on_segment(const real_point3d *point, const real_point3d *segment_start,
     const real_point3d *segment_end, real_point3d *out); // 0x43b2f0, EAX, ECX, EDX, ESI
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, see header UNSURE on its own argument

@@ -25,6 +25,7 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -36,7 +37,7 @@ extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70
 // types/ai.h bool_float_return, shared with actor_target_hearing_check.c.
 // FIXED: 0x428370 returns only AL (it never touches the FPU); a struct return made MSVC pass a hidden result
 // pointer in the actor_index slot. The float the old model read is the 0.0 loaded at 0x41fde0, i.e. `extra`.
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX actor
+
 extern uint8_t *actor_get_threat_weapon_definition(datum_index actor_index); // 0x40f970, UNSURE signature: return type
                                                         // is a tag data pointer of unresolved type
 

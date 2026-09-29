@@ -21,11 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern uint32_t random_seed_global; // 0x00719cd0
 
-extern uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance, float step_up,
-                                             uint8_t *out_flag, void *extra_param); // 0x417bb0, this module
 
 // blam-cc: stack -> actor_index, stack -> step_distance, ECX -> direction, stack -> variant,
 //   stack -> step_up, stack -> out_flag, stack -> extra_param

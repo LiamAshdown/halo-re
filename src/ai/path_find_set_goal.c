@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // blam-cc: EAX -> context, ECX -> position, stack -> goal_vertex_id, goal_cost
 void path_find_set_goal(path_find_context *context, const real_point3d *position,

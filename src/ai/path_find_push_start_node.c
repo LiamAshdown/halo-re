@@ -28,10 +28,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern double sqrt(double x); // FSQRT
 extern int32_t __ftol(double x); // FISTP-based float-to-int truncation
-extern void path_find_heap_push(path_find_context *context, int16_t node, int16_t key); // 0x43b0f0
+
 
 // blam-cc: ESI -> context
 uint8_t path_find_push_start_node(path_find_context *context)

@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_reference_flee_if_ready(uint32_t packed_reference, uint32_t readiness_param); // 0x434d90, blam-cc: EAX, EBX
 
 void hs_evaluate_ai_command_list(int16_t function_index, uint32_t thread_index, char first)
 {

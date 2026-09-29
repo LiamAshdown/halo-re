@@ -14,18 +14,14 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data;  // 0x00880360
 
-extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index); // 0x408f30, stack, EAX, ECX
-extern int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry,
-                                           real_vector3d *out_direction, real_point3d *out_hint); // 0x409070
+
 extern uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index); // 0x565150, EAX, ECX, DX
-extern uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry,
-    real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index); // 0x4095c0, EAX, ECX, EDX, stack
-extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
-                                                    int32_t parameter, uint32_t extra); // 0x417610, EAX, stack
+
 
 uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a, float radius_b,
                                         uint8_t *order)

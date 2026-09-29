@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // blam-cc: EDX -> context, ESI -> vertex_id
 int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id)

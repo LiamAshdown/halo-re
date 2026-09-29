@@ -20,19 +20,13 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t order_code_mode_data_expect[12]; // 0x00655590: request code -> default order kind
 
-extern int32_t actor_build_order_default(uint32_t actor_index, int16_t order_code, actor_order *order, int16_t parameter); // 0x401090, EAX, ECX, EDX, stack
-extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order); // 0x403f00, stack, EBX
-extern int32_t actor_build_order_return_to_anchor(uint32_t actor_index, actor_order *order); // 0x4044b0, EAX, EDX
-extern int32_t actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position); // 0x404510, EAX, EDX, EBX
-extern uint8_t actor_update_melee_combat_action(datum_index actor_index); // 0x40cdf0, stack
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
-extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index); // 0x40e760, EAX
 
 uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
 {

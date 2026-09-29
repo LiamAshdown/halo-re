@@ -15,15 +15,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
-extern void actor_movement_action_cancel(datum_index actor_index); // 0x428650
-extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index, stack -> skip_counters
-extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, UNSURE signature, not in this rewrite range
-extern void ai_actor_link_to_unassigned_list(datum_index actor_index); // 0x436940, UNSURE signature, not in this rewrite range
-extern void encounter_add_actor(int16_t squad_index, datum_index actor_index,
-    datum_index encounter_index, uint8_t keep_team); // 0x436770, blam-cc: DX -> squad_index
+
     // UNSURE: the squad index arrives in DX and Ghidra did not attribute it to this call
     // site, so the actor's current squad_index is passed; encounter_add_actor writes it
     // straight back into the same field.

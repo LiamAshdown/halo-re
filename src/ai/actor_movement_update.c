@@ -72,6 +72,7 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -93,20 +94,10 @@ extern void actor_movement_choose_avoidance_direction(datum_index actor_index,
                                                       const real_vector3d *desired_direction,
                                                       real_vector3d *out_direction,
                                                       float *out_scale); // 0x4193d0
-extern void actor_movement_apply_steering(
-    int16_t cached_axis, uint8_t keep_z,
-    datum_index actor_index, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed,
-    float steering_maximum, float oversteer_min, float oversteer_max, float avoidance_scale,
-    float throttle_maximum,
-    real_vector3d *desired_direction, real_vector3d *out_direction, int16_t *out_axis,
-    real_vector3d *out_heading, uint8_t *out_flag_507, uint8_t *out_flag_506); // 0x4180c0
 
-extern void actor_clear_recognition_history(datum_index actor_index, uint8_t keep_when_typed); // 0x414140, EAX -> actor_index
-extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action,
-                                            uint32_t payload[2]); // 0x417a60, EAX -> actor_index
-extern uint8_t actor_action_has_queued_secondary(datum_index actor_index); // 0x417b70, EAX -> actor_index
+
 // Sets actor.flags bit 0x2, the "no movement order this tick" marker; EAX -> actor_index.
-extern void actor_set_flag_bit1(datum_index actor_index); // 0x42a5b0, not yet rewritten (this module)
+
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
                                        datum_index object_a, int32_t param_d,
                                        datum_index object_b, datum_index object_c,

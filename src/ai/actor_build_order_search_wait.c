@@ -24,11 +24,12 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
-extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0, this module,
+
                                                  // blam-cc: EAX -> target_prop_index
 
 // Builds a "search and wait" order (code 0x78) at the actor's pending search position

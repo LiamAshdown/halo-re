@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern uint32_t random_seed_global; // 0x00719cd0
 extern const real_vector3d *global_left3d_pointer; // 0x0069671c, UNSURE: see file header

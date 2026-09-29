@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind, int32_t *out_member_count, uint32_t *out_extra); // 0x432f90, blam-cc: EAX, EDI, stack
 
 void hs_evaluate_ai_swarm_count(int16_t function_index, uint32_t thread_index, char first)
 {

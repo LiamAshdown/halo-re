@@ -12,12 +12,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
-extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback,
-    uint32_t callback_extra, uint16_t *caller_record); // 0x407040, EDI caller_record
-extern void actor_obey_member_exit(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index,
-    void *component_record, int32_t secondary_record, uint32_t callback_extra); // 0x406fa0
+
 
 void actor_mode_obey_exit(uint32_t actor_index)
 {

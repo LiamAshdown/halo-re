@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
@@ -23,9 +24,7 @@ extern data_array *encounter_data; // 0x008802c8
 extern data_array *actor_data;     // 0x00880360
 extern data_array *prop_data;      // 0x008802c0
 
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
-extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index); // 0x41fc60, EAX, EDI
-extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index); // 0x41fd50
+
 extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a); // 0x45c0f0, EBX -> index_b, EDI -> index_a
 
 // blam-cc: stack -> team_a, team_b, status

@@ -24,6 +24,7 @@
 #include <string.h>
 #include "game.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 
 extern double fcos(double x); // FCOS
@@ -40,20 +41,15 @@ extern real random_real_range(real min, real max);             // 0x401050
 extern real vector2d_normalize_with_length(real_vector2d *v);  // 0x4018e0, ECX
 extern real vector3d_normalize_with_length(real_vector3d *v);  // 0x401990, ECX
 extern int32_t random_int_range(int16_t min, int16_t max);      // 0x405320, ECX -> min, stack -> max
-extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request); // 0x405390, EAX, EDX, ECX
-extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
-                                                   char *seat_name, int16_t seat_flags, int16_t count); // 0x40e260, EAX, ECX, stack
+
+
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
                                         actor_vocalization_context *context); // 0x4142d0, EAX, stack
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
-extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
-                                                    int32_t parameter, uint32_t extra); // 0x417610, EAX, stack
-extern void actor_movement_actions_cancel(datum_index actor_index); // 0x417a30, EAX
-extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context); // 0x4296c0, EBX, stack
+
+
 extern void ai_communication_target_result_reset(ai_communication_target_result *record); // 0x42d310, EAX
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
-extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator); // 0x43ecd0, EAX, stack
-extern prop *actor_prop_iterator_next(actor_prop_iterator *iterator); // 0x43ecf0, EDX
+
+
 extern int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario); // 0x449f80, EBX, ESI
 extern uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags);
     // 0x44a930, EAX, CX, stack

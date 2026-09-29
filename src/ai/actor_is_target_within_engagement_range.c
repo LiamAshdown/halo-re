@@ -20,12 +20,12 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 extern Scenario *global_scenario; // 0x00746f8c
 
-extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, not yet rewritten (an engagement-range radius)
 
 uint8_t actor_is_target_within_engagement_range(uint32_t actor_index)
 {

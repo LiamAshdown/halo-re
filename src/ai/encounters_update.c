@@ -20,21 +20,14 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern data_array *encounter_data;   // 0x008802c8
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
-extern void encounters_recompute_dirty(void);                                      // 0x435f00
-extern void encounters_update_activation(void);                                    // 0x437e20
-extern void encounter_recompute_morale(datum_index encounter_index);               // 0x437940
-extern void encounter_advance_grenade_timers(datum_index encounter_index);         // 0x438db0
-extern void encounter_process_squad_reinforcements(datum_index encounter_index);   // 0x4390a0
-extern void encounter_decay_squad_spawn_delays(datum_index encounter_index);        // 0x4392f0
-extern void encounter_update_platoon_defending_flag(datum_index encounter_index);  // 0x4393b0
-extern void encounter_redistribute_squads_toward_targets(datum_index encounter_index); // 0x4394a0
-extern void encounter_propagate_platoon_state_to_actors(datum_index encounter_index);  // 0x439d80
+
 
 // The per-tick encounter pass. Every 30 ticks it flushes the dirty-encounter recompute and
 // re-evaluates which encounters should be active; every tick it runs the full per-encounter

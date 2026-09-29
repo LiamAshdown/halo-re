@@ -20,13 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data; // 0x008802c0
 
-extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348); // 0x421af0
 
 // blam-cc: EAX -> prop_index, stack -> actor_index
 // Queues a priority-6 search request for the actor carrying no explicit position but a

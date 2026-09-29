@@ -23,13 +23,13 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction, see src/math/quaternion_normalize.c
-extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index,
-    uint8_t flag_pursue); // 0x42b810, EAX, ECX, stack
+
 extern uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t vehicle_index, int16_t seat_index,
     real_point3d *out_entry, real_point3d *out_seat, real_point3d *out_hint); // 0x5640a0, EAX unit, stack
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label,

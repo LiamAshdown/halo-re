@@ -29,6 +29,7 @@
 #include "objects.h"
 #include "units.h"
 #include "effects.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -43,8 +44,7 @@ extern real_vector3d *global_forward3d_pointer; // 0x00696718
 extern real_point3d *global_origin3d_pointer;   // 0x00696714
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 
-extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index,
-    int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay); // 0x42be40
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,

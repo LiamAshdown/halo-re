@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8
@@ -29,11 +30,8 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
     uint32_t flags); // 0x4f6080
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
-extern void ai_communication_gate_line_played(int16_t event_id, ai_communication_record *record,
-    datum_index object_index); // 0x42e970, CX, EDX, stack
-extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force,
-    datum_index explicit_speaker_actor_index, uint32_t *event_record); // 0x42eee0
-extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order); // 0x42e9c0
+
+
 extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 
 static void count_down(uint8_t *field)

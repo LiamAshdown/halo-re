@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -26,7 +27,7 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vecto
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, UNSURE signature
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670
 extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820
-extern void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3]); // 0x40f9b0, this module
+
 
 // blam-cc: EAX -> actor_index, EDX -> target_point, EDI -> out_direction, stack -> out_698
 uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point,

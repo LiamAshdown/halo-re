@@ -12,12 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index); // 0x427c90
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
-extern void encounter_recompute_morale(datum_index encounter_index); // 0x437940, UNSURE signature, not in this rewrite range
 
 // blam-cc: EAX -> actor_index, stack -> unit_index
 // Reduces an actor's cluster by one unit and, once the cluster is fully empty, notifies the

@@ -29,16 +29,9 @@
 #include "ai.h"
 #include <stdint.h> // uintptr_t
 #include "physics.h"
+#include "fn_ai.h"
 
-extern void path_find_heap_sift_up(path_find_context *context, int16_t index);   // 0x43af70, EAX, DX
-extern void path_find_heap_sift_down(path_find_context *context, int16_t index); // 0x43b010, EAX, ECX
-extern uint8_t path_find_push_start_node(path_find_context *context);            // 0x43a760, ESI
-extern float path_find_vertex_distance(ScenarioStructureBSP *structure_bsp, int32_t surface, real_point3d *point_a,
-    real_point3d *out_point); // 0x43b130; blam-cc: EAX structure_bsp, ECX surface, stack point_a, out_point
-extern int16_t path_find_gather_adjacent_edges(void *map, int32_t vertex_id,
-    path_find_adjacent_edge *out_edges); // 0x43b1c0, EAX map, stack
-extern float path_find_score_avoidance_penalty(path_find_context *context, const real_point3d *segment_start,
-    const real_point3d *segment_end, float *out_distance); // 0x43b3b0, EBX, ECX, EDX, stack
+
 extern double sqrt(double x); // FSQRT
 extern uint8_t *breakable_surface_state; // 0x006b8d78
 extern int16_t global_structure_bsp_index; // 0x0069e8d8

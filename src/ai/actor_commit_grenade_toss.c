@@ -21,17 +21,11 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
-
-extern uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *origin,
-    float range, real_point3d *point, int32_t max_time, float *speed, void *out_time_or_fraction, real_vector3d *out_velocity,
-    float *out_gravity); // 0x410980, AX, ESI, stack
-extern uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index,
-    real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index,
-    uint8_t wide_mask); // 0x42b5d0, EAX, ECX, EDX, stack
 
 // REWRITTEN from objdump 0x411180..0x4112a6: solve a throw from the actor's position at the point (variant grenade
 //   type +0x180, range +0x190), check its arc is clear of everything but `exclude`, then commit it: impact point

@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
 extern double fabs(double x); // ABS

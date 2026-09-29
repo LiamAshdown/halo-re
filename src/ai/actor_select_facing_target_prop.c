@@ -32,6 +32,7 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // actor_recognition_scan_result now lives in types/ai.h (folded from this file).
 
@@ -42,8 +43,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern double cos(double x); // FCOS
 
 extern uint8_t point3d_within_horizontal_cone(real_point3d *to_point, real_point3d *reference, float min_cos_threshold); // 0x414910, not in this module (math), EAX->to_point, EDX->reference, stack->threshold
-extern uint8_t actor_point_in_directional_lane(real_point3d *to_point, real_point3d *forward, real_point3d *cone_axis,
-                                                float min_cos_threshold, float side_thresholds[2]); // 0x414990, this module
+
 
 // blam-cc: EAX -> actor_index, stack -> require_trust, stack -> skip_lane_test,
 //   stack -> out_result, stack -> out_in_front

@@ -14,12 +14,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data; // 0x008802c0
 extern datum_index datum_new(data_array *array); // 0x4d0480, EDX
-extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index,
-                                        datum_index prop_index); // 0x43e640, EAX, EDX, stack
-extern void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop); // 0x43e840, EAX, ECX
+
 
 // blam-cc: stack -> actor_index, existing_prop, reference_prop
 datum_index actor_allocate_paired_prop_with_kind(datum_index actor_index, datum_index existing_prop,

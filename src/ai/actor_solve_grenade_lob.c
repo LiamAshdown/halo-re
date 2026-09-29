@@ -23,6 +23,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "projectiles.h" // Projectile
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -31,14 +32,9 @@ extern float k_physics_gravity;   // 0x0069c52c
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
-extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
-    real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
-    uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed,
-    real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
+
     // 0x4beec0, src/ai; blam-cc: ECX target, EAX speed_in, the rest on the stack
-extern uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index,
-    real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index,
-    uint8_t wide_mask); // 0x42b5d0, EAX, ECX, EDX, stack
+
 
 // blam-cc: stack -> actor_index, point
 // Solves a grenade lob at the given point and commits it only when the resulting throw is

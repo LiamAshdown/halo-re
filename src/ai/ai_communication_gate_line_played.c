@@ -18,10 +18,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
-extern void ai_communication_record_line_played(datum_index object_index, int16_t tier,
-                                                 int16_t communication_line_id,
-                                                 int16_t conversation_line_id); // 0x42f9e0
 
 // blam-cc: CX -> event_id, EDX -> record, stack -> object_index
 // FIXED from objdump 0x42e970..0x42e9a1: the speaker is the first STACK argument ([esp+4], its only caller

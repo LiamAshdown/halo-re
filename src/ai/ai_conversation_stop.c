@@ -16,6 +16,7 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern Scenario *global_scenario;        // 0x00746f8c

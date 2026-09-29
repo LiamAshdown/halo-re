@@ -54,6 +54,7 @@
 #include "cache.h"
 #include "ai.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -62,10 +63,10 @@ extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real random_real_range(real min, real max); // 0x401050, math module
 
-extern uint8_t actor_target_get_backup_priority(datum_index target_prop_index); // 0x420e50, this module
+
 extern int16_t ai_group_bucket_find_or_add(void *buckets, int32_t key, int16_t *count,
                                            int16_t capacity); // 0x420de0, this module
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+
 
 // ai_group_bucket_entry now lives in types/ai.h (folded from this file).
 

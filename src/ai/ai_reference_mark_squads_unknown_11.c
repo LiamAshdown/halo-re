@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // TYPES-GAP: mirrors ai_reference_squad_iterator_new.c's local struct of the same name.
-extern void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_reference_squad_iterator *out_iterator); // 0x4324f0, this batch
-extern encounter_squad_state *ai_reference_squad_iterator_next(ai_reference_squad_iterator *iterator); // 0x4325b0, this batch
+
 
 // blam-cc: EAX -> packed_reference
 void ai_reference_mark_squads_unknown_11(uint32_t packed_reference)

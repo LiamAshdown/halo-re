@@ -23,12 +23,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;  // 0x008802c8
 extern Scenario *global_scenario;   // 0x00746f8c
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
 
-extern void ai_reference_respawn_all_players(uint32_t packed_reference); // 0x432d90, ESI
 
 // blam-cc: ECX -> encounter_index, EDX -> squad_index
 void encounter_squad_clear_spawn_delay(datum_index encounter_index, int16_t squad_index)

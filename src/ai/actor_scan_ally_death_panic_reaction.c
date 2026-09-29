@@ -22,6 +22,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -29,8 +30,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real random_real(void); // 0x4019f0
-extern uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value); // 0x420c90, EAX, stack
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
+
 
 // blam-cc: EAX -> target_prop_index, EBX -> actor_index
 // If the target prop is not a unit, the actor's tag allows group panic, and the actor's own

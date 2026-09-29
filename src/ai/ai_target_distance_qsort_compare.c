@@ -14,6 +14,7 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+#include "fn_ai.h"
 
 // blam-cc: cdecl(record_a, record_b)
 // qsort comparator that orders two candidate-target sort records ascending by the float

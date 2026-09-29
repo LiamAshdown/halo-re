@@ -33,6 +33,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;   // 0x008802c8
 extern ai_globals *ai_globals_ptr;   // 0x00880354
@@ -45,11 +46,7 @@ extern int16_t ai_vocalization_line_table[4]; // 0x00657194, UNSURE length
 
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index,
     float *out_distance, datum_index object_index); // 0x4303f0, EBX object (the actor's unit), stack (1, 0, 0)
-extern uint8_t ai_insert_scored_candidate_pair(ai_scored_candidate *list, datum_index handle,
-    float score, datum_index payload, datum_index key);            // 0x4383f0
-extern int16_t ai_pick_weighted_candidate(ai_scored_candidate *table,
-    ai_scored_candidate *out_entry);                               // 0x438480, blam-cc: EBX -> table
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, ECX actor, stack object
+
 
 // blam-cc: stack -> encounter_index
 // Picks up to two "somebody should say something about this" candidates out of the

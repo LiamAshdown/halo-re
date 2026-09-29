@@ -23,6 +23,7 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern Scenario *global_scenario;    // 0x00746f8c
@@ -32,7 +33,7 @@ extern datum_index actor_new_and_attach_to_unit(char reuse_existing, datum_index
     datum_index actor_variant_tag, uint32_t encounter_or_none, int16_t squad_index, char ignore_squad,
     datum_index exclude_actor, char start_active, uint16_t unknown_60, int16_t unknown_62,
     uint16_t command_list_index, uint8_t unknown_68); // 0x426ac0, already rewritten
-extern void encounters_recompute_dirty(void); // 0x435f00, this batch
+
 
 // blam-cc: stack -> unit_index, packed_reference
 // Resolves a packed ai reference (a squad, or a platoon -- taking its first squad) to a

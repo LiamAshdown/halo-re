@@ -37,6 +37,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -46,22 +47,17 @@ extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (fo
 
 extern float vector3d_distance_squared(const real_point3d *a, const real_point3d *b); // 0x401020, not yet rewritten: squared distance, EAX -> a, ECX -> b
 extern real vector3d_distance(const real_point3d *a, const real_point3d *b); // 0x4088b0, EAX -> a, ECX -> b
-extern uint8_t actor_movement_check_arrival(datum_index actor_index);   // 0x416700, this module, EAX -> actor_index
-extern void actor_movement_action_complete(datum_index actor_index);    // 0x41a430, this module, EAX -> actor_index
-extern void actor_build_path_find_request(datum_index actor_index, path_find_request *request); // 0x41a9c0, this module, EAX/EBX
-extern uint8_t actor_movement_flying_needs_steering(datum_index actor_index, const real_point3d *destination,
-                                                   float *out_avoidance_distance); // 0x41aab0, this module, EAX/ECX/EDI
-extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0, this module,
+
+
                                                  // blam-cc: EAX -> target_prop_index
 extern void path_find_set_avoid_sphere(path_find_request *request, const real_point3d *center, float radius,
                          datum_index object_index, float weight);       // 0x43a070, not yet rewritten, EAX -> request, ECX -> center
 extern uint8_t path_find_validate_and_record_goal(void *candidate, void *context, uint32_t unused_b,
     uint32_t unused_c, const real_point3d *position);                    // 0x43a190, not yet rewritten, EBX -> out_reachable
-extern uint8_t path_find_reconstruct_path(path_find_context *context, uint8_t *out_reachable); // 0x43a4d0, not yet rewritten, EBX -> context
+
 extern void path_find_context_init(path_find_context *context, const path_find_request *request,
                                    int32_t flags);                      // 0x43a700, EDX -> context
-extern void path_find_set_goal(path_find_context *context, const real_point3d *position, uint32_t goal_vertex_id, float goal_cost);      // 0x43a730, not yet rewritten, EAX -> context, ECX -> destination
-extern uint8_t path_find_run(path_find_context *context);               // 0x43a8b0, not yet rewritten
+
 
 // blam-cc: stack -> actor_index, record_distance, context
 uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_distance, path_find_context *context)

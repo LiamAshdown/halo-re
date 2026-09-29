@@ -21,15 +21,15 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern uint32_t random_seed_global; // 0x00719cd0
 
-extern uint16_t actor_consider_target_candidate(datum_index actor_index,
-                                                datum_index candidate_prop_index); // 0x4208a0, this module;
+
 // stack -> actor_index, EBX -> candidate_prop_index. The EBX value at 0x4036af is the same
 // resolved target prop handle the code has just written to the order record at +0x1c.
-extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order); // 0x403f00, stack, EBX order
+
 
 int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint8_t use_alt_base, uint32_t actor_index, uint16_t order_code, uint8_t byte_a, uint8_t byte_b, uint16_t *order)
 {

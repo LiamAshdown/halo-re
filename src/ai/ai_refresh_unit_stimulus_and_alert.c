@@ -20,12 +20,12 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;
 extern data_array *object_data;      // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t stimulus, int16_t gate); // 0x42a0e0
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 

@@ -31,6 +31,7 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -40,11 +41,8 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern uint8_t ai_debug_gate_87abc6; // 0x0087abc6, UNSURE: no name established elsewhere
 
 extern real random_real_range(real min, real max); // 0x401050
-extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data); // 0x421bc0
-extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348); // 0x421af0
+
+
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 

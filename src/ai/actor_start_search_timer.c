@@ -21,16 +21,12 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data;  // 0x008802c0
 extern data_array *actor_data; // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0
-extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348); // 0x421af0
 
 // blam-cc: EBX -> actor_index, EDI -> prop_index
 // Marks the start of an investigation timer: stamps the current tick on the actor (a scratch

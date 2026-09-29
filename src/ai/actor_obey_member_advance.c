@@ -13,6 +13,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_ai.h"
 
 void actor_obey_member_advance(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index,
     void *component_record, int32_t secondary_record, uint32_t callback_extra)

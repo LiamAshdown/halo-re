@@ -15,6 +15,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -26,10 +27,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
 extern actor_mode_definition actor_mode_definitions[16]; // 0x00655254
-extern uint8_t actor_should_throw_grenade(uint32_t actor_index, char force); // 0x40b840, EAX, stack
-extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3); // 0x40dd50
-extern uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base, uint16_t order_code,
-                                         datum_index actor_index); // 0x40de20, stack, DL, CX, ESI
+
 
 uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_reaction, uint8_t use_alt_base)
 {

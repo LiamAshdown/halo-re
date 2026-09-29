@@ -11,10 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
-extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag); // 0x421a40, already established
+
 
 void ai_reference_set_combat_alert_flag(uint32_t packed_reference, uint8_t new_flag)
 {

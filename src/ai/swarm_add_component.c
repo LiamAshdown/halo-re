@@ -15,11 +15,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *swarm_data;           // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
 
-extern void actor_update_swarm_component_position(datum_index component_index, datum_index unit_index); // 0x428130, already rewritten in this module
 
 // blam-cc: EAX -> component_index, ECX -> unit_index, EDX -> swarm_index
 // Adds a new actor as a member of a swarm's component list and triggers the swarm's

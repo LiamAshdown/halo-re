@@ -14,9 +14,8 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
-extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only); // 0x436a30, this batch
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70, this batch
 
 int16_t ai_count_actors_in_mode9_group(int32_t group_id)
 {

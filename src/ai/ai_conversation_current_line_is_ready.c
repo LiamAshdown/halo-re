@@ -38,6 +38,7 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <string.h>
 
 // TYPES-GAP: mirrors types/units.h unit_speech (0x30 bytes) but names the tail three fields

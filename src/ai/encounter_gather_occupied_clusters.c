@@ -33,6 +33,7 @@
 #include "objects.h"
 #include "structures.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;                    // 0x008802c8
 extern Scenario *global_scenario;                     // 0x00746f8c
@@ -42,8 +43,6 @@ extern data_array *object_data;                       // 0x008603b0
 extern data_array *prop_data;                         // 0x008802c0
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
 
-extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind,
-    int16_t search_override); // 0x412880, EAX, SI, stack
 
 // blam-cc: EAX -> encounter_index, EBX -> out_clusters, stack -> (record_per_actor, other_clusters)
 // Fills out_clusters with one bit per BSP cluster that a live member of the encounter

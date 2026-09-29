@@ -16,6 +16,7 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data;      // 0x00880360
@@ -23,16 +24,6 @@ extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern ScenarioStructureBSP *global_structure_bsp;
 
-extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override); // 0x412880, EAX, SI, stack
-extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query,
-    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
-    uint8_t *out_path_ok); // 0x412ba0
-extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner,
-    path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok); // 0x414060, stack, CX, AL
-extern void actor_target_get_relationship_object(datum_index target_prop_index); // 0x41f3a0, EAX
-extern uint8_t path_find_run(path_find_context *context); // 0x43a8b0, EAX
-extern uint8_t path_find_find_unobstructed_ancestor(path_find_context *context, uint32_t vertex_id, real_point3d *point,
-    uint8_t *out_used_start, real_point3d *out_position); // 0x43a220, ECX, EAX, stack
 
 void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
 {

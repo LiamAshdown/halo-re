@@ -23,6 +23,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -31,8 +32,7 @@ extern uint32_t random_seed_global; // 0x00719cd0
 extern game_time_globals *game_time;   // 0x006f1d6c
 
 extern real random_real(void); // 0x4019f0
-extern datum_index actor_get_relevant_squad_member_target(uint32_t unused_param, datum_index member_prop_index, char require_is_unit); // 0x41f550
-extern uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value); // 0x420c90, EAX, stack
+
 
 // blam-cc: EAX -> target_prop_index, stack -> actor_index
 // Per-perception-tick reaction for a non-unit target prop: marks the actor "has scanned a

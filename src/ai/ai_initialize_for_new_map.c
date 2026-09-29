@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
@@ -27,10 +28,7 @@ extern uint32_t game_state_crc;    // 0x006e2dd4
 
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
-extern void actors_initialize(void); // 0x426710
-extern void encounters_initialize(void); // 0x435c00, not in this rewrite range
-extern void ai_communication_initialize(void); // 0x42cf20, not in this rewrite range
-extern void actor_avoidance_build_direction_tables(void); // 0x41a2d0, not in this rewrite range (builds the avoidance direction-sample tables)
+
 
 extern char prop_array_name[]; // 0x0065f008, the literal "prop"
 

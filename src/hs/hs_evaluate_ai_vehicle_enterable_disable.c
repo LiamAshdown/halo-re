@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_object_attention_remove(datum_index object_index); // 0x435990, EAX
 
 void hs_evaluate_ai_vehicle_enterable_disable(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -17,15 +17,14 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data;  // 0x008802c0
 extern data_array *actor_data; // 0x00880360
 
-extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index); // 0x4221f0
-extern void actor_scan_ally_death_panic_reaction(datum_index target_prop_index, datum_index actor_index); // 0x4233d0
+
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
-extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
-    datum_index owner_reference, datum_index pair_reference); // 0x41f7d0
+
 
 // A caller-owned order record; only the type field at +0x14 is read here.
 

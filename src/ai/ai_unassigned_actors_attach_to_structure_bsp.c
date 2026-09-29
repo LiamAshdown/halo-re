@@ -14,15 +14,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;          // 0x00880354
 extern data_array *actor_data;              // 0x00880360
 extern int16_t global_structure_bsp_index;  // 0x0069e8d8
 extern Scenario *global_scenario;
 
-extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, EDI
-extern void encounter_add_actor(int16_t squad_index, datum_index actor_index, datum_index encounter_index,
-    uint8_t keep_team); // 0x436770, DX, stack
 
 void ai_unassigned_actors_attach_to_structure_bsp(void)
 {

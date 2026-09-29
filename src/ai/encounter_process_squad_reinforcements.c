@@ -22,13 +22,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;  // 0x008802c8
 extern Scenario *global_scenario;   // 0x00746f8c
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
 extern uint32_t random_seed_global; // 0x00719cd0
 
-extern uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index); // 0x438f60
 
 // blam-cc: stack -> encounter_index
 void encounter_process_squad_reinforcements(datum_index encounter_index)

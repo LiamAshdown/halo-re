@@ -18,6 +18,7 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern Scenario *global_scenario;                              // 0x00746f8c
 extern data_array *encounter_data;                             // 0x008802c8

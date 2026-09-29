@@ -11,12 +11,12 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
-extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t reason_b); // 0x430ea0
 
 void actor_mode_converse_exit(datum_index actor_index)
 {

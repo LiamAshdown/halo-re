@@ -11,12 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index, char notify,
-    char is_platoon_merge); // 0x433590, blam-cc: EDX, stack
 
 void hs_evaluate_ai_migrate(int16_t function_index, uint32_t thread_index, char first)
 {

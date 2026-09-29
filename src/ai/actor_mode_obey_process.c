@@ -17,15 +17,13 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern Scenario *global_scenario;
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
-extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback,
-    uint32_t callback_extra, uint16_t *caller_record); // 0x407040, EDI caller_record
-extern void actor_squad_action_list_process(uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index,
-    uint8_t *state, uint8_t *aim_state, uint8_t *out); // 0x406e30
+
 
 uint8_t actor_mode_obey_process(uint32_t actor_index)
 {

@@ -17,12 +17,12 @@
 #include "units.h"
 #include "hs.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;                // 0x008603b0
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
 
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60
 
 // blam-cc: ECX -> object_list_header_handle
 void ai_object_list_clear_orders_with_weapon(datum_index object_list_header_handle)

@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x);

@@ -22,6 +22,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data;      // 0x00880360
@@ -35,16 +36,7 @@ extern real random_real_range(real min, real max); // 0x401050
 extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point,
     int32_t start_surface_index, int16_t kind); // 0x412960, EDX, stack
-extern int16_t actor_select_firing_position(datum_index actor_index, actor_firing_position_query *query,
-    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
-    uint8_t *out_path_ok); // 0x413e50, stack, EBX query, EDI candidate
-extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner,
-    path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok); // 0x414060, stack, CX, AL
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
-extern void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_index, uint8_t mark_engaged); // 0x41fa80, EAX, EBX, stack
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX
-extern void actor_update_target_lead_position(datum_index actor_index); // 0x429570, EAX
-extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, EAX
+
 
 #define A_B(o) (actor[(o)])
 #define A_W(o) (*(int16_t *)(actor + (o)))

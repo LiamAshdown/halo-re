@@ -58,6 +58,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *encounter_data;  // 0x008802c8
@@ -74,10 +75,8 @@ extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, stack, ECX
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, EDX
-extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index, stack -> skip_counters
-extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, EDI
-extern void encounter_add_actor(int16_t squad_index, datum_index actor_index,
-    datum_index encounter_index, uint8_t keep_team); // 0x436770, blam-cc: DX -> squad_index
+
+
     // UNSURE: the squad index arrives in DX and Ghidra did not attribute it to this call
     // site, so the actor's current squad_index is passed; encounter_add_actor writes it
     // straight back into the same field.

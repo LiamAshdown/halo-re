@@ -16,6 +16,7 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -26,7 +27,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, seven stack arguments
 extern data_array *prop_data; // 0x008802c0
-extern datum_index actor_get_target_prop_object_index(datum_index actor_index); // 0x4283d0, EAX
+
 
 void actor_mode_search_tick(datum_index actor_index)
 {

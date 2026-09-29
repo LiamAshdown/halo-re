@@ -14,12 +14,13 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern int16_t network_game_mode; // 0x00719720
 
-extern void actor_notify_weapon_pickup_once(datum_index object_index); // 0x42c370, ECX
+
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
     int32_t stream); // 0x4d6280, EAX, DX, stack
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack

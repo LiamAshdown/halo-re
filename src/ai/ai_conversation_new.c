@@ -16,6 +16,7 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 
 extern data_array *ai_conversation_data; // 0x008802d4
@@ -24,7 +25,7 @@ extern game_time_globals *game_time;     // 0x006f1d6c
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array); // 0x4d03d0
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t reason_b); // 0x430ea0, this batch
+
 
 // blam-cc: stack -> conversation_definition_index, allow_eviction
 // Allocates a new ai_conversation instance. If the pool is full and allow_eviction is set,

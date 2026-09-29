@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *object_data;      // 0x008603b0
@@ -31,13 +32,9 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
-extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3); // 0x40dd50
-extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag); // 0x421a40, EAX, BL
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370, EAX
+
+
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX (difficulty value)
-extern uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_mode,
-    actor_combat_consideration *out); // 0x401a60
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
 
 
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)

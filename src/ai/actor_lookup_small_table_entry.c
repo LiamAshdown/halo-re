@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern int16_t actor_lookup_table_006555a8[12]; // 0x006555a8, UNSURE: size only known to be >= 12
 

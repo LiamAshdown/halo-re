@@ -26,6 +26,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -35,9 +36,9 @@ extern uint32_t random_seed_global; // 0x00719cd0
 
 extern real random_real_range(real min, real max); // 0x401050
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, UNSURE signature
-extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index); // 0x428370
+
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX unit
-extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator);
+
                                     // 0x43ecd0, already rewritten as
                                     // actor_index, stack -> iterator. It seeds only the
                                     // iterator's SECOND dword (.next) from actor.first_prop,

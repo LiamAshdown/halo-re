@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // blam-cc: EAX -> context, ECX -> index
 void path_find_heap_sift_down(path_find_context *context, int16_t index)

@@ -22,6 +22,7 @@
 #include "units.h"
 #include "hs.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
@@ -29,9 +30,6 @@ extern data_array *object_data;                // 0x008603b0
 extern data_array *actor_data;                 // 0x00880360
 extern ai_globals *ai_globals_ptr;             // 0x00880354
 
-extern void actor_movement_action_cancel(datum_index actor_index); // 0x428650, not yet rewritten
-extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters); // 0x436620, blam-cc: EAX -> actor_index
-extern void encounters_recompute_dirty(void);                             // 0x435f00
 
 // blam-cc: EAX -> object_list_header_handle
 // Pulls every actor controlling a unit in the object list out of its encounter and parks it

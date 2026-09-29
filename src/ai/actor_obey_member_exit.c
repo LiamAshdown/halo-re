@@ -15,10 +15,10 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;  // 0x008603b0
-extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state,
-    int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out); // 0x406c50, EAX, ECX, EBX, stack
+
 
 void actor_obey_member_exit(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index,
     void *component_record, int32_t secondary_record, uint32_t callback_extra)

@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern double sqrt(double x); // FSQRT
 extern void path_find_closest_point_on_segment(const real_point3d *point, const real_point3d *segment_start,

@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_platoon_range_set_unknown_01(uint32_t packed_reference); // 0x4332e0, blam-cc: EAX
 
 void hs_evaluate_ai_retreat(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *encounter_data;                        // 0x008802c8
 extern encounter_squad_state *encounter_squad_states;     // 0x008802cc
@@ -33,8 +34,7 @@ extern float ticks_per_second;                            // 0x00672ac8, 30.0
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 extern int32_t __ftol(double value);             // 0x006391b4, MSVC 7.1 CRT truncation
-extern void encounter_squad_reset_starting_location_mask(datum_index encounter_index,
-    int16_t squad_index); // 0x436f90, blam-cc: EAX -> encounter_index, ECX -> squad_index
+
 
 // blam-cc: EAX -> squad_cursor, EBX -> definition, stack -> platoon_cursor
 // Builds the runtime encounter datum for one ScenarioEncounter: it takes a run of

@@ -22,12 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <string.h>
 
-
-extern int32_t scenario_find_encounter_index_by_name(Scenario *scenario, char *name); // 0x432200, this batch
-extern int32_t encounter_definition_find_squad_index_by_name(ScenarioEncounter *encounter_definition, char *name); // 0x432260, this batch
-extern int32_t encounter_definition_find_platoon_index_by_name(ScenarioEncounter *encounter_definition, char *name); // 0x4322c0, this batch
 
 // blam-cc: EAX -> reference_string, ECX -> scenario, stack -> out_packed_reference
 // Parses a scripted "encounter", "encounter/squad" or "encounter/platoon" reference string

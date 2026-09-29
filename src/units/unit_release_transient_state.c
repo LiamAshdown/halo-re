@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "ai.h"
 #include "items.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -39,7 +40,7 @@ extern uint32_t random_seed_global;  // 0x00719cd0
 extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, ECX, stack
 extern void player_reset_after_unit_change(uint32_t player_index); // 0x474e10, stack
 extern void actor_attempt_grenade_throw(datum_index actor_index); // 0x428ab0, stack (it releases the actor)
-extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index); // 0x428e50, EAX, stack
+
 extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0, CX, stack
 extern void unit_detach_reposition_and_nudge(uint32_t unit_index); // 0x56ca40, EDI
 extern void unit_drop_inventory_weapons(uint32_t unit_index); // 0x56f060

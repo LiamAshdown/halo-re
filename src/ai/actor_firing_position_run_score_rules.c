@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern actor_firing_position_rule actor_firing_position_score_rules[7]; // 0x006555c0
 

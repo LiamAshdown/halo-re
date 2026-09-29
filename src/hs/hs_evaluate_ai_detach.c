@@ -11,12 +11,13 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
 extern data_array *object_data; // 0x008603b0
-extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60, blam-cc: EBX, stack
+
 
 void hs_evaluate_ai_detach(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -33,6 +33,7 @@
 #include "units.h"
 #include "items.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -53,8 +54,7 @@ extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, EBX, EAX
 extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
 extern void trigger_create_projectiles(datum_index item_index, int16_t trigger_index, int32_t role); // 0x4c4c40
-extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority,
-    int16_t stimulus_value); // 0x42c2a0, EDX, BX, DI (post-fire cue)
+
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index,
     int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
 extern void weapon_reload_recovery_finish(datum_index item_index, int16_t trigger_index); // 0x4c4940

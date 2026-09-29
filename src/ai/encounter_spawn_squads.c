@@ -29,6 +29,7 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern Scenario *global_scenario;    // 0x00746f8c
@@ -37,11 +38,6 @@ extern game_main_globals *main_game_globals; // 0x006b0b80
 extern data_array *encounter_data;   // 0x008802c8
 extern uint32_t random_seed_global;  // 0x00719cd0
 
-extern int16_t ai_squad_resolve_actor_type(ScenarioSquad *squad); // 0x4374a0, blam-cc: ECX -> squad
-extern void encounter_recompute_morale(datum_index encounter_index); // 0x437940
-extern void encounters_update_activation(void);                      // 0x437e20
-extern uint8_t encounter_squad_spawn_actor(datum_index encounter_index, int16_t squad_index, uint32_t unit_type_index,
-    uint32_t unused); // 0x438e20, four stack arguments (0x43769b..0x4376a0: encounter, squad, type, 0)
 
 // blam-cc: stack -> (encounter_index, platoon_filter, squad_filter)
 // Spawns the configured number of actors for every squad of an encounter that passes the

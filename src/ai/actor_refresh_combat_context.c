@@ -29,6 +29,7 @@
 #include "game.h"
 #include <string.h>
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;        // 0x00880360
 extern data_array *swarm_data;        // 0x0088035c
@@ -45,7 +46,7 @@ extern const real_vector3d *global_up3d_pointer;        // 0x00696720
 extern char ai_marker_name_b[];    // 0x00672034
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, blam-cc: EAX, ECX
-extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
+
     // 0x4296c0, blam-cc: EBX -> unit_index, stack -> out_context
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker,
     uint32_t flags); // 0x4f6080

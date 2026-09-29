@@ -12,12 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_object_list_initialize_shield_stun_thresholds(datum_index object_list_header_handle, float override_max_body_vitality,
-    float override_max_shield_vitality); // 0x561ab0, blam-cc: ECX list, stack body, shield
 
 void hs_evaluate_units_set_maximum_vitality(int16_t function_index, uint32_t thread_index, char first)
 {

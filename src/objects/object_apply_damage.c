@@ -35,6 +35,7 @@
 #include "objects.h"
 #include <stdint.h>
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
@@ -51,7 +52,7 @@ extern uint8_t game_engine_teams_enabled_flag;          // 0x006f1cbc, multiplay
 extern uint8_t g_006f1cf4;          // 0x006f1cf4, multiplayer friendly-fire mode
 extern player_globals *local_player_globals; // 0x0087a478
 
-extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value); // 0x42aa90, EAX, stack, EDX
+
 extern void player_effect_send_network_update(datum_index player_handle, const real_vector3d *direction,
     const damage_data *dd, float random_blend, float damage_amount); // 0x456bc0, EAX, EBX, stack
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd,

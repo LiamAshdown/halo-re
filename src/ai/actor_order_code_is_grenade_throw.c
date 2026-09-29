@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // Returns whether order_code falls in the grenade-throw range 9..12 inclusive.
 int32_t actor_order_code_is_grenade_throw(int16_t order_code)

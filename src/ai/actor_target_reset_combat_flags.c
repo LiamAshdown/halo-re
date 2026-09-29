@@ -12,11 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data; // 0x008802c0
 
-extern void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index target_prop_index,
-    uint8_t already_noticed); // 0x421c20, stack
 
 // REWRITTEN from objdump 0x41baf0..0x41bb26. ECX: prop; stack: (actor, a slot the function overwrites with the prop,
 //   already_noticed). Clears the prop's three notice flags (+0xb9..+0xbb), marks +0x64, then tail-calls

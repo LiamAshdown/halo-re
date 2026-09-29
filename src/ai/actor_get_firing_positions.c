@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;          // 0x00880360
 extern data_array *swarm_data;          // 0x0088035c
@@ -32,7 +33,7 @@ extern data_array *swarm_component_data;// 0x00880358
 // Fills a caller-provided struct with the actor's unit position/orientation plus a pair of
 // fields from the root object at the top of its parent chain. Called here with no visible
 // arguments; EAX/ECX/EDX are presumably still live from this function's own entry.
-extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context); // 0x4296c0, EBX, stack
+
 
 // blam-cc: EAX -> actor_index, ECX -> out_block, EDX -> query_point
 // Fetches the actor's set of candidate firing positions: for a non-swarm actor this is its

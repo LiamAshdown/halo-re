@@ -24,11 +24,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern Scenario *global_scenario;  // 0x00746f8c
 
-extern uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index); // 0x438f60, ECX, AX
 
 // blam-cc: stack -> packed_reference
 int32_t ai_reference_resolve_squad_datum(uint32_t packed_reference)

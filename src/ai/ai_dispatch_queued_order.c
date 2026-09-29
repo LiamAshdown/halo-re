@@ -20,13 +20,10 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *prop_data; // 0x008802c0
 
-extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index,
-    datum_index vehicle_object_index, int16_t line, int16_t variant); // 0x4302e0, EAX, EBX, EDI, stack
-extern void actor_issue_multi_target_vocalization(int16_t line, datum_index actor_index, int16_t variant,
-    datum_index vehicle_object_index); // 0x4303a0, stack, EDI, BX, ESI
 
 // blam-cc: ECX -> order, EDX -> prop_index, stack -> actor_index
 void ai_dispatch_queued_order(ai_queued_order *order, datum_index prop_index, datum_index actor_index)

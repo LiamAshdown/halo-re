@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,8 +31,7 @@ extern double atan2(double y, double x);
 extern double fabs(double x);
 
 extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
-extern void unit_get_move_speed_for_range(datum_index actor_index, float param_a, float param_b, float param_dist,
-    float *out_a, float *out_b); // 0x41bed0, EAX, stack
+
 
 static const float k_perception_range_class_scale[4] = {0.4f, 0.6f, 0.8f, 1.0f}; // 0x672bc8, 0x672ca8, 0x672ca0, 0x672ac4
 

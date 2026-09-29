@@ -13,14 +13,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly bsp_generation)
 
-extern uint8_t actor_movement_flying_needs_steering(datum_index actor_index, const real_point3d *destination,
-    float *out_avoidance_distance); // 0x41aab0, EAX, ECX, EDI
-extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
-    real_point3d *out_position, void *context, uint8_t *out_success); // 0x43a0a0, EAX, ECX, ESI, stack
 
 // blam-cc: stack -> actor_index, query, candidate
 // The always-on rejection rule. Ground actors pass unconditionally because their candidates

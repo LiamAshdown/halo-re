@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void ai_unit_set_squad_reference(datum_index object_index, uint32_t packed_reference); // 0x435750, stack
 
 void hs_evaluate_ai_vehicle_encounter(int16_t function_index, uint32_t thread_index, char first)
 {

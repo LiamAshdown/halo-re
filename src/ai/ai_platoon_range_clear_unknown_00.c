@@ -10,11 +10,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 extern data_array *encounter_data;                        // 0x008802c8
 
-extern void ai_reference_expand_to_platoon_range(uint32_t packed_reference, ai_reference_platoon_range *out_range); // 0x432420, this batch
 
 // blam-cc: EAX -> packed_reference
 void ai_platoon_range_clear_unknown_00(uint32_t packed_reference)

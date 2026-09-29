@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -28,10 +29,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, seven stack arguments
-extern int32_t actor_report_command_status(uint32_t actor_index); // 0x4048b0, EAX
-extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, EAX, BL
-extern datum_index actor_get_target_prop_object_index(datum_index actor_index); // 0x4283d0, EAX
-extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type); // 0x4141a0, EAX, CX, DL
+
 
 void actor_mode_guard_tick(datum_index actor_index)
 {

@@ -20,11 +20,11 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
-extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, this batch
 
 // blam-cc: ECX -> out_iterator, stack -> packed_reference
 // Initializes out_iterator to walk every actor named by a packed ai reference: every actor

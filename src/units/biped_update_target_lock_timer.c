@@ -10,12 +10,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern uint8_t DAT_0087abc3;        // UNSURE global (cheat/debug toggle)
 
-extern void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index,
-    datum_index other_object_index); // 0x42bd70, blam-cc: EAX, EBX
+
 extern uint8_t recorded_animation_object_is_playing(datum_index unit_index); // 0x44acc0, blam-cc: ESI
 extern int32_t unit_get_local_player_weapon_index(datum_index unit);        // 0x4726b0, blam-cc: EAX
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);

@@ -16,13 +16,13 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 
-extern uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance, real_vector2d *direction,
-                                          uint16_t *variant, float step_up, uint8_t *out_flag, void *extra_param); // 0x417e50, stack, ECX
+
 extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command); // 0x569470, EAX, CX
-extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]); // 0x417a60, EAX, stack
+
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 

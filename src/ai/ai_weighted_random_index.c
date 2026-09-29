@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern uint32_t random_seed_global; // 0x00719cd0
 

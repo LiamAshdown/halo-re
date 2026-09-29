@@ -16,6 +16,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -28,11 +29,11 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern data_array *prop_data; // 0x008802c0
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
-extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]); // 0x417a60
+
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
-extern void actor_raise_timer_5f6(datum_index actor_index, int32_t ticks); // 0x40f7a0
-extern uint16_t actor_consider_target_candidate(datum_index actor_index, datum_index candidate_prop_index); // 0x4208a0
+
+
 extern int32_t __ftol(void);
 
 uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold)

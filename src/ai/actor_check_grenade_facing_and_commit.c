@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -33,7 +34,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
 
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX = the unit (actor +0x18)
-extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index); // 0x40d9c0, this module
+
 
 // FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; actor_index arrive(s) on the stack (2 stack argument(s)).
 // blam-cc: stack -> actor_index, force_commit

@@ -14,12 +14,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 
-extern void actor_update_target_combat_status(datum_index actor_index); // 0x4200d0, UNSURE signature
-extern void actor_update_awareness_level(datum_index actor_index);       // 0x420290, UNSURE signature
 
 // blam-cc: EDX -> target_prop_index, ESI -> actor_index
 // Marks the third per-prop alert flag and promotes the prop's kind, or, when no target prop is

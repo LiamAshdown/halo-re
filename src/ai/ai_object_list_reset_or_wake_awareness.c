@@ -18,6 +18,7 @@
 #include "units.h"
 #include "hs.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;                // 0x008603b0
 extern data_array *actor_data;                 // 0x00880360
@@ -25,9 +26,7 @@ extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void actor_clear_perceived_props(datum_index actor_index); // 0x427e00, outside this rewrite's range, UNSURE signature
-extern void actor_dispatch_perception_reset(datum_index actor_index); // 0x429000, EAX -> actor_index
-extern void actor_set_units_active(datum_index actor_index, uint8_t dormant); // 0x427860, blam-cc: EAX, BL
+
 
 static void reset_or_wake(datum_index unit_index, char flag)
 {

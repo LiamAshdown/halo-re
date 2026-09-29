@@ -16,6 +16,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -27,11 +28,8 @@ extern real vector3d_magnitude_squared(real_vector3d *v);                // 0x40
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX a, ECX b
 extern real vector2d_normalize_with_length(real_vector2d *v);            // 0x4018e0, ECX
 extern real vector3d_normalize_with_length(real_vector3d *v);            // 0x401990, ECX
-extern uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle,
-                                          uint32_t exclude_object_index); // 0x411180, EBX, stack
-extern void actor_movement_action_stop(datum_index actor_index); // 0x417570, EDX
-extern uint8_t actor_movement_action_in_progress(datum_index actor_index); // 0x41a980, EAX
-extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, EAX
+
+
 extern uint8_t recorded_animation_object_is_playing(datum_index unit_index); // 0x44acc0, ESI
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX

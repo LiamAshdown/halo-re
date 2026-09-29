@@ -24,6 +24,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_ai.h"
 #include <string.h>
 
 extern data_array *actor_data;     // 0x00880360
@@ -38,15 +39,11 @@ extern int32_t fistp_round(float x);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
 extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point); // 0x41c1e0, EAX, ECX, EDX
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index); // 0x43ea80, stack, ECX
-extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
-    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
-    datum_index exclude_object_index, uint8_t flying); // 0x42b270, AX, CX, ESI, EDI, stack
+
+
 extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target,
     uint8_t stance_a, uint8_t check_facing, uint16_t range_class); // 0x41bb30, EBX, stack
-extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index,
-    void *target_ref, int16_t gate, real_point3d *listener_position); // 0x41c030, stack, EAX, ECX, BX, ESI
+
 extern int32_t unit_get_animation_frames_remaining(uint32_t unit_index, int16_t *out_animation_state); // 0x564390, EAX, stack
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant, void *context); // 0x4142d0, EAX, stack
 

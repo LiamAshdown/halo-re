@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern data_array *encounter_data;  // 0x008802c8
@@ -44,8 +45,6 @@ extern uint32_t random_seed_global; // 0x00719cd0
 extern float k_random_scale_65536;  // 0x00672b84, 1.5259022e-05 = 1/65536
 extern float ticks_per_second;      // 0x00672ac8, 30.0
 
-extern uint8_t encounter_squad_spawn_actor(datum_index encounter_index, int16_t squad_index, uint32_t unit_type_index,
-    uint32_t unused); // 0x438e20, all stack
 
 // blam-cc: ECX -> encounter_index, EAX(low16) -> squad_index
 uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index)

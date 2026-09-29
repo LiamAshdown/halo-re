@@ -12,14 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
-extern void ai_process_vehicle_entry_queue(void); // 0x42bf90
-extern void ai_conversation_update(void); // 0x430a70, UNSURE signature, not in this rewrite range
-extern void encounters_update(void); // 0x435e00, UNSURE signature, not in this rewrite range
-extern void ai_release_actors_and_swarms(void); // 0x428ea0
-extern void ai_reset_all_actors_perception(void); // 0x429080
 
 // Top-level AI subsystem tick dispatcher: runs the main per-frame update pipeline (vehicle
 // entry queue, two unestablished per-tick passes, then swarm/actor release bookkeeping) the

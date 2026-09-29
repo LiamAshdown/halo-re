@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern uint8_t ai_conversation_activate(int16_t conversation_definition_index, uint8_t allow_eviction); // 0x4307c0, AX, stack
 
 void hs_evaluate_ai_conversation(int16_t function_index, uint32_t thread_index, char first)
 {

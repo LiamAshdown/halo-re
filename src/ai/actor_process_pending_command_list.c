@@ -14,6 +14,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -25,8 +26,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 #define F(o) (*(float *)(actor + (o)))
 
 extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index); // 0x40ab80, EAX
-extern int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t command_list_index, int16_t *record); // 0x407140
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0
+
 
 uint8_t actor_process_pending_command_list(datum_index actor_index)
 {

@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -25,8 +26,6 @@ extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *actor_data;     // 0x00880360
 
-extern actor *actor_iterator_next(actor_iterator_state *iterator); // 0x436a70
-extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0
 
 // blam-cc: stack -> buffer, has_more
 // Iterates every active actor as part of AI global cleanup, releasing each currently

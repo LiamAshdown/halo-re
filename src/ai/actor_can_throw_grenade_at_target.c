@@ -26,6 +26,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data;         // 0x00880360
 extern data_array *encounter_data;     // 0x008802c8
@@ -34,9 +35,6 @@ extern game_time_globals *game_time; // 0x006f1d6c
 
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX table, AX index: the difficulty scale
 
-extern uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship); // 0x410c90, this module
-extern uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius, float safety_radius, real_point3d *point, int16_t *out_count); // this module
-extern uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t exclude_object_index); // 0x411180, this module
 
 // blam-cc: EAX -> actor_index
 uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)

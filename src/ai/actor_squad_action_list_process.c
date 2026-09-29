@@ -17,12 +17,10 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#include "fn_ai.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 
-extern char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state); // 0x405520, this session
-extern uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state); // 0x4066d0, this session
-extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state, int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out); // 0x406c50, this session
 
 // Drives the actor's current squad action list (command_list_index) forward: while the
 // current entry is not complete, stops; otherwise resets it, advances to the next entry (or

@@ -15,12 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
-extern uint8_t actor_update_melee_combat_action(datum_index actor_index); // 0x40cdf0, this module
-extern void actor_set_target_alert_stage1(datum_index target_prop_index, datum_index actor_index); // ECX prop, ESI actor
-extern void actor_set_target_alert_stage2(datum_index target_prop_index, datum_index actor_index); // ECX prop, ESI actor
-extern void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index actor_index); // EDX prop, ESI actor
+
 
 // blam-cc: EAX -> actor_index
 uint8_t actor_update_special_mode(datum_index actor_index)

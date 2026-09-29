@@ -30,6 +30,7 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 // actor_flee_source_reason now lives in types/ai.h (folded from this file).
 

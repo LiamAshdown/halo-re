@@ -21,11 +21,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#include "fn_ai.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 extern ai_globals *ai_globals_ptr; // 0x00880354
-extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor); // 0x4369f0, EAX encounter, ECX cursor[3]
+
 
 // blam-cc: EAX -> actor_index, stack -> blast_radius, safety_radius, point, out_count
 uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius, float safety_radius,

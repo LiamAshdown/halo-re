@@ -15,12 +15,13 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_ai.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern random_seed random_seed_global;   // 0x00719cd0
 
 extern double atan2(double y, double x); // fpatan
-extern uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, real_vector3d *out_direction); // 0x4287a0, EAX, ECX
+
 
 // One-time initialization of the unit's random idle-turn target angle: seeded from its current
 // heading (or zero, for an AI-controlled unit where actor_resolve_wander_or_look_direction applies) plus a small random

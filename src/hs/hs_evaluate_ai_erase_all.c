@@ -12,10 +12,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_ai.h"
 
-
-extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index,
-    uint8_t is_dead); // 0x42ab00, EAX, EDI, stack, BL
 
 void hs_evaluate_ai_erase_all(int16_t function_index, uint32_t thread_index, char first)
 {
