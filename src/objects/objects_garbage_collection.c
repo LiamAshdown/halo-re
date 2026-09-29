@@ -161,7 +161,7 @@ void objects_garbage_collection(void)
         uint8_t retried = 0;
         uint8_t reported = 0;
         uint8_t stale;
-        uint32_t last = object_globals_pointer->unknown_8c;
+        uint32_t last = object_globals_pointer->last_garbage_collection_tick;
 
         stale = (uint8_t)(last == 0xffffffff || !((int32_t)last + 0x96 >= game_time->game_time));
 
@@ -248,7 +248,7 @@ void objects_garbage_collection(void)
         }
     }
 
-    object_globals_pointer->unknown_8c = (uint32_t)game_time->game_time;
+    object_globals_pointer->last_garbage_collection_tick = (uint32_t)game_time->game_time;
     object_globals_pointer->unknown_02[0] = 0;
 }
 

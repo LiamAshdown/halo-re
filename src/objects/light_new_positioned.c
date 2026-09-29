@@ -4,7 +4,7 @@
 // "light_new_positioned ... seeding its lifetime from the current tick counter")
 // rewrite confidence: 0.4
 // evidence: types/objects.h light (definition_tag 0x04, marker_link 0x58, next_light 0x10,
-// unknown_78 0x78, marker_index 0x5c — the header's own note on the 0x5c..0x77 union between the
+// intensity_scale 0x78, marker_index 0x5c — the header's own note on the 0x5c..0x77 union between the
 // attached and positioned forms; creation_tick 0x0c); the game-time tick field at
 // DAT_006f1d6c+0x0c.
 // UNSURE: offset 0x2c is `owner_object` in light_new_attached.c but is tested here as a marker
@@ -47,7 +47,7 @@ datum_index light_new_positioned(datum_index light_tag, int32_t marker_index, in
         entry->marker_link = game_time->game_time; // +0x0c, the current tick
         entry->definition_tag = light_tag;
         *(int32_t *)&((struct light *)raw)->owner_object = marker_index; // UNSURE: overlaps light.owner_object
-        entry->unknown_78 = param_5;
+        entry->intensity_scale = param_5;
         entry->flags = 3; // _light_always_visible_bit | _light_attached_bit
 
         entry->next_light = (datum_index)0xffffffff;

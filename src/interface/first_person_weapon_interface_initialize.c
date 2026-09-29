@@ -144,11 +144,11 @@ void first_person_weapon_interface_initialize(int16_t local_player_index)
         fp->weapon_index = weapon_index;
         fp->state = -1;
         fp->animation_block_index = -1;
-        fp->unknown_1a = -1;
-        fp->unknown_20 = -1;
+        fp->moving_animation_index = -1;
+        fp->charging_animation_index = -1;
         fp->unknown_28 = 0.0f;
         fp->charge = 0.0f;
-        fp->unknown_10 = 0;
+        fp->idle_ticks = 0;
         fp->frame_sound_impulse = -1;
         fp->frame_sound_state = -1;
         first_person_weapon_set_state(local_player_index, 1, 0); // UNSURE: new_state guessed

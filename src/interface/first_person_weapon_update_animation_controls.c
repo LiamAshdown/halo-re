@@ -171,12 +171,12 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
                 }
             }
 
-            if (fp->unknown_1a != -1) {
-                animation_overlay_frame_orientations(&animation_block[fp->unknown_1a],
+            if (fp->moving_animation_index != -1) {
+                animation_overlay_frame_orientations(&animation_block[fp->moving_animation_index],
                              (uint16_t)*(int16_t *)fp->unknown_1c, animation_control);
             }
-            if (fp->unknown_20 != -1) {
-                animation_overlay_interpolated_frame_orientations_weighted(&animation_block[fp->unknown_20], FP_FLOAT(fp, 0x24),
+            if (fp->charging_animation_index != -1) {
+                animation_overlay_interpolated_frame_orientations_weighted(&animation_block[fp->charging_animation_index], FP_FLOAT(fp, 0x24),
                              *(float *)((uint8_t *)weapon_obj + 0x244) + 0.5f, animation_control);
             }
 

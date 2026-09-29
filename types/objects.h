@@ -572,7 +572,7 @@ typedef struct object_globals {
     uint32_t cluster_pvs_current[16];  // 0x4c this frame bitset, copied in from the BSP
                                     //      globals; a difference drives the create and
                                     //      delete sweep in objects_update
-    uint32_t unknown_8c;            // 0x8c
+    uint32_t last_garbage_collection_tick; // 0x8c game_time stamp of the last objects_garbage_collection pass (-1 = never; that pass is skipped while within 0x96 ticks)
     int16_t ambient_cluster_mode;   // 0x90 object_ambient_cluster_mode
     int16_t unknown_92;             // 0x92
     int16_t ambient_cluster_index;  // 0x94
@@ -768,7 +768,7 @@ typedef struct light {
                                     //      path transforms it into position above. The attached
                                     //      form uses the int16 here as a change_color_index.
     real_vector3d local_direction;  // 0x6c node-space direction, transformed into direction above
-    uint32_t unknown_78;            // 0x78
+    uint32_t intensity_scale;          // 0x78 (float bits) light_new_positioned param_5; multiplies the faded light blend in object_lights_update_all
 } light;                            // size 0x7c
 
 // ---------------------------------------------------------------------------

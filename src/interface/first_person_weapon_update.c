@@ -147,45 +147,45 @@ void first_person_weapon_update(int16_t local_player_index)
         }
 
         // moving overlay: {animation 0x1a, frame 0x1c}
-        if (fp->unknown_1a != -1) {
-            animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, &fp->unknown_1a,
+        if (fp->moving_animation_index != -1) {
+            animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, &fp->moving_animation_index,
                          (datum_index *)0, 0);
             if (!is_moving) {
                 if (fp->state == 0) {
                     first_person_weapon_snapshot_pose(local_player_index, 6);
                 }
-                fp->unknown_1a = -1;
+                fp->moving_animation_index = -1;
             }
         } else if (is_moving) {
             list = first_person_weapon_list(animations);
             *(int16_t *)fp->unknown_1c = 0;
             if ((int32_t)list->animations.count > 3) {
-                fp->unknown_1a = ((int16_t *)list->animations.pointer)[3];
+                fp->moving_animation_index = ((int16_t *)list->animations.pointer)[3];
             } else {
-                fp->unknown_1a = -1;
+                fp->moving_animation_index = -1;
             }
         }
 
         // state 4 overlay: {animation 0x20, float frame 0x24}
-        if (fp->unknown_20 == -1) {
+        if (fp->charging_animation_index == -1) {
             if (fp->state == 4) {
                 list = first_person_weapon_list(animations);
                 FP_FLOAT(fp, 0x24) = 0.0f;
                 if ((int32_t)list->animations.count > 0xf) {
-                    fp->unknown_20 = ((int16_t *)list->animations.pointer)[0xf];
+                    fp->charging_animation_index = ((int16_t *)list->animations.pointer)[0xf];
                 } else {
-                    fp->unknown_20 = -1;
+                    fp->charging_animation_index = -1;
                 }
             }
         } else if (fp->state == 4) {
             ModelAnimationsAnimation *animation =
-                &((ModelAnimationsAnimation *)animations->animations.pointer)[fp->unknown_20];
+                &((ModelAnimationsAnimation *)animations->animations.pointer)[fp->charging_animation_index];
             float charged_fraction = *(float *)((uint8_t *)weapon_obj + 0x244);
             FP_FLOAT(fp, 0x24) = (float)fmod((charged_fraction + 1.0f) + (charged_fraction + 1.0f) +
                                              FP_FLOAT(fp, 0x24),
                                              (double)(int16_t)animation->frame_count);
         } else {
-            fp->unknown_20 = -1;
+            fp->charging_animation_index = -1;
         }
 
         if (fp->unknown_30[0x20] != 0) {  // 0x50
@@ -235,24 +235,24 @@ void first_person_weapon_update(int16_t local_player_index)
                 if (fp->state == 0) {
                     GlobalsPlayerInformation *player_information =
                         (GlobalsPlayerInformation *)global_globals->player_information.pointer;
-                    if (fp->unknown_0e == 0) {
-                        fp->unknown_0e = (int16_t)__ftol(
+                    if (fp->idle_ticks_target == 0) {
+                        fp->idle_ticks_target = (int16_t)__ftol(
                             random_range_real(player_information->first_person_idle_time[0],
                                               player_information->first_person_idle_time[1]) * 30.0f);
                     }
-                    fp->unknown_10++;
-                    if (fp->unknown_10 > fp->unknown_0e) {
-                        fp->unknown_0e = 0;
+                    fp->idle_ticks++;
+                    if (fp->idle_ticks > fp->idle_ticks_target) {
+                        fp->idle_ticks_target = 0;
                         if (!(effect_random_fraction() <
                               player_information->first_person_skip_fraction)) {
                             first_person_weapon_set_state(local_player_index, 1, 5);
                         }
                     }
                 } else {
-                    fp->unknown_10 = 0;
+                    fp->idle_ticks = 0;
                 }
             } else {
-                fp->unknown_10 = 0;
+                fp->idle_ticks = 0;
                 if (fp->state == 5) {
                     first_person_weapon_set_state(local_player_index, 1, 0);
                 }

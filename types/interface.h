@@ -342,15 +342,15 @@ typedef struct first_person_weapon_interface {
     datum_index unit_index;    // 0x0004 the controlled unit object
     datum_index weapon_index;  // 0x0008 the unit current weapon object
     int16_t state;             // 0x000c animation state, driven by 0x492d20 and 0x492e60
-    int16_t unknown_0e;        // 0x000e
-    int16_t unknown_10;        // 0x0010
+    int16_t idle_ticks_target; // 0x000e random idle time in ticks (first_person_idle_time * 30) after which the idle animation may start
+    int16_t idle_ticks;        // 0x0010 ticks spent idle in state 0
     int16_t shutdown_countdown; // 0x0012 reseeded to 0x1e by 0x4942e0
     int16_t animation_index;   // 0x0014 first person animation index, -1 when none
     int16_t animation_block_index; // 0x0016 index into the animation graph animations block, -1 none (animation_state_advance state)
     uint8_t animation_frame[2];   // 0x0018 frame word paired with animation_block_index
-    int16_t unknown_1a;        // 0x001a
+    int16_t moving_animation_index; // 0x001a overlay animation while moving, frame at 0x1c; -1 none
     uint8_t unknown_1c[4];     // 0x001c
-    int16_t unknown_20;        // 0x0020
+    int16_t charging_animation_index; // 0x0020 overlay animation while charging (state 4), frame at 0x24; -1 none
     uint8_t unknown_22[6];     // 0x0022
     float unknown_28;          // 0x0028 cleared together with the next field by 0x493c60
     float charge;              // 0x002c nudged by action code 0 in 0x4940f0

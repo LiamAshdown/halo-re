@@ -7,7 +7,7 @@
 //   collideable/noncollideable_cluster_first/_object_references/_cluster_partition,
 //   object_cluster_stamp, object_globals_pointer) and object_globals's field layout, which this
 //   function's tail writes field-for-field (collecting_in_clusters, unknown_04,
-//   first_tracked_object, cluster_pvs_previous[16], cluster_pvs_current[16], unknown_8c,
+//   first_tracked_object, cluster_pvs_previous[16], cluster_pvs_current[16], last_garbage_collection_tick,
 //   ambient_cluster_mode); data_array.valid at 0x24 (types/memory.h); object_type_definition
 //   chain (next at 0xc0, reset hook at 0x1c).
 // register convention: none (void), matches Ghidra's __cdecl void(void) signature.
@@ -102,7 +102,7 @@ void objects_reset(void)
     object_globals_pointer->collecting_in_clusters = 0;
     object_cluster_stamp = 0;
     object_globals_pointer->unknown_04 = 0;
-    object_globals_pointer->unknown_8c = 0;
+    object_globals_pointer->last_garbage_collection_tick = 0;
     object_globals_pointer->first_tracked_object = k_datum_index_none;
 }
 
