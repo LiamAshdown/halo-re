@@ -44,21 +44,21 @@ uint8_t ui_event_49fd30(widget_instance *widget, int16_t *event, uint8_t *out_ha
         return 0;
     }
     group = widget->first_child;
-    value = ((struct game_variant *)variant)->unknown_84;
+    value = ((struct game_variant *)variant)->oddball_trait_with_ball;
     first_list_child(group)->selection_index = (int16_t)((uint32_t)value <= 3 ? value : 0);
     group = group->next_sibling;
-    value = ((struct game_variant *)variant)->unknown_88;
+    value = ((struct game_variant *)variant)->oddball_trait_without_ball;
     first_list_child(group)->selection_index = (int16_t)((uint32_t)value <= 3 ? value : 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->ctf_value_80;
     first_list_child(group)->selection_index = (int16_t)(value == 0 ? 1 : value == 2 ? 2 : 0);
     group = group->next_sibling;
-    value = ((struct game_variant *)variant)->unknown_8c;
+    value = ((struct game_variant *)variant)->oddball_style;
     first_list_child(group)->selection_index = (int16_t)(value == 1 ? 1 : value == 2 ? 2 : 0);
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)(variant[0x7c] == 0);
     group = group->next_sibling;
-    value = ((struct game_variant *)variant)->unknown_90;
+    value = ((struct game_variant *)variant)->ball_count;
     first_list_child(group)->selection_index = (int16_t)(value > 0 && value <= 0x10 ? value - 1 : 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->score_limit;
@@ -66,7 +66,7 @@ uint8_t ui_event_49fd30(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)(variant[0x34] == 0);
     group = group->next_sibling;
-    value = ((struct game_variant *)variant)->unknown_78;
+    value = ((struct game_variant *)variant)->game_time_limit;
     first_list_child(group)->selection_index = (int16_t)(value == 0x4650 ? 1 : value == 0x6978 ? 2 : value == 0x8ca0 ? 3 :
         value == 0xafc8 ? 4 : value == 0xd2f0 ? 5 : value == 0x13c68 ? 6 : 0);
     return 1;

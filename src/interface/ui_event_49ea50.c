@@ -72,12 +72,12 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = parent->first_child;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        ((struct game_variant *)variant)->unknown_84 = selection;
+        ((struct game_variant *)variant)->oddball_trait_with_ball = selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        ((struct game_variant *)variant)->unknown_88 = selection;
+        ((struct game_variant *)variant)->oddball_trait_without_ball = selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -87,7 +87,7 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 2) {
-        ((struct game_variant *)variant)->unknown_8c = selection;
+        ((struct game_variant *)variant)->oddball_style = selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -97,7 +97,7 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 0xf) {
-        ((struct game_variant *)variant)->unknown_90 = selection + 1;
+        ((struct game_variant *)variant)->ball_count = selection + 1;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -111,7 +111,7 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     selection = first_list_child(group->next_sibling)->selection_index;
     if (selection >= 0 && selection <= 6) {
-        ((struct game_variant *)variant)->unknown_78 = times[selection];
+        ((struct game_variant *)variant)->game_time_limit = times[selection];
     }
     widget_history_pop(parent->controller_index);
     return 1;

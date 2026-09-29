@@ -44,7 +44,7 @@ void ai_communication_reset(void)
     ai_globals_ptr->unknown_1c = (datum_index)0;
     ai_globals_ptr->unknown_20 = (datum_index)0;
     ai_globals_ptr->unknown_24 = (datum_index)0;
-    ai_globals_ptr->owner_refresh_tick = (datum_index)0;
+    ai_globals_ptr->unknown_28 = (datum_index)0;
 
     entries = (int32_t *)communication_line_base;
     entry_count = communication_line_count * 2;

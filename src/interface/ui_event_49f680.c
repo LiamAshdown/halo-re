@@ -56,7 +56,7 @@ uint8_t ui_event_49f680(widget_instance *widget, int16_t *event, uint8_t *out_ha
     value = ((struct game_variant *)variant)->score_limit;
     first_list_child(group)->selection_index = (int16_t)(value == 3 ? 1 : value == 5 ? 2 : value == 10 ? 3 : value == 15 ? 4 : 0);
     group = group->next_sibling;
-    value = ((struct game_variant *)variant)->unknown_78;
+    value = ((struct game_variant *)variant)->game_time_limit;
     first_list_child(group)->selection_index = (int16_t)(value == 0x4650 ? 1 : value == 0x6978 ? 2 : value == 0x8ca0 ? 3 :
         value == 0xafc8 ? 4 : value == 0xd2f0 ? 5 : value == 0x13c68 ? 6 : 0);
     return 1;

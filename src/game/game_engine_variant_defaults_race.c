@@ -30,8 +30,8 @@ game_variant * game_engine_variant_defaults_race(game_variant *variant_options)
     defaults.game_engine_index = 5;
     defaults.teams = 0;
     defaults.flags = 0x103;
-    defaults.unknown_3c = 1;
-    defaults.unknown_40 = 0;
+    defaults.objective_indicator = 1;
+    defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 0;
     defaults.suicide_penalty = 300;
@@ -42,10 +42,10 @@ game_variant * game_engine_variant_defaults_race(game_variant *variant_options)
     defaults.vehicle_set = 0x249240;
     defaults.unknown_64 = 0x249240;
     defaults.time_limit = 900;
-    defaults.unknown_6c = 1;
+    defaults.friendly_fire_mode = 1;
     defaults.betrayal_penalty = 0;
     defaults.unknown_74 = 0;
-    defaults.unknown_78 = 36000;
+    defaults.game_time_limit = 36000;
     defaults.ctf_option_7c = 0;
     defaults.ctf_value_80 = 0;
     defaults.variant_flags = 1;

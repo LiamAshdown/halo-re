@@ -178,8 +178,8 @@ typedef struct game_variant {
     uint8_t teams;             // 0x34 sanitize normalizes to 0/1; game_engine_get_teams_enabled
     uint8_t pad_35[3];         // 0x35
     uint32_t flags;            // 0x38 option bitfield; slayer forces bits 0 and 8 on
-    int32_t unknown_3c;        // 0x3c
-    uint8_t unknown_40;        // 0x40 sanitize normalizes to 0/1
+    int32_t objective_indicator;// 0x3c 0 motion tracker, 1 nav points (custom waypoints only draw at 1), 2 none;
+    uint8_t odd_man_out;       // 0x40 sanitize normalizes to 0/1
     uint8_t pad_41[3];         // 0x41
     int32_t respawn_time_growth;// 0x44 clamped >= 0; on_player_death adds it to 0x30 and caps
                                //      the total at 5x this value
@@ -195,12 +195,12 @@ typedef struct game_variant {
                                //      0x249240, i.e. every slot from index 2 up set to 1)
     uint32_t unknown_64;       // 0x64 same packed 3-bit encoding as 0x60
     int32_t time_limit;        // 0x68 in ticks (slayer default 0x708 == 60 s * 30)
-    uint8_t unknown_6c;        // 0x6c
+    uint8_t friendly_fire_mode; // 0x6c 0..3 (UI clamps to 0..3, default 1); object_apply_damage switches on it (alias 0x006f1cf4)
     uint8_t pad_6d[3];         // 0x6d
     int32_t betrayal_penalty;  // 0x70 on_player_death multiplies it by player+0xc0
     uint8_t unknown_74;        // 0x74
     uint8_t pad_75[3];         // 0x75
-    int32_t unknown_78;        // 0x78 slayer default 36000 ticks (20 minutes)
+    int32_t game_time_limit;    // 0x78 slayer default 36000 ticks (20 minutes)
     uint8_t ctf_option_7c;     // 0x7c the four bytes 0x7c..0x7f are only normalized when
     uint8_t ctf_option_7d;     // 0x7d game_engine_index is 1 (ctf); 0x7f is skipped when the
     uint8_t ctf_option_7e;     // 0x7e index is 2 (slayer), which also normalizes 0x7c..0x7e
@@ -260,20 +260,20 @@ typedef struct game_engine_definition {
     void *post_rasterize;              // 0x34 render_scene_draw (0x50bfb0)
     void *update;                      // 0x38 game_engine_tick
     void *object_in_play_update;       // 0x3c 0x45f560 (per-tick pickup bookkeeping)
-    void *unknown_40;                  // 0x40
+    void *weapon_pickup_allowed;      // 0x40 (weapon, player) from game_engine_notify_weapon_ready_state_change; result is the permission
     void *object_expired;              // 0x44 0x45f510 (unclaimed item about to despawn)
-    void *unknown_48;                  // 0x48
+    void *update_after_players;        // 0x48 game_engine_tick, once after the per-player loop
     void *get_score;                   // 0x4c 0x463480 / kill-feed builder; takes a player
                                        //      handle (or -1) and returns its score
     void *get_team_score;              // 0x50 called with 0 and 1
-    void *unknown_54_build_player_text;// 0x54 (player, wchar buffer) -> scoreboard row text
+    void *build_player_text;             // 0x54 (player, wchar buffer) -> scoreboard row text
     void *build_score_header_text;     // 0x58 (wchar buffer)
     void *build_team_score_text;       // 0x5c (team, wchar buffer)
-    void *unknown_60;                  // 0x60 reached from the units module (0x56da00)
+    void *weapon_use_permission;       // 0x60 reached from the units module (0x56da00)
     void *unknown_64;                  // 0x64 reached from the units module (0x5674a0)
-    void *unknown_68;                  // 0x68 fired first thing in game_engine_on_player_death
+    void *player_killed;                // 0x68 fired first thing in game_engine_on_player_death
     void *build_message_text;          // 0x6c variant override for the kill-feed text builder
-    void *unknown_70;                  // 0x70
+    void *starting_location_scale;      // 0x70 (player, location) -> multiplier in game_engine_rate_player_starting_location
     void *player_team_changed;         // 0x74 0x4611b0
     void *allow_grenade_counts;        // 0x78 game_engine_apply_player_grenade_counts
     void *unknown_7c;                  // 0x7c
@@ -285,10 +285,10 @@ typedef struct game_engine_definition {
     void *profiles_updated;            // 0x90 0x466cb0 and the network layer (0x4dfa10)
     void *profile_post_update;         // 0x94 0x466e60
     void *player_round_reset;          // 0x98 0x463620
-    void *unknown_9c;                  // 0x9c
-    void *unknown_a0;                  // 0xa0 reached from the units module (0x577e40)
-    void *unknown_a4;                  // 0xa4
-    void *unknown_a8;                  // 0xa8
+    void *qr2_server_key_hook;         // 0x9c (key, buffer), network_session_host_qr2_server_key
+    void *qr2_player_key_hook;         // 0xa0 (key, index, buffer), qr2 player key; also reached from the units module (0x577e40)
+    void *qr2_team_key_hook;           // 0xa4 (key, index, buffer)
+    void *qr2_count_hook;              // 0xa8 (key_type) -> count
     void *reset_objects;               // 0xac 0x468260 / 0x468320
 } game_engine_definition;              // size 0xb0
 

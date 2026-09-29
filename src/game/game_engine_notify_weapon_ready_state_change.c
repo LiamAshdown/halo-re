@@ -4,7 +4,7 @@
 // evidence: out/phase4/game_functions.md ("Notifies the game variant about a pickup-flag state
 // change and asks it whether the item pickup is permitted"); types/tags.h WeaponFlags bit 3
 // (must_be_readied); types/items.h weapon_data::flags (+0x22c, "weapon_flags" runtime bits,
-// unnamed here); types/game.h game_engine_definition::unknown_40/object_expired (+0x40/+0x44);
+// unnamed here); types/game.h game_engine_definition::weapon_pickup_allowed/object_expired (+0x40/+0x44);
 // src/game/game_engine_is_valid_team_player.c's player_index_from_unit_index signature; types/objects.h
 // object::definition_tag (+0x00); types/cache.h tag_instance (stride 0x20, data at +0x14).
 // register convention: two stack arguments, the unit (arg 1, handed to player_index_from_unit_index) and
@@ -60,8 +60,8 @@ uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, dat
         }
     }
     ((struct weapon_object *)weapon)->weapon.flags |= 0x20;
-    if (current_game_engine->unknown_40 != 0) {
-        return ((uint8_t (*)(datum_index, datum_index))current_game_engine->unknown_40)
+    if (current_game_engine->weapon_pickup_allowed != 0) {
+        return ((uint8_t (*)(datum_index, datum_index))current_game_engine->weapon_pickup_allowed)
             (weapon_index, player_index_from_unit_index(unit_index));
     }
     return 1;

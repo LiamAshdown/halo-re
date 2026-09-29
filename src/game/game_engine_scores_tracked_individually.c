@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.5
 // evidence: out/phase4/game_functions.md ("Returns whether player scores should be tracked/
 // displayed individually rather than by team, based on the team-mode flag and an option bit");
-// types/game.h game_variant::unknown_3c (+0x3c, aliased 0x006f1cc4), game_variant::
+// types/game.h game_variant::objective_indicator (+0x3c, aliased 0x006f1cc4), game_variant::
 // game_engine_index (+0x30, aliased 0x006f1cb8), game_variant::flags (+0x38, aliased
 // 0x006f1cc0), game_variant::ctf_option_7e (+0x7e, aliased 0x006f1d06).
 
@@ -20,7 +20,7 @@ uint8_t game_engine_scores_tracked_individually(void)
     uint8_t result = 1;
 
     if (current_game_engine != 0) {
-        uint8_t no_team_mode = (game_engine_variant.unknown_3c == 0);
+        uint8_t no_team_mode = (game_engine_variant.objective_indicator == 0);
         if (game_engine_variant.game_engine_index == _game_engine_slayer &&
             game_engine_variant.ctf_option_7e == 0) {
             no_team_mode = 0;

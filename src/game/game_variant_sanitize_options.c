@@ -32,7 +32,7 @@ void game_variant_sanitize_options(game_variant *variant)
     variant->game_engine_index = engine_index;
 
     variant->teams = (variant->teams != 0);
-    variant->unknown_40 = (variant->unknown_40 != 0);
+    variant->odd_man_out = (variant->odd_man_out != 0);
 
     if (variant->respawn_time_growth < 0) variant->respawn_time_growth = 0;
     if (variant->respawn_time < 0) variant->respawn_time = 0;

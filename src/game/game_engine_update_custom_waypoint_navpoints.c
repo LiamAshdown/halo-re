@@ -5,7 +5,7 @@
 // player/team filter, pushes an add-or-update call into the interface HUD nav-point system");
 // types/game.h player_globals::local_players (+0x04), player::unit (+0x34), player::team
 // (+0x20), custom_waypoint::team (+0x14), game_variant::ctf_option_7c (+0x7c, aliased
-// 0x006f1d04), game_variant::unknown_3c (+0x3c, aliased 0x006f1cc4), game_engine_index
+// 0x006f1d04), game_variant::objective_indicator (+0x3c, aliased 0x006f1cc4), game_engine_index
 // (_game_engine_ctf == 1); this batch's custom_waypoint_matches_filter (0x4620c0).
 // register convention: the local player index in BX (unaff_BX, only ever tested against -1/0
 // and used to index player_globals::local_players -- i.e. it must be 0, matching
@@ -21,7 +21,7 @@
 #include "game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
-extern game_variant game_engine_variant;            // 0x006f1c88 (unknown_3c aliased 0x006f1cc4,
+extern game_variant game_engine_variant;            // 0x006f1c88 (objective_indicator aliased 0x006f1cc4,
                                                      // ctf_option_7c aliased 0x006f1d04)
 extern player_globals *local_player_globals;          // 0x0087a478
 extern data_array *player_data;                     // 0x0087a480
@@ -41,7 +41,7 @@ void game_engine_update_custom_waypoint_navpoints(int16_t local_player_slot)
     player *p;
     int32_t slot;
 
-    if (current_game_engine == 0 || game_engine_variant.unknown_3c != 1 ||
+    if (current_game_engine == 0 || game_engine_variant.objective_indicator != 1 ||
         local_player_slot == -1 || 1 <= local_player_slot) {
         return;
     }

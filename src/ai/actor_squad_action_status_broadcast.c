@@ -1,7 +1,7 @@
 // actor_squad_action_status_broadcast  (Ghidra: actor_squad_action_status_broadcast, renamed)
 // address 0x407140, size 249 bytes
 // name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump)
-// evidence: types/ai.h actor.swarm (0x06)/owner_refresh_tick (swarm_index); types/tags.h
+// evidence: types/ai.h actor.swarm (0x06)/unknown_28 (swarm_index); types/tags.h
 //   Scenario.command_lists (count at 0x438, pointer at 0x43c), ScenarioCommandList.flags
 //   (already-named bitfield: allow_initiative, allow_targeting, disable_looking,
 //   disable_communication, ...); calls actor_clear_vocalization and this session's

@@ -18,7 +18,7 @@ game_variant * game_engine_variant_defaults_classic_phantoms(game_variant *out)
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
     out->flags = 0x92;
-    out->unknown_3c = 1;
+    out->objective_indicator = 1;
     out->respawn_time = 0x96;
     out->suicide_penalty = 0x96;
     out->speed_scale = 1.0f;
@@ -26,7 +26,7 @@ game_variant * game_engine_variant_defaults_classic_phantoms(game_variant *out)
     out->starting_equipment = 0x0b;
     out->vehicle_set = 0x42;
     out->unknown_64 = 0x42;
-    out->unknown_6c = 1;
+    out->friendly_fire_mode = 1;
     out->ctf_option_7c = 1;
     out->ctf_option_7d = 1;
     out->ctf_option_7e = 1;

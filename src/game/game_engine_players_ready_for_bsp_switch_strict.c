@@ -6,7 +6,7 @@
 // evidence: shares its per-player predicate and the 0x1fffe34/0x1fffeae UNSURE offsets with
 // game_engine_players_ready_for_bsp_switch (0x45c750, this batch); types/game.h player
 // (marked_for_deletion 0xd5, unit 0x34, team 0x20), game_variant::lives_per_round (0x50, live
-// copy at 0x006f1cd8) and game_variant::unknown_40 (live copy at 0x006f1cc8).
+// copy at 0x006f1cd8) and game_variant::odd_man_out (live copy at 0x006f1cc8).
 // register convention: __cdecl, no arguments.
 //
 // UNSURE: this is one of the lowest-confidence functions in the batch (0.3 in
@@ -41,7 +41,7 @@
 
 extern data_array *player_data;              // 0x0087a480
 extern game_variant game_engine_variant;    // 0x006f1c88 (::lives_per_round at 0x006f1cd8,
-                                             //             ::unknown_40 at 0x006f1cc8)
+                                             //             ::odd_man_out at 0x006f1cc8)
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 extern int32_t players_active_count(void);   // 0x45c6a0, this batch
@@ -81,7 +81,7 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
         return result;
     }
 
-    if (0 < game_engine_variant.lives_per_round || game_engine_variant.unknown_40 != 0) {
+    if (0 < game_engine_variant.lives_per_round || game_engine_variant.odd_man_out != 0) {
         int32_t spawned_reference_team;
         uint8_t disagreement_found;
         int32_t previous_team;

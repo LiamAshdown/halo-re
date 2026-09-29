@@ -47,7 +47,7 @@ uint8_t actor_request_path_with_grenade_arc(uint32_t actor_index)
         query.explicit_target_object = *(uint32_t *)(actor + 0xac);
         query.explicit_target_unknown_34 = *(int16_t *)(actor + 0xa8);
     } else {
-        query.initially_deaf = actor[0xa0];
+        query.unknown_41 = actor[0xa0];
     }
     selected = actor_select_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context, &path_ok);
     actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;

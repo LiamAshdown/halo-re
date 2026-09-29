@@ -65,10 +65,10 @@ void game_engine_on_player_death(datum_index killer, datum_index death_object, d
     v = (player *)((uint8_t *)player_data->data + (victim & 0xffff) * sizeof(player));
     v->last_death_tick = game_time->game_time;
 
-    if (current_game_engine->unknown_68 != 0) {
+    if (current_game_engine->player_killed != 0) {
         // FIXED 2026-09-28: 0x460247..0x46025b pushes is_suicide, victim, death_object, killer (the slayer
         //   handler 0x46f580 reads all four); the call passed none.
-        ((void (*)(datum_index, datum_index, datum_index, char))current_game_engine->unknown_68)(killer, death_object,
+        ((void (*)(datum_index, datum_index, datum_index, char))current_game_engine->player_killed)(killer, death_object,
             victim, is_suicide);
     }
 

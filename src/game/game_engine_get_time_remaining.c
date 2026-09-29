@@ -3,7 +3,7 @@
 // limit expires, or -1 if there is no time limit.")
 // address 0x45cab0, size 37 bytes
 // name confidence: 0.4   rewrite confidence: 0.6
-// evidence: types/game.h game_variant::unknown_78 (live copy at 0x006f1d00 == 0x006f1c88+0x78;
+// evidence: types/game.h game_variant::game_time_limit (live copy at 0x006f1d00 == 0x006f1c88+0x78;
 //   the header calls it unknown but notes "slayer default 36000 ticks (20 minutes)", which is
 //   exactly a time limit field -- used here divided against the running clock, corroborating
 //   that reading); game_time_globals::game_time (0x006f1d6c+0x0c); global 0x0087aa20
@@ -21,7 +21,7 @@
 #include "math.h"
 #include "game.h"
 
-extern game_variant game_engine_variant; // 0x006f1c88 (::unknown_78 at 0x006f1d00, time limit)
+extern game_variant game_engine_variant; // 0x006f1c88 (::game_time_limit at 0x006f1d00, time limit)
 extern game_time_globals *game_time;      // 0x006f1d6c
 extern int32_t game_engine_round_reset_tick;          // 0x0087aa20
 
@@ -31,8 +31,8 @@ int32_t game_engine_get_time_remaining(void)
     int32_t remaining;
 
     remaining = -1;
-    if (0 < game_engine_variant.unknown_78) {
-        remaining = (game_engine_variant.unknown_78 - game_time->game_time) + game_engine_round_reset_tick;
+    if (0 < game_engine_variant.game_time_limit) {
+        remaining = (game_engine_variant.game_time_limit - game_time->game_time) + game_engine_round_reset_tick;
         if (remaining < 0) {
             remaining = 0;
         }

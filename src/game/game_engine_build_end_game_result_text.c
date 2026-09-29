@@ -128,7 +128,7 @@ void game_engine_build_end_game_result_text(datum_index player_handle, wchar_t *
         wchar_t *fmt;
 
         game_engine_get_player_scoreboard_entry(player_handle, &entry);
-        ((void (*)(datum_index, wchar_t *))current_game_engine->unknown_54_build_player_text)(
+        ((void (*)(datum_index, wchar_t *))current_game_engine->build_player_text)(
             player_handle, header);
 
         if ((entry.place & 0x80000000) == 0) {

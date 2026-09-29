@@ -18,14 +18,14 @@ game_variant * game_engine_variant_defaults_classic_rockets(game_variant *out)
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
     out->flags = 0xa2;
-    out->unknown_3c = 1;
+    out->objective_indicator = 1;
     out->suicide_penalty = 300;
     out->speed_scale = 1.0f;
     out->score_limit = 0x19;
     out->starting_equipment = 6;
     out->vehicle_set = 0x42;
     out->unknown_64 = 0x42;
-    out->unknown_6c = 1;
+    out->friendly_fire_mode = 1;
     out->variant_flags = 1;
     return out;
 }

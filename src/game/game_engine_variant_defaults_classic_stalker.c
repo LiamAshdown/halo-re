@@ -30,8 +30,8 @@ game_variant * game_engine_variant_defaults_classic_stalker(game_variant *varian
     defaults.game_engine_index = 3;
     defaults.teams = 0;
     defaults.flags = 0x82;
-    defaults.unknown_3c = 0;
-    defaults.unknown_40 = 0;
+    defaults.objective_indicator = 0;
+    defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 0x96;
     defaults.suicide_penalty = 0x96;
@@ -42,10 +42,10 @@ game_variant * game_engine_variant_defaults_classic_stalker(game_variant *varian
     defaults.vehicle_set = 0x42;
     defaults.unknown_64 = 0x42;
     defaults.time_limit = 0;
-    defaults.unknown_6c = 1;
+    defaults.friendly_fire_mode = 1;
     defaults.betrayal_penalty = 0;
     defaults.unknown_74 = 0;
-    defaults.unknown_78 = 0;
+    defaults.game_time_limit = 0;
     defaults.ctf_option_7c = 0;
     defaults.ctf_option_7d = 0;
     defaults.ctf_value_80 = 2;

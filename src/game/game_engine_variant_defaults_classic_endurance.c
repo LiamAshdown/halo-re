@@ -18,7 +18,7 @@ game_variant * game_engine_variant_defaults_classic_endurance(game_variant *out)
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
     out->flags = 0x83;
-    out->unknown_40 = 1;
+    out->odd_man_out = 1;
     out->respawn_time_growth = 300;
     out->suicide_penalty = 300;
     out->lives_per_round = 5;
@@ -27,7 +27,7 @@ game_variant * game_engine_variant_defaults_classic_endurance(game_variant *out)
     out->starting_equipment = 0x0b;
     out->vehicle_set = 0x42;
     out->unknown_64 = 0x42;
-    out->unknown_6c = 1;
+    out->friendly_fire_mode = 1;
     out->variant_flags = 1;
     return out;
 }

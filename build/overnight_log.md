@@ -2780,3 +2780,12 @@ Start totals (live code): 7135 offsets, 896 Ghidra names, 74 Ghidra types.
 - decal_type_parameters unknown_04 -> fallback_edge_angle, unknown_0c -> use_fallback_surfaces (decal_flood_surfaces / decal_place) medium-high
 - particle_creation_data unknown_1c -> direction (local var direction, rotated raw_direction) medium
 - cinematic_screen_effect_globals unknown_21/22 -> night_vision_masked/desaturation_masked (weapon block mirror names in header comment) medium
+- actor.unknown_498 -> movement_goal_radius: passed as radius to path_find_set_goal, comment "destination radius" (0.8)
+- actor.unknown_1cb -> charge_disallowed: set to (flag==0) by hs ai_allow_charge, gates charge mode in combat transition (0.8)
+- actor.unknown_374 -> platoon_defending; unknown_1c9 -> platoon_defending_pending: platoon state byte, selects defending vs attacking firing groups; crouch update copies 1c9->374 (0.7)
+- encounter.unknown_3c/40/41 -> respawn_enabled/initially_blind/initially_deaf: encounter_new copies ScenarioEncounter.flags bits 1/2/3; 3c gates reinforcements (0.8/0.6/0.6)
+- prop.unknown_a0 -> engaged_tick (tick of mark_engaged, -1 clear, expires after 150 ticks; 0.8); prop.unknown_28 -> owner_refresh_tick (creation tick of parented prop, refreshed every 90 ticks; 0.6)
+- saved_player_profile unknown_a6f/a70/a71/a72/a73/a74 -> vsync_mode/specular_enabled/shadows_enabled/decals_enabled/particles_enabled/texture_quality: player_profile_apply_video_options maps them to unknown_006894ba vsync, 0x6893f7 lightmap specular, 0x6893f2 object shadows, decals_for_all_responses, particle_systems_enabled, renderer_texture_quality; video menu rows in the same order. high (a6f medium)
+- saved_player_profile unknown_b7d/b7f -> sound_quality/sound_variety: b7d is clamped 0..2 into directsound_quality via sound_driver_set_quality; b7f stored to sound_permutation_limit. high/medium
+- widget_instance unknown_15 -> is_error_dialog (only written by display_error, drives draw for all controllers); unknown_16 -> close_when_controller_connected (set for error 0xd, input handler closes when joystick slot device present). high / medium
+- first_person_weapon_interface unknown_16/unknown_18 -> animation_block_index/animation_frame (index into animation block and frame word, passed to animation_state_advance / animation_get_frame_orientations). medium-high

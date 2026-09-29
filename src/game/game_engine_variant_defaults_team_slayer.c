@@ -30,8 +30,8 @@ game_variant * game_engine_variant_defaults_team_slayer(game_variant *variant_op
     defaults.game_engine_index = 2;
     defaults.teams = 1;
     defaults.flags = 0x143;
-    defaults.unknown_3c = 0;
-    defaults.unknown_40 = 0;
+    defaults.objective_indicator = 0;
+    defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 300;
     defaults.suicide_penalty = 0x96;
@@ -42,10 +42,10 @@ game_variant * game_engine_variant_defaults_team_slayer(game_variant *variant_op
     defaults.vehicle_set = 0x249240;
     defaults.unknown_64 = 0x249240;
     defaults.time_limit = 0x708;
-    defaults.unknown_6c = 1;
+    defaults.friendly_fire_mode = 1;
     defaults.betrayal_penalty = 300;
     defaults.unknown_74 = 1;
-    defaults.unknown_78 = 36000;
+    defaults.game_time_limit = 36000;
     defaults.ctf_option_7c = 1;
     defaults.ctf_option_7d = 1;
     defaults.ctf_option_7e = 0;

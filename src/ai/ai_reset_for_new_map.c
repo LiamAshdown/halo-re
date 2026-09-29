@@ -44,7 +44,7 @@ void ai_reset_for_new_map(void)
     g->unknown_1c = (datum_index)k_datum_index_none;
     g->unknown_20 = (datum_index)k_datum_index_none;
     g->unknown_24 = (datum_index)k_datum_index_none;
-    g->owner_refresh_tick = (datum_index)k_datum_index_none;
+    g->unknown_28 = (datum_index)k_datum_index_none;
 
     actor_data->valid = 1;
     data_delete_all(actor_data);
