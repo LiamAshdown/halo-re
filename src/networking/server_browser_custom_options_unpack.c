@@ -121,14 +121,14 @@ void server_browser_custom_options_unpack(char *text, server_browser_custom_opti
 
     {
         uint8_t two_bits = (uint8_t)((low >> 0x19) & 3);
-        out->unknown_38 = (two_bits < 4) ? two_bits : 0;
+        out->friendly_fire_mode = (two_bits < 4) ? two_bits : 0;
     }
 
     switch ((low >> 0x1b) & 3) {
-    case 1: out->unknown_3c = 0x96; break;
-    case 2: out->unknown_3c = 300; break;
-    case 3: out->unknown_3c = 0x1c2; break;
-    default: out->unknown_3c = 0; break;
+    case 1: out->friendly_fire_penalty = 0x96; break;
+    case 2: out->friendly_fire_penalty = 300; break;
+    case 3: out->friendly_fire_penalty = 0x1c2; break;
+    default: out->friendly_fire_penalty = 0; break;
     }
 
     out->unknown_40 = (low & 0x20000000) == 0x20000000;

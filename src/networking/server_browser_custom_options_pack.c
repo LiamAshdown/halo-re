@@ -99,15 +99,15 @@ char *server_browser_custom_options_pack(server_browser_custom_options *options)
         high = high ^ ((options->unknown_08 & 3) << 0x14);
     }
     high = ((((options->flags_a & 2) << 1 | (options->flags_a & 1)) << 5 | (options->flags_a & 0x40)) << 0x11) | high;
-    if (options->unknown_38 < 4) {
-        high = high ^ ((uint32_t)(options->unknown_38 & 3) << 0x19);
+    if (options->friendly_fire_mode < 4) {
+        high = high ^ ((uint32_t)(options->friendly_fire_mode & 3) << 0x19);
     }
-    if (options->unknown_3c != 0) {
-        if (options->unknown_3c == 0x96) {
+    if (options->friendly_fire_penalty != 0) {
+        if (options->friendly_fire_penalty == 0x96) {
             high = high | 0x8000000;
-        } else if (options->unknown_3c == 300) {
+        } else if (options->friendly_fire_penalty == 300) {
             high = high | 0x10000000;
-        } else if (options->unknown_3c == 0x1c2) {
+        } else if (options->friendly_fire_penalty == 0x1c2) {
             high = high | 0x18000000;
         }
     }

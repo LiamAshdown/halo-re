@@ -1216,9 +1216,9 @@ typedef struct server_browser_custom_options {
     uint32_t unknown_2c;       // 0x2c
     uint32_t unknown_30;       // 0x30
     int32_t unknown_34;        // 0x34
-    uint8_t unknown_38;        // 0x38
+    uint8_t friendly_fire_mode; // 0x38 index into the var_friendly_fire strings (0..3); the penalty applies for 1 and 3
     uint8_t pad_39[3];         // 0x39
-    int32_t unknown_3c;        // 0x3c
+    int32_t friendly_fire_penalty; // 0x3c ticks: 0x96 / 300 / 0x1c2 (5/10/15 s) select var_friendly_fire_penalty 1/2/3
     uint8_t unknown_40;        // 0x40
 } server_browser_custom_options; // at least 0x41
 

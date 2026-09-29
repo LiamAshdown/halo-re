@@ -584,22 +584,22 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     }
 
     if (is_custom_variant) {
-        if (options.unknown_38 < 4) {
+        if (options.friendly_fire_mode < 4) {
             label_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 11);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
-            // 0x4b9d86: `movzx ecx,bl` -- index is options.unknown_38, not the 11 above.
+            // 0x4b9d86: `movzx ecx,bl` -- index is options.friendly_fire_mode, not the 11 above.
             suffix_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire",
-                (int16_t)options.unknown_38);
+                (int16_t)options.friendly_fire_mode);
             wcscat(line, suffix_text);
-            if ((options.unknown_38 == 1 || options.unknown_38 == 3) &&
-                (options.unknown_3c == 0x96 || options.unknown_3c == 300 || options.unknown_3c == 0x1c2)) {
+            if ((options.friendly_fire_mode == 1 || options.friendly_fire_mode == 3) &&
+                (options.friendly_fire_penalty == 0x96 || options.friendly_fire_penalty == 300 || options.friendly_fire_penalty == 0x1c2)) {
                 // Ghidra's esi=1/2/3 selection, recovered from the disassembly directly (there is
                 // no join_game_rules_strings label fetch for this one -- it goes straight to
                 // var_friendly_fire_penalty with an index chosen by which constant matched).
                 int16_t penalty_display_index =
-                    (options.unknown_3c == 0x96) ? 1 : (options.unknown_3c == 300) ? 2 : 3;
+                    (options.friendly_fire_penalty == 0x96) ? 1 : (options.friendly_fire_penalty == 300) ? 2 : 3;
                 wcscat(line, L" (+");
                 suffix_text = unicode_string_list_get_string(
                     "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire_penalty",
