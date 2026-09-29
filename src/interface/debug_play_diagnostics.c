@@ -62,8 +62,8 @@ void debug_play_diagnostics(void)
         team_pair_override *o = &team_pair_data->overrides[i];
 
         standalone_log("DIAG override %d a=%d b=%d threshold=%d timer_reset=%d u08=%d u09=%d active=%d status=%d u0c=%d "
-                       "refcount=%d timer=%d", i, o->index_a, o->index_b, o->threshold, o->timer_reset, o->unknown_08,
-            o->unknown_09, o->active, o->status, o->unknown_0c, o->refcount, o->timer);
+                       "refcount=%d timer=%d", i, o->index_a, o->index_b, o->threshold, o->timer_reset, o->index_a_is_other,
+            o->index_b_is_other, o->active, o->status, o->other_is_human, o->refcount, o->timer);
     }
     {
         extern real_point3d camera_position; // 0x007c3114
