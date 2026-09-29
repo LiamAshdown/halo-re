@@ -174,7 +174,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
             new_material_index = dd.material_type;
         }
         // 0x4bf5b6 `mov edx,[esp+0x90]` reads damage_data + 0x48, not + 0x44 (multiplier).
-        fade_out = *(real *)&dd.unknown_48;
+        fade_out = *(real *)&dd.victim_vitality;
     }
 
     pd->material_response_index = new_material_index;
