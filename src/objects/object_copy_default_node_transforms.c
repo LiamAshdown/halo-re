@@ -5,7 +5,7 @@
 // name confidence: 0.85 (fixed by the types notes' own citation of this address by this name)
 // rewrite confidence: 0.6
 // evidence: types/objects.h object (definition_tag 0x000, node_function_values 0x1e8,
-//   node_function_defaults 0x1ec, unknown_0d4 0x0d4, node_function_count 0x0d6);
+//   node_function_defaults 0x1ec, node_function_ticks_elapsed 0x0d4, node_function_count 0x0d6);
 //   types/tags.h Object.model, GBXModel.nodes (TagReflexive); global 0x008603b0 object_data,
 //   global 0x0087bc14 tag_instances.
 // register convention: object index in EAX, requested node-function count in DX (in_DX).
@@ -39,8 +39,8 @@ void object_copy_default_node_transforms(uint32_t object_index, int16_t requeste
         dst[i] = src[i];
     }
 
-    if (requested_count >= (int16_t)(obj->node_function_count - obj->unknown_0d4)) {
-        obj->unknown_0d4 = 0;
+    if (requested_count >= (int16_t)(obj->node_function_count - obj->node_function_ticks_elapsed)) {
+        obj->node_function_ticks_elapsed = 0;
         obj->node_function_count = requested_count;
     }
 }

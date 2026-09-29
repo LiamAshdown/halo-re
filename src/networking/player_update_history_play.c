@@ -163,7 +163,7 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
         unit_obj->animation_graph = *(datum_index *)(node->unit_state + 0x24);
         unit_obj->animation_index = *(int16_t *)(node->unit_state + 0x28);
         unit_obj->animation_frame = *(int16_t *)(node->unit_state + 0x2a);
-        unit_obj->unknown_0d4 = *(int16_t *)(node->unit_state + 0x2c);
+        unit_obj->node_function_ticks_elapsed = *(int16_t *)(node->unit_state + 0x2c);
         unit_obj->node_function_count = *(int16_t *)(node->unit_state + 0x2e);
         memcpy(&unit_ext->animation_state_flags, node->unit_state + 0x30, 0x48);
         memcpy(&unit_ext->unknown_34c, node->unit_state + 0x78, 0x30);

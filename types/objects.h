@@ -399,7 +399,7 @@ typedef struct object {
     datum_index animation_graph;    // 0x0cc from Object tag animation_graph TagID
     int16_t animation_index;        // 0x0d0 -1 at create; object_start_animation
     int16_t animation_frame;        // 0x0d2 object_animation_get_frames_remaining
-    int16_t unknown_0d4;            // 0x0d4
+    int16_t node_function_ticks_elapsed; // 0x0d4 object_update counts it up each tick and zeroes node_function_count when it reaches it; object_copy_default_node_transforms resets it
     int16_t node_function_count;    // 0x0d6 grown by object_copy_default_node_transforms
     float maximum_body_vitality;    // 0x0d8 ModelCollisionGeometry offset 0x08
     float maximum_shield_vitality;  // 0x0dc ModelCollisionGeometry offset 0xcc

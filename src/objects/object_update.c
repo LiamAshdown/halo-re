@@ -5,7 +5,7 @@
 //   every object attached to it")
 // rewrite confidence: 0.45
 // evidence: types/objects.h object_header (flags 0x02 with _object_header_just_created_bit),
-//   object (flags 0x10 with _object_in_tracked_list_bit, unknown_0d4 0x0d4,
+//   object (flags 0x10 with _object_in_tracked_list_bit, node_function_ticks_elapsed 0x0d4,
 //   node_function_count 0x0d6, first_child_object 0x118, next_object 0x114,
 //   parent_object 0x11c, velocity 0x068, angular_velocity 0x08c, unknown_008 0x008);
 //   types/tags.h Object (model, collision_model TagDependency); global 0x008603b0 object_data,
@@ -65,8 +65,8 @@ uint8_t object_update(uint32_t object_index)
     }
 
     if (obj->node_function_count != 0) {
-        obj->unknown_0d4 = obj->unknown_0d4 + 1;
-        if (obj->node_function_count <= obj->unknown_0d4) {
+        obj->node_function_ticks_elapsed = obj->node_function_ticks_elapsed + 1;
+        if (obj->node_function_count <= obj->node_function_ticks_elapsed) {
             obj->node_function_count = 0;
         }
     }

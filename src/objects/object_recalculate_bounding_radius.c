@@ -15,7 +15,7 @@
 //   close to the original so the control flow and arithmetic stay verifiably unchanged. Treat
 //   every offset not already established elsewhere in this module as UNSURE.)
 // evidence: types/objects.h object (nodes 0x1f0, node_function_values 0x1e8,
-//   node_function_count 0x0d6, unknown_0d4 0x0d4, bounding_radius 0x0ac, scale 0x0b0,
+//   node_function_count 0x0d6, node_function_ticks_elapsed 0x0d4, bounding_radius 0x0ac, scale 0x0b0,
 //   type 0x0b4, parent_object 0x11c, parent_marker_index 0x120, forward 0x074, up 0x080,
 //   position 0x05c, flags 0x10 with _object_mirrored_geometry_bit,
 //   _object_mask_no_node_functions == 0xfe0); types/tags.h Object.animation_graph; global
