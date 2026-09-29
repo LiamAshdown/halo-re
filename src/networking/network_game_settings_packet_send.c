@@ -7,7 +7,7 @@
 // resolve cleanly against types/networking.h's network_client_globals when doubled: word 0x76d
 // (byte 0xeda) is state, word 0x76f (byte 0xede) is unknown_ede, word 0x5cc (byte 0xb98) is
 // exactly &client->session.server_name, word 0x56e (byte 0xadc) is channel, word 0x771 (byte
-// 0xee2) is pad_ee2, word 0x788 (byte 0xf10) is unknown_f10.
+// 0xee2) is pad_ee2, word 0x788 (byte 0xf10) is local_team_index.
 // register convention: the client pointer arrives in EBX (unaff_EBX); `param_1` is the sole
 // cdecl stack parameter (the incoming request record). // blam-cc: EBX -> client, stack -> request
 // UNSURE (major): Ghidra's own decompile carries a "Function: __chkstk replaced with injection:
@@ -146,7 +146,7 @@ compare_done:
     *(uint8_t *)(frame + 0x8a) = request[0xc];
     frame[0x8b] = 0;
     wcsncpy((wchar_t *)(frame + 0x6e), (const wchar_t *)(frame + 0x92), 0xb);
-    frame[0x8c] = *(uint8_t *)&client->unknown_f10;
+    frame[0x8c] = *(uint8_t *)&client->local_team_index;
     *(uint16_t *)(frame + 0x84) = 0;
     *(uint16_t *)(frame + 0x86) = *(uint16_t *)(frame + 0x1aa); // local_2012 = local_1eee (inside the copied template)
     *(uint16_t *)(frame + 0x88) = 0xffff;

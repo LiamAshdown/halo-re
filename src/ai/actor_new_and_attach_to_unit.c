@@ -3,7 +3,7 @@
 // name confidence: 0.55   rewrite confidence: 0.85
 // evidence: types/ai.h actor.swarm(0x06)/cluster_count(0x1e)/actor_variant_tag(0x5c)/
 //   squad_index(0x3a)/next_in_encounter(0x2c)/active(0x08)/type(0x04)/awareness_level(0x6a)/
-//   unknown_60/unknown_62/unknown_68/unknown_8e/command_list_index/unknown_92; actor_type_table_entry
+//   unknown_60/follow_mode/unknown_68/unknown_8e/command_list_index/command_list_countdown; actor_type_table_entry
 //   (0x006853b8 table). Calls actor_new (0x426760), actor_attach_to_unit (0x427560),
 //   actor_set_units_active (0x427860), actor_delete (0x427e60), object_try_and_get
 //   (0x4f6ec0), all already established, plus actor_link_to_unit_cluster/encounter_add_actor/ai_actor_link_to_unassigned_list/
@@ -60,7 +60,7 @@ datum_index actor_new_and_attach_to_unit(
     datum_index exclude_actor,     // an actor the reuse scan must not pick
     char start_active,
     uint16_t unknown_60,
-    int16_t unknown_62,
+    int16_t follow_mode,
     uint16_t command_list_index,
     uint8_t unknown_68)
 {
@@ -121,8 +121,8 @@ datum_index actor_new_and_attach_to_unit(
         }
     }
     *(uint16_t *)(self + 0x60) = unknown_60;
-    *(int16_t *)(self + 0x62) = unknown_62;
-    if (unknown_62 == -1 || unknown_62 == 0) {
+    *(int16_t *)(self + 0x62) = follow_mode;
+    if (follow_mode == -1 || follow_mode == 0) {
         *(int16_t *)(self + 0x62) = (int16_t)actor_lookup_small_table_entry((int16_t)unknown_60);
     }
     self[0x68] = unknown_68;

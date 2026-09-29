@@ -65,7 +65,7 @@ char network_client_update_dispatch(void)
         dispatch_result = network_client_state_dispatch();
         result = 0;
         if (dispatch_result != 0) {
-            if (network_client->unknown_edc == 0) {
+            if (network_client->disconnect_reason == 0) {
                 unknown_006982e8 = network_client_connect_progress_percent();
                 return dispatch_result;
             }

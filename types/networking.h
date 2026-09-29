@@ -485,20 +485,20 @@ typedef struct network_machine {
 // ---------------------------------------------------------------------------
 typedef struct network_server_globals {
     network_channel *listen_channel; // 0x000 network_channel_new(1)
-    int16_t unknown_004;       // 0x004 tested against 0 and 2 by host_dispose
+    int16_t state;              // 0x004 tested against 0 and 2 by host_dispose
     uint16_t flags;            // 0x006 bit0 session initialized, bit1 host, bit2 stats logging
     network_game_session session; // 0x008 everything shared but the password lives here
                                //       session+0x3a8 (server+0x3b0) is the int32 host_new
                                //       sets to -1 and then increments to 0
     network_machine machines[16]; // 0x3b8
-    int32_t unknown_9b8;       // 0x9b8 cleared by host_new, along with 0x9c4..0x9d4
+    int32_t update_tick_count; // 0x9b8 cleared by host_new, along with 0x9c4..0x9d4
     uint8_t unknown_9bc[0x3c]; // 0x9bc
-    uint8_t unknown_9f8;       // 0x9f8
+    uint8_t pending_machine_finalize; // 0x9f8
     uint8_t scenario_announcement_sent;      // 0x9f9
     uint8_t unknown_9fa;       // 0x9fa
     uint8_t pad_9fb;           // 0x9fb
     uint16_t password[9];      // 0x9fc wcsncpy of 8 wide chars plus a forced NUL at 0xa0c
-    uint8_t unknown_a0e;       // 0xa0e
+    uint8_t full_state_broadcast_pending; // 0xa0e
     uint8_t game_over;         // 0xa0f the end-of-game flag game.h records
 } network_server_globals;      // size 0xa10
 // global 0x0071c2d4: network_server_globals *network_server   points at 0x00861340
@@ -597,7 +597,7 @@ typedef struct network_client_globals {
     int32_t last_presence_broadcast_ms;      // 0xed4
     uint16_t player_config_value;     // 0xed8 initialized to 0xffff
     uint16_t state;            // 0xeda see network_client_state; NOT padding, see 0x4d8bb0
-    int16_t unknown_edc;       // 0xedc
+    int16_t disconnect_reason; // 0xedc
     uint16_t unknown_ede;      // 0xede bits 1 and 2 cleared at create
     uint8_t dropped_notice_shown;      // 0xee0
     uint8_t wait_timeout_active;      // 0xee1
@@ -605,7 +605,7 @@ typedef struct network_client_globals {
     network_client_timer_record timer; // 0xee4 the first five dwords of the zeroed run
     network_resolved_address server_address; // 0xef8 filled by 0x4dd390 from
                                //       client->channel; 0x4d9f23 is `lea ecx,[esi+0xef8]`
-    int32_t unknown_f10;       // 0xf10 initialized to -1
+    int32_t local_team_index;  // 0xf10 initialized to -1
     int32_t unknown_f14[13];   // 0xf14 zeroed as one run at create
     void *update_history;      // 0xf48 player_update_history *, GlobalAlloc of 0x2c
 } network_client_globals;      // size 0xf4c
@@ -953,7 +953,7 @@ typedef struct message_delta_decode_state {
     int32_t item_count;        // 0x08 total items in this message
     int32_t bits_read;         // 0x0c accumulates what message_delta_read_changed_subfields returns
     void *stream;              // 0x10 bit cursor; 0x4ed1d0 reads +0x08/+0x0c/+0x10/+0x14
-    int32_t unknown_14;        // 0x14
+    int32_t start_bit_offset; // 0x14 stream bit offset before the header was read; the rewind target when a field decodes 0 bits
     int32_t processed_count;   // 0x18 items the drain loop has already dispatched
     uint8_t more_items;        // 0x1c the drain loop stops when this clears
     uint8_t changed;           // 0x1d every delta handler stores 1 here after decoding
@@ -1203,23 +1203,23 @@ typedef struct server_browser_filters {
 typedef struct server_browser_custom_options {
     uint8_t unknown_00[4];     // 0x00
     uint32_t flags_a;          // 0x04
-    uint32_t unknown_08;       // 0x08
-    uint8_t unknown_0c;        // 0x0c
+    uint32_t objective_indicator; // 0x08 game_variant+0x3c, 0..2
+    uint8_t odd_man_out;        // 0x0c game_variant+0x40
     uint8_t pad_0d[3];         // 0x0d
-    int32_t unknown_10;        // 0x10
-    int32_t unknown_14;        // 0x14
-    int32_t unknown_18;        // 0x18
+    int32_t respawn_time_growth; // 0x10 game_variant+0x44, 0x96/300/0x1c2 ticks
+    int32_t respawn_time;       // 0x14 game_variant+0x48, 0x96/300/0x1c2 ticks
+    int32_t suicide_penalty;    // 0x18 game_variant+0x4c, 0x96/300/0x1c2 ticks
     int32_t gametype_like;     // 0x1c 0, 1, 3 or 5; selects the sub-codec
     uint32_t float_bits_20;    // 0x20 raw IEEE-754 bits of a float, moved as an integer
-    int32_t unknown_24;        // 0x24
-    uint32_t unknown_28;       // 0x28
-    uint32_t unknown_2c;       // 0x2c
+    int32_t score_limit;        // 0x24 game_variant+0x58
+    uint32_t starting_equipment; // 0x28 game_variant+0x5c, clamped 0..0xd
+    uint32_t vehicle_set;       // 0x2c game_variant+0x60, low nibble 0..8
     uint32_t unknown_30;       // 0x30
-    int32_t unknown_34;        // 0x34
+    int32_t time_limit;         // 0x34 game_variant+0x68, ticks
     uint8_t friendly_fire_mode; // 0x38 index into the var_friendly_fire strings (0..3); the penalty applies for 1 and 3
     uint8_t pad_39[3];         // 0x39
     int32_t friendly_fire_penalty; // 0x3c ticks: 0x96 / 300 / 0x1c2 (5/10/15 s) select var_friendly_fire_penalty 1/2/3
-    uint8_t unknown_40;        // 0x40
+    uint8_t team_switch_restricted; // 0x40 game_variant+0x74
 } server_browser_custom_options; // at least 0x41
 
 // The type-1 sub-codec. Its two halves are not the same record: the packer reads four

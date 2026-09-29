@@ -3,7 +3,7 @@
 // name confidence: 0.9   rewrite confidence: 0.9 (VERIFIED against objdump; encounter handle FIXED)
 // evidence: types/ai.h ai_globals.unknown_08 (head of the unassigned actor list),
 //   actor.next_in_encounter(0x2c)/active(0x08)/unknown_0c(0x0c); encounter.units_active(0x0d)/
-//   unknown_2a/unknown_10. Record layout {tiebreak, pad, handle, priority} confirmed against
+//   weighted_actor_count/unknown_10. Record layout {tiebreak, pad, handle, priority} confirmed against
 //   ai_squad_priority_compare @0x42ac90 (this rewrite). Calls data_iterator_next (0x4d05d0,
 //   memory module) and the C library qsort.
 //   UNSURE: the encounter-branch's record handle is written from a local that the original
@@ -92,7 +92,7 @@ void ai_build_priority_target_list(ai_priority_target_list *out_list)
             if (enc == 0 || out_list->count > 0xff) {
                 break;
             }
-            if (enc->units_active == 0 && enc->unknown_2a > 0 && enc->activation_tick != (datum_index)k_datum_index_none) {
+            if (enc->units_active == 0 && enc->weighted_actor_count > 0 && enc->activation_tick != (datum_index)k_datum_index_none) {
                 ai_priority_target_record *rec = &out_list->records[out_list->count];
                 rec->tiebreak = 0;
                 // FIXED (objdump 0x42adce..0x42ae07): the handle is the iterator's current encounter ([esp+0x18]).

@@ -10,8 +10,8 @@
 // register convention: stack -> encounter_index (a normal recovered `uint param_1`).
 //   // blam-cc: stack -> encounter_index
 //
-// UNSURE: the gate at encounter_platoon_state+0x06 (unknown_06, checked here as a ">0"
-// count) does not match types/ai.h's placement of member_count at +0x04; kept as unknown_06
+// UNSURE: the gate at encounter_platoon_state+0x06 (weighted_actor_count, checked here as a ">0"
+// count) does not match types/ai.h's placement of member_count at +0x04; kept as weighted_actor_count
 // per the header's own field layout rather than reinterpreted. unknown_01/unknown_02 (the
 // first two bytes of the 3-byte pad array at +0x01) are used here as a one-shot latch and a
 // "recompute pending" flag respectively; not independently named in the header.
@@ -44,7 +44,7 @@ void encounter_update_platoon_defending_flag(datum_index encounter_index)
         do {
             platoon_state = &encounter_platoon_states[(int16_t)(self->first_platoon + platoon_index)];
 
-            if (0 < platoon_state->unknown_06) {
+            if (0 < platoon_state->weighted_actor_count) {
                 if (((uint8_t *)platoon_state)[1] == 0) {
                     // FIXED (0x439438..0x43943f): EAX = the encounter, EDI = platoon definition +0x3c (maneuver_when)
                     ((uint8_t *)platoon_state)[1] = encounter_evaluate_platoon_condition(encounter_index,

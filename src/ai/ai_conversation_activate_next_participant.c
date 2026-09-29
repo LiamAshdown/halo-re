@@ -7,11 +7,11 @@
 // the instance handle still live in EAX from the surrounding loop -- Ghidra's decompile of
 // that call site shows no visible argument, but objdump (bin/halo.exe 0x431d10..0x431e70)
 // confirms `mov esi,eax` is the very first instruction, so EAX is a genuine parameter.
-// types/ai.h ai_conversation.unknown_48 (current line index), .participant_mask,
-// .participant_actor[8], .unknown_4a/_50/_54/_58/_60/_61/_62/_63 all match one-to-one;
+// types/ai.h ai_conversation.current_line_index (current line index), .participant_mask,
+// .participant_actor[8], .speaker_participant/_50/_54/_58/_60/_61/_62/_63 all match one-to-one;
 // ScenarioAIConversation.participants/.lines (TagReflexive at +0x50/+0x5c) and
 // ScenarioAIConversationLine's participant/addressee/addressee_participant/line_delay_time
-// fields match exactly. The tail write to unknown_5c, which Ghidra rendered as raw pointer
+// fields match exactly. The tail write to line_variant_tag_id, which Ghidra rendered as raw pointer
 // arithmetic, resolves cleanly once line->variant_1..variant_6 (six contiguous 0x10-byte
 // TagDependency slots) are read as an array: the selector is a per-participant int16 stored
 // at ai_conversation+0x18 (declared uint32_t in the header; treated here as an int16[2]
@@ -24,7 +24,7 @@
 // by objdump).
 //   // blam-cc: EAX -> instance_handle
 //
-// UNSURE: ai_conversation.unknown_10/unknown_50/unknown_58 have no established meaning
+// UNSURE: ai_conversation.unknown_10/combat_timer/unknown_58 have no established meaning
 // beyond "an object/unit reference the addressee logic resolves"; kept as raw header fields.
 
 #include "tags.h"
@@ -42,7 +42,7 @@ extern int32_t __ftol(double x); // FISTP-based float-to-int truncation
 
 // blam-cc: EAX -> instance_handle
 // Activates the participant referenced by the instance's current line (ai_conversation
-// unknown_48), once that participant has already been resolved (its bit set in
+// current_line_index), once that participant has already been resolved (its bit set in
 // participant_mask). Records the participant's actor/unit on the instance, resolves the
 // line's addressee (if any) to a unit as well, picks up the line's sound-variant TagID and
 // delay (converted to ticks), and clears the per-line completion flags. Returns 0 without
@@ -53,7 +53,7 @@ uint8_t ai_conversation_activate_next_participant(datum_index instance_handle)
     ScenarioAIConversation *definition =
         &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
     ScenarioAIConversationLine *line =
-        &((ScenarioAIConversationLine *)definition->lines.pointer)[instance->unknown_48];
+        &((ScenarioAIConversationLine *)definition->lines.pointer)[instance->current_line_index];
     int16_t participant_index = line->participant;
 
     if (participant_index < 0 || participant_index >= definition->participants.count ||
@@ -67,7 +67,7 @@ uint8_t ai_conversation_activate_next_participant(datum_index instance_handle)
             (ScenarioAIConversationParticipant *)definition->participants.pointer;
         datum_index participant_actor_handle = instance->participant_actor[participant_index];
 
-        instance->unknown_4a = participant_index;
+        instance->speaker_participant = participant_index;
 
         if (participant_actor_handle == (datum_index)k_datum_index_none) {
             instance->unknown_50 = (uint32_t)k_datum_index_none;
@@ -98,12 +98,12 @@ uint8_t ai_conversation_activate_next_participant(datum_index instance_handle)
 
         {
             TagDependency *variants = &line->variant_1; // variant_1..variant_6, six contiguous 0x10-byte slots
-            int16_t variant_selector = ((int16_t *)&instance->unknown_18)[participant_index];
-            instance->unknown_5c = *(uint32_t *)&variants[variant_selector].tag_id;
+            int16_t variant_selector = ((int16_t *)&instance->unknown_06)[participant_index];
+            instance->line_variant_tag_id = *(uint32_t *)&variants[variant_selector].tag_id;
         }
 
-        instance->unknown_4c = (int16_t)__ftol((double)(line->line_delay_time * ticks_per_second));
-        instance->unknown_4e = line->flags;
+        instance->line_delay_ticks = (int16_t)__ftol((double)(line->line_delay_time * ticks_per_second));
+        instance->line_flags = line->flags;
         instance->unknown_63 = 0;
         instance->unknown_62 = 0;
         instance->unknown_61 = 0;

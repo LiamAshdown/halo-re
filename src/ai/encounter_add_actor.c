@@ -96,7 +96,7 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
     }
 
     if (a->team != enc->team) {
-        if (keep_team == 0 || enc->unknown_2a != 0) {
+        if (keep_team == 0 || enc->weighted_actor_count != 0) {
             actor_propagate_unit_field(actor_index, enc->team); // 0x4368d1: ESI = the encounter's team
         } else {
             enc->team = a->team;

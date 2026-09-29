@@ -106,11 +106,11 @@ base; sizes are for the 32-bit layout.
 | 0xa68 | screen_width, screen_height, refresh_rate | int16_t | video block (0x110 bytes): 800x600x60 default, 640x480 low-end, `-vidmode` or current display mode |
 | 0xa6e | unknown_a6e..a75 | uint8_t | capability flags from the machine class |
 | 0xa76 | gamma | int8_t | low byte of rasterizer_gamma_exponent, 0 -> 1, 0xff -> 0xfe |
-| 0xb78 | master_volume (10), effects_volume (10), music_volume (6), unknown_b7b..b7f | uint8_t | audio block (0x108 bytes) |
-| 0xc80 | unknown_c80..c8a | uint8_t | 0x10b-byte block |
+| 0xb78 | master_volume (10), effects_volume (10), music_volume (6), hardware_sound_enabled, eax_enabled, sound_quality, unknown_b7e, sound_variety | uint8_t | audio block (0x108 bytes) |
+| 0xc80 | browser_sort_column..browser_filter_ping_limit_index (server browser filters) | uint8_t | 0x10b-byte block |
 | 0xd8c | server_name | uint16_t[0x90] | L"Halo" |
 | 0xeac | server_password | uint16_t[9] | empty |
-| 0xebe | unknown_ebe (0), unknown_ebf (3), unknown_fc0 (1), unknown_fc2 (wide, empty) | | |
+| 0xebe | unknown_ebe (0), unknown_ebf (3), unknown_fc0 (1), join_host_name (wide, empty) | | |
 | 0x1002 | server_port / client_port (0x1004) | uint16_t | 2302 / 2303 |
 | 0x1108 | gamepads | controls_gamepad_record[4] | stride 0x220, guid at +0x20c, carried over as 0x880 bytes |
 | 0x1988 | unknown_1988 | uint8_t[0x674] | never written here |

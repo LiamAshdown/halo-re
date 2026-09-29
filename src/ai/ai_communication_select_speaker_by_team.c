@@ -100,7 +100,7 @@ datum_index ai_communication_select_speaker_by_team(int16_t match_mode, datum_in
         iterator.unknown_10 = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
-        iterator.unknown_18 = -1;
+        iterator.weighted_actor_count = -1;
     }
 
     a = actor_iterator_next(&iterator);

@@ -37,7 +37,7 @@ extern int32_t king_alt_scores_network_tail[16]; // 0x0087a744
 static void skip_unchanged_message(message_delta_decode_state *state)
 {
     bit_stream *stream = state->stream;
-    int32_t delta = state->unknown_14;
+    int32_t delta = state->start_bit_offset;
     uint32_t target = (uint32_t)stream->first_bit + (uint32_t)delta;
 
     if ((delta >= 0 || target <= stream->first_bit) &&

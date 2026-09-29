@@ -107,7 +107,7 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
     iterator.unknown_10 = 0;
     iterator.active = 1;
     iterator.actor_index = k_datum_index_none;
-    iterator.unknown_18 = -1;
+    iterator.weighted_actor_count = -1;
 
     for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
         uint8_t *ap = (uint8_t *)a;

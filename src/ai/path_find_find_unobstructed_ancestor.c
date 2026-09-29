@@ -14,7 +14,7 @@
 //
 // UNSURE: path_find_trace_bsp_boundary's real parameter count/order is finalized in its own file
 // (path_find_trace_bsp_boundary.c in this rewrite); the call here is declared with exactly
-// the three operands Ghidra shows at this call site (context.unknown_48, a byte from the
+// the three operands Ghidra shows at this call site (context.current_line_index, a byte from the
 // request block at context+4, and this function's own param_1), which may not line up with
 // that function's canonical signature -- see this module's established convention for that
 // situation (e.g. encounter_squad_spawn_actor.c).

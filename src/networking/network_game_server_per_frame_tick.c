@@ -5,7 +5,7 @@
 // state, drains the queued update packets (FUN_00472cc0) and applies the first matching
 // channel's queued update via FUN_004df840/FUN_004e1b50; in the alternate[, ticks the game
 // engine directly]." unaff_ESI+4 matches network_server_globals::unknown_004;
-// unaff_ESI+0x3c4/+0x9f8 match ::machines[0].machine_id and ::unknown_9f8.
+// unaff_ESI+0x3c4/+0x9f8 match ::machines[0].machine_id and ::pending_machine_finalize.
 // register convention: EAX = entry (network_player_entry *, forwarded only to
 // network_game_session_finalize_and_add_player), CX = update_count (int16_t),
 // ESI = server (network_server_globals *).
@@ -35,24 +35,24 @@ extern void network_game_broadcast_state_snapshot(void); // 0x4e1b50, this batch
 
 // While the server is in state 1 (client-processing), drains `update_count` queued update
 // packets and, if a deferred "process this machine's queued update" request is pending
-// (unknown_9f8), locates the matching machine by its saved id and finalizes/broadcasts its
+// (pending_machine_finalize), locates the matching machine by its saved id and finalizes/broadcasts its
 // join. In state 2, just ticks the game engine directly.
 void network_game_server_per_frame_tick(network_player_entry *entry, int16_t update_count, network_server_globals *server)
 {
-    if (server->unknown_004 == 1) {
+    if (server->state == 1) {
         if (update_count > 0) {
             uint32_t remaining;
             large_integer counter;
 
             remaining = (uint32_t)update_count;
             do {
-                server->unknown_9b8 = server->unknown_9b8 + 1;
+                server->update_tick_count = server->update_tick_count + 1;
                 update_server_push_player_tick_history();
                 QueryPerformanceCounter((LARGE_INTEGER *)&counter);
                 remaining = remaining - 1;
             } while (remaining != 0);
         }
-        if (server->unknown_9f8 != 0) {
+        if (server->pending_machine_finalize != 0) {
             int32_t i;
             int8_t saved_machine_id;
             network_machine *machine;
@@ -62,7 +62,7 @@ void network_game_server_per_frame_tick(network_player_entry *entry, int16_t upd
             while (server->machines[i].machine_id != (int16_t)saved_machine_id) {
                 i = i + 1;
                 if (i > 0xf) {
-                    server->unknown_9f8 = 0;
+                    server->pending_machine_finalize = 0;
                     return;
                 }
             }
@@ -75,9 +75,9 @@ void network_game_server_per_frame_tick(network_player_entry *entry, int16_t upd
                     network_game_broadcast_state_snapshot();
                 }
             }
-            server->unknown_9f8 = 0;
+            server->pending_machine_finalize = 0;
         }
-    } else if (server->unknown_004 == 2) {
+    } else if (server->state == 2) {
         game_engine_tick();
     }
 }

@@ -134,7 +134,7 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
                             buckets[idx].unknown_10++;
                             if (dist_sq < buckets[idx].unknown_14) {
                                 buckets[idx].unknown_14 = dist_sq;
-                                buckets[idx].unknown_18 = (int32_t)p->owner_actor_index;
+                                buckets[idx].unknown_06 = (int32_t)p->owner_actor_index;
                             }
                             if (buckets[idx].unknown_04 == k_datum_index_none) {
                                 buckets[idx].unknown_04 = (int32_t)own_prop_index;

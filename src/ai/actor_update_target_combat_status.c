@@ -62,7 +62,7 @@ void actor_update_target_combat_status(datum_index actor_index)
             status = 10;
         } else if (target->engagement_reachability != 0 && target->engagement_reachability != 1) {
             status = 7;
-        } else if (2 < (int8_t)target->unknown_122 || !(target->distance < 6.0f)) { // 0x4201d4: test ah,5 / jp
+        } else if (2 < (int8_t)target->aim_angle_grade || !(target->distance < 6.0f)) { // 0x4201d4: test ah,5 / jp
             status = 8;
         } else {
             status = 9;

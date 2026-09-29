@@ -56,7 +56,7 @@ void ai_notify_actors_of_encounter_state_change(int16_t zone_a, int16_t zone_b, 
         iterator.unknown_10 = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
-        iterator.unknown_18 = -1;
+        iterator.weighted_actor_count = -1;
         actor_index = (datum_index)k_datum_index_none;
     }
 
@@ -81,7 +81,7 @@ void ai_notify_actors_of_encounter_state_change(int16_t zone_a, int16_t zone_b, 
                 if (p->object_type == other_zone) {
                     if (force_update == 0) {
                         p->unknown_61 = 1;
-                        p->unknown_62 = 1;
+                        p->follow_mode = 1;
                     }
                     if (status == 0 || force_update != 0) {
                         p->is_unit = status;
@@ -157,7 +157,7 @@ Real disassembly confirming actor_iterator_next dropped argument (0x42b940-0x42b
 0042b969: mov    [esp+0xc],ecx            ; iterator.cursor
 0042b96d: mov    [esp+0x10],eax           ; iterator.signature
 0042b971: mov    byte ptr [esp+0x14],0x0  ; iterator.unknown_10
-0042b976: mov    [esp+0x1c],ecx           ; iterator.unknown_18
+0042b976: mov    [esp+0x1c],ecx           ; iterator.weighted_actor_count
 0042b97a: mov    [esp+0x18],ecx           ; iterator.unknown_14
 0042b97e: mov    byte ptr [esp+0x15],0x1  ; iterator.active
 0042b983: lea    eax,[esp+0x4]

@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_functions.md: "Decodes an in-game notification and, unless a
 // particular game-engine state flag is already set, triggers the client disconnect/leave path --
 // consistent with a game-over or host-shutdown notice." Matches the code: once decoded (packet
-// class 6, only while client->state == 4), it defaults client->unknown_edc to 8 if still zero,
+// class 6, only while client->state == 4), it defaults client->disconnect_reason to 8 if still zero,
 // then leaves the game (network_host_handoff_requested = 1, chat_close()) unless there is a
 // network_server AND its flags bit 2 is set.
 // register/parameter convention: see network_game_client_decode_state_update_chunk.c for the
@@ -58,8 +58,8 @@ int32_t network_game_message_decode_ingame_notification(network_client_globals *
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 6) != 0) {
         decoded = 1;
     }
-    if (client->unknown_edc == 0) {
-        client->unknown_edc = 8;
+    if (client->disconnect_reason == 0) {
+        client->disconnect_reason = 8;
     }
     if (network_server == 0 || ((network_server->flags >> 2) & 1) == 0) {
         network_host_handoff_requested = 1;

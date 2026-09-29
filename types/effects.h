@@ -434,8 +434,9 @@ typedef struct effect {
     uint16_t identifier;            // 0x00 datum header
     uint16_t flags;                 // 0x02 effect_flags
     datum_index definition_index;   // 0x04 the Effect tag
-    int16_t unknown_08;             // 0x08 written by effect_new_at_texture_coordinate 0x4506d0
-    int16_t unknown_0a;             // 0x0a written by the same call; neither is read here
+    int16_t a_scale_function_index; // 0x08 written by effect_new_at_texture_coordinate 0x4506d0 (arg u);
+                                    //      effect_update passes it to object_function_get_value for a_scale
+    int16_t b_scale_function_index; // 0x0a same call (arg v); effect_update feeds it to b_scale
     int16_t change_color_index;     // 0x0c -1 selects the default white; otherwise indexes
                                     //      object.change_colors at object +0x1b8
     int16_t unknown_0e;             // 0x0e never written

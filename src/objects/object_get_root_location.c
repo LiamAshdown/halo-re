@@ -12,7 +12,7 @@
 //   as the walk index throughout.
 //   // blam-cc: EAX -> out, ECX -> object_index
 // UNSURE: the second dword written (object+0x9c) straddles the documented int16
-//   location_cluster_index and the undocumented unknown_09e that immediately follows it,
+//   location_cluster_index and the undocumented location_cluster_pad that immediately follows it,
 //   copied here as one raw 32-bit read exactly like the compiled code.
 
 #include "tags.h"
@@ -41,7 +41,7 @@ void object_get_root_location(int32_t *out, uint32_t object_index) // blam-cc: E
     {
         object *root = ((object_header *)object_data->data)[root_index & 0xffff].data;
         out[0] = root->location_leaf_index;
-        out[1] = *(int32_t *)&root->location_cluster_index; // location_cluster_index + unknown_09e
+        out[1] = *(int32_t *)&root->location_cluster_index; // location_cluster_index + location_cluster_pad
     }
 }
 

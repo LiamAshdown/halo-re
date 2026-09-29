@@ -130,21 +130,21 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
         profile->sound_variety = 1;
     }
     profile->master_volume = 10;
-    profile->unknown_c81 = 1;
+    profile->browser_sort_ascending = 1;
     profile->effects_volume = 10;
     profile->music_volume = 6;
-    profile->unknown_b7b = 0;
-    profile->unknown_c80 = 3;
-    profile->unknown_b7c = 0;
-    profile->unknown_c82 = 1;
-    profile->unknown_c83 = 0;
-    profile->unknown_c84 = 0;
-    profile->unknown_c85 = 0;
-    profile->unknown_c86 = 1;
-    profile->unknown_c87 = 1;
-    profile->unknown_c88 = 0;
-    profile->unknown_c89 = 0;
-    profile->unknown_c8a = 0;
+    profile->hardware_sound_enabled = 0;
+    profile->browser_sort_column = 3;
+    profile->eax_enabled = 0;
+    profile->browser_allow_password = 1;
+    profile->browser_filter_dedicated_only = 0;
+    profile->browser_filter_classic_only = 0;
+    profile->browser_filter_allow_unknown_map = 0;
+    profile->browser_allow_empty = 1;
+    profile->browser_allow_full = 1;
+    profile->browser_filter_gametype = 0;
+    profile->browser_filter_teamplay = 0;
+    profile->browser_filter_ping_limit_index = 0;
 
     profile->server_name[0] = 'H'; profile->server_name[1] = 'a';
     profile->server_name[2] = 'l'; profile->server_name[3] = 'o'; profile->server_name[4] = 0;
@@ -153,7 +153,7 @@ void player_profile_initialize(saved_player_profile *profile, int32_t local_play
     profile->gamepad_axis_scale_y = 0.75f;
     profile->unknown_ebe = 0;
     profile->unknown_ebf = 3;
-    profile->unknown_fc2[0] = 0;
+    profile->join_host_name[0] = 0;
     profile->unknown_fc0 = 1;
     profile->server_port = 0x8fe;
     profile->client_port = 0x8ff;

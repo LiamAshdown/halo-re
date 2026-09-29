@@ -49,7 +49,7 @@ int16_t ai_group_bucket_find_or_add(ai_group_bucket_entry *buckets, int32_t key,
         *count = live_count + 1;
         entry->unknown_04 = -1;
         entry->key = -1;
-        entry->unknown_18 = -1;
+        entry->unknown_06 = -1;
         entry->unknown_00 = 0;
         entry->unknown_0c = 0;
         entry->unknown_10 = 0;

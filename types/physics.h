@@ -121,7 +121,7 @@ typedef struct collision_bsp_sphere_query {
                                     //       while its plane is still on this stack
     int16_t projection_axis;        // 0x21c dominant axis of the plane being projected away
     uint8_t projection_sign;        // 0x21e second half of the k_projection_axes index
-    uint8_t unknown_21f;            // 0x21f
+    uint8_t pad_21f;            // 0x21f
     float projected_center_i;       // 0x220 center projected onto the surviving axis pair
     float projected_center_j;       // 0x224
 } collision_bsp_sphere_query;       // size 0x228
@@ -164,7 +164,7 @@ typedef struct collision_bsp_segment_query {
     uint32_t flags;                 // 0x00 collision_bsp_segment_flags
     void *bsp;                      // 0x04 ModelCollisionGeometryBSP *
     int16_t breakable_surface_count;// 0x08
-    int16_t unknown_0a;             // 0x0a
+    int16_t pad_0a;             // 0x0a
     uint32_t *breakable_surfaces;   // 0x0c
     void *origin;                   // 0x10 real_point3d *
     void *delta;                    // 0x14 real_vector3d *, the whole swept segment
@@ -173,7 +173,7 @@ typedef struct collision_bsp_segment_query {
     int32_t last_leaf;              // 0x1c leaf the walk was inside when it last crossed a
                                     //      plane, -1 before the first crossing
     uint8_t last_leaf_type;         // 0x20 collision_bsp_leaf_type of last_leaf
-    uint8_t unknown_21[3];          // 0x21
+    uint8_t pad_21[3];          // 0x21
     int32_t crossing_plane;         // 0x24 plane index of the crossing being resolved
 } collision_bsp_segment_query;      // size 0x28
 
@@ -301,7 +301,7 @@ typedef struct physics_model_shape {
     float thickness;                // 0x1c a point is inside while 0 <= distance < thickness
     int16_t projection_axis;        // 0x20 dominant axis of the plane
     uint8_t projection_sign;        // 0x22
-    uint8_t unknown_23;             // 0x23
+    uint8_t pad_23;             // 0x23
     int32_t vertex_count;           // 0x24
     float vertices[8][2];           // 0x28 the boundary projected onto the surviving axis pair
 } physics_model_shape;              // size 0x68
@@ -443,7 +443,7 @@ typedef struct mass_point_state {
     float up_k;                     // 0x030
     int32_t leaf_index;             // 0x034 structure BSP leaf containing position, -1 outside
     int16_t cluster_index;          // 0x038 the cluster of that leaf, 0xffff outside
-    int16_t unknown_03a;            // 0x03a
+    int16_t pad_03a;            // 0x03a
     float offset_x;                 // 0x03c position minus object position, the torque arm
     float offset_y;                 // 0x040
     float offset_z;                 // 0x044
@@ -459,7 +459,7 @@ typedef struct mass_point_state {
     float resting_plane_d;          // 0x06c
     int16_t material_type;          // 0x070 global material type of that contact, 0xffff when
                                     //       nothing was hit
-    int16_t unknown_072;            // 0x072
+    int16_t pad_072;            // 0x072
     float ground_depth;             // 0x074 radius minus the distance above resting_plane; a
                                     //       positive value means the sphere is dug in
     uint32_t unknown_078;           // 0x078 zeroed, never written

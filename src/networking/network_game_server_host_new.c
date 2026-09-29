@@ -57,7 +57,7 @@ void *network_game_server_host_new(void)
     host->listen_channel = network_channel_new(k_network_channel_listening);
     if (host->listen_channel != 0) {
         host->flags = host->flags | 2;
-        host->unknown_004 = 0;
+        host->state = 0;
         network_game_session_reset(&host->session);
         host->session.message_callback = (void *)network_session_reject_pending_connection_callback; // 0x4e1410
         host->session.difficulty = pending_difficulty;
@@ -76,7 +76,7 @@ void *network_game_server_host_new(void)
             machine->unknown_50 = 0;
             machine->unknown_51 = 0;
         }
-        host->unknown_9b8 = 0;
+        host->update_tick_count = 0;
         *(uint32_t *)&host->unknown_9bc[0x08] = 0; // 0x9c4
         *(uint32_t *)&host->unknown_9bc[0x0c] = 0; // 0x9c8
         *(uint32_t *)&host->unknown_9bc[0x10] = 0; // 0x9cc
@@ -84,7 +84,7 @@ void *network_game_server_host_new(void)
         *(uint32_t *)&host->unknown_9bc[0x14] = 0; // 0x9d0
         host->scenario_announcement_sent = 0;
         host->unknown_9fa = 0;
-        host->unknown_9f8 = 0;
+        host->pending_machine_finalize = 0;
         *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1; // see above
         *(uint32_t *)&host->unknown_9bc[0x18] = 0; // 0x9d4
         if (network_game_session_reset_defaults() != 0) {

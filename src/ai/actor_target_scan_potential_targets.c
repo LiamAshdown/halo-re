@@ -215,7 +215,7 @@ shared_threshold:
                             accept = 0;
                         }
                     }
-                    if (!(enc->unknown_45 == 0 && enc->unknown_44 == 0 && enc->unknown_42 == 0)) {
+                    if (!(enc->any_actor_in_combat == 0 && enc->any_actor_targeting == 0 && enc->unknown_42 == 0)) {
                         goto encounter_gate_open;
                     }
                     if (!accept) goto merged;

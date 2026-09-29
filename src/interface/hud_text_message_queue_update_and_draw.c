@@ -66,7 +66,7 @@ uint32_t hud_text_message_queue_update_and_draw(widget_instance *widget)
             for (i = 0; i < hud_text_message_queue.count; i++) {
                 hud_text_message *entry = &((hud_text_message *)hud_text_message_queue.data)[i];
 
-                message_index = entry->unknown_04;
+                message_index = entry->tag;
                 entry->start_time = entry->start_time - elapsed; // top
                 entry->end_time = entry->end_time - elapsed;     // bottom
                 bottom = entry->end_time;

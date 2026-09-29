@@ -446,7 +446,7 @@ first_person_weapon_interface (interface_globals_allocate @0x494340 reserves it,
 | `0x001c` | `uint8_t` | `unknown_1c[4]` |  |
 | `0x0020` | `int16_t` | `unknown_20` |  |
 | `0x0022` | `uint8_t` | `unknown_22[6]` |  |
-| `0x0028` | `float` | `unknown_28` | cleared together with the next field by 0x493c60 |
+| `0x0028` | `float` | `charge_blend_weight` | cleared together with the next field by 0x493c60 |
 | `0x002c` | `float` | `charge` | nudged by action code 0 in 0x4940f0 |
 | `0x0030` | `uint8_t` | `unknown_30[0x58]` | aim sway and idle timers written by 0x493150 |
 | `0x0088` | `int16_t` | `blend_start` | written by 0x4930b0 when a blended change starts |

@@ -6,7 +6,7 @@
 //   details were only resolved by disassembling the function directly, and one call's exact
 //   operands remain UNSURE -- see below)
 // evidence: types/objects.h antenna (degenerate 0x05, vertices 0x1c stride 0x20),
-//   antenna_vertex (position 0x00, velocity 0x0c, unknown_1c 0x1c), types/tags.h Antenna
+//   antenna_vertex (position 0x00, velocity 0x0c, update_count 0x1c), types/tags.h Antenna
 //   (physics TagDependency 0x30, spring_strength_coefficient 0x90, vertices TagReflexive 0xc4),
 //   AntennaVertex (spring_strength_coefficient 0x00, length 0x24, offset Point3D 0x74);
 //   antenna_apply_marker_delta 0x4fb1c0 (this function's own first call); vector3d_* register
@@ -91,7 +91,7 @@ void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt)
                 }
                 tag_vertex = &tag_vertices[tag_index];
                 blend = antenna_tag->spring_strength_coefficient * tag_vertex->spring_strength_coefficient;
-                vertex->unknown_1c += 1;
+                vertex->update_count += 1;
 
                 if (completed == 0) {
                     new_position = marker_position;

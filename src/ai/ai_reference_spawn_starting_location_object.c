@@ -30,7 +30,7 @@ extern tag_instance *tag_instances;  // 0x0087bc14
 
 extern datum_index actor_new_and_attach_to_unit(char reuse_existing, datum_index unit_index,
     datum_index actor_variant_tag, uint32_t encounter_or_none, int16_t squad_index, char ignore_squad,
-    datum_index exclude_actor, char start_active, uint16_t unknown_60, int16_t unknown_62,
+    datum_index exclude_actor, char start_active, uint16_t unknown_60, int16_t follow_mode,
     uint16_t command_list_index, uint8_t unknown_68); // 0x426ac0, already rewritten
 extern void encounters_recompute_dirty(void); // 0x435f00, this batch
 

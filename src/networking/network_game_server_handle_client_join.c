@@ -85,7 +85,7 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
     unknown_9bc_base = (uint8_t *)server;
     field_9c4 = (int32_t *)(unknown_9bc_base + 0x9c4);
 
-    if (server->unknown_004 != 1) {
+    if (server->state != 1) {
         int16_t *machine_id_ptr;
         char all_processed_or_invalid;
 
@@ -114,7 +114,7 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
             char has_client;
 
             has_client = (network_client != 0);
-            server->unknown_004 = 1;
+            server->state = 1;
             *field_9c4 = 0;
             server->session.unknown_3ac = has_client ? *((uint8_t *)network_client + 0xec0) : 0;
             // UNSURE: network_client+0xec0 == &network_client->session + 0x3ac,
@@ -144,7 +144,7 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
                             ok = network_player_join_finalize();
                         } else {
                             ok = 0;
-                            if (network_player_entry_validate(entry) != 0 && server->unknown_004 == 1) {
+                            if (network_player_entry_validate(entry) != 0 && server->state == 1) {
                                 // UNSURE: EAX at this second call site was not re-derived;
                                 // entry is the only live candidate.
                                 ok = network_channel_key_open();

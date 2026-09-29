@@ -211,8 +211,8 @@ the target. Types that already existed elsewhere are **not** redeclared here: ev
 | `0x00` | `uint16_t` | `identifier` -- datum header |
 | `0x02` | `uint16_t` | `flags` -- effect_flags |
 | `0x04` | `datum_index` | `definition_index` -- the Effect tag |
-| `0x08` | `int16_t` | `unknown_08` -- written by effect_new_at_texture_coordinate 0x4506d0 |
-| `0x0a` | `int16_t` | `unknown_0a` -- written by the same call; neither is read here |
+| `0x08` | `int16_t` | `a_scale_function_index` -- written by effect_new_at_texture_coordinate 0x4506d0 |
+| `0x0a` | `int16_t` | `b_scale_function_index` -- written by the same call |
 | `0x0c` | `int16_t` | `change_color_index` -- -1 selects the default white; otherwise indexes |
 | `0x0e` | `int16_t` | `unknown_0e` -- never written |
 | `0x10` | `bsp_leaf_reference` | `location` -- mirrored from object.location_leaf_index and |

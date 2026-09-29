@@ -4,7 +4,7 @@
 //   functions.md's summary: "Advances the physics simulation of every active antenna instance
 //   by one (clamped) timestep")
 // rewrite confidence: 0.4
-// evidence: types/objects.h antenna (unknown_06 0x06, degenerate 0x05, definition_tag 0x08,
+// evidence: types/objects.h antenna (frames_since_rendered 0x06, degenerate 0x05, definition_tag 0x08,
 //   object_index 0x0c); global 0x008603ac antenna_data, 0x0087bc14 tag_instances; callees
 //   datum_next (established memory-module helper, this call site confirms its shape:
 //   int16_t after_index, data_array *array), antenna_update_physics (0x4fae10, already
@@ -17,7 +17,7 @@
 //   inlined tail against datum_next's own established body) rather than duplicating the walk a
 //   second time. The per-antenna "grace period" counter at antenna+0x06 (compared against 5) is
 //   preserved as a raw increment with no established meaning beyond types/objects.h's
-//   unknown_06.
+//   frames_since_rendered.
 
 #include "tags.h"
 #include "memory.h"
@@ -39,8 +39,8 @@ void antennas_update(float dt)
         antenna *ant = (antenna *)antenna_data->data + (handle & 0xffff);
 
         if (ant->degenerate == 0) {
-            ant->unknown_06 = ant->unknown_06 + 1;
-            if ((ant->object_index != k_datum_index_none) && (ant->unknown_06 < 5)) {
+            ant->frames_since_rendered = ant->frames_since_rendered + 1;
+            if ((ant->object_index != k_datum_index_none) && (ant->frames_since_rendered < 5)) {
                 Antenna *tag = (Antenna *)tag_instances[ant->definition_tag & 0xffff].data;
                 float clamped_dt = (dt <= 0.06666667f) ? dt : 0.06666667f;
                 antenna_update_physics(ant, tag, clamped_dt);

@@ -1,7 +1,7 @@
 // encounter_redistribute_squads_toward_targets  (Ghidra: encounter_redistribute_squads_toward_targets, renamed)
 // address 0x4394a0, size 2235 bytes
 // name confidence: 0.35  rewrite confidence: 0.7 (calls and unassigned-list tail verified against objdump; second movement reset FIXED; squad scoring middle not re-derived)
-// evidence: types/ai.h encounter (unknown_62 target mode, unknown_64 explicit target,
+// evidence: types/ai.h encounter (follow_mode target mode, follow_target explicit target,
 //   unknown_68 leash distance -- see UNSURE), encounter_squad_state, encounter_platoon_state,
 //   actor (body_position +0x12c, next_in_encounter +0x2c, squad_index +0x3a, platoon_index
 //   +0x3c, firing_position_index +0x3b8, active_movement.type +0x46c, active_movement.extra
@@ -107,7 +107,7 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
 
     self = (encounter *)((uint8_t *)encounter_data->data + (encounter_index & 0xffff) * sizeof(encounter));
     encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index & 0xffff];
-    target_mode = self->unknown_62;
+    target_mode = self->follow_mode;
     target_count = 0;
 
     if (target_mode == 1) {
@@ -130,9 +130,9 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
             player_record = data_iterator_next(&player_iter);
         } while (player_record != 0);
     } else if (target_mode == 2) {
-        datum_index cached_target = self->unknown_64;
+        datum_index cached_target = self->follow_target;
         if (object_try_and_get(cached_target, 3) == 0) { // FIXED: ECX = self +0x64 (0x43954d)
-            self->unknown_64 = (datum_index)0xffffffff;
+            self->follow_target = (datum_index)0xffffffff;
             return;
         }
         targets[0] = cached_target;
@@ -141,10 +141,10 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
     } else if (target_mode == 3) {
         void *member;
         ai_reference_actor_iterator member_iterator; // FIXED (0x439509..0x43951a): the iterator at [esp+0x40]
-        if (self->unknown_64 == (datum_index)0xffffffff) {
+        if (self->follow_target == (datum_index)0xffffffff) {
             return;
         }
-        ai_reference_actor_iterator_new((uint32_t)self->unknown_64, &member_iterator);
+        ai_reference_actor_iterator_new((uint32_t)self->follow_target, &member_iterator);
         member = ai_reference_actor_iterator_next(&member_iterator);
         if (member == 0) {
             return;
@@ -189,7 +189,7 @@ have_targets:
                 int16_t word = bit_index >> 5;
 
                 squad_considered_mask[word] |= bit;
-                total_occupancy = total_occupancy + squad_state->unknown_18;
+                total_occupancy = total_occupancy + squad_state->weighted_actor_count;
 
                 if (squad_state->automatic_migration != 0) { // "has valid platoon" gate (encounter_squad_state+0x10)
                     encounter_platoon_state *platoon_state;
@@ -211,7 +211,7 @@ have_targets:
                     squad_trigger_mask[bit_index] = trigger;
                     combined_trigger_mask |= trigger;
 
-                    if (0 < squad_state->unknown_18) {
+                    if (0 < squad_state->weighted_actor_count) {
                         squad_occupied_mask[word] |= bit;
                     }
                 }

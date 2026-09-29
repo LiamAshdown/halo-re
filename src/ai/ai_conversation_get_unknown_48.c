@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.5
 // evidence: out/phase4/ai_types_notes.md's misattribution table: "a field of the live
 // conversation instance", not "the formation/actor-type index on a live squad instance".
-// Returns ai_conversation.unknown_48 (types/ai.h: "ai_conversation_new sets 0xffff") for the
+// Returns ai_conversation.current_line_index (types/ai.h: "ai_conversation_new sets 0xffff") for the
 // live instance matching conversation_definition_index, or 999 if none is live.
 // register convention: BX -> conversation_definition_index (unaff_BX, the only register
 // Ghidra's own decompile shows).
@@ -34,7 +34,7 @@ int16_t ai_conversation_get_unknown_48(int16_t conversation_definition_index)
     instance = data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
-            return instance->unknown_48;
+            return instance->current_line_index;
         }
         instance = data_iterator_next(&iterator);
     }

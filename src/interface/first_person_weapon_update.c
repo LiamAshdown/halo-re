@@ -210,8 +210,8 @@ void first_person_weapon_update(int16_t local_player_index)
             real_seek_toward_clamped(0, &FP_FLOAT(fp, 0x4c), &FP_FLOAT(fp, 0x44), target_pitch,
                                      0.03f, 0.2f, -1.0f, 1.0f);
         }
-        real_seek_toward_clamped(0, &fp->charge, &fp->unknown_28, 0.0f, 0.01f, 0.2f, 0.0f, 1.0f);
-        if (fp->unknown_28 == 1.0f) {
+        real_seek_toward_clamped(0, &fp->charge, &fp->charge_blend_weight, 0.0f, 0.01f, 0.2f, 0.0f, 1.0f);
+        if (fp->charge_blend_weight == 1.0f) {
             fp->charge = 0.0f;
         }
 
@@ -229,7 +229,7 @@ void first_person_weapon_update(int16_t local_player_index)
 
             if (control->nameplate_weight == 0.0f &&
                 (local_player_index == -1 || control->desired_zoom_level == -1) &&
-                fp->unknown_28 == 0.0f &&
+                fp->charge_blend_weight == 0.0f &&
                 FP_FLOAT(fp, 0x30) == 0.0f && FP_FLOAT(fp, 0x34) == 0.0f &&
                 FP_FLOAT(fp, 0x40) == 0.0f && FP_FLOAT(fp, 0x44) == 0.0f) {
                 if (fp->state == 0) {

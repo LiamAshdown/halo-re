@@ -352,7 +352,7 @@ typedef struct first_person_weapon_interface {
     uint8_t unknown_1c[4];     // 0x001c
     int16_t charging_animation_index; // 0x0020 overlay animation while charging (state 4), frame at 0x24; -1 none
     uint8_t unknown_22[6];     // 0x0022
-    float unknown_28;          // 0x0028 cleared together with the next field by 0x493c60
+    float charge_blend_weight; // 0x0028 seeks the charge value toward 0; weights the charge overlay in the animation controls; cleared together with the next field by 0x493c60
     float charge;              // 0x002c nudged by action code 0 in 0x4940f0
     uint8_t unknown_30[0x58];  // 0x0030 aim sway and idle timers written by 0x493150
     int16_t blend_start;       // 0x0088 written by 0x4930b0 when a blended change starts
@@ -487,7 +487,7 @@ typedef struct hud_messaging_globals {
 // ---------------------------------------------------------------------------
 typedef struct hud_text_message {
     uint16_t *text;            // 0x00 points past any recognised escape marker
-    int32_t unknown_04;        // 0x04 caller-supplied tag or index
+    int32_t tag;               // 0x04 caller-supplied tag or index (hud_text_message_queue_add tag parameter)
     int32_t hold;              // 0x08 1 when the text started with the hold escape
     int32_t start_time;        // 0x0c
     int32_t end_time;          // 0x10 start_time plus the computed duration

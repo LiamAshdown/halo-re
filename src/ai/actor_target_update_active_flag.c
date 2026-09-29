@@ -47,7 +47,7 @@ uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index tar
     active = 0;
 
     if ((((1 < kind && kind < 4) && target->is_unit != 0) && target->is_vault == 0) &&
-        (((target->unknown_9c != 0 &&
+        (((target->engaged_age != 0 &&
            (self->target_unit_index == target_prop_index || self->tally.unit_props_unseen == 0)) ||
           ((target->unknown_135 != 0 || target->unknown_136 != 0) &&
            (self->unknown_161 == 0 && self->tally.group_a_marked_135 == 0))) ||

@@ -261,7 +261,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
 
             if (0.5f <= chosen->unknown_1b8 ||
                 chosen->unknown_3b4 - chosen->unknown_1b8 <= 0.3f) {
-                head_count = enc->unknown_2a;
+                head_count = enc->weighted_actor_count;
                 if (head_count == 1 && 1 < enc->unknown_1a) {
                     morale_line = 1;
                 } else {

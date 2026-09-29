@@ -188,8 +188,8 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
                 overlay_channel(overlays, FP_FLOAT(fp, 0x34), 3, 2, animation_control);
                 overlay_channel(overlays, FP_FLOAT(fp, 0x40), 4, 5, animation_control);
                 overlay_channel(overlays, FP_FLOAT(fp, 0x44), 7, 6, animation_control);
-                if (fp->unknown_28 > 0.0f) {
-                    animation_overlay_frame_orientations_weighted(overlays, 8, fp->unknown_28, animation_control);
+                if (fp->charge_blend_weight > 0.0f) {
+                    animation_overlay_frame_orientations_weighted(overlays, 8, fp->charge_blend_weight, animation_control);
                 }
             }
 

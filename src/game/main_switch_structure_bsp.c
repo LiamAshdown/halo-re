@@ -8,7 +8,7 @@
 //   TagReflexive members forward from player_starting_profile against types/game.h's own
 //   +0x378/+0x384 anchors for netgame_flags/netgame_equipment), ScenarioBSPSwitchTriggerVolume
 //   (trigger_volume/source/destination, 8 bytes); types/objects.h object::flags (+0x10);
-//   types/game.h player_globals::respawn_stagger (+0x0e), player::unknown_d4 (+0xd4).
+//   types/game.h player_globals::respawn_stagger (+0x0e), player::teleport_blocked (+0xd4).
 //   objdump -d -M intel --start-address=0x4749a0 --stop-address=0x474d40 bin/halo.exe: CORRECTED
 //   a genuine Ghidra bug (see below) and confirmed every register.
 //
@@ -105,7 +105,7 @@ void main_switch_structure_bsp(void)
             // covers it.
             int32_t *fade_ticks = (int32_t *)((uint8_t *)plr + 0xcc);
 
-            if (plr->unknown_d4 == 0) {
+            if (plr->teleport_blocked == 0) {
                 if (*fade_ticks > 0) {
                     *fade_ticks = *fade_ticks - 1;
                 }
@@ -123,7 +123,7 @@ void main_switch_structure_bsp(void)
                 }
             }
         }
-        plr->unknown_d4 = 0;
+        plr->teleport_blocked = 0;
 
         if (plr->unit != (datum_index)-1) {
             player_kill_streak_tick(player_handle);

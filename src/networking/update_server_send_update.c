@@ -8,7 +8,7 @@
 // `puStack_NN = (uint *)0x4dexxxx` pseudo-assignments that are call-site return-address/stack
 // bookkeeping artifacts, not real data flow; this rewrite drops those and keeps only the
 // operations that write real fields. client->state (state==3), client->last_state_update_sequence,
-// client->dropped_notice_shown/unknown_edc, network_client->channel (+0xadc), and the channel free-space/
+// client->dropped_notice_shown/disconnect_reason, network_client->channel (+0xadc), and the channel free-space/
 // send_budget/empty fields all match the established fields used throughout this batch;
 // everything inside the position/orientation packet-encode path (the message_delta_encode_single_value call and its
 // stack-built argument block, the trig-based direction vector, and the 13-dword record copied

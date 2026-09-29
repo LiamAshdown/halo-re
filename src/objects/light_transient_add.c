@@ -8,7 +8,7 @@
 // k_maximum_transient_lights (8), light_transient_count (0x00860b0c); render_window_index is the same
 // unresolved byte used by object_lights_update_all.c's queue path.
 // UNSURE: vector3d_pack_normal_11_11_10 is called twice with zero visible arguments and its results are stored
-// into light_transient.unknown_10/unknown_14; what it actually computes is not established.
+// into light_transient.packed_forward/packed_up; what it actually computes is not established.
 // register convention: datum_index light_tag in EAX (in_EAX); real_vector3d *color in EDX
 // (in_EDX); real_point3d *position on the stack (param_1); two undefined4 values on the stack
 // (param_2/param_3, forwarded to vector3d_pack_normal_11_11_10 — UNSURE how); float intensity on the stack
@@ -41,9 +41,9 @@ void light_transient_add(datum_index light_tag, real_vector3d *color, real_point
         slot->definition = tag_instances[light_tag & 0xffff].data;
         slot->position = *position;
         // 0x4f16a4: ESI = the second and third stack arguments (the light's forward and up)
-        slot->unknown_10 = vector3d_pack_normal_11_11_10((real_vector3d *)direction);
-        slot->unknown_14 = vector3d_pack_normal_11_11_10((real_vector3d *)param_3);
-        slot->unknown_22 = render_window_index;
+        slot->packed_forward = vector3d_pack_normal_11_11_10((real_vector3d *)direction);
+        slot->packed_up = vector3d_pack_normal_11_11_10((real_vector3d *)param_3);
+        slot->render_window_index = render_window_index;
         slot->unknown_1e = -1;
         slot->unknown_1c = -1;
         slot->slot_index = light_transient_count;

@@ -289,13 +289,13 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
         }
 
         if (0.9925f < cos_angle || lateral < 0.5f) {
-            p->unknown_122 = 0;
+            p->aim_angle_grade = 0;
         } else if (0.9063f < cos_angle || lateral < 1.5f) {
-            p->unknown_122 = 1;
+            p->aim_angle_grade = 1;
         } else if (cos_angle <= 0.5f) {
-            p->unknown_122 = (cos_angle <= 0.0f) ? 4 : 3;
+            p->aim_angle_grade = (cos_angle <= 0.0f) ? 4 : 3;
         } else {
-            p->unknown_122 = 2;
+            p->aim_angle_grade = 2;
         }
     }
 
@@ -307,7 +307,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
         {
             int16_t kind_flag = (!p->is_parented || !p->is_unit) ? 0 : 2;
             p->engagement_reachability = (int16_t)actor_evaluate_engagement_reachability(
-                *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->unknown_104,
+                *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->aim_marker_x,
                 (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
                 self->active_unit_index != (datum_index)k_datum_index_none); // 0x41cee5: AX = block +0x28, EDI = the block
         }
@@ -319,7 +319,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
         } else {
             p->unknown_130 = 0;
         }
-        p->unknown_131 = (0.5f < unit->active_camo_amount);
+        p->camo_active = (0.5f < unit->active_camo_amount);
         p->unknown_132 = (uint8_t)(unit->flags >> 0x13) & 1;
 
         {
@@ -388,15 +388,15 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
 after_engage:
         if (!p->unknown_133) {
             uint8_t did_track = 0;
-            if (!p->unknown_131) {
+            if (!p->camo_active) {
                 if (team_gate) {
                     p->perception_grade = 0;
-                    p->unknown_12a = 0;
+                    p->newly_perceived = 0;
                     did_track = 1;
                 }
             } else if (p->is_unit || (p->is_parented && 4.0f < p->distance)) {
                 p->perception_grade = 0;
-                p->unknown_12a = 0;
+                p->newly_perceived = 0;
                 did_track = 1;
             }
             if (!did_track) {
@@ -416,12 +416,12 @@ after_engage:
                     uint16_t priority_class = actor_target_get_priority_class(actor_index, target_prop_index);
                     int16_t result = actor_dispatch_look_handler_by_posture(p->engagement_reachability, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                                    rate_flag, use_urgent, priority_class);
-                    p->unknown_12a = (p->perception_grade == 0 && result > 0);
+                    p->newly_perceived = (p->perception_grade == 0 && result > 0);
                     p->perception_grade = result;
                     if (result != 0) {
-                        p->unknown_90 = ((struct prop *)p)->unknown_104;
-                        p->unknown_94 = ((struct prop *)p)->unknown_108;
-                        p->unknown_98 = ((struct prop *)p)->unknown_10c;
+                        p->last_seen_aim_marker_x = ((struct prop *)p)->aim_marker_x;
+                        p->last_seen_aim_marker_y = ((struct prop *)p)->aim_marker_y;
+                        p->last_seen_aim_marker_z = ((struct prop *)p)->aim_marker_z;
                         p->last_look_tick = tick;
                     }
                 }
@@ -443,7 +443,7 @@ after_engage:
             if (p->unknown_66 == 0) {
                 *(int16_t *)((uint8_t *)p + 0x36) = 3;
             }
-            if (p->unknown_132 != 0 && p->unknown_122 < 3 && p->unknown_121 < 3 &&
+            if (p->unknown_132 != 0 && p->aim_angle_grade < 3 && p->unknown_121 < 3 &&
                 (p->engagement_reachability == 0 || p->engagement_reachability == 1)) {
                 int16_t v = *(int16_t *)((uint8_t *)p + 0x36);
                 if (v < 2) v = 1;
@@ -488,7 +488,7 @@ after_engage:
     } else {
         int16_t kind_flag = (!p->is_parented || !p->is_unit) ? 0 : 2;
         p->engagement_reachability = (int16_t)actor_evaluate_engagement_reachability(
-            *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->unknown_104,
+            *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->aim_marker_x,
             (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
             self->active_unit_index != (datum_index)k_datum_index_none); // 0x41ce26
         if (p->unknown_133 || team_gate) {
@@ -563,7 +563,7 @@ after_engage:
                 ok = (gate == -1 || (last_seen != -1 && gate <= last_seen));
                 if (!ok) {
                     drop = 1;
-                } else if (e->unknown_45 == 0 && e->unknown_44 == 0 && e->unknown_42 == 0) {
+                } else if (e->any_actor_in_combat == 0 && e->any_actor_targeting == 0 && e->unknown_42 == 0) {
                     if (225.0f <= dist_sq) drop = 1;
                 }
             } else if (p->unknown_20 <= 0.0f) {

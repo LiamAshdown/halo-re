@@ -10,7 +10,7 @@
 // (0x30 bytes, "0x560f20 block-moves 0xc dwords of this into unit 0x388") is the local
 // stack block this function builds byte-for-byte before calling unit_commit_speech -- confirmed
 // by objdump (bin/halo.exe 0x431f60..0x432045): priority=6, scream_type=-1, sound_tag =
-// ai_conversation.unknown_5c, unknown_14=-1, ai_line_index=-1, unknown_18=-1 all line up
+// ai_conversation.line_variant_tag_id, unknown_14=-1, ai_line_index=-1, weighted_actor_count=-1 all line up
 // with the named fields, though this call also writes non-zero values into three dwords of
 // the struct's documented-always-zero tail (see TYPES-GAP below). objdump also confirms
 // unit_commit_speech is called with ECX -> &request and EAX still holding the unit index from the

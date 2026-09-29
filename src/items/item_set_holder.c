@@ -8,7 +8,7 @@
 //   0x02, _item_unknown_40_bit 0x40, _item_at_rest_on_structure_bit 0x08,
 //   _item_does_not_accelerate_bit 0x20); types/units.h unit_data.controlling_player (0x218);
 //   types/objects.h object (owner_linkage 0x0c0, location_leaf_index 0x098,
-//   location_cluster_index 0x09c, unknown_09e 0x09e, network_role 0x004, flags 0x010); callee
+//   location_cluster_index 0x09c, location_cluster_pad 0x09e, network_role 0x004, flags 0x010); callee
 //   object_list_membership_set (0x4f7450, already named in src/objects/).
 // register convention: item index in ECX (in_ECX), new holder object index (or -1 to clear) in
 //   EDX (in_EDX).
@@ -59,7 +59,7 @@ void item_set_holder(uint32_t item_index, datum_index holder_index) // blam-cc: 
         item->flags &= ~(uint32_t)(_item_at_rest_on_structure_bit | _item_does_not_accelerate_bit);
         obj->location_leaf_index = -1;
         obj->location_cluster_index = -1;
-        obj->unknown_09e = -1;
+        obj->location_cluster_pad = -1;
 
         if (obj->network_role == 0) {
             obj->flags |= _object_changed_bit;

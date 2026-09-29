@@ -1,7 +1,7 @@
 // team_pair_override_refresh  (Ghidra: FUN_0045c090; renamed per symbols/review_queue.txt)
 // address 0x45c090, size 92 bytes
 // name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x45c090..0x45c0eb (EBX index_b, EDI index_a).)
-// evidence: types/game.h team_pair_override (unknown_09 0x09, unknown_08 0x08, refcount 0x0e,
+// evidence: types/game.h team_pair_override (index_b_is_other 0x09, index_a_is_other 0x08, refcount 0x0e,
 //   timer_reset 0x06, timer 0x10); same directional-match pattern as
 //   team_pair_override_adjust_counter.c (0x45bfc0).
 // register convention: both indices are implicit registers (unaff_BX, unaff_DI); per the
@@ -27,8 +27,8 @@ void team_pair_override_refresh(int16_t index_b, int16_t index_a)
     if (0 < team_pair_data->override_count) {
         for (i = 0; ; i = i + 1) {
             entry = &team_pair_data->overrides[i];
-            if ((entry->index_a == index_a && entry->index_b == index_b && entry->unknown_09 != 0) ||
-                (entry->index_b == index_a && entry->index_a == index_b && entry->unknown_08 != 0)) {
+            if ((entry->index_a == index_a && entry->index_b == index_b && entry->index_b_is_other != 0) ||
+                (entry->index_b == index_a && entry->index_a == index_b && entry->index_a_is_other != 0)) {
                 break;
             }
             if (team_pair_data->override_count <= i + 1) {

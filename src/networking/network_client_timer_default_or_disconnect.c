@@ -3,7 +3,7 @@
 // name confidence: 0.35   rewrite confidence: 0.5
 // evidence: out/phase4/networking_functions.md summary ("Either leaves an already-flagged
 // session alone or triggers a network disconnect/cleanup after defaulting the retry-limit
-// field"). client+0xedc matches types/networking.h's network_client_globals::unknown_edc
+// field"). client+0xedc matches types/networking.h's network_client_globals::disconnect_reason
 // exactly; network_server+6 bit2 matches network_server_globals::flags's documented
 // "bit2 stats logging".
 // register convention: the client pointer arrives in EAX (in_EAX). // blam-cc: EAX -> client
@@ -22,8 +22,8 @@ extern void chat_close(void); // 0x4aa900
 // blam-cc: EAX -> client
 void network_client_timer_default_or_disconnect(network_client_globals *client)
 {
-    if (client->unknown_edc == 0) {
-        client->unknown_edc = 8;
+    if (client->disconnect_reason == 0) {
+        client->disconnect_reason = 8;
     }
     if (network_server != 0 && (network_server->flags >> 2 & 1) != 0) {
         return;

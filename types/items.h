@@ -189,7 +189,7 @@ typedef struct item_data {
                                      //       entry byte at +0x08 has bit 0x08 set.
     int16_t resting_bsp_index;       // 0x1fc stamped from the int16 at 0x0069e8d8 when the item
                                      //       came to rest; a mismatch invalidates the rest
-    int16_t unknown_1fe;             // 0x1fe never read or written by this module
+    int16_t pad_1fe;                 // 0x1fe never read or written by this module
     datum_index ignore_object_index; // 0x200 the object the in-flight collision test skips
                                      //       (item_update passes it to the sweep at 0x401a20,
                                      //       item_accelerate tests it against -1). item_update
@@ -402,7 +402,7 @@ typedef struct weapon_trigger_state {
     int16_t firing_effect_rounds;    // 0x0c rounds left before the firing effect is re-picked,
                                      //      seeded from the effect record int16 at +0x10 and
                                      //      decremented by weapon_fire_trigger
-    int16_t unknown_0e;              // 0x0e never read or written by this module
+    int16_t pad_0e;                  // 0x0e never read or written by this module
     float firing_rate;               // 0x10 0..1 spin-up. Climbs by the tag trigger
                                      //      firing_acceleration_rate (0xf8) while pulled and
                                      //      falls by firing_deceleration_rate (0xfc);
@@ -426,7 +426,7 @@ typedef struct weapon_trigger_state {
                                      //      trigger, -1 when none
     int8_t empty_ticks;              // 0x24 counts the ticks an empty client-side weapon has
                                      //      waited; at 11 it asks the host to reload and resets
-    uint8_t unknown_25[3];           // 0x25 never read or written by this module
+    uint8_t pad_25[3];           // 0x25 never read or written by this module
 } weapon_trigger_state;              // size 0x28
 
 // ---------------------------------------------------------------------------
@@ -499,14 +499,14 @@ typedef struct weapon_data {
     uint32_t flags;                  // 0x22c weapon_flags
     uint16_t control_flags;          // 0x230 weapon_control_flags, refreshed every tick by
                                      //       unit_update through weapon_set_control_flags
-    uint16_t unknown_232;            // 0x232 the high half of the dword weapon_set_control_flags
+    uint16_t control_flags_high;            // 0x232 the high half of the dword weapon_set_control_flags
                                      //       writes; never read
     float primary_trigger;           // 0x234 0..1 analog pull, also from
                                      //       weapon_set_control_flags. A tag trigger with flag
                                      //       0x200 uses this instead of its own firing_rate, and
                                      //       treats > 0.05 as "pulled"
     int8_t state;                    // 0x238 weapon_state
-    int8_t unknown_239;              // 0x239 never read or written by this module
+    int8_t pad_239;              // 0x239 never read or written by this module
     int16_t action_ticks;            // 0x23a ticks left in the ready/put-away animation, seeded
                                      //       by weapon_ready from
                                      //       weapon_get_first_person_animation_time; while it is
@@ -535,7 +535,7 @@ typedef struct weapon_data {
     int16_t alternate_shots_loaded;  // 0x25c incremented by weapon_fire_trigger for a
                                      //       secondary_trigger_mode of 3 or 4, and bounded by
                                      //       the tag maximum_alternate_shots_loaded (0x32e)
-    int16_t unknown_25e;             // 0x25e never read or written by this module
+    int16_t pad_25e;             // 0x25e never read or written by this module
     weapon_trigger_state triggers[2];    // 0x260 .. 0x2b0
     weapon_magazine_state magazines[2];  // 0x2b0 .. 0x2c8
     uint32_t unknown_2c8;            // 0x2c8 never read or written by this module

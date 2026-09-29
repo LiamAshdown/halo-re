@@ -41,7 +41,7 @@ int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t t
     index = growable_array_add_element(&hud_text_message_queue);
     message = (hud_text_message *)hud_text_message_queue.data + index;
     message->start_time = start_time;
-    message->unknown_04 = tag;
+    message->tag = tag;
     message->hold = 0;
 
     body = text;

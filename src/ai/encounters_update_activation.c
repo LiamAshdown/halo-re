@@ -195,7 +195,7 @@ void encounters_update_activation(void)
     while (enc != 0) {
         definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
             [iterator.index & 0xffff];
-        wants_active = (uint8_t)(0 < enc->unknown_3e || enc->force_active != 0);
+        wants_active = (uint8_t)(0 < enc->reinforcement_delay || enc->force_active != 0);
 
         if ((int16_t)definition->precomputed_bsp_index == -1 ||
             (int16_t)definition->precomputed_bsp_index == global_structure_bsp_index) {

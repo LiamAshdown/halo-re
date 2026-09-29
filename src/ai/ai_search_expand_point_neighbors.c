@@ -61,7 +61,7 @@ void ai_search_expand_point_neighbors(ai_search_context *context, int16_t node_i
             ai_search_edge_result edge;
 
             ai_search_evaluate_edge_cost(map, context->unknown_04, list, point, &node->position,
-                *(int32_t *)&node->z, radius, radius + radius + tangent_distance, 0, 0, context->unknown_2a, &edge,
+                *(int32_t *)&node->z, radius, radius + radius + tangent_distance, 0, 0, context->weighted_actor_count, &edge,
                 &directions[side]);
             if (edge.point_id != -1 && (visited[edge.point_id >> 5] & (1u << (edge.point_id & 0x1f))) == 0) {
                 visited[edge.point_id >> 5] |= 1u << (edge.point_id & 0x1f);

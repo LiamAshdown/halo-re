@@ -78,12 +78,12 @@ void encounter_recompute_morale(datum_index encounter_index)
     any_flag_8c = 0;
     any_flag_8d = 0;
 
-    enc->unknown_44 = 0;
-    enc->unknown_45 = 0;
+    enc->any_actor_targeting = 0;
+    enc->any_actor_in_combat = 0;
     enc->unknown_30 = 0;
     enc->unknown_2e = 0;
     enc->unknown_2c = 0;
-    enc->unknown_2a = 0;
+    enc->weighted_actor_count = 0;
     enc->average_vitality = 0.0f;
 
     i = 0;
@@ -92,7 +92,7 @@ void encounter_recompute_morale(datum_index encounter_index)
             squad_state = &encounter_squad_states[(int16_t)(enc->first_squad + i)];
             i = i + 1;
             squad_state->unknown_1a = 0;
-            squad_state->unknown_18 = 0;
+            squad_state->weighted_actor_count = 0;
             squad_state->average_vitality = 0.0f;
         } while (i < enc->squad_count);
     }
@@ -102,7 +102,7 @@ void encounter_recompute_morale(datum_index encounter_index)
             platoon_state = &encounter_platoon_states[(int16_t)(enc->first_platoon + i)];
             i = i + 1;
             platoon_state->unknown_08 = 0;
-            platoon_state->unknown_06 = 0;
+            platoon_state->weighted_actor_count = 0;
             platoon_state->average_vitality = 0.0f;
         } while (i < enc->platoon_count);
     }
@@ -134,17 +134,17 @@ void encounter_recompute_morale(datum_index encounter_index)
         if (a->platoon_index != -1) {
             platoon_state =
                 &encounter_platoon_states[(int16_t)(enc->first_platoon + a->platoon_index)];
-            platoon_state->unknown_06 = platoon_state->unknown_06 + weight;
+            platoon_state->weighted_actor_count = platoon_state->weighted_actor_count + weight;
             platoon_state->average_vitality = sample + platoon_state->average_vitality;
             platoon_state->unknown_08 =
                 platoon_state->unknown_08 + (int16_t)((uint16_t)a->swarm * weight);
         }
 
-        squad_state->unknown_18 = squad_state->unknown_18 + weight;
+        squad_state->weighted_actor_count = squad_state->weighted_actor_count + weight;
         squad_state->average_vitality = sample + squad_state->average_vitality;
         squad_state->unknown_1a = squad_state->unknown_1a + (int16_t)((uint16_t)a->swarm * weight);
 
-        enc->unknown_2a = enc->unknown_2a + weight;
+        enc->weighted_actor_count = enc->weighted_actor_count + weight;
         enc->unknown_2c = enc->unknown_2c + (int16_t)((uint16_t)a->swarm * weight);
 
         counts = (uint8_t)(a->awareness_level == 3 && a->alert_floor < a->alert_level);
@@ -182,9 +182,9 @@ void encounter_recompute_morale(datum_index encounter_index)
                     goto tally_vocalization;
                 }
             } else {
-                enc->unknown_45 = 1;
+                enc->any_actor_in_combat = 1;
             }
-            enc->unknown_44 = 1;
+            enc->any_actor_targeting = 1;
         }
 tally_vocalization:
         if (0 < a->command_status) {
@@ -196,10 +196,10 @@ tally_vocalization:
         enc->unknown_46 = 0;
     }
 
-    retreat_timer = enc->unknown_50;
-    if (enc->unknown_45 == 0 &&
+    retreat_timer = enc->combat_timer;
+    if (enc->any_actor_in_combat == 0 &&
         (retreat_timer == -1 || 0x3b < retreat_timer) &&
-        ((enc->unknown_44 == 0 && ((int32_t)enc->unknown_54 == -1 || 0x3b < (int32_t)enc->unknown_54)) ||
+        ((enc->any_actor_targeting == 0 && ((int32_t)enc->target_timer == -1 || 0x3b < (int32_t)enc->target_timer)) ||
          retreat_timer == -1 || 0x1c1 < retreat_timer)) {
         if (enc->unknown_42 == 0) {
             if (enc->unknown_47 == 0) {
@@ -216,12 +216,12 @@ tally_vocalization:
             encounter_release_stale_props(encounter_index);
         } else {
             enc->unknown_47 = 0;
-            enc->unknown_1a = enc->unknown_2a;
+            enc->unknown_1a = enc->weighted_actor_count;
             enc->unknown_58 = game_time->game_time;
             enc->unknown_4c = 0;
             if (enc->unknown_43 == 0) {
-                enc->unknown_50 = (datum_index)k_datum_index_none;
-                enc->unknown_54 = (datum_index)k_datum_index_none;
+                enc->combat_timer = (datum_index)k_datum_index_none;
+                enc->target_timer = (datum_index)k_datum_index_none;
             }
         }
     } else {

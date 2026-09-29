@@ -90,11 +90,11 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->unknown_12 = 1;
     self->idle_counter = 0;
     self->first_prop = (datum_index)k_datum_index_none;
-    self->unknown_54 = (datum_index)k_datum_index_none;
+    self->target_timer = (datum_index)k_datum_index_none;
     self->firing_position_index = -1;
     self->unknown_60 = -1;
-    self->unknown_62 = -1;
-    self->unknown_64 = -1;
+    self->follow_mode = -1;
+    self->follow_target = -1;
     self->unknown_8e = 0;
     self->command_list_index = -1;
     self->last_obey_tick = -1;
@@ -104,7 +104,7 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->alert_floor = 0;
     self->pending_alert_event = 0;
     self->ticks_since_engaged = -1;
-    self->unknown_98 = 0;
+    self->last_seen_aim_marker_z = 0;
     self->flying = (uint8_t)(flags >> 0x15) & 1;              // ActorFlags bit 21 "flying"
     self->unknown_164 = -1;
     self->active_unit_index = (datum_index)k_datum_index_none;
@@ -175,7 +175,7 @@ datum_index actor_new(datum_index actor_variant_tag)
 
     actor_clear_recognition_history(actor_index, 0);
 
-    self->unknown_3c0 = (datum_index)k_datum_index_none;
+    self->move_count_target_index = (datum_index)k_datum_index_none;
     actor_dispatch_type_vtable_0x10(actor_index);
 
     return actor_index;

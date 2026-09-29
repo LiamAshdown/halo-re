@@ -31,7 +31,7 @@ extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a); // 
 // blam-cc: stack -> team_a, team_b, status
 // For every actor whose team matches team_a or team_b, walks its prop list and, for each
 // prop belonging to the OTHER of the two teams, unconditionally marks it for a reaction
-// (unknown_61 set, unknown_62 cleared), stamps its status byte, and restamps its engaged
+// (unknown_61 set, follow_mode cleared), stamps its status byte, and restamps its engaged
 // flag and desirability score. Finishes with a pair-relationship cleanup call.
 void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uint8_t status)
 {
@@ -51,7 +51,7 @@ void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uin
         iterator.unknown_10 = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
-        iterator.unknown_18 = -1;
+        iterator.weighted_actor_count = -1;
     }
 
     a = actor_iterator_next(&iterator);
@@ -70,7 +70,7 @@ void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uin
                 prop_cursor = p->next_in_actor;
                 if (p->object_type == other_team) {
                     p->unknown_61 = 1;
-                    p->unknown_62 = 0;
+                    p->follow_mode = 0;
                     p->is_unit = status;
                     p->engaged = actor_target_update_active_flag(actor_index, current_prop_index); // FIXED: EDI = the prop (0x42bb29)
                     p->desirability = actor_rate_potential_target(actor_index, current_prop_index);

@@ -11,7 +11,7 @@
 // (Ghidra lost every register argument here). reason record pointer in EAX, output vector
 // pointer in EDI, actor_index on the stack (the only stack dword, at [esp+4] on entry).
 // blam-cc: EAX -> reason, EDI -> out, stack -> actor_index
-// UNSURE: prop.unknown_104/0x108/0x10c (case 1) are read here as a contiguous 3-float vector
+// UNSURE: prop.aim_marker_x/0x108/0x10c (case 1) are read here as a contiguous 3-float vector
 // but are declared as three separate uint32_t in types/ai.h; reinterpreted via a real_point3d
 // alias over their address rather than by declaring a new field name, since I could not find
 // another reader of these three offsets to confirm a specific meaning.
@@ -73,7 +73,7 @@ uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_v
             return 0;
         }
         // UNSURE: see file header -- reinterpreting three unnamed uint32_t as a point.
-        target_point = (real_point3d *)&target_prop->unknown_104;
+        target_point = (real_point3d *)&target_prop->aim_marker_x;
         out->i = target_point->x - self->aim_origin.x;
         out->j = target_point->y - self->aim_origin.y;
         out->k = target_point->z - self->aim_origin.z;

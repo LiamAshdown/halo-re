@@ -18,7 +18,7 @@
 //   being within 0.25 / 1.0 / 2.0 / 5.0 world units of another player's unit and 0x461c60 pays
 //   a bonus for same-team units 1.0..6.0 away -- Halo's classic spawn-point weighting, which has
 //   nothing to do with damage.
-//   types/game.h game_engine_definition::unknown_84 (+0x84, the teams-enabled predicate) and
+//   types/game.h game_engine_definition::feature_enabled (+0x84, the teams-enabled predicate) and
 //   ::starting_location_scale (+0x70, an optional per-engine score override); game_variant::teams (+0x34,
 //   aliased 0x006f1cbc).
 // register convention: the candidate location in EAX (in_EAX), forwarded unchanged in ESI to
@@ -52,8 +52,8 @@ real game_engine_rate_player_starting_location(ScenarioPlayerStartingLocation *l
                            + ((uint32_t)player_handle & 0xffff) * sizeof(player));
     real score;
 
-    if (current_game_engine == 0 || current_game_engine->unknown_84 == 0 ||
-        ((char (*)(int32_t))current_game_engine->unknown_84)(0) == 0 ||
+    if (current_game_engine == 0 || current_game_engine->feature_enabled == 0 ||
+        ((char (*)(int32_t))current_game_engine->feature_enabled)(0) == 0 ||
         p->team == (int32_t)(int16_t)location->team_index) {
         score = game_engine_rate_location_crowding(player_handle,
                                                   (real_point3d *)&location->position);

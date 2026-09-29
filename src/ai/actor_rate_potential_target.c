@@ -76,7 +76,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
     bonus_b = 0;
     bonus_c = 0;
 
-    if (self->swarm == 0 && target->unknown_9c < 1) {
+    if (self->swarm == 0 && target->engaged_age < 1) {
         bonus_a = (int8_t)actor_has_unshielded_threat_weapon(actor_index);
 
         if (bonus_a == 0) {
@@ -131,17 +131,17 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
     }
 
     if (target->is_vault == 0) {
-        if (self->swarm == 0 && target->seen != 0 && target->unknown_9c == 0) {
+        if (self->swarm == 0 && target->seen != 0 && target->engaged_age == 0) {
             bonus_d = 6;
         } else if (target->kind < 2 || 3 < target->kind) {
             bonus_d = (target->unknown_b8 == 0) ? (int8_t)(target->kind == 4) + 1 : 3;
         } else if (self->swarm != 0) {
             bonus_d = 4;
-        } else if (0 < target->unknown_9c) {
+        } else if (0 < target->engaged_age) {
             bonus_d = 3;
         } else if (target->engagement_reachability != 0 && target->engagement_reachability != 1) {
             bonus_d = 3;
-        } else if (target->unknown_12f != 0 && (int8_t)target->unknown_122 < 2) {
+        } else if (target->unknown_12f != 0 && (int8_t)target->aim_angle_grade < 2) {
             // FIXED: Ghidra compares prop+0x122 as a signed char.
             bonus_d = 5;
         } else {

@@ -57,7 +57,7 @@ void network_server_broadcast_object_type_changes(void)
     uint8_t changed;
     int encode_result;
 
-    if (network_game_mode != 2 || network_server->unknown_004 != 1) {
+    if (network_game_mode != 2 || network_server->state != 1) {
         return;
     }
 

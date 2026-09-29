@@ -117,7 +117,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
         uint8_t *variant_data = 0;
         uint8_t *actor_tag_data = 0;
 
-        if (!(state->unknown_18 > 0) && source_enc->unknown_1e[0] == 0) {
+        if (!(state->weighted_actor_count > 0) && source_enc->unknown_1e[0] == 0) {
             continue;
         }
         squad = *(uint8_t **)&((struct ScenarioEncounter *)source_definition)->squads.pointer + iterator.cursor * 0xe8;

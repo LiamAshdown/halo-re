@@ -53,20 +53,20 @@ void server_browser_custom_options_unpack(char *text, server_browser_custom_opti
     }
 
     switch ((low >> 6) & 3) {
-    case 1: out->unknown_14 = 0x96; break;
-    case 2: out->unknown_14 = 300; break;
-    case 3: out->unknown_14 = 0x1c2; break;
-    default: out->unknown_14 = 0; break;
+    case 1: out->respawn_time = 0x96; break;
+    case 2: out->respawn_time = 300; break;
+    case 3: out->respawn_time = 0x1c2; break;
+    default: out->respawn_time = 0; break;
     }
 
     switch ((low >> 8) & 3) {
-    case 1: out->unknown_10 = 0x96; break;
-    case 2: out->unknown_10 = 300; break;
-    case 3: out->unknown_10 = 0x1c2; break;
-    default: out->unknown_10 = 0; break;
+    case 1: out->respawn_time_growth = 0x96; break;
+    case 2: out->respawn_time_growth = 300; break;
+    case 3: out->respawn_time_growth = 0x1c2; break;
+    default: out->respawn_time_growth = 0; break;
     }
 
-    out->unknown_0c = (uint8_t)((low >> 10) & 1);
+    out->odd_man_out = (uint8_t)((low >> 10) & 1);
 
     if ((low & 0x800) == 0) {
         out->flags_a = out->flags_a & 0xffffffef;
@@ -75,10 +75,10 @@ void server_browser_custom_options_unpack(char *text, server_browser_custom_opti
     }
 
     switch ((low >> 0xc) & 3) {
-    case 1: out->unknown_18 = 0x96; break;
-    case 2: out->unknown_18 = 300; break;
-    case 3: out->unknown_18 = 0x1c2; break;
-    default: out->unknown_18 = 0; break;
+    case 1: out->suicide_penalty = 0x96; break;
+    case 2: out->suicide_penalty = 300; break;
+    case 3: out->suicide_penalty = 0x1c2; break;
+    default: out->suicide_penalty = 0; break;
     }
 
     if ((low & 0x4000) == 0) {
@@ -89,7 +89,7 @@ void server_browser_custom_options_unpack(char *text, server_browser_custom_opti
 
     {
         uint32_t nibble = (low >> 0xf) & 0xf;
-        out->unknown_28 = (nibble < 0xe) ? nibble : 0;
+        out->starting_equipment = (nibble < 0xe) ? nibble : 0;
     }
 
     if ((low & 0x80000) == 0) {
@@ -100,7 +100,7 @@ void server_browser_custom_options_unpack(char *text, server_browser_custom_opti
 
     {
         uint32_t two_bits = (low >> 0x14) & 3;
-        out->unknown_08 = (two_bits <= 2) ? two_bits : 0;
+        out->objective_indicator = (two_bits <= 2) ? two_bits : 0;
     }
 
     if ((low & 0x400000) == 0) {
@@ -131,22 +131,22 @@ void server_browser_custom_options_unpack(char *text, server_browser_custom_opti
     default: out->friendly_fire_penalty = 0; break;
     }
 
-    out->unknown_40 = (low & 0x20000000) == 0x20000000;
+    out->team_switch_restricted = (low & 0x20000000) == 0x20000000;
 
     switch (high & 7) {
-    case 1: out->unknown_34 = 900; break;
-    case 2: out->unknown_34 = 0x708; break;
-    case 3: out->unknown_34 = 0xa8c; break;
-    case 4: out->unknown_34 = 0xe10; break;
-    case 5: out->unknown_34 = 0x1518; break;
-    case 6: out->unknown_34 = 9000; break;
-    default: out->unknown_34 = 0; break;
+    case 1: out->time_limit = 900; break;
+    case 2: out->time_limit = 0x708; break;
+    case 3: out->time_limit = 0xa8c; break;
+    case 4: out->time_limit = 0xe10; break;
+    case 5: out->time_limit = 0x1518; break;
+    case 6: out->time_limit = 9000; break;
+    default: out->time_limit = 0; break;
     }
 
     {
         uint32_t nibble1 = (high >> 3) & 0xf;
         uint32_t nibble2 = (high >> 7) & 0xf;
-        out->unknown_2c = (nibble1 < 9) ? nibble1 : 0;
+        out->vehicle_set = (nibble1 < 9) ? nibble1 : 0;
         out->unknown_30 = (nibble2 < 9) ? nibble2 : 0;
     }
 }

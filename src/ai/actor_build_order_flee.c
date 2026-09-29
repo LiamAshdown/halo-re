@@ -1,7 +1,7 @@
 // actor_build_order_flee  (Ghidra: actor_build_order_flee, renamed)
 // address 0x4077d0, size 77 bytes
 // name confidence: 0.4   rewrite confidence: 0.4
-// evidence: types/ai.h actor.order_committed (0x160)/unknown_98; phase-4 summary "builds a
+// evidence: types/ai.h actor.order_committed (0x160)/last_seen_aim_marker_z; phase-4 summary "builds a
 //   flee-style order for the actor and marks it as having committed to a new order".
 // register convention: actor index in EAX, order pointer in EDX, a caller byte in the stack
 //   parameter.

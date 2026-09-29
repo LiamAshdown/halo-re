@@ -4,7 +4,7 @@
 // evidence: objdump -d -M intel bin/halo.exe @0x4ec490: `esi = eax` (the decode_state output
 // pointer), a genuine `push edi` / `call 0x4ece70` (message_delta_decode_message_header) whose
 // only recognized parameter is the stream, and on success writes decode_state.bits_read (+0xc),
-// .unknown_14 (+0x14), .stream (+0x10) and .processed_count (+0x18) exactly as
+// .start_bit_offset (+0x14), .stream (+0x10) and .processed_count (+0x18) exactly as
 // types/networking.h documents message_delta_decode_state. message_delta_decode_message_header
 // itself reads and writes the same decode_state through ESI, which is only valid because this
 // function leaves it live in that register across the call (x86 cdecl callees preserve ESI) --
@@ -36,7 +36,7 @@ int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream
     header_bits = message_delta_decode_message_header(stream, state);
     if (0 < header_bits) {
         state->bits_read = header_bits;
-        state->unknown_14 = initial_offset;
+        state->start_bit_offset = initial_offset;
         state->stream = stream;
         state->processed_count = 1;
         return 1;

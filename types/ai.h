@@ -386,7 +386,7 @@ typedef struct actor {
     uint8_t unknown_8e;               // 0x8e actor_new sets 0
     uint8_t unknown_8f;               // 0x8f
     int16_t command_list_index;       // 0x90 command list assigned to the actor (actor_squad_action_status_broadcast), 0xffff none
-    int16_t unknown_92;               // 0x92 0x435420 sets 2
+    int16_t command_list_countdown;               // 0x92 0x435420 sets 2
     int32_t last_obey_tick;           // 0x94 game time actor_mode_obey_process last marked it; -1 never (ai_object_list_max_flee_grade ignores it after 150 ticks)
     uint8_t unknown_98;               // 0x98 actor_new sets 0
     uint8_t flying;                   // 0x99 Actor.flags bit 21 "flying"; read by every steering and step-test routine
@@ -548,7 +548,7 @@ typedef struct actor {
     uint8_t unknown_3bb;              // 0x3bb
     uint8_t unknown_3bc;              // 0x3bc
     uint8_t unknown_3bd[3];           // 0x3bd
-    datum_index unknown_3c0;          // 0x3c0 actor_new sets none
+    datum_index move_count_target_index;          // 0x3c0 actor_new sets none
     uint8_t unknown_3c4[2];           // 0x3c4
     int16_t recognition_cursor;       // 0x3c6 ring cursor, advanced modulo 4 by 0x4141a0
     actor_recognition_entry recognition[4];// 0x3c8 actor_set_mode and 0x414140 reset all four firing_position_index to -1
@@ -802,10 +802,10 @@ typedef struct prop {
     int32_t last_known_tick;          // 0x7c game time last_known_position was last set from ground_position (actor_target_update_tracking_speed)
     real_point3d previous_known_position; // 0x80 earlier last_known_position; the difference is stored as the 0x40 velocity estimate
     int32_t last_look_tick;           // 0x8c game time of the last non-zero look-handler result (0x90..0x98 keep that result's point)
-    uint32_t unknown_90;              // 0x90
-    uint32_t unknown_94;              // 0x94
-    uint32_t unknown_98;              // 0x98
-    int16_t unknown_9c;               // 0x9c
+    uint32_t last_seen_aim_marker_x;              // 0x90
+    uint32_t last_seen_aim_marker_y;              // 0x94
+    uint32_t last_seen_aim_marker_z;              // 0x98
+    int16_t engaged_age;               // 0x9c
     uint8_t unknown_9e[2];            // 0x9e
     int32_t engaged_tick;             // 0xa0 game tick the prop was marked engaged, -1 when not; expires after 150 ticks
     uint8_t engaged;                  // 0xa4 0x41fa80 marks the target actively engaged
@@ -837,9 +837,9 @@ typedef struct prop {
     float unknown_fc;                 // 0xfc
     int16_t cluster_index;            // 0x100 the BSP cluster the tracked object was last seen in, or -1
     int16_t unknown_102;              // 0x102
-    uint32_t unknown_104;             // 0x104
-    uint32_t unknown_108;             // 0x108
-    uint32_t unknown_10c;             // 0x10c
+    uint32_t aim_marker_x;             // 0x104
+    uint32_t aim_marker_y;             // 0x108
+    uint32_t aim_marker_z;             // 0x10c
     int32_t relationship_object_index;// 0x110 actor_target_get_relationship_object caches it lazily
     float unknown_114;                // 0x114
     uint8_t unknown_118;              // 0x118
@@ -847,7 +847,7 @@ typedef struct prop {
     float distance;                   // 0x11c the ascending sort key of ai_target_distance_qsort_compare
     uint8_t unknown_120;              // 0x120
     uint8_t unknown_121;              // 0x121
-    int8_t unknown_122;               // 0x122 signed: every ordered compare in the binary is jg / jle (2026-09-28)
+    int8_t aim_angle_grade;               // 0x122 signed: every ordered compare in the binary is jg / jle (2026-09-28)
     uint8_t unknown_123;              // 0x123
     uint8_t unknown_124;              // 0x124
     uint8_t unknown_125;              // 0x125
@@ -855,14 +855,14 @@ typedef struct prop {
     uint8_t is_vault;                 // 0x127 Unit type definition byte +0x106 bit 2; 29 functions branch on it
     uint8_t unknown_128;              // 0x128 set when is_vault and the object seat count is 0
     uint8_t unknown_129;              // 0x129
-    uint8_t unknown_12a;              // 0x12a
+    uint8_t newly_perceived;              // 0x12a
     uint8_t unknown_12b;              // 0x12b
     uint8_t unknown_12c;              // 0x12c
     uint8_t unknown_12d;              // 0x12d
     uint8_t is_parented;              // 0x12e 0x43e640 sets it when the tracked object has a parent (object+0x30)
     uint8_t unknown_12f;              // 0x12f
     uint8_t unknown_130;              // 0x130
-    uint8_t unknown_131;              // 0x131
+    uint8_t camo_active;              // 0x131
     uint8_t unknown_132;              // 0x132
     uint8_t unknown_133;              // 0x133
     uint8_t unknown_134;              // 0x134
@@ -901,7 +901,7 @@ typedef struct encounter {
     uint8_t unknown_26[2];            // 0x26
     uint8_t dirty;                    // 0x28 set by every member add / remove; 0x435f00 re-runs morale for dirty encounters
     uint8_t unknown_29;               // 0x29
-    int16_t unknown_2a;               // 0x2a
+    int16_t weighted_actor_count;     // 0x2a
     int16_t unknown_2c;               // 0x2c
     int16_t unknown_2e;               // 0x2e
     int16_t unknown_30;               // 0x30
@@ -910,13 +910,13 @@ typedef struct encounter {
     datum_index first_pursuit;        // 0x38 head of the ai_pursuit ("recently seen object") list
     uint8_t respawn_enabled;          // 0x3c ScenarioEncounter.flags bit 1 (respawn_enabled); gates reinforcements
     uint8_t unknown_3d;               // 0x3d
-    int16_t unknown_3e;               // 0x3e squad_create zeroes it
+    int16_t reinforcement_delay;      // 0x3e squad_create zeroes it; encounter_process_squad_reinforcements counts it down by 0xf per pass, and reinforcements only spawn at zero
     uint8_t initially_blind;          // 0x40 ScenarioEncounter.flags bit 2 (initially_blind)
     uint8_t initially_deaf;           // 0x41 ScenarioEncounter.flags bit 3 (initially_deaf)
     uint8_t unknown_42;               // 0x42 squad_create sets 1
     uint8_t unknown_43;               // 0x43
-    uint8_t unknown_44;               // 0x44 squad_create zeroes it
-    uint8_t unknown_45;               // 0x45 squad_create zeroes it
+    uint8_t any_actor_targeting;     // 0x44 squad_create zeroes it; encounter_recompute_morale sets it when any member has a target
+    uint8_t any_actor_in_combat;     // 0x45 squad_create zeroes it; encounter_recompute_morale sets it when a member with a target has alert_level >= 7
     uint8_t unknown_46;               // 0x46 squad_create zeroes it
     uint8_t unknown_47;               // 0x47
     uint8_t unknown_48;               // 0x48
@@ -924,14 +924,14 @@ typedef struct encounter {
     int16_t unknown_4a;               // 0x4a
     int16_t unknown_4c;               // 0x4c
     uint8_t unknown_4e[2];            // 0x4e
-    datum_index unknown_50;           // 0x50 squad_create sets -1
-    datum_index unknown_54;           // 0x54 squad_create sets -1
+    datum_index combat_timer;           // 0x50 squad_create sets -1; ticks since any_actor_in_combat, held at 0 while it is set (encounter_advance_grenade_timers adds 0xf per pass)
+    datum_index target_timer;           // 0x54 squad_create sets -1; ticks since any_actor_targeting, held at 0 while it is set
     int32_t unknown_58;               // 0x58 squad_create sets -1; 0x43e270 compares it against actor+0x3a0
     datum_index unknown_5c;           // 0x5c squad_create sets -1
     uint8_t unknown_60;               // 0x60
     uint8_t unknown_61;               // 0x61
-    int16_t unknown_62;               // 0x62
-    int32_t unknown_64;               // 0x64
+    int16_t follow_mode;              // 0x62 hs ai_follow_target_*: 0 none, 1 players, 2 unit, 3 ai reference
+    int32_t follow_target;            // 0x64 the unit (mode 2) or ai reference (mode 3) hs ai_follow_target_unit / ai_follow_target_ai stores
     int16_t unknown_68;               // 0x68
     int16_t unknown_6a;               // 0x6a
 } encounter;            // size 0x6c
@@ -951,14 +951,14 @@ typedef struct encounter_squad_state {
     uint32_t starting_location_free;  // 0x04 locations not yet handed out this round
     float unknown_08;                 // 0x08
     int16_t respawn_budget;           // 0x0c ScenarioSquad.respawn_total (999 when that is 0), only set when the squad has a respawn range; the reinforcement spawner decrements it
-    int16_t unknown_0e;               // 0x0e
+    int16_t respawn_delay_ticks;      // 0x0e encounter_process_squad_reinforcements: below 0x10 the squad is ready to respawn, otherwise it drops by 0xf per pass
     uint8_t automatic_migration;               // 0x10 ScenarioSquad.flags bit 5 (hs ai_automatic_migration_target rewrites it)
     uint8_t timer_started;               // 0x11 encounter_new zeroes it hs ai_timer_start sets it
     int16_t squad_delay_ticks;        // 0x12 ftol(ScenarioSquad.squad_delay_time * 30), or 999 when ScenarioSquad.flags bit 3 is set
     uint8_t dormant_disallowed;               // 0x14 read as a flag by encounter_gather_occupied_bsp_clusters hs ai_allow_dormant stores (allow == 0)
     uint8_t unknown_15;               // 0x15
     int16_t member_count;             // 0x16 encounter_add_actor increments, squad_remove_actor decrements
-    int16_t unknown_18;               // 0x18
+    int16_t weighted_actor_count;     // 0x18 sum of member weights; compared with ScenarioSquad.respawn_min_actors / respawn_max_actors
     int16_t unknown_1a;               // 0x1a
     float average_vitality;           // 0x1c encounter_recompute_morale @0x437940 sums one vitality sample per live member here and then divides by member_count
 } encounter_squad_state; // size 0x20
@@ -972,7 +972,7 @@ typedef struct encounter_platoon_state {
     uint8_t maneuver_disabled;        // 0x02 hs ai_maneuver_enable stores (enable == 0)
     uint8_t unknown_03;               // 0x03
     int16_t member_count;             // 0x04 encounter_add_actor increments, squad_remove_actor decrements
-    int16_t unknown_06;               // 0x06
+    int16_t weighted_actor_count;     // 0x06 sum of member weights (encounter_recompute_morale)
     int16_t unknown_08;               // 0x08
     int16_t unknown_0a;               // 0x0a
     float average_vitality;           // 0x0c same running sum as encounter_squad_state.average_vitality, divided by member_count at 0x04
@@ -1054,14 +1054,14 @@ typedef struct ai_conversation {
     int16_t unknown_22;               // 0x22
     uint32_t unknown_24;              // 0x24
     datum_index participant_actor[8]; // 0x28 one actor datum per resolved participant
-    int16_t unknown_48;               // 0x48 ai_conversation_new sets 0xffff
-    int16_t unknown_4a;               // 0x4a
-    int16_t unknown_4c;               // 0x4c
-    int16_t unknown_4e;               // 0x4e
-    int32_t unknown_50;               // 0x50
-    int32_t unknown_54;               // 0x54
-    uint32_t unknown_58;              // 0x58
-    uint32_t unknown_5c;              // 0x5c
+    int16_t current_line_index;       // 0x48 ai_conversation_new sets 0xffff; index into the definition's lines
+    int16_t speaker_participant;      // 0x4a line.participant of the active line
+    int16_t line_delay_ticks;         // 0x4c line.line_delay_time converted to ticks
+    int16_t line_flags;               // 0x4e line.flags
+    int32_t speaker_actor;            // 0x50 actor datum of the speaking participant, or none
+    int32_t speaker_unit;             // 0x54 that actor's unit_index
+    uint32_t addressee_unit;          // 0x58 unit the line is addressed to, or none
+    uint32_t line_variant_tag_id;     // 0x5c tag id of the selected line.variant_N dependency
     uint8_t unknown_60;               // 0x60
     uint8_t unknown_61;               // 0x61
     uint8_t unknown_62;               // 0x62

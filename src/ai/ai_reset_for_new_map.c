@@ -40,7 +40,7 @@ void ai_reset_for_new_map(void)
     g->grenades_enabled = 1;
     g->communication_valid = 1;
     g->unknown_14 = (datum_index)k_datum_index_none;
-    g->unknown_18 = (datum_index)k_datum_index_none;
+    g->weighted_actor_count = (datum_index)k_datum_index_none;
     g->unknown_1c = (datum_index)k_datum_index_none;
     g->unknown_20 = (datum_index)k_datum_index_none;
     g->unknown_24 = (datum_index)k_datum_index_none;

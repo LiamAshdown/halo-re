@@ -374,24 +374,24 @@ typedef struct saved_player_profile {
     uint8_t master_volume;         // 0xb78 10; 0..10, x 0.1 in audio_options_apply_from_profile
     uint8_t effects_volume;        // 0xb79 10
     uint8_t music_volume;          // 0xb7a 6
-    uint8_t unknown_b7b;           // 0xb7b 0; gated by two sound capability flags in the UI
-    uint8_t unknown_b7c;           // 0xb7c 0; a boolean row in the UI
+    uint8_t hardware_sound_enabled;           // 0xb7b 0; UI row gated on directsound init + EAX available (hardware acceleration toggle, UNSURE which)
+    uint8_t eax_enabled;           // 0xb7c 0; boolean UI row shown only when EAX is available (environmental sound / EAX)
     uint8_t sound_quality;           // 0xb7d 1 on a fast machine else 0; UI list 0..2
     uint8_t unknown_b7e;           // 0xb7e 0
     uint8_t sound_variety;           // 0xb7f 2 on a fast machine else 1; UI list 0..2
     uint8_t unknown_b80[0x100];    // 0xb80 never written by this module
     // 0xc80 .. 0xd8b, carried over as one 0x10b-byte block
-    uint8_t unknown_c80;           // 0xc80 3
-    uint8_t unknown_c81;           // 0xc81 1
-    uint8_t unknown_c82;           // 0xc82 1
-    uint8_t unknown_c83;           // 0xc83 0
-    uint8_t unknown_c84;           // 0xc84 0
-    uint8_t unknown_c85;           // 0xc85 0
-    uint8_t unknown_c86;           // 0xc86 1
-    uint8_t unknown_c87;           // 0xc87 1
-    uint8_t unknown_c88;           // 0xc88 0
-    uint8_t unknown_c89;           // 0xc89 0
-    uint8_t unknown_c8a;           // 0xc8a 0
+    uint8_t browser_sort_column;           // 0xc80 3
+    uint8_t browser_sort_ascending;           // 0xc81 1
+    uint8_t browser_allow_password;           // 0xc82 1
+    uint8_t browser_filter_dedicated_only;           // 0xc83 0
+    uint8_t browser_filter_classic_only;           // 0xc84 0
+    uint8_t browser_filter_allow_unknown_map;           // 0xc85 0
+    uint8_t browser_allow_empty;           // 0xc86 1
+    uint8_t browser_allow_full;           // 0xc87 1
+    uint8_t browser_filter_gametype;           // 0xc88 0
+    uint8_t browser_filter_teamplay;           // 0xc89 0
+    uint8_t browser_filter_ping_limit_index;           // 0xc8a 0
     uint8_t unknown_c8b[0x100];    // 0xc8b never written by this module
     uint8_t unknown_d8b;           // 0xd8b outside every copy
     // network (0xd8c .. 0x1108), player_profile_set_default_server_options (0x53a150) writes the same defaults
@@ -399,11 +399,11 @@ typedef struct saved_player_profile {
                                    //       Length UNSURE: 0x120 bytes run up to the password
     uint16_t server_password[9];   // 0xeac wide, empty by default (8 characters plus terminator)
     uint8_t unknown_ebe;           // 0xebe 0
-    uint8_t unknown_ebf;           // 0xebf 3; the UI clamps it to the row count of unknown_fc0
+    uint8_t unknown_ebf;           // 0xebf 3; written from a UI selection by ui_event_4a2f10
     uint8_t unknown_ec0[0x100];    // 0xec0 never written by this module
     uint8_t unknown_fc0;           // 0xfc0 1; the UI reads it as a 0..4 choice
     uint8_t unknown_fc1;           // 0xfc1
-    uint16_t unknown_fc2[0x20];    // 0xfc2 wide string, empty by default; the UI wcscpys a host
+    uint16_t join_host_name[0x20];    // 0xfc2 wide string, empty by default; the UI wcscpys a host
                                    //       name field (0x00719238) here
     uint16_t server_port;          // 0x1002 2302 (0x8fe)
     uint16_t client_port;          // 0x1004 2303 (0x8ff)

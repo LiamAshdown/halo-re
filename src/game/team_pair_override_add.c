@@ -2,12 +2,12 @@
 // address 0x45be50, size 179 bytes
 // name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED against objdump 0x45be50..0x45bf02; FIXED: team_pair_set gets BL = 0 (ally) -- the draft passed 1, so ai_allegiance made the teams enemies (marines attacked the player))
 // evidence: types/game.h team_pair_override (every field offset below matches the struct
-//   exactly: unknown_08 0x08, index_b 0x02, unknown_09 0x09, threshold 0x04, timer_reset 0x06,
-//   unknown_0c 0x0c, active 0x0a, status 0x0b).
+//   exactly: index_a_is_other 0x08, index_b 0x02, index_b_is_other 0x09, threshold 0x04, timer_reset 0x06,
+//   other_is_human 0x0c, active 0x0a, status 0x0b).
 // register convention: first index in EAX (in_AX); the rest are the recognized stack
 //   parameters, in field-write order.
-//   // blam-cc: EAX -> index_a, stack -> unknown_08, index_b, unknown_09, threshold,
-//   //          timer_reset, unknown_0c
+//   // blam-cc: EAX -> index_a, stack -> index_a_is_other, index_b, index_b_is_other, threshold,
+//   //          timer_reset, other_is_human
 //
 // UNSURE: `team_pair_set(entry, 1, 0)` reconstructs FUN_0045c130(0)'s elided EAX/EBX arguments;
 // `entry` is the slot just filled in (confident) and `active` = 1 matches the explicit
@@ -25,10 +25,10 @@ extern void team_pair_set(team_pair_override *entry, uint8_t active, uint8_t cle
 // Finds an existing override for the (index_a, index_b) pair, or allocates a new slot (capped
 // at k_maximum_team_pair_overrides), then (re)initializes its fields and activates it via
 // team_pair_set.
-void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09,
-                             int16_t threshold, int16_t timer_reset, uint8_t unknown_0c)
-    // blam-cc: EAX -> index_a, stack -> unknown_08, index_b, unknown_09, threshold,
-    //          timer_reset, unknown_0c
+void team_pair_override_add(int16_t index_a, uint8_t index_a_is_other, int16_t index_b, uint8_t index_b_is_other,
+                             int16_t threshold, int16_t timer_reset, uint8_t other_is_human)
+    // blam-cc: EAX -> index_a, stack -> index_a_is_other, index_b, index_b_is_other, threshold,
+    //          timer_reset, other_is_human
 {
     int16_t count;
     int16_t i;
@@ -51,15 +51,15 @@ void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b
 
     if (i < team_pair_data->override_count) {
         entry = &team_pair_data->overrides[i];
-        entry->unknown_09 = unknown_09;
-        entry->unknown_08 = unknown_08;
+        entry->index_b_is_other = index_b_is_other;
+        entry->index_a_is_other = index_a_is_other;
         entry->threshold = threshold;
         entry->index_a = index_a;
         entry->refcount = 0;
         entry->timer = 0;
         entry->index_b = index_b;
         entry->timer_reset = timer_reset;
-        entry->unknown_0c = unknown_0c;
+        entry->other_is_human = other_is_human;
         entry->active = 1;
         // 0x45bee0..0x45befc: EAX = entry, BL = 0 (xor bl,bl), stack 0. BL = 0 SETS the pair's +0xa4 bits,
         // which teams_are_enemies reads as allied; BL = 1 (the betrayal path, 0x45c05f) clears them. The draft

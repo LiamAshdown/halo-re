@@ -9,7 +9,7 @@
 //   object_data.
 // register convention: object index in ECX (in_ECX).
 // UNSURE: this function also reads and writes object+0x08 and object+0x09 as individual bytes.
-//   types/objects.h marks object 0x008 ("unknown_008", declared uint32_t) as "written at create
+//   types/objects.h marks object 0x008 ("network_at_rest", declared uint32_t) as "written at create
 //   but never read anywhere in this module" -- that note predates this function being examined.
 //   The two bytes are kept as raw offsets rather than folded into the existing uint32_t field,
 //   since their true width/meaning (a flag byte and a one-shot latch byte, per functions.md) is

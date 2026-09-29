@@ -334,7 +334,7 @@ typedef struct object {
     datum_index definition_tag;     // 0x000 the Object tag; every tag-data lookup starts here
     int32_t network_role;           // 0x004 the role/control value object_new was called with;
                                     //       object_delete dispatches on 0 versus 3
-    uint8_t unknown_008;            // 0x008
+    uint8_t network_at_rest;        // 0x008 object_update (network_game_mode 2) sets it to 1 when velocity and angular_velocity are both ~0, else 0; object_datum_consume_pending_flag tests it with the at-rest flag
     uint8_t network_state_009;      // 0x009 network state: projectile_new (0x4bda48),
                                     //       weapon_new and equipment_new zero it together with
                                     //       their three per-type network bytes when the game is
@@ -374,7 +374,7 @@ typedef struct object {
     real_vector3d angular_velocity; // 0x08c object_get_root_object_velocities, second output
     int32_t location_leaf_index;    // 0x098 object_set_cluster_and_parent
     int16_t location_cluster_index; // 0x09c -1 at create; mirrored into object_header 0x04
-    int16_t unknown_09e;            // 0x09e
+    int16_t location_cluster_pad;   // 0x09e high half of the cluster word: object_get_root_location copies it as one int32 with location_cluster_index; item_set_holder stores -1 to both
     real_point3d bounding_center;   // 0x0a0 the object_find_in_sphere sphere centre and the
                                     //       damage line-of-sight target point
     float bounding_radius;          // 0x0ac written by every bounding-radius variant
@@ -565,7 +565,7 @@ typedef struct object_globals {
     uint8_t unknown_00;             // 0x00
     uint8_t collecting_in_clusters; // 0x01 raised around the object_collect_in_clusters walk
     uint8_t unknown_02[2];          // 0x02
-    int16_t unknown_04;             // 0x04 zeroed at the top of objects_update
+    int16_t tracked_object_count;   // 0x04 zeroed at the top of objects_update; object_update counts tracked-list objects, garbage collection decrements per active deletion and compares against 0x32/0x1e
     int16_t unknown_06;             // 0x06
     datum_index first_tracked_object; // 0x08 head of the object_list_membership_set list
     uint32_t cluster_pvs_previous[16]; // 0x0c last frame bitset, one bit per cluster
@@ -778,13 +778,13 @@ typedef struct light {
 typedef struct light_transient {
     void *definition;               // 0x00 tag data of the Light definition
     real_point3d position;          // 0x04
-    uint32_t unknown_10;            // 0x10
-    uint32_t unknown_14;            // 0x14
+    uint32_t packed_forward;        // 0x10 vector3d_pack_normal_11_11_10 of the direction argument
+    uint32_t packed_up;             // 0x14 vector3d_pack_normal_11_11_10 of the second vector argument
     uint32_t color;                 // 0x18 packed ARGB
     int16_t unknown_1c;             // 0x1c 0xffff
     int16_t unknown_1e;             // 0x1e 0xffff
     int16_t slot_index;             // 0x20 the index of this entry
-    uint8_t unknown_22;             // 0x22
+    uint8_t render_window_index;    // 0x22 render_window_index at add time
     uint8_t intensity;              // 0x23 the scalar argument rounded into 0..255
     uint32_t unknown_24;            // 0x24
 } light_transient;                  // size 0x28
@@ -835,7 +835,7 @@ typedef struct antenna_vertex {
     real_point3d position;          // 0x00 laid out along the tag vertex offsets at create
     real_vector3d velocity;         // 0x0c zeroed at create
     float texture_scale;            // 0x18 AntennaVertex length divided by the bitmap span
-    int16_t unknown_1c;             // 0x1c zeroed at create
+    int16_t update_count;             // 0x1c zeroed at create
     int16_t unknown_1e;             // 0x1e
 } antenna_vertex;                   // size 0x20
 
@@ -844,7 +844,7 @@ typedef struct antenna {
     int16_t unknown_02;             // 0x02
     uint8_t unknown_04;             // 0x04 zeroed at create
     uint8_t degenerate;             // 0x05 set when the tag has fewer than two vertices
-    int16_t unknown_06;             // 0x06
+    int16_t frames_since_rendered;  // 0x06 antennas_update increments, antenna_render_callback zeroes; physics is stepped 3x when > 5
     datum_index definition_tag;     // 0x08 the Antenna tag
     datum_index object_index;       // 0x0c -1 at create
     real_point3d previous_marker_position; // 0x10 widget_apply_marker_delta shifts every

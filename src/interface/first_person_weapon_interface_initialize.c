@@ -146,7 +146,7 @@ void first_person_weapon_interface_initialize(int16_t local_player_index)
         fp->animation_block_index = -1;
         fp->moving_animation_index = -1;
         fp->charging_animation_index = -1;
-        fp->unknown_28 = 0.0f;
+        fp->charge_blend_weight = 0.0f;
         fp->charge = 0.0f;
         fp->idle_ticks = 0;
         fp->frame_sound_impulse = -1;

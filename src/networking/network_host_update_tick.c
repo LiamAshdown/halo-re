@@ -4,7 +4,7 @@
 // evidence: out/phase4/networking_functions.md: "Per-tick client-side network update handler:
 // pulls the next queued packet, refreshes the map/variant cycle list periodically, and
 // dispatches processing to one of three state-specific handlers based on [state]." host->flags
-// bit1 (k_network_server_host, matches network_game_server_host_new.c) and host->unknown_004
+// bit1 (k_network_server_host, matches network_game_server_host_new.c) and host->state
 // (the state dispatched on 0/1/2, matching network_game_server_host_dispose.c's own 0/2 test)
 // match types/networking.h.
 // FIXED in the review pass (this was the file's largest UNSURE): `network_channel_service(local_20)` is
@@ -73,11 +73,11 @@ char network_host_update_tick(network_server_globals *host)
                 if (service_result == 0) {
                     return 0;
                 }
-                if (host->unknown_004 == 0) {
+                if (host->state == 0) {
                     return network_server_heartbeat_tick(host);
                 }
-                if (host->unknown_004 != 1) {
-                    if (host->unknown_004 != 2) {
+                if (host->state != 1) {
+                    if (host->state != 2) {
                         return 0;
                     }
                     return network_server_resend_challenge_periodic(host);

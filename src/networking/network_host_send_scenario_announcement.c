@@ -3,7 +3,7 @@
 // name confidence: 0.35   rewrite confidence: 0.2
 // evidence: out/phase4/networking_functions.md: "Sends the one-time scenario/challenge
 // announcement packets (via FUN_004ec940/FUN_004e19c0 and network_prepare_challenge_packet) the first time it is
-// called for this game, then latches a done flag." host->scenario_announcement_sent/unknown_9b8 match
+// called for this game, then latches a done flag." host->scenario_announcement_sent/update_tick_count match
 // network_game_server_host_new.c's established offsets on network_server_globals.
 // UNSURE: message_delta_encode_message's parameter shapes are inferred purely from this call
 // site; declared generically.
@@ -59,7 +59,7 @@ int32_t network_host_send_scenario_announcement(network_server_globals *host)
             }
         }
     }
-    host->unknown_9b8 = 0;
+    host->update_tick_count = 0;
     return result;
 }
 

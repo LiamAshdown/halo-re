@@ -53,8 +53,8 @@ void network_game_server_host_dispose(network_server_globals *host)
         message_delta_parameters_protocol_dump_to_config_file();
         network_stats_summary_log_write();
     }
-    if ((host->unknown_004 == 0 || host->unknown_004 == 2)) {
-        message_type = (host->unknown_004 == 2) ? 0x22 : 0x0b;
+    if ((host->state == 0 || host->state == 2)) {
+        message_type = (host->state == 2) ? 0x22 : 0x0b;
         // 0x4dedd7/0x4dedde select the message type (0x22 when unknown_004 == 2, 0x0b when
         // it is 0); 0x4dede3: edx = &payload scratch.
         challenge_packet = (int32_t)network_prepare_challenge_packet(message_type, challenge_payload);

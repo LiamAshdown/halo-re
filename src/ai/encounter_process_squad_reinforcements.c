@@ -13,7 +13,7 @@
 //   // blam-cc: stack -> encounter_index
 //
 // UNSURE: encounter_squad_state.maneuver_distance (+0x0c) is read here as the "still wants to
-// spawn" gate and squad_state.unknown_18 as a running spawn count; see
+// spawn" gate and squad_state.weighted_actor_count as a running spawn count; see
 // encounter_squad_spawn_reinforcement.c for the same field-name/usage mismatch. The
 // `auStack_1008[1016]` stack array Ghidra shows in the original is never read or written
 // anywhere in the decompiled body and is omitted here as dead/unused stack space.
@@ -47,14 +47,14 @@ void encounter_process_squad_reinforcements(datum_index encounter_index)
     if (self->respawn_enabled == 0) {
         return;
     }
-    if (0xf < self->unknown_3e) {
-        self->unknown_3e = self->unknown_3e - 0xf;
+    if (0xf < self->reinforcement_delay) {
+        self->reinforcement_delay = self->reinforcement_delay - 0xf;
         return;
     }
 
     encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index & 0xffff];
     ready_mask[0] = 0;
-    self->unknown_3e = 0;
+    self->reinforcement_delay = 0;
     ready_mask[1] = 0;
     ready_count = 0;
     squad_index = 0;
@@ -66,20 +66,20 @@ void encounter_process_squad_reinforcements(datum_index encounter_index)
 
             if (0 < squad_state->respawn_budget) {
                 do {
-                    if ((squad_definition->respawn_min_actors <= squad_state->unknown_18) ||
+                    if ((squad_definition->respawn_min_actors <= squad_state->weighted_actor_count) ||
                         ((int8_t)encounter_squad_spawn_reinforcement(encounter_index, squad_index) == 0)) {
                         break;
                     }
                 } while (0 < squad_state->respawn_budget);
 
                 if ((0 < squad_state->respawn_budget) &&
-                    (squad_state->unknown_18 < squad_definition->respawn_max_actors)) {
-                    if (squad_state->unknown_0e < 0x10) {
-                        squad_state->unknown_0e = 0;
+                    (squad_state->weighted_actor_count < squad_definition->respawn_max_actors)) {
+                    if (squad_state->respawn_delay_ticks < 0x10) {
+                        squad_state->respawn_delay_ticks = 0;
                         ready_count = ready_count + 1;
                         ready_mask[squad_index >> 5] = ready_mask[squad_index >> 5] | (1u << (squad_index & 0x1f));
                     } else {
-                        squad_state->unknown_0e = squad_state->unknown_0e - 0xf;
+                        squad_state->respawn_delay_ticks = squad_state->respawn_delay_ticks - 0xf;
                     }
                 }
             }
@@ -87,7 +87,7 @@ void encounter_process_squad_reinforcements(datum_index encounter_index)
             squad_index = squad_index + 1;
         } while (squad_index < (int32_t)encounter_definition->squads.count);
 
-        if ((0 < ready_count) && (self->unknown_3e == 0)) {
+        if ((0 < ready_count) && (self->reinforcement_delay == 0)) {
             random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
             squad_index = 0;
             roll = (uint32_t)(((uint64_t)(random_seed_global >> 0x10) * (uint32_t)ready_count) >> 0x10);

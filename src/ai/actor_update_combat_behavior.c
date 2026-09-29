@@ -60,7 +60,7 @@ uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, u
                     goto use_default;
                 }
                 target_prop = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
-                if (self->target_unit_index == self->unknown_3c0 &&
+                if (self->target_unit_index == self->move_count_target_index &&
                     (target_prop->noticed_a != 0 || (self->mode == 5 && *(int16_t *)(self->mode_data.raw + 8) == 0)) &&
                     (target_prop->noticed_b != 0 ||
                      ((self->mode == 5 && *(int16_t *)(self->mode_data.raw + 8) == 0) ||

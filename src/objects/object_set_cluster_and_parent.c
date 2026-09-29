@@ -17,7 +17,7 @@
 //   {leaf_index, cluster_index} location pointer ([esp+0x20] after the frame; NULL to probe the object's own
 //   position for it). Neither EAX nor ECX is an input.
 // UNSURE: the write of a full 32-bit value at object+0x9c straddles the documented
-//   location_cluster_index (int16 at 0x09c) and the undocumented unknown_09e that immediately
+//   location_cluster_index (int16 at 0x09c) and the undocumented location_cluster_pad that immediately
 //   follows it; preserved exactly as a dword store rather than split into two fields, since
 //   types/objects.h explicitly notes 0x09e is never read by anything in this module. UNSURE:
 //   FUN_00551f00 and scenario_location_from_point (foreign, outside this module's address range) are called with

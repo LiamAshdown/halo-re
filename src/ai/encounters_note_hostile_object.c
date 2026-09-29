@@ -13,7 +13,7 @@
 //   (objdump -d -M intel --start-address=0x435f90 --stop-address=0x435ff0 bin/halo.exe).
 //   // blam-cc: EAX -> object_index
 //
-// UNSURE: encounter.unknown_4c is only otherwise written (to 0) by
+// UNSURE: encounter.line_delay_ticks is only otherwise written (to 0) by
 // encounter_release_stale_props and encounter_choose_vocalizations, and read by
 // encounter_choose_vocalizations as a "how long since the last vocalization" gate, so
 // "hostile contact tally" is the reading and not a proven name. The phase-4 summary reads

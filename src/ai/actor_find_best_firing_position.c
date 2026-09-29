@@ -173,14 +173,14 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
             query->target_unknown_640 = ((struct prop *)target)->cluster_index;
             query->target_distance = target->distance;
             query->target_prop_index = prop_index;
-            query->target_aim_position = *(real_point3d *)&((struct prop *)target)->unknown_104;
+            query->target_aim_position = *(real_point3d *)&((struct prop *)target)->aim_marker_x;
             query->target_relationship_object = target->relationship_object_index;
             query->target_unknown_658 = target->unknown_20;
 
             if (query->unknown_41 == 0 || ((struct prop *)target)->last_look_tick == -1) {
-                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->unknown_104;
+                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->aim_marker_x;
             } else {
-                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->unknown_90;
+                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->last_seen_aim_marker_x;
             }
 
             if (target->kind > 3 && target->kind < 6) {

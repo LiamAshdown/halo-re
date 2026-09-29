@@ -133,7 +133,7 @@ uint8_t network_server_heartbeat_tick(network_server_globals *server)
                 }
             }
             has_client = (network_client != 0);
-            server->unknown_004 = 1;
+            server->state = 1;
             *(int32_t *)(base + 0x9c4) = 0;
             server->session.unknown_3ac = has_client ? *((uint8_t *)network_client + 0xec0) : 0;
         }
@@ -142,7 +142,7 @@ uint8_t network_server_heartbeat_tick(network_server_globals *server)
 scenario_check:
     if (*(uint8_t *)(base + 0x9fa) == 1) {
         if (network_game_server_load_scenario() == 1) {
-            server->unknown_004 = 1;
+            server->state = 1;
         }
         *(uint8_t *)(base + 0x9fa) = 0;
     }

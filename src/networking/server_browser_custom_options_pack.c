@@ -58,45 +58,45 @@ char *server_browser_custom_options_pack(server_browser_custom_options *options)
         }
     }
     low = low ^ (options->flags_a * 4 & 0x20);
-    if (options->unknown_14 != 0) {
-        if (options->unknown_14 == 0x96) {
+    if (options->respawn_time != 0) {
+        if (options->respawn_time == 0x96) {
             low = low | 0x40;
-        } else if (options->unknown_14 == 300) {
+        } else if (options->respawn_time == 300) {
             low = low | 0x80;
-        } else if (options->unknown_14 == 0x1c2) {
+        } else if (options->respawn_time == 0x1c2) {
             low = low | 0xc0;
         }
     }
-    if (options->unknown_10 != 0) {
-        if (options->unknown_10 == 0x96) {
+    if (options->respawn_time_growth != 0) {
+        if (options->respawn_time_growth == 0x96) {
             low = low | 0x100;
-        } else if (options->unknown_10 == 300) {
+        } else if (options->respawn_time_growth == 300) {
             low = low | 0x200;
-        } else if (options->unknown_10 == 0x1c2) {
+        } else if (options->respawn_time_growth == 0x1c2) {
             low = low | 0x300;
         }
     }
     {
         uint32_t bit4 = options->flags_a & 0x10;
-        uint32_t bit3 = (uint32_t)(options->unknown_0c != 0) << 3;
+        uint32_t bit3 = (uint32_t)(options->odd_man_out != 0) << 3;
         high = (bit3 | bit4) << 7 | low;
-        if (options->unknown_18 == 0) {
+        if (options->suicide_penalty == 0) {
             high = (bit3 | bit4) << 7 | low;
-        } else if (options->unknown_18 == 0x96) {
+        } else if (options->suicide_penalty == 0x96) {
             high = ((bit3 | bit4) << 7 | low) | 0x1000;
-        } else if (options->unknown_18 == 300) {
+        } else if (options->suicide_penalty == 300) {
             high = ((bit3 | bit4) << 7 | low) | 0x2000;
-        } else if (options->unknown_18 == 0x1c2) {
+        } else if (options->suicide_penalty == 0x1c2) {
             high = high | 0x3000;
         }
     }
     high = high ^ ((options->flags_a & 4) << 0xc);
-    if ((int32_t)options->unknown_28 < 0xe) {
-        high = high ^ ((options->unknown_28 & 0xf) << 0xf);
+    if ((int32_t)options->starting_equipment < 0xe) {
+        high = high ^ ((options->starting_equipment & 0xf) << 0xf);
     }
     high = high ^ ((options->flags_a & 0x20) << 0xe);
-    if ((int32_t)options->unknown_08 < 3) {
-        high = high ^ ((options->unknown_08 & 3) << 0x14);
+    if ((int32_t)options->objective_indicator < 3) {
+        high = high ^ ((options->objective_indicator & 3) << 0x14);
     }
     high = ((((options->flags_a & 2) << 1 | (options->flags_a & 1)) << 5 | (options->flags_a & 0x40)) << 0x11) | high;
     if (options->friendly_fire_mode < 4) {
@@ -113,23 +113,23 @@ char *server_browser_custom_options_pack(server_browser_custom_options *options)
     }
 
     extra = 0;
-    if (options->unknown_34 == 0) {
+    if (options->time_limit == 0) {
         extra = 0;
-    } else if (options->unknown_34 == 900) {
+    } else if (options->time_limit == 900) {
         extra = 1;
-    } else if (options->unknown_34 == 0x708) {
+    } else if (options->time_limit == 0x708) {
         extra = 2;
-    } else if (options->unknown_34 == 0xa8c) {
+    } else if (options->time_limit == 0xa8c) {
         extra = 3;
-    } else if (options->unknown_34 == 0xe10) {
+    } else if (options->time_limit == 0xe10) {
         extra = 4;
-    } else if (options->unknown_34 == 0x1518) {
+    } else if (options->time_limit == 0x1518) {
         extra = 5;
-    } else if (options->unknown_34 == 9000) {
+    } else if (options->time_limit == 9000) {
         extra = 6;
     }
     {
-        uint32_t nibble1 = options->unknown_2c & 0xf;
+        uint32_t nibble1 = options->vehicle_set & 0xf;
         if (nibble1 < 9) {
             extra = extra | (nibble1 << 3);
         }
@@ -142,7 +142,7 @@ char *server_browser_custom_options_pack(server_browser_custom_options *options)
     }
 
     sprintf(server_browser_custom_options_text, "%d,%d",
-            high ^ ((uint32_t)(options->unknown_40 != 0) << 0x1d), extra);
+            high ^ ((uint32_t)(options->team_switch_restricted != 0) << 0x1d), extra);
     return server_browser_custom_options_text;
 }
 

@@ -7,7 +7,7 @@
 // evidence: types/objects.h object_header (flags 0x02 with _object_header_just_created_bit),
 //   object (flags 0x10 with _object_in_tracked_list_bit, node_function_ticks_elapsed 0x0d4,
 //   node_function_count 0x0d6, first_child_object 0x118, next_object 0x114,
-//   parent_object 0x11c, velocity 0x068, angular_velocity 0x08c, unknown_008 0x008);
+//   parent_object 0x11c, velocity 0x068, angular_velocity 0x08c, network_at_rest 0x008);
 //   types/tags.h Object (model, collision_model TagDependency); global 0x008603b0 object_data,
 //   0x0087bc14 tag_instances, 0x006b8cbc object_globals_pointer, 0x00696714 the shared zero
 //   vector (types/math.h); callees object_type_definitions_query_0x34 (0x4f4000, established:
@@ -61,7 +61,7 @@ uint8_t object_update(uint32_t object_index)
     }
 
     if ((obj->flags & _object_in_tracked_list_bit) != 0) {
-        object_globals_pointer->unknown_04 = object_globals_pointer->unknown_04 + 1;
+        object_globals_pointer->tracked_object_count = object_globals_pointer->tracked_object_count + 1;
     }
 
     if (obj->node_function_count != 0) {
@@ -101,7 +101,7 @@ uint8_t object_update(uint32_t object_index)
     object_notify_node_array_if_animated(object_index);
 
     if (network_game_mode == 2) {
-        uint8_t *at_rest_flag = (uint8_t *)&obj->unknown_008;
+        uint8_t *at_rest_flag = (uint8_t *)&obj->network_at_rest;
         if ((fabsf(obj->velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
             (fabsf(obj->velocity.j - global_origin3d_pointer->j) < 0.0001f) &&
             (fabsf(obj->velocity.k - global_origin3d_pointer->k) < 0.0001f) &&

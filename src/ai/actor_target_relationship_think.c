@@ -7,7 +7,7 @@
 // communication events (ai_communication_broadcast with ids 8/0xf/0x19), and posture escalation
 // (actor_start_search_timer/actor_queue_velocity_search_from_prop). Walks actor.first_prop and, per prop, ages its perception and
 // engagement counters, advances prop.kind through a small state machine, and emits dialogue and
-// backup-request events; finishes by refreshing actor.unknown_54 and the per-actor "recheck due"
+// backup-request events; finishes by refreshing actor.target_timer and the per-actor "recheck due"
 // cache at actor+0x4e (unknown_4d[1]).
 // register convention: actor_index is a genuine stack parameter. Confirmed with objdump: every
 // call site does `push esi` (the actor index) immediately before `call 0x41abd0`, and this
@@ -330,8 +330,8 @@ restart:
     if (target->unknown_6a > 0 && target->unknown_126 == 0) {
         target->unknown_6a -= 1;
     }
-    if (target->unknown_9c > 0 && target->unknown_9c < 0x7fff) {
-        target->unknown_9c += 1;
+    if (target->engaged_age > 0 && target->engaged_age < 0x7fff) {
+        target->engaged_age += 1;
     }
     if (target->unknown_a8 > 0) {
         target->unknown_a8 -= 1;
@@ -523,13 +523,13 @@ tail:
             actor_scan_backup_and_panic_reaction(target_prop_index, actor_index); // 0x41b570: EAX prop, stack actor
             target->unknown_129 = 0;
         }
-        if (target->unknown_12a != 0 || (released != 0 && target->perception_grade > 0)) {
+        if (target->newly_perceived != 0 || (released != 0 && target->perception_grade > 0)) {
             // 0x41b59b: EAX prop, ECX actor, DL = released and no conflict
             actor_notify_target_engaged(target_prop_index, actor_index, (uint8_t)(released != 0 && had_conflict == 0));
-            target->unknown_12a = 0;
+            target->newly_perceived = 0;
         }
         if (self->unknown_377 == 0 && target->is_unit == 0 && target->is_parented != 0 &&
-            target->perception_grade > 1 && target->unknown_122 < 3 && target->distance < 7.0f) {
+            target->perception_grade > 1 && target->aim_angle_grade < 3 && target->distance < 7.0f) {
             self->unknown_377 = 1;
             ai_communication_broadcast(0x19, self->unit_index, target->object_index, 2, (uint32_t)-1, (uint32_t)-1, 0);
             actor_notify_target_engaged(target_prop_index, actor_index, 0); // 0x41b620: DL 0
@@ -541,7 +541,7 @@ tail:
             payload.team = self->team;
             payload.is_enemy = (char)teams_are_enemies(target->object_type, self->team);
             if (payload.is_enemy == 0) {
-                dist_threshold = (target->unknown_122 < 3) ? 10.0f : 3.0f;
+                dist_threshold = (target->aim_angle_grade < 3) ? 10.0f : 3.0f;
             } else {
                 dist_threshold = 15.0f;
             }
@@ -574,8 +574,8 @@ tail:
                 if (self->encounter_index == (datum_index)k_datum_index_none) goto restart;
                 {
                     encounter *enc = (encounter *)((uint8_t *)encounter_data->data + (self->encounter_index & 0xffff) * sizeof(encounter));
-                    if (enc->unknown_50 != (datum_index)k_datum_index_none &&
-                        (enc->unknown_50 < 0xb4 || enc->unknown_44 == 0)) {
+                    if (enc->combat_timer != (datum_index)k_datum_index_none &&
+                        (enc->combat_timer < 0xb4 || enc->any_actor_targeting == 0)) {
                         goto restart;
                     }
                 }

@@ -70,8 +70,8 @@
 //   5. The "%d+%d" pair at 0x4b9b0f accepts 0 / 0x96 / 0x12c / 0x1c2 on EACH side; the fourth
 //      value 0x1c2 lives in the `jg 0x4b9b29` arm Ghidra folds into a bVar9 flag, and had been
 //      dropped from both sets.
-//   6. var_vehicles_respawn is indexed by a 0..6 ordinal derived from options.unknown_34, not
-//      by unknown_34's own tick count (0x4b9f65..0x4b9fc9).
+//   6. var_vehicles_respawn is indexed by a 0..6 ordinal derived from options.time_limit, not
+//      by time_limit's own tick count (0x4b9f65..0x4b9fc9).
 // Verified correct and left alone: every string index constant (24..46 for the per-engine
 // blocks, 1..23 for the shared tail), the `(%s)` / `(%s - "%s")` / L" %s %s" argument lists
 // (game_flags_wide and player_flags_wide are the missing second %s Ghidra dropped), the
@@ -652,7 +652,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         // count here would index far off the end of that string list. Any other value skips the
         // line entirely (`jne 0x4ba02a`).
         int32_t vehicle_respawn_index = -1;
-        switch (options.unknown_34) {
+        switch (options.time_limit) {
         case 0:      vehicle_respawn_index = 0; break;
         case 0x384:  vehicle_respawn_index = 1; break;  /* 900  */
         case 0x708:  vehicle_respawn_index = 2; break;  /* 1800 */

@@ -2,7 +2,7 @@
 // address 0x429270, size 438 bytes
 // name confidence: 0.5   rewrite confidence: 0.85 (checked against objdump 0x429270..0x429425)
 // evidence: types/ai.h actor.swarm(0x06)/swarm_index(0x28)/unknown_4a4/pending_alert_event_data/pending_alert_event/
-//   unknown_92/encounter_index(0x34)/keep_unit_alive(0x13)/unknown_12/target_unit_index(0x270)/
+//   command_list_countdown/encounter_index(0x34)/keep_unit_alive(0x13)/unknown_12/target_unit_index(0x270)/
 //   secondary_action(0x46c); encounter.unknown_0c; prop.is_parented(0x12e)/is_unit(0x60)/
 //   is_vault(0x127)/unknown_24. Calls actor_set_units_active (0x427860) and
 //   actor_delete_or_release_unit (0x4288e0), both already rewritten in this module.
@@ -56,8 +56,8 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
             self->pending_alert_event = 0;
         }
     }
-    if (self->unknown_92 > 0) {
-        self->unknown_92 = self->unknown_92 - 1;
+    if (self->command_list_countdown > 0) {
+        self->command_list_countdown = self->command_list_countdown - 1;
     }
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
@@ -95,7 +95,7 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
             if (movement_done != 0) {
                 // 0x4293b7: the ACTIVE movement action's type (+0x46c), not the secondary action (+0x418)
                 if (self->active_movement.type == 3) {
-                    if (self->mode == 6 && enc != 0 && ((struct encounter *)enc)->unknown_62 == 1) {
+                    if (self->mode == 6 && enc != 0 && ((struct encounter *)enc)->follow_mode == 1) {
                         return 1;
                     }
                 } else if (self->active_movement.type == 5) {

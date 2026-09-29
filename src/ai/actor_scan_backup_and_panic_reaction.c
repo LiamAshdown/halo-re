@@ -3,7 +3,7 @@
 // name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x423220..0x4233c6 (+0x122 compared as a signed byte).)
 // evidence: types/ai.h actor.unknown_8d, actor.unknown_308/unknown_30c (danger-slot pair,
 //   shared with the whole 0x423220..0x423670 family), actor.unknown_39c; prop.is_unit (0x60),
-//   prop.actor_type (0x10), prop.distance (0x11c), prop.perception_grade/unknown_122,
+//   prop.actor_type (0x10), prop.distance (0x11c), prop.perception_grade/aim_angle_grade,
 //   prop.engaged/unknown_a6/unknown_a8 (0xa4/0xa6/0xa8); types/tags.h Actor.leader_type
 //   (0x2a4), Actor.leader_killed_panic_chance (0x2a8), Actor.friend_killed_panic_chance
 //   (0x2a0), Actor.more_flags bit 0x20 "panic_in_groups" (same bitfield convention as
@@ -79,7 +79,7 @@ void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_i
         prop *ally = &((prop *)prop_data->data)[relevant & 0xffff];
 
         if (ally->is_unit != 0) {
-            if (ally->perception_grade > 0 && (int8_t)ally->unknown_122 <= 2) { // 0x42333d: signed byte compare
+            if (ally->perception_grade > 0 && (int8_t)ally->aim_angle_grade <= 2) { // 0x42333d: signed byte compare
                 float chance = actor_tag->friend_killed_panic_chance;
                 int roll_ok;
 

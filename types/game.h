@@ -278,7 +278,7 @@ typedef struct game_engine_definition {
     void *allow_grenade_counts;        // 0x78 game_engine_apply_player_grenade_counts
     void *unknown_7c;                  // 0x7c
     void *waypoint_filter;             // 0x80 0x4620c0, per custom-waypoint slot
-    void *unknown_84;                  // 0x84 called with 0 or 1; gates damage scaling and
+    void *feature_enabled;             // 0x84 (kind) predicate, called with 0 or 1; gates damage scaling and
                                        //      one kill-feed message class
     void *time_scale_override;         // 0x88 0x461550
     void *is_winner;                   // 0x8c 0x463730 / 0x45cf30
@@ -513,7 +513,7 @@ typedef struct player {
     int16_t unknown_c8;                // 0xc8 flag touches; also mirrored by the profile
     uint8_t unknown_ca[0xd0 - 0xca];   // 0xca
     datum_index removal_tick;          // 0xd0 game_time at which game_engine_flag_local_player_units marks the player for deletion; constructors write -1 (none)
-    uint8_t unknown_d4;                // 0xd4
+    uint8_t teleport_blocked;          // 0xd4 set when a teleporter destination is obstructed by this player's unit, cleared every tick (main_switch_structure_bsp)
     uint8_t marked_for_deletion;       // 0xd5 1 makes 0x474e10 call player_remove; every
                                        //      respawn / scoreboard path skips such a player
     uint8_t unknown_d6[0xdc - 0xd6];   // 0xd6
@@ -853,11 +853,11 @@ typedef struct team_pair_override {
     int16_t index_b;           // 0x02 either ordering matches in every lookup
     int16_t threshold;         // 0x04 0x45bfc0 fires team_pair_set once the counter reaches it
     int16_t timer_reset;       // 0x06 value the countdown is refreshed to
-    uint8_t unknown_08;        // 0x08
-    uint8_t unknown_09;        // 0x09
+    uint8_t index_a_is_other;  // 0x08 index_a is the non-player ("other") side of the pair; matched for (b,a) lookups
+    uint8_t index_b_is_other;  // 0x09 index_b is the "other" side; matched for (a,b) lookups
     uint8_t active;            // 0x0a set to 1 when the entry is inserted
     uint8_t status;            // 0x0b the extra byte 0x45be00 returns and 0x45c0f0 clears
-    uint8_t unknown_0c;        // 0x0c
+    uint8_t other_is_human;    // 0x0c the other side is the human category (adjust_counter reports !this through out_flag)
     uint8_t pad_0d;            // 0x0d
     int16_t refcount;          // 0x0e decremented when the countdown expires; at 0 the entry
                                //      is torn down

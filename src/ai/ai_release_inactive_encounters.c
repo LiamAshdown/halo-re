@@ -55,7 +55,7 @@ int32_t ai_release_inactive_encounters(char *buffer, uint8_t *has_more, int16_t 
             scenario_encounter = &((ScenarioEncounter *)global_scenario->encounters.pointer)[index & 0xffff];
             runtime_encounter = &((encounter *)encounter_data->data)[index & 0xffff];
             sprintf(buffer, "encounter %s (%d units)", scenario_encounter->name.string,
-                    runtime_encounter->unknown_2a);
+                    runtime_encounter->weighted_actor_count);
             // FIXED (objdump 0x42af13..0x42af1d): EAX = the encounter, EDI = -1, stack = -1, BL = 1. The draft passed
             //   only -1, which released every actor in the level instead of this encounter.
             ai_release_actors_filtered((datum_index)index, -1, -1, 1);

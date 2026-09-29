@@ -15,7 +15,7 @@
 // failing here needs a socket-creation failure), not a decompiler artifact -- the two loops and
 // the intervening if/else are still standard structured control flow either way.
 // UNSURE: the 12-dword zero loop starting at unknown_ee4 writes one dword past the declared
-// 11-element array, into unknown_f10; the very next statement then overwrites unknown_f10 with
+// 11-element array, into local_team_index; the very next statement then overwrites local_team_index with
 // -1. Both are preserved exactly, in the original order.
 // UNSURE: the calls to network_game_session_reset and network_session_destroy carry no
 // visible arguments in the Ghidra output (their real parameters arrive in EDX/EAX respectively,
@@ -67,7 +67,7 @@ network_client_globals *network_session_create(void)
         client->unknown_ede = client->unknown_ede & 0xfff9;
         client->unknown_000 = 0xffff;
         client->state = 0;
-        client->unknown_edc = 0;
+        client->disconnect_reason = 0;
         client->unknown_ec8 = 0;
         client->last_state_update_sequence = 0;
         client->last_state_update_ms = 0;
@@ -75,13 +75,13 @@ network_client_globals *network_session_create(void)
         client->player_config_value = 0xffff;
         client->dropped_notice_shown = 0;
         // The 12-dword run at +0xee4: the timer record (5 dwords), unknown_ef8[6] and
-        // unknown_f10, which the next statement then sets to -1.
+        // local_team_index, which the next statement then sets to -1.
         run = (int32_t *)&client->timer;
         for (i = 12; i != 0; i = i - 1) {
             *run = 0;
             run = run + 1;
         }
-        client->unknown_f10 = -1;
+        client->local_team_index = -1;
     }
 
     // Unconditional: runs even when client was just set to 0 above (see file header UNSURE).

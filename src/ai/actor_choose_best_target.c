@@ -14,7 +14,7 @@
 // this function has just overwritten with `best`) instead of using `best` directly. That is
 // exactly what the original does -- the two are equal at that point -- and it is transcribed
 // literally rather than simplified.
-// UNSURE: prop.unknown_12d, unknown_12f, unknown_135, unknown_122, unknown_9c, perception_grade and
+// UNSURE: prop.unknown_12d, unknown_12f, unknown_135, aim_angle_grade, engaged_age, perception_grade and
 // engagement_reachability keep their placeholder names; this function is a counter of them, not an
 // explanation of them.
 // UNSURE: types/ai.h previously called actor+0x23c eye_position. The 0x7b-byte zeroing run at
@@ -165,7 +165,7 @@ void actor_choose_best_target(datum_index actor_index)
                     // the whole classification below is skipped
                 } else {
                     if (!low_priority_kind) {
-                        if (p->unknown_9c == 0) {
+                        if (p->engaged_age == 0) {
                             self->tally.unit_props_unseen =
                                 (uint8_t)(self->tally.unit_props_unseen + 1);
                         }
@@ -185,7 +185,7 @@ void actor_choose_best_target(datum_index actor_index)
                             threat_class = 4;
                         }
                     }
-                    if ((int8_t)p->unknown_122 < 3) {
+                    if ((int8_t)p->aim_angle_grade < 3) {
                         if (!low_priority_kind) {
                             self->tally.threat_class_2 = (uint8_t)(self->tally.threat_class_2 + 1);
                             if (threat_class < 3) {
@@ -199,7 +199,7 @@ void actor_choose_best_target(datum_index actor_index)
                                 }
                             }
                         }
-                        if ((int8_t)p->unknown_122 < 2) {
+                        if ((int8_t)p->aim_angle_grade < 2) {
                             if (p->unknown_12f != 0) {
                                 self->tally.threat_class_5 =
                                     (uint8_t)(self->tally.threat_class_5 + 1);
@@ -207,7 +207,7 @@ void actor_choose_best_target(datum_index actor_index)
                                     threat_class = 5;
                                 }
                             }
-                            if ((int8_t)p->unknown_122 < 1) {
+                            if ((int8_t)p->aim_angle_grade < 1) {
                                 if (!low_priority_kind) {
                                     self->tally.threat_class_3 =
                                         (uint8_t)(self->tally.threat_class_3 + 1);

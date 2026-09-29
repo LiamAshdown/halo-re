@@ -54,7 +54,7 @@ extern void input_get_binding_display_name(void); // 0x48c7f0, not in this batch
 // Formats one of the engine's localized kill-feed message strings into `out` (bounded to
 // `buffer_size` wchar_t's), selecting among ~30 message types via the game engine's jump table,
 // with a handful of them (7..12) remapped to a "team-aware" phrasing variant while a team game
-// is active and the engine opts in via its unknown_84 callback. Returns true if a message was
+// is active and the engine opts in via its feature_enabled callback. Returns true if a message was
 // built, false for an out-of-range/unhandled type.
 uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_type,
     datum_index subject, size_t buffer_size)
@@ -62,8 +62,8 @@ uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_
     uint32_t adjusted_type = message_type;
     uint8_t ok = 1;
 
-    if (current_game_engine != 0 && current_game_engine->unknown_84 != 0 &&
-        ((char (*)(int32_t))current_game_engine->unknown_84)(1) != 0) {
+    if (current_game_engine != 0 && current_game_engine->feature_enabled != 0 &&
+        ((char (*)(int32_t))current_game_engine->feature_enabled)(1) != 0) {
         switch (message_type) {
             case 7: adjusted_type = 0x10; break;
             case 8: adjusted_type = 0x13; break;

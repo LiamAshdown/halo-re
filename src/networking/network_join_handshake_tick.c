@@ -77,7 +77,7 @@ uint32_t network_join_handshake_tick(network_client_globals *client)
         if (result) {
             network_connection_send_keepalive(client);
         }
-    } else if (network_server->unknown_004 == 1) {
+    } else if (network_server->state == 1) {
         *(int32_t *)(frame + 72) = 0;
         *(int32_t *)(frame + 76) = 0;
         *(int32_t *)(frame + 80) = 0;

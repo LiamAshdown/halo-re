@@ -34,7 +34,7 @@ uint8_t message_delta_decode_compound_field(void **context, void *destination)
     state->bits_read = state->bits_read + bits;
     if (bits == 0) {
         bit_stream *stream = state->stream;
-        int32_t delta = state->unknown_14;
+        int32_t delta = state->start_bit_offset;
         uint32_t target = (uint32_t)stream->first_bit + (uint32_t)delta;
         if ((delta >= 0 || target <= stream->first_bit) &&
             (delta <= 0 || stream->first_bit <= target) &&

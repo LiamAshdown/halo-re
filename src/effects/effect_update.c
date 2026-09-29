@@ -89,7 +89,7 @@ void effect_update(datum_index effect_index, real dt)
             ((struct effect *)self)->location.cluster_index = -1;
         }
         if (self->flags & 2) {
-            if (object_function_get_value(object_index, self->unknown_08, &self->a_scale)) {
+            if (object_function_get_value(object_index, self->a_scale_function_index, &self->a_scale)) {
                 if (self->flags & 8) {
                     if (self->flags & 0x20) {
                         effect_delete(effect_index);
@@ -113,7 +113,7 @@ void effect_update(datum_index effect_index, real dt)
             } else if ((self->flags & 0xc) == 0) {
                 effect_stop(effect_index, 0);
             }
-            object_function_get_value(self->object_index, self->unknown_0a, &self->b_scale);
+            object_function_get_value(self->object_index, self->b_scale_function_index, &self->b_scale);
             if (self->change_color_index != -1) {
                 self->color = *(ColorRGB *)(obj + 0x1b8 + self->change_color_index * 0xc);
             }

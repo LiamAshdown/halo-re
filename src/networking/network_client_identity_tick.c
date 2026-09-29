@@ -84,29 +84,29 @@ int32_t network_client_identity_tick(network_client_globals *client)
                 }
             }
         } else {
-            local_player_id = client->unknown_f10;
+            local_player_id = client->local_team_index;
         }
 
         network_client_globals_dispose();
         if (network_server != 0) {
             network_client_globals_create();
-            network_client->unknown_f10 = local_player_id;
+            network_client->local_team_index = local_player_id;
             return 1;
         }
 
         network_channel_table_default_flag = 1;
         network_client_begin_connect(name);
         // Zeroes the whole 11-dword run at +0xee4 (the timer record plus unknown_ef8) plus
-        // unknown_f10, matching Ghidra's literal "pcVar5 = &client->unknown_ee4[0]".
+        // local_team_index, matching Ghidra's literal "pcVar5 = &client->unknown_ee4[0]".
         for (i = 0; i < 5; i = i + 1) {
             ((int32_t *)&client->timer)[i] = 0;
         }
         for (i = 0; i < 6; i = i + 1) {
             ((int32_t *)&client->server_address)[i] = 0;
         }
-        client->unknown_f10 = 0;
-        client->unknown_f10 = -1; // overwrites the zero just written, per Ghidra's own order
-        network_client->unknown_f10 = local_player_id;
+        client->local_team_index = 0;
+        client->local_team_index = -1; // overwrites the zero just written, per Ghidra's own order
+        network_client->local_team_index = local_player_id;
         network_channel_table_default_flag = 0;
     }
     return 1;

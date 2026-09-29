@@ -3,8 +3,8 @@
 // name confidence: 0.35   rewrite confidence: 0.45
 // evidence: for a plain encounter, platoon or squad reference, reads a pair of int16
 // counters (or their non-negative difference, selected by stat_kind) from the matching
-// types/ai.h record: encounter.unknown_2a/unknown_2c, encounter_platoon_state.unknown_06/
-// unknown_08, or encounter_squad_state.unknown_18/unknown_1a, plus a member-count field
+// types/ai.h record: encounter.weighted_actor_count/unknown_2c, encounter_platoon_state.weighted_actor_count/
+// unknown_08, or encounter_squad_state.weighted_actor_count/unknown_1a, plus a member-count field
 // (encounter.member_count via +0x18, platoon/squad's own member_count) and a trailing
 // dword (encounter.unknown_34, encounter_platoon_state.unknown_0c, or
 // encounter_squad_state.grenade_cooldown). All offsets match the existing header fields
@@ -45,11 +45,11 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
             if ((int32_t)encounter_index < global_scenario->encounters.count) {
                 encounter *enc = &((encounter *)encounter_data->data)[encounter_index];
                 if (stat_kind == 0) {
-                    result = (uint32_t)enc->unknown_2a;
+                    result = (uint32_t)enc->weighted_actor_count;
                 } else if (stat_kind == 1) {
                     result = (uint32_t)enc->unknown_2c;
                 } else {
-                    int32_t diff = (int32_t)enc->unknown_2a - (int32_t)enc->unknown_2c;
+                    int32_t diff = (int32_t)enc->weighted_actor_count - (int32_t)enc->unknown_2c;
                     result = (uint32_t)(diff & ~(diff >> 31));
                 }
                 member_count = enc->member_count;
@@ -63,7 +63,7 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
                     encounter_platoon_state *state =
                         &encounter_platoon_states[enc->first_platoon + platoon_sub_index];
                     if (stat_kind == 0) {
-                        result = (uint32_t)state->unknown_06;
+                        result = (uint32_t)state->weighted_actor_count;
                         extra = *(uint32_t *)&state->average_vitality;
                         member_count = state->member_count;
                     } else if (stat_kind == 1) {
@@ -74,7 +74,7 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
                         int32_t diff;
                         extra = *(uint32_t *)&state->average_vitality;
                         member_count = state->member_count;
-                        diff = (int32_t)state->unknown_06 - (int32_t)state->unknown_08;
+                        diff = (int32_t)state->weighted_actor_count - (int32_t)state->unknown_08;
                         result = (uint32_t)(diff & ~(diff >> 31));
                     }
                 }
@@ -85,7 +85,7 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
             if (squad_sub_index < enc->squad_count) {
                 encounter_squad_state *state = &encounter_squad_states[enc->first_squad + squad_sub_index];
                 if (stat_kind == 0) {
-                    result = (uint32_t)state->unknown_18;
+                    result = (uint32_t)state->weighted_actor_count;
                     extra = (uint32_t)state->average_vitality;
                     member_count = state->member_count;
                 } else if (stat_kind == 1) {
@@ -96,7 +96,7 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
                     int32_t diff;
                     extra = (uint32_t)state->average_vitality;
                     member_count = state->member_count;
-                    diff = (int32_t)state->unknown_18 - (int32_t)state->unknown_1a;
+                    diff = (int32_t)state->weighted_actor_count - (int32_t)state->unknown_1a;
                     result = (uint32_t)(diff & ~(diff >> 31));
                 }
             }

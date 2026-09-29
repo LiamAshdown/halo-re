@@ -90,7 +90,7 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
 
     if (force == 0 && 3 < target->kind && target->kind < 6) {
         // FIXED: Ghidra jumps straight to LAB_0041c867 when prop+0x4e is non-zero -- a
-        // non-zero unknown_4e SKIPS the whole refresh. The first rewrite inverted this and
+        // non-zero line_flags SKIPS the whole refresh. The first rewrite inverted this and
         // fell through into the reassign block instead.
         if (target->unknown_4e != 0) {
             goto after_reassign;
@@ -139,9 +139,9 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
     transform_x = *(uint32_t *)(local_transform + 0x60);
     transform_y = *(uint32_t *)(local_transform + 0x64);
     transform_z = *(uint32_t *)(local_transform + 0x68);
-    *(uint32_t *)&target->unknown_104 = transform_x; // UNSURE: local_c/local_8/local_4 mapping
-    *(uint32_t *)&target->unknown_108 = transform_y; // guessed as the transform's first three
-    *(uint32_t *)&target->unknown_10c = transform_z; // output dwords, in order
+    *(uint32_t *)&target->aim_marker_x = transform_x; // UNSURE: local_c/local_8/local_4 mapping
+    *(uint32_t *)&target->aim_marker_y = transform_y; // guessed as the transform's first three
+    *(uint32_t *)&target->aim_marker_z = transform_z; // output dwords, in order
 
     // FIXED: objdump 0x41c6c0 sets EAX = &prop.last_known_position (prop+0xbc) and
     // ECX = prop.object_index before the call; the first rewrite passed a null out-pointer.

@@ -47,14 +47,14 @@ uint8_t ai_search_step(ai_search_context *context)
 
             ai_search_evaluate_edge_cost((void *)(uintptr_t)context->unknown_0c, context->unknown_04,
                 (ai_search_obstacle_list *)(uintptr_t)context->obstacles, -1, &node->position, *(int32_t *)&node->z,
-                *(float *)&context->unknown_00, node->length, (uint8_t)(node->parent == -1), 1, context->unknown_2a,
+                *(float *)&context->unknown_00, node->length, (uint8_t)(node->parent == -1), 1, context->weighted_actor_count,
                 &edge, &node->direction);
             if (edge.edge_index == -1) {
                 if (edge.point_id == -1) {
                     // 0x43bd5d: the origin is in reach
-                    if (edge.surface_index == (int32_t)context->unknown_18 ||
+                    if (edge.surface_index == (int32_t)context->weighted_actor_count ||
                         path_find_heights_are_close((ScenarioStructureBSP *)(uintptr_t)context->unknown_0c,
-                            &context->origin, (int32_t)context->unknown_18, edge.surface_index)) {
+                            &context->origin, (int32_t)context->weighted_actor_count, edge.surface_index)) {
                         real_point2d position;
 
                         position.x = edge.cost * node->direction.i + node->position.x;

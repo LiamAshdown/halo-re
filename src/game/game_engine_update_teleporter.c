@@ -6,7 +6,7 @@
 // match on "failed to teleport %d"; types/tags.h ScenarioNetgameFlags (position, facing +0xc,
 // usage_id +0x12) and Scenario::netgame_flags (the same +0x37c pointer this batch's
 // game_engine_find_valid_starting_locations reads); types/game.h player::teleporter_entrance_flag (cached
-// entrance flag index), player::unknown_cc/unknown_d4 (teleported-into counter/flag, both
+// entrance flag index), player::unknown_cc/teleport_blocked (teleported-into counter/flag, both
 // UNRESOLVED offsets in the header, kept as raw offsets here since they fall inside the
 // player struct's own "unresolved" run); types/objects.h object::forward (+0x74),
 // object_set_position_and_orientation's canonical 4-argument form (src/objects/
@@ -180,7 +180,7 @@ void game_engine_update_teleporter(uint32_t player_index)
                         if (controller != (datum_index)0xffffffff) {
                             player *other = (player *)((uint8_t *)player_data->data +
                                 (controller & 0xffff) * sizeof(player));
-                            ((struct player *)other)->unknown_d4 = 1;      // UNSURE offset
+                            ((struct player *)other)->teleport_blocked = 1;      // UNSURE offset
                             *(int32_t *)((uint8_t *)other + 0xcc) =
                                 *(int32_t *)((uint8_t *)other + 0xcc) + 1;   // UNSURE offset
                         }

@@ -6,11 +6,11 @@
 // best_node, node_count, heap_count via the +0x1430/dword-0x50c cross-check the header
 // itself documents). Calls ai_search_find_covering_point (ai_search_find_covering_point, this rewrite) and
 // ai_search_add_node @0x43b5a0 (this rewrite) to push the initial node.
-// register convention: stack -> context, unknown_04, unknown_00, position, z, unknown_18,
-//   unknown_29, unknown_2a; ECX -> unknown_0c, EAX -> obstacles, EDX -> origin (a
+// register convention: stack -> context, unknown_04, unknown_00, position, z, weighted_actor_count,
+//   unknown_29, weighted_actor_count; ECX -> unknown_0c, EAX -> obstacles, EDX -> origin (a
 //   real_point2d).
 //   // blam-cc: ECX -> unknown_0c, EAX -> obstacles, EDX -> origin, stack -> context,
-//   //   unknown_04, unknown_00, position, z, unknown_18, unknown_29, unknown_2a
+//   //   unknown_04, unknown_00, position, z, weighted_actor_count, unknown_29, weighted_actor_count
 
 #include "tags.h"
 #include "memory.h"
@@ -24,11 +24,11 @@ extern int16_t ai_search_add_node(ai_search_context *context, int16_t chain_head
                                   int32_t surface_index, int16_t point_id, uint8_t side, float extra_cost); // 0x43b5a0
 
 // blam-cc: ECX -> unknown_0c, EAX -> obstacles, EDX -> origin, stack -> context, unknown_04,
-//   unknown_00, position, z, unknown_18, unknown_29, unknown_2a
+//   unknown_00, position, z, weighted_actor_count, unknown_29, weighted_actor_count
 void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00,
                             ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c,
-                            real_point2d *position, int32_t surface_index, uint32_t unknown_18,
-                            uint8_t unknown_29, uint8_t unknown_2a)
+                            real_point2d *position, int32_t surface_index, uint32_t weighted_actor_count,
+                            uint8_t unknown_29, uint8_t weighted_actor_count)
 {
     int16_t covering_point;
 
@@ -38,7 +38,7 @@ void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint
     context->obstacles = (uint32_t)(uintptr_t)obstacles;
     context->complete = 0;
     context->origin = *origin;
-    context->unknown_18 = unknown_18;
+    context->weighted_actor_count = weighted_actor_count;
 
     // UNSURE: ai_search_obstacle_list.unknown_00 is declared uint32_t in types/ai.h, but
     // ai_search_find_covering_point.c reads this same value back as a float radius; another
@@ -48,7 +48,7 @@ void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint
     context->goal_point_id = (covering_point == -1) ? -1 : obstacles->obstacles[covering_point].link;
 
     context->unknown_29 = unknown_29;
-    context->unknown_2a = unknown_2a;
+    context->weighted_actor_count = weighted_actor_count;
     context->result_node = -1;
     context->best_cost = 3.4028235e+38f;
     context->best_node = -1;

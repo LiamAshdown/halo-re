@@ -5,7 +5,7 @@
 // its grenade target and, if so, commits to the throw and timestamps the threat record";
 // the final commit writes actor.unknown_45c = 1, clears actor.unknown_6a0 (the
 // grenade_impact_point valid flag, inferred from its position right before that field) and
-// timestamps encounter.unknown_5c with the current game tick -- the same field
+// timestamps encounter.line_variant_tag_id with the current game tick -- the same field
 // actor_can_throw_grenade_at_target (0x40d9c0) later reads back as a cooldown deadline.
 // All of Ghidra's float "NaN-flag" comparisons here have been simplified to plain
 // comparisons (fVar < 0 || fVar == 0  ->  fVar <= 0, etc.), which is semantically identical

@@ -5,7 +5,7 @@
 //   comments for 0x04/0x08/0x10/0x40, and the "objects_update" name used directly in the
 //   object_header_flags block)
 // rewrite confidence: 0.85 (checked against objdump 0x4f4e90..0x4f50de)
-// evidence: types/objects.h object_globals (unknown_04, cluster_pvs_previous[16],
+// evidence: types/objects.h object_globals (tracked_object_count, cluster_pvs_previous[16],
 //   cluster_pvs_current[16]); object_header (identifier, flags -- active/needs_update/
 //   delete_pending/just_created/connected/in_pvs_pass bits all match this function's own bit
 //   tests exactly -- cluster_index, data); data_array (data, last_index); global 0x008603b0
@@ -65,7 +65,7 @@ void objects_update(void)
 
     restrict_to_units = (*(uint8_t *)((uint8_t *)game_time + 0xc) & 1) != 0 && main_game_globals[2] != 0;
 
-    globals->unknown_04 = 0;
+    globals->tracked_object_count = 0;
 
     cluster_count = *(int16_t *)&global_structure_bsp->clusters.count;
     word_count = (cluster_count + 0x1f) >> 5;

@@ -98,7 +98,7 @@ void objects_garbage_collection(void)
             mode = 2;
         } else if (0x800 - object_data->actual_count <= 0x66) {
             mode = 2;
-        } else if (object_globals_pointer->unknown_04 < 0x32) {
+        } else if (object_globals_pointer->tracked_object_count < 0x32) {
             object_globals_pointer->unknown_02[0] = 0;
             return;
         } else {
@@ -118,7 +118,7 @@ void objects_garbage_collection(void)
         if (mode == 0) {
             done = 0;
         } else if (mode == 1) {
-            done = (uint8_t)(object_globals_pointer->unknown_04 <= 0x1e);
+            done = (uint8_t)(object_globals_pointer->tracked_object_count <= 0x1e);
             if (done) {
                 break;
             }
@@ -142,7 +142,7 @@ void objects_garbage_collection(void)
             continue;
         }
         if ((header->flags & _object_header_active_bit) != 0) {
-            object_globals_pointer->unknown_04--;
+            object_globals_pointer->tracked_object_count--;
         }
         object_list_membership_set(handle, 0);
         object_delete_recursive(handle, 0);

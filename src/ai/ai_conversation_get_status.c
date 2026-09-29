@@ -46,7 +46,7 @@ int32_t ai_conversation_get_status(int16_t conversation_definition_index)
     instance = data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
-            if (instance->unknown_06 == 0) {
+            if (instance->weighted_actor_count == 0) {
                 status = 1;
             } else if (instance->unknown_05 == 0) {
                 status = 2;

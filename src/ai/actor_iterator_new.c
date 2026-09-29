@@ -2,7 +2,7 @@
 // address 0x436a30, size 62 bytes
 // name confidence: 0.5   rewrite confidence: 0.55
 // evidence: initializes a types/ai.h actor_iterator_state exactly field-for-field (filter_
-// array, cursor, signature, unknown_10, active, actor_index, unknown_18 all match the
+// array, cursor, signature, unknown_10, active, actor_index, weighted_actor_count all match the
 // header's own established offsets), seeded to walk encounter_data. Its partner,
 // actor_iterator_next (0x436a70, this batch), is already named and already documented by
 // the header as reading this exact struct.
@@ -29,7 +29,7 @@ void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only)
         out_iterator->unknown_10 = 0;
         out_iterator->active = active_only;
         out_iterator->actor_index = (datum_index)k_datum_index_none;
-        out_iterator->unknown_18 = -1;
+        out_iterator->unknown_06 = -1;
     }
 }
 

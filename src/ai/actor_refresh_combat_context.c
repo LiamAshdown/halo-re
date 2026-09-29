@@ -168,7 +168,7 @@ void actor_refresh_combat_context(datum_index actor_index)
                 } else {
                     uint8_t *encounter_record = (uint8_t *)encounter_data->data + (encounter & 0xffff) * 0x6c;
 
-                    if (((struct encounter *)encounter_record)->unknown_62 > 0) {
+                    if (((struct encounter *)encounter_record)->follow_mode > 0) {
                         int16_t first = ((struct encounter *)encounter_record)->first_squad;
                         uint8_t *states = (uint8_t *)encounter_squad_states;
 

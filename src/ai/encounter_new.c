@@ -66,12 +66,12 @@ void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition,
     enc->initially_blind = (uint8_t)((definition->flags >> 2) & 1);
     enc->initially_deaf = (uint8_t)((definition->flags >> 3) & 1);
     enc->respawn_enabled = (uint8_t)((definition->flags >> 1) & 1);
-    enc->unknown_3e = 0;
+    enc->reinforcement_delay = 0;
     enc->unknown_46 = 0;
-    enc->unknown_45 = 0;
-    enc->unknown_50 = (datum_index)k_datum_index_none;
-    enc->unknown_44 = 0;
-    enc->unknown_54 = (datum_index)k_datum_index_none;
+    enc->any_actor_in_combat = 0;
+    enc->combat_timer = (datum_index)k_datum_index_none;
+    enc->any_actor_targeting = 0;
+    enc->target_timer = (datum_index)k_datum_index_none;
     enc->unknown_58 = -1;
     enc->unknown_42 = 1;
     enc->unknown_5c = (datum_index)k_datum_index_none;

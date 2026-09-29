@@ -25,7 +25,7 @@ extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, 
 // Removes actor_index from every ai_conversation instance's participant list: if the
 // conversation definition disallows continuing without this participant (flags bit 0), stops
 // the whole instance; otherwise just clears its slot, and if it was the leader participant
-// (unknown_4a), marks the instance's unknown_63 flag.
+// (speaker_participant), marks the instance's unknown_63 flag.
 void ai_conversation_clear_participant(datum_index actor_index)
 {
     data_iterator iterator;
@@ -52,7 +52,7 @@ void ai_conversation_clear_participant(datum_index actor_index)
                 }
                 instance->participant_mask &= ~(1u << (i & 0x1f));
                 instance->participant_actor[i] = (datum_index)k_datum_index_none;
-                if (instance->unknown_4a == i) {
+                if (instance->speaker_participant == i) {
                     instance->unknown_63 = 1;
                 }
             }

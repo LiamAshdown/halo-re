@@ -1,7 +1,7 @@
 // squad_members_assign_team_and_request_order  (Ghidra: squad_members_assign_team_and_request_order, already named)
 // address 0x435590, size 147 bytes
 // name confidence: 0.5   rewrite confidence: 0.6
-// evidence: the phase-2 name matches the code: it writes SI into actor.unknown_62 for every
+// evidence: the phase-2 name matches the code: it writes SI into actor.follow_mode for every
 //   actor a packed ai reference names and, for members that have no pending burst
 //   (actor.alert_level == 0) and whose current mode's grade is 0, 1 or 2, re-requests the
 //   default order through actor_process_order_request (0x409ea0, already rewritten).
@@ -11,7 +11,7 @@
 //   (consumed by ai_reference_actor_iterator_new, which Ghidra shows argument-less here).
 //   // blam-cc: SI -> value, EAX -> packed_reference
 //
-// UNSURE: actor.unknown_62 is "0x435420 sets 2" in types/ai.h and nothing else reads it in
+// UNSURE: actor.follow_mode is "0x435420 sets 2" in types/ai.h and nothing else reads it in
 // this module, so "team" in the phase-2 name is not supported by anything here; the value is
 // simply whatever the caller left in SI, range-checked to 0..11.
 

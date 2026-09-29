@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.25
 // evidence: out/phase4/networking_functions.md: "The first time it runs for a round, sends a
 // type-0x21 packet to every channel entry flagged as needing a full state refresh, staggering
-// each send's embedded timestamp by 100ms." host->unknown_a0e (the "run once" latch, cleared
+// each send's embedded timestamp by 100ms." host->full_state_broadcast_pending (the "run once" latch, cleared
 // here) and host->game_over (+0xa0f, cleared here) match types/networking.h; the machines[]
 // iteration (stride 0x60, byte offset +0x3c6 == machines[0]+0xe == flags) matches
 // network_game_client_game_settings_updated.c's own machines[] loop over the same field.
@@ -38,8 +38,8 @@ void network_host_full_state_broadcast(network_server_globals *host)
     char encode_ok;
     uint32_t byte_count;
 
-    if (host->unknown_a0e == 1) {
-        host->unknown_a0e = 0;
+    if (host->full_state_broadcast_pending == 1) {
+        host->full_state_broadcast_pending = 0;
         host->game_over = 0;
         timestamp = 1000;
         for (i = 0; i < 16; i++) {
