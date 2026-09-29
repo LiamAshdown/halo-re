@@ -11,8 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern uint8_t terminal_initialized; // 0x006b2efc
 extern data_array *terminal_messages; // 0x006b2f00
 extern int32_t console_message_head; // 0x006b2f04

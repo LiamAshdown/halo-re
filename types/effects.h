@@ -1,3 +1,4 @@
+#pragma once
 // Blam effects module (halo.exe 1.0.10 retail, 0x44c800..0x53fc80, 124 Ghidra functions).
 // Six related subsystems live in this address range, each with its own datum table and its own
 // runtime record:

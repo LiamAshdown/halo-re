@@ -18,12 +18,11 @@
 #include "math.h"
 #include "game.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern datum_index datum_next(int16_t after_index, data_array *array);
     // blam-cc: DX -> after_index, EDI -> array; memory module, 0x4d0630
-extern void hs_thread_evaluate_step(datum_index thread_handle); // this module, 0x48a370
-extern void object_lists_dispose_empty(void); // this module, 0x48b340
-extern void hs_syntax_node_garbage_collect(void); // 0x483310, below this batch's range
+
 
 extern uint8_t hs_runtime_active;  // 0x006b15e8
 extern data_array *hs_thread_data; // 0x0087a470

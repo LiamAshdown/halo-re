@@ -12,6 +12,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count]; // 0x0068b398
 extern Scenario *global_scenario; // 0x00746f8c

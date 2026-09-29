@@ -19,11 +19,12 @@
 #include "objects.h"
 #include "hs.h"
 #include "ai.h"
+#include "fn_hs.h"
 
 extern data_array *object_data;                // 0x008603b0
 extern data_array *object_list_reference_data; // 0x0087a468
 
-extern datum_index object_list_get_first(datum_index header_index, object_list_iterator *iterator_out); // 0x48b2f0
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void ai_unit_remap_actor_to_squad(datum_index unit_index, uint32_t packed_reference, char notify); // 0x433970, this batch
 extern void ai_recompute_all_relationship_flags(void); // 0x42bbb0, outside this rewrite's range, UNSURE signature

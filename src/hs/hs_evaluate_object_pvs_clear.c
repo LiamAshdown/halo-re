@@ -11,8 +11,9 @@
 #include "math.h"
 #include "hs.h"
 #include "objects.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern object_globals *object_globals_pointer;
 
 void hs_evaluate_object_pvs_clear(int16_t function_index, uint32_t thread_index, char first)

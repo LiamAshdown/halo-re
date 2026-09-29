@@ -14,6 +14,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <stdio.h>
 
 extern data_array *hs_syntax_data;      // 0x0087a474

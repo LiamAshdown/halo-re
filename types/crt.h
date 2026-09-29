@@ -1,3 +1,4 @@
+#pragma once
 /* crt.h -- the C runtime, from its own headers.
 
    Source files that call the C runtime include this instead of declaring runtime functions themselves (the

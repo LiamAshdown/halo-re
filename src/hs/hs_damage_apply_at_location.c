@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern void *memset(void *dst, int32_t value, uint32_t size); // CRT
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX

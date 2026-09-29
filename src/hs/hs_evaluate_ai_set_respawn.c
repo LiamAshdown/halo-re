@@ -15,11 +15,11 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_hs.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
+
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data; // 0x008802c8
 extern uint8_t encounter_activate(datum_index encounter_index); // 0x437710, blam-cc: ECX

@@ -1,3 +1,4 @@
+#pragma once
 // Blam input module (halo.exe 1.0.10 retail, 0x48b3e0..0x492340, 80 Ghidra functions).
 // Two layers:
 //   - input abstraction: the four per-controller binding/sensitivity blocks, the four

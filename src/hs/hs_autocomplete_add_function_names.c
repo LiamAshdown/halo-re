@@ -14,13 +14,14 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <string.h>
 
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0
 extern char *hs_autocomplete_prefix;          // 0x006b14a4
 extern int16_t hs_autocomplete_count;         // 0x006b14b0
 extern char **hs_autocomplete_results;        // 0x006b14b4
-extern uint8_t hs_gametype_flags_applicable(uint8_t flags); // 0x483600, blam-cc: BL -> flags
+
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 static void autocomplete_offer(char *candidate)

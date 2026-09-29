@@ -10,8 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern uint32_t game_safe_to_pause(void); // 0x45b9e0
 
 void hs_evaluate_game_all_quiet(int16_t function_index, uint32_t thread_index, char first)

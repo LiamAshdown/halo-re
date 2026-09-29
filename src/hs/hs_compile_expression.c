@@ -17,11 +17,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void skip_whitespace(char **cursor); // 0x00486350, this batch
-extern datum_index hs_tokenize(char **cursor); // 0x00486120, this batch
+
 extern datum_index datum_new(data_array *array); // memory module, 0x004d0480
-extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
+
 
 extern datum_index global_scenario_index; // 0x0069e8d4
 extern Scenario *global_scenario;         // 0x00746f8c

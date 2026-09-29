@@ -14,14 +14,15 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <string.h>
 
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0
 extern char *hs_autocomplete_prefix;          // 0x006b14a4
 extern int16_t hs_autocomplete_count;         // 0x006b14b0
 extern char **hs_autocomplete_results;        // 0x006b14b4
-extern uint8_t hs_gametype_flags_applicable(uint8_t flags); // 0x483600, blam-cc: BL -> flags
-extern void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride); // 0x483770
+
+
 extern datum_index global_scenario_index; // 0x0069e8d4
 extern Scenario *global_scenario; // 0x00746f8c
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count]; // 0x0068b398

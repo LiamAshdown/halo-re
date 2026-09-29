@@ -11,6 +11,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern void datum_delete(data_array *array, datum_index handle); // blam-cc: EAX -> array,
     // EDX -> handle; memory module, 0x4d0510

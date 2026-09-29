@@ -9,6 +9,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern int32_t hs_compiled_source_length; // 0x006b14bc
 extern char *hs_compile_error;            // 0x006b14d4

@@ -1,3 +1,4 @@
+#pragma once
 // Generated from invader tag definitions by tools/gen_tag_header.py, then edited by hand (reconciliation
 // comments and retail PC runtime fields): do NOT regenerate over it; edit this file directly.
 #pragma pack(push, 1)

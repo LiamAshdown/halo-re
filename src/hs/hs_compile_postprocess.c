@@ -23,13 +23,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x004d0630
-extern char hs_verify_source_offset(int32_t offset); // 0x004858a0, this batch
-extern int16_t hs_find_function_by_name(char *name); // 0x00483520, this batch
-extern char hs_parse_primitive(datum_index node_index); // 0x00486480, this batch
-extern hs_type_t hs_global_get_type(hs_global_reference global); // 0x00483420, this batch
-extern char hs_types_are_compatible(hs_type_t destination_type, hs_type_t source_type); // 0x0048ac90, outside this batch's assigned range
+
 
 extern Scenario *global_scenario;              // 0x00746f8c
 extern char *hs_compiled_source;               // 0x006b14c0

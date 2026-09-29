@@ -9,10 +9,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern datum_index datum_new(data_array *array); // memory module, 0x004d0480
-extern void hs_tokenize_primitive(char **cursor, datum_index node_index); // 0x004861b0, this batch
-extern void hs_tokenize_nonprimitive(datum_index node_index, char **cursor); // 0x00486290, this batch
+
 
 extern data_array *hs_syntax_data; // 0x0087a474
 extern char *hs_compile_error;     // 0x006b14d4

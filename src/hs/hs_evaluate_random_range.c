@@ -12,13 +12,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern uint32_t random_seed_global; // 0x00719cd0
 
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 
 void hs_evaluate_random_range(int16_t function_index, uint32_t thread_index, char first)
 {

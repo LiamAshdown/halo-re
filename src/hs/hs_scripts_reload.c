@@ -10,11 +10,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_allocate_script_node_table(void); // 0x00483100, this batch
-extern char hs_scripts_compile_and_link(char restore_previous); // 0x00483190, this batch
+
 extern void data_delete_all(data_array *array); // 0x004d0580
-extern void hs_scenario_scripts_initialize(void); // 0x00489ef0, outside this batch's assigned range
+
 
 extern Scenario *global_scenario;                   // 0x00746f8c
 extern datum_index global_scenario_index;           // 0x0069e8d4

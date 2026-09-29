@@ -13,6 +13,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern data_array *object_data; // 0x008603b0, stride 0x0c, object data pointer at +0x08
 

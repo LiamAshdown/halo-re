@@ -10,10 +10,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern datum_index datum_next(int16_t after_index, data_array *array);
     // blam-cc: DX -> after_index, EDI -> array; memory module, 0x4d0630
-extern void object_list_reference_chain_delete(data_array *reference_array, datum_index chain_head);
+
     // this module, 0x48b220
 extern void datum_delete(data_array *array, datum_index handle); // blam-cc: EAX -> array,
     // EDX -> handle; memory module, 0x4d0510

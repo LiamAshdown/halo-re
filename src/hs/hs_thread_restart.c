@@ -18,8 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_pop_frame(uint32_t thread_index);
+
     // blam-cc: EAX -> thread_index; this module, 0x48a770
 
 extern data_array *hs_thread_data; // 0x0087a470

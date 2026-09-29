@@ -11,8 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
 extern uint8_t message_delta_parameters_enabled; // 0x0071cfa8
 extern void message_delta_parameters_protocol_reload_from_config_file(void); // 0x4ebda0
 extern void message_delta_definitions_invoke_field_bindings(void); // 0x4ec390

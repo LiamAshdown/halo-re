@@ -13,6 +13,7 @@
 #include "math.h"
 #include "objects.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern data_array *object_data; // 0x008603b0
 extern char ai_marker_name_a[]; // 0x0066bfa0, "head"

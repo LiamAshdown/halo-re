@@ -10,8 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754
 extern uint8_t network_join_error_reason; // 0x0071973c
 extern uint8_t unknown_0071973b; // 0x0071973b

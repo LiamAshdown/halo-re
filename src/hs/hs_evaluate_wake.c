@@ -11,13 +11,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern data_array *hs_thread_data; // 0x0087a470
 extern data_array *hs_syntax_data; // 0x0087a474
 
-extern datum_index hs_thread_find_by_script_index(int16_t script_index); // 0x48a960
-extern void hs_thread_restart(uint32_t thread_index); // 0x48a790
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 
 void hs_evaluate_wake(int16_t function_index, uint32_t thread_index, char first)
 {

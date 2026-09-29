@@ -31,10 +31,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern int32_t hs_global_get_value(hs_global_reference reference);
+
     // blam-cc: EAX -> reference; this module, 0x48a720
-extern int32_t hs_coerce_value(int32_t value, hs_type_t dest_type, hs_type_t source_type);
+
     // blam-cc: EAX -> value, CX -> dest_type, DX -> source_type; this module, 0x48ad10
 
 extern data_array *hs_thread_data; // 0x0087a470

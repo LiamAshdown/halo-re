@@ -18,9 +18,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern char hs_get_parameter_indices(char *function_name, int16_t required_count, datum_index node_index, datum_index *out_indices); // 0x00484fb0, this batch
-extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
 
 extern data_array *hs_syntax_data; // 0x0087a474
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58

@@ -21,18 +21,15 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
-extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
-extern datum_index hs_compile_expression(char *text, uint32_t length, char **error_message, char **error_offset); // 0x00485540, this batch
+
 extern void hs_evaluate_expression(datum_index node_index); // 0x0048a250, outside this batch's assigned range
 extern void data_delete_all(data_array *array); // 0x004d0580
-extern char hs_rebuild_source(void); // 0x00483e20, this batch
-extern char hs_compile_source(void); // 0x00484090, this batch
-extern void hs_scripts_free(void); // 0x004832b0, this batch
-extern void hs_scripts_reload(void); // 0x00483250, this batch
+
 
 extern uint8_t hs_compiling;               // 0x006b14b8
 extern char *hs_compiled_source;           // 0x006b14c0

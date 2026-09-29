@@ -21,10 +21,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <stdint.h>
 
 extern void *data_iterator_next(data_iterator *iterator);        // memory module, 0x4d05d0
-extern char hs_object_hierarchy_test(datum_index object_index);  // this module, 0x487c10
+
 extern void unit_detach_from_seat(datum_index object_index, int32_t suppress_trigger, int32_t require_client_flag,
     int32_t fire_trigger_event);                                             // units module, 0x56c640
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI

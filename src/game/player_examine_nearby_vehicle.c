@@ -25,12 +25,10 @@
 #include "objects.h"
 #include "hs.h"
 #include "game.h"
+#include "fn_hs.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 
 // blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
 // Evaluates this builtin's one (object, boolean) argument pair; once both are ready, and unless

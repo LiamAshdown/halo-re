@@ -13,6 +13,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern char * string_to_lowercase(char *string); // 0x004491e0
 

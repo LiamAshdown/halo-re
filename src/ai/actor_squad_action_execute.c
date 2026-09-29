@@ -23,6 +23,7 @@
 #include "units.h"
 #include <string.h>
 #include "game.h"
+#include "fn_hs.h"
 
 
 extern double fcos(double x); // FCOS
@@ -56,7 +57,7 @@ extern prop *actor_prop_iterator_next(actor_prop_iterator *iterator); // 0x43ecf
 extern int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario); // 0x449f80, EBX, ESI
 extern uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags);
     // 0x44a930, EAX, CX, stack
-extern char hs_call_script_by_name(char *name); // 0x48a2d0, EAX
+
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI
 extern void object_reset_velocity_and_wake(uint32_t object_index); // 0x4f5160
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward,

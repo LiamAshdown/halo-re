@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_hs.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t player_profile_cache_initialized;     // 0x006f1d38
@@ -51,7 +52,7 @@ extern uint32_t game_state_write_buffer_allocated; // TYPES-GAP
 extern void *game_state_persistent_storage; // TYPES-GAP (Win32 handle)
 extern uint32_t game_state_persistent_storage_created; // TYPES-GAP
 
-extern void hs_dispose_dynamic_globals(void); // 0x48a130, hs module
+
 extern void widget_close_all(void);           // 0x498650, widget module
 extern void objects_dispose(void);            // 0x4f4db0, objects module
 extern void saved_game_files_dispose(void);   // 0x53c480, saved_games module

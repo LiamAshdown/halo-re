@@ -11,8 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern void player_profile_write_data(int32_t handle, void *profile); // 0x53a950 (saved_player_profile *)

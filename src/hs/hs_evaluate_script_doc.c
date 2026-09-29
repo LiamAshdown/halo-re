@@ -10,9 +10,8 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
-extern void hs_doc(void); // 0x484270
 
 void hs_evaluate_script_doc(int16_t function_index, uint32_t thread_index, char first)
 {

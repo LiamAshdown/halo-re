@@ -11,8 +11,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_autocomplete_test_candidate(char *candidate); // 0x00483690, this batch
 
 // Adds the "script" and "global" special-form keywords to the autocomplete results if they
 // match the current prefix.

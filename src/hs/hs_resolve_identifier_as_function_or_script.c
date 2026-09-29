@@ -16,9 +16,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern int16_t hs_find_function_by_name(char *name); // 0x00483520, this batch
-extern int16_t hs_script_find_by_name(char *name); // 0x004833a0, this batch
 
 extern data_array *hs_syntax_data; // 0x0087a474
 extern char *hs_compiled_source;   // 0x006b14c0

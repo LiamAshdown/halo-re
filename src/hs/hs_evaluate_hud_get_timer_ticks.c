@@ -13,8 +13,9 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern uint8_t *hud_messaging; // 0x006b3a40
 extern game_time_globals *game_time; // 0x006f1d6c
 

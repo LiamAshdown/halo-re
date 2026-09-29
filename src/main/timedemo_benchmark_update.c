@@ -37,6 +37,7 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "main.h"
+#include "fn_hs.h"
 #include <stdio.h>
 
 extern main_globals main_globals_data;              // 0x00719700
@@ -75,7 +76,7 @@ extern uint8_t console_debug_toggle_6893fa;         // 0x006893fa specular / ref
 extern uint32_t time_query_performance_counter_ms(void);            // 0x449210, foreign (math)
 extern void main_queue_map_change(char *map_name);                  // this module, 0x4c8740
     // blam-cc: EAX -> map_name
-extern char hs_compile_and_evaluate(const char *command);           // 0x484400, foreign (hs)
+
 extern uint32_t user_profile_signin_state_is_valid(void);           // 0x551620, foreign (game), UNSURE name
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186      // 0x624186, CRT fopen wrapper
 

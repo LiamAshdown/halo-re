@@ -25,6 +25,7 @@
 #include "math.h"
 #include "interface.h"
 #include "main.h"
+#include "fn_hs.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdint.h> // uintptr_t
@@ -32,8 +33,7 @@
 extern console_globals console_globals_data; // 0x006b7020
 
 extern int standalone_devmode(void); // standalone/loader.c: "-devmode" or HALO_DEVMODE
-extern int16_t hs_autocomplete_gather(uint32_t category_mask, char **results, char *prefix, int16_t maximum_count,
-    uint16_t gametype_mask); // 0x483c90, blam-cc: EAX -> prefix, CX -> maximum_count, DX -> gametype_mask,
+
     // stack -> category_mask, results; // 0x483c90, foreign (hs module)
     // blam-cc: EAX -> partial_name, ECX -> mode (0x100, UNSURE), EDX -> context_mask, stack -> max_count, out_names
 extern void console_out_printf(uint8_t clear_first, const char *format, ...); // this module, 0x4c6860

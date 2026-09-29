@@ -13,9 +13,10 @@
 #include "memory.h"
 #include "hs.h"
 
-extern char hs_parse_scenario_datum(datum_index node_index, int16_t name_offset, TagReflexive *array, int32_t stride);
+
     // 0x486f90, blam-cc: EAX -> node_index, EBX -> name_offset, ESI -> array, stack -> stride
 #include "cache.h"
+#include "fn_hs.h"
 extern Globals *global_globals; // 0x00746fa0
 extern tag_instance *tag_instances; // 0x0087bc14
 

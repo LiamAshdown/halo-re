@@ -30,11 +30,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <string.h>
 
 extern int16_t string_table_index_of(const char *search, int16_t count, const char **table); // blam-cc: EAX search, stack (count, table) // 0x004875c0, library-ish (cseries/text), not this module
-extern int16_t hs_script_find_by_name(char *name); // 0x004833a0, this batch
-extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
+
+
 extern datum_index datum_new(data_array *array); // memory module, 0x004d0480
 
 extern data_array *hs_syntax_data;           // 0x0087a474

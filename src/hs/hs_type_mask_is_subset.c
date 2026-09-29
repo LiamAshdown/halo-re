@@ -9,6 +9,7 @@
 //   // blam-cc: AX -> subtype_index, CX -> supertype_index
 
 #include "tags.h"
+#include "fn_hs.h"
 
 extern uint16_t hs_object_type_masks[6]; // 0x00657538
 

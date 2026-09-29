@@ -9,14 +9,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern data_array *hs_syntax_data; // 0x0087a474
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern char *hs_compile_error;          // 0x006b14d4
 extern int32_t hs_compile_error_offset; // 0x006b14d8
-extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420
-extern char hs_parse_primitive(datum_index node_index); // 0x00486480, blam-cc: EDI node
-extern char hs_parse_nonprimitive(datum_index node_index); // 0x00486710
+
 
 static hs_syntax_node *syntax_node(datum_index node_index)
 {

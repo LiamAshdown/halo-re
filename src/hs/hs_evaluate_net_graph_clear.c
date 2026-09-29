@@ -11,8 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
 extern uint8_t network_bandwidth_graph_globals[]; // 0x00719ce0
 extern void network_bandwidth_graph_instance_history_reset(void *graph); // 0x4d8080, blam-cc: ESI
 

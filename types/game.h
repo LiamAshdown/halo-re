@@ -1,3 +1,4 @@
+#pragma once
 // Blam game module (halo.exe 1.0.10 retail, 0x459300..0x551d30, 428 functions).
 // The game / player layer: the fixed 30Hz simulation clock, the player datum and the
 // local-player control record, the multiplayer "game engine" (its five built-in gametypes,

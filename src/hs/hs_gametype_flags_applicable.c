@@ -15,8 +15,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern char hs_gametype_flag_satisfied(uint8_t bit_index, uint8_t flags); // 0x004835b0, this batch
 
 extern uint16_t hs_autocomplete_gametype_mask; // 0x006b14ac
 

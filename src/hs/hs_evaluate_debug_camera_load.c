@@ -10,8 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
 extern void camera_debug_load_from_file(void); // 0x445940
 
 void hs_evaluate_debug_camera_load(int16_t function_index, uint32_t thread_index, char first)

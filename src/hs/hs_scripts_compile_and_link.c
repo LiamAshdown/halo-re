@@ -14,10 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_allocate_script_node_table(void); // 0x00483100, this batch
-extern char hs_compile_source(void); // 0x00484090, this batch
-extern char hs_compile_postprocess(char **error_message, int32_t *error_offset); // 0x004858c0, this batch
+
 extern void data_delete_all(data_array *array); // 0x004d0580
 
 extern Scenario *global_scenario;      // 0x00746f8c

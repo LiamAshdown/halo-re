@@ -12,10 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <string.h>
 
-extern void hs_syntax_node_garbage_collect(void); // 0x00483310, this batch
-extern void hs_dispose_dynamic_globals(void); // 0x0048a130, outside this batch's assigned range
 
 extern data_array *hs_syntax_data;                  // 0x0087a474
 extern uint8_t hs_syntax_data_is_local;             // 0x007102fc

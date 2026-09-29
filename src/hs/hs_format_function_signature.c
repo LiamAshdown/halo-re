@@ -15,6 +15,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <stdio.h>
 #include <string.h>
 

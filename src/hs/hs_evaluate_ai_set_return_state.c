@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
+
 extern void squad_members_assign_team_and_request_order(uint32_t packed_reference, int16_t value); // 0x435590, blam-cc: EAX, SI
 
 void hs_evaluate_ai_set_return_state(int16_t function_index, uint32_t thread_index, char first)

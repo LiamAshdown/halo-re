@@ -10,8 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern uint32_t lens_flare_object_visibility_table[0x8c0]; // 0x006bc510
 extern uint32_t lens_flare_marker_visibility[0x4002]; // 0x006be810
 extern int32_t lens_flare_instance_count; // 0x0071d134

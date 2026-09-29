@@ -12,12 +12,12 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, blam-cc: DX, EDI
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
     // 0x53f020, blam-cc: EAX, ECX
-extern void hs_object_detach_and_place_at_location(int16_t location_index, datum_index object_index,
-    char detach_from_parent, char reorient); // 0x487f50, blam-cc: AX, stack
+
 
 extern data_array *player_data; // 0x0087a480, stride 0x200
 extern data_array *object_data; // 0x008603b0

@@ -1,3 +1,4 @@
+#pragma once
 // Blam scenario module (halo.exe 1.0.10 retail, 0x53e660..0x53f150, 17 Ghidra functions).
 // This is the thin layer between the cache file and everything that walks the loaded map: it
 // resolves the scenario and globals tags, switches the resident structure BSP in and out, and

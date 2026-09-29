@@ -23,13 +23,12 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#include "fn_hs.h"
 #include <stdint.h> // uintptr_t: the string argument is a 32-bit pointer in the argument block
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread_index
+
 extern uint8_t unit_is_child_seated_at_named_marker(datum_index unit_index, const char *seat_label,
     datum_index child_object_index); // 0x56b520, blam-cc: stack (unit_index, seat_label), EBX child_object_index
 

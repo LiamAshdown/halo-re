@@ -37,6 +37,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

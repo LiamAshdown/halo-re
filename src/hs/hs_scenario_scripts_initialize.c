@@ -26,6 +26,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern void data_delete_all(data_array *array); // blam-cc: ESI; memory module, 0x4d0580
 extern datum_index datum_new(data_array *array); // blam-cc: EDX; memory module, 0x4d0480
@@ -34,14 +35,14 @@ extern void datum_delete(data_array *array, datum_index handle);
 extern void datum_element_initialize(data_array *array, void *element);
     // blam-cc: EDX -> array, ESI -> element; memory module, 0x4d06c0
 
-extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
+
     // this module, 0x48a560; UNSURE, see header note
-extern void hs_thread_evaluate_step(datum_index thread_handle); // this module, 0x48a370; UNSURE
-extern int32_t hs_global_get_value(hs_global_reference reference); // this module, 0x48a720 (misnamed
+
+
     // hs_global_get_value_pointer in Ghidra; out/phase4/hs_types_notes.md renames it); UNSURE args
-extern void hs_global_write_value(hs_global_reference reference);
+
     // blam-cc: EAX -> reference; this module, 0x48b030
-extern datum_index hs_thread_new(int32_t script_index, uint8_t type); // this module, 0x48a2f0;
+
     // blam-cc: script_index UNSURE register, stack -> type
 
 extern data_array *hs_thread_data;             // 0x0087a470

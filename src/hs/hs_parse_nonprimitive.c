@@ -17,13 +17,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <stdio.h>
 #include <string.h>
 
-extern void hs_resolve_identifier_as_function_or_script(datum_index node_index); // 0x00486680, this batch
-extern char hs_types_are_compatible(hs_type_t destination_type, hs_type_t source_type); // 0x0048ac90, outside this batch's assigned range
-extern char hs_add_global(datum_index node_index); // 0x00485b60, this batch
-extern char hs_add_script(datum_index node_index); // 0x00485d50, this batch
 
 extern data_array *hs_syntax_data;           // 0x0087a474
 extern char *hs_compiled_source;             // 0x006b14c0

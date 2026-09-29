@@ -13,6 +13,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 
 extern char *hs_compiled_source;          // 0x006b14c0

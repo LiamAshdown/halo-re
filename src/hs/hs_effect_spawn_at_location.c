@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern double fcos(double x); // CRT
 extern double fsin(double x);

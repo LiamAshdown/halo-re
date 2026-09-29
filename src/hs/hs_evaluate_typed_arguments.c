@@ -21,8 +21,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
+
     // this module, 0x48a560; UNSURE, see header note
 
 extern data_array *hs_thread_data; // 0x0087a470

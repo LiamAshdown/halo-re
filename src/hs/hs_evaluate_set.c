@@ -17,11 +17,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address); // 0x48a560
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern int32_t hs_global_get_value(hs_global_reference reference); // 0x48a720
-extern void hs_global_write_value(hs_global_reference reference); // 0x48b030
 
 extern data_array *hs_thread_data; // 0x0087a470
 extern data_array *hs_syntax_data; // 0x0087a474

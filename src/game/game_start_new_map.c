@@ -22,6 +22,7 @@
 #include "game.h"
 #include "scenario.h"
 #include "camera.h"
+#include "fn_hs.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
@@ -78,7 +79,7 @@ extern void game_engine_initialize_for_new_game(void);                          
 extern void game_engine_reset_player_look_state(void);              // 0x470de0
 extern uint8_t update_server_new(void);                             // 0x472aa0
 extern void players_dispose(void);                                   // 0x473670
-extern void hs_scripts_reload(void);                                  // 0x483250
+
 extern void interface_local_player_state_reset(void);                                        // UNSURE module
 extern void data_delete_all(data_array *array); // blam-cc: ESI -> array (src/memory/data_delete_all.c)                                // 0x4d0580, memory module, UNSURE arg
 extern void scenario_objects_place(Scenario *scenario); // 0x4f3ba0. One plain stack

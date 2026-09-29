@@ -1,3 +1,4 @@
+#pragma once
 // Blam units module (halo.exe 1.0.10 retail, 0x5579e0..0x575e30, 249 functions).
 // The unit layer of the object hierarchy: the unit_data extension that every biped and
 // vehicle carries on top of the common object record, the control-input record the player

@@ -12,8 +12,9 @@
 #include "hs.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 
 void hs_evaluate_cinematic_skip_start_internal(int16_t function_index, uint32_t thread_index, char first)

@@ -15,12 +15,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern char *hs_source_buffer_append(char *text, uint32_t length); // 0x004856f0, this batch
-extern void skip_whitespace(char **cursor); // 0x00486350, this batch
-extern datum_index hs_tokenize(char **cursor); // 0x00486120, this batch
-extern char hs_parse_nonprimitive(datum_index node_index); // 0x00486710, this batch
-extern char hs_parse_primitive(datum_index node_index); // 0x00486480, this batch
 
 extern char *hs_compile_error;             // 0x006b14d4
 extern int32_t hs_compile_error_offset;    // 0x006b14d8

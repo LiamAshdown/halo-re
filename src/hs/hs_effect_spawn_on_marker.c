@@ -14,6 +14,7 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_hs.h"
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
     uint32_t maximum); // 0x4f6080

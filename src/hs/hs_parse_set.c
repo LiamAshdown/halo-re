@@ -16,13 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <stdio.h>
 
-extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
-extern hs_type_t hs_global_get_type(hs_global_reference global); // 0x00483420, this batch
-extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
-extern char hs_parse_variable(datum_index node_index); // 0x00486560, this batch
-extern char hs_types_are_compatible(hs_type_t destination_type, hs_type_t source_type); // 0x0048ac90, outside this batch's assigned range
 
 extern data_array *hs_syntax_data;           // 0x0087a474
 extern char *hs_compiled_source;             // 0x006b14c0

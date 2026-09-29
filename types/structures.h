@@ -1,3 +1,4 @@
+#pragma once
 // Blam structure BSP module (halo.exe 1.0.10 retail, 0x53f150..0x555330, 48 Ghidra functions).
 // Everything here hangs off one resident tag: the ScenarioStructureBSP whose tag data pointer
 // lives in the global at 0x00746f9c. types/tags.h already carries the whole layout of that tag, so

@@ -22,12 +22,13 @@
 #include "units.h"
 #include "hs.h"
 #include "ai.h"
+#include "fn_hs.h"
 
 extern data_array *object_data;             // 0x008603b0
 extern data_array *object_list_header_data; // 0x0087a464
 
 extern datum_index datum_new(data_array *array); // 0x4d0480
-extern void object_list_reference_add(datum_index header_index, datum_index object_index); // 0x48b2a0, src/hs
+
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
 

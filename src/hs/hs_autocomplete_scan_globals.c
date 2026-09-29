@@ -29,10 +29,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <string.h>
 
-extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
-extern uint8_t hs_gametype_flags_applicable(uint8_t flags); // 0x00483600, this batch
 
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count]; // 0x0068b398
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0

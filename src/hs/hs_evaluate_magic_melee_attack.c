@@ -14,8 +14,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
 extern data_array *player_data; // 0x0087a480
 extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const void *direction); // 0x569a20, blam-cc: EDI unit
 

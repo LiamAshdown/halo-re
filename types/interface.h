@@ -1,3 +1,4 @@
+#pragma once
 // Blam interface module (halo.exe 1.0.10 retail, 0x44c290..0x4c9c80, 376 functions).
 // Menu/widget system, developer console, HUD runtime state, motion sensor, virtual
 // keyboard, video mode table and the small UI-owned lists. Offsets in comments are

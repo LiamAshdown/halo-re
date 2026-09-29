@@ -11,12 +11,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern data_array *hs_syntax_data;       // 0x0087a474
 extern char *hs_compiled_source;         // 0x006b14c0
 extern char *hs_compile_error;           // 0x006b14d4
 extern int32_t hs_compile_error_offset;  // 0x006b14d8
-extern int16_t hs_script_find_by_name(char *name); // 0x4833a0
+
 
 char hs_parse_script(datum_index node_index)
 {

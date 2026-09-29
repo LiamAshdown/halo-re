@@ -11,8 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index,
     uint8_t is_dead); // 0x42ab00, EAX, EDI, stack, BL
 

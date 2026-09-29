@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_hs.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 extern void *ui_event_function_table[0xbe]; // 0x006927d0
@@ -33,7 +34,7 @@ extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern widget_history_node *ui_widget_history[3]; // 0x00718f98
 extern heap *widget_memory_pool; // 0x006926c4
 
-extern int16_t hs_script_find_by_name(char *name); // 0x4833a0, UNSURE signature
+
 extern void hs_evaluate_expression(int32_t expression); // 0x48a250, UNSURE signature
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,

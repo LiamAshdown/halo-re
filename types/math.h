@@ -1,3 +1,4 @@
+#pragma once
 #ifndef HALO_TYPES_MATH_H   /* guarded: <process.h> includes <math.h>, which finds this file on the include path */
 #define HALO_TYPES_MATH_H
 

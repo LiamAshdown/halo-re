@@ -15,6 +15,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern void objects_garbage_collection(void); // objects module, 0x4f9c60
 extern void block_list_compact(memory_pool *arena); // 0x4d1eb0, EBX

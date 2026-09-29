@@ -19,6 +19,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern uint16_t hs_autocomplete_gametype_mask; // 0x006b14ac
 

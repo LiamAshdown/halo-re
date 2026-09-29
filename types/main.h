@@ -1,3 +1,4 @@
+#pragma once
 // Blam main module (halo.exe 1.0.10 retail, 0x43ed20 plus 0x4c6390..0x4ca1a0, 51 Ghidra functions).
 // The top level of the engine: the main loop (0x4c7610, Ghidra name game_state_save_core, and its
 // split-off tail 0x4c7f10), the frame pacer and timers (0x4c6e80, 0x4c9f30, 0x4c9f90), the queued

@@ -29,6 +29,7 @@
 #include "saved_games.h"
 #include "input.h"
 #include "main.h"
+#include "fn_hs.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -55,8 +56,7 @@ extern void update_queues_dispose(void);           // 0x472b00, foreign (game mo
 extern void update_server_new(void);               // 0x472aa0, foreign (game module)
 extern void update_server_dispose(void);                    // 0x472b70, foreign (game module)
 extern void game_engine_init_tick_record_for_mode(void);                    // 0x470ae0, foreign (game module)
-extern void hs_dispose_dynamic_globals(void);      // 0x48a130, foreign (hs module)
-extern void hs_scenario_scripts_initialize(void);  // 0x489ef0, foreign (hs module)
+
 
 // Tears down the current game session and returns to the main menu: (re)loads the UI map if it
 // is not already loaded, always (re)loads the main menu widget itself and touches the predicted

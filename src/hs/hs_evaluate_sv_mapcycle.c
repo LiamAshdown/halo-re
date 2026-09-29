@@ -11,8 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
 extern void chimera__console_out(void *color, char *format, ...); // 0x496b50, blam-cc: EAX color
 
 void hs_evaluate_sv_mapcycle(int16_t function_index, uint32_t thread_index, char first)

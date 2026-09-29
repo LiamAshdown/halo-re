@@ -21,6 +21,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern int32_t object_lookup_table_get(int32_t value); // UNSURE args; module unknown, 0x4f73c0
 extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);

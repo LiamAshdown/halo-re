@@ -9,12 +9,11 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, EAX value, ECX thread
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types,
-    char first); // 0x48a850
+
 extern void cheat_make_player_invincible(int16_t local_player_slot); // 0x45a720, AX
 
 void hs_evaluate_cheat_active_camouflage_local_player(int16_t function_index, uint32_t thread_index, char first)

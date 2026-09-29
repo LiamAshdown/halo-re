@@ -11,6 +11,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern char hs_space_characters[2];   // 0x0065b660
 extern char hs_newline_characters[2]; // 0x0065b664

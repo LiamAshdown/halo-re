@@ -1,3 +1,4 @@
+#pragma once
 // Blam shell module (halo.exe 1.0.10 retail, 0x5402a0..0x57f52c plus five bogus entries at
 // 0x6bd180..0x6bd1b8, 115 Ghidra functions). This is the Win32 host around the engine:
 //   - process start-up and teardown: shell_winmain 0x5411e0 (command line, first-run EULA,

@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
+
 extern void ai_object_list_respawn_members(datum_index object_list_header_handle, uint32_t packed_reference); // 0x432e80, blam-cc: EAX, EBX
 
 void hs_evaluate_ai_magically_see_units(int16_t function_index, uint32_t thread_index, char first)

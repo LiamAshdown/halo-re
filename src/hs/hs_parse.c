@@ -9,9 +9,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern char hs_parse_primitive(datum_index node_index); // 0x00486480, this batch
-extern char hs_parse_nonprimitive(datum_index node_index); // 0x00486710, this batch
 
 extern data_array *hs_syntax_data; // 0x0087a474
 

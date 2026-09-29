@@ -1,3 +1,4 @@
+#pragma once
 // Blam physics / collision module (halo.exe 1.0.10 retail, 0x4ffde0..0x50b530, 80 Ghidra
 // functions). Three layers live here:
 //

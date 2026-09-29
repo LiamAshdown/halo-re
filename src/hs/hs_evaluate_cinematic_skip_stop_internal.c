@@ -13,8 +13,9 @@
 #include "hs.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern float cinematic_saved_music_gain; // 0x00686b60
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern void sound_set_music_gain(float gain); // 0x548680

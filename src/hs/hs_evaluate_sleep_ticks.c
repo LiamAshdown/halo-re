@@ -22,10 +22,8 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#include "fn_hs.h"
 
-extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address); // 0x48a560
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
-extern datum_index hs_thread_find_by_script_index(int16_t script_index); // 0x48a960
 
 extern data_array *hs_thread_data; // 0x0087a470
 extern data_array *hs_syntax_data; // 0x0087a474

@@ -17,8 +17,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_autocomplete_scan_candidates(char **table, int16_t end, int16_t start); // 0x004836f0, this batch
 
 extern char *hs_script_type_names[k_hs_script_type_count]; // 0x00688b3c
 

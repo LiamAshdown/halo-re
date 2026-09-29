@@ -27,18 +27,18 @@
 #include "saved_games.h"
 #include "hs.h"
 #include "main.h"
+#include "fn_hs.h"
 #include <string.h>
 
 extern console_globals console_globals_data; // 0x006b7020
 extern uint8_t hs_preserve_token_case;  // 0x007102fd
 
 extern uint32_t console_command_context_mask(uint32_t context_flags); // this module, 0x4c69c0
-extern int16_t hs_autocomplete_gather(uint32_t category_mask, char **results, char *prefix, int16_t maximum_count,
-    uint16_t gametype_mask); // 0x483c90, blam-cc: EAX -> prefix, CX -> maximum_count, DX -> gametype_mask,
+
     // stack -> category_mask, results; // 0x483c90, foreign (hs module)
     // blam-cc: EAX -> partial_name, ECX -> mode (0x100, UNSURE), EDX -> context_mask, stack -> max_count, out_names
 extern void console_out_printf(uint8_t clear_first, const char *format, ...); // this module, 0x4c6860
-extern char hs_compile_and_evaluate(const char *command); // 0x484400, foreign (hs module)
+
 extern int standalone_devmode(void); // standalone/loader.c: "-devmode" or HALO_DEVMODE
 
 // Records command_line in the command history ring (unless it is a comment: leading ';', '#' or

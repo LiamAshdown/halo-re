@@ -30,6 +30,7 @@
 #include "objects.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_hs.h"
 #include <stdint.h>
 
 extern data_array *recorded_animations;     // 0x006b0a10
@@ -42,7 +43,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id); // 0x5639f0, units module
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_handle, uint8_t attaching); // 0x569bf0, units module
     // blam-cc: stack -> unit_handle, CL -> attaching
-extern char hs_object_hierarchy_test(datum_index object_index); // 0x487c10, hs module
+
 extern void object_delete(datum_index object_index); // 0x4f5bd0, objects module, blam-cc: EAX -> object_index
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, objects module, blam-cc: EAX -> out, ECX -> object_index
 

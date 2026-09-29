@@ -16,6 +16,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern uint32_t player_index_from_unit_index(datum_index object_index); // game module, 0x474db0; UNSURE semantics
 

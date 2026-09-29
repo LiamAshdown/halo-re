@@ -9,6 +9,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern data_array *hs_thread_data; // 0x0087a470
 

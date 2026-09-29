@@ -10,6 +10,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <string.h>
 
 extern Scenario *global_scenario;         // 0x00746f8c

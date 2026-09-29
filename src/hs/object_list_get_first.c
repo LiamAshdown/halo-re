@@ -12,6 +12,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
@@ -19,7 +20,7 @@ extern data_array *object_list_reference_data; // 0x0087a468
 // Returns the object_index of the first element in the list headed by `header_index` (or
 // k_datum_index_none if the list is empty or invalid), and writes the iterator state to continue
 // from there into `*iterator_out`.
-int32_t object_list_get_first(datum_index header_index, object_list_iterator *iterator_out)
+datum_index object_list_get_first(datum_index header_index, object_list_iterator *iterator_out)
 {
     object_list_header *header;
     datum_index first;

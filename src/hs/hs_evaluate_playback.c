@@ -10,8 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
 extern uint8_t playback_requested_00719768; // 0x00719768, UNSURE name
 
 void hs_evaluate_playback(int16_t function_index, uint32_t thread_index, char first)

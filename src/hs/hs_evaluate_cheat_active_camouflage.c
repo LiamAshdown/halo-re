@@ -9,8 +9,8 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, EAX value, ECX thread
 
 extern void cheat_make_selected_object_invincible(void); // 0x45a6c0
 

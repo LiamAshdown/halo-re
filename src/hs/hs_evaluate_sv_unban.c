@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
+
 extern void chimera__console_out(void *color, char *format, ...); // 0x496b50, blam-cc: EAX color
 extern growable_array ban_list; // 0x006b859c
 extern void growable_array_remove_element(growable_array *array, uint32_t index); // 0x4cf890, blam-cc: ESI, EDI

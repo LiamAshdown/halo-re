@@ -10,11 +10,11 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
+
 extern void ai_unit_flee_if_ready(datum_index unit_index, uint32_t readiness_param); // 0x434df0, blam-cc: ECX, stack
 
 void hs_evaluate_ai_command_list_by_unit(int16_t function_index, uint32_t thread_index, char first)

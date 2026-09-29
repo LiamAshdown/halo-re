@@ -11,8 +11,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_global_read_value(hs_global_reference reference); // this module, 0x48aec0
 
 extern data_array *hs_globals_data; // 0x0087a46c
 

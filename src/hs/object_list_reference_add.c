@@ -11,6 +11,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern datum_index datum_new(data_array *array); // blam-cc: EDX; memory module, 0x4d0480
 

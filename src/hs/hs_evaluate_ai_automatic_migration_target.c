@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
+
 extern void ai_reference_squad_set_unknown_10(uint32_t packed_reference, uint8_t value); // 0x435ab0, EAX, BL
 
 void hs_evaluate_ai_automatic_migration_target(int16_t function_index, uint32_t thread_index, char first)

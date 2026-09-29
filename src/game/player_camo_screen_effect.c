@@ -21,12 +21,11 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#include "fn_hs.h"
 
 extern int32_t unit_build_seat_occupant_zone_list(int32_t object_handle); // 0x56bbd0, not in this batch;
     // blam-cc: ECX -> object_handle, returns in EAX; UNSURE exact effect
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 
 // blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
 // Evaluates this builtin's one object argument; once ready, forwards it to unit_build_seat_occupant_zone_list and

@@ -12,9 +12,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX
-extern void object_list_reference_add(datum_index header_index, datum_index object_index); // 0x48b2a0
+
 
 extern data_array *object_list_header_data; // 0x0087a464
 extern datum_index *object_name_list;       // 0x006b8cb8

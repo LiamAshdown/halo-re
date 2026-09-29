@@ -11,8 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
 extern uint8_t *object_globals_pointer; // 0x006b8cbc
 
 void hs_evaluate_garbage_collect_now(int16_t function_index, uint32_t thread_index, char first)

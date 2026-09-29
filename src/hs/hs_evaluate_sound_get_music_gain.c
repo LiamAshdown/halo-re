@@ -10,8 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
 extern float sound_music_gain; // 0x007252a8
 
 void hs_evaluate_sound_get_music_gain(int16_t function_index, uint32_t thread_index, char first)

@@ -17,9 +17,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern datum_index hs_tokenize(char **cursor); // 0x00486120, this batch
-extern void skip_whitespace(char **cursor); // 0x00486350, this batch
 
 extern data_array *hs_syntax_data;      // 0x0087a474
 extern char *hs_compiled_source;        // 0x006b14c0

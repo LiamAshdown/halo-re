@@ -15,11 +15,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 #include <stdlib.h>
 
 extern void KeyValCompareKeyA(const void *a, const void *b); // 0x00617340, lib:gamespy, not this module
-extern void hs_enumerate_special_form_names(void); // 0x00483840, this batch (table entry only)
-extern void hs_autocomplete_add_startup(void); // 0x00483860, this batch (table entry only)
+
 
 extern void *hs_autocomplete_procedures[0x12]; // 0x00689380
 extern char k_empty_string[1]; // 0x0065512c

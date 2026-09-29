@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "fn_hs.h"
 
 extern void *recorded_animations; // 0x006b0a10, TYPES-GAP (data_array*)
 extern uint32_t rasterizer_globals_data; // TYPES-GAP
@@ -58,7 +59,7 @@ extern game_main_globals *main_game_globals; // 0x006b0b80
 extern void decal_clear_flags(uint8_t clear_object_attached); // 0x44e220, BL
 extern void particle_systems_delete_all(void);              // UNSURE module
 extern void update_queues_dispose(void);      // 0x472b00
-extern void hs_scripts_free(void);             // 0x4832b0
+
 extern void cache_flush(cache *self); // 0x4d17f0, blam-cc: ESI -> self (src/memory/cache_flush.c)                  // 0x4d17f0, memory module
 extern void objects_flush_dirty_state(void);     // 0x4f4cc0
 extern void font_glyph_cache_clear_all(void);     // 0x514cb0

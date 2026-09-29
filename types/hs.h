@@ -1,3 +1,4 @@
+#pragma once
 // Blam hs module (halo.exe 1.0.10 retail, 0x482b20..0x48b340, 125 functions).
 // HaloScript: the compiler (tokenizer, parser, postprocess pass), the runtime (threads,
 // globals, the evaluation stack) and the object-list container that the object_list script

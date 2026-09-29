@@ -11,8 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
+
 extern uint8_t ui_event_byte_0071975b; // 0x0071975b
 extern int32_t movie_playback_abort; // 0x007196d4
 extern uint8_t split_screen_quit_prompt_armed; // 0x00719757

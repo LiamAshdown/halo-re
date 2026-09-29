@@ -11,10 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value,
-    uint32_t *out_count, int32_t **out_values); // this module, 0x0048ad60
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
+
     // blam-cc: EAX -> value, ECX -> thread_index; this module, 0x0048a640
 extern void sv_tk_grace(uint32_t argument_count, int32_t *arguments); // 
     // blam-cc: EAX -> argument_count on all but the two *_matching_substring

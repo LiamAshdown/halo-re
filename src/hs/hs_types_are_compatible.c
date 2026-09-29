@@ -17,8 +17,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern char hs_type_mask_is_subset(int16_t subtype_index, int16_t supertype_index);
+
     // this module, 0x48ac60
 extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
     // 0x0068bc10, indexed [destination_type][source_type]

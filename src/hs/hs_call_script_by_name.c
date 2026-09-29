@@ -13,9 +13,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern datum_index hs_thread_find_by_script_name(char *name); // this module, 0x48a9f0
-extern void hs_thread_restart(uint32_t thread_index);          // this module, 0x48a790
 
 // Finds the thread already running the script named `name` and restarts it, implementing a
 // script "call" as a plain restart of its existing thread. Returns 1 if a thread was found,

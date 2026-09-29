@@ -11,6 +11,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern void object_notify_children_recursive(datum_index object_index); // objects module, 0x4f7b00
 

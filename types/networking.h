@@ -1,3 +1,4 @@
+#pragma once
 // Blam networking module (halo.exe 1.0.10 retail, 0x440350..0x5781c0, 454 functions).
 // Offsets in comments are byte offsets from the struct base and were pinned from the
 // pointer arithmetic in the decompiled module unless a comment says otherwise.

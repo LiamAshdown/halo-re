@@ -11,8 +11,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
 
 extern data_array *hs_syntax_data;      // 0x0087a474
 extern char *hs_compile_error;          // 0x006b14d4

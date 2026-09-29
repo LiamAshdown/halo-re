@@ -12,8 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_autocomplete_scan_candidates(char **table, int16_t end, int16_t start); // 0x4836f0, blam-cc: AX end, CX start
+
 extern char *hs_type_names[k_hs_type_count]; // 0x00688a78
 
 void hs_autocomplete_add_type_names(void)

@@ -1,3 +1,4 @@
+#pragma once
 // Blam cache module (halo.exe 1.0.10 retail, 0x442290..0x444b30, 53 functions).
 // The map (cache) file, the two external data files (bitmaps.map / sounds.map), the
 // asynchronous cache-file IO queue and its worker thread, and the two runtime streaming

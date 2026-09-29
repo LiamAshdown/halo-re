@@ -10,11 +10,11 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
+
 extern int16_t unit_seat_candidates_from_zone_and_enter(uint32_t unit_index, char *name_filter, uint32_t zone_list_index);
     // 0x56a4c0, blam-cc: stack, stack, EAX
 

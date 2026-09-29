@@ -13,11 +13,11 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_hs.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first); // 0x48a850
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
+
+
 extern player_globals *local_player_globals; // 0x0087a478
 
 void hs_evaluate_player_enable_input(int16_t function_index, uint32_t thread_index, char first)

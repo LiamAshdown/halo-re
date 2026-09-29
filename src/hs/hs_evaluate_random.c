@@ -35,11 +35,12 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#include "fn_hs.h"
 
-extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
+
     // this module, 0x48a560; blam-cc: EBX -> result_address (documented in types/hs.h), the
     // other two registers UNSURE
-extern void hs_thread_return(int32_t value, uint32_t thread_index); // this module, 0x48a640; UNSURE args
+
 
 extern data_array *hs_thread_data; // 0x0087a470
 extern data_array *hs_syntax_data; // 0x0087a474
