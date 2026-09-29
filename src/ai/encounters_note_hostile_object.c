@@ -98,8 +98,8 @@ void encounters_note_hostile_object(datum_index object_index)
             }
         }
 
-        if (enc->unknown_43 != 0 && enc->unknown_42 == 0 && enc->unknown_47 == 0) {
-            enc->unknown_4c = enc->unknown_4c + 1;
+        if (enc->ever_had_target != 0 && enc->stood_down == 0 && enc->post_combat == 0) {
+            enc->enemy_death_count = enc->enemy_death_count + 1;
         }
     }
 }

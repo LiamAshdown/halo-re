@@ -38,7 +38,7 @@ void ai_platoon_range_set_unknown_02(uint32_t packed_reference, char flag)
         if (state == 0) {
             return;
         }
-        state->unknown_01[1] = value;
+        state->maneuver_disabled = value;
     }
 }
 

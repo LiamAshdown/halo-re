@@ -55,7 +55,7 @@ void ai_accumulate_repeated_event(int32_t event_type, real_point3d *position, in
     just_reset = 1;
     free_slot = 0xffff;
 
-    for (cursor = ai_globals_ptr->unknown_130; cursor != ai_globals_ptr->unknown_132;
+    for (cursor = ai_globals_ptr->recent_event_head; cursor != ai_globals_ptr->recent_event_tail;
          cursor = (cursor + 1) & 0x1f) {
         uint8_t matches_id = 0;
         // 0x42c6c1..0x42c6d7: EAX = position (stack parameter 2), ECX = &records[cursor].position
@@ -82,8 +82,8 @@ void ai_accumulate_repeated_event(int32_t event_type, real_point3d *position, in
             }
         } else {
             records[cursor].event_id = -1;
-            if (cursor == ai_globals_ptr->unknown_130) {
-                ai_globals_ptr->unknown_130 = (cursor + 1) & 0x1f;
+            if (cursor == ai_globals_ptr->recent_event_head) {
+                ai_globals_ptr->recent_event_head = (cursor + 1) & 0x1f;
             } else {
                 free_slot = cursor;
             }
@@ -93,10 +93,10 @@ void ai_accumulate_repeated_event(int32_t event_type, real_point3d *position, in
     if (found == 0) {
         uint16_t slot;
         if (free_slot == 0xffff) {
-            slot = ai_globals_ptr->unknown_132;
-            ai_globals_ptr->unknown_132 = (ai_globals_ptr->unknown_132 + 1) & 0x1f;
-            if (ai_globals_ptr->unknown_132 == ai_globals_ptr->unknown_130) {
-                ai_globals_ptr->unknown_130 = (ai_globals_ptr->unknown_130 + 1) & 0x1f;
+            slot = ai_globals_ptr->recent_event_tail;
+            ai_globals_ptr->recent_event_tail = (ai_globals_ptr->recent_event_tail + 1) & 0x1f;
+            if (ai_globals_ptr->recent_event_tail == ai_globals_ptr->recent_event_head) {
+                ai_globals_ptr->recent_event_head = (ai_globals_ptr->recent_event_head + 1) & 0x1f;
             }
         } else {
             slot = free_slot;

@@ -574,8 +574,8 @@ tail:
                 if (self->encounter_index == (datum_index)k_datum_index_none) goto restart;
                 {
                     encounter *enc = (encounter *)((uint8_t *)encounter_data->data + (self->encounter_index & 0xffff) * sizeof(encounter));
-                    if (enc->unknown_50 != (datum_index)k_datum_index_none &&
-                        (enc->unknown_50 < 0xb4 || enc->unknown_44 == 0)) {
+                    if (enc->ticks_since_engaged != (datum_index)k_datum_index_none &&
+                        (enc->ticks_since_engaged < 0xb4 || enc->has_live_target == 0)) {
                         goto restart;
                     }
                 }

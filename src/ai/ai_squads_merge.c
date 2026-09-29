@@ -117,7 +117,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
         uint8_t *variant_data = 0;
         uint8_t *actor_tag_data = 0;
 
-        if (!(state->unknown_18 > 0) && source_enc->unknown_1e[0] == 0) {
+        if (!(state->living_count > 0) && source_enc->unknown_1e[0] == 0) {
             continue;
         }
         squad = *(uint8_t **)&((struct ScenarioEncounter *)source_definition)->squads.pointer + iterator.cursor * 0xe8;
@@ -195,7 +195,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
     }
 
     // 4. unassigned actors that name the source encounter
-    actor_index = ai_globals_ptr->actors_valid != 0 ? ai_globals_ptr->unknown_08 : (datum_index)k_datum_index_none;
+    actor_index = ai_globals_ptr->actors_valid != 0 ? ai_globals_ptr->first_encounterless_actor : (datum_index)k_datum_index_none;
     while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
         datum_index current = actor_index;
         uint8_t *raw = (uint8_t *)&((actor *)actor_data->data)[current & 0xffff];

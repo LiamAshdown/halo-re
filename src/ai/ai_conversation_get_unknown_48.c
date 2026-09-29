@@ -34,7 +34,7 @@ int16_t ai_conversation_get_unknown_48(int16_t conversation_definition_index)
     instance = data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
-            return instance->unknown_48;
+            return instance->line_index;
         }
         instance = data_iterator_next(&iterator);
     }

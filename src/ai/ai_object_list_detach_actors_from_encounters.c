@@ -97,8 +97,8 @@ void ai_object_list_detach_actors_from_encounters(datum_index object_list_header
 
                 if (ai_globals_ptr->actors_valid != 0) {
                     a = &((actor *)actor_data->data)[actor_index & 0xffff];
-                    a->next_in_encounter = ai_globals_ptr->unknown_08;
-                    ai_globals_ptr->unknown_08 = actor_index;
+                    a->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
+                    ai_globals_ptr->first_encounterless_actor = actor_index;
                     a->unknown_09 = 1;
                     *(uint16_t *)&a->unknown_10[0] =
                         (uint16_t)(-(uint16_t)(a->active != 0) & 0x5a);

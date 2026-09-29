@@ -41,7 +41,7 @@ void encounter_set_team(datum_index encounter_index, int16_t team)
     actor_index = (datum_index)k_datum_index_none;
     if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)0xffffffff) { // FIXED: the full handle is compared (0x435b63)
-            actor_index = ai_globals_ptr->unknown_08;
+            actor_index = ai_globals_ptr->first_encounterless_actor;
         } else {
             actor_index = enc->first_actor;
         }

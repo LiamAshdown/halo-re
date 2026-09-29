@@ -60,7 +60,7 @@ void ai_communication_play_event_line(datum_index object_index, int16_t event_id
     uint8_t *row = ai_communication_event_definitions;
     int32_t row_index = 0;              // [esp+0x10]
 
-    if (!ai_globals_ptr->communication_valid || event_id == -1) {
+    if (!ai_globals_ptr->dialogue_triggers_enabled || event_id == -1) {
         return;
     }
     for (; *(int16_t *)row != -1; row += 0x24, row_index++) {

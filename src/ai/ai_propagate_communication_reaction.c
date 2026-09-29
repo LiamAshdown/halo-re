@@ -101,13 +101,13 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
     }
     memset(&iterator, 0, sizeof(iterator));
     iterator.filter_array = encounter_data;
-    iterator.unknown_04 = 0;
+    iterator.next_index = 0;
     iterator.cursor = -1;
     iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
-    iterator.unknown_10 = 0;
+    iterator.encounterless_done = 0;
     iterator.active = 1;
     iterator.actor_index = k_datum_index_none;
-    iterator.unknown_18 = -1;
+    iterator.next_actor_index = -1;
 
     for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
         uint8_t *ap = (uint8_t *)a;

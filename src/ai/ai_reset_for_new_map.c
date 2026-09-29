@@ -34,11 +34,11 @@ void ai_reset_for_new_map(void)
 
     memset(g, 0, k_ai_globals_size);
 
-    g->initialized = 1;
-    g->unknown_02 = 1;
-    g->unknown_08 = (datum_index)k_datum_index_none;
+    g->ai_active = 1;
+    g->ai_was_active = 1;
+    g->first_encounterless_actor = (datum_index)k_datum_index_none;
     g->grenades_enabled = 1;
-    g->communication_valid = 1;
+    g->dialogue_triggers_enabled = 1;
     g->unknown_14 = (datum_index)k_datum_index_none;
     g->unknown_18 = (datum_index)k_datum_index_none;
     g->unknown_1c = (datum_index)k_datum_index_none;
@@ -58,8 +58,8 @@ void ai_reset_for_new_map(void)
     encounters_reset();
     ai_communication_reset();
 
-    g->unknown_132 = 0;
-    g->unknown_130 = 0;
+    g->recent_event_tail = 0;
+    g->recent_event_head = 0;
     memset(g->unknown_134, 0, sizeof(g->unknown_134));
 
     g->actors_valid = 1;

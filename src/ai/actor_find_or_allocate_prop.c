@@ -72,7 +72,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         if (encounter_index != k_datum_index_none) {
             uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c;
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[((prop *)p)->object_index & 0xffff].data;
-            int32_t reference = ((struct encounter *)encounter)->unknown_58;
+            int32_t reference = ((struct encounter *)encounter)->last_idle_time;
             uint8_t counts = 1;
             uint8_t calm;
 

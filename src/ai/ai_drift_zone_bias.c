@@ -28,19 +28,19 @@ uint8_t ai_drift_zone_bias(datum_index encounter_index, int16_t squad_offset, fl
     uint8_t hit;
     encounter *enc = &((encounter *)encounter_data->data)[encounter_index & 0xffff];
     encounter_squad_state *squad = &encounter_squad_states[(int16_t)(enc->first_squad + squad_offset)];
-    float floor = ai_globals_ptr->unknown_0c * -0.33333334f;
+    float floor = ai_globals_ptr->major_upgrade_error * -0.33333334f;
     float step;
 
-    if ((float)fabs((double)floor) <= (float)fabs((double)(-squad->unknown_08))) {
-        floor = -squad->unknown_08;
+    if ((float)fabs((double)floor) <= (float)fabs((double)(-squad->major_upgrade_error))) {
+        floor = -squad->major_upgrade_error;
     }
 
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     hit = (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f < floor + bias;
     step = (float)hit - bias;
 
-    squad->unknown_08 = step + squad->unknown_08;
-    ai_globals_ptr->unknown_0c = step + ai_globals_ptr->unknown_0c;
+    squad->major_upgrade_error = step + squad->major_upgrade_error;
+    ai_globals_ptr->major_upgrade_error = step + ai_globals_ptr->major_upgrade_error;
     return hit; // 0x42aa5c..0x42aa62: AL is the roll result (encounter_squad_spawn_actor uses it)
 }
 

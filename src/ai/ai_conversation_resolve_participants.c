@@ -204,7 +204,7 @@ blocked_but_trying:
     }
 
 clear_wait:
-    instance->unknown_10 = -1;
+    instance->player_unit_index = -1;
     if (ready == 0) {
         goto check_keep_trying;
     }
@@ -243,12 +243,12 @@ clear_wait:
             }
             if (nearest < best_player_distance) {
                 best_player_distance = nearest;
-                instance->unknown_10 = (int32_t)player_unit;
+                instance->player_unit_index = (int32_t)player_unit;
             }
         }
         player = data_iterator_next(&iterator);
     }
-    if (instance->unknown_10 != -1) {
+    if (instance->player_unit_index != -1) {
         goto check_looking;
     }
     definition_flags = definition->flags;
@@ -346,7 +346,7 @@ apply:
                 *(uint32_t *)((uint8_t *)unit_object + 0x204) & 0xfffffeffu;
         }
     }
-    instance->unknown_06 = 1;
+    instance->active = 1;
     return ready;
 }
 

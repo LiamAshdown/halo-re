@@ -34,7 +34,7 @@ void ai_conversation_mark_all(int16_t conversation_definition_index)
     instance = data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
-            instance->unknown_07[2] = 1;
+            instance->advance = 1;
         }
         instance = data_iterator_next(&iterator);
     }

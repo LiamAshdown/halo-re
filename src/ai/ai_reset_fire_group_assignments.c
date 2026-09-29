@@ -162,7 +162,7 @@ void ai_reset_fire_group_assignments(void)
         uint8_t *encounter = (uint8_t *)encounter_data->data + (e & 0xffff) * 0x6c;
         datum_index next;
 
-        if (encounter[0xd] == 0 || ((struct encounter *)encounter)->unknown_2a <= 0) {
+        if (encounter[0xd] == 0 || ((struct encounter *)encounter)->living_count <= 0) {
             continue;
         }
         next = ((struct encounter *)encounter)->first_actor;

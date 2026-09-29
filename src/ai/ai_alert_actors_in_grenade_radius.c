@@ -97,13 +97,13 @@ void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t st
     object_get_position(&source_position, source_unit_index);
     if (ai_globals_ptr->actors_valid) {
         iterator.filter_array = encounter_data;
-        iterator.unknown_04 = 0;
+        iterator.next_index = 0;
         iterator.cursor = -1;
         iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
-        iterator.unknown_10 = 0;
+        iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = k_datum_index_none;
-        iterator.unknown_18 = -1;
+        iterator.next_actor_index = -1;
     }
     for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
         datum_index actor_index = iterator.actor_index;

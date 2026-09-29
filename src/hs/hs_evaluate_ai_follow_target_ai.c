@@ -33,10 +33,10 @@ void hs_evaluate_ai_follow_target_ai(int16_t function_index, uint32_t thread_ind
             uint8_t *encounter = (uint8_t *)encounter_data->data + (arguments[0] & 0xffff) * 0x6c;
 
             if ((uint32_t)arguments[1] == 0xffffffff) {
-                ((struct encounter *)encounter)->unknown_62 = 0;
+                ((struct encounter *)encounter)->follow_target_type = 0;
             } else {
-                ((struct encounter *)encounter)->unknown_62 = 3;
-                *(uint32_t *)&((struct encounter *)encounter)->unknown_64 = (uint32_t)arguments[1];
+                ((struct encounter *)encounter)->follow_target_type = 3;
+                *(uint32_t *)&((struct encounter *)encounter)->follow_target = (uint32_t)arguments[1];
             }
         }
         hs_thread_return(0, thread_index);

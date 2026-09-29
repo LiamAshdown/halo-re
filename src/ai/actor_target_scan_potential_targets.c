@@ -205,8 +205,8 @@ shared_threshold:
                 accept = 1;
                 if (encounter_idx != k_datum_index_none) {
                     encounter *enc = &((encounter *)encounter_data->data)[encounter_idx & 0xffff];
-                    int32_t gate = (enc->unknown_58 <= self->unknown_3a0) ? self->unknown_3a0
-                                                                           : enc->unknown_58;
+                    int32_t gate = (enc->last_idle_time <= self->unknown_3a0) ? self->unknown_3a0
+                                                                           : enc->last_idle_time;
                     if (gate != -1) {
                         object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
                         unit_data *u = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
@@ -215,7 +215,7 @@ shared_threshold:
                             accept = 0;
                         }
                     }
-                    if (!(enc->unknown_45 == 0 && enc->unknown_44 == 0 && enc->unknown_42 == 0)) {
+                    if (!(enc->engaged == 0 && enc->has_live_target == 0 && enc->stood_down == 0)) {
                         goto encounter_gate_open;
                     }
                     if (!accept) goto merged;

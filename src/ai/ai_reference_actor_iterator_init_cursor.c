@@ -45,7 +45,7 @@ void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_inde
     cursor[1] = (datum_index)k_datum_index_none;
 
     if (encounter_index == -1) {
-        cursor[2] = ai_globals_ptr->unknown_08;
+        cursor[2] = ai_globals_ptr->first_encounterless_actor;
         return;
     }
 

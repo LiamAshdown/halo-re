@@ -46,12 +46,12 @@ int32_t ai_conversation_get_status(int16_t conversation_definition_index)
     instance = data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
-            if (instance->unknown_06 == 0) {
+            if (instance->active == 0) {
                 status = 1;
-            } else if (instance->unknown_05 == 0) {
+            } else if (instance->started == 0) {
                 status = 2;
             } else {
-                status = (instance->unknown_07[1] != 0) + 3;
+                status = (instance->waiting_for_advance != 0) + 3;
             }
             if ((uint16_t)best <= (uint16_t)status) {
                 best = status;

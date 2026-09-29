@@ -175,7 +175,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
     tick = game_time->game_time;
 
     team_gate = 0;
-    if ((enc != (encounter *)0 && enc->unknown_40 != 0) || self->awareness_level == 1) {
+    if ((enc != (encounter *)0 && enc->blind != 0) || self->awareness_level == 1) {
         team_gate = 1;
     }
 
@@ -190,16 +190,14 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
                     if (((owner->encounter_index ^ team_ref) & 0xffff) == 0) {
                         uint32_t team_kind = team_ref >> 0x1e;
                         uint8_t match = 1;
-                        encounter *owner_enc = &((encounter *)encounter_data->data)[owner->encounter_index & 0xffff];
-                        // UNSURE: neither offset lands on a named encounter field; 0x3a is the
-                        // salt half of first_pursuit (a datum_index) and 0x3c falls across
-                        // unknown_3c/unknown_3d. Reached raw, matching the disassembly exactly.
+                        // FIXED 2026-09-29: +0x3a / +0x3c are read from the owner ACTOR (Ghidra below:
+                        // iVar18 = owner_actor_index * 0x724 + actor data), i.e. its squad_index /
+                        // platoon_index, compared 16-bit with the zero-extended byte at actor+0x1da;
+                        // the draft read them from the owner's encounter and truncated them to 8 bits.
                         if (team_kind == 1) {
-                            match = (self->unknown_1d6[4] /* actor+0x1da */ ==
-                                     (uint8_t)*(int16_t *)((uint8_t *)owner_enc + 0x3a));
+                            match = ((uint16_t)self->unknown_1d6[4] /* actor+0x1da */ == (uint16_t)owner->squad_index);
                         } else if (team_kind == 2) {
-                            match = (self->unknown_1d6[4] ==
-                                     (uint8_t)*(int16_t *)&((struct encounter *)owner_enc)->unknown_3c);
+                            match = ((uint16_t)self->unknown_1d6[4] == (uint16_t)owner->platoon_index);
                         } else if (team_kind != 0) {
                             match = 0;
                         }
@@ -430,7 +428,7 @@ after_engage:
             }
             // prop+0x34/0x36: types/ai.h declares one int32_t unknown_34, but this function
             // writes independent int16 halves at +0x34 and +0x36 (see file header).
-            if (enc == (encounter *)0 || enc->unknown_41 == 0) {
+            if (enc == (encounter *)0 || enc->deaf == 0) {
                 if (p->stimulus_type == 1 || p->stimulus_type == 2) {
                     *(int16_t *)&((struct prop *)p)->auditory_perception = 3;
                 } else {
@@ -560,14 +558,14 @@ after_engage:
             uint8_t ok = 1;
             if (enc_idx != (uint32_t)k_datum_index_none) {
                 encounter *e = &((encounter *)encounter_data->data)[enc_idx & 0xffff];
-                int32_t gate = (e->unknown_58 <= self->unknown_3a0) ? self->unknown_3a0 : e->unknown_58;
+                int32_t gate = (e->last_idle_time <= self->unknown_3a0) ? self->unknown_3a0 : e->last_idle_time;
                 object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
                 unit_data *u2 = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
                 int32_t last_seen = u2->death_time;
                 ok = (gate == -1 || (last_seen != -1 && gate <= last_seen));
                 if (!ok) {
                     drop = 1;
-                } else if (e->unknown_45 == 0 && e->unknown_44 == 0 && e->unknown_42 == 0) {
+                } else if (e->engaged == 0 && e->has_live_target == 0 && e->stood_down == 0) {
                     if (225.0f <= dist_sq) drop = 1;
                 }
             } else if (p->danger_radius <= 0.0f) {

@@ -45,14 +45,14 @@ void encounter_release_stale_props(datum_index encounter_index)
     datum_index next_prop;
 
     enc = &((encounter *)encounter_data->data)[encounter_index & 0xffff];
-    enc->unknown_42 = 1;
-    enc->unknown_4c = 0;
+    enc->stood_down = 1;
+    enc->enemy_death_count = 0;
     squad_recent_object_list_clear(encounter_index);
 
     actor_index = (datum_index)k_datum_index_none;
     if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_globals_ptr->unknown_08;
+            actor_index = ai_globals_ptr->first_encounterless_actor;
         } else {
             actor_index = enc->first_actor;
         }

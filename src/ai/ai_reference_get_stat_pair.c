@@ -45,11 +45,11 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
             if ((int32_t)encounter_index < global_scenario->encounters.count) {
                 encounter *enc = &((encounter *)encounter_data->data)[encounter_index];
                 if (stat_kind == 0) {
-                    result = (uint32_t)enc->unknown_2a;
+                    result = (uint32_t)enc->living_count;
                 } else if (stat_kind == 1) {
-                    result = (uint32_t)enc->unknown_2c;
+                    result = (uint32_t)enc->swarm_count;
                 } else {
-                    int32_t diff = (int32_t)enc->unknown_2a - (int32_t)enc->unknown_2c;
+                    int32_t diff = (int32_t)enc->living_count - (int32_t)enc->swarm_count;
                     result = (uint32_t)(diff & ~(diff >> 31));
                 }
                 member_count = enc->member_count;
@@ -63,18 +63,18 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
                     encounter_platoon_state *state =
                         &encounter_platoon_states[enc->first_platoon + platoon_sub_index];
                     if (stat_kind == 0) {
-                        result = (uint32_t)state->unknown_06;
+                        result = (uint32_t)state->living_count;
                         extra = *(uint32_t *)&state->average_vitality;
                         member_count = state->member_count;
                     } else if (stat_kind == 1) {
-                        result = (uint32_t)state->unknown_08;
+                        result = (uint32_t)state->swarm_count;
                         extra = *(uint32_t *)&state->average_vitality;
                         member_count = state->member_count;
                     } else {
                         int32_t diff;
                         extra = *(uint32_t *)&state->average_vitality;
                         member_count = state->member_count;
-                        diff = (int32_t)state->unknown_06 - (int32_t)state->unknown_08;
+                        diff = (int32_t)state->living_count - (int32_t)state->swarm_count;
                         result = (uint32_t)(diff & ~(diff >> 31));
                     }
                 }
@@ -85,18 +85,18 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
             if (squad_sub_index < enc->squad_count) {
                 encounter_squad_state *state = &encounter_squad_states[enc->first_squad + squad_sub_index];
                 if (stat_kind == 0) {
-                    result = (uint32_t)state->unknown_18;
+                    result = (uint32_t)state->living_count;
                     extra = (uint32_t)state->average_vitality;
                     member_count = state->member_count;
                 } else if (stat_kind == 1) {
-                    result = (uint32_t)state->unknown_1a;
+                    result = (uint32_t)state->swarm_count;
                     extra = (uint32_t)state->average_vitality;
                     member_count = state->member_count;
                 } else {
                     int32_t diff;
                     extra = (uint32_t)state->average_vitality;
                     member_count = state->member_count;
-                    diff = (int32_t)state->unknown_18 - (int32_t)state->unknown_1a;
+                    diff = (int32_t)state->living_count - (int32_t)state->swarm_count;
                     result = (uint32_t)(diff & ~(diff >> 31));
                 }
             }

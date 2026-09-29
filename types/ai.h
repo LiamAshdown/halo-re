@@ -939,54 +939,70 @@ typedef struct encounter {
     int16_t squad_count;              // 0x06 ScenarioEncounter.squads.count
     int16_t first_platoon;            // 0x08 index of this encounter first encounter_platoon_state
     int16_t platoon_count;            // 0x0a ScenarioEncounter.platoons.count
-    uint8_t unknown_0c;               // 0x0c
+    uint8_t force_active;             // 0x0c hs ai_force_active (0x47df00); encounters_update_activation keeps the
+                                      //    encounter active while set
     uint8_t units_active;             // 0x0d encounter_add_actor calls actor_set_units_active when set
     int16_t activation_delay;         // 0x0e ticks remaining before encounters_update_activation re-evaluates this encounter; encounter_add_actor sets 0x96
     int32_t activation_tick;          // 0x10 encounter_new sets -1; encounter_activate stamps the current game tick
     datum_index first_actor;          // 0x14 head of the member list, chained through actor.next_in_encounter
     int16_t member_count;             // 0x18 encounter_add_actor increments, squad_remove_actor decrements
-    int16_t unknown_1a;               // 0x1a encounter_recompute_morale snapshots unknown_2a here when the retreat latch clears
+    int16_t pre_combat_living_count;  // 0x1a living_count copied while idle / stood down (0x437940); post-combat
+                                      //    lines compare against it
     int16_t live_count;               // 0x1c only actors with counts_toward_encounter set are counted
     uint8_t unknown_1e[2];            // 0x1e
-    int16_t unknown_20;               // 0x20 squad_create zeroes it; 0x437820 records recent zone ids near here
+    int16_t activation_link_count;    // 0x20 encounters linked by hs ai_link_activation (0x437820), at most 3, at
+                                      //    0x22
     int16_t unknown_22;               // 0x22
     int16_t unknown_24;               // 0x24
     uint8_t unknown_26[2];            // 0x26
     uint8_t dirty;                    // 0x28 set by every member add / remove; 0x435f00 re-runs morale for dirty encounters
     uint8_t unknown_29;               // 0x29
-    int16_t unknown_2a;               // 0x2a
-    int16_t unknown_2c;               // 0x2c
-    int16_t unknown_2e;               // 0x2e
-    int16_t unknown_30;               // 0x30
+    int16_t living_count;             // 0x2a weighted member count (1 per unit, cluster_count per swarm); hs
+                                      //    ai_living_count (ai_reference_get_stat_pair 0x432f90)
+    int16_t swarm_count;              // 0x2c weighted swarm member count; hs ai_swarm_count, and ai_nonswarm_count =
+                                      //    living - swarm
+    int16_t combat_count;             // 0x2e weighted members at awareness_level 3 with combat_status >
+                                      //    minimum_combat_status; starts the squad timers
+    int16_t engaged_count;            // 0x30 weighted members with combat_status > 6
     uint8_t unknown_32[2];            // 0x32
     float average_vitality;           // 0x34 encounter_recompute_morale sums one vitality sample per live member here and then divides by member_count
     datum_index first_pursuit;        // 0x38 head of the ai_pursuit ("recently seen object") list
-    uint8_t unknown_3c;               // 0x3c ScenarioEncounter.flags bit 1
+    uint8_t respawn_enabled;          // 0x3c ScenarioEncounter flags bit 1; hs ai_set_respawn (0x47d3b0);
+                                      //    reinforcements stop while clear
     uint8_t unknown_3d;               // 0x3d
-    int16_t unknown_3e;               // 0x3e squad_create zeroes it
-    uint8_t unknown_40;               // 0x40 ScenarioEncounter.flags bit 2
-    uint8_t unknown_41;               // 0x41 ScenarioEncounter.flags bit 3
-    uint8_t unknown_42;               // 0x42 squad_create sets 1
-    uint8_t unknown_43;               // 0x43
-    uint8_t unknown_44;               // 0x44 squad_create zeroes it
-    uint8_t unknown_45;               // 0x45 squad_create zeroes it
+    int16_t respawn_delay_ticks;      // 0x3e random(respawn_delay) * 30 per reinforcement; counted down by 15 per
+                                      //    update, spawns at 0
+    uint8_t blind;                    // 0x40 ScenarioEncounter flags bit 2 (initially blind); hs ai_set_blind
+                                      //    (0x47d4b0)
+    uint8_t deaf;                     // 0x41 ScenarioEncounter flags bit 3 (initially deaf); hs ai_set_deaf
+                                      //    (0x47d440)
+    uint8_t stood_down;               // 0x42 1 at creation and after encounter_release_stale_props (the CEA
+                                      //    encounter_stand_down); cleared by combat
+    uint8_t ever_had_target;          // 0x43 set once any member has a target; never cleared
+    uint8_t has_live_target;          // 0x44 a member's target is engaged or not dead (0x437940)
+    uint8_t engaged;                  // 0x45 a member with a target has combat_status >= 7
     uint8_t unknown_46;               // 0x46 squad_create zeroes it
-    uint8_t unknown_47;               // 0x47
-    uint8_t unknown_48;               // 0x48
+    uint8_t post_combat;              // 0x47 set by encounter_choose_vocalizations (0x438580, the CEA
+                                      //    encounter_post_combat); cleared when combat resumes
+    uint8_t post_combat_quiet;        // 0x48 no member still has a post-combat line pending
     uint8_t unknown_49;               // 0x49
-    int16_t unknown_4a;               // 0x4a
-    int16_t unknown_4c;               // 0x4c
+    int16_t post_combat_timer;        // 0x4a 120 at post_combat, -15 per update; the encounter stands down at 0
+    int16_t enemy_death_count;        // 0x4c enemies of this encounter killed during the fight (0x435f90, the CEA
+                                      //    encounters_unit_died); reset at post combat / stand down
     uint8_t unknown_4e[2];            // 0x4e
-    datum_index unknown_50;           // 0x50 squad_create sets -1
-    datum_index unknown_54;           // 0x54 squad_create sets -1
-    int32_t unknown_58;               // 0x58 squad_create sets -1; 0x43e270 compares it against actor+0x3a0
-    datum_index unknown_5c;           // 0x5c squad_create sets -1
-    uint8_t unknown_60;               // 0x60
+    datum_index ticks_since_engaged;  // 0x50 +15 per update while not engaged, 0 while engaged, -1 never (ticks, not
+                                      //    a datum)
+    datum_index ticks_since_live_target; // 0x54 the same keyed on has_live_target
+    int32_t last_idle_time;           // 0x58 game time stamped while idle; only bodies that died after it count as
+                                      //    this fight's (prop scans)
+    datum_index last_grenade_time;    // 0x5c game time a member last committed a grenade throw; the encounter grenade
+                                      //    timeout counts from it
+    uint8_t playfight;                // 0x60 hs ai_playfight (0x47e070); copied to the members
     uint8_t unknown_61;               // 0x61
-    int16_t unknown_62;               // 0x62
-    int32_t unknown_64;               // 0x64
-    int16_t unknown_68;               // 0x68
-    int16_t unknown_6a;               // 0x6a
+    int16_t follow_target_type;       // 0x62 0 none, 1 players, 2 unit, 3 ai (hs ai_follow_target_*)
+    int32_t follow_target;            // 0x64 the unit index or packed ai reference followed; -1 when the unit is gone
+    float follow_distance;            // 0x68 hs ai_follow_distance (0x47e590) stores a real here; encounter_update_follow
+                                      //   uses 2.0 when it is <= 0 (0x4394a0 compares it as a float)
 } encounter;            // size 0x6c
 // global 0x008802c8: data_array *encounter_data      element size 0x6c, capacity 0x80
 
@@ -1002,17 +1018,19 @@ typedef struct encounter_squad_state {
     // squad is limited to 32 starting locations in practice.
     uint32_t starting_location_mask;  // 0x00 locations this squad is allowed to use
     uint32_t starting_location_free;  // 0x04 locations not yet handed out this round
-    float unknown_08;                 // 0x08
+    float major_upgrade_error;        // 0x08 error diffusion of the major-variant upgrade roll (ai_drift_zone_bias
+                                      //    0x42a9d0)
     int16_t respawn_budget;           // 0x0c ScenarioSquad.respawn_total (999 when that is 0), only set when the squad has a respawn range; the reinforcement spawner decrements it
-    int16_t unknown_0e;               // 0x0e
-    uint8_t unknown_10;               // 0x10 ScenarioSquad.flags bit 5
-    uint8_t unknown_11;               // 0x11 encounter_new zeroes it
+    int16_t respawn_delay_ticks;      // 0x0e random(ScenarioSquad respawn_delay) * 30, counted down by 15
+    uint8_t automatic_migration;      // 0x10 ScenarioSquad flags bit 5; hs ai_automatic_migration_target
+    uint8_t timer_started;            // 0x11 hs ai_timer_start, or start_timer_immediately / encounter combat;
+                                      //    squad_delay_ticks counts down once set
     int16_t squad_delay_ticks;        // 0x12 ftol(ScenarioSquad.squad_delay_time * 30), or 999 when ScenarioSquad.flags bit 3 is set
-    uint8_t unknown_14;               // 0x14 read as a flag by encounter_gather_occupied_bsp_clusters
+    uint8_t dormancy_disabled;        // 0x14 hs ai_allow_dormant stores !allow; members are kept awake
     uint8_t unknown_15;               // 0x15
     int16_t member_count;             // 0x16 encounter_add_actor increments, squad_remove_actor decrements
-    int16_t unknown_18;               // 0x18
-    int16_t unknown_1a;               // 0x1a
+    int16_t living_count;             // 0x18 as encounter.living_count, per squad
+    int16_t swarm_count;              // 0x1a as encounter.swarm_count, per squad
     float average_vitality;           // 0x1c encounter_recompute_morale @0x437940 sums one vitality sample per live member here and then divides by member_count
 } encounter_squad_state; // size 0x20
 // global 0x008802cc: encounter_squad_state *encounter_squad_states  0x8000 bytes, 0x400 records
@@ -1020,11 +1038,15 @@ typedef struct encounter_squad_state {
 // One record per ScenarioPlatoon of the owning encounter, addressed as
 // encounter_platoon_states[encounter.first_platoon + actor.platoon_index].
 typedef struct encounter_platoon_state {
-    uint8_t unknown_00;               // 0x00 ScenarioPlatoon.flags bit 2
-    uint8_t unknown_01[3];            // 0x01
+    uint8_t defending;                // 0x00 ScenarioPlatoon flags bit 2 (start in defending state); hs ai_defend
+                                      //    sets it, ai_attack clears it
+    uint8_t maneuvering;              // 0x01 hs ai_retreat / ai_maneuver (0x4332e0), or latched from maneuver_when
+                                      //    (0x4393b0); members move to ScenarioSquad.maneuver_to_squad while set
+    uint8_t maneuver_disabled;        // 0x02 hs ai_maneuver_enable (0x433350) stores !enable
+    uint8_t pad_03;                   // 0x03
     int16_t member_count;             // 0x04 encounter_add_actor increments, squad_remove_actor decrements
-    int16_t unknown_06;               // 0x06
-    int16_t unknown_08;               // 0x08
+    int16_t living_count;             // 0x06 as encounter.living_count, per platoon
+    int16_t swarm_count;              // 0x08 as encounter.swarm_count, per platoon
     int16_t unknown_0a;               // 0x0a
     float average_vitality;           // 0x0c same running sum as encounter_squad_state.average_vitality, divided by member_count at 0x04
 } encounter_platoon_state; // size 0x10
@@ -1093,11 +1115,14 @@ typedef struct ai_conversation {
     int16_t identifier;               // 0x00 datum_header
     int16_t definition_index;         // 0x02 index into Scenario.ai_conversations (stride 0x74)
     uint8_t priority;                 // 0x04 ai_conversation_new stores its allow_eviction argument here
-    uint8_t unknown_05;               // 0x05
-    uint8_t unknown_06;               // 0x06
-    uint8_t unknown_07[5];            // 0x07
+    uint8_t started;                  // 0x05 the first line has started (0x431e70); status 2 until then
+    uint8_t active;                   // 0x06 every participant resolved; status 1 (trying to begin) while clear
+    uint8_t finished;                 // 0x07 ai_conversation_update sets it past the last line
+    uint8_t waiting_for_advance;      // 0x08 a line with flag bit 3 (wait until told to advance) is waiting; status 4
+    uint8_t advance;                  // 0x09 ai_conversation_mark_all (0x430a20, the CEA ai_conversation_advance) sets it
+    uint8_t pad_0a[2];                // 0x0a
     int32_t start_tick;               // 0x0c the game tick the instance was created
-    int32_t unknown_10;               // 0x10
+    int32_t player_unit_index;        // 0x10 the nearest player's unit, the addressee for player lines
     uint32_t participant_mask;        // 0x14 bit i set once participant i has been resolved
     uint32_t unknown_18;              // 0x18
     uint32_t unknown_1c;              // 0x1c
@@ -1105,18 +1130,19 @@ typedef struct ai_conversation {
     int16_t unknown_22;               // 0x22
     uint32_t unknown_24;              // 0x24
     datum_index participant_actor[8]; // 0x28 one actor datum per resolved participant
-    int16_t unknown_48;               // 0x48 ai_conversation_new sets 0xffff
-    int16_t unknown_4a;               // 0x4a
-    int16_t unknown_4c;               // 0x4c
-    int16_t unknown_4e;               // 0x4e
-    int32_t unknown_50;               // 0x50
-    int32_t unknown_54;               // 0x54
-    uint32_t unknown_58;              // 0x58
-    uint32_t unknown_5c;              // 0x5c
-    uint8_t unknown_60;               // 0x60
-    uint8_t unknown_61;               // 0x61
-    uint8_t unknown_62;               // 0x62
-    uint8_t unknown_63;               // 0x63
+    int16_t line_index;               // 0x48 index into ScenarioAIConversation.lines, -1 before the first
+    int16_t speaker_participant_index; // 0x4a line->participant
+    int16_t line_delay_ticks;         // 0x4c line_delay_time * 30, counted down after the line
+    int16_t line_flags;               // 0x4e copy of line->flags (look-at bits 0..2, advance handshake 3,
+                                      //    wait-for-participant 4/5)
+    int32_t speaker_actor_index;      // 0x50 the participant actor of the current line
+    int32_t speaker_unit_index;       // 0x54 that actor's unit; cleared when it dies
+    uint32_t addressee_unit_index;    // 0x58 the listener unit
+    uint32_t sound_index;             // 0x5c the chosen line variant's sound tag
+    uint8_t speaker_disembodied;      // 0x60 no actor, or a radio participant: the line plays as a sound impulse
+    uint8_t line_started;             // 0x61 the line's sound or speech has been launched
+    uint8_t line_spoken;              // 0x62 the speech finished
+    uint8_t line_finished;            // 0x63 the line is done (after its delay, or skipped)
 } ai_conversation;      // size 0x64
 // global 0x008802d4: data_array *ai_conversation_data  element size 0x64, capacity 8
 
@@ -1132,15 +1158,17 @@ typedef struct ai_conversation_event {
 // ai globals
 // ---------------------------------------------------------------------------
 typedef struct ai_globals {
-    uint8_t initialized;              // 0x00 ai_reset_for_new_map sets it
+    uint8_t ai_active;                // 0x00 hs ai (the CEA ai_globals_ai_active)
     uint8_t actors_valid;             // 0x01 every actor and encounter entry point returns early when this is clear
-    uint8_t unknown_02;               // 0x02 ai_reset_for_new_map sets it
+    uint8_t ai_was_active;            // 0x02 set after each tick with AI on; the first tick with AI off resets
+                                      //    perception once and clears it
     uint8_t stagger_claimed;          // 0x03 0x429430 claims the per-tick idle slot
     int16_t stagger_threshold;        // 0x04
     int16_t stagger_highest;          // 0x06 0x429430 tracks the highest idle counter seen
-    datum_index unknown_08;           // 0x08 ai_reset_for_new_map sets none; also the head of the unassigned actor list
-    float unknown_0c;                 // 0x0c
-    uint8_t communication_valid;      // 0x10 0x42d230 sets it
+    datum_index first_encounterless_actor; // 0x08 head of the list of actors with no encounter (the CEA
+                                           //    encounterless_*)
+    float major_upgrade_error;        // 0x0c global twin of encounter_squad_state.major_upgrade_error
+    uint8_t dialogue_triggers_enabled; // 0x10 hs ai_dialogue_triggers (the CEA ai_globals_dialogue_triggers_enabled)
     uint8_t unknown_11;               // 0x11
     int16_t unknown_12;               // 0x12
     datum_index unknown_14;           // 0x14 0x42d230 zeroes 0x14..0x2b, ai_reset_for_new_map sets them all to none
@@ -1152,13 +1180,14 @@ typedef struct ai_globals {
     int16_t conversation_event_count; // 0x2c high-water mark, capped at 16
     int16_t conversation_event_cursor;// 0x2e next ring slot, modulo 16
     ai_conversation_event conversation_events[16];// 0x30 0x42d230 zeroes the whole 0x100-byte ring
-    int16_t unknown_130;              // 0x130 ai_reset_for_new_map zeroes it
-    int16_t unknown_132;              // 0x132 ai_reset_for_new_map zeroes it
+    int16_t recent_event_head;        // 0x130 ring head (oldest) of the 32 recent events at 0x134
+                                      //    (ai_accumulate_repeated_event 0x42c610)
+    int16_t recent_event_tail;        // 0x132 next free slot of that ring
     uint8_t unknown_134[0x280];       // 0x134 ai_reset_for_new_map zeroes 0xa0 dwords from here
     uint8_t grenades_enabled;         // 0x3b4 the ai_grenades script command; actors only throw while set
                                      //       (actor_attempt_grenade_throw); ai_reset_for_new_map sets it
     uint8_t unknown_3b5;              // 0x3b5
-    int16_t object_record_count;      // 0x3b6 0x435900 uses it as the per-object record table count
+    int16_t object_attention_count;   // 0x3b6 entries of the 32 x 0x28 object attention table at 0x3b8
     uint8_t unknown_3b8[56];          // 0x3b8
     int32_t unknown_3f0;              // 0x3f0 ai_communication_record_line_played
     uint8_t unknown_3f4[6];           // 0x3f4
@@ -1604,15 +1633,17 @@ typedef struct actor_flee_source_reason {
 // One bucket of the call-for-help grouping table ai_group_bucket_find_or_add @0x420de0
 // maintains on the caller stack for actor_scan_allies_for_backup_request @0x420ec0.
 typedef struct ai_group_bucket_entry {
-    int16_t unknown_00;    // 0x00 priority/urgency rank claimed for this key so far
+    int16_t priority;      // 0x00 danger level raised for this object: 6 friends retreating, 7 danger timer, 8 player
+                           //    danger, 9 friends killed
     uint8_t unknown_02[2]; // 0x02
-    int32_t unknown_04;    // 0x04 claiming actor prop datum index for this object, or none
+    int32_t prop_index;    // 0x04 this actor's prop for the object, none until known
     int32_t key;           // 0x08 the object index this bucket groups calls-for-help by
-    prop *unknown_0c;      // 0x0c pointer to the claiming actor prop record
-    int16_t unknown_10;    // 0x10 number of times a candidate refreshed this bucket distance
+    prop *prop;            // 0x0c that prop record
+    int16_t retreating_friend_count; // 0x10 allies with a call out about this object; compared with
+                                     //    Actor.friends_retreating_trigger
     uint8_t unknown_12[2]; // 0x12
-    float unknown_14;      // 0x14 FLT_MAX sentinel, then smallest claim distance^2 seen
-    int32_t unknown_18;    // 0x18 nearest/first claiming ally actor index
+    float nearest_friend_distance_squared; // 0x14 FLT_MAX at creation (0x420de0), the minimum over calling allies
+    int32_t nearest_friend_actor_index; // 0x18 the ally at that distance
 } ai_group_bucket_entry; // size 0x1c
 
 // One entry of the two perception candidate lists actor_target_scan_potential_targets
@@ -1653,15 +1684,17 @@ typedef void (*actor_swarm_member_callback)(uint32_t actor_index, datum_index un
 // ai_communication_select_speaker_by_team (mov esi,[esp+0x34] at 0x43025d = iterator + 0x14).
 typedef struct actor_iterator_state {
     data_array *filter_array;  // 0x00
-    int16_t unknown_04;        // 0x04 zeroed
+    int16_t next_index;        // 0x04 data_iterator.next_index over encounter_data (the first 0x10 bytes are a
+                               //    data_iterator)
     uint8_t unknown_06[2];     // 0x06
     int32_t cursor;            // 0x08 -1 (not yet started)
     uint32_t signature;        // 0x0c filter_array XOR 0x69746572
-    uint8_t unknown_10;        // 0x10 zeroed
+    uint8_t encounterless_done; // 0x10 set when the walk moves on to ai_globals.first_encounterless_actor, so that
+                                //    list runs once
     uint8_t active;            // 0x11 1
     uint8_t unknown_12[2];     // 0x12
     datum_index actor_index;   // 0x14 handle of the actor the last _next returned, else none
-    int32_t unknown_18;        // 0x18 -1
+    int32_t next_actor_index;  // 0x18 the next actor of the current list (encounter.first_actor / next_in_encounter)
 } actor_iterator_state; // size 0x20
 
 // The iterator the pair at 0x432650 (new; ECX -> iterator, stack -> packed ai reference) and

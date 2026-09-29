@@ -23,13 +23,13 @@ void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only)
 {
     if (ai_globals_ptr->actors_valid != 0) {
         out_iterator->filter_array = encounter_data;
-        out_iterator->unknown_04 = 0;
+        out_iterator->next_index = 0;
         out_iterator->cursor = -1;
         out_iterator->signature = (uint32_t)encounter_data ^ 0x69746572;
-        out_iterator->unknown_10 = 0;
+        out_iterator->encounterless_done = 0;
         out_iterator->active = active_only;
         out_iterator->actor_index = (datum_index)k_datum_index_none;
-        out_iterator->unknown_18 = -1;
+        out_iterator->next_actor_index = -1;
     }
 }
 

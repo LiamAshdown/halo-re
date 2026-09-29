@@ -24,7 +24,7 @@ void ai_reference_squad_set_unknown_10(uint32_t packed_reference, uint8_t value)
         ai_reference_squad_iterator_new(packed_reference, &iterator);
         state = ai_reference_squad_iterator_next(&iterator);
         while (state != 0) {
-            state->unknown_10 = value;
+            state->automatic_migration = value;
             state = ai_reference_squad_iterator_next(&iterator);
         }
     }

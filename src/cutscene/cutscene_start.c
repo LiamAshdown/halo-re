@@ -39,7 +39,7 @@ void cutscene_start(void)
     sound_set_music_gain(1.0f);
 
     local_player_globals->input_disabled = 1;
-    ai_globals_ptr->communication_valid = 0;
+    ai_globals_ptr->dialogue_triggers_enabled = 0;
 
     cinematic_globals_ptr->show_letterbox = 1;
     cinematic_globals_ptr->letterbox_last_tick = game_time->game_time;

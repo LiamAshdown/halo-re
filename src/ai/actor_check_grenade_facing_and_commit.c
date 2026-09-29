@@ -80,7 +80,7 @@ uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t f
                 if (self->encounter_index != (datum_index)k_datum_index_none) {
                     encounter *enc = (encounter *)((uint8_t *)encounter_data->data +
                                                     (self->encounter_index & 0xffff) * sizeof(encounter));
-                    enc->unknown_5c = game_time->game_time; // +0x0c
+                    enc->last_grenade_time = game_time->game_time; // +0x0c
                 }
                 return 1;
             }
