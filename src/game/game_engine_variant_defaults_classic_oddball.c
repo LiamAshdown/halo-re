@@ -3,8 +3,8 @@
 // address 0x464340, size 240 bytes
 // name confidence: 0.75   rewrite confidence: 0.6
 // evidence / method: see game_engine_variant_defaults_classic_slayer.c (this batch). This one
-// additionally stores explicit zeroes into ctf_value_80/unknown_84/unknown_88/unknown_90 (already
-// covered by the memset below) and a non-zero unknown_90 = 1.
+// additionally stores explicit zeroes into ctf_value_80/unknown_84/unknown_88/tracked_slot_count (already
+// covered by the memset below) and a non-zero tracked_slot_count = 1.
 // register convention: __cdecl, one pointer argument (the output game_variant*).
 // reconciled: R37 game_variant.unknown_94 -> uint16 variant_flags (bit 0 built-in, high byte default index)
 
@@ -30,7 +30,7 @@ game_variant * game_engine_variant_defaults_classic_oddball(game_variant *out)
     out->unknown_64 = 1;
     out->unknown_6c = 1;
     out->ctf_option_7d = 1;
-    out->unknown_90 = 1;
+    out->tracked_slot_count = 1;
     out->variant_flags = 1;
     return out;
 }

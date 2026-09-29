@@ -209,7 +209,7 @@ typedef struct game_variant {
     int32_t unknown_84;        // 0x84
     int32_t unknown_88;        // 0x88
     int32_t unknown_8c;        // 0x8c
-    int32_t unknown_90;        // 0x90
+    int32_t tracked_slot_count; // 0x90 number of entries (<= 16) used in king_hill_occupant_table and oddball_ball_timers; the oddball/hill code loops to it
     uint16_t variant_flags;    // 0x94 (R37) flags word, same encoding as saved_games.h
                                //      saved_player_profile::flags: bit 0 = built-in/default
                                //      (every built-in writes 1; saved_game_create_custom_variant

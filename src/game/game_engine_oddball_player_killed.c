@@ -33,7 +33,7 @@ static uint8_t oddball_is_carrier(datum_index player_index)
 {
     int32_t i;
 
-    for (i = 0; i < game_engine_variant.unknown_90; i++) {
+    for (i = 0; i < game_engine_variant.tracked_slot_count; i++) {
         if (king_hill_occupant_table[i] == player_index) {
             return 1;
         }
@@ -46,7 +46,7 @@ static uint8_t oddball_any_ball_free(void)
 {
     int32_t i;
 
-    for (i = 0; i < game_engine_variant.unknown_90; i++) {
+    for (i = 0; i < game_engine_variant.tracked_slot_count; i++) {
         if (oddball_ball_timers_006b11cc[i] == 0 && king_hill_occupant_table[i] == 0xffffffff) {
             return 1;
         }
@@ -64,7 +64,7 @@ void game_engine_oddball_player_killed(datum_index killer, datum_index death_obj
     if (game_engine_variant.unknown_8c <= 0 || game_engine_variant.unknown_8c > 2 || network_game_mode != 2) {
         return;
     }
-    count = game_engine_variant.unknown_90;
+    count = game_engine_variant.tracked_slot_count;
     if (killer != 0xffffffff && is_suicide == 0) {
         uint8_t *killer_player = ((uint8_t *)player_data->data + ((killer) & 0xffff) * 0x200);
         uint8_t score;

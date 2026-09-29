@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.25
 // evidence: out/phase4/game_functions.md ("Dispatches the King-of-the-Hill per-tick scoring for
 //   a player across however many hill slots they occupy, applying a configurable score
-//   multiplier and periodic sound cues"); game_engine_variant::unknown_84/unknown_8c/unknown_90
+//   multiplier and periodic sound cues"); game_engine_variant::unknown_84/unknown_8c/tracked_slot_count
 //   aliased 0x006f1d0c/0x006f1d14/0x006f1d18; game_engine_variant::ctf_value_80 (0x006f1d08)
 //   reused here as a generic 1/2/other score-multiplier selector; king_hill_occupant_table
 //   (0x006b120c, this batch); player::teleporter_entrance_flag/engine_message/engine_message_subject/speed (0x70/0x74/0x78/0x6c); types/units.h
@@ -53,8 +53,8 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
     game_engine_koth_update_occupant_table(player_index);
 
     occupied_slots = 0;
-    if (game_engine_variant.unknown_90 > 0) {
-        for (i = 0; i < game_engine_variant.unknown_90; i++) {
+    if (game_engine_variant.tracked_slot_count > 0) {
+        for (i = 0; i < game_engine_variant.tracked_slot_count; i++) {
             if (king_hill_occupant_table[i] == player_index) {
                 occupied_slots++;
             }

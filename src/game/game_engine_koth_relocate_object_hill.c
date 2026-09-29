@@ -3,7 +3,7 @@
 // name confidence: 0.35   rewrite confidence: 0.35
 // evidence: out/phase4/game_functions.md ("In team play, finds a new hill location for the given
 //   object index, plays a related sound when few hills have been used, and clears the object's
-//   'needs relocation' flag"); game_engine_variant::unknown_90 aliased 0x006f1d18;
+//   'needs relocation' flag"); game_engine_variant::tracked_slot_count aliased 0x006f1d18;
 //   game_engine_koth_find_marker_position (0x46beb0, this batch); ctf_flag_object_clear_carrier
 //   (0x4666c0, already committed, blam-cc EBX -> flag_object_index, EDI -> position -- both
 //   elided here and modeled as forwarded, per the same pattern used throughout this batch's CTF
@@ -23,7 +23,7 @@
 
 extern int16_t network_game_mode;        // 0x00719720
 extern data_array *object_data;       // 0x008603b0
-extern game_variant game_engine_variant; // 0x006f1c88 (unknown_90 aliased 0x006f1d18)
+extern game_variant game_engine_variant; // 0x006f1c88 (tracked_slot_count aliased 0x006f1d18)
 
 extern void game_engine_koth_find_marker_position(real_point3d *out_position, int16_t type_filter); // 0x46beb0, this batch
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
@@ -43,7 +43,7 @@ void game_engine_koth_relocate_object_hill(uint32_t object_index)
 
         game_engine_koth_find_marker_position(&discarded_position, ((object *)obj)->owner_team);
 
-        if (game_engine_variant.unknown_90 < 3) {
+        if (game_engine_variant.tracked_slot_count < 3) {
             game_engine_queue_multiplayer_sound(0x1e, 0xffffffff, 1); // 0x46c1fd..0x46c207
         }
         ctf_flag_object_clear_carrier(object_index, &discarded_position);

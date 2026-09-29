@@ -52,7 +52,7 @@ game_variant * game_engine_variant_defaults_classic_stalker(game_variant *varian
     defaults.unknown_84 = 1;
     defaults.unknown_88 = 3;
     defaults.unknown_8c = 2;
-    defaults.unknown_90 = 1;
+    defaults.tracked_slot_count = 1;
     defaults.variant_flags = 1;
 
     *variant_options = defaults;

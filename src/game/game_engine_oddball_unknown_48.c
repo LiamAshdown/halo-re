@@ -43,7 +43,7 @@ void game_engine_oddball_unknown_48(void)
 
         game_engine_queue_multiplayer_sound(teams != 0 ? 0x21 : 0x13, 0xffffffff, 0);
     }
-    count = game_engine_variant.unknown_90;
+    count = game_engine_variant.tracked_slot_count;
     if (network_game_mode == 2) {
         for (i = 0; i < count; i++) {
             if (oddball_ball_timers_006b11cc[i] > 0 && --oddball_ball_timers_006b11cc[i] == 0) {

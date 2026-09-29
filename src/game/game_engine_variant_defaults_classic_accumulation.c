@@ -51,7 +51,7 @@ game_variant * game_engine_variant_defaults_classic_accumulation(game_variant *v
     defaults.unknown_84 = 0;
     defaults.unknown_88 = 0;
     defaults.unknown_8c = 1;
-    defaults.unknown_90 = 0x10;
+    defaults.tracked_slot_count = 0x10;
     defaults.variant_flags = 1;
 
     *variant_options = defaults;

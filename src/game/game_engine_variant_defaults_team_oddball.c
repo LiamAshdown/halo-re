@@ -51,7 +51,7 @@ game_variant * game_engine_variant_defaults_team_oddball(game_variant *variant_o
     defaults.unknown_84 = 0;
     defaults.unknown_88 = 0;
     defaults.unknown_8c = 0;
-    defaults.unknown_90 = 1;
+    defaults.tracked_slot_count = 1;
     defaults.variant_flags = 1;
 
     *variant_options = defaults;

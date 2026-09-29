@@ -51,7 +51,7 @@ game_variant * game_engine_variant_defaults_juggernaut(game_variant *variant_opt
     defaults.unknown_84 = 2;
     defaults.unknown_88 = 0;
     defaults.unknown_8c = 2;
-    defaults.unknown_90 = 1;
+    defaults.tracked_slot_count = 1;
     defaults.variant_flags = 1;
 
     *variant_options = defaults;

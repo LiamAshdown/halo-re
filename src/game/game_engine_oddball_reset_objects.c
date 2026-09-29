@@ -28,7 +28,7 @@ extern uint8_t custom_waypoints[]; // 0x006f1888 (custom_waypoint, 0x20 bytes ea
 
 void game_engine_oddball_reset_objects(void)
 {
-    int32_t count = game_engine_variant.unknown_90;
+    int32_t count = game_engine_variant.tracked_slot_count;
     int32_t i;
 
     if (network_game_mode == 2) {
@@ -45,7 +45,7 @@ void game_engine_oddball_reset_objects(void)
                 oddball_ball_timers_006b11cc[i] = 0;
                 game_engine_koth_relocate_hill_marker(i);
             }
-            count = game_engine_variant.unknown_90;
+            count = game_engine_variant.tracked_slot_count;
         } else {
             int32_t delay = 0;
 
