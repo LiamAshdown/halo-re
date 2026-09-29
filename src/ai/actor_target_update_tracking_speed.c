@@ -231,10 +231,10 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
     }
 
     // Closing-rate classification (+0x124): velocity projected onto the prop's stored normal
-    // (unknown_e0), relative to the caller-owned scratch point at scratch+0x2c/0x30/0x34.
-    closing_rate = -((velocity.i - *(float *)((uint8_t *)scratch + 0x2c)) * p->unknown_e0.x +
-                      (velocity.j - *(float *)((uint8_t *)scratch + 0x30)) * p->unknown_e0.y +
-                      (velocity.k - *(float *)((uint8_t *)scratch + 0x34)) * p->unknown_e0.z);
+    // (look_point), relative to the caller-owned scratch point at scratch+0x2c/0x30/0x34.
+    closing_rate = -((velocity.i - *(float *)((uint8_t *)scratch + 0x2c)) * p->look_point.x +
+                      (velocity.j - *(float *)((uint8_t *)scratch + 0x30)) * p->look_point.y +
+                      (velocity.k - *(float *)((uint8_t *)scratch + 0x34)) * p->look_point.z);
     if (closing_rate < -0.033333335f) {
         p->unknown_124 = 0;
     } else if (closing_rate < -0.016666668f) {
@@ -277,7 +277,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
     // the prop's stored normal, scaled by distance.
     {
         real_vector3d aim = unit->aiming_vector;
-        float cos_angle = -(aim.i * p->unknown_e0.x + aim.k * p->unknown_e0.z + aim.j * p->unknown_e0.y);
+        float cos_angle = -(aim.i * p->look_point.x + aim.k * p->look_point.z + aim.j * p->look_point.y);
         float lateral;
 
         if (cos_angle < 0.0f) {

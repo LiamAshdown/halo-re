@@ -9,7 +9,7 @@
 // UNSURE: the float at (Unit tag data)+0x234 is not named in types/tags.h's Unit struct
 // (no offset comments there); kept as a raw offset.
 // UNSURE: as in actor_check_grenade_facing_and_commit (0x40db00), the vector2d_normalize
-// calls here take a hidden pointer to a local 2D vector built from prop.unknown_e0.{x,y},
+// calls here take a hidden pointer to a local 2D vector built from prop.look_point.{x,y},
 // which Ghidra's re-display of the pre-call expression obscures; reconstructed explicitly
 // below rather than transcribed literally.
 // UNSURE: actor_probe_step_direction and FUN_00569470 are called with zero visible arguments; treated as

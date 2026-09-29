@@ -4,7 +4,7 @@
 // evidence: types/ai.h actor.unknown_2e8[4] (0x2ec), actor.awareness_level (0x6a),
 //   actor.vocalization_line/variant/state (0x544/0x546/0x548),
 //   actor.vocalization_unknown_54c/550/554/558, actor.mode (0x6c), actor.mode_data.raw[3] (0x9f),
-//   actor.alert_level; prop.is_unit (0x60), prop.unknown_e0; types/tags.h
+//   actor.alert_level; prop.is_unit (0x60), prop.look_point; types/tags.h
 //   Actor.event_look_time_modifier[2] (0xd4/0xd8, matches the 0.5/2.0-clamped random
 //   multiplier read here identically to actor_queue_perceived_sighting_dialogue @0x421c20).
 //   Calls actor_record_look_at_point (0x421bc0), actor_queue_search_position (0x421af0) and
@@ -77,7 +77,7 @@ void actor_queue_directional_reaction_event(const real_vector3d *direction, datu
         }
     }
     if (target != 0) {
-        look_source = &target->unknown_e0;
+        look_source = &target->look_point;
     }
 
     self->unknown_2e8[4] = 1;
@@ -243,7 +243,7 @@ and the exact register setup for the two truncated calls:
   ... (prop lookup / direction normalize as in the C above) ...
   422338: mov ebx,[esp+0x3c]         ; reload actor_index
   42233c: push edi                   ; -> data (actor_record_look_at_point)
-  42233d: mov ecx,esi                ; point = esi (prop.unknown_e0 or normalized vector or NULL)
+  42233d: mov ecx,esi                ; point = esi (prop.look_point or normalized vector or NULL)
   42233f: mov edx,5                  ; priority = 5
   422344: mov eax,ebx                ; actor_index
   422346: call actor_record_look_at_point

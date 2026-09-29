@@ -1,7 +1,7 @@
 // actor_queue_search_and_relay_perception  (Ghidra: actor_queue_search_and_relay_perception, renamed)
 // address 0x4221f0, size 121 bytes
 // name confidence: 0.35   rewrite confidence: 0.5
-// evidence: types/ai.h prop.unknown_e0, prop.owner_actor_index (0x1c), actor.pending_alert_event
+// evidence: types/ai.h prop.look_point, prop.owner_actor_index (0x1c), actor.pending_alert_event
 //   (0x74); calls actor_queue_search_position (0x421af0) exactly as
 //   actor_queue_velocity_search_from_prop @0x4221b0 does but with priority 1, then, if the
 //   prop's owning actor exists and has a positive pending_alert_event (the running perception-event
@@ -36,7 +36,7 @@ void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index
     prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
     datum_index owner_index;
 
-    actor_queue_search_position(actor_index, 0, 1, (real_vector3d *)&p->unknown_e0,
+    actor_queue_search_position(actor_index, 0, 1, (real_vector3d *)&p->look_point,
                                 0xffffffff, 0, 90, prop_index, 150, 0);
 
     owner_index = p->owner_actor_index;
@@ -82,7 +82,7 @@ drops the incoming EAX/EBX register arguments and every argument of both calls:
   422211: push 0x5a                   ; -> unknown_33c (90)
   422213: add edi, edx                ; edi = &prop[index]
   422215: push 0x0                    ; -> unknown_328
-  422217: lea esi, [edi+0xe0]         ; esi = &prop.unknown_e0
+  422217: lea esi, [edi+0xe0]         ; esi = &prop.look_point
   42221d: push 0xffffffff             ; -> unknown_324
   42221f: xor ecx, ecx                ; position = NULL
   422221: mov edx, 1                  ; priority = 1

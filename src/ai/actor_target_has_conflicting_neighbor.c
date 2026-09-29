@@ -5,7 +5,7 @@
 //   list looking for another entry that shares the same tracked object or owning actor, or
 //   whose position is within 2.5 units horizontally / 1.5 vertically and facing similarly (dot
 //   product > 0.5), to avoid duplicate firing-position/object assignment. Matches
-//   prop.object_index/owner_actor_index/is_unit/kind/last_known_position/unknown_e0 in
+//   prop.object_index/owner_actor_index/is_unit/kind/last_known_position/look_point in
 //   types/ai.h.
 // register convention: EAX -> actor_index; target_prop_index is Ghidra's recognized parameter.
 //   // blam-cc: EAX -> actor_index, stack -> target_prop_index
@@ -58,9 +58,9 @@ uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_ind
                    dy = target->last_known_position.y - other->last_known_position.y,
                    dx * dx + dy * dy < 6.25f) &&
                   fabs_f(other->last_known_position.z - target->last_known_position.z) < 1.5f) &&
-                 (0.5f < other->unknown_e0.z * target->unknown_e0.z +
-                         other->unknown_e0.y * target->unknown_e0.y +
-                         other->unknown_e0.x * target->unknown_e0.x))) { // 0x41f503: summed z, y, x
+                 (0.5f < other->look_point.z * target->look_point.z +
+                         other->look_point.y * target->look_point.y +
+                         other->look_point.x * target->look_point.x))) { // 0x41f503: summed z, y, x
                 conflict = 1;
             }
         }

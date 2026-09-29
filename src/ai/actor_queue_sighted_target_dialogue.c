@@ -5,7 +5,7 @@
 //   actor.vocalization_unknown_3e8, actor.facing/facing_unknown_180/facing_unknown_18c
 //   (0x174/0x178/0x17c, dotted against the target direction as the visibility-cone test);
 //   prop.is_vault/is_unit/is_parented/unknown_54/58/5c/distance/unknown_12f/unknown_32/
-//   unknown_e0/object_index; types/tags.h Actor.event_look_time_modifier[2] (0xd4/0xd8, same
+//   look_point/object_index; types/tags.h Actor.event_look_time_modifier[2] (0xd4/0xd8, same
 //   pair as actor_queue_directional_reaction_event @0x422270) and Actor.surprise_distance
 //   (0x2b0, confirmed by hand-counting the Actor struct's fields up to that offset). Calls
 //   actor_record_look_at_point (0x421bc0), actor_queue_search_position (0x421af0, both
@@ -125,9 +125,9 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
     if (target->is_unit != 0) {
         // UNSURE: threshold derivation ("< 0.5" on the forward-facing dot product) is kept
         // literal; roughly a 60-degree half-cone.
-        float facing_dot = target->unknown_e0.z * self->facing.k
-                          + target->unknown_e0.y * self->facing.j
-                          + target->unknown_e0.x * self->facing.i;
+        float facing_dot = target->look_point.z * self->facing.k
+                          + target->look_point.y * self->facing.j
+                          + target->look_point.x * self->facing.i;
         int outside_cone = facing_dot < 0.5f; // bVar8
         int priority = 0;                     // bVar16
 
@@ -157,7 +157,7 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
             goto notify_unit;
         }
 
-        actor_record_look_at_point(actor_index, (const uint32_t *)&target->unknown_e0, (int16_t)priority, target_prop_index);
+        actor_record_look_at_point(actor_index, (const uint32_t *)&target->look_point, (int16_t)priority, target_prop_index);
 
     notify_unit:
         if (self->alert_level < 3 && already_noticed == 0 &&

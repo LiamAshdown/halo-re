@@ -206,14 +206,14 @@ after_reassign:
     // 0x41c867: EAX = actor, ECX = the caller's block (filled here), EDX = prop +0xbc
     actor_get_firing_positions(actor_index, (uint32_t *)reference, &target->last_known_position);
 
-    target->unknown_e0.x = target->last_known_position.x - *(float *)((uint8_t *)reference + 0xc);
-    target->unknown_e0.y = target->last_known_position.y - *(float *)((uint8_t *)reference + 0x10);
-    target->unknown_e0.z = target->last_known_position.z - *(float *)((uint8_t *)reference + 0x14);
-    length = vector3d_normalize_with_length((real_vector3d *)&target->unknown_e0);
+    target->look_point.x = target->last_known_position.x - *(float *)((uint8_t *)reference + 0xc);
+    target->look_point.y = target->last_known_position.y - *(float *)((uint8_t *)reference + 0x10);
+    target->look_point.z = target->last_known_position.z - *(float *)((uint8_t *)reference + 0x14);
+    length = vector3d_normalize_with_length((real_vector3d *)&target->look_point);
     target->distance = length;
 
     if (length == 0.0f) {
-        *(real_vector3d *)&target->unknown_e0 = *global_forward3d_pointer;
+        *(real_vector3d *)&target->look_point = *global_forward3d_pointer;
     }
 }
 

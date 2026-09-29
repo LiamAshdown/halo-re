@@ -4,7 +4,7 @@
 // evidence: phase-4 summary "tests whether one point lies within a directional lane/cone
 // relative to another point and forward direction, using per-side angular thresholds"; the
 // only caller in this address range (0x414bd0..0x414c85, inside the not-yet-named function at
-// 0x414a90) passes EAX = &prop.unknown_e0, ECX = &actor.position_cache_b (0x5b0), EDX =
+// 0x414a90) passes EAX = &prop.look_point, ECX = &actor.position_cache_b (0x5b0), EDX =
 // &actor.position_cache_a (0x5a4), and a stack {float min_cos, float side_thresholds[2]} pair
 // built just above the call; every Ghidra float compare in the body collapses to a plain
 // boolean AND-chain (its NAN-aware condition-code bits never touch the returned byte's low
@@ -20,7 +20,7 @@
 // touched, so this is a horizontal-plane (2D) test. cone_axis is normalized in place as a
 // side effect of the length-nonzero check in stage 4 (vector2d_normalize_with_length writes
 // through its pointer); to_point and forward are read into locals and are not mutated.
-// UNSURE: the caller-side names (position_cache_a/_b, prop.unknown_e0) are not proven to be
+// UNSURE: the caller-side names (position_cache_a/_b, prop.look_point) are not proven to be
 // "forward" or "cone axis" in any general sense -- they are simply what this one caller
 // passes; kept generic.
 
@@ -140,7 +140,7 @@ uint FUN_00414990(float param_1,int param_2)
 
 Disassembly cross-check for the call site (objdump -d -M intel bin/halo.exe, 0x414c5e..0x414c7d):
 
-00414c5e: lea eax,[esi+0xe0]      ; esi = prop pointer, eax = &prop.unknown_e0
+00414c5e: lea eax,[esi+0xe0]      ; esi = prop pointer, eax = &prop.look_point
 00414c64: lea ecx,[edi+0x5b0]     ; edi = actor pointer, ecx = &actor.position_cache_b
 00414c6a: lea edx,[edi+0x5a4]     ; edx = &actor.position_cache_a
 00414c70: push ebp                ; ebp = float min_cos_threshold (param_1, pushed last)

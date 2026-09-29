@@ -1,9 +1,9 @@
 // actor_queue_velocity_search_from_prop  (Ghidra: actor_queue_velocity_search_from_prop, renamed)
 // address 0x4221b0, size 63 bytes
 // name confidence: 0.35   rewrite confidence: 0.5
-// evidence: types/ai.h prop.unknown_e0 (a real_point3d-sized scratch field, untyped beyond
+// evidence: types/ai.h prop.look_point (a real_point3d-sized scratch field, untyped beyond
 //   that); calls actor_queue_search_position (0x421af0, already rewritten in this module) with
-//   position = NULL and velocity = &prop.unknown_e0, priority 6, duration fields 90/150/0 and
+//   position = NULL and velocity = &prop.look_point, priority 6, duration fields 90/150/0 and
 //   the raw prop handle. Ghidra's own pseudocode ("actor_queue_velocity_search_from_prop(0xffffffff,0,0x5a)") drops
 //   every register argument and mis-renders the stack arguments; the parameters and exact
 //   values below were read out of bin/halo.exe with objdump. The sole caller
@@ -36,7 +36,7 @@ void actor_queue_velocity_search_from_prop(datum_index prop_index, datum_index a
 {
     prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
 
-    actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&p->unknown_e0,
+    actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&p->look_point,
                                 0xffffffff, 0, 90, prop_index, 150, 0);
 }
 
@@ -63,11 +63,11 @@ real stack arguments to FUN_00421af0:
   4221c2: and eax, 0xffff
   4221c7: imul eax, eax, 0x138
   4221cd: push 0x5a                   ; -> unknown_33c (90)
-  4221cf: lea esi, [eax+edx+0xe0]     ; esi = &prop.unknown_e0
+  4221cf: lea esi, [eax+edx+0xe0]     ; esi = &prop.look_point
   4221d6: mov eax, [esp+0x18]         ; reloads this function's OWN stack argument (actor_index)
   4221da: push 0x0                    ; -> unknown_328
   4221dc: push 0xffffffff             ; -> unknown_324
   4221de: xor ecx, ecx                ; position = NULL
   4221e0: mov edx, 6                  ; priority = 6
-  4221e5: call actor_queue_search_position   ; EAX = actor_index, ESI = &prop.unknown_e0
+  4221e5: call actor_queue_search_position   ; EAX = actor_index, ESI = &prop.look_point
 #endif

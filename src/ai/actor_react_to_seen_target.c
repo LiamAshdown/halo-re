@@ -2,7 +2,7 @@
 // address 0x422ec0, size 858 bytes
 // name confidence: 0.35   rewrite confidence: 0.4
 // evidence: types/ai.h actor.alert_level, actor.awareness_level/vocalization_*/mode/
-//   mode_data/vocalization_unknown_3e8; prop.is_unit (0x60)/object_index (0x18)/unknown_e0;
+//   mode_data/vocalization_unknown_3e8; prop.is_unit (0x60)/object_index (0x18)/look_point;
 //   types/objects.h object_header; types/units.h unit_data.controlling_player (object+0x218)
 //   and unit_data.actor_index (object+0x1f4). Calls actor_queue_search_position (0x421af0),
 //   actor_queue_search_and_relay_perception (0x4221f0, already rewritten in this module),
@@ -94,7 +94,7 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
             }
         }
     } else {
-        actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&target->unknown_e0,
+        actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&target->look_point,
                                     0xffffffff, 0, 90, target_prop_index, 150, 0);
     }
 

@@ -825,7 +825,7 @@ typedef struct prop {
     real_point3d last_known_position; // 0xbc
     real_point3d aim_offset;          // 0xc8 0x41c4b0 refreshes the aim marker offsets
     real_point3d unknown_d4;          // 0xd4
-    real_point3d unknown_e0;          // 0xe0
+    real_point3d look_point;        // 0xe0 point actors look at / queue searches toward (actor_queue_search_position, actor_record_look_at_point); refreshed by actor_target_data_refresh as last_known_position minus the reference position
     int32_t path_surface_index;       // 0xec actor_target_data_refresh @0x41c4b0 resets it to -1
                                       //   and actor_movement_action_resolve @0x41a460 hands it to
                                       //   the pathfinder as the destination surface index. The

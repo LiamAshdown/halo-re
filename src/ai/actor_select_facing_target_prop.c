@@ -132,7 +132,7 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
         if (skip_lane_test) {
             uint8_t accepted;
             if (require_trust == 0 || !still_valid) {
-                accepted = point3d_within_horizontal_cone((real_point3d *)&cur->unknown_e0, &self->position_cache_a, aiming_cos_threshold);
+                accepted = point3d_within_horizontal_cone((real_point3d *)&cur->look_point, &self->position_cache_a, aiming_cos_threshold);
             } else {
                 accepted = 1; // trusted and still valid: accept without a directional check
             }
@@ -144,7 +144,7 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
                 best_found = 1;
             }
         } else {
-            uint8_t accepted = actor_point_in_directional_lane((real_point3d *)&cur->unknown_e0, &self->position_cache_b,
+            uint8_t accepted = actor_point_in_directional_lane((real_point3d *)&cur->look_point, &self->position_cache_b,
                                                                  &self->position_cache_a, looking_cos_threshold, side_thresholds);
             if (accepted && best_score < score) {
                 best_handle = current_handle;
@@ -284,7 +284,7 @@ Struct offsets recovered from the Actor tag layout (offsetof against types/tags.
   0x134 cosine_maximum_looking_deviation (Euler2D, .yaw read)
 
 Disassembly cross-check for the call site of FUN_00414910/actor_point_in_directional_lane
-(objdump -d -M intel bin/halo.exe, 0x414c2a..0x414c76): EAX = &current_prop.unknown_e0 in both
+(objdump -d -M intel bin/halo.exe, 0x414c2a..0x414c76): EAX = &current_prop.look_point in both
 calls, EDX = &actor.position_cache_a in both; ECX = &actor.position_cache_b only for the
 0x414990 call; the float threshold is the only stack argument to either.
 #endif
