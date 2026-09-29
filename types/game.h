@@ -270,7 +270,7 @@ typedef struct game_engine_definition {
     void *build_score_header_text;     // 0x58 (wchar buffer)
     void *build_team_score_text;       // 0x5c (team, wchar buffer)
     void *weapon_use_permission;       // 0x60 reached from the units module (0x56da00)
-    void *unknown_64;                  // 0x64 reached from the units module (0x5674a0)
+    void *player_damaged_player;       // 0x64 (attacker player, victim player, damage flags) called from unit_apply_damage_effects (0x5674a0) for a local unit hit by another player
     void *player_killed;                // 0x68 fired first thing in game_engine_on_player_death
     void *build_message_text;          // 0x6c variant override for the kill-feed text builder
     void *starting_location_scale;      // 0x70 (player, location) -> multiplier in game_engine_rate_player_starting_location

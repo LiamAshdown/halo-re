@@ -397,8 +397,8 @@ local_reactions:
         datum_index unit_player = ((unit_object *)obj)->unit.controlling_player;
 
         if (dd->responsible_player != k_datum_index_none && unit_player != k_datum_index_none &&
-            current_game_engine != 0 && current_game_engine->unknown_64 != 0) {
-            ((void (*)(datum_index, datum_index, uint32_t))current_game_engine->unknown_64)(
+            current_game_engine != 0 && current_game_engine->player_damaged_player != 0) {
+            ((void (*)(datum_index, datum_index, uint32_t))current_game_engine->player_damaged_player)(
                 dd->responsible_player, unit_player, (flags >> 4) & 0xffffff01);
         }
         if (dd->responsible_player != k_datum_index_none || dd->responsible_object != k_datum_index_none) {
