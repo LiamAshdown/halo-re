@@ -76,7 +76,7 @@ int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t comman
                 return 1;
             }
         } else if (a->active == 0) {
-            a->unknown_90 = command_list_index;
+            a->pending_command_list = command_list_index;
         }
     }
     return 0;

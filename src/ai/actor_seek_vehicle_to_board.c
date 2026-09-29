@@ -91,7 +91,7 @@ uint8_t actor_seek_vehicle_to_board(datum_index actor_index)
     if (best_vehicle == k_datum_index_none) {
         int16_t i;
 
-        if (((struct actor *)act)->unknown_84 < 60) {
+        if (((struct actor *)act)->ticks_threatened < 60) {
             return 0;
         }
         for (i = 0; i < *(int16_t *)(ai_globals_ptr + 0x3b6); i++) {

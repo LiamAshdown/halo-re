@@ -28,7 +28,7 @@ uint8_t actor_escalate_check_target_close(datum_index actor_index)
 {
     uint8_t *act = ACTOR(actor_index);
 
-    if (((struct actor *)act)->unknown_6e < 5) {
+    if (((struct actor *)act)->combat_status < 5) {
         return 0;
     }
     if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) <

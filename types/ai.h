@@ -363,29 +363,42 @@ typedef struct actor {
     datum_index unknown_54;           // 0x54 actor_new sets none
     datum_index actor_definition_tag; // 0x58 the actor tag index; actor_get_actor_definition can override it per unit
     datum_index actor_variant_tag;    // 0x5c the actor_variant tag index actor_new was called with
-    int16_t unknown_60;               // 0x60 0x435420 sets 2
-    int16_t unknown_62;               // 0x62 0x435420 sets 2
-    int32_t unknown_64;               // 0x64 actor_new sets -1
+    int16_t pending_order_request;    // 0x60 one-shot request code (-1 none): actor_process_order_request takes it
+                                      //   and clears it; 0x435420 sets 2
+    int16_t standing_order_request;   // 0x62 used when no one-shot request is pending (-1 meaning 0); never
+                                      //   cleared by the taker. squad_members_assign_team_and_request_order sets it
+    int32_t last_order_request_time;  // 0x64 game time of the last processed request, -1 never; implicit requests
+                                      //   are throttled to one per 45 ticks
     uint8_t unknown_68;               // 0x68 0x435420 zeroes it
     uint8_t unknown_69;               // 0x69
     int16_t awareness_level;          // 0x6a 0..3; actor_set_mode clamps it to 2 or 3 by mode, actor_update_awareness_level drives it
     int16_t mode;                     // 0x6c actor_set_mode writes it; indexes actor_mode_definitions
-    int16_t unknown_6e;               // 0x6e burst / vitality grade, compared against 4 in several gates
+    int16_t combat_status;            // 0x6e actor_update_awareness_level: max(suspicion_status, minimum_combat_status,
+                                      //   the per-target_combat_status floor table 0x655880). 0 is the "guarding"
+                                      //   stage of ai_status (0x435680); > 3 counts as threatened (definite
+                                      //   enemy: attack vs pursue shield fractions, dialogue variants), > 6 as
+                                      //   engaged (has_engaged). The CEA names this step actor_situation_combat_status_update.
     uint8_t mode_changed;             // 0x70 actor_set_mode sets 1
     uint8_t unknown_71;               // 0x71
-    int16_t unknown_72;               // 0x72 per-burst counter compared against unknown_6e by 0x428180
-    int16_t unknown_74;               // 0x74
+    int16_t minimum_combat_status;    // 0x72 floor of combat_status that orders impose (order request 10 sets 2,
+                                      //   0x41fbc0 clears it); "minimum < combat_status" is the test for a threat
+                                      //   the actor perceived itself (0x428180, grenade eligibility, morale)
+    int16_t suspicion_status;         // 0x74 latched maximum of the recorded perception events (perception_event,
+                                      //   the CEA's suspicion_combat_status); cleared when combat_status rises
+                                      //   past it or suspicion_timer runs out
     int16_t unknown_76;               // 0x76
-    int32_t unknown_78;               // 0x78
-    int32_t unknown_7c;               // 0x7c
-    int32_t unknown_80;               // 0x80
-    int32_t unknown_84;               // 0x84
-    int32_t unknown_88;               // 0x88 actor_new sets -1
-    uint8_t unknown_8c;               // 0x8c
+    int32_t suspicion_timer;          // 0x78 ticks, from perception_event_data (450 / 600 / 900 at the callers);
+                                      //   actor_update_squad_link_state counts it down and clears suspicion_status at 0
+    int32_t ticks_in_combat;          // 0x7c consecutive ticks at awareness_level 3, else 0
+    int32_t ticks_alerted;            // 0x80 consecutive ticks with combat_status > 0, else 0
+    int32_t ticks_threatened;         // 0x84 consecutive ticks with combat_status > 3, else 0
+    int32_t ticks_since_threatened;   // 0x88 0 while combat_status > 3, then counts up; -1 (actor_new) never threatened
+    uint8_t has_engaged;              // 0x8c set once combat_status exceeds 6, never cleared; encounter morale reads it
     uint8_t unknown_8d;               // 0x8d
     uint8_t unknown_8e;               // 0x8e actor_new sets 0
     uint8_t unknown_8f;               // 0x8f
-    int16_t unknown_90;               // 0x90 actor_new sets 0xffff
+    int16_t pending_command_list;     // 0x90 command list index stored when the actor is told to run one while
+                                      //   inactive (0x407140), -1 none (actor_new / ai_unit_create_actor)
     int16_t unknown_92;               // 0x92 0x435420 sets 2
     int32_t unknown_94;               // 0x94 actor_new sets -1
     uint8_t unknown_98;               // 0x98 actor_new sets 0

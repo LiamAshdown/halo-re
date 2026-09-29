@@ -1,7 +1,7 @@
 // actor_should_throw_grenade  (Ghidra: actor_should_throw_grenade, already named)
 // address 0x40b840, size 224 bytes
 // name confidence: 0.5   rewrite confidence: 0.35
-// evidence: types/ai.h actor.unknown_1ca/unknown_6e/unknown_26c/unknown_1c0/unknown_378/
+// evidence: types/ai.h actor.unknown_1ca/combat_status/unknown_26c/unknown_1c0/unknown_378/
 //   order_committed; types/tags.h Actor.hide_target_not_visible_time (0x2d8)/
 //   cover_damage_threshold (0x324), already-named fields; phase-4 summary "returns whether
 //   the actor is currently eligible to throw a grenade, based on cooldowns, combat status,
@@ -33,7 +33,7 @@ uint8_t actor_should_throw_grenade(uint32_t actor_index, char force)
 
     if (force == 0 && a->unknown_1ca == 0) {
         if (actor_def->hide_target_not_visible_time > 0.0f) {
-            if (a->unknown_6e < 7) {
+            if (a->combat_status < 7) {
                 if (a->unknown_26c != (datum_index)k_datum_index_none) {
                     int16_t delay = (int16_t)(actor_def->hide_target_not_visible_time * 30.0f);
                     if (game_time->game_time < delay + (int32_t)a->unknown_26c) {

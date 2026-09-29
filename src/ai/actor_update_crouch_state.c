@@ -108,8 +108,8 @@ void actor_update_crouch_state(datum_index actor_index)
     countdown_368          = (int16_t *)&self->unknown_350[0x18];
 
     if (self->unknown_378 != 0 &&
-        (self->unknown_6e == 0 || self->awareness_level < 3 ||
-         (*(int32_t *)&self->unknown_1bc == 0x3f800000 && self->unknown_6e < 3))) {
+        (self->combat_status == 0 || self->awareness_level < 3 ||
+         (*(int32_t *)&self->unknown_1bc == 0x3f800000 && self->combat_status < 3))) {
         actor_set_combat_alert_flag(actor_index, 0); // 0x42141b: BL = 0
     }
 
@@ -164,7 +164,7 @@ void actor_update_crouch_state(datum_index actor_index)
     }
 
     if ((actor_definition->flags & 0xc0000000u) != 0) {
-        if (self->active_unit_index == (datum_index)k_datum_index_none && self->unknown_6e > 2) {
+        if (self->active_unit_index == (datum_index)k_datum_index_none && self->combat_status > 2) {
             combat_status = self->target_combat_status;
             *flag_35d = 0;
             *flag_35c = 0;
@@ -276,7 +276,7 @@ void actor_update_crouch_state(datum_index actor_index)
                                     (int8_t)self->tally.threat_class_2 >= 1);
             break;
         case 4:
-            want_crouch = (uint8_t)(self->unknown_6e > 0);
+            want_crouch = (uint8_t)(self->combat_status > 0);
             break;
         case 5:
             want_crouch = actor_evaluate_custom_charge_trigger(actor_index);

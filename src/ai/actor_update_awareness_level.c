@@ -4,7 +4,7 @@
 // evidence: out/phase2/results/ai_02.json -- consumes the pending perception event recorded by
 //   0x422070 (actor.perception_event / perception_event_data), merges it with a per-target
 //   -status minimum threshold table indexed by actor.target_combat_status, and advances
-//   actor.unknown_6e (awareness/vitality grade) plus streak counters at unknown_7c/0x80/0x84,
+//   actor.combat_status (awareness/vitality grade) plus streak counters at unknown_7c/0x80/0x84,
 //   setting unknown_8c once the grade exceeds 6.
 // register convention: EAX -> actor_index; no other register operands are read.
 
@@ -36,56 +36,56 @@ void actor_update_awareness_level(datum_index actor_index)
 
     event = self->perception_event;
     if (0 < event) {
-        if (self->unknown_74 < event) {
-            self->unknown_74 = event;
-            self->unknown_78 = self->perception_event_data;
-        } else if (self->unknown_74 == event) {
-            if (self->unknown_78 <= self->perception_event_data) {
-                self->unknown_78 = self->perception_event_data;
+        if (self->suspicion_status < event) {
+            self->suspicion_status = event;
+            self->suspicion_timer = self->perception_event_data;
+        } else if (self->suspicion_status == event) {
+            if (self->suspicion_timer <= self->perception_event_data) {
+                self->suspicion_timer = self->perception_event_data;
             }
         }
         self->perception_event = 0;
     }
 
-    burst_counter = self->unknown_72;
+    burst_counter = self->minimum_combat_status;
     status_min_grade = actor_combat_status_min_grade[self->target_combat_status];
     event_floor = (burst_counter <= status_min_grade) ? status_min_grade : burst_counter;
 
-    old_grade = self->unknown_74;
+    old_grade = self->suspicion_status;
     new_grade = old_grade;
     if (old_grade <= event_floor) {
         new_grade = (burst_counter <= status_min_grade) ? status_min_grade : burst_counter;
     }
-    self->unknown_6e = new_grade;
+    self->combat_status = new_grade;
 
     if (old_grade < new_grade) {
-        self->unknown_74 = 0;
+        self->suspicion_status = 0;
     }
 
     if (self->awareness_level < 3) {
-        self->unknown_7c = 0;
+        self->ticks_in_combat = 0;
     } else {
-        self->unknown_7c = self->unknown_7c + 1;
+        self->ticks_in_combat = self->ticks_in_combat + 1;
     }
 
     if (new_grade == 0) {
-        self->unknown_80 = 0;
+        self->ticks_alerted = 0;
     } else {
-        self->unknown_80 = self->unknown_80 + 1;
+        self->ticks_alerted = self->ticks_alerted + 1;
         if (3 < new_grade) {
-            self->unknown_84 = self->unknown_84 + 1;
-            self->unknown_88 = 0;
+            self->ticks_threatened = self->ticks_threatened + 1;
+            self->ticks_since_threatened = 0;
             goto have_streaks;
         }
     }
-    self->unknown_84 = 0;
-    if (self->unknown_88 != -1) {
-        self->unknown_88 = self->unknown_88 + 1;
+    self->ticks_threatened = 0;
+    if (self->ticks_since_threatened != -1) {
+        self->ticks_since_threatened = self->ticks_since_threatened + 1;
     }
 
 have_streaks:
     if (6 < new_grade) {
-        self->unknown_8c = 1;
+        self->has_engaged = 1;
     }
 }
 

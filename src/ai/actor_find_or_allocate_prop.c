@@ -120,7 +120,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         *far_out = distance_squared > 36.0f;
         return k_prop_admit_keep;
     }
-    if (((struct actor *)self)->unknown_6e >= 4) {
+    if (((struct actor *)self)->combat_status >= 4) {
         *far_out = 1;
     } else if (self[0x1cc] == 0) {
         *far_out = distance_squared > 16.0f;

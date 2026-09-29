@@ -207,9 +207,9 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
     case 0x13: // wait
         switch (entry->atom_modifier) {
         case 0:
-            return ((struct actor *)act)->unknown_6e > 0;
+            return ((struct actor *)act)->combat_status > 0;
         case 1:
-            return ((struct actor *)act)->unknown_6e >= 7;
+            return ((struct actor *)act)->combat_status >= 7;
         case 2:
             if ((state[0x4] & 8) == 0) {
                 state[0x4] |= 0x10;

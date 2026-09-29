@@ -71,7 +71,7 @@ void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t
         datum_index actor_index = iterator.actor_index;
         uint32_t block[14];             // [esp+0x30]
 
-        if (((struct actor *)a)->unknown_6e >= 7) {
+        if (((struct actor *)a)->combat_status >= 7) {
             continue;
         }
         actor_get_firing_positions(actor_index, block, point);

@@ -84,11 +84,11 @@ void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index)
     a = &((actor *)actor_data->data)[actor_index & 0xffff];
     ai_actor_link_to_unassigned_list(actor_index);
     a->awareness_level = 2;
-    a->unknown_60 = 2;
-    a->unknown_62 = 2;
+    a->pending_order_request = 2;
+    a->standing_order_request = 2;
     a->unknown_8e = 0;
     a->unknown_92 = 2;
-    a->unknown_90 = -1;
+    a->pending_command_list = -1;
     a->unknown_68 = 0;
 
     if (*((uint8_t *)a + 0x6) != actor_type_procs[((actor *)a)->type][0xd]) {

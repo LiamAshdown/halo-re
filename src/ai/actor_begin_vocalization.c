@@ -33,7 +33,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 // The two per-line tables. Both are 14 rows long: 0x00655628 ends exactly where 0x00655660
 // begins, and 0x00655660 ends exactly where the unrelated float run at 0x00655698 begins.
 extern float actor_vocalization_duration[14];  // 0x00655660
-extern int16_t actor_vocalization_variant[14][2]; // 0x00655628, second column for unknown_6e > 3
+extern int16_t actor_vocalization_variant[14][2]; // 0x00655628, second column for combat_status > 3
 
 extern real random_real_range(real min, real max); // 0x401050
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680, matches src/memory/datum_get.c
@@ -99,7 +99,7 @@ uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t 
     }
 
     duration = actor_vocalization_duration[line];
-    if (self->awareness_level < 3 || self->unknown_6e == 0) {
+    if (self->awareness_level < 3 || self->combat_status == 0) {
         duration = duration + duration;
     }
 
@@ -115,7 +115,7 @@ uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t 
     }
 
     if (variant == 1) {
-        variant = actor_vocalization_variant[line][self->unknown_6e > 3 ? 1 : 0];
+        variant = actor_vocalization_variant[line][self->combat_status > 3 ? 1 : 0];
     }
 
     self->vocalization_line = line;

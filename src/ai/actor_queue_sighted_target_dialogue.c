@@ -49,7 +49,7 @@ extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 
 // Variant table paired with actor_dialogue_variant_table_b @0x00655638; indexed the same way
-// (unknown_6e >= 4).
+// (combat_status >= 4).
 extern int16_t actor_dialogue_variant_table_a[]; // 0x00655638
 
 // blam-cc: stack -> actor_index, target_prop_index, already_noticed
@@ -94,7 +94,7 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
                 }
             }
             if (recent <= 6) {
-                float wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 1.8f : 0.9f;
+                float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
 
                 if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
                     float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
@@ -110,7 +110,7 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
                 self->vocalization_line = 4;
                 self->vocalization_state = (int16_t)ticks;
                 self->vocalization_unknown_54c = 1; // kind = 1 (explicit target)
-                self->vocalization_variant = actor_dialogue_variant_table_a[self->unknown_6e >= 4];
+                self->vocalization_variant = actor_dialogue_variant_table_a[self->combat_status >= 4];
                 self->vocalization_unknown_550 = target_prop_index;
                 self->vocalization_unknown_554 = 0;
                 self->vocalization_unknown_558 = 0;
@@ -131,14 +131,14 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
         int outside_cone = facing_dot < 0.5f; // bVar8
         int priority = 0;                     // bVar16
 
-        if (self->unknown_6e == 0) {
+        if (self->combat_status == 0) {
             already_noticed = 0;
             if (self->awareness_level < 3 && target->unknown_12f != 0 &&
                 target->distance < actor_tag->surprise_distance && priority < 4) {
                 priority = 3;
             }
             goto shared_check;
-        } else if (self->unknown_6e < 5 || outside_cone) {
+        } else if (self->combat_status < 5 || outside_cone) {
             if (already_noticed == 0) {
                 goto shared_check;
             }
@@ -160,7 +160,7 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
         actor_record_look_at_point(actor_index, (const uint32_t *)&target->unknown_e0, (int16_t)priority, target_prop_index);
 
     notify_unit:
-        if (self->unknown_6e < 3 && already_noticed == 0 &&
+        if (self->combat_status < 3 && already_noticed == 0 &&
             target->unknown_32 < 2 && self->unit_index != (datum_index)k_datum_index_none) {
             ai_communication_broadcast(6, self->unit_index, target->object_index, 3,
                                        (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);

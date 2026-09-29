@@ -52,7 +52,7 @@ void actor_attempt_grenade_throw(datum_index actor_index)
     real roll;
 
     // 0x428ae7: a fighter may pull a grenade as it dies
-    if (((actor *)a)->awareness_level == 3 && ((struct actor *)a)->unknown_6e >= 2) {
+    if (((actor *)a)->awareness_level == 3 && ((struct actor *)a)->combat_status >= 2) {
         unit = OBJECT_DATA(((actor *)a)->unit_index);
         if (((((unit_object *)unit)->unit.flags >> 6) & 1) &&
             unit_get_weapon_object_index(((actor *)a)->unit_index, ((unit_object *)unit)->unit.current_weapon_index) != k_datum_index_none &&

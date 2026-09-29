@@ -184,7 +184,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
             // 0x41e756: the friend's far flag is computed in AL and used directly at 0x41e66c
             uint8_t near = distance_squared < 225.0f;
 
-            if (((struct actor *)self)->unknown_6e >= 4) {
+            if (((struct actor *)self)->combat_status >= 4) {
                 far_flag = 1;
             } else {
                 far_flag = self[0x1cc] == 0 && distance_squared > 16.0f;

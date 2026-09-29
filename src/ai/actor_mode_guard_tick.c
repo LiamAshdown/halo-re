@@ -79,7 +79,7 @@ void actor_mode_guard_tick(datum_index actor_index)
     act[0xa5] = 0;
     act[0xa6] = 0;
     ((struct actor *)act)->mode_data.guard.countdown_0c = 0;
-    if (((struct actor *)act)->unknown_6e >= 2 && ((actor *)act)->unit_index != k_datum_index_none) {
+    if (((struct actor *)act)->combat_status >= 2 && ((actor *)act)->unit_index != k_datum_index_none) {
         ai_communication_broadcast(0x23, ((actor *)act)->unit_index, actor_get_target_prop_object_index(actor_index),
                                    -1, -1, -1, 0);
     }

@@ -42,7 +42,7 @@ uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_re
         return 0;
     }
     grade = actor_mode_definitions[((actor *)act)->mode].combat_grade;
-    if (act[0x378] || (grade != 4 && grade != 3) || ((struct actor *)act)->unknown_6e < 2) {
+    if (act[0x378] || (grade != 4 && grade != 3) || ((struct actor *)act)->combat_status < 2) {
         return 0;
     }
     now = game_time->game_time;

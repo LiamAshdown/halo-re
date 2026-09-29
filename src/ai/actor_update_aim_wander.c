@@ -229,7 +229,7 @@ void actor_update_aim_wander(datum_index actor_index)
     ((actor *)a)->grenade_aim_direction.k = wander.k + target.z;
 
     // the firing line
-    if (((struct actor *)a)->unknown_6e >= 7) {
+    if (((struct actor *)a)->combat_status >= 7) {
         uint8_t prop_flag = 0;
         datum_index object = k_datum_index_none;
         int32_t code;

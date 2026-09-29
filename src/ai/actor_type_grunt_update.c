@@ -101,7 +101,7 @@ void actor_type_grunt_update(datum_index actor_index)
         if (actor_flee_look_away(actor_index)) {
             return;
         }
-        if (((struct actor *)act)->mode_data.flee.panic == 0 && ((struct actor *)act)->unknown_6e >= 5) {
+        if (((struct actor *)act)->mode_data.flee.panic == 0 && ((struct actor *)act)->combat_status >= 5) {
             actor_consider_grenade_throw(actor_index);
         }
         return;
