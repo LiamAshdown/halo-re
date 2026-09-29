@@ -39,10 +39,10 @@ void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag)
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
-    if ((char)new_flag == self->unknown_378) {
+    if ((char)new_flag == self->combat_alert_flag) {
         return;
     }
-    self->unknown_378 = new_flag;
+    self->combat_alert_flag = new_flag;
     self->unknown_379 = 0;
 
     if (self->swarm == 0) {

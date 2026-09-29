@@ -442,7 +442,7 @@ typedef struct actor {
     uint8_t unknown_1d6[6];           // 0x1d6
     datum_index conversation_index;   // 0x1dc ai_conversation_stop clears this and conversation_participant
     datum_index conversation_participant;// 0x1e0
-    int16_t unknown_1e4;              // 0x1e4
+    int16_t command_status;           // 0x1e4 command list status (actor_report_command_status switches on it; guard exit/tick clear it)
     uint8_t unknown_1e6[2];           // 0x1e6
     datum_index unknown_1e8;          // 0x1e8
     actor_target_tally tally;         // 0x1ec the 0x7b-byte perception tally actor_choose_best_target
@@ -453,7 +453,7 @@ typedef struct actor {
     uint8_t unknown_267;              // 0x267 the byte the zeroing run does not reach
     int16_t target_combat_status;     // 0x268 actor_update_target_combat_status writes it, actor_update_awareness_level reads it
     uint8_t unknown_26a[2];           // 0x26a
-    datum_index unknown_26c;          // 0x26c actor_new sets none
+    datum_index target_status_tick;   // 0x26c game time recorded by actor_update_target_combat_status; none when no target
     datum_index target_unit_index;    // 0x270 the unit the actor is fighting; actor_choose_best_target writes it
     uint8_t unknown_274[4];           // 0x274
     int32_t unknown_278;              // 0x278 actor_new sets -1
@@ -523,7 +523,7 @@ typedef struct actor {
     uint8_t unknown_375;              // 0x375
     uint8_t ignores_glass;            // 0x376 actor_new rolls Actor.glass_ignorance_chance at Actor+0x90 once into this
     uint8_t unknown_377;              // 0x377
-    uint8_t unknown_378;              // 0x378 stance selector read by 0x4106b0
+    uint8_t combat_alert_flag;        // 0x378 set by actor_set_combat_alert_flag; nonzero selects the alert stance, grenade and melee thresholds
     uint8_t unknown_379;              // 0x379
     uint8_t unknown_37a[2];           // 0x37a
     float search_wait_time;           // 0x37c 0x4028e0 reads this and unknown_388 as reaction wait thresholds
@@ -642,7 +642,7 @@ typedef struct actor {
                                       //   sampler output into this vector (0.05 or 0.3 blend)
     float avoidance_scale;            // 0x5e8 the matching low-pass filtered magnitude, snapped to
                                       //   0 below 0.001; passed to actor_movement_apply_steering
-    float unknown_5ec;                // 0x5ec
+    float avoidance_sample_scale;     // 0x5ec last sampled avoidance scale (actor_movement_update); above 0.9 flips the flying turn sign
     int16_t unknown_5f0;              // 0x5f0 actor_new sets 0xffff
     int16_t unknown_5f2;              // 0x5f2 actor_new sets 1
     int16_t unknown_5f4;              // 0x5f4 actor_new sets 0

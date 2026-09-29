@@ -57,7 +57,7 @@ uint16_t actor_consider_target_candidate(datum_index actor_index, datum_index ca
         }
         self->target_combat_status = 0;
         self->target_unit_index = candidate_prop_index;
-        self->unknown_26c = k_datum_index_none;
+        self->target_status_tick = k_datum_index_none;
         actor_update_target_combat_status(actor_index);
         actor_update_awareness_level(actor_index);
         return 1;

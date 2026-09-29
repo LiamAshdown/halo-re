@@ -3,7 +3,7 @@
 // name confidence: 0.55   rewrite confidence: 0.85 (REWRITTEN 2026-09-27 static loop against objdump 0x428470..0x42864d: active movement (not secondary action) field, 3-argument mode proc; offsets probed)
 // evidence: types/ai.h actor.target_unit_index(0x270)/target_combat_status(0x268)/
 //   unknown_60c/unknown_610/unknown_6b4/look_at_unknown_2f4(0x2f4)/unknown_30c/
-//   search_unknown_340(0x340)/unknown_3ac/unknown_3a8/unknown_1d0/unknown_1e8/unknown_1e4/
+//   search_unknown_340(0x340)/unknown_3ac/unknown_3a8/unknown_1d0/unknown_1e8/command_status/
 //   secondary_action(0x46c)/vocalization_unknown_54c/vocalization_unknown_550/unknown_56c;
 //   swarm.component_count/component_index; swarm_component.unknown_14. Calls no other
 //   AI-module function; the final indirect call goes through a table at 0x00655274, which is
@@ -81,7 +81,7 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
     if (self->unknown_1e8 == old_reference) {
         self->unknown_1e8 = new_reference;
         if (new_reference == 0xffffffff) {
-            self->unknown_1e4 = 0;
+            self->command_status = 0;
         }
     }
 

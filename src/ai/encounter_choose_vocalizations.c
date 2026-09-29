@@ -4,7 +4,7 @@
 // evidence: phase-4 summary ("scores nearby positions/targets to choose a retreat or regroup
 //   destination for a squad under morale pressure"). It is the only caller of
 //   ai_insert_scored_candidate_pair @0x4383f0 and ai_pick_weighted_candidate @0x438480, and
-//   everything it produces is written to actor.unknown_1e4 / unknown_1e8, the pair
+//   everything it produces is written to actor.command_status / unknown_1e8, the pair
 //   encounter_recompute_morale reads back as "this member has a pending vocalization". The
 //   line ids come from the int16 table at 0x00657194.
 // register convention: plain __cdecl, one stack argument.
@@ -335,18 +335,18 @@ stamp:
     for (i = 0; i < 2; i = i + 1) {
         if (picked_bucket[i] != -1 && picked[i].handle != (datum_index)k_datum_index_none) {
             a = &((actor *)actor_data->data)[picked[i].handle & 0xffff];
-            a->unknown_1e4 = ai_vocalization_line_table[picked_bucket[i]];
+            a->command_status = ai_vocalization_line_table[picked_bucket[i]];
             a->unknown_1e8 = picked[i].payload;
         }
     }
 
     if (morale_line != -1 && morale_actor != (datum_index)k_datum_index_none) {
         a = &((actor *)actor_data->data)[morale_actor & 0xffff];
-        a->unknown_1e4 = morale_line;
+        a->command_status = morale_line;
         a->unknown_1e8 = (datum_index)k_datum_index_none;
         if (nearest_actor != (datum_index)k_datum_index_none) {
             a = &((actor *)actor_data->data)[nearest_actor & 0xffff];
-            a->unknown_1e4 = 6;
+            a->command_status = 6;
             a->unknown_1e8 = nearest_prop;
         }
     }

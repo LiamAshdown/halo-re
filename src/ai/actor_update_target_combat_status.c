@@ -35,7 +35,7 @@ void actor_update_target_combat_status(datum_index actor_index)
 
     if (self->target_unit_index == k_datum_index_none) {
         self->target_combat_status = 0;
-        self->unknown_26c = k_datum_index_none;
+        self->target_status_tick = k_datum_index_none;
         self->unknown_27c = 0;
         return;
     }
@@ -47,7 +47,7 @@ void actor_update_target_combat_status(datum_index actor_index)
     case 0:
         status = 0;
         self->target_unit_index = k_datum_index_none;
-        self->unknown_26c = k_datum_index_none;
+        self->target_status_tick = k_datum_index_none;
         break;
     case 1:
         status = 1;
@@ -91,7 +91,7 @@ void actor_update_target_combat_status(datum_index actor_index)
     } else {
         self->unknown_27c = (uint8_t)(target->is_vault == 0);
         if (0 < target->unknown_32) {
-            self->unknown_26c = target->unknown_8c;
+            self->target_status_tick = target->unknown_8c;
         }
     }
 }

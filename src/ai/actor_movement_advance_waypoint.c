@@ -109,7 +109,7 @@ void actor_movement_advance_waypoint(datum_index actor_index)
     }
 
     if (self->movement_context == 4) {
-        float sign = (self->unknown_5ec <= 0.9f) ? 1.0f : -1.0f;
+        float sign = (self->avoidance_sample_scale <= 0.9f) ? 1.0f : -1.0f;
         float scale = sign * 3.0f;
         self->desired_direction_valid = 1;
         self->unknown_506 = 0;

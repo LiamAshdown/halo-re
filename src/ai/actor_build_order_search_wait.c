@@ -1,7 +1,7 @@
 // actor_build_order_search_wait  (Ghidra: actor_build_order_search_wait, renamed)
 // address 0x4045a0, size 260 bytes
 // name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4045a0..0x4046a3 and the jump table at 0x4046a4)
-// evidence: types/ai.h actor.movement_context/order_committed/swarm/unknown_1e8/unknown_1e4;
+// evidence: types/ai.h actor.movement_context/order_committed/swarm/unknown_1e8/command_status;
 //   actor_order's opaque tail (order kind at +0x24, seen in the other order builders in
 //   this session); phase-4 summary "a search-and-wait order at a scenario search position,
 //   scaling the wait duration by target category".
@@ -34,7 +34,7 @@ extern void actor_target_get_relationship_object(datum_index target_prop_index);
 // Builds a "search and wait" order (code 0x78) at the actor's pending search position
 // (actor.unknown_1e8), unless the actor's turn-bound state (movement_context) is 4, in which case
 // it returns failure without committing a target. The wait duration category comes from
-// actor.unknown_1e4 (6, 7/8, or 9 map to 2.0/1.0/1.5 seconds; anything else aborts).
+// actor.command_status (6, 7/8, or 9 map to 2.0/1.0/1.5 seconds; anything else aborts).
 int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order)
 {
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
@@ -62,7 +62,7 @@ int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order)
         order->unknown_02 = 0x78;
         *((uint8_t *)order + 0x40) = 1;
 
-        switch (a->unknown_1e4 - 6) {
+        switch (a->command_status - 6) {
         case 0:
             *(float *)((uint8_t *)order + 0x38) = 2.0f;
             break;

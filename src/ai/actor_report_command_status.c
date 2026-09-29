@@ -1,7 +1,7 @@
 // actor_report_command_status  (Ghidra: actor_report_command_status, renamed)
 // address 0x4048b0, size 243 bytes
 // name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop: objdump 0x4048b0..0x4049a2 incl. the jump table at 0x4049a4; prop offsets probed)
-// evidence: types/ai.h actor.unit_index (0x18)/unknown_1e4 (0x1e4, the same command/category
+// evidence: types/ai.h actor.unit_index (0x18)/command_status (0x1e4, the same command/category
 //   field read by actor_build_order_search_wait.c); prop.object_index (0x18)/is_unit (0x60);
 //   phase-4 summary "reports the actor's scripted command-list status as a chatter/status
 //   event keyed by command index and target shield state, once per actor".
@@ -28,7 +28,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b); // 0x45bdb0, ECX, EDX
 
 // If this actor has not already reported for its current scripted command, maps
-// actor.unknown_1e4 (1..10, skipping 6) to a chatter event code and broadcasts it along with
+// actor.command_status (1..10, skipping 6) to a chatter event code and broadcasts it along with
 // the actor's controlled unit and, if it has a tracked target prop, that prop's object and a
 // shield-state code (2 = no shield, 3/4 = shield down/up per team_pair_flag_test). Marks the actor
 // as having reported either way, except for command 6 (reported but nothing is broadcast).
@@ -42,7 +42,7 @@ int32_t actor_report_command_status(uint32_t actor_index)
         return 0;
     }
 
-    switch (a->unknown_1e4) {
+    switch (a->command_status) {
     case 1: event_code = 0x30; break;
     case 2: event_code = 0x31; break;
     case 3: event_code = 0x32; break;

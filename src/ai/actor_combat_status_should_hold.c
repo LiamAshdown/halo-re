@@ -29,7 +29,7 @@ uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t thresho
         return (uint8_t)(threshold_b <= self->alert_level);
     }
     if (0 < *(int16_t *)&self->mode_data.raw[0] && self->alert_level < threshold_a &&
-        (self->unknown_1e4 < 1 || self->mode_data.raw[5] != 0)) {
+        (self->command_status < 1 || self->mode_data.raw[5] != 0)) {
         return 0;
     }
     return 1;

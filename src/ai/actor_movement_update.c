@@ -158,7 +158,7 @@ void actor_movement_update(datum_index actor_index)
         actor_base[0x58d] = 0;
         a->avoidance_direction = *global_origin3d_pointer;
         a->avoidance_scale = 0.0f;
-        a->unknown_5ec = 0.0f;
+        a->avoidance_sample_scale = 0.0f;
     } else if (a->movement_context == 4) {
         const real_vector3d *desired;
         real_vector3d probe;
@@ -199,7 +199,7 @@ void actor_movement_update(datum_index actor_index)
             a->avoidance_direction.i * a->avoidance_direction.i < 0.0001f) {
             a->avoidance_direction = *global_origin3d_pointer;
         }
-        a->unknown_5ec = sampled_scale;
+        a->avoidance_sample_scale = sampled_scale;
         a->avoidance_scale = blend * sampled_scale + keep * a->avoidance_scale;
         if (a->avoidance_scale < 0.001f) {
             a->avoidance_scale = 0.0f;
@@ -441,7 +441,7 @@ void actor_movement_update(datum_index actor_index)
     if (a->secondary_action == -1 &&
         (a->unit_index == (datum_index)k_datum_index_none || unit_is_in_busy_animation_state(a->unit_index) == 0) &&
         a->active_unit_index == (datum_index)k_datum_index_none &&
-        a->unknown_15c == 0 && a->unknown_378 != 0 && a->unknown_379 == 0) {
+        a->unknown_15c == 0 && a->combat_alert_flag != 0 && a->unknown_379 == 0) {
         real_vector2d facing;
         datum_index target_object = (datum_index)k_datum_index_none;
 

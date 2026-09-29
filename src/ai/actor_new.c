@@ -170,7 +170,7 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->grenade_recheck_ticks = 30;
     self->target_combat_status = 0;
     self->target_unit_index = (datum_index)k_datum_index_none;
-    self->unknown_26c = (datum_index)k_datum_index_none;
+    self->target_status_tick = (datum_index)k_datum_index_none;
     self->unknown_278 = 0xffffffff;
 
     actor_clear_recognition_history(actor_index, 0);

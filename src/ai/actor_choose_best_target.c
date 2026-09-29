@@ -62,7 +62,7 @@ void actor_choose_best_target(datum_index actor_index)
     best = (datum_index)k_datum_index_none;
 
     suppress_close_bonus = 0;
-    if (self->unknown_378 != 0 || self->mode == 10) {
+    if (self->combat_alert_flag != 0 || self->mode == 10) {
         suppress_close_bonus = 1;
     }
 
@@ -241,7 +241,7 @@ void actor_choose_best_target(datum_index actor_index)
     if (best != previous) {
         self->target_combat_status = 0;
         self->target_unit_index = best;
-        self->unknown_26c = (datum_index)k_datum_index_none;
+        self->target_status_tick = (datum_index)k_datum_index_none;
         if (previous != (datum_index)k_datum_index_none) {
             ((prop *)prop_data->data)[previous & 0xffff].desirability =
                 actor_rate_potential_target(actor_index, previous);

@@ -107,7 +107,7 @@ void actor_update_crouch_state(datum_index actor_index)
     countdown_360          = (int16_t *)&self->unknown_350[0x10];
     countdown_368          = (int16_t *)&self->unknown_350[0x18];
 
-    if (self->unknown_378 != 0 &&
+    if (self->combat_alert_flag != 0 &&
         (self->alert_level == 0 || self->awareness_level < 3 ||
          (*(int32_t *)&self->unknown_1bc == 0x3f800000 && self->alert_level < 3))) {
         actor_set_combat_alert_flag(actor_index, 0); // 0x42141b: BL = 0
@@ -122,7 +122,7 @@ void actor_update_crouch_state(datum_index actor_index)
         }
     }
 
-    if (self->unknown_378 == 0 && (actor_definition->flags & 0x800) == 0) {
+    if (self->combat_alert_flag == 0 && (actor_definition->flags & 0x800) == 0) {
         self->unknown_375 = 0;
     } else {
         self->unknown_375 = 1;
@@ -258,7 +258,7 @@ void actor_update_crouch_state(datum_index actor_index)
     if (*crouch_timer > 0) {
         *crouch_timer = (int16_t)(*crouch_timer - 1);
     } else {
-        if (self->unknown_374 == 0 || self->unknown_378 != 0) {
+        if (self->unknown_374 == 0 || self->combat_alert_flag != 0) {
             threshold = actor_definition->attacking_crouch_threshold;
         } else {
             threshold = actor_definition->defending_crouch_threshold;

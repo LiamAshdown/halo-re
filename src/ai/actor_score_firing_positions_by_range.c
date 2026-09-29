@@ -10,7 +10,7 @@
 // register convention: the four arguments are the Ghidra-recognized stack parameters; the
 //   candidate array arrives in a float slot.
 //
-// This function is also the evidence that actor.unknown_378 is the berserk flag and not a
+// This function is also the evidence that actor.combat_alert_flag is the berserk flag and not a
 // stance selector: it is what chooses berserk_firing_ranges over desired_combat_range.
 
 #include "tags.h"
@@ -73,7 +73,7 @@ void actor_score_firing_positions_by_range(datum_index actor_index,
 
             if (variant->desired_combat_range[1] > 0.0f &&
                 distance < variant->desired_combat_range[1]) {
-                preferred_range = (self->unknown_378 != 0) ? variant->berserk_firing_ranges[1]
+                preferred_range = (self->combat_alert_flag != 0) ? variant->berserk_firing_ranges[1]
                                                            : variant->desired_combat_range[1];
                 weapon_definition = actor_get_threat_weapon_definition(actor_index);
                 // UNSURE: the original starts this from whatever was left in ST0 by the

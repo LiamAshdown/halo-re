@@ -83,7 +83,7 @@ void encounter_propagate_platoon_state_to_actors(datum_index encounter_index)
         ready = 0;
 
         if (self->unknown_47 == 0) {
-            member->unknown_1e4 = 0;
+            member->command_status = 0;
             member->unknown_1e8 = (datum_index)0xffffffff;
         }
 

@@ -187,7 +187,7 @@ void encounter_recompute_morale(datum_index encounter_index)
             enc->unknown_44 = 1;
         }
 tally_vocalization:
-        if (0 < a->unknown_1e4) {
+        if (0 < a->command_status) {
             any_vocalizing = 1;
         }
     }

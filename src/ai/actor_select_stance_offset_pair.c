@@ -21,7 +21,7 @@ void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uin
     actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
     *out_a = base + 0xcc;
-    if (self->unknown_378 != 0) {
+    if (self->combat_alert_flag != 0) {
         *out_b = base + 0x130;
         return;
     }
