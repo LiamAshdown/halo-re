@@ -48,12 +48,12 @@ void encounter_advance_grenade_timers(datum_index encounter_index)
         self->target_timer = 0;
     }
 
-    if ((self->unknown_47 != 0) && (self->unknown_48 != 0)) {
-        if (0xf < self->unknown_4a) {
-            self->unknown_4a = self->unknown_4a - 0xf;
+    if ((self->vocalizations_chosen != 0) && (self->nobody_vocalizing != 0)) {
+        if (0xf < self->vocalization_timer) {
+            self->vocalization_timer = self->vocalization_timer - 0xf;
             return;
         }
-        self->unknown_4a = 0;
+        self->vocalization_timer = 0;
     }
     return;
 }

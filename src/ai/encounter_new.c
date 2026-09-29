@@ -72,9 +72,9 @@ void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition,
     enc->combat_timer = (datum_index)k_datum_index_none;
     enc->any_actor_targeting = 0;
     enc->target_timer = (datum_index)k_datum_index_none;
-    enc->unknown_58 = -1;
-    enc->unknown_42 = 1;
-    enc->unknown_5c = (datum_index)k_datum_index_none;
+    enc->quiet_since_tick = -1;
+    enc->no_recent_combat = 1;
+    enc->last_grenade_tick = (datum_index)k_datum_index_none;
     enc->unknown_20 = 0;
     enc->activation_tick = -1;
 

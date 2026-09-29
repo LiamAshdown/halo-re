@@ -18,7 +18,7 @@
 // same (index & 0xffff) * sizeof(encounter) arithmetic Ghidra shows unconditionally at the
 // top of the original function, which for index 0xffff reads about 2.9MB past
 // encounter_data->data. Ghidra's decompile reads through that same pointer inside the loop
-// body (self->unknown_42, self->unknown_60, self->unknown_47) with no visible guard, so this
+// body (self->no_recent_combat, self->unknown_60, self->vocalizations_chosen) with no visible guard, so this
 // rewrite preserves that literally rather than adding a bounds check that is not in the
 // original. Whether it is ever actually reached in that mode (vs. the loop body only running
 // this way when the unassigned list is non-empty and the reads are relatively harmless
@@ -77,12 +77,12 @@ void encounter_propagate_platoon_state_to_actors(datum_index encounter_index)
         member = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
         actor_index = member->next_in_encounter;
 
-        member->unknown_1c8 = self->unknown_42;
+        member->unknown_1c8 = self->no_recent_combat;
         member->unknown_1ca = self->unknown_60;
         attacking_flag = 0;
         ready = 0;
 
-        if (self->unknown_47 == 0) {
+        if (self->vocalizations_chosen == 0) {
             member->command_status = 0;
             member->unknown_1e8 = (datum_index)0xffffffff;
         }

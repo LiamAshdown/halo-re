@@ -159,7 +159,7 @@ void encounter_recompute_morale(datum_index encounter_index)
 
         if (a->target_unit_index != (datum_index)k_datum_index_none) {
             p = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
-            enc->unknown_43 = 1;
+            enc->any_actor_has_target = 1;
             if (a->team < 0 || 9 < a->team || p->object_type < 0 || 9 < p->object_type ||
                 (pair = (int16_t)((int32_t)p->object_type + a->team * 10),
                  (team_pair_data->secondary_bits[pair >> 5] & (1 << (pair & 0x1f))) == 0)) {
@@ -201,32 +201,32 @@ tally_vocalization:
         (retreat_timer == -1 || 0x3b < retreat_timer) &&
         ((enc->any_actor_targeting == 0 && ((int32_t)enc->target_timer == -1 || 0x3b < (int32_t)enc->target_timer)) ||
          retreat_timer == -1 || 0x1c1 < retreat_timer)) {
-        if (enc->unknown_42 == 0) {
-            if (enc->unknown_47 == 0) {
+        if (enc->no_recent_combat == 0) {
+            if (enc->vocalizations_chosen == 0) {
                 if (any_flag_8c != 0 && any_flag_8d != 0) {
                     encounter_choose_vocalizations(encounter_index);
                     goto normalize;
                 }
             } else {
-                enc->unknown_48 = (uint8_t)(any_vocalizing == 0);
-                if (enc->unknown_4a != 0) {
+                enc->nobody_vocalizing = (uint8_t)(any_vocalizing == 0);
+                if (enc->vocalization_timer != 0) {
                     goto normalize;
                 }
             }
             encounter_release_stale_props(encounter_index);
         } else {
-            enc->unknown_47 = 0;
+            enc->vocalizations_chosen = 0;
             enc->unknown_1a = enc->weighted_actor_count;
-            enc->unknown_58 = game_time->game_time;
-            enc->unknown_4c = 0;
-            if (enc->unknown_43 == 0) {
+            enc->quiet_since_tick = game_time->game_time;
+            enc->hostile_notice_count = 0;
+            if (enc->any_actor_has_target == 0) {
                 enc->combat_timer = (datum_index)k_datum_index_none;
                 enc->target_timer = (datum_index)k_datum_index_none;
             }
         }
     } else {
-        enc->unknown_42 = 0;
-        enc->unknown_47 = 0;
+        enc->no_recent_combat = 0;
+        enc->vocalizations_chosen = 0;
     }
 
 normalize:

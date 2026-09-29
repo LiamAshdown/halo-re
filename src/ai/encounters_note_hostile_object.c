@@ -98,8 +98,8 @@ void encounters_note_hostile_object(datum_index object_index)
             }
         }
 
-        if (enc->unknown_43 != 0 && enc->unknown_42 == 0 && enc->unknown_47 == 0) {
-            enc->unknown_4c = enc->unknown_4c + 1;
+        if (enc->any_actor_has_target != 0 && enc->no_recent_combat == 0 && enc->vocalizations_chosen == 0) {
+            enc->hostile_notice_count = enc->hostile_notice_count + 1;
         }
     }
 }

@@ -913,21 +913,21 @@ typedef struct encounter {
     int16_t reinforcement_delay;      // 0x3e squad_create zeroes it; encounter_process_squad_reinforcements counts it down by 0xf per pass, and reinforcements only spawn at zero
     uint8_t initially_blind;          // 0x40 ScenarioEncounter.flags bit 2 (initially_blind)
     uint8_t initially_deaf;           // 0x41 ScenarioEncounter.flags bit 3 (initially_deaf)
-    uint8_t unknown_42;               // 0x42 squad_create sets 1
-    uint8_t unknown_43;               // 0x43
+    uint8_t no_recent_combat;         // 0x42 1 until combat is seen; encounter_new/release_stale_props set it, recompute_morale clears it while anyone fights and, while it is 1 and the encounter is quiet, keeps resetting quiet_since_tick
+    uint8_t any_actor_has_target;     // 0x43 set by encounter_recompute_morale when any member has a target (even one it ignores)
     uint8_t any_actor_targeting;     // 0x44 squad_create zeroes it; encounter_recompute_morale sets it when any member has a target
     uint8_t any_actor_in_combat;     // 0x45 squad_create zeroes it; encounter_recompute_morale sets it when a member with a target has alert_level >= 7
     uint8_t unknown_46;               // 0x46 squad_create zeroes it
-    uint8_t unknown_47;               // 0x47
-    uint8_t unknown_48;               // 0x48
+    uint8_t vocalizations_chosen;     // 0x47 set by encounter_choose_vocalizations, cleared while combat continues
+    uint8_t nobody_vocalizing;        // 0x48 1 when no member has a pending command status (any_vocalizing == 0)
     uint8_t unknown_49;               // 0x49
-    int16_t unknown_4a;               // 0x4a
-    int16_t unknown_4c;               // 0x4c
+    int16_t vocalization_timer;       // 0x4a set to 0x78 by encounter_choose_vocalizations, drained 0xf per pass by encounter_advance_grenade_timers
+    int16_t hostile_notice_count;     // 0x4c counts hostile objects noted after combat (encounters_note_hostile_object); caps vocalization choices at 3 or 7
     uint8_t unknown_4e[2];            // 0x4e
     datum_index combat_timer;           // 0x50 squad_create sets -1; ticks since any_actor_in_combat, held at 0 while it is set (encounter_advance_grenade_timers adds 0xf per pass)
     datum_index target_timer;           // 0x54 squad_create sets -1; ticks since any_actor_targeting, held at 0 while it is set
-    int32_t unknown_58;               // 0x58 squad_create sets -1; 0x43e270 compares it against actor+0x3a0
-    datum_index unknown_5c;           // 0x5c squad_create sets -1
+    int32_t quiet_since_tick;         // 0x58 game time stamped while no_recent_combat holds, -1 at creation; gates actor target scans against actor.unknown_3a0
+    datum_index last_grenade_tick;    // 0x5c game time actor_check_grenade_facing_and_commit stamps; actor_can_throw_grenade_at_target reads it as a deadline
     uint8_t unknown_60;               // 0x60
     uint8_t unknown_61;               // 0x61
     int16_t follow_mode;              // 0x62 hs ai_follow_target_*: 0 none, 1 players, 2 unit, 3 ai reference

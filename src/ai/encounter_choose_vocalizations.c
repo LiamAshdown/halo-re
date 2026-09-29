@@ -200,7 +200,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
         bucket = ai_pick_weighted_candidate(buckets, &picked[0]);
         picked_bucket[0] = bucket;
 
-        if (enc->team != 2 || 7 < enc->unknown_4c) {
+        if (enc->team != 2 || 7 < enc->hostile_notice_count) {
             still_any = 0;
             for (i = 0; i < 4; i = i + 1) {
                 ai_scored_candidate *pair = &buckets[i * 2];
@@ -228,7 +228,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
         }
     }
 
-    if (enc->team != 2 || 3 < enc->unknown_4c) {
+    if (enc->team != 2 || 3 < enc->hostile_notice_count) {
         chosen_actor = (datum_index)k_datum_index_none;
         best_distance = 0.0f;
 
@@ -351,10 +351,10 @@ stamp:
         }
     }
 
-    enc->unknown_47 = 1;
-    enc->unknown_48 = 0;
-    enc->unknown_4a = 0x78;
-    enc->unknown_4c = 0;
+    enc->vocalizations_chosen = 1;
+    enc->nobody_vocalizing = 0;
+    enc->vocalization_timer = 0x78;
+    enc->hostile_notice_count = 0;
 }
 
 #if 0

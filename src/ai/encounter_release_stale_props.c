@@ -45,8 +45,8 @@ void encounter_release_stale_props(datum_index encounter_index)
     datum_index next_prop;
 
     enc = &((encounter *)encounter_data->data)[encounter_index & 0xffff];
-    enc->unknown_42 = 1;
-    enc->unknown_4c = 0;
+    enc->no_recent_combat = 1;
+    enc->hostile_notice_count = 0;
     squad_recent_object_list_clear(encounter_index);
 
     actor_index = (datum_index)k_datum_index_none;

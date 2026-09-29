@@ -556,14 +556,14 @@ after_engage:
             uint8_t ok = 1;
             if (enc_idx != (uint32_t)k_datum_index_none) {
                 encounter *e = &((encounter *)encounter_data->data)[enc_idx & 0xffff];
-                int32_t gate = (e->unknown_58 <= self->unknown_3a0) ? self->unknown_3a0 : e->unknown_58;
+                int32_t gate = (e->quiet_since_tick <= self->unknown_3a0) ? self->unknown_3a0 : e->quiet_since_tick;
                 object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
                 unit_data *u2 = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
                 int32_t last_seen = u2->unknown_41c;
                 ok = (gate == -1 || (last_seen != -1 && gate <= last_seen));
                 if (!ok) {
                     drop = 1;
-                } else if (e->any_actor_in_combat == 0 && e->any_actor_targeting == 0 && e->unknown_42 == 0) {
+                } else if (e->any_actor_in_combat == 0 && e->any_actor_targeting == 0 && e->no_recent_combat == 0) {
                     if (225.0f <= dist_sq) drop = 1;
                 }
             } else if (p->unknown_20 <= 0.0f) {
