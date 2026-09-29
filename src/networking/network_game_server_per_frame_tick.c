@@ -39,20 +39,20 @@ extern void network_game_broadcast_state_snapshot(void); // 0x4e1b50, this batch
 // join. In state 2, just ticks the game engine directly.
 void network_game_server_per_frame_tick(network_player_entry *entry, int16_t update_count, network_server_globals *server)
 {
-    if (server->unknown_004 == 1) {
+    if (server->state == 1) {
         if (update_count > 0) {
             uint32_t remaining;
             large_integer counter;
 
             remaining = (uint32_t)update_count;
             do {
-                server->unknown_9b8 = server->unknown_9b8 + 1;
+                server->update_tick = server->update_tick + 1;
                 update_server_push_player_tick_history();
                 QueryPerformanceCounter((LARGE_INTEGER *)&counter);
                 remaining = remaining - 1;
             } while (remaining != 0);
         }
-        if (server->unknown_9f8 != 0) {
+        if (server->join_finalize_pending != 0) {
             int32_t i;
             int8_t saved_machine_id;
             network_machine *machine;
@@ -62,7 +62,7 @@ void network_game_server_per_frame_tick(network_player_entry *entry, int16_t upd
             while (server->machines[i].machine_id != (int16_t)saved_machine_id) {
                 i = i + 1;
                 if (i > 0xf) {
-                    server->unknown_9f8 = 0;
+                    server->join_finalize_pending = 0;
                     return;
                 }
             }
@@ -75,9 +75,9 @@ void network_game_server_per_frame_tick(network_player_entry *entry, int16_t upd
                     network_game_broadcast_state_snapshot();
                 }
             }
-            server->unknown_9f8 = 0;
+            server->join_finalize_pending = 0;
         }
-    } else if (server->unknown_004 == 2) {
+    } else if (server->state == 2) {
         game_engine_tick();
     }
 }

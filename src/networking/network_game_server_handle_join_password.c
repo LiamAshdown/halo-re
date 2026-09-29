@@ -50,7 +50,7 @@ char network_game_server_handle_join_password(network_machine *machine, network_
     int16_t remaining;
     int16_t reason;
 
-    if (server->unknown_004 != 0 && server->unknown_004 != 1) {
+    if (server->state != 0 && server->state != 1) {
         return 1;
     }
     remaining = (int16_t)(length - 2);
@@ -67,7 +67,7 @@ char network_game_server_handle_join_password(network_machine *machine, network_
         return 1;
     }
     network_channel_remote_address_or_default(machine->channel, (network_resolved_address *)scratch);
-    if ((server->flags & 1) == 0 || (server->unknown_004 != 0 && server->unknown_004 != 1)) {
+    if ((server->flags & 1) == 0 || (server->state != 0 && server->state != 1)) {
         reason = 0;
     } else if (network_join_request_reset_state(machine, (const char *)body + 0x22) == 0) {
         reason = 6;

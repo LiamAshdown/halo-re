@@ -34,7 +34,7 @@ char network_game_server_handle_join_confirm(network_machine *machine, network_s
     uint8_t body[0x20];
     int16_t remaining;
 
-    if (server->unknown_004 != 0 && server->unknown_004 != 1) {
+    if (server->state != 0 && server->state != 1) {
         return 1;
     }
     remaining = (int16_t)(length - 2);

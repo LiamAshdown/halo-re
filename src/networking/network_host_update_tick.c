@@ -73,11 +73,11 @@ char network_host_update_tick(network_server_globals *host)
                 if (service_result == 0) {
                     return 0;
                 }
-                if (host->unknown_004 == 0) {
+                if (host->state == 0) {
                     return network_server_heartbeat_tick(host);
                 }
-                if (host->unknown_004 != 1) {
-                    if (host->unknown_004 != 2) {
+                if (host->state != 1) {
+                    if (host->state != 2) {
                         return 0;
                     }
                     return network_server_resend_challenge_periodic(host);

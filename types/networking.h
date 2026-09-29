@@ -485,20 +485,27 @@ typedef struct network_machine {
 // ---------------------------------------------------------------------------
 typedef struct network_server_globals {
     network_channel *listen_channel; // 0x000 network_channel_new(1)
-    int16_t unknown_004;       // 0x004 tested against 0 and 2 by host_dispose
+    int16_t state;             // 0x004 0 pregame (heartbeat_tick runs, it moves to 1 when the game starts;
+                               //       host_dispose sends message 0x0b), 1 in game (the per-frame tick drains
+                               //       updates; joins are only finalized now), 2 postgame (game_engine_tick
+                               //       only; host_dispose sends 0x22)
     uint16_t flags;            // 0x006 bit0 session initialized, bit1 host, bit2 stats logging
     network_game_session session; // 0x008 everything shared but the password lives here
                                //       session+0x3a8 (server+0x3b0) is the int32 host_new
                                //       sets to -1 and then increments to 0
     network_machine machines[16]; // 0x3b8
-    int32_t unknown_9b8;       // 0x9b8 cleared by host_new, along with 0x9c4..0x9d4
+    int32_t update_tick;       // 0x9b8 +1 per server update drained in state 1; cleared by host_new, the round
+                               //       reset, a settings update and the scenario announcement
     uint8_t unknown_9bc[0x3c]; // 0x9bc
-    uint8_t unknown_9f8;       // 0x9f8
-    uint8_t unknown_9f9;       // 0x9f9
-    uint8_t unknown_9fa;       // 0x9fa
+    uint8_t join_finalize_pending; // 0x9f8 the per-frame tick finalizes the join of the machine whose id is
+                               //       at 0x9f4 and clears it
+    uint8_t scenario_announced; // 0x9f9 network_host_send_scenario_announcement sends once per round
+    uint8_t new_server_pending; // 0x9fa set by network_game_start_new_server_with_name_and_password, cleared
+                               //       when the first game settings update has loaded the scenario
     uint8_t pad_9fb;           // 0x9fb
     uint16_t password[9];      // 0x9fc wcsncpy of 8 wide chars plus a forced NUL at 0xa0c
-    uint8_t unknown_a0e;       // 0xa0e
+    uint8_t full_state_broadcast_pending; // 0xa0e set by a settings update, consumed by
+                               //       network_host_full_state_broadcast
     uint8_t game_over;         // 0xa0f the end-of-game flag game.h records
 } network_server_globals;      // size 0xa10
 // global 0x0071c2d4: network_server_globals *network_server   points at 0x00861340

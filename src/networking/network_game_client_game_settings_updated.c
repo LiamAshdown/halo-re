@@ -83,8 +83,8 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
     *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1; // UNSURE, see host_round_reset
     *(int32_t *)((uint8_t *)host + 0x9b8) = 0;
     *(int32_t *)((uint8_t *)host + 0x9c4) = 0;
-    host->unknown_9f9 = 0;
-    host->unknown_9fa = 0;
+    host->scenario_announced = 0;
+    host->new_server_pending = 0;
     *(uint8_t *)((uint8_t *)host + 0x9f8) = 0;
 
     for (i = 0; i < 16; i++) {
@@ -109,19 +109,19 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
         player->color_index = -1;
         player->unknown_1a = -1;
     }
-    host->unknown_9b8 = 0; // param_1[0xed]; overlaps machines[]-adjacent state, see header
-    host->unknown_004 = 0;
+    host->update_tick = 0; // param_1[0xed]; overlaps machines[]-adjacent state, see header
+    host->state = 0;
 
     game_engine_apply_current_custom_variant();
     game_engine_sync_variant_defaults();
     if (!is_host) {
         join_ui_state = 2;
     }
-    host->unknown_a0e = 1;
+    host->full_state_broadcast_pending = 1;
     memcpy((uint8_t *)host + 0x10c, game_engine_pending_variant, sizeof(game_engine_pending_variant));
     strncpy((char *)host + 0x8c, (char *)variant_defaults_source, 0x3f);
     *(uint8_t *)((uint8_t *)host + 0xcb) = 0;
-    host->unknown_004 = host->unknown_004 | 1;
+    host->state = host->state | 1;
     *(uint16_t *)((uint8_t *)host + 0x86) = 0;
     *(int32_t *)((uint8_t *)host + 0x88) = 0;
     host->listen_channel->listening = 1;
@@ -142,16 +142,16 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
 
     result = network_game_server_load_scenario();
     if ((char)result == 1) {
-        host->unknown_004 = 1;
+        host->state = 1;
         if (is_host) {
             network_host_full_state_broadcast(host);
             result = 1; // UNSURE, see extern declaration comment
-            host->unknown_9fa = 0;
+            host->new_server_pending = 0;
             return result & 0xffffff00;
         }
         network_client_timer_schedule(0, 0);
     }
-    host->unknown_9fa = 0;
+    host->new_server_pending = 0;
     return result & 0xffffff00;
 }
 
