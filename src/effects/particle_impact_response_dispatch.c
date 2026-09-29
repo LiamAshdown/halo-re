@@ -57,7 +57,7 @@ void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_i
 
         points[0] = self->position;
         points[1] = self->position;
-        vectors[0] = self->unknown_3c;
+        vectors[0] = self->last_moving_velocity;
         vectors[1] = *global_down3d_pointer;
         vector3d_normalize_with_length(&vectors[0]);
         effect_new_with_color(definition_index, 0xffffffff, &velocity, 2, particle_impact_vector_names, points,

@@ -3,7 +3,7 @@
 // address 0x4561a0, size 929 bytes
 // name confidence: 0.6   rewrite confidence: 0.85 (VERIFIED against objdump 0x4561a0..0x456540; material call FIXED)
 // evidence: types/effects.h particle fields (flags +0x02 incl. _particle_at_rest_bit,
-//   object_index +0x08, location +0x28, position +0x30, velocity +0x48, unknown_3c/0x54/0x58);
+//   object_index +0x08, location +0x28, position +0x30, velocity +0x48, last_moving_velocity/0x54/0x58);
 //   types/tags.h Particle (flags bits by enum order: dies_at_rest=0x10,
 //   dies_on_contact_with_structure=0x20, dies_on_contact_with_water=0x80,
 //   dies_on_contact_with_air=0x100; collision_effect/death_effect/
@@ -174,7 +174,7 @@ uint8_t particle_update_motion(datum_index particle_handle, real delta_time)
 
     if (self->velocity.k * self->velocity.k + self->velocity.j * self->velocity.j +
         self->velocity.i * self->velocity.i >= 0.0625f) {
-        self->unknown_3c = self->velocity;
+        self->last_moving_velocity = self->velocity;
     } else if (settled) {
         if ((tag->flags & 0x10) != 0) { // dies_at_rest
             particle_impact(particle_handle);
@@ -183,7 +183,7 @@ uint8_t particle_update_motion(datum_index particle_handle, real delta_time)
         self->flags |= _particle_at_rest_bit;
     }
 
-    self->unknown_54 = self->unknown_54 + delta_time * self->unknown_58; // UNSURE: contradicts
+    self->rotation = self->rotation + delta_time * self->rotation_rate; // UNSURE: contradicts
                                     // types/effects.h's "no reader in this module" note for both
                                     // fields; kept as read here since the disassembly plainly
                                     // does it

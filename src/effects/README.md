@@ -287,7 +287,7 @@ the target. Types that already existed elsewhere are **not** redeclared here: ev
 | `0x2c` | `real_vector3d` | `velocity` -- world units per second |
 | `0x38` | `ColorARGB` | `color` -- the tint the per type colour multipliers scale by |
 | `0x48` | `ColorRGB` | `ambient_color` -- object_sample_ambient_lightmap_point result; the |
-| `0x54` | `uint32_t` | `unknown_54` -- no writer or reader found in this module |
+| `0x54` | `uint32_t` | `rotation` -- no writer or reader found in this module |
 | `0x58` | `particle_system_type_state[4]` | `type_states` -- one per ParticleSystemType, bounded by the |
 
 ### `particle_system_particle` -- size 0x80
@@ -328,7 +328,7 @@ the target. Types that already existed elsewhere are **not** redeclared here: ev
 | `0x1c` | `real_point3d` | `unknown_1c` -- becomes particle.unknown_3c; UNSURE of its meaning |
 | `0x28` | `real_vector3d` | `velocity` |
 | `0x34` | `real_vector3d` | `gravity` -- folded into velocity, scaled by the current radius |
-| `0x40` | `float` | `unknown_40` -- becomes particle.unknown_54 |
+| `0x40` | `float` | `unknown_40` -- becomes particle.rotation |
 | `0x44` | `float` | `unknown_44` -- becomes particle.unknown_58 |
 | `0x48` | `float` | `scale` -- becomes particle.scale |
 | `0x4c` | `ColorARGB` | `color` -- becomes particle.color |
@@ -355,7 +355,7 @@ the target. Types that already existed elsewhere are **not** redeclared here: ev
 | `0x30` | `real_point3d` | `position` |
 | `0x3c` | `real_vector3d` | `unknown_3c` -- copied from particle_creation_data +0x1c; UNSURE, no |
 | `0x48` | `real_vector3d` | `velocity` -- gravity is folded in at create for a world particle, |
-| `0x54` | `float` | `unknown_54` -- copied from particle_creation_data +0x40 |
+| `0x54` | `float` | `rotation` -- copied from particle_creation_data +0x40 |
 | `0x58` | `float` | `unknown_58` -- copied from particle_creation_data +0x44 |
 | `0x5c` | `float` | `scale` -- multiplies the Particle.radius_animation lerp |
 | `0x60` | `ColorARGB` | `color` -- alpha then RGB; the RGB is multiplied by the ambient |

@@ -42,7 +42,7 @@
 // register convention: none (void).
 //   // blam-cc: void
 // UNSURE: particle +0x3c is used as the sprite direction (effects.h calls it unknown_3c) and
-//   +0x54 as the rotation (unknown_54).
+//   +0x54 as the rotation (rotation).
 
 #include "tags.h"
 #include "memory.h"
@@ -280,7 +280,7 @@ void render_particles(void)
                     }
                     build_sprite(&data, p->sequence_index, p->frame_index,
                                  (int16_t)(uint16_t)definition->orientation, &origin, &direction,
-                                 p->unknown_54, scale, &p->color, fade, flags);
+                                 p->rotation, scale, &p->color, fade, flags);
                     p->last_update_tick = render_frame_index;
                 }
             }

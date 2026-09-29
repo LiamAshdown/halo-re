@@ -357,13 +357,13 @@ void effect_spawn_particles(effect *self)
                 }
                 record.scale = effect_property_random_value(9, self, a_bits, b_bits, &effect_random_seed,
                     *(real *)(pt + 0xa0), *(real *)(pt + 0xa4));
-                record.unknown_44 = effect_property_random_value(3, self, *(uint32_t *)(pt + 0xe0),
+                record.rotation_rate = effect_property_random_value(3, self, *(uint32_t *)(pt + 0xe0),
                     *(uint32_t *)(pt + 0xe4), &effect_random_seed, *(real *)(pt + 0x90), *(real *)(pt + 0x94));
                 if ((pt[0x64] & 2) != 0) {
                     effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                    record.unknown_40 = (real)(int32_t)(effect_random_seed >> 16) * 1.5259022e-05f * 6.2831855f;
+                    record.rotation = (real)(int32_t)(effect_random_seed >> 16) * 1.5259022e-05f * 6.2831855f;
                 } else {
-                    record.unknown_40 = 0.0f;
+                    record.rotation = 0.0f;
                 }
                 if ((*(uint32_t *)(pt + 0xe0) & 0x800) == 0 && (*(uint32_t *)(pt + 0xe4) & 0x800) == 0) {
                     effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;

@@ -156,9 +156,9 @@ void particle_new(particle_creation_data *creation_data)
             self->location.cluster_index = cluster;
 
             self->position = creation_data->position;
-            self->unknown_3c = *(real_vector3d *)&creation_data->unknown_1c;
+            self->last_moving_velocity = *(real_vector3d *)&creation_data->unknown_1c;
             self->velocity = creation_data->velocity;
-            self->unknown_54 = creation_data->unknown_40;
+            self->rotation = creation_data->rotation;
 
             if (self->object_index == (datum_index)0xffffffff) {
                 real radius = particle_current_radius(handle);
@@ -170,7 +170,7 @@ void particle_new(particle_creation_data *creation_data)
                 self->velocity.k = self->velocity.k + fold * creation_data->gravity.k;
             }
 
-            self->unknown_58 = creation_data->unknown_44;
+            self->rotation_rate = creation_data->rotation_rate;
             self->scale = creation_data->scale;
             self->color = creation_data->color;
 

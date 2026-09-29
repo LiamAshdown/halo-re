@@ -654,8 +654,8 @@ typedef struct particle_creation_data {
     real_vector3d gravity;          // 0x34 folded into velocity, scaled by the current radius
                                     //      squared and the point_physics density at +0x04, only
                                     //      for a world space particle
-    float unknown_40;               // 0x40 becomes particle.unknown_54
-    float unknown_44;               // 0x44 becomes particle.unknown_58
+    float rotation;               // 0x40 becomes particle.rotation
+    float rotation_rate;               // 0x44 becomes particle.rotation_rate
     float scale;                    // 0x48 becomes particle.scale
     ColorARGB color;                // 0x4c becomes particle.color
 } particle_creation_data;           // size 0x5c, at least
@@ -693,13 +693,12 @@ typedef struct particle {
     int16_t frame_index;            // 0x26 sprite index inside that sequence
     bsp_leaf_reference location;    // 0x28 the address handed to the point physics submit
     real_point3d position;          // 0x30
-    real_vector3d unknown_3c;       // 0x3c copied from particle_creation_data +0x1c; UNSURE, no
-                                    //      reader in this module
+    real_vector3d last_moving_velocity;       // 0x3c velocity saved whenever speed^2 >= 0.0625 (particle_update_motion); the impact response dispatch reads it
     real_vector3d velocity;         // 0x48 gravity is folded in at create for a world particle,
                                     //      and the velocity is damped by
                                     //      Particle.contact_deterioration at 0x88 on contact
-    float unknown_54;               // 0x54 copied from particle_creation_data +0x40
-    float unknown_58;               // 0x58 copied from particle_creation_data +0x44
+    float rotation;               // 0x54 rotation (render_particles passes it as the sprite rotation)
+    float rotation_rate;               // 0x58 rotation rate, integrated into rotation every tick
     float scale;                    // 0x5c multiplies the Particle.radius_animation lerp
     ColorARGB color;                // 0x60 alpha then RGB; the RGB is multiplied by the ambient
                                     //      lightmap sample unless Particle is self_illuminated,
