@@ -50,7 +50,7 @@ void game_engine_race_player_round_reset(datum_index player_index, uint8_t team_
             *(int16_t *)&((struct player *)player)->objective_time = 0;
             *(int16_t *)(player + 0xc6) = 0;
             ((struct player *)player)->unknown_c8 = 0;
-            ((struct player *)player)->unknown_88 = game_time->game_time;
+            ((struct player *)player)->objective_start_tick = game_time->game_time;
             ctf_team_captured_flags_mask[player_index & 0xffff] = 0;
         }
     }

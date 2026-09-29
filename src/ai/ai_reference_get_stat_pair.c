@@ -47,9 +47,9 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
                 if (stat_kind == 0) {
                     result = (uint32_t)enc->weighted_actor_count;
                 } else if (stat_kind == 1) {
-                    result = (uint32_t)enc->unknown_2c;
+                    result = (uint32_t)enc->weighted_swarm_count;
                 } else {
-                    int32_t diff = (int32_t)enc->weighted_actor_count - (int32_t)enc->unknown_2c;
+                    int32_t diff = (int32_t)enc->weighted_actor_count - (int32_t)enc->weighted_swarm_count;
                     result = (uint32_t)(diff & ~(diff >> 31));
                 }
                 member_count = enc->member_count;
@@ -67,14 +67,14 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
                         extra = *(uint32_t *)&state->average_vitality;
                         member_count = state->member_count;
                     } else if (stat_kind == 1) {
-                        result = (uint32_t)state->unknown_08;
+                        result = (uint32_t)state->weighted_swarm_count;
                         extra = *(uint32_t *)&state->average_vitality;
                         member_count = state->member_count;
                     } else {
                         int32_t diff;
                         extra = *(uint32_t *)&state->average_vitality;
                         member_count = state->member_count;
-                        diff = (int32_t)state->weighted_actor_count - (int32_t)state->unknown_08;
+                        diff = (int32_t)state->weighted_actor_count - (int32_t)state->weighted_swarm_count;
                         result = (uint32_t)(diff & ~(diff >> 31));
                     }
                 }
@@ -89,14 +89,14 @@ uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind
                     extra = (uint32_t)state->average_vitality;
                     member_count = state->member_count;
                 } else if (stat_kind == 1) {
-                    result = (uint32_t)state->unknown_1a;
+                    result = (uint32_t)state->weighted_swarm_count;
                     extra = (uint32_t)state->average_vitality;
                     member_count = state->member_count;
                 } else {
                     int32_t diff;
                     extra = (uint32_t)state->average_vitality;
                     member_count = state->member_count;
-                    diff = (int32_t)state->weighted_actor_count - (int32_t)state->unknown_1a;
+                    diff = (int32_t)state->weighted_actor_count - (int32_t)state->weighted_swarm_count;
                     result = (uint32_t)(diff & ~(diff >> 31));
                 }
             }

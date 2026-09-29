@@ -43,7 +43,7 @@ extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t
 void game_engine_ctf_on_flag_captured(uint32_t flag_index)
 {
     player *p = (player *)((uint8_t *)player_data->data + (flag_index & 0xffff) * sizeof(player));
-    int16_t elapsed = (int16_t)(game_time->game_time - p->unknown_88);
+    int16_t elapsed = (int16_t)(game_time->game_time - p->objective_start_tick);
     uint8_t new_record = 0;
 
     ctf_team_captured_flags_mask[flag_index & 0xffff] = 0;
@@ -60,7 +60,7 @@ void game_engine_ctf_on_flag_captured(uint32_t flag_index)
     }
 
     *(int16_t *)((uint8_t *)p + 0xc6) += 1;
-    p->unknown_88 = game_time->game_time;
+    p->objective_start_tick = game_time->game_time;
 
     game_engine_check_bucket_scores_and_end_round();
 

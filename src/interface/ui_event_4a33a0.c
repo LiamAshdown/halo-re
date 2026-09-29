@@ -57,7 +57,7 @@ uint8_t ui_event_4a33a0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     variant_teams_enabled_0071920c = (uint8_t)(variant[0x34] != 0);
     unknown_00692b0c = 0;
     unknown_00879f34 = ((struct game_variant *)variant)->vehicle_set;
-    unknown_00879f38 = ((struct game_variant *)variant)->unknown_64;
+    unknown_00879f38 = ((struct game_variant *)variant)->alternate_vehicle_set;
     unknown_00719208 = (uint32_t)time;
     ui_controls_populate_bind_rows(widget, ((struct game_variant *)variant)->vehicle_set);
     first = widget->first_child;

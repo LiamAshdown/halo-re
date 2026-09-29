@@ -61,7 +61,7 @@ void game_engine_player_select_random_target(datum_index player_or_all)
 {
     uint16_t self_index = (uint16_t)player_or_all;
     player *self = (player *)((uint8_t *)player_data->data + (uint32_t)self_index * sizeof(player));
-    int32_t previous_target = self->unknown_88; // UNSURE: see header
+    int32_t previous_target = self->slayer_target; // UNSURE: see header
     int32_t match_count = 0;
     datum_index winner = k_datum_index_none;
     data_iterator iter;
@@ -113,7 +113,7 @@ void game_engine_player_select_random_target(datum_index player_or_all)
         }
     }
 
-    self->unknown_88 = (int32_t)winner;
+    self->slayer_target = (int32_t)winner;
     if (winner == k_datum_index_none) {
         return;
     }
@@ -203,7 +203,7 @@ bin/halo.exe (the part Ghidra's own decompiler discarded):
   46f2fd: mov ebp,[esp+0x14]        ; ebp = &player_at(self_index)
   46f301: mov esi,[esp+0x1c]        ; esi = winner (or -1)
   46f305: cmp esi,0xffffffff
-  46f308: mov [ebp+0x88],esi        ; self->unknown_88 = winner
+  46f308: mov [ebp+0x88],esi        ; self->slayer_target = winner
   46f30e: je 0x46f376               ; winner == -1 -> return
   46f310: mov edi,[esp+0x38]        ; edi = player_or_all (the original argument)
   46f314: cmp edi,0xffffffff

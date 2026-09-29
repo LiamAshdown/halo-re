@@ -33,7 +33,7 @@ game_variant * game_engine_variant_defaults_classic_team_oddball(game_variant *o
     out->suicide_penalty = 0x96;
     out->starting_equipment = 0x0b;
     out->vehicle_set = 1;
-    out->unknown_64 = 1;
+    out->alternate_vehicle_set = 1;
     out->friendly_fire_mode = 1;
     out->ball_count = 1;
     out->variant_flags = 1;

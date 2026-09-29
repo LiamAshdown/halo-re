@@ -3,11 +3,11 @@
 // name confidence: 0.25   rewrite confidence: 0.6
 // evidence: out/phase4/game_functions.md: "Low-confidence table of hardcoded default constants
 //   selected by a small integer index; exact meaning of the returned values is unclear."
-//   Case 0 (0x249240) is exactly the packed vehicle_set/unknown_64 default every
+//   Case 0 (0x249240) is exactly the packed vehicle_set/alternate_vehicle_set default every
 //   game_engine_variant_defaults_* built-in with vehicles enabled stores (types/game.h), which
 //   is the only case this rewrite can tie to a known field. One caller (FUN_004f3680, outside
 //   this module) falls back to this function's result and then extracts 3-bit fields from it at
-//   the same shift positions game.h documents for vehicle_set/unknown_64, which is consistent
+//   the same shift positions game.h documents for vehicle_set/alternate_vehicle_set, which is consistent
 //   with case 0 but does not explain cases 1..7 or the default. The other caller is a UI/widget
 //   function (0x4a3180) that treats the 64-bit return as two packed 16-bit values.
 // register convention: selector in EAX (in_EAX); returns a raw 32-bit value in EAX.
@@ -26,7 +26,7 @@
 uint32_t game_variant_option_default_by_index(uint32_t selector)
 {
     switch (selector) {
-    case 0: return 0x249240; // matches game_variant vehicle_set/unknown_64 "all slots enabled"
+    case 0: return 0x249240; // matches game_variant vehicle_set/alternate_vehicle_set "all slots enabled"
     case 1: return 0x1;
     case 2: return 0x42;
     case 3: return 0x203;

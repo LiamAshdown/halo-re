@@ -28,7 +28,7 @@ void game_engine_slayer_player_new_life(datum_index player_index)
 {
     uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200);
 
-    ((struct player *)player)->unknown_88 = -1;
+    ((struct player *)player)->slayer_target = -1;
     if (network_game_mode != 2) {
         return;
     }

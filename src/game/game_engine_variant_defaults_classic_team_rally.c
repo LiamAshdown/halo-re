@@ -40,7 +40,7 @@ game_variant * game_engine_variant_defaults_classic_team_rally(game_variant *var
     defaults.score_limit = 5;
     defaults.starting_equipment = 0xb;
     defaults.vehicle_set = 0x42;
-    defaults.unknown_64 = 0x42;
+    defaults.alternate_vehicle_set = 0x42;
     defaults.time_limit = 0;
     defaults.friendly_fire_mode = 1;
     defaults.betrayal_penalty = 0;

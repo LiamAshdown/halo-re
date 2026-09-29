@@ -135,7 +135,7 @@ char *server_browser_custom_options_pack(server_browser_custom_options *options)
         }
     }
     {
-        uint32_t nibble2 = options->unknown_30 & 0xf;
+        uint32_t nibble2 = options->alternate_vehicle_set & 0xf;
         if (nibble2 < 9) {
             extra = (nibble2 << 7) | extra;
         }

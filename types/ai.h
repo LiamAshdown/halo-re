@@ -902,9 +902,9 @@ typedef struct encounter {
     uint8_t dirty;                    // 0x28 set by every member add / remove; 0x435f00 re-runs morale for dirty encounters
     uint8_t unknown_29;               // 0x29
     int16_t weighted_actor_count;     // 0x2a
-    int16_t unknown_2c;               // 0x2c
-    int16_t unknown_2e;               // 0x2e
-    int16_t unknown_30;               // 0x30
+    int16_t weighted_swarm_count;               // 0x2c living actors that are swarm components, weighted (ai_swarm_count)
+    int16_t weighted_burst_pending_count;               // 0x2e weighted count of awareness-3 actors with a burst pending (alert_floor < alert_level); encounter_decay_squad_spawn_delays gates on it
+    int16_t weighted_engaged_count;               // 0x30 weighted count of engaged actors (alert_level > 6, not fleeing in the panic band)
     uint8_t unknown_32[2];            // 0x32
     float average_vitality;           // 0x34 encounter_recompute_morale sums one vitality sample per live member here and then divides by member_count
     datum_index first_pursuit;        // 0x38 head of the ai_pursuit ("recently seen object") list
@@ -959,7 +959,7 @@ typedef struct encounter_squad_state {
     uint8_t unknown_15;               // 0x15
     int16_t member_count;             // 0x16 encounter_add_actor increments, squad_remove_actor decrements
     int16_t weighted_actor_count;     // 0x18 sum of member weights; compared with ScenarioSquad.respawn_min_actors / respawn_max_actors
-    int16_t unknown_1a;               // 0x1a
+    int16_t weighted_swarm_count;               // 0x1a swarm share of weighted_actor_count
     float average_vitality;           // 0x1c encounter_recompute_morale @0x437940 sums one vitality sample per live member here and then divides by member_count
 } encounter_squad_state; // size 0x20
 // global 0x008802cc: encounter_squad_state *encounter_squad_states  0x8000 bytes, 0x400 records
@@ -973,7 +973,7 @@ typedef struct encounter_platoon_state {
     uint8_t unknown_03;               // 0x03
     int16_t member_count;             // 0x04 encounter_add_actor increments, squad_remove_actor decrements
     int16_t weighted_actor_count;     // 0x06 sum of member weights (encounter_recompute_morale)
-    int16_t unknown_08;               // 0x08
+    int16_t weighted_swarm_count;               // 0x08 swarm share of weighted_actor_count
     int16_t unknown_0a;               // 0x0a
     float average_vitality;           // 0x0c same running sum as encounter_squad_state.average_vitality, divided by member_count at 0x04
 } encounter_platoon_state; // size 0x10

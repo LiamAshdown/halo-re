@@ -40,7 +40,7 @@ game_variant * game_engine_variant_defaults_slayer(game_variant *variant_options
     defaults.score_limit = 0x19;
     defaults.starting_equipment = 0;
     defaults.vehicle_set = 0x249240;
-    defaults.unknown_64 = 0x249240;
+    defaults.alternate_vehicle_set = 0x249240;
     defaults.time_limit = 0x708;
     defaults.friendly_fire_mode = 1;
     defaults.betrayal_penalty = 0;

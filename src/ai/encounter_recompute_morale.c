@@ -80,9 +80,9 @@ void encounter_recompute_morale(datum_index encounter_index)
 
     enc->any_actor_targeting = 0;
     enc->any_actor_in_combat = 0;
-    enc->unknown_30 = 0;
-    enc->unknown_2e = 0;
-    enc->unknown_2c = 0;
+    enc->weighted_engaged_count = 0;
+    enc->weighted_burst_pending_count = 0;
+    enc->weighted_swarm_count = 0;
     enc->weighted_actor_count = 0;
     enc->average_vitality = 0.0f;
 
@@ -91,7 +91,7 @@ void encounter_recompute_morale(datum_index encounter_index)
         do {
             squad_state = &encounter_squad_states[(int16_t)(enc->first_squad + i)];
             i = i + 1;
-            squad_state->unknown_1a = 0;
+            squad_state->weighted_swarm_count = 0;
             squad_state->weighted_actor_count = 0;
             squad_state->average_vitality = 0.0f;
         } while (i < enc->squad_count);
@@ -101,7 +101,7 @@ void encounter_recompute_morale(datum_index encounter_index)
         do {
             platoon_state = &encounter_platoon_states[(int16_t)(enc->first_platoon + i)];
             i = i + 1;
-            platoon_state->unknown_08 = 0;
+            platoon_state->weighted_swarm_count = 0;
             platoon_state->weighted_actor_count = 0;
             platoon_state->average_vitality = 0.0f;
         } while (i < enc->platoon_count);
@@ -136,26 +136,26 @@ void encounter_recompute_morale(datum_index encounter_index)
                 &encounter_platoon_states[(int16_t)(enc->first_platoon + a->platoon_index)];
             platoon_state->weighted_actor_count = platoon_state->weighted_actor_count + weight;
             platoon_state->average_vitality = sample + platoon_state->average_vitality;
-            platoon_state->unknown_08 =
-                platoon_state->unknown_08 + (int16_t)((uint16_t)a->swarm * weight);
+            platoon_state->weighted_swarm_count =
+                platoon_state->weighted_swarm_count + (int16_t)((uint16_t)a->swarm * weight);
         }
 
         squad_state->weighted_actor_count = squad_state->weighted_actor_count + weight;
         squad_state->average_vitality = sample + squad_state->average_vitality;
-        squad_state->unknown_1a = squad_state->unknown_1a + (int16_t)((uint16_t)a->swarm * weight);
+        squad_state->weighted_swarm_count = squad_state->weighted_swarm_count + (int16_t)((uint16_t)a->swarm * weight);
 
         enc->weighted_actor_count = enc->weighted_actor_count + weight;
-        enc->unknown_2c = enc->unknown_2c + (int16_t)((uint16_t)a->swarm * weight);
+        enc->weighted_swarm_count = enc->weighted_swarm_count + (int16_t)((uint16_t)a->swarm * weight);
 
         counts = (uint8_t)(a->awareness_level == 3 && a->alert_floor < a->alert_level);
-        enc->unknown_2e = enc->unknown_2e + (int16_t)((uint16_t)counts * weight);
+        enc->weighted_burst_pending_count = enc->weighted_burst_pending_count + (int16_t)((uint16_t)counts * weight);
 
         engaged = (uint8_t)(6 < a->alert_level);
         if (engaged != 0 && a->mode == 4 && 0 < *(int16_t *)(a->mode_data.raw + 0x0c)) { // actor + 0xa8 lies inside actor.mode_data.raw
             engaged = 0;
         }
         enc->average_vitality = sample + enc->average_vitality;
-        enc->unknown_30 = enc->unknown_30 + (int16_t)((uint16_t)engaged * weight);
+        enc->weighted_engaged_count = enc->weighted_engaged_count + (int16_t)((uint16_t)engaged * weight);
 
         if (a->target_unit_index != (datum_index)k_datum_index_none) {
             p = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];

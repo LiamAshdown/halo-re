@@ -72,7 +72,7 @@ void game_engine_capture_player_profile(int32_t slot, int32_t commit)
     snapshot.suicides = p->suicides;
     snapshot.objective_time = p->objective_time;
     snapshot.unknown_22 = p->unknown_c8;
-    snapshot.unknown_24 = p->unknown_88;
+    snapshot.unknown_24 = p->objective_start_tick;
     snapshot.odd_man_out = p->odd_man_out;
     snapshot.speed = p->speed;
 

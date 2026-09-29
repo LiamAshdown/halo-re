@@ -1214,7 +1214,7 @@ typedef struct server_browser_custom_options {
     int32_t score_limit;        // 0x24 game_variant+0x58
     uint32_t starting_equipment; // 0x28 game_variant+0x5c, clamped 0..0xd
     uint32_t vehicle_set;       // 0x2c game_variant+0x60, low nibble 0..8
-    uint32_t unknown_30;       // 0x30
+    uint32_t alternate_vehicle_set; // 0x30 (game_variant 0x64)
     int32_t time_limit;         // 0x34 game_variant+0x68, ticks
     uint8_t friendly_fire_mode; // 0x38 index into the var_friendly_fire strings (0..3); the penalty applies for 1 and 3
     uint8_t pad_39[3];         // 0x39

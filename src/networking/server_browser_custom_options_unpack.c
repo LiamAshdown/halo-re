@@ -147,7 +147,7 @@ void server_browser_custom_options_unpack(char *text, server_browser_custom_opti
         uint32_t nibble1 = (high >> 3) & 0xf;
         uint32_t nibble2 = (high >> 7) & 0xf;
         out->vehicle_set = (nibble1 < 9) ? nibble1 : 0;
-        out->unknown_30 = (nibble2 < 9) ? nibble2 : 0;
+        out->alternate_vehicle_set = (nibble2 < 9) ? nibble2 : 0;
     }
 }
 

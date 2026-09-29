@@ -49,7 +49,7 @@ void encounter_decay_squad_spawn_delays(datum_index encounter_index)
             squad_flags = ((ScenarioSquad *)encounter_definition->squads.pointer)[squad_index].flags;
             if ((0 < cooldown) && ((squad_flags & 8) == 0)) {
                 if (squad_state->timer_started == 0) {
-                    if (((squad_flags & 4) == 0) && (self->unknown_2e < 1)) {
+                    if (((squad_flags & 4) == 0) && (self->weighted_burst_pending_count < 1)) {
                         squad_state->timer_started = 0;
                     } else {
                         squad_state->timer_started = 1;

@@ -193,7 +193,7 @@ typedef struct game_variant {
     uint32_t vehicle_set;      // 0x60 low nibble clamped to 0 .. 8; the upper bits are a
                                //      packed 3-bit-per-slot table (the built-ins store
                                //      0x249240, i.e. every slot from index 2 up set to 1)
-    uint32_t unknown_64;       // 0x64 same packed 3-bit encoding as 0x60
+    uint32_t alternate_vehicle_set; // 0x64 second vehicle set, same packed encoding as vehicle_set at 0x60 (the vehicle UI edits either word, selected by 0x00692b0c; medium confidence)
     int32_t time_limit;        // 0x68 in ticks (slayer default 0x708 == 60 s * 30)
     uint8_t friendly_fire_mode; // 0x6c 0..3 (UI clamps to 0..3, default 1); object_apply_damage switches on it (alias 0x006f1cf4)
     uint8_t pad_6d[3];         // 0x6d
@@ -478,7 +478,10 @@ typedef struct player {
     int32_t nameplate_hysteresis;      // 0x80 counter 0..0xf: hud_draw_teammate_nameplate ticks it up while the candidate matches nameplate_target, down otherwise, and only switches target at 0
     int32_t last_death_tick;           // 0x84 game_time when this player last died; the
                                        //      odd-man-out test orders players by it
-    int32_t unknown_88;                // 0x88 part of the profile block
+    union {                            // 0x88 per-engine scratch dword, part of the profile block
+        int32_t objective_start_tick;  //      ctf: game_time of the previous capture (elapsed = now - this); race: round start
+        datum_index slayer_target;     //      slayer: the player currently marked as the target, -1 none
+    };
     uint8_t odd_man_out;               // 0x8c cached result of 0x460e40
     uint8_t unknown_8d[0x96 - 0x8d];   // 0x8d
     // The statistics block. game_engine_attribute_player_death (0x46ff00) is the one

@@ -40,7 +40,7 @@ game_variant * game_engine_variant_defaults_classic_reverse_tag(game_variant *va
     defaults.score_limit = 2;
     defaults.starting_equipment = 0xb;
     defaults.vehicle_set = 1;
-    defaults.unknown_64 = 1;
+    defaults.alternate_vehicle_set = 1;
     defaults.time_limit = 0;
     defaults.friendly_fire_mode = 1;
     defaults.betrayal_penalty = 0;
