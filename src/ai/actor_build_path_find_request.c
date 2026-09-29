@@ -6,7 +6,7 @@
 // position builders fill in: +0x00 pathfinding_radius, +0x04 ignores_glass, +0x08 a unit
 // handle, +0x0c none, +0x10 have_start = 1, +0x14 start_position, +0x20 start_surface_index.
 // The radius comes from Actor.pathfinding_radius (Actor+0x8c) and, while the actor is
-// driving (actor.unknown_15e > 0), from Vehicle.ai_pathfinding_radius (Vehicle+0x38c) when
+// driving (actor.movement_context > 0), from Vehicle.ai_pathfinding_radius (Vehicle+0x38c) when
 // that is positive; the unit handle then comes from active_unit_index instead of unit_index.
 // register convention: actor_index in EAX, request pointer in EBX (Ghidra's unaff_EBX);
 // objdump confirms `mov eax,edi` immediately before `call 0x429570`, so the lead-position
@@ -48,7 +48,7 @@ void actor_build_path_find_request(datum_index actor_index, path_find_request *r
     actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
     radius = actor_definition->pathfinding_radius;
 
-    if (self->unknown_15e > 0) {
+    if (self->movement_context > 0) {
         unit_index = self->active_unit_index;
         unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
         vehicle_definition = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;

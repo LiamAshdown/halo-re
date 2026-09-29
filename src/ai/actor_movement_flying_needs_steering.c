@@ -18,7 +18,7 @@
 // settles it: vector3d_normalize_with_length normalizes the stack delta in place at
 // [esp+0xc..0x14] and the fmul chain at 0x41ab80 reads those same slots back, so the dot
 // product is taken against the normalized delta. Written that way here.
-// UNSURE: actor.unknown_15e == 4 is transcribed literally; nothing in this function says
+// UNSURE: actor.movement_context == 4 is transcribed literally; nothing in this function says
 // what movement mode 4 means.
 
 #include "tags.h"
@@ -52,7 +52,7 @@ uint8_t actor_movement_flying_needs_steering(datum_index actor_index, const real
     avoidance_distance = 0.0f;
     needs_steering = 1;
 
-    if (self->unknown_15e == 4) {
+    if (self->movement_context == 4) {
         unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
         vehicle_definition = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;
         avoidance_distance = vehicle_definition->ai_avoidance_distance;

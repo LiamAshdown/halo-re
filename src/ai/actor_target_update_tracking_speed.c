@@ -401,7 +401,7 @@ after_engage:
             }
             if (!did_track) {
                 uint8_t use_urgent = 1;
-                if (self->unknown_15e == 4 || self->type == 0xf) {
+                if (self->movement_context == 4 || self->type == 0xf) {
                     use_urgent = 0;
                 } else if (!p->is_unit) {
                     use_urgent = 0;

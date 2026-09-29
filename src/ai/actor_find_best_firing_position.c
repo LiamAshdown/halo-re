@@ -146,7 +146,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         claims[self->firing_position_index] = 0xffffffff; // the actor does not block itself
     }
 
-    query->maximum_distance = (self->unknown_15e == 0) ? 15.0f : 80.0f;
+    query->maximum_distance = (self->movement_context == 0) ? 15.0f : 80.0f;
     if (query->search_radius == 0.0f) {
         query->search_radius = query->maximum_distance;
     }
@@ -250,7 +250,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         query->danger_active = 1;
     }
     query->flying = self->flying;
-    if (self->unknown_15e == 4) {
+    if (self->movement_context == 4) {
         query->unknown_45 = 1;
         query->unknown_46 = 1;
     }

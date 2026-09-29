@@ -404,7 +404,7 @@ typedef struct actor {
     datum_index active_unit_index;    // 0x158 preferred unit object for movement; 0x4193d0 falls back to unit_index
     uint8_t unknown_15c;              // 0x15c
     uint8_t unknown_15d;              // 0x15d
-    int16_t unknown_15e;              // 0x15e read by the turn-bound and stop-turning helpers
+    int16_t movement_context;         // 0x15e 0 on foot, 1 seated (non-driving), 2..3 vehicle, 4 flying; read by the movement, stop-distance and firing-position code
     uint8_t order_committed;          // 0x160 the order builders set it once the actor commits to the order they built
     uint8_t unknown_161;              // 0x161
     uint8_t unknown_162[2];           // 0x162
@@ -1343,7 +1343,7 @@ typedef struct actor_firing_position_query {
     uint8_t collect_all;               // 0x14 mark rejected candidates instead of clearing valid
     uint8_t allow_random_fallback;     // 0x15 when nothing is in range, pick one candidate at random
     uint8_t unknown_16[2];             // 0x16
-    float maximum_distance;            // 0x18 15.0, or 80.0 when actor.unknown_15e is nonzero
+    float maximum_distance;            // 0x18 15.0, or 80.0 when actor.movement_context is nonzero
     float search_radius;               // 0x1c defaults to maximum_distance when the caller leaves it zero
     uint8_t have_explicit_target;      // 0x20 use the explicit block below instead of the actor own threat
     uint8_t unknown_21[3];             // 0x21

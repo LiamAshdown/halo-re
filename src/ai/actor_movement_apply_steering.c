@@ -112,7 +112,7 @@ void actor_movement_apply_steering(
             desired = *desired_direction;
             if (act[0x505]) {
                 aim = *(real_vector3d *)&((struct actor *)act)->unknown_524.i;
-                if (((struct actor *)act)->unknown_15e > 0) {
+                if (((struct actor *)act)->movement_context > 0) {
                     use_scratch = 1;
                 }
             } else {

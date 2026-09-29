@@ -5,7 +5,7 @@
 //   floats despite their int32_t typing -- the same "declared type from one accessor,
 //   written as float bits by another" pattern seen throughout this module),
 //   body_position(0x12c)/flying(0x99)/active_unit_index(0x158)/unit_index(0x18)/
-//   unknown_15e. Calls object_try_and_get (0x4f6ec0), biped_get_cached_look_at_position
+//   movement_context. Calls object_try_and_get (0x4f6ec0), biped_get_cached_look_at_position
 //   (0x55ab30) and unit_predict_aim_target_position (0x571de0), all already established
 //   elsewhere in this module (src/ai/actor_target_get_relationship_object.c).
 // register convention: EAX -> actor_index.
@@ -45,7 +45,7 @@ void actor_update_target_lead_position(datum_index actor_index)
     }
     vehicle = ((actor *)a)->active_unit_index;
     if (vehicle != k_datum_index_none) {
-        int16_t seat_kind = ((struct actor *)a)->unknown_15e;
+        int16_t seat_kind = ((struct actor *)a)->movement_context;
 
         if (seat_kind >= 2 && seat_kind <= 3) {
             ((struct actor *)a)->unknown_164 = unit_predict_aim_target_position(vehicle, point);

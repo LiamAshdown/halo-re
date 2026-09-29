@@ -8,7 +8,7 @@
 // (unknown_4c0[2]) past waypoints that are either close enough (within a fixed radius) or
 // behind the actor's current heading, and commits the resulting target into unknown_50c /
 // desired_direction (delta from body_position). Falls back to a fixed-offset point along the
-// actor's facing, or clears the path state entirely, depending on unknown_15e.
+// actor's facing, or clears the path state entirely, depending on movement_context.
 // register convention: actor_index in EAX (Ghidra's in_EAX).
 // blam-cc: EAX -> actor_index
 // TYPES-GAP: the byte region actor+0x4a8..0x4c8 that this function walks as an array of
@@ -108,7 +108,7 @@ void actor_movement_advance_waypoint(datum_index actor_index)
         }
     }
 
-    if (self->unknown_15e == 4) {
+    if (self->movement_context == 4) {
         float sign = (self->unknown_5ec <= 0.9f) ? 1.0f : -1.0f;
         float scale = sign * 3.0f;
         self->desired_direction_valid = 1;

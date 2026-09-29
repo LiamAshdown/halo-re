@@ -48,7 +48,7 @@
 //     (+0x18), not actor.unknown_0c, and hands it to unit_is_in_busy_animation_state in ECX.
 //
 // UNSURE:
-//  - actor.unknown_15e is the movement-context selector (below 1 on foot, 1 and up riding a
+//  - actor.movement_context is the movement-context selector (below 1 on foot, 1 and up riding a
 //    unit). Only the literal comparisons are transcribed; nothing here says what the values mean.
 //  - actor+0x42c / 0x42e / 0x426..0x429 / 0x430 / 0x434..0x450 sit in the order-bookkeeping
 //    range of the actor and are named only by offset.
@@ -159,7 +159,7 @@ void actor_movement_update(datum_index actor_index)
         a->avoidance_direction = *global_origin3d_pointer;
         a->avoidance_scale = 0.0f;
         a->unknown_5ec = 0.0f;
-    } else if (a->unknown_15e == 4) {
+    } else if (a->movement_context == 4) {
         const real_vector3d *desired;
         real_vector3d probe;
         real_vector3d sampled;
@@ -246,7 +246,7 @@ void actor_movement_update(datum_index actor_index)
         movement_mode = actor_base[0x426];
     }
 
-    context = a->unknown_15e;
+    context = a->movement_context;
     if (context < 1) {
         // ---- on foot -----------------------------------------------------------------
         if (a->order_committed != 0) {

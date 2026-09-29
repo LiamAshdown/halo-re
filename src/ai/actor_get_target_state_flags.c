@@ -1,7 +1,7 @@
 // actor_get_target_state_flags  (Ghidra: actor_get_target_state_flags, already named)
 // address 0x40cc70, size 375 bytes
 // name confidence: 0.5   rewrite confidence: 0.35
-// evidence: types/ai.h actor.target_unit_index (0x270)/alert_level/unknown_15e;
+// evidence: types/ai.h actor.target_unit_index (0x270)/alert_level/movement_context;
 //   prop.noticed_a (0xb9)/noticed_b (0xba)/kind (0x24); phase-4 summary "computes a set of
 //   target-state flags (shields down, morale-gated, target invalid) used by the combat
 //   decision routines".
@@ -75,10 +75,10 @@ void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shar
     if (*out_in_e == 0 && a->alert_level < 3) {
         *out_a = 0;
     }
-    if (a->unknown_15e > 0) {
+    if (a->movement_context > 0) {
         *out_i = 0;
     }
-    if (a->unknown_15e == 4) {
+    if (a->movement_context == 4) {
         *out_f = 0;
         *out_h = 0;
     }
