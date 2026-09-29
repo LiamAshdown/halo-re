@@ -58,7 +58,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
 {
     if (((struct actor *)actor)->target_unit_index != k_datum_index_none && ((struct actor *)actor)->target_combat_status >= 5) {
         uint8_t *target = PROP(((struct actor *)actor)->target_unit_index);
-        int32_t fired = ((struct actor *)actor)->unknown_88;
+        int32_t fired = ((struct actor *)actor)->ticks_since_engaged;
 
         if (*(int16_t *)(target + 0x24) >= 4 && *(int16_t *)(target + 0x24) <= 5) {
             target = PROP(*(datum_index *)(target + 0xc));

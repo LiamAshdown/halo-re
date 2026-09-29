@@ -377,11 +377,11 @@ typedef struct actor {
     int16_t pending_alert_event;      // 0x74 highest perception event seen since the last alert_level rise (actor_update_awareness_level)
     int16_t unknown_76;               // 0x76
     int32_t pending_alert_event_data; // 0x78 tie-break data for that event
-    int32_t unknown_7c;               // 0x7c
-    int32_t unknown_80;               // 0x80
-    int32_t unknown_84;               // 0x84
-    int32_t unknown_88;               // 0x88 actor_new sets -1
-    uint8_t unknown_8c;               // 0x8c
+    int32_t awareness_full_ticks;  // 0x7c consecutive ticks at awareness_level 3, reset below it
+    int32_t alerted_ticks;         // 0x80 consecutive ticks with alert_level > 0
+    int32_t engaged_ticks;         // 0x84 consecutive ticks with alert_level >= 4
+    int32_t ticks_since_engaged;   // 0x88 ticks since alert_level was last >= 4, -1 never (actor_new sets -1)
+    uint8_t reached_full_alert;    // 0x8c set once alert_level reaches 7
     uint8_t unknown_8d;               // 0x8d
     uint8_t unknown_8e;               // 0x8e actor_new sets 0
     uint8_t unknown_8f;               // 0x8f

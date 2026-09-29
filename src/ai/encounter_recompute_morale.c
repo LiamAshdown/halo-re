@@ -165,7 +165,7 @@ void encounter_recompute_morale(datum_index encounter_index)
                  (team_pair_data->secondary_bits[pair >> 5] & (1 << (pair & 0x1f))) == 0)) {
                 any_unfriendly_target = 1;
             }
-            if (a->unknown_8c != 0) {
+            if (a->reached_full_alert != 0) {
                 any_flag_8c = 1;
             }
             if (a->unknown_8d != 0) {

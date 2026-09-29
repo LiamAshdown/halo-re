@@ -191,7 +191,7 @@ void actor_target_relationship_think(datum_index actor_index)
         if (self->unknown_28a == 0 && self->danger_unknown_282 == 0) {
             should_react = 0;
             if (self->danger_unknown_284 > 0 && self->danger_unknown_286 != 0) {
-                if (self->unknown_88 == -1 || self->unknown_88 > 0x3b) {
+                if (self->ticks_since_engaged == -1 || self->ticks_since_engaged > 0x3b) {
                     self->danger_unknown_284 -= 1;
                     should_react = (uint8_t)(self->danger_unknown_284 == 0);
                 } else {
