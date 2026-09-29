@@ -126,8 +126,8 @@ void particle_new(particle_creation_data *creation_data)
             if ((tag->flags & 0x800) != 0) { // random_vertical_mirroring
                 self->flags |= (uint16_t)(effect_random_uint16() & 8);
             }
-            self->flags = (creation_data->unknown_0d == 0) ? (self->flags & ~0x10) : (self->flags | 0x10);
-            self->flags = (creation_data->unknown_0e == 0) ? (self->flags & ~0x20) : (self->flags | 0x20);
+            self->flags = (creation_data->third_person_only == 0) ? (self->flags & ~0x10) : (self->flags | 0x10);
+            self->flags = (creation_data->first_person_only == 0) ? (self->flags & ~0x20) : (self->flags | 0x20);
             self->flags = (creation_data->first_person == 0) ? (self->flags & ~0x40) : (self->flags | 0x40);
 
             self->definition_index = creation_data->definition_index;
@@ -156,9 +156,9 @@ void particle_new(particle_creation_data *creation_data)
             self->location.cluster_index = cluster;
 
             self->position = creation_data->position;
-            self->unknown_3c = *(real_vector3d *)&creation_data->unknown_1c;
+            self->unknown_3c = *(real_vector3d *)&creation_data->direction;
             self->velocity = creation_data->velocity;
-            self->unknown_54 = creation_data->unknown_40;
+            self->unknown_54 = creation_data->rotation;
 
             if (self->object_index == (datum_index)0xffffffff) {
                 real radius = particle_current_radius(handle);
@@ -170,7 +170,7 @@ void particle_new(particle_creation_data *creation_data)
                 self->velocity.k = self->velocity.k + fold * creation_data->gravity.k;
             }
 
-            self->unknown_58 = creation_data->unknown_44;
+            self->unknown_58 = creation_data->angular_velocity;
             self->scale = creation_data->scale;
             self->color = creation_data->color;
 

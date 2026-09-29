@@ -45,7 +45,7 @@ int32_t network_game_client_decode_player_config_value(network_client_globals *c
         length = length - 2;
         if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, &decoded_value,
                                             (uint8_t *)buffer + 2, &out_type, &out_version, 2) != 0) {
-            client->unknown_ed8 = (uint16_t)decoded_value;
+            client->game_start_countdown_seconds = (uint16_t)decoded_value;
         }
     }
     return 1;

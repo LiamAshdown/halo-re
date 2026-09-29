@@ -55,8 +55,8 @@ void ai_reference_detach_actors_from_encounters(uint32_t packed_reference)
             self = &((actor *)actor_data->data)[iterator.actor_index & 0xffff];
             self->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
             ai_globals_ptr->first_encounterless_actor = iterator.actor_index;
-            self->unknown_09 = 1;
-            *(uint16_t *)&self->unknown_10[0] =
+            self->encounterless = 1;
+            *(uint16_t *)&self->activation_delay[0] =
                 (uint16_t)(-(uint16_t)(self->active != 0) & 0x5a);
             actor_movement_action_cancel(iterator.actor_index);
         }

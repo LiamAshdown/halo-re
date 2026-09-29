@@ -60,7 +60,7 @@ void *network_game_server_host_new(void)
         host->state = 0;
         network_game_session_reset(&host->session);
         host->session.message_callback = (void *)network_session_reject_pending_connection_callback; // 0x4e1410
-        host->session.unknown_19e = pending_difficulty;
+        host->session.difficulty = pending_difficulty;
         *(int32_t *)((uint8_t *)host + 0x3b0) = -1; // UNSURE: lands within session.unknown_3a2[10]
         for (i = 0; i < 16; i++) {
             machine = &host->machines[i];
@@ -72,9 +72,9 @@ void *network_game_server_host_new(void)
             machine->unknown_0f = 0;
             *(uint32_t *)((uint8_t *)machine + 0x52) = 0; // unknown_52, unaligned per header
             *(uint32_t *)((uint8_t *)machine + 0x56) = 0; // unknown_56, unaligned per header
-            machine->unknown_5c = -1;
-            machine->unknown_50 = 0;
-            machine->unknown_51 = 0;
+            machine->gcd_user_id = -1;
+            machine->player_joined = 0;
+            machine->players_removed_broadcast = 0;
         }
         host->update_tick = 0;
         *(uint32_t *)&host->unknown_9bc[0x08] = 0; // 0x9c4

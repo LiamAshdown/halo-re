@@ -210,7 +210,7 @@ uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
     if (act[0x2ed]) {
         wanted = 1;
     }
-    if (act[0x160] && (*(datum_index *)&((struct actor *)act)->unknown_1b0 != k_datum_index_none ||
+    if (act[0x160] && (*(datum_index *)&((struct actor *)act)->stuck_projectile_index != k_datum_index_none ||
                        (((actor *)act)->danger_type == 2 && act[0x28a]))) {
         forced = 1;
     } else if (!wanted) {

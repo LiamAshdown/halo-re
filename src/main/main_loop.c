@@ -435,7 +435,7 @@ void main_loop(void)
         render_frame = 1;
         if (connection == _game_connection_network_client) {
             if (network_client_update_dispatch() == 0) {
-                if (network_client->unknown_edc == 8) {
+                if (network_client->disconnect_reason == 8) {
                     if (network_join_error_code == -1) {
                         network_join_error_code = 4;
                     }

@@ -76,42 +76,42 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->encounter_index = (datum_index)k_datum_index_none;
     self->squad_index = -1;
     self->platoon_index = -1;
-    self->unknown_09 = 0;
-    self->unknown_30 = (datum_index)k_datum_index_none;
-    self->unknown_38 = -1;
+    self->encounterless = 0;
+    self->original_encounter_index = (datum_index)k_datum_index_none;
+    self->original_squad_index = -1;
     self->cluster_count = 0;
-    self->unknown_20 = 0;
+    self->total_cluster_count = 0;
     self->cluster_unit_index = (datum_index)k_datum_index_none;
     self->swarm_index = (datum_index)k_datum_index_none;
-    self->unknown_07 = 1;
+    self->unit_control_pending = 1;
     self->active = 0;
-    self->unknown_0c = (datum_index)k_datum_index_none;
+    self->deactivation_time = (datum_index)k_datum_index_none;
     self->keep_unit_alive = 1;
-    self->unknown_12 = 1;
+    self->can_go_dormant = 1;
     self->idle_counter = 0;
     self->first_prop = (datum_index)k_datum_index_none;
-    self->unknown_54 = (datum_index)k_datum_index_none;
+    self->nearest_orphan_prop_index = (datum_index)k_datum_index_none;
     self->firing_position_index = -1;
     self->pending_order_request = -1;
     self->standing_order_request = -1;
     self->last_order_request_time = -1;
     self->unknown_8e = 0;
     self->pending_command_list = -1;
-    self->unknown_94 = -1;
+    self->command_list_finished_time = -1;
     self->mode = 0;
     self->awareness_level = 2;
     self->combat_status = 0;
     self->minimum_combat_status = 0;
     self->suspicion_status = 0;
     self->ticks_since_threatened = -1;
-    self->unknown_98 = 0;
+    self->search_firing_positions = 0;
     self->flying = (uint8_t)(flags >> 0x15) & 1;              // ActorFlags bit 21 "flying"
-    self->unknown_164 = -1;
+    self->pathfinding_surface_index = -1;
     self->active_unit_index = (datum_index)k_datum_index_none;
-    self->unknown_1c9 = 0;
+    self->platoon_defending = 0;
     self->unknown_1cc = 0;
-    self->unknown_1d0 = (datum_index)k_datum_index_none;
-    self->unknown_1d4 = 0;
+    self->nearby_friend_prop_index = (datum_index)k_datum_index_none;
+    self->try_to_fight_type = 0;
     self->conversation_index = (datum_index)k_datum_index_none;
 
     memset(self->unknown_350, 0, 0x1a * sizeof(uint32_t)); // 0x350..0x3b7
@@ -170,8 +170,8 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->grenade_recheck_ticks = 30;
     self->target_combat_status = 0;
     self->target_unit_index = (datum_index)k_datum_index_none;
-    self->unknown_26c = (datum_index)k_datum_index_none;
-    self->unknown_278 = 0xffffffff;
+    self->target_last_seen_time = (datum_index)k_datum_index_none;
+    self->ticks_since_engaged = 0xffffffff;
 
     actor_clear_recognition_history(actor_index, 0);
 

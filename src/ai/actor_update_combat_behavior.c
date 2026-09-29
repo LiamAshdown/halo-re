@@ -46,7 +46,7 @@ uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, u
         if (use_param_1 == 0) goto use_default;
         if (self->combat_status < 5) {
             if (self->combat_status < 2 && self->mode != 2 &&
-                (self->combat_status != 0 || (self->unknown_1c8 == 0 && self->unknown_1e4 < 1))) {
+                (self->combat_status != 0 || (self->stood_down == 0 && self->post_combat_action < 1))) {
                 goto use_default;
             }
             goto call_melee_combat_action;

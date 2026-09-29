@@ -48,10 +48,10 @@ char network_client_update_dispatch(void)
         } else {
             session = 0;
         }
-        if (session->unknown_3ac != 0) {
+        if (session->map_loaded != 0) {
             chimera__load_ui_map(1);
         }
-        session->unknown_3ac = 0;
+        session->map_loaded = 0;
         network_client_globals_dispose();
         if (network_server != 0) {
             network_game_server_host_dispose(network_server);
@@ -65,7 +65,7 @@ char network_client_update_dispatch(void)
         dispatch_result = network_client_state_dispatch();
         result = 0;
         if (dispatch_result != 0) {
-            if (network_client->unknown_edc == 0) {
+            if (network_client->disconnect_reason == 0) {
                 unknown_006982e8 = network_client_connect_progress_percent();
                 return dispatch_result;
             }

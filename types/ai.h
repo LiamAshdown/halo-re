@@ -330,28 +330,45 @@ typedef struct actor {
     uint8_t unknown_02[2];            // 0x02
     int16_t type;                     // 0x04 ActorType, copied from the actor tag type at Actor+0x14 by actor_new; indexes actor_type_procs
     uint8_t swarm;                    // 0x06 Actor.flags bit 26 "swarm"; the order builders refuse to act while it is set
-    uint8_t unknown_07;               // 0x07 actor_new sets 1
+    uint8_t unit_control_pending;     // 0x07 actor_new and actor_freeze_unit-like 0x429000 set it;
+                                      //    actor_apply_queued_look_to_unit 0x42a640 then calls unit 0x569bf0 with
+                                      //    CL=1 (take unit control) and clears it
     uint8_t active;                   // 0x08 actor_set_units_active and squad_activate gate on this
-    uint8_t unknown_09;               // 0x09 actor_new sets 0
-    uint8_t unknown_0a;               // 0x0a
+    uint8_t encounterless;            // 0x09 1 while on ai_globals.first_encounterless_actor list: set by
+                                      //    ai_actor_link_to_unassigned_list 0x436940, cleared by unlink 0x436990;
+                                      //    actor_delete picks unlink vs encounter_remove_actor
+    uint8_t force_active;             // 0x0a hs ai_force_active_by_unit (0x47df80 -> 0x435540) stores it for
+                                      //    encounterless actors; encounters_update_activation / 0x429270 OR it with
+                                      //    encounter.force_active
     uint8_t swarm_pending;            // 0x0b encounter_activate sets it when a swarm actor could not get a swarm
-    datum_index unknown_0c;           // 0x0c actor_new sets none
-    uint8_t unknown_10[2];            // 0x10
-    uint8_t unknown_12;               // 0x12 actor_new sets 1
+    datum_index deactivation_time;    // 0x0c game_time stamped when active goes 1->0 (0x437e20, encounter_deactivate,
+                                      //    actor_toggle_active_state); 0x42acd0 sorts inactive actors by it. int32
+                                      //    time, not datum_index
+    uint8_t activation_delay[2];      // 0x10 int16 (declared uint8_t[2]): 90 while visible/forced, -30 per 0x437e20
+                                      //    pass, deactivates below 31; same scheme as encounter.activation_delay.
+                                      //    link_to_unassigned sets 90/0
+    uint8_t can_go_dormant;           // 0x12 0x437e20/0x436190: 1 unless a unit's cluster is in the player-visible
+                                      //    cluster mask or squad dormancy_disabled; 0x429270 wakes units when 0 (or
+                                      //    force_active)
     uint8_t keep_unit_alive;          // 0x13 actor_attach_to_unit marks the unit pending-delete when this is clear
     uint8_t unknown_14[4];            // 0x14
     datum_index unit_index;           // 0x18 the one unit object this actor controls; the unit points back at 0x1f4
     uint8_t counts_toward_encounter;  // 0x1c actor_unlink_unit decrements encounter+0x1c only when set
     uint8_t unknown_1d;               // 0x1d
     int16_t cluster_count;            // 0x1e actor_link_to_unit_cluster increments, actor_remove_from_unit_cluster decrements
-    int16_t unknown_20;               // 0x20 moved in step with cluster_count
+    int16_t total_cluster_count;      // 0x20 actor_link_to_unit_cluster 0x4279f0 increments it with cluster_count but
+                                      //    nothing decrements it; encounter_recompute_morale uses cluster_count/this
+                                      //    as swarm vitality
     uint8_t unknown_22[2];            // 0x22
     datum_index cluster_unit_index;   // 0x24 head of the unit cluster list, chained through object+0x1fc
     datum_index swarm_index;          // 0x28 actor_create_swarm / actor_delete_swarm
     datum_index next_in_encounter;    // 0x2c next actor in the encounter member list, or in the unassigned list
-    datum_index unknown_30;           // 0x30 actor_new sets none
+    datum_index original_encounter_index; // 0x30 bsp deactivate 0x42c940 stores the encounter a carried actor left;
+                                          //    0x42ce90 re-adds it via encounter_add_actor(unknown_38, actor, this)
+                                          //    when that bsp loads; ai_squads_merge remaps it
     datum_index encounter_index;      // 0x34 owning encounter datum, none while unassigned
-    int16_t unknown_38;               // 0x38 actor_new sets 0xffff
+    int16_t original_squad_index;     // 0x38 squad_index saved with unknown_30 by 0x42c940 (bsp carry-over), passed
+                                      //    back to encounter_add_actor by 0x42ce90 / ai_squads_merge
     int16_t squad_index;              // 0x3a index of this actor encounter_squad_state, relative to encounter.first_squad
     int16_t platoon_index;            // 0x3c index of this actor encounter_platoon_state, or -1
     int16_t team;                     // 0x3e kept in sync with object+0xb8 and encounter.team
@@ -360,7 +377,9 @@ typedef struct actor {
     uint8_t needs_new_path;           // 0x4c 0x4017b0 issues a fresh path request while set; 0x429430 also writes it
     uint8_t unknown_4d[3];            // 0x4d
     datum_index first_prop;           // 0x50 head of the prop list, chained through prop.next_in_actor at +0x08
-    datum_index unknown_54;           // 0x54 actor_new sets none
+    datum_index nearest_orphan_prop_index; // 0x54 actor_target_relationship_think 0x41abd0 stores the nearest prop in
+                                           //    state 4..5 (orphan) each pass (none while target itself is an
+                                           //    orphan); orphan_timer penalty uses it
     datum_index actor_definition_tag; // 0x58 the actor tag index; actor_get_actor_definition can override it per unit
     datum_index actor_variant_tag;    // 0x5c the actor_variant tag index actor_new was called with
     int16_t pending_order_request;    // 0x60 one-shot request code (-1 none): actor_process_order_request takes it
@@ -369,7 +388,10 @@ typedef struct actor {
                                       //   cleared by the taker. squad_members_assign_team_and_request_order sets it
     int32_t last_order_request_time;  // 0x64 game time of the last processed request, -1 never; implicit requests
                                       //   are throttled to one per 45 ticks
-    uint8_t unknown_68;               // 0x68 0x435420 zeroes it
+    uint8_t sequence_id;              // 0x68 actor_new_and_attach_to_unit stores
+                                      //    ScenarioActorStartingLocation.sequence_id (request+0x12);
+                                      //    actor_select_move_position 0x4014c0 skips move positions whose sequence_id
+                                      //    differs
     uint8_t unknown_69;               // 0x69
     int16_t awareness_level;          // 0x6a 0..3; actor_set_mode clamps it to 2 or 3 by mode, actor_update_awareness_level drives it
     int16_t mode;                     // 0x6c actor_set_mode writes it; indexes actor_mode_definitions
@@ -394,14 +416,22 @@ typedef struct actor {
     int32_t ticks_threatened;         // 0x84 consecutive ticks with combat_status > 3, else 0
     int32_t ticks_since_threatened;   // 0x88 0 while combat_status > 3, then counts up; -1 (actor_new) never threatened
     uint8_t has_engaged;              // 0x8c set once combat_status exceeds 6, never cleared; encounter morale reads it
-    uint8_t unknown_8d;               // 0x8d
+    uint8_t witnessed_death;          // 0x8d actor_scan_backup_and_panic_reaction 0x423220 sets it whenever a prop's
+                                      //    just_died is processed; encounter_recompute_morale needs has_engaged &&
+                                      //    this to start post-combat
     uint8_t unknown_8e;               // 0x8e actor_new sets 0
     uint8_t unknown_8f;               // 0x8f
     int16_t pending_command_list;     // 0x90 command list index stored when the actor is told to run one while
                                       //   inactive (0x407140), -1 none (actor_new / ai_unit_create_actor)
-    int16_t unknown_92;               // 0x92 0x435420 sets 2
-    int32_t unknown_94;               // 0x94 actor_new sets -1
-    uint8_t unknown_98;               // 0x98 actor_new sets 0
+    int16_t command_list_delay;       // 0x92 int16 set 2 at creation (ai_unit_create_actor,
+                                      //    actor_new_and_attach_to_unit), -1 per 0x429270 tick; 0x40ab80 holds a
+                                      //    pending_command_list while > 0
+    int32_t command_list_finished_time; // 0x94 actor_mode_obey_process 0x407340 stamps game_time when the command
+                                        //    list completes (mode_data[5]=1); 0x434f20 (ai_command_list_status)
+                                        //    reports 1 for 150 ticks after
+    uint8_t search_firing_positions;  // 0x98 0x412880 picks attacking_search/defending_search groups when set;
+                                      //    0x413e50 flips it when the winner lies outside the current mask;
+                                      //    flee/guard enter clear it
     uint8_t flying;                   // 0x99 Actor.flags bit 21 "flying"; read by every steering and step-test routine
     uint8_t unknown_9a[2];            // 0x9a
     actor_mode_data mode_data;        // 0x9c actor_set_mode memcpys actor_mode_definition.data_size bytes here.
@@ -415,14 +445,27 @@ typedef struct actor {
                                       //   0x4112b0, 0x411bf0, 0x412ba0, 0x4180c0 and the avoidance sampler
     uint8_t unknown_138[0x20];        // 0x138
     datum_index active_unit_index;    // 0x158 preferred unit object for movement; 0x4193d0 falls back to unit_index
-    uint8_t unknown_15c;              // 0x15c
-    uint8_t unknown_15d;              // 0x15d
-    int16_t unknown_15e;              // 0x15e read by the turn-bound and stop-turning helpers
+    uint8_t airborne;                 // 0x15c actor_refresh_combat_context 0x4297a0: biped airborne_ticks
+                                      //    (unit+0x501) >= 6, on foot only; movement/firing/obey code skip while set
+    uint8_t in_water;                 // 0x15d 0x4297a0: scenario_location_get_water_and_weather at the head marker;
+                                      //    compared with prop.in_water (actor_rate_potential_target 0x41fd50), blocks
+                                      //    firing in actor_update_firing_state
+    int16_t vehicle_driving_type;     // 0x15e 0x4297a0: 0 not driving, 1 driver, 2 hovering / 3 sidestep / 4 flying
+                                      //    per Vehicle flags ai_driver_enable/flying/can_sidestep/hovering
+                                      //    (0x800/0x1000/0x2000/0x4000)
     uint8_t order_committed;          // 0x160 the order builders set it once the actor commits to the order they built
-    uint8_t unknown_161;              // 0x161
-    uint8_t unknown_162[2];           // 0x162
-    int32_t unknown_164;              // 0x164
-    int32_t unknown_168;              // 0x168
+    uint8_t vehicle_gunner;           // 0x161 0x4297a0 sets it when the parent vehicle's gunner (vehicle+0x328) is
+                                      //    this unit; aim/threat-weapon code then uses the vehicle
+                                      //    (active_unit_index)
+    uint8_t vehicle_gunner_bombards[2]; // 0x162 0x4297a0: gunner && ActorVariant.bombardment_range (+0x14c) > 0;
+                                        //    orphan inspection 300 vs 45 ticks (0x41abd0, local misnamed
+                                        //    nearly_dead), uncover mode keeps going
+    int32_t pathfinding_surface_index; // 0x164 0x4297a0 copies biped cached_ground_surface_index (+0x4dc); path
+                                       //    request start_surface_index (0x4017b0); -1 in vehicles/swarms; 0x429570
+                                       //    lead-position refills it
+    int32_t pathfinding_point;        // 0x168 real_point3d 0x168..0x173 (declared as three int32
+                                      //    unknown_168/16c/170): biped cached_ground_point (+0x4e0) copied by
+                                      //    0x4297a0; path request start_position
     int32_t unknown_16c;              // 0x16c
     int32_t unknown_170;              // 0x170
     real_vector3d facing;             // 0x174 the actor unit forward vector, NOT a position: all 35 arithmetic
@@ -438,26 +481,46 @@ typedef struct actor {
     uint8_t unknown_1a0[8];           // 0x1a0
     int32_t unknown_1a8;              // 0x1a8
     uint8_t unknown_1ac[4];           // 0x1ac
-    int32_t unknown_1b0;              // 0x1b0
+    int32_t stuck_projectile_index;   // 0x1b0 datum_index (declared int32): 0x4297a0 sets it to an attached
+                                      //    projectile child (stuck grenade / the danger projectile); flee panic 9/10
+                                      //    ends when none
     uint8_t unknown_1b4[4];           // 0x1b4
-    float unknown_1b8;                // 0x1b8
-    uint8_t unknown_1bc[4];           // 0x1bc
-    float unknown_1c0;                // 0x1c0
-    uint8_t unknown_1c4[4];           // 0x1c4
-    uint8_t unknown_1c8;              // 0x1c8
-    uint8_t unknown_1c9;              // 0x1c9 encounter_add_actor copies the platoon state byte here and to unknown_374
-    uint8_t unknown_1ca;              // 0x1ca
-    uint8_t unknown_1cb;              // 0x1cb 0x434d40 sets it on every member of a squad
+    float body_vitality;              // 0x1b8 0x4297a0 copies unit body_vitality; berserk_damage_threshold test,
+                                      //    crouch/vocalization code
+    uint8_t shield_vitality[4];       // 0x1bc float (declared uint8_t[4]): 0x4297a0 copies unit shield_vitality;
+                                      //    compared to hide_shield_fraction, ==1.0f in crouch state
+    float recent_body_damage;         // 0x1c0 0x4297a0 copies unit recent_body_damage; berserk_damage_amount,
+                                      //    cover_damage_threshold, panic_damage_threshold tests
+    uint8_t recent_shield_damage[4];  // 0x1c4 float (declared uint8_t[4]): 0x4297a0 copies unit recent_shield_damage
+                                      //    (4th of the four unit values)
+    uint8_t stood_down;               // 0x1c8 encounter_propagate_platoon_state_to_actors copies
+                                      //    encounter.stood_down; 0x41abd0 resets ticks_since_engaged to -1 while set
+    uint8_t platoon_defending;        // 0x1c9 encounter_add_actor and 0x439d80 propagate copy
+                                      //    encounter_platoon_state.defending; actor_escalate_check_leader_flag reads
+                                      //    it
+    uint8_t playfight;                // 0x1ca encounter_propagate_platoon_state_to_actors copies encounter.playfight
+                                      //    (hs ai_playfight); grenade, perception-scale and aim-wander code change
+                                      //    behaviour when set
+    uint8_t charge_disallowed;        // 0x1cb hs ai_allow_charge (0x47e790) -> 0x434d40 stores !allow on every
+                                      //    referenced actor; charge mode / combat transitions test it
     uint8_t unknown_1cc;              // 0x1cc actor_new sets 0
     uint8_t unknown_1cd[3];           // 0x1cd
-    datum_index unknown_1d0;          // 0x1d0 actor_new sets none
-    int16_t unknown_1d4;              // 0x1d4 actor_new sets 0
+    datum_index nearby_friend_prop_index; // 0x1d0 0x40e540 records the nearest friendly prop whose actor is
+                                          //    searching/investigating (combat_status 2..3, modes 5-8); wait mode
+                                          //    follows it within 8, vocalization looks at it
+    int16_t try_to_fight_type;        // 0x1d4 0 nothing / 1 ai reference / 2 player: hs
+                                      //    ai_try_to_fight(_nothing/_player) -> 0x434cc0 etc.; tracking-speed code
+                                      //    marks props preferred_target accordingly
     uint8_t unknown_1d6[6];           // 0x1d6
     datum_index conversation_index;   // 0x1dc ai_conversation_stop clears this and conversation_participant
     datum_index conversation_participant;// 0x1e0
-    int16_t unknown_1e4;              // 0x1e4
+    int16_t post_combat_action;       // 0x1e4 int16 line id written by encounter_choose_vocalizations 0x438580
+                                      //    (post-combat pick) / cleared out of post_combat; search_wait order and
+                                      //    report_command_status switch on it
     uint8_t unknown_1e6[2];           // 0x1e6
-    datum_index unknown_1e8;          // 0x1e8
+    datum_index post_combat_prop_index; // 0x1e8 prop paired with post_combat_action by 0x438580;
+                                        //    actor_build_order_search_wait walks to its pathfinding_point; cleared
+                                        //    with it
     actor_target_tally tally;         // 0x1ec the 0x7b-byte perception tally actor_choose_best_target
                                       //   zeroes (0x1e dwords, then a word, then a byte) and refills
                                       //   every time it walks the prop list. The three per-actor-type
@@ -466,18 +529,28 @@ typedef struct actor {
     uint8_t unknown_267;              // 0x267 the byte the zeroing run does not reach
     int16_t target_combat_status;     // 0x268 actor_update_target_combat_status writes it, actor_update_awareness_level reads it
     uint8_t unknown_26a[2];           // 0x26a
-    datum_index unknown_26c;          // 0x26c actor_new sets none
+    datum_index target_last_seen_time; // 0x26c int32 time (declared datum_index): actor_update_target_combat_status
+                                       //    0x4200d0 copies target prop last_seen_time while visual_perception > 0;
+                                       //    0x40b840 hide timer
     datum_index target_unit_index;    // 0x270 the unit the actor is fighting; actor_choose_best_target writes it
-    uint8_t unknown_274[4];           // 0x274
-    int32_t unknown_278;              // 0x278 actor_new sets -1
-    uint8_t unknown_27c;              // 0x27c
+    uint8_t ever_had_target[4];       // 0x274 0x41abd0 latches 1 once target_combat_status > 5, never cleared in the
+                                      //    rewrite; ai_communication_broadcast gate 0 is "not yet" (as
+                                      //    encounter.ever_had_target)
+    int32_t ticks_since_engaged;      // 0x278 -1 never; 0x41abd0 sets 0 while target_combat_status >= 10, +1
+                                      //    otherwise, -1 while stood_down; ai_communication_broadcast uses it as
+                                      //    encounter.ticks_since_engaged
+    uint8_t target_alive;             // 0x27c 0x4200d0: target prop not dead (or object vitality bit 2 clear for
+                                      //    orphans); ai_communication_broadcast uses it in place of
+                                      //    encounter.has_live_target
     uint8_t unknown_27d[3];           // 0x27d
     int16_t danger_type;              // 0x280 0x41ea60 and 0x41ec90 only register a danger that outranks this
     int16_t danger_unknown_282;       // 0x282
     int16_t danger_unknown_284;       // 0x284
     uint8_t danger_unknown_286;       // 0x286
     uint8_t unknown_287[3];           // 0x287
-    uint8_t unknown_28a;              // 0x28a
+    uint8_t danger_is_own;            // 0x28a actor_danger_update_reaction 0x41eda0: the danger projectile's parent
+                                      //    is this actor's unit; suppresses danger reaction / avoidance (0x41abd0,
+                                      //    0x40c040)
     uint8_t unknown_28b;              // 0x28b
     datum_index danger_object_index;  // 0x28c
     uint32_t danger_unknown_290;      // 0x290
@@ -490,13 +563,17 @@ typedef struct actor {
     uint32_t danger_unknown_2ac;      // 0x2ac
     real_point3d flee_from_point;     // 0x2b0 0x4146c0 resolves the point the actor flees away from; the
                                       //   danger scoring rule also uses it as a segment start
-    uint8_t unknown_2bc[12];          // 0x2bc
+    uint8_t danger_velocity[12];      // 0x2bc real_vector3d (declared uint8_t[12]): 0x41eda0 copies the danger
+                                      //    object's velocity; end point = pos + 45*vel; actor_find_danger_escape uses
+                                      //    -vel as axis
     real_point3d danger_segment_end;  // 0x2c8 0x4112b0 builds the segment flee_from_point -> here
     float danger_unknown_2d4;         // 0x2d4
     float danger_radius;              // 0x2d8 the sphere around danger_center a candidate has to be inside
     real_point3d danger_center;       // 0x2dc
     uint8_t unknown_2e8[5];           // 0x2e8
-    uint8_t unknown_2ed;              // 0x2ed
+    uint8_t vehicle_eviction;         // 0x2ed player_execute_pending_interaction / unit_find_best_seat_to_enter ->
+                                      //    0x42b810 sets it when a friendly player wants the seat;
+                                      //    actor_process_vehicle_seat_exit exits (CEA stimulus_vehicle_eviction)
     int16_t look_at_priority;         // 0x2ee 0x421bc0 keeps only the highest-priority look-at point
     uint8_t unknown_2f0[4];           // 0x2f0
     uint32_t look_at_unknown_2f4;     // 0x2f4

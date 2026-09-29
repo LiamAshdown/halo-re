@@ -48,7 +48,7 @@ uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *o
                     out_point->z = out_point->z + 0.2f;
                     *out_target_handle = self->target_unit_index;
                     *out_relationship = target_prop->relationship_object_index;
-                    if (self->unknown_1ca != 0) {
+                    if (self->playfight != 0) {
                         actor_choose_random_point_near(out_point, 1.5f);
                     }
                 }

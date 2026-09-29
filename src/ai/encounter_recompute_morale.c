@@ -124,7 +124,7 @@ void encounter_recompute_morale(datum_index encounter_index)
 
         if (a->unit_index == (datum_index)k_datum_index_none) {
             weight = a->cluster_count;
-            sample = (float)(int32_t)weight / (float)(int32_t)a->unknown_20;
+            sample = (float)(int32_t)weight / (float)(int32_t)a->total_cluster_count;
         } else {
             obj = ((object_header *)object_data->data)[a->unit_index & 0xffff].data;
             sample = ((object *)obj)->body_vitality;
@@ -168,7 +168,7 @@ void encounter_recompute_morale(datum_index encounter_index)
             if (a->has_engaged != 0) {
                 any_flag_8c = 1;
             }
-            if (a->unknown_8d != 0) {
+            if (a->witnessed_death != 0) {
                 any_flag_8d = 1;
             }
             if (a->combat_status < 7) {
@@ -187,7 +187,7 @@ void encounter_recompute_morale(datum_index encounter_index)
             enc->has_live_target = 1;
         }
 tally_vocalization:
-        if (0 < a->unknown_1e4) {
+        if (0 < a->post_combat_action) {
             any_vocalizing = 1;
         }
     }

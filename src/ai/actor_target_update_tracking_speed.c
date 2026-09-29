@@ -182,7 +182,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
     p->disregarded = (uint8_t)(unit->flags >> 10) & 1; // UNSURE: bit not named in units.h unit_flags
     if (p->enemy) {
         p->preferred_target = (uint8_t)(unit->flags >> 11) & 1; // UNSURE: bit not named
-        if (self->unknown_1d4 == 1) {
+        if (self->try_to_fight_type == 1) {
             if (p->owner_actor_index != (datum_index)k_datum_index_none) {
                 uint32_t team_ref = *(uint32_t *)&self->unknown_1d6[2]; // actor+0x1d8
                 if (team_ref != 0xffffffff) {
@@ -207,7 +207,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
                     }
                 }
             }
-        } else if (self->unknown_1d4 == 2 && p->is_parented) {
+        } else if (self->try_to_fight_type == 2 && p->is_parented) {
             p->preferred_target = 1;
         }
     }
@@ -401,7 +401,7 @@ after_engage:
             }
             if (!did_track) {
                 uint8_t use_urgent = 1;
-                if (self->unknown_15e == 4 || self->type == 0xf) {
+                if (self->vehicle_driving_type == 4 || self->type == 0xf) {
                     use_urgent = 0;
                 } else if (!p->enemy) {
                     use_urgent = 0;

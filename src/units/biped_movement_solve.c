@@ -89,7 +89,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                   b.j * solve->movement_delta.k;
         world.k = solve->facing.k * solve->movement_delta.i + a.k * solve->movement_delta.j +
                   b.k * solve->movement_delta.k;
-        one_minus_frozen = 1.0f - solve->unknown_48;
+        one_minus_frozen = 1.0f - solve->frozen_fraction;
         a.i = one_minus_frozen * world.i - solve->velocity.i;
         a.j = one_minus_frozen * world.j - solve->velocity.j;
         a.k = one_minus_frozen * world.k - solve->velocity.k;
@@ -118,7 +118,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
         float rotated_y = solve->movement_delta.j * solve->facing.i + solve->movement_delta.i * solve->facing.j;
         float dx, dy, length;
 
-        one_minus_frozen = 1.0f - solve->unknown_48;
+        one_minus_frozen = 1.0f - solve->frozen_fraction;
         dx = one_minus_frozen * rotated_x - solve->velocity.i;
         dy = one_minus_frozen * rotated_y - solve->velocity.j;
         delta2.i = dx;
@@ -208,7 +208,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                 scaled = scaled * speed;
             }
         }
-        scaled = (1.0f - solve->unknown_48) * scaled;
+        scaled = (1.0f - solve->frozen_fraction) * scaled;
 
         delta.i = direction.i * scaled - solve->velocity.i;
         delta.j = direction.j * scaled - solve->velocity.j;
@@ -260,7 +260,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             solve->result_flags |= 0x08;
         }
     }
-    solve->unknown_a8 = 0xffffffff;
+    solve->snapped_ground_surface_index = 0xffffffff;
     if (contact_count == 0 && solve->ground_surface_index != 0xffffffff) {
         ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
         int32_t surface_index = (int32_t)solve->ground_surface_index;
@@ -369,7 +369,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                     contact->breakable_surface_index = 0;
                     contact->material_type = -1;
                     contact_count = 1;
-                    solve->unknown_a8 = (uint32_t)best_surface;
+                    solve->snapped_ground_surface_index = (uint32_t)best_surface;
                 }
             }
         }
@@ -401,8 +401,8 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                 // 0x55fd99: compares the CURRENT BEST's surface (not contact i) with the snap surface.
                 // With no best yet the original reads the slot before contacts[0] (section 2's plane d
                 // bits), which never equals a surface index; treated as "no".
-                uint8_t is_snap_surface = solve->unknown_a8 != 0xffffffff && best >= 0 &&
-                                          (uint32_t)contacts[best].surface_index == solve->unknown_a8;
+                uint8_t is_snap_surface = solve->snapped_ground_surface_index != 0xffffffff && best >= 0 &&
+                                          (uint32_t)contacts[best].surface_index == solve->snapped_ground_surface_index;
                 float height = -(solve->result_velocity.i * contact->plane_i + contact->plane_j * solve->result_velocity.j +
                                  contact->plane_k * solve->result_velocity.k);
                 uint8_t take;
@@ -448,14 +448,14 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                 if (!best_walkable && !best_is_snap_surface) {
                     if (!(best_k >= solve->cosine_maximum_slope_angle)) {
                         landed = 0;                         // 0x55ff57 test ah,1: too steep (or NaN)
-                    } else if ((flags & 1) != 0 && solve->unknown_5c < 3.4028235e+38f) {
+                    } else if ((flags & 1) != 0 && solve->steep_landing_maximum_slide < 3.4028235e+38f) {
                         real_vector3d projected;
-                        float r = solve->unknown_5c;
+                        float r = solve->steep_landing_maximum_slide;
                         projected.i = plane.normal.i * penetration + e.i;
                         projected.j = plane.normal.j * penetration + e.j;
                         projected.k = plane.normal.k * penetration + e.k;
                         if (r * r < projected.i * projected.i + projected.j * projected.j + projected.k * projected.k &&
-                            penetration / vector3d_length(&e) < solve->unknown_60) {
+                            penetration / vector3d_length(&e) < solve->steep_landing_minimum_penetration) {
                             landed = 0;
                         }
                     }
@@ -466,7 +466,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                     solve->ground_normal = plane.normal;
                     *(float *)&solve->ground_plane = plane.d;
                     solve->result_ground_surface_index = surface;
-                    if (surface != 0xffffffff && surface == solve->unknown_a8) {
+                    if (surface != 0xffffffff && surface == solve->snapped_ground_surface_index) {
                         solve->result_impact_speed = 0.0f;
                     } else {
                         solve->result_impact_speed = -(e.j * solve->ground_normal.j + e.k * solve->ground_normal.k +
@@ -522,7 +522,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                 best_object = object_index;
             }
         }
-        solve->unknown_98 = best_object;
+        solve->fastest_contact_object = best_object;
         solve->result_surface_index = 0xffffffff;
 
         // a contacted device machine that carries whatever stands on it (0x560170)

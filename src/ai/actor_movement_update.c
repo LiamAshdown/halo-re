@@ -159,7 +159,7 @@ void actor_movement_update(datum_index actor_index)
         a->avoidance_direction = *global_origin3d_pointer;
         a->avoidance_scale = 0.0f;
         a->avoidance_emergency = 0.0f;
-    } else if (a->unknown_15e == 4) {
+    } else if (a->vehicle_driving_type == 4) {
         const real_vector3d *desired;
         real_vector3d probe;
         real_vector3d sampled;
@@ -246,13 +246,13 @@ void actor_movement_update(datum_index actor_index)
         movement_mode = actor_base[0x426];
     }
 
-    context = a->unknown_15e;
+    context = a->vehicle_driving_type;
     if (context < 1) {
         // ---- on foot -----------------------------------------------------------------
         if (a->order_committed != 0) {
             a->moving = 0;
             a->moving_facing_direction = 0;
-            actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->unknown_161 != 0) ? 1 : 0);
+            actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->vehicle_gunner != 0) ? 1 : 0);
             actor_base[0x58e] = 0;
             movement_mode = 0;
         } else if (a->secondary_action != -1) {
@@ -266,7 +266,7 @@ void actor_movement_update(datum_index actor_index)
             actor_base[0x58e] = 0;
             face_along_heading = 1;
             movement_mode = 0;
-        } else if (a->unknown_15c != 0 && a->flying == 0) {
+        } else if (a->airborne != 0 && a->flying == 0) {
             a->moving = 0;
             actor_base[0x58d] = 1;
             movement_mode = 0;
@@ -378,7 +378,7 @@ void actor_movement_update(datum_index actor_index)
         } else {
             a->moving = 0;
             a->moving_facing_direction = 0;
-            actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->unknown_161 != 0) ? 1 : 0);
+            actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->vehicle_gunner != 0) ? 1 : 0);
             movement_mode = 0;
         }
 
@@ -441,7 +441,7 @@ void actor_movement_update(datum_index actor_index)
     if (a->secondary_action == -1 &&
         (a->unit_index == (datum_index)k_datum_index_none || unit_is_in_busy_animation_state(a->unit_index) == 0) &&
         a->active_unit_index == (datum_index)k_datum_index_none &&
-        a->unknown_15c == 0 && a->unknown_378 != 0 && a->unknown_379 == 0) {
+        a->airborne == 0 && a->unknown_378 != 0 && a->unknown_379 == 0) {
         real_vector2d facing;
         datum_index target_object = (datum_index)k_datum_index_none;
 
@@ -466,7 +466,7 @@ void actor_movement_update(datum_index actor_index)
 
     if (vehicle_stuck) {
         a->control_flags |= 2u;
-    } else if (a->unknown_15c != 0 || a->active_unit_index != (datum_index)k_datum_index_none) {
+    } else if (a->airborne != 0 || a->active_unit_index != (datum_index)k_datum_index_none) {
         a->jump_velocity_request[0] = 0; // 0x530
     } else if (actor_action_has_queued_secondary(actor_index) == 0 && a->unknown_440 != 0) {
         uint8_t handled = 0;

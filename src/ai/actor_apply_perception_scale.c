@@ -39,7 +39,7 @@ uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zon
                 *in_out_value = *in_out_value * self->perception_scale;
             }
         }
-        if (self->unknown_1ca != 0) {
+        if (self->playfight != 0) {
             *in_out_value = *in_out_value * 0.3f;
             return 1;
         }

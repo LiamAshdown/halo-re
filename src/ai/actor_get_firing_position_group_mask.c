@@ -45,7 +45,7 @@ uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t k
                  [self->squad_index];
     groups = &squad->attacking;
 
-    searching = self->unknown_98;
+    searching = self->search_firing_positions;
     if (search_override == 1) {
         searching = 1;
     } else if (search_override == 2) {

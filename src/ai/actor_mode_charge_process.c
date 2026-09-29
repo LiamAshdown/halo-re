@@ -75,7 +75,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
     } else {
         target = PROP(((actor *)act)->target_unit_index);
         kind = *(int16_t *)(md + 0x4);
-        if (*(datum_index *)&((struct actor *)act)->unknown_1b0 != k_datum_index_none || kind == 5 || kind == 4) {
+        if (*(datum_index *)&((struct actor *)act)->stuck_projectile_index != k_datum_index_none || kind == 5 || kind == 4) {
             md[0x28] = 1;
         } else if (kind == 2 || kind == 3) {
             // 0x402034: melee kinds -- the strike range and the approach

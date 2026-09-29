@@ -99,7 +99,7 @@ int32_t unit_submit_periodic_network_update(int32_t hash_key, uint32_t param_2, 
 
         update_sequence = biped->network_update_sequence;
         delta_sequence = biped->network_delta_sequence;
-        shield_recharging = (char)obj->unknown_122;
+        shield_recharging = (char)obj->shield_update_pending;
         is_delta = (uint8_t)(update_type == 0);
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
@@ -109,7 +109,7 @@ int32_t unit_submit_periodic_network_update(int32_t hash_key, uint32_t param_2, 
                                           (int32_t)(performance_frequency >> 32));
 
         definition_index = (int32_t)object_type_definitions[obj->type]->network_delta_message_type;
-        obj->unknown_122 = 0;
+        obj->shield_update_pending = 0;
 
         if (update_type == 1) {
             if (shield_recharging == 1) {

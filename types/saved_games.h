@@ -313,7 +313,9 @@ typedef struct saved_player_profile {
     uint8_t unknown_130;           // 0x130 0
     uint8_t look_inverted_driving; // 0x131 0; copied to the live settings +0x859 (0x4963a0):
                                    //       negates look_y while 0x48fd60 reports a driver seat
-    uint8_t unknown_132;           // 0x132 never written
+    uint8_t auto_center_look;      // 0x132 player_profile_get_flag_by_id 0x495a60 returns profile+0x132;
+                                   //    game_engine_update_local_player_control gates autolevelling_ticks on it; UI
+                                   //    0x4a0fb0 5th row
     uint8_t unknown_133;           // 0x133 0
     int16_t keyboard_bindings[k_control_keyboard_key_count];
                                    // 0x134 action per key; control_profile_reset_digital_bindings
@@ -361,12 +363,20 @@ typedef struct saved_player_profile {
     int16_t screen_height;         // 0xa6a 600 (480)
     int16_t refresh_rate;          // 0xa6c 60, or the -vidmode refresh
     uint8_t unknown_a6e;           // 0xa6e 2
-    uint8_t unknown_a6f;           // 0xa6f 2 on low-end, else from the current display mode
-    uint8_t unknown_a70;           // 0xa70 capability flags set from the machine class
-    uint8_t unknown_a71;           // 0xa71
-    uint8_t unknown_a72;           // 0xa72 rasterizer_decal_zbias_active on high-end
-    uint8_t unknown_a73;           // 0xa73
-    uint8_t unknown_a74;           // 0xa74
+    uint8_t frame_rate_mode;       // 0xa6f player_profile_apply_video_options 0x495580: vsync = !=0, 0x6894ba (30 fps
+                                   //    lock) = ==2; video_options_menu_populate row after refresh, 0..2
+    uint8_t specular;              // 0xa70 0x495580 feeds the three specular toggles (0x6893f7/f6/fa) unless
+                                   //    config_disable_specular; 0x53b000 default !config_disable_specular; UI greys
+                                   //    it without ps1.1
+    uint8_t shadows;               // 0xa71 0x495580 -> console_debug_toggle_6893f2 only on shader version >=
+                                   //    0xffff0101; UI row after specular (Halo PC video menu order); default 1 on
+                                   //    capable machines
+    uint8_t decals;                // 0xa72 0x495580 -> decals_for_all_responses gated on raster caps 0x6000000;
+                                   //    0x53b000 default rasterizer_decal_zbias_active()
+    uint8_t particles;             // 0xa73 0x495580 -> particle_systems_enabled / particle_spawn_debug_mode; UI list
+                                   //    0..2; default 2, low-end !safe_mode
+    uint8_t texture_quality;       // 0xa74 0x495580 maps 0/1/2 to renderer_texture_quality 2/1/0 and flushes
+                                   //    texture_cache on change; UI list 0..2
     uint8_t unknown_a75;           // 0xa75 2
     int8_t gamma;                  // 0xa76 rasterizer_gamma_exponent (0x0071d1e0), 0 -> 1, -1 -> -2
     uint8_t unknown_a77[0x101];    // 0xa77 never written by this module
@@ -374,24 +384,32 @@ typedef struct saved_player_profile {
     uint8_t master_volume;         // 0xb78 10; 0..10, x 0.1 in audio_options_apply_from_profile
     uint8_t effects_volume;        // 0xb79 10
     uint8_t music_volume;          // 0xb7a 6
-    uint8_t unknown_b7b;           // 0xb7b 0; gated by two sound capability flags in the UI
-    uint8_t unknown_b7c;           // 0xb7c 0; a boolean row in the UI
-    uint8_t unknown_b7d;           // 0xb7d 1 on a fast machine else 0; UI list 0..2
+    uint8_t hardware_acceleration; // 0xb7b 0x4957d0 passes (+0xb7b == 1) as arg2 of sound_driver_set_quality (effects
+                                   //    object reinit); UI row shown checked only with DirectSound+EAX
+    uint8_t eax_enabled;           // 0xb7c 0x4957d0 environment flag = directsound_eax_available && +0xb7c ->
+                                   //    sound_driver_set_quality arg1; UI 0x4a22e0 hides the row without EAX
+    uint8_t sound_quality;         // 0xb7d 0x4957d0 passes it as the quality arg of sound_driver_set_quality 0x5480f0
+                                   //    (clamped 0..2 -> directsound_quality); UI list 0..2
     uint8_t unknown_b7e;           // 0xb7e 0
-    uint8_t unknown_b7f;           // 0xb7f 2 on a fast machine else 1; UI list 0..2
+    uint8_t sound_variety;         // 0xb7f 0x4957d0 sound_permutation_limit = +0xb7f; UI list 0..2; default 2 fast
+                                   //    machine else 1
     uint8_t unknown_b80[0x100];    // 0xb80 never written by this module
     // 0xc80 .. 0xd8b, carried over as one 0x10b-byte block
-    uint8_t unknown_c80;           // 0xc80 3
-    uint8_t unknown_c81;           // 0xc81 1
-    uint8_t unknown_c82;           // 0xc82 1
-    uint8_t unknown_c83;           // 0xc83 0
-    uint8_t unknown_c84;           // 0xc84 0
-    uint8_t unknown_c85;           // 0xc85 0
-    uint8_t unknown_c86;           // 0xc86 1
-    uint8_t unknown_c87;           // 0xc87 1
-    uint8_t unknown_c88;           // 0xc88 0
-    uint8_t unknown_c89;           // 0xc89 0
-    uint8_t unknown_c8a;           // 0xc8a 0
+    uint8_t server_browser_sort_column; // 0xc80 server_browser_closed_event 0x4b7920 stores
+                                        //    server_browser_sort_column (0x719489) at +0xc80
+    uint8_t server_browser_sort_ascending; // 0xc81 0x4b7920 stores server_browser_sort_ascending (0x6953f8) at +0xc81
+    uint8_t server_browser_allow_password; // 0xc82 0x4b7920 stores server_browser_allow_password (0x6953f9) at +0xc82
+    uint8_t server_browser_dedicated_only; // 0xc83 0x4b7920 stores server_browser_filter_dedicated_only (0x71948b) at
+                                           //    +0xc83
+    uint8_t server_browser_classic_only; // 0xc84 0x4b7920 stores server_browser_filter_classic_only (0x71948c) at
+                                         //    +0xc84
+    uint8_t server_browser_allow_unknown_map; // 0xc85 0x4b7920 stores server_browser_filter_allow_unknown_map
+                                              //    (0x71948d) at +0xc85
+    uint8_t server_browser_allow_empty; // 0xc86 0x4b7920 stores server_browser_allow_empty at +0xc86 (default 1)
+    uint8_t server_browser_allow_full; // 0xc87 0x4b7920 stores server_browser_allow_full at +0xc87 (default 1)
+    uint8_t server_browser_game_type; // 0xc88 0x4b7920 stores server_browser_filter_gametype (0x71948e) at +0xc88
+    uint8_t server_browser_team_play; // 0xc89 0x4b7920 stores server_browser_filter_teamplay at +0xc89
+    uint8_t server_browser_ping_limit; // 0xc8a 0x4b7920 stores server_browser_filter_ping_limit_index at +0xc8a
     uint8_t unknown_c8b[0x100];    // 0xc8b never written by this module
     uint8_t unknown_d8b;           // 0xd8b outside every copy
     // network (0xd8c .. 0x1108), player_profile_set_default_server_options (0x53a150) writes the same defaults
@@ -399,11 +417,15 @@ typedef struct saved_player_profile {
                                    //       Length UNSURE: 0x120 bytes run up to the password
     uint16_t server_password[9];   // 0xeac wide, empty by default (8 characters plus terminator)
     uint8_t unknown_ebe;           // 0xebe 0
-    uint8_t unknown_ebf;           // 0xebf 3; the UI clamps it to the row count of unknown_fc0
+    uint8_t server_maximum_players_index; // 0xebf ui_network_host_setup_defaults_init 0x4a2ad0: clamped to row count
+                                          //    of the +0xfc0 choice, sv_maxplayers_value = table_0x65bf74[it];
+                                          //    0x4a2f10 saves it
     uint8_t unknown_ec0[0x100];    // 0xec0 never written by this module
-    uint8_t unknown_fc0;           // 0xfc0 1; the UI reads it as a 0..4 choice
+    uint8_t connection_type;       // 0xfc0 0x4a2ad0/0x4a39e0/0x4a2f10/0x4a3960: a 0..4 spinner choice that selects
+                                   //    the max-player table row (Halo PC network setup connection type)
     uint8_t unknown_fc1;           // 0xfc1
-    uint16_t unknown_fc2[0x20];    // 0xfc2 wide string, empty by default; the UI wcscpys a host
+    uint16_t join_server_address[0x20]; // 0xfc2 ui_network_client_connect_and_save 0x4a4a30 wcscpys the host-address
+                                        //    edit field 0x719238 (32 chars) here before connecting
                                    //       name field (0x00719238) here
     uint16_t server_port;          // 0x1002 2302 (0x8fe)
     uint16_t client_port;          // 0x1004 2303 (0x8ff)

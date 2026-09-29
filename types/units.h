@@ -340,14 +340,17 @@ typedef struct biped_movement_solver_data {
                                         //      tick; 0x55bea0 always passes 0
     real_vector3d movement_delta;       // 0x3c the per-tick displacement, from the frame_info of
                                         //      the animation or from the player physics block
-    float unknown_48;                   // 0x48 0 normally, 1.0 on the "frozen" shortcut
+    float frozen_fraction;              // 0x48 biped_integrate_movement: 1.0 on the landing_type==1 frozen path else
+                                        //    0; biped_movement_solve scales every desired velocity by (1 - it)
     float maximum_acceleration;         // 0x4c 0.0053333333 by default, FLT_MAX when the
                                         //      animation drives the velocity directly
     float airborne_acceleration;        // 0x50 GlobalsPlayerInformation.airborne_acceleration / 30
     float pill_height;                  // 0x54 first output of unit_get_crouch_height_offset
     float pill_radius;                  // 0x58 second output of it (Biped.collision_radius)
-    float unknown_5c;                   // 0x5c FLT_MAX, or 0.1 for a freshly grounded actor
-    float unknown_60;                   // 0x60 0, or 0.5 in that same case
+    float steep_landing_maximum_slide;  // 0x5c solve: airborne + too-steep ground contact rejected when projected
+                                        //    slide > it (FLT_MAX off; 0.1 for freshly grounded AI)
+    float steep_landing_minimum_penetration; // 0x60 solve: same test also needs penetration/|delta| < it (0 off; 0.5
+                                             //    for freshly grounded AI)
     float cosine_maximum_slope_angle;   // 0x64 Biped tag 0x4d0
     float negative_sine_downhill_falloff_angle; // 0x68 Biped tag 0x4d4
     float negative_sine_downhill_cutoff_angle;  // 0x6c Biped tag 0x4d8
@@ -360,14 +363,18 @@ typedef struct biped_movement_solver_data {
     uint32_t ground_plane;              // 0x8c biped_data.unknown_520
     datum_index ground_surface_index;   // 0x90 biped_data.ground_surface_index on entry
     uint32_t unknown_94;                // 0x94 neither integrator touches it
-    uint32_t unknown_98;                // 0x98 neither integrator touches it
+    uint32_t fastest_contact_object;    // 0x98 biped_movement_solve 0x55efd0 stores the contacted object with highest
+                                        //    relative speed (vehicles preferred); 0x55dfcd passes it to
+                                        //    biped_update_target_lock_timer
     datum_index result_surface_index;   // 0x9c out: -1 when the solve ended airborne; otherwise
                                         //      stored in biped_data.last_ground_object_index and the 0x4d3
                                         //      countdown is reloaded with 60
     uint8_t result_flags;               // 0xa0 out: biped_movement_solver_result_flags
     uint8_t unknown_a1[3];              // 0xa1 alignment
     datum_index result_ground_surface_index; // 0xa4 out: the new biped_data.ground_surface_index
-    uint32_t unknown_a8;                // 0xa8
+    uint32_t snapped_ground_surface_index; // 0xa8 biped_movement_solve: -1, or the BSP surface synthesized as a
+                                           //    ground contact when the sweep found none; that contact is preferred
+                                           //    and gives 0 impact speed
     real_point3d result_position;       // 0xac out: the solved position
     real_vector3d result_velocity;      // 0xb8 out: the solved velocity
     float result_impact_speed;          // 0xc4 out: the landing speed the fall-damage and

@@ -412,10 +412,13 @@ typedef struct network_listen_accept_config {
 typedef struct network_player_entry {
     uint16_t name[12];           // 0x00 UTF-16, NUL terminated inside the field
     int16_t color_index;         // 0x18 0xffff when unused; 0x4df790 picks a free one
-    int16_t unknown_1a;          // 0x1a reset to 0xffff alongside color_index
+    int16_t icon_index;          // 0x1a reset to -1 with color_index in session reset/remove/settings_updated; no
+                                 //    reader; OpenSauce/Chimera network player layout {primary_color_index,
+                                 //    icon_index} at 0x18/0x1a
     int8_t machine_index;        // 0x1c 0xff when the row is free
     int8_t machine_player_index; // 0x1d always 0 on the PC build
-    int8_t unknown_1e;           // 0x1e 0xff when free
+    int8_t team_index;           // 0x1e network_game_any_team_empty counts entries per team 0/1; sv_players prints
+                                 //    red/blue from it; finalize_and_add_player assigns a team when -1
     int8_t slot_index;           // 0x1f 0xff when free, else the row index in players[]
 } network_player_entry;          // size 0x20
 
@@ -437,11 +440,13 @@ typedef struct network_game_session {
     game_variant variant;      // 0x104 see types/game.h
     uint8_t unknown_19c;       // 0x19c
     uint8_t maximum_players;   // 0x19d initialized to 16
-    int16_t unknown_19e;       // 0x19e seeded from 0x00696564
+    int16_t difficulty;        // 0x19e network_game_scenario_load_request 0x4de6d0 request.difficulty =
+                               //    session+0x19e; host_new seeds it from pending_difficulty 0x696564
     int16_t player_count;      // 0x1a0 the value the summary log averages
     network_player_entry players[16]; // 0x1a2
     uint8_t unknown_3a2[10];   // 0x3a2
-    uint8_t unknown_3ac;       // 0x3ac copied from 0x0071c2c1
+    uint8_t map_loaded;        // 0x3ac 0x4de6d0 sets 1 after scenario_load/game_start_new_map (0 on key-open failure)
+                               //    and returns it; dispatch/shutdown load the UI map when set then clear
     uint8_t pad_3ad[3];        // 0x3ad
 } network_game_session;        // size 0x3b0
 
@@ -465,17 +470,23 @@ typedef struct network_machine {
     int16_t machine_id;          // 0x0c 0xffff means the slot is free
     uint8_t flags;               // 0x0e see network_machine_flags
     uint8_t unknown_0f;          // 0x0f
-    uint8_t unknown_10;          // 0x10 cleared by 0x4df690
+    uint8_t disconnect_timer_active; // 0x10 network_machine_timer_start 0x4df090 sets 1 with timer_14 start /
+                                     //    timer_18 deadline; 0x4e11d0 services the channel only while 0; reset clears
+                                     //    it
     uint8_t pad_11[3];           // 0x11
     int32_t timer_14;            // 0x14 cleared by 0x4df690
     int32_t timer_18;            // 0x18 cleared by 0x4df690
     uint8_t connect_state[0x34]; // 0x1c zeroed as one block by 0x4df690
-    uint8_t unknown_50;          // 0x50 cleared by 0x4e0b90
-    uint8_t unknown_51;          // 0x51
+    uint8_t player_joined;       // 0x50 handle_client_join 0x4dfc90 sets 1 after the player is created; player_delete
+                                 //    clears via 0x4e0b90; timeout 0x4e0ef0 frees the slot only when 0
+    uint8_t players_removed_broadcast; // 0x51 0x4e0ef0: on a timed-out machine that still has players, broadcasts
+                                       //    each player's removal once, then sets 1 and returns early thereafter
     int32_t unknown_52;          // 0x52 unaligned in the original
     int32_t unknown_56;          // 0x56 unaligned in the original
     int16_t unknown_5a;          // 0x5a
-    int32_t unknown_5c;          // 0x5c initialized to -1
+    int32_t gcd_user_id;         // 0x5c 0x4e0ef0 gcd_disconnect_user(network_console_connection_id, it) (-1 ->
+                                 //    gcd_disconnect_all); sv_ban/autoban pass it to network_banlist_add_ban; -1 at
+                                 //    init
 } network_machine;               // size 0x60
 
 // ---------------------------------------------------------------------------
@@ -591,7 +602,9 @@ typedef enum network_client_state {
 // directly, so every offset below is that global minus 0x00872de0.
 // ---------------------------------------------------------------------------
 typedef struct network_client_globals {
-    uint16_t unknown_000;      // 0x000 initialized to 0xffff
+    uint16_t machine_index;    // 0x000 0x4d94c0 stores join-accept +0xc; network_client_rejoin_check and ui
+                               //    0x49dca0/0x4a5740 compare *(int16*)network_client to player.machine_index; 0xffff
+                               //    at create
     uint8_t unknown_002[0xab2];// 0x002
     network_connection_endpoint connection; // 0xab4 the server this client is talking to
     network_channel *channel;  // 0xadc network_channel_new(2), deleted by destroy
@@ -599,20 +612,33 @@ typedef struct network_client_globals {
     network_game_session session; // 0xb14 the same block the server embeds at +0x008
     int32_t unknown_ec4;       // 0xec4
     int32_t unknown_ec8;       // 0xec8
-    int32_t unknown_ecc;       // 0xecc
-    int32_t unknown_ed0;       // 0xed0
-    int32_t unknown_ed4;       // 0xed4
-    uint16_t unknown_ed8;      // 0xed8 initialized to 0xffff
+    int32_t last_update_id;    // 0xecc network_game_state_update_receive 0x4d9d20: record id <= it -> network error;
+                               //    stored after apply; update_server_send_update reads &0x7fffffff as ack
+    int32_t last_update_received_ms; // 0xed0 0x4d9d20 stores QPC ms after applying a game state update; zeroed at
+                                     //    create
+    int32_t last_presence_broadcast_ms; // 0xed4 network_host_presence_broadcast_tick: sends when +1000 < now and
+                                        //    restamps
+    uint16_t game_start_countdown_seconds; // 0xed8 0x4dbf30 decodes a class-2 16-bit value into it; ui 0x4a5740
+                                           //    formats it as 0:%02d / %02d:%02d countdown, 0 = starting; 0xffff at
+                                           //    create
     uint16_t state;            // 0xeda see network_client_state; NOT padding, see 0x4d8bb0
-    int16_t unknown_edc;       // 0xedc
-    uint16_t unknown_ede;      // 0xede bits 1 and 2 cleared at create
-    uint8_t unknown_ee0;       // 0xee0
-    uint8_t unknown_ee1;       // 0xee1
+    int16_t disconnect_reason; // 0xedc 0 at create; 0x4d9ce0 / 0x4dc4b0 (server notification) default it to 8;
+                               //    main_loop maps 8 to join error 4 else 6; dispatch only continues while 0
+    uint16_t flags;            // 0xede bit 0x2 set once the join/settings packet (0x4d94c0) was sent and gates
+                               //    resending; bit 0x4 gates the 3 s join-status text in
+                               //    network_join_connect_retry_tick 0x4dab80; create clears 0x6
+    uint8_t network_error_displayed; // 0xee0 network_disconnect_notify_dropped_machines 0x4d9340 shows
+                                     //    display_error(8) only while 0 then sets 1; called on every decode/sequence
+                                     //    failure
+    uint8_t connection_stalled; // 0xee1 network_game_client_update: channel flags bit 5, also starts
+                                //    ui_network_wait_timeout; zeroed at create/finalize_join
     uint16_t pad_ee2;          // 0xee2
     network_client_timer_record timer; // 0xee4 the first five dwords of the zeroed run
     network_resolved_address server_address; // 0xef8 filled by 0x4dd390 from
                                //       client->channel; 0x4d9f23 is `lea ecx,[esi+0xef8]`
-    int32_t unknown_f10;       // 0xf10 initialized to -1
+    int32_t team_index;        // 0xf10 identity_tick keeps player->team (+0x20) across reconnect;
+                               //    game_settings_updated copies player+0x20; 0x4d94c0 sends it as join frame byte
+                               //    0x8c; -1 at create
     int32_t unknown_f14[13];   // 0xf14 zeroed as one run at create
     void *update_history;      // 0xf48 player_update_history *, GlobalAlloc of 0x2c
 } network_client_globals;      // size 0xf4c
@@ -672,7 +698,9 @@ typedef struct player_update_history {
     int32_t next_update_id;           // 0x00 incremented modulo 0x40 per add
     player_update_history_node *head; // 0x04
     player_update_history_node *tail; // 0x08
-    int32_t unknown_0c[8];            // 0x0c the rest of the 0x2c allocation
+    int32_t statistics[8];            // 0x0c player_update_history_play 0x4e6ff0: [0] calls,[1] total updates,[2]
+                                      //    total ticks,[3]/[4] last updates/ticks,[5] total distance f,[6] avg
+                                      //    distance f,[7] avg ticks f
 } player_update_history;              // size 0x2c
 // Ordering windows: a local player acknowledgement is accepted while it is within
 // 15 of the current id (0x4e69b0), a remote player update while it is within 3 of

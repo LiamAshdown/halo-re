@@ -390,7 +390,7 @@ have_targets:
                                 }
                             }
 
-                            if (member->unknown_09 == 0) {
+                            if (member->encounterless == 0) {
                                 if (member->encounter_index != (datum_index)0xffffffff) {
                                     encounter_remove_actor(next_actor, 0);
                                 }
@@ -402,8 +402,8 @@ have_targets:
                                 if (ai_globals_ptr->actors_valid != 0) {
                                     member->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
                                     ai_globals_ptr->first_encounterless_actor = next_actor;
-                                    member->unknown_09 = 1;
-                                    *(uint16_t *)&member->unknown_10 = -(uint16_t)(member->active != 0) & 0x5a;
+                                    member->encounterless = 1;
+                                    *(uint16_t *)&member->activation_delay = -(uint16_t)(member->active != 0) & 0x5a;
                                     // FIXED (0x439d05..0x439d31): the firing position and a type 3 / 4 movement are
                                     //   reset again before the mode callback
                                     member->firing_position_index = (int16_t)0xffff;

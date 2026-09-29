@@ -41,7 +41,7 @@ void network_disconnect_notify_dropped_machines(network_client_globals *client)
     if (network_disconnect_notice_shown != 0) {
         return;
     }
-    if (client->unknown_ee0 == 0) {
+    if (client->network_error_displayed == 0) {
         player_index = -1;
         if (*(int32_t *)&local_player_globals[4] != -1) {
             player_index = 0;
@@ -57,7 +57,7 @@ void network_disconnect_notify_dropped_machines(network_client_globals *client)
             player_index_16 = (int16_t)next;
         }
     }
-    client->unknown_ee0 = 1;
+    client->network_error_displayed = 1;
 }
 
 #if 0

@@ -37,7 +37,7 @@ uint32_t widget_cyclable_list_nudge(widget_instance *widget)
             goto play_and_return;
         }
         ((struct widget_instance *)widget)->scroll_blink = (int16_t)0xfffc;
-        ((struct widget_instance *)widget)->unknown_54 = -1;
+        ((struct widget_instance *)widget)->selection_direction = -1;
     } else {
         if (side != 1) {
             return 1;
@@ -50,7 +50,7 @@ uint32_t widget_cyclable_list_nudge(widget_instance *widget)
             goto play_and_return;
         }
         ((struct widget_instance *)widget)->scroll_blink = 4;
-        ((struct widget_instance *)widget)->unknown_54 = 1;
+        ((struct widget_instance *)widget)->selection_direction = 1;
     }
     widget->selection_index = (int16_t)new_index;
     widget_play_sound_effect(0); // UNSURE: effect id read from an unresolved register here

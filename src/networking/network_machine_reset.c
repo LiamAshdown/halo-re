@@ -29,10 +29,10 @@ int32_t network_machine_reset(network_machine *machine)
     // remote address into a local that the rest of the function ignores.
     network_channel_remote_address_or_default(machine->channel, &sender);
     machine->flags = machine->flags | k_network_machine_pending;
-    machine->unknown_10 = 0;
+    machine->disconnect_timer_active = 0;
     machine->timer_14 = 0;
     machine->timer_18 = 0;
-    machine->unknown_50 = 0;
+    machine->player_joined = 0;
     memset(machine->connect_state, 0, sizeof(machine->connect_state));
     return 1;
 }

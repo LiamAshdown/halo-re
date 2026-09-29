@@ -27,7 +27,7 @@ uint8_t actor_wants_reload_or_swap(uint32_t actor_index)
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
     uint8_t result = 0;
 
-    if (a->pending_command_list != -1 && a->unknown_92 > 0) {
+    if (a->pending_command_list != -1 && a->command_list_delay > 0) {
         result = 1;
     }
 

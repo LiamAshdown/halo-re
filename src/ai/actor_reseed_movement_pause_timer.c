@@ -48,7 +48,7 @@ void actor_reseed_movement_pause_timer(datum_index actor_index)
     if (entry_b != 0 && *(float *)(entry_b + 4) != 0.0f) {
         pause = pause * *(float *)(entry_b + 4);
     }
-    if (self->unknown_1ca != 0) {
+    if (self->playfight != 0) {
         pause = pause * 1.7f;
     }
     self->firing_state_timer = (int16_t)(int32_t)(pause * 30.0f); // __ftol

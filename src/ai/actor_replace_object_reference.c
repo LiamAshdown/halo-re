@@ -75,13 +75,13 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
         }
         self->unknown_3ac = new_reference;
     }
-    if (self->unknown_1d0 == old_reference) {
-        self->unknown_1d0 = new_reference;
+    if (self->nearby_friend_prop_index == old_reference) {
+        self->nearby_friend_prop_index = new_reference;
     }
-    if (self->unknown_1e8 == old_reference) {
-        self->unknown_1e8 = new_reference;
+    if (self->post_combat_prop_index == old_reference) {
+        self->post_combat_prop_index = new_reference;
         if (new_reference == 0xffffffff) {
-            self->unknown_1e4 = 0;
+            self->post_combat_action = 0;
         }
     }
 

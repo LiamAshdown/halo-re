@@ -36,7 +36,7 @@ void actor_update_target_lead_position(datum_index actor_index)
     real_point3d *point = (real_point3d *)(a + 0x168);
     datum_index vehicle;
 
-    if (((struct actor *)a)->unknown_164 != -1) {
+    if (((struct actor *)a)->pathfinding_surface_index != -1) {
         return;
     }
     *point = *(real_point3d *)&((actor *)a)->body_position.x;
@@ -45,15 +45,15 @@ void actor_update_target_lead_position(datum_index actor_index)
     }
     vehicle = ((actor *)a)->active_unit_index;
     if (vehicle != k_datum_index_none) {
-        int16_t seat_kind = ((struct actor *)a)->unknown_15e;
+        int16_t seat_kind = ((struct actor *)a)->vehicle_driving_type;
 
         if (seat_kind >= 2 && seat_kind <= 3) {
-            ((struct actor *)a)->unknown_164 = unit_predict_aim_target_position(vehicle, point);
+            ((struct actor *)a)->pathfinding_surface_index = unit_predict_aim_target_position(vehicle, point);
         }
         return;
     }
     if (object_try_and_get(((actor *)a)->unit_index, 1) != 0) {
-        ((struct actor *)a)->unknown_164 = (int32_t)biped_get_cached_look_at_position(((actor *)a)->unit_index, point);
+        ((struct actor *)a)->pathfinding_surface_index = (int32_t)biped_get_cached_look_at_position(((actor *)a)->unit_index, point);
     }
 }
 

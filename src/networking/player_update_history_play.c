@@ -92,9 +92,9 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
 
     vehicle_obj = 0;
     node = player_update_history_find_and_prune(history, prune_target_id, prune);
-    history->unknown_0c[0] = history->unknown_0c[0] + 1; // call count
-    history->unknown_0c[3] = 0; // last-call update count
-    history->unknown_0c[4] = 0; // last-call tick count
+    history->statistics[0] = history->statistics[0] + 1; // call count
+    history->statistics[3] = 0; // last-call update count
+    history->statistics[4] = 0; // last-call tick count
 
     if (unit_index == (datum_index)-1) {
         result = 0;
@@ -163,7 +163,7 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
         unit_obj->animation_graph = *(datum_index *)(node->unit_state + 0x24);
         unit_obj->animation_index = *(int16_t *)(node->unit_state + 0x28);
         unit_obj->animation_frame = *(int16_t *)(node->unit_state + 0x2a);
-        unit_obj->unknown_0d4 = *(int16_t *)(node->unit_state + 0x2c);
+        unit_obj->interpolation_frame_index = *(int16_t *)(node->unit_state + 0x2c);
         unit_obj->node_function_count = *(int16_t *)(node->unit_state + 0x2e);
         memcpy(&unit_ext->animation_state_flags, node->unit_state + 0x30, 0x48);
         memcpy(&unit_ext->seat_acceleration_last_position, node->unit_state + 0x78, 0x30);
@@ -260,19 +260,19 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
         // unknown_0c[0] call count, [1] cumulative updates, [2] cumulative ticks,
         // [3] last-call updates, [4] last-call ticks, [5] cumulative distance (float),
         // [6] average distance (float), [7] average ticks per call (float)
-        result = history->unknown_0c[2] + ticks_this_call;
-        history->unknown_0c[1] = history->unknown_0c[1] + updates_this_call;
-        history->unknown_0c[2] = result;
-        history->unknown_0c[4] = ticks_this_call;
-        result = result / history->unknown_0c[0];
-        history->unknown_0c[3] = updates_this_call;
-        *(float *)&history->unknown_0c[7] = (float)result;
+        result = history->statistics[2] + ticks_this_call;
+        history->statistics[1] = history->statistics[1] + updates_this_call;
+        history->statistics[2] = result;
+        history->statistics[4] = ticks_this_call;
+        result = result / history->statistics[0];
+        history->statistics[3] = updates_this_call;
+        *(float *)&history->statistics[7] = (float)result;
         dz = end2_z - original_z;
         distance = (real)sqrt((double)((end2_x - original_x) * (end2_x - original_x) +
                         (end2_y - original_y) * (end2_y - original_y) + dz * dz)) +
-            *(float *)&history->unknown_0c[5];
-        *(float *)&history->unknown_0c[5] = distance;
-        *(float *)&history->unknown_0c[6] = distance / (float)history->unknown_0c[0];
+            *(float *)&history->statistics[5];
+        *(float *)&history->statistics[5] = distance;
+        *(float *)&history->statistics[6] = distance / (float)history->statistics[0];
         return result;
     }
 

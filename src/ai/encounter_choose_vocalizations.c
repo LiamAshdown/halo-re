@@ -259,8 +259,8 @@ void encounter_choose_vocalizations(datum_index encounter_index)
         if (chosen_actor != (datum_index)k_datum_index_none) {
             chosen = &((actor *)actor_data->data)[chosen_actor & 0xffff];
 
-            if (0.5f <= chosen->unknown_1b8 ||
-                chosen->unknown_3b4 - chosen->unknown_1b8 <= 0.3f) {
+            if (0.5f <= chosen->body_vitality ||
+                chosen->unknown_3b4 - chosen->body_vitality <= 0.3f) {
                 head_count = enc->living_count;
                 if (head_count == 1 && 1 < enc->pre_combat_living_count) {
                     morale_line = 1;
@@ -279,7 +279,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                             goto stamp;
                         }
                     }
-                    if (0.8f < chosen->unknown_1b8) {
+                    if (0.8f < chosen->body_vitality) {
                         morale_line = 2;
                     }
                 }
@@ -335,19 +335,19 @@ stamp:
     for (i = 0; i < 2; i = i + 1) {
         if (picked_bucket[i] != -1 && picked[i].handle != (datum_index)k_datum_index_none) {
             a = &((actor *)actor_data->data)[picked[i].handle & 0xffff];
-            a->unknown_1e4 = ai_vocalization_line_table[picked_bucket[i]];
-            a->unknown_1e8 = picked[i].payload;
+            a->post_combat_action = ai_vocalization_line_table[picked_bucket[i]];
+            a->post_combat_prop_index = picked[i].payload;
         }
     }
 
     if (morale_line != -1 && morale_actor != (datum_index)k_datum_index_none) {
         a = &((actor *)actor_data->data)[morale_actor & 0xffff];
-        a->unknown_1e4 = morale_line;
-        a->unknown_1e8 = (datum_index)k_datum_index_none;
+        a->post_combat_action = morale_line;
+        a->post_combat_prop_index = (datum_index)k_datum_index_none;
         if (nearest_actor != (datum_index)k_datum_index_none) {
             a = &((actor *)actor_data->data)[nearest_actor & 0xffff];
-            a->unknown_1e4 = 6;
-            a->unknown_1e8 = nearest_prop;
+            a->post_combat_action = 6;
+            a->post_combat_prop_index = nearest_prop;
         }
     }
 

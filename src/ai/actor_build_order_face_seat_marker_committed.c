@@ -46,7 +46,7 @@ uint32_t actor_build_order_face_seat_marker_committed(uint32_t actor_index, int1
         order[7] = *(uint32_t *)&fp->position.z;
         order[4] = *(uint32_t *)&fp->surface_index;
         *(uint16_t *)(order + 3) = fp->cluster_index;
-        a->unknown_98 = 1;
+        a->search_firing_positions = 1;
         return 1;
     }
     return result;

@@ -61,7 +61,7 @@ uint8_t network_session_player_table_index_apply(network_client_globals *client,
     }
 
     player_slot = player_data_iterator_advance((int8_t)client->session.players[i].slot_index);
-    if (client->session.unknown_3ac != 0 && player_slot != 0 && (uint32_t)player_slot != 0xffffffff &&
+    if (client->session.map_loaded != 0 && player_slot != 0 && (uint32_t)player_slot != 0xffffffff &&
         table_index != -1) {
         player_base = *(uint8_t **)((uint8_t *)player_data + 0x34);
         *(int32_t *)(player_base + ((uint32_t)player_slot & 0xffff) * 0x200 + 0xd0) = table_index;

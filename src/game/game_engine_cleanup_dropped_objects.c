@@ -81,7 +81,7 @@ void game_engine_cleanup_dropped_objects(void)
 
     obj = object_iterator_next(&iterator);
     while (obj != 0) {
-        if (900 < *(int16_t *)&((struct object *)obj)->unknown_0bc &&
+        if (900 < *(int16_t *)&((struct object *)obj)->dead_at_rest_ticks &&
             (*(uint8_t *)&((object *)obj)->vitality_flags & 4) != 0) {
             if (obj->network_role == 0) {
                 object_delete_unparented(iterator.handle);

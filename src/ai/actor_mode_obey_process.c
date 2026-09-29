@@ -47,7 +47,7 @@ uint8_t actor_mode_obey_process(uint32_t actor_index)
             }
         }
         if (mark) {
-            ((struct actor *)actor)->unknown_94 = game_time->game_time;
+            ((struct actor *)actor)->command_list_finished_time = game_time->game_time;
             mode_data[5] = 1;
         }
     }

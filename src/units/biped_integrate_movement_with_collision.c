@@ -166,14 +166,14 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
     solve.ground_normal = biped->ground_normal;
     solve.ground_plane = biped->ground_plane_distance;
     solve.ground_surface_index = biped->ground_surface_index;
-    solve.unknown_5c = 3.4028235e+38f;   // FLT_MAX
-    solve.unknown_60 = 0.0f;
+    solve.steep_landing_maximum_slide = 3.4028235e+38f;   // FLT_MAX
+    solve.steep_landing_minimum_penetration = 0.0f;
 
     if (biped->landing_type == 1) {
         solve.movement_delta.i = 0.0f;
         solve.movement_delta.j = 0.0f;
         solve.movement_delta.k = 0.0f;
-        solve.unknown_48 = 1.0f;
+        solve.frozen_fraction = 1.0f;
         goto step_crouch;
     }
 
@@ -389,10 +389,10 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
     // A grounded AI actor that has only just landed gets a much tighter step allowance.
     if ((biped->flags & 1) != 0 && biped->airborne_ticks < 0x16 &&
         unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
-        solve.unknown_5c = 0.1f;
-        solve.unknown_60 = 0.5f;
+        solve.steep_landing_maximum_slide = 0.1f;
+        solve.steep_landing_minimum_penetration = 0.5f;
     }
-    solve.unknown_48 = 0.0f;
+    solve.frozen_fraction = 0.0f;
 
 step_crouch:
     // Step the crouch fraction toward or away from 1 at crouch_camera_velocity per tick, and
@@ -560,7 +560,7 @@ step_crouch:
     }
 
     // 0x55dfcd: EAX = solve+0x98 (the contacted object moving fastest relative to us), ECX = the biped
-    biped_update_target_lock_timer(solve.unknown_98, object_index);
+    biped_update_target_lock_timer(solve.fastest_contact_object, object_index);
     unit_apply_fall_damage(object_index, solve.result_impact_speed);
 
     if ((solve.flags & _biped_movement_solver_flying) == 0 && (biped->flags & 1) == 0) {

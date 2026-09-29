@@ -112,7 +112,7 @@ void encounter_evaluate_support_needs(datum_index encounter_index, datum_index s
     self = &((actor *)actor_data->data)[self_actor_index & 0xffff];
     if (phase == 0) {
         actor_find_nearest_grenade_ally(self_actor_index, 0);
-        *out_reachable_b = (uint8_t)(self->unknown_1d0 != (datum_index)k_datum_index_none);
+        *out_reachable_b = (uint8_t)(self->nearby_friend_prop_index != (datum_index)k_datum_index_none);
         self->unknown_1cc = 0;
     } else {
         reachable = actor_find_nearest_grenade_ally(self_actor_index, 1);

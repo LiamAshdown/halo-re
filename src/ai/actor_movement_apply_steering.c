@@ -112,7 +112,7 @@ void actor_movement_apply_steering(
             desired = *desired_direction;
             if (act[0x505]) {
                 aim = *(real_vector3d *)&((struct actor *)act)->forced_aim_direction.i;
-                if (((struct actor *)act)->unknown_15e > 0) {
+                if (((struct actor *)act)->vehicle_driving_type > 0) {
                     use_scratch = 1;
                 }
             } else {
@@ -165,7 +165,7 @@ void actor_movement_apply_steering(
             int32_t surface;
 
             actor_update_target_lead_position(actor_index);
-            surface = ((struct actor *)act)->unknown_164;
+            surface = ((struct actor *)act)->pathfinding_surface_index;
             if (surface != -1 && chosen_axis >= 0 && chosen_axis <= 3) {
                 real_vector3d probe;
 

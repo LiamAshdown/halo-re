@@ -75,10 +75,10 @@ void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shar
     if (*out_in_e == 0 && a->combat_status < 3) {
         *out_a = 0;
     }
-    if (a->unknown_15e > 0) {
+    if (a->vehicle_driving_type > 0) {
         *out_i = 0;
     }
-    if (a->unknown_15e == 4) {
+    if (a->vehicle_driving_type == 4) {
         *out_f = 0;
         *out_h = 0;
     }

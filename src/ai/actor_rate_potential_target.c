@@ -89,7 +89,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
             if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {
                 if (target->relationship_object_index == -1) {
                     if (target->flying == 0 || ((struct Actor *)actor_def)->melee_leap_velocity != 0.0f) {
-                        if (target->in_water == self->unknown_15d) {
+                        if (target->in_water == self->in_water) {
                             // FIXED (0x41fec2): beyond the melee threshold -> 2 (0x41ff0a),
                             //   within it -> 3; the old C left 0 / 5 in place for the far case
                             bonus_a = (target->distance >= threshold) ? 2 : 3;
@@ -112,7 +112,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
             //   through to the team check; the old C returned 2 for it
             if (override_tag != (uint8_t *)0 && target->distance >= *(float *)(override_tag + 0x40c)) {
                 bonus_a = 2;
-            } else if (target->in_water == self->unknown_15d) {
+            } else if (target->in_water == self->in_water) {
                 if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {
                     // 0x41ff44 / 0x41ff5e: definition +0xa0 and +0x74
                     if (target->distance >= *(const float *)((const uint8_t *)variant_def + 0xa0)) {
@@ -152,7 +152,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
     }
 
     if (self->target_unit_index == k_datum_index_none) {
-        if (target->is_parented != 0 || target_prop_index == self->unknown_54) {
+        if (target->is_parented != 0 || target_prop_index == self->nearest_orphan_prop_index) {
             extra = 3.0f;
         }
     } else if (target_prop_index == self->target_unit_index && 2 < self->combat_status) {

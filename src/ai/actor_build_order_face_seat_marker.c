@@ -42,7 +42,7 @@ uint32_t actor_build_order_face_seat_marker(uint32_t actor_index, int16_t firing
         *(uint16_t *)(order + 3) = fp->cluster_index;
         *((uint8_t *)(order + 8)) = 0; // byte offset 0x20 (dword-scaled, per the original's `in_EDX + 8`)
         *((uint8_t *)order + 3) = 1;    // true byte offset 3 (the original casts via (int) first)
-        a->unknown_98 = 1;
+        a->search_firing_positions = 1;
         return 1;
     }
     return result;

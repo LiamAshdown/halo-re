@@ -42,7 +42,7 @@ int32_t actor_report_command_status(uint32_t actor_index)
         return 0;
     }
 
-    switch (a->unknown_1e4) {
+    switch (a->post_combat_action) {
     case 1: event_code = 0x30; break;
     case 2: event_code = 0x31; break;
     case 3: event_code = 0x32; break;

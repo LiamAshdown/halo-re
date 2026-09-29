@@ -35,8 +35,8 @@ void actor_update_target_combat_status(datum_index actor_index)
 
     if (self->target_unit_index == k_datum_index_none) {
         self->target_combat_status = 0;
-        self->unknown_26c = k_datum_index_none;
-        self->unknown_27c = 0;
+        self->target_last_seen_time = k_datum_index_none;
+        self->target_alive = 0;
         return;
     }
 
@@ -47,7 +47,7 @@ void actor_update_target_combat_status(datum_index actor_index)
     case 0:
         status = 0;
         self->target_unit_index = k_datum_index_none;
-        self->unknown_26c = k_datum_index_none;
+        self->target_last_seen_time = k_datum_index_none;
         break;
     case 1:
         status = 1;
@@ -87,11 +87,11 @@ void actor_update_target_combat_status(datum_index actor_index)
     self->target_combat_status = status;
 
     if (target->state < 2 || 3 < target->state) {
-        self->unknown_27c = (uint8_t)(~(target_obj->vitality_flags >> 2) & 1);
+        self->target_alive = (uint8_t)(~(target_obj->vitality_flags >> 2) & 1);
     } else {
-        self->unknown_27c = (uint8_t)(target->dead == 0);
+        self->target_alive = (uint8_t)(target->dead == 0);
         if (0 < target->visual_perception) {
-            self->unknown_26c = target->last_seen_time;
+            self->target_last_seen_time = target->last_seen_time;
         }
     }
 }

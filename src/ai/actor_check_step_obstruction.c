@@ -70,7 +70,7 @@ uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *dir
         actor_update_target_lead_position(actor_index); // FIXED: arguments from the binary call site (the draft passed none) (EAX still actor_index, 0x417c2e)
         // 0x417c33: EBX = the map (0x746f9c), EAX = actor +0x168, stack (ignores glass, +0x164, step, -1, radius, 0, out)
         trace_ok = path_find_test_segment_unobstructed(global_structure_bsp, (real_point3d *)((uint8_t *)self + 0x168),
-            self->ignores_glass, (int32_t)self->unknown_164, &step_point, -1, definition->pathfinding_radius, 0,
+            self->ignores_glass, (int32_t)self->pathfinding_surface_index, &step_point, -1, definition->pathfinding_radius, 0,
             (path_find_boundary_crossing *)extra_param);
         if (!trace_ok) {
             obstructed = 1;

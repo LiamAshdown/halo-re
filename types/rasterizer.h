@@ -801,9 +801,12 @@ typedef struct transparent_geometry_group {
     uint16_t shader_permutation;    // 0x10 passed as the bitmap index to set_texture
     uint16_t unknown_12;            // 0x12 never written
     rasterizer_geometry_group_parameters parameters; // 0x14
-    float unknown_3c;               // 0x3c 1.0 unless copied from the context; pushed as a
+    float base_map_u_scale;         // 0x3c group_build 0x52b180 copies context->base_map_u_scale; chicago draws
+                                    //    multiply u_scale by it; active camo copies it back to
+                                    //    context.base_map_u_scale
                                     //      shader constant by 0x533850 and 0x519f70
-    float unknown_40;               // 0x40 1.0 unless copied from the context; same readers
+    float base_map_v_scale;         // 0x40 group_build copies context->base_map_v_scale; chicago draws multiply
+                                    //    v_scale; glass reflection uses both as bump scale constants
     int32_t dynamic_index_slot;     // 0x44 rasterizer_dynamic_index_slot index; a negative
                                     //      value is minus a primitive kind (3 or 4 are quads)
     uint32_t index_buffer;          // 0x48 rasterizer_index_buffer* static indices; for a callback group
@@ -833,7 +836,9 @@ typedef struct transparent_geometry_group {
     int16_t previous_group_index;   // 0x9c drawn first when not -1; FUN_0052b180 hands out its
                                     //      address for the caller to link
     int16_t next_group_index;       // 0x9e drawn after when not -1
-    int32_t unknown_a0;             // 0xa0 nonzero skips the draw unless forced; context
+    int32_t parent_sort_key;        // 0xa0 group_build: model sort_key for secondary (attached, model mode 1) groups
+                                    //    else 0; draw skips nonzero unless attached and draws secondaries whose key
+                                    //    == group->sort_key
                                     //      sort_key in mode 1
     uint8_t unknown_a4;             // 0xa4 never written
     uint8_t first_person;           // 0xa5 0x007c0478; compare sorts these last

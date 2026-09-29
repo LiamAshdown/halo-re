@@ -226,12 +226,12 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
                     v_scale = -(v_scale * group->depth);
                 }
                 if (!(shader[0x29] & 8)) {
-                    u_scale *= group->unknown_3c;
-                    v_scale *= group->unknown_40;
+                    u_scale *= group->base_map_u_scale;
+                    v_scale *= group->base_map_v_scale;
                 }
             } else {
-                u_scale *= group->unknown_3c;
-                v_scale *= group->unknown_40;
+                u_scale *= group->base_map_u_scale;
+                v_scale *= group->base_map_v_scale;
             }
             shader_texture_animation_evaluate((const void *)(uintptr_t)group->lighting_extra, entry + 0xa4,
                                               map_constants[map * 2], map_constants[map * 2 + 1], u_scale, v_scale,

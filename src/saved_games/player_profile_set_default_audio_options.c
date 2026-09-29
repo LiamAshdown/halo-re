@@ -25,15 +25,15 @@ extern uint32_t physical_memory; // machine class threshold
 uint8_t player_profile_set_default_audio_options(saved_player_profile *profile)
 {
     if (safe_mode == 0 && 1000 < cpu_speed && 0x80 < physical_memory) {
-        profile->unknown_b7d = 1;
-        profile->unknown_b7f = 2;
+        profile->sound_quality = 1;
+        profile->sound_variety = 2;
     } else {
-        profile->unknown_b7d = 0;
-        profile->unknown_b7f = 1;
+        profile->sound_quality = 0;
+        profile->sound_variety = 1;
     }
     profile->unknown_b7e = 0;
-    profile->unknown_b7c = 0;
-    profile->unknown_b7b = 0;
+    profile->eax_enabled = 0;
+    profile->hardware_acceleration = 0;
     profile->music_volume = 6;
     profile->effects_volume = 10;
     profile->master_volume = 10;

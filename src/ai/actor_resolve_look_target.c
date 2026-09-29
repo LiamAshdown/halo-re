@@ -99,7 +99,7 @@ uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index
         }
 
         pitch_center = -pitch_half;
-        if (self->unknown_161 != 0) {
+        if (self->vehicle_gunner != 0) {
             pitch_center = pitch_center * 0.5f;
         }
 

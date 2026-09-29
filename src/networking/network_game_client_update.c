@@ -59,7 +59,7 @@ int8_t network_game_client_update(network_client_globals *client)
             if ((flags >> 5 & 1) != 0) {
                 ui_network_wait_timeout_start();
             }
-            client->unknown_ee1 = (uint8_t)(flags >> 5) & 1;
+            client->connection_stalled = (uint8_t)(flags >> 5) & 1;
         }
         service_ok = network_channel_service_light(0); // UNSURE argument
         if (network_game_mode == 2) {

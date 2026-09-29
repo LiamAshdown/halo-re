@@ -154,8 +154,8 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
     solve.ground_normal = biped->ground_normal;
     solve.ground_plane = biped->ground_plane_distance;
     solve.ground_surface_index = biped->ground_surface_index;
-    solve.unknown_5c = 3.4028235e+38f;   // FLT_MAX
-    solve.unknown_60 = 0.0f;
+    solve.steep_landing_maximum_slide = 3.4028235e+38f;   // FLT_MAX
+    solve.steep_landing_minimum_penetration = 0.0f;
 
     if (biped->landing_type == 1) {
         // Frozen: no displacement at all this tick, but still run the solve so the ground
@@ -163,7 +163,7 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
         solve.movement_delta.i = 0.0f;
         solve.movement_delta.j = 0.0f;
         solve.movement_delta.k = 0.0f;
-        solve.unknown_48 = 1.0f;
+        solve.frozen_fraction = 1.0f;
         goto step_crouch;
     }
 
@@ -382,10 +382,10 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
     // A grounded AI actor that has only just landed gets a much tighter step allowance.
     if ((biped->flags & 1) != 0 && biped->airborne_ticks < 0x16 &&
         unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
-        solve.unknown_5c = 0.1f;
-        solve.unknown_60 = 0.5f;
+        solve.steep_landing_maximum_slide = 0.1f;
+        solve.steep_landing_minimum_penetration = 0.5f;
     }
-    solve.unknown_48 = 0.0f;
+    solve.frozen_fraction = 0.0f;
 
 step_crouch:
     // Step the crouch fraction toward or away from 1 at crouch_camera_velocity per tick.

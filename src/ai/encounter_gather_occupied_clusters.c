@@ -194,7 +194,7 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
                 != 0) {
                 visible = 0;
             }
-            a->unknown_12 = visible;
+            a->can_go_dormant = visible;
         }
         actor_index = a->next_in_encounter;
     } while (actor_index != (datum_index)k_datum_index_none);

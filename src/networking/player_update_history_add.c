@@ -114,7 +114,7 @@ uint8_t player_update_history_add(datum_index unit_index, player_update_history 
     *(datum_index *)(node->unit_state + 0x24) = unit_obj->animation_graph;
     *(int16_t *)(node->unit_state + 0x28) = unit_obj->animation_index;
     *(int16_t *)(node->unit_state + 0x2a) = unit_obj->animation_frame;
-    *(int16_t *)(node->unit_state + 0x2c) = unit_obj->unknown_0d4;
+    *(int16_t *)(node->unit_state + 0x2c) = unit_obj->interpolation_frame_index;
     *(int16_t *)(node->unit_state + 0x2e) = unit_obj->node_function_count;
     memcpy(node->unit_state + 0x30, &unit_ext->animation_state_flags, 0x48); // unit 0x298..0x2e0
     memcpy(node->unit_state + 0x78, &unit_ext->seat_acceleration_last_position, 0x30);           // unit 0x34c..0x37c

@@ -81,7 +81,7 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
         switch (((actor_mode_flee_data *)mode_data)->panic) { // 0x403ad8
         case 9:
         case 10:
-            if (*(datum_index *)&((struct actor *)act)->unknown_1b0 == k_datum_index_none) {
+            if (*(datum_index *)&((struct actor *)act)->stuck_projectile_index == k_datum_index_none) {
                 mode_data[0xf] = 1;
             }
             break;

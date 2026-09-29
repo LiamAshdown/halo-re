@@ -68,7 +68,7 @@ uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
         // (encounter+2), doubled when actor+0x1ca is set, then converted to ticks (x30, __ftol)
         random_wait = ((ActorVariant *)variant)->encounter_grenade_timeout *
                       weapon_get_zoom_fov_resolved(0x18, ((struct encounter *)enc)->team);
-        if (self->unknown_1ca != 0) {
+        if (self->playfight != 0) {
             random_wait = random_wait + random_wait;
         }
         if (squad_deadline != -1) {

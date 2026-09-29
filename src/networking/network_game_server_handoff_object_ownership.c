@@ -116,7 +116,7 @@ void network_game_server_handoff_object_ownership(int32_t *object_count_passthro
 
         if (do_transfer && owner != 0 && (owner->flags & 0x04) != 0) { // UNSURE: bit 0x04 is not
                                                                         // enumerated in network_machine_flags
-            datum = player_data_iterator_advance((uint8_t)entry->unknown_1e);
+            datum = player_data_iterator_advance((uint8_t)entry->slot_index) /* FIXED 2026-09-29: the original reads +0x1f, not +0x1e */;
             if (datum != 0xffffffff) {
                 player_index = (int16_t)datum;
                 if (player_index >= 0 && player_index < player_data->maximum_count) {

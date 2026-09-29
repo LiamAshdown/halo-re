@@ -56,20 +56,20 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
             self->suspicion_status = 0;
         }
     }
-    if (self->unknown_92 > 0) {
-        self->unknown_92 = self->unknown_92 - 1;
+    if (self->command_list_delay > 0) {
+        self->command_list_delay = self->command_list_delay - 1;
     }
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         enc = &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
     }
 
-    combined_flag = self->unknown_0a;
+    combined_flag = self->force_active;
     if (enc != 0) {
         combined_flag |= enc->force_active;
     }
 
-    if (self->unknown_12 == 0 || combined_flag != 0) {
+    if (self->can_go_dormant == 0 || combined_flag != 0) {
         actor_set_units_active(actor_index, 0); // 0x429414: BL = 0 (wake)
     } else if (self->keep_unit_alive == 0) {
         int16_t combat_grade = actor_mode_definitions[self->mode].combat_grade;

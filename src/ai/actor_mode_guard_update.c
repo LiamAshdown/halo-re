@@ -118,7 +118,7 @@ void actor_mode_guard_update(datum_index actor_index)
             }
             if (act[0xa1]) {
                 actor_report_command_status(actor_index);
-                if (((struct actor *)act)->unknown_1e4 == 9 && ((struct actor *)act)->mode_data.guard.stage == 2) {
+                if (((struct actor *)act)->post_combat_action == 9 && ((struct actor *)act)->mode_data.guard.stage == 2) {
                     act[0xa3] = 1;
                 }
             }

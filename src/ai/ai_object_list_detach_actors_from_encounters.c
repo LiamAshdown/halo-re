@@ -99,8 +99,8 @@ void ai_object_list_detach_actors_from_encounters(datum_index object_list_header
                     a = &((actor *)actor_data->data)[actor_index & 0xffff];
                     a->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
                     ai_globals_ptr->first_encounterless_actor = actor_index;
-                    a->unknown_09 = 1;
-                    *(uint16_t *)&a->unknown_10[0] =
+                    a->encounterless = 1;
+                    *(uint16_t *)&a->activation_delay[0] =
                         (uint16_t)(-(uint16_t)(a->active != 0) & 0x5a);
                     actor_movement_action_cancel(actor_index);
                 }

@@ -67,8 +67,8 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
 
     platoon_index = (int16_t)((ScenarioSquad *)definition->squads.pointer)[squad_index].platoon;
 
-    a->unknown_30 = (datum_index)k_datum_index_none;
-    a->unknown_38 = -1;
+    a->original_encounter_index = (datum_index)k_datum_index_none;
+    a->original_squad_index = -1;
     a->next_in_encounter = enc->first_actor;
     enc->first_actor = actor_index;
 
@@ -112,7 +112,7 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
 
     if (platoon_index != -1) {
         platoon_state = &encounter_platoon_states[(int16_t)(enc->first_platoon + platoon_index)];
-        a->unknown_1c9 = platoon_state->defending;
+        a->platoon_defending = platoon_state->defending;
         a->unknown_374 = platoon_state->defending;
         platoon_state->member_count = platoon_state->member_count + 1;
     }

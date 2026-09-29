@@ -61,12 +61,12 @@ uint8_t object_update(uint32_t object_index)
     }
 
     if ((obj->flags & _object_in_tracked_list_bit) != 0) {
-        object_globals_pointer->unknown_04 = object_globals_pointer->unknown_04 + 1;
+        object_globals_pointer->active_garbage_object_count = object_globals_pointer->active_garbage_object_count + 1;
     }
 
     if (obj->node_function_count != 0) {
-        obj->unknown_0d4 = obj->unknown_0d4 + 1;
-        if (obj->node_function_count <= obj->unknown_0d4) {
+        obj->interpolation_frame_index = obj->interpolation_frame_index + 1;
+        if (obj->node_function_count <= obj->interpolation_frame_index) {
             obj->node_function_count = 0;
         }
     }
@@ -101,7 +101,7 @@ uint8_t object_update(uint32_t object_index)
     object_notify_node_array_if_animated(object_index);
 
     if (network_game_mode == 2) {
-        uint8_t *at_rest_flag = (uint8_t *)&obj->unknown_008;
+        uint8_t *at_rest_flag = (uint8_t *)&obj->at_rest;
         if ((fabsf(obj->velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
             (fabsf(obj->velocity.j - global_origin3d_pointer->j) < 0.0001f) &&
             (fabsf(obj->velocity.k - global_origin3d_pointer->k) < 0.0001f) &&

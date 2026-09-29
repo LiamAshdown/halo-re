@@ -88,13 +88,13 @@ uint8_t video_options_menu_update(widget_instance *screen)
     while (gamma != 0 && gamma->widget_type != 2) {
         gamma = gamma->next_sibling;
     }
-    if (gamma->unknown_54 == -1) {
+    if (gamma->selection_direction == -1) {
         video_gamma_setting -= 5;
         if (video_gamma_setting < 1) {
             widget_play_sound_effect(4);
             video_gamma_setting = 1;
         }
-    } else if (gamma->unknown_54 == 1) {
+    } else if (gamma->selection_direction == 1) {
         video_gamma_setting += 5;
         if (video_gamma_setting > 0xfe) {
             widget_play_sound_effect(4);

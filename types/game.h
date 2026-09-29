@@ -686,9 +686,13 @@ typedef struct player_globals {
                                        //      still has a unit
     uint8_t input_disabled;            // 0x11 player_enable_input(false) and cinematics set it; player
                                        //      updates skip local input while it is set
-    int16_t unknown_12;                // 0x12 seeded to -1
+    int16_t bsp_switch_trigger_volume_index; // 0x12 main_switch_structure_bsp stores the trigger volume index;
+                                             //    players_structure_bsp_switch_regroup indexes scenario
+                                             //    bsp_switch_trigger_volumes (*8) with it; -1 reset
     int16_t mode;                      // 0x14 written with 0 and with 3
-    uint8_t unknown_16;                // 0x16
+    uint8_t teleported;                // 0x16 attach_players_to_new_bsp skips the projectile/combat respawn_failure
+                                       //    checks while set, clears it on success; OpenSauce
+                                       //    players_globals.teleported at 0x16
     uint8_t unknown_17;                // 0x17
     uint32_t cluster_pvs[0x20];        // 0x18 a bit per structure cluster the local players can see
                                        //      (game_engine_build_visible_cluster_bitmask fills it)

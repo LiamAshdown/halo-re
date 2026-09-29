@@ -276,7 +276,7 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
                     candidate->active_unit_index != player_object->parent_object) {
                     continue;
                 }
-                if (candidate->unknown_161 != 0) {
+                if (candidate->vehicle_gunner != 0) {
                     score = score + 1.0f;
                 }
                 break;

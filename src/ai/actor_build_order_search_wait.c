@@ -51,18 +51,18 @@ int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order)
     *((uint8_t *)order + 5) = 1;
     *(int32_t *)((uint8_t *)order + 0x3c) = -1;
 
-    if (a->unknown_15e == 4) {
+    if (a->vehicle_driving_type == 4) {
         return 0;
     }
 
-    if (a->order_committed == 0 && a->swarm == 0 && a->unknown_1e8 != (datum_index)k_datum_index_none) {
-        prop *p = &((prop *)prop_data->data)[a->unknown_1e8 & 0xffff];
+    if (a->order_committed == 0 && a->swarm == 0 && a->post_combat_prop_index != (datum_index)k_datum_index_none) {
+        prop *p = &((prop *)prop_data->data)[a->post_combat_prop_index & 0xffff];
 
-        *(int32_t *)((uint8_t *)order + 0x3c) = a->unknown_1e8;
+        *(int32_t *)((uint8_t *)order + 0x3c) = a->post_combat_prop_index;
         order->unknown_02 = 0x78;
         *((uint8_t *)order + 0x40) = 1;
 
-        switch (a->unknown_1e4 - 6) {
+        switch (a->post_combat_action - 6) {
         case 0:
             *(float *)((uint8_t *)order + 0x38) = 2.0f;
             break;
@@ -78,7 +78,7 @@ int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order)
         }
 
         // 0x40466c loads EAX from actor+0x1e8 just before this call.
-        actor_target_get_relationship_object(a->unknown_1e8);
+        actor_target_get_relationship_object(a->post_combat_prop_index);
         *(int16_t *)((uint8_t *)order + 0x24) = 2;
         *(float *)((uint8_t *)order + 0x28) = ((struct prop *)p)->pathfinding_point.x;
         *(float *)((uint8_t *)order + 0x2c) = ((struct prop *)p)->pathfinding_point.y;

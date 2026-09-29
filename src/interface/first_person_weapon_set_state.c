@@ -158,17 +158,17 @@ void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pos
         return;
     }
 
-    if (force_pose_snapshot != 0 && fp->unknown_1e98 != -1 && fp->unknown_1e9c != 1) {
-        sound_impulse_fade_out((datum_index)fp->unknown_1e98); // FIXED: ECX = fp +0x1e98 (0x49301f)
-        fp->unknown_1e98 = -1;
-        fp->unknown_1e9c = -1;
+    if (force_pose_snapshot != 0 && fp->frame_sound_index != -1 && fp->frame_sound_state != 1) {
+        sound_impulse_fade_out((datum_index)fp->frame_sound_index); // FIXED: ECX = fp +0x1e98 (0x49301f)
+        fp->frame_sound_index = -1;
+        fp->frame_sound_state = -1;
     }
     if (blend_gap != 0) {
         first_person_weapon_snapshot_pose(local_player_index, blend_gap);
     }
     fp->state = new_state;
-    fp->unknown_16 = animation_stage;
-    *(int16_t *)fp->unknown_18 = 0;
+    fp->current_animation = animation_stage;
+    *(int16_t *)fp->current_animation_frame = 0;
 }
 
 #if 0

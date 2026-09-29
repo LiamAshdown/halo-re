@@ -147,7 +147,7 @@ have_grade:
                     }
                 }
 recently_hurt:
-                if (a->unknown_94 != -1 && tick <= a->unknown_94 + 0x96) {
+                if (a->command_list_finished_time != -1 && tick <= a->command_list_finished_time + 0x96) {
                     grade = 1;
                 }
             }

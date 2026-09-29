@@ -108,7 +108,7 @@ void sv_players(void)
                     name_display = name_buf;
                 }
 
-                team_color = (entry->unknown_1e != 0) ? network_team_color_name_red : network_team_color_name_blue;
+                team_color = (entry->team_index != 0) ? network_team_color_name_red : network_team_color_name_blue;
 
                 snprintf(line, sizeof(line), "%-3d     %-*s %-6s %-4d   %-6ls %-3d    %-4d",
                          entry->machine_index + 1, 0xc, name_buf, team_color, score,

@@ -55,7 +55,7 @@ void network_session_player_join_notify(network_client_globals *client, const ui
     if (player_index < 0 || player_index >= 0x10) {
         return;
     }
-    client->unknown_000 = player_index; // UNSURE: repurposed as the joining player's index here
+    client->machine_index = player_index; // UNSURE: repurposed as the joining player's index here
     group_value = *source;
     client->state = 2; // UNSURE: live connection-mode value, not padding
 

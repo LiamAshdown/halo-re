@@ -241,7 +241,7 @@ void actor_choose_best_target(datum_index actor_index)
     if (best != previous) {
         self->target_combat_status = 0;
         self->target_unit_index = best;
-        self->unknown_26c = (datum_index)k_datum_index_none;
+        self->target_last_seen_time = (datum_index)k_datum_index_none;
         if (previous != (datum_index)k_datum_index_none) {
             ((prop *)prop_data->data)[previous & 0xffff].desirability =
                 actor_rate_potential_target(actor_index, previous);

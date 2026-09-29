@@ -181,8 +181,8 @@ void ai_reset_fire_group_assignments(void)
                 continue;
             }
             actor = ACTOR(actor_index);
-            *(int32_t *)&((struct actor *)actor)->unknown_30 = e;
-            ((struct actor *)actor)->unknown_38 = ((struct actor *)actor)->squad_index;
+            *(int32_t *)&((struct actor *)actor)->original_encounter_index = e;
+            ((struct actor *)actor)->original_squad_index = ((struct actor *)actor)->squad_index;
             ((struct actor *)actor)->firing_position_index = -1;
             if (((struct actor *)actor)->active_movement.type == 3 || ((struct actor *)actor)->active_movement.type == 4) {
                 ((struct actor *)actor)->active_movement.type = 0;

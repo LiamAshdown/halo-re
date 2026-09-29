@@ -43,8 +43,8 @@ void actor_mode_guard_tick(datum_index actor_index)
         if (((struct actor *)act)->mode_data.guard.countdown_00 == 0 && !act[0x160] && !act[0x6]) {
             if (act[0xa1]) {
                 actor_report_command_status(actor_index);
-                ((struct actor *)act)->unknown_1e4 = 0;
-                *(int32_t *)&((struct actor *)act)->unknown_1e8 = -1;
+                ((struct actor *)act)->post_combat_action = 0;
+                *(int32_t *)&((struct actor *)act)->post_combat_prop_index = -1;
                 act[0xa1] = 0;
                 act[0xa3] = 0;
                 *(int32_t *)(act + 0xd8) = -1;

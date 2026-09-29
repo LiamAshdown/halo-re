@@ -126,7 +126,7 @@ int16_t actor_select_firing_position(datum_index actor_index,
     // The winner came from the wider union: if it is not in the mask for the actor current
     // searching state, flip that state so the next pass looks at the other half.
     if ((own_mask & (1u << (((uint8_t *)out_candidate->position)[0xc] & 0x1f))) == 0) {
-        self->unknown_98 = (uint8_t)(self->unknown_98 == 0);
+        self->search_firing_positions = (uint8_t)(self->search_firing_positions == 0);
     }
     return result;
 }

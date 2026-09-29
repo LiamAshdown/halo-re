@@ -215,7 +215,7 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
         if (self->active_movement.extra != (uint32_t)-1) {
             request.unknown_0c = (datum_index)self->active_movement.extra;
         }
-        if (self->danger_type > 0 && self->unknown_28a == 0 &&
+        if (self->danger_type > 0 && self->danger_is_own == 0 &&
             (((uint8_t *)actor_definition)[4] & 0x10) == 0) {
             path_find_set_avoid_sphere(&request, &self->flee_from_point, self->danger_unknown_294,
                          self->danger_object_index, 10.0f);

@@ -67,7 +67,7 @@ int32_t network_join_connect_retry_tick(network_client_globals *client)
             }
         } else if (endpoint != 0 && -1 < (int8_t)endpoint->flags) {
             if (attempt->unknown_00 == 0) {
-                if ((client->unknown_ede & 4) == 0) {
+                if ((client->flags & 4) == 0) {
                     if (3000 < (uint32_t)((now_ms + (int32_t)attempt->elapsed_counter * -3000) - attempt->started_ms)) {
                         network_join_status_text_update(1, client);
                     }

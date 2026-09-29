@@ -31,14 +31,14 @@ void ai_unassigned_actors_attach_to_structure_bsp(void)
 
     while (actor_index != k_datum_index_none) {
         actor *entry = &((actor *)actor_data->data)[actor_index & 0xffff];
-        datum_index encounter_index = entry->unknown_30;
+        datum_index encounter_index = entry->original_encounter_index;
         datum_index next = entry->next_in_encounter;
 
         if (encounter_index != k_datum_index_none &&
             *(int16_t *)((uint8_t *)global_scenario->encounters.pointer + (encounter_index & 0xffff) * 0xb0 + 0x7e) ==
                 bsp_index) {
             ai_actor_unlink_from_unassigned_list(actor_index);
-            encounter_add_actor(entry->unknown_38, actor_index, entry->unknown_30, 1);
+            encounter_add_actor(entry->original_squad_index, actor_index, entry->original_encounter_index, 1);
         }
         actor_index = next;
     }

@@ -126,7 +126,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
 
         // 0x40c946: a vehicle gunner beyond the definition's +0x160 range with an unengaged prop
         if (((actor *)a)->mode != 0xa && !a[0x1cb]) {
-            int16_t seat_kind = ((struct actor *)a)->unknown_15e;
+            int16_t seat_kind = ((struct actor *)a)->vehicle_driving_type;
 
             if (changed) {
                 return changed;
@@ -174,7 +174,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
             goto guard;
         }
         if (state == 4 || state == 5) {
-            if (a[0xc5] || ((struct actor *)a)->unknown_15e <= 1) {
+            if (a[0xc5] || ((struct actor *)a)->vehicle_driving_type <= 1) {
                 hold = 1;
                 goto decide;
             }

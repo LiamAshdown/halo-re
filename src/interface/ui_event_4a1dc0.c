@@ -58,7 +58,7 @@ uint8_t ui_event_4a1dc0(widget_instance *widget, int16_t *event, uint8_t *out_ha
         if (selection != widget->selection_index) {
             widget->selection_index = (int16_t)selection;
             widget->scroll_blink = -4;
-            widget->unknown_54 = -1;
+            widget->selection_direction = -1;
             widget_play_sound_effect(1);
         }
         return 1;
@@ -73,7 +73,7 @@ uint8_t ui_event_4a1dc0(widget_instance *widget, int16_t *event, uint8_t *out_ha
         if (selection != widget->selection_index) {
             widget->selection_index = (int16_t)selection;
             widget->scroll_blink = 4;
-            widget->unknown_54 = 1;
+            widget->selection_direction = 1;
             widget_play_sound_effect(1);
         }
         return 1;

@@ -52,7 +52,7 @@ void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_i
     Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
     datum_index relevant;
 
-    self->unknown_8d = 1;
+    self->witnessed_death = 1;
 
     if (target->enemy != 0) {
         return;

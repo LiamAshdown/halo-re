@@ -24,10 +24,10 @@ uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kin
     }
     if (kind == 2) {
         return self->firing_target_type == 0 && 4 < self->target_combat_status &&
-               self->unknown_27c != 0 && 0x4a < self->unknown_278;
+               self->target_alive != 0 && 0x4a < self->ticks_since_engaged;
     }
     if (kind == 3) {
-        return self->firing_target_type == 1 && 7 < self->target_combat_status && self->unknown_161 != 0;
+        return self->firing_target_type == 1 && 7 < self->target_combat_status && self->vehicle_gunner != 0;
     }
     return 0;
 }

@@ -28,7 +28,7 @@ int32_t actor_build_order_flee(uint32_t actor_index, uint8_t byte_a, uint32_t *o
     if (a->order_committed == 0) {
         *((uint8_t *)order + 5) = byte_a;
         *(int16_t *)(order + 2) = 0;
-        a->unknown_98 = 1;
+        a->search_firing_positions = 1;
         return 1;
     }
     return 0;

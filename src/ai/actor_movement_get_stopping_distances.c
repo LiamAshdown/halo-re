@@ -73,7 +73,7 @@ void actor_movement_get_stopping_distances(datum_index actor_index,
                 }
             }
         }
-    } else if (self->unknown_15e > 1 && self->unknown_15e < 4) {
+    } else if (self->vehicle_driving_type > 1 && self->vehicle_driving_type < 4) {
         unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
         vehicle_definition = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;
         speed = unit_object->velocity.i * unit_object->forward.i +

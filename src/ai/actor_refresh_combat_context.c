@@ -243,7 +243,7 @@ void actor_refresh_combat_context(datum_index actor_index)
             A_U8(0x15c) = 1;
         }
         A_I32(0x164) = *(int32_t *)(unit_object + 0x4dc);
-        *(real_vector3d *)&((struct actor *)self)->unknown_168 = *(real_vector3d *)(unit_object + 0x4e0);
+        *(real_vector3d *)&((struct actor *)self)->pathfinding_point = *(real_vector3d *)(unit_object + 0x4e0);
     }
     unit_get_forward_vector_or_marker_normal(A_I16(0x15e) > 0 ? A_I32(0x158) : A_I32(0x18),
         (real_vector3d *)(self + 0x174));

@@ -386,16 +386,16 @@ void breakable_surface_shatter(uint16_t breakable_surface_index, damage_data *da
                         creation.marker_index = -1;
                         *(int16_t *)((uint8_t *)&creation + 0xa) = -1;
                         creation.first_person = 0;
-                        creation.unknown_0d = 0;
-                        creation.unknown_0e = 0;
+                        creation.third_person_only = 0;
+                        creation.first_person_only = 0;
                         creation.position = point;
-                        *(real_vector3d *)&creation.unknown_1c = velocity;
+                        *(real_vector3d *)&creation.direction = velocity;
                         creation.velocity = velocity;
                         creation.gravity.i = global_origin3d_pointer->x;
                         creation.gravity.j = global_origin3d_pointer->y;
                         creation.gravity.k = global_origin3d_pointer->z;
-                        creation.unknown_40 = shatter_random_fraction() * 6.2831855f;
-                        creation.unknown_44 = (F(particles, 0x28) - F(particles, 0x24)) * shatter_random_fraction() +
+                        creation.rotation = shatter_random_fraction() * 6.2831855f;
+                        creation.angular_velocity = (F(particles, 0x28) - F(particles, 0x24)) * shatter_random_fraction() +
                             F(particles, 0x24);
                         creation.scale = (F(particles, 0x38) - F(particles, 0x34)) * shatter_random_fraction() +
                             F(particles, 0x34);
@@ -418,7 +418,7 @@ void breakable_surface_shatter(uint16_t breakable_surface_index, damage_data *da
 
                         // 0x5010aa: the stored direction (+0x1c) is normalized; a zero one takes a random table vector
                         {
-                            real_vector3d *direction = (real_vector3d *)&creation.unknown_1c;
+                            real_vector3d *direction = (real_vector3d *)&creation.direction;
                             float length = (float)sqrt((double)(direction->k * direction->k +
                                 direction->j * direction->j + direction->i * direction->i));
                             uint8_t random_direction = 1;

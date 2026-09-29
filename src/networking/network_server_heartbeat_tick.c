@@ -135,7 +135,7 @@ uint8_t network_server_heartbeat_tick(network_server_globals *server)
             has_client = (network_client != 0);
             server->state = 1;
             *(int32_t *)(base + 0x9c4) = 0;
-            server->session.unknown_3ac = has_client ? *((uint8_t *)network_client + 0xec0) : 0;
+            server->session.map_loaded = has_client ? *((uint8_t *)network_client + 0xec0) : 0;
         }
     }
 

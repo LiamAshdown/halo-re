@@ -88,7 +88,7 @@ uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_ind
     }
 
     self->cluster_count = self->cluster_count + 1;
-    self->unknown_20 = self->unknown_20 + 1;
+    self->total_cluster_count = self->total_cluster_count + 1;
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         encounter *enc = &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];

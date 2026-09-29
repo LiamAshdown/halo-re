@@ -22,7 +22,7 @@ void ai_reference_set_unknown_1cb(uint32_t packed_reference, char flag)
     ai_reference_actor_iterator_new(packed_reference, &iterator);
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
-        a->unknown_1cb = value;
+        a->charge_disallowed = value;
         a = ai_reference_actor_iterator_next(&iterator);
     }
 }

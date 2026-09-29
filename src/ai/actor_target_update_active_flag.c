@@ -50,7 +50,7 @@ uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index tar
         (((target->engaged_ticks != 0 &&
            (self->target_unit_index == target_prop_index || self->tally.unit_props_unseen == 0)) ||
           ((target->is_vehicle_gunner != 0 || target->is_vehicle_driver != 0) &&
-           (self->unknown_161 == 0 && self->tally.group_a_marked_135 == 0))) ||
+           (self->vehicle_gunner == 0 && self->tally.group_a_marked_135 == 0))) ||
          (target->actor_type == 0xf))) {
         active = 1;
     }

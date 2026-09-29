@@ -50,8 +50,8 @@ void interface_local_player_state_reset(void)
     fp = &first_person_weapon_interfaces[0];
     memset(fp, 0, sizeof(*fp));
     fp->unit_index = (datum_index)0xffffffff;
-    fp->unknown_1e98 = -1;
-    fp->unknown_1e9c = -1;
+    fp->frame_sound_index = -1;
+    fp->frame_sound_state = -1;
 
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
                              ? (GlobalsInterfaceBitmaps *)0

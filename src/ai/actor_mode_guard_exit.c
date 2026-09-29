@@ -22,7 +22,7 @@ void actor_mode_guard_exit(datum_index actor_index)
     uint8_t *act = ACTOR(actor_index);
 
     if (act[0xa1]) {
-        ((struct actor *)act)->unknown_1e4 = 0;
-        *(int32_t *)&((struct actor *)act)->unknown_1e8 = -1;
+        ((struct actor *)act)->post_combat_action = 0;
+        *(int32_t *)&((struct actor *)act)->post_combat_prop_index = -1;
     }
 }

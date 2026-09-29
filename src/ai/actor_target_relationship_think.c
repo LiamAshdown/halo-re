@@ -188,7 +188,7 @@ void actor_target_relationship_think(datum_index actor_index)
     {
         uint8_t should_react;
 
-        if (self->unknown_28a == 0 && self->danger_unknown_282 == 0) {
+        if (self->danger_is_own == 0 && self->danger_unknown_282 == 0) {
             should_react = 0;
             if (self->danger_unknown_284 > 0 && self->danger_unknown_286 != 0) {
                 if (self->ticks_since_threatened == -1 || self->ticks_since_threatened > 0x3b) {
@@ -221,7 +221,7 @@ void actor_target_relationship_think(datum_index actor_index)
             }
 
             if (self->unknown_287[0] != 0) {
-                if (self->unknown_28a == 0) {
+                if (self->danger_is_own == 0) {
                     if (self->danger_unknown_282 == 0 && danger_type != 3 && danger_type != 1) {
                         self->unknown_287[1] = (uint8_t)(random_real() < definition->dive_from_grenade_chance);
                     } else {
@@ -242,7 +242,7 @@ void actor_target_relationship_think(datum_index actor_index)
                 self->vocalization_variant = 5;
             }
         }
-        if (self->unknown_28a != 0) {
+        if (self->danger_is_own != 0) {
             self->unknown_287[0] = 1;
             self->unknown_287[1] = 0;
         }
@@ -267,22 +267,22 @@ restart:
         }
 
         if (self->target_combat_status > 5) {
-            self->unknown_274[0] = 1;
+            self->ever_had_target[0] = 1;
         }
         if (self->target_combat_status < 10) {
-            if (self->unknown_1c8 == 0) {
-                if (self->unknown_278 != -1) {
-                    self->unknown_278 += 1;
+            if (self->stood_down == 0) {
+                if (self->ticks_since_engaged != -1) {
+                    self->ticks_since_engaged += 1;
                 }
             } else {
-                self->unknown_278 = -1;
+                self->ticks_since_engaged = -1;
             }
         } else {
-            self->unknown_278 = 0;
+            self->ticks_since_engaged = 0;
         }
 
         *(int16_t *)&self->unknown_4d[1] = (int16_t)reaction_ticks;
-        self->unknown_54 = result;
+        self->nearest_orphan_prop_index = result;
         return;
     }
 
@@ -372,9 +372,9 @@ restart:
             if (self->swarm == 0) {
                 uint8_t important =
                     (uint8_t)((self->target_unit_index == target_prop_index) ||
-                              (self->unknown_54 == target_prop_index) ||
+                              (self->nearest_orphan_prop_index == target_prop_index) ||
                               (self->unknown_3ac == target_prop_index) ||
-                              (self->unknown_1d0 == target_prop_index) ||
+                              (self->nearby_friend_prop_index == target_prop_index) ||
                               (self->vocalization_line != 0 && *(int16_t *)&self->vocalization_unknown_54c == 1 &&
                                self->vocalization_unknown_550 == target_prop_index) ||
                               (self->idle_major_active != 0 && self->idle_major_direction_type == 1 &&
@@ -488,7 +488,7 @@ restart:
             (target->visual_perception > 1 ||
              (self->firing_target_type == 1 && self->firing_target_prop_index == target_prop_index &&
               game_time->game_time % 3 == 0))) {
-            char nearly_dead = self->unknown_162[0];
+            char nearly_dead = self->vehicle_gunner_bombards[0];
             int16_t threshold = (int16_t)((nearly_dead != 0) ? 300 : 45);
             target->inspection_ticks += 1;
             if (target->inspection_ticks >= threshold) {
@@ -501,7 +501,7 @@ restart:
             penalty = 0;
         } else if (target_prop_index == self->target_unit_index) {
             penalty = (target->noticed_c != 0) ? 1 : 0;
-        } else if (target_prop_index == self->unknown_54) {
+        } else if (target_prop_index == self->nearest_orphan_prop_index) {
             penalty = (self->combat_status < 4) ? 1 : 6;
         } else {
             penalty = 10;
@@ -570,7 +570,7 @@ tail:
 
         if (target->dead == 0 && target->is_parented == 0) {
             if (self->target_unit_index == (datum_index)k_datum_index_none ||
-                (self->unknown_278 != -1 && self->unknown_278 < 0xb4)) {
+                (self->ticks_since_engaged != -1 && self->ticks_since_engaged < 0xb4)) {
                 if (self->encounter_index == (datum_index)k_datum_index_none) goto restart;
                 {
                     encounter *enc = (encounter *)((uint8_t *)encounter_data->data + (self->encounter_index & 0xffff) * sizeof(encounter));

@@ -85,10 +85,10 @@ void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t tar
         return;
     }
 
-    if (local_player_globals->unknown_12 == -1 ||
+    if (local_player_globals->bsp_switch_trigger_volume_index == -1 ||
         (unit_handle != (datum_index)-1 &&
          scenario_trigger_volume_contains_point(
-             *(int16_t *)(*(uint8_t **)((uint8_t *)global_scenario + 0x3a0) + local_player_globals->unknown_12 * 8),
+             *(int16_t *)(*(uint8_t **)((uint8_t *)global_scenario + 0x3a0) + local_player_globals->bsp_switch_trigger_volume_index * 8),
              (real_point3d *)(*(uint8_t **)((uint8_t *)object_data->data + (unit_handle & 0xffff) * 0xc + 8) + 0xa0))
              != 0)) {
         // FIXED (0x4752c7..0x4752fc): AX = the first word of structure bsp switch trigger (scenario +0x3a0, 8 bytes
@@ -237,7 +237,7 @@ void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t tar
         if (target_obj->parent_object == (datum_index)-1) {
             player_find_placement_position(player_index, target_object, (real_point3d *)local_offset);
         }
-        local_player_globals->unknown_16 = 0;
+        local_player_globals->teleported = 0;
     }
 }
 

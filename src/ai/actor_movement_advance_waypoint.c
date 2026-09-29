@@ -108,7 +108,7 @@ void actor_movement_advance_waypoint(datum_index actor_index)
         }
     }
 
-    if (self->unknown_15e == 4) {
+    if (self->vehicle_driving_type == 4) {
         float sign = (self->avoidance_emergency <= 0.9f) ? 1.0f : -1.0f;
         float scale = sign * 3.0f;
         self->moving = 1;

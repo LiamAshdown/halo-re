@@ -70,7 +70,7 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
         if (local_player_globals->maximum_count != (int16_t)-1) { // UNSURE: +4 read as dword
             item = datum_get(local_player_globals, 0);
             if (item != 0) {
-                network_client->unknown_f10 = *(int32_t *)((uint8_t *)(uint32_t)item + 0x20);
+                network_client->team_index = *(int32_t *)((uint8_t *)(uint32_t)item + 0x20);
             }
         }
     } else {
@@ -92,7 +92,7 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
         machine->flags = machine->flags & 0xfb;
         machine->unknown_04 = 0;
         machine->unknown_08 = 0;
-        machine->unknown_50 = 0;
+        machine->player_joined = 0;
     }
 
     memset((uint8_t *)host + 0x88, 0, 0x21 * 4);  // param_1+0x22 dwords
@@ -103,11 +103,11 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
         player = &host->session.players[i];
         player->machine_index = -1;
         player->machine_player_index = -1;
-        player->unknown_1e = -1;
+        player->team_index = -1;
         player->slot_index = -1;
         player->name[0] = 0;
         player->color_index = -1;
-        player->unknown_1a = -1;
+        player->icon_index = -1;
     }
     host->update_tick = 0; // param_1[0xed]; overlaps machines[]-adjacent state, see header
     host->state = 0;

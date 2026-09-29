@@ -109,11 +109,11 @@ void actor_update_crouch_state(datum_index actor_index)
 
     if (self->unknown_378 != 0 &&
         (self->combat_status == 0 || self->awareness_level < 3 ||
-         (*(int32_t *)&self->unknown_1bc == 0x3f800000 && self->combat_status < 3))) {
+         (*(int32_t *)&self->shield_vitality == 0x3f800000 && self->combat_status < 3))) {
         actor_set_combat_alert_flag(actor_index, 0); // 0x42141b: BL = 0
     }
 
-    platoon_flag = self->unknown_1c9;
+    platoon_flag = self->platoon_defending;
     if (self->unknown_374 != platoon_flag) {
         self->unknown_374 = platoon_flag;
         if (self->unit_index != (datum_index)k_datum_index_none) {
@@ -159,8 +159,8 @@ void actor_update_crouch_state(datum_index actor_index)
     *threat_level_smoothed = (*threat_level - *threat_level_smoothed) * (1.0f - decay) +
                              *threat_level_smoothed;
 
-    if (self->unknown_1c8 != 0) {
-        self->unknown_3b4 = self->unknown_1b8;
+    if (self->stood_down != 0) {
+        self->unknown_3b4 = self->body_vitality;
     }
 
     if ((actor_definition->flags & 0xc0000000u) != 0) {
@@ -269,10 +269,10 @@ void actor_update_crouch_state(datum_index actor_index)
             want_crouch = (uint8_t)(*threat_level_smoothed > threshold);
             break;
         case 2:
-            want_crouch = (uint8_t)(*(float *)&self->unknown_1bc > threshold);
+            want_crouch = (uint8_t)(*(float *)&self->shield_vitality > threshold);
             break;
         case 3:
-            want_crouch = (uint8_t)(*(float *)&self->unknown_1bc > threshold &&
+            want_crouch = (uint8_t)(*(float *)&self->shield_vitality > threshold &&
                                     (int8_t)self->tally.threat_class_2 >= 1);
             break;
         case 4:

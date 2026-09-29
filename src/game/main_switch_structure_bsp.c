@@ -166,7 +166,7 @@ void main_switch_structure_bsp(void)
                             *stage_byte = low;
                             *stage_byte = (uint8_t)((((uint8_t)plr->local_player_index ^ low) & 0xf) ^ low);
                         }
-                        local_player_globals->unknown_12 = (int16_t)i; // UNSURE field identity confirmed by offset only
+                        local_player_globals->bsp_switch_trigger_volume_index = (int16_t)i; // UNSURE field identity confirmed by offset only
                         if (destination < 0 || destination >= global_scenario->structure_bsps.count) {
                             console_print_va("tried to switch to invalid structure-bsp %d", (int32_t)destination);
                         } else if (destination == global_structure_bsp_index) {

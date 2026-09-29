@@ -43,7 +43,7 @@ uint8_t actor_toggle_active_state(uint8_t activate, datum_index actor_index)
         actor_delete_swarm(actor_index);
         actor_set_units_active(actor_index, 1); // 0x42781d: BL still 1 from 0x4277e2 (dormant)
         self->active = 0;
-        self->unknown_0c = (int32_t)game_time->game_time;
+        self->deactivation_time = (int32_t)game_time->game_time;
         return 1;
     }
 

@@ -77,14 +77,14 @@ void encounter_propagate_platoon_state_to_actors(datum_index encounter_index)
         member = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
         actor_index = member->next_in_encounter;
 
-        member->unknown_1c8 = self->stood_down;
-        member->unknown_1ca = self->playfight;
+        member->stood_down = self->stood_down;
+        member->playfight = self->playfight;
         attacking_flag = 0;
         ready = 0;
 
         if (self->post_combat == 0) {
-            member->unknown_1e4 = 0;
-            member->unknown_1e8 = (datum_index)0xffffffff;
+            member->post_combat_action = 0;
+            member->post_combat_prop_index = (datum_index)0xffffffff;
         }
 
         platoon_index = member->platoon_index;
@@ -97,7 +97,7 @@ void encounter_propagate_platoon_state_to_actors(datum_index encounter_index)
                 ready = 1;
             }
         }
-        member->unknown_1c9 = attacking_flag;
+        member->platoon_defending = attacking_flag;
 
         if (ready != 0) {
             squad_definition = &((ScenarioSquad *)encounter_definition->squads.pointer)[member->squad_index];

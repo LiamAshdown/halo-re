@@ -71,7 +71,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
 
     if (mode == 5 || mode == 4) {
         ((struct actor_combat_consideration *)record)->mode = mode;
-        return ((struct actor *)actor)->unknown_15e > 1;
+        return ((struct actor *)actor)->vehicle_driving_type > 1;
     }
     if (mode == 2) {
         uint8_t *unit;

@@ -97,7 +97,7 @@ int32_t network_server_check_machine_timeout(network_server_globals *server, net
     }
 
 not_timed_out:
-    if (machine->unknown_50 == 0) {
+    if (machine->player_joined == 0) {
         int16_t machine_id;
 
         machine_id = machine->machine_id;
@@ -141,14 +141,14 @@ not_timed_out:
                     machine->unknown_0f = 0;
                     *(int32_t *)((uint8_t *)machine + 0x52) = 0;
                     *(int32_t *)((uint8_t *)machine + 0x56) = 0;
-                    if (machine->unknown_5c == -1) {
+                    if (machine->gcd_user_id == -1) {
                         gcd_disconnect_all(network_console_connection_id);
                     } else {
-                        gcd_disconnect_user(network_console_connection_id, machine->unknown_5c);
+                        gcd_disconnect_user(network_console_connection_id, machine->gcd_user_id);
                     }
-                    machine->unknown_50 = 0;
-                    machine->unknown_51 = 0;
-                    machine->unknown_5c = -1;
+                    machine->player_joined = 0;
+                    machine->players_removed_broadcast = 0;
+                    machine->gcd_user_id = -1;
 
                     message_delta_parameters_protocol_send_update();
                     {
@@ -169,7 +169,7 @@ not_timed_out:
         return 0;
     }
 
-    if (machine->unknown_51 != 0) {
+    if (machine->players_removed_broadcast != 0) {
         return 1;
     }
     {
@@ -196,7 +196,7 @@ not_timed_out:
         if (!any_valid) {
             local_result = 1;
         }
-        machine->unknown_51 = 1;
+        machine->players_removed_broadcast = 1;
         return local_result;
     }
 }

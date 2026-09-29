@@ -112,7 +112,7 @@ void widget_instance_render_list_head(widget_instance *widget, UIWidgetDefinitio
             scroll_dir_down = 1;
         }
     }
-    widget->unknown_54 = 0;
+    widget->selection_direction = 0;
 
     // Scroll arrows, objdump 0x49b645..0x49b7ef. Each arrow bitmap (tag+0x160 header, tag+0x170
     // footer) is drawn with frame = the scroll direction flag, plus 2 while the cursor is over the
@@ -218,7 +218,7 @@ void widget_instance_render_list_head(widget_instance *widget, UIWidgetDefinitio
                 color.blue = rgb[2];
             }
             color.alpha = color.alpha * cumulative;
-            if (*(uint8_t *)&widget->unknown_54 != 0 || (t[0x11e] & 4) != 0) {
+            if (*(uint8_t *)&widget->selection_direction != 0 || (t[0x11e] & 4) != 0) {
                 double td = (double)ui_time_milliseconds;
 
                 if (ui_time_milliseconds < 0) td += 4294967296.0;
