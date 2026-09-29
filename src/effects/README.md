@@ -287,7 +287,7 @@ the target. Types that already existed elsewhere are **not** redeclared here: ev
 | `0x2c` | `real_vector3d` | `velocity` -- world units per second |
 | `0x38` | `ColorARGB` | `color` -- the tint the per type colour multipliers scale by |
 | `0x48` | `ColorRGB` | `ambient_color` -- object_sample_ambient_lightmap_point result; the |
-| `0x54` | `uint32_t` | `rotation` -- no writer or reader found in this module |
+| `0x54` | `uint32_t` | `unknown_54` -- no writer or reader found in this module |
 | `0x58` | `particle_system_type_state[4]` | `type_states` -- one per ParticleSystemType, bounded by the |
 
 ### `particle_system_particle` -- size 0x80
@@ -328,7 +328,7 @@ the target. Types that already existed elsewhere are **not** redeclared here: ev
 | `0x1c` | `real_point3d` | `unknown_1c` -- becomes particle.unknown_3c; UNSURE of its meaning |
 | `0x28` | `real_vector3d` | `velocity` |
 | `0x34` | `real_vector3d` | `gravity` -- folded into velocity, scaled by the current radius |
-| `0x40` | `float` | `unknown_40` -- becomes particle.rotation |
+| `0x40` | `float` | `rotation` -- becomes particle.rotation |
 | `0x44` | `float` | `unknown_44` -- becomes particle.unknown_58 |
 | `0x48` | `float` | `scale` -- becomes particle.scale |
 | `0x4c` | `ColorARGB` | `color` -- becomes particle.color |
