@@ -192,8 +192,8 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
             vehicle_obj->angular_velocity = *(real_vector3d *)(node->vehicle_state + 0x18);
             vehicle_obj->forward = *(real_vector3d *)(node->vehicle_state + 0x94);
             vehicle_obj->up = *(real_vector3d *)(node->vehicle_state + 0xa0);
-            vehicle_ext->unknown_338 = *(float *)(node->vehicle_state + 0x214);
-            vehicle_ext->unknown_33c = *(float *)(node->vehicle_state + 0x218);
+            vehicle_ext->driver_seat_power = *(float *)(node->vehicle_state + 0x214);
+            vehicle_ext->gunner_seat_power = *(float *)(node->vehicle_state + 0x218);
             memcpy((uint8_t *)vehicle_obj + 0x4cc, node->vehicle_state + 0x220, 0xf4);
             unit_propagate_position_delta_to_children();
             vehicle_obj->velocity = vehicle_ack->vehicle.velocity;

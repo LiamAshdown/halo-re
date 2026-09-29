@@ -245,16 +245,16 @@ misattributions below. The full derivation is in `out/phase4/units_types_notes.m
 | `0x320` | `0x01` | `int8_t` | `zoom_level` | -1 when not zoomed |
 | `0x321` | `0x01` | `int8_t` | `desired_zoom_level` | unit_control_data.zoom_level; 0x5659c0 and 0x565a70 force it back to -1 |
 | `0x322` | `0x01` | `int8_t` | `unknown_322` | tick counter clamped at 0x7f, reset by unit_update; 0x55e2d0 flees above 120 |
-| `0x323` | `0x01` | `int8_t` | `unknown_323` | written by unit_update from the same block |
+| `0x323` | `0x01` | `int8_t` | `aiming_change` | written by unit_update from the same block |
 | `0x324` | `0x04` | `datum_index` | `driver_unit_index` | the child object in the first tracked seat; 0x56ce30 recomputes it and unit_update copies the control input of this occupant into itself |
 | `0x328` | `0x04` | `datum_index` | `gunner_unit_index` | the child object in the second tracked seat |
 | `0x32c` | `0x04` | `datum_index` | `last_parent_object_index` | the object this unit was last seated in, recorded by every detach path |
 | `0x330` | `0x04` | `int32_t` | `last_seat_change_tick` | game time at that detach |
 | `0x334` | `0x02` | `int16_t` | `unknown_334` |  |
 | `0x336` | `0x02` | `int16_t` | `unknown_336` | copied from the UnitSeat record at +0x3a when the unit leaves the seat (0x568610, 0x568cb0) |
-| `0x338` | `0x04` | `float` | `unknown_338` | a 0..1 scalar the vehicle lean, thruster and ground-effect routines all multiply by |
-| `0x33c` | `0x04` | `float` | `unknown_33c` | vehicle_update tests it against 0 with bit 8 |
-| `0x340` | `0x04` | `float` | `unknown_340` | 0..1 ramp, unit_update steps it by 1/24 down and 1/6 up |
+| `0x338` | `0x04` | `float` | `driver_seat_power` | a 0..1 scalar the vehicle lean, thruster and ground-effect routines all multiply by |
+| `0x33c` | `0x04` | `float` | `gunner_seat_power` | vehicle_update tests it against 0 with bit 8 |
+| `0x340` | `0x04` | `float` | `integrated_light_power` | 0..1 ramp, unit_update steps it by 1/24 down and 1/6 up |
 | `0x344` | `0x04` | `float` | `unknown_344` | 0..1; unit_update steps it by 1/900 up and 1/3600 down; packed into the network update |
 | `0x348` | `0x04` | `float` | `unknown_348` | 0..1 ramp, 1/24 down and 1/12 up; zeroed by 0x5659c0 and 0x565a70 |
 | `0x34c` | `0x0c` | `real_point3d` | `unknown_34c` | cached look reference point; 0x56e820 diffs it frame to frame and 0x570cb0 shifts it by the movement delta of the parent |

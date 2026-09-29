@@ -9,7 +9,7 @@
 //   types/units.h) zeroes the whole per-contact-point output buffer and returns early.
 // evidence: types/units.h vehicle_data.flags (0x4cc), .forward_velocity (0x4d4), .ground_lean
 //   (0x4ec), .ground_contact_fraction (0x4f0); types/units.h unit_data.desired_facing_vector
-//   (0x224), .unknown_338 (0x338), .unknown_2ec... angular_velocity (0x23-25 index);
+//   (0x224), .driver_seat_power (0x338), .unknown_2ec... angular_velocity (0x23-25 index);
 //   types/objects.h object.velocity/forward/up/angular_velocity; types/tags.h
 //   Vehicle.maximum_forward_speed (0x2f8); the physics.tag_id-at-0x8c idiom (contact-point
 //   count at Physics+0x74, matching the sibling functions); callees
@@ -67,7 +67,7 @@ void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_tr
     uint16_t flags = ((struct vehicle_object *)obj)->vehicle.flags;
     real max_speed = *(real *)(tag + 0x2f8);
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
-    real throttle = ((struct vehicle_object *)obj)->unit.unknown_338;
+    real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
     real clamped, f2, k, delta, lean_scale, dot, x_force, y_force, angle, per_tick, torque_scale;
     real_vector3d facing, up, force, torque;
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);

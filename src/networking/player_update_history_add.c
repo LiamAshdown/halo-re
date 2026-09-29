@@ -140,8 +140,8 @@ uint8_t player_update_history_add(datum_index unit_index, player_update_history 
         *(real_vector3d *)(node->vehicle_state + 0x18) = vehicle_obj->angular_velocity;
         memcpy(node->vehicle_state + 0x24, (uint8_t *)vehicle_obj + 0x04, 0x1f0); // rest of object
         vehicle_ext = (unit_data *)((uint8_t *)vehicle_obj + 0x1f4);
-        *(float *)(node->vehicle_state + 0x214) = vehicle_ext->unknown_338;
-        *(float *)(node->vehicle_state + 0x218) = vehicle_ext->unknown_33c;
+        *(float *)(node->vehicle_state + 0x214) = vehicle_ext->driver_seat_power;
+        *(float *)(node->vehicle_state + 0x218) = vehicle_ext->gunner_seat_power;
         *(uint32_t *)(node->vehicle_state + 0x21c) = 0;
         memcpy(node->vehicle_state + 0x220, (uint8_t *)vehicle_obj + 0x4cc, 0xf4); // vehicle_data
     } else {

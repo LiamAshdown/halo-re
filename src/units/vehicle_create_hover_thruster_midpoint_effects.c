@@ -6,7 +6,7 @@
 //   computes a marker-to-hit "midpoint" position and passes a 4-string label set (kind == 4)
 //   to effect_new_with_color.
 // evidence: types/tags.h Vehicle.effect (tag_id at absolute 0x3ec); types/units.h
-//   unit_data.unknown_338 ("a 0..1 scalar the vehicle lean, thruster and ground-effect routines
+//   unit_data.driver_seat_power ("a 0..1 scalar the vehicle lean, thruster and ground-effect routines
 //   all multiply by", gating this function on being > 0, matching the functions.md summary's
 //   "gated on the unit's speed (offset 0xce > 0)"); callees as in the sibling function.
 // UNSURE: see vehicle_create_hover_thruster_effects.c's header; the same caveats apply to the
@@ -52,7 +52,7 @@ void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index)
     int16_t i;
     static char *names[4] = { "incident", "normal", "reflected", "midpoint" };
 
-    if (*(int32_t *)(tag + 0x3ec) == -1 || !(((struct vehicle_object *)obj)->unit.unknown_338 > 0.0f)) {
+    if (*(int32_t *)(tag + 0x3ec) == -1 || !(((struct vehicle_object *)obj)->unit.driver_seat_power > 0.0f)) {
         return;
     }
     count = (int16_t)object_get_node_local_transform(unit_index, "hover thrusters", markers, 0xf);
@@ -69,7 +69,7 @@ void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index)
         if (!collision_test_movement_segment(0x61, marker_position, &delta, unit_index, &result)) {
             continue;
         }
-        v = -*(real *)(marker + 0x44) * (1.0f - result.t) * ((struct vehicle_object *)obj)->unit.unknown_338;
+        v = -*(real *)(marker + 0x44) * (1.0f - result.t) * ((struct vehicle_object *)obj)->unit.driver_seat_power;
         if (v < 0.0f) {
             continue;
         }

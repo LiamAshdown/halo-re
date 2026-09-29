@@ -504,7 +504,7 @@ typedef struct unit_data {
                                         //       0x565a70 force it back to -1
     int8_t unknown_322;                 // 0x322 tick counter clamped at 0x7f, reset by
                                         //       unit_update; 0x55e2d0 flees above 120
-    int8_t unknown_323;                 // 0x323 written by unit_update from the same block
+    int8_t aiming_change;                 // 0x323 written by unit_update from the same block
     datum_index driver_unit_index;      // 0x324 the child object in the first tracked seat;
                                         //       0x56ce30 recomputes it and unit_update copies
                                         //       the control input of this occupant into itself
@@ -515,10 +515,10 @@ typedef struct unit_data {
     int16_t unknown_334;                // 0x334
     int16_t unknown_336;                // 0x336 copied from the UnitSeat record at +0x3a when
                                         //       the unit leaves the seat (0x568610, 0x568cb0)
-    float unknown_338;                  // 0x338 a 0..1 scalar the vehicle lean, thruster and
+    float driver_seat_power;                  // 0x338 a 0..1 scalar the vehicle lean, thruster and
                                         //       ground-effect routines all multiply by
-    float unknown_33c;                  // 0x33c vehicle_update tests it against 0 with bit 8
-    float unknown_340;                  // 0x340 0..1 ramp, unit_update steps it by 1/24 down
+    float gunner_seat_power;                  // 0x33c vehicle_update tests it against 0 with bit 8
+    float integrated_light_power;                  // 0x340 0..1 ramp, unit_update steps it by 1/24 down
                                         //       and 1/6 up
     float unknown_344;                  // 0x344 0..1; unit_update steps it by 1/900 up and
                                         //       1/3600 down; packed into the network update

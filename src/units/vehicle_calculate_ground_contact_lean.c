@@ -9,7 +9,7 @@
 //   all, and Physics-tag fields at +8/+0x50/+0x54/+0x58/+0x68 are not documented anywhere.
 //   Reproduced with Ghidra's own float locals rather than invented names for that section.
 // evidence: types/units.h vehicle_data.forward_velocity (0x4d4), .ground_contact_fraction
-//   (0x4f0); types/units.h unit_data.desired_facing_vector (0x224), .unknown_338 (0x338),
+//   (0x4f0); types/units.h unit_data.desired_facing_vector (0x224), .driver_seat_power (0x338),
 //   .driver_unit_index (0x324); types/objects.h object.velocity/forward/up/angular_velocity;
 //   types/tags.h Vehicle.maximum_forward_speed/maximum_reverse_speed (0x2f8/0x2fc),
 //   .speed_acceleration/.speed_deceleration (0x300/0x304), .maximum_left_turn (0x308),
@@ -72,7 +72,7 @@ void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record
     uint8_t *powered = (uint8_t *)out_record;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real mass = *(real *)(physics + 0x8);
-    real throttle = ((struct vehicle_object *)obj)->unit.unknown_338;
+    real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);
     real_vector3d *object_up = (real_vector3d *)(obj + 0x80);

@@ -7,7 +7,7 @@
 //   (0x573f60, this batch) and equally dense; the same matrix/quaternion caveats apply, plus a
 //   gate value (Physics tag +0x68, compared against the integer 20 here rather than 2 or 3 as
 //   in the sibling functions) that is not documented anywhere.
-// evidence: types/units.h unit_data.desired_facing_vector (0x224), .unknown_338 (0x338);
+// evidence: types/units.h unit_data.desired_facing_vector (0x224), .driver_seat_power (0x338);
 //   types/objects.h object.velocity/forward/up/angular_velocity; types/tags.h
 //   Vehicle.maximum_forward_speed (0x2f8); math.h matrix4x3_multiply (established, called here
 //   through the PTR_matrix4x3_multiply_00696664 thunk per src/math/math_initialize.c);
@@ -106,7 +106,7 @@ void vehicle_calculate_ground_contact_lean_alt(uint32_t unit_index, void *out_re
     torque.j = (axis.j * per_tick - angular_velocity->j) * torque_scale;
     torque.k = (axis.k * per_tick - angular_velocity->k) * torque_scale;
 
-    throttle = ((struct vehicle_object *)obj)->unit.unknown_338;
+    throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
     *(real *)(powered + 0x18) = throttle;
     *(real *)(powered + 0x28) = 1.0f;
     *(real *)(powered + 0x1c) = 0.0f;

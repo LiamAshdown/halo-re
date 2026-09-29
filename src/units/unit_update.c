@@ -430,7 +430,7 @@ controls:
                 }
                 if ((*(uint32_t *)(TAG_DATA(*(datum_index *)obj) + 0x17c) & 0x800000) != 0) {
                     weapon_set_ready_timer(unit_get_weapon_object_index(unit_index,
-                        *(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), ((struct unit_object *)obj)->unit.unknown_340);
+                        *(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), ((struct unit_object *)obj)->unit.integrated_light_power);
                 }
                 if ((((unit_object *)obj)->unit.control_flags & 0x400) != 0) {
                     control |= 8;
@@ -595,20 +595,20 @@ controls:
             if (((unit_object *)obj)->base.parent_object != k_datum_index_none || (obj[0x106] & 4) != 0) {
                 ((unit_object *)obj)->unit.flags = flags & 0xfff7ffff;
             }
-            if (((struct unit_object *)obj)->unit.unknown_340 != 1.0f) {
-                ((struct unit_object *)obj)->unit.unknown_340 += 0.16666667f;
-                if (((struct unit_object *)obj)->unit.unknown_340 > 1.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_340 = 1.0f;
+            if (((struct unit_object *)obj)->unit.integrated_light_power != 1.0f) {
+                ((struct unit_object *)obj)->unit.integrated_light_power += 0.16666667f;
+                if (((struct unit_object *)obj)->unit.integrated_light_power > 1.0f) {
+                    ((struct unit_object *)obj)->unit.integrated_light_power = 1.0f;
                 }
             }
         } else {
             if (((struct unit_object *)obj)->unit.unknown_344 < 1.0f) {
                 ((struct unit_object *)obj)->unit.unknown_344 += 0.0011111111f;
             }
-            if (((struct unit_object *)obj)->unit.unknown_340 != 0.0f) {
-                ((struct unit_object *)obj)->unit.unknown_340 -= 0.041666668f;
-                if (((struct unit_object *)obj)->unit.unknown_340 < 0.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_340 = 0.0f;
+            if (((struct unit_object *)obj)->unit.integrated_light_power != 0.0f) {
+                ((struct unit_object *)obj)->unit.integrated_light_power -= 0.041666668f;
+                if (((struct unit_object *)obj)->unit.integrated_light_power < 0.0f) {
+                    ((struct unit_object *)obj)->unit.integrated_light_power = 0.0f;
                 }
             }
         }

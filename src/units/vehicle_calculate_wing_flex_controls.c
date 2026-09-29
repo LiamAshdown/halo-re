@@ -9,7 +9,7 @@
 //   offsets and Ghidra's own float locals rather than invented field names.
 // evidence: types/units.h vehicle_data.flags (0x4cc, bits 3 and 8), .forward_velocity (0x4d4),
 //   .ground_lean (0x4ec), .airborne_ticks (0x4d0); types/units.h unit_data.throttle (0x278),
-//   .unknown_338 (0x338); types/objects.h object.velocity/forward/up/angular_velocity;
+//   .driver_seat_power (0x338); types/objects.h object.velocity/forward/up/angular_velocity;
 //   types/tags.h Vehicle.maximum_forward_speed (0x2f8), .speed_acceleration (0x300); the
 //   physics.tag_id-at-0x8c idiom (contact-point count at Physics+0x74, per-node array at
 //   Physics+0x78, stride 0x80, matching every sibling in this batch); callee
@@ -70,7 +70,7 @@ void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint
 
     for (i = 0; i < node_count; i++) {
         uint8_t *entry = node_output + i * 0x60;
-        *(float *)(entry + 0x18) = unit->unknown_338;
+        *(float *)(entry + 0x18) = unit->driver_seat_power;
         *(uint32_t *)(entry + 0x1c) = 0;
         *(uint32_t *)(entry + 0x20) = 0;
         *(uint32_t *)(entry + 0x24) = 0;
@@ -237,8 +237,8 @@ void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint
             }
         }
 
-        push.i *= unit->unknown_338; push.j *= unit->unknown_338; push.k *= unit->unknown_338;
-        angular.i *= unit->unknown_338; angular.j *= unit->unknown_338; angular.k *= unit->unknown_338;
+        push.i *= unit->driver_seat_power; push.j *= unit->driver_seat_power; push.k *= unit->driver_seat_power;
+        angular.i *= unit->driver_seat_power; angular.j *= unit->driver_seat_power; angular.k *= unit->driver_seat_power;
     }
 
     object_physics_tick(unit_index, node_output, contact_points, &push, &angular);
