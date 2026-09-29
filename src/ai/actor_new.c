@@ -139,7 +139,7 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->vocalization_unknown_3e8 = 0;
     self->secondary_action = 0;
     self->movement_completed = 0;
-    self->unknown_494 = 0xffffffff;
+    self->movement_goal_surface = 0xffffffff;
     self->unknown_498 = 0xffffffff;
 
     memset(&self->movement_action_complete, 0, 0x17 * sizeof(uint32_t)); // 0x4a8..0x503

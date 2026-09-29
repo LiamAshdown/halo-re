@@ -2,7 +2,7 @@
 // address 0x416700, size 138 bytes
 // name confidence: 0.35  rewrite confidence: 0.9 (VERIFIED against 0x416700 (type gate, radius from actor_compute_accuracy_scale, squared-distance compare))
 // evidence: reads actor.active_movement.type (0x46c) and, for any type other than 0
-// (stop) or 1, compares the squared distance from actor.body_position to actor.unknown_488
+// (stop) or 1, compares the squared distance from actor.body_position to actor.movement_goal_position
 // against actor_compute_accuracy_scale()'s squared engagement-range radius; if still outside that radius it
 // leaves movement_completed alone, otherwise (or for type 0/1) it sets movement_completed.
 // Returns the (possibly just-set) movement_completed flag.
@@ -28,9 +28,9 @@ uint8_t actor_movement_check_arrival(datum_index actor_index)
 
     if (self->active_movement.type != 0 && self->active_movement.type != 1) {
         radius = actor_compute_accuracy_scale(actor_index);
-        dx = self->unknown_488.x - self->body_position.x;
-        dy = self->unknown_488.y - self->body_position.y;
-        dz = self->unknown_488.z - self->body_position.z;
+        dx = self->movement_goal_position.x - self->body_position.x;
+        dy = self->movement_goal_position.y - self->body_position.y;
+        dz = self->movement_goal_position.z - self->body_position.z;
         if (radius * radius <= dy * dy + dx * dx + dz * dz) {
             return self->movement_completed;
         }

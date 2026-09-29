@@ -587,8 +587,8 @@ typedef struct actor {
     actor_movement_action active_movement;// 0x46c the six dwords the setters copy over from queued_movement
     uint8_t movement_completed;       // 0x484 actor_movement_action_complete sets it
     uint8_t unknown_485[3];           // 0x485
-    real_point3d unknown_488;         // 0x488
-    uint32_t unknown_494;             // 0x494 actor_new sets -1
+    real_point3d movement_goal_position; // 0x488 the destination actor_movement_action_resolve settled on, handed to path_find_set_goal
+    uint32_t movement_goal_surface;   // 0x494 its navigation surface index, actor_new sets -1
     uint32_t unknown_498;             // 0x498
     uint8_t unknown_49c[4];           // 0x49c
     int32_t movement_timer;           // 0x4a0 actor_movement_action_complete zeroes it

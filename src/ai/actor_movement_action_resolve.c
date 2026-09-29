@@ -3,8 +3,8 @@
 // name confidence: 0.6   rewrite confidence: 0.75
 // evidence: the four movement setters at 0x417610..0x417910 and actor_movement_action_stop
 // all tail-call it after writing active_movement; it turns the action's type-specific
-// parameters into a concrete world destination (actor.unknown_488), a destination surface
-// index (unknown_494) and a destination radius (unknown_498), then asks the pathfinder
+// parameters into a concrete world destination (actor.movement_goal_position), a destination surface
+// index (movement_goal_surface) and a destination radius (unknown_498), then asks the pathfinder
 // whether that destination is reachable and stores the answer in movement_action_complete.
 // register convention: all three arguments are genuine stack parameters
 // (objdump: [esp+0x100f0 / 0x100f4 / 0x100f8] behind the 0x100ec frame).
@@ -16,7 +16,7 @@
 //    type 4 reads the squad ScenarioMovePosition block (see the note in src/ai/README.md).
 //  - result is the byte at [esp+0xe] and is preloaded with 1 at function entry, which is
 //    why Ghidra can print return 1 on the two early-out paths.
-//  - previous_destination is the 12 bytes at [esp+0x18], copied out of unknown_488 before
+//  - previous_destination is the 12 bytes at [esp+0x18], copied out of movement_goal_position before
 //    it is overwritten, and is only used for the 0.01 squared-distance early-out.
 //  - param_3 is a path_find_context pointer, not an int: when it is non-null the function
 //    reuses the caller context instead of building a request and running a fresh search
@@ -91,7 +91,7 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
     previous_destination.y = 0.0f;
     previous_destination.z = 0.0f;
     if (type != 0 && type != 1) {
-        previous_destination = self->unknown_488;
+        previous_destination = self->movement_goal_position;
         have_previous = 1;
     }
 
@@ -110,8 +110,8 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
 
     switch (type) {
     case 2:
-        self->unknown_488 = self->active_movement.destination;
-        self->unknown_494 = (uint32_t)self->active_movement.parameter;
+        self->movement_goal_position = self->active_movement.destination;
+        self->movement_goal_surface = (uint32_t)self->active_movement.parameter;
         self->unknown_498 = 0;
         break;
 
@@ -125,8 +125,8 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
                                    [self->encounter_index & 0xffff];
         firing_position = &((ScenarioFiringPosition *)encounter_definition->firing_positions.pointer)
                               [*(int16_t *)&self->active_movement.destination];
-        self->unknown_488 = *(real_point3d *)&firing_position->position;
-        self->unknown_494 = firing_position->surface_index;
+        self->movement_goal_position = *(real_point3d *)&firing_position->position;
+        self->movement_goal_surface = firing_position->surface_index;
         self->unknown_498 = 0;
         break;
 
@@ -146,8 +146,8 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
             return result;
         }
         move_position = &((ScenarioMovePosition *)squad_definition->move_positions.pointer)[index];
-        self->unknown_488 = *(real_point3d *)&move_position->position;
-        self->unknown_494 = move_position->surface_index;
+        self->movement_goal_position = *(real_point3d *)&move_position->position;
+        self->movement_goal_surface = move_position->surface_index;
         result = 1;
         self->unknown_498 = 0;
         break;
@@ -159,11 +159,11 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
             actor_target_get_relationship_object(*(datum_index *)&self->active_movement.destination);
         }
         if (self->flying != 0) {
-            self->unknown_488 = *(real_point3d *)&((struct prop *)target)->aim_offset.x;
+            self->movement_goal_position = *(real_point3d *)&((struct prop *)target)->aim_offset.x;
         } else {
-            self->unknown_488 = *(real_point3d *)&((struct prop *)target)->ground_position.x;
+            self->movement_goal_position = *(real_point3d *)&((struct prop *)target)->ground_position.x;
         }
-        self->unknown_494 = *(uint32_t *)&((struct prop *)target)->path_surface_index;
+        self->movement_goal_surface = *(uint32_t *)&((struct prop *)target)->path_surface_index;
         self->unknown_498 = *(uint32_t *)&self->active_movement.destination.y;
         break;
 
@@ -176,13 +176,13 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
     // LAB_0041a558: decide whether the destination is worth steering to at all.
     if (self->flying == 0) {
         if (*(float *)&self->unknown_498 == 0.0f &&
-            self->unknown_494 == (uint32_t)-1) {
+            self->movement_goal_surface == (uint32_t)-1) {
             result = 0;
             actor_movement_action_complete(actor_index);
             return result;
         }
     } else {
-        if (actor_movement_flying_needs_steering(actor_index, &self->unknown_488,
+        if (actor_movement_flying_needs_steering(actor_index, &self->movement_goal_position,
                                                  &avoidance_distance) == 0) {
             result = 0;
             actor_movement_action_complete(actor_index);
@@ -194,21 +194,21 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
         if (have_previous == 0) {
             return result;
         }
-        if (vector3d_distance_squared(&self->unknown_488, &previous_destination) <= 0.010000001f) {
+        if (vector3d_distance_squared(&self->movement_goal_position, &previous_destination) <= 0.010000001f) {
             return result;
         }
     }
 
     actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
-    distance = vector3d_distance(&self->unknown_488, &self->body_position);
+    distance = vector3d_distance(&self->movement_goal_position, &self->body_position);
 
     if (self->flying != 0) {
         // EBX = &self->movement_action_complete, the out-parameter this variant writes.
-        // FIXED (objdump 0x41a798..0x41a7a7): EBX = &self +0x4a8, stack = (bsp, &body_position, 0, &unknown_488)
+        // FIXED (objdump 0x41a798..0x41a7a7): EBX = &self +0x4a8, stack = (bsp, &body_position, 0, &movement_goal_position)
         result = path_find_validate_and_record_goal((uint8_t *)self + 0x4a8, (void *)global_structure_bsp,
-            (uint32_t)&self->body_position, 0, &self->unknown_488);
+            (uint32_t)&self->body_position, 0, &self->movement_goal_position);
     } else if (context != (path_find_context *)0) {
-        path_find_set_goal(context, &self->unknown_488, self->unknown_494, self->unknown_498);
+        path_find_set_goal(context, &self->movement_goal_position, self->movement_goal_surface, self->unknown_498);
         result = path_find_reconstruct_path(context, &self->movement_action_complete);
     } else {
         actor_build_path_find_request(actor_index, &request);
@@ -221,7 +221,7 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
                          self->danger_object_index, 10.0f);
         }
         path_find_context_init(&local_context, &request, 0);
-        path_find_set_goal(&local_context, &self->unknown_488, self->unknown_494, self->unknown_498);
+        path_find_set_goal(&local_context, &self->movement_goal_position, self->movement_goal_surface, self->unknown_498);
         result = 0;
         if (path_find_run(&local_context) != 0 &&
             path_find_reconstruct_path(&local_context, &self->movement_action_complete) != 0) {

@@ -1,7 +1,7 @@
 // actor_clear_target_state  (Ghidra: actor_clear_target_state, renamed)
 // address 0x4286c0, size 212 bytes
 // name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4286c0..0x428793; swarm / movement offsets match; the mode proc tail call now gets the actor)
-// evidence: types/ai.h actor.unknown_164/search_unknown_324/unknown_494; swarm.component_count/
+// evidence: types/ai.h actor.unknown_164/search_unknown_324/movement_goal_surface; swarm.component_count/
 //   component_index; swarm_component.marker_index (0x10). Fields 0x144/0x148 fall inside
 //   actor.unknown_138[0x20] (unnamed) and are accessed as raw offsets. The mode-table call at
 //   0x0065527c is actor_mode_definitions[mode]+0x28, a sixth unnamed per-mode procedure slot
@@ -41,7 +41,7 @@ void actor_clear_target_state(datum_index actor_index)
         self->active_movement.parameter = 0xffffffff;
     }
 
-    self->unknown_494 = 0xffffffff;
+    self->movement_goal_surface = 0xffffffff;
 
     if (self->swarm != 0 && self->swarm_index != (datum_index)k_datum_index_none) {
         swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & 0xffff];

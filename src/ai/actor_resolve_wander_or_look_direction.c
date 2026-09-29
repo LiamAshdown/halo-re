@@ -2,7 +2,7 @@
 // address 0x4287a0, size 155 bytes
 // name confidence: 0.4   rewrite confidence: 0.45
 // evidence: types/ai.h actor.swarm(0x06)/desired_direction_valid/movement_action_complete(0x4a8)/
-//   unknown_488(real_point3d)/body_position(0x12c)/desired_direction(real_point3d, "look-direction
+//   movement_goal_position(real_point3d)/body_position(0x12c)/desired_direction(real_point3d, "look-direction
 //   source"). Calls vector3d_normalize_with_length (0x401990, math module, already
 //   established).
 // register convention: EAX -> actor_index, ECX -> out_direction (real_vector3d*).
@@ -20,7 +20,7 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 // blam-cc: EAX -> actor_index, ECX -> out_direction
 // Computes and normalizes a direction vector for the actor to look toward: for a non-swarm
 // actor, either the delta from its body position to a cached wander destination
-// (unknown_488, once movement_action_complete is set) or, failing that, its cached look
+// (movement_goal_position, once movement_action_complete is set) or, failing that, its cached look
 // vector (desired_direction, once desired_direction_valid is set); returns whether the result was
 // non-degenerate. Always false for a swarm actor.
 uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, real_vector3d *out_direction)
@@ -35,9 +35,9 @@ uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, real_vec
         if (self->movement_action_complete == 0) {
             return 0;
         }
-        out_direction->i = self->unknown_488.x - self->body_position.x;
-        out_direction->j = self->unknown_488.y - self->body_position.y;
-        out_direction->k = self->unknown_488.z - self->body_position.z;
+        out_direction->i = self->movement_goal_position.x - self->body_position.x;
+        out_direction->j = self->movement_goal_position.y - self->body_position.y;
+        out_direction->k = self->movement_goal_position.z - self->body_position.z;
     } else {
         out_direction->i = self->desired_direction.x;
         out_direction->j = self->desired_direction.y;

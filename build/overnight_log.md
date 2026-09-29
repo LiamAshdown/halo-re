@@ -2745,3 +2745,4 @@ Start totals (live code): 7135 offsets, 896 Ghidra names, 74 Ghidra types.
 - iter 83: actor 0x90 command_list_index, 0x94 last_obey_tick (0x92 left: countdown, purpose unclear). Names only; ai gcc failure set unchanged.
 - iter 84: actor steering fields from actor_movement_update: explicit_steering_set (0x430), explicit_steering_direction (0x434), desired_direction_valid (0x504), desired_direction (0x518). Names only; ai gcc failure set unchanged.
 - iter 85: actor 0x15e -> movement_context (0 foot, 1 seated, 2..3 vehicle, 4 flying; values 1-3 partly inferred). Names only; ai gcc failure set unchanged.
+- iter 86: actor 0x488 movement_goal_position, 0x494 movement_goal_surface (0x498 left). Names only; ai gcc failure set unchanged.
