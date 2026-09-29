@@ -239,8 +239,8 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
             }
         }
         context.center = group->position;
-        context.base_map_u_scale = group->unknown_3c;
-        context.base_map_v_scale = group->unknown_40;
+        context.base_map_u_scale = group->base_map_u_scale;
+        context.base_map_v_scale = group->base_map_v_scale;
 
         rasterizer_set_render_state(0xe, 0);                        // D3DRS_ZWRITEENABLE off
         rasterizer_camouflage_fade_active = 1;

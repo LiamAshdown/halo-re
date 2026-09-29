@@ -2759,3 +2759,4 @@ Start totals (live code): 7135 offsets, 896 Ghidra names, 74 Ghidra types.
 - iter 97 (effects): particle rotation (0x54) / rotation_rate (0x58) / last_moving_velocity (0x3c), and particle_creation_data rotation (0x40) / rotation_rate (0x44); render_particles reads rotation. effects and render gcc failure sets unchanged.
 - iter 98 (effects): particle_system_particle 0x28 -> velocity (point_physics_tick integrates it in particle_update_physics_default). effects gcc failure set unchanged.
 - iter 99 (interface): first_person_weapon_interface frame_sound_impulse (0x1e98), frame_sound_state (0x1e9c). interface gcc failure set unchanged.
+- iter 100 (rasterizer): transparent_geometry_group base_map_u_scale (0x3c), base_map_v_scale (0x40), attached_sort_key (0xa0). rasterizer gcc failure set unchanged.

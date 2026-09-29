@@ -150,14 +150,14 @@ fill:
     group->depth = -(rasterizer_window.camera.forward.i * (group->position.x - rasterizer_window.camera.position.x) +
                      rasterizer_window.camera.forward.j * (group->position.y - rasterizer_window.camera.position.y) +
                      rasterizer_window.camera.forward.k * (group->position.z - rasterizer_window.camera.position.z));
-    group->unknown_3c = context->base_map_u_scale;
-    group->unknown_40 = context->base_map_v_scale;
+    group->base_map_u_scale = context->base_map_u_scale;
+    group->base_map_v_scale = context->base_map_v_scale;
     group->previous_group_index = -1;
     group->next_group_index = -1;
     if (rasterizer_active_model_mode == 1 && *(int16_t *)&((struct Shader *)shader)->shader_type != 4) {
-        group->unknown_a0 = context->group_parameters.sort_key;  // attached to the model's key
+        group->attached_sort_key = context->group_parameters.sort_key;  // attached to the model's key
     } else {
-        group->unknown_a0 = 0;
+        group->attached_sort_key = 0;
     }
     group->first_person = model_render_first_person;
 

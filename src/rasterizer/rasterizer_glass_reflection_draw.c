@@ -246,8 +246,8 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         BitmapData *bump_bitmap = 0;
         uint32_t pass_count;
 
-        constants[0] = group->unknown_3c * bump_scale;
-        constants[1] = group->unknown_40 * bump_scale;
+        constants[0] = group->base_map_u_scale * bump_scale;
+        constants[1] = group->base_map_v_scale * bump_scale;
         constants[2] = (float)width * 0.5f;
         constants[3] = (float)height * 0.5f;
         constants[4] = 0.0f;

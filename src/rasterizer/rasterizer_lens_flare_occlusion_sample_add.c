@@ -79,9 +79,9 @@ void rasterizer_lens_flare_occlusion_sample_add(void *procedure, const real_poin
     group->previous_group_index = -1;
     group->next_group_index = -1;
 
-    group->unknown_40 = 1.0f;
-    group->unknown_3c = 1.0f;
-    group->unknown_a0 = 0;
+    group->base_map_v_scale = 1.0f;
+    group->base_map_u_scale = 1.0f;
+    group->attached_sort_key = 0;
     group->first_person = 0;
     group->node_matrices = 0;
     group->node_count = 0;

@@ -8,7 +8,7 @@
 // shader_permutation, 0x14 parameters.mode, 0x44 dynamic_index_slot, 0x48 index_buffer, 0x4c
 // first_index, 0x50 primitive_count, 0x54 dynamic_vertex_slot, 0x58 vertex_buffer, 0x5c
 // lightmap_bitmap, 0x60 node_matrices, 0x64 node_count, 0x70 lighting, 0x74 lighting_extra,
-// 0x78 depth, 0x7c position, 0x9c/0x9e previous/next_group_index, 0xa0 unknown_a0, 0xa5
+// 0x78 depth, 0x7c position, 0x9c/0x9e previous/next_group_index, 0xa0 attached_sort_key, 0xa5
 // first_person) matches this constructor's writes exactly. `unaff_EDI` is read at +0x24 (int16)
 // and +0x28 (byte), matching Shader.shader_type and "the first flags word of the derived
 // shader" per the header's own Shader note, confirming EDI is a Shader tag pointer -- the depth
@@ -80,11 +80,11 @@ void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dyna
         group->tint.red = 0.0f;
         group->tint.green = 0.0f;
         group->tint.blue = 0.0f;
-        group->unknown_40 = 1.0f;
-        group->unknown_3c = 1.0f;
+        group->base_map_v_scale = 1.0f;
+        group->base_map_u_scale = 1.0f;
         group->previous_group_index = -1;
         group->next_group_index = -1;
-        group->unknown_a0 = 0;
+        group->attached_sort_key = 0;
         group->first_person = 0;
 
         if (shader->shader_type == 1 && (*((uint8_t *)shader + 0x28) & 1) != 0) {

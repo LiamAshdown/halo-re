@@ -278,7 +278,7 @@ static void draw_particle_effect_shader(transparent_geometry_group *group, const
     if (has_texture_animation) {
         shader_texture_animation_evaluate((const void *)(uintptr_t)group->lighting_extra, shader + 0x60,
                                           texture_matrix[2], texture_matrix[3],
-                                          group->unknown_3c, group->unknown_40, 0.0f, 0.0f, 0.0f,
+                                          group->base_map_u_scale, group->base_map_v_scale, 0.0f, 0.0f, 0.0f,
                                           (float)rasterizer_time.time);
     }
     ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0x1a, &view_matrix[0][0], 3);
@@ -458,12 +458,12 @@ static void draw_meter_shader(transparent_geometry_group *group, const uint8_t *
     for (i = 0; i < 4; i++) {
         vertex_constants[0][i] = 1.0f;
     }
-    vertex_constants[1][0] = group->unknown_3c;
+    vertex_constants[1][0] = group->base_map_u_scale;
     vertex_constants[1][1] = 0.0f;
     vertex_constants[1][2] = 0.0f;
     vertex_constants[1][3] = 0.0f;
     vertex_constants[2][0] = 0.0f;
-    vertex_constants[2][1] = group->unknown_40;
+    vertex_constants[2][1] = group->base_map_v_scale;
     vertex_constants[2][2] = 0.0f;
     vertex_constants[2][3] = 0.0f;
     ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 10, &vertex_constants[0][0], 3);
@@ -486,7 +486,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
     int16_t pass;
     int32_t key;
 
-    if (group->unknown_a0 != 0 && !attached) {
+    if (group->attached_sort_key != 0 && !attached) {
         return;
     }
     if (!transparent_geometry_group_test_drawn_bit(group)) {
@@ -714,7 +714,7 @@ finish:
         transparent_geometry_group *secondary = transparent_geometry_groups_secondary;
 
         do {
-            if (secondary->unknown_a0 == group->sort_key && secondary->parameters.mode == 1) {
+            if (secondary->attached_sort_key == group->sort_key && secondary->parameters.mode == 1) {
                 rasterizer_transparent_geometry_group_draw(secondary, 1);
                 if (debug_print_enabled_flag != 0) {
                     rasterizer_secondary_groups_drawn = 1;
