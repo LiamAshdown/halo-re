@@ -46,7 +46,7 @@ extern void actor_apply_unit_definition_properties(datum_index actor_variant_tag
 extern datum_index actor_new_and_attach_to_unit(
     char reuse_existing, datum_index unit_index, datum_index actor_variant_tag,
     uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor,
-    char start_active, uint16_t unknown_60, int16_t unknown_62, uint16_t unknown_90, uint8_t unknown_68); // 0x426ac0
+    char start_active, uint16_t unknown_60, int16_t unknown_62, uint16_t command_list_index, uint8_t unknown_68); // 0x426ac0
 extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object, real_point3d *out_position,
     float radius, char grid_mode, char skip_reposition, char scale_radius, uint32_t object_index_a,
     real_vector3d *reference_direction); // 0x55a500, stack x7, EDX

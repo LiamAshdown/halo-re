@@ -7,7 +7,7 @@
 //   links the new actor onto the global unassigned list through
 //   ai_actor_link_to_unassigned_list (0x436940, already rewritten) and seeds exactly the
 //   fields types/ai.h already credits to "0x435420" (actor.unknown_60, unknown_62,
-//   unknown_68, unknown_90, unknown_92).
+//   unknown_68, command_list_index, unknown_92).
 // register convention: EAX -> actor_variant_tag, stack -> unit_index.
 //   // blam-cc: EAX -> actor_variant_tag, stack -> unit_index
 //
@@ -88,7 +88,7 @@ void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index)
     a->unknown_62 = 2;
     a->unknown_8e = 0;
     a->unknown_92 = 2;
-    a->unknown_90 = -1;
+    a->command_list_index = -1;
     a->unknown_68 = 0;
 
     if (*((uint8_t *)a + 0x6) != actor_type_procs[((actor *)a)->type][0xd]) {

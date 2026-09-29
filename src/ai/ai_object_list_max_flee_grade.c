@@ -18,7 +18,7 @@
 //    command-list index at +0x00 and a command cursor at +0x08.
 //  - The grade produced by the command-list branch is ((~flags & 0x10) | 0x20) >> 4, i.e. 3
 //    when bit 4 of actor.mode_data.raw[0x0c] is clear and 2 when it is set.
-//  - actor.unknown_94 is a tick stamp; a member hurt within the last 150 ticks grades 1.
+//  - actor.last_obey_tick is a tick stamp; a member hurt within the last 150 ticks grades 1.
 
 #include "tags.h"
 #include "memory.h"
@@ -147,7 +147,7 @@ have_grade:
                     }
                 }
 recently_hurt:
-                if (a->unknown_94 != -1 && tick <= a->unknown_94 + 0x96) {
+                if (a->last_obey_tick != -1 && tick <= a->last_obey_tick + 0x96) {
                     grade = 1;
                 }
             }

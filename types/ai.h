@@ -385,9 +385,9 @@ typedef struct actor {
     uint8_t unknown_8d;               // 0x8d
     uint8_t unknown_8e;               // 0x8e actor_new sets 0
     uint8_t unknown_8f;               // 0x8f
-    int16_t unknown_90;               // 0x90 actor_new sets 0xffff
+    int16_t command_list_index;       // 0x90 command list assigned to the actor (actor_squad_action_status_broadcast), 0xffff none
     int16_t unknown_92;               // 0x92 0x435420 sets 2
-    int32_t unknown_94;               // 0x94 actor_new sets -1
+    int32_t last_obey_tick;           // 0x94 game time actor_mode_obey_process last marked it; -1 never (ai_object_list_max_flee_grade ignores it after 150 ticks)
     uint8_t unknown_98;               // 0x98 actor_new sets 0
     uint8_t flying;                   // 0x99 Actor.flags bit 21 "flying"; read by every steering and step-test routine
     uint8_t unknown_9a[2];            // 0x9a

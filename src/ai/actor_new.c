@@ -96,8 +96,8 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->unknown_62 = -1;
     self->unknown_64 = -1;
     self->unknown_8e = 0;
-    self->unknown_90 = -1;
-    self->unknown_94 = -1;
+    self->command_list_index = -1;
+    self->last_obey_tick = -1;
     self->mode = 0;
     self->awareness_level = 2;
     self->alert_level = 0;

@@ -3,7 +3,7 @@
 // name confidence: 0.55   rewrite confidence: 0.85
 // evidence: types/ai.h actor.swarm(0x06)/cluster_count(0x1e)/actor_variant_tag(0x5c)/
 //   squad_index(0x3a)/next_in_encounter(0x2c)/active(0x08)/type(0x04)/awareness_level(0x6a)/
-//   unknown_60/unknown_62/unknown_68/unknown_8e/unknown_90/unknown_92; actor_type_table_entry
+//   unknown_60/unknown_62/unknown_68/unknown_8e/command_list_index/unknown_92; actor_type_table_entry
 //   (0x006853b8 table). Calls actor_new (0x426760), actor_attach_to_unit (0x427560),
 //   actor_set_units_active (0x427860), actor_delete (0x427e60), object_try_and_get
 //   (0x4f6ec0), all already established, plus actor_link_to_unit_cluster/encounter_add_actor/ai_actor_link_to_unassigned_list/
@@ -61,7 +61,7 @@ datum_index actor_new_and_attach_to_unit(
     char start_active,
     uint16_t unknown_60,
     int16_t unknown_62,
-    uint16_t unknown_90,
+    uint16_t command_list_index,
     uint8_t unknown_68)
 {
     datum_index actor_index = k_datum_index_none;
@@ -128,7 +128,7 @@ datum_index actor_new_and_attach_to_unit(
     self[0x68] = unknown_68;
     self[0x8e] = 0;
     *(int16_t *)(self + 0x92) = 2;
-    *(uint16_t *)(self + 0x90) = unknown_90;
+    *(uint16_t *)(self + 0x90) = command_list_index;
     if (self[6] != ((uint8_t *)actor_type_procs[*(int16_t *)(self + 4)])[0xd]) {
         actor_delete(actor_index, 0);
         return k_datum_index_none;
