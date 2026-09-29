@@ -1,10 +1,10 @@
 // game_engine_player_new_life  (Ghidra: FUN_0045c440)
 // address 0x45c440, size 304 bytes
 // name confidence: 0.5 (still FUN_0045c440 in Ghidra; types/game.h's own player-struct notes
-//   cite this exact address as the writer of unknown_70/74/78/7c, and
+//   cite this exact address as the writer of teleporter_entrance_flag/74/78/7c, and
 //   game_engine_definition::player_new_life documents 0x45c440 as its implementation)
 // rewrite confidence: 0.45
-// evidence: types/game.h player (unknown_70/74/78/7c seeded -1, speed 0x6c, objective_time
+// evidence: types/game.h player (teleporter_entrance_flag/74/78/7c seeded -1, speed 0x6c, objective_time
 //   0xc4, team 0x20, team_index 0x66, team_index_desired 0x67), game_variant::teams (0x34,
 //   live copy at 0x006f1cbc), game_engine_auto_team_counter (0x0087aa04), current_game_engine
 //   (0x006f1d20, player_new_life slot at +0x14); data_array player_data (0x0087a480).
@@ -60,11 +60,11 @@ void game_engine_player_new_life(uint32_t player_handle)
     int32_t team;
 
     p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    p->unknown_74 = (datum_index)0xffffffff;
-    p->unknown_78 = (datum_index)0xffffffff;
+    p->engine_message = (datum_index)0xffffffff;
+    p->engine_message_subject = (datum_index)0xffffffff;
     p->speed = 1.0f;
-    p->unknown_70 = (datum_index)0xffffffff;
-    p->unknown_7c = (datum_index)0xffffffff;
+    p->teleporter_entrance_flag = (datum_index)0xffffffff;
+    p->nameplate_target = (datum_index)0xffffffff;
     p->objective_time = 0;
 
     if (current_game_engine == (game_engine_definition *)0) {

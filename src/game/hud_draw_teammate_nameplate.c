@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.35
 // evidence: out/phase4/game_functions.md ("Tracks a hysteresis-stabilized nameplate target found
 // by hud_find_nearby_teammate_for_nameplate and draws its name and a scaled value onscreen");
-// types/game.h player (local_player_index +0x02, unit +0x34, unknown_7c/unknown_80 hysteresis
+// types/game.h player (local_player_index +0x02, unit +0x34, nameplate_target/unknown_80 hysteresis
 // pair, name +0x04). FUN_00474db0 (called from hud_find_nearby_teammate_for_nameplate) must
 // return a *player* handle, not an object/unit one, because player+0x7c is validated here with
 // the exact datum_get pattern against the player data_array.
@@ -49,7 +49,7 @@ void hud_draw_teammate_nameplate(datum_index player_handle)
         }
     }
 
-    if ((datum_index)p->unknown_7c == found) {
+    if ((datum_index)p->nameplate_target == found) {
         if (p->unknown_80 < 0xf) {
             p->unknown_80 = p->unknown_80 + 1;
         }
@@ -58,17 +58,17 @@ void hud_draw_teammate_nameplate(datum_index player_handle)
             p->unknown_80 = p->unknown_80 - 1;
         }
         if (p->unknown_80 == 0) {
-            p->unknown_7c = found;
+            p->nameplate_target = found;
         }
     }
 
-    if (p->unknown_7c != (datum_index)0xffffffff) {
-        int16_t index = (int16_t)p->unknown_7c;
+    if (p->nameplate_target != (datum_index)0xffffffff) {
+        int16_t index = (int16_t)p->nameplate_target;
         if (-1 < index && index < player_data->maximum_count) {
             tracked = (player *)((uint8_t *)player_data->data + player_data->size * index);
             if (tracked->identifier != 0 &&
-                ((int16_t)((uint32_t)p->unknown_7c >> 16) == 0 ||
-                 tracked->identifier == (int16_t)((uint32_t)p->unknown_7c >> 16))) {
+                ((int16_t)((uint32_t)p->nameplate_target >> 16) == 0 ||
+                 tracked->identifier == (int16_t)((uint32_t)p->nameplate_target >> 16))) {
                 memset(name, 0, sizeof(name));
                 wcsncpy(name, tracked->name, 0x0b);
                 name[0x0b] = 0;
@@ -79,7 +79,7 @@ void hud_draw_teammate_nameplate(datum_index player_handle)
                 return;
             }
         }
-        p->unknown_7c = (datum_index)0xffffffff;
+        p->nameplate_target = (datum_index)0xffffffff;
     }
 }
 

@@ -5,7 +5,7 @@
 //   the player is validly standing in the hill and the game is not already decided, credits
 //   hill time to their team, fires countdown/warning sound cues..."); types/game.h player::unit
 //   (0x34), player::team (0x20), player::objective_time (0xc4, though this function narrows it
-//   to a 16-bit increment -- see UNSURE), player::unknown_70/74 (0x74/0x78); game_variant::
+//   to a 16-bit increment -- see UNSURE), player::engine_message/engine_message_subject (0x74/0x78); game_variant::
 //   score_limit aliased at 0x006f1ce0 (variant + 0x58), multiplied by 0x708 (1800 ticks == 60 s
 //   at 30 Hz) giving a per-minute-configured time limit in ticks; game_time_globals::game_time.
 //   0x006b0f40 sits in the 0x10 bytes directly before king_starting_location_count (0x006b0f50,
@@ -52,8 +52,8 @@ void game_engine_koth_player_tick(uint32_t player_index)
     uint32_t idx = player_index & 0xffff;
     player *p = (player *)((uint8_t *)player_data->data + idx * sizeof(player));
 
-    *(uint32_t *)&((struct player *)p)->unknown_74 = 0xffffffff;
-    *(uint32_t *)&((struct player *)p)->unknown_78 = 0xffffffff;
+    *(uint32_t *)&((struct player *)p)->engine_message = 0xffffffff;
+    *(uint32_t *)&((struct player *)p)->engine_message_subject = 0xffffffff;
     king_hill_player_in_hill[idx] = 0;
 
     if (p->unit != (datum_index)0xffffffff &&
@@ -100,8 +100,8 @@ void game_engine_koth_player_tick(uint32_t player_index)
             }
         }
 
-        *(uint32_t *)&((struct player *)p)->unknown_74 = 0x22;
-        *(uint32_t *)&((struct player *)p)->unknown_78 = player_index;
+        *(uint32_t *)&((struct player *)p)->engine_message = 0x22;
+        *(uint32_t *)&((struct player *)p)->engine_message_subject = player_index;
     }
 }
 

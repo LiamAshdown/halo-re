@@ -5,7 +5,7 @@
 // teleporter, finding and validating a destination and reporting failures"); the CEA/PDB string
 // match on "failed to teleport %d"; types/tags.h ScenarioNetgameFlags (position, facing +0xc,
 // usage_id +0x12) and Scenario::netgame_flags (the same +0x37c pointer this batch's
-// game_engine_find_valid_starting_locations reads); types/game.h player::unknown_70 (cached
+// game_engine_find_valid_starting_locations reads); types/game.h player::teleporter_entrance_flag (cached
 // entrance flag index), player::unknown_cc/unknown_d4 (teleported-into counter/flag, both
 // UNRESOLVED offsets in the header, kept as raw offsets here since they fall inside the
 // player struct's own "unresolved" run); types/objects.h object::forward (+0x74),
@@ -113,16 +113,16 @@ void game_engine_update_teleporter(uint32_t player_index)
     }
     unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
 
-    // Cache invalidation: if the cached entrance flag (player::unknown_70) is more than 1 unit
+    // Cache invalidation: if the cached entrance flag (player::teleporter_entrance_flag) is more than 1 unit
     // away from the unit's current position, forget it.
-    if (p->unknown_70 != (datum_index)0xffffffff) {
+    if (p->teleporter_entrance_flag != (datum_index)0xffffffff) {
         ScenarioNetgameFlags *cached = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer
-            + (int32_t)p->unknown_70;
+            + (int32_t)p->teleporter_entrance_flag;
         float dx = unit_object->position.x - cached->position.x;
         float dy = unit_object->position.y - cached->position.y;
         float dz = unit_object->position.z - cached->position.z;
         if (1.0f < dx * dx + dy * dy + dz * dz) {
-            p->unknown_70 = (datum_index)0xffffffff;
+            p->teleporter_entrance_flag = (datum_index)0xffffffff;
         }
     }
 
@@ -130,7 +130,7 @@ void game_engine_update_teleporter(uint32_t player_index)
     found_index = -1; // UNSURE: stands in for Ghidra's bit-pattern "-NaN" sentinel; see file header
     game_engine_find_valid_starting_locations(0, 0.5f, 0.0f, 6, -1, 1, &found_index);
 
-    if (found_index != -1 && found_index != (int32_t)p->unknown_70) {
+    if (found_index != -1 && found_index != (int32_t)p->teleporter_entrance_flag) {
         ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
         ScenarioNetgameFlags *entrance = &flags[found_index];
         int16_t entrance_usage_id = (int16_t)entrance->usage_id;
@@ -244,7 +244,7 @@ void game_engine_update_teleporter(uint32_t player_index)
                         p->local_player_index);
                 }
 
-                p->unknown_70 = (datum_index)game_engine_find_one_valid_starting_location(0, -1,
+                p->teleporter_entrance_flag = (datum_index)game_engine_find_one_valid_starting_location(0, -1,
                     0, 1.0f, 0.0f); // UNSURE: original call is FUN_00461180(0x3f800000,0); argument
                                     // order/identity guessed from that wrapper's own signature
 

@@ -471,10 +471,10 @@ typedef struct player {
                                        //      the streak method into unit+0x422; 0x479d10
                                        //      counts both down once per tick
     float speed;                       // 0x6c constructors write 1.0; part of the profile
-    datum_index unknown_70;            // 0x70 0x45c440 writes -1
-    datum_index unknown_74;            // 0x74 0x45c440 writes -1
-    datum_index unknown_78;            // 0x78 0x45c440 writes -1
-    datum_index unknown_7c;            // 0x7c 0x45c440 writes -1
+    datum_index teleporter_entrance_flag; // 0x70 cached ScenarioNetgameFlags index of the entrance last used (game_engine_update_teleporter); -1 none
+    datum_index engine_message;      // 0x74 pending game-engine HUD message id (KOTH writes 0x23/0x29; game_engine_pick_hud_hint clears the respawn ids 0x17..0x1a); -1 none
+    datum_index engine_message_subject; // 0x78 the player that message is about; -1 none
+    datum_index nameplate_target;     // 0x7c tracked teammate handle the nameplate HUD keeps (hud_draw_teammate_nameplate); -1 none
     int32_t unknown_80;                // 0x80 read by the nameplate HUD (0x45e520)
     int32_t last_death_tick;           // 0x84 game_time when this player last died; the
                                        //      odd-man-out test orders players by it

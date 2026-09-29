@@ -6,7 +6,7 @@
 //   multiplier and periodic sound cues"); game_engine_variant::unknown_84/unknown_8c/unknown_90
 //   aliased 0x006f1d0c/0x006f1d14/0x006f1d18; game_engine_variant::ctf_value_80 (0x006f1d08)
 //   reused here as a generic 1/2/other score-multiplier selector; king_hill_occupant_table
-//   (0x006b120c, this batch); player::unknown_70/74/78/6c (0x70/0x74/0x78/0x6c); types/units.h
+//   (0x006b120c, this batch); player::teleporter_entrance_flag/engine_message/engine_message_subject/speed (0x70/0x74/0x78/0x6c); types/units.h
 //   unit_data.current_weapon_index/weapons[4].
 // register convention: player index in the stack parameter (Ghidra's own param_1, also its
 //   return value register).
@@ -47,8 +47,8 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
     int32_t i;
     uint32_t result = 0;
 
-    p->unknown_74 = (datum_index)0xffffffff;
-    p->unknown_78 = (datum_index)0xffffffff;
+    p->engine_message = (datum_index)0xffffffff;
+    p->engine_message_subject = (datum_index)0xffffffff;
 
     game_engine_koth_update_occupant_table(player_index);
 
@@ -81,8 +81,8 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
         int32_t remaining = occupied_slots;
         do {
             if (game_engine_variant.unknown_8c == 0) {
-                p->unknown_74 = (datum_index)0x29;
-                p->unknown_78 = (datum_index)player_index;
+                p->engine_message = (datum_index)0x29;
+                p->engine_message_subject = (datum_index)player_index;
             }
             game_engine_koth_alt_scorer_tick(player_index);
             remaining--;
@@ -90,8 +90,8 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
     }
 
     if (game_engine_variant.unknown_8c > 0 && game_engine_variant.unknown_8c < 3 && occupied_slots > 0) {
-        p->unknown_74 = (datum_index)0x23;
-        p->unknown_78 = (datum_index)player_index;
+        p->engine_message = (datum_index)0x23;
+        p->engine_message_subject = (datum_index)player_index;
     }
 
     if (p->unit != (datum_index)0xffffffff) {

@@ -3,7 +3,7 @@
 // name confidence: 0.35   rewrite confidence: 0.2
 // evidence: out/phase4/game_functions.md ("Determines and dispatches which contextual HUD hint
 // (for example leader, score-limit reached, eliminated) should currently be shown to a player");
-// types/game.h player::unknown_74 (+0x74, "0x45c440 writes -1"), player::marked_for_deletion
+// types/game.h player::engine_message (+0x74, "0x45c440 writes -1"), player::marked_for_deletion
 // (+0xd5), player::unit (+0x34), player::respawn_timer (+0x2c), game_time_globals::game_time
 // (+0x0c), game_variant::game_engine_index (+0x30, aliased 0x006f1cb8), game_variant::
 // ctf_value_80 (+0x80, aliased 0x006f1d08); this batch's game_engine_player_is_eliminated
@@ -46,8 +46,8 @@ uint32_t game_engine_pick_hud_hint(wchar_t *out, uint32_t player_index, uint32_t
         return result;
     }
 
-    if (0x16 < (int32_t)p->unknown_74 && (int32_t)p->unknown_74 < 0x1b) {
-        p->unknown_74 = (datum_index)0xffffffff;
+    if (0x16 < (int32_t)p->engine_message && (int32_t)p->engine_message < 0x1b) {
+        p->engine_message = (datum_index)0xffffffff;
     }
 
     if (p->unit == (datum_index)0xffffffff) {
@@ -81,12 +81,12 @@ uint32_t game_engine_pick_hud_hint(wchar_t *out, uint32_t player_index, uint32_t
         }
     } else {
         if (game_time->game_time < 0x1c2) {
-            if (p->unknown_74 == (datum_index)0xffffffff ||
+            if (p->engine_message == (datum_index)0xffffffff ||
                 game_engine_variant.game_engine_index != _game_engine_ctf ||
                 game_engine_variant.ctf_value_80 < 1) {
                 return game_engine_build_message_text(out, buffer_size, subject, forwarded_param_1, 0);
             }
-        } else if (p->unknown_74 == (datum_index)0xffffffff) {
+        } else if (p->engine_message == (datum_index)0xffffffff) {
             return result;
         }
         result = game_engine_build_message_text(out, buffer_size, subject, forwarded_param_1, 0);

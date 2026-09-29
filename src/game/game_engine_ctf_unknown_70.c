@@ -1,4 +1,4 @@
-// game_engine_ctf_unknown_70  (not a Ghidra function; the ctf game engine definition's +0x70 slot (unknown_70); no C existed, so that
+// game_engine_ctf_unknown_70  (not a Ghidra function; the ctf game engine definition's +0x70 slot (teleporter_entrance_flag); no C existed, so that
 //   stored pointer trapped as unlisted_469ae0)
 // address 0x469ae0, size 263 bytes
 // name confidence: 0.6   rewrite confidence: 0.85

@@ -81,7 +81,7 @@ datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle)
         // 0x45e454..0x45e475: a unit whose +0x37c is below 1.0 qualifies outright; otherwise only the player the
         // HUD already tracks (+0x7c).
         if (!(*(real *)(candidate + 0x37c) < 1.0f) &&
-            p->unknown_7c != player_index_from_unit_index(candidates[i])) {
+            p->nameplate_target != player_index_from_unit_index(candidates[i])) {
             continue;
         }
         if (camera_observer_target_direction(&closest_point, &look, &camera, candidates[i], p->unit, &direction,
