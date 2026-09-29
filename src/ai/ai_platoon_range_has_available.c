@@ -48,7 +48,7 @@ uint8_t ai_platoon_range_has_available(uint32_t packed_reference)
         if (state == 0) {
             return 0;
         }
-        if (state->unknown_00 == 0) {
+        if (state->defending == 0) {
             return 1;
         }
     }

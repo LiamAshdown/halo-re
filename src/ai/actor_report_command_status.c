@@ -42,7 +42,7 @@ int32_t actor_report_command_status(uint32_t actor_index)
         return 0;
     }
 
-    switch (a->unknown_1e4) {
+    switch (a->post_combat_action) {
     case 1: event_code = 0x30; break;
     case 2: event_code = 0x31; break;
     case 3: event_code = 0x32; break;
@@ -69,10 +69,10 @@ int32_t actor_report_command_status(uint32_t actor_index)
             prop *p = &((prop *)prop_data->data)[target_prop_index & 0xffff];
 
             target_object = p->object_index;
-            if (p->is_unit == 0) {
+            if (p->enemy == 0) {
                 target_state = 2;
             } else {
-                target_state = (team_pair_flag_test(((actor *)a)->team, ((struct prop *)p)->object_type) != 0) + 3; // 0x404962: ECX actor team, EDX prop team
+                target_state = (team_pair_flag_test(((actor *)a)->team, ((struct prop *)p)->team) != 0) + 3; // 0x404962: ECX actor team, EDX prop team
             }
         }
         ai_communication_broadcast(event_code, a->unit_index, target_object, target_state, 0xffffffff, 0xffffffff, 0);

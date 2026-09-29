@@ -36,13 +36,13 @@ float actor_compute_target_priority_weight(datum_index prop_index, datum_index a
     p = &((prop *)prop_data->data)[prop_index & 0xffff];
     weight = 0.0f;
 
-    if (p->kind < 2 || 3 < p->kind) {
-        if (p->is_unit != 0 && 3 < p->kind && p->kind < 6) {
+    if (p->state < 2 || 3 < p->state) {
+        if (p->enemy != 0 && 3 < p->state && p->state < 6) {
             weight = 1.5f;
         }
-    } else if (p->is_vault == 0) {
-        weight = (p->is_unit == 0) ? 1.0f : 2.0f;
-    } else if (p->unknown_76 < 0xd2) {
+    } else if (p->dead == 0) {
+        weight = (p->enemy == 0) ? 1.0f : 2.0f;
+    } else if (p->dead_ticks < 0xd2) {
         weight = 1.8f;
     } else {
         weight = 0.4f;
@@ -56,7 +56,7 @@ float actor_compute_target_priority_weight(datum_index prop_index, datum_index a
 
     relationship_scale = (p->relationship_object_index == -1) ? 1.0f : 1.5f;
 
-    switch (p->unknown_123) {
+    switch (p->speed_class) {
     case 1:
         occupancy_bonus = 0.5f * relationship_scale;
         weight += occupancy_bonus;
@@ -74,11 +74,11 @@ float actor_compute_target_priority_weight(datum_index prop_index, datum_index a
         break;
     }
 
-    if (p->unknown_12f != 0) {
+    if (p->shooting != 0) {
         weight = relationship_scale + relationship_scale + weight;
     }
 
-    switch (p->unknown_121) {
+    switch (p->distance_class) {
     case 1:
         weight *= 0.6f;
         break;

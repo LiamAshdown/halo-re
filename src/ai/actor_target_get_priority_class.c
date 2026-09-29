@@ -5,7 +5,7 @@
 //   integer (0-3) based on its combat state (kind 2..3 or seat state 1/2 forces 3) and
 //   awareness flags at target-data+0x60/+0x127, falling back to actor posture (+0x6a/+0x6e)
 //   when in_ECX is -1. Fields match prop.kind/is_unit/is_vault/unknown_66/pair_index and
-//   actor.awareness_level/unknown_6e in types/ai.h.
+//   actor.awareness_level/combat_status in types/ai.h.
 // register convention: EAX -> actor_index, ECX -> target_prop_index (or k_datum_index_none).
 //   // blam-cc: EAX -> actor_index, ECX -> target_prop_index
 
@@ -36,14 +36,14 @@ uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index ta
     if (target_prop_index != k_datum_index_none) {
         target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
 
-        if (((1 < target->kind && target->kind < 4) || target->unknown_66 == 1 || target->unknown_66 == 2) ||
-            (target->is_unit == 0 && (target->is_vault == 0 || self->awareness_level > 2))) {
+        if (((1 < target->state && target->state < 4) || target->stimulus_type == 1 || target->stimulus_type == 2) ||
+            (target->enemy == 0 && (target->dead == 0 || self->awareness_level > 2))) {
             return 3;
         }
 
         if (target->pair_index != k_datum_index_none) {
             paired = (prop *)((uint8_t *)prop_data->data + (target->pair_index & 0xffff) * sizeof(prop));
-            paired_class = (uint16_t)((paired->unknown_b8 != 0) + 2);
+            paired_class = (uint16_t)((paired->has_current_information != 0) + 2);
             // UNSURE: Ghidra's `if (uVar3 != 0xffff) return uVar3;` is dead code as written --
             // paired_class is always 2 or 3 -- preserved exactly rather than simplified.
             if (paired_class != 0xffff) {
@@ -52,7 +52,7 @@ uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index ta
         }
     }
 
-    if (self->unknown_6e < 2) {
+    if (self->combat_status < 2) {
         return (uint16_t)(self->awareness_level > 2);
     }
     return 2;

@@ -50,7 +50,7 @@ void actor_mode_uncover_enter(datum_index actor_index)
     ((struct actor *)act)->mode_data.uncover.duration_ticks = ticks;
     ((struct actor *)act)->mode_data.uncover.remaining_ticks = ticks;
     if (((struct actor *)act)->mode_data.uncover.stage == 0 && ((actor *)act)->target_unit_index != k_datum_index_none &&
-        ((struct actor *)act)->unknown_6e < 3) {
+        ((struct actor *)act)->combat_status < 3) {
         uint8_t *target = (uint8_t *)prop_data->data + (((actor *)act)->target_unit_index & 0xffff) * 0x138;
 
         ai_communication_broadcast(0x15, ((actor *)act)->unit_index, ((prop *)target)->object_index, -1, -1, -1, 0);

@@ -105,41 +105,41 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
             int16_t idx = ai_group_bucket_find_or_add(buckets, (int32_t)p->object_index,
                                                        &bucket_count, 16);
             if (idx != -1) {
-                if (buckets[idx].unknown_00 < (int16_t)priority) {
-                    buckets[idx].unknown_04 = (int32_t)current;
+                if (buckets[idx].priority < (int16_t)priority) {
+                    buckets[idx].prop_index = (int32_t)current;
                     buckets[idx].key = (int32_t)p->object_index;
-                    buckets[idx].unknown_0c = p;
-                    buckets[idx].unknown_00 = (int16_t)priority;
+                    buckets[idx].prop = p;
+                    buckets[idx].priority = (int16_t)priority;
                 }
             }
-        } else if (2 <= p->kind && p->kind <= 3 && !p->is_unit &&
+        } else if (2 <= p->state && p->state <= 3 && !p->enemy &&
                    p->owner_actor_index != k_datum_index_none && p->distance < 8.0f) {
             actor *owner = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
 
-            if (owner->unknown_3a8 != 0 && owner->unknown_3ac != k_datum_index_none &&
-                (self->unknown_3a4 == k_datum_index_none ||
-                 owner->unknown_3b0 >= self->unknown_3a4)) {
-                prop *requested = &props[owner->unknown_3ac & 0xffff];
+            if (owner->retreat_timer != 0 && owner->retreat_prop_index != k_datum_index_none &&
+                (self->retreat_end_time == k_datum_index_none ||
+                 owner->retreat_start_time >= self->retreat_end_time)) {
+                prop *requested = &props[owner->retreat_prop_index & 0xffff];
                 datum_index own_prop_index = actor_find_prop_for_object(requested->object_index, actor_index); // 0x421034: ECX = actor (arg)
 
                 if (own_prop_index != k_datum_index_none) {
                     prop *own_prop = &props[own_prop_index & 0xffff];
 
-                    if (2 <= own_prop->kind && own_prop->kind <= 3 && own_prop->engaged) {
+                    if (2 <= own_prop->state && own_prop->state <= 3 && own_prop->engaged) {
                         int16_t idx = ai_group_bucket_find_or_add(
                             buckets, (int32_t)requested->object_index, &bucket_count, 16);
                         if (idx != -1) {
                             float dist_sq = requested->distance * requested->distance;
 
-                            buckets[idx].unknown_10++;
-                            if (dist_sq < buckets[idx].unknown_14) {
-                                buckets[idx].unknown_14 = dist_sq;
-                                buckets[idx].unknown_18 = (int32_t)p->owner_actor_index;
+                            buckets[idx].retreating_friend_count++;
+                            if (dist_sq < buckets[idx].nearest_friend_distance_squared) {
+                                buckets[idx].nearest_friend_distance_squared = dist_sq;
+                                buckets[idx].nearest_friend_actor_index = (int32_t)p->owner_actor_index;
                             }
-                            if (buckets[idx].unknown_04 == k_datum_index_none) {
-                                buckets[idx].unknown_04 = (int32_t)own_prop_index;
+                            if (buckets[idx].prop_index == k_datum_index_none) {
+                                buckets[idx].prop_index = (int32_t)own_prop_index;
                                 buckets[idx].key = (int32_t)own_prop->object_index;
-                                buckets[idx].unknown_0c = own_prop;
+                                buckets[idx].prop = own_prop;
                             }
                         }
                     }
@@ -153,11 +153,11 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
         int16_t i;
         for (i = 0; i < bucket_count; i++) {
             ai_group_bucket_entry *b = &buckets[i];
-            prop *claimant = b->unknown_0c;
+            prop *claimant = b->prop;
             int16_t trigger = actor_def->unreachable_danger_trigger;
             uint8_t flagged = 0;
 
-            if (claimant->unknown_135 != 0 || claimant->unknown_136 != 0) {
+            if (claimant->is_vehicle_gunner != 0 || claimant->is_vehicle_driver != 0) {
                 trigger = actor_def->vehicle_danger_trigger;
             }
             if (claimant->is_parented) {
@@ -167,7 +167,7 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
                 }
             }
 
-            if (trigger > 0 && b->unknown_00 >= trigger) {
+            if (trigger > 0 && b->priority >= trigger) {
                 if (!claimant->is_parented) {
                     claimant->shots_fired = 0x16;
                 } else {
@@ -187,31 +187,31 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
                 claimant->shots_hit++;
             }
 
-            if (*(int16_t *)&claimant->unknown_78 >= 0x2d || b->unknown_00 >= 4) { // UNSURE, see file header
+            if (claimant->sighted_ticks >= 0x2d ||b->priority >= 4) { // UNSURE, see file header
                 if (claimant->shots_unknown_ae > 0 &&
                     claimant->shots_hit >= claimant->shots_unknown_ae) {
-                    if (b->unknown_00 < 7) b->unknown_00 = 7;
+                    if (b->priority < 7) b->priority = 7;
                 }
                 if (flagged) {
-                    if (b->unknown_00 < 8) b->unknown_00 = 8;
+                    if (b->priority < 8) b->priority = 8;
                 }
                 if (actor_def->friends_killed_trigger > 0 &&
-                    claimant->unknown_a6 >= actor_def->friends_killed_trigger) {
-                    if (b->unknown_00 < 9) b->unknown_00 = 9;
+                    claimant->friends_killed >= actor_def->friends_killed_trigger) {
+                    if (b->priority < 9) b->priority = 9;
                 }
                 if (actor_def->friends_retreating_trigger > 0 &&
-                    b->unknown_10 >= actor_def->friends_retreating_trigger) {
-                    if (b->unknown_00 < 6) b->unknown_00 = 6;
+                    b->retreating_friend_count >= actor_def->friends_retreating_trigger) {
+                    if (b->priority < 6) b->priority = 6;
                 }
             }
         }
     }
 
     // Age down (or issue) this actor's own backup-request cooldown.
-    if (self->unknown_3a8 > 0) {
-        self->unknown_3a8--;
-        if (self->unknown_3a8 == 0) {
-            self->unknown_3a4 = game_time->game_time;
+    if (self->retreat_timer > 0) {
+        self->retreat_timer--;
+        if (self->retreat_timer == 0) {
+            self->retreat_end_time = game_time->game_time;
         }
         return;
     }
@@ -222,18 +222,18 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
         int16_t i;
 
         for (i = 0; i < bucket_count; i++) {
-            if (buckets[i].unknown_00 > best_priority &&
-                buckets[i].unknown_04 != k_datum_index_none) {
-                best_priority = buckets[i].unknown_00;
-                best_prop = buckets[i].unknown_04;
+            if (buckets[i].priority > best_priority &&
+                buckets[i].prop_index != k_datum_index_none) {
+                best_priority = buckets[i].priority;
+                best_prop = buckets[i].prop_index;
             }
         }
 
         if (best_prop != k_datum_index_none) {
-            self->unknown_3a8 = (int16_t)(random_real_range(
+            self->retreat_timer = (int16_t)(random_real_range(
                 actor_def->retreat_time[0], actor_def->retreat_time[1]) * 30.0f);
-            self->unknown_3ac = (datum_index)best_prop;
-            self->unknown_3b0 = game_time->game_time;
+            self->retreat_prop_index = (datum_index)best_prop;
+            self->retreat_start_time = game_time->game_time;
         }
     }
 }

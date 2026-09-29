@@ -45,13 +45,13 @@ void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uin
 
     if (ai_globals_ptr->actors_valid) {
         iterator.filter_array = encounter_data;
-        iterator.unknown_04 = 0;
+        iterator.next_index = 0;
         iterator.cursor = -1;
         iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
-        iterator.unknown_10 = 0;
+        iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
-        iterator.unknown_18 = -1;
+        iterator.next_actor_index = -1;
     }
 
     a = actor_iterator_next(&iterator);
@@ -68,10 +68,10 @@ void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uin
                 current_prop_index = prop_cursor;
                 p = &((prop *)prop_data->data)[current_prop_index & 0xffff];
                 prop_cursor = p->next_in_actor;
-                if (p->object_type == other_team) {
-                    p->unknown_61 = 1;
+                if (p->team == other_team) {
+                    p->allegiance = 1;
                     p->unknown_62 = 0;
-                    p->is_unit = status;
+                    p->enemy = status;
                     p->engaged = actor_target_update_active_flag(actor_index, current_prop_index); // FIXED: EDI = the prop (0x42bb29)
                     p->desirability = actor_rate_potential_target(actor_index, current_prop_index);
                 }

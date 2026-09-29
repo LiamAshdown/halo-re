@@ -47,14 +47,14 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
     int32_t i;
     uint32_t result = 0;
 
-    p->unknown_74 = (datum_index)0xffffffff;
-    p->unknown_78 = (datum_index)0xffffffff;
+    p->hud_message_index = (datum_index)0xffffffff;
+    p->hud_message_player = (datum_index)0xffffffff;
 
     game_engine_koth_update_occupant_table(player_index);
 
     occupied_slots = 0;
-    if (game_engine_variant.unknown_90 > 0) {
-        for (i = 0; i < game_engine_variant.unknown_90; i++) {
+    if (game_engine_variant.engine.oddball.ball_count > 0) {
+        for (i = 0; i < game_engine_variant.engine.oddball.ball_count; i++) {
             if (king_hill_occupant_table[i] == player_index) {
                 occupied_slots++;
             }
@@ -64,12 +64,12 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
 
     p->speed = 1.0f; // 0x6c
     if (occupied_slots > 0) {
-        if (game_engine_variant.unknown_84 != 1) {
+        if (game_engine_variant.engine.oddball.trait_with_ball != 1) {
             unit_reset_gauge_if_flagged();
         }
-        if (game_engine_variant.ctf_value_80 == 1) {
+        if (game_engine_variant.engine.oddball.speed_with_ball == 1) {
             p->speed = 1.0f;
-        } else if (game_engine_variant.ctf_value_80 == 2) {
+        } else if (game_engine_variant.engine.oddball.speed_with_ball == 2) {
             p->speed = 1.25f;
         } else {
             p->speed = 0.75f;
@@ -77,21 +77,21 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
     }
 
     if ((current_game_engine == 0 || game_engine_state_value == 0) &&
-        game_engine_variant.unknown_8c != 2 && occupied_slots > 0) {
+        game_engine_variant.engine.oddball.ball_type != 2 && occupied_slots > 0) {
         int32_t remaining = occupied_slots;
         do {
-            if (game_engine_variant.unknown_8c == 0) {
-                p->unknown_74 = (datum_index)0x29;
-                p->unknown_78 = (datum_index)player_index;
+            if (game_engine_variant.engine.oddball.ball_type == 0) {
+                p->hud_message_index = (datum_index)0x29;
+                p->hud_message_player = (datum_index)player_index;
             }
             game_engine_koth_alt_scorer_tick(player_index);
             remaining--;
         } while (remaining != 0);
     }
 
-    if (game_engine_variant.unknown_8c > 0 && game_engine_variant.unknown_8c < 3 && occupied_slots > 0) {
-        p->unknown_74 = (datum_index)0x23;
-        p->unknown_78 = (datum_index)player_index;
+    if (game_engine_variant.engine.oddball.ball_type > 0 && game_engine_variant.engine.oddball.ball_type < 3 && occupied_slots > 0) {
+        p->hud_message_index = (datum_index)0x23;
+        p->hud_message_player = (datum_index)player_index;
     }
 
     if (p->unit != (datum_index)0xffffffff) {

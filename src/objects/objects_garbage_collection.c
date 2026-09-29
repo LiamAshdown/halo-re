@@ -98,7 +98,7 @@ void objects_garbage_collection(void)
             mode = 2;
         } else if (0x800 - object_data->actual_count <= 0x66) {
             mode = 2;
-        } else if (object_globals_pointer->unknown_04 < 0x32) {
+        } else if (object_globals_pointer->active_garbage_object_count < 0x32) {
             object_globals_pointer->unknown_02[0] = 0;
             return;
         } else {
@@ -118,7 +118,7 @@ void objects_garbage_collection(void)
         if (mode == 0) {
             done = 0;
         } else if (mode == 1) {
-            done = (uint8_t)(object_globals_pointer->unknown_04 <= 0x1e);
+            done = (uint8_t)(object_globals_pointer->active_garbage_object_count <= 0x1e);
             if (done) {
                 break;
             }
@@ -142,7 +142,7 @@ void objects_garbage_collection(void)
             continue;
         }
         if ((header->flags & _object_header_active_bit) != 0) {
-            object_globals_pointer->unknown_04--;
+            object_globals_pointer->active_garbage_object_count--;
         }
         object_list_membership_set(handle, 0);
         object_delete_recursive(handle, 0);
@@ -161,7 +161,7 @@ void objects_garbage_collection(void)
         uint8_t retried = 0;
         uint8_t reported = 0;
         uint8_t stale;
-        uint32_t last = object_globals_pointer->unknown_8c;
+        uint32_t last = object_globals_pointer->last_garbage_collection_time;
 
         stale = (uint8_t)(last == 0xffffffff || !((int32_t)last + 0x96 >= game_time->game_time));
 
@@ -248,7 +248,7 @@ void objects_garbage_collection(void)
         }
     }
 
-    object_globals_pointer->unknown_8c = (uint32_t)game_time->game_time;
+    object_globals_pointer->last_garbage_collection_time = (uint32_t)game_time->game_time;
     object_globals_pointer->unknown_02[0] = 0;
 }
 

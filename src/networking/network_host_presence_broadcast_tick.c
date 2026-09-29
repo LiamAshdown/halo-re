@@ -48,8 +48,8 @@ void network_host_presence_broadcast_tick(network_client_globals *client)
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
-    if (client->unknown_ed4 + 1000 < now_ms) {
-        client->unknown_ed4 = now_ms;
+    if (client->last_presence_broadcast_ms + 1000 < now_ms) {
+        client->last_presence_broadcast_ms = now_ms;
         if (cache_file_request_map(1) != 0) { // UNSURE argument
             memset(buffer, 0, sizeof(buffer));
             strncpy(buffer, network_build_string, 0x100);

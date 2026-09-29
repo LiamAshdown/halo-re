@@ -30,9 +30,9 @@ void player_profile_set_default_server_options(saved_player_profile *profile)
     wcslen(empty_string);
     wcscpy(profile->server_password, L"");
     profile->unknown_ebe = 0;
-    profile->unknown_ebf = 3;
-    profile->unknown_fc2[0] = 0;
-    profile->unknown_fc0 = 1;
+    profile->server_maximum_players_index = 3;
+    profile->join_server_address[0] = 0;
+    profile->connection_type = 1;
     profile->server_port = 0x8fe;
     profile->client_port = 0x8ff;
 }

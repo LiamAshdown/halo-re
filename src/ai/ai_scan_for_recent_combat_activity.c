@@ -72,7 +72,7 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
     p = data_iterator_next(&iterator);
 
     while (p != 0) {
-        if (p->is_parented && p->is_unit) {
+        if (p->is_parented && p->enemy) {
             tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
             if (((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player !=
                 (datum_index)k_datum_index_none) {
@@ -92,7 +92,7 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
                     }
                 }
 
-                if (hard_difficulty != 0 && a->unknown_5f2 == 0 && a->mode != _actor_mode_vehicle) {
+                if (hard_difficulty != 0 && a->firing_state == 0 && a->mode != _actor_mode_vehicle) {
                     // Strictly greater, for the same reason as the 4.0 test above:
                     // `!(d < 15.0) && !(d == 15.0)`.
                     if (15.0f < p->distance) {
@@ -101,9 +101,9 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
                 }
 
                 if (!skip_close_check) {
-                    kind = p->kind;
-                    if ((kind < 4 || 5 < kind) && p->unknown_8c != -1 &&
-                        current_tick <= p->unknown_8c + 0x5a) {
+                    kind = p->state;
+                    if ((kind < 4 || 5 < kind) && p->last_seen_time != -1 &&
+                        current_tick <= p->last_seen_time + 0x5a) {
                         return 1;
                     }
                     if ((kind < 4 || 5 < kind) && p->distance < 4.0f) {
@@ -114,7 +114,7 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
                             return 1;
                         }
                         if (3 < kind && kind < 6) {
-                            if (p->unknown_b8 != 0) {
+                            if (p->has_current_information != 0) {
                                 return 1;
                             }
                             if (kind == 4 && p->distance < 12.0f) {

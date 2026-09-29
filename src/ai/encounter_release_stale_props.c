@@ -45,14 +45,14 @@ void encounter_release_stale_props(datum_index encounter_index)
     datum_index next_prop;
 
     enc = &((encounter *)encounter_data->data)[encounter_index & 0xffff];
-    enc->unknown_42 = 1;
-    enc->unknown_4c = 0;
+    enc->stood_down = 1;
+    enc->enemy_death_count = 0;
     squad_recent_object_list_clear(encounter_index);
 
     actor_index = (datum_index)k_datum_index_none;
     if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_globals_ptr->unknown_08;
+            actor_index = ai_globals_ptr->first_encounterless_actor;
         } else {
             actor_index = enc->first_actor;
         }
@@ -70,7 +70,7 @@ void encounter_release_stale_props(datum_index encounter_index)
             p = &props[prop_index & 0xffff];
             next_prop = p->next_in_actor;
 
-            if (3 < p->kind && p->kind < 6 && p->is_unit != 0 &&
+            if (3 < p->state && p->state < 6 && p->enemy != 0 &&
                 prop_index != a->target_unit_index) {
                 props[p->pair_index & 0xffff].pair_index = (datum_index)k_datum_index_none;
                 actor_replace_object_reference(current, k_datum_index_none, prop_index); // 0x4383a2: ESI = -1, EDI = the prop

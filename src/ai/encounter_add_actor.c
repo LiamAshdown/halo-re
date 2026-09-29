@@ -67,8 +67,8 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
 
     platoon_index = (int16_t)((ScenarioSquad *)definition->squads.pointer)[squad_index].platoon;
 
-    a->unknown_30 = (datum_index)k_datum_index_none;
-    a->unknown_38 = -1;
+    a->original_encounter_index = (datum_index)k_datum_index_none;
+    a->original_squad_index = -1;
     a->next_in_encounter = enc->first_actor;
     enc->first_actor = actor_index;
 
@@ -96,7 +96,7 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
     }
 
     if (a->team != enc->team) {
-        if (keep_team == 0 || enc->unknown_2a != 0) {
+        if (keep_team == 0 || enc->living_count != 0) {
             actor_propagate_unit_field(actor_index, enc->team); // 0x4368d1: ESI = the encounter's team
         } else {
             enc->team = a->team;
@@ -112,8 +112,8 @@ void encounter_add_actor(int16_t squad_index, datum_index actor_index,
 
     if (platoon_index != -1) {
         platoon_state = &encounter_platoon_states[(int16_t)(enc->first_platoon + platoon_index)];
-        a->unknown_1c9 = platoon_state->unknown_00;
-        a->unknown_374 = platoon_state->unknown_00;
+        a->platoon_defending = platoon_state->defending;
+        a->defending = platoon_state->defending;
         platoon_state->member_count = platoon_state->member_count + 1;
     }
     enc->dirty = 1;

@@ -33,7 +33,7 @@ void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command) /
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     if (command == 0) {
-        unit->unknown_2a4 = 0;
+        unit->replacement_animation_state = 0;
         unit->overlays[0].animation_index = -1;
         return;
     }
@@ -84,7 +84,7 @@ void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command) /
         unit->overlays[0].animation_index = animation_choose_random_permutation(
             *(datum_index *)&obj_tag->animation_graph.tag_id, animation_index, 1); // 0x565f2d
         unit->overlays[0].frame = 0;
-        unit->unknown_2a4 = (int8_t)command;
+        unit->replacement_animation_state = (int8_t)command;
     }
 }
 

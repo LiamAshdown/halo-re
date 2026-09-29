@@ -83,11 +83,11 @@ void game_engine_check_bucket_scores_and_end_round(void)
         while (p != (player *)0) {
             if (p->team == bucket && p->marked_for_deletion == 0) {
                 int32_t value = *(int16_t *)((uint8_t *)p + 0xc6); // UNSURE field name
-                if (game_engine_variant.ctf_value_80 == 0) {
+                if (game_engine_variant.engine.race.team_scoring == 0) {
                     if (count == 0 || value < aggregate) {
                         aggregate = value;
                     }
-                } else if (game_engine_variant.ctf_value_80 == 1) {
+                } else if (game_engine_variant.engine.race.team_scoring == 1) {
                     if (count == 0 || aggregate <= value) {
                         aggregate = value;
                     }
@@ -100,7 +100,7 @@ void game_engine_check_bucket_scores_and_end_round(void)
         }
 
         game_engine_bucket_scores[bucket] = aggregate;
-        if (game_engine_variant.ctf_value_80 == 2) {
+        if (game_engine_variant.engine.race.team_scoring == 2) {
             game_engine_bucket_scores[bucket] = game_engine_bucket_scores_extra[bucket] + aggregate;
         }
     }

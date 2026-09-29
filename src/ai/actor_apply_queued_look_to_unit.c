@@ -37,14 +37,14 @@ void actor_apply_queued_look_to_unit(datum_index actor_index)
     uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_control_data control;
 
-    control.animation_state = (int8_t)actor_control_animation_state_table[((struct actor *)actor)->unknown_6dc * 2];
+    control.animation_state = (int8_t)actor_control_animation_state_table[((struct actor *)actor)->control_animation_mode * 2];
     control.aiming_speed = (int8_t)actor[0x6f8];
-    control.control_flags = *(uint16_t *)&((struct actor *)actor)->flags;
+    control.control_flags = *(uint16_t *)&((struct actor *)actor)->control_flags;
     control.weapon_index = -1;
     control.grenade_index = -1;
     control.zoom_level = -1;
     control.unknown_0a = 0;
-    control.throttle = *(real_vector3d *)&((struct actor *)actor)->queued_look_vector.i;
+    control.throttle = *(real_vector3d *)&((struct actor *)actor)->throttle.i;
     control.primary_trigger = *(float *)&((struct actor *)actor)->override_target;
     control.facing_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_facing.i;
     control.aiming_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_unknown_708.i;
@@ -58,15 +58,15 @@ void actor_apply_queued_look_to_unit(datum_index actor_index)
         actor[0x07] = 0;
     }
     unit_apply_control_block(*(uint32_t *)&((struct actor *)actor)->unit_index, &control, -1);
-    if (((struct actor *)actor)->unknown_6ec != -1) {
-        unit_try_start_scripted_action_animation(*(uint32_t *)&((struct actor *)actor)->unit_index, ((struct actor *)actor)->unknown_6ec,
+    if (((struct actor *)actor)->control_animation_impulse != -1) {
+        unit_try_start_scripted_action_animation(*(uint32_t *)&((struct actor *)actor)->unit_index, ((struct actor *)actor)->control_animation_impulse,
             (const real_vector2d *)(actor + 0x6f0));
     }
-    if (((struct actor *)actor)->unknown_6d4 > 0) {
+    if (((struct actor *)actor)->persistent_control_ticks > 0) {
         uint8_t *object = (uint8_t *)((object_header *)object_data->data)[*(uint32_t *)&((struct actor *)actor)->unit_index & 0xffff].data;
 
-        *(int32_t *)(object + 0x210) = ((struct actor *)actor)->unknown_6d4;
-        *(uint32_t *)(object + 0x214) = ((struct actor *)actor)->unknown_6d8;
+        *(int32_t *)(object + 0x210) = ((struct actor *)actor)->persistent_control_ticks;
+        *(uint32_t *)(object + 0x214) = ((struct actor *)actor)->persistent_control_flags;
     }
 }
 

@@ -82,7 +82,7 @@ uint8_t network_session_autoban_player(datum_index player_handle) // blam-cc: EC
     if (salt != 0 && target_player->identifier != salt) {
         return 0;
     }
-    machine_key = *(int8_t *)&target_player->unknown_64; // UNSURE: low byte only, see file header
+    machine_key = *(int8_t *)&target_player->machine_index; // UNSURE: low byte only, see file header
     machine = 0;
     for (i = 0; i < k_network_maximum_machines; i++) {
         if (network_server->machines[i].machine_id == machine_key) {
@@ -94,7 +94,7 @@ uint8_t network_session_autoban_player(datum_index player_handle) // blam-cc: EC
         return 0;
     }
     chimera__console_out((ColorARGB *)0, "AUTOBAN: Banning %S.", target_player->name);
-    if (!network_banlist_add_ban(machine->unknown_5c, 0, (network_player_entry *)target_player->name)) {
+    if (!network_banlist_add_ban(machine->gcd_user_id, 0, (network_player_entry *)target_player->name)) {
         return 0;
     }
     if (!network_server_notify_or_resend_challenge(6, machine, network_server)) {

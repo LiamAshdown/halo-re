@@ -175,14 +175,14 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
     tick = game_time->game_time;
 
     team_gate = 0;
-    if ((enc != (encounter *)0 && enc->unknown_40 != 0) || self->awareness_level == 1) {
+    if ((enc != (encounter *)0 && enc->blind != 0) || self->awareness_level == 1) {
         team_gate = 1;
     }
 
-    p->unknown_133 = (uint8_t)(unit->flags >> 10) & 1; // UNSURE: bit not named in units.h unit_flags
-    if (p->is_unit) {
-        p->unknown_134 = (uint8_t)(unit->flags >> 11) & 1; // UNSURE: bit not named
-        if (self->unknown_1d4 == 1) {
+    p->disregarded = (uint8_t)(unit->flags >> 10) & 1; // UNSURE: bit not named in units.h unit_flags
+    if (p->enemy) {
+        p->preferred_target = (uint8_t)(unit->flags >> 11) & 1; // UNSURE: bit not named
+        if (self->try_to_fight_type == 1) {
             if (p->owner_actor_index != (datum_index)k_datum_index_none) {
                 uint32_t team_ref = *(uint32_t *)&self->unknown_1d6[2]; // actor+0x1d8
                 if (team_ref != 0xffffffff) {
@@ -190,68 +190,66 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
                     if (((owner->encounter_index ^ team_ref) & 0xffff) == 0) {
                         uint32_t team_kind = team_ref >> 0x1e;
                         uint8_t match = 1;
-                        encounter *owner_enc = &((encounter *)encounter_data->data)[owner->encounter_index & 0xffff];
-                        // UNSURE: neither offset lands on a named encounter field; 0x3a is the
-                        // salt half of first_pursuit (a datum_index) and 0x3c falls across
-                        // unknown_3c/unknown_3d. Reached raw, matching the disassembly exactly.
+                        // FIXED 2026-09-29: +0x3a / +0x3c are read from the owner ACTOR (Ghidra below:
+                        // iVar18 = owner_actor_index * 0x724 + actor data), i.e. its squad_index /
+                        // platoon_index, compared 16-bit with the zero-extended byte at actor+0x1da;
+                        // the draft read them from the owner's encounter and truncated them to 8 bits.
                         if (team_kind == 1) {
-                            match = (self->unknown_1d6[4] /* actor+0x1da */ ==
-                                     (uint8_t)*(int16_t *)((uint8_t *)owner_enc + 0x3a));
+                            match = ((uint16_t)self->unknown_1d6[4] /* actor+0x1da */ == (uint16_t)owner->squad_index);
                         } else if (team_kind == 2) {
-                            match = (self->unknown_1d6[4] ==
-                                     (uint8_t)*(int16_t *)&((struct encounter *)owner_enc)->unknown_3c);
+                            match = ((uint16_t)self->unknown_1d6[4] == (uint16_t)owner->platoon_index);
                         } else if (team_kind != 0) {
                             match = 0;
                         }
                         if (match) {
-                            p->unknown_134 = 1;
+                            p->preferred_target = 1;
                         }
                     }
                 }
             }
-        } else if (self->unknown_1d4 == 2 && p->is_parented) {
-            p->unknown_134 = 1;
+        } else if (self->try_to_fight_type == 2 && p->is_parented) {
+            p->preferred_target = 1;
         }
     }
 
     // Speed classification (+0x123): magnitude of the tracked unit's root velocity, bucketed.
     // The pre-update bucket is saved first: the vocalization gate below fires on a *rising
     // edge* (old bucket low, new bucket high), confirmed at 0x41ca69/0x41cbde.
-    old_speed_bucket = p->unknown_123;
+    old_speed_bucket = p->speed_class;
     object_get_root_object_velocities(p->object_index, &velocity, (real_vector3d *)0);
     speed = sqrtf_(velocity.i * velocity.i + velocity.j * velocity.j + velocity.k * velocity.k);
     if (speed < 0.0033333334f) {
-        p->unknown_123 = 0;
+        p->speed_class = 0;
     } else if (speed < 0.016666668f) {
-        p->unknown_123 = 1;
+        p->speed_class = 1;
     } else if (speed < 0.033333335f) {
-        p->unknown_123 = 2;
+        p->speed_class = 2;
     } else {
-        p->unknown_123 = 3;
+        p->speed_class = 3;
     }
 
     // Closing-rate classification (+0x124): velocity projected onto the prop's stored normal
     // (unknown_e0), relative to the caller-owned scratch point at scratch+0x2c/0x30/0x34.
-    closing_rate = -((velocity.i - *(float *)((uint8_t *)scratch + 0x2c)) * p->unknown_e0.x +
-                      (velocity.j - *(float *)((uint8_t *)scratch + 0x30)) * p->unknown_e0.y +
-                      (velocity.k - *(float *)((uint8_t *)scratch + 0x34)) * p->unknown_e0.z);
+    closing_rate = -((velocity.i - *(float *)((uint8_t *)scratch + 0x2c)) * p->direction.x +
+                      (velocity.j - *(float *)((uint8_t *)scratch + 0x30)) * p->direction.y +
+                      (velocity.k - *(float *)((uint8_t *)scratch + 0x34)) * p->direction.z);
     if (closing_rate < -0.033333335f) {
-        p->unknown_124 = 0;
+        p->closing_speed_class = 0;
     } else if (closing_rate < -0.016666668f) {
-        p->unknown_124 = 1;
+        p->closing_speed_class = 1;
     } else if (closing_rate < -0.0033333334f) {
-        p->unknown_124 = 2;
+        p->closing_speed_class = 2;
     } else if (closing_rate < 0.0033333334f) {
-        p->unknown_124 = 3;
+        p->closing_speed_class = 3;
     } else if (closing_rate < 0.016666668f) {
-        p->unknown_124 = 4;
+        p->closing_speed_class = 4;
     } else if (closing_rate < 0.033333335f) {
-        p->unknown_124 = 5;
+        p->closing_speed_class = 5;
     } else {
-        p->unknown_124 = 6;
+        p->closing_speed_class = 6;
     }
 
-    if (p->kind > 1 && p->kind < 4 && old_speed_bucket < 2 && p->unknown_123 > 1) {
+    if (p->state > 1 && p->state < 4 && old_speed_bucket < 2 && p->speed_class > 1) {
         actor_vocalization_context ctx;
         ctx.kind = 1;
         ctx.handle = target_prop_index;
@@ -262,22 +260,22 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
 
     // Lead-distance bucket (+0x121), from raw distance.
     if (p->distance < 1.0f) {
-        p->unknown_121 = 0;
+        p->distance_class = 0;
     } else if (p->distance < 6.0f) {
-        p->unknown_121 = 1;
+        p->distance_class = 1;
     } else if (p->distance < 10.0f) {
-        p->unknown_121 = 2;
+        p->distance_class = 2;
     } else if (p->distance < 30.0f) {
-        p->unknown_121 = 3;
+        p->distance_class = 3;
     } else {
-        p->unknown_121 = 4;
+        p->distance_class = 4;
     }
 
     // Cone-visibility bucket (+0x122), from how far off-axis the unit's aiming vector is from
     // the prop's stored normal, scaled by distance.
     {
         real_vector3d aim = unit->aiming_vector;
-        float cos_angle = -(aim.i * p->unknown_e0.x + aim.k * p->unknown_e0.z + aim.j * p->unknown_e0.y);
+        float cos_angle = -(aim.i * p->direction.x + aim.k * p->direction.z + aim.j * p->direction.y);
         float lateral;
 
         if (cos_angle < 0.0f) {
@@ -289,52 +287,54 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
         }
 
         if (0.9925f < cos_angle || lateral < 0.5f) {
-            p->unknown_122 = 0;
+            p->aiming_at_actor_class = 0;
         } else if (0.9063f < cos_angle || lateral < 1.5f) {
-            p->unknown_122 = 1;
+            p->aiming_at_actor_class = 1;
         } else if (cos_angle <= 0.5f) {
-            p->unknown_122 = (cos_angle <= 0.0f) ? 4 : 3;
+            p->aiming_at_actor_class = (cos_angle <= 0.0f) ? 4 : 3;
         } else {
-            p->unknown_122 = 2;
+            p->aiming_at_actor_class = 2;
         }
     }
 
-    p->unknown_12f = (p->unknown_66 == 1);
+    p->shooting = (p->stimulus_type == 1);
 
-    if (p->kind < 4 || 5 < p->kind) {
+    if (p->state < 4 || 5 < p->state) {
         engage_flag = 0;
 
         {
-            int16_t kind_flag = (!p->is_parented || !p->is_unit) ? 0 : 2;
-            p->unknown_38 = (int16_t)actor_evaluate_engagement_reachability(
-                *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->unknown_104,
+            int16_t kind_flag = (!p->is_parented || !p->enemy) ? 0 : 2;
+            p->obstruction = (int16_t)actor_evaluate_engagement_reachability(
+                *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->head_position_x,
                 (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
                 self->active_unit_index != (datum_index)k_datum_index_none); // 0x41cee5: AX = block +0x28, EDI = the block
         }
-        p->unknown_120 = 2;
+        p->perception_range_class = 2;
 
         if (unit_obj->type == _object_type_biped) {
             void *own_tag_data = tag_instances[unit_obj->definition_tag & 0xffff].data; // UNSURE: raw tag offset
-            p->unknown_130 = (uint8_t)((*(uint32_t *)((uint8_t *)own_tag_data + 0x2f4)) >> 2) & 1;
+            p->flying = (uint8_t)((*(uint32_t *)((uint8_t *)own_tag_data + 0x2f4)) >> 2) & 1;
         } else {
-            p->unknown_130 = 0;
+            p->flying = 0;
         }
-        p->unknown_131 = (0.5f < unit->unknown_37c);
-        p->unknown_132 = (uint8_t)(unit->flags >> 0x13) & 1;
+        p->camouflaged = (0.5f < unit->active_camouflage_power);
+        p->flashlight_on = (uint8_t)(unit->flags >> 0x13) & 1;
 
         {
             uint8_t frozen = (unit_obj->vitality_flags & _object_health_frozen_bit) != 0;
-            uint8_t stun_pending = frozen && unit->unknown_420 != 0;
+            // FIXED 2026-09-29: the original (Ghidra below, `(bVar9 == 0) || (puVar3[0x108] != 0) -> 0`) sets
+            // 0x128 when dead AND the feign-death countdown (unit+0x420) is 0; the draft tested != 0
+            uint8_t not_feigning = frozen && unit->feign_death_ticks == 0;
 
-            p->unknown_129 = (frozen && p->is_vault == 0) ? 1 : 0;
-            p->is_vault = frozen;
-            p->unknown_128 = stun_pending;
+            p->just_died = (frozen && p->dead == 0) ? 1 : 0;
+            p->dead = frozen;
+            p->dead_not_feigning = not_feigning;
 
-            if (p->unknown_129 != 0 && !p->is_unit && self->awareness_level < 3) {
+            if (p->just_died != 0 && !p->enemy && self->awareness_level < 3) {
                 engage_flag = 1;
             }
             if (frozen) {
-                p->unknown_6a = 0;
+                p->retain_timer = 0;
             }
         }
 
@@ -345,194 +345,196 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
                 new_owner = unit->actor_index;
             }
             if (new_owner != (uint32_t)p->owner_actor_index) {
-                p->has_parent = !owner_is_none;
+                p->swarm_owned = !owner_is_none;
                 p->owner_actor_index = new_owner;
                 if (p->pair_index != (datum_index)k_datum_index_none) {
                     prop *paired = &((prop *)prop_data->data)[p->pair_index & 0xffff];
                     paired->owner_actor_index = new_owner;
-                    paired->has_parent = p->has_parent;
+                    paired->swarm_owned = p->swarm_owned;
                 }
             }
 
             if (new_owner == (uint32_t)k_datum_index_none) {
-                reachable = (p->is_vault == 0);
+                reachable = (p->dead == 0);
                 owner_not_fully_aware = 0;
                 owner_stalled = 0;
             } else {
                 actor *owner = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
                 owner_not_fully_aware = (owner->awareness_level < 3);
-                owner_stalled = (owner->awareness_level == 3 && owner->unknown_72 < owner->unknown_6e);
+                owner_stalled = (owner->awareness_level == 3 && owner->minimum_combat_status < owner->combat_status);
                 reachable = actor_check_burst_length_exceeded(p->owner_actor_index);
-                if (owner_stalled && p->unknown_12c == 0 && !p->is_unit && self->awareness_level < 3) {
+                if (owner_stalled && p->unknown_12c == 0 && !p->enemy && self->awareness_level < 3) {
                     engage_flag = 1;
                 }
             }
             p->unknown_12d = reachable;
-            p->unknown_12b = owner_not_fully_aware;
+            p->owner_not_in_combat = owner_not_fully_aware;
             p->unknown_12c = owner_stalled;
         }
 
         if (engage_flag) {
             int16_t result = 0;
             if (!team_gate) {
-                uint8_t rate_flag = p->unknown_132 ? 2 : p->unknown_120;
+                uint8_t rate_flag = p->flashlight_on ? 2 : p->perception_range_class;
                 uint16_t priority_class = actor_target_get_priority_class(actor_index, target_prop_index);
-                result = actor_dispatch_look_handler_by_posture(p->unknown_38, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
+                result = actor_dispatch_look_handler_by_posture(p->obstruction, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                        rate_flag, 1, priority_class);
                 if (result > 1) goto after_engage;
             }
-            p->unknown_30 = result;
-            p->unknown_32 = result;
-            p->unknown_38 = 0;
+            p->perception_level = result;
+            p->visual_perception = result;
+            p->obstruction = 0;
         }
 after_engage:
-        if (!p->unknown_133) {
+        if (!p->disregarded) {
             uint8_t did_track = 0;
-            if (!p->unknown_131) {
+            if (!p->camouflaged) {
                 if (team_gate) {
-                    p->unknown_32 = 0;
-                    p->unknown_12a = 0;
+                    p->visual_perception = 0;
+                    p->just_sighted = 0;
                     did_track = 1;
                 }
-            } else if (p->is_unit || (p->is_parented && 4.0f < p->distance)) {
-                p->unknown_32 = 0;
-                p->unknown_12a = 0;
+            } else if (p->enemy || (p->is_parented && 4.0f < p->distance)) {
+                p->visual_perception = 0;
+                p->just_sighted = 0;
                 did_track = 1;
             }
             if (!did_track) {
                 uint8_t use_urgent = 1;
-                if (self->unknown_15e == 4 || self->type == 0xf) {
+                if (self->vehicle_driving_type == 4 || self->type == 0xf) {
                     use_urgent = 0;
-                } else if (!p->is_unit) {
+                } else if (!p->enemy) {
                     use_urgent = 0;
-                    if (self->awareness_level < 3 && (p->is_vault || p->unknown_12c != 0)) {
+                    if (self->awareness_level < 3 && (p->dead || p->unknown_12c != 0)) {
                         use_urgent = 1;
                     }
-                } else if (2 <= p->kind && p->kind < 4) {
+                } else if (2 <= p->state && p->state < 4) {
                     use_urgent = 0;
                 }
                 {
-                    uint8_t rate_flag = p->unknown_132 ? 2 : p->unknown_120;
+                    uint8_t rate_flag = p->flashlight_on ? 2 : p->perception_range_class;
                     uint16_t priority_class = actor_target_get_priority_class(actor_index, target_prop_index);
-                    int16_t result = actor_dispatch_look_handler_by_posture(p->unknown_38, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
+                    int16_t result = actor_dispatch_look_handler_by_posture(p->obstruction, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                                    rate_flag, use_urgent, priority_class);
-                    p->unknown_12a = (p->unknown_32 == 0 && result > 0);
-                    p->unknown_32 = result;
+                    p->just_sighted = (p->visual_perception == 0 && result > 0);
+                    p->visual_perception = result;
                     if (result != 0) {
-                        p->unknown_90 = ((struct prop *)p)->unknown_104;
-                        p->unknown_94 = ((struct prop *)p)->unknown_108;
-                        p->unknown_98 = ((struct prop *)p)->unknown_10c;
-                        p->unknown_8c = tick;
+                        p->last_seen_position_x = ((struct prop *)p)->head_position_x;
+                        p->last_seen_position_y = ((struct prop *)p)->head_position_y;
+                        p->last_seen_position_z = ((struct prop *)p)->head_position_z;
+                        p->last_seen_time = tick;
                     }
                 }
             }
             // prop+0x34/0x36: types/ai.h declares one int32_t unknown_34, but this function
             // writes independent int16 halves at +0x34 and +0x36 (see file header).
-            if (enc == (encounter *)0 || enc->unknown_41 == 0) {
-                if (p->unknown_66 == 1 || p->unknown_66 == 2) {
-                    *(int16_t *)&((struct prop *)p)->unknown_34 = 3;
+            if (enc == (encounter *)0 || enc->deaf == 0) {
+                if (p->stimulus_type == 1 || p->stimulus_type == 2) {
+                    *(int16_t *)&((struct prop *)p)->auditory_perception = 3;
                 } else {
-                    *(int16_t *)&((struct prop *)p)->unknown_34 =
-                        actor_target_hearing_check((uint8_t *)p + 0xfc, p->unknown_38, actor_index,
+                    *(int16_t *)&((struct prop *)p)->auditory_perception =
+                        actor_target_hearing_check((uint8_t *)p + 0xfc, p->obstruction, actor_index,
                                                     scratch, /*gate=UNSURE-tag-word*/ 0, &p->last_known_position);
                 }
             } else {
-                *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
+                *(int16_t *)&((struct prop *)p)->auditory_perception = 0;
             }
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            if (p->unknown_66 == 0) {
+            if (p->stimulus_type == 0) {
                 *(int16_t *)((uint8_t *)p + 0x36) = 3;
             }
-            if (p->unknown_132 != 0 && p->unknown_122 < 3 && p->unknown_121 < 3 &&
-                (p->unknown_38 == 0 || p->unknown_38 == 1)) {
+            if (p->flashlight_on != 0 && p->aiming_at_actor_class < 3 && p->distance_class < 3 &&
+                (p->obstruction == 0 || p->obstruction == 1)) {
                 int16_t v = *(int16_t *)((uint8_t *)p + 0x36);
                 if (v < 2) v = 1;
                 *(int16_t *)((uint8_t *)p + 0x36) = v;
             }
             {
-                int16_t a = *(int16_t *)&((struct prop *)p)->unknown_34;
+                int16_t a = *(int16_t *)&((struct prop *)p)->auditory_perception;
                 int16_t b = *(int16_t *)((uint8_t *)p + 0x36);
                 int16_t best = (a <= b) ? b : a;
-                int16_t chosen = p->unknown_32;
+                int16_t chosen = p->visual_perception;
                 if (chosen <= best) {
                     chosen = best;
                 }
-                p->unknown_30 = chosen;
-                if (chosen == 1 && 2 <= p->kind && p->kind < 4) {
-                    p->unknown_30 = 2;
+                p->perception_level = chosen;
+                if (chosen == 1 && 2 <= p->state && p->state < 4) {
+                    p->perception_level = 2;
                 }
             }
         } else {
-            p->unknown_30 = 0;
+            p->perception_level = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
-            p->unknown_32 = 0;
+            *(int16_t *)&((struct prop *)p)->auditory_perception = 0;
+            p->visual_perception = 0;
         }
 
-        if (p->unknown_30 != 0) {
-            p->last_known_position = p->ground_position;
-            p->unknown_7c = tick;
+        // FIXED 2026-09-29: the original copies +0xbc (last_known_position) into +0x80 (the draft copied
+        // pathfinding_point into last_known_position), and reads / sets +0xb8, not noticed_b at +0xba
+        if (p->perception_level != 0) {
+            p->last_perceived_position = p->last_known_position;
+            p->last_perceived_time = tick;
         }
 
-        if (2 <= p->kind && p->kind < 4 &&
-            (1 < p->unknown_32 ||
-             (p->noticed_b != 0 && p->unknown_b4 != -1 &&
-              ((actor *)datum_get(p->unknown_b4, actor_data)) != (actor *)0 &&
-              9 < ((actor *)datum_get(p->unknown_b4, actor_data))->target_combat_status &&
-              ((actor *)datum_get(p->unknown_b4, actor_data))->target_unit_index != (datum_index)k_datum_index_none &&
-              ((actor *)datum_get(p->unknown_b4, actor_data))->unknown_454 != 0 &&
-              (((prop *)prop_data->data)[((actor *)datum_get(p->unknown_b4, actor_data))->target_unit_index & 0xffff]).object_index == p->object_index))) {
-            p->noticed_b = 1;
-            p->unknown_b0 = 0;
+        if (2 <= p->state && p->state < 4 &&
+            (1 < p->visual_perception ||
+             (p->has_current_information != 0 &&p->information_source_actor != -1 &&
+              ((actor *)datum_get(p->information_source_actor, actor_data)) != (actor *)0 &&
+              9 < ((actor *)datum_get(p->information_source_actor, actor_data))->target_combat_status &&
+              ((actor *)datum_get(p->information_source_actor, actor_data))->target_unit_index != (datum_index)k_datum_index_none &&
+              ((actor *)datum_get(p->information_source_actor, actor_data))->wants_to_fire != 0 &&
+              (((prop *)prop_data->data)[((actor *)datum_get(p->information_source_actor, actor_data))->target_unit_index & 0xffff]).object_index == p->object_index))) {
+            p->has_current_information = 1;
+            p->information_age = 0;
         }
     } else {
-        int16_t kind_flag = (!p->is_parented || !p->is_unit) ? 0 : 2;
-        p->unknown_38 = (int16_t)actor_evaluate_engagement_reachability(
-            *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->unknown_104,
+        int16_t kind_flag = (!p->is_parented || !p->enemy) ? 0 : 2;
+        p->obstruction = (int16_t)actor_evaluate_engagement_reachability(
+            *(int16_t *)((uint8_t *)scratch + 0x28), p->cluster_index, (real_point3d *)&p->head_position_x,
             (real_point3d *)scratch, kind_flag, 0, p->relationship_object_index,
             self->active_unit_index != (datum_index)k_datum_index_none); // 0x41ce26
-        if (p->unknown_133 || team_gate) {
-            p->unknown_30 = 0;
+        if (p->disregarded || team_gate) {
+            p->perception_level = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
-            p->unknown_32 = 0;
+            *(int16_t *)&((struct prop *)p)->auditory_perception = 0;
+            p->visual_perception = 0;
         } else {
-            int16_t result = actor_dispatch_look_handler_by_posture(p->unknown_38, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
-                                           p->unknown_120, 1, 2);
-            p->unknown_32 = result;
-            *(int16_t *)&((struct prop *)p)->unknown_34 = 0;
+            int16_t result = actor_dispatch_look_handler_by_posture(p->obstruction, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
+                                           p->perception_range_class, 1, 2);
+            p->visual_perception = result;
+            *(int16_t *)&((struct prop *)p)->auditory_perception = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            p->unknown_30 = result;
+            p->perception_level = result;
         }
     }
 
-    if (p->unknown_136 != 0) {
+    if (p->is_vehicle_driver != 0) {
         actor_danger_register_stationary_object((const float *)scratch, actor_index,
-                                                 p->relationship_object_index, 1 < p->unknown_30);
+                                                 p->relationship_object_index, 1 < p->perception_level);
     }
 
     // UNSURE: the byte at actor_def+0x2a3 is read here as a value compared against 0x1e; it
     // does not land cleanly on a named field of types/tags.h's Actor (the padding blocks
     // around ActorUnreachableDangerTrigger_t are not precise enough to be sure), so it is kept
     // as a raw offset rather than guessed at.
-    if (0.0f < p->unknown_20 &&
-        (p->is_vault || *((uint8_t *)actor_def + 0x2a3) == 0x1e)) {
-        actor_danger_register_point(actor_index, p->object_index, p->unknown_20, p->distance,
-                                     p->is_unit, 1 < p->unknown_30);
+    if (0.0f < p->danger_radius &&
+        (p->dead || *((uint8_t *)actor_def + 0x2a3) == 0x1e)) {
+        actor_danger_register_point(actor_index, p->object_index, p->danger_radius, p->distance,
+                                     p->enemy, 1 < p->perception_level);
     }
 
-    if (p->is_unit && 2 <= p->kind && p->kind < 4 &&
-        ((actor_has_unshielded_threat_weapon(actor_index) != 0 && p->distance < self->vitality_wait_time) ||
+    if (p->enemy && 2 <= p->state && p->state < 4 &&
+        ((actor_has_unshielded_threat_weapon(actor_index) != 0 && p->distance < self->maximum_firing_distance) ||
          ((actor_def->flags & 0x08000000u) != 0 && p->distance < actor_def->melee_fudge_factor))) {
         // bit 27 = "suicidal_melee_attack" per ActorFlags' documented bit order
         actor_target_mark_engaged(target_prop_index, actor_index, 0); // FIXED: EBX = the actor (EDI)
     }
 
-    if (p->unknown_a0 != -1 && p->unknown_a0 + 0x96 < tick) {
+    if (p->last_engaged_time != -1 && p->last_engaged_time + 0x96 < tick) {
         actor_target_mark_engaged(target_prop_index, actor_index, 0); // FIXED: EBX = the actor (EDI)
     }
 
-    if (p->unknown_126 != 0) {
+    if (p->just_created != 0) {
         float dist_sq = p->distance * p->distance;
         actor *owner = (p->owner_actor_index == (datum_index)k_datum_index_none)
                            ? (actor *)0
@@ -543,12 +545,12 @@ after_engage:
             drop = 0;
         } else if (owner != (actor *)0 && !(owner->active != 0 && owner->keep_unit_alive == 0)) {
             drop = 1;
-        } else if (p->unknown_63 != 0) {
+        } else if (p->in_use != 0) {
             drop = 0;
         } else if (1600.0f < dist_sq) {
             drop = 1;
-        } else if (!p->is_vault) {
-            if (!p->is_unit) {
+        } else if (!p->dead) {
+            if (!p->enemy) {
                 if (225.0f <= dist_sq) drop = 1;
             }
         } else {
@@ -556,22 +558,22 @@ after_engage:
             uint8_t ok = 1;
             if (enc_idx != (uint32_t)k_datum_index_none) {
                 encounter *e = &((encounter *)encounter_data->data)[enc_idx & 0xffff];
-                int32_t gate = (e->unknown_58 <= self->unknown_3a0) ? self->unknown_3a0 : e->unknown_58;
+                int32_t gate = (e->last_idle_time <= self->found_body_time) ? self->found_body_time : e->last_idle_time;
                 object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
                 unit_data *u2 = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
-                int32_t last_seen = u2->unknown_41c;
+                int32_t last_seen = u2->death_time;
                 ok = (gate == -1 || (last_seen != -1 && gate <= last_seen));
                 if (!ok) {
                     drop = 1;
-                } else if (e->unknown_45 == 0 && e->unknown_44 == 0 && e->unknown_42 == 0) {
+                } else if (e->engaged == 0 && e->has_live_target == 0 && e->stood_down == 0) {
                     if (225.0f <= dist_sq) drop = 1;
                 }
-            } else if (p->unknown_20 <= 0.0f) {
-                if (!p->is_unit || p->unknown_76 < 0x97) {
+            } else if (p->danger_radius <= 0.0f) {
+                if (!p->enemy || p->dead_ticks < 0x97) {
                     int16_t grade = actor_get_current_mode_combat_grade(actor_index);
                     if (grade < 2) {
                         float threshold = 16.0f;
-                        if (!p->is_unit && self->awareness_level < 3) threshold = 64.0f;
+                        if (!p->enemy && self->awareness_level < 3) threshold = 64.0f;
                         if (dist_sq >= threshold) drop = 1;
                     } else {
                         drop = 1;
@@ -583,14 +585,14 @@ after_engage:
         }
 
         if (drop) {
-            p->unknown_6a = 0;
+            p->retain_timer = 0;
         }
     }
-    p->unknown_126 = 0;
+    p->just_created = 0;
 
     p->engaged = actor_target_update_active_flag(actor_index, target_prop_index);
     p->desirability = actor_rate_potential_target(actor_index, target_prop_index);
-    p->unknown_54 = actor_compute_target_priority_weight(target_prop_index, actor_index);
+    p->interest = actor_compute_target_priority_weight(target_prop_index, actor_index);
     p->combat_dirty = 1;
 }
 

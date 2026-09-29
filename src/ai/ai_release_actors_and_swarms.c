@@ -41,13 +41,13 @@ void ai_release_actors_and_swarms(void)
     // 0x428f0a: the release call always gets AL = 0
 
     iterator.filter_array = encounter_data;
-    iterator.unknown_04 = 0;
+    iterator.next_index = 0;
     iterator.cursor = -1;
     iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
-    iterator.unknown_10 = 0;
+    iterator.encounterless_done = 0;
     iterator.active = 1;
     iterator.actor_index = -1;
-    iterator.unknown_18 = -1;
+    iterator.next_actor_index = -1;
 
     a = actor_iterator_next(&iterator);
     while (a != 0) {

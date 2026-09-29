@@ -11,7 +11,7 @@
 //   (unit_get_weapon_marker_indices, leap flag in AL) gives the strike frame and distance (suicidal actors, flag
 //   0x8000000, strike at the end with no distance); then the wait threshold (at least 4, or 1.5 without a leap)
 //   bounds a move to the target (0x417910) and, once moving, the path is traced (0x4029e0) for success.
-// evidence: types/ai.h actor.unknown_15e/swarm/unknown_6e/unknown_378/target_unit_index;
+// evidence: types/ai.h actor.unknown_15e/swarm/combat_status/unknown_378/target_unit_index;
 //   types/tags.h Actor.flags bit 17 use_stalking_behavior, bit 27 suicidal_melee_attack,
 //   Actor.melee_leap_range/melee_leap_chance (already-named fields; this function's own
 //   "leap range gates a random-chance leap" shape confirms the field identification);
@@ -71,7 +71,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
 
     if (mode == 5 || mode == 4) {
         ((struct actor_combat_consideration *)record)->mode = mode;
-        return ((struct actor *)actor)->unknown_15e > 1;
+        return ((struct actor *)actor)->vehicle_driving_type > 1;
     }
     if (mode == 2) {
         uint8_t *unit;
@@ -137,7 +137,7 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
         }
         goto done;
     }
-    if (mode == 0 && (*(uint32_t *)actor_tag & 0x20000) != 0 && ((struct actor *)actor)->unknown_6e >= 5 && actor[0x378] == 0) {
+    if (mode == 0 && (*(uint32_t *)actor_tag & 0x20000) != 0 && ((struct actor *)actor)->combat_status >= 5 && actor[0x378] == 0) {
         mode = 1;
     }
 

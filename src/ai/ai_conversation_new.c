@@ -73,7 +73,7 @@ datum_index ai_conversation_new(int16_t conversation_definition_index, uint8_t a
     if (handle != (datum_index)k_datum_index_none) {
         instance = &((ai_conversation *)ai_conversation_data->data)[handle & 0xffff];
         instance->definition_index = conversation_definition_index;
-        instance->unknown_48 = -1;
+        instance->line_index = -1;
         instance->priority = allow_eviction;
         instance->start_tick = game_time->game_time;
     }

@@ -135,10 +135,10 @@ uint8_t unit_update(uint32_t unit_index)
 
     if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x800) == 0) {
         // 0x562742: the scripted control flash (+0x210 ticks of +0x214 bits)
-        int32_t ticks = ((struct unit_object *)obj)->unit.unknown_210;
+        int32_t ticks = ((struct unit_object *)obj)->unit.persistent_control_ticks;
 
         if (ticks > 0) {
-            uint32_t bits = ((struct unit_object *)obj)->unit.unknown_214;
+            uint32_t bits = ((struct unit_object *)obj)->unit.persistent_control_flags;
             uint32_t control = ((unit_object *)obj)->unit.control_flags | bits;
 
             if ((bits & 0x800) != 0) {
@@ -148,9 +148,9 @@ uint8_t unit_update(uint32_t unit_index)
                 ((unit_object *)obj)->unit.primary_trigger = 0.0f;
             }
             ((unit_object *)obj)->unit.control_flags = control;
-            ((struct unit_object *)obj)->unit.unknown_210 = --ticks;
+            ((struct unit_object *)obj)->unit.persistent_control_ticks = --ticks;
             if (ticks == 0) {
-                ((struct unit_object *)obj)->unit.unknown_214 = 0;
+                ((struct unit_object *)obj)->unit.persistent_control_flags = 0;
             }
         }
         if ((((unit_object *)obj)->unit.flags & 0x8000000) == 0) {
@@ -193,7 +193,7 @@ uint8_t unit_update(uint32_t unit_index)
             if ((obj[0x204] & 0x10) != 0) {
                 float step = 0.008333334f;
 
-                if (current_game_engine != 0 && ((struct unit_object *)obj)->unit.unknown_422 != 0 && ((struct unit_object *)obj)->unit.unknown_422 == 1) {
+                if (current_game_engine != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth == 1) {
                     datum_index weapon = unit_get_weapon_object_index(unit_index,
                         *(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2));
 
@@ -205,30 +205,30 @@ uint8_t unit_update(uint32_t unit_index)
                         }
                     }
                 }
-                ((struct unit_object *)obj)->unit.unknown_37c += step;
-                if (((struct unit_object *)obj)->unit.unknown_37c > 1.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_37c = 1.0f;
-                    ((struct unit_object *)obj)->unit.unknown_422 = 0;
+                ((struct unit_object *)obj)->unit.active_camouflage_power += step;
+                if (((struct unit_object *)obj)->unit.active_camouflage_power > 1.0f) {
+                    ((struct unit_object *)obj)->unit.active_camouflage_power = 1.0f;
+                    ((struct unit_object *)obj)->unit.active_camouflage_regrowth = 0;
                 }
             } else {
-                ((struct unit_object *)obj)->unit.unknown_37c -= 0.008333334f;
-                if (((struct unit_object *)obj)->unit.unknown_37c < 0.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_37c = 0.0f;
+                ((struct unit_object *)obj)->unit.active_camouflage_power -= 0.008333334f;
+                if (((struct unit_object *)obj)->unit.active_camouflage_power < 0.0f) {
+                    ((struct unit_object *)obj)->unit.active_camouflage_power = 0.0f;
                 }
             }
             if ((obj[0x204] & 0x20) != 0) {
-                ((struct unit_object *)obj)->unit.unknown_380 += 0.011111111f;
-                if (((struct unit_object *)obj)->unit.unknown_380 > 1.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_380 = 1.0f;
+                ((struct unit_object *)obj)->unit.super_active_camouflage_power += 0.011111111f;
+                if (((struct unit_object *)obj)->unit.super_active_camouflage_power > 1.0f) {
+                    ((struct unit_object *)obj)->unit.super_active_camouflage_power = 1.0f;
                 }
             } else {
-                ((struct unit_object *)obj)->unit.unknown_380 -= 0.011111111f;
-                if (((struct unit_object *)obj)->unit.unknown_380 < 0.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_380 = 0.0f;
+                ((struct unit_object *)obj)->unit.super_active_camouflage_power -= 0.011111111f;
+                if (((struct unit_object *)obj)->unit.super_active_camouflage_power < 0.0f) {
+                    ((struct unit_object *)obj)->unit.super_active_camouflage_power = 0.0f;
                 }
             }
-            if (((struct unit_object *)obj)->unit.unknown_428 > 0 && --((struct unit_object *)obj)->unit.unknown_428 == 0) {
-                *(int32_t *)&((struct unit_object *)obj)->unit.unknown_424 = 0;
+            if (((struct unit_object *)obj)->unit.stun_ticks > 0 && --((struct unit_object *)obj)->unit.stun_ticks == 0) {
+                *(int32_t *)&((struct unit_object *)obj)->unit.stun = 0;
             }
             if ((int8_t)obj[0x28c] > 0 && --obj[0x28c] == 0) {
                 unit_drop_current_weapon(unit_index, 1);
@@ -236,7 +236,7 @@ uint8_t unit_update(uint32_t unit_index)
                     goto controls;
                 }
             }
-            if (((struct unit_object *)obj)->unit.unknown_420 > 0 && (obj[0x10] & 0x20) != 0 && --((struct unit_object *)obj)->unit.unknown_420 == 0) {
+            if (((struct unit_object *)obj)->unit.feign_death_ticks > 0 && (obj[0x10] & 0x20) != 0 && --((struct unit_object *)obj)->unit.feign_death_ticks == 0) {
                 // 0x562b11: the knock-down is over
                 if (((unit_object *)obj)->base.body_vitality > 0.0f) {
                     int16_t state = (int16_t)((~(obj[0x298] >> 3) & 1) | 0x22);
@@ -295,7 +295,7 @@ controls:
                 // 0x562ce7: zoom level changed: the weapon's zoom sound for a local player
                 obj[0x320] = obj[0x321];
                 if (obj[0x320] == 0xff) {
-                    *(int32_t *)&((struct unit_object *)obj)->unit.unknown_348 = 0;
+                    *(int32_t *)&((struct unit_object *)obj)->unit.integrated_night_vision_power = 0;
                 }
                 if (player_index_from_unit_index(unit_index) != k_datum_index_none &&
                     *(int16_t *)((uint8_t *)player_data->data +
@@ -417,7 +417,7 @@ controls:
             datum_index weapon = k_datum_index_none;
 
             if (((unit_object *)obj)->unit.current_weapon_index == ((unit_object *)obj)->unit.desired_weapon_index) {
-                uint8_t flashing = (uint8_t)(((struct unit_object *)obj)->unit.unknown_210 > 0 && (((struct unit_object *)obj)->unit.unknown_214 & 0x800) != 0);
+                uint8_t flashing = (uint8_t)(((struct unit_object *)obj)->unit.persistent_control_ticks > 0 && (((struct unit_object *)obj)->unit.persistent_control_flags & 0x800) != 0);
 
                 if (valid_team_player && (obj[0x208] & 0x10) != 0) {
                     control = 1;
@@ -430,7 +430,7 @@ controls:
                 }
                 if ((*(uint32_t *)(TAG_DATA(*(datum_index *)obj) + 0x17c) & 0x800000) != 0) {
                     weapon_set_ready_timer(unit_get_weapon_object_index(unit_index,
-                        *(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), ((struct unit_object *)obj)->unit.unknown_340);
+                        *(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), ((struct unit_object *)obj)->unit.integrated_light_power);
                 }
                 if ((((unit_object *)obj)->unit.control_flags & 0x400) != 0) {
                     control |= 8;
@@ -492,12 +492,12 @@ controls:
         }
     }
     // 0x563453: a delayed threat reaction
-    if (((struct unit_object *)obj)->unit.unknown_406 > 0 && --((struct unit_object *)obj)->unit.unknown_406 == 0) {
-        actor_react_to_threat_event(unit_index, ((struct unit_object *)obj)->unit.unknown_40c, *(uint16_t *)&((struct unit_object *)obj)->unit.unknown_404,
-            ((struct unit_object *)obj)->unit.unknown_408, 0, 1);
-        ((struct unit_object *)obj)->unit.unknown_404 = 0;
-        ((struct unit_object *)obj)->unit.unknown_40c = k_datum_index_none;
-        *(int32_t *)&((struct unit_object *)obj)->unit.unknown_408 = 0;
+    if (((struct unit_object *)obj)->unit.delayed_damage_ticks > 0 && --((struct unit_object *)obj)->unit.delayed_damage_ticks == 0) {
+        actor_react_to_threat_event(unit_index, ((struct unit_object *)obj)->unit.delayed_damage_responsible_object, *(uint16_t *)&((struct unit_object *)obj)->unit.delayed_damage_category,
+            ((struct unit_object *)obj)->unit.delayed_damage_amount, 0, 1);
+        ((struct unit_object *)obj)->unit.delayed_damage_category = 0;
+        ((struct unit_object *)obj)->unit.delayed_damage_responsible_object = k_datum_index_none;
+        *(int32_t *)&((struct unit_object *)obj)->unit.delayed_damage_amount = 0;
     }
     if (!unit_updates_suppressed) {
         unit_melee_lunge_damage_tick(unit_index);
@@ -523,14 +523,14 @@ controls:
     }
     // 0x563531: +0x2e8 relaxes toward 0 by at most 0.1 per tick
     {
-        float step = -((unit_object *)obj)->unit.animation_blend_weight;
+        float step = -((unit_object *)obj)->unit.mouth_aperture;
 
         if (step < -0.1f) {
             step = -0.1f;
         } else if (step > 0.1f) {
             step = 0.1f;
         }
-        ((unit_object *)obj)->unit.animation_blend_weight += step;
+        ((unit_object *)obj)->unit.mouth_aperture += step;
     }
     {
         // 0x56356b: the flashlight (+0x204 bit 19), its on/off requests (bits 28/29), energy +0x344, glow +0x340
@@ -552,7 +552,7 @@ controls:
             ((unit_object *)obj)->unit.flags = flags & 0xdfffffff;
         }
         button = ((unit_object *)obj)->unit.control_flags & 0x10;
-        if (button != 0 || !(((struct unit_object *)obj)->unit.unknown_344 > 0.0f) || toggle) {
+        if (button != 0 || !(((struct unit_object *)obj)->unit.integrated_light_energy > 0.0f) || toggle) {
             if (!valid_team_player) {
                 flags = ((unit_object *)obj)->unit.flags;
                 if ((flags & 0x4000000) != 0) {
@@ -580,7 +580,7 @@ controls:
                         toggle_light = 0;
                     }
                 }
-                if (toggle_light && ((((unit_object *)obj)->unit.flags & 0x80000) != 0 || ((struct unit_object *)obj)->unit.unknown_344 > 0.2f) &&
+                if (toggle_light && ((((unit_object *)obj)->unit.flags & 0x80000) != 0 || ((struct unit_object *)obj)->unit.integrated_light_energy > 0.2f) &&
                     ((unit_object *)obj)->base.parent_object == k_datum_index_none) {
                     effect_new_on_object(unit_index, *(datum_index *)&((Unit *)tag)->integrated_light_toggle.tag_id, unit_index, -1, 0.0f, 0.0f, 0, 0);
                     ((unit_object *)obj)->unit.flags ^= 0x80000;
@@ -590,25 +590,25 @@ controls:
         flags = ((unit_object *)obj)->unit.flags;
         if ((flags & 0x80000) != 0) {
             if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x1000000) == 0) {
-                ((struct unit_object *)obj)->unit.unknown_344 -= 0.00027777778f;
+                ((struct unit_object *)obj)->unit.integrated_light_energy -= 0.00027777778f;
             }
             if (((unit_object *)obj)->base.parent_object != k_datum_index_none || (obj[0x106] & 4) != 0) {
                 ((unit_object *)obj)->unit.flags = flags & 0xfff7ffff;
             }
-            if (((struct unit_object *)obj)->unit.unknown_340 != 1.0f) {
-                ((struct unit_object *)obj)->unit.unknown_340 += 0.16666667f;
-                if (((struct unit_object *)obj)->unit.unknown_340 > 1.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_340 = 1.0f;
+            if (((struct unit_object *)obj)->unit.integrated_light_power != 1.0f) {
+                ((struct unit_object *)obj)->unit.integrated_light_power += 0.16666667f;
+                if (((struct unit_object *)obj)->unit.integrated_light_power > 1.0f) {
+                    ((struct unit_object *)obj)->unit.integrated_light_power = 1.0f;
                 }
             }
         } else {
-            if (((struct unit_object *)obj)->unit.unknown_344 < 1.0f) {
-                ((struct unit_object *)obj)->unit.unknown_344 += 0.0011111111f;
+            if (((struct unit_object *)obj)->unit.integrated_light_energy < 1.0f) {
+                ((struct unit_object *)obj)->unit.integrated_light_energy += 0.0011111111f;
             }
-            if (((struct unit_object *)obj)->unit.unknown_340 != 0.0f) {
-                ((struct unit_object *)obj)->unit.unknown_340 -= 0.041666668f;
-                if (((struct unit_object *)obj)->unit.unknown_340 < 0.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_340 = 0.0f;
+            if (((struct unit_object *)obj)->unit.integrated_light_power != 0.0f) {
+                ((struct unit_object *)obj)->unit.integrated_light_power -= 0.041666668f;
+                if (((struct unit_object *)obj)->unit.integrated_light_power < 0.0f) {
+                    ((struct unit_object *)obj)->unit.integrated_light_power = 0.0f;
                 }
             }
         }
@@ -616,16 +616,16 @@ controls:
     // 0x5637ad: the current weapon's secondary light (+0x204 bit 26) ramps +0x348
     if (unit_current_weapon_has_flag(unit_index)) {
         if ((((unit_object *)obj)->unit.flags & 0x4000000) != 0) {
-            if (((struct unit_object *)obj)->unit.unknown_348 != 1.0f) {
-                ((struct unit_object *)obj)->unit.unknown_348 += 0.083333336f;
-                if (((struct unit_object *)obj)->unit.unknown_348 > 1.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_348 = 1.0f;
+            if (((struct unit_object *)obj)->unit.integrated_night_vision_power != 1.0f) {
+                ((struct unit_object *)obj)->unit.integrated_night_vision_power += 0.083333336f;
+                if (((struct unit_object *)obj)->unit.integrated_night_vision_power > 1.0f) {
+                    ((struct unit_object *)obj)->unit.integrated_night_vision_power = 1.0f;
                 }
             }
-        } else if (((struct unit_object *)obj)->unit.unknown_348 != 0.0f) {
-            ((struct unit_object *)obj)->unit.unknown_348 -= 0.041666668f;
-            if (((struct unit_object *)obj)->unit.unknown_348 < 0.0f) {
-                ((struct unit_object *)obj)->unit.unknown_348 = 0.0f;
+        } else if (((struct unit_object *)obj)->unit.integrated_night_vision_power != 0.0f) {
+            ((struct unit_object *)obj)->unit.integrated_night_vision_power -= 0.041666668f;
+            if (((struct unit_object *)obj)->unit.integrated_night_vision_power < 0.0f) {
+                ((struct unit_object *)obj)->unit.integrated_night_vision_power = 0.0f;
             }
         }
     }

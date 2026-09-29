@@ -158,13 +158,13 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
             // No named object and no encounter: scan every live actor.
             if (ai_globals_ptr->actors_valid) {
                 actor_iterator.filter_array = encounter_data;
-                actor_iterator.unknown_04 = 0;
+                actor_iterator.next_index = 0;
                 actor_iterator.cursor = -1;
                 actor_iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
-                actor_iterator.unknown_10 = 0;
+                actor_iterator.encounterless_done = 0;
                 actor_iterator.active = 1;
                 actor_iterator.actor_index = -1;
-                actor_iterator.unknown_18 = -1;
+                actor_iterator.next_actor_index = -1;
             }
         } else {
             ai_reference_actor_iterator_new(
@@ -276,7 +276,7 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
                     candidate->active_unit_index != player_object->parent_object) {
                     continue;
                 }
-                if (candidate->unknown_161 != 0) {
+                if (candidate->vehicle_gunner != 0) {
                     score = score + 1.0f;
                 }
                 break;

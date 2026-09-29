@@ -132,11 +132,11 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
             animation_block = (ModelAnimationsAnimation *)animations->animations.pointer;
             list_entries = (int16_t *)list->animations.pointer;
 
-            if (fp->unknown_16 != -1) {
+            if (fp->current_animation != -1) {
                 // 0x4938ef..0x493918: EDI = &animations[fp +0x16], EAX = 0 (no model), stack (fp +0x18 word,
                 // fp +0x8c). The draft's extern swapped the animation and the model (NULL animation, crash).
-                animation_get_frame_orientations(&animation_block[fp->unknown_16], (GBXModel *)0,
-                             (int16_t)*(uint16_t *)fp->unknown_18, animation_control);
+                animation_get_frame_orientations(&animation_block[fp->current_animation], (GBXModel *)0,
+                             (int16_t)*(uint16_t *)fp->current_animation_frame, animation_control);
             } else {
                 model_nodes_get_default_transforms(model, animation_control);
             }
@@ -171,12 +171,12 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
                 }
             }
 
-            if (fp->unknown_1a != -1) {
-                animation_overlay_frame_orientations(&animation_block[fp->unknown_1a],
+            if (fp->moving_animation != -1) {
+                animation_overlay_frame_orientations(&animation_block[fp->moving_animation],
                              (uint16_t)*(int16_t *)fp->unknown_1c, animation_control);
             }
-            if (fp->unknown_20 != -1) {
-                animation_overlay_interpolated_frame_orientations_weighted(&animation_block[fp->unknown_20], FP_FLOAT(fp, 0x24),
+            if (fp->overcharged_animation != -1) {
+                animation_overlay_interpolated_frame_orientations_weighted(&animation_block[fp->overcharged_animation], FP_FLOAT(fp, 0x24),
                              *(float *)((uint8_t *)weapon_obj + 0x244) + 0.5f, animation_control);
             }
 
@@ -188,8 +188,8 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
                 overlay_channel(overlays, FP_FLOAT(fp, 0x34), 3, 2, animation_control);
                 overlay_channel(overlays, FP_FLOAT(fp, 0x40), 4, 5, animation_control);
                 overlay_channel(overlays, FP_FLOAT(fp, 0x44), 7, 6, animation_control);
-                if (fp->unknown_28 > 0.0f) {
-                    animation_overlay_frame_orientations_weighted(overlays, 8, fp->unknown_28, animation_control);
+                if (fp->recoil > 0.0f) {
+                    animation_overlay_frame_orientations_weighted(overlays, 8, fp->recoil, animation_control);
                 }
             }
 

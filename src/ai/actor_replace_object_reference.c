@@ -50,38 +50,38 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
         }
     }
 
-    if (self->unknown_60c == 1 && self->unknown_610 == old_reference) {
-        self->unknown_610 = new_reference;
+    if (self->firing_target_type == 1 && self->firing_target_prop_index == old_reference) {
+        self->firing_target_prop_index = new_reference;
         if (new_reference == 0xffffffff) {
-            self->unknown_60c = 0;
+            self->firing_target_type = 0;
         }
     }
 
-    if (self->unknown_6b4 == old_reference) {
-        self->unknown_6b4 = new_reference;
+    if (self->grenade_target_prop_index == old_reference) {
+        self->grenade_target_prop_index = new_reference;
     }
     if (self->look_at_unknown_2f4 == old_reference) {
         self->look_at_unknown_2f4 = new_reference;
     }
-    if (self->unknown_30c == old_reference) {
-        self->unknown_30c = new_reference;
+    if (self->pending_panic_prop_index == old_reference) {
+        self->pending_panic_prop_index = new_reference;
     }
     if (self->search_unknown_340 == old_reference) {
         self->search_unknown_340 = new_reference;
     }
-    if (self->unknown_3ac == old_reference) {
+    if (self->retreat_prop_index == old_reference) {
         if (new_reference == 0xffffffff) {
-            self->unknown_3a8 = 0;
+            self->retreat_timer = 0;
         }
-        self->unknown_3ac = new_reference;
+        self->retreat_prop_index = new_reference;
     }
-    if (self->unknown_1d0 == old_reference) {
-        self->unknown_1d0 = new_reference;
+    if (self->nearby_friend_prop_index == old_reference) {
+        self->nearby_friend_prop_index = new_reference;
     }
-    if (self->unknown_1e8 == old_reference) {
-        self->unknown_1e8 = new_reference;
+    if (self->post_combat_prop_index == old_reference) {
+        self->post_combat_prop_index = new_reference;
         if (new_reference == 0xffffffff) {
-            self->unknown_1e4 = 0;
+            self->post_combat_action = 0;
         }
     }
 
@@ -99,7 +99,7 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
     if (self->vocalization_unknown_54c == 1 && self->vocalization_unknown_550 == old_reference) {
         self->vocalization_unknown_550 = new_reference;
     }
-    if (self->unknown_56c == 1 && *(uint32_t *)((uint8_t *)self + 0x570) == old_reference) { // UNSURE offset
+    if (self->idle_major_direction_type == 1 && *(uint32_t *)((uint8_t *)self + 0x570) == old_reference) { // UNSURE offset
         *(uint32_t *)((uint8_t *)self + 0x570) = new_reference; // UNSURE offset
     }
     if (*(int16_t *)((uint8_t *)self + 0x57c) == 1 && *(uint32_t *)((uint8_t *)self + 0x580) == old_reference) { // UNSURE offsets

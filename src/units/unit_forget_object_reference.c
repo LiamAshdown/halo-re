@@ -71,8 +71,8 @@ void unit_forget_object_reference(uint32_t object_index, datum_index forgotten_o
     if (unit->equipment_object_index == forgotten_object_index) {
         unit->equipment_object_index = (datum_index)-1;
     }
-    if (unit->unknown_40c == forgotten_object_index) {
-        unit->unknown_40c = (datum_index)-1;
+    if (unit->delayed_damage_responsible_object == forgotten_object_index) {
+        unit->delayed_damage_responsible_object = (datum_index)-1;
     }
 }
 

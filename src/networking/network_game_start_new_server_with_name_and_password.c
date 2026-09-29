@@ -147,7 +147,7 @@ uint8_t network_game_start_new_server_with_name_and_password(uint32_t unused, ui
             network_server->session.maximum_players = (uint8_t)max_players;
         }
         widget_close_all();
-        network_server->unknown_9fa = 1;
+        network_server->new_server_pending = 1;
         if (((network_server->flags >> 2) & 1) == 0) {
             join_ui_state = 2;
         }

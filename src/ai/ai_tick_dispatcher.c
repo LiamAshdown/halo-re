@@ -29,16 +29,16 @@ void ai_tick_dispatcher(void)
 {
     if (ai_globals_ptr->actors_valid != 0) {
         ai_process_vehicle_entry_queue();
-        if (ai_globals_ptr->initialized != 0) {
+        if (ai_globals_ptr->ai_active != 0) {
             ai_conversation_update();
             encounters_update();
             ai_release_actors_and_swarms();
-            ai_globals_ptr->unknown_02 = 1;
+            ai_globals_ptr->ai_was_active = 1;
             return;
         }
-        if (ai_globals_ptr->unknown_02 != 0) {
+        if (ai_globals_ptr->ai_was_active != 0) {
             ai_reset_all_actors_perception();
-            ai_globals_ptr->unknown_02 = 0;
+            ai_globals_ptr->ai_was_active = 0;
         }
     }
 }

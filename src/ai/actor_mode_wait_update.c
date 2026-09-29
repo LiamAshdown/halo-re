@@ -26,14 +26,14 @@ void actor_mode_wait_update(datum_index actor_index)
     if (act[0x504]) {
         ((actor *)act)->vocalization_unknown_3e8 = 3;
         ((actor *)act)->vocalization_unknown_3ec = 0;
-    } else if (!act[0x1cc] && *(int32_t *)&((struct actor *)act)->unknown_1d0 != -1 && ((struct actor *)act)->mode_data.wait.countdown_0c > 0) {
+    } else if (!act[0x1cc] && *(int32_t *)&((struct actor *)act)->nearby_friend_prop_index != -1 && ((struct actor *)act)->mode_data.wait.countdown_0c > 0) {
         ((actor *)act)->vocalization_unknown_3e8 = 5;
         ((actor *)act)->vocalization_unknown_3ec = 1;
-        *(int32_t *)(act + 0x3f0) = *(int32_t *)&((struct actor *)act)->unknown_1d0;
+        *(int32_t *)(act + 0x3f0) = *(int32_t *)&((struct actor *)act)->nearby_friend_prop_index;
     } else {
         ((actor *)act)->vocalization_unknown_3e8 = 1;
     }
-    ((struct actor *)act)->unknown_3fc = 3;
+    ((struct actor *)act)->look_posture = 3;
     act[0x454] = 0;
     act[0x426] = 0;
     act[0x427] = 0;

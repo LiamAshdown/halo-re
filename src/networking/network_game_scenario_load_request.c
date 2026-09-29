@@ -59,7 +59,7 @@ char network_game_scenario_load_request(network_game_session *session)
     request.difficulty = 1;
     request.salt = 0xdeadbeef;
     strncpy(request.map_name, session->server_name, 0x7f);
-    request.difficulty = session->unknown_19e;
+    request.difficulty = session->difficulty;
 
     if (network_game_mode > 0) {
         if (network_game_mode < 3) {
@@ -94,12 +94,12 @@ char network_game_scenario_load_request(network_game_session *session)
     loaded = scenario_load(main_game_globals);
     if (loaded == 0) {
         if (*main_game_globals == 0) {
-            return session->unknown_3ac;
+            return session->map_loaded;
         }
     } else {
         *main_game_globals = 1;
     }
-    session->unknown_3ac = 1;
+    session->map_loaded = 1;
     game_start_new_map();
     if (network_game_mode == 2) {
         for (i = 0; i < 0x10; i++) {
@@ -107,7 +107,7 @@ char network_game_scenario_load_request(network_game_session *session)
                 break;
             }
             if (network_channel_key_open(&session->players[i]) == 0) {
-                session->unknown_3ac = 0;
+                session->map_loaded = 0;
                 break;
             }
         }
@@ -116,7 +116,7 @@ char network_game_scenario_load_request(network_game_session *session)
             game_engine_reset_all_players();
         }
     }
-    return session->unknown_3ac;
+    return session->map_loaded;
 }
 
 #if 0

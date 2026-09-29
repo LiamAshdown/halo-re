@@ -20,16 +20,16 @@ void unit_accumulate_clamped_offset(uint32_t object_index, float new_value)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    float delta = new_value - unit->animation_blend_weight;
+    float delta = new_value - unit->mouth_aperture;
 
     if (delta < -0.3f) {
-        unit->animation_blend_weight -= 0.3f;
+        unit->mouth_aperture -= 0.3f;
         return;
     }
     if (delta > 0.3f) {
         delta = 0.3f;
     }
-    unit->animation_blend_weight += delta;
+    unit->mouth_aperture += delta;
 }
 
 #if 0

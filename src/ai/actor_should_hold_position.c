@@ -29,18 +29,18 @@ uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition)
 {
     actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
-    if (self->unknown_60c == 1) {
-        prop *p = (prop *)((uint8_t *)prop_data->data + (self->unknown_610 & 0xffff) * sizeof(prop));
-        if (3 < p->kind && p->kind < 6) {
-            self->unknown_3bc = 1;
-            self->unknown_5f4 = 0;
+    if (self->firing_target_type == 1) {
+        prop *p = (prop *)((uint8_t *)prop_data->data + (self->firing_target_prop_index & 0xffff) * sizeof(prop));
+        if (3 < p->state && p->state < 6) {
+            self->target_lost = 1;
+            self->firing_state_timer = 0;
             return 0;
         }
     }
 
-    if (self->unknown_457 != 0) {
-        self->unknown_5f4 = 0;
-        return self->unknown_457 == 0;
+    if (self->force_fire != 0) {
+        self->firing_state_timer = 0;
+        return self->force_fire == 0;
     }
 
     {
@@ -50,7 +50,7 @@ uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition)
 
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         r = (float)(int32_t)(random_seed_global >> 16) * (1.0f / 65536.0f);
-        self->unknown_5f4 = (int16_t)(int32_t)(((hi - lo) * r + lo) * 30.0f); // __ftol
+        self->firing_state_timer = (int16_t)(int32_t)(((hi - lo) * r + lo) * 30.0f); // __ftol
     }
     return 1;
 }

@@ -53,17 +53,17 @@ void ai_conversation_clear_object_references(datum_index object_index, uint8_t f
         definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
         referenced = 0;
 
-        if (instance->unknown_54 == (int32_t)object_index) {
-            instance->unknown_63 = 1;
-            instance->unknown_54 = -1;
+        if (instance->speaker_unit_index == (int32_t)object_index) {
+            instance->line_finished = 1;
+            instance->speaker_unit_index = -1;
             referenced = 1;
         }
-        if (instance->unknown_58 == (int32_t)object_index) {
-            instance->unknown_58 = -1;
+        if (instance->addressee_unit_index == (int32_t)object_index) {
+            instance->addressee_unit_index = -1;
             referenced = 1;
         }
-        if (instance->unknown_10 == object_index) {
-            instance->unknown_10 = (datum_index)k_datum_index_none;
+        if (instance->player_unit_index == object_index) {
+            instance->player_unit_index = (datum_index)k_datum_index_none;
             referenced = 1;
         }
 

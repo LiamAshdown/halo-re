@@ -36,13 +36,13 @@ void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_
     target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
 
     if (mark_engaged == 0) {
-        target->unknown_9c = 0;
-        target->unknown_a0 = -1;
+        target->engaged_ticks = 0;
+        target->last_engaged_time = -1;
     } else {
-        if (target->unknown_9c == 0) {
-            target->unknown_9c = 1;
+        if (target->engaged_ticks == 0) {
+            target->engaged_ticks = 1;
         }
-        target->unknown_a0 = game_time->game_time;
+        target->last_engaged_time = game_time->game_time;
     }
 
     target->engaged = actor_target_update_active_flag(actor_index, target_prop_index);

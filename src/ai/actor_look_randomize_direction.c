@@ -55,7 +55,7 @@ void actor_look_randomize_direction(datum_index actor_index, float *deviation_ta
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
     out_in_front = 0;
-    self->unknown_55e[1] = 0; // self+0x55f
+    self->idle_look_state[1] = 0; // self+0x55f
 
     // FIXED (0x414f7d..0x414fa8): the facing target lands in the actor's own look record (+0x57c), which
     //   actor_update_look_target resolves next; the draft wrote it into a local
@@ -94,9 +94,9 @@ void actor_look_randomize_direction(datum_index actor_index, float *deviation_ta
     }
 
     wait_ticks = actor_look_get_wait_ticks(actor_index, 2, out_in_front, deviation_table);
-    *(int32_t *)self->unknown_568 = wait_ticks;
+    *(int32_t *)self->idle_minor_timer = wait_ticks;
     if (wait_ticks != 0) {
-        self->unknown_55e[1] = 1; // self+0x55f
+        self->idle_look_state[1] = 1; // self+0x55f
     }
 }
 

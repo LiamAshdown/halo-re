@@ -46,7 +46,7 @@ void main_menu_on_shown(int32_t fade_milliseconds)
         }
         main_menu_music_pending = 0;
     }
-    if (ui_root_widget[0] != (widget_instance *)0 && ui_root_widget[0]->unknown_15 == 0) {
+    if (ui_root_widget[0] != (widget_instance *)0 && ui_root_widget[0]->is_error_dialog == 0) {
         ui_root_widget[0]->milliseconds_auto_close_fade = fade_milliseconds;
         ui_root_widget[0]->milliseconds_to_auto_close =
             (ui_time_milliseconds - ui_root_widget[0]->creation_time) + 100;

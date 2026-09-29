@@ -51,7 +51,7 @@ void game_engine_slayer_player_killed(datum_index killer, datum_index death_obje
         return;
     }
     game_engine_animate_hill_pulse_icons(killer, victim);
-    if (game_engine_variant.ctf_option_7e != 0 && network_game_mode == 2) {
+    if (game_engine_variant.engine.slayer.kill_in_order != 0 && network_game_mode == 2) {
         if (*(datum_index *)(killer_player + 0x88) != victim) {
             return;
         }

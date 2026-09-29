@@ -58,8 +58,8 @@ int32_t network_game_message_decode_ingame_notification(network_client_globals *
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 6) != 0) {
         decoded = 1;
     }
-    if (client->unknown_edc == 0) {
-        client->unknown_edc = 8;
+    if (client->disconnect_reason == 0) {
+        client->disconnect_reason = 8;
     }
     if (network_server == 0 || ((network_server->flags >> 2) & 1) == 0) {
         network_host_handoff_requested = 1;

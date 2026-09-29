@@ -54,7 +54,7 @@ void encounter_build_firing_position_claims(datum_index encounter_index, datum_i
     actor_index = (datum_index)k_datum_index_none;
     if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_globals_ptr->unknown_08;
+            actor_index = ai_globals_ptr->first_encounterless_actor;
         } else {
             enc = &((encounter *)encounter_data->data)[encounter_index & 0xffff];
             actor_index = enc->first_actor;

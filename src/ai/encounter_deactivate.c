@@ -52,7 +52,7 @@ void encounter_deactivate(datum_index encounter_index)
     actor_index = (datum_index)k_datum_index_none;
     if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_globals_ptr->unknown_08;
+            actor_index = ai_globals_ptr->first_encounterless_actor;
         } else {
             actor_index = enc->first_actor;
         }
@@ -67,7 +67,7 @@ void encounter_deactivate(datum_index encounter_index)
             actor_delete_swarm(current);
             actor_set_units_active(current, 1);
             a->active = 0;
-            a->unknown_0c = (datum_index)game_time->game_time;
+            a->deactivation_time = (datum_index)game_time->game_time;
         }
     }
 }

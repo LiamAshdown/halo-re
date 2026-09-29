@@ -27,6 +27,6 @@ static uint16_t *multiplayer_text(int16_t index)
 
 wchar_t *game_engine_race_build_score_header_text(wchar_t *buffer)
 {
-    wcscpy(buffer, (const wchar_t *)multiplayer_text((int16_t)(*(int32_t *)&game_engine_variant.ctf_option_7c == 2 ? 0xb2 : 0x19)));
+    wcscpy(buffer, (const wchar_t *)multiplayer_text((int16_t)(game_engine_variant.engine.race.race_type == 2 ? 0xb2 : 0x19)));
     return buffer;
 }

@@ -39,8 +39,8 @@ void object_copy_default_node_transforms(uint32_t object_index, int16_t requeste
         dst[i] = src[i];
     }
 
-    if (requested_count >= (int16_t)(obj->node_function_count - obj->unknown_0d4)) {
-        obj->unknown_0d4 = 0;
+    if (requested_count >= (int16_t)(obj->node_function_count - obj->interpolation_frame_index)) {
+        obj->interpolation_frame_index = 0;
         obj->node_function_count = requested_count;
     }
 }

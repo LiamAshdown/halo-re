@@ -32,11 +32,11 @@ void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     object *target_obj;
 
-    if ((int8_t)biped->unknown_500 < 0) {
+    if ((int8_t)biped->bump_ticks < 0) {
         if (target != k_datum_index_none) {
-            biped->unknown_500 = 0xf1;
+            biped->bump_ticks = 0xf1;
         } else {
-            biped->unknown_500 = biped->unknown_500 + 1;
+            biped->bump_ticks = biped->bump_ticks + 1;
         }
         return;
     }
@@ -48,24 +48,24 @@ void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
     if (unit->controlling_player == k_datum_index_none && !recorded_animation_object_is_playing(object_index)) {
         return;
     }
-    if (biped->unknown_4fc != target) {
-        biped->unknown_4fc = target;
-        biped->unknown_500 = 0;
+    if (biped->bump_object_index != target) {
+        biped->bump_object_index = target;
+        biped->bump_ticks = 0;
         return;
     }
-    biped->unknown_500 = biped->unknown_500 + 1;
-    if ((int8_t)biped->unknown_500 <= 3) {
+    biped->bump_ticks = biped->bump_ticks + 1;
+    if ((int8_t)biped->bump_ticks <= 3) {
         return;
     }
     if (target_obj->type == 0 && DAT_0087abc3 != 0) {
         int32_t local_player = unit_get_local_player_weapon_index(object_index);
         if ((int16_t)local_player != -1) {
             biped_data *target_biped = (biped_data *)((uint8_t *)target_obj + k_unit_object_size);
-            target_biped->unknown_500 = 0xf1;
+            target_biped->bump_ticks = 0xf1;
             local_player_set_controlled_unit(target, (int16_t)local_player);
         }
     }
-    biped->unknown_500 = 0xf1;
+    biped->bump_ticks = 0xf1;
 }
 
 #if 0

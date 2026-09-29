@@ -49,37 +49,37 @@ void hud_draw_teammate_nameplate(datum_index player_handle)
         }
     }
 
-    if ((datum_index)p->unknown_7c == found) {
-        if (p->unknown_80 < 0xf) {
-            p->unknown_80 = p->unknown_80 + 1;
+    if ((datum_index)p->nameplate_target_player == found) {
+        if (p->nameplate_fade_ticks < 0xf) {
+            p->nameplate_fade_ticks = p->nameplate_fade_ticks + 1;
         }
     } else {
-        if (0 < p->unknown_80) {
-            p->unknown_80 = p->unknown_80 - 1;
+        if (0 < p->nameplate_fade_ticks) {
+            p->nameplate_fade_ticks = p->nameplate_fade_ticks - 1;
         }
-        if (p->unknown_80 == 0) {
-            p->unknown_7c = found;
+        if (p->nameplate_fade_ticks == 0) {
+            p->nameplate_target_player = found;
         }
     }
 
-    if (p->unknown_7c != (datum_index)0xffffffff) {
-        int16_t index = (int16_t)p->unknown_7c;
+    if (p->nameplate_target_player != (datum_index)0xffffffff) {
+        int16_t index = (int16_t)p->nameplate_target_player;
         if (-1 < index && index < player_data->maximum_count) {
             tracked = (player *)((uint8_t *)player_data->data + player_data->size * index);
             if (tracked->identifier != 0 &&
-                ((int16_t)((uint32_t)p->unknown_7c >> 16) == 0 ||
-                 tracked->identifier == (int16_t)((uint32_t)p->unknown_7c >> 16))) {
+                ((int16_t)((uint32_t)p->nameplate_target_player >> 16) == 0 ||
+                 tracked->identifier == (int16_t)((uint32_t)p->nameplate_target_player >> 16))) {
                 memset(name, 0, sizeof(name));
                 wcsncpy(name, tracked->name, 0x0b);
                 name[0x0b] = 0;
                 // FIXED 2026-09-28: 0x45e5e8..0x45e649: the scale is pow(min(+0x80, 10) * 0.1, 1.9) * 0.5
                 //   (0x00672c30 is the double 1.9f).
                 hud_draw_teammate_nameplate_text(name,
-                    (float)pow((double)((float)(p->unknown_80 < 10 ? p->unknown_80 : 10) * 0.1f), (double)1.9f) * 0.5f);
+                    (float)pow((double)((float)(p->nameplate_fade_ticks < 10 ? p->nameplate_fade_ticks : 10) * 0.1f), (double)1.9f) * 0.5f);
                 return;
             }
         }
-        p->unknown_7c = (datum_index)0xffffffff;
+        p->nameplate_target_player = (datum_index)0xffffffff;
     }
 }
 

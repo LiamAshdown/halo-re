@@ -50,13 +50,13 @@ void ai_notify_actors_of_encounter_state_change(int16_t zone_a, int16_t zone_b, 
 
     if (ai_globals_ptr->actors_valid) {
         iterator.filter_array = encounter_data;
-        iterator.unknown_04 = 0;
+        iterator.next_index = 0;
         iterator.cursor = -1;
         iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
-        iterator.unknown_10 = 0;
+        iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
-        iterator.unknown_18 = -1;
+        iterator.next_actor_index = -1;
         actor_index = (datum_index)k_datum_index_none;
     }
 
@@ -78,13 +78,13 @@ void ai_notify_actors_of_encounter_state_change(int16_t zone_a, int16_t zone_b, 
                 current_prop_index = prop_cursor;
                 p = &((prop *)prop_data->data)[current_prop_index & 0xffff];
                 prop_cursor = p->next_in_actor;
-                if (p->object_type == other_zone) {
+                if (p->team == other_zone) {
                     if (force_update == 0) {
-                        p->unknown_61 = 1;
+                        p->allegiance = 1;
                         p->unknown_62 = 1;
                     }
                     if (status == 0 || force_update != 0) {
-                        p->is_unit = status;
+                        p->enemy = status;
                         p->engaged = actor_target_update_active_flag(actor_index, current_prop_index);
                         p->desirability = actor_rate_potential_target(actor_index, current_prop_index);
                     }

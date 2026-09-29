@@ -48,7 +48,7 @@ void actor_build_path_find_request(datum_index actor_index, path_find_request *r
     actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
     radius = actor_definition->pathfinding_radius;
 
-    if (self->unknown_15e > 0) {
+    if (self->vehicle_driving_type > 0) {
         unit_index = self->active_unit_index;
         unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
         vehicle_definition = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;
@@ -71,10 +71,10 @@ void actor_build_path_find_request(datum_index actor_index, path_find_request *r
     request->ignores_glass = ignores_glass;
     request->unknown_0c = (datum_index)k_datum_index_none;
     request->have_start = 1;
-    request->start_position.x = *(float *)&self->unknown_168;
+    request->start_position.x = *(float *)&self->pathfinding_point;
     request->start_position.y = *(float *)&self->unknown_16c;
     request->start_position.z = *(float *)&self->unknown_170;
-    request->start_surface_index = (uint32_t)self->unknown_164;
+    request->start_surface_index = (uint32_t)self->pathfinding_surface_index;
 }
 
 #if 0

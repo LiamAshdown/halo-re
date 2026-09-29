@@ -37,7 +37,7 @@ uint32_t network_object_record_last_sender(int32_t sender, int16_t step_count,
     if (resolved == 0xffffffff) {
         return 0;
     }
-    if (server->session.unknown_3ac != 0 && resolved != 0 && sender != -1) {
+    if (server->session.map_loaded != 0 && resolved != 0 && sender != -1) {
         *(int32_t *)((uint8_t *)player_data->data + (resolved & 0xffff) * 0x200 + 0xd0) = sender;
     }
     return 1;

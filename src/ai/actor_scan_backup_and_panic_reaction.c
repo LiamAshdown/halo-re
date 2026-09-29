@@ -52,19 +52,19 @@ void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_i
     Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
     datum_index relevant;
 
-    self->unknown_8d = 1;
+    self->witnessed_death = 1;
 
-    if (target->is_unit != 0) {
+    if (target->enemy != 0) {
         return;
     }
 
     relevant = actor_get_relevant_squad_member_target(actor_index, target_prop_index, 1);
 
-    if (target->actor_type == actor_tag->leader_type && self->unknown_308 < 8) {
+    if (target->actor_type == actor_tag->leader_type && self->pending_panic_type < 8) {
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         if ((float)(random_seed_global >> 0x10) * 1.5259022e-05f < actor_tag->leader_killed_panic_chance) {
-            self->unknown_308 = 8;
-            self->unknown_30c = relevant;
+            self->pending_panic_type = 8;
+            self->pending_panic_prop_index = relevant;
         }
     }
 
@@ -78,30 +78,30 @@ void actor_scan_backup_and_panic_reaction(datum_index target_prop_index, datum_i
     {
         prop *ally = &((prop *)prop_data->data)[relevant & 0xffff];
 
-        if (ally->is_unit != 0) {
-            if (ally->unknown_32 > 0 && (int8_t)ally->unknown_122 <= 2) { // 0x42333d: signed byte compare
+        if (ally->enemy != 0) {
+            if (ally->visual_perception > 0 && (int8_t)ally->aiming_at_actor_class <= 2) { // 0x42333d: signed byte compare
                 float chance = actor_tag->friend_killed_panic_chance;
                 int roll_ok;
 
                 // 0x423346..0x42338a: with panic_in_groups and the cooldown over, the chance is scaled by ally
                 //   exposure and the roll skipped when the scaler returns 1; otherwise random_real() < chance.
                 if ((actor_tag->more_flags & 0x20) != 0 /* panic_in_groups */ &&
-                    self->unknown_39c < (int32_t)game_time->game_time &&
+                    self->panic_cooldown_time < (int32_t)game_time->game_time &&
                     actor_scale_value_by_ally_exposure(actor_index, &chance)) {
                     roll_ok = 1;
                 } else {
                     roll_ok = random_real() < chance;
                 }
 
-                if (roll_ok && self->unknown_308 < 3) {
-                    self->unknown_308 = 3;
-                    self->unknown_30c = relevant;
+                if (roll_ok && self->pending_panic_type < 3) {
+                    self->pending_panic_type = 3;
+                    self->pending_panic_prop_index = relevant;
                 }
             }
 
             if (ally->engaged != 0) {
-                ally->unknown_a6 = ally->unknown_a6 + 1;
-                ally->unknown_a8 = 0x2ee;
+                ally->friends_killed = ally->friends_killed + 1;
+                ally->friends_killed_timer = 0x2ee;
             }
         }
     }

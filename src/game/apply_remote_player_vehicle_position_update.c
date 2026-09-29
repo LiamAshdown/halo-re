@@ -67,8 +67,8 @@ void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj)
                                                             vehicle_wait_tick_counter, (double)dist);
                 // UNSURE: player::unknown_1f8 is documented as int32_t; the disassembly treats
                 // it as a running float total (fVar2 + existing value).
-                *(float *)&plr->unknown_1f8 = dist + *(float *)&plr->unknown_1f8;
-                plr->unknown_1f4 = plr->unknown_1f4 + 1;
+                *(float *)&plr->vehicle_update_error_total = dist + *(float *)&plr->vehicle_update_error_total;
+                plr->vehicle_updates_applied_count = plr->vehicle_updates_applied_count + 1;
                 unit_propagate_position_delta_to_children();
                 parent_obj->velocity = record.body.velocity;
                 parent_obj->angular_velocity = record.body.angular_velocity;

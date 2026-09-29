@@ -107,7 +107,7 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
 
     self = (encounter *)((uint8_t *)encounter_data->data + (encounter_index & 0xffff) * sizeof(encounter));
     encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index & 0xffff];
-    target_mode = self->unknown_62;
+    target_mode = self->follow_target_type;
     target_count = 0;
 
     if (target_mode == 1) {
@@ -130,9 +130,9 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
             player_record = data_iterator_next(&player_iter);
         } while (player_record != 0);
     } else if (target_mode == 2) {
-        datum_index cached_target = self->unknown_64;
+        datum_index cached_target = self->follow_target;
         if (object_try_and_get(cached_target, 3) == 0) { // FIXED: ECX = self +0x64 (0x43954d)
-            self->unknown_64 = (datum_index)0xffffffff;
+            self->follow_target = (datum_index)0xffffffff;
             return;
         }
         targets[0] = cached_target;
@@ -141,10 +141,10 @@ void encounter_redistribute_squads_toward_targets(datum_index encounter_index)
     } else if (target_mode == 3) {
         void *member;
         ai_reference_actor_iterator member_iterator; // FIXED (0x439509..0x43951a): the iterator at [esp+0x40]
-        if (self->unknown_64 == (datum_index)0xffffffff) {
+        if (self->follow_target == (datum_index)0xffffffff) {
             return;
         }
-        ai_reference_actor_iterator_new((uint32_t)self->unknown_64, &member_iterator);
+        ai_reference_actor_iterator_new((uint32_t)self->follow_target, &member_iterator);
         member = ai_reference_actor_iterator_next(&member_iterator);
         if (member == 0) {
             return;
@@ -189,9 +189,9 @@ have_targets:
                 int16_t word = bit_index >> 5;
 
                 squad_considered_mask[word] |= bit;
-                total_occupancy = total_occupancy + squad_state->unknown_18;
+                total_occupancy = total_occupancy + squad_state->living_count;
 
-                if (squad_state->unknown_10 != 0) { // "has valid platoon" gate (encounter_squad_state+0x10)
+                if (squad_state->automatic_migration != 0) { // "has valid platoon" gate (encounter_squad_state+0x10)
                     encounter_platoon_state *platoon_state;
                     int16_t platoon_index = squad_definition->platoon;
                     uint32_t trigger;
@@ -211,7 +211,7 @@ have_targets:
                     squad_trigger_mask[bit_index] = trigger;
                     combined_trigger_mask |= trigger;
 
-                    if (0 < squad_state->unknown_18) {
+                    if (0 < squad_state->living_count) {
                         squad_occupied_mask[word] |= bit;
                     }
                 }
@@ -245,7 +245,7 @@ have_targets:
         next_actor = (datum_index)0xffffffff;
         if (ai_globals_ptr->actors_valid != 0) {
             if (encounter_index == (datum_index)0xffffffff) {
-                next_actor = ai_globals_ptr->unknown_08;
+                next_actor = ai_globals_ptr->first_encounterless_actor;
             } else {
                 next_actor = self->first_actor;
             }
@@ -350,7 +350,7 @@ have_targets:
 
             if (best_squad != -1) {
                 if (best_occupied_squad != -1) {
-                    float leash = (self->unknown_68 <= 0) ? 2.0f : *(float *)&self->unknown_68; // UNSURE, see header
+                    float leash = (self->follow_distance <= 0.0f) ? 2.0f : self->follow_distance; // FIXED 2026-09-29: a float compare in the original (`*(float *)(+0x68) <= 0.0`)
                     if ((float)sqrt(best_occupied_distance) - leash <= (float)sqrt(best_squad_distance)) {
                         return;
                     }
@@ -364,7 +364,7 @@ have_targets:
                     next_actor = (datum_index)0xffffffff;
                     if (ai_globals_ptr->actors_valid != 0) {
                         if (encounter_index == (datum_index)0xffffffff) {
-                            next_actor = ai_globals_ptr->unknown_08;
+                            next_actor = ai_globals_ptr->first_encounterless_actor;
                         } else {
                             next_actor = self->first_actor;
                         }
@@ -390,7 +390,7 @@ have_targets:
                                 }
                             }
 
-                            if (member->unknown_09 == 0) {
+                            if (member->encounterless == 0) {
                                 if (member->encounter_index != (datum_index)0xffffffff) {
                                     encounter_remove_actor(next_actor, 0);
                                 }
@@ -400,10 +400,10 @@ have_targets:
 
                             if (encounter_index == (datum_index)0xffffffff) {
                                 if (ai_globals_ptr->actors_valid != 0) {
-                                    member->next_in_encounter = ai_globals_ptr->unknown_08;
-                                    ai_globals_ptr->unknown_08 = next_actor;
-                                    member->unknown_09 = 1;
-                                    *(uint16_t *)&member->unknown_10 = -(uint16_t)(member->active != 0) & 0x5a;
+                                    member->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
+                                    ai_globals_ptr->first_encounterless_actor = next_actor;
+                                    member->encounterless = 1;
+                                    *(uint16_t *)&member->activation_delay = -(uint16_t)(member->active != 0) & 0x5a;
                                     // FIXED (0x439d05..0x439d31): the firing position and a type 3 / 4 movement are
                                     //   reset again before the mode callback
                                     member->firing_position_index = (int16_t)0xffff;

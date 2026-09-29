@@ -31,7 +31,7 @@ void player_kill_streak_begin(int16_t slot, uint32_t player_handle)
 
     if (slot == 0) {
         unit->flags = unit->flags | _unit_flag_unknown_10;
-        unit->unknown_422 = 0;
+        unit->active_camouflage_regrowth = 0;
     }
 }
 

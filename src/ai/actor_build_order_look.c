@@ -62,7 +62,7 @@ int32_t actor_build_order_look(uint32_t actor_index, actor_order *order, actor_l
 
     force_random = request->force_random > 0;
     o[0x09] = force_random;
-    need_random_duration = (a->unknown_3a8 < 1) || force_random;
+    need_random_duration = (a->retreat_timer < 1) || force_random;
     o[0x0a] = need_random_duration ? 0 : 1;
 
     if (need_random_duration) {

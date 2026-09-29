@@ -29,7 +29,7 @@ void unit_start_seat_overlay_animation_b(uint32_t unit_index, int16_t command) /
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    if (unit->unknown_2a5 > command) {
+    if (unit->overlay_animation_state > command) {
         return;
     }
 
@@ -70,7 +70,7 @@ void unit_start_seat_overlay_animation_b(uint32_t unit_index, int16_t command) /
             *(datum_index *)&obj_tag->animation_graph.tag_id,
             *(int16_t *)((uint8_t *)weapon_type->animations.pointer + raw_index * 2), 1);
         unit->overlays[1].frame = 0;
-        unit->unknown_2a5 = (int8_t)command;
+        unit->overlay_animation_state = (int8_t)command;
     }
 }
 

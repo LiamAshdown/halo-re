@@ -50,7 +50,7 @@ void game_engine_ctf_score_flag(uint32_t team, int32_t scenario_flag_index)
         ctf_globals_live.team_flag_id[idx] = usage_id;
     }
 
-    if (game_engine_variant.ctf_option_7c == 2) {
+    if (game_engine_variant.engine.race.race_type == 2) {
         game_engine_ctf_on_flag_captured(team);
         ctf_neutral_flag_id = game_engine_ctf_pick_random_flag(ctf_neutral_flag_id);
         return;

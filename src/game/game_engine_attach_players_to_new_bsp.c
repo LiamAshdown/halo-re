@@ -69,7 +69,7 @@ uint8_t game_engine_attach_players_to_new_bsp(void)
 
     local_player_globals->mode = 0;
 
-    if (local_player_globals->unknown_16 == 0) {
+    if (local_player_globals->teleported == 0) {
         obj_iter.type_mask = _object_mask_projectile;
         obj_iter.flags_mask = 0;
         obj_iter.index = 0;
@@ -78,7 +78,7 @@ uint8_t game_engine_attach_players_to_new_bsp(void)
             local_player_globals->mode = 1;
             return 0;
         }
-        if (local_player_globals->unknown_16 == 0 && ai_scan_for_recent_combat_activity(1) != 0) {
+        if (local_player_globals->teleported == 0 && ai_scan_for_recent_combat_activity(1) != 0) {
             local_player_globals->mode = 2;
             return 0;
         }
@@ -152,10 +152,10 @@ uint8_t game_engine_attach_players_to_new_bsp(void)
         }
     }
 
-    if (local_player_globals->unknown_16 == 0 || success != 0) {
-        local_player_globals->unknown_16 = 0;
+    if (local_player_globals->teleported == 0 || success != 0) {
+        local_player_globals->teleported = 0;
     } else {
-        local_player_globals->unknown_16 = 1;
+        local_player_globals->teleported = 1;
     }
     if (success != 0) {
         local_player_globals->mode = 0;

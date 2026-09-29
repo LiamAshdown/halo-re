@@ -61,7 +61,7 @@ static void players_clear_bsp_cluster(void)
 
 void players_structure_bsp_switch_regroup(void)
 {
-    int16_t volume = local_player_globals->unknown_12;
+    int16_t volume = local_player_globals->bsp_switch_trigger_volume_index;
     real_point3d target;
     float offset = 0.0f;
     uint8_t have_flag = 0;
@@ -108,11 +108,11 @@ void players_structure_bsp_switch_regroup(void)
         float radius;
         uint32_t leaf;
 
-        if (entry->unit == k_datum_index_none || local_player_globals->unknown_12 == -1) {
+        if (entry->unit == k_datum_index_none || local_player_globals->bsp_switch_trigger_volume_index == -1) {
             continue;
         }
         unit_object = (uint8_t *)((object_header *)object_data->data)[entry->unit & 0xffff].data;
-        trigger_volume = *(int16_t *)((uint8_t *)global_scenario->bsp_switch_trigger_volumes.pointer + local_player_globals->unknown_12 * 8);
+        trigger_volume = *(int16_t *)((uint8_t *)global_scenario->bsp_switch_trigger_volumes.pointer + local_player_globals->bsp_switch_trigger_volume_index * 8);
         if (!scenario_trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
             continue;
         }
@@ -141,6 +141,6 @@ void players_structure_bsp_switch_regroup(void)
             ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->bsp_cluster = -1;
         }
     }
-    local_player_globals->unknown_12 = -1;
+    local_player_globals->bsp_switch_trigger_volume_index = -1;
     players_clear_bsp_cluster();
 }

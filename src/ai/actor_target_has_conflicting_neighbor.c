@@ -49,18 +49,18 @@ uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_ind
     while (prop_index != k_datum_index_none) {
         other = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * sizeof(prop));
         if (prop_index != target_prop_index) {
-            other_kind = other->kind;
+            other_kind = other->state;
             if (((other->object_index == target->object_index ||
                   other->owner_actor_index == target->owner_actor_index) ||
-                 ((target->is_unit != 0 && other->is_unit != 0) &&
+                 ((target->enemy != 0 && other->enemy != 0) &&
                   ((3 < other_kind && other_kind < 6) || (1 < other_kind && other_kind < 4)))) &&
                 (((dx = target->last_known_position.x - other->last_known_position.x,
                    dy = target->last_known_position.y - other->last_known_position.y,
                    dx * dx + dy * dy < 6.25f) &&
                   fabs_f(other->last_known_position.z - target->last_known_position.z) < 1.5f) &&
-                 (0.5f < other->unknown_e0.z * target->unknown_e0.z +
-                         other->unknown_e0.y * target->unknown_e0.y +
-                         other->unknown_e0.x * target->unknown_e0.x))) { // 0x41f503: summed z, y, x
+                 (0.5f < other->direction.z * target->direction.z +
+                         other->direction.y * target->direction.y +
+                         other->direction.x * target->direction.x))) { // 0x41f503: summed z, y, x
                 conflict = 1;
             }
         }

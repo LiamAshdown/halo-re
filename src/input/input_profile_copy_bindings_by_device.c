@@ -96,7 +96,7 @@ uint8_t input_profile_copy_bindings_by_device(int32_t category, saved_player_pro
     dst->look_sensitivity = src->look_sensitivity;
     dst->look_inverted = src->look_inverted;
     dst->look_inverted_driving = src->look_inverted_driving;
-    dst->unknown_132 = src->unknown_132;
+    dst->auto_center_look = src->auto_center_look;
     return 1;
 }
 

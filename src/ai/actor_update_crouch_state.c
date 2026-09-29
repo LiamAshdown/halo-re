@@ -107,32 +107,32 @@ void actor_update_crouch_state(datum_index actor_index)
     countdown_360          = (int16_t *)&self->unknown_350[0x10];
     countdown_368          = (int16_t *)&self->unknown_350[0x18];
 
-    if (self->unknown_378 != 0 &&
-        (self->unknown_6e == 0 || self->awareness_level < 3 ||
-         (*(int32_t *)&self->unknown_1bc == 0x3f800000 && self->unknown_6e < 3))) {
+    if (self->berserking != 0 &&
+        (self->combat_status == 0 || self->awareness_level < 3 ||
+         (*(int32_t *)&self->shield_vitality == 0x3f800000 && self->combat_status < 3))) {
         actor_set_combat_alert_flag(actor_index, 0); // 0x42141b: BL = 0
     }
 
-    platoon_flag = self->unknown_1c9;
-    if (self->unknown_374 != platoon_flag) {
-        self->unknown_374 = platoon_flag;
+    platoon_flag = self->platoon_defending;
+    if (self->defending != platoon_flag) {
+        self->defending = platoon_flag;
         if (self->unit_index != (datum_index)k_datum_index_none) {
             ai_communication_broadcast((int16_t)((platoon_flag != 0) + 0x16), self->unit_index,
                                        0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0);
         }
     }
 
-    if (self->unknown_378 == 0 && (actor_definition->flags & 0x800) == 0) {
-        self->unknown_375 = 0;
+    if (self->berserking == 0 && (actor_definition->flags & 0x800) == 0) {
+        self->always_charge = 0;
     } else {
-        self->unknown_375 = 1;
+        self->always_charge = 1;
     }
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
-        if ((actor_definition->flags & 0x1000000) != 0 && self->unknown_374 == 0) {
-            self->unknown_375 = 1;
+        if ((actor_definition->flags & 0x1000000) != 0 && self->defending == 0) {
+            self->always_charge = 1;
         }
     } else {
-        self->unknown_375 = 0;
+        self->always_charge = 0;
     }
 
     for (threat_class = 9; threat_class > 0; threat_class--) {
@@ -159,12 +159,12 @@ void actor_update_crouch_state(datum_index actor_index)
     *threat_level_smoothed = (*threat_level - *threat_level_smoothed) * (1.0f - decay) +
                              *threat_level_smoothed;
 
-    if (self->unknown_1c8 != 0) {
-        self->unknown_3b4 = self->unknown_1b8;
+    if (self->stood_down != 0) {
+        self->stood_down_body_vitality = self->body_vitality;
     }
 
     if ((actor_definition->flags & 0xc0000000u) != 0) {
-        if (self->active_unit_index == (datum_index)k_datum_index_none && self->unknown_6e > 2) {
+        if (self->active_unit_index == (datum_index)k_datum_index_none && self->combat_status > 2) {
             combat_status = self->target_combat_status;
             *flag_35d = 0;
             *flag_35c = 0;
@@ -175,8 +175,8 @@ void actor_update_crouch_state(datum_index actor_index)
                  prop_index = p->next_in_actor) {
                 p = &((prop *)prop_data->data)[prop_index & 0xffff];
 
-                if (p->kind > 1 && p->kind < 4 && p->is_unit == 0 && p->is_vault == 0 &&
-                    p->has_parent == 0 &&
+                if (p->state > 1 && p->state < 4 && p->enemy == 0 && p->dead == 0 &&
+                    p->swarm_owned == 0 &&
                     (p->is_parented != 0 || p->relationship_object_index == -1)) {
 
                     // objdump: the 12 bytes 0x420970 fills at [esp+0x58] are the same slot
@@ -193,13 +193,13 @@ void actor_update_crouch_state(datum_index actor_index)
                         }
 
                         if ((int32_t)actor_definition->flags < 0 && p->is_parented != 0 &&
-                            p->unknown_12f != 0 &&
+                            p->shooting != 0 &&
                             vector3d_magnitude_squared(&flank_offset) < 1.0f &&
-                            (self->unknown_504 != 0 || *countdown_360 > 0)) {
+                            (self->moving != 0 || *countdown_360 > 0)) {
 
-                            steering_direction.i = self->unknown_518.x;
-                            steering_direction.j = self->unknown_518.y;
-                            steering_direction.k = self->unknown_518.z;
+                            steering_direction.i = self->desired_movement_vector.x;
+                            steering_direction.j = self->desired_movement_vector.y;
+                            steering_direction.k = self->desired_movement_vector.z;
                             if (vector3d_normalize_with_length(&steering_direction) > 0.0f) {
                                 probe_point.x = steering_direction.i * 0.4f + self->body_position.x;
                                 probe_point.y = steering_direction.j * 0.4f + self->body_position.y;
@@ -258,7 +258,7 @@ void actor_update_crouch_state(datum_index actor_index)
     if (*crouch_timer > 0) {
         *crouch_timer = (int16_t)(*crouch_timer - 1);
     } else {
-        if (self->unknown_374 == 0 || self->unknown_378 != 0) {
+        if (self->defending == 0 || self->berserking != 0) {
             threshold = actor_definition->attacking_crouch_threshold;
         } else {
             threshold = actor_definition->defending_crouch_threshold;
@@ -269,14 +269,14 @@ void actor_update_crouch_state(datum_index actor_index)
             want_crouch = (uint8_t)(*threat_level_smoothed > threshold);
             break;
         case 2:
-            want_crouch = (uint8_t)(*(float *)&self->unknown_1bc > threshold);
+            want_crouch = (uint8_t)(*(float *)&self->shield_vitality > threshold);
             break;
         case 3:
-            want_crouch = (uint8_t)(*(float *)&self->unknown_1bc > threshold &&
+            want_crouch = (uint8_t)(*(float *)&self->shield_vitality > threshold &&
                                     (int8_t)self->tally.threat_class_2 >= 1);
             break;
         case 4:
-            want_crouch = (uint8_t)(self->unknown_6e > 0);
+            want_crouch = (uint8_t)(self->combat_status > 0);
             break;
         case 5:
             want_crouch = actor_evaluate_custom_charge_trigger(actor_index);

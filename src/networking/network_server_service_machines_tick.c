@@ -43,7 +43,7 @@ char network_server_service_machines_tick(network_server_globals *server)
         skip_timeout_check = 0;
 
         if (machine->machine_id != -1) {
-            if (machine->unknown_10 == 0) {
+            if (machine->disconnect_timer_active == 0) {
                 network_channel *channel;
                 char service_ok;
                 char proceed;
@@ -76,7 +76,7 @@ char network_server_service_machines_tick(network_server_globals *server)
                             // this branch, whether or not the drain itself succeeded
                 }
 
-                if (machine->unknown_10 == 0) {
+                if (machine->disconnect_timer_active == 0) {
                     skip_timeout_check = 1;
                 }
             }

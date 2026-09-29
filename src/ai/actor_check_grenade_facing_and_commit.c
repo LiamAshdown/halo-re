@@ -61,11 +61,11 @@ uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t f
 
     if (force_commit == 0) {
         if (actor_can_throw_grenade_at_target(actor_index) == 0) {
-            self->unknown_6a0 = 0;
+            self->grenade_throw_pending = 0;
         }
     }
 
-    if (self->unknown_6a0 != 0) {
+    if (self->grenade_throw_pending != 0) {
         real_vector2d delta;
         float dot;
 
@@ -75,12 +75,12 @@ uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t f
         if (vector2d_normalize_with_length(&delta) > 0.0f) {
             dot = delta.i * self->facing.i + delta.j * self->facing.j;
             if (dot >= 0.8660254f) {
-                self->unknown_45c = 1;
-                self->unknown_6a0 = 0;
+                self->throw_grenade = 1;
+                self->grenade_throw_pending = 0;
                 if (self->encounter_index != (datum_index)k_datum_index_none) {
                     encounter *enc = (encounter *)((uint8_t *)encounter_data->data +
                                                     (self->encounter_index & 0xffff) * sizeof(encounter));
-                    enc->unknown_5c = game_time->game_time; // +0x0c
+                    enc->last_grenade_time = game_time->game_time; // +0x0c
                 }
                 return 1;
             }

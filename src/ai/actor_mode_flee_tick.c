@@ -38,6 +38,6 @@ void actor_mode_flee_tick(datum_index actor_index)
         }
     }
     if (((struct actor *)act)->mode_data.flee.panic > 0) {
-        *(int32_t *)&((struct actor *)act)->unknown_39c = game_time->game_time + 750;
+        *(int32_t *)&((struct actor *)act)->panic_cooldown_time = game_time->game_time + 750;
     }
 }

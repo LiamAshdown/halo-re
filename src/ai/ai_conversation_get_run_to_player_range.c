@@ -53,7 +53,7 @@ int32_t ai_conversation_get_run_to_player_range(ai_conversation_range_lookup *ou
         out->unknown_10 = 0xffffffff;
         return 1;
     }
-    out->unknown_0c = conv->unknown_10;
+    out->unknown_0c = conv->player_unit_index;
     out->unknown_10 = 0xffffffff;
     return 1;
 }

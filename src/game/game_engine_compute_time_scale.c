@@ -27,7 +27,7 @@ float game_engine_compute_time_scale(int32_t param_a, int32_t param_b)
     float scale = 1.0f;
 
     if (current_game_engine != 0) {
-        float speed = game_engine_variant.speed_scale;
+        float speed = game_engine_variant.health;
         if (speed < 0.25f) {
             speed = 0.25f;
         } else if (4.0f < speed) {

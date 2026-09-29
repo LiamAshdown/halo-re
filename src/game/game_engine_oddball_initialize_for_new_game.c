@@ -26,7 +26,7 @@ extern void game_engine_koth_relocate_hill_marker(int32_t ball_index); // 0x46bf
 
 uint8_t game_engine_oddball_initialize_for_new_game(void)
 {
-    int32_t mode = game_engine_variant.unknown_8c;
+    int32_t mode = game_engine_variant.engine.oddball.ball_type;
     int32_t target;
     int32_t i;
 
@@ -43,14 +43,14 @@ uint8_t game_engine_oddball_initialize_for_new_game(void)
     }
     if (network_game_mode == 2) {
         if (mode > 0 && mode <= 2) {
-            for (i = 0; i < game_engine_variant.unknown_90; i++) {
+            for (i = 0; i < game_engine_variant.engine.oddball.ball_count; i++) {
                 oddball_ball_timers_006b11cc[i] = 0;
                 game_engine_koth_relocate_hill_marker(i);
             }
         } else {
             int32_t delay = 0;
 
-            for (i = 0; i < game_engine_variant.unknown_90; i++) {
+            for (i = 0; i < game_engine_variant.engine.oddball.ball_count; i++) {
                 delay += 0x1c2;
                 oddball_ball_timers_006b11cc[i] = delay;
             }

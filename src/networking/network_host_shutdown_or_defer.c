@@ -50,10 +50,10 @@ int32_t network_host_shutdown_or_defer(void)
         } else {
             session = 0;
         }
-        if (session->unknown_3ac != 0) {
+        if (session->map_loaded != 0) {
             chimera__load_ui_map(1);
         }
-        session->unknown_3ac = 0;
+        session->map_loaded = 0;
         network_client_globals_dispose();
         if (network_server != 0) {
             network_game_server_host_dispose(network_server);

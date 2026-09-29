@@ -143,14 +143,14 @@ void first_person_weapon_interface_initialize(int16_t local_player_index)
     if (weapon_hud_matched != 0 && fp->device_hud_valid != 0) {
         fp->weapon_index = weapon_index;
         fp->state = -1;
-        fp->unknown_16 = -1;
-        fp->unknown_1a = -1;
-        fp->unknown_20 = -1;
-        fp->unknown_28 = 0.0f;
+        fp->current_animation = -1;
+        fp->moving_animation = -1;
+        fp->overcharged_animation = -1;
+        fp->recoil = 0.0f;
         fp->charge = 0.0f;
-        fp->unknown_10 = 0;
-        fp->unknown_1e98 = -1;
-        fp->unknown_1e9c = -1;
+        fp->idle_ticks = 0;
+        fp->frame_sound_index = -1;
+        fp->frame_sound_state = -1;
         first_person_weapon_set_state(local_player_index, 1, 0); // UNSURE: new_state guessed
         fp->blend_end = 0;
         if (was_attached != 0 && fp->attached != 1) {

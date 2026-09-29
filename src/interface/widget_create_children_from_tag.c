@@ -139,7 +139,7 @@ uint8_t widget_create_children_from_tag(widget_instance *widget, UIWidgetDefinit
         if (widget->widget_type == 2 || widget->widget_type == 3) {
             widget->selection_index = 0;
             widget->scroll_blink = 0;
-            widget->unknown_54 = 0;
+            widget->selection_direction = 0;
         } else if ((tag->flags & 1) == 0) { // pass_unhandled_events_to_focused_child clear
             return ok;
         }

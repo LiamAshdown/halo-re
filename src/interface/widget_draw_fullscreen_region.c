@@ -63,10 +63,10 @@ void widget_draw_fullscreen_region(int16_t controller_index)
             continue;
         }
         if (widget->render_always == 1 ||
-            (widget->unknown_15 == 1 &&
+            (widget->is_error_dialog == 1 &&
              (widget->controller_index == clamped_controller || widget->controller_index == -1 ||
               ui_split_screen != 0)) ||
-            (widget->unknown_15 != 1 &&
+            (widget->is_error_dialog != 1 &&
              ((widget->controller_index == -1 && i == 0) || widget->controller_index == clamped_controller))) {
             Rectangle2D dest = {0, 0, 0x1e0, 0x280};
 

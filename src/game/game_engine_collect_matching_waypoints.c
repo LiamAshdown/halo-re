@@ -34,7 +34,7 @@ int16_t game_engine_collect_matching_waypoints(int32_t candidate, float *out_pos
     int16_t written = 0;
     int16_t slot;
 
-    if (current_game_engine != 0 && game_engine_variant.unknown_3c == 0 && candidate != -1) {
+    if (current_game_engine != 0 && game_engine_variant.objective_indicator == 0 && candidate != -1) {
         for (slot = 0; slot < k_maximum_custom_waypoints; slot++) {
             if (custom_waypoint_matches_filter(candidate, &custom_waypoints[slot], reference_team) != 0 &&
                 written < max_count) {

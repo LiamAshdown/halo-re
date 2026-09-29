@@ -41,7 +41,7 @@ uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, 
         self->unknown_3bb = 0;
         return actor_movement_action_resolve(actor_index, 1, path_context); // 0x4178e7: the second stack argument
     }
-    if (self->needs_new_path != 0 && self->unknown_4a4 == 0) {
+    if (self->needs_new_path != 0 && self->path_resolved_this_tick == 0) {
         return actor_movement_action_resolve(actor_index, 0, path_context); // 0x41788d
     }
     return 1;

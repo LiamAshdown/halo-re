@@ -59,8 +59,8 @@ uint32_t network_game_session_finalize_and_add_player(network_player_entry *entr
     reserved[1] = L'\0';
     reserved[2] = L'|';
     reserved[3] = L'\0';
-    if (entry->unknown_1e == -1) {
-        entry->unknown_1e = (int8_t)game_engine_team_is_leading(0xffffffff);
+    if (entry->team_index == -1) {
+        entry->team_index = (int8_t)game_engine_team_is_leading(0xffffffff);
     }
     if (entry->name[0] == L'\0') {
         network_game_generate_unique_random_name();

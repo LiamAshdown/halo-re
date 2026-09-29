@@ -56,7 +56,7 @@ uint8_t game_engine_ctf_player_flag_tick(uint32_t flag_handle, uint32_t player_i
         player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
 
         if ((int32_t)team == p->team) {
-            if (game_engine_variant.ctf_option_7e == 0) {
+            if (game_engine_variant.engine.ctf.flag_must_reset == 0) {
                 if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) != 0) {
                     if (game_engine_is_inactive() != 0) {
                         ctf_team_return_credit_active[team] = 0; // UNSURE: extraout_EDX modeled as `team`
@@ -78,7 +78,7 @@ uint8_t game_engine_ctf_player_flag_tick(uint32_t flag_handle, uint32_t player_i
         if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) == 0 &&
             (current_game_engine == 0 || game_engine_state_value == 0)) {
             *(int16_t *)&((struct player *)p)->objective_time += 1; // UNSURE: unnamed player field
-            if (game_engine_variant.ctf_option_7c == 0) {
+            if (game_engine_variant.engine.ctf.assault == 0) {
                 game_engine_queue_multiplayer_sound(p->team != 0 ? 8 : 0xb, 0xffffffff, 1); // 0x4698fe..0x46990d
                 ctf_team_return_credit_active[team] = 1;
                 ctf_team_return_credit_ticks[team] = 0;

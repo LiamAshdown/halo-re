@@ -84,10 +84,10 @@ void widget_draw_split_screen_region(Rectangle2D *viewport, int16_t controller_i
             continue;
         }
         if (widget->render_always == 1 ||
-            (widget->unknown_15 == 1 &&
+            (widget->is_error_dialog == 1 &&
              (widget->controller_index == clamped_controller || widget->controller_index == -1 ||
               ui_split_screen != 0)) ||
-            (widget->unknown_15 != 1 &&
+            (widget->is_error_dialog != 1 &&
              ((widget->controller_index == -1 && i == 0) || widget->controller_index == clamped_controller))) {
             Rectangle2D dest;
             int32_t byte_offset = 4 * (clamped_controller + 4 * local_player_globals->local_player_count);

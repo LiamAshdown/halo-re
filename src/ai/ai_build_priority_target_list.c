@@ -46,7 +46,7 @@ void ai_build_priority_target_list(ai_priority_target_list *out_list)
     out_list->count = 0;
     out_list->unknown_02 = 0;
 
-    actor_index = ai_globals_ptr->actors_valid ? ai_globals_ptr->unknown_08 : (datum_index)k_datum_index_none;
+    actor_index = ai_globals_ptr->actors_valid ? ai_globals_ptr->first_encounterless_actor : (datum_index)k_datum_index_none;
     while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
         actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
         datum_index next = a->next_in_encounter;
@@ -54,11 +54,11 @@ void ai_build_priority_target_list(ai_priority_target_list *out_list)
         if (out_list->count > 0xff) {
             break;
         }
-        if (a->active == 0 && a->unknown_0c != (datum_index)k_datum_index_none) {
+        if (a->active == 0 && a->deactivation_time != (datum_index)k_datum_index_none) {
             ai_priority_target_record *rec = &out_list->records[out_list->count];
             rec->tiebreak = 1;
             rec->handle = actor_index;
-            rec->priority = (int32_t)a->unknown_0c;
+            rec->priority = (int32_t)a->deactivation_time;
             out_list->count = out_list->count + 1;
         }
         actor_index = next;
@@ -92,7 +92,7 @@ void ai_build_priority_target_list(ai_priority_target_list *out_list)
             if (enc == 0 || out_list->count > 0xff) {
                 break;
             }
-            if (enc->units_active == 0 && enc->unknown_2a > 0 && enc->activation_tick != (datum_index)k_datum_index_none) {
+            if (enc->units_active == 0 && enc->living_count > 0 && enc->activation_tick != (datum_index)k_datum_index_none) {
                 ai_priority_target_record *rec = &out_list->records[out_list->count];
                 rec->tiebreak = 0;
                 // FIXED (objdump 0x42adce..0x42ae07): the handle is the iterator's current encounter ([esp+0x18]).

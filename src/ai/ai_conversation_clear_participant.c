@@ -52,8 +52,8 @@ void ai_conversation_clear_participant(datum_index actor_index)
                 }
                 instance->participant_mask &= ~(1u << (i & 0x1f));
                 instance->participant_actor[i] = (datum_index)k_datum_index_none;
-                if (instance->unknown_4a == i) {
-                    instance->unknown_63 = 1;
+                if (instance->speaker_participant_index == i) {
+                    instance->line_finished = 1;
                 }
             }
         }

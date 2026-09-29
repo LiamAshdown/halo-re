@@ -38,7 +38,7 @@ void game_engine_koth_update_occupant_table(uint32_t index)
     player *p;
     datum_index unit;
 
-    if (game_engine_variant.unknown_8c >= 1 && game_engine_variant.unknown_8c <= 2) {
+    if (game_engine_variant.engine.oddball.ball_type >= 1 && game_engine_variant.engine.oddball.ball_type <= 2) {
         return;
     }
 

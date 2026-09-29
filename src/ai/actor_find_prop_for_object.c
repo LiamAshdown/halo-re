@@ -41,9 +41,9 @@ datum_index actor_find_prop_for_object(datum_index object_index, datum_index act
         }
         p = (prop *)((uint8_t *)prop_data->data + (cur & 0xffff) * sizeof(prop));
 
-        if (!(((-1 < p->kind) && (p->kind < 2)) ||
+        if (!(((-1 < p->state) && (p->state < 2)) ||
               ((p->object_index != object_index) &&
-               ((p->has_parent == 0) || (p->owner_actor_index == (datum_index)0xffffffff) ||
+               ((p->swarm_owned == 0) || (p->owner_actor_index == (datum_index)0xffffffff) ||
                 ((int32_t)p->owner_actor_index != cluster_ref))))) {
             return cur;
         }

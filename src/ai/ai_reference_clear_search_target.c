@@ -21,7 +21,7 @@ void ai_reference_clear_search_target(uint32_t packed_reference)
     ai_reference_actor_iterator_new(packed_reference, &iterator);
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
-        a->unknown_1d4 = 0;
+        a->try_to_fight_type = 0;
         a = ai_reference_actor_iterator_next(&iterator);
     }
 }

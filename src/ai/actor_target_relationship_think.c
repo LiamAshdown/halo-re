@@ -188,10 +188,10 @@ void actor_target_relationship_think(datum_index actor_index)
     {
         uint8_t should_react;
 
-        if (self->unknown_28a == 0 && self->danger_unknown_282 == 0) {
+        if (self->danger_is_own == 0 && self->danger_unknown_282 == 0) {
             should_react = 0;
             if (self->danger_unknown_284 > 0 && self->danger_unknown_286 != 0) {
-                if (self->unknown_88 == -1 || self->unknown_88 > 0x3b) {
+                if (self->ticks_since_threatened == -1 || self->ticks_since_threatened > 0x3b) {
                     self->danger_unknown_284 -= 1;
                     should_react = (uint8_t)(self->danger_unknown_284 == 0);
                 } else {
@@ -221,7 +221,7 @@ void actor_target_relationship_think(datum_index actor_index)
             }
 
             if (self->unknown_287[0] != 0) {
-                if (self->unknown_28a == 0) {
+                if (self->danger_is_own == 0) {
                     if (self->danger_unknown_282 == 0 && danger_type != 3 && danger_type != 1) {
                         self->unknown_287[1] = (uint8_t)(random_real() < definition->dive_from_grenade_chance);
                     } else {
@@ -242,7 +242,7 @@ void actor_target_relationship_think(datum_index actor_index)
                 self->vocalization_variant = 5;
             }
         }
-        if (self->unknown_28a != 0) {
+        if (self->danger_is_own != 0) {
             self->unknown_287[0] = 1;
             self->unknown_287[1] = 0;
         }
@@ -261,28 +261,28 @@ restart:
             result = best_prop;
         } else {
             prop *cur = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
-            if (cur->kind < 4 || cur->kind > 5) {
+            if (cur->state < 4 || cur->state > 5) {
                 result = best_prop;
             }
         }
 
         if (self->target_combat_status > 5) {
-            self->unknown_274[0] = 1;
+            self->ever_had_target[0] = 1;
         }
         if (self->target_combat_status < 10) {
-            if (self->unknown_1c8 == 0) {
-                if (self->unknown_278 != -1) {
-                    self->unknown_278 += 1;
+            if (self->stood_down == 0) {
+                if (self->ticks_since_engaged != -1) {
+                    self->ticks_since_engaged += 1;
                 }
             } else {
-                self->unknown_278 = -1;
+                self->ticks_since_engaged = -1;
             }
         } else {
-            self->unknown_278 = 0;
+            self->ticks_since_engaged = 0;
         }
 
         *(int16_t *)&self->unknown_4d[1] = (int16_t)reaction_ticks;
-        self->unknown_54 = result;
+        self->nearest_orphan_prop_index = result;
         return;
     }
 
@@ -300,10 +300,10 @@ restart:
     released = 0;
     had_conflict = 0;
 
-    if (target->unknown_68 > 0) {
-        target->unknown_68 -= 1;
-        if (target->unknown_68 == 0) {
-            target->unknown_66 = -1;
+    if (target->stimulus_timer > 0) {
+        target->stimulus_timer -= 1;
+        if (target->stimulus_timer == 0) {
+            target->stimulus_type = -1;
         }
     }
     if (target->seen_state != -1) {
@@ -312,49 +312,49 @@ restart:
             target->seen = 0;
         }
     }
-    if (target->unknown_b0 != -1) {
-        target->unknown_b0 += 1;
-        if (target->unknown_b0 > 0x3b) {
-            target->unknown_b8 = 0;
-            target->unknown_b4 = -1;
+    if (target->information_age != -1) {
+        target->information_age += 1;
+        if (target->information_age > 0x3b) {
+            target->has_current_information = 0;
+            target->information_source_actor = -1;
         }
     }
-    if (target->is_vault == 0) {
-        target->unknown_76 = 0;
+    if (target->dead == 0) {
+        target->dead_ticks = 0;
     } else {
-        target->unknown_76 += 1;
+        target->dead_ticks += 1;
     }
-    if (target->unknown_4c > 0) {
-        target->unknown_4c -= 1;
+    if (target->lost_timer > 0) {
+        target->lost_timer -= 1;
     }
-    if (target->unknown_6a > 0 && target->unknown_126 == 0) {
-        target->unknown_6a -= 1;
+    if (target->retain_timer > 0 && target->just_created == 0) {
+        target->retain_timer -= 1;
     }
-    if (target->unknown_9c > 0 && target->unknown_9c < 0x7fff) {
-        target->unknown_9c += 1;
+    if (target->engaged_ticks > 0 && target->engaged_ticks < 0x7fff) {
+        target->engaged_ticks += 1;
     }
-    if (target->unknown_a8 > 0) {
-        target->unknown_a8 -= 1;
-        if (target->unknown_a8 == 0) {
-            target->unknown_a6 -= 1;
-            if (target->unknown_a6 > 0) {
-                target->unknown_a8 = 0x2ee;
+    if (target->friends_killed_timer > 0) {
+        target->friends_killed_timer -= 1;
+        if (target->friends_killed_timer == 0) {
+            target->friends_killed -= 1;
+            if (target->friends_killed > 0) {
+                target->friends_killed_timer = 0x2ee;
             }
         }
     }
-    if (target->unknown_32 < 2) {
-        target->unknown_78 = 0;
-    } else if (target->unknown_78 < 0x7fff) {
-        target->unknown_78 += 1;
+    if (target->visual_perception < 2) {
+        target->sighted_ticks = 0;
+    } else if (target->sighted_ticks < 0x7fff) {
+        target->sighted_ticks += 1;
     }
 
     if (self->keep_unit_alive == 0) {
         *(int16_t *)&target->unknown_26[0] += 1;
         timer = *(int16_t *)&target->unknown_26[0];
-        if (target->is_unit == 0) {
+        if (target->enemy == 0) {
             timer = (int16_t)(timer >> 3);
         }
-        if (target->unknown_121 > 2) {
+        if (target->distance_class > 2) {
             timer = (int16_t)(timer >> 1);
         }
         if (danger_reacted == 0 && timer >= *(int16_t *)&self->unknown_4d[1]) {
@@ -368,54 +368,54 @@ restart:
             reaction_ticks = (uint16_t)timer;
         }
 
-        if (target->kind < 0 || target->kind > 1 || target->pair_index == (datum_index)k_datum_index_none) {
+        if (target->state < 0 || target->state > 1 || target->pair_index == (datum_index)k_datum_index_none) {
             if (self->swarm == 0) {
                 uint8_t important =
                     (uint8_t)((self->target_unit_index == target_prop_index) ||
-                              (self->unknown_54 == target_prop_index) ||
-                              (self->unknown_3ac == target_prop_index) ||
-                              (self->unknown_1d0 == target_prop_index) ||
+                              (self->nearest_orphan_prop_index == target_prop_index) ||
+                              (self->retreat_prop_index == target_prop_index) ||
+                              (self->nearby_friend_prop_index == target_prop_index) ||
                               (self->vocalization_line != 0 && *(int16_t *)&self->vocalization_unknown_54c == 1 &&
                                self->vocalization_unknown_550 == target_prop_index) ||
-                              (self->unknown_55c != 0 && self->unknown_56c == 1 &&
+                              (self->idle_major_active != 0 && self->idle_major_direction_type == 1 &&
                                *(uint32_t *)&self->unknown_56e[2] == target_prop_index) ||
-                              (self->unknown_55e[1] != 0 && *(int16_t *)&self->unknown_56e[14] == 1 &&
+                              (self->idle_look_state[1] != 0 && *(int16_t *)&self->unknown_56e[14] == 1 &&
                                *(uint32_t *)&self->unknown_56e[18] == target_prop_index));
-                target->unknown_63 = important;
-                if (target->kind > 3 && target->kind < 6) {
+                target->in_use = important;
+                if (target->state > 3 && target->state < 6) {
                     prop *pair = (prop *)((uint8_t *)prop_data->data + (target->pair_index & 0xffff) * sizeof(prop));
-                    pair->unknown_63 = important;
+                    pair->in_use = important;
                 }
             } else {
-                target->unknown_63 = 0;
+                target->in_use = 0;
             }
         }
 
-        if ((target->unknown_63 != 0 && (target->kind < 0 || target->kind > 1)) || refresh_needed) {
+        if ((target->in_use != 0 && (target->state < 0 || target->state > 1)) || refresh_needed) {
             actor_target_data_refresh(actor_index, target_prop_index, scratch1, 0, need_aim_refresh);
         }
         if (need_aim_refresh != 0) {
             actor_target_update_tracking_speed(actor_index, target_prop_index, scratch1);
         }
     } else {
-        target->unknown_63 = 0;
+        target->in_use = 0;
         *(int16_t *)&target->unknown_26[0] = 0;
     }
 
-    switch (target->kind) {
+    switch (target->state) {
     case 0:
-        if (target->unknown_30 > 0) {
+        if (target->perception_level > 0) {
             new_kind = 1;
-            *(float *)&target->unknown_2c = 0.0f; // UNSURE, see file header
+            *(float *)&target->acknowledge_progress = 0.0f; // UNSURE, see file header
             goto case1_dispatch;
         }
         break;
 
     case 1:
     case1_dispatch:
-        if (target->unknown_30 != 0) {
+        if (target->perception_level != 0) {
             int priority_class = actor_target_get_priority_class(actor_index, target_prop_index);
-            int danger = target->unknown_30 & 3;
+            int danger = target->perception_level & 3;
             float rate;
 
             switch (k_relationship_recheck_case[priority_class & 3][danger]) {
@@ -426,21 +426,21 @@ restart:
             default: rate = 1.0f; break; // case 4
             }
 
-            *(float *)&target->unknown_2c += rate;
-            if (*(float *)&target->unknown_2c >= 1.0f) {
+            *(float *)&target->acknowledge_progress += rate;
+            if (*(float *)&target->acknowledge_progress >= 1.0f) {
                 new_kind = 3;
             }
             goto apply_new_kind;
         }
-        *(float *)&target->unknown_2c = 0.0f; // UNSURE, see file header
+        *(float *)&target->acknowledge_progress = 0.0f; // UNSURE, see file header
         new_kind = 0;
         goto apply_new_kind;
 
     case 2:
-        if (target->unknown_30 < 1) {
-            if (target->unknown_4c != 0) {
-                float dx = target->last_known_position.x - target->unknown_80.x;
-                float dy = target->last_known_position.y - target->unknown_80.y;
+        if (target->perception_level < 1) {
+            if (target->lost_timer != 0) {
+                float dx = target->last_known_position.x - target->last_perceived_position.x;
+                float dy = target->last_known_position.y - target->last_perceived_position.y;
                 if (dx * dx + dy * dy <= 1.0f) {
                     break;
                 }
@@ -448,7 +448,7 @@ restart:
             owner = (target->owner_actor_index == (datum_index)k_datum_index_none)
                         ? (actor *)0
                         : (actor *)((uint8_t *)actor_data->data + (target->owner_actor_index & 0xffff) * sizeof(actor));
-            if (target->is_unit != 0 && target->is_vault == 0 &&
+            if (target->enemy != 0 && target->dead == 0 &&
                 (target->is_parented != 0 ||
                  ((owner == (actor *)0 || (owner->active != 0 && owner->keep_unit_alive == 0)) &&
                   target->distance * target->distance <= 1600.0f))) {
@@ -465,11 +465,11 @@ restart:
         goto apply_new_kind;
 
     case 3:
-        if (target->unknown_30 == 0) {
+        if (target->perception_level == 0) {
             owner = (target->owner_actor_index == (datum_index)k_datum_index_none)
                         ? (actor *)0
                         : (actor *)((uint8_t *)actor_data->data + (target->owner_actor_index & 0xffff) * sizeof(actor));
-            if (target->is_unit == 0 || target->is_vault != 0 ||
+            if (target->enemy == 0 || target->dead != 0 ||
                 (target->is_parented == 0 &&
                  ((owner != (actor *)0 && (owner->active == 0 || owner->keep_unit_alive != 0)) ||
                   target->distance * target->distance > 1600.0f))) {
@@ -484,30 +484,30 @@ restart:
     case 5: {
         int penalty;
 
-        if (target->kind == 4 &&
-            (target->unknown_32 > 1 ||
-             (self->unknown_60c == 1 && self->unknown_610 == target_prop_index &&
+        if (target->state == 4 &&
+            (target->visual_perception > 1 ||
+             (self->firing_target_type == 1 && self->firing_target_prop_index == target_prop_index &&
               game_time->game_time % 3 == 0))) {
-            char nearly_dead = self->unknown_162[0];
+            char nearly_dead = self->vehicle_gunner_bombards[0];
             int16_t threshold = (int16_t)((nearly_dead != 0) ? 300 : 45);
-            target->unknown_3c += 1;
-            if (target->unknown_3c >= threshold) {
+            target->inspection_ticks += 1;
+            if (target->inspection_ticks >= threshold) {
                 new_kind = 5;
             }
         }
 
-        if (target_prop_index == self->unknown_3ac ||
+        if (target_prop_index == self->retreat_prop_index ||
             (self->mode == 4 && *(uint32_t *)&self->mode_data.raw[0x1c] == target_prop_index)) { // UNSURE, see file header
             penalty = 0;
         } else if (target_prop_index == self->target_unit_index) {
             penalty = (target->noticed_c != 0) ? 1 : 0;
-        } else if (target_prop_index == self->unknown_54) {
-            penalty = (self->unknown_6e < 4) ? 1 : 6;
+        } else if (target_prop_index == self->nearest_orphan_prop_index) {
+            penalty = (self->combat_status < 4) ? 1 : 6;
         } else {
             penalty = 10;
         }
-        target->unknown_3a = (int16_t)(target->unknown_3a - penalty);
-        if (target->unknown_3a < 0) {
+        target->orphan_timer = (int16_t)(target->orphan_timer - penalty);
+        if (target->orphan_timer < 0) {
             cooldown_expired = 1;
         }
         if (new_kind != -1) {
@@ -518,30 +518,30 @@ restart:
     }
 
 tail:
-    if (target->combat_dirty != 0 && target->kind > 1 && target->kind < 4) {
-        if (target->unknown_129 != 0) {
+    if (target->combat_dirty != 0 && target->state > 1 && target->state < 4) {
+        if (target->just_died != 0) {
             actor_scan_backup_and_panic_reaction(target_prop_index, actor_index); // 0x41b570: EAX prop, stack actor
-            target->unknown_129 = 0;
+            target->just_died = 0;
         }
-        if (target->unknown_12a != 0 || (released != 0 && target->unknown_32 > 0)) {
+        if (target->just_sighted != 0 || (released != 0 && target->visual_perception > 0)) {
             // 0x41b59b: EAX prop, ECX actor, DL = released and no conflict
             actor_notify_target_engaged(target_prop_index, actor_index, (uint8_t)(released != 0 && had_conflict == 0));
-            target->unknown_12a = 0;
+            target->just_sighted = 0;
         }
-        if (self->unknown_377 == 0 && target->is_unit == 0 && target->is_parented != 0 &&
-            target->unknown_32 > 1 && target->unknown_122 < 3 && target->distance < 7.0f) {
-            self->unknown_377 = 1;
+        if (self->friendly_player_greeted == 0 && target->enemy == 0 && target->is_parented != 0 &&
+            target->visual_perception > 1 && target->aiming_at_actor_class < 3 && target->distance < 7.0f) {
+            self->friendly_player_greeted = 1;
             ai_communication_broadcast(0x19, self->unit_index, target->object_index, 2, (uint32_t)-1, (uint32_t)-1, 0);
             actor_notify_target_engaged(target_prop_index, actor_index, 0); // 0x41b620: DL 0
         }
-        if (self->unit_index != (datum_index)k_datum_index_none && target->is_vault == 0 &&
-            target->unknown_61 != 0 && target->unknown_62 != 0) {
+        if (self->unit_index != (datum_index)k_datum_index_none && target->dead == 0 &&
+            target->allegiance != 0 && target->unknown_62 != 0) {
             float dist_threshold;
-            payload.object_type = target->object_type;
+            payload.object_type = target->team;
             payload.team = self->team;
-            payload.is_enemy = (char)teams_are_enemies(target->object_type, self->team);
+            payload.is_enemy = (char)teams_are_enemies(target->team, self->team);
             if (payload.is_enemy == 0) {
-                dist_threshold = (target->unknown_122 < 3) ? 10.0f : 3.0f;
+                dist_threshold = (target->aiming_at_actor_class < 3) ? 10.0f : 3.0f;
             } else {
                 dist_threshold = 15.0f;
             }
@@ -553,29 +553,29 @@ tail:
         }
 
         if (self->awareness_level < 3) {
-            if (target->is_vault != 0) {
-                if (target->is_unit != 0) goto clear_search_and_continue;
+            if (target->dead != 0) {
+                if (target->enemy != 0) goto clear_search_and_continue;
                 actor_start_search_timer(actor_index, target_prop_index); // 0x41b70b: EBX actor, EDI prop
                 goto after_posture;
             }
-            if (target->is_unit != 0) {
+            if (target->enemy != 0) {
             clear_search_and_continue:
                 actor_queue_velocity_search_from_prop(target_prop_index, actor_index); // 0x41b721: EAX prop, stack actor
                 goto after_posture;
             }
         } else {
         after_posture:
-            if (target->is_unit != 0) goto restart;
+            if (target->enemy != 0) goto restart;
         }
 
-        if (target->is_vault == 0 && target->is_parented == 0) {
+        if (target->dead == 0 && target->is_parented == 0) {
             if (self->target_unit_index == (datum_index)k_datum_index_none ||
-                (self->unknown_278 != -1 && self->unknown_278 < 0xb4)) {
+                (self->ticks_since_engaged != -1 && self->ticks_since_engaged < 0xb4)) {
                 if (self->encounter_index == (datum_index)k_datum_index_none) goto restart;
                 {
                     encounter *enc = (encounter *)((uint8_t *)encounter_data->data + (self->encounter_index & 0xffff) * sizeof(encounter));
-                    if (enc->unknown_50 != (datum_index)k_datum_index_none &&
-                        (enc->unknown_50 < 0xb4 || enc->unknown_44 == 0)) {
+                    if (enc->ticks_since_engaged != (datum_index)k_datum_index_none &&
+                        (enc->ticks_since_engaged < 0xb4 || enc->has_live_target == 0)) {
                         goto restart;
                     }
                 }
@@ -589,7 +589,7 @@ tail:
                     char busy = (char)actor_is_burst_pending(actor_index);
                     if (busy != 0) {
                         char should_end = (char)actor_check_burst_length_exceeded(actor_index);
-                        if (should_end == 0 && target->unknown_12b != 0 && target->unknown_32 > 1) {
+                        if (should_end == 0 && target->owner_not_in_combat != 0 && target->visual_perception > 1) {
                             ai_communication_broadcast(0xf, self->unit_index, target->object_index, 2, (uint32_t)-1, 2, 0);
                         }
                     }
@@ -598,7 +598,7 @@ tail:
         }
         goto restart;
     }
-    if (target->kind > 3 && target->kind < 6 && target->distance < best_prop_distance) {
+    if (target->state > 3 && target->state < 6 && target->distance < best_prop_distance) {
         best_prop = target_prop_index;
         best_prop_distance = target->distance;
     }
@@ -609,18 +609,18 @@ apply_new_kind:
     case 0:
     case 4:
     case 5:
-        target->unknown_b8 = 0;
-        target->unknown_b4 = -1;
+        target->has_current_information = 0;
+        target->information_source_actor = -1;
         break;
     case 2:
-        target->unknown_4c = (uint16_t)((target->unknown_32 < 2) ? 10 : 60);
+        target->lost_timer = (uint16_t)((target->visual_perception < 2) ? 10 : 60);
         break;
     case 3:
         released = (uint8_t)actor_target_data_release(target_prop_index, actor_index, &had_conflict);
         cursor = target->next_in_actor; // re-read: the release call may have changed the list
         break;
     }
-    target->kind = (int16_t)new_kind;
+    target->state = (int16_t)new_kind;
     target->engaged = actor_target_update_active_flag(actor_index, target_prop_index); // 0x41b4c9: EAX actor, EDI prop
     target->desirability = actor_rate_potential_target(actor_index, target_prop_index);
 

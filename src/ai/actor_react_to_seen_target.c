@@ -1,7 +1,7 @@
 // actor_react_to_seen_target  (Ghidra: actor_react_to_seen_target, renamed)
 // address 0x422ec0, size 858 bytes
 // name confidence: 0.35   rewrite confidence: 0.4
-// evidence: types/ai.h actor.unknown_6e, actor.awareness_level/vocalization_*/mode/
+// evidence: types/ai.h actor.combat_status, actor.awareness_level/vocalization_*/mode/
 //   mode_data/vocalization_unknown_3e8; prop.is_unit (0x60)/object_index (0x18)/unknown_e0;
 //   types/objects.h object_header; types/units.h unit_data.controlling_player (object+0x218)
 //   and unit_data.actor_index (object+0x1f4). Calls actor_queue_search_position (0x421af0),
@@ -65,7 +65,7 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
     Actor *actor_tag;
     prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
 
-    if (target->is_unit == 0) {
+    if (target->enemy == 0) {
         object *tracked = ((object_header *)object_data->data)[target->object_index & 0xffff].data;
         unit_data *unit = (unit_data *)((uint8_t *)tracked + k_unit_data_offset);
 
@@ -85,7 +85,7 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
             }
         } else if (unit->actor_index != (datum_index)k_datum_index_none) {
             actor *controller = &((actor *)actor_data->data)[unit->actor_index & 0xffff];
-            if (controller->unknown_6e >= 4) {
+            if (controller->combat_status >= 4) {
                 // UNSURE: which actor's target_unit_index this reads (controller vs the
                 // outer actor_index) was not independently re-verified with objdump for
                 // this call site; controller is used because it is the actor the preceding
@@ -94,7 +94,7 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
             }
         }
     } else {
-        actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&target->unknown_e0,
+        actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&target->direction,
                                     0xffffffff, 0, 90, target_prop_index, 150, 0);
     }
 
@@ -106,23 +106,23 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
 
         prop *validated = (prop *)datum_get(target_prop_index, prop_data);
         if (validated != 0) {
-            if ((validated->is_unit == 0 && validated->is_vault == 0) ||
-                (validated->is_vault != 0 && self->awareness_level > 2)) {
+            if ((validated->enemy == 0 && validated->dead == 0) ||
+                (validated->dead != 0 && self->awareness_level > 2)) {
                 if (recent > 6) {
                     return;
                 }
-                if (validated->is_parented == 0 && validated->unknown_5c != -1 &&
-                    (int32_t)game_time->game_time < validated->unknown_5c + 600) {
+                if (validated->is_parented == 0 && validated->last_attention_time != -1 &&
+                    (int32_t)game_time->game_time < validated->last_attention_time + 600) {
                     return;
                 }
-                validated->unknown_5c = (int32_t)game_time->game_time;
-                validated->unknown_58 = (validated->unknown_58 <= validated->unknown_54)
-                                             ? validated->unknown_54
-                                             : validated->unknown_58;
+                validated->last_attention_time = (int32_t)game_time->game_time;
+                validated->interest_satisfied = (validated->interest_satisfied <= validated->interest)
+                                             ? validated->interest
+                                             : validated->interest_satisfied;
             }
 
             {
-                float wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 1.8f : 0.9f;
+                float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
 
                 if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
                     float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
@@ -136,7 +136,7 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
                 }
 
                 self->vocalization_state = (int16_t)ticks;
-                self->vocalization_variant = actor_dialogue_variant_table_f[self->unknown_6e >= 4];
+                self->vocalization_variant = actor_dialogue_variant_table_f[self->combat_status >= 4];
                 self->vocalization_line = 7;
                 self->vocalization_unknown_54c = 1; // kind = 1 (explicit target)
                 self->vocalization_unknown_550 = target_prop_index;

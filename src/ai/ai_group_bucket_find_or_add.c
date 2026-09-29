@@ -47,13 +47,13 @@ int16_t ai_group_bucket_find_or_add(ai_group_bucket_entry *buckets, int32_t key,
     if (live_count < capacity) {
         entry = &buckets[live_count];
         *count = live_count + 1;
-        entry->unknown_04 = -1;
+        entry->prop_index = -1;
         entry->key = -1;
-        entry->unknown_18 = -1;
-        entry->unknown_00 = 0;
-        entry->unknown_0c = 0;
-        entry->unknown_10 = 0;
-        entry->unknown_14 = 3.4028235e+38f; // 0x7f7fffff
+        entry->nearest_friend_actor_index = -1;
+        entry->priority = 0;
+        entry->prop = 0;
+        entry->retreating_friend_count = 0;
+        entry->nearest_friend_distance_squared = 3.4028235e+38f; // 0x7f7fffff
         return live_count;
     }
 

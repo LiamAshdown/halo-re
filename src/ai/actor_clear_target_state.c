@@ -31,7 +31,7 @@ void actor_clear_target_state(datum_index actor_index)
 
     *(int16_t *)((uint8_t *)self + 0x148) = -1; // UNSURE offset (within unknown_138[0x20])
     *(uint32_t *)((uint8_t *)self + 0x144) = 0xffffffff; // UNSURE offset
-    self->unknown_164 = 0xffffffff;
+    self->pathfinding_surface_index = 0xffffffff;
     self->search_unknown_324 = 0xffffffff;
 
     if (self->queued_movement.type == 2) {
@@ -41,7 +41,7 @@ void actor_clear_target_state(datum_index actor_index)
         self->active_movement.parameter = 0xffffffff;
     }
 
-    self->unknown_494 = 0xffffffff;
+    self->destination_surface_index = 0xffffffff;
 
     if (self->swarm != 0 && self->swarm_index != (datum_index)k_datum_index_none) {
         swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & 0xffff];

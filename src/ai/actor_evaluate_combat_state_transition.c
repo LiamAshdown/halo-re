@@ -86,7 +86,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
               (*(datum_index *)(p + 0x110) != k_datum_index_none || p[0x14])) &&
             !(((actor *)a)->mode == 0xa && (*(int16_t *)(a + 0xa0) == 2 || *(int16_t *)(a + 0xa0) == 3)) &&
             !changed && !a[0x6] && ((actor *)a)->active_unit_index == k_datum_index_none &&
-            ((struct actor *)a)->unknown_5f2 != 2) {
+            ((struct actor *)a)->firing_state != 2) {
             int32_t now = game_time->game_time;                                      // [esp+0x24]
             uint8_t wide = a[0x378];                                                 // bl
             float base_delay;
@@ -113,7 +113,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
                     near_enough = distance <= 0.8f + extra;
                 }
                 if (near_enough &&
-                    (*(int32_t *)&((struct actor *)a)->unknown_380 == -1 || (float)now > delay * 30.0f + (float)*(int32_t *)&((struct actor *)a)->unknown_380)) {
+                    (*(int32_t *)&((struct actor *)a)->last_melee_time == -1 || (float)now > delay * 30.0f + (float)*(int32_t *)&((struct actor *)a)->last_melee_time)) {
                     actor_has_unshielded_threat_weapon(actor_index);
                     *(int32_t *)&((actor *)a)->search_wait_time = now;
                     if (actor_consider_combat_mode(actor_index, 2, &consideration)) {
@@ -126,7 +126,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
 
         // 0x40c946: a vehicle gunner beyond the definition's +0x160 range with an unengaged prop
         if (((actor *)a)->mode != 0xa && !a[0x1cb]) {
-            int16_t seat_kind = ((struct actor *)a)->unknown_15e;
+            int16_t seat_kind = ((struct actor *)a)->vehicle_driving_type;
 
             if (changed) {
                 return changed;
@@ -134,11 +134,11 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
             if (seat_kind > 0) {
                 uint8_t ready = 1;
 
-                if (*(int32_t *)&((struct actor *)a)->unknown_388 != -1) {
+                if (*(int32_t *)&((struct actor *)a)->last_vehicle_charge_time != -1) {
                     uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(((actor *)a)->active_unit_index));
 
                     ready = (float)game_time->game_time >
-                        *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)&((struct actor *)a)->unknown_388;
+                        *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)&((struct actor *)a)->last_vehicle_charge_time;
                 }
                 if (ready && seat_kind == 4 && distance > *(float *)(definition + 0x160) &&
                     *(int16_t *)(p + 0x38) == 0 &&
@@ -174,7 +174,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
             goto guard;
         }
         if (state == 4 || state == 5) {
-            if (a[0xc5] || ((struct actor *)a)->unknown_15e <= 1) {
+            if (a[0xc5] || ((struct actor *)a)->vehicle_driving_type <= 1) {
                 hold = 1;
                 goto decide;
             }

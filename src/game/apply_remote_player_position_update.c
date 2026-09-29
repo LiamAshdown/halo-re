@@ -60,8 +60,8 @@ void apply_remote_player_position_update(player *plr, object *unit_obj)
         if (wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
             wait_tick_counter = 0;
         }
-        plr->unknown_1ec = plr->unknown_1ec + 1;
-        *(float *)&plr->unknown_1f0 = dist + *(float *)&plr->unknown_1f0;
+        plr->position_updates_applied_count = plr->position_updates_applied_count + 1;
+        *(float *)&plr->position_update_error_total = dist + *(float *)&plr->position_update_error_total;
 
         if (unit_obj->parent_object == (datum_index)-1 && unit_obj->network_role == 1) {
             unit_snap_position_if_far(&queued, unit_obj);

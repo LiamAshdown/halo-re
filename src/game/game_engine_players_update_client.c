@@ -131,7 +131,7 @@ void game_engine_players_update_client(void)
                         player_respawn(player_handle);
                     } else if (local_player_globals->no_player_has_a_unit == 0) {
                         global_00719750 = 1;
-                        if (local_player_globals->unknown_16 != 0) {
+                        if (local_player_globals->teleported != 0) {
                             global_00719772 = 0x5b;
                         }
                     }

@@ -39,11 +39,11 @@ void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag)
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
-    if ((char)new_flag == self->unknown_378) {
+    if ((char)new_flag == self->berserking) {
         return;
     }
-    self->unknown_378 = new_flag;
-    self->unknown_379 = 0;
+    self->berserking = new_flag;
+    self->berserk_announced = 0;
 
     if (self->swarm == 0) {
         unit_obj = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
@@ -62,7 +62,7 @@ void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag)
     }
 
     if (new_flag != 0) {
-        self->unknown_375 = 1;
+        self->always_charge = 1;
     }
 }
 

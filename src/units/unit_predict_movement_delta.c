@@ -111,10 +111,10 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
                     copy_unit->throttle.k = global_origin3d_pointer->z;
                 }
 
-                copy_biped->unknown_501 = (copy_biped->flags & 1) ?
-                    ((copy_biped->unknown_501 < 0x7f) ? copy_biped->unknown_501 + 1 : copy_biped->unknown_501) : 0;
-                copy_biped->unknown_502 = (copy_biped->flags & 2) ?
-                    ((copy_biped->unknown_502 < 0x7f) ? copy_biped->unknown_502 + 1 : copy_biped->unknown_502) : 0;
+                copy_biped->airborne_ticks = (copy_biped->flags & 1) ?
+                    ((copy_biped->airborne_ticks < 0x7f) ? copy_biped->airborne_ticks + 1 : copy_biped->airborne_ticks) : 0;
+                copy_biped->slipping_ticks = (copy_biped->flags & 2) ?
+                    ((copy_biped->slipping_ticks < 0x7f) ? copy_biped->slipping_ticks + 1 : copy_biped->slipping_ticks) : 0;
 
                 output_flags[1] = (copy_unit->control_flags & 1) != 0; // UNSURE: local_56f
                 output_flags[0] = 0;

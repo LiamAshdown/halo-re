@@ -42,7 +42,7 @@ uint8_t actor_consider_grenade_throw(datum_index actor_index)
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     variant = (ActorVariant *)tag_instances[self->actor_variant_tag & 0xffff].data;
 
-    if (self->unknown_6a0 != 0) {
+    if (self->grenade_throw_pending != 0) {
         return 1;
     }
     if (ai_globals_ptr->grenades_enabled == 0 || variant->grenade_stimulus == -1 ||
@@ -52,8 +52,8 @@ uint8_t actor_consider_grenade_throw(datum_index actor_index)
 
     now = game_time->game_time; // +0x0c
 
-    if (self->unknown_6a4 != (uint32_t)-1 &&
-        (variant->grenade_check_time * 30.0f + (float)(int32_t)self->unknown_6a4) > (float)now) { // 0x40dccc: +0x1a4
+    if (self->last_grenade_check_time != (uint32_t)-1 &&
+        (variant->grenade_check_time * 30.0f + (float)(int32_t)self->last_grenade_check_time) > (float)now) { // 0x40dccc: +0x1a4
         return 0;
     }
 
@@ -63,10 +63,10 @@ uint8_t actor_consider_grenade_throw(datum_index actor_index)
         float scaled = variant->grenade_chance * weapon_get_zoom_fov_resolved(0x17, ((struct actor *)self)->team);
         float roll;
 
-        self->unknown_6a4 = now;
+        self->last_grenade_check_time = now;
         roll = random_real();
         if (roll < scaled && actor_can_throw_grenade_at_target(actor_index) != 0) {
-            self->unknown_6a0 = 1;
+            self->grenade_throw_pending = 1;
             actor_check_grenade_facing_and_commit(actor_index, 1);
             return 1;
         }

@@ -30,7 +30,7 @@ uint32_t network_machine_clear_flag_by_id(network_server_globals *server, int32_
 
     for (i = 0; i < 16; i = i + 1) {
         if (server->machines[i].machine_id == machine_id) {
-            server->machines[i].unknown_50 = 0;
+            server->machines[i].player_joined = 0;
             return ((uint32_t)&server->machines[i]) & 0xffffff00;
         }
     }

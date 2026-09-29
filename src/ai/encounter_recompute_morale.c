@@ -78,12 +78,12 @@ void encounter_recompute_morale(datum_index encounter_index)
     any_flag_8c = 0;
     any_flag_8d = 0;
 
-    enc->unknown_44 = 0;
-    enc->unknown_45 = 0;
-    enc->unknown_30 = 0;
-    enc->unknown_2e = 0;
-    enc->unknown_2c = 0;
-    enc->unknown_2a = 0;
+    enc->has_live_target = 0;
+    enc->engaged = 0;
+    enc->engaged_count = 0;
+    enc->combat_count = 0;
+    enc->swarm_count = 0;
+    enc->living_count = 0;
     enc->average_vitality = 0.0f;
 
     i = 0;
@@ -91,8 +91,8 @@ void encounter_recompute_morale(datum_index encounter_index)
         do {
             squad_state = &encounter_squad_states[(int16_t)(enc->first_squad + i)];
             i = i + 1;
-            squad_state->unknown_1a = 0;
-            squad_state->unknown_18 = 0;
+            squad_state->swarm_count = 0;
+            squad_state->living_count = 0;
             squad_state->average_vitality = 0.0f;
         } while (i < enc->squad_count);
     }
@@ -101,8 +101,8 @@ void encounter_recompute_morale(datum_index encounter_index)
         do {
             platoon_state = &encounter_platoon_states[(int16_t)(enc->first_platoon + i)];
             i = i + 1;
-            platoon_state->unknown_08 = 0;
-            platoon_state->unknown_06 = 0;
+            platoon_state->swarm_count = 0;
+            platoon_state->living_count = 0;
             platoon_state->average_vitality = 0.0f;
         } while (i < enc->platoon_count);
     }
@@ -110,7 +110,7 @@ void encounter_recompute_morale(datum_index encounter_index)
     actor_index = (datum_index)k_datum_index_none;
     if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_globals_ptr->unknown_08;
+            actor_index = ai_globals_ptr->first_encounterless_actor;
         } else {
             actor_index = enc->first_actor;
         }
@@ -124,7 +124,7 @@ void encounter_recompute_morale(datum_index encounter_index)
 
         if (a->unit_index == (datum_index)k_datum_index_none) {
             weight = a->cluster_count;
-            sample = (float)(int32_t)weight / (float)(int32_t)a->unknown_20;
+            sample = (float)(int32_t)weight / (float)(int32_t)a->total_cluster_count;
         } else {
             obj = ((object_header *)object_data->data)[a->unit_index & 0xffff].data;
             sample = ((object *)obj)->body_vitality;
@@ -134,60 +134,60 @@ void encounter_recompute_morale(datum_index encounter_index)
         if (a->platoon_index != -1) {
             platoon_state =
                 &encounter_platoon_states[(int16_t)(enc->first_platoon + a->platoon_index)];
-            platoon_state->unknown_06 = platoon_state->unknown_06 + weight;
+            platoon_state->living_count = platoon_state->living_count + weight;
             platoon_state->average_vitality = sample + platoon_state->average_vitality;
-            platoon_state->unknown_08 =
-                platoon_state->unknown_08 + (int16_t)((uint16_t)a->swarm * weight);
+            platoon_state->swarm_count =
+                platoon_state->swarm_count + (int16_t)((uint16_t)a->swarm * weight);
         }
 
-        squad_state->unknown_18 = squad_state->unknown_18 + weight;
+        squad_state->living_count = squad_state->living_count + weight;
         squad_state->average_vitality = sample + squad_state->average_vitality;
-        squad_state->unknown_1a = squad_state->unknown_1a + (int16_t)((uint16_t)a->swarm * weight);
+        squad_state->swarm_count = squad_state->swarm_count + (int16_t)((uint16_t)a->swarm * weight);
 
-        enc->unknown_2a = enc->unknown_2a + weight;
-        enc->unknown_2c = enc->unknown_2c + (int16_t)((uint16_t)a->swarm * weight);
+        enc->living_count = enc->living_count + weight;
+        enc->swarm_count = enc->swarm_count + (int16_t)((uint16_t)a->swarm * weight);
 
-        counts = (uint8_t)(a->awareness_level == 3 && a->unknown_72 < a->unknown_6e);
-        enc->unknown_2e = enc->unknown_2e + (int16_t)((uint16_t)counts * weight);
+        counts = (uint8_t)(a->awareness_level == 3 && a->minimum_combat_status < a->combat_status);
+        enc->combat_count = enc->combat_count + (int16_t)((uint16_t)counts * weight);
 
-        engaged = (uint8_t)(6 < a->unknown_6e);
+        engaged = (uint8_t)(6 < a->combat_status);
         if (engaged != 0 && a->mode == 4 && 0 < *(int16_t *)(a->mode_data.raw + 0x0c)) { // actor + 0xa8 lies inside actor.mode_data.raw
             engaged = 0;
         }
         enc->average_vitality = sample + enc->average_vitality;
-        enc->unknown_30 = enc->unknown_30 + (int16_t)((uint16_t)engaged * weight);
+        enc->engaged_count = enc->engaged_count + (int16_t)((uint16_t)engaged * weight);
 
         if (a->target_unit_index != (datum_index)k_datum_index_none) {
             p = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
-            enc->unknown_43 = 1;
-            if (a->team < 0 || 9 < a->team || p->object_type < 0 || 9 < p->object_type ||
-                (pair = (int16_t)((int32_t)p->object_type + a->team * 10),
+            enc->ever_had_target = 1;
+            if (a->team < 0 || 9 < a->team || p->team < 0 || 9 < p->team ||
+                (pair = (int16_t)((int32_t)p->team + a->team * 10),
                  (team_pair_data->secondary_bits[pair >> 5] & (1 << (pair & 0x1f))) == 0)) {
                 any_unfriendly_target = 1;
             }
-            if (a->unknown_8c != 0) {
+            if (a->has_engaged != 0) {
                 any_flag_8c = 1;
             }
-            if (a->unknown_8d != 0) {
+            if (a->witnessed_death != 0) {
                 any_flag_8d = 1;
             }
-            if (a->unknown_6e < 7) {
-                if (p->kind < 2 || 3 < p->kind) {
+            if (a->combat_status < 7) {
+                if (p->state < 2 || 3 < p->state) {
                     obj = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
                     counts = *((uint8_t *)obj + 0x106) & 4;
                 } else {
-                    counts = p->is_vault;
+                    counts = p->dead;
                 }
                 if (counts != 0) {
                     goto tally_vocalization;
                 }
             } else {
-                enc->unknown_45 = 1;
+                enc->engaged = 1;
             }
-            enc->unknown_44 = 1;
+            enc->has_live_target = 1;
         }
 tally_vocalization:
-        if (0 < a->unknown_1e4) {
+        if (0 < a->post_combat_action) {
             any_vocalizing = 1;
         }
     }
@@ -196,37 +196,37 @@ tally_vocalization:
         enc->unknown_46 = 0;
     }
 
-    retreat_timer = enc->unknown_50;
-    if (enc->unknown_45 == 0 &&
+    retreat_timer = enc->ticks_since_engaged;
+    if (enc->engaged == 0 &&
         (retreat_timer == -1 || 0x3b < retreat_timer) &&
-        ((enc->unknown_44 == 0 && ((int32_t)enc->unknown_54 == -1 || 0x3b < (int32_t)enc->unknown_54)) ||
+        ((enc->has_live_target == 0 && ((int32_t)enc->ticks_since_live_target == -1 || 0x3b < (int32_t)enc->ticks_since_live_target)) ||
          retreat_timer == -1 || 0x1c1 < retreat_timer)) {
-        if (enc->unknown_42 == 0) {
-            if (enc->unknown_47 == 0) {
+        if (enc->stood_down == 0) {
+            if (enc->post_combat == 0) {
                 if (any_flag_8c != 0 && any_flag_8d != 0) {
                     encounter_choose_vocalizations(encounter_index);
                     goto normalize;
                 }
             } else {
-                enc->unknown_48 = (uint8_t)(any_vocalizing == 0);
-                if (enc->unknown_4a != 0) {
+                enc->post_combat_quiet = (uint8_t)(any_vocalizing == 0);
+                if (enc->post_combat_timer != 0) {
                     goto normalize;
                 }
             }
             encounter_release_stale_props(encounter_index);
         } else {
-            enc->unknown_47 = 0;
-            enc->unknown_1a = enc->unknown_2a;
-            enc->unknown_58 = game_time->game_time;
-            enc->unknown_4c = 0;
-            if (enc->unknown_43 == 0) {
-                enc->unknown_50 = (datum_index)k_datum_index_none;
-                enc->unknown_54 = (datum_index)k_datum_index_none;
+            enc->post_combat = 0;
+            enc->pre_combat_living_count = enc->living_count;
+            enc->last_idle_time = game_time->game_time;
+            enc->enemy_death_count = 0;
+            if (enc->ever_had_target == 0) {
+                enc->ticks_since_engaged = (datum_index)k_datum_index_none;
+                enc->ticks_since_live_target = (datum_index)k_datum_index_none;
             }
         }
     } else {
-        enc->unknown_42 = 0;
-        enc->unknown_47 = 0;
+        enc->stood_down = 0;
+        enc->post_combat = 0;
     }
 
 normalize:

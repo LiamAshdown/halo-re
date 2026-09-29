@@ -48,7 +48,7 @@ void actor_delete(datum_index actor_index, uint32_t flag)
     data_iterator iterator;
     prop *p;
 
-    if (self->unknown_09 == 0) {
+    if (self->encounterless == 0) {
         encounter_remove_actor(actor_index, (uint8_t)flag);
     } else {
         ai_actor_unlink_from_unassigned_list(actor_index);

@@ -58,7 +58,7 @@ void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_ind
     kind = -1;
     if (prop_index != (datum_index)k_datum_index_none) {
         p = &((prop *)prop_data->data)[prop_index & 0xffff];
-        kind = p->kind;
+        kind = p->state;
     }
 
     if (prop_index == (datum_index)k_datum_index_none || kind < 2 || 3 < kind) {

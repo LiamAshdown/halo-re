@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN from the disassembly (see note above the function))
 // evidence: phase-4 summary "Evaluates the 'custom' charge-trigger condition for melee/charge
 // behavior, combining distance thresholds, aggression flags, and a randomized roll weighted
-// by nearby allies and enemies." types/ai.h actor.awareness_level(0x6a)/unknown_6e/
+// by nearby allies and enemies." types/ai.h actor.awareness_level(0x6a)/combat_status/
 // unit_index(0x18)/target_unit_index(0x270)/first_prop(0x50); prop.kind(0x24)/is_unit(0x60)/
 // is_vault(0x127)/owner_actor_index(0x1c)/distance(0x11c). Calls actor_get_actor_definition
 // (0x40fa70), actor_has_unshielded_threat_weapon (0x428370, already rewritten in this
@@ -77,7 +77,7 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
     if (((actor *)self)->awareness_level < 3) {
         goto return_true;
     }
-    if (((struct actor *)self)->unknown_6e < 5) {
+    if (((struct actor *)self)->combat_status < 5) {
         goto return_false;
     }
     unit = (const uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;

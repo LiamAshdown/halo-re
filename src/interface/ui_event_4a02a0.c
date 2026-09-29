@@ -48,7 +48,7 @@ uint8_t ui_event_4a02a0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     value = ((struct game_variant *)variant)->lives_per_round;
     first_list_child(group)->selection_index = (int16_t)(value == 1 ? 1 : value == 3 ? 2 : value == 5 ? 3 : 0);
     group = group->next_sibling;
-    value = (int32_t)((double)((struct game_variant *)variant)->speed_scale * -10.0); // fmul by -10.0f (0x00672da4), _ftol
+    value = (int32_t)((double)((struct game_variant *)variant)->health * -10.0); // fmul by -10.0f (0x00672da4), _ftol
     first_list_child(group)->selection_index = (int16_t)(value == -10 ? 1 : value == -15 ? 2 : value == -20 ? 3 :
         value == -30 ? 4 : value == -40 ? 5 : 0);
     group = group->next_sibling;
@@ -60,7 +60,7 @@ uint8_t ui_event_4a02a0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     value = ((struct game_variant *)variant)->respawn_time_growth;
     first_list_child(group)->selection_index = (int16_t)(value == 0x96 ? 1 : value == 0x12c ? 2 : value == 0x1c2 ? 3 : 0);
     group = group->next_sibling;
-    first_list_child(group)->selection_index = (int16_t)(variant[0x40] == 0);
+    first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->odd_man_out == 0);
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)(((flags >> 4) & 1) == 0);
     group = group->next_sibling;

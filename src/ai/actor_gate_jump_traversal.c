@@ -31,35 +31,35 @@ uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char 
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
     uint8_t result = 0;
 
-    if (threshold > a->unknown_308 || a->order_committed != 0) {
-        a->unknown_308 = 0;
+    if (threshold > a->pending_panic_type || a->order_committed != 0) {
+        a->pending_panic_type = 0;
         return result;
     }
 
     if (a->mode == 4) {
         int16_t climb = *(int16_t *)(a->mode_data.raw + (0xa8 - 0x9c));
         if (climb > 0) {
-            if (climb <= a->unknown_308) {
-                climb = a->unknown_308;
+            if (climb <= a->pending_panic_type) {
+                climb = a->pending_panic_type;
             }
             *(int16_t *)(a->mode_data.raw + (0xa8 - 0x9c)) = climb;
-            a->unknown_308 = 0;
+            a->pending_panic_type = 0;
             return 0;
         }
     }
 
-    if (a->unknown_398 == -1 || game_time->game_time > a->unknown_398 + 7) {
-        if (allow_broadcast != 0 && a->unknown_308 < broadcast_threshold) {
+    if (a->last_flee_abort_time == -1 || game_time->game_time > a->last_flee_abort_time + 7) {
+        if (allow_broadcast != 0 && a->pending_panic_type < broadcast_threshold) {
             ai_communication_broadcast(0x22, a->unit_index, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0);
-            a->unknown_308 = 0;
+            a->pending_panic_type = 0;
             return 0;
         }
         // 0x40a7cb: CX = +0x308, DL = (+0x308 >= broadcast_threshold) from 0x40a799, ESI = the actor
-        result = actor_check_pain_reaction(a->unknown_30c, (uint8_t)(a->unknown_308 >= broadcast_threshold),
-                                           (uint16_t)a->unknown_308, actor_index);
+        result = actor_check_pain_reaction(a->pending_panic_prop_index, (uint8_t)(a->pending_panic_type >= broadcast_threshold),
+                                           (uint16_t)a->pending_panic_type, actor_index);
     }
 
-    a->unknown_308 = 0;
+    a->pending_panic_type = 0;
     return result;
 }
 

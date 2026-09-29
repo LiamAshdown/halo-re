@@ -645,17 +645,24 @@ typedef struct particle_creation_data {
     uint8_t unknown_0b;             // 0x0b
     uint8_t first_person;           // 0x0c selects the first person marker table and sets
                                     //      _particle_first_person_bit
-    uint8_t unknown_0d;             // 0x0d becomes _particle_unknown_10_bit
-    uint8_t unknown_0e;             // 0x0e becomes _particle_unknown_20_bit
+    uint8_t third_person_only;      // 0x0d effect_spawn_particles sets (EffectParticle.create == 2); particle_new ->
+                                    //    particle flag 0x10, which render_particles skips for the owning viewer
+    uint8_t first_person_only;      // 0x0e effect_spawn_particles sets (create == 1); particle_new -> flag 0x20,
+                                    //    render_particles skips unless owned by the viewer
     uint8_t unknown_0f;             // 0x0f
     real_point3d position;          // 0x10
-    real_point3d unknown_1c;        // 0x1c becomes particle.unknown_3c; UNSURE of its meaning
+    real_point3d direction;         // 0x1c effect_spawn_particles: rotated raw_direction from
+                                    //    effect_random_velocity_vector (marker space or world);
+                                    //    breakable_surface_shatter writes a direction; particle_new copies it
     real_vector3d velocity;         // 0x28
     real_vector3d gravity;          // 0x34 folded into velocity, scaled by the current radius
                                     //      squared and the point_physics density at +0x04, only
                                     //      for a world space particle
-    float unknown_40;               // 0x40 becomes particle.unknown_54
-    float unknown_44;               // 0x44 becomes particle.unknown_58
+    float rotation;                 // 0x40 effect_spawn_particles: random 0..2pi when EffectParticle flags bit 1
+                                    //    (random initial angle) else 0; shatter random 2pi; particle_new copies to
+                                    //    particle+0x54
+    float angular_velocity;         // 0x44 effect_spawn_particles: effect_property_random_value(3, EffectParticle
+                                    //    +0x90/+0x94 angular velocity range); particle_new copies to particle+0x58
     float scale;                    // 0x48 becomes particle.scale
     ColorARGB color;                // 0x4c becomes particle.color
 } particle_creation_data;           // size 0x5c, at least

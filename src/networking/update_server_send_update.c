@@ -102,7 +102,7 @@ char update_server_send_update(uint32_t *tick_count, char frame_time_overflow)
     }
     if (network_client->state == 3) {
         now_ms = time_query_performance_counter_ms();
-        reliable_seq = network_client->unknown_ecc & 0x7fffffff;
+        reliable_seq = network_client->last_update_id & 0x7fffffff;
         player_id = local_player_globals->maximum_count; // UNSURE: +0xc read as a word, see header
         memcpy(control, update_client_staged, sizeof(control));
         history_byte = 0;

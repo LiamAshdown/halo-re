@@ -108,9 +108,9 @@ void player_update_client_remote_player_vehicle_position_delta_from_network(int3
         vector3d_cross_product(&decoded.up, &decoded.forward, &temp);
         vector3d_normalize_with_length(&decoded.forward);
         vector3d_normalize_with_length(&decoded.up);
-        memcpy(&candidate->unknown_190, &decoded, sizeof(decoded));
+        memcpy(&candidate->vehicle_baseline, &decoded, sizeof(decoded));
     } else {
-        memcpy(&decoded, &candidate->unknown_190, sizeof(decoded));
+        memcpy(&decoded, &candidate->vehicle_baseline, sizeof(decoded));
         if (message_delta_decode_compound_field_forced(decode_context, &decoded, 0) != 1) {
             return;
         }

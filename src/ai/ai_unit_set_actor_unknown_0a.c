@@ -27,8 +27,8 @@ void ai_unit_set_actor_unknown_0a(datum_index unit_index, uint8_t value)
 
     if (actor_index != (datum_index)k_datum_index_none) {
         actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-        if (a->unknown_09 != 0) {
-            a->unknown_0a = value;
+        if (a->encounterless != 0) {
+            a->force_active = value;
         }
     }
 }

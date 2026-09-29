@@ -27,6 +27,6 @@ static uint16_t *multiplayer_text(int16_t index)
 
 wchar_t *game_engine_oddball_build_score_header_text(wchar_t *buffer)
 {
-    wcscpy(buffer, (const wchar_t *)multiplayer_text((int16_t)(game_engine_variant.unknown_8c == 2 ? 0x9a : 0x9e)));
+    wcscpy(buffer, (const wchar_t *)multiplayer_text((int16_t)(game_engine_variant.engine.oddball.ball_type == 2 ? 0x9a : 0x9e)));
     return buffer;
 }

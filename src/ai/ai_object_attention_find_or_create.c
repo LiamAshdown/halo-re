@@ -40,27 +40,27 @@ ai_object_attention_record *ai_object_attention_find_or_create(datum_index objec
     }
 
     index = 0;
-    if (0 < ai_globals_ptr->object_record_count) {
+    if (0 < ai_globals_ptr->object_attention_count) {
         index = 0;
         do {
             if (table[index].object_index == object_index) {
                 break;
             }
             index = index + 1;
-        } while (index < ai_globals_ptr->object_record_count);
+        } while (index < ai_globals_ptr->object_attention_count);
         if (0x1f < index) {
             return 0;
         }
     }
 
     record = &table[index];
-    if (ai_globals_ptr->object_record_count <= index) {
+    if (ai_globals_ptr->object_attention_count <= index) {
         for (i = 0; i < 10; i = i + 1) {
             ((int32_t *)record)[i] = 0;
         }
         record->object_index = object_index;
         record->weight = 8.0f; // 0x41000000
-        ai_globals_ptr->object_record_count = ai_globals_ptr->object_record_count + 1;
+        ai_globals_ptr->object_attention_count = ai_globals_ptr->object_attention_count + 1;
     }
     return record;
 }

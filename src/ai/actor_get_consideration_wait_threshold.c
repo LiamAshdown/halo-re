@@ -54,8 +54,8 @@ float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode,
             return actor_def->melee_fudge_factor;
         }
     } else if (mode == 4 || mode == 0) {
-        if (actor_has_unshielded_threat_weapon(actor_index) != 0 && a->target_combat_status > 6 && a->vitality_wait_time >= 0.0f) {
-            return a->vitality_wait_time;
+        if (actor_has_unshielded_threat_weapon(actor_index) != 0 && a->target_combat_status > 6 && a->maximum_firing_distance >= 0.0f) {
+            return a->maximum_firing_distance;
         }
     }
     return result;

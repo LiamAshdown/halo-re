@@ -43,13 +43,13 @@ void actor_notify_weapon_pickup_once(datum_index object_index)
     actor_index = unit->actor_index;
     if (actor_index != (datum_index)k_datum_index_none) {
         a = &((actor *)actor_data->data)[actor_index & 0xffff];
-        if (a->unknown_38c == 0) {
+        if (a->vehicle_exit_forced == 0) {
             ai_communication_broadcast(0x25, (datum_index)k_datum_index_none,
                                         (datum_index)k_datum_index_none, 0,
                                         (datum_index)k_datum_index_none,
                                         (datum_index)k_datum_index_none, 0);
         }
-        a->unknown_38c = 0;
+        a->vehicle_exit_forced = 0;
     }
 }
 

@@ -64,8 +64,8 @@ void player_effect_send_network_update(datum_index player_handle, const real_vec
     items[0] = fields;
     items[1] = 0;
     encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xb, 0, items, 0, 1, 0);
-    if (encoded_bits > 0 && (int8_t)record->unknown_64 != -1) {
-        network_session_send_to_machine((int8_t)record->unknown_64, network_server, 1, network_message_scratch,
+    if (encoded_bits > 0 && (int8_t)record->machine_index != -1) {
+        network_session_send_to_machine((int8_t)record->machine_index, network_server, 1, network_message_scratch,
             (uint32_t)encoded_bits, 1, 0, 1, 3);
     }
 }

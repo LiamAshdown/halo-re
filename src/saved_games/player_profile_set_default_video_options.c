@@ -65,24 +65,24 @@ uint8_t player_profile_set_default_video_options(saved_player_profile *profile, 
 
     if (safe_mode != 0 || rasterizer_device_version < 0xffff0101 ||
         cpu_speed < 0x3e9 || physical_memory < 0x81 || video_memory < 0x2000001) {
-        profile->unknown_a70 = 0;
-        profile->unknown_a71 = 0;
-        profile->unknown_a72 = 0;
-        profile->unknown_a73 = safe_mode == 0;
-        profile->unknown_a74 = 1;
+        profile->specular = 0;
+        profile->shadows = 0;
+        profile->decals = 0;
+        profile->particles = safe_mode == 0;
+        profile->texture_quality = 1;
         profile->screen_width = 0x280;
         profile->screen_height = 0x1e0;
         profile->refresh_rate = 0x3c;
-        profile->unknown_a6f = 2;
+        profile->frame_rate_mode = 2;
         return 1;
     }
 
-    profile->unknown_a70 = config_disable_specular == 0;
-    profile->unknown_a71 = 1;
-    profile->unknown_a72 = rasterizer_decal_zbias_active() != 0;
-    profile->unknown_a74 = 2;
-    profile->unknown_a73 = 2;
-    profile->unknown_a6f = 2;
+    profile->specular = config_disable_specular == 0;
+    profile->shadows = 1;
+    profile->decals = rasterizer_decal_zbias_active() != 0;
+    profile->texture_quality = 2;
+    profile->particles = 2;
+    profile->frame_rate_mode = 2;
 
     if (width640 != 0) {
         profile->screen_width = 0x280;
@@ -105,9 +105,9 @@ uint8_t player_profile_set_default_video_options(saved_player_profile *profile, 
         profile->screen_height = (int16_t)mode.height;
         profile->screen_width = (int16_t)mode.width;
         profile->refresh_rate = (int16_t)mode.refresh_rate;
-        profile->unknown_a6f = 0;
+        profile->frame_rate_mode = 0;
         if (mode.vsync != 0) {
-            profile->unknown_a6f = (unknown_006894ba != 0) + 1;
+            profile->frame_rate_mode = (unknown_006894ba != 0) + 1;
             return 1;
         }
     } else {

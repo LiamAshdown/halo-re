@@ -28,7 +28,7 @@ void hs_evaluate_ai(int16_t function_index, uint32_t thread_index, char first)
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_globals_ptr->initialized = (uint8_t)arguments[0];
+        ai_globals_ptr->ai_active = (uint8_t)arguments[0];
         hs_thread_return(0, thread_index);
     }
 }

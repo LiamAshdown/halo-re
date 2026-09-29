@@ -63,19 +63,19 @@ void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition,
     enc->team = definition->team_index;
     enc->first_actor = (datum_index)k_datum_index_none;
     enc->first_pursuit = (datum_index)k_datum_index_none;
-    enc->unknown_40 = (uint8_t)((definition->flags >> 2) & 1);
-    enc->unknown_41 = (uint8_t)((definition->flags >> 3) & 1);
-    enc->unknown_3c = (uint8_t)((definition->flags >> 1) & 1);
-    enc->unknown_3e = 0;
+    enc->blind = (uint8_t)((definition->flags >> 2) & 1);
+    enc->deaf = (uint8_t)((definition->flags >> 3) & 1);
+    enc->respawn_enabled = (uint8_t)((definition->flags >> 1) & 1);
+    enc->respawn_delay_ticks = 0;
     enc->unknown_46 = 0;
-    enc->unknown_45 = 0;
-    enc->unknown_50 = (datum_index)k_datum_index_none;
-    enc->unknown_44 = 0;
-    enc->unknown_54 = (datum_index)k_datum_index_none;
-    enc->unknown_58 = -1;
-    enc->unknown_42 = 1;
-    enc->unknown_5c = (datum_index)k_datum_index_none;
-    enc->unknown_20 = 0;
+    enc->engaged = 0;
+    enc->ticks_since_engaged = (datum_index)k_datum_index_none;
+    enc->has_live_target = 0;
+    enc->ticks_since_live_target = (datum_index)k_datum_index_none;
+    enc->last_idle_time = -1;
+    enc->stood_down = 1;
+    enc->last_grenade_time = (datum_index)k_datum_index_none;
+    enc->activation_link_count = 0;
     enc->activation_tick = -1;
 
     count = (int16_t)definition->squads.count;
@@ -89,14 +89,14 @@ void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition,
             squad_state = &encounter_squad_states[(int16_t)(enc->first_squad + squad_index)];
             squad_definition = &((ScenarioSquad *)definition->squads.pointer)[squad_index];
 
-            squad_state->unknown_11 = 0;
+            squad_state->timer_started = 0;
             if ((squad_definition->flags & 8) == 0) {
                 squad_state->squad_delay_ticks = (int16_t)__ftol(
                     (double)(squad_definition->squad_delay_time * ticks_per_second));
             } else {
                 squad_state->squad_delay_ticks = 999;
             }
-            squad_state->unknown_10 = (uint8_t)((squad_definition->flags >> 5) & 1);
+            squad_state->automatic_migration = (uint8_t)((squad_definition->flags >> 5) & 1);
 
             encounter_squad_reset_starting_location_mask(encounter_index, squad_index);
 
@@ -120,7 +120,7 @@ void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition,
     platoon_index = 0;
     if (0 < enc->platoon_count) {
         do {
-            encounter_platoon_states[(int16_t)(enc->first_platoon + platoon_index)].unknown_00 =
+            encounter_platoon_states[(int16_t)(enc->first_platoon + platoon_index)].defending =
                 (uint8_t)((((ScenarioPlatoon *)definition->platoons.pointer)[platoon_index].flags
                     >> 2) & 1);
             platoon_index = platoon_index + 1;

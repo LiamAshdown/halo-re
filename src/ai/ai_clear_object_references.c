@@ -80,8 +80,8 @@ void ai_clear_object_references(datum_index object_index)
             datum_delete(prop_data, iterator.index);
         } else if (p->relationship_object_index == (int32_t)object_index) {
             p->relationship_object_index = -1;
-            p->unknown_136 = 0;
-            p->unknown_135 = 0;
+            p->is_vehicle_driver = 0;
+            p->is_vehicle_gunner = 0;
         }
         p = data_iterator_next(&iterator);
     }

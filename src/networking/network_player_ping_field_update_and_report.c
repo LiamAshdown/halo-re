@@ -81,7 +81,7 @@ void network_player_ping_field_update_and_report(void *decode_context) // blam-c
         if (player_index != 0xff && (int16_t)(uint16_t)player_index < player_data->maximum_count) {
             uint8_t *player = (uint8_t *)player_data->data + player_data->size * (int16_t)(uint16_t)player_index;
             if (*(int16_t *)player != 0) {
-                ((struct player *)player)->unknown_dc = new_value;
+                ((struct player *)player)->ping = new_value;
             }
         }
 
@@ -98,7 +98,7 @@ void network_player_ping_field_update_and_report(void *decode_context) // blam-c
                     if (team_index != -1 && network_game_mode == 2) {
                         int32_t base = *(int32_t *)((uint8_t *)network_server + 0x9c0);
                         int32_t now = time_query_performance_counter_ms();
-                        ((player *)element)->unknown_dc = now - base;
+                        ((player *)element)->ping = now - base;
                         return;
                     }
                     break;

@@ -45,14 +45,14 @@ uint8_t game_engine_ctf_is_flag_eligible_for_capture(uint32_t team, int32_t flag
         return 0;
     }
 
-    if (game_engine_variant.ctf_option_7c == 2) {
+    if (game_engine_variant.engine.race.race_type == 2) {
         return ctf_neutral_flag_id == flag_id;
     }
     if (ctf_team_captured_flags_mask[team_idx] == ctf_globals_live.flag_id_mask) {
         return flag_id == ctf_globals_live.team_flag_id[team_idx];
     }
     if ((uncaptured_mask & (1u << (flag_id & 0x1f))) != 0) {
-        if (game_engine_variant.ctf_option_7c == 0) {
+        if (game_engine_variant.engine.race.race_type == 0) {
             int32_t i;
             for (i = 0; i != flag_id; i++) {
                 if ((uncaptured_mask & (1u << (i & 0x1f))) != 0) {

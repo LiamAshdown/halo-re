@@ -230,24 +230,24 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
         float recent = ((unit_object *)obj)->base.recent_body_damage + ((unit_object *)obj)->base.recent_shield_damage;
 
         if (recent > 0.0f) {
-            ((struct unit_object *)obj)->unit.unknown_404 = *(int16_t *)(effect_block + 0x2);
-            ((struct unit_object *)obj)->unit.unknown_406 = 0x2d;
-            if (recent < ((struct unit_object *)obj)->unit.unknown_408) {
-                recent = ((struct unit_object *)obj)->unit.unknown_408;
+            ((struct unit_object *)obj)->unit.delayed_damage_category = *(int16_t *)(effect_block + 0x2);
+            ((struct unit_object *)obj)->unit.delayed_damage_ticks = 0x2d;
+            if (recent < ((struct unit_object *)obj)->unit.delayed_damage_amount) {
+                recent = ((struct unit_object *)obj)->unit.delayed_damage_amount;
             }
-            ((struct unit_object *)obj)->unit.unknown_408 = recent;
+            ((struct unit_object *)obj)->unit.delayed_damage_amount = recent;
             if (dd->responsible_object != k_datum_index_none) {
-                ((struct unit_object *)obj)->unit.unknown_40c = dd->responsible_object;
+                ((struct unit_object *)obj)->unit.delayed_damage_responsible_object = dd->responsible_object;
             }
         }
     }
     unit_flags = ((unit_object *)obj)->unit.flags;
     if (unit_flags & 0x10) {
-        float left = ((struct unit_object *)obj)->unit.unknown_37c - *(float *)(effect_block + 0x1c);
+        float left = ((struct unit_object *)obj)->unit.active_camouflage_power - *(float *)(effect_block + 0x1c);
 
-        ((struct unit_object *)obj)->unit.unknown_37c = left;
+        ((struct unit_object *)obj)->unit.active_camouflage_power = left;
         if (left < 0.0f) {
-            ((struct unit_object *)obj)->unit.unknown_37c = 0.0f;
+            ((struct unit_object *)obj)->unit.active_camouflage_power = 0.0f;
         }
     }
     if (is_local == 1) {
@@ -262,7 +262,7 @@ void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t
             if (1.0f > ticks) {
                 ticks = 1.0f;
             }
-            ((struct unit_object *)obj)->unit.unknown_420 = (int16_t)(int32_t)ticks;
+            ((struct unit_object *)obj)->unit.feign_death_ticks = (int16_t)(int32_t)ticks;
         }
     }
 
@@ -440,23 +440,23 @@ local_reactions:
         } else if (!(cap < 1.0f)) {
             cap = 1.0f;
         }
-        if (cap > ((struct unit_object *)obj)->unit.unknown_424) {
-            float value = step + ((struct unit_object *)obj)->unit.unknown_424;
+        if (cap > ((struct unit_object *)obj)->unit.stun) {
+            float value = step + ((struct unit_object *)obj)->unit.stun;
 
-            ((struct unit_object *)obj)->unit.unknown_424 = value;
+            ((struct unit_object *)obj)->unit.stun = value;
             if (value > cap) {
-                ((struct unit_object *)obj)->unit.unknown_424 = cap;
+                ((struct unit_object *)obj)->unit.stun = cap;
             }
         }
         add = (int16_t)(int32_t)(*(float *)(effect_block + 0x28) * 30.0f);
         low = (int16_t)(int32_t)(*(float *)(shake + 0x8c) * 30.0f);
         high = (int16_t)(int32_t)(*(float *)(shake + 0x90) * 30.0f);
-        if (((struct unit_object *)obj)->unit.unknown_428 < low) {
-            ((struct unit_object *)obj)->unit.unknown_428 = low;
+        if (((struct unit_object *)obj)->unit.stun_ticks < low) {
+            ((struct unit_object *)obj)->unit.stun_ticks = low;
         }
-        ((struct unit_object *)obj)->unit.unknown_428 += add;
-        if (((struct unit_object *)obj)->unit.unknown_428 > high) {
-            ((struct unit_object *)obj)->unit.unknown_428 = high;
+        ((struct unit_object *)obj)->unit.stun_ticks += add;
+        if (((struct unit_object *)obj)->unit.stun_ticks > high) {
+            ((struct unit_object *)obj)->unit.stun_ticks = high;
         }
     }
 

@@ -60,7 +60,7 @@ void game_engine_koth_broadcast_team_scores(int32_t mode, int32_t machine_index)
             player_scores[i] = ((int32_t *)king_alt_player_score)[i];
         }
 
-        if (game_engine_variant.unknown_8c != 2) {
+        if (game_engine_variant.engine.oddball.ball_type != 2) {
             for (i = 0; i < 16; i++) {
                 target_and_team[i + 1] /= 30;
                 player_scores[i] /= 30;

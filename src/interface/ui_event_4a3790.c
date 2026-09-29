@@ -15,6 +15,7 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "game.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -39,10 +40,10 @@ uint8_t ui_event_4a3790(widget_instance *widget, int16_t *event, uint8_t *out_ha
         return 1;
     }
     group = widget->first_child;
-    first_list_child(group)->selection_index = (int16_t)(variant[0x6c] <= 3 ? variant[0x6c] : 1);
+    first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->friendly_fire <= 3 ? ((struct game_variant *)variant)->friendly_fire : 1);
     group = group->next_sibling;
     time = *(int32_t *)(variant + 0x70);
     first_list_child(group)->selection_index = (int16_t)(time == 0x96 ? 1 : time == 0x12c ? 2 : time == 0x1c2 ? 3 : 0);
-    first_list_child(group->next_sibling)->selection_index = (int16_t)(variant[0x74] != 0);
+    first_list_child(group->next_sibling)->selection_index = (int16_t)(((struct game_variant *)variant)->team_autobalance != 0);
     return 1;
 }

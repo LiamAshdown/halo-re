@@ -154,6 +154,67 @@ typedef struct game_time_globals {
                                //      the fraction of a tick elapsed. NOT seconds_per_tick.
 } game_time_globals;           // size 0x20
 
+// game_variant::engine -- the 0x18 bytes at game_variant+0x7c mean something different for each
+// game_engine_index. Each view was checked against its engine's code (the engines are laid out
+// ctf 0x4684a0.., king 0x46aee0.., oddball 0x46beb0.., race 0x46d890.., slayer 0x46f580..) and
+// against the options screen that writes it (ctf 0x49e300/0x49f680, oddball 0x49ea50/0x49fd30,
+// race 0x49edc0). The names are those of the Halo PC gametype options they back.
+typedef struct game_variant_ctf_options {
+    uint8_t assault;           // 0x7c one team defends; the enemy taking the flag only raises the
+                               //      "flag taken" announcement when clear (0x4697e0)
+    uint8_t unknown_7d;        // 0x7d sanitize normalizes it to 0/1; nothing else reads it
+    uint8_t flag_must_reset;   // 0x7e clear: touching your own dropped flag returns it (0x4697e0)
+    uint8_t flag_at_home_to_score; // 0x7f set: a capture needs your own flag at home (0x468a20)
+    int32_t single_flag_time;  // 0x80 ticks, 0 off: the round timer of single-flag games
+                               //      (ctf_flag_auto_return_ticks); the options screen offers
+                               //      60/120/180/300/600 s (0x708..0x4650)
+} game_variant_ctf_options;
+
+typedef struct game_variant_slayer_options {
+    uint8_t death_bonus;       // 0x7c a player slowed below 1.0 recovers speed (0x46f7f0)
+    uint8_t kill_penalty;      // 0x7d a player sped above 1.0 decays back (0x46f7f0)
+    uint8_t kill_in_order;     // 0x7e each player is given a target (player.unknown_88) marked
+                               //      by a custom waypoint (0x46f7f0, 0x46f580)
+    uint8_t pad_7f;            // 0x7f
+} game_variant_slayer_options;
+
+typedef struct game_variant_oddball_options {
+    uint8_t random_start;      // 0x7c set: the ball spawns at a random netgame flag instead of
+                               //      a valid starting location first (0x46beb0); the options
+                               //      screen writes it as yes/no (0x49ea50)
+    uint8_t unknown_7d;        // 0x7d the classic oddball / reverse tag built-ins store 1, the
+                               //      other oddball built-ins 0; nothing reads it
+    uint8_t pad_7e[2];         // 0x7e
+    int32_t speed_with_ball;   // 0x80 0 slow, 1 normal, 2 fast (the options screen maps its
+                               //      normal/slow/fast rows to 1/0/2)
+    int32_t trait_with_ball;   // 0x84 0 none, 1 invisible, 2 extra damage, 3 damage resistant:
+                               //      compared with the damage-scale callback's kind (0x46cf20)
+    int32_t trait_without_ball;// 0x88 same encoding
+    int32_t ball_type;         // 0x8c 0 normal, 1 reverse tag, 2 juggernaut (the juggernaut
+                               //      built-ins store 2)
+    int32_t ball_count;        // 0x90 balls in play; the options screen stores its row + 1
+} game_variant_oddball_options;
+
+typedef struct game_variant_king_options {
+    uint8_t moving_hill;       // 0x7c set: the hill moves when king_hill_move_ticks runs out (0x46aee0)
+    uint8_t pad_7d[3];         // 0x7d
+} game_variant_king_options;
+
+typedef struct game_variant_race_options {
+    int32_t race_type;         // 0x7c 0 normal, 1 any order, 2 rally (the rally built-ins store 2)
+    int32_t team_scoring;      // 0x80 0 minimum, 1 maximum, 2 sum of the team's laps (0x46db70);
+                               //      nonzero skips the lives test of 0x46e250
+} game_variant_race_options;
+
+typedef union game_variant_engine_options {
+    uint8_t raw[0x18];
+    game_variant_ctf_options ctf;
+    game_variant_slayer_options slayer;
+    game_variant_oddball_options oddball;
+    game_variant_king_options king;
+    game_variant_race_options race;
+} game_variant_engine_options; // size 0x18
+
 // ---------------------------------------------------------------------------
 // game_variant  (0x98 bytes)
 // The multiplayer option block. Its size is fixed three times over: every
@@ -178,8 +239,11 @@ typedef struct game_variant {
     uint8_t teams;             // 0x34 sanitize normalizes to 0/1; game_engine_get_teams_enabled
     uint8_t pad_35[3];         // 0x35
     uint32_t flags;            // 0x38 option bitfield; slayer forces bits 0 and 8 on
-    int32_t unknown_3c;        // 0x3c
-    uint8_t unknown_40;        // 0x40 sanitize normalizes to 0/1
+    int32_t objective_indicator;// 0x3c 0 motion tracker, 1 nav points, 2 none: only 1 pushes the custom
+                               //      waypoints to the HUD nav points (0x462a90); the options UI
+                               //      (0x49f470) writes 0/1/2
+    uint8_t odd_man_out;       // 0x40 sanitize normalizes to 0/1; gates respawn priority (0x463100)
+                               //      and the lives test of the bsp-switch readiness check
     uint8_t pad_41[3];         // 0x41
     int32_t respawn_time_growth;// 0x44 clamped >= 0; on_player_death adds it to 0x30 and caps
                                //      the total at 5x this value
@@ -187,29 +251,30 @@ typedef struct game_variant {
     int32_t suicide_penalty;   // 0x4c clamped >= 0; added when the killer is the victim
     int32_t lives_per_round;   // 0x50 clamped >= 0; 0 means unlimited. A player whose death
                                //      count (player+0xae) reaches it is eliminated
-    float speed_scale;         // 0x54 clamped to 0.25 .. 4.0
+    float health;              // 0x54 clamped to 0.25 .. 4.0; the player health option: damage
+                               //      dealt is scaled by 1 / health (0x461550, called from
+                               //      object_apply_damage). NOT a speed or time scale.
     int32_t score_limit;       // 0x58
-    int32_t starting_equipment;// 0x5c clamped to 0 .. 0xd
-    uint32_t vehicle_set;      // 0x60 low nibble clamped to 0 .. 8; the upper bits are a
+    int32_t weapon_set;        // 0x5c clamped to 0 .. 0xd; the var_weapon_set string list (0x4b8da0), and the
+                               //      placement code swaps weapon classes by it (0x462c30)
+    uint32_t red_vehicle_set;  // 0x60 low nibble clamped to 0 .. 8; the upper bits are a
                                //      packed 3-bit-per-slot table (the built-ins store
-                               //      0x249240, i.e. every slot from index 2 up set to 1)
-    uint32_t unknown_64;       // 0x64 same packed 3-bit encoding as 0x60
-    int32_t time_limit;        // 0x68 in ticks (slayer default 0x708 == 60 s * 30)
-    uint8_t unknown_6c;        // 0x6c
+                               //      0x249240, i.e. every slot from index 2 up set to 1).
+                               //      The only set in free-for-all games.
+    uint32_t blue_vehicle_set; // 0x64 same packed 3-bit encoding; the vehicle options screen
+                               //      (0x4a33a0) shows its second list only when teams is set
+    int32_t vehicle_respawn_time;// 0x68 in ticks; the vehicle options screen offers 0 and
+                               //      30/60/90/120/180/300 s (0x384..0x2328); defaults 0x708 (60 s)
+    uint8_t friendly_fire;     // 0x6c 0 off, 1 on, 2 shields only, 3 explosions only
+                               //      (object_apply_damage switches on the live copy 0x006f1cf4)
     uint8_t pad_6d[3];         // 0x6d
     int32_t betrayal_penalty;  // 0x70 on_player_death multiplies it by player+0xc0
-    uint8_t unknown_74;        // 0x74
+    uint8_t team_autobalance;  // 0x74 the gametype-file name of this byte; nothing in the engine reads it
     uint8_t pad_75[3];         // 0x75
-    int32_t unknown_78;        // 0x78 slayer default 36000 ticks (20 minutes)
-    uint8_t ctf_option_7c;     // 0x7c the four bytes 0x7c..0x7f are only normalized when
-    uint8_t ctf_option_7d;     // 0x7d game_engine_index is 1 (ctf); 0x7f is skipped when the
-    uint8_t ctf_option_7e;     // 0x7e index is 2 (slayer), which also normalizes 0x7c..0x7e
-    uint8_t ctf_option_7f;     // 0x7f
-    int32_t ctf_value_80;      // 0x80 clamped >= 0 for game_engine_index 1
-    int32_t unknown_84;        // 0x84
-    int32_t unknown_88;        // 0x88
-    int32_t unknown_8c;        // 0x8c
-    int32_t unknown_90;        // 0x90
+    int32_t time_limit;        // 0x78 in ticks, 0 none: game_engine_get_time_remaining counts it
+                               //      down from the round start; slayer default 36000 (20 minutes)
+    game_variant_engine_options engine; // 0x7c the per-gametype options, read through the view of
+                               //      game_engine_index (sanitize normalizes only that view)
     uint16_t variant_flags;    // 0x94 (R37) flags word, same encoding as saved_games.h
                                //      saved_player_profile::flags: bit 0 = built-in/default
                                //      (every built-in writes 1; saved_game_create_custom_variant
@@ -218,6 +283,9 @@ typedef struct game_variant {
                                //      on_disk ORs index<<8 in, 0x53bd8c..0x53bdad)
     int16_t unknown_96;        // 0x96
 } game_variant;                // size 0x98
+typedef char game_variant_size[sizeof(game_variant) == 0x98 ? 1 : -1];
+typedef char game_variant_engine_at_7c[offsetof(game_variant, engine) == 0x7c ? 1 : -1];
+typedef char game_variant_time_limit_at_78[offsetof(game_variant, time_limit) == 0x78 ? 1 : -1];
 
 // game_variant::game_engine_index. The values are the indices into the 0x00688308 table and
 // are confirmed by the index word each engine definition carries at its own +0x04.
@@ -457,28 +525,40 @@ typedef struct player {
     datum_index unit;                  // 0x34 the object this player drives, -1 when dead
     datum_index previous_unit;         // 0x38 0x474e10 rolls unit into it on every change
     int16_t bsp_cluster;               // 0x3c constructors write -1
-    int16_t unknown_3e;                // 0x3e
+    int16_t weapon_swap_result;        // 0x3e cleared while the swap-weapon control (0x4000) is held or the unit is
+                                       //    seated, else latches player_execute_weapon_drop_interaction's (0x4790d0)
+                                       //    result: one swap per press. Byte-wide uses
     datum_index observer_target;       // 0x40 camera_observer_update (0x4593b0) result
     int32_t observer_state;            // 0x44 written beside 0x40 by the same function
     uint16_t identifier_name[12];      // 0x48 second copy of the name: 0x473940 does a
                                        //      rep movsd of 8 dwords from the caller
                                        //      player-identifier record into 0x48
-    int32_t unknown_60;                // 0x60 tail of that same 0x20-byte copy
-    int16_t unknown_64;                // 0x64
+    int32_t color_index;               // 0x60 network_player_entry+0x18 of the 0x20-byte copy at 0x48
+                                       //    (player_color_get_rgb for free-for-all colours); really int16 + int16
+    int16_t machine_index;             // 0x64 network_player_entry+0x1c: network_session_send_to_machine, the autoban
+                                       //    and player_delete take it; really int8, +0x65 the machine's player index
     int8_t team_index;                 // 0x66 0x45c440 assigns it round-robin in team games
     int8_t team_index_desired;         // 0x67 the requested team it is derived from
     int16_t kill_streak[2];            // 0x68 slot 0 also sets object flag 0x10 and stamps
                                        //      the streak method into unit+0x422; 0x479d10
                                        //      counts both down once per tick
     float speed;                       // 0x6c constructors write 1.0; part of the profile
-    datum_index unknown_70;            // 0x70 0x45c440 writes -1
-    datum_index unknown_74;            // 0x74 0x45c440 writes -1
-    datum_index unknown_78;            // 0x78 0x45c440 writes -1
-    datum_index unknown_7c;            // 0x7c 0x45c440 writes -1
-    int32_t unknown_80;                // 0x80 read by the nameplate HUD (0x45e520)
+    datum_index teleporter_flag_index; // 0x70 netgame flag of the teleporter exit the unit arrived on
+                                       //    (game_engine_update_teleporter 0x461630): not re-entered until the unit
+                                       //    is 1 unit away; -1 none (an index, not a datum)
+    datum_index hud_message_index;     // 0x74 multiplayer_game_text index of the objective HUD message (ctf
+                                       //    0x30/0x31, race 0x16, king 0x22/0x23/0x29), -1 none;
+                                       //    game_engine_pick_hud_hint (0x463150) builds from it
+    datum_index hud_message_player;    // 0x78 the player hud_message_index is about, written with it
+    datum_index nameplate_target_player; // 0x7c hud_draw_teammate_nameplate (0x45e520): the teammate whose name is
+                                         //    drawn, switched with hysteresis
+    int32_t nameplate_fade_ticks;      // 0x80 0..15: +1 while the nameplate target is unchanged, -1 otherwise; the
+                                       //    target switches at 0; drawn at pow(min(x,10)/10, 1.9)/2
     int32_t last_death_tick;           // 0x84 game_time when this player last died; the
                                        //      odd-man-out test orders players by it
-    int32_t unknown_88;                // 0x88 part of the profile block
+    int32_t slayer_target;             // 0x88 kill-in-order target player (game_engine_player_select_random_target,
+                                       //    game_engine_slayer_update); race reuses the slot as the lap start game
+                                       //    time (0x46ee60, 0x46dde0)
     uint8_t odd_man_out;               // 0x8c cached result of 0x460e40
     uint8_t unknown_8d[0x96 - 0x8d];   // 0x8d
     // The statistics block. game_engine_attribute_player_death (0x46ff00) is the one
@@ -510,20 +590,29 @@ typedef struct player {
     int32_t objective_time;            // 0xc4 hill / ball time in ticks. The profile cache
                                        //      divides it by 30 on the way out and multiplies
                                        //      it back on the way in when the engine is king
-    int16_t unknown_c8;                // 0xc8 flag touches; also mirrored by the profile
+    int16_t objective_score;           // 0xc8 per-gametype: ctf flag captures (get_score / build_player_text, ++ at
+                                       //    0x468910), oddball kills while carrying, race best lap ticks (0x46dde0
+                                       //    keeps the minimum)
     uint8_t unknown_ca[0xd0 - 0xca];   // 0xca
-    datum_index unknown_d0;            // 0xd0 constructors write -1
-    uint8_t unknown_d4;                // 0xd4
+    datum_index quit_tick;             // 0xd0 game time at which game_engine_flag_local_player_units (0x45b590)
+                                       //    removes the player (clients: whenever set); -1 none (a time, not a datum)
+    uint8_t telefrag_danger;           // 0xd4 set each tick by game_engine_update_teleporter while this player's unit
+                                       //    blocks a teleporter exit; the per-player tick advances the telefrag timer
+                                       //    at 0xcc with it and clears it
     uint8_t marked_for_deletion;       // 0xd5 1 makes 0x474e10 call player_remove; every
                                        //      respawn / scoreboard path skips such a player
     uint8_t unknown_d6[0xdc - 0xd6];   // 0xd6
-    int32_t unknown_dc;                // 0xdc
+    int32_t ping;                      // 0xdc milliseconds (network_game_message_handle_ping_timestamp,
+                                       //    network_player_ping_field_update_and_report); sv_players and the
+                                       //    scoreboard print it
     int32_t medal_streak_count;        // 0xe0 0x479eb0 bumps it and fires the medal event
                                        //      once it reaches the threshold at 0x006894a4
     int32_t medal_streak_timer;        // 0xe4 seeded negative from 0x0069956c; the streak is
                                        //      only extended while it is >= 0
-    int32_t unknown_e8;                // 0xe8
-    datum_index unknown_ec;            // 0xec 0x473940 writes -1
+    int32_t last_update_id;            // 0xe8 client: the last applied local-ack / remote action update id, -1 none
+                                       //    (the server constructor writes 0)
+    datum_index baseline_update_id;    // 0xec client: the baseline id remote action deltas must match; -1 none (an
+                                       //    id, not a datum)
     int32_t unknown_f0;                // 0xf0 start of a 0xc-dword run the local constructor
     datum_index unknown_f4;            // 0xf4 zeroes; the network constructor writes -1 here
     int32_t unknown_f8;                // 0xf8
@@ -541,20 +630,26 @@ typedef struct player {
                                        //      value), -1 = none; the local constructor writes -1.
                                        //      is_remote_player_update_in_order 0x4e6a20: mov ecx,
                                        //      [eax+0x15c]; cmp ecx,-1; sub edi,ecx; cmp edi,4
-    datum_index unknown_160;           // 0x160 local constructor writes -1
-    int32_t unknown_164;               // 0x164
-    int32_t unknown_168;               // 0x168
-    int32_t unknown_16c;               // 0x16c
+    datum_index last_position_update_id; // 0x160 client remote player: the last position update id, -1 none; its !=
+                                         //    -1 gates queueing (an id, not a datum)
+    int32_t position_baseline_x;       // 0x164 the decoded position baseline, a real_point3d held in three int32
+                                       //    slots (position_delta / total_biped_update_from_network)
+    int32_t position_baseline_y;       // 0x168
+    int32_t position_baseline_z;       // 0x16c
     circular_queue position_updates;          // 0x170 30 records of 0x14
-    int32_t unknown_188;               // 0x188
-    datum_index unknown_18c;           // 0x18c local constructor writes -1
-    uint8_t unknown_190[0x1d0 - 0x190];// 0x190 0x10 dwords the local constructor zeroes
+    int32_t position_update_ignored_count; // 0x188 out-of-range position updates ignored in a row; the third is
+                                           //    applied anyway; 0 on success
+    datum_index last_vehicle_update_id; // 0x18c as last_position_update_id for vehicle updates
+    uint8_t vehicle_baseline[0x1d0 - 0x190]; // 0x190 the decoded vehicle_update_body baseline (vehicle_position_delta
+                                             //    / total_vehicle_update_from_network)
     circular_queue vehicle_updates;            // 0x1d0 30 records of 0x48
-    int32_t unknown_1e8;               // 0x1e8
-    int32_t unknown_1ec;               // 0x1ec
-    int32_t unknown_1f0;               // 0x1f0
-    int32_t unknown_1f4;               // 0x1f4
-    int32_t unknown_1f8;               // 0x1f8
+    int32_t vehicle_update_ignored_count; // 0x1e8 as position_update_ignored_count for vehicle updates
+    int32_t position_updates_applied_count; // 0x1ec apply_remote_player_position_update: queued positions applied
+    int32_t position_update_error_total; // 0x1f0 += the distance between the queued and the current position; a float
+                                         //    in an int32 slot
+    int32_t vehicle_updates_applied_count; // 0x1f4 apply_remote_player_vehicle_position_update: vehicle records
+                                           //    applied
+    int32_t vehicle_update_error_total; // 0x1f8 += the float distance; a float in an int32 slot
     int32_t unknown_1fc;               // 0x1fc
 } player;                              // size 0x200 == k_player_size
 
@@ -591,9 +686,13 @@ typedef struct player_globals {
                                        //      still has a unit
     uint8_t input_disabled;            // 0x11 player_enable_input(false) and cinematics set it; player
                                        //      updates skip local input while it is set
-    int16_t unknown_12;                // 0x12 seeded to -1
+    int16_t bsp_switch_trigger_volume_index; // 0x12 main_switch_structure_bsp stores the trigger volume index;
+                                             //    players_structure_bsp_switch_regroup indexes scenario
+                                             //    bsp_switch_trigger_volumes (*8) with it; -1 reset
     int16_t mode;                      // 0x14 written with 0 and with 3
-    uint8_t unknown_16;                // 0x16
+    uint8_t teleported;                // 0x16 attach_players_to_new_bsp skips the projectile/combat respawn_failure
+                                       //    checks while set, clears it on success; OpenSauce
+                                       //    players_globals.teleported at 0x16
     uint8_t unknown_17;                // 0x17
     uint32_t cluster_pvs[0x20];        // 0x18 a bit per structure cluster the local players can see
                                        //      (game_engine_build_visible_cluster_bitmask fills it)

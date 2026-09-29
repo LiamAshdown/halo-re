@@ -55,7 +55,7 @@ uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, d
         return 0;
     }
     if (flag_pursue) {
-        self->unknown_2ed = 1;
+        self->vehicle_eviction = 1;
     }
     return 1;
 }

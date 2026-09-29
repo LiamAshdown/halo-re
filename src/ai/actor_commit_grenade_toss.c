@@ -59,7 +59,7 @@ uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point,
         return 0;
     }
     *(real_point3d *)&((actor *)a)->grenade_impact_point.x = *point;
-    ((struct actor *)a)->unknown_6b4 = object_handle;
+    ((struct actor *)a)->grenade_target_prop_index = object_handle;
     *(real_vector3d *)&((actor *)a)->grenade_unknown_6bc = direction;
     *(uint32_t *)(a + 0x6b8) = exclude_object_index;
     ((actor *)a)->grenade_unknown_6c8 = speed;

@@ -68,7 +68,7 @@ uint32_t game_engine_resolve_multiplayer_placement(uint32_t handle)
         return ((game_engine_variant.flags & 0x10) == 0) ? handle : 0xffffffff;
     }
 
-    switch (game_engine_variant.starting_equipment) {
+    switch (game_engine_variant.weapon_set) {
     case 3:
     case 10:
         index = 0x0d;

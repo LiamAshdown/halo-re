@@ -41,16 +41,16 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
     uint8_t order[k_actor_mode_data_size];
     int16_t code = (int16_t)order_code;
 
-    if (code == -1 && ((struct actor *)act)->unknown_64 != -1 && ((struct actor *)act)->unknown_64 + 0x2d >= game_time->game_time) {
+    if (code == -1 && ((struct actor *)act)->last_order_request_time != -1 && ((struct actor *)act)->last_order_request_time + 0x2d >= game_time->game_time) {
         return 0;
     }
-    ((struct actor *)act)->unknown_64 = game_time->game_time;
+    ((struct actor *)act)->last_order_request_time = game_time->game_time;
     if (code == -1) {
-        code = ((struct actor *)act)->unknown_60;
+        code = ((struct actor *)act)->pending_order_request;
         if (code != -1) {
-            ((struct actor *)act)->unknown_60 = -1;
+            ((struct actor *)act)->pending_order_request = -1;
         } else {
-            code = ((struct actor *)act)->unknown_62;
+            code = ((struct actor *)act)->standing_order_request;
             if (code == -1) {
                 code = 0;
             }
@@ -94,8 +94,8 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
             break;
         }
         ((actor *)act)->awareness_level = 3;
-        ((struct actor *)act)->unknown_72 = 2;
-        ((struct actor *)act)->unknown_6e = 2;
+        ((struct actor *)act)->minimum_combat_status = 2;
+        ((struct actor *)act)->combat_status = 2;
         if (actor_update_melee_combat_action(actor_index)) {
             break;
         }

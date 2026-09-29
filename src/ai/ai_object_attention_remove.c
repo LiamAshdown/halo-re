@@ -33,20 +33,20 @@ void ai_object_attention_remove(datum_index object_index)
     if (object_index == (datum_index)k_datum_index_none) {
         return;
     }
-    if (ai_globals_ptr->object_record_count <= 0) {
+    if (ai_globals_ptr->object_attention_count <= 0) {
         return;
     }
 
     index = 0;
     while (table[index].object_index != object_index) {
         index = index + 1;
-        if (ai_globals_ptr->object_record_count <= index) {
+        if (ai_globals_ptr->object_attention_count <= index) {
             return;
         }
     }
 
-    last = ai_globals_ptr->object_record_count - 1;
-    ai_globals_ptr->object_record_count = last;
+    last = ai_globals_ptr->object_attention_count - 1;
+    ai_globals_ptr->object_attention_count = last;
     if (index < last) {
         src = (int32_t *)&table[last];
         dst = (int32_t *)&table[index];

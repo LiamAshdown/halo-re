@@ -50,7 +50,7 @@ uint32_t network_game_any_team_empty(network_server_globals *server)
 
         valid = network_player_entry_validate(entry); // blam-cc: EAX -> entry
         if (valid != 0) {
-            team = entry->unknown_1e;
+            team = entry->team_index;
             if (team >= 0 && team < 2) {
                 counts[(int32_t)team] = counts[(int32_t)team] + 1;
             }

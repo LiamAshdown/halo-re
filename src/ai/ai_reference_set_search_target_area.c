@@ -22,7 +22,7 @@ void ai_reference_set_search_target_area(uint32_t packed_reference)
     ai_reference_actor_iterator_new(packed_reference, &iterator);
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
-        a->unknown_1d4 = 2;
+        a->try_to_fight_type = 2;
         a = ai_reference_actor_iterator_next(&iterator);
     }
 }

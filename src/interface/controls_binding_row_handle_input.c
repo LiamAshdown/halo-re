@@ -190,10 +190,10 @@ finish_capture:
                 row = row->next_sibling;
             }
             cell = row->first_child->next_sibling;
-            *(uint8_t *)&cell->unknown_54 = 0;
+            *(uint8_t *)&cell->selection_direction = 0;
             cell = cell->next_sibling->first_child;
-            *(uint8_t *)&cell->unknown_54 = 0;
-            *(uint8_t *)&cell->next_sibling->unknown_54 = 0;
+            *(uint8_t *)&cell->selection_direction = 0;
+            *(uint8_t *)&cell->next_sibling->selection_direction = 0;
         }
         controls_input_capture_flags &= 0xf7;
         memset(controls_input_capture_buffer, 0, sizeof(controls_input_capture_buffer));

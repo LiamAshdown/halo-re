@@ -98,8 +98,8 @@ datum_index actor_get_relevant_squad_member_target(uint32_t unused_param, datum_
                 resolved_prop = actor_find_prop_for_object(resolved_object, (datum_index)unused_param); // 0x41f62c: ECX = stack arg 1 (the asking actor)
                 if (resolved_prop != k_datum_index_none) {
                     candidate = (prop *)((uint8_t *)prop_data->data + (resolved_prop & 0xffff) * sizeof(prop));
-                    if ((1 < candidate->kind && candidate->kind < 4) &&
-                        ((candidate->is_unit != 0 || require_is_unit == 0) &&
+                    if ((1 < candidate->state && candidate->state < 4) &&
+                        ((candidate->enemy != 0 || require_is_unit == 0) &&
                          (best_tick < member_unit->recent_damage[i].tick))) {
                         best_tick = member_unit->recent_damage[i].tick;
                         best_prop = resolved_prop;

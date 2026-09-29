@@ -114,8 +114,8 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
     unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
     controlled = ((unit_object *)unit)->unit.controlling_player != k_datum_index_none;
     enemies = teams_are_enemies(((unit_object *)unit)->base.owner_team, ((actor *)self)->team);
-    if ((unit[0x106] & 4) != 0 && ((struct unit_object *)unit)->unit.unknown_420 == 0) {
-        int32_t fired = ((struct unit_object *)unit)->unit.unknown_41c;
+    if ((unit[0x106] & 4) != 0 && ((struct unit_object *)unit)->unit.feign_death_ticks == 0) {
+        int32_t fired = ((struct unit_object *)unit)->unit.death_time;
 
         firing = 1;
         since_fired = fired == -1 ? 0x7fff : (int16_t)((int16_t)game_time->game_time - (int16_t)fired);
@@ -153,12 +153,12 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
             } else {
                 uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c;
                 uint8_t *target_unit = OBJ(target);
-                int32_t reference = ((struct encounter *)encounter)->unknown_58;
+                int32_t reference = ((struct encounter *)encounter)->last_idle_time;
                 uint8_t counts = 1;
                 uint8_t calm;
 
-                if (!(reference > *(int32_t *)&((struct actor *)self)->unknown_3a0)) {
-                    reference = *(int32_t *)&((struct actor *)self)->unknown_3a0;
+                if (!(reference > *(int32_t *)&((struct actor *)self)->found_body_time)) {
+                    reference = *(int32_t *)&((struct actor *)self)->found_body_time;
                 }
                 if (reference != -1) {
                     int32_t fired = *(int32_t *)(target_unit + 0x41c);
@@ -184,7 +184,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
             // 0x41e756: the friend's far flag is computed in AL and used directly at 0x41e66c
             uint8_t near = distance_squared < 225.0f;
 
-            if (((struct actor *)self)->unknown_6e >= 4) {
+            if (((struct actor *)self)->combat_status >= 4) {
                 far_flag = 1;
             } else {
                 far_flag = self[0x1cc] == 0 && distance_squared > 16.0f;

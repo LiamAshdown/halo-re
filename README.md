@@ -68,6 +68,19 @@ Use -process halo.exe instead of -import/-overwrite to apply incrementally to th
     python tools\make_batches.py 60 120                        Phase 2 inputs, out/phase2/<module>/NN.md + index.json
     python tools\merge_phase2.py                               out/phase2/results/*.json -> symbols/agent_phase2.txt, prototypes.txt, review_queue.txt
 
+Struct-field work (runs on Linux or Windows; needs `pip install libclang` and, for the 32-bit Windows headers on Linux,
+`apt install clang mingw-w64-i686-dev`):
+
+    python tools/field_uses.py scan [module ...]               clang-AST index of every member access -> build/field_uses.json
+    python tools/field_uses.py top [N]                          structs ranked by uses of their unknown_ fields
+    python tools/field_uses.py show STRUCT [FIELD]              every use of STRUCT's unknown_ fields (or of one field)
+    python tools/rename_field.py --map FILE                     rename STRUCT.OLD -> NEW at exactly those AST positions and in
+                                                                the header (map lines: STRUCT OLD NEW [FILES] [:: comment])
+    tools/check32.sh [files]                                    clang type check with the 32-bit Windows layout (baseline:
+                                                                27 rasterizer files fail on the mingw d3d headers' NULL)
+Scan with the header as it was BEFORE a rename (a field that no longer exists has no uses to find), then rename, then
+check. The type check does not replace the MSVC build + objdiff.
+
 ## Phase 2 session loop (5 agents per session)
 1. Launch the naming workflow on up to 5 batch groups (see PLAN.md session log for what is done).
 2. python tools\merge_phase2.py ; python tools\merge_symbols.py

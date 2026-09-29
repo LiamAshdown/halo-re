@@ -26,10 +26,10 @@ uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t thresho
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
     if (self->mode_data.raw[8] != 0) {
-        return (uint8_t)(threshold_b <= self->unknown_6e);
+        return (uint8_t)(threshold_b <= self->combat_status);
     }
-    if (0 < *(int16_t *)&self->mode_data.raw[0] && self->unknown_6e < threshold_a &&
-        (self->unknown_1e4 < 1 || self->mode_data.raw[5] != 0)) {
+    if (0 < *(int16_t *)&self->mode_data.raw[0] && self->combat_status < threshold_a &&
+        (self->post_combat_action < 1 || self->mode_data.raw[5] != 0)) {
         return 0;
     }
     return 1;

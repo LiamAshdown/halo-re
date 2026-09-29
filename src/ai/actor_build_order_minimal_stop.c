@@ -27,7 +27,7 @@ int32_t actor_build_order_minimal_stop(uint32_t actor_index, uint32_t *order)
 
     if (a->swarm != 0) {
         *(int16_t *)(order + 2) = 2;
-        a->unknown_98 = 1;
+        a->search_firing_positions = 1;
         return 1;
     }
     return 0;

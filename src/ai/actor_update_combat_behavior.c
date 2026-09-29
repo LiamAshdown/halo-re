@@ -44,9 +44,9 @@ uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, u
     case 1:
     case 2:
         if (use_param_1 == 0) goto use_default;
-        if (self->unknown_6e < 5) {
-            if (self->unknown_6e < 2 && self->mode != 2 &&
-                (self->unknown_6e != 0 || (self->unknown_1c8 == 0 && self->unknown_1e4 < 1))) {
+        if (self->combat_status < 5) {
+            if (self->combat_status < 2 && self->mode != 2 &&
+                (self->combat_status != 0 || (self->stood_down == 0 && self->post_combat_action < 1))) {
                 goto use_default;
             }
             goto call_melee_combat_action;
@@ -54,13 +54,13 @@ uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, u
         result = actor_evaluate_combat_state_transition(actor_index);
         break;
     case 3:
-        if (use_param_1 == 0 || self->unknown_6e < 4) {
-            if (1 < self->unknown_6e) {
+        if (use_param_1 == 0 || self->combat_status < 4) {
+            if (1 < self->combat_status) {
                 if (self->target_unit_index == (datum_index)k_datum_index_none) {
                     goto use_default;
                 }
                 target_prop = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
-                if (self->target_unit_index == self->unknown_3c0 &&
+                if (self->target_unit_index == self->pursuit_target_prop_index &&
                     (target_prop->noticed_a != 0 || (self->mode == 5 && *(int16_t *)(self->mode_data.raw + 8) == 0)) &&
                     (target_prop->noticed_b != 0 ||
                      ((self->mode == 5 && *(int16_t *)(self->mode_data.raw + 8) == 0) ||
@@ -75,7 +75,7 @@ uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, u
         }
         break;
     case 4:
-        if (self->unknown_6e < 4) goto call_melee_combat_action;
+        if (self->combat_status < 4) goto call_melee_combat_action;
         result = actor_evaluate_combat_state_transition(actor_index);
         break;
     default:

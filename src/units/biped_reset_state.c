@@ -41,8 +41,8 @@ void biped_reset_state(uint32_t object_index)
     biped->ground_normal.i = k_default_resting_plane[0];
     biped->ground_normal.j = k_default_resting_plane[1];
     biped->ground_normal.k = k_default_resting_plane[2];
-    biped->unknown_520 = *(uint32_t *)&k_default_resting_plane[3];
-    biped->unknown_4f8 = -1;
+    biped->ground_plane_distance = *(uint32_t *)&k_default_resting_plane[3];
+    biped->last_falling_reaction_tick = -1;
 }
 
 #if 0

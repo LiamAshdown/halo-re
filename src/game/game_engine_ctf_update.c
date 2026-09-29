@@ -71,7 +71,7 @@ void game_engine_ctf_update(datum_index player_index)
     if (game_engine_ctf_point_within_team_flag_radius(1.0f, team, (real_point3d *)(unit + 0x5c)) == 0) {
         return;
     }
-    if (game_engine_variant.ctf_option_7f != 0 && game_engine_variant.ctf_value_80 == 0) {
+    if (game_engine_variant.engine.ctf.flag_at_home_to_score != 0 && game_engine_variant.engine.ctf.single_flag_time == 0) {
         uint8_t *flag = *(uint8_t **)((uint8_t *)object_data->data + (ctf_team_flag_object[team] & 0xffff) * 12 + 8);
 
         if (((*(uint32_t *)(flag + 0x22c) >> 6) & 1) != 0) {

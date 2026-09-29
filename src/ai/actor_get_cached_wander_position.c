@@ -29,12 +29,12 @@ uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d 
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
     if (self->target_combat_status > 8 && actor_mode_definitions[self->mode].combat_grade == 4) {
-        if (self->unknown_6a0 != 0) {
+        if (self->grenade_throw_pending != 0) {
             *out_position = self->facing_unknown_180;
             return 1;
         }
-        if (self->unknown_60c > 0) {
-            *out_position = *(real_vector3d *)&self->unknown_63c[0]; // UNSURE offset
+        if (self->firing_target_type > 0) {
+            *out_position = *(real_vector3d *)&self->target_aim_vector[0]; // UNSURE offset
             return 1;
         }
     }

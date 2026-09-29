@@ -69,7 +69,7 @@ void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int3
     encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x18, 0, &fields_ptr, 0, 1, '\0');
     if (0 < encoded_size) {
         player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-        uint8_t player_machine_field = *(uint8_t *)&p->unknown_64; // UNSURE: field identity, see types/game.h player::unknown_64
+        uint8_t player_machine_field = *(uint8_t *)&p->machine_index; // UNSURE: field identity, see types/game.h player::unknown_64
         int16_t *machine = (int16_t *)(network_server + 0x3c4); // UNSURE: network_server layout, not owned here
         int32_t i = 0;
 

@@ -21,9 +21,9 @@ void actor_set_override_target(datum_index actor_index, uint8_t enable, datum_in
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
     if (enable != 0) {
-        self->flags |= _actor_flag_override_target;
+        self->control_flags |= _actor_flag_override_target;
     } else {
-        self->flags &= ~_actor_flag_override_target;
+        self->control_flags &= ~_actor_flag_override_target;
     }
     self->override_target = override_target;
 }

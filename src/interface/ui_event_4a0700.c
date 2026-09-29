@@ -43,7 +43,7 @@ uint8_t ui_event_4a0700(widget_instance *widget, int16_t *event, uint8_t *out_ha
         return 0;
     }
     group = widget->first_child;
-    value = ((struct game_variant *)variant)->unknown_3c;
+    value = ((struct game_variant *)variant)->objective_indicator;
     first_list_child(group)->selection_index = (int16_t)(value == 1 || value == 2 ? value : 0);
     group = group->next_sibling;
     flags = ((struct game_variant *)variant)->flags;

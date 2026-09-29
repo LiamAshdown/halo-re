@@ -77,7 +77,7 @@ int16_t actor_select_firing_position(datum_index actor_index,
     }
 
     query->allow_random_fallback =
-        (uint8_t)(self->firing_position_index == -1 || self->unknown_3ba == 0);
+        (uint8_t)(self->firing_position_index == -1 || self->firing_position_without_path == 0);
     query->collect_all = 1;
 
     // UNSURE: the remaining arguments travel in registers this frame already holds.
@@ -86,7 +86,7 @@ int16_t actor_select_firing_position(datum_index actor_index,
 
     if (result == -1) {
         held = self->firing_position_index;
-        if (held == -1 || self->unknown_3ba == 0) {
+        if (held == -1 || self->firing_position_without_path == 0) {
             return result;
         }
 
@@ -126,7 +126,7 @@ int16_t actor_select_firing_position(datum_index actor_index,
     // The winner came from the wider union: if it is not in the mask for the actor current
     // searching state, flip that state so the next pass looks at the other half.
     if ((own_mask & (1u << (((uint8_t *)out_candidate->position)[0xc] & 0x1f))) == 0) {
-        self->unknown_98 = (uint8_t)(self->unknown_98 == 0);
+        self->search_firing_positions = (uint8_t)(self->search_firing_positions == 0);
     }
     return result;
 }

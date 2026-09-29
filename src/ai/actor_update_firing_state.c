@@ -100,7 +100,7 @@ void actor_update_firing_state(datum_index actor_index)
     if (W(a, 0x5f6) > 0) W(a, 0x5f6) -= 1;
     if (W(a, 0x5f8) > 0) W(a, 0x5f8) -= 1;
     if (W(a, 0x5fc) > 0) W(a, 0x5fc) -= 1;
-    if (W(a, 0x60c) > 0) ((struct actor *)a)->unknown_61c += 1;
+    if (W(a, 0x60c) > 0) ((struct actor *)a)->firing_target_ticks += 1;
 
     // 0x40e8c5: what are we shooting at (1 a prop, 2 a point)
     if (W(a, 0x5f2) != 2) {
@@ -124,13 +124,13 @@ void actor_update_firing_state(datum_index actor_index)
             changed = 0;
         }
         if (changed) {
-            ((struct actor *)a)->unknown_61c = 0;
+            ((struct actor *)a)->firing_target_ticks = 0;
         }
         W(a, 0x60c) = kind;
         if (kind == 1) {
             D(a, 0x610) = D(a, 0x270);
         } else if (kind == 2) {
-            *(real_point3d *)&((struct actor *)a)->unknown_610 = *(real_point3d *)(a + 0x460);
+            *(real_point3d *)&((struct actor *)a)->firing_target_prop_index = *(real_point3d *)(a + 0x460);
         }
     }
     a[0x628] = 0;
@@ -143,7 +143,7 @@ void actor_update_firing_state(datum_index actor_index)
         if (grenade != -1 && *(int8_t *)(OBJECT_DATA(D(a, 0x18)) + 0x31e + grenade) == 0) {
             unit_set_grenade_type_and_count_delta(D(a, 0x18), grenade, 1);
         }
-        ((actor *)a)->flags |= 0x2000;
+        ((actor *)a)->control_flags |= 0x2000;
         ai_communication_broadcast(9, D(a, 0x18), k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
         goto idle;
     }
@@ -204,11 +204,11 @@ void actor_update_firing_state(datum_index actor_index)
                 a[0x624] = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
             }
         } else {
-            *(real_point3d *)&((actor *)a)->wander_unknown_62c = *(real_point3d *)&((struct actor *)a)->unknown_610;
+            *(real_point3d *)&((actor *)a)->wander_unknown_62c = *(real_point3d *)&((struct actor *)a)->firing_target_prop_index;
             F(a, 0x638) = vector3d_distance((real_point3d *)(a + 0x610), (real_point3d *)(a + 0x120));
             a[0x621] = 0;
             a[0x624] = 0;
-            if (((struct actor *)a)->unknown_61c % 10 == 0) {
+            if (((struct actor *)a)->firing_target_ticks % 10 == 0) {
                 W(a, 0x626) = (int16_t)actor_evaluate_engagement_reachability(W(a, 0x148), -1,
                     (real_point3d *)(a + 0x62c), (real_point3d *)(a + 0x120), 0, 0, k_datum_index_none,
                     (uint8_t)(D(a, 0x158) != k_datum_index_none));
@@ -464,9 +464,9 @@ dispatch:
     }
     actor_set_override_target(actor_index, enable, *(datum_index *)&value);
     if (secondary_flag) {
-        ((actor *)a)->flags |= 0x1000;
+        ((actor *)a)->control_flags |= 0x1000;
     } else {
-        ((actor *)a)->flags &= ~0x1000u;
+        ((actor *)a)->control_flags &= ~0x1000u;
     }
 }
 

@@ -49,7 +49,7 @@ void actor_mode_search_update(datum_index actor_index)
             ((actor *)act)->vocalization_unknown_3e8 = 1;
         }
     }
-    ((struct actor *)act)->unknown_3fc = 3;
+    ((struct actor *)act)->look_posture = 3;
     if (((struct actor *)act)->mode_data.search.stage == 0) {
         act[0x454] = (uint8_t)(((actor *)act)->target_combat_status >= ((actor_tag[0] & 0x10) ? 5 : 6));
     }

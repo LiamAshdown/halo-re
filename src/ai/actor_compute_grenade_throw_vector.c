@@ -34,9 +34,9 @@ uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3
     real_vector3d direction;                // [esp+0x10]
     float speed;
 
-    if (*(datum_index *)&((struct actor *)a)->unknown_6b4 != k_datum_index_none) {
-        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)&((struct actor *)a)->unknown_6b4 & 0xffff) * 0x138;
-        int16_t kind = ((prop *)p)->kind;
+    if (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index != k_datum_index_none) {
+        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index & 0xffff) * 0x138;
+        int16_t kind = ((prop *)p)->state;
 
         if (kind >= 2 && kind <= 3) {
             target_object = ((prop *)p)->object_index;

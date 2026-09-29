@@ -46,26 +46,26 @@ void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_pr
         encounter_forbids = *((uint8_t *)enc + 0x41) != 0; // ScenarioEncounter.flags bit 3
     }
 
-    if (target->unknown_66 == -1 || target->unknown_66 <= grenade_type) {
-        target->unknown_66 = grenade_type;
-        target->unknown_68 = (uint16_t)(((grenade_type != 3) - 1) & 0x78) + 0x1e;
+    if (target->stimulus_type == -1 || target->stimulus_type <= grenade_type) {
+        target->stimulus_type = grenade_type;
+        target->stimulus_timer = (uint16_t)(((grenade_type != 3) - 1) & 0x78) + 0x1e;
     }
 
     switch (grenade_type) {
     case 0:
-        if (target->unknown_133 == 0) { // UNSURE offset (unnamed byte)
-            *(int16_t *)((uint8_t *)&target->unknown_34 + 2) = 3; // offset 0x36
-            target->unknown_30 = 3;
+        if (target->disregarded == 0) { // UNSURE offset (unnamed byte)
+            *(int16_t *)((uint8_t *)&target->auditory_perception + 2) = 3; // offset 0x36
+            target->perception_level = 3;
             target->combat_dirty = 1;
             actor_queue_recognized_target_dialogue(actor_index, target_prop_index);
         }
         break;
     case 1:
-        if (encounter_forbids == 0 && target->unknown_133 == 0) {
-            target->unknown_12f = 1;
+        if (encounter_forbids == 0 && target->disregarded == 0) {
+            target->shooting = 1;
             target->combat_dirty = 1;
-            *(int16_t *)&target->unknown_34 = 3;
-            target->unknown_30 = 3;
+            *(int16_t *)&target->auditory_perception = 3;
+            target->perception_level = 3;
             if (target->is_parented != 0) {
                 actor_set_units_active(actor_index, 0); // BL = 0 at 0x42a470, 0x42a4b1, 0x42a50e
             }
@@ -73,19 +73,19 @@ void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_pr
         }
         break;
     case 2:
-        if (encounter_forbids == 0 && target->unknown_133 == 0) {
-            target->is_vault = 1;
-            *(int16_t *)&target->unknown_34 = 3;
-            target->unknown_30 = 3;
+        if (encounter_forbids == 0 && target->disregarded == 0) {
+            target->dead = 1;
+            *(int16_t *)&target->auditory_perception = 3;
+            target->perception_level = 3;
             target->combat_dirty = 1;
             actor_set_units_active(actor_index, 0); // BL = 0 at 0x42a470, 0x42a4b1, 0x42a50e
             actor_scan_backup_and_panic_reaction(target_prop_index, actor_index);
         }
         break;
     case 3:
-        if (target->unknown_133 == 0) {
-            *(int16_t *)((uint8_t *)&target->unknown_34 + 2) = 3; // offset 0x36
-            target->unknown_30 = 3;
+        if (target->disregarded == 0) {
+            *(int16_t *)((uint8_t *)&target->auditory_perception + 2) = 3; // offset 0x36
+            target->perception_level = 3;
             target->combat_dirty = 1;
             if (target->is_parented != 0) {
                 actor_set_units_active(actor_index, 0); // BL = 0 at 0x42a470, 0x42a4b1, 0x42a50e

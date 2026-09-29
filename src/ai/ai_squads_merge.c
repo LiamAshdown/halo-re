@@ -117,7 +117,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
         uint8_t *variant_data = 0;
         uint8_t *actor_tag_data = 0;
 
-        if (!(state->unknown_18 > 0) && source_enc->unknown_1e[0] == 0) {
+        if (!(state->living_count > 0) && source_enc->unknown_1e[0] == 0) {
             continue;
         }
         squad = *(uint8_t **)&((struct ScenarioEncounter *)source_definition)->squads.pointer + iterator.cursor * 0xe8;
@@ -195,7 +195,7 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
     }
 
     // 4. unassigned actors that name the source encounter
-    actor_index = ai_globals_ptr->actors_valid != 0 ? ai_globals_ptr->unknown_08 : (datum_index)k_datum_index_none;
+    actor_index = ai_globals_ptr->actors_valid != 0 ? ai_globals_ptr->first_encounterless_actor : (datum_index)k_datum_index_none;
     while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
         datum_index current = actor_index;
         uint8_t *raw = (uint8_t *)&((actor *)actor_data->data)[current & 0xffff];
@@ -203,21 +203,21 @@ void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index,
         int16_t remapped;
 
         actor_index = ((struct actor *)raw)->next_in_encounter;
-        if ((*(uint32_t *)&((struct actor *)raw)->unknown_30 & 0xffff) != source_index) {
+        if ((*(uint32_t *)&((struct actor *)raw)->original_encounter_index & 0xffff) != source_index) {
             continue;
         }
-        squad_index = ((struct actor *)raw)->unknown_38;
+        squad_index = ((struct actor *)raw)->original_squad_index;
         remapped = remap[squad_index];
         if (remapped == -1 || (merging_into_self && remapped == squad_index)) {
             continue;
         }
-        *(uint32_t *)&((struct actor *)raw)->unknown_30 = target_index;
-        ((struct actor *)raw)->unknown_38 = remapped;
+        *(uint32_t *)&((struct actor *)raw)->original_encounter_index = target_index;
+        ((struct actor *)raw)->original_squad_index = remapped;
         if (merging_into_self || *(int16_t *)&((struct ScenarioEncounter *)target_definition)->precomputed_bsp_index != global_structure_bsp_index) {
             continue;
         }
         ai_actor_unlink_from_unassigned_list(current);
-        encounter_add_actor(((struct actor *)raw)->unknown_38, current, ((struct actor *)raw)->unknown_30, 1);
+        encounter_add_actor(((struct actor *)raw)->original_squad_index, current, ((struct actor *)raw)->original_encounter_index, 1);
     }
 
     // 5.

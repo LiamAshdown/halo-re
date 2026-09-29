@@ -72,32 +72,32 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = parent->first_child;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        ((struct game_variant *)variant)->unknown_84 = selection;
+        ((struct game_variant *)variant)->engine.oddball.trait_with_ball = selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 3) {
-        ((struct game_variant *)variant)->unknown_88 = selection;
+        ((struct game_variant *)variant)->engine.oddball.trait_without_ball = selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 2) {
-        ((struct game_variant *)variant)->ctf_value_80 = selection == 0 ? 1 : selection == 1 ? 0 : 2;
+        ((struct game_variant *)variant)->engine.oddball.speed_with_ball = selection == 0 ? 1 : selection == 1 ? 0 : 2;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 2) {
-        ((struct game_variant *)variant)->unknown_8c = selection;
+        ((struct game_variant *)variant)->engine.oddball.ball_type = selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        variant[0x7c] = (uint8_t)(selection == 0);
+        ((struct game_variant *)variant)->engine.oddball.random_start = (uint8_t)(selection == 0);
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 0xf) {
-        ((struct game_variant *)variant)->unknown_90 = selection + 1;
+        ((struct game_variant *)variant)->engine.oddball.ball_count = selection + 1;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -107,11 +107,11 @@ uint8_t ui_event_49ea50(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        variant[0x34] = (uint8_t)(selection == 0);
+        ((struct game_variant *)variant)->teams = (uint8_t)(selection == 0);
     }
     selection = first_list_child(group->next_sibling)->selection_index;
     if (selection >= 0 && selection <= 6) {
-        ((struct game_variant *)variant)->unknown_78 = times[selection];
+        ((struct game_variant *)variant)->time_limit = times[selection];
     }
     widget_history_pop(parent->controller_index);
     return 1;

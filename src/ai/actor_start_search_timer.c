@@ -46,12 +46,12 @@ void actor_start_search_timer(datum_index actor_index, datum_index prop_index)
     // UNSURE: types/ai.h types actor.unknown_3a0 as a datum_index (actor_new sets it to
     // "none"), but this store is plainly the current game tick, not a handle; datum_index is
     // a plain uint32_t so the store is bit-compatible either way.
-    self->unknown_3a0 = (uint32_t)game_time->game_time;
+    self->found_body_time = (uint32_t)game_time->game_time;
 
     actor_target_get_relationship_object(prop_index);
 
-    actor_queue_search_position(actor_index, &target->ground_position, 2, 0,
-                                target->path_surface_index, 0x3fc00000 /* 1.25f */, 90,
+    actor_queue_search_position(actor_index, &target->pathfinding_point, 2, 0,
+                                target->pathfinding_surface_index, 0x3fc00000 /* 1.25f */, 90,
                                 prop_index, 90, 1);
 }
 

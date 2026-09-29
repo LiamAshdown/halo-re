@@ -41,7 +41,7 @@ void game_engine_update_custom_waypoint_navpoints(int16_t local_player_slot)
     player *p;
     int32_t slot;
 
-    if (current_game_engine == 0 || game_engine_variant.unknown_3c != 1 ||
+    if (current_game_engine == 0 || game_engine_variant.objective_indicator != 1 ||
         local_player_slot == -1 || 1 <= local_player_slot) {
         return;
     }
@@ -59,7 +59,7 @@ void game_engine_update_custom_waypoint_navpoints(int16_t local_player_slot)
     for (slot = 0; slot < k_maximum_custom_waypoints; slot++) {
         if (custom_waypoint_matches_filter((int32_t)local_player, &custom_waypoints[slot], p->team) != 0) {
             if (current_game_engine == 0 || current_game_engine->index != _game_engine_ctf ||
-                game_engine_variant.ctf_option_7c != 0 ||
+                game_engine_variant.engine.ctf.assault != 0 ||
                 custom_waypoints[slot].team == p->team || custom_waypoints[slot].team == -1) {
                 hud_waypoint_visibility(0xffffffff, 1);
             } else {

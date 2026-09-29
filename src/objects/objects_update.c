@@ -65,7 +65,7 @@ void objects_update(void)
 
     restrict_to_units = (*(uint8_t *)((uint8_t *)game_time + 0xc) & 1) != 0 && main_game_globals[2] != 0;
 
-    globals->unknown_04 = 0;
+    globals->active_garbage_object_count = 0;
 
     cluster_count = *(int16_t *)&global_structure_bsp->clusters.count;
     word_count = (cluster_count + 0x1f) >> 5;

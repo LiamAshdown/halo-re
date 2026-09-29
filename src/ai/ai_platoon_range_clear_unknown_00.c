@@ -35,7 +35,7 @@ void ai_platoon_range_clear_unknown_00(uint32_t packed_reference)
         if (state == 0) {
             return;
         }
-        state->unknown_00 = 0;
+        state->defending = 0;
     }
 }
 

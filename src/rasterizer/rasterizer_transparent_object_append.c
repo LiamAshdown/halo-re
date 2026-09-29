@@ -80,11 +80,11 @@ void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dyna
         group->tint.red = 0.0f;
         group->tint.green = 0.0f;
         group->tint.blue = 0.0f;
-        group->unknown_40 = 1.0f;
-        group->unknown_3c = 1.0f;
+        group->base_map_v_scale = 1.0f;
+        group->base_map_u_scale = 1.0f;
         group->previous_group_index = -1;
         group->next_group_index = -1;
-        group->unknown_a0 = 0;
+        group->parent_sort_key = 0;
         group->first_person = 0;
 
         if (shader->shader_type == 1 && (*((uint8_t *)shader + 0x28) & 1) != 0) {

@@ -32,28 +32,28 @@ void encounter_advance_grenade_timers(datum_index encounter_index)
 
     self = (encounter *)((uint8_t *)encounter_data->data + (encounter_index & 0xffff) * sizeof(encounter));
 
-    if (self->unknown_45 == 0) {
-        if (self->unknown_50 != (datum_index)0xffffffff) {
-            self->unknown_50 = self->unknown_50 + 0xf;
+    if (self->engaged == 0) {
+        if (self->ticks_since_engaged != (datum_index)0xffffffff) {
+            self->ticks_since_engaged = self->ticks_since_engaged + 0xf;
         }
     } else {
-        self->unknown_50 = 0;
+        self->ticks_since_engaged = 0;
     }
 
-    if (self->unknown_44 == 0) {
-        if (self->unknown_54 != (datum_index)0xffffffff) {
-            self->unknown_54 = self->unknown_54 + 0xf;
+    if (self->has_live_target == 0) {
+        if (self->ticks_since_live_target != (datum_index)0xffffffff) {
+            self->ticks_since_live_target = self->ticks_since_live_target + 0xf;
         }
     } else {
-        self->unknown_54 = 0;
+        self->ticks_since_live_target = 0;
     }
 
-    if ((self->unknown_47 != 0) && (self->unknown_48 != 0)) {
-        if (0xf < self->unknown_4a) {
-            self->unknown_4a = self->unknown_4a - 0xf;
+    if ((self->post_combat != 0) && (self->post_combat_quiet != 0)) {
+        if (0xf < self->post_combat_timer) {
+            self->post_combat_timer = self->post_combat_timer - 0xf;
             return;
         }
-        self->unknown_4a = 0;
+        self->post_combat_timer = 0;
     }
     return;
 }

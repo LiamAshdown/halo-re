@@ -69,7 +69,7 @@ int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16
     result = -1;
     weight = 1.0f;
 
-    if (ai_globals_ptr->communication_valid && line_id != -1) {
+    if (ai_globals_ptr->dialogue_triggers_enabled && line_id != -1) {
         index = 0;
         // &ai_communication_event_definitions[0].required_kind: the original walks the
         // 0x24-stride table one field in, so entry[-1] is event_id and entry[0] is

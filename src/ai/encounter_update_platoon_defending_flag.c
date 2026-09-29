@@ -44,7 +44,7 @@ void encounter_update_platoon_defending_flag(datum_index encounter_index)
         do {
             platoon_state = &encounter_platoon_states[(int16_t)(self->first_platoon + platoon_index)];
 
-            if (0 < platoon_state->unknown_06) {
+            if (0 < platoon_state->living_count) {
                 if (((uint8_t *)platoon_state)[1] == 0) {
                     // FIXED (0x439438..0x43943f): EAX = the encounter, EDI = platoon definition +0x3c (maneuver_when)
                     ((uint8_t *)platoon_state)[1] = encounter_evaluate_platoon_condition(encounter_index,
@@ -52,10 +52,10 @@ void encounter_update_platoon_defending_flag(datum_index encounter_index)
                 }
                 if ((((uint8_t *)platoon_state)[2] != 0) || (((uint8_t *)platoon_state)[1] == 0)) {
                     not_defending = ~(uint8_t)(((ScenarioPlatoon *)encounter_definition->platoons.pointer)[platoon_index].flags >> 2) & 1;
-                    if ((platoon_state->unknown_00 != not_defending) &&
+                    if ((platoon_state->defending != not_defending) &&
                         (encounter_evaluate_platoon_condition(encounter_index, // FIXED: EDI = platoon +0x30 (0x43946a)
                             (const ai_platoon_condition *)((uint8_t *)encounter_definition->platoons.pointer + platoon_index * 0xac + 0x30)) != 0)) {
-                        platoon_state->unknown_00 = not_defending;
+                        platoon_state->defending = not_defending;
                     }
                 }
             }

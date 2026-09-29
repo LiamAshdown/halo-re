@@ -100,7 +100,7 @@ void game_engine_apply_player_grenade_counts(uint32_t player_index)
                 return;
             }
 
-            switch (game_engine_variant.starting_equipment) {
+            switch (game_engine_variant.weapon_set) {
             case 3:
             case 10:
                 plasma_result = plasma_result + frag_result;

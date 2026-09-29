@@ -126,7 +126,7 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
 
             if (enc->units_active != 0) {
                 if (a->awareness_level == 3) {
-                    if (1 < a->unknown_6e) {
+                    if (1 < a->combat_status) {
                         extra = 0;
                         if (a->encounter_index != (datum_index)k_datum_index_none) {
                             squad = &((ScenarioSquad *)
@@ -143,7 +143,7 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
                                 ((ScenarioEncounter *)global_scenario->encounters.pointer)
                                     [a->encounter_index & 0xffff].squads.pointer)[a->squad_index];
                             extra = *(uint32_t *)((uint8_t *)squad + 0x54 +
-                                (int16_t)((-(uint16_t)(a->unknown_374 != 0) & 3) + 2) * 4);
+                                (int16_t)((-(uint16_t)(a->defending != 0) & 3) + 2) * 4);
                         }
                         zone_mask = zone_mask | extra;
                     } else if (a->mode == 3 || a->mode == 5) {
@@ -190,11 +190,11 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
         }
 
         if (record_per_actor != 0) {
-            if (encounter_squad_states[(int16_t)(a->squad_index + enc->first_squad)].unknown_14
+            if (encounter_squad_states[(int16_t)(a->squad_index + enc->first_squad)].dormancy_disabled
                 != 0) {
                 visible = 0;
             }
-            a->unknown_12 = visible;
+            a->can_go_dormant = visible;
         }
         actor_index = a->next_in_encounter;
     } while (actor_index != (datum_index)k_datum_index_none);

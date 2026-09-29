@@ -69,7 +69,7 @@ datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_ind
             }
             p = (prop *)((uint8_t *)prop_data->data + (cur & 0xffff) * sizeof(prop));
             if ((p->object_index == object_index) ||
-                ((p->has_parent != 0) && (p->owner_actor_index != (datum_index)0xffffffff) &&
+                ((p->swarm_owned != 0) && (p->owner_actor_index != (datum_index)0xffffffff) &&
                  ((int32_t)p->owner_actor_index == cluster_ref))) {
                 break;
             }
@@ -96,12 +96,12 @@ datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_ind
                     prop *p = (prop *)((uint8_t *)prop_data->data + (result & 0xffff) * sizeof(prop));
 
                     actor_target_data_refresh(actor_index, result, scratch, 0, flag);
-                    p->unknown_6a = 0x1e;
-                    p->unknown_126 = 1;
+                    p->retain_timer = 0x1e;
+                    p->just_created = 1;
 
-                    if ((uint8_t)flag != 0 && (actor_target_update_tracking_speed(actor_index, result, scratch), 1 < p->unknown_30)) {
+                    if ((uint8_t)flag != 0 && (actor_target_update_tracking_speed(actor_index, result, scratch), 1 < p->perception_level)) {
                         uint8_t seen_flag = actor_target_has_conflicting_neighbor(actor_index, result); // 0x43eca0: EAX = actor
-                        p->kind = 3;
+                        p->state = 3;
                         actor_target_reset_combat_flags(result, actor_index, 0, seen_flag); // 0x43ecb4: ECX = prop
                     }
                 }

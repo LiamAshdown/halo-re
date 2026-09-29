@@ -53,13 +53,13 @@ void unit_update_animation_timers(uint32_t unit_index)
         unit_choose_dialogue_variant(unit_index);
         ((unit_object *)obj)->unit.flags &= 0xfffffeff;
     }
-    if (((struct unit_object *)obj)->unit.unknown_3e8 > 0) {
-        int16_t value = (int16_t)(((struct unit_object *)obj)->unit.unknown_3e8 - 1);
+    if (((struct unit_object *)obj)->unit.minor_hurt_speech_decay_ticks > 0) {
+        int16_t value = (int16_t)(((struct unit_object *)obj)->unit.minor_hurt_speech_decay_ticks - 1);
 
-        ((struct unit_object *)obj)->unit.unknown_3e8 = value;
-        if (value == 0 && ((struct unit_object *)obj)->unit.unknown_3ea > 0) {
-            ((struct unit_object *)obj)->unit.unknown_3ea = (int16_t)(((struct unit_object *)obj)->unit.unknown_3ea - 1);
-            ((struct unit_object *)obj)->unit.unknown_3e8 = 0x16;
+        ((struct unit_object *)obj)->unit.minor_hurt_speech_decay_ticks = value;
+        if (value == 0 && ((struct unit_object *)obj)->unit.minor_hurt_speech_count > 0) {
+            ((struct unit_object *)obj)->unit.minor_hurt_speech_count = (int16_t)(((struct unit_object *)obj)->unit.minor_hurt_speech_count - 1);
+            ((struct unit_object *)obj)->unit.minor_hurt_speech_decay_ticks = 0x16;
         }
     }
     count_down(obj + 0x3ec);

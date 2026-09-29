@@ -85,7 +85,7 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
     unknown_9bc_base = (uint8_t *)server;
     field_9c4 = (int32_t *)(unknown_9bc_base + 0x9c4);
 
-    if (server->unknown_004 != 1) {
+    if (server->state != 1) {
         int16_t *machine_id_ptr;
         char all_processed_or_invalid;
 
@@ -114,9 +114,9 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
             char has_client;
 
             has_client = (network_client != 0);
-            server->unknown_004 = 1;
+            server->state = 1;
             *field_9c4 = 0;
-            server->session.unknown_3ac = has_client ? *((uint8_t *)network_client + 0xec0) : 0;
+            server->session.map_loaded = has_client ? *((uint8_t *)network_client + 0xec0) : 0;
             // UNSURE: network_client+0xec0 == &network_client->session + 0x3ac,
             // i.e. network_client->session.unknown_3ac
         }
@@ -144,12 +144,12 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
                             ok = network_player_join_finalize();
                         } else {
                             ok = 0;
-                            if (network_player_entry_validate(entry) != 0 && server->unknown_004 == 1) {
+                            if (network_player_entry_validate(entry) != 0 && server->state == 1) {
                                 // UNSURE: EAX at this second call site was not re-derived;
                                 // entry is the only live candidate.
                                 ok = network_channel_key_open();
                                 if (ok != 0) {
-                                    player_data_iterator_advance((uint8_t)entry->unknown_1e);
+                                    player_data_iterator_advance((uint8_t)entry->slot_index) /* FIXED 2026-09-29: the original reads +0x1f, not +0x1e */;
                                     datum_new_at_index_with_salt();
                                     datum_new_at_index_with_salt();
                                     player_update_queue_create();
@@ -157,8 +157,8 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough,
                             }
                         }
                         if (ok != 0) {
-                            machine->unknown_50 = 1;
-                            player_datum = player_data_iterator_advance((uint8_t)entry->unknown_1e);
+                            machine->player_joined = 1;
+                            player_datum = player_data_iterator_advance((uint8_t)entry->slot_index) /* FIXED 2026-09-29: the original reads +0x1f, not +0x1e */;
                             game_engine_player_new_life(player_datum);
                             if (game_engine_player_profile_cache_find() != -1) {
                                 handled = 1;

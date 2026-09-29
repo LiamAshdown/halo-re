@@ -30,7 +30,7 @@ void actor_dispatch_perception_reset(datum_index actor_index)
 
     if (self->swarm == 0) {
         actor_reset_perception_scratch(self->unit_index);
-        self->unknown_07 = 1;
+        self->unit_control_pending = 1;
         return;
     }
 
@@ -41,7 +41,7 @@ void actor_dispatch_perception_reset(datum_index actor_index)
             actor_reset_perception_scratch(s->unit_index[i]);
         }
     }
-    self->unknown_07 = 1;
+    self->unit_control_pending = 1;
 }
 
 #if 0

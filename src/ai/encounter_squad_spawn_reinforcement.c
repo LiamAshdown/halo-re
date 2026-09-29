@@ -66,8 +66,8 @@ uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_
             squad_definition = &((ScenarioSquad *)encounter_definition->squads.pointer)[squad_index];
             squad_state = &encounter_squad_states[(int16_t)(self->first_squad + squad_index)];
 
-            self->unknown_2a = self->unknown_2a + 1;
-            squad_state->unknown_18 = squad_state->unknown_18 + 1;
+            self->living_count = self->living_count + 1;
+            squad_state->living_count = squad_state->living_count + 1;
             if (0 < squad_definition->respawn_total) {
                 squad_state->respawn_budget = squad_state->respawn_budget - 1; // see header UNSURE
             }
@@ -82,7 +82,7 @@ uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_
                 float r = (float)((uint32_t)random_seed_global >> 0x10) * k_random_scale_65536;
 
                 randomized = (r * (hi - lo) + lo) * ticks_per_second;
-                self->unknown_3e = (int16_t)(int32_t)randomized;
+                self->respawn_delay_ticks = (int16_t)(int32_t)randomized;
             }
 
             random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
@@ -92,7 +92,7 @@ uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_
                 float r = (float)((uint32_t)random_seed_global >> 0x10) * k_random_scale_65536;
 
                 randomized = (r * (hi - lo) + lo) * ticks_per_second;
-                squad_state->unknown_0e = (int16_t)(int32_t)randomized;
+                squad_state->respawn_delay_ticks = (int16_t)(int32_t)randomized;
             }
         }
     }

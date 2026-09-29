@@ -20,7 +20,7 @@ void ai_actor_unlink_from_unassigned_list(datum_index actor_index)
 {
     if (ai_globals_ptr->actors_valid != 0) {
         actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-        datum_index *link = &ai_globals_ptr->unknown_08;
+        datum_index *link = &ai_globals_ptr->first_encounterless_actor;
 
         while (*link != actor_index) {
             actor *node = &((actor *)actor_data->data)[*link & 0xffff];
@@ -28,9 +28,9 @@ void ai_actor_unlink_from_unassigned_list(datum_index actor_index)
         }
 
         *link = a->next_in_encounter;
-        a->unknown_09 = 0;
+        a->encounterless = 0;
         a->next_in_encounter = (datum_index)k_datum_index_none;
-        a->unknown_0a = 0;
+        a->force_active = 0;
     }
 }
 

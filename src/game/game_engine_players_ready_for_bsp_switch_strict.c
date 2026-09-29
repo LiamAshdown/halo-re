@@ -81,7 +81,7 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
         return result;
     }
 
-    if (0 < game_engine_variant.lives_per_round || game_engine_variant.unknown_40 != 0) {
+    if (0 < game_engine_variant.lives_per_round || game_engine_variant.odd_man_out != 0) {
         int32_t spawned_reference_team;
         uint8_t disagreement_found;
         int32_t previous_team;

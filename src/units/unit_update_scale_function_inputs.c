@@ -55,19 +55,19 @@ void unit_update_scale_function_inputs(uint32_t object_index)
             float value = 0.0f;
             switch (*selector) {
             case 1:
-                value = unit->unknown_338;
+                value = unit->driver_seat_power;
                 break;
             case 2:
-                value = unit->unknown_33c;
+                value = unit->gunner_seat_power;
                 break;
             case 3:
-                value = (float)(int32_t)(uint8_t)unit->unknown_323 * 0.003921569f; // movzx: unsigned byte / 255
+                value = (float)(int32_t)(uint8_t)unit->aiming_change * 0.003921569f; // movzx: unsigned byte / 255
                 break;
             case 4:
-                value = unit->animation_blend_weight;
+                value = unit->mouth_aperture;
                 break;
             case 5:
-                value = unit->unknown_340;
+                value = unit->integrated_light_power;
                 break;
             case 6:
                 if ((obj->vitality_flags & 4) == 0 && (unit->flags & 0x400000) == 0) { // UNSURE: 0x400000 not in unit_flags
@@ -85,7 +85,7 @@ void unit_update_scale_function_inputs(uint32_t object_index)
                 if (obj->animation_index < frame_count) {
                     value = (float)(int32_t)obj->animation_index / (float)(int32_t)frame_count;
                 } else {
-                    value = 1.0f - (float)(int32_t)unit->unknown_20e * 0.011111111f;
+                    value = 1.0f - (float)(int32_t)unit->shield_sapping * 0.011111111f;
                 }
                 break;
             }

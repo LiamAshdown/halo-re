@@ -31,17 +31,17 @@ uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, real_vec
         return 0;
     }
 
-    if (self->unknown_504 == 0) {
+    if (self->moving == 0) {
         if (self->movement_action_complete == 0) {
             return 0;
         }
-        out_direction->i = self->unknown_488.x - self->body_position.x;
-        out_direction->j = self->unknown_488.y - self->body_position.y;
-        out_direction->k = self->unknown_488.z - self->body_position.z;
+        out_direction->i = self->destination.x - self->body_position.x;
+        out_direction->j = self->destination.y - self->body_position.y;
+        out_direction->k = self->destination.z - self->body_position.z;
     } else {
-        out_direction->i = self->unknown_518.x;
-        out_direction->j = self->unknown_518.y;
-        out_direction->k = self->unknown_518.z;
+        out_direction->i = self->desired_movement_vector.x;
+        out_direction->j = self->desired_movement_vector.y;
+        out_direction->k = self->desired_movement_vector.z;
     }
 
     return vector3d_normalize_with_length(out_direction) != 0.0f;

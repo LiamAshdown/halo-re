@@ -101,13 +101,13 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
     }
     memset(&iterator, 0, sizeof(iterator));
     iterator.filter_array = encounter_data;
-    iterator.unknown_04 = 0;
+    iterator.next_index = 0;
     iterator.cursor = -1;
     iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
-    iterator.unknown_10 = 0;
+    iterator.encounterless_done = 0;
     iterator.active = 1;
     iterator.actor_index = k_datum_index_none;
-    iterator.unknown_18 = -1;
+    iterator.next_actor_index = -1;
 
     for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
         uint8_t *ap = (uint8_t *)a;
@@ -149,7 +149,7 @@ void ai_propagate_communication_reaction(datum_index object_index, ai_communicat
             uint32_t firing[0x18]; // [esp+0x44]
 
             actor_get_firing_positions(actor_index, firing, &position);
-            if ((int16_t)actor_target_hearing_check(location, (int16_t)*(uint16_t *)&((struct prop *)p)->unknown_38, actor_index,
+            if ((int16_t)actor_target_hearing_check(location, (int16_t)*(uint16_t *)&((struct prop *)p)->obstruction, actor_index,
                                            firing, gate, &position) >= 2) {
                 actor_dispatch_squad_order(prop_index, (const actor_squad_order_header *)order, actor_index);
                 ai_dispatch_queued_order((ai_queued_order *)order, prop_index, actor_index);

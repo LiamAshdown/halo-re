@@ -40,7 +40,7 @@ int32_t network_host_send_scenario_announcement(network_server_globals *host)
                                    //         contents are not visible in the decompilation
 
     result = 1;
-    if (host->unknown_9f9 == 0) {
+    if (host->scenario_announced == 0) {
         message_delta_parameters_protocol_send_update();
         payload = (uint8_t *)host + 8;
         encode_result = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &payload, 0, 1, 0);
@@ -53,13 +53,13 @@ int32_t network_host_send_scenario_announcement(network_server_globals *host)
             challenge_packet = (int32_t)network_prepare_challenge_packet(0x0a, challenge_payload);
             if (challenge_packet != 0) {
                 if (network_session_broadcast_to_all(network_server, 0, (void *)(uint32_t)challenge_packet, 1, 0, 1, 3) != 0) {
-                    host->unknown_9f9 = 1;
+                    host->scenario_announced = 1;
                     result = 1;
                 }
             }
         }
     }
-    host->unknown_9b8 = 0;
+    host->update_tick = 0;
     return result;
 }
 

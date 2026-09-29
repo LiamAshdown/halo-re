@@ -72,7 +72,7 @@ void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record
     uint8_t *powered = (uint8_t *)out_record;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real mass = *(real *)(physics + 0x8);
-    real throttle = ((struct vehicle_object *)obj)->unit.unknown_338;
+    real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);
     real_vector3d *object_up = (real_vector3d *)(obj + 0x80);

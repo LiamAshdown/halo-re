@@ -63,7 +63,7 @@ uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
     out_in_front = 0;
-    self->unknown_55c = 0;
+    self->idle_major_active = 0;
 
     if (force_fallback ||
         actor_select_facing_target_prop(actor_index, require_trust, use_aiming_deviation,
@@ -99,11 +99,11 @@ uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index
         }
 
         pitch_center = -pitch_half;
-        if (self->unknown_161 != 0) {
+        if (self->vehicle_gunner != 0) {
             pitch_center = pitch_center * 0.5f;
         }
 
-        self->unknown_56c = 4;
+        self->idle_major_direction_type = 4;
         if (!actor_look_pick_random_point_in_cone(&self->aim_origin, -yaw_half, yaw_half, pitch_center, pitch_half,
                                                     &direction, 1, (real_point3d *)&self->unknown_56e[2])) {
             return (uint8_t)out_in_front;
@@ -111,12 +111,12 @@ uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index
     }
 
     wait_ticks = actor_look_get_wait_ticks(actor_index, (use_aiming_deviation == 0) + 1, out_in_front, deviation_table);
-    self->unknown_564 = wait_ticks;
+    self->idle_major_timer = wait_ticks;
     if (wait_ticks == 0) {
         return (uint8_t)out_in_front;
     }
-    self->unknown_55c = 1;
-    self->unknown_55d = (int8_t)use_aiming_deviation;
+    self->idle_major_active = 1;
+    self->idle_major_is_aiming = (int8_t)use_aiming_deviation;
     return (uint8_t)out_in_front;
 }
 

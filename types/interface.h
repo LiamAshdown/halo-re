@@ -81,8 +81,12 @@ typedef struct widget_instance {
     uint8_t hidden;                    // 0x12 skipped by the focus and hit-test walks
     uint8_t pauses_game_time;          // 0x13 definition flags bit 1, drives ui_pause_depth
     uint8_t closing;                   // 0x14 widget_close latches this to stay reentrant
-    uint8_t unknown_15;                // 0x15 tested by main_menu_on_shown @0x498ab0
-    uint8_t unknown_16[2];             // 0x16
+    uint8_t is_error_dialog;           // 0x15 display_error sets 1 on the dialog and refuses a new one while root has
+                                       //    it; main_menu_on_shown skips auto-close when set; region draws use it for
+                                       //    controller filtering
+    uint8_t close_on_controller_connected[2]; // 0x16 display_error sets [0]=1 for error 0xd;
+                                              //    widget_instance_handle_input_event closes the root once
+                                              //    joystick_slot_devices[controller] != -1
     int32_t creation_time;             // 0x18 copied from ui_time_milliseconds
     int32_t milliseconds_to_auto_close;      // 0x1c definition + 0x30, negatives clamped to 0
     int32_t milliseconds_auto_close_fade;    // 0x20 definition + 0x34, negatives clamped to 0
@@ -100,7 +104,9 @@ typedef struct widget_instance {
     int16_t unknown_4a;                // 0x4a
     struct widget_instance *extended_description; // 0x4c definition + 0x1b0, closed recursively
     void *list_render_data;            // 0x50 list types only, freed by widget_close
-    int16_t unknown_54;                // 0x54 zeroed for spinner_list and column_list
+    int16_t selection_direction;       // 0x54 -1/+1 set by widget_list_select_previous/next, cyclable_list_nudge,
+                                       //    ui_event_4a1dc0; video_options_menu_update steps gamma by it;
+                                       //    render_list_head clears it
     int16_t unknown_56;                // 0x56
     int16_t background_bitmap_frame;   // 0x58 0 or 1, 1 marks the selected list_head child
     uint8_t unknown_5a[4];             // 0x5a
@@ -342,17 +348,26 @@ typedef struct first_person_weapon_interface {
     datum_index unit_index;    // 0x0004 the controlled unit object
     datum_index weapon_index;  // 0x0008 the unit current weapon object
     int16_t state;             // 0x000c animation state, driven by 0x492d20 and 0x492e60
-    int16_t unknown_0e;        // 0x000e
-    int16_t unknown_10;        // 0x0010
+    int16_t idle_delay_ticks;  // 0x000e first_person_weapon_update 0x493150: seeded random(first_person_idle_time)*30
+                               //    in state 0; when idle_ticks exceeds it, state 5 (idle anim) unless skip_fraction
+    int16_t idle_ticks;        // 0x0010 0x493150 increments while idle in state 0, zeroed otherwise; compared against
+                               //    unknown_0e; 0x493c60 zeroes it
     int16_t shutdown_countdown; // 0x0012 reseeded to 0x1e by 0x4942e0
     int16_t animation_index;   // 0x0014 first person animation index, -1 when none
-    int16_t unknown_16;        // 0x0016
-    uint8_t unknown_18[2];     // 0x0018
-    int16_t unknown_1a;        // 0x001a
+    int16_t current_animation; // 0x0016 0x492e60 stores the resolved animation index for new state; 0x493150
+                               //    animation_state_advance(&+0x16) ; 0x493740
+                               //    animation_get_frame_orientations(&animations[+0x16], frame +0x18)
+    uint8_t current_animation_frame[2]; // 0x0018 0x492e60 zeroes the word with the new animation; 0x493740 frame arg
+                                        //    for +0x16; type should be int16_t, not uint8_t[2]
+    int16_t moving_animation;  // 0x001a 0x493150 set to fp-weapon list[3] ('moving') while unit throttle>0.1, -1 when
+                               //    stopped; 0x493740 overlays it with frame +0x1c
     uint8_t unknown_1c[4];     // 0x001c
-    int16_t unknown_20;        // 0x0020
+    int16_t overcharged_animation; // 0x0020 0x493150 set to fp list[15] (overcharged-jitter overlay) in state 4,
+                                   //    frame float +0x24 advanced by weapon +0x244; 0x493740 weighted overlay
     uint8_t unknown_22[6];     // 0x0022
-    float unknown_28;          // 0x0028 cleared together with the next field by 0x493c60
+    float recoil;              // 0x0028 0x493150 real_seek_toward_clamped(velocity=+0x2c 'charge', value=+0x28);
+                               //    action 0 (primary fire, weapon_fire_trigger) kicks +0x2c; overlays frame 8
+                               //    weighted by it
     float charge;              // 0x002c nudged by action code 0 in 0x4940f0
     uint8_t unknown_30[0x58];  // 0x0030 aim sway and idle timers written by 0x493150
     int16_t blend_start;       // 0x0088 written by 0x4930b0 when a blended change starts
@@ -366,8 +381,11 @@ typedef struct first_person_weapon_interface {
     uint8_t device_hud_valid;         // 0x1e0e second hud_meter_find_matching_element result
     uint8_t pad_1e0f;                 // 0x1e0f
     int16_t device_hud_element[0x44]; // 0x1e10 second match table
-    int32_t unknown_1e98;             // 0x1e98 reset to -1
-    int16_t unknown_1e9c;             // 0x1e9c reset to -1
+    int32_t frame_sound_index;        // 0x1e98 0x493150 = sound_start_at_object_marker(weapon, frame sound from
+                                      //    animation_state_advance); 0x492e60 sound_impulse_fade_out(it) on forced
+                                      //    state change
+    int16_t frame_sound_state;        // 0x1e9c 0x493150 records fp->state when the frame sound starts; 0x492e60 skips
+                                      //    the fade when it is 1; reset -1 with the sound
     int16_t unknown_1e9e;             // 0x1e9e
 } first_person_weapon_interface;      // size 0x1ea0
 

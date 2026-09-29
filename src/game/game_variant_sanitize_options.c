@@ -32,46 +32,46 @@ void game_variant_sanitize_options(game_variant *variant)
     variant->game_engine_index = engine_index;
 
     variant->teams = (variant->teams != 0);
-    variant->unknown_40 = (variant->unknown_40 != 0);
+    variant->odd_man_out = (variant->odd_man_out != 0);
 
     if (variant->respawn_time_growth < 0) variant->respawn_time_growth = 0;
     if (variant->respawn_time < 0) variant->respawn_time = 0;
     if (variant->suicide_penalty < 0) variant->suicide_penalty = 0;
     if (variant->lives_per_round < 0) variant->lives_per_round = 0;
 
-    if (variant->speed_scale < 0.25f) {
-        variant->speed_scale = 0.25f;
-    } else if (variant->speed_scale > 4.0f) {
-        variant->speed_scale = 4.0f;
+    if (variant->health < 0.25f) {
+        variant->health = 0.25f;
+    } else if (variant->health > 4.0f) {
+        variant->health = 4.0f;
     }
 
-    if (variant->starting_equipment < 0) {
-        variant->starting_equipment = 0;
-    } else if (variant->starting_equipment > 0xd) {
-        variant->starting_equipment = 0xd;
+    if (variant->weapon_set < 0) {
+        variant->weapon_set = 0;
+    } else if (variant->weapon_set > 0xd) {
+        variant->weapon_set = 0xd;
     }
 
     {
-        uint32_t low_nibble = variant->vehicle_set & 0xf;
+        uint32_t low_nibble = variant->red_vehicle_set & 0xf;
         if (low_nibble > 8) {
             low_nibble = 8;
         }
-        variant->vehicle_set = (variant->vehicle_set & ~(uint32_t)0xf) | low_nibble;
+        variant->red_vehicle_set = (variant->red_vehicle_set & ~(uint32_t)0xf) | low_nibble;
     }
 
     if (engine_index == _game_engine_ctf) {
-        variant->ctf_option_7c = (variant->ctf_option_7c != 0);
-        variant->ctf_option_7d = (variant->ctf_option_7d != 0);
-        variant->ctf_option_7e = (variant->ctf_option_7e != 0);
-        variant->ctf_option_7f = (variant->ctf_option_7f != 0);
+        variant->engine.ctf.assault = (variant->engine.ctf.assault != 0);
+        variant->engine.ctf.unknown_7d = (variant->engine.ctf.unknown_7d != 0);
+        variant->engine.ctf.flag_must_reset = (variant->engine.ctf.flag_must_reset != 0);
+        variant->engine.ctf.flag_at_home_to_score = (variant->engine.ctf.flag_at_home_to_score != 0);
         variant->teams = 1;
-        if (variant->ctf_value_80 < 0) {
-            variant->ctf_value_80 = 0;
+        if (variant->engine.ctf.single_flag_time < 0) {
+            variant->engine.ctf.single_flag_time = 0;
         }
     } else if (engine_index == _game_engine_slayer) {
-        variant->ctf_option_7c = (variant->ctf_option_7c != 0);
-        variant->ctf_option_7d = (variant->ctf_option_7d != 0);
-        variant->ctf_option_7e = (variant->ctf_option_7e != 0);
+        variant->engine.slayer.death_bonus = (variant->engine.slayer.death_bonus != 0);
+        variant->engine.slayer.kill_penalty = (variant->engine.slayer.kill_penalty != 0);
+        variant->engine.slayer.kill_in_order = (variant->engine.slayer.kill_in_order != 0);
     }
 }
 

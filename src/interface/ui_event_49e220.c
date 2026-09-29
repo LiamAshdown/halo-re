@@ -34,7 +34,7 @@ uint8_t ui_event_49e220(widget_instance *widget, int16_t *event, uint8_t *out_ha
     switch (widget->parent->selection_index) {
     case 0:
         type = 1;
-        variant[0x34] = 1;
+        ((struct game_variant *)variant)->teams = 1;
         break;
     case 1:
         type = 4;

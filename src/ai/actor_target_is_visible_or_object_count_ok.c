@@ -29,7 +29,7 @@ uint8_t actor_target_is_visible_or_object_count_ok(datum_index actor_index, int1
     }
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    p = (prop *)((uint8_t *)prop_data->data + (self->unknown_610 & 0xffff) * sizeof(prop));
+    p = (prop *)((uint8_t *)prop_data->data + (self->firing_target_prop_index & 0xffff) * sizeof(prop));
 
     if (p->relationship_object_index != -1) {
         return 1;

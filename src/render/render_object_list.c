@@ -119,12 +119,12 @@ void render_object_list(object_render_data *data, render_model_effect *parent_ef
                         ((object_header *)object_data->data)[(uint16_t)object_index].data;
                     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
-                    if (unit->unknown_37c > 0.0f) {
+                    if (unit->active_camouflage_power > 0.0f) {
                         effect.centroid = obj->bounding_center;
                         effect.type = _render_model_effect_active_camouflage;
                         effect.object_index = object_index;
-                        effect.unit_37c = unit->unknown_37c;
-                        effect.unit_380 = unit->unknown_380;
+                        effect.unit_37c = unit->active_camouflage_power;
+                        effect.unit_380 = unit->super_active_camouflage_power;
                     }
                 }
                 if ((tag_data->flags & 0x02) != 0) { // ObjectFlags transparent_self_occlusion

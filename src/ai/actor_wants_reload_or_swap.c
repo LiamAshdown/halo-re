@@ -1,7 +1,7 @@
 // actor_wants_reload_or_swap  (Ghidra: actor_wants_reload_or_swap, renamed)
 // address 0x40ab80, size 161 bytes
 // name confidence: 0.4   rewrite confidence: 0.9 (checked against objdump 0x40ab80..0x40ac20)
-// evidence: types/ai.h actor.unknown_90/unknown_92/encounter_index/squad_index/unknown_6e/
+// evidence: types/ai.h actor.unknown_90/unknown_92/encounter_index/squad_index/combat_status/
 //   mode; encounter.first_squad (0x04) and encounter_squad_state.unknown_12 (0x12), reached
 //   through encounter_data/encounter_squad_states exactly as established elsewhere; phase-4
 //   summary "returns whether the actor currently wants to reload or swap weapons, based on
@@ -27,7 +27,7 @@ uint8_t actor_wants_reload_or_swap(uint32_t actor_index)
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
     uint8_t result = 0;
 
-    if (a->unknown_90 != -1 && a->unknown_92 > 0) {
+    if (a->pending_command_list != -1 && a->command_list_delay > 0) {
         result = 1;
     }
 
@@ -36,7 +36,7 @@ uint8_t actor_wants_reload_or_swap(uint32_t actor_index)
         encounter_squad_state *squad = &encounter_squad_states[enc->first_squad + a->squad_index];
 
         if (squad->squad_delay_ticks > 0) {
-            if (a->unknown_6e < 5) {
+            if (a->combat_status < 5) {
                 result = 1;
             } else {
                 encounter_squad_clear_spawn_delay(a->encounter_index, a->squad_index); // 0x40abf6: ECX, DX

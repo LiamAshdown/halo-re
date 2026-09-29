@@ -40,19 +40,19 @@ void game_engine_slayer_update(datum_index player_index)
     uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200);
     datum_index target;
 
-    if (game_engine_variant.ctf_option_7d != 0 && ((struct player *)player)->speed > 1.0f) {
+    if (game_engine_variant.engine.slayer.kill_penalty != 0 && ((struct player *)player)->speed > 1.0f) {
         float speed = ((struct player *)player)->speed - 0.000111111112f;
 
         ((struct player *)player)->speed = speed > 1.0f ? speed : 1.0f;
     }
-    if (game_engine_variant.ctf_option_7c != 0 && ((struct player *)player)->speed < 1.0f) {
+    if (game_engine_variant.engine.slayer.death_bonus != 0 && ((struct player *)player)->speed < 1.0f) {
         float speed = ((struct player *)player)->speed + 0.0000111111112f;
 
         ((struct player *)player)->speed = speed <= 1.0f ? speed : 1.0f;
     }
-    if (game_engine_variant.ctf_option_7e != 0) {
+    if (game_engine_variant.engine.slayer.kill_in_order != 0) {
         memset(custom_waypoints + (int16_t)player_index * 0x20, 0, 0x20);
-        target = *(datum_index *)&((struct player *)player)->unknown_88;
+        target = *(datum_index *)&((struct player *)player)->slayer_target;
         if (target != 0xffffffff) {
             datum_index unit_index = *(datum_index *)(((uint8_t *)player_data->data + ((target) & 0xffff) * 0x200) + 0x34);
 
@@ -64,10 +64,10 @@ void game_engine_slayer_update(datum_index player_index)
             }
         }
         if (network_game_mode == 2) {
-            if (((struct player *)player)->unit != 0xffffffff && *(datum_index *)&((struct player *)player)->unknown_88 == 0xffffffff) {
+            if (((struct player *)player)->unit != 0xffffffff && *(datum_index *)&((struct player *)player)->slayer_target == 0xffffffff) {
                 game_engine_player_select_random_target(player_index);
             }
-            target = *(datum_index *)&((struct player *)player)->unknown_88;
+            target = *(datum_index *)&((struct player *)player)->slayer_target;
             if (target != 0xffffffff && game_engine_player_respawn_priority_gate(target) != 0) {
                 game_engine_player_select_random_target(player_index);
             }

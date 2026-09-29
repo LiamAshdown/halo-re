@@ -38,23 +38,23 @@ uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     result = (uint32_t)-1;
 
-    if (self->unknown_5f2 == 2) {
+    if (self->firing_state == 2) {
         real_vector3d aim_from;
 
-        if (self->unknown_60c == 1 && self->unknown_610 != (uint32_t)-1) {
-            prop *p = (prop *)((uint8_t *)prop_data->data + (self->unknown_610 & 0xffff) * sizeof(prop));
-            if (1 < p->kind && p->kind < 4) {
+        if (self->firing_target_type == 1 && self->firing_target_prop_index != (uint32_t)-1) {
+            prop *p = (prop *)((uint8_t *)prop_data->data + (self->firing_target_prop_index & 0xffff) * sizeof(prop));
+            if (1 < p->state && p->state < 4) {
                 result = p->object_index;
             }
         }
 
-        if (self->unknown_688 == 0) {
+        if (self->firing_vector_ballistic == 0) {
             out_direction->i = self->grenade_aim_direction.i - target_point->x;
             out_direction->j = self->grenade_aim_direction.j - target_point->y;
             out_direction->k = self->grenade_aim_direction.k - target_point->z;
             vector3d_normalize_with_length(out_direction);
         } else {
-            *out_direction = self->unknown_68c;
+            *out_direction = self->firing_vector;
         }
 
         // REWRITTEN (0x40f89c..0x40f952): the actor's aim forward F; when the throw direction D is
@@ -80,7 +80,7 @@ uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point
                 vector3d_rotate_about_axis(out_direction, &axis, 0.5f, 0.86602539f);
             }
         }
-        *out_698 = self->unknown_698;
+        *out_698 = self->projectile_error;
     }
     return result;
 }

@@ -32,30 +32,30 @@ actor *actor_iterator_next(actor_iterator_state *iterator)
         return 0;
     }
 
-    next = iterator->unknown_18;
+    next = iterator->next_actor_index;
     while (next == (datum_index)k_datum_index_none) {
         encounter *enc = data_iterator_next((data_iterator *)iterator);
         if (enc == 0) {
-            if (iterator->unknown_10 == 0) {
-                iterator->unknown_18 = ai_globals_ptr->unknown_08;
-                iterator->unknown_10 = 1;
+            if (iterator->encounterless_done == 0) {
+                iterator->next_actor_index = ai_globals_ptr->first_encounterless_actor;
+                iterator->encounterless_done = 1;
             }
             break;
         }
         if (iterator->active == 0 || enc->units_active != 0) {
-            iterator->unknown_18 = enc->first_actor;
+            iterator->next_actor_index = enc->first_actor;
         }
-        next = iterator->unknown_18;
+        next = iterator->next_actor_index;
     }
 
     do {
-        next = iterator->unknown_18;
+        next = iterator->next_actor_index;
         iterator->actor_index = next;
         if (next == (datum_index)k_datum_index_none) {
             return 0;
         }
         a = &((actor *)actor_data->data)[next & 0xffff];
-        iterator->unknown_18 = a->next_in_encounter;
+        iterator->next_actor_index = a->next_in_encounter;
     } while (iterator->active != 0 && a->active == 0);
 
     return a;

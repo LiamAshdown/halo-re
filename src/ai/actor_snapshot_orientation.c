@@ -29,10 +29,10 @@ void actor_snapshot_orientation(datum_index actor_index)
     self->snapshot_unknown_708 = self->facing_unknown_180;
     self->snapshot_unknown_714 = self->facing_unknown_18c;
 
-    self->flags = 0;
+    self->control_flags = 0;
     self->override_target = 0;
-    self->queued_look_vector = *global_origin3d_pointer;
-    self->unknown_6ec = -1;
+    self->throttle = *global_origin3d_pointer;
+    self->control_animation_impulse = -1;
 }
 
 #if 0

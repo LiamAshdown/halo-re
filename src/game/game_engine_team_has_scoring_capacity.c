@@ -38,7 +38,7 @@ uint8_t game_engine_team_has_scoring_capacity(int32_t team)
     player *p;
     uint8_t has_capacity = 1;
 
-    if (game_engine_variant.ctf_value_80 != 0) {
+    if (game_engine_variant.engine.race.team_scoring != 0) {
         return 1; // UNSURE: see header
     }
 

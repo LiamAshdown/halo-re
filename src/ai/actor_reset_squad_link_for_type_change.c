@@ -38,7 +38,7 @@ void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index
 
     actor_movement_action_cancel(actor_index);
 
-    if (self->unknown_09 == 0) {
+    if (self->encounterless == 0) {
         if (self->encounter_index != (datum_index)k_datum_index_none) {
             encounter_remove_actor(actor_index, 0);
         }

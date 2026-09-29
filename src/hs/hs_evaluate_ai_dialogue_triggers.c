@@ -27,7 +27,7 @@ void hs_evaluate_ai_dialogue_triggers(int16_t function_index, uint32_t thread_in
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_globals_ptr->communication_valid = *(uint8_t *)&arguments[0];
+    ai_globals_ptr->dialogue_triggers_enabled = *(uint8_t *)&arguments[0];
     hs_thread_return(0, thread_index);
     }
 }

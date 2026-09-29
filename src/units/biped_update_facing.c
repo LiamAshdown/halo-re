@@ -265,8 +265,8 @@ void biped_update_facing(uint32_t object_index, int8_t *out_animation_state) // 
 
         // Ghidra renders the x87 compare as "(p < 0) == (p == 0)", which is true exactly when
         // the product is strictly positive, i.e. the bank is already leaning the target way.
-        if (bank_target * biped->unknown_510 > 0.0f) {
-            bank_blend = biped->unknown_510 / bank_target;
+        if (bank_target * biped->bank_angle > 0.0f) {
+            bank_blend = biped->bank_angle / bank_target;
             if (1.0f < bank_blend) {
                 bank_blend = 1.0f;
             }
@@ -276,10 +276,10 @@ void biped_update_facing(uint32_t object_index, int8_t *out_animation_state) // 
         }
         bank_time = bank_blend * tag->bank_apply_time + (1.0f - bank_blend) * tag->bank_decay_time;
         if (0.0f < bank_time) {
-            bank_target = (bank_target - biped->unknown_510) / (bank_time * 30.0f) +
-                          biped->unknown_510;
+            bank_target = (bank_target - biped->bank_angle) / (bank_time * 30.0f) +
+                          biped->bank_angle;
         }
-        biped->unknown_510 = bank_target;
+        biped->bank_angle = bank_target;
 
         bounds[0] = -3.1415927f;   // yaw range
         bounds[1] = 3.1415927f;

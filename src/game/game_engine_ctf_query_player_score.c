@@ -26,6 +26,6 @@ uint8_t game_engine_ctf_query_player_score(int32_t key, int32_t index, void *buf
     if (player == 0 || key != 0x16) {
         return 0;
     }
-    qr2_buffer_add_int(buffer, ((struct player *)player)->unknown_c8);
+    qr2_buffer_add_int(buffer, ((struct player *)player)->objective_score);
     return 1;
 }

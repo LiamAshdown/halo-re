@@ -47,7 +47,7 @@ uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor
     result = 0;
     conflict = 0;
 
-    if (target->kind < 2 || 3 < target->kind) {
+    if (target->state < 2 || 3 < target->state) {
         pair_index = target->pair_index;
         conflict = actor_target_has_conflicting_neighbor(actor_index, target_prop_index); // 0x41b9c5: EAX actor, stack target
 
@@ -55,14 +55,14 @@ uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor
             paired = (prop *)((uint8_t *)prop_data->data + (pair_index & 0xffff) * sizeof(prop));
 
             target->desirability = paired->desirability;
-            target->unknown_54 = paired->unknown_54;
-            target->unknown_58 = paired->unknown_58;
-            target->unknown_5c = paired->unknown_5c;
-            target->unknown_9c = paired->unknown_9c;
-            target->unknown_a0 = paired->unknown_a0;
+            target->interest = paired->interest;
+            target->interest_satisfied = paired->interest_satisfied;
+            target->last_attention_time = paired->last_attention_time;
+            target->engaged_ticks = paired->engaged_ticks;
+            target->last_engaged_time = paired->last_engaged_time;
             target->engaged = paired->engaged;
-            target->unknown_a6 = paired->unknown_a6;
-            target->unknown_a8 = paired->unknown_a8;
+            target->friends_killed = paired->friends_killed;
+            target->friends_killed_timer = paired->friends_killed_timer;
 
             // 0x41ba61: references to the paired prop now point at the target (ESI target, EDI pair)
             actor_replace_object_reference(actor_index, target_prop_index, pair_index);
@@ -71,7 +71,7 @@ uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor
             target->pair_index = k_datum_index_none;
         }
 
-        target->kind = 3;
+        target->state = 3;
         target->noticed_b = 0;
         target->noticed_a = 0;
         target->noticed_c = 0;

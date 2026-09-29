@@ -52,11 +52,11 @@ void actor_attempt_grenade_throw(datum_index actor_index)
     real roll;
 
     // 0x428ae7: a fighter may pull a grenade as it dies
-    if (((actor *)a)->awareness_level == 3 && ((struct actor *)a)->unknown_6e >= 2) {
+    if (((actor *)a)->awareness_level == 3 && ((struct actor *)a)->combat_status >= 2) {
         unit = OBJECT_DATA(((actor *)a)->unit_index);
         if (((((unit_object *)unit)->unit.flags >> 6) & 1) &&
             unit_get_weapon_object_index(((actor *)a)->unit_index, ((unit_object *)unit)->unit.current_weapon_index) != k_datum_index_none &&
-            ((struct unit_object *)unit)->unit.unknown_28c > 0) {
+            ((struct unit_object *)unit)->unit.delayed_weapon_drop_ticks > 0) {
             float chance = ((ActorVariant *)variant)->death_fire_wildly_chance;
 
             if (!(chance >= 0.1f)) {
@@ -64,7 +64,7 @@ void actor_attempt_grenade_throw(datum_index actor_index)
             } else if (!(chance <= 0.6f)) {
                 chance = 0.6f;
             }
-            if (a[0x378] || (((struct actor *)a)->unknown_60c > 0 && *(float *)(a + 0x648) < 3.0f)) {
+            if (a[0x378] || (((struct actor *)a)->firing_target_type > 0 && *(float *)(a + 0x648) < 3.0f)) {
                 float boosted = chance * 4.0f;
 
                 if (!(boosted <= 0.6f)) {

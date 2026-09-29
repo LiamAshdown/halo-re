@@ -45,9 +45,9 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
     uint8_t *far_out)
 {
     datum_index owner_index = ((prop *)p)->owner_actor_index;
-    float radius = ((struct prop *)p)->unknown_20;
-    int16_t pinned_ticks = ((struct prop *)p)->unknown_6a;
-    int16_t since_fired = ((struct prop *)p)->unknown_76;
+    float radius = ((struct prop *)p)->danger_radius;
+    int16_t pinned_ticks = ((struct prop *)p)->retain_timer;
+    int16_t since_fired = ((struct prop *)p)->dead_ticks;
     uint8_t *owner = 0;
 
     *far_out = 0;
@@ -72,15 +72,15 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         if (encounter_index != k_datum_index_none) {
             uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c;
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[((prop *)p)->object_index & 0xffff].data;
-            int32_t reference = ((struct encounter *)encounter)->unknown_58;
+            int32_t reference = ((struct encounter *)encounter)->last_idle_time;
             uint8_t counts = 1;
             uint8_t calm;
 
-            if (!(reference > *(int32_t *)&((struct actor *)self)->unknown_3a0)) {
-                reference = *(int32_t *)&((struct actor *)self)->unknown_3a0;
+            if (!(reference > *(int32_t *)&((struct actor *)self)->found_body_time)) {
+                reference = *(int32_t *)&((struct actor *)self)->found_body_time;
             }
             if (reference != -1) {
-                int32_t fired = ((struct unit_object *)unit)->unit.unknown_41c;
+                int32_t fired = ((struct unit_object *)unit)->unit.death_time;
 
                 if (fired == -1 || fired < reference) {
                     counts = 0;
@@ -120,7 +120,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         *far_out = distance_squared > 36.0f;
         return k_prop_admit_keep;
     }
-    if (((struct actor *)self)->unknown_6e >= 4) {
+    if (((struct actor *)self)->combat_status >= 4) {
         *far_out = 1;
     } else if (self[0x1cc] == 0) {
         *far_out = distance_squared > 16.0f;
@@ -144,7 +144,7 @@ datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object
     while (cursor != k_datum_index_none) {
         datum_index current = cursor;
         uint8_t *p = (uint8_t *)prop_data->data + (cursor & 0xffff) * 0x138;
-        int16_t prop_kind = ((prop *)p)->kind;
+        int16_t prop_kind = ((prop *)p)->state;
         float distance = ((prop *)p)->distance;
         uint8_t far_flag;
 

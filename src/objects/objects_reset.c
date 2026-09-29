@@ -101,8 +101,8 @@ void objects_reset(void)
     object_globals_pointer->ambient_cluster_mode = 0;
     object_globals_pointer->collecting_in_clusters = 0;
     object_cluster_stamp = 0;
-    object_globals_pointer->unknown_04 = 0;
-    object_globals_pointer->unknown_8c = 0;
+    object_globals_pointer->active_garbage_object_count = 0;
+    object_globals_pointer->last_garbage_collection_time = 0;
     object_globals_pointer->first_tracked_object = k_datum_index_none;
 }
 

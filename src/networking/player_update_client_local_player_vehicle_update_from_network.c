@@ -109,15 +109,15 @@ void player_update_client_local_player_vehicle_update_from_network(int32_t *deco
     if (candidate == 0) {
         return;
     }
-    if (is_local_player_update_in_order(candidate->unknown_e8, ack.update_id) == 1) {
+    if (is_local_player_update_in_order(candidate->last_update_id, ack.update_id) == 1) {
         player_update_history_log_write(1, 0, "[%d]: Received vehicle ack for update [%d].\n",
             game_time->game_time, ack.baseline_id);
-        candidate->unknown_e8 = ack.update_id;
-        candidate->unknown_ec = ack.baseline_id;
+        candidate->last_update_id = ack.update_id;
+        candidate->baseline_update_id = ack.baseline_id;
         candidate->unknown_f0 = *(int32_t *)&ack.vehicle.position.x;
         candidate->unknown_f4 = *(int32_t *)&ack.vehicle.position.y;
         candidate->unknown_f8 = *(int32_t *)&ack.vehicle.position.z;
-        player_update_history_play(1, candidate->unknown_ec,
+        player_update_history_play(1, candidate->baseline_update_id,
             network_client->update_history, candidate->unit,
             ack.vehicle.position.x, ack.vehicle.position.y, ack.vehicle.position.z, &ack);
         return;
@@ -125,7 +125,7 @@ void player_update_client_local_player_vehicle_update_from_network(int32_t *deco
     player_update_history_log_write(1, 0,
         "[%d]: Threw away local player vehicle ack [%d] (%d), previous ack [%d] (%d).\n",
         game_time->game_time, ack.baseline_id,
-        candidate->unknown_ec, ack.update_id, candidate->unknown_e8);
+        candidate->baseline_update_id, ack.update_id, candidate->last_update_id);
 }
 
 #if 0

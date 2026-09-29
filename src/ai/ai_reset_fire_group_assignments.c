@@ -58,7 +58,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
 {
     if (((struct actor *)actor)->target_unit_index != k_datum_index_none && ((struct actor *)actor)->target_combat_status >= 5) {
         uint8_t *target = PROP(((struct actor *)actor)->target_unit_index);
-        int32_t fired = ((struct actor *)actor)->unknown_88;
+        int32_t fired = ((struct actor *)actor)->ticks_since_threatened;
 
         if (*(int16_t *)(target + 0x24) >= 4 && *(int16_t *)(target + 0x24) <= 5) {
             target = PROP(*(datum_index *)(target + 0xc));
@@ -162,7 +162,7 @@ void ai_reset_fire_group_assignments(void)
         uint8_t *encounter = (uint8_t *)encounter_data->data + (e & 0xffff) * 0x6c;
         datum_index next;
 
-        if (encounter[0xd] == 0 || ((struct encounter *)encounter)->unknown_2a <= 0) {
+        if (encounter[0xd] == 0 || ((struct encounter *)encounter)->living_count <= 0) {
             continue;
         }
         next = ((struct encounter *)encounter)->first_actor;
@@ -181,8 +181,8 @@ void ai_reset_fire_group_assignments(void)
                 continue;
             }
             actor = ACTOR(actor_index);
-            *(int32_t *)&((struct actor *)actor)->unknown_30 = e;
-            ((struct actor *)actor)->unknown_38 = ((struct actor *)actor)->squad_index;
+            *(int32_t *)&((struct actor *)actor)->original_encounter_index = e;
+            ((struct actor *)actor)->original_squad_index = ((struct actor *)actor)->squad_index;
             ((struct actor *)actor)->firing_position_index = -1;
             if (((struct actor *)actor)->active_movement.type == 3 || ((struct actor *)actor)->active_movement.type == 4) {
                 ((struct actor *)actor)->active_movement.type = 0;

@@ -69,8 +69,8 @@ uint8_t render_object_shadow_begin(object_render_data *data, float fade) // blam
     o = ((object_header *)object_data->data)[(uint16_t)data->object_index].data;
     if (((1 << (uint8_t)o->type) & 3) != 0) {
         unit_data *unit = (unit_data *)((uint8_t *)o + k_unit_data_offset);
-        if (unit->unknown_37c > 0.0f) {
-            t = (1.0f - unit->unknown_37c) * fade;
+        if (unit->active_camouflage_power > 0.0f) {
+            t = (1.0f - unit->active_camouflage_power) * fade;
         } else {
             t = fade;
         }

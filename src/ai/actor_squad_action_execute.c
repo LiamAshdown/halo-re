@@ -220,7 +220,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
 
             actor_prop_iterator_init(actor_index, &iterator);
             for (p = actor_prop_iterator_next(&iterator); p != 0; p = actor_prop_iterator_next(&iterator)) {
-                if (p->kind >= 2 && p->kind <= 3 && p->is_parented && nearest > p->distance) {
+                if (p->state >= 2 && p->state <= 3 && p->is_parented && nearest > p->distance) {
                     look_prop = iterator.current;
                     nearest = p->distance;
                 }
@@ -399,7 +399,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
         }
         state[0x5] = (uint8_t)((state[0x5] & 0xe7) | 4);
         if (check_object_index == unit_index) {
-            moving_forward = (uint8_t)(act[0x504] != 0 && ((struct actor *)act)->unknown_50a == 0);
+            moving_forward = (uint8_t)(act[0x504] != 0 && ((struct actor *)act)->moving_facing_direction == 0);
         } else {
             uint8_t *obj = OBJECT_DATA(check_object_index);
 

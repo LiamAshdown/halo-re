@@ -24,10 +24,10 @@ void ai_actor_link_to_unassigned_list(datum_index actor_index)
     if (ai_globals_ptr->actors_valid != 0) {
         actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
 
-        a->next_in_encounter = ai_globals_ptr->unknown_08;
-        ai_globals_ptr->unknown_08 = actor_index;
-        a->unknown_09 = 1;
-        *(int16_t *)a->unknown_10 = (a->active != 0) ? 0x5a : 0;
+        a->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
+        ai_globals_ptr->first_encounterless_actor = actor_index;
+        a->encounterless = 1;
+        *(int16_t *)a->activation_delay = (a->active != 0) ? 0x5a : 0;
 
         actor_movement_action_cancel(actor_index); // FIXED: argument from the binary call site (the draft passed none) (EDI, 0x436984)
     }

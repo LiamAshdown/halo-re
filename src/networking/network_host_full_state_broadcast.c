@@ -38,8 +38,8 @@ void network_host_full_state_broadcast(network_server_globals *host)
     char encode_ok;
     uint32_t byte_count;
 
-    if (host->unknown_a0e == 1) {
-        host->unknown_a0e = 0;
+    if (host->full_state_broadcast_pending == 1) {
+        host->full_state_broadcast_pending = 0;
         host->game_over = 0;
         timestamp = 1000;
         for (i = 0; i < 16; i++) {

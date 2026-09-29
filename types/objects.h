@@ -334,7 +334,8 @@ typedef struct object {
     datum_index definition_tag;     // 0x000 the Object tag; every tag-data lookup starts here
     int32_t network_role;           // 0x004 the role/control value object_new was called with;
                                     //       object_delete dispatches on 0 versus 3
-    uint8_t unknown_008;            // 0x008
+    uint8_t at_rest;                // 0x008 object_update 0x4f7ef0 (network_game_mode 2): 1 when velocity and angular
+                                    //    velocity are ~0, else 0
     uint8_t network_state_009;      // 0x009 network state: projectile_new (0x4bda48),
                                     //       weapon_new and equipment_new zero it together with
                                     //       their three per-type network bytes when the game is
@@ -388,7 +389,9 @@ typedef struct object {
                                     //       0..9; object_placement_data_initialize (0x4f5411)
                                     //       copies the creating object's team (inheritance)
     int16_t render_cache_slot;      // 0x0ba -1 at create; object_reserve_render_cache_slot
-    uint32_t unknown_0bc;           // 0x0bc
+    uint32_t dead_at_rest_ticks;    // 0x0bc low word ++ in biped_update while vitality health_frozen(4) and object
+                                    //    at_rest(0x20), else 0; game_engine_cleanup_dropped_objects deletes bipeds
+                                    //    past 900 ticks
     uint32_t owner_linkage;         // 0x0c0 seeded from the creating object at the same offset
     datum_index creator_object;     // 0x0c4 the creating object (formerly unknown_0c4), from
                                     //       object_placement_data 0x0c (0x4f5705);
@@ -399,7 +402,9 @@ typedef struct object {
     datum_index animation_graph;    // 0x0cc from Object tag animation_graph TagID
     int16_t animation_index;        // 0x0d0 -1 at create; object_start_animation
     int16_t animation_frame;        // 0x0d2 object_animation_get_frames_remaining
-    int16_t unknown_0d4;            // 0x0d4
+    int16_t interpolation_frame_index; // 0x0d4 object_update increments while node_function_count != 0 and clears the
+                                       //    count when reached; object_copy_default_node_transforms resets it;
+                                       //    player_update_history saves it
     int16_t node_function_count;    // 0x0d6 grown by object_copy_default_node_transforms
     float maximum_body_vitality;    // 0x0d8 ModelCollisionGeometry offset 0x08
     float maximum_shield_vitality;  // 0x0dc ModelCollisionGeometry offset 0xcc
@@ -424,7 +429,9 @@ typedef struct object {
     datum_index parent_object;      // 0x11c -1 when unattached; the chain every root walk follows
     uint8_t parent_marker_index;    // 0x120 0xff when unattached
     uint8_t unknown_121;            // 0x121
-    uint8_t unknown_122;            // 0x122 set by object_shield_recharge_start
+    uint8_t shield_update_pending;  // 0x122 set by object_shield_recharge_start and object_apply_damage (shield hit);
+                                    //    unit_submit_periodic_network_update reads it to send shield_vitality/3 then
+                                    //    clears it
     uint8_t function_valid_flags;   // 0x123 bit i is set when function_out_values[i] is live
     float function_in_values[4];    // 0x124 a_in..d_in, written by the owning object type
     float function_out_values[4];   // 0x134 written by object_update_functions, read by
@@ -565,14 +572,17 @@ typedef struct object_globals {
     uint8_t unknown_00;             // 0x00
     uint8_t collecting_in_clusters; // 0x01 raised around the object_collect_in_clusters walk
     uint8_t unknown_02[2];          // 0x02
-    int16_t unknown_04;             // 0x04 zeroed at the top of objects_update
+    int16_t active_garbage_object_count; // 0x04 object_update increments per active tracked (garbage) object;
+                                         //    objects_update zeroes; objects_garbage_collection collects at >=50 down
+                                         //    to 30 and decrements per delete
     int16_t unknown_06;             // 0x06
     datum_index first_tracked_object; // 0x08 head of the object_list_membership_set list
     uint32_t cluster_pvs_previous[16]; // 0x0c last frame bitset, one bit per cluster
     uint32_t cluster_pvs_current[16];  // 0x4c this frame bitset, copied in from the BSP
                                     //      globals; a difference drives the create and
                                     //      delete sweep in objects_update
-    uint32_t unknown_8c;            // 0x8c
+    uint32_t last_garbage_collection_time; // 0x8c objects_garbage_collection stamps game_time on exit and suppresses
+                                           //    repeat critical reports within 0x96 ticks; objects_reset zeroes
     int16_t ambient_cluster_mode;   // 0x90 object_ambient_cluster_mode
     int16_t unknown_92;             // 0x92
     int16_t ambient_cluster_index;  // 0x94

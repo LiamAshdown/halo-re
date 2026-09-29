@@ -59,19 +59,19 @@ void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t
         *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
     if (ai_globals_ptr->actors_valid) {
         iterator.filter_array = encounter_data;
-        iterator.unknown_04 = 0;
+        iterator.next_index = 0;
         iterator.cursor = -1;
         iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
-        iterator.unknown_10 = 0;
+        iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = k_datum_index_none;
-        iterator.unknown_18 = -1;
+        iterator.next_actor_index = -1;
     }
     for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
         datum_index actor_index = iterator.actor_index;
         uint32_t block[14];             // [esp+0x30]
 
-        if (((struct actor *)a)->unknown_6e >= 7) {
+        if (((struct actor *)a)->combat_status >= 7) {
             continue;
         }
         actor_get_firing_positions(actor_index, block, point);

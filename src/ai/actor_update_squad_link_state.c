@@ -48,28 +48,28 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
         return 0;
     }
 
-    self->unknown_4a4 = 0;
+    self->path_resolved_this_tick = 0;
 
-    if (self->unknown_78 > 0) {
-        self->unknown_78 = self->unknown_78 - 1;
-        if (self->unknown_78 == 0) {
-            self->unknown_74 = 0;
+    if (self->suspicion_timer > 0) {
+        self->suspicion_timer = self->suspicion_timer - 1;
+        if (self->suspicion_timer == 0) {
+            self->suspicion_status = 0;
         }
     }
-    if (self->unknown_92 > 0) {
-        self->unknown_92 = self->unknown_92 - 1;
+    if (self->command_list_delay > 0) {
+        self->command_list_delay = self->command_list_delay - 1;
     }
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         enc = &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
     }
 
-    combined_flag = self->unknown_0a;
+    combined_flag = self->force_active;
     if (enc != 0) {
-        combined_flag |= enc->unknown_0c;
+        combined_flag |= enc->force_active;
     }
 
-    if (self->unknown_12 == 0 || combined_flag != 0) {
+    if (self->can_go_dormant == 0 || combined_flag != 0) {
         actor_set_units_active(actor_index, 0); // 0x429414: BL = 0 (wake)
     } else if (self->keep_unit_alive == 0) {
         int16_t combat_grade = actor_mode_definitions[self->mode].combat_grade;
@@ -78,8 +78,8 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
         if (combat_grade != 2) {
             if (self->target_unit_index != (datum_index)k_datum_index_none) {
                 prop *target = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
-                if (target->is_parented != 0 && target->is_unit != 0 && target->is_vault == 0) {
-                    int16_t kind = target->kind;
+                if (target->is_parented != 0 && target->enemy != 0 && target->dead == 0) {
+                    int16_t kind = target->state;
                     // 0x429387: kinds 2..3 always count, kinds 4..5 only for a grade 3 (combat) mode
                     if ((kind >= 2 && kind <= 3) || (kind >= 4 && kind <= 5 && combat_grade == 3)) {
                         stale = 0;
@@ -95,7 +95,7 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
             if (movement_done != 0) {
                 // 0x4293b7: the ACTIVE movement action's type (+0x46c), not the secondary action (+0x418)
                 if (self->active_movement.type == 3) {
-                    if (self->mode == 6 && enc != 0 && ((struct encounter *)enc)->unknown_62 == 1) {
+                    if (self->mode == 6 && enc != 0 && ((struct encounter *)enc)->follow_target_type == 1) {
                         return 1;
                     }
                 } else if (self->active_movement.type == 5) {

@@ -25,7 +25,7 @@ void network_machine_timer_start(network_machine *machine, int32_t duration_ms)
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
     machine->timer_14 = now_ms;
-    machine->unknown_10 = 1;
+    machine->disconnect_timer_active = 1;
     machine->timer_18 = now_ms + duration_ms;
 }
 

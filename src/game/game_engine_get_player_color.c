@@ -35,7 +35,7 @@ real *game_engine_get_player_color(uint32_t player_index, real *out_rgb)
     real *color;
 
     if (game_engine_variant.teams == 0) {
-        color = player_color_get_rgb(scratch, (int32_t)*(int16_t *)&p->unknown_60);
+        color = player_color_get_rgb(scratch, (int32_t)*(int16_t *)&p->color_index);
     } else if (p->team == 0) {
         color = default_color_a;
     } else {

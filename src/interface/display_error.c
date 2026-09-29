@@ -143,7 +143,7 @@ void display_error(int16_t error_string_index, int32_t player_index, uint8_t mod
         history_source = (datum_index)-1;
     } else {
         history_source = root->definition;
-        if (root->unknown_15 == 1) {
+        if (root->is_error_dialog == 1) {
             return;
         }
     }
@@ -162,7 +162,7 @@ void display_error(int16_t error_string_index, int32_t player_index, uint8_t mod
             }
         }
         dialog->first_child->first_child->selection_index = clamped;
-        dialog->unknown_15 = 1;
+        dialog->is_error_dialog = 1;
         if (dialog->pauses_game_time == 0) {
             dialog->pauses_game_time = is_error;
             if (is_error == 1 && network_game_mode != 2) {
@@ -177,10 +177,10 @@ void display_error(int16_t error_string_index, int32_t player_index, uint8_t mod
         }
         if (error_string_index != 0xc) {
             if (error_string_index != 0xd) {
-                dialog->unknown_16[0] = 0;
+                dialog->close_on_controller_connected[0] = 0;
                 return;
             }
-            dialog->unknown_16[0] = 1;
+            dialog->close_on_controller_connected[0] = 1;
         }
         dialog->milliseconds_to_auto_close = 0;
         dialog->milliseconds_auto_close_fade = 0;

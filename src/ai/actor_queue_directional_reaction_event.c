@@ -4,7 +4,7 @@
 // evidence: types/ai.h actor.unknown_2e8[4] (0x2ec), actor.awareness_level (0x6a),
 //   actor.vocalization_line/variant/state (0x544/0x546/0x548),
 //   actor.vocalization_unknown_54c/550/554/558, actor.mode (0x6c), actor.mode_data.raw[3] (0x9f),
-//   actor.unknown_6e; prop.is_unit (0x60), prop.unknown_e0; types/tags.h
+//   actor.combat_status; prop.is_unit (0x60), prop.unknown_e0; types/tags.h
 //   Actor.event_look_time_modifier[2] (0xd4/0xd8, matches the 0.5/2.0-clamped random
 //   multiplier read here identically to actor_queue_perceived_sighting_dialogue @0x421c20).
 //   Calls actor_record_look_at_point (0x421bc0), actor_queue_search_position (0x421af0) and
@@ -39,7 +39,7 @@ extern void actor_queue_search_position(datum_index actor_index, real_point3d *p
                                         uint8_t unknown_348); // 0x421af0
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
 
-// Per-target-status/vitality-grade variant table indexed by (unknown_6e >= 4), 2 entries.
+// Per-target-status/vitality-grade variant table indexed by (combat_status >= 4), 2 entries.
 // Shares the DAT_00655654 table cited generically; no independent name established.
 extern int16_t actor_dialogue_variant_table_b[]; // 0x00655654
 
@@ -77,12 +77,12 @@ void actor_queue_directional_reaction_event(const real_vector3d *direction, datu
         }
     }
     if (target != 0) {
-        look_source = &target->unknown_e0;
+        look_source = &target->direction;
     }
 
     self->unknown_2e8[4] = 1;
 
-    if ((target == 0 || target->is_unit != 0) && self->awareness_level < 3) {
+    if ((target == 0 || target->enemy != 0) && self->awareness_level < 3) {
         actor_record_look_at_point(actor_index, (const uint32_t *)look_source, 5, target_prop_index);
         actor_queue_search_position(actor_index, 0, 5, (real_vector3d *)look_source,
                                     0xffffffff, 0, 90, target_prop_index, 150, 0);
@@ -106,7 +106,7 @@ void actor_queue_directional_reaction_event(const real_vector3d *direction, datu
     if (self->awareness_level > 1 && self->vocalization_line < 12 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0) &&
         (kind != 1 || datum_get(payload, prop_data) != 0)) {
-        wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 5.0f : 2.5f;
+        wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 5.0f : 2.5f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
             min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
@@ -120,7 +120,7 @@ void actor_queue_directional_reaction_event(const real_vector3d *direction, datu
         }
 
         self->vocalization_state = (int16_t)ticks;
-        self->vocalization_variant = actor_dialogue_variant_table_b[self->unknown_6e >= 4];
+        self->vocalization_variant = actor_dialogue_variant_table_b[self->combat_status >= 4];
         self->vocalization_line = 11;
         if (target_prop_index != (datum_index)k_datum_index_none) {
             self->vocalization_unknown_54c = target_prop_index;

@@ -1,7 +1,7 @@
 // actor_get_target_state_flags  (Ghidra: actor_get_target_state_flags, already named)
 // address 0x40cc70, size 375 bytes
 // name confidence: 0.5   rewrite confidence: 0.35
-// evidence: types/ai.h actor.target_unit_index (0x270)/unknown_6e/unknown_15e;
+// evidence: types/ai.h actor.target_unit_index (0x270)/combat_status/unknown_15e;
 //   prop.noticed_a (0xb9)/noticed_b (0xba)/kind (0x24); phase-4 summary "computes a set of
 //   target-state flags (shields down, morale-gated, target invalid) used by the combat
 //   decision routines".
@@ -61,24 +61,24 @@ void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shar
 
         if (force_d == 0) {
             if (no_noticed_b) {
-                if (p->kind > 1 && p->kind < 4) {
+                if (p->state > 1 && p->state < 4) {
                     // 0x40cd7a loads EAX from actor.target_unit_index just before this call.
                     actor_target_get_relationship_object(a->target_unit_index);
                 }
-                *out_f = actor_firing_position_near_point(actor_index, (real_point3d *)((uint8_t *)p + 0xf0), *(uint32_t *)&((struct prop *)p)->path_surface_index, 1);
+                *out_f = actor_firing_position_near_point(actor_index, (real_point3d *)((uint8_t *)p + 0xf0), *(uint32_t *)&((struct prop *)p)->pathfinding_surface_index, 1);
             }
         } else {
             *out_a = 0;
         }
     }
 
-    if (*out_in_e == 0 && a->unknown_6e < 3) {
+    if (*out_in_e == 0 && a->combat_status < 3) {
         *out_a = 0;
     }
-    if (a->unknown_15e > 0) {
+    if (a->vehicle_driving_type > 0) {
         *out_i = 0;
     }
-    if (a->unknown_15e == 4) {
+    if (a->vehicle_driving_type == 4) {
         *out_f = 0;
         *out_h = 0;
     }

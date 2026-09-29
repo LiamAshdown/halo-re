@@ -55,7 +55,7 @@ void encounter_evaluate_support_needs(datum_index encounter_index, datum_index s
     actor_index = (datum_index)k_datum_index_none;
     if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_globals_ptr->unknown_08;
+            actor_index = ai_globals_ptr->first_encounterless_actor;
         } else {
             enc = &((encounter *)encounter_data->data)[encounter_index & 0xffff];
             actor_index = enc->first_actor;
@@ -79,7 +79,7 @@ void encounter_evaluate_support_needs(datum_index encounter_index, datum_index s
         if (not_self != 0 && a->unknown_1cc == phase) {
             if (a->mode == 5) {
                 if (*(int16_t *)(a->mode_data.raw + 8) == 0) { // actor + 0xa4, inside mode_data
-                    if (a->unknown_6e < 3) {
+                    if (a->combat_status < 3) {
                         mode5_count = mode5_count + 1;
                     }
                 } else {
@@ -112,7 +112,7 @@ void encounter_evaluate_support_needs(datum_index encounter_index, datum_index s
     self = &((actor *)actor_data->data)[self_actor_index & 0xffff];
     if (phase == 0) {
         actor_find_nearest_grenade_ally(self_actor_index, 0);
-        *out_reachable_b = (uint8_t)(self->unknown_1d0 != (datum_index)k_datum_index_none);
+        *out_reachable_b = (uint8_t)(self->nearby_friend_prop_index != (datum_index)k_datum_index_none);
         self->unknown_1cc = 0;
     } else {
         reachable = actor_find_nearest_grenade_ally(self_actor_index, 1);

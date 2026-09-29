@@ -42,14 +42,14 @@ void network_game_session_reset(network_game_session *session)
         player = &session->players[i];
         player->name[0] = 0;
         player->color_index = -1;
-        player->unknown_1a = -1;
+        player->icon_index = -1;
         player->machine_index = -1;
         player->machine_player_index = -1;
-        player->unknown_1e = -1;
+        player->team_index = -1;
         player->slot_index = -1;
     }
     session->maximum_players = 0x10;
-    session->unknown_3ac = network_channel_table_default_flag != 0;
+    session->map_loaded = network_channel_table_default_flag != 0;
 }
 
 #if 0

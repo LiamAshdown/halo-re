@@ -55,7 +55,7 @@ network_client_globals *network_session_create(void)
     history->head = 0;
     history->tail = 0;
     for (i = 0; i < 8; i = i + 1) {
-        history->unknown_0c[i] = 0;
+        history->statistics[i] = 0;
     }
 
     client->channel = network_channel_new(2);
@@ -64,16 +64,16 @@ network_client_globals *network_session_create(void)
         client = 0;
     } else {
         network_game_session_reset(&client->session);
-        client->unknown_ede = client->unknown_ede & 0xfff9;
-        client->unknown_000 = 0xffff;
+        client->flags = client->flags & 0xfff9;
+        client->machine_index = 0xffff;
         client->state = 0;
-        client->unknown_edc = 0;
+        client->disconnect_reason = 0;
         client->unknown_ec8 = 0;
-        client->unknown_ecc = 0;
-        client->unknown_ed0 = 0;
-        client->unknown_ee1 = 0;
-        client->unknown_ed8 = 0xffff;
-        client->unknown_ee0 = 0;
+        client->last_update_id = 0;
+        client->last_update_received_ms = 0;
+        client->connection_stalled = 0;
+        client->game_start_countdown_seconds = 0xffff;
+        client->network_error_displayed = 0;
         // The 12-dword run at +0xee4: the timer record (5 dwords), unknown_ef8[6] and
         // unknown_f10, which the next statement then sets to -1.
         run = (int32_t *)&client->timer;
@@ -81,7 +81,7 @@ network_client_globals *network_session_create(void)
             *run = 0;
             run = run + 1;
         }
-        client->unknown_f10 = -1;
+        client->team_index = -1;
     }
 
     // Unconditional: runs even when client was just set to 0 above (see file header UNSURE).

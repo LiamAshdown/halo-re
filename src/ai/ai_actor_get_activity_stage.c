@@ -2,7 +2,7 @@
 // address 0x435680, size 121 bytes
 // name confidence: 0.4   rewrite confidence: 0.45
 // evidence: classifies one actor's current combat activity into an ordinal 0..6 stage using
-// actor.active/awareness_level/unknown_6e/target_combat_status (all already named in
+// actor.active/awareness_level/combat_status/target_combat_status (all already named in
 // types/ai.h) plus two byte flags at +0x454/+0x45c this rewrite has no established name
 // for. Matches the phase-4 summary exactly.
 // register convention: Ghidra could not resolve the parameter at all.
@@ -25,7 +25,7 @@ int32_t ai_actor_get_activity_stage(datum_index actor_index)
     if (a->awareness_level < 3) {
         return 1;
     }
-    if (a->unknown_6e == 0) {
+    if (a->combat_status == 0) {
         return 2;
     }
     if (a->target_combat_status < 6) {

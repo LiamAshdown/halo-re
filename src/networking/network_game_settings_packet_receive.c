@@ -84,7 +84,7 @@ compare_done:
     for (i = 0; i < 236; i = i + 1) {
         ((uint32_t *)&client->session)[i] = request[i];
     }
-    *(uint32_t *)&client->session.unknown_3ac = saved_last_dword;
+    *(uint32_t *)&client->session.map_loaded = saved_last_dword;
 
     if (*(uint8_t *)&client->pad_ee2 == 0) {
         network_game_settings_ack_send((uint8_t *)client, 0); // UNSURE argument; see declaration above

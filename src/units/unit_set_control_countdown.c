@@ -22,8 +22,8 @@ void unit_set_control_countdown(uint32_t unit_index, int32_t countdown, uint32_t
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    unit->unknown_210 = countdown;
-    unit->unknown_214 = extra_control_flags;
+    unit->persistent_control_ticks = countdown;
+    unit->persistent_control_flags = extra_control_flags;
 }
 
 #if 0

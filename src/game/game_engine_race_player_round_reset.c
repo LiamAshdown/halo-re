@@ -39,7 +39,7 @@ void game_engine_race_player_round_reset(datum_index player_index, uint8_t team_
         int16_t player_salt = *(int16_t *)player;
 
         if (player_salt != 0 && (salt == 0 || player_salt == salt)) {
-            if (game_engine_variant.ctf_value_80 == 2) {
+            if (game_engine_variant.engine.race.team_scoring == 2) {
                 uint32_t team = *(uint32_t *)&((struct player *)player)->team;
 
                 if ((uint32_t)team_flag == team) {
@@ -49,8 +49,8 @@ void game_engine_race_player_round_reset(datum_index player_index, uint8_t team_
             }
             *(int16_t *)&((struct player *)player)->objective_time = 0;
             *(int16_t *)(player + 0xc6) = 0;
-            ((struct player *)player)->unknown_c8 = 0;
-            ((struct player *)player)->unknown_88 = game_time->game_time;
+            ((struct player *)player)->objective_score = 0;
+            ((struct player *)player)->slayer_target = game_time->game_time;
             ctf_team_captured_flags_mask[player_index & 0xffff] = 0;
         }
     }

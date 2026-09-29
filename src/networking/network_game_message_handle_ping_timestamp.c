@@ -56,7 +56,7 @@ uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_s
         if (player != 0) {
             int32_t stored_time = *(int32_t *)((uint8_t *)server + 0x9c0);
             int32_t now = time_query_performance_counter_ms();
-            ((struct player *)player)->unknown_dc = now - stored_time;
+            ((struct player *)player)->ping = now - stored_time;
         }
     }
     return 1;

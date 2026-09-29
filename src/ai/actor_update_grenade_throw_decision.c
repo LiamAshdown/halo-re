@@ -42,7 +42,7 @@ uint8_t actor_update_grenade_throw_decision(datum_index actor_index)
     }
     switch (*(int16_t *)&((ActorVariant *)variant)->grenade_stimulus) {
     case 1:
-        if (((struct actor *)act)->unknown_6e >= 5) {
+        if (((struct actor *)act)->combat_status >= 5) {
             result = actor_consider_grenade_throw(actor_index);
         }
         break;

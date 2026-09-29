@@ -36,9 +36,9 @@ uint32_t network_player_entry_remove(network_player_entry *key, network_game_ses
         }
     }
     slot = &session->players[i];
-    slot->unknown_1e = -1;
+    slot->team_index = -1;
     slot->machine_player_index = -1;
-    slot->unknown_1a = -1;
+    slot->icon_index = -1;
     slot->slot_index = -1;
     slot->name[0] = 0;
     slot->color_index = -1;

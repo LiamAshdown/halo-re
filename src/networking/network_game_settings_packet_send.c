@@ -78,11 +78,11 @@ void network_game_settings_packet_send(network_client_globals *client, const uin
     int32_t bits_to_send;
     char retransmit_ok;
 
-    if ((client->unknown_ede & 2) != 0) {
+    if ((client->flags & 2) != 0) {
         return;
     }
     client->state = 2; // UNSURE: live connection-mode value, not padding
-    client->unknown_000 = *(uint16_t *)(request + 0xc);
+    client->machine_index = *(uint16_t *)(request + 0xc);
 
     pa = (uint8_t *)(request + 0x14);
     pb = (uint8_t *)client->session.server_name;
@@ -146,7 +146,7 @@ compare_done:
     *(uint8_t *)(frame + 0x8a) = request[0xc];
     frame[0x8b] = 0;
     wcsncpy((wchar_t *)(frame + 0x6e), (const wchar_t *)(frame + 0x92), 0xb);
-    frame[0x8c] = *(uint8_t *)&client->unknown_f10;
+    frame[0x8c] = *(uint8_t *)&client->team_index;
     *(uint16_t *)(frame + 0x84) = 0;
     *(uint16_t *)(frame + 0x86) = *(uint16_t *)(frame + 0x1aa); // local_2012 = local_1eee (inside the copied template)
     *(uint16_t *)(frame + 0x88) = 0xffff;
@@ -174,7 +174,7 @@ compare_done:
                 *((uint8_t *)channel + 0x2c) = 0;
             }
         }
-        client->unknown_ede = client->unknown_ede | 2;
+        client->flags = client->flags | 2;
     }
 }
 

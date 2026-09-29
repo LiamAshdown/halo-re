@@ -92,36 +92,43 @@ and `king_hill_state` enums are not repeated here; read them in the header.
 | `0x34` | `uint8_t teams` | sanitize normalizes to 0/1; game_engine_get_teams_enabled |
 | `0x35` | `uint8_t pad_35[3]` |  |
 | `0x38` | `uint32_t flags` | option bitfield; slayer forces bits 0 and 8 on |
-| `0x3c` | `int32_t unknown_3c` |  |
-| `0x40` | `uint8_t unknown_40` | sanitize normalizes to 0/1 |
+| `0x3c` | `int32_t objective_indicator` | 0 motion tracker, 1 nav points, 2 none |
+| `0x40` | `uint8_t odd_man_out` | sanitize normalizes to 0/1 |
 | `0x41` | `uint8_t pad_41[3]` |  |
 | `0x44` | `int32_t respawn_time_growth` | clamped >= 0; on_player_death adds it to 0x30 and caps the total at 5x this value |
 | `0x48` | `int32_t respawn_time` | clamped >= 0; the base respawn countdown in ticks |
 | `0x4c` | `int32_t suicide_penalty` | clamped >= 0; added when the killer is the victim |
 | `0x50` | `int32_t lives_per_round` | clamped >= 0; 0 means unlimited. A player whose death count (player+0xae) reaches it is eliminated |
-| `0x54` | `float speed_scale` | clamped to 0.25 .. 4.0 |
+| `0x54` | `float health` | clamped to 0.25 .. 4.0; damage taken is scaled by 1 / health (0x461550) |
 | `0x58` | `int32_t score_limit` |  |
-| `0x5c` | `int32_t starting_equipment` | clamped to 0 .. 0xd |
-| `0x60` | `uint32_t vehicle_set` | low nibble clamped to 0 .. 8; the upper bits are a packed 3-bit-per-slot table (the built-ins store , i.e. every slot from index 2 up set to 1) |
-| `0x64` | `uint32_t unknown_64` | same packed 3-bit encoding as 0x60 |
-| `0x68` | `int32_t time_limit` | in ticks (slayer default 0x708 == 60 s * 30) |
-| `0x6c` | `uint8_t unknown_6c` |  |
+| `0x5c` | `int32_t weapon_set` | clamped to 0 .. 0xd; indexes var_weapon_set |
+| `0x60` | `uint32_t red_vehicle_set` | low nibble clamped to 0 .. 8; the upper bits are a packed 3-bit-per-slot table (the built-ins store 0x249240) |
+| `0x64` | `uint32_t blue_vehicle_set` | same packed 3-bit encoding as 0x60 |
+| `0x68` | `int32_t vehicle_respawn_time` | in ticks (the built-ins store 0x708 == 60 s) |
+| `0x6c` | `uint8_t friendly_fire` | 0 off, 1 on, 2 shields only, 3 explosions only |
 | `0x6d` | `uint8_t pad_6d[3]` |  |
 | `0x70` | `int32_t betrayal_penalty` | on_player_death multiplies it by player+0xc0 |
-| `0x74` | `uint8_t unknown_74` |  |
+| `0x74` | `uint8_t team_autobalance` | written by the friendly-fire options screen; the engine never reads it |
 | `0x75` | `uint8_t pad_75[3]` |  |
-| `0x78` | `int32_t unknown_78` | slayer default 36000 ticks (20 minutes) |
-| `0x7c` | `uint8_t ctf_option_7c` | the four bytes 0x7c..0x7f are only normalized when |
-| `0x7d` | `uint8_t ctf_option_7d` | game_engine_index is 1 (ctf); 0x7f is skipped when the |
-| `0x7e` | `uint8_t ctf_option_7e` | index is 2 (slayer), which also normalizes 0x7c..0x7e |
-| `0x7f` | `uint8_t ctf_option_7f` |  |
-| `0x80` | `int32_t ctf_value_80` | clamped >= 0 for game_engine_index 1 |
-| `0x84` | `int32_t unknown_84` |  |
-| `0x88` | `int32_t unknown_88` |  |
-| `0x8c` | `int32_t unknown_8c` |  |
-| `0x90` | `int32_t unknown_90` |  |
-| `0x94` | `int16_t unknown_94` | every built-in writes 1 |
+| `0x78` | `int32_t time_limit` | ticks, 0 none (slayer default 36000 == 20 minutes) |
+| `0x7c` | `game_variant_engine_options engine` | 0x18 bytes, one view per game_engine_index (below) |
+| `0x94` | `uint16_t variant_flags` | bit 0 built-in, high byte default index |
 | `0x96` | `int16_t unknown_96` |  |
+
+`game_variant_engine_options` (the union at 0x7c; offsets are game_variant offsets):
+
+| engine | fields |
+|---|---|
+| ctf | `0x7c assault`, `0x7d unknown_7d` (never read), `0x7e flag_must_reset`, `0x7f flag_at_home_to_score`, `0x80 int32 single_flag_time` (ticks, 0 off) |
+| slayer | `0x7c death_bonus`, `0x7d kill_penalty`, `0x7e kill_in_order` |
+| oddball | `0x7c random_start`, `0x7d unknown_7d`, `0x80 speed_with_ball` (0 slow, 1 normal, 2 fast), `0x84 trait_with_ball`, `0x88 trait_without_ball` (0 none, 1 invisible, 2 extra damage, 3 damage resistant), `0x8c ball_type` (0 normal, 1 reverse tag, 2 juggernaut), `0x90 ball_count` |
+| king | `0x7c moving_hill` |
+| race | `0x7c int32 race_type` (0 normal, 1 any order, 2 rally), `0x80 team_scoring` (0 minimum, 1 maximum, 2 sum) |
+
+Several functions in 0x46beb0..0x46d450 are named `game_engine_koth_*` but are oddball code (they read the oddball
+view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_eligible_for_capture` /
+`_score_flag` / `_return_all_flags` (0x46d890..0x46efe0) are race code (race flags, the race view).
+`game_engine_compute_time_scale` (0x461550) is the damage multiplier (1 / health, x1.5 / x0.5 by oddball trait).
 
 #### `game_engine_definition` size 0xb0
 
@@ -234,23 +241,23 @@ and `king_hill_state` enums are not repeated here; read them in the header.
 | `0x34` | `datum_index unit` | the object this player drives, -1 when dead |
 | `0x38` | `datum_index previous_unit` | 0x474e10 rolls unit into it on every change |
 | `0x3c` | `int16_t bsp_cluster` | constructors write -1 |
-| `0x3e` | `int16_t unknown_3e` |  |
+| `0x3e` | `int16_t weapon_swap_result` |  |
 | `0x40` | `datum_index observer_target` | camera_observer_update (0x4593b0) result |
 | `0x44` | `int32_t observer_state` | written beside 0x40 by the same function |
 | `0x48` | `uint16_t identifier_name[12]` | second copy of the name: 0x473940 does a rep movsd of 8 dwords from the caller player-identifier record into 0x48 |
-| `0x60` | `int32_t unknown_60` | tail of that same 0x20-byte copy |
-| `0x64` | `int16_t unknown_64` |  |
+| `0x60` | `int32_t color_index` | tail of that same 0x20-byte copy |
+| `0x64` | `int16_t machine_index` |  |
 | `0x66` | `int8_t team_index` | 0x45c440 assigns it round-robin in team games |
 | `0x67` | `int8_t team_index_desired` | the requested team it is derived from |
 | `0x68` | `int16_t kill_streak[2]` | slot 0 also sets object flag 0x10 and stamps the streak method into unit+0x422; 0x479d10 counts both down once per tick |
 | `0x6c` | `float speed` | constructors write 1.0; part of the profile |
-| `0x70` | `datum_index unknown_70` | 0x45c440 writes -1 |
-| `0x74` | `datum_index unknown_74` | 0x45c440 writes -1 |
-| `0x78` | `datum_index unknown_78` | 0x45c440 writes -1 |
-| `0x7c` | `datum_index unknown_7c` | 0x45c440 writes -1 |
-| `0x80` | `int32_t unknown_80` | read by the nameplate HUD (0x45e520) |
+| `0x70` | `datum_index teleporter_flag_index` | 0x45c440 writes -1 |
+| `0x74` | `datum_index hud_message_index` | 0x45c440 writes -1 |
+| `0x78` | `datum_index hud_message_player` | 0x45c440 writes -1 |
+| `0x7c` | `datum_index nameplate_target_player` | 0x45c440 writes -1 |
+| `0x80` | `int32_t nameplate_fade_ticks` | read by the nameplate HUD (0x45e520) |
 | `0x84` | `int32_t last_death_tick` | game_time when this player last died; the odd-man-out test orders players by it |
-| `0x88` | `int32_t unknown_88` | part of the profile block |
+| `0x88` | `int32_t slayer_target` | part of the profile block |
 | `0x8c` | `uint8_t odd_man_out` | cached result of 0x460e40 |
 | `0x8d` | `uint8_t unknown_8d[0x96 - 0x8d]` | The statistics block. game_engine_attribute_player_death (0x46ff00) is the one function that writes all of it, and it separates the three roles cleanly: the victim gets deaths (and suicides when the killer is itself) and has its three streak fields reset, the killer gets kills or -- when teams_are_enemies says the pair is friendly -- betrayals, and every surviving recent damager gets assists. The profile cache mirrors ..0xb2 verbatim. |
 | `0x96` | `int16_t killing_spree_count` | +1 per kill, zeroed on death |
@@ -271,17 +278,17 @@ and `king_hill_state` enums are not repeated here; read them in the header.
 | `0xc0` | `int16_t betrayal_penalty_count` | +1 per betrayal; on_player_death scales it by game_variant::betrayal_penalty and clears it |
 | `0xc2` | `int16_t unknown_c2` |  |
 | `0xc4` | `int32_t objective_time` | hill / ball time in ticks. The profile cache divides it by 30 on the way out and multiplies it back on the way in when the engine is king |
-| `0xc8` | `int16_t unknown_c8` | flag touches; also mirrored by the profile |
+| `0xc8` | `int16_t objective_score` | flag touches; also mirrored by the profile |
 | `0xca` | `uint8_t unknown_ca[0xd0 - 0xca]` |  |
-| `0xd0` | `datum_index unknown_d0` | constructors write -1 |
-| `0xd4` | `uint8_t unknown_d4` |  |
+| `0xd0` | `datum_index quit_tick` | constructors write -1 |
+| `0xd4` | `uint8_t telefrag_danger` |  |
 | `0xd5` | `uint8_t marked_for_deletion` | 1 makes 0x474e10 call player_remove; every respawn / scoreboard path skips such a player |
 | `0xd6` | `uint8_t unknown_d6[0xdc - 0xd6]` |  |
-| `0xdc` | `int32_t unknown_dc` |  |
+| `0xdc` | `int32_t ping` |  |
 | `0xe0` | `int32_t medal_streak_count` | 0x479eb0 bumps it and fires the medal event once it reaches the threshold at 0x006894a4 |
 | `0xe4` | `int32_t medal_streak_timer` | seeded negative from 0x0069956c; the streak is only extended while it is >= 0 |
-| `0xe8` | `int32_t unknown_e8` |  |
-| `0xec` | `datum_index unknown_ec` | 0x473940 writes -1 |
+| `0xe8` | `int32_t last_update_id` |  |
+| `0xec` | `datum_index baseline_update_id` | 0x473940 writes -1 |
 | `0xf0` | `int32_t unknown_f0` | start of a 0xc-dword run the local constructor |
 | `0xf4` | `datum_index unknown_f4` | zeroes; the network constructor writes -1 here |
 | `0xf8` | `int32_t unknown_f8` |  |
@@ -296,20 +303,20 @@ and `king_hill_state` enums are not repeated here; read them in the header.
 | `0x11c` | `int32_t unknown_11c` |  |
 | `0x120` | `player_update_queue update_history` | 120 records of 0x2c |
 | `0x15c` | `datum_index unknown_15c` | local constructor writes -1 |
-| `0x160` | `datum_index unknown_160` | local constructor writes -1 |
-| `0x164` | `int32_t unknown_164` |  |
-| `0x168` | `int32_t unknown_168` |  |
-| `0x16c` | `int32_t unknown_16c` |  |
+| `0x160` | `datum_index last_position_update_id` | local constructor writes -1 |
+| `0x164` | `int32_t position_baseline_x` |  |
+| `0x168` | `int32_t position_baseline_y` |  |
+| `0x16c` | `int32_t position_baseline_z` |  |
 | `0x170` | `circular_queue position_updates` | 30 records of 0x14 |
-| `0x188` | `int32_t unknown_188` |  |
-| `0x18c` | `datum_index unknown_18c` | local constructor writes -1 |
-| `0x190` | `uint8_t unknown_190[0x1d0 - 0x190]` | 0x10 dwords the local constructor zeroes |
+| `0x188` | `int32_t position_update_ignored_count` |  |
+| `0x18c` | `datum_index last_vehicle_update_id` | local constructor writes -1 |
+| `0x190` | `uint8_t vehicle_baseline` | 0x10 dwords the local constructor zeroes |
 | `0x1d0` | `circular_queue vehicle_updates` | 30 records of 0x48 |
-| `0x1e8` | `int32_t unknown_1e8` |  |
-| `0x1ec` | `int32_t unknown_1ec` |  |
-| `0x1f0` | `int32_t unknown_1f0` |  |
-| `0x1f4` | `int32_t unknown_1f4` |  |
-| `0x1f8` | `int32_t unknown_1f8` |  |
+| `0x1e8` | `int32_t vehicle_update_ignored_count` |  |
+| `0x1ec` | `int32_t position_updates_applied_count` |  |
+| `0x1f0` | `int32_t position_update_error_total` |  |
+| `0x1f4` | `int32_t vehicle_updates_applied_count` |  |
+| `0x1f8` | `int32_t vehicle_update_error_total` |  |
 | `0x1fc` | `int32_t unknown_1fc` |  |
 
 #### `team` size 0x40 == k_team_size

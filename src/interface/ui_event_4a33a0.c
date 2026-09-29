@@ -53,13 +53,13 @@ uint8_t ui_event_4a33a0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (variant == 0) {
         return 0;
     }
-    time = ((struct game_variant *)variant)->time_limit;
-    variant_teams_enabled_0071920c = (uint8_t)(variant[0x34] != 0);
+    time = ((struct game_variant *)variant)->vehicle_respawn_time;
+    variant_teams_enabled_0071920c = (uint8_t)(((struct game_variant *)variant)->teams != 0);
     unknown_00692b0c = 0;
-    unknown_00879f34 = ((struct game_variant *)variant)->vehicle_set;
-    unknown_00879f38 = ((struct game_variant *)variant)->unknown_64;
+    unknown_00879f34 = ((struct game_variant *)variant)->red_vehicle_set;
+    unknown_00879f38 = ((struct game_variant *)variant)->blue_vehicle_set;
     unknown_00719208 = (uint32_t)time;
-    ui_controls_populate_bind_rows(widget, ((struct game_variant *)variant)->vehicle_set);
+    ui_controls_populate_bind_rows(widget, ((struct game_variant *)variant)->red_vehicle_set);
     first = widget->first_child;
     first_list_child(first)->selection_index = (int16_t)(time == 0x384 ? 1 : time == 0x708 ? 2 : time == 0xa8c ? 3 :
         time == 0xe10 ? 4 : time == 0x1518 ? 5 : time == 0x2328 ? 6 : 0);

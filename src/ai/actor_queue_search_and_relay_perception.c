@@ -36,14 +36,14 @@ void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index
     prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
     datum_index owner_index;
 
-    actor_queue_search_position(actor_index, 0, 1, (real_vector3d *)&p->unknown_e0,
+    actor_queue_search_position(actor_index, 0, 1, (real_vector3d *)&p->direction,
                                 0xffffffff, 0, 90, prop_index, 150, 0);
 
     owner_index = p->owner_actor_index;
     if (owner_index != (datum_index)k_datum_index_none) {
         actor *owner = &((actor *)actor_data->data)[owner_index & 0xffff];
-        if (owner->unknown_74 > 0) {
-            actor_record_perception_event(actor_index, owner->unknown_74, 0x1c2);
+        if (owner->suspicion_status > 0) {
+            actor_record_perception_event(actor_index, owner->suspicion_status, 0x1c2);
         }
     }
 }

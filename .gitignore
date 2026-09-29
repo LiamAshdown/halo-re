@@ -24,3 +24,4 @@ build/
 harness/gen/
 cmake-build-*/
 .idea/
+build/field_uses.json

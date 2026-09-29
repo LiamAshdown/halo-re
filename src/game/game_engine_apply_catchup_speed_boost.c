@@ -54,7 +54,7 @@ void game_engine_apply_catchup_speed_boost(void)
     while (p != (player *)0) {
         float speed = 1.0f;
         int32_t gap = leader - *(int16_t *)((uint8_t *)p + 0xc6);
-        if (game_engine_variant.ctf_option_7c == 2) {
+        if (game_engine_variant.engine.race.race_type == 2) {
             gap /= 3;
         }
         if (gap < 2) {

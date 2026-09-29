@@ -45,7 +45,7 @@ uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t k
                  [self->squad_index];
     groups = &squad->attacking;
 
-    searching = self->unknown_98;
+    searching = self->search_firing_positions;
     if (search_override == 1) {
         searching = 1;
     } else if (search_override == 2) {
@@ -59,12 +59,12 @@ uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t k
         return squad->defending_guard;
     }
     if (kind == 4) {
-        return groups[(self->unknown_374 != 0 ? 3 : 0) + 2]; // attacking_guard or defending_guard
+        return groups[(self->defending != 0 ? 3 : 0) + 2]; // attacking_guard or defending_guard
     }
     if (kind == 5) {
         return squad->pursuing;
     }
-    if (self->unknown_374 != 0) {
+    if (self->defending != 0) {
         return groups[(searching != 0 ? 1 : 0) + 3];         // defending or defending_search
     }
     return groups[searching != 0 ? 1 : 0];                   // attacking or attacking_search

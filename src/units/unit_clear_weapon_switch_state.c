@@ -38,7 +38,7 @@ void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_
     }
     unit->zoom_level = -1;
     unit->desired_zoom_level = -1;
-    unit->unknown_348 = 0.0f;
+    unit->integrated_night_vision_power = 0.0f;
     unit_invalidate_local_player_zoom_level();
 }
 

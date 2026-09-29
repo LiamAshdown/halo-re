@@ -81,7 +81,7 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
         switch (((actor_mode_flee_data *)mode_data)->panic) { // 0x403ad8
         case 9:
         case 10:
-            if (*(datum_index *)&((struct actor *)act)->unknown_1b0 == k_datum_index_none) {
+            if (*(datum_index *)&((struct actor *)act)->stuck_projectile_index == k_datum_index_none) {
                 mode_data[0xf] = 1;
             }
             break;
@@ -107,12 +107,12 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
             if (act[0x160]) {
                 ((actor_mode_flee_data *)mode_data)->movement_cancelled = 0;
                 mode_data[0xe] = 1;
-                *(int32_t *)&((struct actor *)act)->unknown_398 = game_time->game_time;
+                *(int32_t *)&((struct actor *)act)->last_flee_abort_time = game_time->game_time;
             } else if (((actor_mode_flee_data *)mode_data)->movement_cancelled) {
                 actor_check_melee_target_reachable(actor_index, (int16_t *)mode_data);
                 if (((actor_mode_flee_data *)mode_data)->destination == -1) {
                     mode_data[0xe] = 1;
-                    *(int32_t *)&((struct actor *)act)->unknown_398 = game_time->game_time;
+                    *(int32_t *)&((struct actor *)act)->last_flee_abort_time = game_time->game_time;
                 }
             }
         }

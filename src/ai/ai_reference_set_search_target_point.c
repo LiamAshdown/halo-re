@@ -25,7 +25,7 @@ void ai_reference_set_search_target_point(uint32_t packed_reference, uint32_t re
     ai_reference_actor_iterator_new(packed_reference, &iterator);
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
-        a->unknown_1d4 = 1;
+        a->try_to_fight_type = 1;
         *(uint32_t *)(a->unknown_1d6 + 2) = reference_value;
         a = ai_reference_actor_iterator_next(&iterator);
     }

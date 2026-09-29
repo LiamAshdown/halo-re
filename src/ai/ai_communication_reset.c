@@ -38,7 +38,7 @@ void ai_communication_reset(void)
     int32_t *entries;
     uint8_t *element;
 
-    ai_globals_ptr->communication_valid = 1;
+    ai_globals_ptr->dialogue_triggers_enabled = 1;
     ai_globals_ptr->unknown_14 = (datum_index)0;
     ai_globals_ptr->unknown_18 = (datum_index)0;
     ai_globals_ptr->unknown_1c = (datum_index)0;

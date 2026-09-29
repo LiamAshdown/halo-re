@@ -105,7 +105,7 @@ void main_switch_structure_bsp(void)
             // covers it.
             int32_t *fade_ticks = (int32_t *)((uint8_t *)plr + 0xcc);
 
-            if (plr->unknown_d4 == 0) {
+            if (plr->telefrag_danger == 0) {
                 if (*fade_ticks > 0) {
                     *fade_ticks = *fade_ticks - 1;
                 }
@@ -123,7 +123,7 @@ void main_switch_structure_bsp(void)
                 }
             }
         }
-        plr->unknown_d4 = 0;
+        plr->telefrag_danger = 0;
 
         if (plr->unit != (datum_index)-1) {
             player_kill_streak_tick(player_handle);
@@ -166,7 +166,7 @@ void main_switch_structure_bsp(void)
                             *stage_byte = low;
                             *stage_byte = (uint8_t)((((uint8_t)plr->local_player_index ^ low) & 0xf) ^ low);
                         }
-                        local_player_globals->unknown_12 = (int16_t)i; // UNSURE field identity confirmed by offset only
+                        local_player_globals->bsp_switch_trigger_volume_index = (int16_t)i; // UNSURE field identity confirmed by offset only
                         if (destination < 0 || destination >= global_scenario->structure_bsps.count) {
                             console_print_va("tried to switch to invalid structure-bsp %d", (int32_t)destination);
                         } else if (destination == global_structure_bsp_index) {

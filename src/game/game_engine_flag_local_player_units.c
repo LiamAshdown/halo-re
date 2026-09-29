@@ -46,8 +46,8 @@ void game_engine_flag_local_player_units(void)
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
         p = (player *)data_iterator_next(&iterator);
         while (p != (player *)0) {
-            if (p->unknown_d0 != k_datum_index_none && p->marked_for_deletion == 0 &&
-                (network_game_mode == 1 || current_tick == (int32_t)p->unknown_d0)) {
+            if (p->quit_tick != k_datum_index_none && p->marked_for_deletion == 0 &&
+                (network_game_mode == 1 || current_tick == (int32_t)p->quit_tick)) {
                 p->marked_for_deletion = 1;
                 if (p->unit == k_datum_index_none) {
                     player_remove(iterator.index);

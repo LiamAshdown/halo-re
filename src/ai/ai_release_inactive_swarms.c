@@ -43,17 +43,17 @@ int ai_release_inactive_swarms(char *buffer, uint8_t *has_more)
     is_dead = 1;
 
     iterator.filter_array = encounter_data;
-    iterator.unknown_04 = 0;
+    iterator.next_index = 0;
     iterator.cursor = -1;
     iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
-    iterator.unknown_10 = 0;
+    iterator.encounterless_done = 0;
     iterator.active = 0;
     iterator.actor_index = -1;
-    iterator.unknown_18 = -1;
+    iterator.next_actor_index = -1;
 
     a = actor_iterator_next(&iterator);
     while (a != 0) {
-        if (a->swarm != 0 && a->active == 0 && a->unknown_0c != (datum_index)k_datum_index_none) {
+        if (a->swarm != 0 && a->active == 0 && a->deactivation_time != (datum_index)k_datum_index_none) {
             datum_index actor_index = iterator.actor_index /* the full handle, salt included */;
             total = total + a->cluster_count;
             actor_delete_or_release_unit(actor_index, is_dead);

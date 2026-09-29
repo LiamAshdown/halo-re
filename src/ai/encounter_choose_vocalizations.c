@@ -115,7 +115,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
     actor_index = (datum_index)k_datum_index_none;
     if (ai_globals_ptr->actors_valid != 0) {
         if (encounter_index == (datum_index)k_datum_index_none) {
-            actor_index = ai_globals_ptr->unknown_08;
+            actor_index = ai_globals_ptr->first_encounterless_actor;
         } else {
             actor_index = enc->first_actor;
         }
@@ -137,15 +137,15 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                 p = &((prop *)prop_data->data)[prop_index & 0xffff];
                 next_prop = p->next_in_actor;
 
-                if (p->is_vault == 0) {
+                if (p->dead == 0) {
                     continue;
                 }
 
-                if (p->is_unit == 0) {
+                if (p->enemy == 0) {
                     range = 9.0f;
                     bucket = 2;
                     bias = 0.4f;
-                } else if ((actor_definition[4] & 0x40) == 0 && p->unknown_76 < 0xd2) {
+                } else if ((actor_definition[4] & 0x40) == 0 && p->dead_ticks < 0xd2) {
                     range = 10.0f;
                     bucket = 0;
                     bias = 0.7f;
@@ -164,7 +164,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                     if (proximity <= 1.5f) {
                         boost = 1.5f;
                     }
-                    freshness = (float)(int32_t)p->unknown_76 * 0.004166667f;
+                    freshness = (float)(int32_t)p->dead_ticks * 0.004166667f;
                     if (1.0f <= freshness) {
                         freshness = 1.0f;
                     }
@@ -172,7 +172,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                     if (p->is_parented != 0) {
                         score = score + 2.0f;
                     }
-                    if (p->is_unit != 0) {
+                    if (p->enemy != 0) {
                         has_unit_prop = 1;
                     }
                     inserted = ai_insert_scored_candidate_pair(&buckets[bucket * 2], current,
@@ -200,7 +200,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
         bucket = ai_pick_weighted_candidate(buckets, &picked[0]);
         picked_bucket[0] = bucket;
 
-        if (enc->team != 2 || 7 < enc->unknown_4c) {
+        if (enc->team != 2 || 7 < enc->enemy_death_count) {
             still_any = 0;
             for (i = 0; i < 4; i = i + 1) {
                 ai_scored_candidate *pair = &buckets[i * 2];
@@ -228,14 +228,14 @@ void encounter_choose_vocalizations(datum_index encounter_index)
         }
     }
 
-    if (enc->team != 2 || 3 < enc->unknown_4c) {
+    if (enc->team != 2 || 3 < enc->enemy_death_count) {
         chosen_actor = (datum_index)k_datum_index_none;
         best_distance = 0.0f;
 
         actor_index = (datum_index)k_datum_index_none;
         if (ai_globals_ptr->actors_valid != 0) {
             if (encounter_index == (datum_index)k_datum_index_none) {
-                actor_index = ai_globals_ptr->unknown_08;
+                actor_index = ai_globals_ptr->first_encounterless_actor;
             } else {
                 actor_index = enc->first_actor;
             }
@@ -259,10 +259,10 @@ void encounter_choose_vocalizations(datum_index encounter_index)
         if (chosen_actor != (datum_index)k_datum_index_none) {
             chosen = &((actor *)actor_data->data)[chosen_actor & 0xffff];
 
-            if (0.5f <= chosen->unknown_1b8 ||
-                chosen->unknown_3b4 - chosen->unknown_1b8 <= 0.3f) {
-                head_count = enc->unknown_2a;
-                if (head_count == 1 && 1 < enc->unknown_1a) {
+            if (0.5f <= chosen->body_vitality ||
+                chosen->stood_down_body_vitality - chosen->body_vitality <= 0.3f) {
+                head_count = enc->living_count;
+                if (head_count == 1 && 1 < enc->pre_combat_living_count) {
                     morale_line = 1;
                 } else {
                     if (1 < head_count) {
@@ -270,16 +270,16 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                         if (head_count < 3) {
                             margin = (int32_t)head_count;
                         }
-                        if ((int32_t)head_count + margin <= (int32_t)enc->unknown_1a) {
+                        if ((int32_t)head_count + margin <= (int32_t)enc->pre_combat_living_count) {
                             morale_line = 4;
                             goto stamp;
                         }
-                        if (1 < head_count && (int32_t)enc->unknown_1a - 1 <= (int32_t)head_count) {
+                        if (1 < head_count && (int32_t)enc->pre_combat_living_count - 1 <= (int32_t)head_count) {
                             morale_line = 5;
                             goto stamp;
                         }
                     }
-                    if (0.8f < chosen->unknown_1b8) {
+                    if (0.8f < chosen->body_vitality) {
                         morale_line = 2;
                     }
                 }
@@ -292,7 +292,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
                 actor_index = (datum_index)k_datum_index_none;
                 if (ai_globals_ptr->actors_valid != 0) {
                     if (encounter_index == (datum_index)k_datum_index_none) {
-                        actor_index = ai_globals_ptr->unknown_08;
+                        actor_index = ai_globals_ptr->first_encounterless_actor;
                     } else {
                         actor_index = enc->first_actor;
                     }
@@ -335,26 +335,26 @@ stamp:
     for (i = 0; i < 2; i = i + 1) {
         if (picked_bucket[i] != -1 && picked[i].handle != (datum_index)k_datum_index_none) {
             a = &((actor *)actor_data->data)[picked[i].handle & 0xffff];
-            a->unknown_1e4 = ai_vocalization_line_table[picked_bucket[i]];
-            a->unknown_1e8 = picked[i].payload;
+            a->post_combat_action = ai_vocalization_line_table[picked_bucket[i]];
+            a->post_combat_prop_index = picked[i].payload;
         }
     }
 
     if (morale_line != -1 && morale_actor != (datum_index)k_datum_index_none) {
         a = &((actor *)actor_data->data)[morale_actor & 0xffff];
-        a->unknown_1e4 = morale_line;
-        a->unknown_1e8 = (datum_index)k_datum_index_none;
+        a->post_combat_action = morale_line;
+        a->post_combat_prop_index = (datum_index)k_datum_index_none;
         if (nearest_actor != (datum_index)k_datum_index_none) {
             a = &((actor *)actor_data->data)[nearest_actor & 0xffff];
-            a->unknown_1e4 = 6;
-            a->unknown_1e8 = nearest_prop;
+            a->post_combat_action = 6;
+            a->post_combat_prop_index = nearest_prop;
         }
     }
 
-    enc->unknown_47 = 1;
-    enc->unknown_48 = 0;
-    enc->unknown_4a = 0x78;
-    enc->unknown_4c = 0;
+    enc->post_combat = 1;
+    enc->post_combat_quiet = 0;
+    enc->post_combat_timer = 0x78;
+    enc->enemy_death_count = 0;
 }
 
 #if 0

@@ -49,7 +49,7 @@ void cutscene_stop(void)
 
     cinematic_globals_ptr->show_letterbox = 0;
     local_player_globals->input_disabled = 0;
-    ai_globals_ptr->communication_valid = 1;
+    ai_globals_ptr->dialogue_triggers_enabled = 1;
 
     effects = cinematic_screen_effect_state;
     cinematic_saved_music_gain = -1.0f;

@@ -62,7 +62,7 @@ void game_engine_touch_multiplayer_predicted_resources(void)
     mp_info = (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
     vehicles = (GlobalsVehicle *)mp_info->vehicles.pointer;
 
-    switch (game_engine_variant.vehicle_set & 0xf) {
+    switch (game_engine_variant.red_vehicle_set & 0xf) {
     case 2:
         object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[0].vehicle.tag_id);
         break;

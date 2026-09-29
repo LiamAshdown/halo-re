@@ -40,7 +40,7 @@ uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_in
         dz = self->active_movement.destination.z - destination->z;
         dist2 = dz * dz + dy * dy + dx * dx;
         if (dist2 <= 0.010000001f) {
-            if (self->needs_new_path != 0 && self->unknown_4a4 == 0) {
+            if (self->needs_new_path != 0 && self->path_resolved_this_tick == 0) {
                 return actor_movement_action_resolve(actor_index, 0, 0);
             }
             return 1;

@@ -90,7 +90,7 @@ void ctf_engine_flag_tick(uint32_t flag_handle, object *flag_obj)
     uint8_t position_valid;
 
     if (network_game_mode == 2) {
-        if (game_engine_variant.ctf_value_80 > 0) {
+        if (game_engine_variant.engine.ctf.single_flag_time > 0) {
             if (ctf_flag_auto_return_ticks > 0) {
                 ctf_flag_auto_return_ticks--;
             }
@@ -165,7 +165,7 @@ void ctf_engine_flag_tick(uint32_t flag_handle, object *flag_obj)
                     game_engine_ctf_reset_team_return_credit(flag_handle); // FIXED 2026-09-28: 0x468840 takes only EAX
                     custom_waypoints[2] = (custom_waypoint){0};
                     custom_waypoints[3] = (custom_waypoint){0};
-                    ctf_flag_auto_return_ticks = game_engine_variant.ctf_value_80;
+                    ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
                     game_engine_ctf_notify_both_teams((int32_t)toggled);
                 }
             }
@@ -173,18 +173,18 @@ notify_teams:
             if (local_player_globals->local_players[0] != (datum_index)0xffffffff) {
                 player *lp = (player *)((uint8_t *)player_data->data +
                     ((uint32_t)local_player_globals->local_players[0] & 0xffff) * sizeof(player));
-                *(int32_t *)&((struct player *)lp)->unknown_74 = (ctf_active_team == (uint8_t)lp->team) ? 0x31 : 0x30;
-                *(int32_t *)&((struct player *)lp)->unknown_78 = 0;
+                *(int32_t *)&((struct player *)lp)->hud_message_index = (ctf_active_team == (uint8_t)lp->team) ? 0x31 : 0x30;
+                *(int32_t *)&((struct player *)lp)->hud_message_player = 0;
             }
         }
         // else: no auto-return configured; falls straight through to the shared tail below
     } else {
-        if (game_engine_variant.ctf_value_80 > 0) {
+        if (game_engine_variant.engine.ctf.single_flag_time > 0) {
             if (ctf_flag_auto_return_ticks > 0) {
                 ctf_flag_auto_return_ticks--;
             }
             if (ctf_flag_auto_return_ticks == 0 && (item->flags & _item_in_inventory_bit) == 0) {
-                ctf_flag_auto_return_ticks = game_engine_variant.ctf_value_80;
+                ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
             }
             goto notify_teams;
         }
@@ -241,7 +241,7 @@ weapon_coordination:
     }
     position_valid = item_get_effective_position((datum_index)flag_handle, &item_position);
 
-    if ((game_engine_variant.ctf_value_80 < 1 || ctf_active_team == team) && position_valid == 1) {
+    if ((game_engine_variant.engine.ctf.single_flag_time < 1 || ctf_active_team == team) && position_valid == 1) {
         int16_t icon;
 
         custom_waypoint_register(holder_player_index, (int16_t)team, &item_position, 0.0f,

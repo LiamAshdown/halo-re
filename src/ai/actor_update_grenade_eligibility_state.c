@@ -44,11 +44,11 @@ void actor_update_grenade_eligibility_state(datum_index actor_index)
     int16_t result;
 
     self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    if (self->awareness_level <= 1 || !ai_globals_ptr->communication_valid) {
+    if (self->awareness_level <= 1 || !ai_globals_ptr->dialogue_triggers_enabled) {
         return;
     }
 
-    eligible = (self->awareness_level == 3 && self->unknown_72 < self->unknown_6e);
+    eligible = (self->awareness_level == 3 && self->minimum_combat_status < self->combat_status);
 
     if (self->grenade_recheck_ticks == 0 || self->grenade_eligible != eligible) {
         actor_recompute_grenade_eligibility(actor_index);

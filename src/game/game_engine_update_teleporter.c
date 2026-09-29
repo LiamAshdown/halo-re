@@ -115,14 +115,14 @@ void game_engine_update_teleporter(uint32_t player_index)
 
     // Cache invalidation: if the cached entrance flag (player::unknown_70) is more than 1 unit
     // away from the unit's current position, forget it.
-    if (p->unknown_70 != (datum_index)0xffffffff) {
+    if (p->teleporter_flag_index != (datum_index)0xffffffff) {
         ScenarioNetgameFlags *cached = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer
-            + (int32_t)p->unknown_70;
+            + (int32_t)p->teleporter_flag_index;
         float dx = unit_object->position.x - cached->position.x;
         float dy = unit_object->position.y - cached->position.y;
         float dz = unit_object->position.z - cached->position.z;
         if (1.0f < dx * dx + dy * dy + dz * dz) {
-            p->unknown_70 = (datum_index)0xffffffff;
+            p->teleporter_flag_index = (datum_index)0xffffffff;
         }
     }
 
@@ -130,7 +130,7 @@ void game_engine_update_teleporter(uint32_t player_index)
     found_index = -1; // UNSURE: stands in for Ghidra's bit-pattern "-NaN" sentinel; see file header
     game_engine_find_valid_starting_locations(0, 0.5f, 0.0f, 6, -1, 1, &found_index);
 
-    if (found_index != -1 && found_index != (int32_t)p->unknown_70) {
+    if (found_index != -1 && found_index != (int32_t)p->teleporter_flag_index) {
         ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
         ScenarioNetgameFlags *entrance = &flags[found_index];
         int16_t entrance_usage_id = (int16_t)entrance->usage_id;
@@ -180,7 +180,7 @@ void game_engine_update_teleporter(uint32_t player_index)
                         if (controller != (datum_index)0xffffffff) {
                             player *other = (player *)((uint8_t *)player_data->data +
                                 (controller & 0xffff) * sizeof(player));
-                            ((struct player *)other)->unknown_d4 = 1;      // UNSURE offset
+                            ((struct player *)other)->telefrag_danger = 1;      // UNSURE offset
                             *(int32_t *)((uint8_t *)other + 0xcc) =
                                 *(int32_t *)((uint8_t *)other + 0xcc) + 1;   // UNSURE offset
                         }
@@ -244,7 +244,7 @@ void game_engine_update_teleporter(uint32_t player_index)
                         p->local_player_index);
                 }
 
-                p->unknown_70 = (datum_index)game_engine_find_one_valid_starting_location(0, -1,
+                p->teleporter_flag_index = (datum_index)game_engine_find_one_valid_starting_location(0, -1,
                     0, 1.0f, 0.0f); // UNSURE: original call is FUN_00461180(0x3f800000,0); argument
                                     // order/identity guessed from that wrapper's own signature
 

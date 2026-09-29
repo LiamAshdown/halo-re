@@ -65,7 +65,7 @@ uint8_t widget_list_select_next(widget_instance *widget)
                     focused->next_sibling != (widget_instance *)0) {
                     widget_instance_relink_focus(widget, focused->next_sibling);
                     widget->selection_index = next_index;
-                    widget->unknown_54 = 1;
+                    widget->selection_direction = 1;
                     widget->scroll_blink = 0xf;
                     return 1;
                 }
@@ -102,7 +102,7 @@ uint8_t widget_list_select_next(widget_instance *widget)
                     index = index + 1;
                 } while (cursor != (widget_instance *)0);
             }
-            widget->unknown_54 = 1;
+            widget->selection_direction = 1;
             widget->selection_index = index;
             widget->scroll_blink = 0xf;
             return 1;
@@ -111,14 +111,14 @@ uint8_t widget_list_select_next(widget_instance *widget)
 
     widget->selection_index = widget->selection_index + 1;
     if ((uint16_t)widget->selection_index == (uint16_t)widget->item_count) {
-        widget->unknown_54 = 1;
+        widget->selection_direction = 1;
         widget->selection_index = 0;
         widget->scroll_blink = 0xf;
         return 1;
     }
 
 commit:
-    widget->unknown_54 = 1;
+    widget->selection_direction = 1;
     widget->scroll_blink = 0xf;
     return 1;
 }

@@ -44,7 +44,8 @@
 // are ordinary cdecl stack parameters (Ghidra's param_1..param_4) in that order, matching the
 // caller's own extern declaration.
 //
-// UNSURE: `options.unknown_00[0]` (Ghidra's local_260, tested identically as
+// NOTE: options.teams is game_variant+0x34 (the record is the variant seen from +0x34, see
+// types/networking.h). UNSURE: `options.unknown_00[0]` (Ghidra's local_260, tested identically as
 // "if (local_260 != 0)" in all five engine branches) is read but never written by any of the
 // four decoder calls this function makes, nor by anything else in its own body -- it is either a
 // field this function's caller is expected to have pre-filled (nothing in
@@ -166,7 +167,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         ticker_text_buffer_append(line, 0, ticker);
 
         // UNSURE: options.unknown_00[0] -- see file header.
-        if (options.unknown_00[0] != 0) {
+        if (options.teams != 0) {
             // Inlined equivalent of unicode_string_list_get_string(path, 0): same tag walk, same
             // scratch buffer (0x006b5c58), just without the round-trip through that function.
             datum_index tag_id = tag_lookup(0x75737472, // 'ustr'
@@ -250,7 +251,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
 
-        if (options.unknown_00[0] != 0) {
+        if (options.teams != 0) {
             is_custom_variant = 1;
             datum_index tag_id = tag_lookup(0x75737472,
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
@@ -307,7 +308,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
 
-        if (options.unknown_00[0] != 0) {
+        if (options.teams != 0) {
             is_custom_variant = 1;
             datum_index tag_id = tag_lookup(0x75737472,
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
@@ -400,7 +401,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
 
-        if (options.unknown_00[0] != 0) {
+        if (options.teams != 0) {
             is_custom_variant = 1;
             datum_index tag_id = tag_lookup(0x75737472,
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
@@ -443,7 +444,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
 
-        if (options.unknown_00[0] != 0) {
+        if (options.teams != 0) {
             is_custom_variant = 1;
             datum_index tag_id = tag_lookup(0x75737472,
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
@@ -500,11 +501,11 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     line[255] = 0;
     ticker_text_buffer_append(line, 0, ticker);
 
-    switch (options.gametype_like) { // Ghidra's local_244
+    switch (options.lives_per_round) { // Ghidra's local_244
     case 0: case 1: case 3: case 5:
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 2);
-        swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.gametype_like);
+        swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.lives_per_round);
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
         break;
@@ -515,7 +516,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     {
         // Ghidra's `iVar5 = __ftol()`: options.float_bits_20 is the speed_scale float's raw bits
         // (0.25 .. 4.0), truncated here as a whole percentage (25 .. 400).
-        float speed_scale = *(float *)&options.float_bits_20;
+        float speed_scale = *(float *)&options.health_bits;
         int32_t speed_percent = (int32_t)(speed_scale * 100.0f);
         if (speed_percent == 200 || speed_percent == 50 || speed_percent == 100 ||
             speed_percent == 150 || speed_percent == 300 || speed_percent == 400) {
@@ -534,10 +535,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         // (0 / 150 / 300 / 450 ticks). The `jg 0x4b9b29` -> `cmp edi,0x1c2` arm supplies the
         // fourth value; Ghidra folds it into a bVar9 flag and it is easy to drop.
         int show_pair = 0;
-        if (options.unknown_14 == 0 || options.unknown_14 == 0x96 ||
-            options.unknown_14 == 0x12c || options.unknown_14 == 0x1c2) {
-            show_pair = (options.unknown_10 == 0 || options.unknown_10 == 0x96 ||
-                         options.unknown_10 == 0x12c || options.unknown_10 == 0x1c2);
+        if (options.respawn_time == 0 || options.respawn_time == 0x96 ||
+            options.respawn_time == 0x12c || options.respawn_time == 0x1c2) {
+            show_pair = (options.respawn_time_growth == 0 || options.respawn_time_growth == 0x96 ||
+                         options.respawn_time_growth == 0x12c || options.respawn_time_growth == 0x1c2);
         } else {
             line[0] = 0;
         }
@@ -545,38 +546,38 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
             label_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 4);
             swprintf(line, 0xff, L"%s%s %d+%d", ticker_field_separator, label_text,
-                options.unknown_14 / 30, options.unknown_10 / 30);
+                options.respawn_time / 30, options.respawn_time_growth / 30);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
     }
 
-    if (options.unknown_18 == 0x96 || options.unknown_18 == 300 || options.unknown_18 == 0x1c2) {
+    if (options.suicide_penalty == 0x96 || options.suicide_penalty == 300 || options.suicide_penalty == 0x1c2) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 5);
-        swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.unknown_18 / 30);
+        swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.suicide_penalty / 30);
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
     }
-    if ((options.flags_a & 8) == 0) {
+    if ((options.flags & 8) == 0) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 6);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }
-    if (options.unknown_0c != 0) {
+    if (options.odd_man_out != 0) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 7);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }
-    if ((options.flags_a & 0x10) != 0) {
+    if ((options.flags & 0x10) != 0) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 8);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }
-    if ((options.flags_a & 4) != 0) {
+    if ((options.flags & 4) != 0) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 9);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
@@ -584,22 +585,22 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     }
 
     if (is_custom_variant) {
-        if (options.unknown_38 < 4) {
+        if (options.friendly_fire < 4) {
             label_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 11);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             // 0x4b9d86: `movzx ecx,bl` -- index is options.unknown_38, not the 11 above.
             suffix_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire",
-                (int16_t)options.unknown_38);
+                (int16_t)options.friendly_fire);
             wcscat(line, suffix_text);
-            if ((options.unknown_38 == 1 || options.unknown_38 == 3) &&
-                (options.unknown_3c == 0x96 || options.unknown_3c == 300 || options.unknown_3c == 0x1c2)) {
+            if ((options.friendly_fire == 1 || options.friendly_fire == 3) &&
+                (options.betrayal_penalty == 0x96 || options.betrayal_penalty == 300 || options.betrayal_penalty == 0x1c2)) {
                 // Ghidra's esi=1/2/3 selection, recovered from the disassembly directly (there is
                 // no join_game_rules_strings label fetch for this one -- it goes straight to
                 // var_friendly_fire_penalty with an index chosen by which constant matched).
                 int16_t penalty_display_index =
-                    (options.unknown_3c == 0x96) ? 1 : (options.unknown_3c == 300) ? 2 : 3;
+                    (options.betrayal_penalty == 0x96) ? 1 : (options.betrayal_penalty == 300) ? 2 : 3;
                 wcscat(line, L" (+");
                 suffix_text = unicode_string_list_get_string(
                     "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire_penalty",
@@ -610,35 +611,35 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
-        if ((options.unknown_2c & 0xf) < 9) {
+        if ((options.red_vehicle_set & 0xf) < 9) {
             label_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 12);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
-                (int16_t)(options.unknown_2c & 0xf));
+                (int16_t)(options.red_vehicle_set & 0xf));
             wcscat(line, suffix_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
-        if ((options.unknown_30 & 0xf) < 9) {
+        if ((options.blue_vehicle_set & 0xf) < 9) {
             label_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 13);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
-                (int16_t)(options.unknown_30 & 0xf));
+                (int16_t)(options.blue_vehicle_set & 0xf));
             wcscat(line, suffix_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
-    } else if ((options.unknown_2c & 0xf) < 9) {
+    } else if ((options.red_vehicle_set & 0xf) < 9) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 10);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
         suffix_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
-            (int16_t)(options.unknown_2c & 0xf));
+            (int16_t)(options.red_vehicle_set & 0xf));
         wcscat(line, suffix_text);
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
@@ -652,7 +653,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         // count here would index far off the end of that string list. Any other value skips the
         // line entirely (`jne 0x4ba02a`).
         int32_t vehicle_respawn_index = -1;
-        switch (options.unknown_34) {
+        switch (options.vehicle_respawn_time) {
         case 0:      vehicle_respawn_index = 0; break;
         case 0x384:  vehicle_respawn_index = 1; break;  /* 900  */
         case 0x708:  vehicle_respawn_index = 2; break;  /* 1800 */
@@ -675,19 +676,19 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
     }
 
-    if (options.unknown_28 < 0xe) {
+    if (options.weapon_set < 0xe) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 15);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
         suffix_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\item_options_edit\\var_weapon_set",
-            (int16_t)options.unknown_28);
+            (int16_t)options.weapon_set);
         wcscat(line, suffix_text);
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
     }
 
-    if ((options.flags_a & 0x20) == 0) {
+    if ((options.flags & 0x20) == 0) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 16);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
@@ -700,12 +701,12 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
 
     // Ghidra's local_258/local_258==1 pair, both fetching label 18 and then, either way, a
     // trailing shared value string at index 19.
-    if (options.unknown_08 == 0) {
+    if (options.objective_indicator == 0) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 18);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
     } else {
-        if (options.unknown_08 != 1) goto shared_tail; // LAB_004ba19f
+        if (options.objective_indicator != 1) goto shared_tail; // LAB_004ba19f
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 18);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
@@ -716,8 +717,8 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     ticker_text_buffer_append(line, 0, ticker);
 
 shared_tail: // LAB_004ba19f
-    if ((options.flags_a & 1) != 0) {
-        if ((options.flags_a & 0x40) == 0) {
+    if ((options.flags & 1) != 0) {
+        if ((options.flags & 0x40) == 0) {
             label_text = unicode_string_list_get_string(
                 "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 21);
         } else {
@@ -727,7 +728,7 @@ shared_tail: // LAB_004ba19f
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }
-    if ((options.flags_a & 2) != 0) {
+    if ((options.flags & 2) != 0) {
         label_text = unicode_string_list_get_string(
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 23);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);

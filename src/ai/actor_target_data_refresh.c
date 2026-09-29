@@ -88,16 +88,16 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
     object_index = target->object_index;
     unit_obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
-    if (force == 0 && 3 < target->kind && target->kind < 6) {
+    if (force == 0 && 3 < target->state && target->state < 6) {
         // FIXED: Ghidra jumps straight to LAB_0041c867 when prop+0x4e is non-zero -- a
         // non-zero unknown_4e SKIPS the whole refresh. The first rewrite inverted this and
         // fell through into the reassign block instead.
-        if (target->unknown_4e != 0) {
+        if (target->dead_confirmed != 0) {
             goto after_reassign;
         }
         {
             if (((unit_obj->vitality_flags & 4) == 0 || *(int16_t *)((uint8_t *)unit_obj + 0x420) != 0) ||
-                (target->unknown_30 != 0 || 0.010000001f <= vector3d_magnitude_squared(&unit_obj->velocity))) { // 0x41c561: EAX = object + 0x68
+                (target->perception_level != 0 || 0.010000001f <= vector3d_magnitude_squared(&unit_obj->velocity))) { // 0x41c561: EAX = object + 0x68
                 is_eligible = 0;
             } else {
                 is_eligible = 1;
@@ -108,14 +108,14 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
                 is_eligible == 0) {
                 goto after_reassign;
             }
-            target->unknown_4e = 1;
-            target->is_vault = 1;
+            target->dead_confirmed = 1;
+            target->dead = 1;
         }
     }
 
-    if (((target->has_parent != 0 && target->owner_actor_index != k_datum_index_none) && allow_reassign != 0) &&
-        target->unknown_28 + 0x5a <= game_time->game_time) {
-        target->unknown_28 = game_time->game_time;
+    if (((target->swarm_owned != 0 && target->owner_actor_index != k_datum_index_none) && allow_reassign != 0) &&
+        target->swarm_reassign_time + 0x5a <= game_time->game_time) {
+        target->swarm_reassign_time = game_time->game_time;
         // UNSURE: real signature is object_find_nearest_squad_member(actor_index, reference,
         // exclude_index, stamp_group); called here with (&target->unknown_120-as-firing-block,
         // object_index, 0) per Ghidra's recovered args (self+0x120 through the target's own
@@ -125,7 +125,7 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
         if (reassigned != object_index) {
             target->object_index = reassigned;
             unit_obj = ((object_header *)object_data->data)[reassigned & 0xffff].data;
-            if (target->kind < 4 || 5 < target->kind) {
+            if (target->state < 4 || 5 < target->state) {
                 if (target->pair_index != k_datum_index_none) {
                     ((prop *)((uint8_t *)prop_data->data + (target->pair_index & 0xffff) * sizeof(prop)))->object_index = reassigned;
                 }
@@ -139,33 +139,33 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
     transform_x = *(uint32_t *)(local_transform + 0x60);
     transform_y = *(uint32_t *)(local_transform + 0x64);
     transform_z = *(uint32_t *)(local_transform + 0x68);
-    *(uint32_t *)&target->unknown_104 = transform_x; // UNSURE: local_c/local_8/local_4 mapping
-    *(uint32_t *)&target->unknown_108 = transform_y; // guessed as the transform's first three
-    *(uint32_t *)&target->unknown_10c = transform_z; // output dwords, in order
+    *(uint32_t *)&target->head_position_x = transform_x; // UNSURE: local_c/local_8/local_4 mapping
+    *(uint32_t *)&target->head_position_y = transform_y; // guessed as the transform's first three
+    *(uint32_t *)&target->head_position_z = transform_z; // output dwords, in order
 
     // FIXED: objdump 0x41c6c0 sets EAX = &prop.last_known_position (prop+0xbc) and
     // ECX = prop.object_index before the call; the first rewrite passed a null out-pointer.
     object_get_position(&target->last_known_position, target->object_index);
 
     object_get_node_local_transform(target->object_index, ai_marker_name_b, (object_marker *)local_transform, 1);
-    *(uint32_t *)&target->aim_offset.x = *(uint32_t *)(local_transform + 0x60);
-    *(uint32_t *)&target->aim_offset.y = *(uint32_t *)(local_transform + 0x64);
-    *(uint32_t *)&target->aim_offset.z = *(uint32_t *)(local_transform + 0x68);
-    *(real_vector3d *)&target->unknown_d4 = unit_obj->velocity;
+    *(uint32_t *)&target->center_of_mass.x = *(uint32_t *)(local_transform + 0x60);
+    *(uint32_t *)&target->center_of_mass.y = *(uint32_t *)(local_transform + 0x64);
+    *(uint32_t *)&target->center_of_mass.z = *(uint32_t *)(local_transform + 0x68);
+    *(real_vector3d *)&target->velocity = unit_obj->velocity;
     // FIXED: this store is prop+0xec (path_surface_index), not prop+0x110. The first rewrite
     // wrote relationship_object_index here and again below, losing the 0xec reset entirely.
-    target->path_surface_index = -1;
+    target->pathfinding_surface_index = -1;
 
     reassigned = object_get_root_object_index(target->object_index); // 0x41c71c: ECX = prop +0x18
     parent_obj = ((object_header *)object_data->data)[reassigned & 0xffff].data;
-    target->unknown_fc = *(float *)&parent_obj->location_leaf_index;
+    target->location_leaf_index = *(float *)&parent_obj->location_leaf_index;
     *(uint32_t *)&target->cluster_index = *(uint32_t *)&parent_obj->location_cluster_index;
 
     // 0x41c75a: EBX = prop +0xc8 (the second marker position), stack: the location at +0xfc, no weather output
-    target->unknown_118 = scenario_location_get_water_and_weather(&target->aim_offset, (bsp_leaf_reference *)&target->unknown_fc, 0);
+    target->in_water = scenario_location_get_water_and_weather(&target->center_of_mass, (bsp_leaf_reference *)&target->location_leaf_index, 0);
     target->relationship_object_index = -1;
-    target->unknown_135 = 0;
-    target->unknown_136 = 0;
+    target->is_vehicle_gunner = 0;
+    target->is_vehicle_driver = 0;
     *(uint32_t *)&target->unknown_114 = 0xffffffff; // types/ai.h types this field as a float,
                                                     // but the original stores the raw -1
                                                     // sentinel bit pattern here, not 0.0
@@ -177,27 +177,27 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
             target->relationship_object_index = parent_index;
             if (*(int32_t *)((uint8_t *)parent_obj + 0x328) == (int32_t)target->object_index ||
                 target->actor_type == 0xf) {
-                target->unknown_135 = 1;
+                target->is_vehicle_gunner = 1;
             } else {
-                target->unknown_135 = 0;
+                target->is_vehicle_gunner = 0;
             }
             if (*(int32_t *)((uint8_t *)parent_obj + 0x324) == (int32_t)target->object_index &&
                 unit_get_tag_flag_bit7(parent_index) != 0) {
-                target->unknown_136 = 1;
+                target->is_vehicle_driver = 1;
             } else {
-                target->unknown_136 = 0;
+                target->is_vehicle_driver = 0;
             }
         } else if ((1 << (parent_obj->type & 0x1f) & 3) != 0) {
             *(uint32_t *)&target->unknown_114 = parent_index;
         }
     }
 
-    target->unknown_125 = 0;
+    target->child_unit_count = 0;
     child_index = unit_obj->first_child_object;
     while (child_index != k_datum_index_none) {
         child_obj = ((object_header *)object_data->data)[child_index & 0xffff].data;
         if ((1 << (child_obj->type & 0x1f) & 3) != 0) {
-            target->unknown_125 = target->unknown_125 + 1;
+            target->child_unit_count = target->child_unit_count + 1;
         }
         child_index = child_obj->next_object;
     }
@@ -206,14 +206,14 @@ after_reassign:
     // 0x41c867: EAX = actor, ECX = the caller's block (filled here), EDX = prop +0xbc
     actor_get_firing_positions(actor_index, (uint32_t *)reference, &target->last_known_position);
 
-    target->unknown_e0.x = target->last_known_position.x - *(float *)((uint8_t *)reference + 0xc);
-    target->unknown_e0.y = target->last_known_position.y - *(float *)((uint8_t *)reference + 0x10);
-    target->unknown_e0.z = target->last_known_position.z - *(float *)((uint8_t *)reference + 0x14);
-    length = vector3d_normalize_with_length((real_vector3d *)&target->unknown_e0);
+    target->direction.x = target->last_known_position.x - *(float *)((uint8_t *)reference + 0xc);
+    target->direction.y = target->last_known_position.y - *(float *)((uint8_t *)reference + 0x10);
+    target->direction.z = target->last_known_position.z - *(float *)((uint8_t *)reference + 0x14);
+    length = vector3d_normalize_with_length((real_vector3d *)&target->direction);
     target->distance = length;
 
     if (length == 0.0f) {
-        *(real_vector3d *)&target->unknown_e0 = *global_forward3d_pointer;
+        *(real_vector3d *)&target->direction = *global_forward3d_pointer;
     }
 }
 

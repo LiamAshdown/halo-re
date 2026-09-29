@@ -28,9 +28,9 @@ uint8_t actor_movement_check_arrival(datum_index actor_index)
 
     if (self->active_movement.type != 0 && self->active_movement.type != 1) {
         radius = actor_compute_accuracy_scale(actor_index);
-        dx = self->unknown_488.x - self->body_position.x;
-        dy = self->unknown_488.y - self->body_position.y;
-        dz = self->unknown_488.z - self->body_position.z;
+        dx = self->destination.x - self->body_position.x;
+        dy = self->destination.y - self->body_position.y;
+        dz = self->destination.z - self->body_position.z;
         if (radius * radius <= dy * dy + dx * dx + dz * dz) {
             return self->movement_completed;
         }

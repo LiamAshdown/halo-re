@@ -37,7 +37,7 @@ void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     unit_index = self->unit_index;
 
-    if (self->unknown_161 != 0) {
+    if (self->vehicle_gunner != 0) {
         unit_index = self->active_unit_index;
         hdr = (object_header *)object_data->data + (unit_index & 0xffff);
         unit_obj = hdr->data;

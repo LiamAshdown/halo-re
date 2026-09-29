@@ -58,7 +58,7 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
                 chimera__console_out((ColorARGB *)0, "sv_ban:  Can't ban a local client!");
                 return;
             }
-            network_banlist_add_ban(machine->unknown_5c, duration, player);
+            network_banlist_add_ban(machine->gcd_user_id, duration, player);
             network_server_notify_or_resend_challenge(6, machine, network_server);
         }
         return;

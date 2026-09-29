@@ -37,7 +37,7 @@ void cheat_make_player_invincible(int16_t local_player_slot)
             unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
             unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
             unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-            unit->unknown_37c = 1.0f;
+            unit->active_camouflage_power = 1.0f;
             if ((unit->flags & 0x10) != 0) {
                 unit->flags = unit->flags | 0x20;
             }

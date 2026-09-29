@@ -65,7 +65,7 @@ int32_t network_game_state_update_receive(network_client_globals *client, uint8_
         *(int16_t *)(record + 0xe) = target_capacity;
     }
 
-    if (*(uint32_t *)record <= (uint32_t)client->unknown_ecc ||
+    if (*(uint32_t *)record <= (uint32_t)client->last_update_id ||
         (network_server == 0 && (uint32_t)game_time->game_time == *(uint32_t *)(record + 8) &&
          *(uint32_t *)(record + 4) != random_seed_global)) {
         network_disconnect_notify_dropped_machines(client);
@@ -86,11 +86,11 @@ int32_t network_game_state_update_receive(network_client_globals *client, uint8_
     }
 
     update_client_advance_read_cursor(local_buffer); // UNSURE argument
-    client->unknown_ecc = *(uint32_t *)record;
+    client->last_update_id = *(uint32_t *)record;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-    client->unknown_ed0 = now_ms;
+    client->last_update_received_ms = now_ms;
     return 1;
 }
 

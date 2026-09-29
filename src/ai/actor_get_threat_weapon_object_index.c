@@ -35,7 +35,7 @@ datum_index actor_get_threat_weapon_object_index(datum_index actor_index)
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
     datum_index result = (datum_index)k_datum_index_none;
 
-    if (self->unknown_161 != 0 && self->active_unit_index != (datum_index)k_datum_index_none) {
+    if (self->vehicle_gunner != 0 && self->active_unit_index != (datum_index)k_datum_index_none) {
         object *unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
         int16_t slot = *(int16_t *)((uint8_t *)unit_object + 0x2f2); // UNSURE offset
 

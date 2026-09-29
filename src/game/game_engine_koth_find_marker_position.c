@@ -43,7 +43,7 @@ void game_engine_koth_find_marker_position(real_point3d *out_position, int16_t t
     // behaviour visible instead of silently skipping the write.
     real_point3d found; /* uninitialized on purpose, see above */
 
-    if (game_engine_variant.ctf_option_7c == 0) {
+    if (game_engine_variant.engine.oddball.random_start == 0) {
         game_engine_find_valid_starting_locations((real_point3d *)0, 0.0f, 0.0f, 2, type_filter, 1, &index);
     }
 

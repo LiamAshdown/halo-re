@@ -49,12 +49,12 @@ uint8_t encounter_evaluate_platoon_condition(datum_index encounter_index, const 
     platoon_index = condition->platoon_index;
     if ((platoon_index < 0) || (self->platoon_count <= platoon_index)) {
         count_b = self->member_count;
-        count_a = self->unknown_2a;
+        count_a = self->living_count;
         threshold = *(float *)&self->average_vitality;
     } else {
         platoon_state = &encounter_platoon_states[(int16_t)(self->first_platoon + platoon_index)];
         count_b = platoon_state->member_count;
-        count_a = platoon_state->unknown_06;
+        count_a = platoon_state->living_count;
         threshold = *(float *)&platoon_state->average_vitality;
     }
 

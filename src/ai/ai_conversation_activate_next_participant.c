@@ -53,7 +53,7 @@ uint8_t ai_conversation_activate_next_participant(datum_index instance_handle)
     ScenarioAIConversation *definition =
         &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
     ScenarioAIConversationLine *line =
-        &((ScenarioAIConversationLine *)definition->lines.pointer)[instance->unknown_48];
+        &((ScenarioAIConversationLine *)definition->lines.pointer)[instance->line_index];
     int16_t participant_index = line->participant;
 
     if (participant_index < 0 || participant_index >= definition->participants.count ||
@@ -67,46 +67,46 @@ uint8_t ai_conversation_activate_next_participant(datum_index instance_handle)
             (ScenarioAIConversationParticipant *)definition->participants.pointer;
         datum_index participant_actor_handle = instance->participant_actor[participant_index];
 
-        instance->unknown_4a = participant_index;
+        instance->speaker_participant_index = participant_index;
 
         if (participant_actor_handle == (datum_index)k_datum_index_none) {
-            instance->unknown_50 = (uint32_t)k_datum_index_none;
-            instance->unknown_54 = (uint32_t)k_datum_index_none;
-            instance->unknown_58 = (uint32_t)k_datum_index_none;
-            instance->unknown_60 = 1;
+            instance->speaker_actor_index = (uint32_t)k_datum_index_none;
+            instance->speaker_unit_index = (uint32_t)k_datum_index_none;
+            instance->addressee_unit_index = (uint32_t)k_datum_index_none;
+            instance->speaker_disembodied = 1;
         } else {
             actor *participant_actor = &((actor *)actor_data->data)[participant_actor_handle & 0xffff];
             int16_t selection_type;
 
-            instance->unknown_50 = participant_actor_handle;
-            instance->unknown_54 = participant_actor->unit_index;
-            instance->unknown_58 = (uint32_t)k_datum_index_none;
+            instance->speaker_actor_index = participant_actor_handle;
+            instance->speaker_unit_index = participant_actor->unit_index;
+            instance->addressee_unit_index = (uint32_t)k_datum_index_none;
 
             if (line->addressee == 1) {
-                instance->unknown_58 = instance->unknown_10;
+                instance->addressee_unit_index = instance->player_unit_index;
             } else if (line->addressee == 2 && line->addressee_participant >= 0 &&
                        line->addressee_participant < definition->participants.count) {
                 datum_index addressee_actor_handle = instance->participant_actor[line->addressee_participant];
                 if (addressee_actor_handle != (datum_index)k_datum_index_none) {
-                    instance->unknown_58 = ((actor *)actor_data->data)[addressee_actor_handle & 0xffff].unit_index;
+                    instance->addressee_unit_index = ((actor *)actor_data->data)[addressee_actor_handle & 0xffff].unit_index;
                 }
             }
 
             selection_type = participants[participant_index].selection_type;
-            instance->unknown_60 = (selection_type == 6 || selection_type == 7) ? 1 : 0;
+            instance->speaker_disembodied = (selection_type == 6 || selection_type == 7) ? 1 : 0;
         }
 
         {
             TagDependency *variants = &line->variant_1; // variant_1..variant_6, six contiguous 0x10-byte slots
             int16_t variant_selector = ((int16_t *)&instance->unknown_18)[participant_index];
-            instance->unknown_5c = *(uint32_t *)&variants[variant_selector].tag_id;
+            instance->sound_index = *(uint32_t *)&variants[variant_selector].tag_id;
         }
 
-        instance->unknown_4c = (int16_t)__ftol((double)(line->line_delay_time * ticks_per_second));
-        instance->unknown_4e = line->flags;
-        instance->unknown_63 = 0;
-        instance->unknown_62 = 0;
-        instance->unknown_61 = 0;
+        instance->line_delay_ticks = (int16_t)__ftol((double)(line->line_delay_time * ticks_per_second));
+        instance->line_flags = line->flags;
+        instance->line_finished = 0;
+        instance->line_spoken = 0;
+        instance->line_started = 0;
     }
 
     return 1;

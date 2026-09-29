@@ -83,7 +83,7 @@ void encounters_update_activation(void)
 
     visible_clusters = (uint32_t *)((uint8_t *)local_player_globals + 0x18);
 
-    actor_index = ai_globals_ptr->unknown_08;
+    actor_index = ai_globals_ptr->first_encounterless_actor;
     while (actor_index != (datum_index)k_datum_index_none) {
         current = actor_index;
         a = &((actor *)actor_data->data)[current & 0xffff];
@@ -101,13 +101,13 @@ void encounters_update_activation(void)
             obj = ((object_header *)object_data->data)[root_index & 0xffff].data;
             cluster = obj->location_cluster_index;
             if (cluster == -1) {
-                a->unknown_12 = 1;
+                a->can_go_dormant = 1;
             } else {
-                a->unknown_12 = (uint8_t)(1 - (((1 << (cluster & 0x1f)) &
+                a->can_go_dormant = (uint8_t)(1 - (((1 << (cluster & 0x1f)) &
                     visible_clusters[(int32_t)cluster >> 5]) != 0));
             }
         } else {
-            a->unknown_12 = 1;
+            a->can_go_dormant = 1;
             if (a->swarm_index == (datum_index)k_datum_index_none) {
                 child_index = a->cluster_unit_index;
                 if (child_index != (datum_index)k_datum_index_none) {
@@ -124,7 +124,7 @@ void encounters_update_activation(void)
                         if (cluster != -1 &&
                             (visible_clusters[(int32_t)cluster >> 5] &
                              (1 << (cluster & 0x1f))) != 0) {
-                            a->unknown_12 = 0;
+                            a->can_go_dormant = 0;
                             break;
                         }
                         obj = ((object_header *)object_data->data)[child_index & 0xffff].data;
@@ -149,7 +149,7 @@ void encounters_update_activation(void)
                         if (cluster != -1 &&
                             (visible_clusters[(int32_t)cluster >> 5] &
                              (1 << (cluster & 0x1f))) != 0) {
-                            a->unknown_12 = 0;
+                            a->can_go_dormant = 0;
                             break;
                         }
                         component_index = component_index + 1;
@@ -158,8 +158,8 @@ void encounters_update_activation(void)
             }
         }
 
-        if (a->unknown_12 == 0 || a->unknown_0a != 0) {
-            *(int16_t *)&a->unknown_10[0] = 0x5a;
+        if (a->can_go_dormant == 0 || a->force_active != 0) {
+            *(int16_t *)&a->activation_delay[0] = 0x5a;
             if (a->active != 1) {
                 if (a->swarm == 0 || (actor_create_swarm(current),
                                       a->swarm_index != (datum_index)k_datum_index_none)) {
@@ -171,17 +171,17 @@ void encounters_update_activation(void)
                     a->swarm_pending = 1;
                 }
             }
-        } else if (*(int16_t *)&a->unknown_10[0] < 0x1f) {
-            *(int16_t *)&a->unknown_10[0] = 0;
+        } else if (*(int16_t *)&a->activation_delay[0] < 0x1f) {
+            *(int16_t *)&a->activation_delay[0] = 0;
             if (a->active != 0) {
                 actor_clear_perceived_props(current);
                 actor_delete_swarm(current);
                 actor_set_units_active(current, 1);
                 a->active = 0;
-                a->unknown_0c = (datum_index)game_time->game_time;
+                a->deactivation_time = (datum_index)game_time->game_time;
             }
         } else {
-            *(int16_t *)&a->unknown_10[0] = (int16_t)(*(int16_t *)&a->unknown_10[0] - 0x1e);
+            *(int16_t *)&a->activation_delay[0] = (int16_t)(*(int16_t *)&a->activation_delay[0] - 0x1e);
         }
         actor_index = a->next_in_encounter;
     }
@@ -195,7 +195,7 @@ void encounters_update_activation(void)
     while (enc != 0) {
         definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
             [iterator.index & 0xffff];
-        wants_active = (uint8_t)(0 < enc->unknown_3e || enc->unknown_0c != 0);
+        wants_active = (uint8_t)(0 < enc->respawn_delay_ticks || enc->force_active != 0);
 
         if ((int16_t)definition->precomputed_bsp_index == -1 ||
             (int16_t)definition->precomputed_bsp_index == global_structure_bsp_index) {
@@ -228,9 +228,9 @@ void encounters_update_activation(void)
 
         if (enc->units_active == 0 || enc->activation_delay <= 0x1e) {
             any_dependent_pending = 0;
-            if (0 < enc->unknown_20) {
+            if (0 < enc->activation_link_count) {
                 dependents = (uint16_t *)&enc->unknown_22;
-                for (i = enc->unknown_20; i != 0; i = i - 1) {
+                for (i = enc->activation_link_count; i != 0; i = i - 1) {
                     if (0 < ((encounter *)encounter_data->data)[*dependents].activation_delay) {
                         any_dependent_pending = 1;
                     }

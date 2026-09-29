@@ -49,11 +49,11 @@ uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value
         target = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * sizeof(prop));
         prop_index = target->next_in_actor;
 
-        if (((1 < target->kind && target->kind < 4) && target->is_unit == 0) &&
+        if (((1 < target->state && target->state < 4) && target->enemy == 0) &&
             (target->actor_type == self->type && target->owner_actor_index != k_datum_index_none)) {
             ally = (actor *)((uint8_t *)actor_data->data + (target->owner_actor_index & 0xffff) * sizeof(actor));
 
-            if (ally->unknown_308 < 1 &&
+            if (ally->pending_panic_type < 1 &&
                 (ally->mode != 4 || *(int16_t *)((uint8_t *)ally + 0xa8) < 1)) {
                 if (target->unknown_12c != 0) {
                     exposed_count++;
