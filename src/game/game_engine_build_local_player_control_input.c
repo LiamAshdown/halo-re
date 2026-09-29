@@ -235,7 +235,7 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
                     ((object_header *)object_data->data)[plr->unit & 0xffff].data +
                     k_unit_data_offset);
 
-                scale = (1.0f - unit->unknown_424 * player_information->stun_turning_penalty) * scale;
+                scale = (1.0f - unit->stun_amount * player_information->stun_turning_penalty) * scale;
             }
             out->yaw_delta = scale * input->look_x;
             out->pitch_delta = scale * input->look_y;
@@ -278,7 +278,7 @@ void game_engine_build_local_player_control_input(int16_t local_player_index, re
                     ((object_header *)object_data->data)[plr->unit & 0xffff].data +
                     k_unit_data_offset);
                 real stun_scale =
-                    1.0f - unit->unknown_424 * player_information->stun_turning_penalty;
+                    1.0f - unit->stun_amount * player_information->stun_turning_penalty;
 
                 yaw_delta = yaw_delta * stun_scale;
                 pitch_delta = stun_scale * pitch_delta;

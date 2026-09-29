@@ -15,7 +15,7 @@
 //     [0x0d] run_forward (2.25), [0x0e] run_backward (2.0), [0x0f] run_sideways (2.0),
 //     [0x10] run_acceleration (0.32), [0x11..0x14] the four sneak_* fields,
 //     [0x15] airborne_acceleration, [0x16] speed_multiplier, [0x20] stun_movement_penalty.
-//   That last one is multiplied by unit_data.unknown_424, which independently confirms 0x424
+//   That last one is multiplied by unit_data.stun_amount, which independently confirms 0x424
 //   as the unit's stun meter (types/units.h already describes it that way).
 //   The animation record is ModelAnimationsAnimation (stride 0xb4, frame_info_type at +0x26,
 //   frame_info data pointer at +0x54) inside the graph's animations block at tag data +0x78;
@@ -177,7 +177,7 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
     if ((biped_flags & 0x00000004) == 0 ||                              // "flying"
         (obj->vitality_flags & _object_health_frozen_bit) != 0) {
         if (unit->throttle.i != 0.0f || unit->throttle.j != 0.0f || unit->throttle.k != 0.0f) {
-            uint8_t hurt = (0.2f < unit->unknown_424);
+            uint8_t hurt = (0.2f < unit->stun_amount);
             if (0.0f < ((Unit *)tag)->stunned_movement_threshold &&
                 ((Unit *)tag)->stunned_movement_threshold < obj->recent_body_damage) {
                 hurt = 1;
@@ -308,7 +308,7 @@ void biped_integrate_movement(uint32_t object_index, object *obj, int8_t *state)
                 player_speed_scale = *(float *)((uint8_t *)player_data->data +
                                                 (unit->controlling_player & 0xffff) * 0x200 + 0x6c);
             }
-            speed_scale = (1.0f - player_info->stun_movement_penalty * unit->unknown_424) *
+            speed_scale = (1.0f - player_info->stun_movement_penalty * unit->stun_amount) *
                           player_speed_scale * speed_scale;
 
             stand_weight = 1.0f - biped->crouch_fraction;

@@ -290,7 +290,7 @@ misattributions below. The full derivation is in `out/phase4/units_types_notes.m
 | `0x41c` | `0x04` | `int32_t` | `unknown_41c` | game tick stamp taken by 0x562030 and by both seat-teardown paths |
 | `0x420` | `0x02` | `int16_t` | `unknown_420` | countdown, unit_update fires on the 0 edge |
 | `0x422` | `0x02` | `int16_t` | `unknown_422` | unit_update checks it against the network predicted-state flag |
-| `0x424` | `0x04` | `float` | `unknown_424` | 0..1 stun meter; 0x5674a0 raises it and unit_update and the movement solvers scale velocity by 1 - stun_movement_penalty * this. Confirmed: both integrators ... |
+| `0x424` | `0x04` | `float` | `stun_amount` | 0..1 stun meter; 0x5674a0 raises it and unit_update and the movement solvers scale velocity by 1 - stun_movement_penalty * this. Confirmed: both integrators ... |
 | `0x428` | `0x02` | `int16_t` | `unknown_428` | countdown, raised by 0x5674a0 |
 | `0x42a` | `0x02` | `int16_t` | `ai_communication_count` | 0x568230 counts hits and broadcasts once the count reaches 3 (5 for a player) |
 | `0x42c` | `0x04` | `int32_t` | `ai_communication_tick` | tick of the last hit; the count resets after 0x78 ticks |
@@ -321,7 +321,7 @@ misattributions below. The full derivation is in `out/phase4/units_types_notes.m
 | `0x4ec` | `0x04` | `int32_t` | `cached_tick` | game tick that cache was last refreshed |
 | `0x4f0` | `0x04` | `datum_index` | `previous_cached_surface_index` | the previous value of cached_surface_index |
 | `0x4f4` | `0x04` | `datum_index` | `melee_target_index` | the object 0x55cfd0 hands to 0x56ff40 when melee_state is 3 |
-| `0x4f8` | `0x04` | `int32_t` | `unknown_4f8` | tick stamp; 0x55e190 and 0x55e2d0 rate-limit their reactions to once every 15 ticks |
+| `0x4f8` | `0x04` | `int32_t` | `last_flee_reaction_tick` | tick stamp; 0x55e190 and 0x55e2d0 rate-limit their reactions to once every 15 ticks |
 | `0x4fc` | `0x04` | `datum_index` | `unknown_4fc` | the target 0x55e0a0 is tracking |
 | `0x500` | `0x01` | `int8_t` | `unknown_500` | how many ticks that target has been held; 0x55e0a0 saturates it at 0xf1 |
 | `0x501` | `0x01` | `int8_t` | `unknown_501` | ticks in the current grounded state, clamped at 0x7f by biped_update |
@@ -334,7 +334,7 @@ misattributions below. The full derivation is in `out/phase4/units_types_notes.m
 | `0x508` | `0x02` | `int16_t` | `unknown_508` | 0x55eaa0 stores a 0/1 comparison result here and 0x55eb90 turns it into a trigger id |
 | `0x50a` | `0x02` | `int16_t` | `unknown_50a` |  |
 | `0x50c` | `0x04` | `float` | `crouch_fraction` | 0..1; the movement solvers step it by the crouch_camera_velocity of the Biped tag (0x4cc), unit_get_camera_position and 0x55a2e0 blend the standing and crouc... |
-| `0x510` | `0x04` | `float` | `unknown_510` | angle; 0x560800 takes its cos and sin |
+| `0x510` | `0x04` | `float` | `bank_angle` | angle; 0x560800 takes its cos and sin |
 | `0x514` | `0x0c` | `real_vector3d` | `ground_normal` | the supporting plane normal 0x560630 caches |
 | `0x520` | `0x04` | `uint32_t` | `unknown_520` | written by 0x560630 alongside the normal |
 | `0x524` | `0x01` | `uint8_t` | `ground_adjust_iteration` | 0x557a90 increments it up to 0x7f |
@@ -379,7 +379,7 @@ misattributions below. The full derivation is in `out/phase4/units_types_notes.m
 | `0x4f4` | `0x14` | `uint8_t[20]` | `contact_point_traction` | one wear byte per physics mass point; 0x575170 reads and rewrites entry i, 0xff meaning full traction. UNRESOLVED: the array bound is the mass point count, n... |
 | `0x508` | `0x04` | `uint32_t` | `unknown_508` | zeroed by 0x570b00 |
 | `0x50c` | `0x04` | `uint32_t` | `unknown_50c` | zeroed by 0x570b00 |
-| `0x510` | `0x04` | `uint32_t` | `unknown_510` | zeroed by 0x570b00 |
+| `0x510` | `0x04` | `uint32_t` | `bank_angle` | zeroed by 0x570b00 |
 | `0x514` | `0x04` | `uint32_t` | `unknown_514` | zeroed by 0x570b00 |
 | `0x518` | `0x04` | `uint32_t` | `unknown_518` | zeroed by 0x570b00 |
 | `0x51c` | `0x04` | `uint32_t` | `unknown_51c` | zeroed by 0x570b00 |

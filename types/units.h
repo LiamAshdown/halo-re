@@ -569,7 +569,7 @@ typedef struct unit_data {
     int16_t unknown_420;                // 0x420 countdown, unit_update fires on the 0 edge
     int16_t unknown_422;                // 0x422 unit_update checks it against the network
                                         //       predicted-state flag
-    float unknown_424;                  // 0x424 0..1 stun meter; 0x5674a0 raises it and
+    float stun_amount;                  // 0x424 0..1 stun meter; 0x5674a0 raises it and
                                         //       unit_update and the movement solvers scale
                                         //       velocity by 1 - stun_movement_penalty * this.
                                         //       Confirmed: both integrators multiply it by
@@ -672,7 +672,7 @@ typedef struct biped_data {
     datum_index previous_cached_surface_index;            // 0x4f0 the previous value of cached_surface_index
     datum_index melee_target_index;     // 0x4f4 the object 0x55cfd0 hands to 0x56ff40 when
                                         //       melee_state is 3
-    int32_t unknown_4f8;                // 0x4f8 tick stamp; 0x55e190 and 0x55e2d0 rate-limit
+    int32_t last_flee_reaction_tick;                // 0x4f8 tick stamp; 0x55e190 and 0x55e2d0 rate-limit
                                         //       their reactions to once every 15 ticks
     datum_index unknown_4fc;            // 0x4fc the target 0x55e0a0 is tracking
     int8_t unknown_500;                 // 0x500 how many ticks that target has been held;
@@ -692,7 +692,7 @@ typedef struct biped_data {
                                         //       crouch_camera_velocity of the Biped tag (0x4cc),
                                         //       unit_get_camera_position and 0x55a2e0 blend
                                         //       the standing and crouching heights with it
-    float unknown_510;                  // 0x510 angle; 0x560800 takes its cos and sin
+    float bank_angle;                  // 0x510 angle; 0x560800 takes its cos and sin
     real_vector3d ground_normal;        // 0x514 the supporting plane normal 0x560630 caches
     uint32_t unknown_520;               // 0x520 written by 0x560630 alongside the normal
     uint8_t ground_adjust_iteration;    // 0x524 0x557a90 increments it up to 0x7f

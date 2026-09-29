@@ -2,7 +2,7 @@
 // address 0x55ecf0, size 469 bytes
 // name confidence: 0.3   rewrite confidence: 0.9
 // evidence: Biped.jump_velocity (0x3b4, types/tags.h) used as the tag-defined minimum height;
-//   unit_data.unknown_424 ("0..1 stun meter ... matg_stun_scale * this", types/units.h) matches
+//   unit_data.stun_amount ("0..1 stun meter ... matg_stun_scale * this", types/units.h) matches
 //   the controlling_player-gated scale here; unit_data.swarm_actor_index/actor_index
 //   (0x1f8/0x1f4) and biped_data.unknown_504/previous_cached_surface_index (0x504/0x4f0) all match by offset.
 // UNSURE: FUN_00417fa0's exact contract (an actor-notification call whose return doubles as this
@@ -46,7 +46,7 @@ uint32_t unit_snap_to_min_ground_height(uint32_t object_index)
     }
     jump_speed = *(float *)((uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data + 0x3b4);
     if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
-        jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * ((struct unit_object *)obj)->unit.unknown_424) *
+        jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * ((struct unit_object *)obj)->unit.stun_amount) *
             jump_speed;
     }
     if (cheat_super_jump && ((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {

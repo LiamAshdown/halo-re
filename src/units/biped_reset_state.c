@@ -10,7 +10,7 @@
 //   biped_data extension (0x21 dwords = 0x84 bytes, exactly types/units.h's biped_data size),
 //   then reseeds ground_normal/unknown_520 (+0x514..+0x520) from the same k_default_resting_plane
 //   constant object_physics_mass_point_resolve_ground_contact.c already established (0x0069c53c),
-//   and finally marks unknown_4f8 (the "reacted within the last 15 ticks" rate-limit stamp) with
+//   and finally marks last_flee_reaction_tick (the "reacted within the last 15 ticks" rate-limit stamp) with
 //   the standard datum_index/-1 style invalid sentinel this module uses throughout.
 // register convention: object index in a single register argument (matches every other biped_*
 //   per-object helper in this address range); blam-cc: object_index only.
@@ -26,7 +26,7 @@ extern float k_default_resting_plane[4];  // 0x0069c53c
 
 // object_type_definition "biped" row, +0x50 column. Clears the whole biped_data extension to
 // zero, reseeds its ground_normal/unknown_520 from the shared default resting plane, and marks
-// unknown_4f8's rate-limit stamp invalid.
+// last_flee_reaction_tick's rate-limit stamp invalid.
 void biped_reset_state(uint32_t object_index)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
@@ -42,7 +42,7 @@ void biped_reset_state(uint32_t object_index)
     biped->ground_normal.j = k_default_resting_plane[1];
     biped->ground_normal.k = k_default_resting_plane[2];
     biped->unknown_520 = *(uint32_t *)&k_default_resting_plane[3];
-    biped->unknown_4f8 = -1;
+    biped->last_flee_reaction_tick = -1;
 }
 
 #if 0

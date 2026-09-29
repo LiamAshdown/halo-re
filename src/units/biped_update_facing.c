@@ -8,7 +8,7 @@
 //   bank_decay_time, tag+0x330 Biped.pitch_ratio, tag+0x344/0x348
 //   Biped.angular_velocity_maximum / angular_acceleration_maximum, tag+0x4c8
 //   Biped.cosine_stationary_turning_threshold. It also reads biped_data.movement_state
-//   (0x4d2) and read-modify-writes biped_data.unknown_510 (the bank angle 0x560800 takes the
+//   (0x4d2) and read-modify-writes biped_data.bank_angle (the bank angle 0x560800 takes the
 //   cos and sin of). Its single caller is biped_update (0x5590a0), immediately before
 //   biped_integrate_movement_with_collision (0x55cfd0), and it shares that caller's
 //   stack byte. Same reasoning as the 0x5590a0 unit_update -> biped_update rename already
@@ -265,8 +265,8 @@ void biped_update_facing(uint32_t object_index, int8_t *out_animation_state) // 
 
         // Ghidra renders the x87 compare as "(p < 0) == (p == 0)", which is true exactly when
         // the product is strictly positive, i.e. the bank is already leaning the target way.
-        if (bank_target * biped->unknown_510 > 0.0f) {
-            bank_blend = biped->unknown_510 / bank_target;
+        if (bank_target * biped->bank_angle > 0.0f) {
+            bank_blend = biped->bank_angle / bank_target;
             if (1.0f < bank_blend) {
                 bank_blend = 1.0f;
             }
@@ -276,10 +276,10 @@ void biped_update_facing(uint32_t object_index, int8_t *out_animation_state) // 
         }
         bank_time = bank_blend * tag->bank_apply_time + (1.0f - bank_blend) * tag->bank_decay_time;
         if (0.0f < bank_time) {
-            bank_target = (bank_target - biped->unknown_510) / (bank_time * 30.0f) +
-                          biped->unknown_510;
+            bank_target = (bank_target - biped->bank_angle) / (bank_time * 30.0f) +
+                          biped->bank_angle;
         }
-        biped->unknown_510 = bank_target;
+        biped->bank_angle = bank_target;
 
         bounds[0] = -3.1415927f;   // yaw range
         bounds[1] = 3.1415927f;

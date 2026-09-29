@@ -49,7 +49,7 @@ void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out)
     }
 
     if (unit->animation_state == 0x18) {
-        biped->unknown_510 = 0.0f;
+        biped->bank_angle = 0.0f;
         // EAX -> the Biped tag, ECX -> the object; both are register-carried, and this
         // function already has them to hand.
         unit_update_up_vector(tag, obj);

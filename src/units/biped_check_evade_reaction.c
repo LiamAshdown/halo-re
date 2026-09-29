@@ -2,7 +2,7 @@
 // address 0x55e190, size 313 bytes
 // name confidence: 0.3   rewrite confidence: 0.85 (FIXED from objdump 0x55e190..0x55e2c8: ground probe args, landing-speed test)
 // evidence: unit_data.flags bit 0x1000 "gates evade (0x55e190) and fall damage" and
-//   biped_data.unknown_4f8 "0x55e190 and 0x55e2d0 rate-limit their reactions to once every 15
+//   biped_data.last_flee_reaction_tick "0x55e190 and 0x55e2d0 rate-limit their reactions to once every 15
 //   ticks" -- both already attributed to this function by types/units.h. object.velocity at
 //   0x068 (objects.h); Biped.biped_flags 0x2f4 (types/tags.h).
 // UNSURE: DAT_00746fa0+0x18c (the globals tag's grenade table, per types/units.h) and its own
@@ -50,13 +50,13 @@ void biped_check_evade_reaction(uint32_t object_index)
     if ((obj->vitality_flags & 4) == 0 && (tag->biped_flags & 0x84) == 0 &&
         (unit->flags & 0x1000) == 0 && unit->actor_index != k_datum_index_none &&
         unit->animation_state != 0x1d && (int8_t)biped->unknown_501 > 0x1e &&
-        (biped->unknown_4f8 == -1 ||
-         (int32_t)(biped->unknown_4f8 + 0xf) < game_time->game_time)) {
+        (biped->last_flee_reaction_tick == -1 ||
+         (int32_t)(biped->last_flee_reaction_tick + 0xf) < game_time->game_time)) {
         void *table = (void *)global_globals->falling_damage.pointer;
         real_point3d ground;   // [esp+0x1c]
         real_point3d position; // [esp+0x10]
 
-        biped->unknown_4f8 = game_time->game_time;
+        biped->last_flee_reaction_tick = game_time->game_time;
         // 0x55e245: no ground within 6 below, or falling fast enough that the landing speed
         // (v^2 + 2 g h) reaches the globals' evade speed (+0x94): evade
         if (unit_test_placement_candidate(object_index, global_down3d_pointer, 0, 6.0f, &ground) == -1) {

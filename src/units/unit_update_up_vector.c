@@ -3,13 +3,13 @@
 // name confidence: 0.45 (phase2 candidate)   rewrite confidence: 0.85 (step 1: rewritten from
 //   objdump -d 0x560800..0x560c6f with every helper operand read off the call sites)
 // evidence: types/objects.h object.forward/up (0x74/0x80); types/units.h biped_data
-//   .ground_surface_index/.ground_normal/.unknown_510 (0x4d8/0x514/0x510), biped_data.flags bit 0
+//   .ground_surface_index/.ground_normal/.bank_angle (0x4d8/0x514/0x510), biped_data.flags bit 0
 //   (airborne -- the solver's result bit 0); Biped tag flags 0x2f4 ("flying" 0x4, "can climb any
 //   surface" 0x40); object.vitality_flags health-frozen bit (0x106 & 4).
 // register convention: the Biped tag data in EAX, the object pointer in ECX.
 //   // blam-cc: EAX -> biped_tag, ECX -> obj
 // Four cases:
-//   flying (alive): up = the facing frame's up rolled by biped.unknown_510;
+//   flying (alive): up = the facing frame's up rolled by biped.bank_angle;
 //   climbs any surface (alive): turn up toward the ground normal (or keep it when there is no
 //     ground surface), at most 10 degrees past a flip, and rebuild forward from it;
 //   otherwise when grounded: rotate up and forward together onto the ground normal;
@@ -65,8 +65,8 @@ void unit_update_up_vector(Biped *biped_tag, object *obj)
             up0 = *global_forward3d_pointer;
             side = *global_left3d_pointer;
         }
-        c = (float)cos((double)biped->unknown_510);
-        s = (float)sin((double)biped->unknown_510);
+        c = (float)cos((double)biped->bank_angle);
+        s = (float)sin((double)biped->bank_angle);
         up0.i *= c;
         up0.j *= c;
         up0.k *= c;

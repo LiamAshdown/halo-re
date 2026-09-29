@@ -440,12 +440,12 @@ local_reactions:
         } else if (!(cap < 1.0f)) {
             cap = 1.0f;
         }
-        if (cap > ((struct unit_object *)obj)->unit.unknown_424) {
-            float value = step + ((struct unit_object *)obj)->unit.unknown_424;
+        if (cap > ((struct unit_object *)obj)->unit.stun_amount) {
+            float value = step + ((struct unit_object *)obj)->unit.stun_amount;
 
-            ((struct unit_object *)obj)->unit.unknown_424 = value;
+            ((struct unit_object *)obj)->unit.stun_amount = value;
             if (value > cap) {
-                ((struct unit_object *)obj)->unit.unknown_424 = cap;
+                ((struct unit_object *)obj)->unit.stun_amount = cap;
             }
         }
         add = (int16_t)(int32_t)(*(float *)(effect_block + 0x28) * 30.0f);

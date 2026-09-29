@@ -186,7 +186,7 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
     if ((biped_flags & 0x00000004) == 0 ||                              // "flying"
         (obj->vitality_flags & _object_health_frozen_bit) != 0) {
         if (unit->throttle.i != 0.0f || unit->throttle.j != 0.0f || unit->throttle.k != 0.0f) {
-            uint8_t hurt = (0.2f < unit->unknown_424);
+            uint8_t hurt = (0.2f < unit->stun_amount);
             if (0.0f < ((Unit *)tag)->stunned_movement_threshold &&
                 ((Unit *)tag)->stunned_movement_threshold < obj->recent_body_damage) {
                 hurt = 1;
@@ -315,7 +315,7 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
                 player_speed_scale = *(float *)((uint8_t *)player_data->data +
                                                 (unit->controlling_player & 0xffff) * 0x200 + 0x6c);
             }
-            speed_scale = (1.0f - player_info->stun_movement_penalty * unit->unknown_424) *
+            speed_scale = (1.0f - player_info->stun_movement_penalty * unit->stun_amount) *
                           player_speed_scale * speed_scale;
 
             stand_weight = 1.0f - biped->crouch_fraction;

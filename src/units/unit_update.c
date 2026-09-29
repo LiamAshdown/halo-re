@@ -228,7 +228,7 @@ uint8_t unit_update(uint32_t unit_index)
                 }
             }
             if (((struct unit_object *)obj)->unit.unknown_428 > 0 && --((struct unit_object *)obj)->unit.unknown_428 == 0) {
-                *(int32_t *)&((struct unit_object *)obj)->unit.unknown_424 = 0;
+                *(int32_t *)&((struct unit_object *)obj)->unit.stun_amount = 0;
             }
             if ((int8_t)obj[0x28c] > 0 && --obj[0x28c] == 0) {
                 unit_drop_current_weapon(unit_index, 1);
