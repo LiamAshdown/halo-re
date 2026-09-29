@@ -51,7 +51,7 @@ void actor_reseed_movement_pause_timer(datum_index actor_index)
     if (self->unknown_1ca != 0) {
         pause = pause * 1.7f;
     }
-    self->unknown_5f4 = (int16_t)(int32_t)(pause * 30.0f); // __ftol
+    self->firing_state_timer = (int16_t)(int32_t)(pause * 30.0f); // __ftol
 }
 
 #if 0

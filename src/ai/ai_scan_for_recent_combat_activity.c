@@ -92,7 +92,7 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
                     }
                 }
 
-                if (hard_difficulty != 0 && a->unknown_5f2 == 0 && a->mode != _actor_mode_vehicle) {
+                if (hard_difficulty != 0 && a->firing_state == 0 && a->mode != _actor_mode_vehicle) {
                     // Strictly greater, for the same reason as the 4.0 test above:
                     // `!(d < 15.0) && !(d == 15.0)`.
                     if (15.0f < p->distance) {

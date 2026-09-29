@@ -61,10 +61,10 @@ uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_v
 
     switch (reason->code) {
     case 0:
-        if (self->unknown_504 == 0) {
+        if (self->moving == 0) {
             return 0;
         }
-        *out = *(real_vector3d *)&self->unknown_518;
+        *out = *(real_vector3d *)&self->desired_movement_vector;
         break;
 
     case 1: {
@@ -81,12 +81,12 @@ uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_v
     }
 
     case 2:
-        if (self->unknown_5f2 == 2) {
-            *out = self->unknown_68c;
+        if (self->firing_state == 2) {
+            *out = self->firing_vector;
             return 1;
         }
-        if (self->unknown_628 != 0) {
-            *out = *(real_vector3d *)&self->unknown_63c;
+        if (self->target_in_firing_range != 0) {
+            *out = *(real_vector3d *)&self->target_aim_vector;
             return 1;
         }
         if (self->target_unit_index == (datum_index)k_datum_index_none) {

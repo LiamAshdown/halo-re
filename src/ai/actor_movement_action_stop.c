@@ -28,7 +28,7 @@ void actor_movement_action_stop(datum_index actor_index)
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
-    if (self->unknown_15e == 4 && self->unknown_504 != 0) {
+    if (self->unknown_15e == 4 && self->moving != 0) {
         actor_movement_set_destination_point(&self->body_position, actor_index, self->unknown_164, (uint32_t)-1);
         return;
     }

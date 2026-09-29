@@ -524,7 +524,7 @@ after_engage:
     }
 
     if (p->enemy && 2 <= p->state && p->state < 4 &&
-        ((actor_has_unshielded_threat_weapon(actor_index) != 0 && p->distance < self->vitality_wait_time) ||
+        ((actor_has_unshielded_threat_weapon(actor_index) != 0 && p->distance < self->maximum_firing_distance) ||
          ((actor_def->flags & 0x08000000u) != 0 && p->distance < actor_def->melee_fudge_factor))) {
         // bit 27 = "suicidal_melee_attack" per ActorFlags' documented bit order
         actor_target_mark_engaged(target_prop_index, actor_index, 0); // FIXED: EBX = the actor (EDI)

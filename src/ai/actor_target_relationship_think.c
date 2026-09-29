@@ -377,9 +377,9 @@ restart:
                               (self->unknown_1d0 == target_prop_index) ||
                               (self->vocalization_line != 0 && *(int16_t *)&self->vocalization_unknown_54c == 1 &&
                                self->vocalization_unknown_550 == target_prop_index) ||
-                              (self->unknown_55c != 0 && self->unknown_56c == 1 &&
+                              (self->idle_major_active != 0 && self->idle_major_direction_type == 1 &&
                                *(uint32_t *)&self->unknown_56e[2] == target_prop_index) ||
-                              (self->unknown_55e[1] != 0 && *(int16_t *)&self->unknown_56e[14] == 1 &&
+                              (self->idle_look_state[1] != 0 && *(int16_t *)&self->unknown_56e[14] == 1 &&
                                *(uint32_t *)&self->unknown_56e[18] == target_prop_index));
                 target->in_use = important;
                 if (target->state > 3 && target->state < 6) {
@@ -486,7 +486,7 @@ restart:
 
         if (target->state == 4 &&
             (target->visual_perception > 1 ||
-             (self->unknown_60c == 1 && self->unknown_610 == target_prop_index &&
+             (self->firing_target_type == 1 && self->firing_target_prop_index == target_prop_index &&
               game_time->game_time % 3 == 0))) {
             char nearly_dead = self->unknown_162[0];
             int16_t threshold = (int16_t)((nearly_dead != 0) ? 300 : 45);

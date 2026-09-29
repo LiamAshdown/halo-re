@@ -613,17 +613,36 @@ typedef struct actor {
     uint8_t unknown_4c0[12];          // 0x4c0
     uint32_t unknown_4cc;             // 0x4cc
     uint8_t unknown_4d0[52];          // 0x4d0
-    uint8_t unknown_504;              // 0x504 actor_new sets 0
-    uint8_t unknown_505;              // 0x505 actor_new sets 0
-    uint8_t unknown_506;              // 0x506
-    uint8_t unknown_507;              // 0x507
-    uint8_t unknown_508;              // 0x508
+    uint8_t moving;                   // 0x504 CEA control.moving; movement_update 0x416790/advance_waypoint 0x4163e0
+                                      //    set it while following a path; face_forward = moving &&
+                                      //    moving_facing_direction==0 (squad_action_execute)
+    uint8_t forced_aim;               // 0x505 set by 0x414250 when direction spec 0x3ec decodes into 0x524;
+                                      //    apply_steering 0x4180c0 then calls strafe-axis chooser = CEA
+                                      //    actor_move_calculate_controlled_by_aiming
+    uint8_t waypoint_reached;         // 0x506 0x4180c0 out-param = |desired_movement_vector| <= accuracy (CEA
+                                      //    movement_complete); 0x4163e0 advances waypoint cursor when set, completes
+                                      //    action on last one
+    uint8_t movement_thwarted;        // 0x507 0x4180c0 out-param set when facing not yet inside turn cone so no step
+                                      //    taken (CEA actor_move_calculate_movement *movement_thwarted); 0x4163e0
+                                      //    tests it
+    uint8_t crouching;                // 0x508 0x416790 stores crouch decision (0x426/0x427, Actor
+                                      //    cannot_move_while_crouching) mirrored to control flag bit0; 0x4173a0
+                                      //    crouch_velocity_modifier; 0x40e7b0 crouch gun offset
     uint8_t unknown_509;              // 0x509
-    int16_t unknown_50a;              // 0x50a
-    uint8_t unknown_50c[12];          // 0x50c
-    real_point3d unknown_518;         // 0x518 look-direction source used by 0x4146c0 and 0x4287a0
-    real_vector3d unknown_524;        // 0x524 steering scratch written by 0x4180c0
-    uint8_t unknown_530[20];          // 0x530
+    int16_t moving_facing_direction;  // 0x50a CEA control.moving_facing_direction; 0x4180c0 *desired_facing_direction
+                                      //    out (0 fwd,1 back,2/3 sides,4 free); squad_action_execute moving_forward =
+                                      //    moving && ==0
+    uint8_t current_waypoint[12];     // 0x50c 0x4163e0 copies the current 16-byte path waypoint point
+                                      //    (0x4c8+cursor*0x10) here; real_point3d (declared uint8_t[12])
+    real_point3d desired_movement_vector; // 0x518 0x4163e0 = current_waypoint - body_position; passed as
+                                          //    desired_movement_vector (CEA actor_move_calculate_movement) to
+                                          //    0x4180c0; look decode code 0 reads it
+    real_vector3d forced_aim_direction; // 0x524 out of 0x4146c0 (actor_look_decode_direction) via 0x414250; passed as
+                                        //    forced_aim_direction to 0x418a40 (CEA
+                                        //    actor_move_calculate_controlled_by_aiming) in 0x4180c0
+    uint8_t jump_velocity_request[20]; // 0x530 0x416790 packs targeted jump {valid@0, dir2d@4, h-speed@0xc,
+                                       //    v-speed@0x10} from 0x440..0x450; 0x417fa0 turns it into launch velocity
+                                       //    for biped jump 0x55ecf0
     int16_t vocalization_line;        // 0x544 actor_clear_vocalization zeroes 0x544, 0x546 and 0x548
     int16_t vocalization_variant;     // 0x546
     int16_t vocalization_state;       // 0x548
@@ -632,75 +651,135 @@ typedef struct actor {
     uint32_t vocalization_unknown_550;// 0x550
     uint32_t vocalization_unknown_554;// 0x554
     uint32_t vocalization_unknown_558;// 0x558
-    uint8_t unknown_55c;              // 0x55c
-    uint8_t unknown_55d;              // 0x55d
-    uint8_t unknown_55e[6];           // 0x55e
-    int32_t unknown_564;              // 0x564
-    uint8_t unknown_568[4];           // 0x568
-    int16_t unknown_56c;              // 0x56c
+    uint8_t idle_major_active;        // 0x55c 0x414d00 (CEA actor_look_idle_new_major_direction) sets it once idle
+                                      //    major direction+timer armed; 0x415480 clears/tests it; relationship_think
+                                      //    keeps its prop
+    uint8_t idle_major_is_aiming;     // 0x55d 0x414d00 stores use_aiming_deviation (CEA major_is_aiming param);
+                                      //    0x415480 tests it with idle_major_active
+    uint8_t idle_look_state[6];       // 0x55e [0]=0x55e interesting-prop flag from 0x414a90 (CEA
+                                      //    interesting_direction), [1]=0x55f idle minor active (0x414f50),
+                                      //    [2..5]=0x560 int32 idle facing timer; needs split
+    int32_t idle_major_timer;         // 0x564 0x414d00 arms it from 0x415150 (actor_look_idle_timer, type
+                                      //    aiming/looking); 0x415480 decrements it and re-picks at 0
+    uint8_t idle_minor_timer[4];      // 0x568 0x414f50 (CEA actor_look_idle_new_minor_direction) arms it from
+                                      //    0x415150 type 2; 0x415480 decrements, re-randomizes at 0; int32 (declared
+                                      //    uint8_t[4])
+    int16_t idle_major_direction_type; // 0x56c code word of 16-byte direction_specification at 0x56c (1 prop, 4
+                                       //    point) written by 0x414d00/0x415480, decoded by 0x4146c0; 0x428470
+                                       //    replace_object_reference patches 0x570
     uint8_t unknown_56e[35];          // 0x56e
-    uint8_t unknown_591;              // 0x591
+    uint8_t turn_required;            // 0x591 set by 0x415480 when body must turn to its aim and by 0x4180c0 when no
+                                      //    step taken; enables oversteer hold 0x594; mirrored to control flags bit
+                                      //    0x20 by 0x415480
     uint8_t unknown_592[2];           // 0x592
-    float unknown_594[4];             // 0x594 turn-smoothing scratch written by 0x4180c0
-    real_point3d position_cache_a;    // 0x5a4 actor_movement_update copies position here every tick
-    real_point3d position_cache_b;    // 0x5b0 actor_new seeds all three caches from the zero vector at 0x00696718
-    real_point3d position_cache_c;    // 0x5bc
-    datum_index unknown_5c8;          // 0x5c8 actor_new sets none
+    float oversteer_angle[4];         // 0x594 0x4180c0 holds the oversteer angle in [0]; [1..3] (0x598) is the
+                                      //    latched fixed-crouch facing 0x415480/0x416790 use when 0x590 set; needs
+                                      //    split
+    real_point3d desired_facing_vector; // 0x5a4 0x4180c0 (actor_move_calculate_movement) writes the desired facing
+                                        //    here; 0x415480 the facing / aiming / looking trio
+    real_point3d desired_aiming_vector; // 0x5b0 the desired aiming vector (0x415480)
+    real_point3d desired_looking_vector; // 0x5bc the desired looking vector (0x415480)
+    datum_index avoidance_ray_clear_ticks; // 0x5c8 0x4193d0 (actor_move_vector_avoidance) keeps one clear-tick byte
+                                           //    per ray at 0x5c8+k*2+j (16 bytes); actor_new sets all to 0xff
     datum_index unknown_5cc;          // 0x5cc actor_new sets none
     datum_index unknown_5d0;          // 0x5d0 actor_new sets none
     datum_index unknown_5d4;          // 0x5d4 actor_new sets none
-    int16_t unknown_5d8;              // 0x5d8 actor_new sets 0xffff; read by the avoidance sampler
+    int16_t avoidance_last_direction; // 0x5d8 0x4193d0 biases weights toward the best direction chosen last tick
+                                      //    (0..7) and stores the new one; -1 none (actor_new)
     uint8_t unknown_5da[2];           // 0x5da
     real_vector3d avoidance_direction;// 0x5dc actor_movement_update low-pass filters the avoidance
                                       //   sampler output into this vector (0.05 or 0.3 blend)
     float avoidance_scale;            // 0x5e8 the matching low-pass filtered magnitude, snapped to
                                       //   0 below 0.001; passed to actor_movement_apply_steering
-    float unknown_5ec;                // 0x5ec
-    int16_t unknown_5f0;              // 0x5f0 actor_new sets 0xffff
-    int16_t unknown_5f2;              // 0x5f2 actor_new sets 1
-    int16_t unknown_5f4;              // 0x5f4 actor_new sets 0
-    int16_t unknown_5f6;              // 0x5f6 actor_new sets 0
-    int16_t unknown_5f8;              // 0x5f8 actor_new sets 0
-    int16_t unknown_5fa;              // 0x5fa actor_new sets 0
-    int16_t unknown_5fc;              // 0x5fc actor_update_firing_state ages it and reseeds it from
+    float avoidance_emergency;        // 0x5ec raw out_scale of 0x4193d0 (CEA emergency_amount, 0..2); 0x416790 stores
+                                      //    it unfiltered (0x5e8 is the filtered one); >0.9 reverses flying probe
+                                      //    0x4163e0
+    int16_t avoidance_turn_around_ticks; // 0x5f0 0x4193d0 counts ticks of a turn-around toward the best direction
+                                         //    (held while <90), -1 when not turning
+    int16_t firing_state;             // 0x5f2 0x40e7b0 burst state machine 0 idle,1 first-burst delay,2 firing,3
+                                      //    burst pause,4 fire wildly (0x40a1e0 react_to_disturbance sets 4 w/
+                                      //    surprise_fire_wildly_time)
+    int16_t firing_state_timer;       // 0x5f4 0x40e7b0 ages it; seeded by 0x4105c0 (first_burst_delay_time), 0x40fcb0
+                                      //    (burst_duration), 0x4104e0 (burst separation), react_to_disturbance (fire
+                                      //    wildly time)
+    int16_t firing_delay_timer;       // 0x5f6 0x40e7b0 ages it and refuses to fire while >0 unless forced; raised
+                                      //    from ActorVariant surprise_delay_time (+0x8c) in
+                                      //    actor_react_to_disturbance
+    int16_t refire_timer;             // 0x5f8 0x40e7b0 pulls the trigger only at 0, then reloads it to
+                                      //    30/(rate_of_fire*pattern scale) ticks, min 2
+    int16_t line_of_fire_blocked_ticks; // 0x5fa 0x40e7b0 counts ticks a friend blocks the shot (0x42b190), shouts
+                                        //    comm 0xe at 45, reset when clear
+    int16_t special_fire_timer;       // 0x5fc 0x40e7b0 gates the special-fire roll while >0 and reseeds it from
+                                      //    special_fire_delay (+0x15c) + random 0..1.5s
                                       //   ActorVariant.special_fire_delay
-    int16_t unknown_5fe;              // 0x5fe set to 3 when special_fire_situation is 3
-    uint8_t unknown_600;              // 0x600
-    uint8_t unknown_601;              // 0x601
-    uint8_t unknown_602;              // 0x602
-    uint8_t unknown_603;              // 0x603
-    uint8_t unknown_604;              // 0x604
+    int16_t special_fire_strafe_cooldown; // 0x5fe 0x40e7b0 sets 3 when special_fire_situation==3 (strafing) fires;
+                                          //    blocks special-fire roll while >0; actor_mode_charge_enter decrements
+                                          //    on stage 4
+    uint8_t new_target_firing_pattern; // 0x600 0x40fcb0 sets while firing_target_ticks <
+                                       //    new_target_firing_pattern_time; 0x4106b0 then picks ActorVariant
+                                       //    new_target_* block (+0x100)
+    uint8_t moving_firing_pattern;    // 0x601 0x40fcb0 sets when moving (or vehicle speed>1); 0x4106b0 then picks
+                                      //    ActorVariant moving_* block (+0x118)
+    uint8_t special_fire_overcharge;  // 0x602 0x40e7b0 sets it for special_fire_mode 1 (overcharge): holds the
+                                      //    primary trigger until the next shot releases it
+    uint8_t special_fire_secondary;   // 0x603 0x40fcb0 latches it from 0x604 per burst; 0x40e7b0 then fires the
+                                      //    secondary trigger (flag 0x1000) and uses trigger 1 for aiming/lead
+    uint8_t special_fire_secondary_pending; // 0x604 0x40e7b0 sets it for special_fire_mode 2 (secondary trigger);
+                                            //    0x40fcb0 validates (special_fire_situation) and moves it to 0x603
     uint8_t unknown_605[3];           // 0x605
-    float vitality_wait_time;         // 0x608 0x4028e0 uses it as the vitality-based reaction delay
-    int16_t unknown_60c;              // 0x60c
+    float maximum_firing_distance;    // 0x608 ActorVariant maximum_firing_distance (+0x74), copied by 0x40e7b0 when
+                                      //    the threat weapon is usable; compared with the target distance
+    int16_t firing_target_type;       // 0x60c 0x40e7b0: 0 none, 1 prop (0x610 = prop handle from target_unit_index),
+                                      //    2 point (0x610 = 0x460 point); read by many grenade/aim fns
     uint8_t unknown_60e[2];           // 0x60e
-    datum_index unknown_610;          // 0x610 actor_new sets none
+    datum_index firing_target_prop_index; // 0x610 0x40e7b0 copies target prop (type 1) or a real_point3d (type 2,
+                                          //    overlaps 0x614) here; prop users
+                                          //    0x40f700/0x4105c0/0x40fcb0/relationship_think
     uint8_t unknown_614[8];           // 0x614
-    int32_t unknown_61c;              // 0x61c actor_new sets 0
+    int32_t firing_target_ticks;      // 0x61c 0x40e7b0 counts ticks on the same firing target (reset on change);
+                                      //    0x40fcb0 compares with new_target_firing_pattern_time; %10 reachability
+                                      //    recheck
     uint8_t unknown_620[8];           // 0x620
-    uint8_t unknown_628;              // 0x628
+    uint8_t target_in_firing_range;   // 0x628 0x40e7b0 clears each tick, sets once all fire gates pass (range < max
+                                      //    firing distance 0x608); look decode code 2 then uses target_aim_vector
+                                      //    0x63c
     uint8_t unknown_629[3];           // 0x629
     float wander_unknown_62c;         // 0x62c 0x40fcb0 destination and velocity scratch
     float wander_unknown_630;         // 0x630
     float wander_unknown_634;         // 0x634
     float wander_unknown_638;         // 0x638
-    uint8_t unknown_63c[16];          // 0x63c
+    uint8_t target_aim_vector[16];    // 0x63c 0x40e7b0 weapon_trigger_get_aiming_vector(origin 0x120 -> target 0x62c)
+                                      //    out vector at 0x63c, range out at 0x648; 0x4281f0/look decode read the
+                                      //    vector
     real_vector3d wander_unknown_64c; // 0x64c
-    uint8_t unknown_658[12];          // 0x658
+    uint8_t firing_aim_point[12];     // 0x658 0x40e7b0 = aim target (0x64c) plus target_tracking drift and
+                                      //    target_leading lead; + accumulated error gives 0x67c; real_point3d
+                                      //    (declared uint8_t[12])
     real_vector3d wander_unknown_664; // 0x664
     real_vector3d wander_unknown_670; // 0x670
     real_vector3d grenade_aim_direction;// 0x67c written by 0x40f7e0 and 0x40fcb0
-    uint8_t unknown_688;              // 0x688
+    uint8_t firing_vector_ballistic;  // 0x688 0x40e7b0 sets = !used_straight_line from 0x4c2b40; 0x40f7e0 (CEA
+                                      //    actor_aim_projectile) then uses 0x68c instead of aiming at 0x67c
     uint8_t unknown_689[3];           // 0x689
-    real_vector3d unknown_68c;        // 0x68c
-    float unknown_698;                // 0x698
+    real_vector3d firing_vector;      // 0x68c 0x40e7b0 out_direction of weapon_trigger_get_aiming_vector from firing
+                                      //    origin to final aim point; 0x40f7e0 and look-decode code 2 (firing_state
+                                      //    2) read it
+    float projectile_error;           // 0x698 0x40fcb0 = projectile_error * pattern/difficulty scale
+                                      //    (+special_projectile_error); 0x40f7e0 returns it through CEA
+                                      //    actor_aim_projectile error_reference
     float perception_scale;           // 0x69c 0x42aa90 scales hearing and awareness ranges by this
-    uint8_t unknown_6a0;              // 0x6a0
-    uint8_t unknown_6a1[3];           // 0x6a1
-    uint32_t unknown_6a4;             // 0x6a4 actor_new sets -1
+    uint8_t grenade_throw_pending;    // 0x6a0 0x40dc30 sets when it decides to throw; 0x40db00 clears once facing
+                                      //    within 30deg of grenade_impact_point and starts throw (0x45c); 0x416790
+                                      //    faces impact point
+    uint8_t grenade_high_arc[3];      // 0x6a1 byte 0 passed as use_high_arc to projectile_get_aiming_vector in
+                                      //    0x410780; cleared by 0x411180 on commit; no writer of 1 found
+    uint32_t last_grenade_check_time; // 0x6a4 0x40dc30 stores game_time of last roll; no new roll until
+                                      //    grenade_check_time*30 ticks later; actor_new sets -1
     real_point3d grenade_impact_point;// 0x6a8 0x410710 records a validated landing point
-    uint32_t unknown_6b4;             // 0x6b4 actor_new sets -1
-    uint8_t unknown_6b8[4];           // 0x6b8
+    uint32_t grenade_target_prop_index; // 0x6b4 0x411180 commits the target prop of the toss; 0x410a60 reads prop
+                                        //    state/position; replace_object_reference patches it; actor_new -1
+    uint8_t grenade_exclude_object_index[4]; // 0x6b8 0x411180 stores the object excluded from the arc check; 0x410780
+                                             //    passes it to 0x42b5d0 path check; should be datum_index
     float grenade_unknown_6bc;        // 0x6bc throw-direction scratch written by 0x410a60
     float grenade_unknown_6c0;        // 0x6c0
     float grenade_unknown_6c4;        // 0x6c4
@@ -708,14 +787,22 @@ typedef struct actor {
     uint8_t grenade_eligible;         // 0x6cc 0x42f260 caches the eligibility test here
     uint8_t unknown_6cd;              // 0x6cd
     int16_t grenade_recheck_ticks;    // 0x6ce actor_new sets 30
-    uint32_t flags;                   // 0x6d0 bit 0x2 set by 0x42a5b0, bit 0x400 by 0x4347b0, bit 0x800 by 0x42a5e0 (override target)
-    int16_t unknown_6d4;              // 0x6d4
+    uint32_t control_flags;           // 0x6d0 the unit control flags word staged for unit_apply_control_block (crouch
+                                      //    1, 0x20, primary 0x800, secondary 0x1000, grenade 0x2000)
+    int16_t persistent_control_ticks; // 0x6d4 0x42a640 copies it (when >0) to unit+0x210 persistent_control_ticks
+                                      //    with 0x6d8 -> unit+0x214; int16 source, int32 dest
     uint8_t unknown_6d6[2];           // 0x6d6
-    uint32_t unknown_6d8;             // 0x6d8
-    int16_t unknown_6dc;              // 0x6dc
+    uint32_t persistent_control_flags; // 0x6d8 0x42a640 copies it to unit+0x214 persistent_control_flags together
+                                       //    with 0x6d4
+    int16_t control_animation_mode;   // 0x6dc 0x416790 picks 0..4 (awareness / 0x428 / 0x429 / order 0x42c); 0x42a640
+                                      //    maps it via table 0x6558b8 to unit_control animation_state; 1 = no free
+                                      //    look, 4 = always step
     uint8_t unknown_6de[2];           // 0x6de
-    real_vector3d queued_look_vector; // 0x6e0 actor_snapshot_orientation seeds it from the zero vector at 0x00696714
-    int16_t unknown_6ec;              // 0x6ec actor_snapshot_orientation sets 0xffff
+    real_vector3d throttle;           // 0x6e0 the control throttle: 0x4180c0's desired throttle output, copied into
+                                      //    the unit control block by 0x42a640
+    int16_t control_animation_impulse; // 0x6ec 0x416790 copies secondary_action record 0x418..0x423 (CEA animation
+                                       //    impulse+alignment) here; 0x42a640 starts it on the unit (0x569530) with
+                                       //    alignment 0x6f0
     uint8_t unknown_6ee[14];          // 0x6ee
     real_vector3d snapshot_facing;    // 0x6fc copy of facing taken by actor_snapshot_orientation
     real_vector3d snapshot_unknown_708;// 0x708 copy of facing_unknown_180

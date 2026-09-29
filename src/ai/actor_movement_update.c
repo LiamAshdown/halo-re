@@ -144,21 +144,21 @@ void actor_movement_update(datum_index actor_index)
     int16_t movement_style;         // sVar11
     int16_t context;
 
-    a->position_cache_a = *(const real_point3d *)&a->facing;
+    a->desired_facing_vector = *(const real_point3d *)&a->facing;
 
-    a->unknown_591 = 0;
+    a->turn_required = 0;
     actor_base[0x58d] = 1;
     actor_base[0x58e] = 1;
 
     if (a->unknown_430 != 0) {
         // An explicit steering direction was handed to the actor: use it verbatim and reset the
         // avoidance filter so the next sampled direction starts from the origin.
-        a->unknown_518 = *(const real_point3d *)&a->unknown_434;
-        a->unknown_504 = 1;
+        a->desired_movement_vector = *(const real_point3d *)&a->unknown_434;
+        a->moving = 1;
         actor_base[0x58d] = 0;
         a->avoidance_direction = *global_origin3d_pointer;
         a->avoidance_scale = 0.0f;
-        a->unknown_5ec = 0.0f;
+        a->avoidance_emergency = 0.0f;
     } else if (a->unknown_15e == 4) {
         const real_vector3d *desired;
         real_vector3d probe;
@@ -167,13 +167,13 @@ void actor_movement_update(datum_index actor_index)
         float blend;
         float keep;
 
-        if (a->unknown_504 == 0) {
+        if (a->moving == 0) {
             probe.i = a->facing.i * 3.0f;
             probe.j = a->facing.j * 3.0f;
             probe.k = a->facing.k * 3.0f;
             desired = &probe;
         } else {
-            desired = (const real_vector3d *)&a->unknown_518;
+            desired = (const real_vector3d *)&a->desired_movement_vector;
         }
         actor_movement_choose_avoidance_direction(actor_index, desired, &sampled, &sampled_scale);
 
@@ -199,12 +199,12 @@ void actor_movement_update(datum_index actor_index)
             a->avoidance_direction.i * a->avoidance_direction.i < 0.0001f) {
             a->avoidance_direction = *global_origin3d_pointer;
         }
-        a->unknown_5ec = sampled_scale;
+        a->avoidance_emergency = sampled_scale;
         a->avoidance_scale = blend * sampled_scale + keep * a->avoidance_scale;
         if (a->avoidance_scale < 0.001f) {
             a->avoidance_scale = 0.0f;
         }
-        if (a->unknown_504 != 0) {
+        if (a->moving != 0) {
             // Treat the filtered vector as an axis-angle turn: its length is the angle.
             real_vector3d turn = a->avoidance_direction;
             float length_squared = turn.j * turn.j + turn.k * turn.k + turn.i * turn.i;
@@ -236,7 +236,7 @@ void actor_movement_update(datum_index actor_index)
             movement_style = 2;
         }
     }
-    a->unknown_6dc = movement_style;
+    a->control_animation_mode = movement_style;
     cached_axis = *(int16_t *)&a->unknown_42b[3]; // 0x42e, the hidden EAX steering argument
 
     if (a->movement_action_complete != 0 &&
@@ -250,46 +250,46 @@ void actor_movement_update(datum_index actor_index)
     if (context < 1) {
         // ---- on foot -----------------------------------------------------------------
         if (a->order_committed != 0) {
-            a->unknown_504 = 0;
-            a->unknown_50a = 0;
+            a->moving = 0;
+            a->moving_facing_direction = 0;
             actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->unknown_161 != 0) ? 1 : 0);
             actor_base[0x58e] = 0;
             movement_mode = 0;
         } else if (a->secondary_action != -1) {
-            a->unknown_504 = 0;
+            a->moving = 0;
             actor_base[0x58d] = 0;
             actor_base[0x58e] = 0;
             movement_mode = 0;
-        } else if (a->unknown_6dc == 1) {
-            a->unknown_504 = 0;
+        } else if (a->control_animation_mode == 1) {
+            a->moving = 0;
             actor_base[0x58d] = 0;
             actor_base[0x58e] = 0;
             face_along_heading = 1;
             movement_mode = 0;
         } else if (a->unknown_15c != 0 && a->flying == 0) {
-            a->unknown_504 = 0;
+            a->moving = 0;
             actor_base[0x58d] = 1;
             movement_mode = 0;
-        } else if (a->unknown_6a0 != 0) {
+        } else if (a->grenade_throw_pending != 0) {
             // Flee straight away from the recorded grenade impact point.
             real_vector3d away;
             away.i = a->grenade_impact_point.x - a->body_position.x;
             away.j = a->grenade_impact_point.y - a->body_position.y;
             away.k = a->grenade_impact_point.z - a->body_position.z;
-            a->unknown_504 = 0;
+            a->moving = 0;
             movement_mode = 0;
             if (vector3d_normalize_with_length(&away) == 0.0f) {
                 actor_base[0x58d] = 1;
             } else {
-                a->position_cache_a.x = away.i;
-                a->position_cache_a.y = away.j;
-                a->position_cache_a.z = away.k;
+                a->desired_facing_vector.x = away.i;
+                a->desired_facing_vector.y = away.j;
+                a->desired_facing_vector.z = away.k;
                 actor_base[0x58d] = 0;
                 actor_base[0x58e] = 0;
-                a->unknown_591 = 1;
+                a->turn_required = 1;
             }
         } else if (*(int16_t *)&a->unknown_350[16] >= 1) { // 0x360
-            a->unknown_504 = 0;
+            a->moving = 0;
             actor_base[0x58d] = 1;
             movement_mode = (uint8_t)((actor_def->flags >> 0x1e) & 1);
         } else {
@@ -299,7 +299,7 @@ void actor_movement_update(datum_index actor_index)
                  (movement_mode != 0 && (int8_t)(actor_def->flags >> 8) >= 0))) {
                 // leave unknown_505 alone
             } else {
-                a->unknown_505 = 0;
+                a->forced_aim = 0;
             }
             if (movement_style == 4) {
                 face_along_heading = 1;
@@ -308,7 +308,7 @@ void actor_movement_update(datum_index actor_index)
                 avoid_threshold = actor_def->free_flying_sidestep * actor_def->free_flying_sidestep;
                 sidestep_mode = 1;
                 want_avoid_check = 1;
-                if (a->unknown_505 != 0) {
+                if (a->forced_aim != 0) {
                     avoid_threshold *= 4.0f;
                 }
             }
@@ -331,7 +331,7 @@ void actor_movement_update(datum_index actor_index)
                 (vehicle_data *)((uint8_t *)unit_object + k_unit_object_size);
             if (unit_vehicle->airborne_ticks != 0) {
                 vehicle_stuck = 1;
-                a->unknown_504 = 0;
+                a->moving = 0;
                 actor_base[0x58d] = 1;
                 movement_mode = 0;
             } else if (0.7f <= unit_vehicle->ground_lean) {
@@ -348,12 +348,12 @@ void actor_movement_update(datum_index actor_index)
                     righting.k = 0.0f;
                     movement_mode = 0;
                     if (vector3d_normalize_with_length(&righting) <= 0.0f) {
-                        a->unknown_504 = 0;
+                        a->moving = 0;
                     } else {
-                        a->unknown_504 = 1;
-                        a->unknown_518.x = righting.i * 3.0f;
-                        a->unknown_518.y = righting.j * 3.0f;
-                        a->unknown_518.z = righting.k * 3.0f;
+                        a->moving = 1;
+                        a->desired_movement_vector.x = righting.i * 3.0f;
+                        a->desired_movement_vector.y = righting.j * 3.0f;
+                        a->desired_movement_vector.z = righting.k * 3.0f;
                     }
                 }
             }
@@ -367,17 +367,17 @@ void actor_movement_update(datum_index actor_index)
                 order_failed = 1;
                 movement_mode = 0;
             } else {
-                a->unknown_504 = 0;
+                a->moving = 0;
                 actor_base[0x58d] = 0;
                 actor_base[0x58e] = 0;
-                a->position_cache_a.x = -direction.i;
+                a->desired_facing_vector.x = -direction.i;
                 movement_mode = 0;
-                a->position_cache_a.y = -direction.j;
-                a->position_cache_a.z = -direction.k;
+                a->desired_facing_vector.y = -direction.j;
+                a->desired_facing_vector.z = -direction.k;
             }
         } else {
-            a->unknown_504 = 0;
-            a->unknown_50a = 0;
+            a->moving = 0;
+            a->moving_facing_direction = 0;
             actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->unknown_161 != 0) ? 1 : 0);
             movement_mode = 0;
         }
@@ -389,51 +389,51 @@ void actor_movement_update(datum_index actor_index)
         }
     }
 
-    if (a->unknown_504 != 0 && a->unknown_506 == 0) {
+    if (a->moving != 0 && a->waypoint_reached == 0) {
         actor_movement_apply_steering(
             cached_axis, sidestep_mode,
             actor_index, want_avoid_check, avoid_threshold, order_failed,
             steering_maximum, oversteer_min, oversteer_max, avoidance_scale, throttle_maximum,
-            (real_vector3d *)&a->unknown_518, (real_vector3d *)&a->position_cache_a,
-            &a->unknown_50a, &a->queued_look_vector, &a->unknown_507, &a->unknown_506);
-        if (a->unknown_506 != 0) {
-            a->unknown_504 = 0;
+            (real_vector3d *)&a->desired_movement_vector, (real_vector3d *)&a->desired_facing_vector,
+            &a->moving_facing_direction, &a->throttle, &a->movement_thwarted, &a->waypoint_reached);
+        if (a->waypoint_reached != 0) {
+            a->moving = 0;
         }
     }
 
-    if (a->unknown_504 != 0) {
+    if (a->moving != 0) {
         actor_base[0x58e] = 0;
         actor_base[0x58d] = 0;
     } else if (face_along_heading) {
-        a->position_cache_a = *(const real_point3d *)&a->facing;
+        a->desired_facing_vector = *(const real_point3d *)&a->facing;
         actor_base[0x58e] = 0;
-        a->unknown_50a = 0;
+        a->moving_facing_direction = 0;
         actor_base[0x58d] = 0;
     } else if (actor_base[0x590] != 0) {
-        a->position_cache_a.x = a->unknown_594[1]; // 0x598
-        a->position_cache_a.y = a->unknown_594[2]; // 0x59c
-        a->position_cache_a.z = a->unknown_594[3]; // 0x5a0
+        a->desired_facing_vector.x = a->oversteer_angle[1]; // 0x598
+        a->desired_facing_vector.y = a->oversteer_angle[2]; // 0x59c
+        a->desired_facing_vector.z = a->oversteer_angle[3]; // 0x5a0
         actor_base[0x58e] = 1;
-        a->unknown_50a = 0;
+        a->moving_facing_direction = 0;
         actor_base[0x58d] = 0;
     }
 
-    if (clear_recognition && a->unknown_504 == 0) {
+    if (clear_recognition && a->moving == 0) {
         actor_clear_recognition_history(actor_index, 1);
     }
 
-    if (a->unknown_504 != 0 && (actor_def->flags & 0x10000000) != 0) {
+    if (a->moving != 0 && (actor_def->flags & 0x10000000) != 0) {
         movement_mode = 0;
     }
     actor_base[0x58f] = 0;
     if (movement_mode != 0 && (actor_def->flags & 0x20000000) != 0) {
         actor_base[0x58f] = 1;
     }
-    a->unknown_508 = movement_mode;
+    a->crouching = movement_mode;
     if (movement_mode != 0) {
-        a->flags |= 1u;
+        a->control_flags |= 1u;
     } else {
-        a->flags &= ~1u;
+        a->control_flags &= ~1u;
     }
 
     // With no queued action, no unit being carried and no vehicle, ask the unit to turn on the
@@ -465,9 +465,9 @@ void actor_movement_update(datum_index actor_index)
     }
 
     if (vehicle_stuck) {
-        a->flags |= 2u;
+        a->control_flags |= 2u;
     } else if (a->unknown_15c != 0 || a->active_unit_index != (datum_index)k_datum_index_none) {
-        a->unknown_530[0] = 0; // 0x530
+        a->jump_velocity_request[0] = 0; // 0x530
     } else if (actor_action_has_queued_secondary(actor_index) == 0 && a->unknown_440 != 0) {
         uint8_t handled = 0;
         if (a->unknown_441 != 0) {
@@ -493,16 +493,16 @@ void actor_movement_update(datum_index actor_index)
             actor_set_flag_bit1(actor_index);
         }
         if (a->unknown_442 != 0) {
-            *(float *)&a->unknown_530[4]  = a->unknown_444.i; // 0x534
-            a->unknown_530[0] = 1;                            // 0x530
-            *(float *)&a->unknown_530[8]  = a->unknown_444.j; // 0x538
-            *(float *)&a->unknown_530[12] = a->unknown_44c;   // 0x53c
-            *(float *)&a->unknown_530[16] = a->unknown_450;   // 0x540
+            *(float *)&a->jump_velocity_request[4]  = a->unknown_444.i; // 0x534
+            a->jump_velocity_request[0] = 1;                            // 0x530
+            *(float *)&a->jump_velocity_request[8]  = a->unknown_444.j; // 0x538
+            *(float *)&a->jump_velocity_request[12] = a->unknown_44c;   // 0x53c
+            *(float *)&a->jump_velocity_request[16] = a->unknown_450;   // 0x540
         }
     }
 
     // Save this tick's secondary-action record for the next one.
-    *(uint32_t *)&((struct actor *)actor_base)->unknown_6ec = *(uint32_t *)&((struct actor *)actor_base)->secondary_action;
+    *(uint32_t *)&((struct actor *)actor_base)->control_animation_impulse = *(uint32_t *)&((struct actor *)actor_base)->secondary_action;
     *(uint32_t *)(actor_base + 0x6f0) = *(uint32_t *)(actor_base + 0x41c);
     *(uint32_t *)(actor_base + 0x6f4) = *(uint32_t *)(actor_base + 0x420);
 }

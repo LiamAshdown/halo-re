@@ -77,7 +77,7 @@ uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point)
     // origin = point, max_time = 0, max_speed_override = &grenade_unknown_6c8, use_high_arc =
     // unknown_6a1[0], out_time = &arc, out_range = 0, out_used_straight_line = &flat.
     if (projectile_get_aiming_vector(&self->grenade_impact_point, 0, (Projectile *)projectile_definition,
-                     point, 0, 0, &self->grenade_unknown_6c8, self->unknown_6a1[0], &direction,
+                     point, 0, 0, &self->grenade_unknown_6c8, self->grenade_high_arc[0], &direction,
                      &speed, &arc, 0, &flat) == 0) {
         return 0;
     }
@@ -105,7 +105,7 @@ uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point)
 
     // 0x410906: EAX the velocity, ECX the actor, EDX the throw point
     if (actor_grenade_parabolic_path_clear(&velocity, actor_index, point, arc, gravity,
-                                           *(datum_index *)self->unknown_6b8,
+                                           *(datum_index *)self->grenade_exclude_object_index,
                                            (uint8_t)(self->active_unit_index != (datum_index)0xffffffff)) == 0) {
         return 0;
     }

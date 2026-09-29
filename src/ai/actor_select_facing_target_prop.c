@@ -132,7 +132,7 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
         if (skip_lane_test) {
             uint8_t accepted;
             if (require_trust == 0 || !still_valid) {
-                accepted = point3d_within_horizontal_cone((real_point3d *)&cur->direction, &self->position_cache_a, aiming_cos_threshold);
+                accepted = point3d_within_horizontal_cone((real_point3d *)&cur->direction, &self->desired_facing_vector, aiming_cos_threshold);
             } else {
                 accepted = 1; // trusted and still valid: accept without a directional check
             }
@@ -144,8 +144,8 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
                 best_found = 1;
             }
         } else {
-            uint8_t accepted = actor_point_in_directional_lane((real_point3d *)&cur->direction, &self->position_cache_b,
-                                                                 &self->position_cache_a, looking_cos_threshold, side_thresholds);
+            uint8_t accepted = actor_point_in_directional_lane((real_point3d *)&cur->direction, &self->desired_aiming_vector,
+                                                                 &self->desired_facing_vector, looking_cos_threshold, side_thresholds);
             if (accepted && best_score < score) {
                 best_handle = current_handle;
                 best_prop = cur;

@@ -25,11 +25,11 @@ void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uin
         *out_b = base + 0x130;
         return;
     }
-    if (self->unknown_600 != 0) {
+    if (self->new_target_firing_pattern != 0) {
         *out_b = base + 0x100;
         return;
     }
-    if (self->unknown_601 != 0) {
+    if (self->moving_firing_pattern != 0) {
         *out_b = base + 0x118;
         return;
     }

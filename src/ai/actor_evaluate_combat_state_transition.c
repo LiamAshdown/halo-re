@@ -86,7 +86,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
               (*(datum_index *)(p + 0x110) != k_datum_index_none || p[0x14])) &&
             !(((actor *)a)->mode == 0xa && (*(int16_t *)(a + 0xa0) == 2 || *(int16_t *)(a + 0xa0) == 3)) &&
             !changed && !a[0x6] && ((actor *)a)->active_unit_index == k_datum_index_none &&
-            ((struct actor *)a)->unknown_5f2 != 2) {
+            ((struct actor *)a)->firing_state != 2) {
             int32_t now = game_time->game_time;                                      // [esp+0x24]
             uint8_t wide = a[0x378];                                                 // bl
             float base_delay;

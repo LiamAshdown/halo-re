@@ -56,7 +56,7 @@ uint8_t actor_movement_flying_needs_steering(datum_index actor_index, const real
         unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
         vehicle_definition = (Vehicle *)tag_instances[unit_object->definition_tag & 0xffff].data;
         avoidance_distance = vehicle_definition->ai_avoidance_distance;
-        if (avoidance_distance > 0.0f && self->unknown_5ec > 0.9f) {
+        if (avoidance_distance > 0.0f && self->avoidance_emergency > 0.9f) {
             delta.i = destination->x - self->body_position.x;
             delta.j = destination->y - self->body_position.y;
             delta.k = destination->z - self->body_position.z;

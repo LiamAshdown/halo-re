@@ -50,15 +50,15 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
         }
     }
 
-    if (self->unknown_60c == 1 && self->unknown_610 == old_reference) {
-        self->unknown_610 = new_reference;
+    if (self->firing_target_type == 1 && self->firing_target_prop_index == old_reference) {
+        self->firing_target_prop_index = new_reference;
         if (new_reference == 0xffffffff) {
-            self->unknown_60c = 0;
+            self->firing_target_type = 0;
         }
     }
 
-    if (self->unknown_6b4 == old_reference) {
-        self->unknown_6b4 = new_reference;
+    if (self->grenade_target_prop_index == old_reference) {
+        self->grenade_target_prop_index = new_reference;
     }
     if (self->look_at_unknown_2f4 == old_reference) {
         self->look_at_unknown_2f4 = new_reference;
@@ -99,7 +99,7 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
     if (self->vocalization_unknown_54c == 1 && self->vocalization_unknown_550 == old_reference) {
         self->vocalization_unknown_550 = new_reference;
     }
-    if (self->unknown_56c == 1 && *(uint32_t *)((uint8_t *)self + 0x570) == old_reference) { // UNSURE offset
+    if (self->idle_major_direction_type == 1 && *(uint32_t *)((uint8_t *)self + 0x570) == old_reference) { // UNSURE offset
         *(uint32_t *)((uint8_t *)self + 0x570) = new_reference; // UNSURE offset
     }
     if (*(int16_t *)((uint8_t *)self + 0x57c) == 1 && *(uint32_t *)((uint8_t *)self + 0x580) == old_reference) { // UNSURE offsets

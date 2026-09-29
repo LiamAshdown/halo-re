@@ -195,11 +195,11 @@ void actor_update_crouch_state(datum_index actor_index)
                         if ((int32_t)actor_definition->flags < 0 && p->is_parented != 0 &&
                             p->shooting != 0 &&
                             vector3d_magnitude_squared(&flank_offset) < 1.0f &&
-                            (self->unknown_504 != 0 || *countdown_360 > 0)) {
+                            (self->moving != 0 || *countdown_360 > 0)) {
 
-                            steering_direction.i = self->unknown_518.x;
-                            steering_direction.j = self->unknown_518.y;
-                            steering_direction.k = self->unknown_518.z;
+                            steering_direction.i = self->desired_movement_vector.x;
+                            steering_direction.j = self->desired_movement_vector.y;
+                            steering_direction.k = self->desired_movement_vector.z;
                             if (vector3d_normalize_with_length(&steering_direction) > 0.0f) {
                                 probe_point.x = steering_direction.i * 0.4f + self->body_position.x;
                                 probe_point.y = steering_direction.j * 0.4f + self->body_position.y;

@@ -19,7 +19,7 @@ extern data_array *actor_data; // 0x00880360
 void actor_set_flag_bit1(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    self->flags |= _actor_flag_unknown_bit1;
+    self->control_flags |= _actor_flag_unknown_bit1;
 }
 
 #if 0

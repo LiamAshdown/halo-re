@@ -144,28 +144,28 @@ datum_index actor_new(datum_index actor_variant_tag)
 
     memset(&self->movement_action_complete, 0, 0x17 * sizeof(uint32_t)); // 0x4a8..0x503
 
-    self->unknown_504 = 0;
-    self->unknown_505 = 0;
-    self->unknown_5f2 = 1;
-    self->unknown_5f4 = 0;
-    self->unknown_5f6 = 0;
-    self->unknown_5f8 = 0;
-    self->unknown_5fa = 0;
-    self->unknown_61c = 0;
-    self->unknown_610 = (datum_index)k_datum_index_none;
-    self->unknown_6a4 = 0xffffffff;
-    self->unknown_6b4 = 0xffffffff;
-    self->unknown_5c8 = (datum_index)k_datum_index_none;
+    self->moving = 0;
+    self->forced_aim = 0;
+    self->firing_state = 1;
+    self->firing_state_timer = 0;
+    self->firing_delay_timer = 0;
+    self->refire_timer = 0;
+    self->line_of_fire_blocked_ticks = 0;
+    self->firing_target_ticks = 0;
+    self->firing_target_prop_index = (datum_index)k_datum_index_none;
+    self->last_grenade_check_time = 0xffffffff;
+    self->grenade_target_prop_index = 0xffffffff;
+    self->avoidance_ray_clear_ticks = (datum_index)k_datum_index_none;
     self->unknown_5cc = (datum_index)k_datum_index_none;
     self->unknown_5d0 = (datum_index)k_datum_index_none;
     self->unknown_5d4 = (datum_index)k_datum_index_none;
-    self->unknown_5d8 = -1;
-    self->unknown_5f0 = -1;
+    self->avoidance_last_direction = -1;
+    self->avoidance_turn_around_ticks = -1;
     self->vocalization_line = 0;
     self->vocalization_state = 0;
-    self->position_cache_b = *(const real_point3d *)global_forward3d_pointer;
-    self->position_cache_a = *(const real_point3d *)global_forward3d_pointer;
-    self->position_cache_c = *(const real_point3d *)global_forward3d_pointer;
+    self->desired_aiming_vector = *(const real_point3d *)global_forward3d_pointer;
+    self->desired_facing_vector = *(const real_point3d *)global_forward3d_pointer;
+    self->desired_looking_vector = *(const real_point3d *)global_forward3d_pointer;
     self->grenade_eligible = 0;
     self->grenade_recheck_ticks = 30;
     self->target_combat_status = 0;

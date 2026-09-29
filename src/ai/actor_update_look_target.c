@@ -72,7 +72,7 @@ void actor_update_look_target(datum_index actor_index)
     uint8_t *cache_a = a + 0x5a4;
     uint8_t *cache_b = a + 0x5b0;
     uint8_t *cache_c = a + 0x5bc;
-    int16_t look_mode = ((struct actor *)a)->unknown_6dc;
+    int16_t look_mode = ((struct actor *)a)->control_animation_mode;
     uint8_t flee_look = 0;                                  // [esp+0x19]
     uint8_t aim_speed_zero;
 
@@ -119,7 +119,7 @@ void actor_update_look_target(datum_index actor_index)
         // the flee / reason source
         memset(&kind2, 0, sizeof(kind2));
         kind2.code = 2;
-        if (((struct actor *)a)->unknown_60c > 0 && ((struct actor *)a)->unknown_5f2 == 2 && a[0x456] == 0 &&
+        if (((struct actor *)a)->firing_target_type > 0 && ((struct actor *)a)->firing_state == 2 && a[0x456] == 0 &&
             actor_resolve_flee_source_point(&kind2, (real_vector3d *)&flee_point, actor_index)) {
             reason = 7;
             flee_look = 1;
@@ -297,11 +297,11 @@ void actor_update_look_target(datum_index actor_index)
             }
             if (a[0x55c] != 0 && a[0x55d] != 0 && !free_aim) {
                 a[0x55c] = 1;
-                ((struct actor *)a)->unknown_564 = actor_look_get_wait_ticks(actor_index, 2, 1, range);
+                ((struct actor *)a)->idle_major_timer = actor_look_get_wait_ticks(actor_index, 2, 1, range);
                 ULT_V3(a + 0x570) = ULT_V3(cache_b);
-                ((struct actor *)a)->unknown_56c = 4;
+                ((struct actor *)a)->idle_major_direction_type = 4;
             }
-            if (!(a[0x55c] != 0 && ((struct actor *)a)->unknown_564 != 0)) {
+            if (!(a[0x55c] != 0 && ((struct actor *)a)->idle_major_timer != 0)) {
                 uint8_t use_aiming;
                 uint8_t force = 0;
                 uint8_t *direction = 0;
@@ -323,7 +323,7 @@ void actor_update_look_target(datum_index actor_index)
                 }
             }
             if (a[0x55c] != 0) {
-                ((struct actor *)a)->unknown_564 -= 1;
+                ((struct actor *)a)->idle_major_timer -= 1;
                 if (actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x56c), (real_vector3d *)&voc_point,
                         actor_index)) {
                     if (free_aim) {
@@ -419,8 +419,8 @@ void actor_update_look_target(datum_index actor_index)
     }
 
     // 0x41609a: keep the facing horizontal unless flying
-    if (a[0x99] == 0 && !(fabs((double)((actor *)a)->position_cache_a.z) < 9.999999747378752e-05)) {
-        ((actor *)a)->position_cache_a.z = 0.0f;
+    if (a[0x99] == 0 && !(fabs((double)((actor *)a)->desired_facing_vector.z) < 9.999999747378752e-05)) {
+        ((actor *)a)->desired_facing_vector.z = 0.0f;
         if (vector2d_normalize_with_length((real_vector2d *)cache_a) == 0.0f) {
             ULT_V3(cache_a) = ULT_V3(a + 0x174);
         }
@@ -428,8 +428,8 @@ void actor_update_look_target(datum_index actor_index)
     if (a[0x58f] != 0) {
         if (a[0x590] == 0) {
             if (a[0x504] == 0 &&
-                ((actor *)a)->facing_unknown_180.k * ((actor *)a)->position_cache_b.z + ((actor *)a)->facing_unknown_180.j * ((actor *)a)->position_cache_b.y +
-                ((actor *)a)->facing_unknown_180.i * ((actor *)a)->position_cache_b.x > 0.9f) {
+                ((actor *)a)->facing_unknown_180.k * ((actor *)a)->desired_aiming_vector.z + ((actor *)a)->facing_unknown_180.j * ((actor *)a)->desired_aiming_vector.y +
+                ((actor *)a)->facing_unknown_180.i * ((actor *)a)->desired_aiming_vector.x > 0.9f) {
                 ULT_V3(a + 0x598) = ULT_V3(cache_a);
                 a[0x590] = 1;
             }
@@ -438,17 +438,17 @@ void actor_update_look_target(datum_index actor_index)
             uint8_t keep = 0;
 
             if (a[0x99] != 0) {
-                keep = ((actor *)a)->position_cache_a.z * *(float *)(a + 0x5a0) + ((actor *)a)->position_cache_a.y * *(float *)(a + 0x59c) +
-                       ((actor *)a)->position_cache_a.x * *(float *)(a + 0x598) > limit &&
-                       *(float *)(a + 0x5a0) * ((actor *)a)->position_cache_b.z + *(float *)(a + 0x59c) * ((actor *)a)->position_cache_b.y +
-                       ((actor *)a)->position_cache_b.x * *(float *)(a + 0x598) > limit;
+                keep = ((actor *)a)->desired_facing_vector.z * *(float *)(a + 0x5a0) + ((actor *)a)->desired_facing_vector.y * *(float *)(a + 0x59c) +
+                       ((actor *)a)->desired_facing_vector.x * *(float *)(a + 0x598) > limit &&
+                       *(float *)(a + 0x5a0) * ((actor *)a)->desired_aiming_vector.z + *(float *)(a + 0x59c) * ((actor *)a)->desired_aiming_vector.y +
+                       ((actor *)a)->desired_aiming_vector.x * *(float *)(a + 0x598) > limit;
             } else {
                 real_vector2d aim2, face2, hold2;
 
-                aim2.i = ((actor *)a)->position_cache_b.x;
-                aim2.j = ((actor *)a)->position_cache_b.y;
-                face2.i = ((actor *)a)->position_cache_a.x;
-                face2.j = ((actor *)a)->position_cache_a.y;
+                aim2.i = ((actor *)a)->desired_aiming_vector.x;
+                aim2.j = ((actor *)a)->desired_aiming_vector.y;
+                face2.i = ((actor *)a)->desired_facing_vector.x;
+                face2.j = ((actor *)a)->desired_facing_vector.y;
                 hold2.i = *(float *)(a + 0x598);
                 hold2.j = *(float *)(a + 0x59c);
                 if (vector2d_normalize_with_length(&face2) != 0.0f && vector2d_normalize_with_length(&aim2) != 0.0f &&
@@ -469,9 +469,9 @@ void actor_update_look_target(datum_index actor_index)
     ULT_V3(a + 0x708) = ULT_V3(cache_b);
     ULT_V3(a + 0x714) = ULT_V3(cache_c);
     if (a[0x591] != 0) {
-        ((actor *)a)->flags |= 0x20;
+        ((actor *)a)->control_flags |= 0x20;
     } else {
-        ((actor *)a)->flags &= ~0x20u;
+        ((actor *)a)->control_flags &= ~0x20u;
     }
 
     aim_speed_zero = 1;

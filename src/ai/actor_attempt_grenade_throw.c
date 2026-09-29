@@ -64,7 +64,7 @@ void actor_attempt_grenade_throw(datum_index actor_index)
             } else if (!(chance <= 0.6f)) {
                 chance = 0.6f;
             }
-            if (a[0x378] || (((struct actor *)a)->unknown_60c > 0 && *(float *)(a + 0x648) < 3.0f)) {
+            if (a[0x378] || (((struct actor *)a)->firing_target_type > 0 && *(float *)(a + 0x648) < 3.0f)) {
                 float boosted = chance * 4.0f;
 
                 if (!(boosted <= 0.6f)) {

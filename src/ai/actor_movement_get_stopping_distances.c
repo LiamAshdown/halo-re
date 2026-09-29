@@ -65,7 +65,7 @@ void actor_movement_get_stopping_distances(datum_index actor_index,
                     top_speed = biped_definition->max_velocity * 0.033333335f;
                     acceleration = biped_definition->acceleration * 0.033333335f;
                     deceleration = biped_definition->deceleration * 0.033333335f;
-                    if (self->unknown_508 != 0 && biped_definition->crouch_velocity_modifier > 0.0f) {
+                    if (self->crouching != 0 && biped_definition->crouch_velocity_modifier > 0.0f) {
                         top_speed = top_speed * biped_definition->crouch_velocity_modifier;
                         acceleration = acceleration * biped_definition->crouch_velocity_modifier;
                         deceleration = deceleration * biped_definition->crouch_velocity_modifier;

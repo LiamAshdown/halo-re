@@ -44,14 +44,14 @@ uint8_t actor_update_flee_response(datum_index actor_index)
     if (self->vocalization_unknown_3e8 > 2 && self->vocalization_unknown_3ec != 0) {
         // FIXED (objdump 0x414274..0x4142a2): EAX = actor +0x3ec, EDI = actor +0x524, stack = the actor
         result = actor_resolve_flee_source_point((actor_flee_source_reason *)((uint8_t *)self + 0x3ec),
-            &self->unknown_524, actor_index);
+            &self->forced_aim_direction, actor_index);
         if (result != 0) {
-            self->unknown_505 = 1;
+            self->forced_aim = 1;
             return result;
         }
     }
 
-    self->unknown_505 = 0;
+    self->forced_aim = 0;
     return result;
 }
 

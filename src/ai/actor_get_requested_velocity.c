@@ -41,18 +41,18 @@ uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index
         if (self->swarm != 0) {
             // 0x417fd6: ECX = actor, stack (param_1, speed_limit, EDX = out_velocity)
             actor_dispatch_type_vtable_0x1c(actor_index, object_index, *(uint32_t *)&speed_limit, (uint32_t)out_velocity);
-            self->unknown_530[0] = 0; // 0x530
+            self->jump_velocity_request[0] = 0; // 0x530
             return 1;
         }
-        if (self->unknown_530[0] != 0) { // 0x530
+        if (self->jump_velocity_request[0] != 0) { // 0x530
             if (self->mode == 10 && *(int16_t *)&self->mode_data.raw[4] == 3) { // 0xa0
                 skip_clamp = 1;
             }
-            out_velocity->j = *(float *)&self->unknown_530[8] *
-                              *(float *)&self->unknown_530[12]; // 0x538 * 0x53c
-            out_velocity->k = *(float *)&self->unknown_530[16]; // 0x540
-            out_velocity->i = *(float *)&self->unknown_530[4] *
-                              *(float *)&self->unknown_530[12]; // 0x534 * 0x53c
+            out_velocity->j = *(float *)&self->jump_velocity_request[8] *
+                              *(float *)&self->jump_velocity_request[12]; // 0x538 * 0x53c
+            out_velocity->k = *(float *)&self->jump_velocity_request[16]; // 0x540
+            out_velocity->i = *(float *)&self->jump_velocity_request[4] *
+                              *(float *)&self->jump_velocity_request[12]; // 0x534 * 0x53c
             length = (float)sqrt((double)(out_velocity->i * out_velocity->i +
                                           out_velocity->j * out_velocity->j +
                                           out_velocity->k * out_velocity->k));
@@ -65,7 +65,7 @@ uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index
         }
     }
 
-    self->unknown_530[0] = 0; // 0x530
+    self->jump_velocity_request[0] = 0; // 0x530
     return 1;
 }
 

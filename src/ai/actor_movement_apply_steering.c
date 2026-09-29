@@ -111,7 +111,7 @@ void actor_movement_apply_steering(
 
             desired = *desired_direction;
             if (act[0x505]) {
-                aim = *(real_vector3d *)&((struct actor *)act)->unknown_524.i;
+                aim = *(real_vector3d *)&((struct actor *)act)->forced_aim_direction.i;
                 if (((struct actor *)act)->unknown_15e > 0) {
                     use_scratch = 1;
                 }
@@ -158,7 +158,7 @@ void actor_movement_apply_steering(
     }
 
     dot_facing = aim.j * facing->j + aim.k * facing->k + aim.i * facing->i;
-    if (order_failed || ((struct actor *)act)->unknown_6dc == 4) {
+    if (order_failed || ((struct actor *)act)->control_animation_mode == 4) {
         take_step = 1;
     } else {
         if (!act[0x99]) { // not flying: a portal just ahead in the stepping direction means turn tighter first
