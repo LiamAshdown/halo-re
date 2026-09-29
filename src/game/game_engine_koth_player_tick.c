@@ -52,8 +52,8 @@ void game_engine_koth_player_tick(uint32_t player_index)
     uint32_t idx = player_index & 0xffff;
     player *p = (player *)((uint8_t *)player_data->data + idx * sizeof(player));
 
-    *(uint32_t *)&((struct player *)p)->unknown_74 = 0xffffffff;
-    *(uint32_t *)&((struct player *)p)->unknown_78 = 0xffffffff;
+    *(uint32_t *)&((struct player *)p)->hud_message_index = 0xffffffff;
+    *(uint32_t *)&((struct player *)p)->hud_message_player = 0xffffffff;
     king_hill_player_in_hill[idx] = 0;
 
     if (p->unit != (datum_index)0xffffffff &&
@@ -100,8 +100,8 @@ void game_engine_koth_player_tick(uint32_t player_index)
             }
         }
 
-        *(uint32_t *)&((struct player *)p)->unknown_74 = 0x22;
-        *(uint32_t *)&((struct player *)p)->unknown_78 = player_index;
+        *(uint32_t *)&((struct player *)p)->hud_message_index = 0x22;
+        *(uint32_t *)&((struct player *)p)->hud_message_player = player_index;
     }
 }
 

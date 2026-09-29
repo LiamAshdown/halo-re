@@ -186,9 +186,9 @@ void game_engine_players_update_server(void)
                         }
                     }
                     if ((action->control_flags & 0x4000) == 0 || unit_obj->parent_object != (datum_index)-1) {
-                        *(uint8_t *)&plr->unknown_3e = 0;
-                    } else if (*(uint8_t *)&plr->unknown_3e == 0) {
-                        *(uint8_t *)&plr->unknown_3e = player_execute_weapon_drop_interaction(player_handle); // this batch, 0x4790d0
+                        *(uint8_t *)&plr->weapon_swap_result = 0;
+                    } else if (*(uint8_t *)&plr->weapon_swap_result == 0) {
+                        *(uint8_t *)&plr->weapon_swap_result = player_execute_weapon_drop_interaction(player_handle); // this batch, 0x4790d0
                     }
 
                     if ((action->control_flags & 0x80) != 0 && unit->equipment_object_index != (datum_index)-1) {

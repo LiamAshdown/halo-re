@@ -120,7 +120,7 @@ void player_update_client_remote_player_total_vehicle_update_from_network(int32_
             vector3d_cross_product(&decoded.vehicle.up, &decoded.vehicle.forward, &temp);
             vector3d_normalize_with_length(&decoded.vehicle.forward);
             vector3d_normalize_with_length(&decoded.vehicle.up);
-            memcpy(&candidate->unknown_190, &decoded.vehicle, sizeof(decoded.vehicle));
+            memcpy(&candidate->vehicle_baseline, &decoded.vehicle, sizeof(decoded.vehicle));
         }
         is_baseline = 1;
         if (decoded_ok != 1) {
@@ -129,7 +129,7 @@ void player_update_client_remote_player_total_vehicle_update_from_network(int32_
         mode = "stateless";
     } else {
         memcpy(&previous.action, &candidate->unknown_f0, sizeof(previous.action));
-        memcpy(&previous.vehicle, &candidate->unknown_190, sizeof(previous.vehicle));
+        memcpy(&previous.vehicle, &candidate->vehicle_baseline, sizeof(previous.vehicle));
         decoded = previous;
         state->bits_read += message_delta_read_changed_subfields(state, decode_context + 1,
             &previous, &decoded);

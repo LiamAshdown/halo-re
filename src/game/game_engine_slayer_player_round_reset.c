@@ -32,7 +32,7 @@ void game_engine_slayer_player_round_reset(datum_index player_index)
     if (player == 0) {
         return;
     }
-    ((struct player *)player)->unknown_88 = -1;
+    ((struct player *)player)->slayer_target = -1;
     slayer_player_score[player_index & 0xffff] = 0;
     iterator.data = player_data;
     iterator.next_index = 0;

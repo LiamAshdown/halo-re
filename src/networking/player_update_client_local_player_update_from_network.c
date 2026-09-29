@@ -104,13 +104,13 @@ void player_update_client_local_player_update_from_network(int32_t *decode_conte
             return;
         }
     }
-    if (is_local_player_update_in_order(candidate->unknown_e8, ack.update_id) != 1) {
+    if (is_local_player_update_in_order(candidate->last_update_id, ack.update_id) != 1) {
         return;
     }
     player_update_history_log_write(1, 0, "[%d]: Received ack for update [%d].\n",
         game_time->game_time, ack.baseline_id);
-    candidate->unknown_e8 = ack.update_id;
-    candidate->unknown_ec = ack.baseline_id;
+    candidate->last_update_id = ack.update_id;
+    candidate->baseline_update_id = ack.baseline_id;
     candidate->unknown_f0 = *(int32_t *)&ack.position.x;
     candidate->unknown_f4 = *(int32_t *)&ack.position.y;
     candidate->unknown_f8 = *(int32_t *)&ack.position.z;

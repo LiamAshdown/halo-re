@@ -112,9 +112,9 @@ void player_update_client_remote_player_total_biped_update_from_network(int32_t 
         memset(&decoded, 0, sizeof(decoded));
         decoded_ok = message_delta_decode_compound_field(decode_context, &decoded);
         if (decoded_ok == 1) {
-            *(real *)&candidate->unknown_164 = decoded.position.x;
-            *(real *)&candidate->unknown_168 = decoded.position.y;
-            *(real *)&candidate->unknown_16c = decoded.position.z;
+            *(real *)&candidate->position_baseline_x = decoded.position.x;
+            *(real *)&candidate->position_baseline_y = decoded.position.y;
+            *(real *)&candidate->position_baseline_z = decoded.position.z;
         }
         is_baseline = 1;
         if (decoded_ok != 1) {
@@ -123,9 +123,9 @@ void player_update_client_remote_player_total_biped_update_from_network(int32_t 
         mode = "stateless";
     } else {
         memcpy(&previous.action, &candidate->unknown_f0, sizeof(previous.action));
-        previous.position.x = *(real *)&candidate->unknown_164;
-        previous.position.y = *(real *)&candidate->unknown_168;
-        previous.position.z = *(real *)&candidate->unknown_16c;
+        previous.position.x = *(real *)&candidate->position_baseline_x;
+        previous.position.y = *(real *)&candidate->position_baseline_y;
+        previous.position.z = *(real *)&candidate->position_baseline_z;
         decoded = previous;
         state->bits_read += message_delta_read_changed_subfields(state, decode_context + 1,
             &previous, &decoded);

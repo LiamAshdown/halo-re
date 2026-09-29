@@ -61,7 +61,7 @@ void game_engine_player_select_random_target(datum_index player_or_all)
 {
     uint16_t self_index = (uint16_t)player_or_all;
     player *self = (player *)((uint8_t *)player_data->data + (uint32_t)self_index * sizeof(player));
-    int32_t previous_target = self->unknown_88; // UNSURE: see header
+    int32_t previous_target = self->slayer_target; // UNSURE: see header
     int32_t match_count = 0;
     datum_index winner = k_datum_index_none;
     data_iterator iter;
@@ -113,7 +113,7 @@ void game_engine_player_select_random_target(datum_index player_or_all)
         }
     }
 
-    self->unknown_88 = (int32_t)winner;
+    self->slayer_target = (int32_t)winner;
     if (winner == k_datum_index_none) {
         return;
     }

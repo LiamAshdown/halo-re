@@ -250,7 +250,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
                                                        : L"\t%s\t%s\t%s\t%d\t%d\t%d\t%d",
                                               team_text, p->name, status_text,
                                               visible[i].key_1, visible[i].key_3, visible[i].key_2,
-                                              p->unknown_dc);
+                                              p->ping);
                     }
                 }
 

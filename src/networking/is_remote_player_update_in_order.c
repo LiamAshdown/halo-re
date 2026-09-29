@@ -49,13 +49,13 @@ uint8_t is_remote_player_update_in_order(player *plr, uint8_t new_update_id, int
         if (3 < delta) {
             player_update_history_log_printf_filtered(plr, 1,
                 "[%d]a: Threw away remote player position update [%d] (%d), previous ack [%d] (%d).\n",
-                game_time->game_time, update_id, plr->unknown_160, (int32_t)new_id_byte, previous_id);
+                game_time->game_time, update_id, plr->last_position_update_id, (int32_t)new_id_byte, previous_id);
             return 0;
         }
     } else if (3 < delta + 8) {
         player_update_history_log_printf_filtered(plr, 1,
             "[%d]b: Threw away remote player position update [%d] (%d), previous ack [%d] (%d).\n",
-            game_time->game_time, update_id, plr->unknown_160, (int32_t)new_id_byte, previous_id);
+            game_time->game_time, update_id, plr->last_position_update_id, (int32_t)new_id_byte, previous_id);
         return 0;
     }
     return 1;

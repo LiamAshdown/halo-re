@@ -47,8 +47,8 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
     int32_t i;
     uint32_t result = 0;
 
-    p->unknown_74 = (datum_index)0xffffffff;
-    p->unknown_78 = (datum_index)0xffffffff;
+    p->hud_message_index = (datum_index)0xffffffff;
+    p->hud_message_player = (datum_index)0xffffffff;
 
     game_engine_koth_update_occupant_table(player_index);
 
@@ -81,8 +81,8 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
         int32_t remaining = occupied_slots;
         do {
             if (game_engine_variant.engine.oddball.ball_type == 0) {
-                p->unknown_74 = (datum_index)0x29;
-                p->unknown_78 = (datum_index)player_index;
+                p->hud_message_index = (datum_index)0x29;
+                p->hud_message_player = (datum_index)player_index;
             }
             game_engine_koth_alt_scorer_tick(player_index);
             remaining--;
@@ -90,8 +90,8 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
     }
 
     if (game_engine_variant.engine.oddball.ball_type > 0 && game_engine_variant.engine.oddball.ball_type < 3 && occupied_slots > 0) {
-        p->unknown_74 = (datum_index)0x23;
-        p->unknown_78 = (datum_index)player_index;
+        p->hud_message_index = (datum_index)0x23;
+        p->hud_message_player = (datum_index)player_index;
     }
 
     if (p->unit != (datum_index)0xffffffff) {

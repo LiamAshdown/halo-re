@@ -149,9 +149,9 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
             if (*(datum_index *)(responsible + 0x328) != k_datum_index_none) {
                 responsible = object_get(*(datum_index *)(responsible + 0x328));
             }
-            actor = *(datum_index *)&((struct player *)responsible)->unknown_1f8;
+            actor = ((unit_object *)responsible)->unit.swarm_actor_index; // unit+0x1f8 (was cast through struct player)
             if (actor == k_datum_index_none) {
-                actor = *(datum_index *)&((struct player *)responsible)->unknown_1f4;
+                actor = ((unit_object *)responsible)->unit.actor_index;   // unit+0x1f4
             }
             if (actor != k_datum_index_none) {
                 actor_apply_perception_scale(actor, (const uint8_t *)dd, &amount);

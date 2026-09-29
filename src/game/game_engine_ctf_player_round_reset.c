@@ -21,6 +21,6 @@ void game_engine_ctf_player_round_reset(datum_index player_index)
     uint8_t *player = (uint8_t *)datum_get(player_index, player_data);
 
     if (player != 0) {
-        ((struct player *)player)->unknown_c8 = 0;
+        ((struct player *)player)->objective_score = 0;
     }
 }

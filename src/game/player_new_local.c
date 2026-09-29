@@ -78,7 +78,7 @@ datum_index player_new_local(datum_index requested_handle, uint32_t machine_inde
         wcsncpy((wchar_t *)p->name, name_source, 11);
         p->name[11] = 0;
 
-        p->unknown_dc = 0;
+        p->ping = 0;
         p->medal_streak_count = 0;
         p->medal_streak_timer = 0;
         p->local_player_index = local_player_index;
@@ -93,14 +93,14 @@ datum_index player_new_local(datum_index requested_handle, uint32_t machine_inde
         p->interaction_type = 0;
         p->interaction_object = (datum_index)-1;
 
-        p->unknown_d0 = (datum_index)-1;
+        p->quit_tick = (datum_index)-1;
         p->marked_for_deletion = 0;
-        p->unknown_ec = (datum_index)-1;
-        p->unknown_e8 = -1; // UNSURE: unknown_e8 is int32_t; player_new_network sets it to 0
+        p->baseline_update_id = (datum_index)-1;
+        p->last_update_id = -1; // UNSURE: unknown_e8 is int32_t; player_new_network sets it to 0
 
         if (local_player_index == -1) {
             p->last_remote_update_id = -1;
-            p->unknown_160 = (datum_index)-1;
+            p->last_position_update_id = (datum_index)-1;
             player_update_queue_create(&p->update_history);
             // The 0xc-dword run types/game.h already documents as "the local constructor
             // zeroes": unknown_f0, unknown_f4, unknown_f8, unknown_fc[8], unknown_104,
@@ -108,22 +108,22 @@ datum_index player_new_local(datum_index requested_handle, uint32_t machine_inde
             // unknown_11c.
             memset((uint8_t *)p + 0xf0, 0, 0x30);
 
-            p->unknown_164 = 0;
-            p->unknown_168 = 0;
-            p->unknown_16c = 0;
+            p->position_baseline_x = 0;
+            p->position_baseline_y = 0;
+            p->position_baseline_z = 0;
             position_update_queue_create(&p->position_updates);
 
-            p->unknown_188 = 0;
-            p->unknown_18c = (datum_index)-1;
+            p->position_update_ignored_count = 0;
+            p->last_vehicle_update_id = (datum_index)-1;
             // Zeroes the whole unknown_190 tail (0x40 bytes, exactly its declared size).
             memset((uint8_t *)p + 0x190, 0, 0x40);
             vehicle_update_queue_create(&p->vehicle_updates);
 
-            p->unknown_1e8 = 0;
-            p->unknown_1ec = 0;
-            p->unknown_1f0 = 0;
-            p->unknown_1f4 = 0;
-            p->unknown_1f8 = 0;
+            p->vehicle_update_ignored_count = 0;
+            p->position_updates_applied_count = 0;
+            p->position_update_error_total = 0;
+            p->vehicle_updates_applied_count = 0;
+            p->vehicle_update_error_total = 0;
         }
 
         if (identifier_record != (uint16_t *)0) {

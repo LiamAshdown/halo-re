@@ -88,13 +88,13 @@ void player_update_client_remote_player_position_delta_from_network(int32_t **de
         if (message_delta_decode_compound_field(decode_context, &position) != 1) {
             return;
         }
-        *(real *)&candidate->unknown_164 = position.x;
-        *(real *)&candidate->unknown_168 = position.y;
-        *(real *)&candidate->unknown_16c = position.z;
+        *(real *)&candidate->position_baseline_x = position.x;
+        *(real *)&candidate->position_baseline_y = position.y;
+        *(real *)&candidate->position_baseline_z = position.z;
     } else {
-        position.x = *(real *)&candidate->unknown_164;
-        position.y = *(real *)&candidate->unknown_168;
-        position.z = *(real *)&candidate->unknown_16c;
+        position.x = *(real *)&candidate->position_baseline_x;
+        position.y = *(real *)&candidate->position_baseline_y;
+        position.z = *(real *)&candidate->position_baseline_z;
         if (message_delta_decode_compound_field_forced(decode_context, &position, 0) != 1) {
             return;
         }

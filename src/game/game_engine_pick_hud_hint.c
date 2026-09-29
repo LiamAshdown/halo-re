@@ -46,8 +46,8 @@ uint32_t game_engine_pick_hud_hint(wchar_t *out, uint32_t player_index, uint32_t
         return result;
     }
 
-    if (0x16 < (int32_t)p->unknown_74 && (int32_t)p->unknown_74 < 0x1b) {
-        p->unknown_74 = (datum_index)0xffffffff;
+    if (0x16 < (int32_t)p->hud_message_index && (int32_t)p->hud_message_index < 0x1b) {
+        p->hud_message_index = (datum_index)0xffffffff;
     }
 
     if (p->unit == (datum_index)0xffffffff) {
@@ -81,12 +81,12 @@ uint32_t game_engine_pick_hud_hint(wchar_t *out, uint32_t player_index, uint32_t
         }
     } else {
         if (game_time->game_time < 0x1c2) {
-            if (p->unknown_74 == (datum_index)0xffffffff ||
+            if (p->hud_message_index == (datum_index)0xffffffff ||
                 game_engine_variant.game_engine_index != _game_engine_ctf ||
                 game_engine_variant.engine.ctf.single_flag_time < 1) {
                 return game_engine_build_message_text(out, buffer_size, subject, forwarded_param_1, 0);
             }
-        } else if (p->unknown_74 == (datum_index)0xffffffff) {
+        } else if (p->hud_message_index == (datum_index)0xffffffff) {
             return result;
         }
         result = game_engine_build_message_text(out, buffer_size, subject, forwarded_param_1, 0);

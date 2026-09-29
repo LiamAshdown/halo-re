@@ -60,11 +60,11 @@ void game_engine_player_new_life(uint32_t player_handle)
     int32_t team;
 
     p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    p->unknown_74 = (datum_index)0xffffffff;
-    p->unknown_78 = (datum_index)0xffffffff;
+    p->hud_message_index = (datum_index)0xffffffff;
+    p->hud_message_player = (datum_index)0xffffffff;
     p->speed = 1.0f;
-    p->unknown_70 = (datum_index)0xffffffff;
-    p->unknown_7c = (datum_index)0xffffffff;
+    p->teleporter_flag_index = (datum_index)0xffffffff;
+    p->nameplate_target_player = (datum_index)0xffffffff;
     p->objective_time = 0;
 
     if (current_game_engine == (game_engine_definition *)0) {

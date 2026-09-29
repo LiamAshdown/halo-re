@@ -86,23 +86,23 @@ void handle_remote_player_action_update(remote_player_action_state *control_sour
 
     if (is_baseline == 1) {
         baseline_id = header->baseline_id;
-        candidate->unknown_ec = baseline_id;
+        candidate->baseline_update_id = baseline_id;
         memcpy(&candidate->unknown_f0, control_source, sizeof(*control_source));
     } else {
         int32_t distance;
 
         baseline_id = header->baseline_id;
-        if ((uint32_t)baseline_id != candidate->unknown_ec) {
+        if ((uint32_t)baseline_id != candidate->baseline_update_id) {
             player_update_history_log_printf_filtered(candidate, 2,
                 "[%d]: Threw away remote player action update with base baseline, [%d] != [%d].",
-                game_time->game_time, baseline_id, candidate->unknown_ec);
+                game_time->game_time, baseline_id, candidate->baseline_update_id);
             return;
         }
         action_index = header->update_id;
-        if ((int32_t)action_index <= candidate->unknown_e8) {
-            distance = ((int32_t)action_index - candidate->unknown_e8) + 0x40;
+        if ((int32_t)action_index <= candidate->last_update_id) {
+            distance = ((int32_t)action_index - candidate->last_update_id) + 0x40;
         } else {
-            distance = (int32_t)action_index - candidate->unknown_e8;
+            distance = (int32_t)action_index - candidate->last_update_id;
         }
         if (distance >= 0x20) {
             return;
@@ -110,7 +110,7 @@ void handle_remote_player_action_update(remote_player_action_state *control_sour
     }
 
     action_index = header->update_id;
-    if (candidate->unknown_e8 != -1) {
+    if (candidate->last_update_id != -1) {
         float x = control_source->direction.i;
         float y = control_source->direction.j;
         float z = control_source->direction.k;
@@ -121,7 +121,7 @@ void handle_remote_player_action_update(remote_player_action_state *control_sour
         control_source->unknown_20 = (uint16_t)stride_offset;
         player_update_history_log_printf_filtered(candidate, 2, "Received action [%d]", action_index);
 
-        if (candidate->unknown_e8 != -1) { // UNSURE: Ghidra's own check here is `!= -1` a second time; kept as-is
+        if (candidate->last_update_id != -1) { // UNSURE: Ghidra's own check here is `!= -1` a second time; kept as-is
             uint32_t record[11];
             uint8_t first_byte = (uint8_t)control_source->flags;
 
@@ -136,7 +136,7 @@ void handle_remote_player_action_update(remote_player_action_state *control_sour
             }
         }
     }
-    candidate->unknown_e8 = action_index;
+    candidate->last_update_id = action_index;
 }
 
 #if 0

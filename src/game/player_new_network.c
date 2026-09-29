@@ -76,7 +76,7 @@ datum_index player_new_network(datum_index requested_index, uint32_t machine_ind
         p->name[11] = 0;
 
         p->local_player_index = local_player_index;
-        p->unknown_dc = 0;
+        p->ping = 0;
         p->medal_streak_count = 0;
         p->medal_streak_timer = 0;
         p->unit = (datum_index)-1;
@@ -90,11 +90,11 @@ datum_index player_new_network(datum_index requested_index, uint32_t machine_ind
         p->interaction_type = 0;
         p->interaction_object = (datum_index)-1;
 
-        p->unknown_d0 = (datum_index)-1;
+        p->quit_tick = (datum_index)-1;
         p->marked_for_deletion = 0;
         p->odd_man_out = 0;
-        p->unknown_e8 = 0;
-        p->unknown_ec = (datum_index)-1;
+        p->last_update_id = 0;
+        p->baseline_update_id = (datum_index)-1;
         p->unknown_f0 = 0;
         p->unknown_f4 = (datum_index)-1;
         p->unknown_104 = -1;
@@ -113,10 +113,10 @@ datum_index player_new_network(datum_index requested_index, uint32_t machine_ind
         // plus last_remote_update_id (+0x15c, R35) right after it -- 12 dwords, exactly matching Ghidra's own loop.
         memset((uint8_t *)p + 0x130, 0, 0x30);
 
-        p->unknown_160 = 0;
-        p->unknown_164 = -1;
-        p->unknown_168 = -1;
-        p->unknown_16c = -1;
+        p->last_position_update_id = 0;
+        p->position_baseline_x = -1;
+        p->position_baseline_y = -1;
+        p->position_baseline_z = -1;
 
         p->position_updates.capacity = 0;
         p->position_updates.record_size = 0;

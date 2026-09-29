@@ -102,7 +102,7 @@ void sv_players(void)
                     tk_timer = 0;
                     name_display = (uint16_t *)k_empty_string;
                 } else {
-                    score = p->unknown_dc;
+                    score = p->ping;
                     tk_num = p->medal_streak_count;
                     tk_timer = (p->medal_streak_timer < 0) ? 0 : p->medal_streak_timer / 30;
                     name_display = name_buf;

@@ -125,7 +125,7 @@ void build_remote_player_transform_update(uint32_t player_index, player_action *
                         machine_id_slot = (int16_t *)((uint8_t *)network_server + 0x3c4);
                         for (i = 0; i < 0x10; i = i + 1) {
                             if (machine_id_slot[i * 0x30] ==
-                                (int16_t)*(char *)&((struct player *)candidate)->unknown_64) {
+                                (int16_t)*(char *)&((struct player *)candidate)->machine_index) {
                                 machine = (network_machine *)((uint8_t *)network_server + 0x3b8 +
                                     i * 0x60);
                                 if (((*(uint16_t *)((uint8_t *)machine + 0xe) >> 1 & 1) != 0) &&

@@ -105,7 +105,7 @@ void main_switch_structure_bsp(void)
             // covers it.
             int32_t *fade_ticks = (int32_t *)((uint8_t *)plr + 0xcc);
 
-            if (plr->unknown_d4 == 0) {
+            if (plr->telefrag_danger == 0) {
                 if (*fade_ticks > 0) {
                     *fade_ticks = *fade_ticks - 1;
                 }
@@ -123,7 +123,7 @@ void main_switch_structure_bsp(void)
                 }
             }
         }
-        plr->unknown_d4 = 0;
+        plr->telefrag_danger = 0;
 
         if (plr->unit != (datum_index)-1) {
             player_kill_streak_tick(player_handle);

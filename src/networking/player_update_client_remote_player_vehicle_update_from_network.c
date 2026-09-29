@@ -117,7 +117,7 @@ void player_update_client_remote_player_vehicle_update_from_network(datum_index 
         return;
     }
 
-    if (target->unknown_18c != -1) {
+    if (target->last_vehicle_update_id != -1) {
         if (target->update_history.queue.read_index == target->update_history.queue.write_index) {
             on_update_id = -1;
         } else {
@@ -169,12 +169,12 @@ void player_update_client_remote_player_vehicle_update_from_network(datum_index 
                 "Received vehicle_update update [%d], on [%d] (%d). [%d] actions, "
                 "[%d] vehicle updates",
                 update_id, on_update_id, distance, action_count, vehicle_count);
-            target->unknown_1e8 = 0;
+            target->vehicle_update_ignored_count = 0;
         } else {
             int32_t out_of_range_count;
 
-            out_of_range_count = target->unknown_1e8 + 1;
-            target->unknown_1e8 = out_of_range_count;
+            out_of_range_count = target->vehicle_update_ignored_count + 1;
+            target->vehicle_update_ignored_count = out_of_range_count;
             if (out_of_range_count <= 1) {
                 // note: position_updates, not vehicle_updates -- see the file header
                 int32_t position_count = circular_queue_count(&target->position_updates);
@@ -194,7 +194,7 @@ void player_update_client_remote_player_vehicle_update_from_network(datum_index 
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
                     "***Applying immediately",
                     update_id, on_update_id, distance, action_count, vehicle_count);
-                target->unknown_1e8 = 0;
+                target->vehicle_update_ignored_count = 0;
 
                 if (target->unit != -1) {
                     object *unit = object_try_and_get(target->unit, 3);
@@ -215,7 +215,7 @@ void player_update_client_remote_player_vehicle_update_from_network(datum_index 
         }
         target->last_remote_update_id = (int32_t)(uint8_t)control_sequence;
     }
-    target->unknown_18c = update_id;
+    target->last_vehicle_update_id = update_id;
 }
 
 #if 0

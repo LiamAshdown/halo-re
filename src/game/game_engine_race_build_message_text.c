@@ -75,7 +75,7 @@ uint8_t game_engine_race_build_message_text(datum_index recipient, int32_t messa
         return 1;
     case 0x26:
         string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xad),
-            (double)((float)((struct player *)player)->unknown_c8 * 0.033333335f));
+            (double)((float)((struct player *)player)->objective_score * 0.033333335f));
         return 1;
     default: // 0x16
         if (datum_get(recipient, player_data) == 0) {

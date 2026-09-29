@@ -108,8 +108,8 @@ void game_engine_apply_player_profile_entry(void *event)
     p->deaths = profile->deaths;
     p->suicides = profile->suicides;
     p->objective_time = profile->objective_time;
-    p->unknown_c8 = profile->unknown_22;
-    p->unknown_88 = profile->unknown_24;
+    p->objective_score = profile->unknown_22;
+    p->slayer_target = profile->unknown_24;
     p->odd_man_out = profile->odd_man_out;
     p->speed = profile->speed;
 
