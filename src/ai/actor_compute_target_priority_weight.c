@@ -4,7 +4,7 @@
 // evidence: phase-4 summary "computes a numeric priority weight for how attractive a
 // potential threat/target is, combining class, distance, occupancy and relationship
 // factors"; its only caller (0x41d75f, inside the recognition-refresh routine around
-// ai_target_distance_qsort_compare) stores the result into prop.unknown_54 right after
+// ai_target_distance_qsort_compare) stores the result into prop.priority_weight right after
 // storing actor_rate_potential_target's result into prop.desirability (+0x50), so this is
 // a companion score next to the main target desirability.
 // register convention: prop_index in EAX (Ghidra's in_EAX), actor_index in ECX

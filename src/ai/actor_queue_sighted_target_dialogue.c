@@ -4,7 +4,7 @@
 // evidence: types/ai.h actor.awareness_level/vocalization_*/mode/mode_data,
 //   actor.vocalization_unknown_3e8, actor.facing/facing_unknown_180/facing_unknown_18c
 //   (0x174/0x178/0x17c, dotted against the target direction as the visibility-cone test);
-//   prop.is_vault/is_unit/is_parented/unknown_54/58/5c/distance/unknown_12f/unknown_32/
+//   prop.is_vault/is_unit/is_parented/priority_weight/58/5c/distance/unknown_12f/unknown_32/
 //   look_point/object_index; types/tags.h Actor.event_look_time_modifier[2] (0xd4/0xd8, same
 //   pair as actor_queue_directional_reaction_event @0x422270) and Actor.surprise_distance
 //   (0x2b0, confirmed by hand-counting the Actor struct's fields up to that offset). Calls
@@ -84,12 +84,12 @@ void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index ta
             if ((validated->is_unit == 0 && validated->is_vault == 0) ||
                 (validated->is_vault != 0 && self->awareness_level > 2)) {
                 if (recent <= 6) {
-                    if (validated->is_parented == 0 && validated->unknown_5c != -1 &&
-                        (int32_t)game_time->game_time >= validated->unknown_5c + 600) {
-                        validated->unknown_5c = (int32_t)game_time->game_time;
-                        validated->unknown_58 = (validated->unknown_58 <= validated->unknown_54)
-                                                     ? validated->unknown_54
-                                                     : validated->unknown_58;
+                    if (validated->is_parented == 0 && validated->last_selected_tick != -1 &&
+                        (int32_t)game_time->game_time >= validated->last_selected_tick + 600) {
+                        validated->last_selected_tick = (int32_t)game_time->game_time;
+                        validated->priority_weight_spent = (validated->priority_weight_spent <= validated->priority_weight)
+                                                     ? validated->priority_weight
+                                                     : validated->priority_weight_spent;
                     }
                 }
             }

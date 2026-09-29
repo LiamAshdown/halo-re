@@ -111,14 +111,14 @@ void actor_react_to_seen_target(datum_index actor_index, datum_index target_prop
                 if (recent > 6) {
                     return;
                 }
-                if (validated->is_parented == 0 && validated->unknown_5c != -1 &&
-                    (int32_t)game_time->game_time < validated->unknown_5c + 600) {
+                if (validated->is_parented == 0 && validated->last_selected_tick != -1 &&
+                    (int32_t)game_time->game_time < validated->last_selected_tick + 600) {
                     return;
                 }
-                validated->unknown_5c = (int32_t)game_time->game_time;
-                validated->unknown_58 = (validated->unknown_58 <= validated->unknown_54)
-                                             ? validated->unknown_54
-                                             : validated->unknown_58;
+                validated->last_selected_tick = (int32_t)game_time->game_time;
+                validated->priority_weight_spent = (validated->priority_weight_spent <= validated->priority_weight)
+                                             ? validated->priority_weight
+                                             : validated->priority_weight_spent;
             }
 
             {

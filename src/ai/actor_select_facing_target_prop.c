@@ -50,8 +50,8 @@ extern uint8_t actor_point_in_directional_lane(real_point3d *to_point, real_poin
 // Walks actor.first_prop's chain looking for the highest-weighted prop of kind 2 or 3 (with
 // prop.unknown_32 set) that also passes a directional test against the actor's look cones,
 // and reports it through out_result / out_in_front. Every prop of the wrong kind has its
-// unknown_58 reset to 0 in passing; the winning prop has unknown_58 raised to unknown_54 and
-// unknown_5c stamped with the current tick, matching the pairing actor_begin_vocalization
+// priority_weight_spent reset to 0 in passing; the winning prop has priority_weight_spent raised to priority_weight and
+// last_selected_tick stamped with the current tick, matching the pairing actor_begin_vocalization
 // uses elsewhere in this module.
 uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require_trust, uint8_t skip_lane_test,
                                          actor_recognition_scan_result *out_result, uint8_t *out_in_front)
@@ -106,24 +106,24 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
         next_handle = cur->next_in_actor;
 
         if (!(cur->kind > 1 && cur->kind < 4 && cur->unknown_32 != 0)) {
-            cur->unknown_58 = 0.0f;
+            cur->priority_weight_spent = 0.0f;
             continue;
         }
-        if (cur->unknown_54 <= 0.0f) {
+        if (cur->priority_weight <= 0.0f) {
             continue;
         }
 
-        if (cur->unknown_5c == -1) {
+        if (cur->last_selected_tick == -1) {
             score = 1.0f;
         } else {
-            score = ((float)now - (float)cur->unknown_5c) * 0.0016666667f - 1.0f; // 1/600
+            score = ((float)now - (float)cur->last_selected_tick) * 0.0016666667f - 1.0f; // 1/600
         }
-        score = (cur->unknown_54 - cur->unknown_58) / cur->unknown_54 + score;
+        score = (cur->priority_weight - cur->priority_weight_spent) / cur->priority_weight + score;
         if (1.0f < score) {
             score = 1.0f;
         }
-        score = score * cur->unknown_54;
-        still_valid = (cur->unknown_58 < cur->unknown_54) ? 1 : 0;
+        score = score * cur->priority_weight;
+        still_valid = (cur->priority_weight_spent < cur->priority_weight) ? 1 : 0;
 
         if (score <= 0.0f) {
             continue;
@@ -157,8 +157,8 @@ uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require
     }
 
     if (best_found && best_handle != (datum_index)k_datum_index_none) {
-        best_prop->unknown_58 = best_prop->unknown_54;
-        best_prop->unknown_5c = now;
+        best_prop->priority_weight_spent = best_prop->priority_weight;
+        best_prop->last_selected_tick = now;
         out_result->candidate = best_handle;
         out_result->flag = 1;
         *out_in_front = best_in_front;

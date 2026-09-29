@@ -590,7 +590,7 @@ after_engage:
 
     p->engaged = actor_target_update_active_flag(actor_index, target_prop_index);
     p->desirability = actor_rate_potential_target(actor_index, target_prop_index);
-    p->unknown_54 = actor_compute_target_priority_weight(target_prop_index, actor_index);
+    p->priority_weight = actor_compute_target_priority_weight(target_prop_index, actor_index);
     p->combat_dirty = 1;
 }
 

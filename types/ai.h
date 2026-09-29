@@ -780,9 +780,9 @@ typedef struct prop {
     uint8_t unknown_4e;               // 0x4e 0x43e640 zeroes it
     uint8_t unknown_4f;               // 0x4f
     float desirability;               // 0x50 actor_rate_potential_target writes the score here
-    float unknown_54;                 // 0x54
-    float unknown_58;                 // 0x58 actor_begin_vocalization raises it to unknown_54
-    int32_t unknown_5c;               // 0x5c
+    float priority_weight;            // 0x54 dialogue/facing priority weight (actor_compute_target_priority_weight result)
+    float priority_weight_spent;      // 0x58 how much of priority_weight has been used; actor_begin_vocalization and the queued-dialogue paths raise it to priority_weight
+    int32_t last_selected_tick;       // 0x5c game time actor_select_facing_target_prop last picked it, -1 never
     uint8_t is_unit;                  // 0x60 0x45bd50 classifies the tracked object; 46 functions branch on it
     uint8_t unknown_61;               // 0x61 0x45bdb0
     uint8_t unknown_62;               // 0x62 0x45be00 of object_type

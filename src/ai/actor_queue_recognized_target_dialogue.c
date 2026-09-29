@@ -2,7 +2,7 @@
 // address 0x422550, size 556 bytes
 // name confidence: 0.4   rewrite confidence: 0.5
 // evidence: types/ai.h actor.awareness_level/vocalization_*/mode/mode_data/alert_level;
-//   prop.is_unit/is_vault/is_parented/unknown_54/58/5c; types/tags.h
+//   prop.is_unit/is_vault/is_parented/priority_weight/58/5c; types/tags.h
 //   Actor.event_look_time_modifier[2] (0xd4/0xd8, shared with actor_queue_sighted_target_
 //   dialogue @0x421c20 and actor_queue_directional_reaction_event @0x422270). Same shape as
 //   0x421c20's first half but simpler: the target here is validated directly via
@@ -53,14 +53,14 @@ void actor_queue_recognized_target_dialogue(datum_index actor_index, datum_index
                 if (recent > 6) {
                     return;
                 }
-                if (target->is_parented == 0 && target->unknown_5c != -1 &&
-                    (int32_t)game_time->game_time < target->unknown_5c + 600) {
+                if (target->is_parented == 0 && target->last_selected_tick != -1 &&
+                    (int32_t)game_time->game_time < target->last_selected_tick + 600) {
                     return;
                 }
-                target->unknown_5c = (int32_t)game_time->game_time;
-                target->unknown_58 = (target->unknown_58 <= target->unknown_54)
-                                          ? target->unknown_54
-                                          : target->unknown_58;
+                target->last_selected_tick = (int32_t)game_time->game_time;
+                target->priority_weight_spent = (target->priority_weight_spent <= target->priority_weight)
+                                          ? target->priority_weight
+                                          : target->priority_weight_spent;
             }
 
             {
