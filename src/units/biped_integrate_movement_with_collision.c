@@ -487,11 +487,11 @@ step_crouch:
 
         result_flags = solve.result_flags;
         obj->velocity = solve.result_velocity;
-        biped->unknown_4e0.x = final_position.x;
+        biped->cached_position.x = final_position.x;
         biped->ground_surface_index = solve.result_ground_surface_index;
-        biped->unknown_4e0.y = final_position.y;
-        biped->unknown_4dc = k_datum_index_none;
-        biped->unknown_4e0.z = final_position.z;
+        biped->cached_position.y = final_position.y;
+        biped->cached_surface_index = k_datum_index_none;
+        biped->cached_position.z = final_position.z;
     }
 
     if (state[1] == 0 && (solve.result_flags & _biped_movement_result_landed) != 0) {

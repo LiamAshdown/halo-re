@@ -316,10 +316,10 @@ misattributions below. The full derivation is in `out/phase4/units_types_notes.m
 | `0x4d3` | `0x01` | `int8_t` | `unknown_4d3` | countdown reloaded with 0x3c (60 ticks) by the movement solvers every tick that last_ground_surface_index is refreshed |
 | `0x4d4` | `0x04` | `datum_index` | `last_ground_surface_index` | the supporting surface the movement solver last reported; both integrators (0x55bea0 and 0x55cfd0) store it and reload the 0x4d3 countdown with 60, or clear ... |
 | `0x4d8` | `0x04` | `datum_index` | `ground_surface_index` | the supporting surface 0x560630 found, -1 when airborne; 0x560800 refuses to level the up-vector without it |
-| `0x4dc` | `0x04` | `datum_index` | `unknown_4dc` | -1 when unset; 0x55ab30 uses it as the cached look-at result |
-| `0x4e0` | `0x0c` | `real_point3d` | `unknown_4e0` | the cached look-at point 0x55ab30 refreshes |
-| `0x4ec` | `0x04` | `int32_t` | `unknown_4ec` | game tick that cache was last refreshed |
-| `0x4f0` | `0x04` | `datum_index` | `unknown_4f0` | the previous value of unknown_4dc |
+| `0x4dc` | `0x04` | `datum_index` | `cached_surface_index` | -1 when unset; 0x55ab30 uses it as the cached look-at result |
+| `0x4e0` | `0x0c` | `real_point3d` | `cached_position` | the cached look-at point 0x55ab30 refreshes |
+| `0x4ec` | `0x04` | `int32_t` | `cached_tick` | game tick that cache was last refreshed |
+| `0x4f0` | `0x04` | `datum_index` | `previous_cached_surface_index` | the previous value of cached_surface_index |
 | `0x4f4` | `0x04` | `datum_index` | `melee_target_index` | the object 0x55cfd0 hands to 0x56ff40 when melee_state is 3 |
 | `0x4f8` | `0x04` | `int32_t` | `unknown_4f8` | tick stamp; 0x55e190 and 0x55e2d0 rate-limit their reactions to once every 15 ticks |
 | `0x4fc` | `0x04` | `datum_index` | `unknown_4fc` | the target 0x55e0a0 is tracking |

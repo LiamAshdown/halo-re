@@ -665,11 +665,11 @@ typedef struct biped_data {
     datum_index ground_surface_index;   // 0x4d8 the supporting surface 0x560630 found, -1
                                         //       when airborne; 0x560800 refuses to level the
                                         //       up-vector without it
-    datum_index unknown_4dc;            // 0x4dc -1 when unset; 0x55ab30 uses it as the cached
+    datum_index cached_surface_index;            // 0x4dc -1 when unset; 0x55ab30 uses it as the cached
                                         //       look-at result
-    real_point3d unknown_4e0;           // 0x4e0 the cached look-at point 0x55ab30 refreshes
-    int32_t unknown_4ec;                // 0x4ec game tick that cache was last refreshed
-    datum_index unknown_4f0;            // 0x4f0 the previous value of unknown_4dc
+    real_point3d cached_position;           // 0x4e0 the cached look-at point 0x55ab30 refreshes
+    int32_t cached_tick;                // 0x4ec game tick that cache was last refreshed
+    datum_index previous_cached_surface_index;            // 0x4f0 the previous value of cached_surface_index
     datum_index melee_target_index;     // 0x4f4 the object 0x55cfd0 hands to 0x56ff40 when
                                         //       melee_state is 3
     int32_t unknown_4f8;                // 0x4f8 tick stamp; 0x55e190 and 0x55e2d0 rate-limit

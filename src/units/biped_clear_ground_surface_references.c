@@ -7,8 +7,8 @@
 //   biped_reset_state.c (+0x50): rather than zeroing the whole biped_data extension it only
 //   invalidates the three datum_index-shaped ground/look-at fields types/units.h already names
 //   -- ground_surface_index (+0x4d8, "the supporting surface ...; -1 when airborne"),
-//   unknown_4dc (+0x4dc, "the cached look-at result") and unknown_4f0 (+0x4f0, "the previous
-//   value of unknown_4dc") -- to the standard datum_index invalid sentinel (-1 / 0xffffffff).
+//   cached_surface_index (+0x4dc, "the cached look-at result") and previous_cached_surface_index (+0x4f0, "the previous
+//   value of cached_surface_index") -- to the standard datum_index invalid sentinel (-1 / 0xffffffff).
 // register convention: object index in a single register argument (matches every other biped_*
 //   per-object helper in this address range); blam-cc: object_index only.
 
@@ -28,8 +28,8 @@ void biped_clear_ground_surface_references(uint32_t object_index)
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     biped->ground_surface_index = (datum_index)-1;
-    biped->unknown_4dc = (datum_index)-1;
-    biped->unknown_4f0 = (datum_index)-1;
+    biped->cached_surface_index = (datum_index)-1;
+    biped->previous_cached_surface_index = (datum_index)-1;
 }
 
 #if 0

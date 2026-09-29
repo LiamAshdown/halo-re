@@ -2751,3 +2751,4 @@ Start totals (live code): 7135 offsets, 896 Ghidra names, 74 Ghidra types.
 - iter 89: prop 0xe0 -> look_point (13 files): the point actors look at / queue searches toward. Names only; ai gcc failure set unchanged.
 - iter 90: prop 0x7c last_known_tick, 0x80 previous_known_position, 0x8c last_look_tick. Names only; ai gcc failure set unchanged.
 - iter 91: prop 0x54 priority_weight, 0x58 priority_weight_spent, 0x5c last_selected_tick (from actor_select_facing_target_prop). Hidden-file / comment misrenames onto actor, encounter and conversation fields were reverted. Names only; ai gcc failure set unchanged.
+- iter 92 (units): biped_data cached_surface_index (0x4dc), cached_position (0x4e0), cached_tick (0x4ec), previous_cached_surface_index (0x4f0). Names only; units gcc failure set unchanged (26 pre-existing, missing headers).

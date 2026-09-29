@@ -1,9 +1,9 @@
 // biped_get_cached_look_at_position  (Ghidra: biped_get_cached_look_at_position, renamed)
 // address 0x55ab30, size 464 bytes
 // name confidence: 0.35   rewrite confidence: 0.7
-// evidence: types/units.h biped_data fields unknown_4dc ("the cached look-at result"),
-//   unknown_4e0 ("the cached look-at point 0x55ab30 refreshes"), unknown_4ec ("game tick that
-//   cache was last refreshed"), unknown_4f0 ("the previous value of unknown_4dc"), unknown_4fc
+// evidence: types/units.h biped_data fields cached_surface_index ("the cached look-at result"),
+//   cached_position ("the cached look-at point 0x55ab30 refreshes"), cached_tick ("game tick that
+//   cache was last refreshed"), previous_cached_surface_index ("the previous value of cached_surface_index"), unknown_4fc
 //   ("the target 0x55e0a0 is tracking") -- all already attributed to this function by name in
 //   the header, so used directly rather than re-derived.
 // reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
@@ -39,22 +39,22 @@ extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vec
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern real_vector3d *global_down3d_pointer;           // 0x0069672c
 
-// Periodically refreshes and returns the biped's cached look-at surface (biped_data.unknown_4dc)
-// and writes the cached point (unknown_4e0) through out_position.
+// Periodically refreshes and returns the biped's cached look-at surface (biped_data.cached_surface_index)
+// and writes the cached point (cached_position) through out_position.
 // objdump 0x55ab30..0x55acff (orphan pass 4 review rewrite; the earlier version swapped which
 // fields feed which branch and passed a 1-argument form of the 0x501470 / 0x44d860 helpers):
 //   * a biped whose tag has flag 0x4 while object byte 0x106 bit 0x4 is clear drops the cache:
-//     unknown_4dc = -1, object_get_position(object_index, out_position) (ECX, EAX), and the
-//     shared tail then overwrites *out_position with unknown_4e0.
-//   * otherwise, once per tick while unknown_4dc is -1 (game_time > unknown_4ec, signed):
+//     cached_surface_index = -1, object_get_position(object_index, out_position) (ECX, EAX), and the
+//     shared tail then overwrites *out_position with cached_position.
+//   * otherwise, once per tick while cached_surface_index is -1 (game_time > cached_tick, signed):
 //       - standing on a surface (ground_surface_index != -1): the closest point on that surface's
-//         boundary to unknown_4e0, projected along axis 2 (z) with sign 1, is lifted back onto
-//         the surface plane (plane index & 0x7fffffff), and unknown_4dc = ground_surface_index;
-//       - else when unknown_4f0 (the last result) is valid and unknown_4e0 still projects inside
-//         that surface, unknown_4e0 is lifted onto it and unknown_4dc = unknown_4f0;
-//       - if that left unknown_4dc == -1, unit_test_placement_candidate(2.0, &point) with ESI =
+//         boundary to cached_position, projected along axis 2 (z) with sign 1, is lifted back onto
+//         the surface plane (plane index & 0x7fffffff), and cached_surface_index = ground_surface_index;
+//       - else when previous_cached_surface_index (the last result) is valid and cached_position still projects inside
+//         that surface, cached_position is lifted onto it and cached_surface_index = previous_cached_surface_index;
+//       - if that left cached_surface_index == -1, unit_test_placement_candidate(2.0, &point) with ESI =
 //         global_down3d_pointer, EBX = 0 and ECX = object_index;
-//       - a valid result stores point into unknown_4e0 and unknown_4f0.
+//       - a valid result stores point into cached_position and previous_cached_surface_index.
 datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3d *out_position)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
@@ -62,15 +62,15 @@ datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     if ((tag->biped_flags & 4) != 0 && (*((uint8_t *)obj + 0x106) & 4) == 0) {
-        biped->unknown_4dc = k_datum_index_none;
+        biped->cached_surface_index = k_datum_index_none;
         object_get_position(out_position, object_index);
-    } else if (biped->unknown_4dc == k_datum_index_none && game_time->game_time > (int32_t)biped->unknown_4ec) {
+    } else if (biped->cached_surface_index == k_datum_index_none && game_time->game_time > (int32_t)biped->cached_tick) {
         ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
         int32_t surface = (int32_t)biped->ground_surface_index;
-        real_point3d point = biped->unknown_4e0;
+        real_point3d point = biped->cached_position;
         real_point2d closest; // [esp+0x10], the 2D result handed to the solver in EDI
 
-        biped->unknown_4ec = game_time->game_time;
+        biped->cached_tick = game_time->game_time;
         if (surface != -1) {
             ModelCollisionGeometryBSPSurface *surfaces =
                 (ModelCollisionGeometryBSPSurface *)bsp->surfaces.pointer;
@@ -78,34 +78,34 @@ datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3
                 (surfaces[surface].plane & 0x7fffffff) * 0x10);
 
             collision_bsp_surface_closest_edge_point_2d(bsp, surface, 2, 1,
-                (real_point2d *)&biped->unknown_4e0, &closest);
+                (real_point2d *)&biped->cached_position, &closest);
             decal_plane_solve_third_axis(&point, 1, 2, plane, &closest);
-            biped->unknown_4dc = biped->ground_surface_index;
+            biped->cached_surface_index = biped->ground_surface_index;
         } else {
-            int32_t previous = (int32_t)biped->unknown_4f0;
+            int32_t previous = (int32_t)biped->previous_cached_surface_index;
             if (previous != -1 &&
-                collision_bsp_surface_test_point_side_2d(bsp, (real_point2d *)&biped->unknown_4e0,
+                collision_bsp_surface_test_point_side_2d(bsp, (real_point2d *)&biped->cached_position,
                     previous, 2, 1)) {
-                biped->unknown_4dc = (datum_index)previous;
+                biped->cached_surface_index = (datum_index)previous;
                 collision_bsp_surface_solve_third_axis(bsp, previous, 1, &point, 2,
-                    (const real_point2d *)&biped->unknown_4e0);
-                biped->unknown_4dc = (datum_index)previous;
+                    (const real_point2d *)&biped->cached_position);
+                biped->cached_surface_index = (datum_index)previous;
             }
         }
 
-        if (biped->unknown_4dc == k_datum_index_none) {
+        if (biped->cached_surface_index == k_datum_index_none) {
             // 0x55ac85: the ground surface within 2 below (ECX unit, ESI global down, EBX 0)
-            biped->unknown_4dc = (datum_index)unit_test_placement_candidate(object_index, global_down3d_pointer, 0,
+            biped->cached_surface_index = (datum_index)unit_test_placement_candidate(object_index, global_down3d_pointer, 0,
                                                                             2.0f, &point);
         }
-        if (biped->unknown_4dc != k_datum_index_none) {
-            biped->unknown_4e0 = point;
-            biped->unknown_4f0 = biped->unknown_4dc;
+        if (biped->cached_surface_index != k_datum_index_none) {
+            biped->cached_position = point;
+            biped->previous_cached_surface_index = biped->cached_surface_index;
         }
     }
 
-    *out_position = biped->unknown_4e0;
-    return biped->unknown_4dc;
+    *out_position = biped->cached_position;
+    return biped->cached_surface_index;
 }
 
 #if 0
