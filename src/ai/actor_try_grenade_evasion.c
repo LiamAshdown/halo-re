@@ -46,10 +46,10 @@ uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_re
         return 0;
     }
     now = game_time->game_time;
-    if (*(int32_t *)&((struct actor *)act)->unknown_370 != -1 && now < *(int32_t *)&((struct actor *)act)->unknown_370 + 30) {
+    if (*(int32_t *)&((struct actor *)act)->last_cover_attempt_time != -1 && now < *(int32_t *)&((struct actor *)act)->last_cover_attempt_time + 30) {
         return 0;
     }
-    *(int32_t *)&((struct actor *)act)->unknown_370 = now;
+    *(int32_t *)&((struct actor *)act)->last_cover_attempt_time = now;
     if (!actor_should_throw_grenade(actor_index, 0)) {
         return 0;
     }

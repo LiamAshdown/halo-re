@@ -482,7 +482,7 @@ after_engage:
               ((actor *)datum_get(p->information_source_actor, actor_data)) != (actor *)0 &&
               9 < ((actor *)datum_get(p->information_source_actor, actor_data))->target_combat_status &&
               ((actor *)datum_get(p->information_source_actor, actor_data))->target_unit_index != (datum_index)k_datum_index_none &&
-              ((actor *)datum_get(p->information_source_actor, actor_data))->unknown_454 != 0 &&
+              ((actor *)datum_get(p->information_source_actor, actor_data))->wants_to_fire != 0 &&
               (((prop *)prop_data->data)[((actor *)datum_get(p->information_source_actor, actor_data))->target_unit_index & 0xffff]).object_index == p->object_index))) {
             p->has_current_information = 1;
             p->information_age = 0;
@@ -558,7 +558,7 @@ after_engage:
             uint8_t ok = 1;
             if (enc_idx != (uint32_t)k_datum_index_none) {
                 encounter *e = &((encounter *)encounter_data->data)[enc_idx & 0xffff];
-                int32_t gate = (e->last_idle_time <= self->unknown_3a0) ? self->unknown_3a0 : e->last_idle_time;
+                int32_t gate = (e->last_idle_time <= self->found_body_time) ? self->found_body_time : e->last_idle_time;
                 object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
                 unit_data *u2 = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
                 int32_t last_seen = u2->death_time;

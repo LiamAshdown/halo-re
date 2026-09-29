@@ -157,8 +157,8 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
                 uint8_t counts = 1;
                 uint8_t calm;
 
-                if (!(reference > *(int32_t *)&((struct actor *)self)->unknown_3a0)) {
-                    reference = *(int32_t *)&((struct actor *)self)->unknown_3a0;
+                if (!(reference > *(int32_t *)&((struct actor *)self)->found_body_time)) {
+                    reference = *(int32_t *)&((struct actor *)self)->found_body_time;
                 }
                 if (reference != -1) {
                     int32_t fired = *(int32_t *)(target_unit + 0x41c);

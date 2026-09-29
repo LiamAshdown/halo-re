@@ -41,7 +41,7 @@ void actor_clear_target_state(datum_index actor_index)
         self->active_movement.parameter = 0xffffffff;
     }
 
-    self->unknown_494 = 0xffffffff;
+    self->destination_surface_index = 0xffffffff;
 
     if (self->swarm != 0 && self->swarm_index != (datum_index)k_datum_index_none) {
         swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & 0xffff];

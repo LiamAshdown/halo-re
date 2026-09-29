@@ -83,7 +83,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
             // FIXED: the two ranges were swapped. Ghidra reads ActorVariant+0x170 when
             // actor.unknown_378 is clear and ActorVariant+0x160 when it is set, and
             // types/tags.h puts melee_range at 0x160 and berserk_melee_range at 0x170.
-            threshold = (self->unknown_378 == 0) ? variant_def->berserk_melee_range
+            threshold = (self->berserking == 0) ? variant_def->berserk_melee_range
                                                  : variant_def->melee_range;
 
             if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {

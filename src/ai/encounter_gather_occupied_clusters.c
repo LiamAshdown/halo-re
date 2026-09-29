@@ -143,7 +143,7 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
                                 ((ScenarioEncounter *)global_scenario->encounters.pointer)
                                     [a->encounter_index & 0xffff].squads.pointer)[a->squad_index];
                             extra = *(uint32_t *)((uint8_t *)squad + 0x54 +
-                                (int16_t)((-(uint16_t)(a->unknown_374 != 0) & 3) + 2) * 4);
+                                (int16_t)((-(uint16_t)(a->defending != 0) & 3) + 2) * 4);
                         }
                         zone_mask = zone_mask | extra;
                     } else if (a->mode == 3 || a->mode == 5) {

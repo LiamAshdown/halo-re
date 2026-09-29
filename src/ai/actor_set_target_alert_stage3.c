@@ -31,8 +31,8 @@ void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index ac
 
     if (target_prop_index == k_datum_index_none) {
         self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-        *(int16_t *)&self->unknown_3c4 = 0;
-        self->unknown_3bc = 0;
+        *(int16_t *)&self->pursuit_position_count = 0;
+        self->target_lost = 0;
         self->unknown_3bd[0] = 0;
         self->minimum_combat_status = 0;
         self->suspicion_status = 0;

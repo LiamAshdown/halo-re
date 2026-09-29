@@ -62,7 +62,7 @@ void actor_mode_guard_tick(datum_index actor_index)
         return;
     }
     if (act[0xa6]) {
-        act[0xa6] = (uint8_t)(((struct actor *)act)->unknown_3a8 > 0);
+        act[0xa6] = (uint8_t)(((struct actor *)act)->retreat_timer > 0);
         ambush_over = (uint8_t)(act[0xa6] == 0);
     } else {
         if (((struct actor *)act)->mode_data.guard.countdown_0c <= 0) {

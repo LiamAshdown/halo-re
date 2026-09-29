@@ -205,7 +205,7 @@ shared_threshold:
                 accept = 1;
                 if (encounter_idx != k_datum_index_none) {
                     encounter *enc = &((encounter *)encounter_data->data)[encounter_idx & 0xffff];
-                    int32_t gate = (enc->last_idle_time <= self->unknown_3a0) ? self->unknown_3a0
+                    int32_t gate = (enc->last_idle_time <= self->found_body_time) ? self->found_body_time
                                                                            : enc->last_idle_time;
                     if (gate != -1) {
                         object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);

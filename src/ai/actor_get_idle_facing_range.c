@@ -29,7 +29,7 @@ float *actor_get_idle_facing_range(datum_index actor_index)
     int16_t state;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    state = self->unknown_3fc;
+    state = self->look_posture;
     definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
 
     if (state == 2) {

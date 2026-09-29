@@ -260,7 +260,7 @@ void encounter_choose_vocalizations(datum_index encounter_index)
             chosen = &((actor *)actor_data->data)[chosen_actor & 0xffff];
 
             if (0.5f <= chosen->body_vitality ||
-                chosen->unknown_3b4 - chosen->body_vitality <= 0.3f) {
+                chosen->stood_down_body_vitality - chosen->body_vitality <= 0.3f) {
                 head_count = enc->living_count;
                 if (head_count == 1 && 1 < enc->pre_combat_living_count) {
                     morale_line = 1;

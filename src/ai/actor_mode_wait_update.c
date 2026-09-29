@@ -33,7 +33,7 @@ void actor_mode_wait_update(datum_index actor_index)
     } else {
         ((actor *)act)->vocalization_unknown_3e8 = 1;
     }
-    ((struct actor *)act)->unknown_3fc = 3;
+    ((struct actor *)act)->look_posture = 3;
     act[0x454] = 0;
     act[0x426] = 0;
     act[0x427] = 0;

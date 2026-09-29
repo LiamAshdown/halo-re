@@ -116,10 +116,10 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
                    p->owner_actor_index != k_datum_index_none && p->distance < 8.0f) {
             actor *owner = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
 
-            if (owner->unknown_3a8 != 0 && owner->unknown_3ac != k_datum_index_none &&
-                (self->unknown_3a4 == k_datum_index_none ||
-                 owner->unknown_3b0 >= self->unknown_3a4)) {
-                prop *requested = &props[owner->unknown_3ac & 0xffff];
+            if (owner->retreat_timer != 0 && owner->retreat_prop_index != k_datum_index_none &&
+                (self->retreat_end_time == k_datum_index_none ||
+                 owner->retreat_start_time >= self->retreat_end_time)) {
+                prop *requested = &props[owner->retreat_prop_index & 0xffff];
                 datum_index own_prop_index = actor_find_prop_for_object(requested->object_index, actor_index); // 0x421034: ECX = actor (arg)
 
                 if (own_prop_index != k_datum_index_none) {
@@ -208,10 +208,10 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
     }
 
     // Age down (or issue) this actor's own backup-request cooldown.
-    if (self->unknown_3a8 > 0) {
-        self->unknown_3a8--;
-        if (self->unknown_3a8 == 0) {
-            self->unknown_3a4 = game_time->game_time;
+    if (self->retreat_timer > 0) {
+        self->retreat_timer--;
+        if (self->retreat_timer == 0) {
+            self->retreat_end_time = game_time->game_time;
         }
         return;
     }
@@ -230,10 +230,10 @@ void actor_scan_allies_for_backup_request(datum_index actor_index) // blam-cc: s
         }
 
         if (best_prop != k_datum_index_none) {
-            self->unknown_3a8 = (int16_t)(random_real_range(
+            self->retreat_timer = (int16_t)(random_real_range(
                 actor_def->retreat_time[0], actor_def->retreat_time[1]) * 30.0f);
-            self->unknown_3ac = (datum_index)best_prop;
-            self->unknown_3b0 = game_time->game_time;
+            self->retreat_prop_index = (datum_index)best_prop;
+            self->retreat_start_time = game_time->game_time;
         }
     }
 }

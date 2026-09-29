@@ -39,7 +39,7 @@ void actor_movement_advance_waypoint(datum_index actor_index)
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
-    if (self->needs_new_path != 0 && self->unknown_4a4 == 0 && self->keep_unit_alive == 0) {
+    if (self->needs_new_path != 0 && self->path_resolved_this_tick == 0 && self->keep_unit_alive == 0) {
         actor_movement_action_resolve(actor_index, 0, 0);
     }
     actor_movement_check_arrival(actor_index);

@@ -373,7 +373,7 @@ restart:
                 uint8_t important =
                     (uint8_t)((self->target_unit_index == target_prop_index) ||
                               (self->nearest_orphan_prop_index == target_prop_index) ||
-                              (self->unknown_3ac == target_prop_index) ||
+                              (self->retreat_prop_index == target_prop_index) ||
                               (self->nearby_friend_prop_index == target_prop_index) ||
                               (self->vocalization_line != 0 && *(int16_t *)&self->vocalization_unknown_54c == 1 &&
                                self->vocalization_unknown_550 == target_prop_index) ||
@@ -496,7 +496,7 @@ restart:
             }
         }
 
-        if (target_prop_index == self->unknown_3ac ||
+        if (target_prop_index == self->retreat_prop_index ||
             (self->mode == 4 && *(uint32_t *)&self->mode_data.raw[0x1c] == target_prop_index)) { // UNSURE, see file header
             penalty = 0;
         } else if (target_prop_index == self->target_unit_index) {
@@ -528,9 +528,9 @@ tail:
             actor_notify_target_engaged(target_prop_index, actor_index, (uint8_t)(released != 0 && had_conflict == 0));
             target->just_sighted = 0;
         }
-        if (self->unknown_377 == 0 && target->enemy == 0 && target->is_parented != 0 &&
+        if (self->friendly_player_greeted == 0 && target->enemy == 0 && target->is_parented != 0 &&
             target->visual_perception > 1 && target->aiming_at_actor_class < 3 && target->distance < 7.0f) {
-            self->unknown_377 = 1;
+            self->friendly_player_greeted = 1;
             ai_communication_broadcast(0x19, self->unit_index, target->object_index, 2, (uint32_t)-1, (uint32_t)-1, 0);
             actor_notify_target_engaged(target_prop_index, actor_index, 0); // 0x41b620: DL 0
         }

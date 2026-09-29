@@ -87,8 +87,8 @@ void actor_update_aim_wander(datum_index actor_index)
     actor_select_stance_offset_pair(actor_index, variant, &burst, &scale);
 
     // the burst length
-    if (((struct actor *)a)->unknown_458 > 0.0f) {
-        time = ((struct actor *)a)->unknown_458;
+    if (((struct actor *)a)->burst_duration_override > 0.0f) {
+        time = ((struct actor *)a)->burst_duration_override;
     } else {
         time = aim_wander_random_fraction() * (*(float *)(burst + 0x18) - *(float *)(burst + 0x14)) +
             *(float *)(burst + 0x14);

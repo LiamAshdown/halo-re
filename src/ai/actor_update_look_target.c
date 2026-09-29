@@ -287,7 +287,7 @@ void actor_update_look_target(datum_index actor_index)
         range_1 = range[1] > 0.0f;
         side_b = range[3] > 0.0f;
         in_cone = range[5] > 0.0f;
-        if (((struct actor *)a)->unknown_3fc > 0 && !claimed && (free_aim || look_follows) &&
+        if (((struct actor *)a)->look_posture > 0 && !claimed && (free_aim || look_follows) &&
             (range_1 || side_b || in_cone)) {
             resolved = 0;
             claimed = 0;
@@ -475,7 +475,7 @@ void actor_update_look_target(datum_index actor_index)
     }
 
     aim_speed_zero = 1;
-    if (!flee_look && ((struct actor *)a)->unknown_3fc != 4) {
+    if (!flee_look && ((struct actor *)a)->look_posture != 4) {
         switch (((actor *)a)->vocalization_line) {
         case 3: case 6: case 10: case 11: case 12:
             break;

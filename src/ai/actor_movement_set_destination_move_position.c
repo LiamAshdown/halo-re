@@ -41,7 +41,7 @@ uint8_t actor_movement_set_destination_move_position(datum_index actor_index, in
         self->active_movement = self->queued_movement;
         return actor_movement_action_resolve(actor_index, 1, 0);
     }
-    if (self->needs_new_path != 0 && self->unknown_4a4 == 0) {
+    if (self->needs_new_path != 0 && self->path_resolved_this_tick == 0) {
         return actor_movement_action_resolve(actor_index, 0, 0);
     }
     return 1;

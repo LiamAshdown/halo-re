@@ -76,8 +76,8 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
             uint8_t counts = 1;
             uint8_t calm;
 
-            if (!(reference > *(int32_t *)&((struct actor *)self)->unknown_3a0)) {
-                reference = *(int32_t *)&((struct actor *)self)->unknown_3a0;
+            if (!(reference > *(int32_t *)&((struct actor *)self)->found_body_time)) {
+                reference = *(int32_t *)&((struct actor *)self)->found_body_time;
             }
             if (reference != -1) {
                 int32_t fired = ((struct unit_object *)unit)->unit.death_time;

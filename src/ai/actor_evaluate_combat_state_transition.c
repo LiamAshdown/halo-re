@@ -113,7 +113,7 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
                     near_enough = distance <= 0.8f + extra;
                 }
                 if (near_enough &&
-                    (*(int32_t *)&((struct actor *)a)->unknown_380 == -1 || (float)now > delay * 30.0f + (float)*(int32_t *)&((struct actor *)a)->unknown_380)) {
+                    (*(int32_t *)&((struct actor *)a)->last_melee_time == -1 || (float)now > delay * 30.0f + (float)*(int32_t *)&((struct actor *)a)->last_melee_time)) {
                     actor_has_unshielded_threat_weapon(actor_index);
                     *(int32_t *)&((actor *)a)->search_wait_time = now;
                     if (actor_consider_combat_mode(actor_index, 2, &consideration)) {
@@ -134,11 +134,11 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
             if (seat_kind > 0) {
                 uint8_t ready = 1;
 
-                if (*(int32_t *)&((struct actor *)a)->unknown_388 != -1) {
+                if (*(int32_t *)&((struct actor *)a)->last_vehicle_charge_time != -1) {
                     uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(((actor *)a)->active_unit_index));
 
                     ready = (float)game_time->game_time >
-                        *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)&((struct actor *)a)->unknown_388;
+                        *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)&((struct actor *)a)->last_vehicle_charge_time;
                 }
                 if (ready && seat_kind == 4 && distance > *(float *)(definition + 0x160) &&
                     *(int16_t *)(p + 0x38) == 0 &&

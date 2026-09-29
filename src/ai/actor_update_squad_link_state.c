@@ -48,7 +48,7 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
         return 0;
     }
 
-    self->unknown_4a4 = 0;
+    self->path_resolved_this_tick = 0;
 
     if (self->suspicion_timer > 0) {
         self->suspicion_timer = self->suspicion_timer - 1;

@@ -73,7 +73,7 @@ void actor_score_firing_positions_by_range(datum_index actor_index,
 
             if (variant->desired_combat_range[1] > 0.0f &&
                 distance < variant->desired_combat_range[1]) {
-                preferred_range = (self->unknown_378 != 0) ? variant->berserk_firing_ranges[1]
+                preferred_range = (self->berserking != 0) ? variant->berserk_firing_ranges[1]
                                                            : variant->desired_combat_range[1];
                 weapon_definition = actor_get_threat_weapon_definition(actor_index);
                 // UNSURE: the original starts this from whatever was left in ST0 by the

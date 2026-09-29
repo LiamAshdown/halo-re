@@ -116,21 +116,21 @@ datum_index actor_new(datum_index actor_variant_tag)
 
     memset(self->unknown_350, 0, 0x1a * sizeof(uint32_t)); // 0x350..0x3b7
 
-    self->unknown_370 = (datum_index)k_datum_index_none;
+    self->last_cover_attempt_time = (datum_index)k_datum_index_none;
     *(uint32_t *)&self->search_wait_time = 0xffffffff;
-    *(uint32_t *)&self->unknown_380 = 0xffffffff;
-    self->unknown_36c = (datum_index)k_datum_index_none;
-    self->unknown_384 = 0xffffffff;
-    *(uint32_t *)&self->unknown_388 = 0xffffffff;
-    self->unknown_398 = (datum_index)k_datum_index_none;
-    self->unknown_3a0 = (datum_index)k_datum_index_none;
-    self->unknown_3a4 = (datum_index)k_datum_index_none;
-    self->unknown_3ac = (datum_index)k_datum_index_none;
-    self->unknown_3b0 = (datum_index)k_datum_index_none;
-    self->unknown_3b4 = 1.0f;
-    self->unknown_390 = (datum_index)k_datum_index_none;
-    self->unknown_394 = (datum_index)k_datum_index_none;
-    self->unknown_39c = (datum_index)k_datum_index_none;
+    *(uint32_t *)&self->last_melee_time = 0xffffffff;
+    self->last_evasion_time = (datum_index)k_datum_index_none;
+    self->last_vehicle_search_time = 0xffffffff;
+    *(uint32_t *)&self->last_vehicle_charge_time = 0xffffffff;
+    self->last_flee_abort_time = (datum_index)k_datum_index_none;
+    self->found_body_time = (datum_index)k_datum_index_none;
+    self->retreat_end_time = (datum_index)k_datum_index_none;
+    self->retreat_prop_index = (datum_index)k_datum_index_none;
+    self->retreat_start_time = (datum_index)k_datum_index_none;
+    self->stood_down_body_vitality = 1.0f;
+    self->exited_vehicle_index = (datum_index)k_datum_index_none;
+    self->exited_vehicle_reentry_time = (datum_index)k_datum_index_none;
+    self->panic_cooldown_time = (datum_index)k_datum_index_none;
 
     if (actor_tag->glass_ignorance_chance > 0.0f) {
         self->ignores_glass = random_real() < actor_tag->glass_ignorance_chance;
@@ -139,8 +139,8 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->vocalization_unknown_3e8 = 0;
     self->secondary_action = 0;
     self->movement_completed = 0;
-    self->unknown_494 = 0xffffffff;
-    self->unknown_498 = 0xffffffff;
+    self->destination_surface_index = 0xffffffff;
+    self->destination_radius = 0xffffffff;
 
     memset(&self->movement_action_complete, 0, 0x17 * sizeof(uint32_t)); // 0x4a8..0x503
 
@@ -175,7 +175,7 @@ datum_index actor_new(datum_index actor_variant_tag)
 
     actor_clear_recognition_history(actor_index, 0);
 
-    self->unknown_3c0 = (datum_index)k_datum_index_none;
+    self->pursuit_target_prop_index = (datum_index)k_datum_index_none;
     actor_dispatch_type_vtable_0x10(actor_index);
 
     return actor_index;

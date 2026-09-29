@@ -148,5 +148,5 @@ void actor_mode_guard_update(datum_index actor_index)
     } else {
         ((actor *)act)->vocalization_unknown_3e8 = 0;
     }
-    ((struct actor *)act)->unknown_3fc = ((struct actor *)act)->combat_status >= 4 ? 4 : 2;
+    ((struct actor *)act)->look_posture = ((struct actor *)act)->combat_status >= 4 ? 4 : 2;
 }

@@ -150,10 +150,10 @@ void actor_movement_update(datum_index actor_index)
     actor_base[0x58d] = 1;
     actor_base[0x58e] = 1;
 
-    if (a->unknown_430 != 0) {
+    if (a->move_in_direction != 0) {
         // An explicit steering direction was handed to the actor: use it verbatim and reset the
         // avoidance filter so the next sampled direction starts from the origin.
-        a->desired_movement_vector = *(const real_point3d *)&a->unknown_434;
+        a->desired_movement_vector = *(const real_point3d *)&a->move_direction;
         a->moving = 1;
         actor_base[0x58d] = 0;
         a->avoidance_direction = *global_origin3d_pointer;
@@ -441,7 +441,7 @@ void actor_movement_update(datum_index actor_index)
     if (a->secondary_action == -1 &&
         (a->unit_index == (datum_index)k_datum_index_none || unit_is_in_busy_animation_state(a->unit_index) == 0) &&
         a->active_unit_index == (datum_index)k_datum_index_none &&
-        a->airborne == 0 && a->unknown_378 != 0 && a->unknown_379 == 0) {
+        a->airborne == 0 && a->berserking != 0 && a->berserk_announced == 0) {
         real_vector2d facing;
         datum_index target_object = (datum_index)k_datum_index_none;
 
@@ -461,19 +461,19 @@ void actor_movement_update(datum_index actor_index)
         ai_communication_broadcast(0x2a, a->unit_index, target_object, 3,
                                    (datum_index)k_datum_index_none,
                                    (datum_index)k_datum_index_none, 0);
-        a->unknown_379 = 1;
+        a->berserk_announced = 1;
     }
 
     if (vehicle_stuck) {
         a->control_flags |= 2u;
     } else if (a->airborne != 0 || a->active_unit_index != (datum_index)k_datum_index_none) {
         a->jump_velocity_request[0] = 0; // 0x530
-    } else if (actor_action_has_queued_secondary(actor_index) == 0 && a->unknown_440 != 0) {
+    } else if (actor_action_has_queued_secondary(actor_index) == 0 && a->jump_requested != 0) {
         uint8_t handled = 0;
-        if (a->unknown_441 != 0) {
+        if (a->jump_is_leap != 0) {
             real_vector2d facing;
-            if (a->unknown_442 != 0) {
-                facing = a->unknown_444;
+            if (a->jump_parameters_valid != 0) {
+                facing = a->jump_facing;
             } else {
                 facing.i = a->facing.i;
                 facing.j = a->facing.j;
@@ -492,12 +492,12 @@ void actor_movement_update(datum_index actor_index)
         if (!handled) {
             actor_set_flag_bit1(actor_index);
         }
-        if (a->unknown_442 != 0) {
-            *(float *)&a->jump_velocity_request[4]  = a->unknown_444.i; // 0x534
+        if (a->jump_parameters_valid != 0) {
+            *(float *)&a->jump_velocity_request[4]  = a->jump_facing.i; // 0x534
             a->jump_velocity_request[0] = 1;                            // 0x530
-            *(float *)&a->jump_velocity_request[8]  = a->unknown_444.j; // 0x538
-            *(float *)&a->jump_velocity_request[12] = a->unknown_44c;   // 0x53c
-            *(float *)&a->jump_velocity_request[16] = a->unknown_450;   // 0x540
+            *(float *)&a->jump_velocity_request[8]  = a->jump_facing.j; // 0x538
+            *(float *)&a->jump_velocity_request[12] = a->jump_horizontal_velocity;   // 0x53c
+            *(float *)&a->jump_velocity_request[16] = a->jump_vertical_velocity;   // 0x540
         }
     }
 

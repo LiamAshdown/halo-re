@@ -62,9 +62,9 @@ uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index tar
     }
 
     if (((1 < kind && kind < 4) && active == 0) &&
-        (0 < self->unknown_3a8 && self->unknown_3ac == target_prop_index)) {
-        self->unknown_3a8 = 0;
-        self->unknown_3ac = k_datum_index_none;
+        (0 < self->retreat_timer && self->retreat_prop_index == target_prop_index)) {
+        self->retreat_timer = 0;
+        self->retreat_prop_index = k_datum_index_none;
     }
 
     target->engaged = active;

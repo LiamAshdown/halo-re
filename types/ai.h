@@ -581,9 +581,13 @@ typedef struct actor {
     uint32_t look_at_unknown_2fc;     // 0x2fc
     float look_at_unknown_300;        // 0x300
     uint32_t look_at_unknown_304;     // 0x304
-    int16_t unknown_308;              // 0x308
+    int16_t pending_panic_type;       // 0x308 max-raised panic kind (1 squad attack,2/3 friend killed,6,8 leader
+                                      //    killed,11 0x1b4,12 damaged); 0x40a700 consumes -> flee order code / raises
+                                      //    flee.panic
     uint8_t unknown_30a[2];           // 0x30a
-    uint32_t unknown_30c;             // 0x30c
+    uint32_t pending_panic_prop_index; // 0x30c prop paired with pending_panic_type (source fled from); written with
+                                       //    it by 0x4233d0/0x423220/actor_alert_from_*, swapped by
+                                       //    actor_replace_object_reference
     uint8_t unknown_310[2];           // 0x310
     int16_t search_priority;          // 0x312 0x421af0 keeps only the highest-priority search position
     uint8_t search_unknown_314;       // 0x314
@@ -607,39 +611,81 @@ typedef struct actor {
     int16_t perception_event;         // 0x34a 0x422070 records the highest-priority pending perception event
     int32_t perception_event_data;    // 0x34c
     uint8_t unknown_350[0x1c];        // 0x350 actor_new zeroes 0x1a dwords starting here, i.e. 0x350..0x3b7
-    datum_index unknown_36c;          // 0x36c actor_new sets none
-    datum_index unknown_370;          // 0x370 actor_new sets none
-    uint8_t unknown_374;              // 0x374 encounter_add_actor copies the platoon state byte here
-    uint8_t unknown_375;              // 0x375
+    datum_index last_evasion_time;    // 0x36c 0x40b920: at most every 30 ticks (dive from retreat threat /
+                                      //    evasion_seek_cover roll once danger meter +0x354 >= evasion threshold);
+                                      //    actor_new -1
+    datum_index last_cover_attempt_time; // 0x370 actor_try_grenade_evasion 0x40c530: shield under
+                                         //    hide_shield_fraction while fighting tries to get away at most every 30
+                                         //    ticks since it
+    uint8_t defending;                // 0x374 copy of platoon defending (encounter_add_actor, 0x4213b0 from 0x1c9);
+                                      //    picks defending_crouch/evasion_threshold and *_guard firing-position group
+                                      //    (0x412880)
+    uint8_t always_charge;            // 0x375 0x4213b0: = berserking || Actor always_charge_at_enemies(0x800) ||
+                                      //    (always_charge_in_attacking_mode(0x1000000) && !defending), 0 in vehicle;
+                                      //    actor_berserk 0x421a40 sets 1
     uint8_t ignores_glass;            // 0x376 actor_new rolls Actor.glass_ignorance_chance at Actor+0x90 once into this
-    uint8_t unknown_377;              // 0x377
-    uint8_t unknown_378;              // 0x378 stance selector read by 0x4106b0
-    uint8_t unknown_379;              // 0x379
+    uint8_t friendly_player_greeted;  // 0x377 0x41abd0: first time a friendly player prop (is_parented) is seen
+                                      //    within 7 units, broadcasts event 0x19 and sets it; never cleared in the
+                                      //    rewrite
+    uint8_t berserking;               // 0x378 set by 0x421a40 (actor_berserk: unit flag 0x80) from escalate/berserk
+                                      //    triggers; selects berserk_firing_ranges/berserk_melee_range; 0x4213b0 ends
+                                      //    it out of combat
+    uint8_t berserk_announced;        // 0x379 cleared by 0x421a40 on berserk change; actor_movement_update queues the
+                                      //    turn-to-target secondary action + event 0x2a once while berserking, then
+                                      //    sets it
     uint8_t unknown_37a[2];           // 0x37a
     float search_wait_time;           // 0x37c 0x4028e0 reads this and unknown_388 as reaction wait thresholds
-    float unknown_380;                // 0x380
-    uint32_t unknown_384;             // 0x384 actor_new sets -1
-    float unknown_388;                // 0x388
-    uint8_t unknown_38c;              // 0x38c
+    float last_melee_time;            // 0x380 0x401da0 stamps game_time when the melee strike range is reached (-1 on
+                                      //    leap); 0x40c620 waits difficulty-scaled Actor.melee_attack_delay*30 since
+                                      //    it
+    uint32_t last_vehicle_search_time; // 0x384 actor_seek_vehicle_to_board 0x40ac70: at most every 45 ticks since
+                                       //    this game_time; actor_new -1
+    float last_vehicle_charge_time;   // 0x388 0x401da0 stamps now for charge kinds 4/5; 0x40c620 gates vehicle charge
+                                      //    on now > this + Vehicle.ai_charge_repeat_timeout(+0x390)*30
+    uint8_t vehicle_exit_forced;      // 0x38c 0x40b080 holds its "forced" flag here during the exit; 0x42c370
+                                      //    (misnamed actor_notify_weapon_pickup_once) skips the exit event 0x25 when
+                                      //    set
     uint8_t unknown_38d[3];           // 0x38d
-    datum_index unknown_390;          // 0x390 actor_new sets none
-    datum_index unknown_394;          // 0x394 actor_new sets none
-    datum_index unknown_398;          // 0x398 actor_new sets none
-    datum_index unknown_39c;          // 0x39c actor_new sets none
-    datum_index unknown_3a0;          // 0x3a0 actor_new sets none
-    datum_index unknown_3a4;          // 0x3a4 actor_new sets none
-    int16_t unknown_3a8;              // 0x3a8
+    datum_index exited_vehicle_index; // 0x390 0x40b080 stores active_unit_index on exit;
+                                      //    actor_vehicle_not_recently_left 0x40ac30 compares candidate vehicle to it
+    datum_index exited_vehicle_reentry_time; // 0x394 0x40b080 sets game_time+180; 0x40ac30 allows re-boarding the
+                                             //    same vehicle once game_time >= it
+    datum_index last_flee_abort_time; // 0x398 actor_mode_flee_process 0x4037f0 stamps game_time when fleeing gives up
+                                      //    (+0xaa); 0x40a700 ignores new panic within 7 ticks of it
+    datum_index panic_cooldown_time;  // 0x39c actor_mode_flee_tick sets game_time+750 while flee.panic>0;
+                                      //    panic_in_groups rolls (0x4233d0, 0x423220) need it < game_time
+    datum_index found_body_time;      // 0x3a0 actor_start_search_timer 0x422130 stamps game_time when an unaware
+                                      //    actor finds a dead friend; later bodies that died before max(this,
+                                      //    enc.last_idle_time) are ignored
+    datum_index retreat_end_time;     // 0x3a4 0x420ec0 stamps game_time when retreat_timer runs out; a friend's
+                                      //    retreat only counts toward friends_retreating_trigger if it started after
+                                      //    this
+    int16_t retreat_timer;            // 0x3a8 0x420ec0: ticks left, random Actor.retreat_time*30 when a danger bucket
+                                      //    beats priority 5 (danger/friends killed/retreating triggers); counted down
+                                      //    there
     uint8_t unknown_3aa[2];           // 0x3aa
-    datum_index unknown_3ac;          // 0x3ac actor_new sets none
-    datum_index unknown_3b0;          // 0x3b0 actor_new sets none
-    float unknown_3b4;                // 0x3b4 actor_new sets 1.0
+    datum_index retreat_prop_index;   // 0x3ac 0x420ec0 stores the winning danger prop;
+                                      //    actor_target_update_active_flag/actor_replace_object_reference clear it
+                                      //    with retreat_timer
+    datum_index retreat_start_time;   // 0x3b0 0x420ec0 stamps game_time with retreat_prop_index; compared against
+                                      //    allies' retreat_end_time
+    float stood_down_body_vitality;   // 0x3b4 0x4213b0 copies body_vitality (+0x1b8) while platoon stood_down
+                                      //    (+0x1c8); actor_new 1.0; encounter_choose_vocalizations compares drop >
+                                      //    0.3
     int16_t firing_position_index;    // 0x3b8 the encounter firing position this actor has claimed, or -1
-    uint8_t unknown_3ba;              // 0x3ba
+    uint8_t firing_position_without_path; // 0x3ba actor_claim_firing_position = !path_ok; blocks random fallback
+                                          //    (0x413e50) and the fight_tick discard (recognition push);
+                                          //    saved/restored by flee
     uint8_t unknown_3bb;              // 0x3bb
-    uint8_t unknown_3bc;              // 0x3bc
+    uint8_t target_lost;              // 0x3bc actor_should_hold_position sets it when shooting at a prop in state
+                                      //    4..5; cleared on new target (0x40cdf0) and by 0x41fbc0(none)
     uint8_t unknown_3bd[3];           // 0x3bd
-    datum_index unknown_3c0;          // 0x3c0 actor_new sets none
-    uint8_t unknown_3c4[2];           // 0x3c4
+    datum_index pursuit_target_prop_index; // 0x3c0 0x40cdf0 resets pursuit_position_count when target_unit_index
+                                           //    differs from it and stores the target; actor_update_combat_behavior
+                                           //    compares it
+    uint8_t pursuit_position_count[2]; // 0x3c4 0x40cdf0 counts firing positions taken vs pursuit_target_prop_index
+                                       //    (event 0x10 first); limited by Actor num_positions coord/normal; int16
+                                       //    (declared uint8[2])
     int16_t recognition_cursor;       // 0x3c6 ring cursor, advanced modulo 4 by 0x4141a0
     actor_recognition_entry recognition[4];// 0x3c8 actor_set_mode and 0x414140 reset all four firing_position_index to -1
     uint8_t recognition_valid;        // 0x3d8 0x4141a0 sets it, 0x414140 and actor_set_mode clear it
@@ -650,43 +696,67 @@ typedef struct actor {
     uint8_t unknown_3ea[2];           // 0x3ea
     int16_t vocalization_unknown_3ec; // 0x3ec
     uint8_t unknown_3ee[14];          // 0x3ee
-    int16_t unknown_3fc;              // 0x3fc
+    int16_t look_posture;             // 0x3fc per-tick control, set by every actor_mode_*_update (0 sleep,1
+                                      //    noncombat,2 guard,3 search,4 combat); 0x4150f0 picks
+                                      //    noncombat/guard/combat_idle_facing by it
     uint8_t unknown_3fe[2];           // 0x3fe
     actor_movement_action queued_movement;// 0x400 the action the setters at 0x417610..0x417910 write
     int16_t secondary_action;         // 0x418 0x417a60 queues it, actor_action_has_queued_secondary reads it
     uint8_t unknown_41a[16];          // 0x41a
     uint8_t unknown_42a;              // 0x42a
     uint8_t unknown_42b[5];           // 0x42b
-    uint8_t unknown_430;              // 0x430 when set, actor_movement_update steers straight at
+    uint8_t move_in_direction;        // 0x430 when set actor_movement_update steers straight along unknown_434; set
+                                      //    by actor_mode_obey_update (command-list aim bit 0 / look)
                                       //   unknown_434 instead of running the avoidance sampler
     uint8_t unknown_431[3];           // 0x431
-    real_vector3d unknown_434;        // 0x434 the explicit steering direction copied to unknown_518
-    uint8_t unknown_440;              // 0x440 gate on the "no order, stand and face" fallback
-    uint8_t unknown_441;              // 0x441
-    uint8_t unknown_442;              // 0x442 when set, unknown_444..0x450 is a valid facing record
+    real_vector3d move_direction;     // 0x434 explicit steering vector copied to unknown_518 when move_in_direction
+                                      //    is set (actor_movement_update, actor_mode_obey_update)
+    uint8_t jump_requested;           // 0x440 charge leap (mode_data +0xa8) and obey jump set it;
+                                      //    actor_movement_update then plays anim state 0x27 (0x569b30) or sets the
+                                      //    jump control bit
+    uint8_t jump_is_leap;             // 0x441 = horizontal*0.7 > vertical (charge +0xb8/+0xbc, obey +0xb0/+0xb4);
+                                      //    actor_movement_update then tries the leap animation (state 0x27) + event
+                                      //    0x2f
+    uint8_t jump_parameters_valid;    // 0x442 when set actor_movement_update copies jump_facing/velocities into the
+                                      //    0x530 control record; charge_update sets 1, obey from +0xa9 bit 4
     uint8_t unknown_443;              // 0x443
-    real_vector2d unknown_444;        // 0x444 copied to unknown_530[4]/[8] by actor_movement_update
-    float unknown_44c;                // 0x44c copied to unknown_530[12]
-    float unknown_450;                // 0x450 copied to unknown_530[16]
-    uint8_t unknown_454;              // 0x454
+    real_vector2d jump_facing;        // 0x444 2D direction: charge copies the solved leap direction (0x401da0
+                                      //    md+0x14/0x18), obey the facing; copied to unknown_530[4]/[8]
+    float jump_horizontal_velocity;   // 0x44c charge copies md+0x1c (horizontal_speed from 0x4beb30), obey +0xb0;
+                                      //    copied to unknown_530[12]
+    float jump_vertical_velocity;     // 0x450 charge copies md+0x20 (second 0x4beb30 output), obey +0xb4; copied to
+                                      //    unknown_530[16]
+    uint8_t wants_to_fire;            // 0x454 per-tick control set by mode updates; 0x40e7b0 fires at
+                                      //    target_unit_index (or shoot point when +0x45d); 0x435680 activity 6;
+                                      //    informant test in 0x41c8f0
     uint8_t unknown_455[2];           // 0x455
-    uint8_t unknown_457;              // 0x457
-    float unknown_458;                // 0x458
-    uint8_t unknown_45c;              // 0x45c
+    uint8_t force_fire;               // 0x457 obey scripted target sets it; 0x40e7b0 skips the fire cooldown and
+                                      //    stance/crouch restrictions when set; actor_should_hold_position returns 0
+                                      //    for it
+    float burst_duration_override;    // 0x458 aim wander 0x40fcb0: when > 0 used instead of the random burst length;
+                                      //    obey copies +0x10c into it (header calls that an object, conflicting)
+    uint8_t throw_grenade;            // 0x45c set by 0x40db00 once facing the grenade impact point and by obey
+                                      //    (+0x110); 0x40e7b0 then throws (tops up grenade, flag 0x2000, event 9)
     uint8_t unknown_45d[15];          // 0x45d
     actor_movement_action active_movement;// 0x46c the six dwords the setters copy over from queued_movement
     uint8_t movement_completed;       // 0x484 actor_movement_action_complete sets it
     uint8_t unknown_485[3];           // 0x485
-    real_point3d unknown_488;         // 0x488
-    uint32_t unknown_494;             // 0x494 actor_new sets -1
-    uint32_t unknown_498;             // 0x498
+    real_point3d destination;         // 0x488 actor_movement_action_resolve 0x41a460 resolves the action to this
+                                      //    world point (firing/move position, prop, point); goal of
+                                      //    path_find_set_goal; check_arrival uses it
+    uint32_t destination_surface_index; // 0x494 0x41a460 writes the surface index with destination (position/prop
+                                        //    surface), passed to path_find_set_goal; actor_new/clear_target_state -1
+    uint32_t destination_radius;      // 0x498 0x41a460: 0 or the action's radius; path_find_set_goal 3rd arg; arrival
+                                      //    when path end within it; float (declared uint32)
     uint8_t unknown_49c[4];           // 0x49c
     int32_t movement_timer;           // 0x4a0 actor_movement_action_complete zeroes it
-    uint8_t unknown_4a4;              // 0x4a4
+    uint8_t path_resolved_this_tick;  // 0x4a4 0x41a460 sets 1 after pathing; 0x429270 clears every tick; movement
+                                      //    setters only re-resolve on needs_new_path when clear
     uint8_t unknown_4a5[3];           // 0x4a5
     uint8_t movement_action_complete; // 0x4a8 actor_movement_action_is_complete returns it
     uint8_t unknown_4a9[19];          // 0x4a9
-    float unknown_4bc;                // 0x4bc
+    float path_remaining_distance;    // 0x4bc path record +0x14 (0x43a4d0: distance from path end to goal); 0x41a460
+                                      //    completes when near; 0x401da0 marks target engaged when > wait radius
     uint8_t unknown_4c0[12];          // 0x4c0
     uint32_t unknown_4cc;             // 0x4cc
     uint8_t unknown_4d0[52];          // 0x4d0

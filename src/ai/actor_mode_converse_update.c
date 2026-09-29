@@ -36,7 +36,7 @@ void actor_mode_converse_update(datum_index actor_index)
     } else if (record != 0 && *(datum_index *)(record + 0x10) != k_datum_index_none) {
         look_prop = actor_find_prop_for_object(*(datum_index *)(record + 0x10), actor_index);
     }
-    ((struct actor *)act)->unknown_3fc = 1;
+    ((struct actor *)act)->look_posture = 1;
     if (look_prop != k_datum_index_none) {
         ((actor *)act)->vocalization_unknown_3e8 = 3;
         ((actor *)act)->vocalization_unknown_3ec = 1;

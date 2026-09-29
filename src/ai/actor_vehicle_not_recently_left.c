@@ -28,8 +28,8 @@ uint8_t actor_vehicle_not_recently_left(datum_index actor_index, datum_index veh
 {
     uint8_t *act = ACTOR(actor_index);
 
-    if (vehicle_index != ((struct actor *)act)->unknown_390) {
+    if (vehicle_index != ((struct actor *)act)->exited_vehicle_index) {
         return 1;
     }
-    return (uint8_t)(game_time->game_time >= *(int32_t *)&((struct actor *)act)->unknown_394);
+    return (uint8_t)(game_time->game_time >= *(int32_t *)&((struct actor *)act)->exited_vehicle_reentry_time);
 }

@@ -36,7 +36,7 @@ uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index
 
     if (self->active_movement.type == 5 && *(uint32_t *)&self->active_movement.destination.x == (uint32_t)target_prop_index) {
         if (self->active_movement.destination.y == radius) {
-            if (self->needs_new_path != 0 && self->unknown_4a4 == 0) {
+            if (self->needs_new_path != 0 && self->path_resolved_this_tick == 0) {
                 return actor_movement_action_resolve(actor_index, 0, 0);
             }
             return 1;

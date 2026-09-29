@@ -23,7 +23,7 @@ void actor_mode_fight_update(uint32_t actor_index)
     actor[0x426] = actor[0x358];
     ((struct actor *)actor)->vocalization_unknown_3e8 = 5;
     ((struct actor *)actor)->vocalization_unknown_3ec = 2;
-    ((struct actor *)actor)->unknown_3fc = 4;
+    ((struct actor *)actor)->look_posture = 4;
     actor[0x427] = 0;
     actor[0x428] = 0;
     actor[0x424] = 0;

@@ -63,17 +63,17 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
     if (self->look_at_unknown_2f4 == old_reference) {
         self->look_at_unknown_2f4 = new_reference;
     }
-    if (self->unknown_30c == old_reference) {
-        self->unknown_30c = new_reference;
+    if (self->pending_panic_prop_index == old_reference) {
+        self->pending_panic_prop_index = new_reference;
     }
     if (self->search_unknown_340 == old_reference) {
         self->search_unknown_340 = new_reference;
     }
-    if (self->unknown_3ac == old_reference) {
+    if (self->retreat_prop_index == old_reference) {
         if (new_reference == 0xffffffff) {
-            self->unknown_3a8 = 0;
+            self->retreat_timer = 0;
         }
-        self->unknown_3ac = new_reference;
+        self->retreat_prop_index = new_reference;
     }
     if (self->nearby_friend_prop_index == old_reference) {
         self->nearby_friend_prop_index = new_reference;

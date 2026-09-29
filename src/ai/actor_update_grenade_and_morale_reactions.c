@@ -51,19 +51,19 @@ char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
     uint8_t may_evade;
     uint8_t may_target;
 
-    if (((struct actor *)act)->unknown_3a8 > 0 && ((actor *)act)->active_unit_index == k_datum_index_none) {
-        uint8_t *threat = (uint8_t *)prop_data->data + (((struct actor *)act)->unknown_3ac & 0xffff) * 0x138;
+    if (((struct actor *)act)->retreat_timer > 0 && ((actor *)act)->active_unit_index == k_datum_index_none) {
+        uint8_t *threat = (uint8_t *)prop_data->data + (((struct actor *)act)->retreat_prop_index & 0xffff) * 0x138;
 
         if (threat[0xa4] != 0 && (((struct prop *)threat)->obstruction == 0 || ((struct prop *)threat)->obstruction == 1) &&
-            (*(int32_t *)&((struct actor *)act)->unknown_36c == -1 || *(int32_t *)&((struct actor *)act)->unknown_36c + 0x1e <= now)) {
-            *(int32_t *)&((struct actor *)act)->unknown_36c = now;
+            (*(int32_t *)&((struct actor *)act)->last_evasion_time == -1 || *(int32_t *)&((struct actor *)act)->last_evasion_time + 0x1e <= now)) {
+            *(int32_t *)&((struct actor *)act)->last_evasion_time = now;
             if (actor_should_throw_grenade(actor_index, 1)) {
                 if (actor_handle_death(actor_index, 0, 1)) {
                     return 1;
                 }
                 // 0x40ba13: ECX = 5, DL = 0, ESI = the actor
                 if ((*(uint32_t *)actor_tag & 0x400000) != 0 &&
-                    actor_check_pain_reaction(((struct actor *)act)->unknown_3ac, 0, 5, actor_index)) {
+                    actor_check_pain_reaction(((struct actor *)act)->retreat_prop_index, 0, 5, actor_index)) {
                     return 1;
                 }
             }
@@ -108,8 +108,8 @@ char actor_update_grenade_and_morale_reactions(uint32_t actor_index)
     if (result) {
         return result;
     }
-    if (may_evade && (*(int32_t *)&((struct actor *)act)->unknown_36c == -1 || *(int32_t *)&((struct actor *)act)->unknown_36c + 0x1e <= now)) {
-        *(int32_t *)&((struct actor *)act)->unknown_36c = now;
+    if (may_evade && (*(int32_t *)&((struct actor *)act)->last_evasion_time == -1 || *(int32_t *)&((struct actor *)act)->last_evasion_time + 0x1e <= now)) {
+        *(int32_t *)&((struct actor *)act)->last_evasion_time = now;
         if (actor_should_throw_grenade(actor_index, 0) && random_real() <= ((Actor *)actor_tag)->evasion_seek_cover_chance &&
             actor_handle_death(actor_index, 0, 1)) {
             ai_communication_broadcast(0x18, ((actor *)act)->unit_index, actor_get_target_prop_object_index(actor_index),

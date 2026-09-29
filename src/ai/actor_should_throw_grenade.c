@@ -51,7 +51,7 @@ uint8_t actor_should_throw_grenade(uint32_t actor_index, char force)
         }
     }
 
-    if (a->unknown_378 != 0) {
+    if (a->berserking != 0) {
         eligible = 0;
     }
     if (a->order_committed != 0) {

@@ -62,7 +62,7 @@ void actor_choose_best_target(datum_index actor_index)
     best = (datum_index)k_datum_index_none;
 
     suppress_close_bonus = 0;
-    if (self->unknown_378 != 0 || self->mode == 10) {
+    if (self->berserking != 0 || self->mode == 10) {
         suppress_close_bonus = 1;
     }
 

@@ -107,32 +107,32 @@ void actor_update_crouch_state(datum_index actor_index)
     countdown_360          = (int16_t *)&self->unknown_350[0x10];
     countdown_368          = (int16_t *)&self->unknown_350[0x18];
 
-    if (self->unknown_378 != 0 &&
+    if (self->berserking != 0 &&
         (self->combat_status == 0 || self->awareness_level < 3 ||
          (*(int32_t *)&self->shield_vitality == 0x3f800000 && self->combat_status < 3))) {
         actor_set_combat_alert_flag(actor_index, 0); // 0x42141b: BL = 0
     }
 
     platoon_flag = self->platoon_defending;
-    if (self->unknown_374 != platoon_flag) {
-        self->unknown_374 = platoon_flag;
+    if (self->defending != platoon_flag) {
+        self->defending = platoon_flag;
         if (self->unit_index != (datum_index)k_datum_index_none) {
             ai_communication_broadcast((int16_t)((platoon_flag != 0) + 0x16), self->unit_index,
                                        0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0);
         }
     }
 
-    if (self->unknown_378 == 0 && (actor_definition->flags & 0x800) == 0) {
-        self->unknown_375 = 0;
+    if (self->berserking == 0 && (actor_definition->flags & 0x800) == 0) {
+        self->always_charge = 0;
     } else {
-        self->unknown_375 = 1;
+        self->always_charge = 1;
     }
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
-        if ((actor_definition->flags & 0x1000000) != 0 && self->unknown_374 == 0) {
-            self->unknown_375 = 1;
+        if ((actor_definition->flags & 0x1000000) != 0 && self->defending == 0) {
+            self->always_charge = 1;
         }
     } else {
-        self->unknown_375 = 0;
+        self->always_charge = 0;
     }
 
     for (threat_class = 9; threat_class > 0; threat_class--) {
@@ -160,7 +160,7 @@ void actor_update_crouch_state(datum_index actor_index)
                              *threat_level_smoothed;
 
     if (self->stood_down != 0) {
-        self->unknown_3b4 = self->body_vitality;
+        self->stood_down_body_vitality = self->body_vitality;
     }
 
     if ((actor_definition->flags & 0xc0000000u) != 0) {
@@ -258,7 +258,7 @@ void actor_update_crouch_state(datum_index actor_index)
     if (*crouch_timer > 0) {
         *crouch_timer = (int16_t)(*crouch_timer - 1);
     } else {
-        if (self->unknown_374 == 0 || self->unknown_378 != 0) {
+        if (self->defending == 0 || self->berserking != 0) {
             threshold = actor_definition->attacking_crouch_threshold;
         } else {
             threshold = actor_definition->defending_crouch_threshold;

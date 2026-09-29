@@ -32,15 +32,15 @@ uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition)
     if (self->firing_target_type == 1) {
         prop *p = (prop *)((uint8_t *)prop_data->data + (self->firing_target_prop_index & 0xffff) * sizeof(prop));
         if (3 < p->state && p->state < 6) {
-            self->unknown_3bc = 1;
+            self->target_lost = 1;
             self->firing_state_timer = 0;
             return 0;
         }
     }
 
-    if (self->unknown_457 != 0) {
+    if (self->force_fire != 0) {
         self->firing_state_timer = 0;
-        return self->unknown_457 == 0;
+        return self->force_fire == 0;
     }
 
     {

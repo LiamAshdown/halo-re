@@ -75,7 +75,7 @@ uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t f
         if (vector2d_normalize_with_length(&delta) > 0.0f) {
             dot = delta.i * self->facing.i + delta.j * self->facing.j;
             if (dot >= 0.8660254f) {
-                self->unknown_45c = 1;
+                self->throw_grenade = 1;
                 self->grenade_throw_pending = 0;
                 if (self->encounter_index != (datum_index)k_datum_index_none) {
                     encounter *enc = (encounter *)((uint8_t *)encounter_data->data +

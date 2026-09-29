@@ -266,8 +266,8 @@ uint8_t actor_process_vehicle_seat_exit(datum_index actor_index)
                     if (*(int32_t *)(rider + 0x4) == 0) {
                         unit_dispatch_scripted_event_9(0, (int32_t)rider_index);
                     }
-                    ((struct actor *)act)->unknown_390 = ((actor *)act)->active_unit_index;
-                    *(int32_t *)&((struct actor *)act)->unknown_394 = game_time->game_time + 180;
+                    ((struct actor *)act)->exited_vehicle_index = ((actor *)act)->active_unit_index;
+                    *(int32_t *)&((struct actor *)act)->exited_vehicle_reentry_time = game_time->game_time + 180;
                     result = 1;
                 }
             }

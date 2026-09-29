@@ -31,9 +31,9 @@ void actor_notify_squad_and_flag_danger(datum_index actor_index, uint8_t alterna
                                    (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
     }
 
-    if (raise_danger_flag != 0 && self->unknown_308 < 6) {
-        self->unknown_308 = 6;
-        self->unknown_30c = 0xffffffff;
+    if (raise_danger_flag != 0 && self->pending_panic_type < 6) {
+        self->pending_panic_type = 6;
+        self->pending_panic_prop_index = 0xffffffff;
     }
 }
 
