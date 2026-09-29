@@ -529,12 +529,12 @@ typedef struct player {
     int32_t unknown_f8;                // 0xf8
     uint8_t unknown_fc[0x104 - 0xfc];  // 0xfc
     int32_t unknown_104;               // 0x104 network constructor writes -1
-    uint8_t unknown_108;               // 0x108
+    uint8_t rate_window_started;   // 0x108 network_client_check_connection_quality has taken its first sample
     uint8_t pad_109[3];                // 0x109
-    int32_t unknown_10c;               // 0x10c
-    int32_t unknown_110;               // 0x110
-    int32_t unknown_114;               // 0x114
-    int32_t unknown_118;               // 0x118
+    int32_t rate_window_start_ms;  // 0x10c start of the current sampling window (restarted after 10 s)
+    int32_t rate_window_units;     // 0x110 units received in that window
+    int32_t rate_last_sample_ms;   // 0x114 time of the previous sample
+    int32_t rate_slow_samples;     // 0x118 consecutive samples at or below 39.9 units/s; more than 5 drops the client
     int32_t unknown_11c;               // 0x11c
     player_update_queue update_history;       // 0x120 120 records of 0x2c
     int32_t last_remote_update_id;     // 0x15c (R35) last remote update sequence (byte

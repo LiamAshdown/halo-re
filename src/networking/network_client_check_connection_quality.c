@@ -5,7 +5,7 @@
 // the high-resolution timer, and returns false to reject/kick the client once its measured
 // loss or latency exceeds the hard-coded thresholds for too many cons[ecutive samples]."
 // machine_to_player/datum_get idiom matches the sibling lookups in this batch; player+0x108,
-// +0x10c, +0x110, +0x114, +0x118 match types/game.h's player::unknown_108/10c/110/114/118
+// +0x10c, +0x110, +0x114, +0x118 match types/game.h's player::rate_window_started/rate_window_start_ms/rate_window_units/rate_last_sample_ms/rate_slow_samples
 // exactly (five previously-unnamed fields, now confirmed to be a per-player loss/latency
 // sample block).
 // register convention: EAX = machine_index (uint32_t), stack = units (uint8_t, a
@@ -32,7 +32,7 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 // Resolves machine_index to a live player via machine_to_player/player_data, then -- while the
 // stats gate is enabled -- maintains a rolling packet-loss ratio and per-sample latency in
-// that player's unknown_108..unknown_118 block, returning false once loss exceeds 36:1 over a
+// that player's rate_window_* block, returning false once loss exceeds 36:1 over a
 // 5000ms window or latency exceeds 39.9ms for more than 5 consecutive samples.
 uint32_t network_client_check_connection_quality(uint32_t machine_index, uint8_t units)
 {
@@ -68,50 +68,50 @@ uint32_t network_client_check_connection_quality(uint32_t machine_index, uint8_t
         now_ms = (int32_t)((main_globals_data * 1000) / performance_frequency);
         added = units;
 
-        if (plr->unknown_108 == 0) {
-            plr->unknown_10c = now_ms;
-            plr->unknown_110 = added;
-            plr->unknown_114 = now_ms;
-            plr->unknown_118 = 0;
-            plr->unknown_108 = 1;
+        if (plr->rate_window_started == 0) {
+            plr->rate_window_start_ms = now_ms;
+            plr->rate_window_units = added;
+            plr->rate_last_sample_ms = now_ms;
+            plr->rate_slow_samples = 0;
+            plr->rate_window_started = 1;
         } else {
-            plr->unknown_110 = plr->unknown_110 + added;
-            sample_count = (uint32_t)(now_ms - plr->unknown_10c);
+            plr->rate_window_units = plr->rate_window_units + added;
+            sample_count = (uint32_t)(now_ms - plr->rate_window_start_ms);
             // The two casts to (uint32_t) below replicate the original's manual
             // "add 4.2949673e+09 when negative" bit-pattern correction: both quantities are
             // computed as signed subtractions/sums but are meant to be read as unsigned.
             if (sample_count == 0) {
                 loss_ratio = 0.0f;
             } else {
-                loss_ratio = (float)(uint32_t)plr->unknown_110 / ((float)sample_count * 0.001f);
+                loss_ratio = (float)(uint32_t)plr->rate_window_units / ((float)sample_count * 0.001f);
             }
             if (sample_count > 10000) {
-                plr->unknown_10c = now_ms;
-                plr->unknown_110 = added;
+                plr->rate_window_start_ms = now_ms;
+                plr->rate_window_units = added;
                 sample_count = 0;
             }
 
             {
                 uint32_t latency_window;
 
-                latency_window = (uint32_t)(now_ms - plr->unknown_114);
+                latency_window = (uint32_t)(now_ms - plr->rate_last_sample_ms);
                 if (latency_window == 0) {
                     latency = 0.0f;
                 } else {
                     latency = (float)added / ((float)latency_window * 0.001f);
                 }
-                plr->unknown_114 = now_ms;
+                plr->rate_last_sample_ms = now_ms;
 
                 if (loss_ratio > 36.0f && sample_count > 5000) {
                     return 0;
                 }
                 if (latency != 0.0f) {
                     if (latency <= 39.9f) {
-                        plr->unknown_118 = 0;
+                        plr->rate_slow_samples = 0;
                         return 1;
                     }
-                    plr->unknown_118 = plr->unknown_118 + 1;
-                    if (plr->unknown_118 > 5) {
+                    plr->rate_slow_samples = plr->rate_slow_samples + 1;
+                    if (plr->rate_slow_samples > 5) {
                         return 0;
                     }
                 }
