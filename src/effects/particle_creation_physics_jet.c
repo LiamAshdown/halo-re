@@ -16,16 +16,16 @@
 //   ECX->b) were resolved from objdump 0x455610..0x45573c: both branches load EAX from
 //   `lea eax,[edx+0x34]` (edx = particle) unconditionally before the branch, i.e. &particle->
 //   direction; the `fVar2 != 0.0` branch loads ECX from the global at 0x00696720
-//   (types/math.h global_up3d_pointer) after pushing the OLD ecx (&particle->unknown_28, set
+//   (types/math.h global_up3d_pointer) after pushing the OLD ecx (&particle->velocity, set
 //   earlier by `lea ecx,[edx+0x28]`) as the stack argument, while the `fVar2 == 0.0` branch skips
-//   that reload entirely and keeps ECX at that same &particle->unknown_28.
+//   that reload entirely and keeps ECX at that same &particle->velocity.
 // register convention: identical to every other entry of this dispatch table (system, type_index,
 //   particle, marker); blam-cc: system, type_index, particle, marker.
 // UNSURE: the exact roles of the three physics_constants values (k0/k1/k2 by position only,
 //   matching particle_creation_physics_explosion.c's naming) are not established: k0 and k1
 //   together blend a random table direction against the marker's forward axis (k1 weights the
 //   random component, 1-k1 the forward component, both scaled by k0/30 -- a per-tick fraction of
-//   a per-second constant) into unknown_28, and k2 selects which vector the final cross product
+//   a per-second constant) into velocity, and k2 selects which vector the final cross product
 //   is measured against (world up when nonzero, the marker's forward axis when zero).
 
 #include "tags.h"
@@ -46,8 +46,8 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 
 // ParticleSystem.particle_creation_physics dispatch table entry 2, "jet". Blends a random sphere-
 // table direction with the marker's forward axis (weighted by the type's physics constants) into
-// unknown_28, spawns the particle at the marker's position, and derives its sprite direction as
-// the cross product of unknown_28 with either world up or the marker's forward axis, depending
+// velocity, spawns the particle at the marker's position, and derives its sprite direction as
+// the cross product of velocity with either world up or the marker's forward axis, depending
 // on whether the third physics constant is nonzero.
 void particle_creation_physics_jet(particle_system *system, int32_t type_index,
     particle_system_particle *particle, object_marker *marker)
@@ -67,11 +67,11 @@ void particle_creation_physics_jet(particle_system *system, int32_t type_index,
     table_index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
         (uint32_t)(int32_t)sphere_point_table_count) >> 16);
 
-    particle->unknown_28.x = sphere_point_table[table_index].x * random_weight +
+    particle->velocity.x = sphere_point_table[table_index].x * random_weight +
         forward_weight * marker->node_transform.forward.i + system->velocity.i;
-    particle->unknown_28.y = sphere_point_table[table_index].y * random_weight +
+    particle->velocity.y = sphere_point_table[table_index].y * random_weight +
         forward_weight * marker->node_transform.forward.j + system->velocity.j;
-    particle->unknown_28.z = sphere_point_table[table_index].z * random_weight +
+    particle->velocity.z = sphere_point_table[table_index].z * random_weight +
         forward_weight * marker->node_transform.forward.k + system->velocity.k;
 
     particle->position.x = marker->node_transform.position.x;
@@ -80,10 +80,10 @@ void particle_creation_physics_jet(particle_system *system, int32_t type_index,
 
     if (k2 != 0.0f) {
         vector3d_cross_product((real_vector3d *)&particle->direction,
-            (real_vector3d *)&particle->unknown_28, global_up3d_pointer);
+            (real_vector3d *)&particle->velocity, global_up3d_pointer);
     } else {
         vector3d_cross_product((real_vector3d *)&particle->direction,
-            &marker->node_transform.forward, (real_vector3d *)&particle->unknown_28);
+            &marker->node_transform.forward, (real_vector3d *)&particle->velocity);
     }
 }
 

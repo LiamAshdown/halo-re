@@ -10,7 +10,7 @@
 //   effects_types_notes.md's own account of that reflexive. The random direction draw
 //   (LCG update of 0x00719cd4 then a 0x006b7af4/0x006b7af8 table lookup) is byte-for-byte
 //   src/effects/effect_random_direction_from_table.c's own body, called directly here instead of
-//   re-inlining it. Every particle_system_particle field (unknown_28, direction, position) and
+//   re-inlining it. Every particle_system_particle field (velocity, direction, position) and
 //   marker->node_transform.position match the same fields particle_creation_physics_default.c
 //   already established. The final `vector3d_rotate_about_axis` call's two register arguments
 //   (EAX -> v, ECX -> axis; see src/ai/actor_look_pick_random_point_in_cone.c) were resolved
@@ -49,7 +49,7 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *ax
 // separately by the type's physics constants (optionally forcing the vertical component
 // positive), offsets the particle's spawn position by that scaled impulse relative to the
 // marker, sets its horizontal-only launch direction (then rotates it 90 degrees about world up),
-// and combines the scaled impulse with the system's own velocity into unknown_28.
+// and combines the scaled impulse with the system's own velocity into velocity.
 void particle_creation_physics_explosion(particle_system *system, int32_t type_index,
     particle_system_particle *particle, object_marker *marker)
 {
@@ -80,9 +80,9 @@ void particle_creation_physics_explosion(particle_system *system, int32_t type_i
     particle->direction.j = scaled_y;
     particle->direction.k = 0.0f;
 
-    particle->unknown_28.x = scaled_x * k2 + system->velocity.i;
-    particle->unknown_28.y = scaled_y * k2 + system->velocity.j;
-    particle->unknown_28.z = k2 * scaled_z + system->velocity.k;
+    particle->velocity.x = scaled_x * k2 + system->velocity.i;
+    particle->velocity.y = scaled_y * k2 + system->velocity.j;
+    particle->velocity.z = k2 * scaled_z + system->velocity.k;
 
     vector3d_rotate_about_axis(&particle->direction, global_up3d_pointer, 1.0f, 0.0f);
 }

@@ -16,8 +16,8 @@
 //   [esp+0xc], particle [esp+0x10]); blam-cc: stack -> (system, type_index, delta_time, particle).
 // UNSURE: point_physics_tick's `velocity` argument (register ESI) is dropped from Ghidra's
 //   decompile of this call; objdump 0x45548a (`lea esi,[ebx+0x28]`, ebx = particle) shows it is
-//   `&particle->unknown_28` -- the same field the creation-physics procedures fill, now reused as
-//   the particle's per-tick velocity. Resolved here to `&particle->unknown_28` accordingly.
+//   `&particle->velocity` -- the same field the creation-physics procedures fill, now reused as
+//   the particle's per-tick velocity. Resolved here to `&particle->velocity` accordingly.
 // Cleanup-pass review (objdump 0x455350..0x4554c0): FUN_0050b9e0 takes EAX = a 0x40-byte stack
 //   PointPhysics, ECX / EDX = the current / next state's point_physics tags and the fraction on
 //   the stack, and blends them into the local, which is what point_physics_tick then gets; the
@@ -85,7 +85,7 @@ void particle_update_physics_default(particle_system *system, int16_t type_index
             physics = &blended;
         }
 
-        collision_flags = point_physics_tick((real_vector3d *)&particle->unknown_28, 0, physics,
+        collision_flags = point_physics_tick((real_vector3d *)&particle->velocity, 0, physics,
             &particle->location, (uint32_t)-1, &particle->position, (real_vector3d *)0,
             (real_vector3d *)0, (int16_t *)0, radius, dt);
 

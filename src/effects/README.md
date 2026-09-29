@@ -304,7 +304,7 @@ the target. Types that already existed elsewhere are **not** redeclared here: ev
 | `0x10` | `float` | `state_duration` |
 | `0x14` | `bsp_leaf_reference` | `location` |
 | `0x1c` | `real_point3d` | `position` -- the point matrix4x3_transform_point is handed; proved |
-| `0x28` | `real_point3d` | `unknown_28` -- filled by the creation physics procedure; UNSURE, |
+| `0x28` | `real_point3d` | `velocity` -- the per-tick velocity (creation physics fills it; point_physics_tick integrates it), |
 | `0x34` | `real_vector3d` | `direction` -- rotated into view space to orient the sprite |
 | `0x40` | `float` | `rotation` -- radians, advanced by rotation_rate; random at create |
 | `0x44` | `float` | `frame` -- sprite frame, -1.0 at create so the renderer rolls a |
@@ -571,7 +571,7 @@ was; where it could not, the file says so rather than inventing a plausible name
 creation physics) and `0x455350` (particle update physics) sit inside this address range, are
 reached only through the three `.rdata` dispatch tables at `0x0065743c` / `0x00657444` /
 `0x00657450`, and Ghidra created no function for any of them. They own
-`particle_system_particle` +0x1c..+0x40 (position, `unknown_28`, direction), which is why those
+`particle_system_particle` +0x1c..+0x40 (position, `velocity`, direction), which is why those
 three fields are the weakest part of that struct. All six were rewritten in cleanup pass 1 (see the
 table at the end of this file).
 

@@ -593,8 +593,8 @@ typedef struct particle_system_particle {
     bsp_leaf_reference location;    // 0x14
     real_point3d position;          // 0x1c the point matrix4x3_transform_point is handed; proved
                                     //      by lea edx,[edi+0x1c] at 0x00454ccc
-    real_point3d unknown_28;        // 0x28 filled by the creation physics procedure; UNSURE,
-                                    //      never read inside this module
+    real_point3d velocity;   // 0x28 the per-tick velocity: the creation physics procedures fill it (default: the system velocity;
+                                    //      jet: sphere point; explosion: impulse), particle_update_physics_default integrates it
     real_vector3d direction;        // 0x34 rotated into view space to orient the sprite
     float rotation;                 // 0x40 radians, advanced by rotation_rate; random at create
     float frame;                    // 0x44 sprite frame, -1.0 at create so the renderer rolls a

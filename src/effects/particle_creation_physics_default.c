@@ -9,7 +9,7 @@
 //   object_marker *marker)` exactly. Field identity: marker->node_transform (types/objects.h
 //   object_marker +0x38) is a real_matrix4x3 whose .position sub-field (math.h, +0x28) lands
 //   exactly on marker+0x60/0x64/0x68, matching this function's three reads; particle->position
-//   (effects.h particle_system_particle +0x1c) and particle->unknown_28 (+0x28) are the two
+//   (effects.h particle_system_particle +0x1c) and particle->velocity (+0x28) are the two
 //   writes, and system->velocity (+0x2c) is the source for the second one.
 // register convention: identical to every other entry of this dispatch table (system, type_index,
 //   particle, marker); blam-cc: system, type_index, particle, marker (type_index unused here).
@@ -21,7 +21,7 @@
 #include "objects.h"
 #include "effects.h"
 
-// Spawns the particle at the marker's world position with an initial "unknown_28" vector copied
+// Spawns the particle at the marker's world position with an initial "velocity" vector copied
 // straight from the system's own velocity (world units per second).
 void particle_creation_physics_default(particle_system *system, int32_t type_index,
     particle_system_particle *particle, object_marker *marker)
@@ -32,9 +32,9 @@ void particle_creation_physics_default(particle_system *system, int32_t type_ind
     particle->position.y = marker->node_transform.position.y;
     particle->position.z = marker->node_transform.position.z;
 
-    particle->unknown_28.x = system->velocity.i;
-    particle->unknown_28.y = system->velocity.j;
-    particle->unknown_28.z = system->velocity.k;
+    particle->velocity.x = system->velocity.i;
+    particle->velocity.y = system->velocity.j;
+    particle->velocity.z = system->velocity.k;
 }
 
 #if 0
