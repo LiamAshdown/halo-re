@@ -7,7 +7,7 @@
 //   belongs to 0x5625b0 per the object_type_definition vtable correction)   rewrite
 //   confidence: 0.2
 // evidence: types/units.h unit_data.zoom_level/.desired_zoom_level (0x320/0x321),
-//   .unknown_348 (0x348). Identical tail to unit_validate_and_clear_weapon_switch (0x5659c0).
+//   .flashlight_ramp (0x348). Identical tail to unit_validate_and_clear_weapon_switch (0x5659c0).
 // register convention: unit pointer carried over in an unresolved register (unaff_EBX) and a
 //   precomputed "should notify" flag in the zero flag (in_ZF), i.e. this is reached as a shared
 //   tail rather than called with its own fresh arguments.
@@ -38,7 +38,7 @@ void unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_notify, datum_
     }
     unit->zoom_level = -1;
     unit->desired_zoom_level = -1;
-    unit->unknown_348 = 0.0f;
+    unit->flashlight_ramp = 0.0f;
     unit_invalidate_local_player_zoom_level();
 }
 

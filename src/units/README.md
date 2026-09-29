@@ -256,7 +256,7 @@ misattributions below. The full derivation is in `out/phase4/units_types_notes.m
 | `0x33c` | `0x04` | `float` | `gunner_seat_power` | vehicle_update tests it against 0 with bit 8 |
 | `0x340` | `0x04` | `float` | `integrated_light_power` | 0..1 ramp, unit_update steps it by 1/24 down and 1/6 up |
 | `0x344` | `0x04` | `float` | `unknown_344` | 0..1; unit_update steps it by 1/900 up and 1/3600 down; packed into the network update |
-| `0x348` | `0x04` | `float` | `unknown_348` | 0..1 ramp, 1/24 down and 1/12 up; zeroed by 0x5659c0 and 0x565a70 |
+| `0x348` | `0x04` | `float` | `flashlight_ramp` | 0..1 ramp, 1/24 down and 1/12 up; zeroed by 0x5659c0 and 0x565a70 |
 | `0x34c` | `0x0c` | `real_point3d` | `unknown_34c` | cached look reference point; 0x56e820 diffs it frame to frame and 0x570cb0 shifts it by the movement delta of the parent |
 | `0x358` | `0x0c` | `real_vector3d` | `unknown_358` | the delta of that point on the previous frame |
 | `0x364` | `0x0c` | `float[3]` | `animation_controls_smoothed` | unit_update runs 0.7 * old + 0.3 * new; 0x563b50 drives three graph animations by them |

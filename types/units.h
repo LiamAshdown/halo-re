@@ -157,7 +157,7 @@ typedef enum unit_flags {
     _unit_flag_unknown_800000 = 0x00800000,    // 0x561d50 sets or clears it over a chain
     _unit_flag_unknown_1000000 = 0x01000000,   // 0x56a290
     _unit_flag_idle_turn_seeded = 0x02000000,  // 0x570650 seeds the idle turn angle once
-    _unit_flag_unknown_4000000 = 0x04000000,   // unit_update flips it, gated on 0x2a3
+    _unit_flag_flashlight_on = 0x04000000,   // unit_update ramps flashlight_ramp toward it while the current weapon has the light flag (0x2a3)
     _unit_flag_unknown_8000000 = 0x08000000,
     _unit_flag_unknown_80000000 = 0x80000000   // tested as (char)flags < 0 by 0x5590a0 and
                                                //   by 0x566de0
@@ -522,7 +522,7 @@ typedef struct unit_data {
                                         //       and 1/6 up
     float unknown_344;                  // 0x344 0..1; unit_update steps it by 1/900 up and
                                         //       1/3600 down; packed into the network update
-    float unknown_348;                  // 0x348 0..1 ramp, 1/24 down and 1/12 up; zeroed by
+    float flashlight_ramp;                  // 0x348 0..1 ramp, 1/24 down and 1/12 up; zeroed by
                                         //       0x5659c0 and 0x565a70
     real_point3d unknown_34c;           // 0x34c cached look reference point; 0x56e820 diffs it
                                         //       frame to frame and 0x570cb0 shifts it by the

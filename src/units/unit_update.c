@@ -295,7 +295,7 @@ controls:
                 // 0x562ce7: zoom level changed: the weapon's zoom sound for a local player
                 obj[0x320] = obj[0x321];
                 if (obj[0x320] == 0xff) {
-                    *(int32_t *)&((struct unit_object *)obj)->unit.unknown_348 = 0;
+                    *(int32_t *)&((struct unit_object *)obj)->unit.flashlight_ramp = 0;
                 }
                 if (player_index_from_unit_index(unit_index) != k_datum_index_none &&
                     *(int16_t *)((uint8_t *)player_data->data +
@@ -616,16 +616,16 @@ controls:
     // 0x5637ad: the current weapon's secondary light (+0x204 bit 26) ramps +0x348
     if (unit_current_weapon_has_flag(unit_index)) {
         if ((((unit_object *)obj)->unit.flags & 0x4000000) != 0) {
-            if (((struct unit_object *)obj)->unit.unknown_348 != 1.0f) {
-                ((struct unit_object *)obj)->unit.unknown_348 += 0.083333336f;
-                if (((struct unit_object *)obj)->unit.unknown_348 > 1.0f) {
-                    ((struct unit_object *)obj)->unit.unknown_348 = 1.0f;
+            if (((struct unit_object *)obj)->unit.flashlight_ramp != 1.0f) {
+                ((struct unit_object *)obj)->unit.flashlight_ramp += 0.083333336f;
+                if (((struct unit_object *)obj)->unit.flashlight_ramp > 1.0f) {
+                    ((struct unit_object *)obj)->unit.flashlight_ramp = 1.0f;
                 }
             }
-        } else if (((struct unit_object *)obj)->unit.unknown_348 != 0.0f) {
-            ((struct unit_object *)obj)->unit.unknown_348 -= 0.041666668f;
-            if (((struct unit_object *)obj)->unit.unknown_348 < 0.0f) {
-                ((struct unit_object *)obj)->unit.unknown_348 = 0.0f;
+        } else if (((struct unit_object *)obj)->unit.flashlight_ramp != 0.0f) {
+            ((struct unit_object *)obj)->unit.flashlight_ramp -= 0.041666668f;
+            if (((struct unit_object *)obj)->unit.flashlight_ramp < 0.0f) {
+                ((struct unit_object *)obj)->unit.flashlight_ramp = 0.0f;
             }
         }
     }
