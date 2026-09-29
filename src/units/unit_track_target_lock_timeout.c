@@ -29,11 +29,11 @@ void unit_track_target_lock_timeout(uint32_t object_index)
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((biped->flags & 1) == 0 && biped->unknown_508 != 1) {
-        if ((int8_t)biped->unknown_504 < 0x7f) {
-            biped->unknown_504 = biped->unknown_504 + 1;
+    if ((biped->flags & 1) == 0 && biped->landing_type != 1) {
+        if ((int8_t)biped->jump_ticks < 0x7f) {
+            biped->jump_ticks = biped->jump_ticks + 1;
         }
-        if ((unit->control_flags & 2) != 0 && (int8_t)biped->unknown_504 > 5) {
+        if ((unit->control_flags & 2) != 0 && (int8_t)biped->jump_ticks > 5) {
             unit_snap_to_min_ground_height(object_index);
         }
     }

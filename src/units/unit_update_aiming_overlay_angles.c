@@ -119,10 +119,10 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
             }
         }
     }
-    if (((unit_object *)unit)->unit.animation_blend_weight > 0.0f && *(int32_t *)(block + 0x40) > 0xa &&
+    if (((unit_object *)unit)->unit.mouth_aperture > 0.0f && *(int32_t *)(block + 0x40) > 0xa &&
         (*(int16_t **)(block + 0x44))[0xa] != -1) {
         animation_overlay_frame_orientations_weighted(animations + (*(int16_t **)(block + 0x44))[0xa] * 0xb4, 0,
-            ((unit_object *)unit)->unit.animation_blend_weight, output);
+            ((unit_object *)unit)->unit.mouth_aperture, output);
     }
     if (unit[0x298] & 2) {
         int32_t slot;
@@ -148,19 +148,19 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
 
     aim_yaw = global_zero_vector2d_pointer[0];
     aim_pitch = global_zero_vector2d_pointer[1];
-    if (((unit_object *)unit)->unit.animation_instance != -1) {
+    if (((unit_object *)unit)->unit.aiming_animation_index != -1) {
         uint8_t *screen = *(uint8_t **)(block + 0x5c) + (int8_t)unit[0x2a1] * 0xbc + 0x60;
 
         aiming_angles_in_unit_frame(unit_index, (real_vector3d *)(unit + 0x23c), &aim_yaw, &aim_pitch);
         unit[0x2b6] = 1;
         aiming_screen_limits(screen, (float *)(unit + 0x2b8));
-        animation_aiming_screen_blend(animations + ((unit_object *)unit)->unit.animation_instance * 0xb4, screen, aim_yaw, aim_pitch, output);
+        animation_aiming_screen_blend(animations + ((unit_object *)unit)->unit.aiming_animation_index * 0xb4, screen, aim_yaw, aim_pitch, output);
     }
 
     if (((unit_object *)unit)->unit.current_weapon_index == -1 && ((unit_object *)unit)->unit.controlling_player == k_datum_index_none) {
         return;
     }
-    if (((struct unit_object *)unit)->unit.unknown_29c != -1) {
+    if (((struct unit_object *)unit)->unit.looking_animation_index != -1) {
         uint8_t *screen = block + 0x20;
         float look_yaw;
         float look_pitch;
@@ -170,7 +170,7 @@ void unit_update_aiming_overlay_angles(uint32_t unit_index, void *output)
         look_yaw -= aim_yaw;
         look_pitch -= aim_pitch;
         aiming_screen_limits(screen, (float *)(unit + 0x2c8));
-        animation_aiming_screen_blend(animations + ((struct unit_object *)unit)->unit.unknown_29c * 0xb4, screen, look_yaw, look_pitch,
+        animation_aiming_screen_blend(animations + ((struct unit_object *)unit)->unit.looking_animation_index * 0xb4, screen, look_yaw, look_pitch,
             output);
     }
 }

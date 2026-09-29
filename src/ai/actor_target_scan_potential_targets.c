@@ -210,7 +210,7 @@ shared_threshold:
                     if (gate != -1) {
                         object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
                         unit_data *u = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
-                        int32_t last_seen = u->unknown_41c; // UNSURE: units.h names this "game tick stamp"
+                        int32_t last_seen = u->death_time; // UNSURE: units.h names this "game tick stamp"
                         if (last_seen == -1 || last_seen < gate) {
                             accept = 0;
                         }

@@ -89,7 +89,7 @@ uint8_t unit_new(uint32_t object_index)
     }
 
     unit->unknown_475 = 0;
-    unit->unknown_4bc = -1;
+    unit->control_update_id = -1;
     unit->equipment_object_index = (datum_index)-1;
     unit->weapons[0] = (datum_index)-1;
     unit->weapons[1] = (datum_index)-1;
@@ -105,7 +105,7 @@ uint8_t unit_new(uint32_t object_index)
     unit->actor_index = (datum_index)-1;
     unit->swarm_actor_index = (datum_index)-1;
     unit->swarm_next_unit_index = (datum_index)-1;
-    unit->unknown_200 = (uint32_t)-1;
+    unit->swarm_previous_unit_index = (uint32_t)-1;
     unit->vehicle_seat_index = -1;
     unit->driver_unit_index = (datum_index)-1;
     unit->gunner_unit_index = (datum_index)-1;
@@ -114,10 +114,10 @@ uint8_t unit_new(uint32_t object_index)
     unit->animation_weapon_index = -1;
     unit->animation_weapon_type_index = -1;
     unit->animation_state = -1;
-    unit->unknown_2a4 = 0;
-    unit->unknown_2a5 = 0;
-    unit->animation_instance = -1;
-    unit->unknown_29c = -1;
+    unit->replacement_animation_state = 0;
+    unit->overlay_animation_state = 0;
+    unit->aiming_animation_index = -1;
+    unit->looking_animation_index = -1;
     unit->overlays[0].animation_index = -1;
     unit->overlays[1].animation_index = -1;
     unit->overlays[2].animation_index = -1;
@@ -125,7 +125,7 @@ uint8_t unit_new(uint32_t object_index)
     unit->unknown_29e = -1;
     unit->emotion_animation_frame = -1;
     unit->emotion_animation_index = -1;
-    unit->unknown_20f = -1;
+    unit->scripted_base_animation_state = -1;
     unit->aiming_bounds_valid = 0;
     unit->aiming_bounds[0] = 0.0f;
     unit->aiming_bounds[1] = 0.0f;
@@ -144,7 +144,7 @@ uint8_t unit_new(uint32_t object_index)
     unit->desired_aiming_vector = obj->forward;
     unit->desired_facing_vector = obj->forward;
 
-    unit->unknown_210 = 0;
+    unit->persistent_control_ticks = 0;
     unit->dialogue_tag_index = (datum_index)-1;
     unit->flags |= 0x100; // UNSURE: CEA calls this "must set up dialogue"
 
@@ -165,16 +165,16 @@ uint8_t unit_new(uint32_t object_index)
         *field++ = (uint32_t)-1;
     }
 
-    unit->unknown_404 = 0;
-    unit->unknown_406 = 0;
-    unit->unknown_408 = 0.0f;
-    unit->unknown_40c = (datum_index)-1;
-    unit->unknown_41c = -1;
-    unit->unknown_334 = -1;
-    unit->unknown_336 = -1;
-    unit->unknown_344 = 1.0f;
-    unit->unknown_28b = 0;
-    unit->unknown_410 = -1;
+    unit->delayed_damage_category = 0;
+    unit->delayed_damage_ticks = 0;
+    unit->delayed_damage_amount = 0.0f;
+    unit->delayed_damage_responsible_object = (datum_index)-1;
+    unit->death_time = -1;
+    unit->encounter_index = -1;
+    unit->squad_index = -1;
+    unit->integrated_light_energy = 1.0f;
+    unit->flaming_ticks = 0;
+    unit->flaming_responsible_object = -1;
     unit->ai_communication_count = 0;
     unit->ai_communication_tick = -1;
 

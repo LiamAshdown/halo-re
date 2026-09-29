@@ -27,7 +27,7 @@ uint32_t biped_is_idle_eligible(uint32_t object_index)
     Biped *tag = (Biped *)tag_instances[obj->definition_tag & 0xffff].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    return (int8_t)biped->unknown_501 > 3 &&
+    return (int8_t)biped->airborne_ticks > 3 &&
            ((tag->biped_flags & 4) == 0 || (obj->vitality_flags & 4) != 0);
 }
 

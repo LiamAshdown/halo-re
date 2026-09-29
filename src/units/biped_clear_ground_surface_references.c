@@ -28,8 +28,8 @@ void biped_clear_ground_surface_references(uint32_t object_index)
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     biped->ground_surface_index = (datum_index)-1;
-    biped->unknown_4dc = (datum_index)-1;
-    biped->unknown_4f0 = (datum_index)-1;
+    biped->cached_ground_surface_index = (datum_index)-1;
+    biped->last_ground_surface_index = (datum_index)-1;
 }
 
 #if 0

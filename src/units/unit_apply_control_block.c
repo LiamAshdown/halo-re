@@ -28,7 +28,7 @@ void unit_apply_control_block(uint32_t unit_index, const unit_control_data *cont
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     if (network_game_mode == 2) {
-        unit->unknown_474 = (control->control_flags & 0x2800) != 0;
+        unit->network_update_forced = (control->control_flags & 0x2800) != 0;
         unit->saved_control = *control;
     }
 
@@ -49,10 +49,10 @@ void unit_apply_control_block(uint32_t unit_index, const unit_control_data *cont
     unit->seat_command = control->animation_state;
 
     if (source_id != -1) {
-        unit->unknown_4bc = source_id;
-        unit->unknown_4b8 = 1;
+        unit->control_update_id = source_id;
+        unit->control_update_id_valid = 1;
     } else {
-        unit->unknown_4b8 = 0;
+        unit->control_update_id_valid = 0;
     }
 }
 

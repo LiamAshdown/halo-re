@@ -37,7 +37,7 @@ void unit_enter_stunned_state(uint32_t unit_index, uint32_t responsible_object)
     unit->flags |= _unit_flag_disoriented;
     obj->vitality_flags = (obj->vitality_flags & 0xfffb) | 0x800;
 
-    if (unit->unknown_28b == 0) {
+    if (unit->flaming_ticks == 0) {
         int16_t duration;
 
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
@@ -49,8 +49,8 @@ void unit_enter_stunned_state(uint32_t unit_index, uint32_t responsible_object)
             duration = 0xff;
         }
 
-        unit->unknown_28b = (int8_t)duration;
-        unit->unknown_410 = responsible_object;
+        unit->flaming_ticks = (int8_t)duration;
+        unit->flaming_responsible_object = responsible_object;
         unit_initialize_random_turn_angle(unit_index);
     }
 }

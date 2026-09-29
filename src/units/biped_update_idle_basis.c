@@ -39,7 +39,7 @@ void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out)
         return;
     }
 
-    if ((int8_t)biped->unknown_501 > 2 && (tag->biped_flags & 0x400) == 0) {
+    if ((int8_t)biped->airborne_ticks > 2 && (tag->biped_flags & 0x400) == 0) {
         if (unit->animation_state == 0x18) {
             unit_rotate_basis_about_axis(object_index); // 0x55e8b0: EAX = object
         }
@@ -49,7 +49,7 @@ void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out)
     }
 
     if (unit->animation_state == 0x18) {
-        biped->unknown_510 = 0.0f;
+        biped->bank_angle = 0.0f;
         // EAX -> the Biped tag, ECX -> the object; both are register-carried, and this
         // function already has them to hand.
         unit_update_up_vector(tag, obj);

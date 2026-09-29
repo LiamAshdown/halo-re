@@ -67,7 +67,7 @@ void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_tr
     uint16_t flags = ((struct vehicle_object *)obj)->vehicle.flags;
     real max_speed = *(real *)(tag + 0x2f8);
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
-    real throttle = ((struct vehicle_object *)obj)->unit.unknown_338;
+    real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
     real clamped, f2, k, delta, lean_scale, dot, x_force, y_force, angle, per_tick, torque_scale;
     real_vector3d facing, up, force, torque;
     real_vector3d *velocity = (real_vector3d *)(obj + 0x68);

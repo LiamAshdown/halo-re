@@ -192,7 +192,7 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
     uint8_t *obj = OBJECT_DATA(unit_index);
 
     if (is_light_reset == 0) {
-        ((struct unit_object *)obj)->unit.unknown_420 = 0;
+        ((struct unit_object *)obj)->unit.feign_death_ticks = 0;
         object_list_membership_set(unit_index, 1);
         if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
             player_reset_after_unit_change(((unit_object *)obj)->unit.controlling_player);
@@ -202,8 +202,8 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
             datum_index actor_index = ((unit_object *)obj)->unit.actor_index;
             uint8_t *actor_record = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
 
-            ((struct unit_object *)obj)->unit.unknown_334 = *(int16_t *)&((actor *)actor_record)->encounter_index;
-            ((struct unit_object *)obj)->unit.unknown_336 = ((actor *)actor_record)->squad_index;
+            ((struct unit_object *)obj)->unit.encounter_index = *(int16_t *)&((actor *)actor_record)->encounter_index;
+            ((struct unit_object *)obj)->unit.squad_index = ((actor *)actor_record)->squad_index;
             actor_attempt_grenade_throw(actor_index);
             ((unit_object *)obj)->unit.actor_index = k_datum_index_none;
         }
@@ -211,8 +211,8 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
             datum_index swarm_index = ((unit_object *)obj)->unit.swarm_actor_index;
             uint8_t *actor_record = (uint8_t *)actor_data->data + (swarm_index & 0xffff) * 0x724;
 
-            ((struct unit_object *)obj)->unit.unknown_334 = *(int16_t *)&((actor *)actor_record)->encounter_index;
-            ((struct unit_object *)obj)->unit.unknown_336 = ((actor *)actor_record)->squad_index;
+            ((struct unit_object *)obj)->unit.encounter_index = *(int16_t *)&((actor *)actor_record)->encounter_index;
+            ((struct unit_object *)obj)->unit.squad_index = ((actor *)actor_record)->squad_index;
             actor_release_from_cluster_or_delete(swarm_index, unit_index);
             ((unit_object *)obj)->unit.swarm_actor_index = k_datum_index_none;
         }
@@ -226,7 +226,7 @@ void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset)
             ((unit_object *)obj)->unit.flags &= 0xffffdfff;
         }
     }
-    ((struct unit_object *)obj)->unit.unknown_41c = game_time->game_time;
+    ((struct unit_object *)obj)->unit.death_time = game_time->game_time;
     ((unit_object *)obj)->unit.flags &= 0xffffffee;
     ((unit_object *)obj)->unit.control_flags = 0;
     if (((unit_object *)obj)->unit.current_weapon_index != -1) {

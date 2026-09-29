@@ -64,17 +64,17 @@ uint8_t unit_choose_combat_reaction_animation(uint32_t unit_index, const datum_i
     }
 
     if (!is_scripted) {
-        if (unit->unknown_3ee != 0) {
+        if (unit->major_hurt_speech_delay_ticks != 0) {
             return 0;
         }
         if (source_category == 1) {
             use_second_tier = 1;
             reaction_id = 9;
         } else if (low_damage) {
-            if (unit->unknown_3ec != 0) {
+            if (unit->minor_hurt_speech_delay_ticks != 0) {
                 return 0;
             }
-            if (unit->unknown_3ea > 2) {
+            if (unit->minor_hurt_speech_count > 2) {
                 return 0;
             }
             if (unit->current_speech.priority != 0 && random_real() >= 0.4f) {
@@ -147,11 +147,11 @@ have_reaction_id:
             success = 1;
 
             if (low_damage) {
-                unit->unknown_3ea = unit->unknown_3ea + 1;
-                unit->unknown_3ec = 0x1e;
-                unit->unknown_3e8 = 0x16;
+                unit->minor_hurt_speech_count = unit->minor_hurt_speech_count + 1;
+                unit->minor_hurt_speech_delay_ticks = 0x1e;
+                unit->minor_hurt_speech_decay_ticks = 0x16;
             } else {
-                unit->unknown_3ee = 0x3c;
+                unit->major_hurt_speech_delay_ticks = 0x3c;
             }
         }
     }

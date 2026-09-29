@@ -319,14 +319,14 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
         } else {
             p->flying = 0;
         }
-        p->camouflaged = (0.5f < unit->unknown_37c);
+        p->camouflaged = (0.5f < unit->active_camouflage_power);
         p->flashlight_on = (uint8_t)(unit->flags >> 0x13) & 1;
 
         {
             uint8_t frozen = (unit_obj->vitality_flags & _object_health_frozen_bit) != 0;
             // FIXED 2026-09-29: the original (Ghidra below, `(bVar9 == 0) || (puVar3[0x108] != 0) -> 0`) sets
             // 0x128 when dead AND the feign-death countdown (unit+0x420) is 0; the draft tested != 0
-            uint8_t not_feigning = frozen && unit->unknown_420 == 0;
+            uint8_t not_feigning = frozen && unit->feign_death_ticks == 0;
 
             p->just_died = (frozen && p->dead == 0) ? 1 : 0;
             p->dead = frozen;
@@ -563,7 +563,7 @@ after_engage:
                 int32_t gate = (e->unknown_58 <= self->unknown_3a0) ? self->unknown_3a0 : e->unknown_58;
                 object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
                 unit_data *u2 = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
-                int32_t last_seen = u2->unknown_41c;
+                int32_t last_seen = u2->death_time;
                 ok = (gate == -1 || (last_seen != -1 && gate <= last_seen));
                 if (!ok) {
                     drop = 1;

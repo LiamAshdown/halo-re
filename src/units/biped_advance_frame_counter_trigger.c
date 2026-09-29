@@ -27,22 +27,22 @@ void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out)
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    int8_t frame_count = biped->unknown_4d0 + 1;
+    int8_t frame_count = biped->landing_ticks + 1;
 
-    biped->unknown_4d0 = frame_count;
-    if (biped->unknown_4d1 <= frame_count) {
-        biped->unknown_508 = -1;
+    biped->landing_ticks = frame_count;
+    if (biped->landing_duration_ticks <= frame_count) {
+        biped->landing_type = -1;
     }
 
     if (cinematic_globals_ptr[9] == 0 && unit_updates_suppressed == 0 &&
-        (frame_count == 2 || (biped->unknown_508 == -1 && biped->unknown_4d1 < 2))) {
+        (frame_count == 2 || (biped->landing_type == -1 && biped->landing_duration_ticks < 2))) {
         // unit_index rides in EBX (see that function's header); Ghidra bound only the two
         // stack arguments, which are its 2nd and 3rd parameters.
         unit_fire_animation_sound_trigger(object_index, 5, 0);
         unit_fire_animation_sound_trigger(object_index, 5, 1);
     }
 
-    *state_out = (biped->unknown_508 == 1) + 0x15;
+    *state_out = (biped->landing_type == 1) + 0x15;
 }
 
 #if 0

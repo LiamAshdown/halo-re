@@ -153,7 +153,7 @@ int32_t vehicle_encode_network_update(datum_index vehicle_index, void *buffer, i
             vehicle->network_update_sequence = 0;
         }
     }
-    unit->unknown_474 = 0;
+    unit->network_update_forced = 0;
     return result;
 }
 

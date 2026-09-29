@@ -56,7 +56,7 @@ void actor_attempt_grenade_throw(datum_index actor_index)
         unit = OBJECT_DATA(((actor *)a)->unit_index);
         if (((((unit_object *)unit)->unit.flags >> 6) & 1) &&
             unit_get_weapon_object_index(((actor *)a)->unit_index, ((unit_object *)unit)->unit.current_weapon_index) != k_datum_index_none &&
-            ((struct unit_object *)unit)->unit.unknown_28c > 0) {
+            ((struct unit_object *)unit)->unit.delayed_weapon_drop_ticks > 0) {
             float chance = ((ActorVariant *)variant)->death_fire_wildly_chance;
 
             if (!(chance >= 0.1f)) {

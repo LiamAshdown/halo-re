@@ -91,12 +91,12 @@ void unit_update_look_delta_controls(uint32_t object_index)
         scale = (real_vector3d *)&seat->acceleration_scale;
     }
 
-    delta.i = sample.x - unit->unknown_34c.x;
-    delta.j = sample.y - unit->unknown_34c.y;
-    delta.k = sample.z - unit->unknown_34c.z;
-    delta.i -= unit->unknown_358.i;
-    delta.j -= unit->unknown_358.j;
-    delta.k -= unit->unknown_358.k;
+    delta.i = sample.x - unit->seat_acceleration_last_position.x;
+    delta.j = sample.y - unit->seat_acceleration_last_position.y;
+    delta.k = sample.z - unit->seat_acceleration_last_position.z;
+    delta.i -= unit->seat_acceleration_last_velocity.i;
+    delta.j -= unit->seat_acceleration_last_velocity.j;
+    delta.k -= unit->seat_acceleration_last_velocity.k;
 
     unit->animation_controls[0] = clamp01((forward.i * delta.i + forward.j * delta.j + forward.k * delta.k) * scale->i + 0.5f);
     unit->animation_controls[1] = clamp01(((forward.k * up.j - forward.j * up.k) * delta.i +
@@ -109,11 +109,11 @@ void unit_update_look_delta_controls(uint32_t object_index)
     // movement without a second read of the (now stale) cached point.
     {
         real_vector3d raw_movement;
-        raw_movement.i = delta.i + unit->unknown_358.i;
-        raw_movement.j = delta.j + unit->unknown_358.j;
-        raw_movement.k = delta.k + unit->unknown_358.k;
-        unit->unknown_34c = sample;
-        unit->unknown_358 = raw_movement;
+        raw_movement.i = delta.i + unit->seat_acceleration_last_velocity.i;
+        raw_movement.j = delta.j + unit->seat_acceleration_last_velocity.j;
+        raw_movement.k = delta.k + unit->seat_acceleration_last_velocity.k;
+        unit->seat_acceleration_last_position = sample;
+        unit->seat_acceleration_last_velocity = raw_movement;
     }
 }
 

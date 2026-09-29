@@ -84,11 +84,11 @@ void unit_update_active_camouflage_depower(datum_index player_handle)
         }
     }
 
-    if (unit->unknown_37c >= 0.05f) { // 0x672be8
-        unit->unknown_37c = unit->unknown_37c - rate;
-        unit->unknown_422 = 1;
-        if (unit->unknown_37c < 0.05f) { // 0x672be8
-            unit->unknown_37c = 0.05f;   // 0x672be8
+    if (unit->active_camouflage_power >= 0.05f) { // 0x672be8
+        unit->active_camouflage_power = unit->active_camouflage_power - rate;
+        unit->active_camouflage_regrowth = 1;
+        if (unit->active_camouflage_power < 0.05f) { // 0x672be8
+            unit->active_camouflage_power = 0.05f;   // 0x672be8
         }
     }
 }

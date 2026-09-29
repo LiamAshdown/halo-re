@@ -117,18 +117,18 @@ uint8_t player_update_history_add(datum_index unit_index, player_update_history 
     *(int16_t *)(node->unit_state + 0x2c) = unit_obj->unknown_0d4;
     *(int16_t *)(node->unit_state + 0x2e) = unit_obj->node_function_count;
     memcpy(node->unit_state + 0x30, &unit_ext->animation_state_flags, 0x48); // unit 0x298..0x2e0
-    memcpy(node->unit_state + 0x78, &unit_ext->unknown_34c, 0x30);           // unit 0x34c..0x37c
+    memcpy(node->unit_state + 0x78, &unit_ext->seat_acceleration_last_position, 0x30);           // unit 0x34c..0x37c
     *(uint32_t *)(node->unit_state + 0xa8) = biped_ext->flags;
-    node->unit_state[0xac] = biped_ext->unknown_503;
-    node->unit_state[0xad] = biped_ext->unknown_501;
-    node->unit_state[0xae] = biped_ext->unknown_502;
-    node->unit_state[0xaf] = biped_ext->unknown_504;
-    *(int16_t *)(node->unit_state + 0xb0) = biped_ext->unknown_508; // 0xb2..0xb3 left uninitialized
+    node->unit_state[0xac] = biped_ext->stop_moving_ticks;
+    node->unit_state[0xad] = biped_ext->airborne_ticks;
+    node->unit_state[0xae] = biped_ext->slipping_ticks;
+    node->unit_state[0xaf] = biped_ext->jump_ticks;
+    *(int16_t *)(node->unit_state + 0xb0) = biped_ext->landing_type; // 0xb2..0xb3 left uninitialized
     *(float *)(node->unit_state + 0xb4) = biped_ext->crouch_fraction;
     *(real_vector3d *)(node->unit_state + 0xb8) = biped_ext->ground_normal;
-    *(uint32_t *)(node->unit_state + 0xc4) = biped_ext->unknown_520;
-    node->unit_state[0xc8] = biped_ext->unknown_4d0;
-    node->unit_state[0xc9] = biped_ext->unknown_4d1;
+    *(uint32_t *)(node->unit_state + 0xc4) = biped_ext->ground_plane_distance;
+    node->unit_state[0xc8] = biped_ext->landing_ticks;
+    node->unit_state[0xc9] = biped_ext->landing_duration_ticks;
     node->unit_state[0xca] = biped_ext->movement_state; // 0xcb left uninitialized
     *(datum_index *)(node->unit_state + 0xcc) = biped_ext->ground_surface_index;
 
@@ -140,8 +140,8 @@ uint8_t player_update_history_add(datum_index unit_index, player_update_history 
         *(real_vector3d *)(node->vehicle_state + 0x18) = vehicle_obj->angular_velocity;
         memcpy(node->vehicle_state + 0x24, (uint8_t *)vehicle_obj + 0x04, 0x1f0); // rest of object
         vehicle_ext = (unit_data *)((uint8_t *)vehicle_obj + 0x1f4);
-        *(float *)(node->vehicle_state + 0x214) = vehicle_ext->unknown_338;
-        *(float *)(node->vehicle_state + 0x218) = vehicle_ext->unknown_33c;
+        *(float *)(node->vehicle_state + 0x214) = vehicle_ext->driver_seat_power;
+        *(float *)(node->vehicle_state + 0x218) = vehicle_ext->gunner_seat_power;
         *(uint32_t *)(node->vehicle_state + 0x21c) = 0;
         memcpy(node->vehicle_state + 0x220, (uint8_t *)vehicle_obj + 0x4cc, 0xf4); // vehicle_data
     } else {

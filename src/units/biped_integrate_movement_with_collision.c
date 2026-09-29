@@ -164,12 +164,12 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
     solve.sine_uphill_cutoff_angle = tag->sine_uphill_cutoff_angle;
     solve.uphill_velocity_scale = tag->uphill_velocity_scale;
     solve.ground_normal = biped->ground_normal;
-    solve.ground_plane = biped->unknown_520;
+    solve.ground_plane = biped->ground_plane_distance;
     solve.ground_surface_index = biped->ground_surface_index;
     solve.unknown_5c = 3.4028235e+38f;   // FLT_MAX
     solve.unknown_60 = 0.0f;
 
-    if (biped->unknown_508 == 1) {
+    if (biped->landing_type == 1) {
         solve.movement_delta.i = 0.0f;
         solve.movement_delta.j = 0.0f;
         solve.movement_delta.k = 0.0f;
@@ -186,7 +186,7 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
     if ((biped_flags & 0x00000004) == 0 ||                              // "flying"
         (obj->vitality_flags & _object_health_frozen_bit) != 0) {
         if (unit->throttle.i != 0.0f || unit->throttle.j != 0.0f || unit->throttle.k != 0.0f) {
-            uint8_t hurt = (0.2f < unit->unknown_424);
+            uint8_t hurt = (0.2f < unit->stun);
             if (0.0f < ((Unit *)tag)->stunned_movement_threshold &&
                 ((Unit *)tag)->stunned_movement_threshold < obj->recent_body_damage) {
                 hurt = 1;
@@ -315,7 +315,7 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
                 player_speed_scale = *(float *)((uint8_t *)player_data->data +
                                                 (unit->controlling_player & 0xffff) * 0x200 + 0x6c);
             }
-            speed_scale = (1.0f - player_info->stun_movement_penalty * unit->unknown_424) *
+            speed_scale = (1.0f - player_info->stun_movement_penalty * unit->stun) *
                           player_speed_scale * speed_scale;
 
             stand_weight = 1.0f - biped->crouch_fraction;
@@ -387,7 +387,7 @@ void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *stat
     }
 
     // A grounded AI actor that has only just landed gets a much tighter step allowance.
-    if ((biped->flags & 1) != 0 && biped->unknown_501 < 0x16 &&
+    if ((biped->flags & 1) != 0 && biped->airborne_ticks < 0x16 &&
         unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
         solve.unknown_5c = 0.1f;
         solve.unknown_60 = 0.5f;
@@ -451,13 +451,13 @@ step_crouch:
 
     // The last supporting surface is remembered for 60 ticks after leaving the ground.
     if (solve.result_surface_index == k_datum_index_none) {
-        if (biped->unknown_4d3 < 1) {
+        if (biped->last_ground_object_ticks < 1) {
             biped->last_ground_object_index = k_datum_index_none;
         } else {
-            biped->unknown_4d3 = biped->unknown_4d3 - 1;
+            biped->last_ground_object_ticks = biped->last_ground_object_ticks - 1;
         }
     } else {
-        biped->unknown_4d3 = 0x3c;
+        biped->last_ground_object_ticks = 0x3c;
         biped->last_ground_object_index = solve.result_surface_index;
     }
 
@@ -487,11 +487,11 @@ step_crouch:
 
         result_flags = solve.result_flags;
         obj->velocity = solve.result_velocity;
-        biped->unknown_4e0.x = final_position.x;
+        biped->cached_ground_point.x = final_position.x;
         biped->ground_surface_index = solve.result_ground_surface_index;
-        biped->unknown_4e0.y = final_position.y;
-        biped->unknown_4dc = k_datum_index_none;
-        biped->unknown_4e0.z = final_position.z;
+        biped->cached_ground_point.y = final_position.y;
+        biped->cached_ground_surface_index = k_datum_index_none;
+        biped->cached_ground_point.z = final_position.z;
     }
 
     if (state[1] == 0 && (solve.result_flags & _biped_movement_result_landed) != 0) {
@@ -509,7 +509,7 @@ step_crouch:
                        : (biped->flags | 0x10);
 
     biped->ground_normal = solve.ground_normal;
-    biped->unknown_520 = solve.ground_plane;
+    biped->ground_plane_distance = solve.ground_plane;
 
     if (0.0f < solve.result_impact_speed) {
         biped_update_animation_frame_trigger(solve.result_impact_speed, (uint8_t *)tag, obj);

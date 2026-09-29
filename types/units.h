@@ -394,7 +394,9 @@ typedef struct unit_data {
     datum_index swarm_next_unit_index;  // 0x1fc never read in this module; the only dword
                                         //       left between the two actor handles and the
                                         //       flags word
-    uint32_t unknown_200;               // 0x200 untouched here (the 0x200 accesses in the
+    uint32_t swarm_previous_unit_index; // 0x200 back-link of the swarm unit list whose forward link is 0x1fc
+                                        //    (actor_link_to_unit_cluster 0x4279f0 / actor_remove_from_unit_cluster
+                                        //    0x427c90); -1 at unit_new
                                         //       melee and drop paths are on the *item* being
                                         //       dropped, not on the unit)
     uint32_t flags;                     // 0x204 unit_flags
@@ -403,19 +405,25 @@ typedef struct unit_data {
     int16_t update_tick_counter;        // 0x20c unit_update increments it every tick and
                                         //       resets it when this unit wins the staggered
                                         //       expensive-update slot
-    int8_t unknown_20e;                 // 0x20e
-    int8_t unknown_20f;                 // 0x20f -1 when unset; 0x565420 sign-extends it into
+    int8_t shield_sapping;              // 0x20e function input 7 (shield sapping) = 1 - x/90 in
+                                        //    unit_update_scale_function_inputs (0x563860)
+    int8_t scripted_base_animation_state; // 0x20f hs unit_set_seat (0x47c260) stores it; used instead of the computed
+                                          //    base state unless -1
                                         //       a seat / animation index
-    int32_t unknown_210;                // 0x210 set by 0x563b20, counted down by unit_update
-    uint32_t unknown_214;               // 0x214 set by 0x563b20; ORed into control_flags and
+    int32_t persistent_control_ticks;   // 0x210 unit_set_control_countdown (0x563b20): while > 0 unit_update ORs
+                                        //    persistent_control_flags into the controls, and clears them at 0
+    uint32_t persistent_control_flags;  // 0x214 the control bits held (the actor death "fire wildly" path uses 0x800,
+                                        //    primary trigger)
                                         //       tested for bit 0x800 by unit_update
     datum_index controlling_player;     // 0x218 indexes the player data_array at 0x0087a480
                                         //       (stride 0x200, unit handle at +0x34)
-    int16_t unknown_21c;                // 0x21c
+    int16_t ai_stimulus_type;           // 0x21c ai_refresh_unit_stimulus_and_alert (0x42c2a0): re-alerts nearby
+                                        //    actors only for a higher stimulus (weapon fire 1, hurt scream 2) or
+                                        //    after 30 ticks
     int16_t emotion_animation_index;    // 0x21e unit_scripting_set_emotion_animation writes
                                         //       the model region index it looked up here;
                                         //       0x563b50 prefers it over the graph default
-    uint32_t unknown_220;               // 0x220
+    uint32_t ai_stimulus_tick;          // 0x220 game time stamped with ai_stimulus_type
     real_vector3d desired_facing_vector;// 0x224 unit_control_data.facing_vector
     real_vector3d desired_aiming_vector;// 0x230 unit_control_data.aiming_vector
     real_vector3d aiming_vector;        // 0x23c the current aim; 0x5696f0 returns it and
@@ -430,9 +438,12 @@ typedef struct unit_data {
     int8_t melee_state;                 // 0x289 unit_melee_state
     int8_t melee_damage_countdown;      // 0x28a 0x56fc80 and 0x56fd40 reload it with 10 and
                                         //       tick it down between melee damage pulses
-    int8_t unknown_28b;                 // 0x28b countdown; 0x5705a0 seeds it with a random
+    int8_t flaming_ticks;               // 0x28b 60 + rand(90) when an AI is set on fire (0x5705a0); unit_update
+                                        //    counts it down and applies the flaming-death damage at 0 (0x570720);
+                                        //    forces base state 5 (flaming)
                                         //       stun duration, unit_update decrements it
-    int8_t unknown_28c;                 // 0x28c countdown decremented by unit_update; both
+    int8_t delayed_weapon_drop_ticks;   // 0x28c counted down by unit_update, which drops the current weapon at 0 (set
+                                        //    by the actor death path 0x428ab0)
                                         //       seat-teardown paths require it to be 0
     int8_t throwing_grenade_state;      // 0x28d unit_throwing_grenade_state
     int16_t throwing_grenade_counter;   // 0x28e unit_begin_throw_grenade zeroes it,
@@ -443,11 +454,13 @@ typedef struct unit_data {
     datum_index throwing_grenade_projectile; // 0x294 the grenade object attached to the hand,
                                         //       -1 once released
     uint16_t animation_state_flags;     // 0x298 unit_animation_state_flags
-    int16_t animation_instance;         // 0x29a the animation instance
+    int16_t aiming_animation_index;     // 0x29a the aiming animation, blended with the aiming screen by 0x563b50
+                                        //    (paired with looking_animation_index)
                                         //       unit_try_set_animation_state allocated, -1
                                         //       when none; 0x563b50 needs it before it will
                                         //       blend the aiming overlay
-    int16_t unknown_29c;                // 0x29c -1 when unset; 0x563b50 requires it for the
+    int16_t looking_animation_index;    // 0x29c the "look" unit animation permutation (unit_try_set_animation_state),
+                                        //    blended by the looking vector (0x563b50); -1 none
                                         //       seat / turret overlay
     int16_t unknown_29e;                // 0x29e
     int8_t animation_definition_index;  // 0x2a0 index into the unit block of the animation graph
@@ -458,9 +471,10 @@ typedef struct unit_data {
     int8_t animation_weapon_type_index; // 0x2a2 index into the types of that weapon at +0xb4,
                                         //       stride 0x3c
     int8_t animation_state;             // 0x2a3 unit_animation_state
-    int8_t unknown_2a4;                 // 0x2a4 0x563b50 refuses the aiming overlay unless
+    int8_t replacement_animation_state; // 0x2a4 overlay slot 0 command (0x565e00): 1 disarm, 2 drop, 3 ready, 4 put
+                                        //    away, 5/6 reload, 7 melee, 8 throw grenade, 9 overheat
                                         //       this is 0; 0x565420 clears it
-    int8_t unknown_2a5;                 // 0x2a5 0x566410 raises it to the command it started
+    int8_t overlay_animation_state;     // 0x2a5 overlay slot 1 command (0x566410): fire / charged / chamber
     int8_t seat_command;                // 0x2a6 unit_control_data.animation_state
     int8_t base_animation_state;        // 0x2a7 unit_base_animation_state
     int8_t emotion_animation_frame;     // 0x2a8 -1 when idle; 0x563b50 plays the emotion
@@ -479,7 +493,8 @@ typedef struct unit_data {
                                         //       / 0.114 luma of the sampled lighting, or the
                                         //       value of the parent when attached
     float attached_light_luminosity;    // 0x2e4 object_sum_attached_light_luminance result
-    float animation_blend_weight;       // 0x2e8 0x563b50 blends animation 10 of the graph
+    float mouth_aperture;               // 0x2e8 function input 4 (mouth aperture); blends the "talk" animation
+                                        //    (0x563b50); decays 0.1 per tick
                                         //       unit block by it; unit_update decays it
                                         //       toward 0 each tick
     uint32_t unknown_2ec;               // 0x2ec
@@ -502,9 +517,11 @@ typedef struct unit_data {
     int8_t zoom_level;                  // 0x320 -1 when not zoomed
     int8_t desired_zoom_level;          // 0x321 unit_control_data.zoom_level; 0x5659c0 and
                                         //       0x565a70 force it back to -1
-    int8_t unknown_322;                 // 0x322 tick counter clamped at 0x7f, reset by
+    int8_t weapon_control_idle_ticks;   // 0x322 0 while any weapon control (0x7c00) is held, else counts up to 0x7f
+                                        //    (unit_evaluate_flee_reaction wants > 120)
                                         //       unit_update; 0x55e2d0 flees above 120
-    int8_t unknown_323;                 // 0x323 written by unit_update from the same block
+    int8_t aiming_change;               // 0x323 clamp(aim angle change / (aiming_velocity_maximum / 30)) * 255;
+                                        //    function input 3 (aiming change)
     datum_index driver_unit_index;      // 0x324 the child object in the first tracked seat;
                                         //       0x56ce30 recomputes it and unit_update copies
                                         //       the control input of this occupant into itself
@@ -512,37 +529,48 @@ typedef struct unit_data {
     datum_index last_parent_object_index; // 0x32c the object this unit was last seated in,
                                         //       recorded by every detach path
     int32_t last_seat_change_tick;      // 0x330 game time at that detach
-    int16_t unknown_334;                // 0x334
-    int16_t unknown_336;                // 0x336 copied from the UnitSeat record at +0x3a when
+    int16_t encounter_index;            // 0x334 the actor's encounter, kept on the unit (copied at death,
+                                        //    ai_unit_set_squad_reference 0x435750); -1 none
+    int16_t squad_index;                // 0x336 the squad within encounter_index
                                         //       the unit leaves the seat (0x568610, 0x568cb0)
-    float unknown_338;                  // 0x338 a 0..1 scalar the vehicle lean, thruster and
+    float driver_seat_power;            // 0x338 powered seat 0: ramps up by 1/(driver_powerup_time*30) while the seat
+                                        //    has a driver, down by the powerdown time; function input 1
                                         //       ground-effect routines all multiply by
-    float unknown_33c;                  // 0x33c vehicle_update tests it against 0 with bit 8
-    float unknown_340;                  // 0x340 0..1 ramp, unit_update steps it by 1/24 down
+    float gunner_seat_power;            // 0x33c powered seat 1, the same for the gunner; function input 2
+    float integrated_light_power;       // 0x340 +1/6 per tick while the flashlight flag (0x80000) is set, else -1/24;
+                                        //    function input 5
                                         //       and 1/6 up
-    float unknown_344;                  // 0x344 0..1; unit_update steps it by 1/900 up and
+    float integrated_light_energy;      // 0x344 1.0 at unit_new; drains 1/3600 per tick while the light is on,
+                                        //    recharges 1/900; the light goes off at 0
                                         //       1/3600 down; packed into the network update
-    float unknown_348;                  // 0x348 0..1 ramp, 1/24 down and 1/12 up; zeroed by
+    float integrated_night_vision_power; // 0x348 +1/12 / -1/24 on unit flag 0x4000000 (night vision)
                                         //       0x5659c0 and 0x565a70
-    real_point3d unknown_34c;           // 0x34c cached look reference point; 0x56e820 diffs it
+    real_point3d seat_acceleration_last_position; // 0x34c 0x56e820 second-differences the (parent) position against
+                                                  //    this and the last velocity for the seat acceleration animation
+                                                  //    controls
                                         //       frame to frame and 0x570cb0 shifts it by the
                                         //       movement delta of the parent
-    real_vector3d unknown_358;          // 0x358 the delta of that point on the previous frame
+    real_vector3d seat_acceleration_last_velocity; // 0x358 the previous tick's position delta (0x56e820)
     float animation_controls_smoothed[3]; // 0x364 unit_update runs 0.7 * old + 0.3 * new;
                                         //       0x563b50 drives three graph animations by them
     float animation_controls[3];        // 0x370 the raw 0..1 values 0x56e820 computes
-    float unknown_37c;                  // 0x37c 0..1, stepped by 1/120 in unit_update and
+    float active_camouflage_power;      // 0x37c ramps by 1/120 (or the weapon's regrowth rate) while unit flag 0x10
+                                        //    is set; damage and firing drain it; drawn as the camouflage effect while
+                                        //    > 0
                                         //       reduced by damage in 0x5674a0
-    float unknown_380;                  // 0x380 0..1, stepped by 1/90 in unit_update
+    float super_active_camouflage_power; // 0x380 ramps 1/90 on unit flag 0x20 (actor variant super active camouflage)
     datum_index dialogue_tag_index;     // 0x384 the unit_dialogue tag 0x560d00 walks
                                         //       (records of stride 0x10 at tag data + 0x1c)
     unit_speech current_speech;         // 0x388 the line being played
     unit_speech pending_speech;         // 0x3b8 the line queued behind it; 0x561620 promotes
                                         //       it through 0x560f20 when the current one ends
-    int16_t unknown_3e8;                // 0x3e8 countdown reloaded with 0x16 by 0x561620
-    int16_t unknown_3ea;                // 0x3ea decremented each time 0x3e8 expires
-    int16_t unknown_3ec;                // 0x3ec countdown, 0x561140 reloads it with 0x1e
-    int16_t unknown_3ee;                // 0x3ee countdown, 0x561140 reloads it with 0x3c
+    int16_t minor_hurt_speech_decay_ticks; // 0x3e8 22 after a low-damage hurt line (0x561140); 0x561620 counts it
+                                           //    down and takes one off minor_hurt_speech_count
+    int16_t minor_hurt_speech_count;    // 0x3ea low-damage hurt lines recently spoken; another is refused above 2
+    int16_t minor_hurt_speech_delay_ticks; // 0x3ec 30 after a low-damage line; must be 0 for the next
+    int16_t major_hurt_speech_delay_ticks; // 0x3ee 60 after a high-damage line; blocks non-scripted lines while set
+                                           //    (nothing in the rewrite counts it down: 0x561620 decrements 0x3ec
+                                           //    twice)
     uint32_t unknown_3f0;               // 0x3f0 0x560d00 returns it to its caller unchanged
     int8_t speech_started;              // 0x3f4 0x561620 sets it once the sound was started
     int8_t speech_lipsync_stopped;      // 0x3f5 set once the lipsync countdown hit 0
@@ -555,42 +583,54 @@ typedef struct unit_data {
     int16_t speech_lipsync_ticks;       // 0x3fc loaded from unit_speech.lipsync_ticks
     int16_t speech_tail_ticks;          // 0x3fe loaded from unit_speech.tail_ticks
     datum_index speech_sound_handle;    // 0x400 the handle 0x00543ce0 returned, -1 when idle
-    int16_t unknown_404;                // 0x404 passed as the second argument of 0x0042be40
-    int16_t unknown_406;                // 0x406 countdown; 0x5674a0 reloads it with 0x2d
-    float unknown_408;                  // 0x408 damage accumulator, raised by 0x5674a0 and
+    int16_t delayed_damage_category;    // 0x404 DamageEffect category; unit_update hands it to
+                                        //    actor_react_to_threat_event when delayed_damage_ticks expires
+    int16_t delayed_damage_ticks;       // 0x406 45 on each local damage
+    float delayed_damage_amount;        // 0x408 the peak recent body + shield damage in the window
                                         //       consumed by unit_update
-    datum_index unknown_40c;            // 0x40c the object 0x5674a0 recorded as responsible
-    int32_t unknown_410;                // 0x410 stored by 0x5705a0, read back by 0x570720
+    datum_index delayed_damage_responsible_object; // 0x40c the damage's responsible object, forgotten by
+                                                   //    unit_forget_object_reference
+    int32_t flaming_responsible_object; // 0x410 the killer when the flaming state starts (0x5705a0); source of the
+                                        //    flaming-death damage
     float idle_turn_angle;              // 0x414 0x570650 seeds it from the current heading
                                         //       plus a random offset, 0x570840 wanders it
     float idle_turn_offset;             // 0x418 the second, tighter angle of the wander
-    int32_t unknown_41c;                // 0x41c game tick stamp taken by 0x562030 and by both
+    int32_t death_time;                 // 0x41c game time of death (unit_release_transient_state paths, 0x562030); -1
+                                        //    alive
                                         //       seat-teardown paths
-    int16_t unknown_420;                // 0x420 countdown, unit_update fires on the 0 edge
-    int16_t unknown_422;                // 0x422 unit_update checks it against the network
+    int16_t feign_death_ticks;          // 0x420 (rand + Unit feign_death_time) * 30 when a feign-capable unit takes
+                                        //    enough damage; the unit stands up at 0; the AI treats a dead unit with
+                                        //    it set as not dead
+    int16_t active_camouflage_regrowth; // 0x422 1 after firing drains the camouflage: the weapon's regrowth rate
+                                        //    applies until the power is back to 1
                                         //       predicted-state flag
-    float unknown_424;                  // 0x424 0..1 stun meter; 0x5674a0 raises it and
+    float stun;                         // 0x424 raised by DamageEffect stun up to its maximum; movement, jump and
+                                        //    input scale by 1 - penalty * stun; zeroed when stun_ticks expires
                                         //       unit_update and the movement solvers scale
                                         //       velocity by 1 - stun_movement_penalty * this.
                                         //       Confirmed: both integrators multiply it by
                                         //       GlobalsPlayerInformation.stun_movement_penalty
                                         //       (tag +0x80 of the block at globals + 0x174)
-    int16_t unknown_428;                // 0x428 countdown, raised by 0x5674a0
+    int16_t stun_ticks;                 // 0x428 DamageEffect stun time * 30, clamped
     int16_t ai_communication_count;     // 0x42a 0x568230 counts hits and broadcasts once the
                                         //       count reaches 3 (5 for a player)
     int32_t ai_communication_tick;      // 0x42c tick of the last hit; the count resets after
                                         //       0x78 ticks
     unit_recent_damage recent_damage[4];// 0x430 the four-slot damage cache
     uint32_t unknown_470;               // 0x470
-    int8_t unknown_474;                 // 0x474 set when the incoming control word carried
+    int8_t network_update_forced;       // 0x474 set on the server for trigger / grenade controls and by
+                                        //    unit_detach_reposition_and_nudge; cleared by both network update
+                                        //    encoders
                                         //       bits 0x2800, cleared once the delta is sent
     int8_t unknown_475;                 // 0x475 set by the network create and update paths
                                         //       and by the scripted spawn
     int8_t unknown_476[2];              // 0x476 alignment
     unit_control_data saved_control;    // 0x478 the server-side copy 0x5639f0 block-moves
-    int8_t unknown_4b8;                 // 0x4b8 1 when unknown_4bc holds a valid value
+    int8_t control_update_id_valid;     // 0x4b8 unit_apply_control_block: 1 with a source update id;
+                                        //    game_engine_server_update_player_positions consumes it
     int8_t unknown_4b9[3];              // 0x4b9 alignment
-    int32_t unknown_4bc;                // 0x4bc the source identifier of the control record;
+    int32_t control_update_id;          // 0x4bc the network update id of the control record; the queued position with
+                                        //    this tick is applied
                                         //       unit_update reads it back
     uint8_t unknown_4c0[12];            // 0x4c0 untouched by this module
 } unit_data;                            // size 0x2d8 (object 0x1f4 .. 0x4cc)
@@ -645,13 +685,16 @@ typedef struct biped_data {
                                         //       the 0x55bea0 landing latch, bit 5 (0x20) =
                                         //       the ground-adjust dirty bit 0x55ad00 sets
                                         //       and 0x55ad70 clears
-    int8_t unknown_4d0;                 // 0x4d0 frame counter 0x55eb90 advances
-    int8_t unknown_4d1;                 // 0x4d1 the frame count it is compared against,
+    int8_t landing_ticks;               // 0x4d0 0 on landing (0x55eaa0), +1 per landing tick (0x55eb90) until
+                                        //    landing_duration_ticks
+    int8_t landing_duration_ticks;      // 0x4d1 impact speed against Biped soft / hard landing velocities, scaled
+                                        //    into the landing times * 30
                                         //       loaded by 0x55eaa0
     int8_t movement_state;              // 0x4d2 biped_update maps the animation state onto
                                         //       0 (standing), 1 (moving) or 2 (other);
                                         //       unit_update_facing and 0x560410 branch on it
-    int8_t unknown_4d3;                 // 0x4d3 countdown reloaded with 0x3c (60 ticks) by the
+    int8_t last_ground_object_ticks;    // 0x4d3 60 while the solver reports a supporting object, counts down
+                                        //    otherwise; last_ground_object_index clears at 0
                                         //       movement solvers every tick that
                                         //       last_ground_object_index is refreshed
     datum_index last_ground_object_index; // 0x4d4 the object the biped last stood on, as the
@@ -665,36 +708,49 @@ typedef struct biped_data {
     datum_index ground_surface_index;   // 0x4d8 the supporting surface 0x560630 found, -1
                                         //       when airborne; 0x560800 refuses to level the
                                         //       up-vector without it
-    datum_index unknown_4dc;            // 0x4dc -1 when unset; 0x55ab30 uses it as the cached
+    datum_index cached_ground_surface_index; // 0x4dc bsp surface under the biped (0x55ab30, not a datum); reset to -1
+                                             //    every tick by the integrators
                                         //       look-at result
-    real_point3d unknown_4e0;           // 0x4e0 the cached look-at point 0x55ab30 refreshes
-    int32_t unknown_4ec;                // 0x4ec game tick that cache was last refreshed
-    datum_index unknown_4f0;            // 0x4f0 the previous value of unknown_4dc
+    real_point3d cached_ground_point;   // 0x4e0 the point on that surface under the biped; AI target code uses it as
+                                        //    the ground position
+    int32_t cached_ground_point_tick;   // 0x4ec 0x55ab30 refreshes the cache at most once per game tick
+    datum_index last_ground_surface_index; // 0x4f0 last valid cached_ground_surface_index, retried while the point
+                                           //    still projects inside it
     datum_index melee_target_index;     // 0x4f4 the object 0x55cfd0 hands to 0x56ff40 when
                                         //       melee_state is 3
-    int32_t unknown_4f8;                // 0x4f8 tick stamp; 0x55e190 and 0x55e2d0 rate-limit
+    int32_t last_falling_reaction_tick; // 0x4f8 the evade / airborne-vehicle flee reactions stamp it and wait 15
+                                        //    ticks
                                         //       their reactions to once every 15 ticks
-    datum_index unknown_4fc;            // 0x4fc the target 0x55e0a0 is tracking
-    int8_t unknown_500;                 // 0x500 how many ticks that target has been held;
+    datum_index bump_object_index;      // 0x4fc the object the biped ran into (0x55e0a0); with the bump possession
+                                        //    cheat the local player takes it over after 3 ticks
+    int8_t bump_ticks;                  // 0x500 ticks the same bump object has been touched; -15 as the cooldown
+                                        //    after a possession
                                         //       0x55e0a0 saturates it at 0xf1
-    int8_t unknown_501;                 // 0x501 ticks in the current grounded state, clamped
+    int8_t airborne_ticks;              // 0x501 +1 per airborne tick up to 0x7f, 0 on the ground
+                                        //    (unit_predict_movement_delta)
                                         //       at 0x7f by biped_update
-    int8_t unknown_502;                 // 0x502 the same counter for the second flag bit
-    int8_t unknown_503;                 // 0x503 latch 0x560410 toggles at the seat angle limit
-    int8_t unknown_504;                 // 0x504 ticks without a target lock (0x55ec90)
-    int8_t unknown_505;                 // 0x505 biped_update decays it by a quarter each tick
-    int8_t unknown_506;                 // 0x506 the value unknown_505 is compared against
+    int8_t slipping_ticks;              // 0x502 the same counter for movement flag bit 1 (slipping: the change
+                                        //    exceeded maximum_acceleration)
+    int8_t stop_moving_ticks;           // 0x503 0x560410: 1 when movement starts to stop, counts up while standing
+                                        //    and fires footstep trigger 3 at 4
+    int8_t jump_ticks;                  // 0x504 ticks on the ground since the last jump (0x55ec90); a jump (0x55ecf0)
+                                        //    needs > 5
+    int8_t melee_ticks;                 // 0x505 3/4 of the weapon's first-person melee animation on a melee, counts
+                                        //    down; weapon control 0x10 while > 0
+    int8_t melee_inflict_tick;          // 0x506 melee_ticks value at which unit_melee_attack_scan runs
     int8_t unknown_507;                 // 0x507 alignment
-    int16_t unknown_508;                // 0x508 0x55eaa0 stores a 0/1 comparison result here
+    int16_t landing_type;               // 0x508 0 soft, 1 hard, -1 none (0x55eaa0); a hard landing blocks jumping
                                         //       and 0x55eb90 turns it into a trigger id
     int16_t unknown_50a;                // 0x50a
     float crouch_fraction;              // 0x50c 0..1; the movement solvers step it by the
                                         //       crouch_camera_velocity of the Biped tag (0x4cc),
                                         //       unit_get_camera_position and 0x55a2e0 blend
                                         //       the standing and crouching heights with it
-    float unknown_510;                  // 0x510 angle; 0x560800 takes its cos and sin
+    float bank_angle;                   // 0x510 steps toward throttle * Biped bank_angle; unit_update_up_vector
+                                        //    rotates the up vector by it
     real_vector3d ground_normal;        // 0x514 the supporting plane normal 0x560630 caches
-    uint32_t unknown_520;               // 0x520 written by 0x560630 alongside the normal
+    uint32_t ground_plane_distance;     // 0x520 the d of the ground plane whose normal is ground_normal (the solver's
+                                        //    plane.d)
     uint8_t ground_adjust_iteration;    // 0x524 0x557a90 increments it up to 0x7f
     uint8_t ground_adjust_iteration_limit; // 0x525 0x55ad00 seeds it with 0x14; the solver
                                         //       stops once the iteration reaches it

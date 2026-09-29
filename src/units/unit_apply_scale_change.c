@@ -77,7 +77,7 @@ void unit_apply_scale_change(uint32_t unit_index, unit_scale_request *request) /
             unit->flags = unit->flags | _unit_flag_unknown_200;
             obj->animation_frame = (int16_t)((remaining < 0) ? 0 : remaining);
             obj->flags = obj->flags | _object_unknown_20000_bit;
-            unit->unknown_41c = game_time->game_time;
+            unit->death_time = game_time->game_time;
             obj->body_vitality = 0.0f;
             obj->shield_vitality = 0.0f;
             object_set_shield_depleted_flag(unit_index); // EDI = the unit

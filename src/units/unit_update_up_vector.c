@@ -65,8 +65,8 @@ void unit_update_up_vector(Biped *biped_tag, object *obj)
             up0 = *global_forward3d_pointer;
             side = *global_left3d_pointer;
         }
-        c = (float)cos((double)biped->unknown_510);
-        s = (float)sin((double)biped->unknown_510);
+        c = (float)cos((double)biped->bank_angle);
+        s = (float)sin((double)biped->bank_angle);
         up0.i *= c;
         up0.j *= c;
         up0.k *= c;

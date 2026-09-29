@@ -142,7 +142,7 @@ int32_t unit_submit_periodic_network_update(int32_t hash_key, uint32_t param_2, 
                 biped->network_delta_sequence = 0;
             }
         }
-        unit->unknown_474 = 0;
+        unit->network_update_forced = 0;
         (void)update_sequence;
         (void)is_delta;
         (void)timestamp_milliseconds;

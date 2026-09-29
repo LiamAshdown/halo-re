@@ -82,21 +82,21 @@ void unit_update_footstep_and_idle_triggers(uint32_t unit_index) // blam-cc: in_
 
 idle_timeout:
     if (biped->movement_state == 0) {
-        if (biped->unknown_503 < 1) {
+        if (biped->stop_moving_ticks < 1) {
             return;
         }
-        biped->unknown_503 = biped->unknown_503 + 1;
-        if (biped->unknown_503 < 4) {
+        biped->stop_moving_ticks = biped->stop_moving_ticks + 1;
+        if (biped->stop_moving_ticks < 4) {
             return;
         }
         unit_fire_animation_sound_trigger(unit_index, 3, 0);
         unit_fire_animation_sound_trigger(unit_index, 3, 1);
-        biped->unknown_503 = 0; // FIXED (0x56056d): the counter restarts after the idle trigger fires
+        biped->stop_moving_ticks = 0; // FIXED (0x56056d): the counter restarts after the idle trigger fires
     } else if (biped->movement_state == 1) {
-        biped->unknown_503 = 1;
+        biped->stop_moving_ticks = 1;
         return;
     } else {
-        biped->unknown_503 = 0;
+        biped->stop_moving_ticks = 0;
     }
 }
 

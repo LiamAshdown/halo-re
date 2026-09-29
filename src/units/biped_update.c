@@ -344,7 +344,7 @@ uint8_t biped_update(uint32_t object_index)
         biped_update_idle_basis(object_index, (uint8_t *)state);
     } else if ((obj[0x4cc] & 1) != 0) {
         biped_apply_idle_fidget(object_index, (uint8_t *)state);
-    } else if (((struct biped_object *)obj)->biped.unknown_508 != -1) {
+    } else if (((struct biped_object *)obj)->biped.landing_type != -1) {
         biped_advance_frame_counter_trigger(object_index, (char *)state);
     } else if ((obj[0x4cc] & 2) != 0) {
         biped_trigger_on_velocity_threshold(object_index);

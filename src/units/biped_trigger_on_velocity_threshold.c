@@ -25,7 +25,7 @@ void biped_trigger_on_velocity_threshold(uint32_t object_index)
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((int8_t)biped->unknown_502 > 3 &&
+    if ((int8_t)biped->slipping_ticks > 3 &&
         obj->velocity.i * obj->velocity.i + obj->velocity.j * obj->velocity.j +
                 obj->velocity.k * obj->velocity.k > 0.0011111111f &&
         unit_updates_suppressed == 0) {

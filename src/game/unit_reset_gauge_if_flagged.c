@@ -40,7 +40,7 @@ void unit_reset_gauge_if_flagged(uint32_t player_index)
     unit = (unit_data *)((uint8_t *)
         ((object_header *)object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
     if ((unit->flags & _unit_flag_unknown_10) != 0) {
-        unit->unknown_37c = 0.5f;
+        unit->active_camouflage_power = 0.5f;
     }
 }
 

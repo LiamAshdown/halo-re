@@ -51,13 +51,13 @@ void unit_evaluate_flee_reaction(uint32_t object_index)
 
     if ((*(uint8_t *)((uint8_t *)parent_tag + 0x17c) & 0x40) != 0 &&
         unit->actor_index != k_datum_index_none && unit->animation_state != 0x1d &&
-        (int8_t)unit->unknown_322 > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
-        (biped->unknown_4f8 == -1 ||
-         (int32_t)(biped->unknown_4f8 + 0xf) < game_time->game_time)) {
+        (int8_t)unit->weapon_control_idle_ticks > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
+        (biped->last_falling_reaction_tick == -1 ||
+         (int32_t)(biped->last_falling_reaction_tick + 0xf) < game_time->game_time)) {
         real_vector3d direction;
         real_vector3d normal;
 
-        biped->unknown_4f8 = game_time->game_time;
+        biped->last_falling_reaction_tick = game_time->game_time;
         // 0x55e37e: no ground within 8 below; then along the parent's velocity (per second, less 1800 g):
         // nothing there, or too steep (normal.k <= 0.3), and the rider screams 0x28
         if (unit_test_placement_candidate(object_index, global_down3d_pointer, 0, 8.0f, 0) == -1) {

@@ -46,7 +46,7 @@ uint32_t unit_snap_to_min_ground_height(uint32_t object_index)
     }
     jump_speed = *(float *)((uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data + 0x3b4);
     if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
-        jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * ((struct unit_object *)obj)->unit.unknown_424) *
+        jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * ((struct unit_object *)obj)->unit.stun) *
             jump_speed;
     }
     if (cheat_super_jump && ((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {

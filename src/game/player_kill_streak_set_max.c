@@ -33,7 +33,7 @@ void player_kill_streak_set_max(int16_t slot, uint32_t player_index, int16_t val
     if (*streak == 0 && slot == 0) {
         unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
         unit->flags = unit->flags | _unit_flag_unknown_10;
-        unit->unknown_422 = slot;
+        unit->active_camouflage_regrowth = slot;
     }
 
     if (*streak <= value) {

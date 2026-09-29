@@ -49,14 +49,14 @@ void biped_check_evade_reaction(uint32_t object_index)
 
     if ((obj->vitality_flags & 4) == 0 && (tag->biped_flags & 0x84) == 0 &&
         (unit->flags & 0x1000) == 0 && unit->actor_index != k_datum_index_none &&
-        unit->animation_state != 0x1d && (int8_t)biped->unknown_501 > 0x1e &&
-        (biped->unknown_4f8 == -1 ||
-         (int32_t)(biped->unknown_4f8 + 0xf) < game_time->game_time)) {
+        unit->animation_state != 0x1d && (int8_t)biped->airborne_ticks > 0x1e &&
+        (biped->last_falling_reaction_tick == -1 ||
+         (int32_t)(biped->last_falling_reaction_tick + 0xf) < game_time->game_time)) {
         void *table = (void *)global_globals->falling_damage.pointer;
         real_point3d ground;   // [esp+0x1c]
         real_point3d position; // [esp+0x10]
 
-        biped->unknown_4f8 = game_time->game_time;
+        biped->last_falling_reaction_tick = game_time->game_time;
         // 0x55e245: no ground within 6 below, or falling fast enough that the landing speed
         // (v^2 + 2 g h) reaches the globals' evade speed (+0x94): evade
         if (unit_test_placement_candidate(object_index, global_down3d_pointer, 0, 6.0f, &ground) == -1) {

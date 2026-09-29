@@ -106,7 +106,7 @@ void vehicle_calculate_ground_contact_lean_alt(uint32_t unit_index, void *out_re
     torque.j = (axis.j * per_tick - angular_velocity->j) * torque_scale;
     torque.k = (axis.k * per_tick - angular_velocity->k) * torque_scale;
 
-    throttle = ((struct vehicle_object *)obj)->unit.unknown_338;
+    throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
     *(real *)(powered + 0x18) = throttle;
     *(real *)(powered + 0x28) = 1.0f;
     *(real *)(powered + 0x1c) = 0.0f;

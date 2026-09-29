@@ -41,9 +41,9 @@ void unit_propagate_position_delta_to_children(real_point3d *new_position, uint3
         object *child_obj = ((object_header *)object_data->data)[child & 0xffff].data;
         if ((1 << (child_obj->type & 0x1f) & 3) != 0) {
             unit_data *child_unit = (unit_data *)((uint8_t *)child_obj + k_unit_data_offset);
-            child_unit->unknown_34c.x += delta.i;
-            child_unit->unknown_34c.y += delta.j;
-            child_unit->unknown_34c.z += delta.k;
+            child_unit->seat_acceleration_last_position.x += delta.i;
+            child_unit->seat_acceleration_last_position.y += delta.j;
+            child_unit->seat_acceleration_last_position.z += delta.k;
         }
         child = child_obj->next_object;
     }

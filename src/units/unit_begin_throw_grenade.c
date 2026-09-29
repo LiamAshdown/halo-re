@@ -69,7 +69,7 @@ uint8_t unit_begin_throw_grenade(uint32_t unit_index, const real_vector2d *direc
         if (biped_check != (object *)0) {
             *((uint8_t *)biped_check + 0x505) = 0; // UNSURE: biped-extension field, out of scope
         }
-        unit->unknown_2a4 = 0;
+        unit->replacement_animation_state = 0;
         unit->overlays[0].animation_index = -1;
 
         if (unit_try_set_animation_state(unit_index, 0x21) == 0) { // UNSURE: state value assumed = throwing_grenade

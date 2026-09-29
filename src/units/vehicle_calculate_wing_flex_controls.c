@@ -70,7 +70,7 @@ void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint
 
     for (i = 0; i < node_count; i++) {
         uint8_t *entry = node_output + i * 0x60;
-        *(float *)(entry + 0x18) = unit->unknown_338;
+        *(float *)(entry + 0x18) = unit->driver_seat_power;
         *(uint32_t *)(entry + 0x1c) = 0;
         *(uint32_t *)(entry + 0x20) = 0;
         *(uint32_t *)(entry + 0x24) = 0;
@@ -237,8 +237,8 @@ void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint
             }
         }
 
-        push.i *= unit->unknown_338; push.j *= unit->unknown_338; push.k *= unit->unknown_338;
-        angular.i *= unit->unknown_338; angular.j *= unit->unknown_338; angular.k *= unit->unknown_338;
+        push.i *= unit->driver_seat_power; push.j *= unit->driver_seat_power; push.k *= unit->driver_seat_power;
+        angular.i *= unit->driver_seat_power; angular.j *= unit->driver_seat_power; angular.k *= unit->driver_seat_power;
     }
 
     object_physics_tick(unit_index, node_output, contact_points, &push, &angular);
