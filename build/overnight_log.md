@@ -2760,3 +2760,4 @@ Start totals (live code): 7135 offsets, 896 Ghidra names, 74 Ghidra types.
 - iter 98 (effects): particle_system_particle 0x28 -> velocity (point_physics_tick integrates it in particle_update_physics_default). effects gcc failure set unchanged.
 - iter 99 (interface): first_person_weapon_interface frame_sound_impulse (0x1e98), frame_sound_state (0x1e9c). interface gcc failure set unchanged.
 - iter 100 (rasterizer): transparent_geometry_group base_map_u_scale (0x3c), base_map_v_scale (0x40), attached_sort_key (0xa0). rasterizer gcc failure set unchanged.
+- iter 101 (interface): widget_instance scroll_direction (0x54; -1/+1 from select_previous/next and video options gamma). Also: the earlier interface gate was vacuous (all 535 failed on __stdcall); bc.py now defines __stdcall/__cdecl away, all module baselines regenerated (interface 180 pre-existing fails, mostly missing libc headers), and the iter-99 renamed files compile under it.

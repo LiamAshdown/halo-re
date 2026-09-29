@@ -281,7 +281,7 @@ widget_instance (widget_open @0x497a70 allocates it from the widget heap, widget
 | `0x4a` | `int16_t` | `unknown_4a` |  |
 | `0x4c` | `struct widget_instance *` | `extended_description` | definition + 0x1b0, closed recursively |
 | `0x50` | `void *` | `list_render_data` | list types only, freed by widget_close |
-| `0x54` | `int16_t` | `unknown_54` | zeroed for spinner_list and column_list |
+| `0x54` | `int16_t` | `scroll_direction` | zeroed for spinner_list and column_list |
 | `0x56` | `int16_t` | `unknown_56` |  |
 | `0x58` | `int16_t` | `background_bitmap_frame` | 0 or 1, 1 marks the selected list_head child |
 | `0x5a` | `uint8_t` | `unknown_5a[4]` |  |

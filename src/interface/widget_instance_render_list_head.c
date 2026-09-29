@@ -14,7 +14,7 @@
 // functions in this batch; the translation below follows Ghidra's own pseudo-C control flow and
 // arithmetic closely, substituting header fields only where this session had already confirmed
 // them (list_header_bitmap/list_footer_bitmap/header_bounds/footer_bounds, extended_description,
-// scroll_blink, unknown_54), and leaves the remaining tag_data offsets (0x108 text_font.tag_id,
+// scroll_blink, scroll_direction), and leaves the remaining tag_data offsets (0x108 text_font.tag_id,
 // 0x110/0x114/0x118 a flash color, 0x11c justification, 0x11e a flags byte, 0x60/0x64 search_and_
 // replace_functions -- all consistent with this session's other text-drawing functions) and the
 // several FUN_ callees (widget_cursor_side_of_midpoint, ui_get_saved_color, ui_search_replace_function_call, string_convert_ascii_to_unicode) as raw offsets /
@@ -112,7 +112,7 @@ void widget_instance_render_list_head(widget_instance *widget, UIWidgetDefinitio
             scroll_dir_down = 1;
         }
     }
-    widget->unknown_54 = 0;
+    widget->scroll_direction = 0;
 
     // Scroll arrows, objdump 0x49b645..0x49b7ef. Each arrow bitmap (tag+0x160 header, tag+0x170
     // footer) is drawn with frame = the scroll direction flag, plus 2 while the cursor is over the
@@ -218,7 +218,7 @@ void widget_instance_render_list_head(widget_instance *widget, UIWidgetDefinitio
                 color.blue = rgb[2];
             }
             color.alpha = color.alpha * cumulative;
-            if (*(uint8_t *)&widget->unknown_54 != 0 || (t[0x11e] & 4) != 0) {
+            if (*(uint8_t *)&widget->scroll_direction != 0 || (t[0x11e] & 4) != 0) {
                 double td = (double)ui_time_milliseconds;
 
                 if (ui_time_milliseconds < 0) td += 4294967296.0;

@@ -100,7 +100,7 @@ typedef struct widget_instance {
     int16_t unknown_4a;                // 0x4a
     struct widget_instance *extended_description; // 0x4c definition + 0x1b0, closed recursively
     void *list_render_data;            // 0x50 list types only, freed by widget_close
-    int16_t unknown_54;                // 0x54 zeroed for spinner_list and column_list
+    int16_t scroll_direction;               // 0x54 -1 after select_previous, +1 after select_next, 0 when rendered; zeroed for spinner_list and column_list
     int16_t unknown_56;                // 0x56
     int16_t background_bitmap_frame;   // 0x58 0 or 1, 1 marks the selected list_head child
     uint8_t unknown_5a[4];             // 0x5a
@@ -109,7 +109,7 @@ typedef struct widget_instance {
 
 // A text_box reuses 0x44..0x53 as a ColorARGB text color override instead of the list
 // fields: widget_instance_render_text_box @0x49b1d0 reads four floats there and takes the
-// tag text color when the alpha at 0x44 is 0.0. The byte at 0x54 (low byte of unknown_54)
+// tag text color when the alpha at 0x44 is 0.0. The byte at 0x54 (low byte of scroll_direction)
 // makes the text pulse in both text renderers.
 // A list widget driven by the ui_lists builders (ui_list_widget_rebuild_rows @0x4a7db0,
 // ui_list_widget_compute_scroll_start @0x4a7d00) reuses the text slot at 0x3c as two int16

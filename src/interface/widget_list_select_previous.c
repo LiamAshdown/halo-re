@@ -49,7 +49,7 @@ uint8_t widget_list_select_previous(widget_instance *widget)
             widget_relink_focus_by_tag_id(widget, child->definition);
             widget->selection_index = prev_index;
             widget->scroll_blink = (int16_t)0xfff1;
-            widget->unknown_54 = 0xffff;
+            widget->scroll_direction = 0xffff;
             return 1;
         }
         if (widget->widget_type == 2) { // spinner_list
@@ -60,7 +60,7 @@ uint8_t widget_list_select_previous(widget_instance *widget)
             }
             widget->selection_index = prev_index;
             widget->scroll_blink = (int16_t)0xfff1;
-            widget->unknown_54 = 0xffff;
+            widget->scroll_direction = 0xffff;
             return 1;
         }
         goto commit;
@@ -71,7 +71,7 @@ uint8_t widget_list_select_previous(widget_instance *widget)
         if (widget->selection_index < 0) {
             widget->selection_index = widget->item_count - 1;
             widget->scroll_blink = (int16_t)0xfff1;
-            widget->unknown_54 = 0xffff;
+            widget->scroll_direction = 0xffff;
             return 1;
         }
         goto commit;
@@ -163,7 +163,7 @@ uint8_t widget_list_select_previous(widget_instance *widget)
 
 commit:
     widget->scroll_blink = (int16_t)0xfff1;
-    widget->unknown_54 = 0xffff;
+    widget->scroll_direction = 0xffff;
     return 1;
 }
 
