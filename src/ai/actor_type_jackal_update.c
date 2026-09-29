@@ -86,7 +86,7 @@ void actor_type_jackal_update(datum_index actor_index)
     case 6: // guard: an ambushing jackal (+0xa4, not +0xa5 / +0xa6) keeps its shield up while its damage (+0x1bc)
         // stays under the Actor tag's limit (+0x2e0 in combat, else +0x2e4), 30 more ticks at a time
         if (act[0xa4] && !act[0xa5] && !act[0xa6]) {
-            float limit = ((struct actor *)act)->unknown_6e >= 4 ? ((Actor *)actor_tag)->attack_shield_fraction : ((Actor *)actor_tag)->pursue_shield_fraction;
+            float limit = ((struct actor *)act)->alert_level >= 4 ? ((Actor *)actor_tag)->attack_shield_fraction : ((Actor *)actor_tag)->pursue_shield_fraction;
 
             if (limit > *(float *)(act + 0x1bc)) {
                 act[0xa4] = 1;

@@ -3,7 +3,7 @@
 // name confidence: 0.5   rewrite confidence: 0.6
 // evidence: the phase-2 name matches the code: it writes SI into actor.unknown_62 for every
 //   actor a packed ai reference names and, for members that have no pending burst
-//   (actor.unknown_6e == 0) and whose current mode's grade is 0, 1 or 2, re-requests the
+//   (actor.alert_level == 0) and whose current mode's grade is 0, 1 or 2, re-requests the
 //   default order through actor_process_order_request (0x409ea0, already rewritten).
 //   The grade comes from actor_mode_definitions[actor.mode].grade, the int16 at
 //   0x00655254 + mode * 0x38 + 4 that types/ai.h already documents.
@@ -45,7 +45,7 @@ void squad_members_assign_team_and_request_order(uint32_t packed_reference, int1
         grade = actor_mode_definitions[
             ((actor *)actor_data->data)[iterator.actor_index & 0xffff].mode].combat_grade;
         a->unknown_62 = value;
-        if (a->unknown_6e == 0 && (grade == 0 || grade == 1 || grade == 2)) {
+        if (a->alert_level == 0 && (grade == 0 || grade == 1 || grade == 2)) {
             actor_process_order_request(iterator.actor_index, 0xffffffff);
         }
         a = ai_reference_actor_iterator_next(&iterator);

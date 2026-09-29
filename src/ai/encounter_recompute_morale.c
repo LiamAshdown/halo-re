@@ -147,10 +147,10 @@ void encounter_recompute_morale(datum_index encounter_index)
         enc->unknown_2a = enc->unknown_2a + weight;
         enc->unknown_2c = enc->unknown_2c + (int16_t)((uint16_t)a->swarm * weight);
 
-        counts = (uint8_t)(a->awareness_level == 3 && a->unknown_72 < a->unknown_6e);
+        counts = (uint8_t)(a->awareness_level == 3 && a->unknown_72 < a->alert_level);
         enc->unknown_2e = enc->unknown_2e + (int16_t)((uint16_t)counts * weight);
 
-        engaged = (uint8_t)(6 < a->unknown_6e);
+        engaged = (uint8_t)(6 < a->alert_level);
         if (engaged != 0 && a->mode == 4 && 0 < *(int16_t *)(a->mode_data.raw + 0x0c)) { // actor + 0xa8 lies inside actor.mode_data.raw
             engaged = 0;
         }
@@ -171,7 +171,7 @@ void encounter_recompute_morale(datum_index encounter_index)
             if (a->unknown_8d != 0) {
                 any_flag_8d = 1;
             }
-            if (a->unknown_6e < 7) {
+            if (a->alert_level < 7) {
                 if (p->kind < 2 || 3 < p->kind) {
                     obj = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
                     counts = *((uint8_t *)obj + 0x106) & 4;

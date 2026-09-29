@@ -1,7 +1,7 @@
 // actor_queue_recognized_target_dialogue  (Ghidra: actor_queue_recognized_target_dialogue, renamed)
 // address 0x422550, size 556 bytes
 // name confidence: 0.4   rewrite confidence: 0.5
-// evidence: types/ai.h actor.awareness_level/vocalization_*/mode/mode_data/unknown_6e;
+// evidence: types/ai.h actor.awareness_level/vocalization_*/mode/mode_data/alert_level;
 //   prop.is_unit/is_vault/is_parented/unknown_54/58/5c; types/tags.h
 //   Actor.event_look_time_modifier[2] (0xd4/0xd8, shared with actor_queue_sighted_target_
 //   dialogue @0x421c20 and actor_queue_directional_reaction_event @0x422270). Same shape as
@@ -29,7 +29,7 @@ extern data_array *prop_data;       // 0x008802c0
 extern real random_real_range(real min, real max); // 0x401050
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680
 
-// Variant table paired with the two used elsewhere in this family; indexed by (unknown_6e>=4).
+// Variant table paired with the two used elsewhere in this family; indexed by (alert_level>=4).
 extern int16_t actor_dialogue_variant_table_c[]; // 0x0065563c
 
 // blam-cc: EAX -> actor_index, stack -> target_prop_index
@@ -64,7 +64,7 @@ void actor_queue_recognized_target_dialogue(datum_index actor_index, datum_index
             }
 
             {
-                float wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 1.4f : 0.7f;
+                float wait_scale = (self->awareness_level < 3 || self->alert_level == 0) ? 1.4f : 0.7f;
 
                 if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
                     float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
@@ -78,7 +78,7 @@ void actor_queue_recognized_target_dialogue(datum_index actor_index, datum_index
                 }
 
                 self->vocalization_state = (int16_t)ticks;
-                self->vocalization_variant = actor_dialogue_variant_table_c[self->unknown_6e >= 4];
+                self->vocalization_variant = actor_dialogue_variant_table_c[self->alert_level >= 4];
                 self->vocalization_line = 5;
                 self->vocalization_unknown_54c = 1; // kind = 1 (explicit target)
                 self->vocalization_unknown_550 = target_prop_index;

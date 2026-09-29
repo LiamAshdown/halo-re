@@ -33,7 +33,7 @@ uint8_t actor_escalate_check_weapon_range(datum_index actor_index)
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     uint8_t *definition = (uint8_t *)actor_get_actor_definition(actor_index);
 
-    if (*(datum_index *)&((struct actor *)act)->unknown_1b0 == k_datum_index_none || ((struct actor *)act)->unknown_6e < 5) {
+    if (*(datum_index *)&((struct actor *)act)->unknown_1b0 == k_datum_index_none || ((struct actor *)act)->alert_level < 5) {
         return 0;
     }
     if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) < *(float *)(definition + 0x16c))) {

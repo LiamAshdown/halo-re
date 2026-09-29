@@ -122,7 +122,7 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
             }
         } else {
             // kinds 0 / 1
-            kind = (int16_t)((actor_flags & 0x20000) && ((struct actor *)act)->unknown_6e >= 5 && !act[0x378]);
+            kind = (int16_t)((actor_flags & 0x20000) && ((struct actor *)act)->alert_level >= 5 && !act[0x378]);
             *(int16_t *)(md + 0x4) = kind;
             if (kind == 1) {
                 int16_t target_kind = *(int16_t *)(target + 0x38);

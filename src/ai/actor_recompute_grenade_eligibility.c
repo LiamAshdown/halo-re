@@ -36,7 +36,7 @@ void actor_recompute_grenade_eligibility(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
     uint8_t *definition = (uint8_t *)tag_instances[*(uint32_t *)&self->actor_definition_tag & 0xffff].data;
-    uint8_t eligible = (uint8_t)(self->awareness_level == 3 && self->unknown_6e > self->unknown_72);
+    uint8_t eligible = (uint8_t)(self->awareness_level == 3 && self->alert_level > self->unknown_72);
     int16_t base_ticks = 0;
     float minimum;
     float maximum;

@@ -79,7 +79,7 @@ void encounter_evaluate_support_needs(datum_index encounter_index, datum_index s
         if (not_self != 0 && a->unknown_1cc == phase) {
             if (a->mode == 5) {
                 if (*(int16_t *)(a->mode_data.raw + 8) == 0) { // actor + 0xa4, inside mode_data
-                    if (a->unknown_6e < 3) {
+                    if (a->alert_level < 3) {
                         mode5_count = mode5_count + 1;
                     }
                 } else {

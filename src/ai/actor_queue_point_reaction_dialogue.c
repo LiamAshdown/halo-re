@@ -1,7 +1,7 @@
 // actor_queue_point_reaction_dialogue  (Ghidra: actor_queue_point_reaction_dialogue, renamed)
 // address 0x422780, size 432 bytes
 // name confidence: 0.4   rewrite confidence: 0.5
-// evidence: types/ai.h actor.awareness_level/vocalization_*/mode/mode_data/unknown_6e/
+// evidence: types/ai.h actor.awareness_level/vocalization_*/mode/mode_data/alert_level/
 //   vocalization_unknown_3e8; types/tags.h Actor.event_look_time_modifier[2] (0xd4/0xd8),
 //   the same pair used by every sibling dialogue-queue function in this range (0x421c20,
 //   0x422270, 0x422550, 0x422930, 0x422c00, 0x422ec0). Calls random_real_range (0x401050),
@@ -38,7 +38,7 @@ void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index 
         if (self->awareness_level > 1 && self->vocalization_line < 2 &&
             (self->mode != 11 || self->mode_data.raw[3] != 0) &&
             self->vocalization_unknown_3e8 < 7) {
-            float wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 2.6f : 1.3f;
+            float wait_scale = (self->awareness_level < 3 || self->alert_level == 0) ? 2.6f : 1.3f;
 
             if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
                 float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
@@ -52,7 +52,7 @@ void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index 
                     ticks = 0x7fff;
                 }
 
-                self->vocalization_variant = actor_dialogue_variant_table_g[self->unknown_6e >= 4];
+                self->vocalization_variant = actor_dialogue_variant_table_g[self->alert_level >= 4];
                 self->vocalization_line = 1;
                 self->vocalization_state = (int16_t)ticks;
                 self->vocalization_unknown_54c = 3; // kind = 3 (point)

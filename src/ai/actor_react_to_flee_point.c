@@ -77,7 +77,7 @@ void actor_react_to_flee_point(datum_index actor_index, int32_t flee_source_obje
 
     if (self->awareness_level > 1 && self->vocalization_line < 7 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
-        float wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 1.8f : 0.9f;
+        float wait_scale = (self->awareness_level < 3 || self->alert_level == 0) ? 1.8f : 0.9f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
             float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
@@ -93,7 +93,7 @@ void actor_react_to_flee_point(datum_index actor_index, int32_t flee_source_obje
 
             self->vocalization_state = (int16_t)ticks;
             self->vocalization_line = 6;
-            self->vocalization_variant = actor_dialogue_variant_table_e[self->unknown_6e >= 4];
+            self->vocalization_variant = actor_dialogue_variant_table_e[self->alert_level >= 4];
             self->vocalization_unknown_54c = 3; // kind = 3 (direction/point)
             self->vocalization_unknown_550 = *(uint32_t *)&point->x;
             self->vocalization_unknown_554 = *(uint32_t *)&point->y;

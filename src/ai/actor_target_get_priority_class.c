@@ -5,7 +5,7 @@
 //   integer (0-3) based on its combat state (kind 2..3 or seat state 1/2 forces 3) and
 //   awareness flags at target-data+0x60/+0x127, falling back to actor posture (+0x6a/+0x6e)
 //   when in_ECX is -1. Fields match prop.kind/is_unit/is_vault/unknown_66/pair_index and
-//   actor.awareness_level/unknown_6e in types/ai.h.
+//   actor.awareness_level/alert_level in types/ai.h.
 // register convention: EAX -> actor_index, ECX -> target_prop_index (or k_datum_index_none).
 //   // blam-cc: EAX -> actor_index, ECX -> target_prop_index
 
@@ -52,7 +52,7 @@ uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index ta
         }
     }
 
-    if (self->unknown_6e < 2) {
+    if (self->alert_level < 2) {
         return (uint16_t)(self->awareness_level > 2);
     }
     return 2;

@@ -28,7 +28,7 @@ extern uint8_t actor_target_is_close_and_recognized(datum_index object_index, ui
 uint8_t ai_dialogue_condition_42f650(datum_index object_index, uint32_t param_2, datum_index actor_index)
 {
     uint8_t *actor = ACTOR(actor_index);
-    uint8_t result = (uint8_t)(((struct actor *)actor)->unknown_6e >= 7);
+    uint8_t result = (uint8_t)(((struct actor *)actor)->alert_level >= 7);
 
     if (result && ((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {
         result = 0;

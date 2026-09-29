@@ -95,7 +95,7 @@ uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code)
         }
         ((actor *)act)->awareness_level = 3;
         ((struct actor *)act)->unknown_72 = 2;
-        ((struct actor *)act)->unknown_6e = 2;
+        ((struct actor *)act)->alert_level = 2;
         if (actor_update_melee_combat_action(actor_index)) {
             break;
         }

@@ -28,7 +28,7 @@ void actor_mode_fight_update(uint32_t actor_index)
     actor[0x428] = 0;
     actor[0x424] = 0;
     actor[0x425] = 0;
-    if (((struct actor *)actor)->unknown_15e != 4 && ((struct actor *)actor)->unknown_6e >= 5) {
+    if (((struct actor *)actor)->unknown_15e != 4 && ((struct actor *)actor)->alert_level >= 5) {
         actor[0x454] = 1;
         ((struct actor *)actor)->vocalization_unknown_3e8 = 7;
     }

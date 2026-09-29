@@ -100,9 +100,9 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->unknown_94 = -1;
     self->mode = 0;
     self->awareness_level = 2;
-    self->unknown_6e = 0;
+    self->alert_level = 0;
     self->unknown_72 = 0;
-    self->unknown_74 = 0;
+    self->pending_alert_event = 0;
     self->unknown_88 = -1;
     self->unknown_98 = 0;
     self->flying = (uint8_t)(flags >> 0x15) & 1;              // ActorFlags bit 21 "flying"

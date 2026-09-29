@@ -1,7 +1,7 @@
 // actor_update_squad_link_state  (Ghidra: actor_update_squad_link_state, already named)
 // address 0x429270, size 438 bytes
 // name confidence: 0.5   rewrite confidence: 0.85 (checked against objdump 0x429270..0x429425)
-// evidence: types/ai.h actor.swarm(0x06)/swarm_index(0x28)/unknown_4a4/unknown_78/unknown_74/
+// evidence: types/ai.h actor.swarm(0x06)/swarm_index(0x28)/unknown_4a4/pending_alert_event_data/pending_alert_event/
 //   unknown_92/encounter_index(0x34)/keep_unit_alive(0x13)/unknown_12/target_unit_index(0x270)/
 //   secondary_action(0x46c); encounter.unknown_0c; prop.is_parented(0x12e)/is_unit(0x60)/
 //   is_vault(0x127)/unknown_24. Calls actor_set_units_active (0x427860) and
@@ -50,10 +50,10 @@ uint8_t actor_update_squad_link_state(datum_index actor_index)
 
     self->unknown_4a4 = 0;
 
-    if (self->unknown_78 > 0) {
-        self->unknown_78 = self->unknown_78 - 1;
-        if (self->unknown_78 == 0) {
-            self->unknown_74 = 0;
+    if (self->pending_alert_event_data > 0) {
+        self->pending_alert_event_data = self->pending_alert_event_data - 1;
+        if (self->pending_alert_event_data == 0) {
+            self->pending_alert_event = 0;
         }
     }
     if (self->unknown_92 > 0) {

@@ -126,7 +126,7 @@ void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *o
 
             if (enc->units_active != 0) {
                 if (a->awareness_level == 3) {
-                    if (1 < a->unknown_6e) {
+                    if (1 < a->alert_level) {
                         extra = 0;
                         if (a->encounter_index != (datum_index)k_datum_index_none) {
                             squad = &((ScenarioSquad *)

@@ -502,7 +502,7 @@ restart:
         } else if (target_prop_index == self->target_unit_index) {
             penalty = (target->noticed_c != 0) ? 1 : 0;
         } else if (target_prop_index == self->unknown_54) {
-            penalty = (self->unknown_6e < 4) ? 1 : 6;
+            penalty = (self->alert_level < 4) ? 1 : 6;
         } else {
             penalty = 10;
         }

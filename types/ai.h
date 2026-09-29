@@ -370,13 +370,13 @@ typedef struct actor {
     uint8_t unknown_69;               // 0x69
     int16_t awareness_level;          // 0x6a 0..3; actor_set_mode clamps it to 2 or 3 by mode, actor_update_awareness_level drives it
     int16_t mode;                     // 0x6c actor_set_mode writes it; indexes actor_mode_definitions
-    int16_t unknown_6e;               // 0x6e burst / vitality grade, compared against 4 in several gates
+    int16_t alert_level;              // 0x6e 0..7 (max of the per-burst floor 0x72 and the combat-status minimum table); >= 4 is engaged combat, >= 7 fully alerted
     uint8_t mode_changed;             // 0x70 actor_set_mode sets 1
     uint8_t unknown_71;               // 0x71
     int16_t unknown_72;               // 0x72 per-burst counter compared against unknown_6e by 0x428180
-    int16_t unknown_74;               // 0x74
+    int16_t pending_alert_event;      // 0x74 highest perception event seen since the last alert_level rise (actor_update_awareness_level)
     int16_t unknown_76;               // 0x76
-    int32_t unknown_78;               // 0x78
+    int32_t pending_alert_event_data; // 0x78 tie-break data for that event
     int32_t unknown_7c;               // 0x7c
     int32_t unknown_80;               // 0x80
     int32_t unknown_84;               // 0x84

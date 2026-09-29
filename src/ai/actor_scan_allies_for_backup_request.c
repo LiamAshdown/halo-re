@@ -30,7 +30,7 @@
 // offsetof() harness against types/tags.h: it reproduced 0x268/0x26a/0x26c/0x270/0x278/0x27a/
 // 0x288 exactly.
 //
-// UNSURE: prop+0x78 is declared as a float (unknown_78) in types/ai.h on weak evidence (the
+// UNSURE: prop+0x78 is declared as a float (pending_alert_event_data) in types/ai.h on weak evidence (the
 // header's own notes attribute that area only to the unread 0x412ba0); this function reads it
 // as a signed int16 counter compared against 45. The access below reinterprets through the
 // header field (the established `*(int16_t *)&field` idiom used elsewhere in this module)

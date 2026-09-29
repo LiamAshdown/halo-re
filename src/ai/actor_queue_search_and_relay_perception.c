@@ -1,10 +1,10 @@
 // actor_queue_search_and_relay_perception  (Ghidra: actor_queue_search_and_relay_perception, renamed)
 // address 0x4221f0, size 121 bytes
 // name confidence: 0.35   rewrite confidence: 0.5
-// evidence: types/ai.h prop.unknown_e0, prop.owner_actor_index (0x1c), actor.unknown_74
+// evidence: types/ai.h prop.unknown_e0, prop.owner_actor_index (0x1c), actor.pending_alert_event
 //   (0x74); calls actor_queue_search_position (0x421af0) exactly as
 //   actor_queue_velocity_search_from_prop @0x4221b0 does but with priority 1, then, if the
-//   prop's owning actor exists and has a positive unknown_74 (the running perception-event
+//   prop's owning actor exists and has a positive pending_alert_event (the running perception-event
 //   priority actor_update_awareness_level also reads), relays that value as a new perception
 //   event on this actor via actor_record_perception_event (0x422070, already rewritten) with a
 //   fixed data payload of 0x1c2. Ghidra's own pseudocode under-renders both calls; the
@@ -42,8 +42,8 @@ void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index
     owner_index = p->owner_actor_index;
     if (owner_index != (datum_index)k_datum_index_none) {
         actor *owner = &((actor *)actor_data->data)[owner_index & 0xffff];
-        if (owner->unknown_74 > 0) {
-            actor_record_perception_event(actor_index, owner->unknown_74, 0x1c2);
+        if (owner->pending_alert_event > 0) {
+            actor_record_perception_event(actor_index, owner->pending_alert_event, 0x1c2);
         }
     }
 }
@@ -96,7 +96,7 @@ drops the incoming EAX/EBX register arguments and every argument of both calls:
   422247: imul edi, edi, 0x724
   42224d: add edi, ecx                ; edi = &actor[owner]
   42224f: xor edx, edx
-  422251: mov dx, [edi+0x74]          ; edx = owner.unknown_74 (zero-extended)
+  422251: mov dx, [edi+0x74]          ; edx = owner.pending_alert_event (zero-extended)
   422255: test dx, dx
   422258: jle 0x422266
   42225a: mov esi, 0x1c2              ; data = 0x1c2

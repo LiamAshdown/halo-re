@@ -1,7 +1,7 @@
 // actor_check_burst_length_exceeded  (Ghidra: actor_check_burst_length_exceeded, renamed)
 // address 0x4281b0, size 56 bytes
 // name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4281b0..0x4281e7.)
-// evidence: types/ai.h actor.unknown_6e/mode(0x6c); offset 0xa8 falls inside actor.mode_data.raw
+// evidence: types/ai.h actor.alert_level/mode(0x6c); offset 0xa8 falls inside actor.mode_data.raw
 //   (the per-mode union at 0x9c..0x11f), used here only in death mode. Phase-4 summary: "Boolean
 // check combining the actor's burst-length field (0x6e), a mode value (0x6c), and a
 // secondary counter (0xa8); precise behavioral meaning is not confirmed from the code
@@ -17,12 +17,12 @@
 extern data_array *actor_data; // 0x00880360
 
 // blam-cc: EAX -> actor_index
-// Returns true when unknown_6e exceeds 6, unless the actor is in death mode (4) with a
+// Returns true when alert_level exceeds 6, unless the actor is in death mode (4) with a
 // positive unknown_a8, in which case it returns false instead.
 uint8_t actor_check_burst_length_exceeded(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    uint8_t result = self->unknown_6e > 6;
+    uint8_t result = self->alert_level > 6;
 
     if (result && self->mode == _actor_mode_death && *(int16_t *)&self->mode_data.raw[0xc] > 0) {
         result = 0;

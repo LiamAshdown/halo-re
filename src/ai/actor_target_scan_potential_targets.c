@@ -179,7 +179,7 @@ void actor_target_scan_potential_targets(datum_index actor_index) // blam-cc: st
             } else if (!p->is_vault) {
                 if (!p->is_unit) {
                     accept = dist_sq < 225.0f;
-                    if (3 < self->unknown_6e) {
+                    if (3 < self->alert_level) {
                         unit_bucket = 1;
                         goto merged;
                     }

@@ -44,9 +44,9 @@ uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, u
     case 1:
     case 2:
         if (use_param_1 == 0) goto use_default;
-        if (self->unknown_6e < 5) {
-            if (self->unknown_6e < 2 && self->mode != 2 &&
-                (self->unknown_6e != 0 || (self->unknown_1c8 == 0 && self->unknown_1e4 < 1))) {
+        if (self->alert_level < 5) {
+            if (self->alert_level < 2 && self->mode != 2 &&
+                (self->alert_level != 0 || (self->unknown_1c8 == 0 && self->unknown_1e4 < 1))) {
                 goto use_default;
             }
             goto call_melee_combat_action;
@@ -54,8 +54,8 @@ uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, u
         result = actor_evaluate_combat_state_transition(actor_index);
         break;
     case 3:
-        if (use_param_1 == 0 || self->unknown_6e < 4) {
-            if (1 < self->unknown_6e) {
+        if (use_param_1 == 0 || self->alert_level < 4) {
+            if (1 < self->alert_level) {
                 if (self->target_unit_index == (datum_index)k_datum_index_none) {
                     goto use_default;
                 }
@@ -75,7 +75,7 @@ uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, u
         }
         break;
     case 4:
-        if (self->unknown_6e < 4) goto call_melee_combat_action;
+        if (self->alert_level < 4) goto call_melee_combat_action;
         result = actor_evaluate_combat_state_transition(actor_index);
         break;
     default:

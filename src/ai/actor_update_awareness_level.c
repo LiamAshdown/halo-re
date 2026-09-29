@@ -4,7 +4,7 @@
 // evidence: out/phase2/results/ai_02.json -- consumes the pending perception event recorded by
 //   0x422070 (actor.perception_event / perception_event_data), merges it with a per-target
 //   -status minimum threshold table indexed by actor.target_combat_status, and advances
-//   actor.unknown_6e (awareness/vitality grade) plus streak counters at unknown_7c/0x80/0x84,
+//   actor.alert_level (awareness/vitality grade) plus streak counters at unknown_7c/0x80/0x84,
 //   setting unknown_8c once the grade exceeds 6.
 // register convention: EAX -> actor_index; no other register operands are read.
 
@@ -36,12 +36,12 @@ void actor_update_awareness_level(datum_index actor_index)
 
     event = self->perception_event;
     if (0 < event) {
-        if (self->unknown_74 < event) {
-            self->unknown_74 = event;
-            self->unknown_78 = self->perception_event_data;
-        } else if (self->unknown_74 == event) {
-            if (self->unknown_78 <= self->perception_event_data) {
-                self->unknown_78 = self->perception_event_data;
+        if (self->pending_alert_event < event) {
+            self->pending_alert_event = event;
+            self->pending_alert_event_data = self->perception_event_data;
+        } else if (self->pending_alert_event == event) {
+            if (self->pending_alert_event_data <= self->perception_event_data) {
+                self->pending_alert_event_data = self->perception_event_data;
             }
         }
         self->perception_event = 0;
@@ -51,15 +51,15 @@ void actor_update_awareness_level(datum_index actor_index)
     status_min_grade = actor_combat_status_min_grade[self->target_combat_status];
     event_floor = (burst_counter <= status_min_grade) ? status_min_grade : burst_counter;
 
-    old_grade = self->unknown_74;
+    old_grade = self->pending_alert_event;
     new_grade = old_grade;
     if (old_grade <= event_floor) {
         new_grade = (burst_counter <= status_min_grade) ? status_min_grade : burst_counter;
     }
-    self->unknown_6e = new_grade;
+    self->alert_level = new_grade;
 
     if (old_grade < new_grade) {
-        self->unknown_74 = 0;
+        self->pending_alert_event = 0;
     }
 
     if (self->awareness_level < 3) {

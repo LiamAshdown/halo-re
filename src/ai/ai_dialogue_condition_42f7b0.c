@@ -33,5 +33,5 @@ uint8_t ai_dialogue_condition_42f7b0(datum_index object_index, uint32_t param_2,
         return 0;
     }
     actor = ACTOR(actor_index);
-    return (uint8_t)(((struct actor *)actor)->awareness_level == 3 && ((struct actor *)actor)->unknown_6e < 4);
+    return (uint8_t)(((struct actor *)actor)->awareness_level == 3 && ((struct actor *)actor)->alert_level < 4);
 }

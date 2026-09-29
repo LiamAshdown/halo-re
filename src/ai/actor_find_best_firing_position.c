@@ -287,11 +287,11 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
     query->hazard_count_kind_2 = 0;
     {
         uint8_t gather_hazards = 0;
-        if ((actor_definition->flags & 0x80000000u) != 0 /* avoid_friends_line_of_fire */ && self->unknown_6e > 2 &&
+        if ((actor_definition->flags & 0x80000000u) != 0 /* avoid_friends_line_of_fire */ && self->alert_level > 2 &&
             (int8_t)self->tally.group_a_total > 0) {
             gather_hazards = 1;
         }
-        if ((actor_definition->more_flags & 1) != 0 /* avoid_all_enemy_attack_vectors */ && self->unknown_6e > 2) {
+        if ((actor_definition->more_flags & 1) != 0 /* avoid_all_enemy_attack_vectors */ && self->alert_level > 2) {
             gather_hazards = 1;
         }
 

@@ -70,7 +70,7 @@ void actor_react_to_registered_danger(const real_point3d *point, datum_index act
 
     if (self->awareness_level > 1 && self->vocalization_line < 4 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0) && self->vocalization_unknown_3e8 < 7) {
-        float wait_scale = (self->awareness_level < 3 || self->unknown_6e == 0) ? 1.8f : 0.9f;
+        float wait_scale = (self->awareness_level < 3 || self->alert_level == 0) ? 1.8f : 0.9f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
             float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
@@ -84,7 +84,7 @@ void actor_react_to_registered_danger(const real_point3d *point, datum_index act
                 ticks = 0x7fff;
             }
 
-            self->vocalization_variant = actor_dialogue_variant_table_d[self->unknown_6e >= 4];
+            self->vocalization_variant = actor_dialogue_variant_table_d[self->alert_level >= 4];
             self->vocalization_state = (int16_t)ticks;
             self->vocalization_line = 3;
             self->vocalization_unknown_54c = 3; // kind = 3 (direction vector)

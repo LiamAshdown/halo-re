@@ -155,7 +155,7 @@ float actor_rate_potential_target(datum_index actor_index, datum_index target_pr
         if (target->is_parented != 0 || target_prop_index == self->unknown_54) {
             extra = 3.0f;
         }
-    } else if (target_prop_index == self->target_unit_index && 2 < self->unknown_6e) {
+    } else if (target_prop_index == self->target_unit_index && 2 < self->alert_level) {
         bonus_b = 1;
     }
 
