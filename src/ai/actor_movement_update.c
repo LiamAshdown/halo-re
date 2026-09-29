@@ -150,11 +150,11 @@ void actor_movement_update(datum_index actor_index)
     actor_base[0x58d] = 1;
     actor_base[0x58e] = 1;
 
-    if (a->unknown_430 != 0) {
+    if (a->explicit_steering_set != 0) {
         // An explicit steering direction was handed to the actor: use it verbatim and reset the
         // avoidance filter so the next sampled direction starts from the origin.
-        a->unknown_518 = *(const real_point3d *)&a->unknown_434;
-        a->unknown_504 = 1;
+        a->desired_direction = *(const real_point3d *)&a->explicit_steering_direction;
+        a->desired_direction_valid = 1;
         actor_base[0x58d] = 0;
         a->avoidance_direction = *global_origin3d_pointer;
         a->avoidance_scale = 0.0f;
@@ -167,13 +167,13 @@ void actor_movement_update(datum_index actor_index)
         float blend;
         float keep;
 
-        if (a->unknown_504 == 0) {
+        if (a->desired_direction_valid == 0) {
             probe.i = a->facing.i * 3.0f;
             probe.j = a->facing.j * 3.0f;
             probe.k = a->facing.k * 3.0f;
             desired = &probe;
         } else {
-            desired = (const real_vector3d *)&a->unknown_518;
+            desired = (const real_vector3d *)&a->desired_direction;
         }
         actor_movement_choose_avoidance_direction(actor_index, desired, &sampled, &sampled_scale);
 
@@ -204,7 +204,7 @@ void actor_movement_update(datum_index actor_index)
         if (a->avoidance_scale < 0.001f) {
             a->avoidance_scale = 0.0f;
         }
-        if (a->unknown_504 != 0) {
+        if (a->desired_direction_valid != 0) {
             // Treat the filtered vector as an axis-angle turn: its length is the angle.
             real_vector3d turn = a->avoidance_direction;
             float length_squared = turn.j * turn.j + turn.k * turn.k + turn.i * turn.i;
@@ -250,24 +250,24 @@ void actor_movement_update(datum_index actor_index)
     if (context < 1) {
         // ---- on foot -----------------------------------------------------------------
         if (a->order_committed != 0) {
-            a->unknown_504 = 0;
+            a->desired_direction_valid = 0;
             a->unknown_50a = 0;
             actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->unknown_161 != 0) ? 1 : 0);
             actor_base[0x58e] = 0;
             movement_mode = 0;
         } else if (a->secondary_action != -1) {
-            a->unknown_504 = 0;
+            a->desired_direction_valid = 0;
             actor_base[0x58d] = 0;
             actor_base[0x58e] = 0;
             movement_mode = 0;
         } else if (a->unknown_6dc == 1) {
-            a->unknown_504 = 0;
+            a->desired_direction_valid = 0;
             actor_base[0x58d] = 0;
             actor_base[0x58e] = 0;
             face_along_heading = 1;
             movement_mode = 0;
         } else if (a->unknown_15c != 0 && a->flying == 0) {
-            a->unknown_504 = 0;
+            a->desired_direction_valid = 0;
             actor_base[0x58d] = 1;
             movement_mode = 0;
         } else if (a->unknown_6a0 != 0) {
@@ -276,7 +276,7 @@ void actor_movement_update(datum_index actor_index)
             away.i = a->grenade_impact_point.x - a->body_position.x;
             away.j = a->grenade_impact_point.y - a->body_position.y;
             away.k = a->grenade_impact_point.z - a->body_position.z;
-            a->unknown_504 = 0;
+            a->desired_direction_valid = 0;
             movement_mode = 0;
             if (vector3d_normalize_with_length(&away) == 0.0f) {
                 actor_base[0x58d] = 1;
@@ -289,7 +289,7 @@ void actor_movement_update(datum_index actor_index)
                 a->unknown_591 = 1;
             }
         } else if (*(int16_t *)&a->unknown_350[16] >= 1) { // 0x360
-            a->unknown_504 = 0;
+            a->desired_direction_valid = 0;
             actor_base[0x58d] = 1;
             movement_mode = (uint8_t)((actor_def->flags >> 0x1e) & 1);
         } else {
@@ -331,7 +331,7 @@ void actor_movement_update(datum_index actor_index)
                 (vehicle_data *)((uint8_t *)unit_object + k_unit_object_size);
             if (unit_vehicle->airborne_ticks != 0) {
                 vehicle_stuck = 1;
-                a->unknown_504 = 0;
+                a->desired_direction_valid = 0;
                 actor_base[0x58d] = 1;
                 movement_mode = 0;
             } else if (0.7f <= unit_vehicle->ground_lean) {
@@ -348,12 +348,12 @@ void actor_movement_update(datum_index actor_index)
                     righting.k = 0.0f;
                     movement_mode = 0;
                     if (vector3d_normalize_with_length(&righting) <= 0.0f) {
-                        a->unknown_504 = 0;
+                        a->desired_direction_valid = 0;
                     } else {
-                        a->unknown_504 = 1;
-                        a->unknown_518.x = righting.i * 3.0f;
-                        a->unknown_518.y = righting.j * 3.0f;
-                        a->unknown_518.z = righting.k * 3.0f;
+                        a->desired_direction_valid = 1;
+                        a->desired_direction.x = righting.i * 3.0f;
+                        a->desired_direction.y = righting.j * 3.0f;
+                        a->desired_direction.z = righting.k * 3.0f;
                     }
                 }
             }
@@ -367,7 +367,7 @@ void actor_movement_update(datum_index actor_index)
                 order_failed = 1;
                 movement_mode = 0;
             } else {
-                a->unknown_504 = 0;
+                a->desired_direction_valid = 0;
                 actor_base[0x58d] = 0;
                 actor_base[0x58e] = 0;
                 a->position_cache_a.x = -direction.i;
@@ -376,7 +376,7 @@ void actor_movement_update(datum_index actor_index)
                 a->position_cache_a.z = -direction.k;
             }
         } else {
-            a->unknown_504 = 0;
+            a->desired_direction_valid = 0;
             a->unknown_50a = 0;
             actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->unknown_161 != 0) ? 1 : 0);
             movement_mode = 0;
@@ -389,19 +389,19 @@ void actor_movement_update(datum_index actor_index)
         }
     }
 
-    if (a->unknown_504 != 0 && a->unknown_506 == 0) {
+    if (a->desired_direction_valid != 0 && a->unknown_506 == 0) {
         actor_movement_apply_steering(
             cached_axis, sidestep_mode,
             actor_index, want_avoid_check, avoid_threshold, order_failed,
             steering_maximum, oversteer_min, oversteer_max, avoidance_scale, throttle_maximum,
-            (real_vector3d *)&a->unknown_518, (real_vector3d *)&a->position_cache_a,
+            (real_vector3d *)&a->desired_direction, (real_vector3d *)&a->position_cache_a,
             &a->unknown_50a, &a->queued_look_vector, &a->unknown_507, &a->unknown_506);
         if (a->unknown_506 != 0) {
-            a->unknown_504 = 0;
+            a->desired_direction_valid = 0;
         }
     }
 
-    if (a->unknown_504 != 0) {
+    if (a->desired_direction_valid != 0) {
         actor_base[0x58e] = 0;
         actor_base[0x58d] = 0;
     } else if (face_along_heading) {
@@ -418,11 +418,11 @@ void actor_movement_update(datum_index actor_index)
         actor_base[0x58d] = 0;
     }
 
-    if (clear_recognition && a->unknown_504 == 0) {
+    if (clear_recognition && a->desired_direction_valid == 0) {
         actor_clear_recognition_history(actor_index, 1);
     }
 
-    if (a->unknown_504 != 0 && (actor_def->flags & 0x10000000) != 0) {
+    if (a->desired_direction_valid != 0 && (actor_def->flags & 0x10000000) != 0) {
         movement_mode = 0;
     }
     actor_base[0x58f] = 0;

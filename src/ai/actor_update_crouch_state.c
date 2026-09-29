@@ -18,10 +18,10 @@
 //    ESI = the sample position and EDI = prop.last_known_position.
 //  - the two 0x401000 calls are vector3d_magnitude_squared(EAX = &flank_offset), not the
 //    zero-argument stub Ghidra prints.
-//  - the final dot product is dot(flank_offset, normalized actor.unknown_518). Ghidra prints
-//    dot(normalized_518, raw actor.unknown_518), which is a register-tracking error: objdump
+//  - the final dot product is dot(flank_offset, normalized actor.desired_direction). Ghidra prints
+//    dot(normalized_518, raw actor.desired_direction), which is a register-tracking error: objdump
 //    0x4217b4 multiplies [esp+0x34..0x3c] (the flank offset) by [esp+0x28..0x30] (the
-//    in-place-normalized copy of unknown_518).
+//    in-place-normalized copy of desired_direction).
 //  - the crouch/stand timer is (int16)__ftol(time * 30.0), the constant at 0x00672ac8.
 // UNSURE: 0x420970, 0x424090, 0x4141a0 and ai_communication_broadcast are not rewritten; the
 // argument lists are what this call site allows.
@@ -195,11 +195,11 @@ void actor_update_crouch_state(datum_index actor_index)
                         if ((int32_t)actor_definition->flags < 0 && p->is_parented != 0 &&
                             p->unknown_12f != 0 &&
                             vector3d_magnitude_squared(&flank_offset) < 1.0f &&
-                            (self->unknown_504 != 0 || *countdown_360 > 0)) {
+                            (self->desired_direction_valid != 0 || *countdown_360 > 0)) {
 
-                            steering_direction.i = self->unknown_518.x;
-                            steering_direction.j = self->unknown_518.y;
-                            steering_direction.k = self->unknown_518.z;
+                            steering_direction.i = self->desired_direction.x;
+                            steering_direction.j = self->desired_direction.y;
+                            steering_direction.k = self->desired_direction.z;
                             if (vector3d_normalize_with_length(&steering_direction) > 0.0f) {
                                 probe_point.x = steering_direction.i * 0.4f + self->body_position.x;
                                 probe_point.y = steering_direction.j * 0.4f + self->body_position.y;

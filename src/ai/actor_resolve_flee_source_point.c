@@ -61,10 +61,10 @@ uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_v
 
     switch (reason->code) {
     case 0:
-        if (self->unknown_504 == 0) {
+        if (self->desired_direction_valid == 0) {
             return 0;
         }
-        *out = *(real_vector3d *)&self->unknown_518;
+        *out = *(real_vector3d *)&self->desired_direction;
         break;
 
     case 1: {

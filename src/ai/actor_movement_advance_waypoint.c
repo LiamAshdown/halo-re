@@ -7,7 +7,7 @@
 // as a byte-array base rather than a single flag -- see TYPES-GAP below), advancing a cursor
 // (unknown_4c0[2]) past waypoints that are either close enough (within a fixed radius) or
 // behind the actor's current heading, and commits the resulting target into unknown_50c /
-// unknown_518 (delta from body_position). Falls back to a fixed-offset point along the
+// desired_direction (delta from body_position). Falls back to a fixed-offset point along the
 // actor's facing, or clears the path state entirely, depending on unknown_15e.
 // register convention: actor_index in EAX (Ghidra's in_EAX).
 // blam-cc: EAX -> actor_index
@@ -65,7 +65,7 @@ void actor_movement_advance_waypoint(datum_index actor_index)
             // When unknown_506 is already set, Ghidra skips the whole reject test below and
             // falls straight through to advancing the cursor (i.e. behaves as if rejected).
             if (self->unknown_506 == 0) {
-                if (self->unknown_504 == 0 || self->unknown_507 == 0) {
+                if (self->desired_direction_valid == 0 || self->unknown_507 == 0) {
                     float dist2 = dx * dx + dy * dy;
                     reject = dist2 < 0.0225f;
                 } else {
@@ -92,18 +92,18 @@ void actor_movement_advance_waypoint(datum_index actor_index)
             self->movement_timer = 0;
         }
 
-        if (*waypoints != 0 && (self->unknown_504 != 0 || self->movement_completed == 0)) {
+        if (*waypoints != 0 && (self->desired_direction_valid != 0 || self->movement_completed == 0)) {
             float *cur;
             real_point3d *target;
-            self->unknown_504 = 1;
+            self->desired_direction_valid = 1;
             cur = (float *)((uint8_t *)self + 0x4c8 + (int8_t)self->unknown_4c0[2] * 0x10);
             target = (real_point3d *)&self->unknown_50c;
             target->x = cur[0];
             target->y = cur[1];
             target->z = cur[2];
-            self->unknown_518.x = target->x - self->body_position.x;
-            self->unknown_518.y = target->y - self->body_position.y;
-            self->unknown_518.z = target->z - self->body_position.z;
+            self->desired_direction.x = target->x - self->body_position.x;
+            self->desired_direction.y = target->y - self->body_position.y;
+            self->desired_direction.z = target->z - self->body_position.z;
             return;
         }
     }
@@ -111,19 +111,19 @@ void actor_movement_advance_waypoint(datum_index actor_index)
     if (self->unknown_15e == 4) {
         float sign = (self->unknown_5ec <= 0.9f) ? 1.0f : -1.0f;
         float scale = sign * 3.0f;
-        self->unknown_504 = 1;
+        self->desired_direction_valid = 1;
         self->unknown_506 = 0;
-        self->unknown_518.x = scale * self->facing.i;
-        self->unknown_518.y = scale * self->facing.j;
-        self->unknown_518.z = scale * self->facing.k;
+        self->desired_direction.x = scale * self->facing.i;
+        self->desired_direction.y = scale * self->facing.j;
+        self->desired_direction.z = scale * self->facing.k;
         *(real_point3d *)&self->unknown_50c = self->body_position;
-        ((real_point3d *)&self->unknown_50c)->x += self->unknown_518.x;
-        ((real_point3d *)&self->unknown_50c)->y += self->unknown_518.y;
-        ((real_point3d *)&self->unknown_50c)->z += self->unknown_518.z;
+        ((real_point3d *)&self->unknown_50c)->x += self->desired_direction.x;
+        ((real_point3d *)&self->unknown_50c)->y += self->desired_direction.y;
+        ((real_point3d *)&self->unknown_50c)->z += self->desired_direction.z;
         return;
     }
 
-    self->unknown_504 = 0;
+    self->desired_direction_valid = 0;
     self->unknown_506 = 0;
     self->movement_completed = 1;
     self->movement_action_complete = 0;

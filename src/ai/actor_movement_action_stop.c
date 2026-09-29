@@ -1,7 +1,7 @@
 // actor_movement_action_stop  (Ghidra: actor_movement_action_stop, already named)
 // address 0x417570, size 152 bytes
 // name confidence: 0.55  rewrite confidence: 0.5
-// evidence: when unknown_15e==4 and unknown_504 is set, forwards to
+// evidence: when unknown_15e==4 and desired_direction_valid is set, forwards to
 // actor_movement_set_destination_point with the actor's own body_position as the
 // destination (objdump-verified: EAX = &self->body_position, parameter = unknown_164,
 // extra = -1) -- i.e. "stop by targeting where you already are". Otherwise builds a plain
@@ -28,7 +28,7 @@ void actor_movement_action_stop(datum_index actor_index)
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
 
-    if (self->unknown_15e == 4 && self->unknown_504 != 0) {
+    if (self->unknown_15e == 4 && self->desired_direction_valid != 0) {
         actor_movement_set_destination_point(&self->body_position, actor_index, self->unknown_164, (uint32_t)-1);
         return;
     }

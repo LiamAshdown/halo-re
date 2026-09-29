@@ -144,7 +144,7 @@ datum_index actor_new(datum_index actor_variant_tag)
 
     memset(&self->movement_action_complete, 0, 0x17 * sizeof(uint32_t)); // 0x4a8..0x503
 
-    self->unknown_504 = 0;
+    self->desired_direction_valid = 0;
     self->unknown_505 = 0;
     self->unknown_5f2 = 1;
     self->unknown_5f4 = 0;

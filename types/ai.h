@@ -567,10 +567,10 @@ typedef struct actor {
     uint8_t unknown_41a[16];          // 0x41a
     uint8_t unknown_42a;              // 0x42a
     uint8_t unknown_42b[5];           // 0x42b
-    uint8_t unknown_430;              // 0x430 when set, actor_movement_update steers straight at
-                                      //   unknown_434 instead of running the avoidance sampler
+    uint8_t explicit_steering_set;              // 0x430 when set, actor_movement_update steers straight at
+                                      //   explicit_steering_direction instead of running the avoidance sampler
     uint8_t unknown_431[3];           // 0x431
-    real_vector3d unknown_434;        // 0x434 the explicit steering direction copied to unknown_518
+    real_vector3d explicit_steering_direction;        // 0x434 the explicit steering direction copied to desired_direction
     uint8_t unknown_440;              // 0x440 gate on the "no order, stand and face" fallback
     uint8_t unknown_441;              // 0x441
     uint8_t unknown_442;              // 0x442 when set, unknown_444..0x450 is a valid facing record
@@ -600,7 +600,7 @@ typedef struct actor {
     uint8_t unknown_4c0[12];          // 0x4c0
     uint32_t unknown_4cc;             // 0x4cc
     uint8_t unknown_4d0[52];          // 0x4d0
-    uint8_t unknown_504;              // 0x504 actor_new sets 0
+    uint8_t desired_direction_valid;              // 0x504 actor_new sets 0
     uint8_t unknown_505;              // 0x505 actor_new sets 0
     uint8_t unknown_506;              // 0x506
     uint8_t unknown_507;              // 0x507
@@ -608,7 +608,7 @@ typedef struct actor {
     uint8_t unknown_509;              // 0x509
     int16_t unknown_50a;              // 0x50a
     uint8_t unknown_50c[12];          // 0x50c
-    real_point3d unknown_518;         // 0x518 look-direction source used by 0x4146c0 and 0x4287a0
+    real_point3d desired_direction;         // 0x518 look-direction source used by 0x4146c0 and 0x4287a0
     real_vector3d unknown_524;        // 0x524 steering scratch written by 0x4180c0
     uint8_t unknown_530[20];          // 0x530
     int16_t vocalization_line;        // 0x544 actor_clear_vocalization zeroes 0x544, 0x546 and 0x548

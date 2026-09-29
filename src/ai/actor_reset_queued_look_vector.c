@@ -45,7 +45,7 @@ uint8_t actor_reset_queued_look_vector(datum_index actor_index)
         return 0;
     }
 
-    self->unknown_504 = 0;
+    self->desired_direction_valid = 0;
     self->queued_look_vector = *global_origin3d_pointer;
     self->unknown_6ec = -1;
     return 1;
