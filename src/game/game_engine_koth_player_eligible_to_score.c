@@ -32,7 +32,7 @@ uint8_t game_engine_koth_player_eligible_to_score(uint32_t object_handle, uint32
 {
     object *obj = ((object_header *)object_data->data)[object_handle & 0xffff].data;
 
-    if (game_engine_variant.unknown_8c > 0 && game_engine_variant.unknown_8c < 3) {
+    if (game_engine_variant.oddball_style > 0 && game_engine_variant.oddball_style < 3) {
         game_engine_broadcast_kill_feed_by_relationship(player_index, 0x20, 0x21, 0x22, player_index, 0); // BL = 0 at 0x46ce4e
         return 1;
     }

@@ -48,10 +48,10 @@ game_variant * game_engine_variant_defaults_classic_accumulation(game_variant *v
     defaults.unknown_78 = 0;
     defaults.ctf_option_7c = 0;
     defaults.ctf_option_7d = 0;
-    defaults.unknown_84 = 0;
-    defaults.unknown_88 = 0;
-    defaults.unknown_8c = 1;
-    defaults.tracked_slot_count = 0x10;
+    defaults.oddball_trait_with_ball = 0;
+    defaults.oddball_trait_without_ball = 0;
+    defaults.oddball_style = 1;
+    defaults.ball_count = 0x10;
     defaults.variant_flags = 1;
 
     *variant_options = defaults;

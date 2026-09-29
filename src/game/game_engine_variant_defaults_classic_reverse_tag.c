@@ -49,10 +49,10 @@ game_variant * game_engine_variant_defaults_classic_reverse_tag(game_variant *va
     defaults.ctf_option_7c = 0;
     defaults.ctf_option_7d = 1;
     defaults.ctf_value_80 = 0;
-    defaults.unknown_84 = 0;
-    defaults.unknown_88 = 0;
-    defaults.unknown_8c = 1;
-    defaults.tracked_slot_count = 1;
+    defaults.oddball_trait_with_ball = 0;
+    defaults.oddball_trait_without_ball = 0;
+    defaults.oddball_style = 1;
+    defaults.ball_count = 1;
     defaults.variant_flags = 1;
 
     *variant_options = defaults;

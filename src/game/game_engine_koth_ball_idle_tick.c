@@ -89,7 +89,7 @@ void game_engine_koth_ball_idle_tick(uint32_t object_handle, object *obj)
         return;
     }
 check_relocation:
-    if (game_engine_variant.unknown_8c < 1 || game_engine_variant.unknown_8c > 2) {
+    if (game_engine_variant.oddball_style < 1 || game_engine_variant.oddball_style > 2) {
         int16_t team = ((object *)obj)->owner_team;
         if (king_hill_occupant_last_tick[team] == -1 ||
             king_hill_occupant_last_tick[team] + king_hill_idle_timeout < tick) {

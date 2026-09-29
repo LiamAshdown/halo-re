@@ -84,7 +84,7 @@ void game_engine_oddball_profile_post_update(void **context)
     memcpy(king_alt_player_score, king_alt_player_scores_network, 16 * 4);
     memcpy(king_alt_team_score, king_alt_team_scores_network2, 16 * 4);
     memcpy(king_hill_occupant_table, king_alt_scores_network_tail, 16 * 4);
-    if (game_engine_variant.unknown_8c == 2) {
+    if (game_engine_variant.oddball_style == 2) {
         return;
     }
     for (i = 0; i < 16; i++) {

@@ -48,10 +48,10 @@ game_variant * game_engine_variant_defaults_juggernaut(game_variant *variant_opt
     defaults.unknown_78 = 36000;
     defaults.ctf_option_7c = 0;
     defaults.ctf_value_80 = 1;
-    defaults.unknown_84 = 2;
-    defaults.unknown_88 = 0;
-    defaults.unknown_8c = 2;
-    defaults.tracked_slot_count = 1;
+    defaults.oddball_trait_with_ball = 2;
+    defaults.oddball_trait_without_ball = 0;
+    defaults.oddball_style = 2;
+    defaults.ball_count = 1;
     defaults.variant_flags = 1;
 
     *variant_options = defaults;

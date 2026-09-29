@@ -49,10 +49,10 @@ game_variant * game_engine_variant_defaults_classic_stalker(game_variant *varian
     defaults.ctf_option_7c = 0;
     defaults.ctf_option_7d = 0;
     defaults.ctf_value_80 = 2;
-    defaults.unknown_84 = 1;
-    defaults.unknown_88 = 3;
-    defaults.unknown_8c = 2;
-    defaults.tracked_slot_count = 1;
+    defaults.oddball_trait_with_ball = 1;
+    defaults.oddball_trait_without_ball = 3;
+    defaults.oddball_style = 2;
+    defaults.ball_count = 1;
     defaults.variant_flags = 1;
 
     *variant_options = defaults;

@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.25
 // evidence: out/phase4/game_functions.md ("Dispatches the King-of-the-Hill per-tick scoring for
 //   a player across however many hill slots they occupy, applying a configurable score
-//   multiplier and periodic sound cues"); game_engine_variant::unknown_84/unknown_8c/tracked_slot_count
+//   multiplier and periodic sound cues"); game_engine_variant::unknown_84/unknown_8c/ball_count
 //   aliased 0x006f1d0c/0x006f1d14/0x006f1d18; game_engine_variant::ctf_value_80 (0x006f1d08)
 //   reused here as a generic 1/2/other score-multiplier selector; king_hill_occupant_table
 //   (0x006b120c, this batch); player::teleporter_entrance_flag/engine_message/engine_message_subject/speed (0x70/0x74/0x78/0x6c); types/units.h
@@ -53,8 +53,8 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
     game_engine_koth_update_occupant_table(player_index);
 
     occupied_slots = 0;
-    if (game_engine_variant.tracked_slot_count > 0) {
-        for (i = 0; i < game_engine_variant.tracked_slot_count; i++) {
+    if (game_engine_variant.ball_count > 0) {
+        for (i = 0; i < game_engine_variant.ball_count; i++) {
             if (king_hill_occupant_table[i] == player_index) {
                 occupied_slots++;
             }
@@ -64,7 +64,7 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
 
     p->speed = 1.0f; // 0x6c
     if (occupied_slots > 0) {
-        if (game_engine_variant.unknown_84 != 1) {
+        if (game_engine_variant.oddball_trait_with_ball != 1) {
             unit_reset_gauge_if_flagged();
         }
         if (game_engine_variant.ctf_value_80 == 1) {
@@ -77,10 +77,10 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
     }
 
     if ((current_game_engine == 0 || game_engine_state_value == 0) &&
-        game_engine_variant.unknown_8c != 2 && occupied_slots > 0) {
+        game_engine_variant.oddball_style != 2 && occupied_slots > 0) {
         int32_t remaining = occupied_slots;
         do {
-            if (game_engine_variant.unknown_8c == 0) {
+            if (game_engine_variant.oddball_style == 0) {
                 p->engine_message = (datum_index)0x29;
                 p->engine_message_subject = (datum_index)player_index;
             }
@@ -89,7 +89,7 @@ uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
         } while (remaining != 0);
     }
 
-    if (game_engine_variant.unknown_8c > 0 && game_engine_variant.unknown_8c < 3 && occupied_slots > 0) {
+    if (game_engine_variant.oddball_style > 0 && game_engine_variant.oddball_style < 3 && occupied_slots > 0) {
         p->engine_message = (datum_index)0x23;
         p->engine_message_subject = (datum_index)player_index;
     }

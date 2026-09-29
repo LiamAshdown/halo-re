@@ -35,7 +35,7 @@ game_variant * game_engine_variant_defaults_classic_team_oddball(game_variant *o
     out->vehicle_set = 1;
     out->unknown_64 = 1;
     out->unknown_6c = 1;
-    out->tracked_slot_count = 1;
+    out->ball_count = 1;
     out->variant_flags = 1;
     return out;
 }

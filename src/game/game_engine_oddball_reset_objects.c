@@ -28,7 +28,7 @@ extern uint8_t custom_waypoints[]; // 0x006f1888 (custom_waypoint, 0x20 bytes ea
 
 void game_engine_oddball_reset_objects(void)
 {
-    int32_t count = game_engine_variant.tracked_slot_count;
+    int32_t count = game_engine_variant.ball_count;
     int32_t i;
 
     if (network_game_mode == 2) {
@@ -40,12 +40,12 @@ void game_engine_oddball_reset_objects(void)
             king_hill_occupant_table[i] = 0xffffffff;
             king_hill_occupant_last_tick[i] = -1;
         }
-        if (game_engine_variant.unknown_8c > 0 && game_engine_variant.unknown_8c <= 2) {
+        if (game_engine_variant.oddball_style > 0 && game_engine_variant.oddball_style <= 2) {
             for (i = 0; i < count; i++) {
                 oddball_ball_timers_006b11cc[i] = 0;
                 game_engine_koth_relocate_hill_marker(i);
             }
-            count = game_engine_variant.tracked_slot_count;
+            count = game_engine_variant.ball_count;
         } else {
             int32_t delay = 0;
 

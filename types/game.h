@@ -206,10 +206,10 @@ typedef struct game_variant {
     uint8_t ctf_option_7e;     // 0x7e index is 2 (slayer), which also normalizes 0x7c..0x7e
     uint8_t ctf_option_7f;     // 0x7f
     int32_t ctf_value_80;      // 0x80 clamped >= 0 for game_engine_index 1
-    int32_t unknown_84;        // 0x84
-    int32_t unknown_88;        // 0x88
-    int32_t unknown_8c;        // 0x8c
-    int32_t tracked_slot_count; // 0x90 number of entries (<= 16) used in king_hill_occupant_table and oddball_ball_timers; the oddball/hill code loops to it
+    int32_t oddball_trait_with_ball;    // 0x84 oddball engine (index 3): trait id for a ball carrier (1 = invisible: the KotH/oddball scorer resets the camo gauge otherwise)
+    int32_t oddball_trait_without_ball; // 0x88 trait id for everyone else (game_engine_oddball_time_scale_override compares against 0x84 or 0x88)
+    int32_t oddball_style;              // 0x8c 0 oddball, 1 reverse tag / accumulation, 2 juggernaut / stalker; 2 skips per-ball scoring
+    int32_t ball_count;                 // 0x90 balls in play (<= 16): loop bound over king_hill_occupant_table and oddball_ball_timers
     uint16_t variant_flags;    // 0x94 (R37) flags word, same encoding as saved_games.h
                                //      saved_player_profile::flags: bit 0 = built-in/default
                                //      (every built-in writes 1; saved_game_create_custom_variant

@@ -48,10 +48,10 @@ game_variant * game_engine_variant_defaults_oddball(game_variant *variant_option
     defaults.unknown_78 = 36000;
     defaults.ctf_option_7c = 0;
     defaults.ctf_value_80 = 1;
-    defaults.unknown_84 = 0;
-    defaults.unknown_88 = 0;
-    defaults.unknown_8c = 0;
-    defaults.tracked_slot_count = 1;
+    defaults.oddball_trait_with_ball = 0;
+    defaults.oddball_trait_without_ball = 0;
+    defaults.oddball_style = 0;
+    defaults.ball_count = 1;
     defaults.variant_flags = 1;
 
     *variant_options = defaults;
