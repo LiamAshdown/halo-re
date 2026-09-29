@@ -38,7 +38,7 @@ extern void game_engine_koth_find_marker_position(real_point3d *out_position, in
 // blam-cc: ESI -> ball_index
 void game_engine_koth_relocate_hill_marker(int32_t ball_index)
 {
-    if (game_engine_variant.unknown_8c < 1 || game_engine_variant.unknown_8c > 2) {
+    if (game_engine_variant.engine.oddball.ball_type < 1 || game_engine_variant.engine.oddball.ball_type > 2) {
         GlobalsMultiplayerInformation *mp_info =
             (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
         uint32_t ball_tag = (uint32_t)((mp_info->ball.tag_id.id << 16) | mp_info->ball.tag_id.index);

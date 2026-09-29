@@ -43,20 +43,20 @@ uint8_t ui_event_49f680(widget_instance *widget, int16_t *event, uint8_t *out_ha
         return 0;
     }
     group = widget->first_child;
-    first_list_child(group)->selection_index = (int16_t)(variant[0x7c] == 0);
+    first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->engine.ctf.assault == 0);
     group = group->next_sibling;
-    value = ((struct game_variant *)variant)->ctf_value_80;
+    value = ((struct game_variant *)variant)->engine.ctf.single_flag_time;
     first_list_child(group)->selection_index = (int16_t)(value == 0x708 ? 1 : value == 0xe10 ? 2 : value == 0x1518 ? 3 :
         value == 0x2328 ? 4 : value == 0x4650 ? 5 : 0);
     group = group->next_sibling;
-    first_list_child(group)->selection_index = (int16_t)(variant[0x7e] == 0);
+    first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->engine.ctf.flag_must_reset == 0);
     group = group->next_sibling;
-    first_list_child(group)->selection_index = (int16_t)(variant[0x7f] == 0);
+    first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->engine.ctf.flag_at_home_to_score == 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->score_limit;
     first_list_child(group)->selection_index = (int16_t)(value == 3 ? 1 : value == 5 ? 2 : value == 10 ? 3 : value == 15 ? 4 : 0);
     group = group->next_sibling;
-    value = ((struct game_variant *)variant)->unknown_78;
+    value = ((struct game_variant *)variant)->time_limit;
     first_list_child(group)->selection_index = (int16_t)(value == 0x4650 ? 1 : value == 0x6978 ? 2 : value == 0x8ca0 ? 3 :
         value == 0xafc8 ? 4 : value == 0xd2f0 ? 5 : value == 0x13c68 ? 6 : 0);
     return 1;

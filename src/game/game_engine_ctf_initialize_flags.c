@@ -82,11 +82,11 @@ int32_t game_engine_ctf_initialize_flags(void)
         }
     }
 
-    if (game_engine_variant.ctf_option_7c == 2) {
+    if (game_engine_variant.engine.race.race_type == 2) {
         ctf_neutral_flag_id = game_engine_ctf_pick_random_flag(-1);
         return 1;
     }
-    if (game_engine_variant.ctf_option_7c != 0) {
+    if (game_engine_variant.engine.race.race_type != 0) {
         for (i = 0; i < 16; i++) {
             ctf_globals_live.team_flag_id[i] = -1;
         }

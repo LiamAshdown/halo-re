@@ -36,7 +36,7 @@ extern void game_engine_koth_update_hill_occupancy_state(void); // 0x46acb0
 void game_engine_king_unknown_48(void)
 {
     if ((current_game_engine == 0 || game_engine_state_value == 0) && network_game_mode == 2 &&
-        game_engine_variant.ctf_option_7c != 0 && --king_hill_move_ticks_006b1068 == 0) {
+        game_engine_variant.engine.king.moving_hill != 0 && --king_hill_move_ticks_006b1068 == 0) {
         king_hill_move_ticks_006b1068 = 0x708;
         king_starting_location_type = game_engine_pick_random_recent_location(king_starting_location_type, king_starting_location_type);
         game_engine_koth_build_hill_boundary();

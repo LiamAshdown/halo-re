@@ -81,7 +81,7 @@ uint8_t game_engine_race_build_message_text(datum_index recipient, int32_t messa
         if (datum_get(recipient, player_data) == 0) {
             return 0;
         }
-        if (*(int32_t *)&game_engine_variant.ctf_option_7c == 2) {
+        if (game_engine_variant.engine.race.race_type == 2) {
             if (*(int16_t *)(player + 0xc6) == 1) {
                 const uint16_t *format = game_text(0xae);
 

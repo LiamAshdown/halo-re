@@ -26,7 +26,7 @@ float game_engine_ctf_unknown_70(datum_index player_index, real_point3d *positio
     float dx, dy, dz, distance_squared, weight;
     int32_t other_team;
 
-    if (game_engine_variant.ctf_option_7c == 0) {
+    if (game_engine_variant.engine.ctf.assault == 0) {
         return 1.0f;
     }
     other_team = (*(int32_t *)(((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200) + 0x20) + 1) % 2;

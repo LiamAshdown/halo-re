@@ -154,6 +154,67 @@ typedef struct game_time_globals {
                                //      the fraction of a tick elapsed. NOT seconds_per_tick.
 } game_time_globals;           // size 0x20
 
+// game_variant::engine -- the 0x18 bytes at game_variant+0x7c mean something different for each
+// game_engine_index. Each view was checked against its engine's code (the engines are laid out
+// ctf 0x4684a0.., king 0x46aee0.., oddball 0x46beb0.., race 0x46d890.., slayer 0x46f580..) and
+// against the options screen that writes it (ctf 0x49e300/0x49f680, oddball 0x49ea50/0x49fd30,
+// race 0x49edc0). The names are those of the Halo PC gametype options they back.
+typedef struct game_variant_ctf_options {
+    uint8_t assault;           // 0x7c one team defends; the enemy taking the flag only raises the
+                               //      "flag taken" announcement when clear (0x4697e0)
+    uint8_t unknown_7d;        // 0x7d sanitize normalizes it to 0/1; nothing else reads it
+    uint8_t flag_must_reset;   // 0x7e clear: touching your own dropped flag returns it (0x4697e0)
+    uint8_t flag_at_home_to_score; // 0x7f set: a capture needs your own flag at home (0x468a20)
+    int32_t single_flag_time;  // 0x80 ticks, 0 off: the round timer of single-flag games
+                               //      (ctf_flag_auto_return_ticks); the options screen offers
+                               //      60/120/180/300/600 s (0x708..0x4650)
+} game_variant_ctf_options;
+
+typedef struct game_variant_slayer_options {
+    uint8_t death_bonus;       // 0x7c a player slowed below 1.0 recovers speed (0x46f7f0)
+    uint8_t kill_penalty;      // 0x7d a player sped above 1.0 decays back (0x46f7f0)
+    uint8_t kill_in_order;     // 0x7e each player is given a target (player.unknown_88) marked
+                               //      by a custom waypoint (0x46f7f0, 0x46f580)
+    uint8_t pad_7f;            // 0x7f
+} game_variant_slayer_options;
+
+typedef struct game_variant_oddball_options {
+    uint8_t random_start;      // 0x7c set: the ball spawns at a random netgame flag instead of
+                               //      a valid starting location first (0x46beb0); the options
+                               //      screen writes it as yes/no (0x49ea50)
+    uint8_t unknown_7d;        // 0x7d the classic oddball / reverse tag built-ins store 1, the
+                               //      other oddball built-ins 0; nothing reads it
+    uint8_t pad_7e[2];         // 0x7e
+    int32_t speed_with_ball;   // 0x80 0 slow, 1 normal, 2 fast (the options screen maps its
+                               //      normal/slow/fast rows to 1/0/2)
+    int32_t trait_with_ball;   // 0x84 0 none, 1 invisible, 2 extra damage, 3 damage resistant:
+                               //      compared with the damage-scale callback's kind (0x46cf20)
+    int32_t trait_without_ball;// 0x88 same encoding
+    int32_t ball_type;         // 0x8c 0 normal, 1 reverse tag, 2 juggernaut (the juggernaut
+                               //      built-ins store 2)
+    int32_t ball_count;        // 0x90 balls in play; the options screen stores its row + 1
+} game_variant_oddball_options;
+
+typedef struct game_variant_king_options {
+    uint8_t moving_hill;       // 0x7c set: the hill moves when king_hill_move_ticks runs out (0x46aee0)
+    uint8_t pad_7d[3];         // 0x7d
+} game_variant_king_options;
+
+typedef struct game_variant_race_options {
+    int32_t race_type;         // 0x7c 0 normal, 1 any order, 2 rally (the rally built-ins store 2)
+    int32_t team_scoring;      // 0x80 0 minimum, 1 maximum, 2 sum of the team's laps (0x46db70);
+                               //      nonzero skips the lives test of 0x46e250
+} game_variant_race_options;
+
+typedef union game_variant_engine_options {
+    uint8_t raw[0x18];
+    game_variant_ctf_options ctf;
+    game_variant_slayer_options slayer;
+    game_variant_oddball_options oddball;
+    game_variant_king_options king;
+    game_variant_race_options race;
+} game_variant_engine_options; // size 0x18
+
 // ---------------------------------------------------------------------------
 // game_variant  (0x98 bytes)
 // The multiplayer option block. Its size is fixed three times over: every
@@ -178,8 +239,11 @@ typedef struct game_variant {
     uint8_t teams;             // 0x34 sanitize normalizes to 0/1; game_engine_get_teams_enabled
     uint8_t pad_35[3];         // 0x35
     uint32_t flags;            // 0x38 option bitfield; slayer forces bits 0 and 8 on
-    int32_t unknown_3c;        // 0x3c
-    uint8_t unknown_40;        // 0x40 sanitize normalizes to 0/1
+    int32_t objective_indicator;// 0x3c 0 motion tracker, 1 nav points, 2 none: only 1 pushes the custom
+                               //      waypoints to the HUD nav points (0x462a90); the options UI
+                               //      (0x49f470) writes 0/1/2
+    uint8_t odd_man_out;       // 0x40 sanitize normalizes to 0/1; gates respawn priority (0x463100)
+                               //      and the lives test of the bsp-switch readiness check
     uint8_t pad_41[3];         // 0x41
     int32_t respawn_time_growth;// 0x44 clamped >= 0; on_player_death adds it to 0x30 and caps
                                //      the total at 5x this value
@@ -187,29 +251,29 @@ typedef struct game_variant {
     int32_t suicide_penalty;   // 0x4c clamped >= 0; added when the killer is the victim
     int32_t lives_per_round;   // 0x50 clamped >= 0; 0 means unlimited. A player whose death
                                //      count (player+0xae) reaches it is eliminated
-    float speed_scale;         // 0x54 clamped to 0.25 .. 4.0
+    float health;              // 0x54 clamped to 0.25 .. 4.0; the player health option: damage
+                               //      dealt is scaled by 1 / health (0x461550, called from
+                               //      object_apply_damage). NOT a speed or time scale.
     int32_t score_limit;       // 0x58
     int32_t starting_equipment;// 0x5c clamped to 0 .. 0xd
-    uint32_t vehicle_set;      // 0x60 low nibble clamped to 0 .. 8; the upper bits are a
+    uint32_t red_vehicle_set;  // 0x60 low nibble clamped to 0 .. 8; the upper bits are a
                                //      packed 3-bit-per-slot table (the built-ins store
-                               //      0x249240, i.e. every slot from index 2 up set to 1)
-    uint32_t unknown_64;       // 0x64 same packed 3-bit encoding as 0x60
-    int32_t time_limit;        // 0x68 in ticks (slayer default 0x708 == 60 s * 30)
-    uint8_t unknown_6c;        // 0x6c
+                               //      0x249240, i.e. every slot from index 2 up set to 1).
+                               //      The only set in free-for-all games.
+    uint32_t blue_vehicle_set; // 0x64 same packed 3-bit encoding; the vehicle options screen
+                               //      (0x4a33a0) shows its second list only when teams is set
+    int32_t vehicle_respawn_time;// 0x68 in ticks; the vehicle options screen offers 0 and
+                               //      30/60/90/120/180/300 s (0x384..0x2328); defaults 0x708 (60 s)
+    uint8_t friendly_fire;     // 0x6c 0 off, 1 on, 2 shields only, 3 explosions only
+                               //      (object_apply_damage switches on the live copy 0x006f1cf4)
     uint8_t pad_6d[3];         // 0x6d
     int32_t betrayal_penalty;  // 0x70 on_player_death multiplies it by player+0xc0
-    uint8_t unknown_74;        // 0x74
+    uint8_t team_autobalance;  // 0x74 the gametype-file name of this byte; nothing in the engine reads it
     uint8_t pad_75[3];         // 0x75
-    int32_t unknown_78;        // 0x78 slayer default 36000 ticks (20 minutes)
-    uint8_t ctf_option_7c;     // 0x7c the four bytes 0x7c..0x7f are only normalized when
-    uint8_t ctf_option_7d;     // 0x7d game_engine_index is 1 (ctf); 0x7f is skipped when the
-    uint8_t ctf_option_7e;     // 0x7e index is 2 (slayer), which also normalizes 0x7c..0x7e
-    uint8_t ctf_option_7f;     // 0x7f
-    int32_t ctf_value_80;      // 0x80 clamped >= 0 for game_engine_index 1
-    int32_t unknown_84;        // 0x84
-    int32_t unknown_88;        // 0x88
-    int32_t unknown_8c;        // 0x8c
-    int32_t unknown_90;        // 0x90
+    int32_t time_limit;        // 0x78 in ticks, 0 none: game_engine_get_time_remaining counts it
+                               //      down from the round start; slayer default 36000 (20 minutes)
+    game_variant_engine_options engine; // 0x7c the per-gametype options, read through the view of
+                               //      game_engine_index (sanitize normalizes only that view)
     uint16_t variant_flags;    // 0x94 (R37) flags word, same encoding as saved_games.h
                                //      saved_player_profile::flags: bit 0 = built-in/default
                                //      (every built-in writes 1; saved_game_create_custom_variant
@@ -218,6 +282,9 @@ typedef struct game_variant {
                                //      on_disk ORs index<<8 in, 0x53bd8c..0x53bdad)
     int16_t unknown_96;        // 0x96
 } game_variant;                // size 0x98
+typedef char game_variant_size[sizeof(game_variant) == 0x98 ? 1 : -1];
+typedef char game_variant_engine_at_7c[offsetof(game_variant, engine) == 0x7c ? 1 : -1];
+typedef char game_variant_time_limit_at_78[offsetof(game_variant, time_limit) == 0x78 ? 1 : -1];
 
 // game_variant::game_engine_index. The values are the indices into the 0x00688308 table and
 // are confirmed by the index word each engine definition carries at its own +0x04.

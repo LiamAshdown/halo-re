@@ -56,7 +56,7 @@ uint8_t ui_event_49f030(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 5) {
-        ((struct game_variant *)variant)->speed_scale = scales[selection];
+        ((struct game_variant *)variant)->health = scales[selection];
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -78,7 +78,7 @@ uint8_t ui_event_49f030(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        variant[0x40] = (uint8_t)(selection == 0);
+        ((struct game_variant *)variant)->odd_man_out = (uint8_t)(selection == 0);
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;

@@ -26,16 +26,16 @@ game_variant * game_engine_variant_defaults_classic_team_oddball(game_variant *o
     out->game_engine_index = _game_engine_oddball;
     out->teams = 1;
     out->flags = 0xa3;
-    out->unknown_3c = 1;
+    out->objective_indicator = 1;
     out->respawn_time = 300;
-    out->speed_scale = 1.0f;
+    out->health = 1.0f;
     out->score_limit = 2;
     out->suicide_penalty = 0x96;
     out->starting_equipment = 0x0b;
-    out->vehicle_set = 1;
-    out->unknown_64 = 1;
-    out->unknown_6c = 1;
-    out->unknown_90 = 1;
+    out->red_vehicle_set = 1;
+    out->blue_vehicle_set = 1;
+    out->friendly_fire = 1;
+    out->engine.oddball.ball_count = 1;
     out->variant_flags = 1;
     return out;
 }

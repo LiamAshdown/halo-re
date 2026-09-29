@@ -83,7 +83,7 @@ uint32_t game_engine_pick_hud_hint(wchar_t *out, uint32_t player_index, uint32_t
         if (game_time->game_time < 0x1c2) {
             if (p->unknown_74 == (datum_index)0xffffffff ||
                 game_engine_variant.game_engine_index != _game_engine_ctf ||
-                game_engine_variant.ctf_value_80 < 1) {
+                game_engine_variant.engine.ctf.single_flag_time < 1) {
                 return game_engine_build_message_text(out, buffer_size, subject, forwarded_param_1, 0);
             }
         } else if (p->unknown_74 == (datum_index)0xffffffff) {

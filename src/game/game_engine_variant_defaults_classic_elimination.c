@@ -20,12 +20,12 @@ game_variant * game_engine_variant_defaults_classic_elimination(game_variant *ou
     out->flags = 0x83;
     out->lives_per_round = 1;
     out->suicide_penalty = 300;
-    out->speed_scale = 1.0f;
+    out->health = 1.0f;
     out->score_limit = 0x19;
     out->starting_equipment = 0x0b;
-    out->vehicle_set = 0x42;
-    out->unknown_64 = 0x42;
-    out->unknown_6c = 1;
+    out->red_vehicle_set = 0x42;
+    out->blue_vehicle_set = 0x42;
+    out->friendly_fire = 1;
     out->variant_flags = 1;
     return out;
 }

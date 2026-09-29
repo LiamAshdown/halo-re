@@ -40,17 +40,17 @@ void game_engine_slayer_update(datum_index player_index)
     uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200);
     datum_index target;
 
-    if (game_engine_variant.ctf_option_7d != 0 && ((struct player *)player)->speed > 1.0f) {
+    if (game_engine_variant.engine.slayer.kill_penalty != 0 && ((struct player *)player)->speed > 1.0f) {
         float speed = ((struct player *)player)->speed - 0.000111111112f;
 
         ((struct player *)player)->speed = speed > 1.0f ? speed : 1.0f;
     }
-    if (game_engine_variant.ctf_option_7c != 0 && ((struct player *)player)->speed < 1.0f) {
+    if (game_engine_variant.engine.slayer.death_bonus != 0 && ((struct player *)player)->speed < 1.0f) {
         float speed = ((struct player *)player)->speed + 0.0000111111112f;
 
         ((struct player *)player)->speed = speed <= 1.0f ? speed : 1.0f;
     }
-    if (game_engine_variant.ctf_option_7e != 0) {
+    if (game_engine_variant.engine.slayer.kill_in_order != 0) {
         memset(custom_waypoints + (int16_t)player_index * 0x20, 0, 0x20);
         target = *(datum_index *)&((struct player *)player)->unknown_88;
         if (target != 0xffffffff) {

@@ -31,8 +31,8 @@ int32_t game_engine_get_time_remaining(void)
     int32_t remaining;
 
     remaining = -1;
-    if (0 < game_engine_variant.unknown_78) {
-        remaining = (game_engine_variant.unknown_78 - game_time->game_time) + game_engine_round_reset_tick;
+    if (0 < game_engine_variant.time_limit) {
+        remaining = (game_engine_variant.time_limit - game_time->game_time) + game_engine_round_reset_tick;
         if (remaining < 0) {
             remaining = 0;
         }

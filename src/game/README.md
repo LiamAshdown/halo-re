@@ -92,36 +92,43 @@ and `king_hill_state` enums are not repeated here; read them in the header.
 | `0x34` | `uint8_t teams` | sanitize normalizes to 0/1; game_engine_get_teams_enabled |
 | `0x35` | `uint8_t pad_35[3]` |  |
 | `0x38` | `uint32_t flags` | option bitfield; slayer forces bits 0 and 8 on |
-| `0x3c` | `int32_t unknown_3c` |  |
-| `0x40` | `uint8_t unknown_40` | sanitize normalizes to 0/1 |
+| `0x3c` | `int32_t objective_indicator` | 0 motion tracker, 1 nav points, 2 none |
+| `0x40` | `uint8_t odd_man_out` | sanitize normalizes to 0/1 |
 | `0x41` | `uint8_t pad_41[3]` |  |
 | `0x44` | `int32_t respawn_time_growth` | clamped >= 0; on_player_death adds it to 0x30 and caps the total at 5x this value |
 | `0x48` | `int32_t respawn_time` | clamped >= 0; the base respawn countdown in ticks |
 | `0x4c` | `int32_t suicide_penalty` | clamped >= 0; added when the killer is the victim |
 | `0x50` | `int32_t lives_per_round` | clamped >= 0; 0 means unlimited. A player whose death count (player+0xae) reaches it is eliminated |
-| `0x54` | `float speed_scale` | clamped to 0.25 .. 4.0 |
+| `0x54` | `float health` | clamped to 0.25 .. 4.0; damage taken is scaled by 1 / health (0x461550) |
 | `0x58` | `int32_t score_limit` |  |
 | `0x5c` | `int32_t starting_equipment` | clamped to 0 .. 0xd |
-| `0x60` | `uint32_t vehicle_set` | low nibble clamped to 0 .. 8; the upper bits are a packed 3-bit-per-slot table (the built-ins store , i.e. every slot from index 2 up set to 1) |
-| `0x64` | `uint32_t unknown_64` | same packed 3-bit encoding as 0x60 |
-| `0x68` | `int32_t time_limit` | in ticks (slayer default 0x708 == 60 s * 30) |
-| `0x6c` | `uint8_t unknown_6c` |  |
+| `0x60` | `uint32_t red_vehicle_set` | low nibble clamped to 0 .. 8; the upper bits are a packed 3-bit-per-slot table (the built-ins store 0x249240) |
+| `0x64` | `uint32_t blue_vehicle_set` | same packed 3-bit encoding as 0x60 |
+| `0x68` | `int32_t vehicle_respawn_time` | in ticks (the built-ins store 0x708 == 60 s) |
+| `0x6c` | `uint8_t friendly_fire` | 0 off, 1 on, 2 shields only, 3 explosions only |
 | `0x6d` | `uint8_t pad_6d[3]` |  |
 | `0x70` | `int32_t betrayal_penalty` | on_player_death multiplies it by player+0xc0 |
-| `0x74` | `uint8_t unknown_74` |  |
+| `0x74` | `uint8_t team_autobalance` | written by the friendly-fire options screen; the engine never reads it |
 | `0x75` | `uint8_t pad_75[3]` |  |
-| `0x78` | `int32_t unknown_78` | slayer default 36000 ticks (20 minutes) |
-| `0x7c` | `uint8_t ctf_option_7c` | the four bytes 0x7c..0x7f are only normalized when |
-| `0x7d` | `uint8_t ctf_option_7d` | game_engine_index is 1 (ctf); 0x7f is skipped when the |
-| `0x7e` | `uint8_t ctf_option_7e` | index is 2 (slayer), which also normalizes 0x7c..0x7e |
-| `0x7f` | `uint8_t ctf_option_7f` |  |
-| `0x80` | `int32_t ctf_value_80` | clamped >= 0 for game_engine_index 1 |
-| `0x84` | `int32_t unknown_84` |  |
-| `0x88` | `int32_t unknown_88` |  |
-| `0x8c` | `int32_t unknown_8c` |  |
-| `0x90` | `int32_t unknown_90` |  |
-| `0x94` | `int16_t unknown_94` | every built-in writes 1 |
+| `0x78` | `int32_t time_limit` | ticks, 0 none (slayer default 36000 == 20 minutes) |
+| `0x7c` | `game_variant_engine_options engine` | 0x18 bytes, one view per game_engine_index (below) |
+| `0x94` | `uint16_t variant_flags` | bit 0 built-in, high byte default index |
 | `0x96` | `int16_t unknown_96` |  |
+
+`game_variant_engine_options` (the union at 0x7c; offsets are game_variant offsets):
+
+| engine | fields |
+|---|---|
+| ctf | `0x7c assault`, `0x7d unknown_7d` (never read), `0x7e flag_must_reset`, `0x7f flag_at_home_to_score`, `0x80 int32 single_flag_time` (ticks, 0 off) |
+| slayer | `0x7c death_bonus`, `0x7d kill_penalty`, `0x7e kill_in_order` |
+| oddball | `0x7c random_start`, `0x7d unknown_7d`, `0x80 speed_with_ball` (0 slow, 1 normal, 2 fast), `0x84 trait_with_ball`, `0x88 trait_without_ball` (0 none, 1 invisible, 2 extra damage, 3 damage resistant), `0x8c ball_type` (0 normal, 1 reverse tag, 2 juggernaut), `0x90 ball_count` |
+| king | `0x7c moving_hill` |
+| race | `0x7c int32 race_type` (0 normal, 1 any order, 2 rally), `0x80 team_scoring` (0 minimum, 1 maximum, 2 sum) |
+
+Several functions in 0x46beb0..0x46d450 are named `game_engine_koth_*` but are oddball code (they read the oddball
+view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_eligible_for_capture` /
+`_score_flag` / `_return_all_flags` (0x46d890..0x46efe0) are race code (race flags, the race view).
+`game_engine_compute_time_scale` (0x461550) is the damage multiplier (1 / health, x1.5 / x0.5 by oddball trait).
 
 #### `game_engine_definition` size 0xb0
 

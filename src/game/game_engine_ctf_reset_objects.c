@@ -39,7 +39,7 @@ void game_engine_ctf_reset_objects(void)
     if (ctf_team_flag_object[1] != 0xffffffff) {
         game_engine_ctf_reset_team_return_credit(ctf_team_flag_object[1]);
     }
-    ctf_flag_auto_return_ticks = game_engine_variant.ctf_value_80;
+    ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
     ctf_team_flag_touch_count[0] = 0;
     ctf_team_flag_touch_count[1] = 0;
     ctf_team_return_credit_active[0] = 0;

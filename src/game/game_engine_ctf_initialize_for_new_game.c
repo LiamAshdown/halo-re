@@ -71,14 +71,14 @@ uint8_t game_engine_ctf_initialize_for_new_game(void)
 
         game_engine_find_valid_starting_locations((real_point3d *)0, 0.0f, 0.0f, 0, (int16_t)team, 1, &index);
         ctf_team_flag_touch_count[team] = 0;
-        slot = game_engine_variant.ctf_option_7c != 0 ? (team + 1) % 2 : team;
+        slot = game_engine_variant.engine.ctf.assault != 0 ? (team + 1) % 2 : team;
         ctf_team_flag_stand_position[slot] = 0;
         if (index != -1) {
             ctf_team_flag_stand_position[slot] = (real_point3d *)((uint8_t *)global_scenario->netgame_flags.pointer + index * 0x94);
         }
     }
     if (network_game_mode == 2) {
-        if (game_engine_variant.ctf_value_80 > 0) {
+        if (game_engine_variant.engine.ctf.single_flag_time > 0) {
             int32_t active;
 
             random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
@@ -93,7 +93,7 @@ uint8_t game_engine_ctf_initialize_for_new_game(void)
             ctf_active_team = (uint8_t)active;
             game_engine_broadcast_kill_feed_to_team(0x2f, active % 2, 1);
             game_engine_broadcast_kill_feed_to_team(0x2e, (active + 1) % 2, 1);
-            ctf_flag_auto_return_ticks = game_engine_variant.ctf_value_80;
+            ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
         } else {
             for (team = 0; team < 2; team++) {
                 if (ctf_team_flag_stand_position[team] != 0) {
@@ -105,7 +105,7 @@ uint8_t game_engine_ctf_initialize_for_new_game(void)
                 }
             }
         }
-    } else if (game_engine_variant.ctf_value_80 > 0) {
+    } else if (game_engine_variant.engine.ctf.single_flag_time > 0) {
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     }
     ctf_flag_capture_limit_006b0ea0 = game_engine_variant.score_limit;
@@ -141,7 +141,7 @@ uint8_t game_engine_ctf_initialize_for_new_game(void)
             float own = distance_squared((real_point3d *)equipment, ctf_team_flag_stand_position[type % 2]);
             float other = distance_squared((real_point3d *)equipment, ctf_team_flag_stand_position[(type + 1) % 2]);
 
-            if (game_engine_variant.ctf_option_7c != 0 ? own < other : own > other) {
+            if (game_engine_variant.engine.ctf.assault != 0 ? own < other : own > other) {
                 *(int16_t *)&((struct equipment_object *)equipment)->base.flags = 3;
             }
         }

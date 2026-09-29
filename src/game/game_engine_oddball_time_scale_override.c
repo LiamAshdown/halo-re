@@ -22,10 +22,10 @@ uint8_t game_engine_oddball_time_scale_override(uint32_t player, int32_t value)
     if (value == 0) {
         return 0;
     }
-    for (i = 0; i < game_engine_variant.unknown_90; i++) {
+    for (i = 0; i < game_engine_variant.engine.oddball.ball_count; i++) {
         if (king_hill_occupant_table[i] == player) {
-            return (uint8_t)(value == game_engine_variant.unknown_84);
+            return (uint8_t)(value == game_engine_variant.engine.oddball.trait_with_ball);
         }
     }
-    return (uint8_t)(value == game_engine_variant.unknown_88);
+    return (uint8_t)(value == game_engine_variant.engine.oddball.trait_without_ball);
 }

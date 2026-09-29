@@ -43,7 +43,7 @@ void game_engine_koth_relocate_object_hill(uint32_t object_index)
 
         game_engine_koth_find_marker_position(&discarded_position, ((object *)obj)->owner_team);
 
-        if (game_engine_variant.unknown_90 < 3) {
+        if (game_engine_variant.engine.oddball.ball_count < 3) {
             game_engine_queue_multiplayer_sound(0x1e, 0xffffffff, 1); // 0x46c1fd..0x46c207
         }
         ctf_flag_object_clear_carrier(object_index, &discarded_position);

@@ -71,7 +71,7 @@ uint8_t ui_event_49e5d0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = parent->first_child;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        variant[0x7c] = (uint8_t)(selection == 0);
+        ((struct game_variant *)variant)->engine.king.moving_hill = (uint8_t)(selection == 0);
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
@@ -81,11 +81,11 @@ uint8_t ui_event_49e5d0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        variant[0x34] = (uint8_t)(selection == 0);
+        ((struct game_variant *)variant)->teams = (uint8_t)(selection == 0);
     }
     selection = first_list_child(group->next_sibling)->selection_index;
     if (selection >= 0 && selection <= 6) {
-        ((struct game_variant *)variant)->unknown_78 = times[selection];
+        ((struct game_variant *)variant)->time_limit = times[selection];
     }
     widget_history_pop(parent->controller_index);
     return 1;

@@ -15,5 +15,5 @@ extern game_variant game_engine_variant; // 0x006f1c88
 
 uint8_t game_engine_oddball_unknown_84(int32_t kind)
 {
-    return (uint8_t)(kind == 1 && game_engine_variant.unknown_8c == 2);
+    return (uint8_t)(kind == 1 && game_engine_variant.engine.oddball.ball_type == 2);
 }

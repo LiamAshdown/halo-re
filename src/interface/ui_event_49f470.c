@@ -46,13 +46,13 @@ uint8_t ui_event_49f470(widget_instance *widget, int16_t *event, uint8_t *out_ha
     group = widget->parent->parent->first_child;
     switch (first_list_child(group)->selection_index) {
     case 0:
-        ((struct game_variant *)variant)->unknown_3c = 0;
+        ((struct game_variant *)variant)->objective_indicator = 0;
         break;
     case 1:
-        ((struct game_variant *)variant)->unknown_3c = 1;
+        ((struct game_variant *)variant)->objective_indicator = 1;
         break;
     case 2:
-        ((struct game_variant *)variant)->unknown_3c = 2;
+        ((struct game_variant *)variant)->objective_indicator = 2;
         break;
     }
     group = group->next_sibling;

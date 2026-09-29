@@ -33,7 +33,7 @@ uint8_t game_engine_player_has_respawn_priority(uint32_t player_index)
     player *self = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
     uint8_t result = 0;
 
-    if (game_engine_variant.unknown_40 != 0 && self->unit == (datum_index)0xffffffff) {
+    if (game_engine_variant.odd_man_out != 0 && self->unit == (datum_index)0xffffffff) {
         result = 1;
         if (network_game_mode == 1) {
             return self->odd_man_out;

@@ -86,7 +86,7 @@ void game_engine_ctf_profile_post_update(void **context)
     if (changed != 1) {
         return;
     }
-    if (game_engine_variant.ctf_value_80 > 0 && ctf_active_team != team) {
+    if (game_engine_variant.engine.ctf.single_flag_time > 0 && ctf_active_team != team) {
         memset(custom_waypoints, 0, 0x80);
     }
     ctf_team_flag_touch_count[0] = ctf_touch_counts_network[0];

@@ -38,7 +38,7 @@ extern double sin(double x); // C runtime
 //   limits in 3-bit fields, consumed through race_vehicle_counts.
 static datum_index race_pick_vehicle_tag(int32_t index)
 {
-    uint32_t vehicle_set = game_engine_variant.vehicle_set;
+    uint32_t vehicle_set = game_engine_variant.red_vehicle_set;
     uint8_t *information = (uint8_t *)global_globals->multiplayer_information.pointer;
     uint8_t *vehicles = *(uint8_t **)(information + 0x24);
     datum_index tag = 0xffffffff;

@@ -21,7 +21,7 @@ wchar_t *game_engine_oddball_build_team_score_text(int32_t team, wchar_t *buffer
 {
     int32_t score = king_alt_team_score[team];
 
-    if (game_engine_variant.unknown_8c == 2) {
+    if (game_engine_variant.engine.oddball.ball_type == 2) {
         string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", score);
     } else {
         game_time_format_minutes_seconds((uint32_t)score, 0x100, buffer);

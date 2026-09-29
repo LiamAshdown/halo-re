@@ -20,9 +20,9 @@ uint8_t game_engine_scores_tracked_individually(void)
     uint8_t result = 1;
 
     if (current_game_engine != 0) {
-        uint8_t no_team_mode = (game_engine_variant.unknown_3c == 0);
+        uint8_t no_team_mode = (game_engine_variant.objective_indicator == 0);
         if (game_engine_variant.game_engine_index == _game_engine_slayer &&
-            game_engine_variant.ctf_option_7e == 0) {
+            game_engine_variant.engine.slayer.kill_in_order == 0) {
             no_team_mode = 0;
         }
         result = ((uint8_t)game_engine_variant.flags & 1) | no_team_mode;

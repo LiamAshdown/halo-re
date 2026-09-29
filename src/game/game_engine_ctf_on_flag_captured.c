@@ -64,13 +64,13 @@ void game_engine_ctf_on_flag_captured(uint32_t flag_index)
 
     game_engine_check_bucket_scores_and_end_round();
 
-    if (game_engine_variant.ctf_option_7c == 2) {
+    if (game_engine_variant.engine.race.race_type == 2) {
         game_engine_broadcast_kill_feed_by_relationship(flag_index, 0x23, 0x24, 0x22, flag_index, 1); // BL = 1 at 0x46de85
     } else {
         game_engine_broadcast_kill_feed_by_relationship(flag_index, 0x20, 0x21, 0x22, flag_index, 1);
     }
 
-    if (game_engine_variant.ctf_option_7c != 2 && new_record != 0) {
+    if (game_engine_variant.engine.race.race_type != 2 && new_record != 0) {
         data_iterator iter;
         void *element;
         iter.data = player_data; // UNSURE: iterator source not directly shown
