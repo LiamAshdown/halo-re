@@ -147,7 +147,7 @@ void encounter_recompute_morale(datum_index encounter_index)
         enc->unknown_2a = enc->unknown_2a + weight;
         enc->unknown_2c = enc->unknown_2c + (int16_t)((uint16_t)a->swarm * weight);
 
-        counts = (uint8_t)(a->awareness_level == 3 && a->unknown_72 < a->alert_level);
+        counts = (uint8_t)(a->awareness_level == 3 && a->alert_floor < a->alert_level);
         enc->unknown_2e = enc->unknown_2e + (int16_t)((uint16_t)counts * weight);
 
         engaged = (uint8_t)(6 < a->alert_level);

@@ -48,7 +48,7 @@ void actor_update_grenade_eligibility_state(datum_index actor_index)
         return;
     }
 
-    eligible = (self->awareness_level == 3 && self->unknown_72 < self->alert_level);
+    eligible = (self->awareness_level == 3 && self->alert_floor < self->alert_level);
 
     if (self->grenade_recheck_ticks == 0 || self->grenade_eligible != eligible) {
         actor_recompute_grenade_eligibility(actor_index);

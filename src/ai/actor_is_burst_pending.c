@@ -1,7 +1,7 @@
 // actor_is_burst_pending  (Ghidra: actor_is_burst_pending, renamed)
 // address 0x428180, size 45 bytes
 // name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x428180..0x4281ac.)
-// evidence: types/ai.h actor.awareness_level(0x6a)/unknown_72/alert_level. Phase-4 summary:
+// evidence: types/ai.h actor.awareness_level(0x6a)/alert_floor/alert_level. Phase-4 summary:
 // "Returns whether the actor's combat sub-state (0x6a) is 3 and a per-burst counter (0x72)
 // has not yet reached its configured length (0x6e); exact semantics of the state value are
 // not confirmed."
@@ -19,7 +19,7 @@ extern data_array *actor_data; // 0x00880360
 uint8_t actor_is_burst_pending(datum_index actor_index)
 {
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    return self->awareness_level == 3 && self->unknown_72 < self->alert_level;
+    return self->awareness_level == 3 && self->alert_floor < self->alert_level;
 }
 
 #if 0

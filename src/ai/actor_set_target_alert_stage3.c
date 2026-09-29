@@ -4,7 +4,7 @@
 // evidence: out/phase2/results/ai_02.json -- largest of the 0xb9/0xba/0xbb trio: for a valid
 //   prop (EDX) sets prop.noticed_c (0xbb), additionally promoting a kind-4 prop to kind 5; for
 //   the sentinel case EDX==none it instead clears several actor-local perception fields
-//   (unknown_3c4, unknown_3bc, unknown_3bd[0], unknown_72, pending_alert_event) that
+//   (unknown_3c4, unknown_3bc, unknown_3bd[0], alert_floor, pending_alert_event) that
 //   actor_update_awareness_level (0x420290) consumes.
 // register convention: EDX -> target_prop_index (or k_datum_index_none), ESI -> actor_index
 //   (unaff_ESI).
@@ -34,7 +34,7 @@ void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index ac
         *(int16_t *)&self->unknown_3c4 = 0;
         self->unknown_3bc = 0;
         self->unknown_3bd[0] = 0;
-        self->unknown_72 = 0;
+        self->alert_floor = 0;
         self->pending_alert_event = 0;
         actor_update_awareness_level(actor_index);
         return;

@@ -101,7 +101,7 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->mode = 0;
     self->awareness_level = 2;
     self->alert_level = 0;
-    self->unknown_72 = 0;
+    self->alert_floor = 0;
     self->pending_alert_event = 0;
     self->unknown_88 = -1;
     self->unknown_98 = 0;

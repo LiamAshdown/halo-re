@@ -361,7 +361,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
             } else {
                 actor *owner = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
                 owner_not_fully_aware = (owner->awareness_level < 3);
-                owner_stalled = (owner->awareness_level == 3 && owner->unknown_72 < owner->alert_level);
+                owner_stalled = (owner->awareness_level == 3 && owner->alert_floor < owner->alert_level);
                 reachable = actor_check_burst_length_exceeded(p->owner_actor_index);
                 if (owner_stalled && p->unknown_12c == 0 && !p->is_unit && self->awareness_level < 3) {
                     engage_flag = 1;

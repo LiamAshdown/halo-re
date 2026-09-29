@@ -47,7 +47,7 @@ void actor_update_awareness_level(datum_index actor_index)
         self->perception_event = 0;
     }
 
-    burst_counter = self->unknown_72;
+    burst_counter = self->alert_floor;
     status_min_grade = actor_combat_status_min_grade[self->target_combat_status];
     event_floor = (burst_counter <= status_min_grade) ? status_min_grade : burst_counter;
 

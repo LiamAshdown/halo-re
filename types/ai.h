@@ -373,7 +373,7 @@ typedef struct actor {
     int16_t alert_level;              // 0x6e 0..7 (max of the per-burst floor 0x72 and the combat-status minimum table); >= 4 is engaged combat, >= 7 fully alerted
     uint8_t mode_changed;             // 0x70 actor_set_mode sets 1
     uint8_t unknown_71;               // 0x71
-    int16_t unknown_72;               // 0x72 per-burst counter compared against unknown_6e by 0x428180
+    int16_t alert_floor;              // 0x72 minimum alert_level: actor_new 0, orders raise it to 2, actor_set_target_alert_stage3 clears it
     int16_t pending_alert_event;      // 0x74 highest perception event seen since the last alert_level rise (actor_update_awareness_level)
     int16_t unknown_76;               // 0x76
     int32_t pending_alert_event_data; // 0x78 tie-break data for that event
