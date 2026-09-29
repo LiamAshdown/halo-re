@@ -366,8 +366,8 @@ typedef struct first_person_weapon_interface {
     uint8_t device_hud_valid;         // 0x1e0e second hud_meter_find_matching_element result
     uint8_t pad_1e0f;                 // 0x1e0f
     int16_t device_hud_element[0x44]; // 0x1e10 second match table
-    int32_t unknown_1e98;             // 0x1e98 reset to -1
-    int16_t unknown_1e9c;             // 0x1e9c reset to -1
+    int32_t frame_sound_impulse;   // 0x1e98 sound impulse started for the animation frame sound (first_person_weapon_update); -1 none, faded out when the pose is snapshotted
+    int16_t frame_sound_state;     // 0x1e9c the weapon state that sound was started in; -1 none
     int16_t unknown_1e9e;             // 0x1e9e
 } first_person_weapon_interface;      // size 0x1ea0
 

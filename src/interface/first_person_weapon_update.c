@@ -128,10 +128,10 @@ void first_person_weapon_update(int16_t local_player_index)
         }
 
         if (frame_sound != (datum_index)-1 && camera_get_type_for_player(local_player_index) == 0) {
-            fp->unknown_1e98 = sound_start_at_object_marker(fp->weapon_index, global_zero_vector3d_pointer,
+            fp->frame_sound_impulse = sound_start_at_object_marker(fp->weapon_index, global_zero_vector3d_pointer,
                                             global_forward3d_pointer, frame_sound, -1, 1.0f,
                                             local_player_index != -1);
-            fp->unknown_1e9c = fp->state;
+            fp->frame_sound_state = fp->state;
         }
 
         {

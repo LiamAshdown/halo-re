@@ -3,7 +3,7 @@
 // name confidence: 0.5   rewrite confidence: 0.6
 // evidence: types/interface.h first_person_weapon_interface struct comment names this address
 // interface_local_player_state_reset ("clears it... zeroes 0x7a8 dwords"); its own field
-// comments confirm unit_index (+0x4), unknown_1e98 (+0x1e98) and unknown_1e9c (+0x1e9c) as the
+// comments confirm unit_index (+0x4), frame_sound_impulse (+0x1e98) and frame_sound_state (+0x1e9c) as the
 // three post-zero sentinel writes; hud_state_reset is 0x4a98d0 per this header's own HUD-globals
 // comment; src/effects/particle_system_new_on_marker.c's precedent default_color_block
 // (0x006851fc, ColorARGB); src/game/hud_draw_world_relative_text.c's shared hud_text_draw_*
@@ -36,7 +36,7 @@ extern void hud_state_reset(void); // 0x4a98d0
 extern void text_language_initialize_from_string_list(void); // 0x5561b0
 
 // Resets the HUD runtime state and text language, then zeroes local player 0's entire
-// first_person_weapon_interface, re-seeding unit_index/unknown_1e98/unknown_1e9c to -1 and
+// first_person_weapon_interface, re-seeding unit_index/frame_sound_impulse/frame_sound_state to -1 and
 // priming the shared HUD text-draw color to the module's default (opaque white) with the
 // globals interface_bitmaps' font_terminal tag id.
 void interface_local_player_state_reset(void)
@@ -50,8 +50,8 @@ void interface_local_player_state_reset(void)
     fp = &first_person_weapon_interfaces[0];
     memset(fp, 0, sizeof(*fp));
     fp->unit_index = (datum_index)0xffffffff;
-    fp->unknown_1e98 = -1;
-    fp->unknown_1e9c = -1;
+    fp->frame_sound_impulse = -1;
+    fp->frame_sound_state = -1;
 
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
                              ? (GlobalsInterfaceBitmaps *)0

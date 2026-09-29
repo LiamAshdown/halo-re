@@ -460,8 +460,8 @@ first_person_weapon_interface (interface_globals_allocate @0x494340 reserves it,
 | `0x1e0e` | `uint8_t` | `device_hud_valid` | second hud_meter_find_matching_element result |
 | `0x1e0f` | `uint8_t` | `pad_1e0f` |  |
 | `0x1e10` | `int16_t` | `device_hud_element[0x44]` | second match table |
-| `0x1e98` | `int32_t` | `unknown_1e98` | reset to -1 |
-| `0x1e9c` | `int16_t` | `unknown_1e9c` | reset to -1 |
+| `0x1e98` | `int32_t` | `frame_sound_impulse` | reset to -1 |
+| `0x1e9c` | `int16_t` | `frame_sound_state` | reset to -1 |
 | `0x1e9e` | `int16_t` | `unknown_1e9e` |  |
 
 ### `hud_message_slot` (size 0x8c)
