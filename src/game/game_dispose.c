@@ -9,7 +9,12 @@
 //   game_initialize (0x45a9c0) field-for-field, tearing the same allocations back down.
 // register convention: no arguments.
 //
-// UNSURE: most of the buffers here (network session state, hs dynamic globals, the widget
+// VERIFIED against disassembly 0x45acd0..0x45ae9c (2026-09-30): the indirect calls are engine->dispose (+8, no
+//   args: `call eax`) and the decal vertex buffer's vtable Release (+8, `push obj; call [ecx+8]`), both as written.
+//   Fixed: terminal_initialized (0x6b2efc), game_state_write_buffer_allocated (0x6e2de8) and
+//   game_state_persistent_storage_created (0x6e2df4) are byte stores; as uint32_t they zeroed the following bytes
+//   (terminal_messages at 0x6b2f00 for the first).
+// Note: most of the buffers here (network session state, hs dynamic globals, the widget
 // memory pool header, the save-game arena) belong to other modules and are not named in
 // types/game.h; kept as raw global writes with TYPES-GAP markers rather than guessed names.
 
@@ -42,14 +47,14 @@ extern void **rasterizer_decal_vertex_cache;   // TYPES-GAP, a vtable-dispatched
 extern uint32_t object_render_state_cache; // 0x007c30ec, TYPES-GAP
 extern uint8_t console_win32_attached;  // TYPES-GAP
 extern uint32_t *terminal_messages; // TYPES-GAP, GlobalAlloc-ed, 0xe dwords, byte flag at +9
-extern uint32_t terminal_initialized; // TYPES-GAP
+extern uint8_t terminal_initialized;  // 0x006b2efc, a BYTE (the draft declared it uint32_t and its 4-byte store clobbered the neighbours); // TYPES-GAP
 extern void *game_state_write_buffer;   // 0x006e2de4, TYPES-GAP
 extern uint32_t input_event_queue_active[0x43];   // TYPES-GAP
 extern uint32_t input_globals[0x97c];  // TYPES-GAP
 extern uint32_t profile_globals_block[0x1829]; // TYPES-GAP
-extern uint32_t game_state_write_buffer_allocated; // TYPES-GAP
+extern uint8_t game_state_write_buffer_allocated;  // 0x006e2de8, a BYTE (the draft declared it uint32_t and its 4-byte store clobbered the neighbours); // TYPES-GAP
 extern void *game_state_persistent_storage; // TYPES-GAP (Win32 handle)
-extern uint32_t game_state_persistent_storage_created; // TYPES-GAP
+extern uint8_t game_state_persistent_storage_created;  // 0x006e2df4, a BYTE (the draft declared it uint32_t and its 4-byte store clobbered the neighbours); // TYPES-GAP
 
 extern void hs_dispose_dynamic_globals(void); // 0x48a130, hs module
 extern void widget_close_all(void);           // 0x498650, widget module

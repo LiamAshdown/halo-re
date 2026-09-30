@@ -37,7 +37,8 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc, objects module
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
 extern uint8_t object_type_override_call_0x74(uint32_t object_index); // 0x4f4700, objects module
-extern int object_type_override_call_0x6c(uint32_t object_index);     // 0x4f45b0, objects module
+extern int object_type_override_call_0x6c(uint32_t object_index, void *buffer, int32_t bit_budget,
+    int32_t full_update);     // 0x4f45b0, objects module; blam-cc: EDI -> object_index
 extern void object_type_override_call_0x68(uint32_t object_index);    // 0x4f4560, objects module
 extern void object_type_override_call_0x7c(uint32_t object_index);    // 0x4f4760, objects module
 extern uint8_t object_datum_consume_pending_flag(uint32_t object_index); // 0x4f46b0, objects module
@@ -74,9 +75,10 @@ void network_server_broadcast_object_type_changes(void)
             if (changed != 0) {
                 object_type_override_call_0x68(iterator.handle);
             }
-            encode_result = object_type_override_call_0x6c(iterator.handle);
+            // 0x45b715..0x45b730: push (changed == 0), 0x7ff8, 0x871de0; edi = the object
+            encode_result = object_type_override_call_0x6c(iterator.handle, network_message_scratch, 0x7ff8, changed == 0);
             if (0 < encode_result) {
-                network_session_broadcast_to_flagged(network_server, 1, network_message_scratch, changed == 0, 0, 0, 3);
+                network_session_broadcast_to_flagged(network_server, 1, network_message_scratch, changed != 0, 0, 0, 3); // 0x45b73e: sete cl on ebp (= changed == 0), so the flag is `changed`
             }
             object_type_override_call_0x7c(iterator.handle);
         }

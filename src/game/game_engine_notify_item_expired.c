@@ -7,6 +7,7 @@
 // +0x11c); types/items.h item_data (flags +0x1f4, _item_in_inventory_bit).
 // register convention: object handle in EDX (in_EDX).
 //   // blam-cc: EDX -> object_index
+// VERIFIED against disassembly 0x45f510..0x45f55c (2026-09-30); fixed: the +0x44 callback gets the object handle (push edx).
 // UNSURE: bit 0x20 of the type-specific extension dword at object+0x22c (weapon_data.flags /
 // equipment_data.unknown_22c / garbage_data.unknown_22c, whichever the object actually is) is
 // documented nowhere in types/items.h; kept as a raw offset/bit test. game_engine_definition's
@@ -37,7 +38,7 @@ void game_engine_notify_item_expired(datum_index object_index)
         (*extension_flags & 0x20) != 0) {
         *extension_flags = *extension_flags & 0xffffffdf;
         if (current_game_engine != 0 && current_game_engine->object_expired != 0) {
-            ((void (*)(void))current_game_engine->object_expired)();
+            ((void (*)(datum_index))current_game_engine->object_expired)(object_index); // 0x45f558: push edx
         }
     }
 }

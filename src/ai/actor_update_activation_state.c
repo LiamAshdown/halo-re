@@ -19,6 +19,9 @@
 // register convention: ESI -> actor_index (unaff_ESI).
 //   // blam-cc: ESI -> actor_index
 
+// VERIFIED against disassembly 0x429160..0x429268 (2026-09-30): the mode tick proc (row +0x10, 0x655264) is called with
+//   the actor index pushed (push esi; call eax; add esp,4), every call/tail-call order and the 0x21-dword clear match.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

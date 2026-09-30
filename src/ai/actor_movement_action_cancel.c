@@ -10,6 +10,9 @@
 // register convention: EDI -> actor_index (unaff_EDI).
 //   // blam-cc: EDI -> actor_index
 
+// VERIFIED against disassembly 0x428650..0x4286b4 (2026-09-30): the mode table row is 0x38 bytes, the +0x24 handler is
+//   called cdecl with the actor index (push edi; call eax).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

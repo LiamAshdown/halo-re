@@ -50,13 +50,15 @@ extern void input_get_binding_display_name(void); // 0x48c7f0, not in this batch
 // wcslen is 0x625b7a (identified from objdump: it walks 16-bit units, divides the byte
 // distance by 2 and subtracts 1). Declared by <wchar.h>, so no extern is written for it.
 
-// blam-cc: EBX -> out, stack -> message_type, subject, buffer_size
+// blam-cc: EAX -> recipient, EBX -> out, stack -> message_type, subject, buffer_size
+// (EAX, copied to EDI at 0x45e697, is the player handle the text is for: the same value the callers hand the engine's
+//  +0x6c override as its first argument. The body below was written without it and does not use it yet.)
 // Formats one of the engine's localized kill-feed message strings into `out` (bounded to
 // `buffer_size` wchar_t's), selecting among ~30 message types via the game engine's jump table,
 // with a handful of them (7..12) remapped to a "team-aware" phrasing variant while a team game
 // is active and the engine opts in via its unknown_84 callback. Returns true if a message was
 // built, false for an out-of-range/unhandled type.
-uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_type,
+uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type,
     datum_index subject, size_t buffer_size)
 {
     uint32_t adjusted_type = message_type;

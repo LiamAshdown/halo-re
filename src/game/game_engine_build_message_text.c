@@ -19,13 +19,10 @@
 // pass-through register arguments from this function's own caller.
 //   // blam-cc: EAX -> out, unaff_ESI -> buffer_size, unaff_EDI -> subject,
 //   //          stack -> param_1 (the override callback's own extra argument), message_type
-// UNSURE: the override vtable slot (build_message_text) is called with only two visible
-// arguments in Ghidra's decompilation of this specific call site (param_1, message_type); its
-// true prototype is not recoverable (see the identical caveat in game_engine_on_player_death.c),
-// so it is cast and called literally with those two values and nothing else.
-// RESOLVED (was modeled as void): this function's own decompile has no return statement, but its
-// one caller (FUN_00463150, this batch) captures and returns its result, so it genuinely returns
-// the same uint8_t "built successfully" flag game_engine_build_kill_feed_message_text does.
+// VERIFIED against disassembly 0x460890..0x4608c7 (2026-09-30). Fixed: the +0x6c override is called with five stack
+//   args (param_1, message_type, subject, out, buffer_size) and 0x45e680 gets EAX = param_1 (the same player handle).
+// RESOLVED (was modeled as void): the result is the same uint8_t "built" flag game_engine_build_kill_feed_message_text
+//   returns.
 
 #include "tags.h"
 #include "memory.h"
@@ -35,7 +32,8 @@
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
-extern uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_type,
+// blam-cc: EAX -> recipient, EBX -> out, stack -> message_type, subject, buffer_size
+extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type,
     datum_index subject, size_t buffer_size); // 0x45e680
 
 // blam-cc: EAX -> out, unaff_ESI -> buffer_size, unaff_EDI -> subject, stack -> param_1, message_type
@@ -45,11 +43,11 @@ uint8_t game_engine_build_message_text(wchar_t *out, uint32_t buffer_size, datum
     char handled = 0;
 
     if (current_game_engine->build_message_text != 0) {
-        handled = ((char (*)(uint32_t, uint32_t))current_game_engine->build_message_text)
-            (param_1, message_type); // UNSURE: real override signature
+        handled = ((char (*)(uint32_t, uint32_t, datum_index, wchar_t *, uint32_t))current_game_engine->build_message_text)
+            (param_1, message_type, subject, out, buffer_size); // 0x4608a4..0x4608ad
     }
     if (handled == 0) {
-        return game_engine_build_kill_feed_message_text(out, message_type, subject, buffer_size);
+        return game_engine_build_kill_feed_message_text(param_1, out, message_type, subject, buffer_size);
     }
     return (uint8_t)handled;
 }

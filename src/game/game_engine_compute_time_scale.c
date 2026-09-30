@@ -8,10 +8,8 @@
 // register convention: two handles in EDX and ESI (in_EDX, unaff_ESI), both only ever tested
 // against -1; their identity could not be recovered from this decompilation.
 //   // blam-cc: EDX -> param_a, unaff_ESI -> param_b
-// UNSURE: the vtable slot at +0x88 is invoked twice in a row with no visible arguments (matching
-// Ghidra's own rendering), the first time gating a 1.5x slow-down and the second a 0.5x
-// speed-up; both preserved exactly as separate calls rather than merged into one, since nothing
-// here proves the callback is idempotent.
+// VERIFIED against disassembly 0x461550..0x46160f (2026-09-30): the +0x88 callback is cdecl (int handle, int kind);
+// it is called as (EDX, 2) for the 1.5x slow-down and (ESI, 3) for the 0.5x speed-up, both only when EDX/ESI != -1.
 
 #include "tags.h"
 #include "memory.h"
@@ -38,13 +36,13 @@ float game_engine_compute_time_scale(int32_t param_a, int32_t param_b)
 
     if (param_a != -1 && param_b != -1 && current_game_engine != 0) {
         if (current_game_engine->time_scale_override != 0) {
-            char slow = ((char (*)(void))current_game_engine->time_scale_override)(); // UNSURE: real args
+            char slow = ((char (*)(int32_t, int32_t))current_game_engine->time_scale_override)(param_a, 2); // 0x4615c3: push 2; push edx
             if (slow != 0) {
                 scale = scale * 1.5f;
             }
         }
         if (current_game_engine != 0 && current_game_engine->time_scale_override != 0) {
-            char fast = ((char (*)(void))current_game_engine->time_scale_override)(); // UNSURE: real args
+            char fast = ((char (*)(int32_t, int32_t))current_game_engine->time_scale_override)(param_b, 3); // 0x4615f2: push 3; push esi
             if (fast != 0) {
                 return scale * 0.5f;
             }

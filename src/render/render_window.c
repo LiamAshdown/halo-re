@@ -46,6 +46,10 @@
 //   0x51ee60); they are declared, not written. Callback argument types follow
 //   types/structures.h. The meaning of 0x0069c67c is open.
 
+// VERIFIED against disassembly 0x50bfb0..0x50c589 (2026-09-30) for the indirect calls (post_rasterize +0x34 takes no
+//   arguments: `call eax` with nothing pushed; the [device+0xe4] calls are SetRenderState via set_render_state) and for
+//   the order of every direct call; the arithmetic between the calls was not re-compared instruction by instruction.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
