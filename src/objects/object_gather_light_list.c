@@ -12,13 +12,9 @@
 //   does not attribute a struct to this layout (it is not the object struct: object+0x40 falls
 //   inside the module's own "unresolved, nothing touches it" range), so it is kept as a raw
 //   caller-owned buffer rather than a named type.
-// UNSURE: object_get_root_parent_placement and FUN_004f2df0 are both called here with no visible
-//   arguments; the real object index / gather parameters they need are not visible in this
-//   function's decompilation. The loop that walks the collideable-reference chain via
-//   local_2c/local_28 mirrors the same chain-walk seen in object_get_root_parent_placement and
-//   object_resolve_collideable_reference elsewhere in this batch, but the two output locals here
-//   are kept raw rather than aliased onto those functions' types, since the call arguments that
-//   would confirm the aliasing are not visible.
+// VERIFIED against disassembly 0x4f2430..0x4f2549 (2026-09-30): object_get_root_parent_placement takes EAX = object, ESI = the
+// cursor block; object_lights_gather_nearest takes AX = cluster plus eight stack arguments (object, &center, radius, out+0x44,
+// intensities, falloffs, count, 2).
 
 #include "tags.h"
 #include "memory.h"
@@ -32,15 +28,11 @@ extern data_array *light_data; // 0x00860b14
 
 extern int16_t object_get_root_parent_placement(uint32_t object_index,
     object_placement_cursor *out_cursor); // out block typed per types/objects.h
-    // this module, 0x4f5f70. Takes the object index in EAX and the out pointer in ESI, neither
-    // of which is visible at this call site. UNSURE: passed as 0/NULL here.
+    // this module, 0x4f5f70: EAX = object, ESI = out cursor.
 extern void object_lights_gather_nearest(int16_t cluster_index, uint32_t self_object_index,
     real_point3d *probe_point, float search_margin, uint32_t *out_indices, float *out_intensities,
     uint32_t out_falloffs, int16_t *count, int16_t max_count); // this module, 0x4f2df0.
-    // This call site pushes six stack slots but cleans eight (0x4f24cf call / add esp,0x20),
-    // so its visible argument list does not line up with the nine-parameter form the
-    // definition recovers. Declared to match the definition and called with placeholders.
-    // UNSURE: none of the nine arguments is recoverable here -- see file header.
+    // AX = cluster_index, the other eight are stack slots (0x20 bytes cleaned).
 
 // REWRITTEN (first-boot track, objdump 0x4f2430..0x4f2549): the old version took one argument and called both
 //   helpers with zeros. The object (EAX) is the first parameter and the lighting record the second (stack). The

@@ -9,6 +9,8 @@
 // invalid command leaves velocity untouched. The dead byte-remainder loop Ghidra shows after the
 // zero-fill is omitted as unreachable (see observer_evaluate_spline_acceleration.c).
 // register convention: local player index in AX (in_AX); no other parameters.
+// VERIFIED against disassembly 0x448010..0x448200 (2026-09-30): 1/dt stays in extended precision, the valid/exact/snap branch,
+// the closing velocity and the term association order agree.
 
 #include "tags.h"
 #include "memory.h"
@@ -29,7 +31,7 @@ void observer_evaluate_spline_velocity(int16_t local_player_index)
     float *coefficient_t2 = (float *)&o->coefficient_t2;
     float *coefficient_t1 = (float *)&o->coefficient_t1;
     float *velocity = (float *)&o->velocity;
-    float inv_dt = 1.0f / observer_dt;
+    double inv_dt = 1.0 / (double)observer_dt; // fdivr qword [0x672af8] (1.0): stays in x87 extended precision
     int16_t channel;
     int32_t float_index = 0;
 
@@ -47,7 +49,7 @@ void observer_evaluate_spline_velocity(int16_t local_player_index)
                 (o->current_command.flags & _observer_command_snap_bit) == 0) {
                 if (valid) {
                     for (i = 0; i < count; i++) {
-                        velocity[float_index + i] = -(inv_dt * remaining_offset[float_index + i]);
+                        velocity[float_index + i] = (float)-(inv_dt * remaining_offset[float_index + i]);
                     }
                 }
             } else {
@@ -56,16 +58,17 @@ void observer_evaluate_spline_velocity(int16_t local_player_index)
                 }
             }
         } else {
-            float t3 = t * t * t;
+            float t2 = t * t;
+            float t3 = t2 * t;
+            float t4 = t3 * t;
 
             for (i = 0; i < count; i++) {
                 int32_t idx = float_index + i;
 
-                velocity[idx] = t * coefficient_t2[idx] + t * coefficient_t2[idx] +
-                    t * t * coefficient_t3[idx] * 3.0f +
-                    t3 * coefficient_t4[idx] * 4.0f +
-                    t3 * t * coefficient_t5[idx] * 5.0f +
-                    coefficient_t1[idx];
+                // same association order as the fmul/faddp sequence at 0x4480e0..0x44812d
+                velocity[idx] = ((((t4 * coefficient_t5[idx] * 5.0f + t3 * coefficient_t4[idx] * 4.0f) +
+                    t2 * coefficient_t3[idx] * 3.0f) + (t * coefficient_t2[idx] * 2.0f)) +
+                    coefficient_t1[idx]);
             }
         }
         float_index += count;

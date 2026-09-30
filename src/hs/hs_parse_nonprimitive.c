@@ -8,11 +8,8 @@
 // dispatched to the matched hs_function_definition::parse callback or validated as a static/
 // stub ScenarioScript call.
 // register convention: __cdecl, node_index is the recognized single stack parameter.
-// UNSURE: hs_add_global/hs_add_script are called with zero visible arguments in Ghidra; the
-// node index is assumed forwarded via register, matching this function's own parameter.
-// UNSURE: the two "if (expected_type != 0) ... if (expected_type != 0) return 1/goto" pairs
-// are, like hs_parse_variable, redundant re-tests of an unchanged condition; simplified to a
-// single check with the same effect (see inline comments).
+// VERIFIED against disassembly 0x486710..0x486a0c (2026-09-30): hs_add_global / hs_add_script take the node index in EAX and are
+// tail-returned; the "global"/"script" test is a 7-byte compare; the redundant re-tests of the expected type are dead branches.
 
 #include "tags.h"
 #include "memory.h"

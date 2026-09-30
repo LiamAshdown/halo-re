@@ -8,9 +8,8 @@
 // in cache_functions.md" the notes list under misattributed item 7 and are not rewritten here.
 // register convention: none; plain __cdecl with no parameters.
 //
-// UNSURE: LAB_004440a0 (sound_cache_entry release) and LAB_00444060 (in-use predicate) are
-// outside this batch's assigned range and are not given C definitions here; only their
-// addresses are taken as function pointers, matching the original.
+// VERIFIED against disassembly 0x443ca0..0x443d29 (2026-09-30): data_new element size 0x10 in EBX, cache_new name in EBX;
+// the megabyte count is a 16-bit read; the release / in-use procedures are 0x4440a0 / 0x444060 (not rewritten here).
 
 #include "win32.h"
 #include "tags.h"
@@ -42,7 +41,7 @@ void sound_cache_new(void)
 
     sound_cache_entries = data_new(sizeof(sound_cache_entry), "pc sound", k_sound_cache_maximum_entries);
 
-    scaled_megabytes = sound_cache_size_megabytes * 0x100000;
+    scaled_megabytes = (int32_t)*(int16_t *)&sound_cache_size_megabytes * 0x100000; // movsx WORD 0x006869c4 (0x443cbc), shl 0x14
     sound_cache_page_count = (scaled_megabytes + ((scaled_megabytes >> 0x1f) & 0xfff)) >> k_sound_cache_page_shift;
 
     cache_memory = GlobalAlloc(0, 0x387c);

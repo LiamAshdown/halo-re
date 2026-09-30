@@ -7,7 +7,7 @@
 //   start_tick 0x0c, stage 0x10; scratch bumps 4+4+4+4+2 match exactly).
 // register convention: unused opcode-ish param_1 (never read); thread index as the recognized
 //   stack parameter (param_2); `first` as param_3.
-// FIXED (re-derived from 0x489800..0x489a19). The child walk is
+// FIXED (re-derived from 0x489800..0x489a19; all three pushes and the wake-tick clamp re-checked 2026-09-30). The child walk is
 //   child0 = node->data.first_child   (the function-name node)
 //   child1 = child0->next_node        (sleep_until's CONDITION / sleep's tick count)
 //   child2 = child1->next_node        (the tick count / -1 for a two-element form)
@@ -42,10 +42,9 @@ extern data_array *hs_syntax_data; // 0x0087a474
 // game_time_globals: defined in types/game.h (R32 replaced hs.h's partial game_time_globals)
 extern game_time_globals *game_time; // 0x006f1d6c
 
-// Evaluate handler shared by 'sleep' and 'sleep_until'. See the UNSURE note above: the overall
-// shape (seed a default 30-tick sleep on the first call, then keep re-arming the thread's
-// wake_tick while a condition holds and no timeout has elapsed, otherwise finish) is preserved,
-// but one call's arguments could not be recovered.
+// Evaluate handler shared by 'sleep' and 'sleep_until' (VERIFIED against disassembly 0x489800..0x489a19, 2026-09-30):
+// seeds a default 30-tick sleep on the first call, then keeps re-arming the thread's wake_tick while the condition is
+// false and no timeout has elapsed, otherwise finishes with hs_thread_return(0).
 void hs_evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index, char first)
 {
     hs_thread *thread_record;
