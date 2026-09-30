@@ -14,16 +14,18 @@
 // UNSURE: text_string_list_get_string's real signature is not recovered; declared here as
 // (tag_index, string_index) purely from this call site's evidence.
 
+// VERIFIED against disassembly 0x4b6160..0x4b619f (2026-09-30): FIXED: tag_lookup takes the group in EDI (0x75737472 'ustr') and text_string_list_get_string takes ECX = list, EDX = index; the copy/terminator sequence matches
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include <wchar.h>
 #include "math.h"
+#include "cache.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t tag_lookup(const char *path); // foreign, tags module
-extern uint16_t *text_string_list_get_string(int32_t tag_index, int32_t string_index); // foreign, see UNSURE
+extern datum_index tag_lookup(tag_group group, char *path); // 0x442550; blam-cc: EDI -> group
+extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index); // 0x5578c0; blam-cc: ECX -> list_id, EDX -> index
 
 // blam-cc: output buffer in ESI (unaff_ESI), capacity in EBX (unaff_EBX), string_index is a
 // stack parameter
@@ -36,10 +38,10 @@ void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t st
     uint16_t *source;
 
     *buffer = 0;
-    tag_index = tag_lookup(
+    tag_index = tag_lookup(0x75737472, // 'ustr'
         "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
     if (tag_index != -1) {
-        source = text_string_list_get_string(tag_index, string_index);
+        source = text_string_list_get_string(tag_index, (int16_t)string_index);
         wcsncpy(buffer, source, capacity - 1);
         buffer[capacity - 1] = 0;
     }
