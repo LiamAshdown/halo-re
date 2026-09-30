@@ -10,6 +10,10 @@
 // session.maximum_players (session+0x19d); +6 and +0x3c4 are ::flags and
 // ::machines[0].machine_id, matching every sibling function in this batch.
 // register convention: EDX = server (network_server_globals *).
+// VERIFIED against disassembly 0x4e0850..0x4e08dc (2026-09-30): the pending entry word (+0x10 of the last entry), the
+//   0x96640 range split, the room test and the machine scan match; fixed: maximum_players is sign-extended (movsx).
+//   The build word is read from an uninitialised stack slot in the original when the queue is empty, which is why a
+//   difftest on an empty queue can return 4 vs 5 without either being wrong.
 // blam-cc: EDX -> server
 // UNSURE: `local_4` is left uninitialized in the original when
 // network_pending_connection_count is not positive (a genuine read of an indeterminate stack
@@ -42,7 +46,7 @@ int32_t network_server_validate_join_request(network_server_globals *server)
         if (build > 0x96640) {
             return 5;
         }
-        if (server->session.player_count < (int16_t)server->session.maximum_players) {
+        if (server->session.player_count < (int16_t)(int8_t)server->session.maximum_players /* 0x4e089d: movsx cx, byte */) {
             int32_t i;
 
             if ((server->flags & 1) == 0) {
