@@ -1,24 +1,29 @@
 // players_client_catchup_on_server_updates  (Ghidra: players_client_catchup_on_server_updates,
 // already named)
 // address 0x476d40, size 1224 bytes
-// name confidence: 0.85   rewrite confidence: 0.2
+// VERIFIED against disassembly 0x476d40..0x47720a (2026-09-30)
+// name confidence: 0.85   rewrite confidence: 0.9
 // evidence: out/phase4/game_functions.md ("Client-side routine that drains a player's buffered
 //   server updates, fast-forwarding position/orientation state until it matches the latest
 //   server tick"); types/game.h player_update_queue / circular_queue (capacity +0x120,
 //   record_size +0x124, records +0x128, write_index +0x12c, read_index +0x130, has_current
 //   +0x138, current[8] +0x13c) at player+0x120; types/units.h units_module note that 0x5625b0
-//   is the real unit_update and 0x5590a0 is biped_update (used here in that corrected order);
-//   types/objects.h object (flags +0x204 via unit_data, parent_object +0x11c).
+//   is the real unit_update and 0x5590a0 is biped_update.
 //
-// UNSURE (heavy): this is the least-verified file in the batch. The per-record "catch-up" body
-// mirrors game_engine_players_update_server.c's / game_engine_players_update_client.c's own
-// unit_control_data-build-and-dispatch shape closely enough to reuse it, but Ghidra shows the
-// two unit_apply_control_block(0xffffffff) call sites here with zero visible arguments on BOTH converging
-// branches (only one of which calls player_compute_view_forward_vector first), which this
-// rewrite cannot fully disambiguate without a much deeper disassembly pass than this batch's
-// budget allows; the local unit_control_data built below is a best-effort reconstruction, not an
-// independently re-verified one. DAT_006887bc / DAT_006887c0 / DAT_006894a1 (catch-up
-// thresholds) are given placeholder names.
+// REWRITTEN 2026-09-30 from the disassembly (the earlier draft was "the least-verified file in the batch"). What was wrong:
+//  - The queue count is `write - read` (write > read), `capacity - read + write` (write < read), 0 when equal; the draft had the
+//    two indices swapped throughout, so it read the WRONG head record (records[write] instead of records[read]) and
+//    summed ticks from write to read instead of read to write.
+//  - The record is only pre-filled with -1 in its first THREE dwords (not all eleven).
+//  - player_unit_has_parent takes the player handle in ECX (iterator index at 0x477157; the unit object's controlling_player at
+//    0x476f4a), not plr->unit.
+//  - The staged control block: when input is enabled it is built from the popped player_action (control flags, yaw/pitch ->
+//    player_compute_view_forward_vector(EAX handle, ECX &action.desired_yaw, ESI out) -> the same vector for the aiming, facing
+//    and looking vectors, throttle x/y, trigger, weapon/grenade/zoom); when input is disabled it is built from the unit's own
+//    desired vectors, and ONLY when the unit has no actor and no swarm actor. unit_apply_control_block takes
+//    (EAX unit, EDX control, stack source_id -1); the draft's 2-argument extern was wrong.
+//  - The final log call takes the player in EAX: player_update_history_log_printf_filtered(plr, 1, fmt, ...).
+// The thresholds at 0x6887bc / 0x6887c0 hold 2 and 6 in the retail data; 0x6894a1 holds 1.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
@@ -36,29 +41,45 @@ extern data_array *object_data;      // 0x008603b0
 extern player_globals *local_player_globals; // 0x0087a478
 extern int16_t network_game_mode;    // 0x00719720
 extern game_time_globals *game_time; // 0x006f1d6c
-extern int32_t catchup_backlog_threshold;   // 0x006887bc, UNSURE name
-extern int32_t catchup_time_threshold;      // 0x006887c0, UNSURE name
-extern uint8_t network_client_vehicle_ack_enabled; // 0x006894a1, UNSURE name
+extern int32_t catchup_backlog_threshold;   // 0x006887bc (2): queued records allowed before a catch-up pop
+extern int32_t catchup_time_threshold;      // 0x006887c0 (6): summed record tick weights allowed
+extern uint8_t network_client_vehicle_ack_enabled; // 0x006894a1
+extern real_vector3d *global_origin3d_pointer; // 0x00696714 -> {0,0,0}
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
-                                                real_vector3d *out_forward); // this batch, 0x473d70
-extern uint8_t player_unit_has_parent(datum_index player_handle); // this batch, 0x477210, blam-cc: ECX
-extern void apply_remote_player_position_update(player *plr, object *unit_obj); // this batch, 0x477350, blam-cc: EAX -> plr, EBX -> unit_obj
-extern void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj); // this batch, 0x477490, blam-cc: EAX -> plr, EBX -> unit_obj
-extern void player_update_history_log_printf_filtered(int32_t level, const char *format, ...); // 0x4e5f20
+                                                real_vector3d *out_forward); // 0x473d70, blam-cc: EAX handle, ECX yaw_pitch, ESI out
+extern uint8_t player_unit_has_parent(datum_index player_handle); // 0x477210, blam-cc: ECX
+extern void apply_remote_player_position_update(player *plr, object *unit_obj); // 0x477350, blam-cc: EAX -> plr, EBX -> unit_obj
+extern void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj); // 0x477490, blam-cc: EAX -> plr, EBX -> unit_obj
+extern void player_update_history_log_printf_filtered(player *target_player, int32_t unused_arg,
+    const char *format, ...); // 0x4e5f20, blam-cc: EAX target_player
 extern void object_update(uint32_t object_index); // 0x4f7ef0
 extern uint8_t unit_update(uint32_t unit_index); // 0x5625b0, established (units module)
 extern uint32_t biped_update(uint32_t object_index); // 0x5590a0, established (units module)
-extern void unit_apply_control_block(void *record_or_field, int32_t grenade_value); // 0x5639f0, units module,
-    // not in this batch; blam-cc: EDX -> record_or_field, ECX -> grenade_value
+extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id); // 0x5639f0, blam-cc: EAX unit_index, EDX control, stack source_id
+
+// Number of records waiting in a player's update ring (write - read, wrapping at capacity).
+static int32_t update_queue_count(const circular_queue *queue)
+{
+    int32_t write_index = queue->write_index;
+    int32_t read_index = queue->read_index;
+
+    if (write_index > read_index) {
+        return write_index - read_index;
+    }
+    if (write_index < read_index) {
+        return (queue->capacity - read_index) + write_index;
+    }
+    return 0;
+}
 
 // For every non-local player, drains its update_history circular queue: while the backlog
 // (queued record count, or the summed per-record tick weight) exceeds the catch-up thresholds,
-// pops the oldest record, replays it into the player's controlled unit (rebuilding a
-// unit_control_data and either running the ordinary per-tick update or, while a network client
-// with a seated unit, an object_update instead -- see UNSURE above), and applies a remote
-// position/vehicle update. Once caught up, logs how many updates/ticks were skipped.
+// pops the head record, replays it into the player's controlled unit (rebuilding a
+// unit_control_data and running the ordinary per-tick update, or an object_update of the parent
+// while a network client with a seated unit), and applies a remote position/vehicle update.
+// Once caught up, logs how many updates/ticks were skipped.
 void players_client_catchup_on_server_updates(void)
 {
     data_iterator iter;
@@ -72,146 +93,147 @@ void players_client_catchup_on_server_updates(void)
     plr = (player *)data_iterator_next(&iter);
     while (plr != (player *)0) {
         int32_t updates_applied = 0;
-        int32_t initial_backlog_ticks = 0;
 
         if (plr->local_player_index == -1) {
             circular_queue *queue = &plr->update_history.queue;
-            int32_t read_index = queue->read_index;
-            int32_t write_index = queue->write_index;
-
-            if (write_index < read_index) {
-                initial_backlog_ticks = read_index - write_index;
-            } else if (read_index < write_index) {
-                initial_backlog_ticks = (queue->capacity - write_index) + read_index;
-            } else {
-                initial_backlog_ticks = 0;
-            }
+            int32_t initial_backlog = update_queue_count(queue);
 
             for (;;) {
-                int32_t backlog_records;
-                read_index = queue->read_index;
-                write_index = queue->write_index;
+                player_update_record record;
+                int32_t read_index = queue->read_index;
+                int32_t write_index = queue->write_index;
 
-                if (write_index < read_index) {
-                    backlog_records = read_index - write_index;
-                } else if (read_index < write_index) {
-                    backlog_records = (queue->capacity - write_index) + read_index;
-                } else {
-                    backlog_records = 0;
-                }
-
-                if (backlog_records <= catchup_backlog_threshold) {
+                if (update_queue_count(queue) <= catchup_backlog_threshold) {
                     int32_t summed_ticks = 0;
-                    int32_t i = write_index;
-                    if (write_index != read_index) {
+                    int32_t i = read_index;
+
+                    if (i != write_index) {
                         do {
-                            summed_ticks = summed_ticks + *(int32_t *)(((int32_t **)queue->records)[i] + 1);
+                            summed_ticks = summed_ticks +
+                                ((player_update_record **)queue->records)[i]->references_remaining;
                             i = (i + 1) % 0x78;
-                        } while (i != queue->read_index);
+                        } while (i != queue->write_index);
                     }
                     if (summed_ticks <= catchup_time_threshold) {
                         break; // caught up
                     }
                 }
 
+                // 0x476e2d: only the first three dwords of the local copy are pre-filled
+                record.field0 = 0xffffffff;
+                record.references_remaining = -1;
+                record.reference_count = -1;
+
+                if (read_index != write_index) {
+                    player_update_record *head = ((player_update_record **)queue->records)[read_index];
+
+                    head->references_remaining = head->references_remaining - 1;
+                    if (head->references_remaining == 0) {
+                        // retire the record: advance the read cursor (read != write here, so the original's
+                        // "queue emptied under us" path at 0x476f6a is unreachable)
+                        queue->read_index = (read_index + 1) % queue->capacity;
+                    }
+                    memcpy(&record, head, sizeof(record));
+                    plr->update_history.has_current = 1;
+                    memcpy(plr->update_history.current, &record.action, sizeof(plr->update_history.current));
+                }
+
+                updates_applied = updates_applied + 1;
+
+                // The first consumer of a record (remaining == total - 1) applies its position update
+                if (record.references_remaining == record.reference_count - 1 && network_game_mode == 1 &&
+                    plr->local_player_index == -1 && plr->unit != (datum_index)-1) {
+                    int16_t index = (int16_t)plr->unit;
+                    int16_t salt = (int16_t)((uint32_t)plr->unit >> 16);
+                    object_header *header = 0;
+
+                    if (index >= 0 && index < object_data->maximum_count) {
+                        object_header *candidate = (object_header *)((uint8_t *)object_data->data +
+                                                                     (int32_t)object_data->size * index);
+
+                        if (candidate->identifier != 0 && (salt == 0 || candidate->identifier == salt)) {
+                            header = candidate;
+                        }
+                    }
+                    if (header != 0 && (((1u << (header->type & 0x1f)) & _object_mask_unit) != 0) &&
+                        header->data != 0) {
+                        object *unit_obj = header->data;
+                        uint8_t seated = player_unit_has_parent(*(datum_index *)((uint8_t *)unit_obj + 0x218)); // controlling_player
+
+                        *(uint32_t *)((uint8_t *)unit_obj + 0x4bc) = record.field0;
+                        if (seated == 0) {
+                            apply_remote_player_position_update(plr, unit_obj);
+                        } else {
+                            apply_remote_player_vehicle_position_update(plr, unit_obj);
+                        }
+                    }
+                }
+
+                if (plr->unit == (datum_index)-1) {
+                    continue;
+                }
+
                 {
-                    int32_t record[11];
-                    memset(record, -1, sizeof(record));
+                    object *unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
+                    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+                    unit_control_data control;
+                    uint8_t apply = 0;
 
-                    if (write_index != read_index) {
-                        int32_t *entry = ((int32_t **)queue->records)[write_index];
-                        entry[1] = entry[1] - 1;
-                        if (entry[1] == 0) {
-                            if (queue->read_index == queue->write_index) {
-                                entry = 0;
-                            } else {
-                                entry = ((int32_t **)queue->records)[queue->read_index];
-                                queue->read_index = (queue->read_index + 1) % queue->capacity;
-                            }
-                        }
-                        if (entry != 0) {
-                            memcpy(record, entry, sizeof(record));
-                            plr->update_history.has_current = 1;
-                            memcpy(plr->update_history.current, entry + 3, sizeof(plr->update_history.current));
-                        }
+                    if ((unit->flags & 0x40) == 0) {
+                        continue;
                     }
 
-                    updates_applied = updates_applied + 1;
+                    memset(&control, 0, sizeof(control));
+                    control.animation_state = 3;
+                    control.aiming_speed = 0;
+                    if (local_player_globals->input_disabled == 0) {
+                        const player_action *action = &record.action;
 
-                    if (record[1] == record[2] - 1 && network_game_mode == 1 &&
-                        plr->local_player_index == -1 && plr->unit != (datum_index)-1) {
-                        int16_t index = (int16_t)plr->unit;
-                        object_header *header = 0;
-                        if (index >= 0 && index < object_data->maximum_count) {
-                            object_header *candidate = &((object_header *)object_data->data)[index];
-                            int16_t salt = (int16_t)((uint32_t)plr->unit >> 16);
-                            if (candidate->identifier != 0 && (salt == 0 || candidate->identifier == salt)) {
-                                header = candidate;
-                            }
-                        }
-                        if (header != 0 && (1u << (header->type & 0x1f) & _object_mask_unit) != 0 &&
-                            header->data != 0) {
-                            object *unit_obj = header->data;
-                            uint8_t seated = player_unit_has_parent(plr->unit); // UNSURE: arg should likely be controlling_player
-                            *(int32_t *)((uint8_t *)unit_obj + 0x4bc) = record[0];
-                            if (seated == 0) {
-                                apply_remote_player_position_update(plr, unit_obj);
-                            } else {
-                                apply_remote_player_vehicle_position_update(plr, unit_obj);
-                            }
-                        }
+                        control.control_flags = (uint16_t)action->control_flags;
+                        control.weapon_index = action->weapon_index;
+                        control.grenade_index = action->grenade_index;
+                        control.zoom_level = action->zoom_level;
+                        control.throttle.i = action->throttle_x;
+                        control.throttle.j = action->throttle_y;
+                        control.throttle.k = 0.0f;
+                        control.primary_trigger = action->primary_trigger;
+                        // the view forward vector lands in the aiming vector, then is copied to facing and looking
+                        player_compute_view_forward_vector(iter.index, (real *)&action->desired_yaw,
+                                                           &control.aiming_vector);
+                        control.facing_vector = control.aiming_vector;
+                        control.looking_vector = control.aiming_vector;
+                        apply = 1;
+                    } else if (unit->swarm_actor_index == (datum_index)-1 && unit->actor_index == (datum_index)-1) {
+                        control.control_flags = 0;
+                        control.weapon_index = -1;
+                        control.grenade_index = -1;
+                        control.zoom_level = -1;
+                        control.throttle = *global_origin3d_pointer;
+                        control.primary_trigger = 0.0f;
+                        control.facing_vector = unit->desired_facing_vector;
+                        control.aiming_vector = unit->desired_aiming_vector;
+                        control.looking_vector = unit->desired_looking_vector;
+                        apply = 1;
+                    }
+                    if (apply) {
+                        unit_apply_control_block(plr->unit, &control, -1);
                     }
 
-                    if (plr->unit != (datum_index)-1) {
-                        object *unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
-                        unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-                        if ((unit->flags & 0x40) != 0) { // UNSURE: unnamed unit_flags bit 6
-                            unit_control_data ctrl;
-                            uint8_t run_object_update = 0;
-
-                            memset(&ctrl, 0, sizeof(ctrl));
-                            ctrl.animation_state = 3;
-                            ctrl.weapon_index = -1;
-                            ctrl.grenade_index = -1;
-                            ctrl.zoom_level = -1;
-
-                            if (local_player_globals->input_disabled == 0) {
-                                player_compute_view_forward_vector(iter.index, (real *)&record[1],
-                                                                    &ctrl.facing_vector); // UNSURE record layout
-                            } else if (unit->swarm_actor_index == (datum_index)-1 &&
-                                       unit->actor_index == (datum_index)-1) {
-                                ctrl.facing_vector = unit->desired_facing_vector;
-                                ctrl.aiming_vector = unit->desired_aiming_vector;
-                                ctrl.looking_vector = unit->desired_looking_vector;
-                            }
-                            unit_apply_control_block(&ctrl, -1);
-
-                            run_object_update = player_unit_has_parent(plr->unit); // UNSURE: see above
-                            if (run_object_update == 0 || network_client_vehicle_ack_enabled == 0) {
-                                unit_update(plr->unit);
-                                biped_update(plr->unit);
-                            } else {
-                                object_update((uint32_t)unit_obj->parent_object);
-                            }
-                        }
+                    if (player_unit_has_parent(iter.index) != 0 && network_client_vehicle_ack_enabled != 0) {
+                        object_update((uint32_t)unit_obj->parent_object);
+                    } else {
+                        unit_update(plr->unit);
+                        biped_update(plr->unit);
                     }
                 }
             }
 
             if (updates_applied > 0) {
-                circular_queue *q2 = &plr->update_history.queue;
-                int32_t remaining_ticks;
-                int32_t r = q2->read_index, w = q2->write_index;
-                if (w < r) {
-                    remaining_ticks = r - w;
-                } else if (r < w) {
-                    remaining_ticks = (q2->capacity - w) + r;
-                } else {
-                    remaining_ticks = 0;
-                }
+                int32_t remaining_backlog = update_queue_count(queue);
+
                 player_update_history_log_printf_filtered(
-                    1, "[%d]: Caught up on [%d] updates == [%d] ticks.\n", game_time->game_time,
-                    initial_backlog_ticks - remaining_ticks, updates_applied);
+                    plr, 1, "[%d]: Caught up on [%d] updates == [%d] ticks.\n", game_time->game_time,
+                    initial_backlog - remaining_backlog, updates_applied);
             }
         }
 
