@@ -1,7 +1,7 @@
 // ai_communication_play_event_line  (Ghidra: FUN_0042eee0)
 // address 0x42eee0, size 888 bytes
 // name confidence: 0.4   rewrite confidence: 0.85
-// REWRITTEN from objdump 0x42eee0..0x42f257. The draft called the priority check, commit and record helpers
+// VERIFIED against disassembly 0x42eee0..0x42f257 (2026-09-30); rewritten from it. The draft called the priority check, commit and record helpers
 //   without their register operands. Stack: (object, event, force, speaker actor, event record). Walks the event
 //   line table (0x656b08, 0x24 rows, ends at -1) for rows of this event (and of the record's kind +0x8 when the
 //   row names one), outside the quiet period unless flag 1. The speaker is the given actor's unit, or by the row's
