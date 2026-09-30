@@ -1,7 +1,7 @@
 // weather_particle_new  (Ghidra: FUN_00458070, still unnamed there; named directly by
 //   types/effects.h: "weather_particle_new 0x458070 writes every field")
 // address 0x458070, size 941 bytes
-// name confidence: 0.6   rewrite confidence: 0.4
+// name confidence: 0.6   rewrite confidence: 0.9
 // evidence: types/effects.h weather_particle (every field, established by this exact function)
 //   and weather_instance_type.field_extent; types/tags.h WeatherParticleSystemParticleType
 //   (acceleration_magnitude +0xcc, particle_radius +0xfc, animation_rate +0x104, rotation_rate
@@ -10,11 +10,12 @@
 // register convention: weather instance index in param_1, particle type index in param_2, both
 //   Ghidra's own recognized stack parameters.
 //   // blam-cc: stack -> (instance_index, type_index)
-// UNSURE: `effect_random_direction_from_table`'s output pointer (EAX) is elided by Ghidra;
-//   reconstructed as the new particle's own `acceleration` field, matching the multiply that
-//   immediately follows. The rotation_rate roll's "signed by the parity of the datum index"
-//   detail types/effects.h mentions is not visible anywhere in this function's own decompile and
-//   is not reproduced.
+// VERIFIED against disassembly 0x458070..0x45840d (2026-09-30). FIXED: every random draw was converted with
+//   (int16_t)(seed >> 16) * (1/65536) but the original does `fild` of the unsigned 16-bit value times
+//   1.5259022e-05 (1/65535, the constant at 0x672b84), so draws >= 0x8000 came out negative; and the sprite
+//   frame was truncated to an integer, the original keeps r * (1/65535) * sprite_count as a float.
+//   effect_random_direction_from_table's output pointer (EAX) is the particle's own `acceleration` field
+//   (0x45819f: eax = esi + 0x1c). No datum-index parity term exists in this function.
 
 #include "tags.h"
 #include "memory.h"
@@ -51,20 +52,20 @@ datum_index weather_particle_new(int16_t instance_index, int16_t type_index)
         weather_particle *p = &((weather_particle *)weather_particle_data->data)[(uint16_t)handle];
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        p->position.x = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) * slot->field_extent;
+        p->position.x = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * slot->field_extent;
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        p->position.y = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) * slot->field_extent;
+        p->position.y = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * slot->field_extent;
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        p->position.z = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) * slot->field_extent;
+        p->position.z = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * slot->field_extent;
 
         p->velocity.i = 0.0f;
         p->velocity.j = 0.0f;
         p->velocity.k = 0.0f;
 
-        effect_random_direction_from_table((real_point3d *)&p->acceleration); // UNSURE, see file header
+        effect_random_direction_from_table((real_point3d *)&p->acceleration);
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         {
-            real magnitude = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) *
+            real magnitude = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
                 (type->acceleration_magnitude[1] - type->acceleration_magnitude[0]) +
                 type->acceleration_magnitude[0];
             p->acceleration.i = magnitude * p->acceleration.i;
@@ -73,20 +74,20 @@ datum_index weather_particle_new(int16_t instance_index, int16_t type_index)
         }
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        p->radius = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) *
+        p->radius = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
             (type->particle_radius[1] - type->particle_radius[0]) + type->particle_radius[0];
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        p->animation_rate = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) *
+        p->animation_rate = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
             (type->animation_rate[1] - type->animation_rate[0]) + type->animation_rate[0];
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        p->rotation_rate = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) *
+        p->rotation_rate = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
             (type->rotation_rate[1] - type->rotation_rate[0]) + type->rotation_rate[0];
 
         if ((type->flags & 4) == 0) { // random_rotation
             p->rotation = 0.0f;
         } else {
             effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            p->rotation = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) * 6.2831855f;
+            p->rotation = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
         }
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
@@ -95,18 +96,19 @@ datum_index weather_particle_new(int16_t instance_index, int16_t type_index)
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         {
             BitmapGroupSequence *sequences = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
-            p->frame = (real)(int16_t)(((effect_random_seed >> k_random_value_shift) *
-                (uint32_t)(int32_t)sequences[p->sequence_index].sprites.count) >> 16);
+            // 0x458345: fild count, fild draw, fmul 1/65535, fmul count -> a fractional frame (not truncated)
+            p->frame = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
+                (real)(int32_t)sequences[p->sequence_index].sprites.count;
         }
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         // 0x4583b4: EAX = type +0x148, ECX = type +0x138, stack (particle +0x38, type +0x20, t)
         color_interpolate((ColorRGB *)((uint8_t *)type + 0x148), (ColorRGB *)((uint8_t *)type + 0x138),
             (ColorRGB *)&p->color, *(uint32_t *)&((struct WeatherParticleSystemParticleType *)type)->flags,
-            (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f));
+            (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f);
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        p->alpha = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) *
+        p->alpha = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
             (*(real *)&((struct WeatherParticleSystemParticleType *)type)->color_upper_bound - *(real *)&((struct WeatherParticleSystemParticleType *)type)->color_lower_bound) +
             *(real *)&((struct WeatherParticleSystemParticleType *)type)->color_lower_bound;
 

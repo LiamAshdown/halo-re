@@ -11,14 +11,15 @@
 //   vector, so it cannot be swapped for a call to that helper. marker->node_transform.forward
 //   (types/objects.h object_marker +0x38, a real_matrix4x3 whose .forward sub-field, math.h
 //   +0x04, lands on marker+0x3c/0x40/0x44) matches the three reads at param_4+0x3c/0x40/0x44.
-//   The final vector3d_cross_product call's hidden EAX/ECX arguments (out, b; a is the one
-//   visible stack argument -- src/ai/actor_movement_apply_steering.c: EAX->out, stack->a,
-//   ECX->b) were resolved from objdump 0x455610..0x45573c: both branches load EAX from
+//   The final vector3d_cross_product call's hidden EAX/ECX arguments (EAX->out, ECX->a, stack->b
+//   -- src/math/vector3d_cross_product.c) were resolved from objdump 0x455610..0x45573c: both branches load EAX from
 //   `lea eax,[edx+0x34]` (edx = particle) unconditionally before the branch, i.e. &particle->
 //   direction; the `fVar2 != 0.0` branch loads ECX from the global at 0x00696720
 //   (types/math.h global_up3d_pointer) after pushing the OLD ecx (&particle->unknown_28, set
 //   earlier by `lea ecx,[edx+0x28]`) as the stack argument, while the `fVar2 == 0.0` branch skips
 //   that reload entirely and keeps ECX at that same &particle->unknown_28.
+// FIXED 2026-09-30: the cross-product operands were swapped (a = ECX, b = stack): the original computes
+//   direction = up x velocity (k2 != 0) or velocity x forward (k2 == 0).
 // register convention: identical to every other entry of this dispatch table (system, type_index,
 //   particle, marker); blam-cc: system, type_index, particle, marker.
 // UNSURE: the exact roles of the three physics_constants values (k0/k1/k2 by position only,
@@ -42,7 +43,7 @@ extern real_point3d *sphere_point_table;  // 0x006b7af4, 1026 unit vectors
 extern int16_t sphere_point_table_count;  // 0x006b7af8, 1026
 
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, foreign (math);
-    // blam-cc: EAX -> out, stack -> a, ECX -> b; out = a x b (0x455717 / 0x45572d)
+    // blam-cc: EAX -> out, ECX -> a, stack -> b (see src/math/vector3d_cross_product.c); 0x455717 / 0x45572d
 
 // ParticleSystem.particle_creation_physics dispatch table entry 2, "jet". Blends a random sphere-
 // table direction with the marker's forward axis (weighted by the type's physics constants) into
@@ -80,10 +81,10 @@ void particle_creation_physics_jet(particle_system *system, int32_t type_index,
 
     if (k2 != 0.0f) {
         vector3d_cross_product((real_vector3d *)&particle->direction,
-            (real_vector3d *)&particle->velocity, global_up3d_pointer);
+            global_up3d_pointer, (real_vector3d *)&particle->velocity);
     } else {
         vector3d_cross_product((real_vector3d *)&particle->direction,
-            &marker->node_transform.forward, (real_vector3d *)&particle->velocity);
+            (real_vector3d *)&particle->velocity, &marker->node_transform.forward);
     }
 }
 

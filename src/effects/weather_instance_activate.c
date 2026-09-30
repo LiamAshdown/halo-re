@@ -49,7 +49,7 @@ void weather_instance_activate(datum_index definition_index, int16_t instance_in
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         slot->target_count = (type->particle_count[1] - type->particle_count[0]) *
-            (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) + type->particle_count[0];
+            (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f + type->particle_count[0];
         slot->field_extent = type->fade_out_end_distance;
     }
 }

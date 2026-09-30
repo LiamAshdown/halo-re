@@ -8,18 +8,16 @@
 //   (MOVSS/MOVHPS/SHUFPS), which is outside this module's 90-function list and is not rewritten
 //   here. math_initialize @0x4cd3f0 installs this routine via
 //   matrix4x3_multiply_procedure when cpu_get_type(0x1a) reports 3DNow! support.
-//   Every PackedFloatingMUL/PackedFloatingADD pair here computes, two floats at a time, exactly
-//   the same sums that matrix4x3_multiply @0x4cc0d0 computes with scalar multiplies and adds in
-//   the same accumulation order (three terms per output component, accumulated 0/1/2). Since
-//   this routine exists purely as a faster drop-in for that same `out = a * b` operation (the
-//   two are selected interchangeably by math_initialize based on the CPU), it is rewritten here
-//   with the identical scalar formula rather than hand-decoded packed-pair arithmetic: the
-//   observable behaviour (the output matrix written to `out`) is the same either way, and no
-//   SIMD intrinsics are used anywhere else in this codebase.
+//   Every PackedFloatingMUL/PackedFloatingADD pair here computes, two floats at a time, one output
+//   component as ((b_x * A.forward) + b_y * A.left) + b_z * A.up. This routine is a faster drop-in for
+//   `out = a * b` (selected by math_initialize based on the CPU). No SIMD intrinsics are used anywhere
+//   else in this codebase, so it is written as scalar C with the exact per-component association of the
+//   packed code.
 // register convention: __cdecl, all three parameters (a, b, out) on the stack, matching
 //   matrix4x3_multiply's recovered signature exactly.
-// UNSURE: this is a semantic-equivalence rewrite, not a mechanical one -- see above. The
-//   aliasing pre-copy (`a == out` / `b == out`) is preserved faithfully from the decompile.
+// VERIFIED against disassembly 0x4cc3a0..0x4cc4ff (2026-09-30): FIXED the accumulation order (the earlier text used the
+//   Ghidra term order, which differs in the last float bit); the aliasing pre-copy (`a == out` / `b == out`,
+//   both into the one scratch buffer) matches 0x4cc3ae..0x4cc3d7.
 
 #include "tags.h"
 #include "math.h"
@@ -29,6 +27,10 @@
 void matrix4x3_multiply_3dnow(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out)
 {
     real_matrix4x3 scratch;
+    const float *A;
+    const float *B;
+    float *O = (float *)out;
+    int32_t column;
 
     if (a == out) {
         scratch = *a;
@@ -38,20 +40,26 @@ void matrix4x3_multiply_3dnow(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4
         scratch = *b;
         b = &scratch;
     }
+    A = (const float *)a; // [0] scale, [1..3] forward, [4..6] left, [7..9] up, [10..12] position
+    B = (const float *)b;
 
-    out->forward.i = b->forward.k * a->up.i + a->forward.i * b->forward.i + a->left.i * b->forward.j;
-    out->forward.j = a->left.j * b->forward.j + a->forward.j * b->forward.i + a->up.j * b->forward.k;
-    out->forward.k = a->left.k * b->forward.j + a->forward.k * b->forward.i + a->up.k * b->forward.k;
-    out->left.i = a->left.i * b->left.j + b->left.k * a->up.i + a->forward.i * b->left.i;
-    out->left.j = a->forward.j * b->left.i + a->left.j * b->left.j + a->up.j * b->left.k;
-    out->left.k = a->forward.k * b->left.i + a->left.k * b->left.j + a->up.k * b->left.k;
-    out->up.i = a->left.i * b->up.j + a->forward.i * b->up.i + b->up.k * a->up.i;
-    out->up.j = b->up.j * a->left.j + b->up.k * a->up.j + a->forward.j * b->up.i;
-    out->up.k = b->up.j * a->left.k + b->up.k * a->up.k + a->forward.k * b->up.i;
-    out->position.x = (b->position.z * a->up.i + a->left.i * b->position.y + a->forward.i * b->position.x) * a->scale + a->position.x;
-    out->position.y = (b->position.x * a->forward.j + b->position.y * a->left.j + a->up.j * b->position.z) * a->scale + a->position.y;
-    out->position.z = (b->position.x * a->forward.k + b->position.y * a->left.k + a->up.k * b->position.z) * a->scale + a->position.z;
-    out->scale = a->scale * b->scale;
+    // 0x4cc3f1..0x4cc484: each output axis component is ((bx * A.forward) + by * A.left) + bz * A.up, with every
+    // pfmul / pfadd rounded to single precision and accumulated in exactly that order (the first pfadd adds to 0).
+    for (column = 0; column < 3; column++) {
+        const float bx = B[1 + column * 3];
+        const float by = B[2 + column * 3];
+        const float bz = B[3 + column * 3];
+
+        O[1 + column * 3] = (bx * A[1] + by * A[4]) + bz * A[7];
+        O[2 + column * 3] = (bx * A[2] + by * A[5]) + bz * A[8];
+        O[3 + column * 3] = (bx * A[3] + by * A[6]) + bz * A[9];
+    }
+
+    // 0x4cc4ac..0x4cc4f3: the translation goes through the same three-term sum, then * a.scale + a.position.
+    O[10] = ((B[10] * A[1] + B[11] * A[4]) + B[12] * A[7]) * A[0] + A[10];
+    O[11] = ((B[10] * A[2] + B[11] * A[5]) + B[12] * A[8]) * A[0] + A[11];
+    O[12] = ((B[10] * A[3] + B[11] * A[6]) + B[12] * A[9]) * A[0] + A[12];
+    O[0] = B[0] * A[0];
 }
 
 #if 0

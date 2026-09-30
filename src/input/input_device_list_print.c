@@ -43,7 +43,7 @@ void input_device_list_print(void)
     controls_gamepad_record record;
     uint16_t guid_wide[0x27];
     char guid_ascii[0x27];
-    char guid_ascii_trimmed[0x26];
+    char guid_ascii_trimmed[0x27];
     char name_ascii[0x105];
     uint32_t length;
     uint32_t i;
@@ -66,6 +66,7 @@ void input_device_list_print(void)
         }
         guid_ascii[i] = '\0';
         strncpy(guid_ascii_trimmed, guid_ascii, 0x26);
+        guid_ascii_trimmed[0x26] = '\0'; // 0x49181b: the original terminates the 0x26 byte copy explicitly
 
         length = (uint32_t)wcslen(record.name);
         if (length >= 0x105) {

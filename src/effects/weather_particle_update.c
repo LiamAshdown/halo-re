@@ -70,7 +70,7 @@ void weather_particle_update(datum_index weather_particle_handle, int16_t type_i
         real_point3d *direction;
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        target_length = (real)(int16_t)(effect_random_seed >> 16) * (1.0f / 65536.0f) *
+        target_length = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f *
             (2.0f * type->acceleration_change_rate) - type->acceleration_change_rate + length;
         if (target_length < type->acceleration_magnitude[0]) {
             target_length = type->acceleration_magnitude[0];

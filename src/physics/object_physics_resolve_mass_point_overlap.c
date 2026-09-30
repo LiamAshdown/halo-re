@@ -95,14 +95,17 @@ uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, 
                     local_z *= other->scale;
                 }
 
-                delta_x = (local_x * other->forward_i + local_y * other->left_i + local_z * other->up_i + other->position_x)
+                // 0x509224..0x509279: each component is ((z * up + y * left) + x * forward) + position, in that
+                // order (float rounding differs from the x-first order)
+                delta_x = (((local_z * other->up_i + local_y * other->left_i) + local_x * other->forward_i) + other->position_x)
                     - self_world_position.x;
-                delta_y = (local_x * other->forward_j + local_y * other->left_j + local_z * other->up_j + other->position_y)
+                delta_y = (((local_z * other->up_j + local_y * other->left_j) + local_x * other->forward_j) + other->position_y)
                     - self_world_position.y;
-                delta_z = (local_x * other->forward_k + local_y * other->left_k + local_z * other->up_k + other->position_z)
+                delta_z = (((local_z * other->up_k + local_y * other->left_k) + local_x * other->forward_k) + other->position_z)
                     - self_world_position.z;
 
-                distance = (float)sqrt((double)(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z));
+                // 0x50929d..0x5092b9: (dz^2 + dy^2) + dx^2
+                distance = (float)sqrt((double)((delta_z * delta_z + delta_y * delta_y) + delta_x * delta_x));
                 if ((float)fabs((double)distance) < 0.0001f) {
                     distance = 0.0f;
                 } else {
