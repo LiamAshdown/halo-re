@@ -28,8 +28,9 @@ extern int16_t screen_flash_pass[8]; // 0x00687218
 
 // VERIFIED against disassembly 0x4578a0..0x4579a7 (2026-09-30): the update condition, the 14-dword copy, the ticks __ftol
 //   (scaled duration), the blend/clamp and the flag byte match; NaN inputs now take the same path as the x87 compares.
-//   Emulated against the original (unicorn, 300 random descriptors, x87 and SSE2 builds): identical bytes. The old difftest
-//   mismatch (intensity 0 vs 0.6884) came from the 1-ulp float rounding of the blend, fixed with the double temporaries.
+//   Emulated against the original (unicorn, 300 random descriptors, x87 and SSE2 builds): identical bytes (after moving the
+//   blend to double temporaries: float-only math differed by 1 ulp). The old difftest mismatch (intensity 0 vs 0.6884) was not
+//   reproduced with random descriptors; it is probably a harness input effect (uninitialised flash fields).
 void player_effect_set_screen_flash(player_effect *self, player_screen_flash *descriptor,
     float intensity_falloff, float duration_scale) // blam-cc: stack, unaff_EBX, stack, stack
 {
