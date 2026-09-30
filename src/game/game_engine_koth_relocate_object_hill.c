@@ -1,6 +1,6 @@
 // game_engine_koth_relocate_object_hill  (Ghidra: FUN_0046c1a0; named per its summary)
 // address 0x46c1a0, size 143 bytes
-// name confidence: 0.35   rewrite confidence: 0.35
+// name confidence: 0.35   rewrite confidence: 0.9
 // evidence: out/phase4/game_functions.md ("In team play, finds a new hill location for the given
 //   object index, plays a related sound when few hills have been used, and clears the object's
 //   'needs relocation' flag"); game_engine_variant::unknown_90 aliased 0x006f1d18;
@@ -8,10 +8,8 @@
 //   (0x4666c0, already committed, blam-cc EBX -> flag_object_index, EDI -> position -- both
 //   elided here and modeled as forwarded, per the same pattern used throughout this batch's CTF
 //   helpers).
-// register convention: object handle in in_EAX; flag_object_index/position forwarded straight
-//   through to ctf_flag_object_clear_carrier.
-//   // blam-cc: EAX -> object_index, EBX -> forwarded_flag_object_index, EDI ->
-//   //   forwarded_position
+// register convention: object handle in EAX (also copied to EBX for ctf_flag_object_clear_carrier, EDI = the found position).
+//   // blam-cc: EAX -> object_index
 // FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
 //   call(s) here now pass all three as the binary loads them (they passed one value before).
 
@@ -32,7 +30,7 @@ extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_po
 // FIXED 2026-09-28: 0x46c1b1 copies EAX into EBX and 0x46c20f points EDI at the position 0x46beb0 found (type
 //   filter: the object's +0xb8, 0x46c1cb) before ctf_flag_object_clear_carrier; nothing is forwarded.
 // blam-cc: EAX -> object_index
-// While hosting, finds a new (discarded) hill position, plays a sound if fewer than 3 hills have
+// While hosting, finds a new hill position (the returned position is copied and handed on), plays a sound if fewer than 3 hills have
 // been used so far, forwards flag_object_index/position to ctf_flag_object_clear_carrier, and
 // clears an equipment-runtime bit on the object.
 void game_engine_koth_relocate_object_hill(uint32_t object_index)

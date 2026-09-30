@@ -1,21 +1,19 @@
 // game_engine_team_close_game_check  (Ghidra: FUN_00470790; renamed, no established name)
 // address 0x470790, size 114 bytes
-// name confidence: 0.3   rewrite confidence: 0.3
+// VERIFIED against disassembly 0x470790..0x470802 (2026-09-30)
+// name confidence: 0.3   rewrite confidence: 0.85
 // evidence: out/phase4/game_functions.md ("Checks whether the score margin between two sides is
 // close enough (within about 20%) to warrant a close-game notification"); the shared
-// game_engine_gather_team_score_totals.c out-array layout (out_count[0..1], out_score[0..1]).
-// register convention: `side` (0 or 1) arrives in EBX (Ghidra's `unaff_EBX`); the stack parameter
-// is forwarded unchanged to game_engine_gather_team_score_totals as `filter_value`. `in_EAX` is
-// only ever used to clear its own low byte for the "not 0/1" early-out and is not modeled as a
-// real input.
+// game_engine_gather_team_score_totals.c out-array layout.
+// register convention: `side` (0 or 1) arrives in EBX; the stack parameter is forwarded unchanged to
+// game_engine_gather_team_score_totals as `filter_value`. AL is the returned bool (0 for a side other than 0/1).
 //   // blam-cc: EBX -> side, stack -> filter_value
-// UNSURE: this function's return value is not a plain boolean -- Ghidra's CONCAT22 packs
-// `fVar1 < fVar2`, an unordered-compare bit and `fVar1 == fVar2` into bits 8/10/14 of the high
-// 16 bits (an x87-status-word-shaped result), which no caller in this batch consumes; it is
-// transcribed literally rather than simplified to a bool. The `(a < b) == (a == b)` idiom
-// elsewhere in this module (see game_engine_tick.c) reduces to `a > b`; applied here that would
-// make the guarded `return uVar3` path equivalent to `other_margin > allowed_margin`, but the
-// packed return value itself is kept as-is since nothing here proves it is dead.
+// FIXED 2026-09-30 (disassembly): (1) the early "not behind" test compares the EDI array of the gather call (out_count in
+// that function's naming) as signed ints, the 20% margin uses the STACK array (out_score); the draft had them swapped.
+// (2) the x87 tail is `fcompp` of (other * 0.2) against (other - side) followed by `test ah,0x41 / jnp`: the result is 1 when
+// allowed <= margin and 0 when allowed > margin. The draft's packed-flags expression returned 0 for allowed < margin and
+// 1 for allowed >= margin, i.e. the wrong way round. The product is formed in x87 extended precision, so it is
+// computed here in double.
 
 #include "tags.h"
 #include "memory.h"
@@ -27,10 +25,9 @@ extern void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t
     int32_t filter_value); // this batch, 0x470690
 
 // blam-cc: EBX -> side, stack -> filter_value
-// For `side` 0 or 1, gathers the team totals and, if the other side's score is still behind
-// `side`'s, checks whether the other side's match-count margin over `side` exceeds 20% of the
-// other side's own count; returns a packed comparison-flags word if so (see UNSURE above),
-// otherwise 1.
+// For `side` 0 or 1, gathers the team totals; if `side` is ahead of the other side in the first array it returns 1,
+// otherwise 1 when the other side's margin over `side` in the second array is at least 20% of the other side's own
+// value, else 0. Any other `side` returns 0.
 uint8_t game_engine_team_close_game_check(int32_t side, int32_t filter_value)
 {
     uint32_t out_count[2];
@@ -43,17 +40,12 @@ uint8_t game_engine_team_close_game_check(int32_t side, int32_t filter_value)
 
     game_engine_gather_team_score_totals(out_count, out_score, filter_value);
 
-    if ((int32_t)out_score[other_side] < (int32_t)out_score[side]) {
-        float count_margin = (float)((int32_t)out_count[other_side] - (int32_t)out_count[side]);
-        float allowed_margin = (float)(int32_t)out_count[other_side] * 0.2f;
+    if ((int32_t)out_count[side] > (int32_t)out_count[other_side]) {
+        int32_t margin = (int32_t)out_score[other_side] - (int32_t)out_score[side];
+        double allowed_margin = (double)(int32_t)out_score[other_side] * (double)0.2f; // 0x672ab8 = 0.2f
 
-        if (allowed_margin < count_margin) {
-            uint16_t flags = (uint16_t)(((allowed_margin < count_margin) << 8) |
-                (0 << 10) | ((allowed_margin == count_margin) << 14)); // UNSURE: NAN-bit dropped, see header
-            // CORRECTED (phase 4 review): the only caller tests AL alone
-            // (objdump 0x47096f "test al,al"), so the packed CONCAT22 word Ghidra shows is
-            // dead above the low byte and the return type is a bool.
-            return (uint8_t)flags;
+        if (allowed_margin > (double)margin) {
+            return 0;
         }
     }
     return 1;
