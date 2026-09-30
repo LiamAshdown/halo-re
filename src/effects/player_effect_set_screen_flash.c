@@ -26,6 +26,9 @@
 
 extern int16_t screen_flash_pass[8]; // 0x00687218
 
+// VERIFIED against disassembly 0x4578a0..0x4579a7 (2026-09-30): the update condition, the 14-dword copy, the ticks __ftol
+//   (scaled duration), the blend/clamp and the flag byte match; NaN inputs now take the same path as the x87 compares.
+//   STILL-UNSURE: the difftest's 65/200 mismatch (intensity 0 vs 0.6884) was not explained by this comparison.
 void player_effect_set_screen_flash(player_effect *self, player_screen_flash *descriptor,
     float intensity_falloff, float duration_scale) // blam-cc: stack, unaff_EBX, stack, stack
 {
@@ -45,9 +48,9 @@ void player_effect_set_screen_flash(player_effect *self, player_screen_flash *de
             float maximum = *(float *)&descriptor->maximum_intensity;
 
             blended = (1.0f - weight) * intensity_falloff + weight;
-            if (!(blended >= 0.0f)) {
+            if (blended < 0.0f) {                 // 0x457929: fcomp 0; jp -> (>= 0 or unordered) continues
                 self->flash.intensity = 0.0f;
-            } else if (!(blended <= maximum)) {
+            } else if (blended > maximum) {       // 0x457962: fcomp max; jne when <= (NaN stores blended)
                 self->flash.intensity = maximum;
             } else {
                 self->flash.intensity = blended;
