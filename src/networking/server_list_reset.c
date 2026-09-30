@@ -12,20 +12,17 @@
 // it is a genuine forwarded argument, not always NULL.
 // FIXED (register inputs, objdump): EAX is read live at the `call 0x4ba7c0` (server_list_result_
 // reset) with no local setup; added as a forwarded `entry` parameter instead of the hardcoded 0.
-// UNSURE: this function's own known callers in this codebase (server_browser_open.c,
-// master_server_process_pending_requests.c, join_game_server_browser_tick.c) are outside this
-// batch and still call it with zero arguments; they need a follow-up pass to forward their own
-// EAX-equivalent value once this signature change propagates.
-// UNSURE: 0x00719478, 0x0071947c, 0x00719480, 0x00719481 and 0x00719484 have no documented
-// names (networking_types_notes.md explicitly lists the server-browser sort/scroll/selection
-// globals as unresolved separate scalars); declared here only by address.
+// Callers (disassembly): 0x4b5e32 / 0x4b5e9a load EAX = 0x7196bc, 0x4b7957 uses EAX = 0, 0x4b8403 and 0x4bab04
+// pass a register value (ebp / esi); server_browser_open.c, master_server_process_pending_requests.c and
+// join_game_server_browser_tick.c still declare it with no argument (see the audit report).
+// 0x00719478/0x0071947c/0x00719480/0x00719481/0x00719484 are unnamed server-browser scalars; declared by address.
 // FIXED in the review pass: the `self` (EDI) pointer is not visible in Ghidra's decompile,
 // and an earlier draft of this file passed one shared singleton to every call. The
 // disassembly of each call site shows two distinct instances -- see types/networking.h's
 // server_browser_player_ticker / server_browser_variant_ticker.
-// UNSURE: DAT_00719498, passed as the third call's `text` argument, is assumed to be a small
-// static wide-character buffer (a default/placeholder label) rather than resolved further.
+// DAT_00719498 (the third append's text argument) is a static wide-character label buffer.
 
+// VERIFIED against disassembly 0x4b65f0..0x4b6657 (2026-09-30): stores, EAX forwarded to server_list_result_reset, three ticker appends (text, column) with EDI = ticker
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -34,13 +31,13 @@
 #include <wchar.h>
 
 extern int32_t server_browser_total_players; // 0x00719474
-extern int32_t server_list_scroll_offset; // see UNSURE
+extern int32_t server_list_scroll_offset; // 0x00719478
 extern int32_t server_browser_selected_index; // 0x006953f4
-extern int32_t server_browser_last_click_ms; // see UNSURE
+extern int32_t server_browser_last_click_ms; // 0x0071947c
 extern uint8_t server_browser_skip_reselect; // 0x00719480, byte-sized at every access // see UNSURE
-extern uint8_t server_browser_player_list_ready; // see UNSURE
-extern int32_t DAT_00719484; // see UNSURE
-extern wchar_t DAT_00719498[0x100]; // see UNSURE
+extern uint8_t server_browser_player_list_ready; // 0x00719481
+extern int32_t DAT_00719484; // 0x00719484
+extern wchar_t DAT_00719498[0x100]; // 0x00719498
 
 extern void server_list_result_reset(uint8_t *entry); // 0x4ba7c0, this module (entry == NULL here)
 extern ticker_text_buffer server_browser_player_ticker;  // 0x006b5e58

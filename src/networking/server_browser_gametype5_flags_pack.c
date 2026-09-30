@@ -6,6 +6,7 @@
 // register convention: two-int32 struct pointer in EDX (in_EDX).
 // blam-cc: EDX -> values
 
+// VERIFIED against disassembly 0x576960..0x576989 (2026-09-30): bits: (v0&3)<<3|5 when v0<=2 (signed), then v1 field at bits 5-6 when v1<=2
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
