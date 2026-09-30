@@ -31,6 +31,7 @@
 #include "game.h"
 
 extern Scenario *global_scenario;    // 0x00746f8c
+extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time; // 0x006f1d6c
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *object_data;   // 0x008603b0
@@ -122,7 +123,9 @@ void game_engine_update_netgame_equipment(char force_respawn)
                         object_placement_data_initialize(&placement, (datum_index)picked_tag, k_datum_index_none);
 
                         // 0x45fb5c..0x45fb89: position (+0x18), forward = (cos, sin, 0) (+0x34)
-                        placement.position = equipment->position;
+                        placement.position.x = equipment->position.x;
+                        placement.position.y = equipment->position.y;
+                        placement.position.z = equipment->position.z;
                         placement.forward.i = (float)fcos(equipment->facing);
                         placement.forward.j = (float)fsin(equipment->facing);
                         placement.forward.k = 0.0f;
