@@ -35,6 +35,10 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
     ((d3d_call3_fn)vt[0x10c / 4])(rasterizer_device, stage, type, value);
 }
 
+// VERIFIED against disassembly 0x537d60..0x537f6d (2026-09-30): list selection (caps 0xffff0101), the pointer array copy, the
+//   per-map stage numbering (stage = index + 1, last map on stage 0), all six SetTextureStageState calls of both branches
+//   (vtable +0x10c, stdcall) and the return values match. The unbounded 4-entry array is the original's own behaviour, so a
+//   difftest with a random count smashes the stack of either version.
 uint8_t rasterizer_shader_transparent_chicago_extended_set_texture_stages(const ShaderTransparentChicagoExtended *shader)
 {
     const ShaderTransparentChicagoMap *maps[4];
