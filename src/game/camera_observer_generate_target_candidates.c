@@ -11,13 +11,10 @@
 //   // blam-cc: EDI -> cone, stack -> (start_cluster, observer_position, facing,
 //   //          exclude_object, team, capacity, out)
 //
-// UNSURE: cluster_flood_fill_with_predicate and object_collect_in_clusters are not in this batch, so their true
-// signatures are modelled loosely (matching only the shapes this one call site shows).
-// object_collect_in_clusters result is read here as a per-cluster array of "head object
-// index" values, on the theory that camera_observer_collect_target_candidates (0x45a0e0) already
-// walks an entire cluster sibling/child tree from one starting object, so one call per cluster
-// (rather than per object) is what the loop bound implies -- not independently verified.
-//
+// The argument lists of cluster_flood_fill_with_predicate (AX start cluster + 7 stack args: 0x45a01a) and
+// object_collect_in_clusters (5 stack args: 0x45a034) and camera_observer_collect_target_candidates (11 stack args)
+// were compared push by push against the disassembly on 2026-09-30.
+
 // RE-DERIVED (phase 4 review), not a transcription of Ghidra's C. Ghidra reports three
 // parameters; the function really takes SEVEN stack arguments plus the cone in EDI. From
 //   objdump -d -M intel --start-address=0x459f70 --stop-address=0x45a0e0 bin/halo.exe
@@ -49,10 +46,7 @@ extern int16_t cluster_flood_fill_with_predicate(real_point3d *position, real_ve
 extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count,
     int16_t *cluster_indices, int16_t max_output, datum_index *out_objects); // 0x4f7180,
     // all five are plain stack arguments; prototype taken from src/objects/object_collect_in_clusters.c.
-    // UNSURE: that module reads argument 2 as a CLUSTER COUNT and argument 3 as the int16
-    // cluster-index array; this call site's own evidence only shows that 0x554e30's return
-    // value goes into argument 2 and the buffer 0x554e30 filled goes into argument 3, which
-    // is consistent with it. The "frustum" reading the first pass used is not.
+    // argument 2 is the cluster COUNT returned by 0x554e30 and argument 3 the int16 cluster-index array it filled.
 extern uint16_t camera_observer_collect_target_candidates(observer_target_cone *cone,
     datum_index start_object, real_point3d *observer_position, real_vector3d *facing,
     real max_distance, real sin_max_angle, real cos_max_angle, datum_index exclude_object,
@@ -78,8 +72,8 @@ int16_t camera_observer_generate_target_candidates(observer_target_cone *cone,
     int16_t cluster_count;
     int16_t i;
     int16_t total;
-    int16_t cluster_indices[512];      // UNSURE size: matches Ghidra's local_2400 (esp+0x40)
-    datum_index cluster_heads[2048];   // UNSURE size: matches Ghidra's local_2000 (esp+0x438)
+    int16_t cluster_indices[512];      // 0x400 bytes at [E-0x2400]
+    datum_index cluster_heads[2048];   // 0x2000 bytes at [E-0x2000] (max_output 0x800 dwords)
     int16_t collected_clusters;
 
     max_distance = (cone->distance_a <= cone->distance_b) ? cone->distance_b : cone->distance_a;

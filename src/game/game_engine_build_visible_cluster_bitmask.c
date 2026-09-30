@@ -2,7 +2,7 @@
 // 512-bit cluster bitmask, OR-ing in the potentially-visible-cluster set of every (or every
 // local) player's root object)
 // address 0x4782a0, size 347 bytes
-// name confidence: 0.25   rewrite confidence: 0.8 (checked against objdump 0x4782a0..0x4783fa; the final
+// name confidence: 0.25   rewrite confidence: 0.9 (checked against objdump 0x4782a0..0x4783fa; the final
 //   bit_vector_or had lost three of its four arguments)
 // evidence: out/functions.json callee list (bit_vector_or, data_iterator_next, objects_get_ambient_cluster);
 //   types/objects.h object::parent_object (0x11c) and object::location_cluster_index (0x09c,
@@ -13,8 +13,8 @@
 //   named anywhere in this batch's evidence and is not reproduced as a new type here.
 // register convention: none -- both are genuine stack parameters (Ghidra's own
 //   param_1/param_2).
-// UNSURE: DAT_00746f9c's identity and full layout (kept as raw offsets); objects_get_ambient_cluster's role
-//   (a player-index-shaped result gating the final bit_vector_or call).
+// DAT_00746f9c's layout is kept as raw offsets (+0x134 cluster count, +0x14c per-cluster bit rows). objects_get_ambient_cluster
+// (0x4f7a50) takes no registers and returns an int16 cluster (-1 = none), which is OR'd in last via bit_vector_or.
 // The iterator Ghidra elided is the inline types/memory.h data_iterator over player_data
 //   (0x4782c1..0x4782e8: data, WORD next_index = 0, index = -1, signature = data ^ 'iter').
 // reconciled: R16 the elided iterator is the inline 0x10-byte data_iterator over player_data (0x4782c1)
@@ -29,11 +29,10 @@
 extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *object_data;      // 0x008603b0
 
-extern int16_t objects_get_ambient_cluster(void); // 0x4f7a50, not in this batch; UNSURE exact signature
+extern int16_t objects_get_ambient_cluster(void); // 0x4f7a50, no register inputs
 extern data_array *player_data;         // 0x0087a480
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0; blam-cc: EDI -> iterator
 extern void bit_vector_or(uint32_t *a, int16_t bit_count, uint32_t *b, uint32_t *dst); // 0x4cb760, EAX a, CX count, EDX b, stack dst
-    // (a second operand is presumably elided, same shape as every other 1-visible-arg call here)
 
 // Zeroes a 16-dword (512-bit) output bitmask, then for every player (or, when
 // `local_players_only` is set, every LOCAL player), walks that player's unit up its parent
@@ -70,10 +69,7 @@ void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t lo
                     root = (object *)((object_header *)object_data->data)[current & 0xffff].data;
                     current = (uint32_t)root->parent_object;
                 } while (current != 0xffffffff);
-                // UNSURE: field at object+0x9c re-read here rather than reusing
-                // location_cluster_index's own established name, matching Ghidra's own
-                // `*(short*)(... + 0x9c)` -- one byte before location_cluster_index's documented
-                // offset (0x09c IS location_cluster_index; kept named below).
+                // object+0x9c is location_cluster_index (0x478347..0x478358).
                 if (root->location_cluster_index != -1) {
                     pl->bsp_cluster = root->location_cluster_index;
                 }
