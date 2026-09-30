@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 // blam-cc: EDI -> bsp, stack -> surface_index, out_vertices
 int16_t collision_bsp_surface_get_vertices(ModelCollisionGeometryBSP *bsp, int32_t surface_index,

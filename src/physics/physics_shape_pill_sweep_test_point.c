@@ -27,11 +27,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
-extern uint8_t physics_shape_sphere_sweep_test_ray(real_point3d *point, real_point3d *origin,
-                                                    real_vector3d *delta, float *out_t,
-                                                    float radius); // 0x503290, this batch
+
 
 // blam-cc: ECX -> near_vertex, EDX -> delta, EBX -> origin, EDI -> edge_dir,
 //          stack -> radius, out_t, out_edge_fraction

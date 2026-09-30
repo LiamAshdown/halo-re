@@ -35,23 +35,21 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index,
     float *pill_height, float *pill_radius_out); // 0x55a2e0, blam-cc: EAX position, ECX object, EBX radius, stack height
-extern void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex,
-    int16_t material_type, float height_offset, float radius, uint32_t object_index,
-    int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index);
+
     // 0x503360, blam-cc: ECX model, ESI vertex, DI material_type, stack the rest
-extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
+
     // 0x504e10, blam-cc: EDI object_index, ECX out_context
 extern uint8_t object_collision_context_gather_sphere_shapes(void *context, real_point3d *origin,
     float radius_scale, float margin, float thickness, physics_model *model); // 0x505200
-extern uint8_t object_physics_context_build(uint32_t object_index, object_physics_context *out_context);
+
     // 0x5074b0, blam-cc: EBX object_index, EAX out_context
-extern uint8_t object_physics_add_mass_point_shapes(float x_offset, float y_offset,
-    object_physics_context *context, int16_t *model_counts); // 0x507790, blam-cc: EBX context
+
 
 // Walks start_object_index and its next_object siblings (recursing into each one's children)
 // and adds physics_model proxies for every object whose bounding sphere reaches the query

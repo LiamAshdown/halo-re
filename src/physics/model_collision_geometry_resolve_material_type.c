@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 // Resolves a global MaterialType_t out of definition's per-object materials table. Returns -1
 // when material_index itself is -1 (no material).

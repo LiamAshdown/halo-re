@@ -66,6 +66,7 @@
 #include "game.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -78,8 +79,7 @@ extern float k_impact_damage_scale_table[]; // 0x0069c54c, indexed by material t
 
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
     float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
-extern uint32_t object_collision_context_test_point(object_collision_context *context,
-    real_point3d *point); // 0x504e90, EBX context, stack point
+
 extern uint8_t object_collision_context_gather_sphere_shapes(void *context,
     real_point3d *origin, float radius_scale, float margin, float thickness,
     physics_model *model); // 0x505200, this module; param_1 is this function's own param_1, the
@@ -94,9 +94,7 @@ extern void object_set_position_and_relink(real_point3d *position, uint32_t obje
                                                                 // args, see file header
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index,
     int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0, objects module
-extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_position,
-    float sample_radius, float x_margin, float y_margin, uint32_t exclude_object_index,
-    real_point3d *out_position); // 0x507170, this module
+
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 // Tests whether self_object_index and candidate_object_index are colliding hard enough for

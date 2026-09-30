@@ -34,6 +34,7 @@
 #include "physics.h"
 #include "projectiles.h"
 #include "fn_units.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -41,10 +42,8 @@ extern physics_model ground_adjust_physics_model; // 0x006e4d08
 
 extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius,
     float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); // 0x506440
-extern int16_t physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta,
-    physics_model *model, real_point3d *out_position, real_vector3d *out_velocity, int16_t max_contacts,
-    physics_model_contact *contacts); // 0x5067b0, EAX start, stack
-extern uint8_t physics_point_refresh_leaf(real_point3d *point, float radius); // 0x505540, EDX point, stack radius
+
+
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
 

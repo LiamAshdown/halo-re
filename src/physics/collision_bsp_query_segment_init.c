@@ -19,10 +19,8 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
-extern uint8_t collision_bsp_query_segment_node_recursive(collision_bsp_segment_query *query,
-                                                            uint32_t node_index, float t_min,
-                                                            float t_max); // 0x502140, this batch
 
 // blam-cc: EAX -> flags, ECX -> result,
 //          stack -> bsp, breakable_surface_count, breakable_surfaces, origin, delta,

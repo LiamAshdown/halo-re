@@ -28,6 +28,7 @@
 #include "math.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
 

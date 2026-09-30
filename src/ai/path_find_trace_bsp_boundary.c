@@ -23,15 +23,13 @@
 #include "ai.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern uint8_t *breakable_surface_state;          // 0x006b8d78
 extern int16_t global_structure_bsp_index;        // 0x0069e8d8
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> 0x0065c230 {0,0,0}
 extern double sqrt(double x); // FSQRT
 
-extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp,
-    int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis,
-    const real_point2d *known); // 0x501470, ECX, EAX, stack, stack, ESI, EDI
 
 #define SURFACE(bsp, i) (*(uint8_t **)((bsp) + 0x40) + (i) * 12)
 #define EDGE(bsp, i) (*(uint8_t **)((bsp) + 0x4c) + (i) * 0x18)

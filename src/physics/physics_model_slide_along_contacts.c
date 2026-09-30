@@ -30,6 +30,7 @@
 #include "math.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern double fabs(double x);
 extern const real_vector3d *global_up3d_pointer; // 0x00696720
@@ -38,8 +39,6 @@ extern uint32_t physics_shape_test_ray(physics_model *model, real_point3d *origi
     physics_model_contact *out_contact); // 0x504bb0
 
 
-extern void vector3d_project_onto_direction(real_vector3d *out, const real_vector3d *axis,
-    const real_vector3d *v); // 0x506760, blam-cc: ECX out, EAX axis, EDX v
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
     // 0x4052c0, blam-cc: EAX out, ECX a, stack b (computes b x a)
 

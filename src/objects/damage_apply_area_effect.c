@@ -18,13 +18,13 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_objects.h"
+#include "fn_physics.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint16_t object_find_in_sphere(int32_t unknown_0, int32_t unknown_1, int32_t *location_leaf_index,
     real_point3d *center, float radius, datum_index *out_buffer, int32_t max_count); // 0x4f6fe0 (out of range)
 
-extern void breakable_surface_damage_in_blast_radius(damage_data *dd); // UNSURE: objects module, 0x4fff20 (out of range)
 
 void damage_apply_area_effect(damage_data *dd)
 {

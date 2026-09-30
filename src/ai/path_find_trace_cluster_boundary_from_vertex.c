@@ -32,13 +32,11 @@
 #include "ai.h"
 #include "physics.h"
 #include "fn_ai.h"
+#include "fn_physics.h"
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h
 extern int16_t global_structure_bsp_index;                 // 0x0069e8d8, physics.h
-extern uint32_t collision_bsp_surface_clip_line_2d(collision_bsp_boundary_clip *clip,
-                                                   ModelCollisionGeometryBSP *bsp,
-                                                   int32_t surface_index, real_point2d *origin,
-                                                   real_vector2d *direction);
+
     // 0x5017f0, src/physics/collision_bsp_surface_clip_line_2d.c; ECX -> clip
 
 // The shared passability test (0x43d7ea..0x43d82d for the enter side, 0x43d845..0x43d888 for

@@ -16,9 +16,8 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
-extern uint8_t collision_bsp_query_pill_leaf_test_surface(collision_bsp_pill_query *query,
-                                                            int32_t surface_index); // 0x502e70, this batch
 
 // blam-cc: stack -> query, bsp2d_node_index
 uint8_t collision_bsp_query_pill_leaf_recursive(collision_bsp_pill_query *query,

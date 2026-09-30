@@ -24,6 +24,7 @@
 #include "units.h"
 #include "fn_ai.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *object_data;      // 0x008603b0
@@ -33,11 +34,6 @@ extern const real_vector3d *global_up3d_pointer;   // 0x00696720
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c
 
 
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
-                                                ModelCollisionGeometryBSP *bsp,
-                                                int16_t breakable_surface_count,
-                                                uint32_t *breakable_surfaces, real_point3d *origin,
-                                                real_vector3d *delta, float max_fraction);
     // 0x502060, src/physics/collision_bsp_query_segment_init.c; flags in EAX, result in ECX
 extern double sqrt(double x); // FSQRT
 

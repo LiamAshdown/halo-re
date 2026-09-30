@@ -34,14 +34,14 @@
 #include "objects.h"
 #include "projectiles.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
     real_point3d *point); // 0x5013a0, EAX, ECX, EDX
-extern uint8_t collision_bsp_query_pill_init(ModelCollisionGeometryBSP *bsp, collision_bsp_pill_result *result,
-    real_point3d *origin, real_vector3d *delta, float radius, float max_fraction); // 0x502730, EAX, ECX, stack
+
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 
 static int16_t pill_leaf_cluster(int32_t leaf)

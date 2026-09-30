@@ -25,16 +25,8 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
-extern uint8_t physics_shape_sphere_test_ray(real_point3d *origin, real_vector3d *delta,
-                                               physics_model_sphere *sphere, real_plane3d *out_plane,
-                                               float *out_t); // 0x504430, this batch
-extern uint8_t physics_shape_pill_test_ray(real_vector3d *delta, real_point3d *origin,
-                                             real_plane3d *out_plane, physics_model_pill *pill,
-                                             float *out_t); // 0x5045c0, this batch
-extern uint8_t physics_shape_polygon_test_ray(real_point3d *origin, physics_model_shape *shape,
-                                                real_vector3d *delta, float *out_t,
-                                                real_plane3d *out_plane); // 0x5048d0, this batch
 
 // Tests a world-space ray (origin, delta) against every sphere, pill and polygon shape in
 // model, keeping the closest hit whose surface faces back against the ray (normal . delta <

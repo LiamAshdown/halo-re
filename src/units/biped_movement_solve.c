@@ -21,6 +21,7 @@
 #include "fn_units.h"
 #include "fn_math.h"
 #include "fn_structures.h"
+#include "fn_physics.h"
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720
@@ -46,9 +47,7 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale);
     // 0x401930, blam-cc: EAX out, ECX direction, stack base, scale
 
-extern int16_t physics_sweep_capsule_step(real_point3d *origin, real_vector3d *delta, real_vector3d *out_velocity,
-    uint32_t exclude_object_index, uint32_t flags, float pill_height, float pill_radius,
-    real_point3d *out_position, int16_t max_contacts, physics_model_contact *contacts);
+
     // 0x506fb0, blam-cc: EDI origin, ESI delta, EBX out_velocity, ECX exclude, stack the rest
 
     // 0x44dad0, blam-cc: EAX out, EDX signed_index, stack planes_owner

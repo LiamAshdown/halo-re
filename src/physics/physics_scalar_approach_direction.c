@@ -17,6 +17,7 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 

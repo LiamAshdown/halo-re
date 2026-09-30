@@ -25,18 +25,17 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern uint16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
     real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); // 0x4f6fe0
-extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
+
     // 0x504e10, this module (lower half); called with zero visible arguments here, object_index
     // assumed still live from this function's own parameter
-extern uint8_t object_physics_context_build(uint32_t object_index,
-    object_physics_context *out_context); // 0x5074b0, this module
-extern uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); // 0x508b70, stack
-extern uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, object_physics_context *other); // 0x5090c0, EDX, stack
+
+
 // object_index's collision-model bounding sphere and, for each: if it is a non-frozen biped,
 // runs object_physics_check_impact_damage (impact damage); if it is a vehicle other than object_index itself and both
 // objects build valid object_physics_contexts, runs object_physics_resolve_mass_point_overlap (vertex-pair repulsion) -- but

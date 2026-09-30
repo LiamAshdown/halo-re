@@ -38,6 +38,7 @@
 #include "cache.h"
 #include "physics.h"
 #include "fn_scenario.h"
+#include "fn_physics.h"
 
 // collision_test_movement_segment_flags now lives in types/physics.h.
 
@@ -59,10 +60,7 @@ extern int32_t cluster_visit_stamp[];               // 0x006e3f08, per-cluster s
 //          breakable_surfaces, origin, delta, max_fraction. Declaration copied verbatim from
 //          collision_bsp_query_segment_init.c so every call site in this module agrees; the two
 //          register arguments are lost in both decompiles.
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags,
-    collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp,
-    int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin,
-    real_vector3d *delta, float max_fraction); // 0x502060, this module
+
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
     real_point3d *point); // 0x5013a0, this module (lower half)
 // blam-cc: ESI -> out_leaf_reference (writes leaf_index and cluster_index); point comes from
@@ -70,9 +68,7 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 
 extern void plane3d_negate(real_plane3d *out, real_plane3d *in); // 0x44da20, effects module
 // blam-cc: EAX -> object_index (the object whose chain is being walked)
-extern uint8_t object_collision_test_ray_nearby_chain(uint32_t object_index, uint32_t flags, uint32_t sanitized_flags,
-    real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index,
-    collision_result *result); // 0x5055b0, this module (lower half)
+
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
 extern int16_t global_structure_bsp_index;        // 0x0069e8d8

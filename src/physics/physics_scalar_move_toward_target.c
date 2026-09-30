@@ -24,9 +24,8 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
-extern float physics_scalar_approach_direction(physics_scalar_range *range, float value, uint8_t wrap, float target); // 0x50b4d0
-extern void physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); // 0x50b290
 
 // Steps *value one tick toward target at the given rate, honoring range's wraparound the same
 // way physics_scalar_advance_and_wrap does. Returns 1 and snaps *value exactly to target once

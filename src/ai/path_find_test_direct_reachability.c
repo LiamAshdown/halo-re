@@ -29,10 +29,8 @@
 #include "ai.h"
 #include "physics.h"
 #include "fn_ai.h"
+#include "fn_physics.h"
 
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
-    ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin,
-    real_vector3d *delta, float max_fraction); // 0x502060, EAX, ECX, stack
 
 // blam-cc: EAX -> point_a, ECX -> point_b, ESI -> out_position, stack -> context, out_success
 uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,

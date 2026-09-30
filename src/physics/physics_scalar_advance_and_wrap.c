@@ -20,6 +20,7 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 // Adds delta to *value, then keeps the result inside [range->lower, range->upper]: overshooting
 // the upper edge either wraps by the range's span (wrap != 0) or clamps to range->upper;

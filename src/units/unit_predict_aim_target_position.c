@@ -21,6 +21,7 @@
 #include "units.h"
 #include "physics.h"
 #include "fn_units.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;         // 0x008603b0
 extern tag_instance *tag_instances;     // 0x0087bc14
@@ -29,9 +30,7 @@ extern real_vector3d *global_up3d_pointer;  // 0x00696720
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c, a POINTER (-> 0x65c25c {0,0,-1})
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
-    ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin,
-    real_vector3d *delta, float max_fraction); // 0x502060, EAX flags, ECX result
+
 
 // Attempts to compute a projected/predicted aim position in front of the unit for certain
 // vehicle sub-types (0, 1, 4, 6), validating line-of-clearance via a collision test. Writes the

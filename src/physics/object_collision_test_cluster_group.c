@@ -30,6 +30,7 @@
 #include "objects.h"
 #include "physics.h"
 #include "fn_objects.h"
+#include "fn_physics.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp;        // 0x00746f9c
@@ -38,8 +39,6 @@ extern data_array *collideable_object_references;           // 0x008603d4, objec
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
                                       real_point3d *point); // 0x5013a0, this module
 
-extern uint8_t object_collision_test_nearby_chain(uint32_t start_object_index, uint32_t type_mask,
-    real_point3d *position, uint32_t exclude_object_index); // 0x505350, this batch
 
 // When flags selects one of the cluster-relative contact tests (bits 5-7), resolves position's
 // containing leaf and, for the "test the leaf's cluster object group" variant (bit 7), walks

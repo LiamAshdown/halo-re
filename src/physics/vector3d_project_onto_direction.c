@@ -8,6 +8,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_physics.h"
 
 // blam-cc: ECX -> out, EAX -> axis, EDX -> v
 // Projects v onto the (not necessarily unit) axis.

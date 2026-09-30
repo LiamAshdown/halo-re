@@ -47,6 +47,7 @@
 #include "fn_units.h"
 #include "fn_math.h"
 #include "fn_objects.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -84,7 +85,7 @@ extern game_main_globals *main_game_globals; // 0x006b0b80
 extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); // 0x4cbf10, EAX, ECX, EDX
 
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, EAX -> object_index (src/objects)
-extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context); // 0x504e10, EDI, ECX
+
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags,
     real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result); // 0x504f60
 extern int8_t collision_test_movement_segment(int32_t mask, real_point3d *origin, real_vector3d *delta,

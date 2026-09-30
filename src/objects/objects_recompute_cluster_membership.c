@@ -36,10 +36,10 @@ extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, thi
 
 #include "physics.h"
 #include "fn_objects.h"
+#include "fn_physics.h"
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
-extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count,
-    collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius); // 0x501980, EAX, ECX, ESI, stack
+
 
 // FIXED (objdump 0x4f75b4..0x4f76ac): the leaf of the bounding centre (+0xa0) and its cluster; when either is
 //   -1, a sphere query (global_structure_collision_bsp 0x00746f98, no breakable surfaces, bounding centre,

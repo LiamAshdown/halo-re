@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 // blam-cc: ECX -> model, ESI -> vertex, DI -> material_type,
 //          stack -> height_offset, radius, object_index, surface_index, surface_flags,

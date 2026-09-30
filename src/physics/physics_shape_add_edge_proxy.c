@@ -30,16 +30,13 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern float vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); // 0x44d8e0, not physics;
                                                                   // returns cross(b,a) . c
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
-extern void physics_shape_edge_to_pill_and_quad(
-    physics_model *model, real_point3d *near_vertex, real_vector3d *edge_dir,
-    float height_offset, float thickness, uint32_t object_index, int32_t surface_index,
-    uint8_t surface_flags, int8_t breakable_surface_index,
-    int16_t material_type); // 0x503490, this batch
+
 
 // REWRITTEN from objdump 0x503ae0..0x503c3c: the draft took the start vertex and edge direction as parameters,
 // but the original computes both from the BSP (vertices at bsp+0x58, edge = {start, end, ..., left_surface +0x10,

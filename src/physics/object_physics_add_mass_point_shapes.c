@@ -28,12 +28,11 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
     real_matrix4x3 *m); // 0x4cbde0, blam-cc: EAX out, EDX point, stack m
-extern void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex,
-    int16_t material_type, float height_offset, float radius, uint32_t object_index,
-    int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index);
+
     // 0x503360, blam-cc: ECX model, ESI vertex, DI material_type, stack the rest
 
 // blam-cc: EBX -> context, stack -> x_offset, y_offset, model_counts

@@ -34,6 +34,7 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern data_array *object_data; // 0x008603b0
 extern float k_physics_gravity;           // 0x0069c52c

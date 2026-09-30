@@ -47,16 +47,14 @@
 #include "math.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
                                        real_matrix4x3 *m); // 0x4cbde0
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v,
                                         real_matrix4x3 *m); // 0x4cbe50
-extern uint8_t collision_bsp_query_pill_init(ModelCollisionGeometryBSP *bsp,
-                                              collision_bsp_pill_result *result,
-                                              real_point3d *origin, real_vector3d *delta,
-                                              float radius, float max_fraction);
+
     // 0x502730, this module; see UNSURE header note on its void-vs-bool return
 
 // Tests a world-space swept sphere (origin, delta, radius * radius_scale) against every

@@ -18,20 +18,17 @@
 #include "units.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
-extern uint8_t collision_bsp_surface_test_point_side_2d(ModelCollisionGeometryBSP *bsp,
-    real_point2d *point, int32_t surface_index, int16_t axis, uint8_t sign);
+
     // 0x5014a0, src/physics; blam-cc: EAX bsp, EDI point, stack (surface_index, axis, sign)
-extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp,
-    int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
+
     // 0x5015a0, src/physics; blam-cc: EAX bsp, stack (surface_index, axis, sign, point, out_point)
-extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp,
-    int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis,
-    const real_point2d *known); // 0x501470, src/physics
+
 
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900; blam-cc: EAX out, ECX object_index

@@ -56,6 +56,7 @@
 #include "physics.h"
 #include "fn_math.h"
 #include "fn_objects.h"
+#include "fn_physics.h"
 #include <string.h>
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
@@ -80,13 +81,11 @@ extern void matrix4x3_from_quaternion(void *quaternion, void *out_matrix); // 0x
 extern void matrix4x3_multiply(void *a, void *b, void *out); // 0x4cc0d0, math module
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,
     real cos_angle); // 0x4cd820, v in EAX, axis in ECX
-extern void object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index,
-    mass_point_state *mass_point, PhysicsMassPoint *definition); // 0x507ac0, this module
+
 extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); // 0x53ee00, EAX location, EDI point
 extern float real_inverse_lerp_clamped(float value, float ref_k0, float ref_k1); // 0x507430, misattributed
     // math helper, not rewritten in this batch
-extern void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale,
-    float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); // 0x507c00, stack, EDI friction, ECX forward, EDX up
+
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index,
     collision_result *result); // 0x505880, this module (higher half)

@@ -23,12 +23,13 @@
 #include <stdint.h>
 #include "physics.h"
 #include "fn_units.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
-extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context); // 0x504e10, EDI, ECX
+
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags,
     real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result); // 0x504f60, stack
 extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); // 0x4cbf10, EAX, ECX, EDX

@@ -31,6 +31,7 @@
 #include "fn_math.h"
 #include "fn_objects.h"
 #include "fn_effects.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -61,7 +62,7 @@ extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, EAX, EDX, stack
 extern void item_compute_rotation(uint32_t object_index); // 0x4bd500, EAX
-extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index); // 0x505490, stack, EDI
+
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,

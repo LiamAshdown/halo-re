@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 // blam-cc: EAX -> node_index, ECX -> bsp2d_nodes, EDX -> point
 int32_t bsp2d_node_find_leaf(int32_t node_index, TagReflexive *bsp2d_nodes, real_point2d *point)

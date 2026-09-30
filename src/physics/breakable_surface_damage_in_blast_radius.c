@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, see
                                     // breakable_surface_apply_damage.c
@@ -30,7 +31,7 @@ extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, owned by the
                                     // breakable_surfaces both land on named ScenarioStructureBSP
                                     // fields, confirming it is the tag data pointer itself).
 extern tag_instance *tag_instances;             // 0x0087bc14
-extern void breakable_surface_shatter(uint16_t surface_index, damage_data *damage, int32_t collision_surface_index); // 0x500090
+
 
 void breakable_surface_damage_in_blast_radius(damage_data *damage)
 {

@@ -50,6 +50,7 @@
 #include "physics.h"
 #include "projectiles.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern data_array *object_data; // 0x008603b0
 
@@ -57,17 +58,9 @@ extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m,
                                        real_plane3d *plane); // 0x4cbf10, math module
 extern void plane3d_negate(real_plane3d *out, real_plane3d *in); // 0x44da20, effects module
 
-extern uint8_t object_collision_context_build(uint32_t object_index,
-    object_collision_context *out_context); // 0x504e10, this module
+
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags,
     real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result); // 0x504f60 // 0x504f60, this batch
-extern int16_t model_collision_geometry_resolve_material_type(int16_t material_index,
-    ModelCollisionGeometry *definition); // 0x505330, this batch
-extern uint8_t object_physics_context_build(uint32_t object_index,
-    object_physics_context *out_context); // 0x5074b0, this module
-extern uint8_t object_physics_test_ray_against_mass_points(real_point3d *world_origin,
-    real_vector3d *world_direction, object_physics_ray_result *out_result,
-    object_physics_context *context); // 0x507610, this module
 
 
 // Walks the object chain starting at start_object_index exactly like

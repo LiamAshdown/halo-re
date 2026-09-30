@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
 extern int16_t global_structure_bsp_index;                     // 0x0069e8d8
@@ -42,11 +43,7 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp;      // 0x0074
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
                                       real_point3d *point); // 0x5013a0, this module
-extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp,
-                                                 int16_t breakable_surface_count,
-                                                 collision_bsp_sphere_result *result,
-                                                 uint32_t *breakable_surfaces, real_point3d *center,
-                                                 float radius); // 0x501980, this module
+
 
 // Re-resolves point's containing leaf in the current structure BSP and, if it still lands
 // inside the tree at all, runs a zero-radius-ish sphere query (radius) at the same spot against

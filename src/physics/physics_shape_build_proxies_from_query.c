@@ -20,16 +20,8 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
-extern void physics_shape_add_vertex_proxy(ModelCollisionGeometryBSP *bsp, uint32_t vertex_index,
-    uint32_t object_index, real_matrix4x3 *matrix, float height_offset, float radius,
-    physics_model *model); // 0x503a60, blam-cc: ECX bsp, EAX vertex_index, EBX object_index
-extern void physics_shape_add_edge_proxy(int32_t edge_index, ModelCollisionGeometryBSP *bsp,
-    real_matrix4x3 *matrix, float height_offset, float thickness, int32_t object_index,
-    physics_model *model); // 0x503ae0, blam-cc: EAX edge_index, ECX bsp
-extern void physics_shape_add_surface_proxy(ModelCollisionGeometryBSP *bsp, float *moving_frame,
-    int32_t surface_index, float margin, float thickness, int32_t object_index,
-    physics_model *model); // 0x503c50, blam-cc: EAX bsp, ESI moving_frame
 
 // blam-cc: EDI -> result, EAX -> matrix, stack -> bsp, margin, thickness, object_index, model
 // Adds a sphere/pill proxy for every vertex, pill/quad proxies for every edge and a polygon

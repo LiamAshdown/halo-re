@@ -26,13 +26,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
-extern int32_t bsp2d_node_find_leaf(int32_t node_index, TagReflexive *bsp2d_nodes,
-                                     real_point2d *point); // 0x501340, this batch
-extern uint8_t collision_bsp_surface_test_point_2d(
-    ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count,
-    uint32_t *breakable_surfaces, int32_t surface_index, int16_t axis, uint8_t sign,
-    real_point2d *point); // 0x502600, this batch
+
 extern double fabs(double x);
 extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, types/math.h (const to
                                                         // match src/math/*.c own declaration)

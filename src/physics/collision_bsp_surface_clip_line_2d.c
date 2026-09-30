@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 // blam-cc: ECX -> clip, stack -> bsp, surface_index, origin, direction
 uint32_t collision_bsp_surface_clip_line_2d(collision_bsp_boundary_clip *clip,

@@ -16,14 +16,13 @@
 #include "units.h"
 #include "physics.h"
 #include "fn_units.h"
+#include "fn_physics.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
-    ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces,
-    real_point3d *origin, real_vector3d *delta, float max_fraction); // 0x502060
+
 
 int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
                                       real_vector3d *out_normal, float distance, real_point3d *out_position)

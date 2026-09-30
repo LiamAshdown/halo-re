@@ -28,6 +28,7 @@
 #include "math.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base,
                                 float scale); // 0x401930

@@ -19,15 +19,14 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center,
     float radius, float x_offset, float y_offset, uint32_t exclude_object_index,
     physics_model *model); // 0x506440
-extern int16_t physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta,
-    physics_model *model, real_point3d *out_position, real_vector3d *out_velocity, int16_t max_contacts,
-    physics_model_contact *contacts); // 0x5067b0, blam-cc: EAX -> start_position, stack -> the rest
+
 
 // blam-cc: EDI -> origin, ESI -> delta, EBX -> out_velocity, ECX -> exclude_object_index,
 //          stack -> flags, pill_height, pill_radius, out_position, max_contacts, contacts

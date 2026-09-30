@@ -26,11 +26,8 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
-extern int32_t collision_bsp_surface_test_point_leaf(
-    ModelCollisionGeometryBSP *bsp, int32_t leaf_index, int16_t breakable_surface_count,
-    uint32_t *breakable_surfaces, uint32_t plane_index, real_point3d *crossing_point,
-    uint8_t two_sided); // 0x502460, this batch
 
 // blam-cc: stack -> query, node_index, t_min, t_max
 uint8_t collision_bsp_query_segment_node_recursive(collision_bsp_segment_query *query,

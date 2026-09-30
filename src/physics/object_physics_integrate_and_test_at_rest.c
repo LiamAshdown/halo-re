@@ -72,6 +72,7 @@
 #include "projectiles.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t physics_disable_integration; // 0x0071cfbc
@@ -79,8 +80,7 @@ extern double fabs(double x); // ABS is a single x87 FABS instruction
 
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
-extern void object_physics_mass_point_update_orientation(real_vector3d *axis, real_vector3d *up, real_vector3d *forward,
-    real_vector3d *fallback_forward, real_vector3d *fallback_up); // 0x5096f0, this module
+
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880, this module
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward,

@@ -30,6 +30,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14

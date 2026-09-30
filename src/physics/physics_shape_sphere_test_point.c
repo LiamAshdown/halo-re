@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 

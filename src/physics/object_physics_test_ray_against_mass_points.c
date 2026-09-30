@@ -32,6 +32,7 @@
 #include "math.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 
     // blam-cc: ECX -> m, EDX -> out, ESI -> point

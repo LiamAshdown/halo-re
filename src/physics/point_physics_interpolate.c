@@ -13,6 +13,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_physics.h"
 
 // blam-cc: EAX -> out, ECX -> from, EDX -> to, stack -> fraction
 // Linearly interpolates the tunable fields of two point_physics definitions.

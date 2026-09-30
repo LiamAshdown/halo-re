@@ -23,12 +23,12 @@
 #include "physics.h"
 #include "units.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> 0x0065c230 {0,0,0}
 
-extern uint8_t object_physics_context_build(uint32_t object_index,
-    object_physics_context *out_context); // 0x5074b0; EBX index, EAX context
+
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
 

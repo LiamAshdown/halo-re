@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern real_vector3d *global_down3d_pointer; // 0x0069672c
 extern float k_physics_displacement_directions[k_physics_displacement_direction_count][3]; // 0x0069c460
@@ -31,12 +32,11 @@ extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *poin
     physics_model_contact *out_contact); // 0x504260, this module (higher half)
 extern uint8_t physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta,
     physics_model_contact *out_contact); // 0x504bb0, this module (higher half)
-extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index); // 0x505490, EDI position, stack
+
 extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center,
     float radius, float x_offset, float y_offset, uint32_t exclude_object_index,
     physics_model *model); // 0x506440, this module (higher half)
-extern void physics_point_walk_toward_target(physics_point_walk_state *state, real_point3d *start_position,
-    uint32_t flags, real_vector3d *step_direction, uint32_t exclude_object_index); // 0x5070d0,
+
                                                                                     // this module
 
 // Builds a physics_model around current_position (sphere radius = x_margin/2 + sample_radius +

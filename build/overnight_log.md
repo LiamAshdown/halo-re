@@ -2843,3 +2843,4 @@ types/interface.h first_person_weapon_interface 0x28 unknown_28 -> charge_blend_
 - extern removal: saved_games -> types/fn_saved_games.h (68 prototypes, 151 files edited); 50 names skipped (callers disagree): control_profile_clear_binding, control_profile_clear_device_slot_mappings, control_profile_copy_gamepad_bindings_by_key, control_profile_finalize_slot, control_profile_find_binding_for_action, control_profile_find_or_create_gamepad_slot
 - extern removal: cutscene -> types/fn_cutscene.h (13 prototypes, 31 files edited); 0 names skipped (callers disagree): 
 - extern removal: devices -> types/fn_devices.h (7 prototypes, 20 files edited); 2 names skipped (callers disagree): device_can_change_position, device_new
+- extern removal: physics -> types/fn_physics.h (65 prototypes, 101 files edited); 16 names skipped (callers disagree). gen_prototypes.py now orders included headers by the majority include order of src/*.c.

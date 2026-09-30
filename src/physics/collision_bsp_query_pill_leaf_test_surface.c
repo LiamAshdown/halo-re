@@ -18,13 +18,11 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 extern double fabs(double x);
-extern uint8_t physics_shape_pill_sweep_test_point(real_point3d *near_vertex, real_vector3d *delta,
-                                                    real_point3d *origin, real_vector3d *edge_dir,
-                                                    float radius, float *out_t,
-                                                    float *out_edge_fraction); // 0x503050, this batch
+
 
 // blam-cc: stack -> query, surface_index
 uint8_t collision_bsp_query_pill_leaf_test_surface(collision_bsp_pill_query *query,

@@ -26,6 +26,7 @@
 #include "tags.h"
 #include "math.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50

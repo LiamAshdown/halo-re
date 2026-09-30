@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern data_array *object_data; // 0x008603b0
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
@@ -35,9 +36,7 @@ extern int16_t global_structure_bsp_index; // 0x0069e8d8
 
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
     float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
-extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count,
-    collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center,
-    float radius); // 0x501980, EAX, ECX, ESI, stack
+
 
 // REWRITTEN from objdump 0x560630..0x5607ef. ECX: unit (biped_create calls it for bipeds with tag +0x2f4 bit 6).
 //   Gathers the structure surfaces within the unit's pill radius + 0.05 of its position (0x501980, up to 0x100),

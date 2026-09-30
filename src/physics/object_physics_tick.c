@@ -37,20 +37,16 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#include "fn_physics.h"
 #include <string.h>
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t object_physics_context_build(uint32_t object_index,
-    object_physics_context *out_context); // 0x5074b0, EBX, EAX
+
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0, ECX, EDX
-extern void object_physics_compute_mass_point_forces(object_physics_context *context,
-    powered_mass_point_state *powered_states, uint32_t mass_points, real_vector3d *out_force,
-    real_vector3d *out_torque); // 0x507cc0
-extern void object_physics_integrate_and_test_at_rest(object_physics_context *context,
-    mass_point_state *mass_point_states, real_vector3d *torque, real_vector3d *force); // 0x5097e0, stack, ECX force
-extern void object_physics_handle_nearby_object_impacts(uint32_t object_index); // 0x508a10
+
+
 extern void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t mass_points,
     real_vector3d *extra_force, real_vector3d *extra_torque); // 0x509e80
 

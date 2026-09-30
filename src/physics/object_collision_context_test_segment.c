@@ -31,18 +31,14 @@
 #include "math.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
                                        real_matrix4x3 *m); // 0x4cbde0
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v,
                                         real_matrix4x3 *m); // 0x4cbe50
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
-                                                 ModelCollisionGeometryBSP *bsp,
-                                                 int16_t breakable_surface_count,
-                                                 uint32_t *breakable_surfaces, real_point3d *origin,
-                                                 real_vector3d *delta,
-                                                 float max_fraction); // 0x502060, this module
+
 
 // Tests a world-space segment (origin, delta) against every collision node of context's object,
 // one node at a time: inverts that node's local-to-world matrix, transforms the segment into

@@ -28,6 +28,7 @@
 #include "bitmaps.h"
 #include "physics.h"
 #include "fn_effects.h"
+#include "fn_physics.h"
 #include <string.h>
 
 extern uint8_t breakable_surfaces_enabled;                          // 0x00689470, the breakable_surfaces global

@@ -20,9 +20,8 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
-extern void collision_bsp_query_sphere_collect_geometry(collision_bsp_sphere_query *query,
-                                                          int32_t surface_index); // 0x501d20, this batch
 
 // blam-cc: EAX -> query, stack -> bsp2d_node_index
 void collision_bsp_query_sphere_leaf_edge_recursive(collision_bsp_sphere_query *query,

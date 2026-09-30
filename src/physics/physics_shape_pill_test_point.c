@@ -17,6 +17,7 @@
 #include "math.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 
 // blam-cc: EAX -> point, ESI -> pill, EDI -> out_normal, stack -> out_depth

@@ -24,6 +24,7 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp;        // 0x00746f9c
@@ -42,17 +43,10 @@ extern int32_t cluster_visit_stamp[];               // 0x006e3f08
 // blam-cc: EAX -> bsp, ECX -> breakable_surface_count, ESI -> result,
 //          stack -> breakable_surfaces, center, radius  (declaration shared with every other
 //          call site in this module)
-extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp,
-    int16_t breakable_surface_count, collision_bsp_sphere_result *result,
-    uint32_t *breakable_surfaces, real_point3d *center, float radius); // 0x501980, this module
+
 // blam-cc: EDI -> result, stack -> bsp, margin, thickness, object_index, model; matrix and
 //          material_type are reconstructed and listed last
-extern void physics_shape_build_proxies_from_query(collision_bsp_sphere_result *result,
-    real_matrix4x3 *matrix, ModelCollisionGeometryBSP *bsp, float margin, float thickness,
-    int32_t object_index, physics_model *model); // 0x503d90, blam-cc: EDI result, EAX matrix
-extern void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index,
-    real_point3d *origin, float radius, float x_offset, float y_offset,
-    uint32_t exclude_object_index, physics_model *model); // 0x5061c0, this module (higher half)
+
 
 // Runs a sphere query (center, radius + 0.0625 margin) against the structure BSP. When flags bit
 // 0x20 is set and the query found geometry, converts it into physics_model proxies via

@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known

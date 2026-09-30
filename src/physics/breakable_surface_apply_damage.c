@@ -24,6 +24,7 @@
 #include "physics.h"
 #include "fn_math.h"
 #include "fn_scenario.h"
+#include "fn_physics.h"
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
                                     // UNSURE name: an earlier objects-module pass named this
@@ -36,7 +37,7 @@ extern tag_instance *tag_instances;        // 0x0087bc14
 
                                     // module, not physics; resolves Globals.materials[type], or
                                     // a fallback record when the type is out of range.
-extern void breakable_surface_shatter(uint16_t surface_index, damage_data *damage, int32_t collision_surface_index); // 0x500090
+
 // FIXED (objdump 0x4fff02): the second stack argument ([esp+0x14]) is passed through as the third
 //   argument of 0x500090; projectile_response and unit_melee_attack_scan both push it.
 void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index)

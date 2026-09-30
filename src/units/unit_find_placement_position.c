@@ -25,6 +25,7 @@
 #include "fn_units.h"
 #include "fn_math.h"
 #include "fn_scenario.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -35,15 +36,11 @@ extern real_vector3d placement_offset_table[27]; // 0x0065e660
 
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
     float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
-extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context); // 0x504e10, EDI, ECX
+
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
-extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_position, float sample_radius,
-    float x_margin, float y_margin, uint32_t exclude_object_index, real_point3d *out_position); // 0x507170, ESI, stack
-extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta,
-    collision_result *result); // 0x506040, stack, EDI, ESI
-extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin,
-    real_vector3d *delta, float radius_scale, object_node_collision_result *out_result); // 0x5050b0
+
+
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
     uint32_t flags, uint32_t exclude_object_index, collision_result *result); // 0x401a20, EAX, ECX, stack
 

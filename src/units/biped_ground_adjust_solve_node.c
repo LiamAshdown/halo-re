@@ -31,6 +31,7 @@
 #include "units.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_physics.h"
 
 extern data_array *object_data;    // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -41,7 +42,7 @@ extern void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d
 
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50, EAX, EDX, stack
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
-extern uint8_t physics_point_refresh_leaf(real_point3d *point, float radius); // 0x505540, EDX point, stack radius
+
 extern double acos(double x); // CRT (the original calls _CIacos at 0x628140)
 extern double sin(double x);  // fsin
 extern double fabs(double x);

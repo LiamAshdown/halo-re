@@ -21,10 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 // physics_point_walk_state now lives in types/physics.h.
 
-extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index); // 0x505490, EDI position, stack
 
 // Tests state->position (initially the desired target) against nearby objects via
 // object_collision_test_cluster_group; while it is blocked and state->t > 0, backs it off by a fixed 0.03125 step along

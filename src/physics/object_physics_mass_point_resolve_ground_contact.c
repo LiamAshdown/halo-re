@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "physics.h"
 #include "fn_objects.h"
+#include "fn_physics.h"
 
 extern data_array *object_data; // 0x008603b0
 extern float k_default_resting_plane[4]; // 0x0069c53c
@@ -37,7 +38,7 @@ extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *poin
 extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center,
     float radius, float x_offset, float y_offset, uint32_t exclude_object_index,
     physics_model *model); // 0x506440, this module (higher half)
-extern int16_t physics_resolve_material_type(uint32_t object_index, int16_t vertex_slot); // 0x507a40
+
 
     // UNSURE args
 

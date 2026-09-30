@@ -21,17 +21,10 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+#include "fn_physics.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern uint8_t object_collision_context_build(uint32_t object_index,
-    object_collision_context *out_context); // 0x504e10, this module
-extern uint32_t object_collision_context_test_point(object_collision_context *context,
-    real_point3d *point); // 0x504e90, this module
-extern uint8_t object_physics_context_build(uint32_t object_index,
-    object_physics_context *out_context); // 0x5074b0, this module
-extern uint8_t object_physics_test_point_against_mass_points(object_physics_context *context,
-    real_point3d *world_point, int16_t *out_index); // 0x507590, this module
 
 // Walks the object chain starting at start_object_index (following object.next_object), testing
 // each object matching type_mask that overlaps position's bounding sphere and is not

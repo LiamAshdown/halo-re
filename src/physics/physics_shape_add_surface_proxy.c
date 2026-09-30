@@ -31,23 +31,15 @@
 #include "math.h"
 #include "physics.h"
 #include "fn_structures.h"
+#include "fn_physics.h"
 
-extern int16_t collision_bsp_surface_get_vertices(ModelCollisionGeometryBSP *bsp,
-                                                    int32_t surface_index,
-                                                    real_point3d *out_vertices); // 0x501400, this batch
 
                           // 0x44dad0, src/structures; blam-cc: EAX out, EDX signed_index, stack
                           // planes_owner (0x503c74..0x503c7f); copies
                                                      // bsp->planes[plane_index & 0x7fffffff],
                                                      // negated if the sign bit is set
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
-extern void physics_shape_surface_to_polygon(int16_t vertex_count, real_point3d *vertices,
-                                              real_plane3d *plane, float margin, float thickness,
-                                              uint32_t object_index, int32_t surface_index,
-                                              uint8_t surface_flags,
-                                              int8_t breakable_surface_index,
-                                              int16_t material_type,
-                                              physics_model *model); // 0x5038a0, this batch
+
 
 // blam-cc: EAX -> bsp, ESI -> moving_frame,
 //          stack -> surface_index, margin, thickness, object_index, model

@@ -20,9 +20,8 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_physics.h"
 
-extern void collision_bsp_query_sphere_node_recursive(collision_bsp_sphere_query *query,
-                                                        uint32_t node_index); // 0x501a10, this batch
 
 // blam-cc: EAX -> bsp, ECX -> breakable_surface_count, ESI -> result,
 //          stack -> breakable_surfaces, center, radius

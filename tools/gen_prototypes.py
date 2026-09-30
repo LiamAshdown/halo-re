@@ -69,6 +69,51 @@ def defining_header(name):
     return None
 
 
+_order_cache = []
+
+
+def header_rank():
+    """Header -> position in a global include order: a topological sort of 'X is included before Y' by majority vote over
+    every src/*.c file's #include list (the headers have no include-order guards of their own)."""
+    if _order_cache:
+        return _order_cache[0]
+    before = collections.Counter()
+    hs = set()
+    for f in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
+        incs = [h for h in re.findall(r'^#include\s+"([^"]+\.h)"', open(f, encoding="utf-8", errors="replace").read(), re.M)
+                if not h.startswith("fn_")]
+        for i, a in enumerate(incs):
+            hs.add(a)
+            for b in incs[i + 1:]:
+                if a != b:
+                    before[(a, b)] += 1
+    succ = {h: set() for h in hs}
+    indeg = {h: 0 for h in hs}
+    for (a, b), n in before.items():
+        if n > before.get((b, a), 0) and b not in succ[a]:
+            succ[a].add(b)
+            indeg[b] += 1
+    order, ready = [], sorted(h for h in hs if indeg[h] == 0)
+    while ready:
+        h = ready.pop(0)
+        order.append(h)
+        for s in sorted(succ[h]):
+            indeg[s] -= 1
+            if indeg[s] == 0:
+                ready.append(s)
+        ready.sort()
+    for h in sorted(hs):                       # cycles: leave in alphabetical order at the end
+        if h not in order:
+            order.append(h)
+    _order_cache.append({h: i for i, h in enumerate(order)})
+    return _order_cache[0]
+
+
+def sort_headers(headers):
+    rank = header_rank()
+    return sorted(headers, key=lambda h: (rank.get(h, 10 ** 6), h))
+
+
 def complete_includes(body, mod, headers):
     """Adds the type headers the prototypes need, found by compiling the header alone with host gcc."""
     flags = ["-m32", "-D__stdcall=", "-D__cdecl=", "-D__fastcall=", "-fsyntax-only", "-std=gnu99", "-I", os.path.join(ROOT, "types")]
@@ -86,12 +131,7 @@ def complete_includes(body, mod, headers):
                 new.append(h)
         if not new:
             return body, headers, missing
-        own = mod + ".h"
-        if own in headers:                       # dependencies must precede the module's own header
-            i = headers.index(own)
-            headers = headers[:i] + new + headers[i:]
-        else:
-            headers = headers + new
+        headers = sort_headers(headers + new)   # canonical include order (dependencies first)
         body = re.sub(r'((?:#include "[^"]+"\n)+)', "".join('#include "%s"\n' % h for h in headers), body, count=1)
     return body, headers, missing
 

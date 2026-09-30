@@ -33,13 +33,14 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_physics.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition,
     bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind,
     real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt); // 0x50b530, foreign (physics)
-extern void point_physics_interpolate(PointPhysics *out, const PointPhysics *from, const PointPhysics *to, float fraction); // 0x50b9e0, blam-cc: EAX, ECX, EDX, stack;
+
     // physics, outside this pass: out = from*(1-fraction) + to*fraction field by field (0x50b9e0..0x50ba76);
     // blam-cc: EAX -> out (left intact, the caller keeps using it), ECX -> from, EDX -> to, stack -> fraction
 
