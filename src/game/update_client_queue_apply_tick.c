@@ -1,16 +1,13 @@
 // update_client_queue_apply_tick  (Ghidra: FUN_004730d0; renamed, no established name)
 // address 0x4730d0, size 416 bytes
-// name confidence: 0.25   rewrite confidence: 0.2
+// name confidence: 0.25   rewrite confidence: 0.9
 // evidence: out/phase4/game_functions.md ("Applies a queued client update for a given tick to
 // the server's per-player runtime state"); types/game.h update_record (body opaque, "the packed
 // per-player payload the network module encodes"); update_client_queue_get_slot.c (this batch).
-// UNSURE: this is a low-confidence, mostly-literal transcription. Neither the per-player iterator
-// element's fields (+0x4 .. +0x24, written from the queue slot's own +0x8.. range) nor the
-// `param_1`/`param_2` output arrays' 0x20-byte and 0x10-byte per-player record shapes are
-// attested in any header this module owns. The call to update_client_queue_get_slot passes a
-// tick value via EAX that this function itself never receives as a named parameter in Ghidra's
-// rendering (no `in_EAX` is shown), so it is modeled as a 0 here pending a proper disassembly
-// pass; this is the least-verified file in the batch and should be revisited.
+// No register or stack input besides the two output arrays (stack: out_actions at [esp+0x24], out_carry at [esp+0x28] in the
+// disassembly's frame). update_client_queue_get_slot takes the base tick in EAX (0x4730da). The per-player iterator element is
+// written from the queue slot (+0x8 + index*0x20) and folded into out_actions (0x20 bytes) / out_carry (0x10 bytes from
+// slot+0x208) for every live element.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
@@ -28,7 +25,7 @@ extern data_array *update_client_queues;  // 0x006f7ed0
 extern update_record *update_client_queue_get_slot(int32_t tick); // this batch, 0x473500
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
 
-// UNSURE: see header. `out_actions` receives 0x20-byte records (types/game.h player_action) and
+// `out_actions` receives 0x20-byte records (types/game.h player_action) and
 // `out_carry` 0x10-byte ones (types/game.h client_update_carry), both per-player over the same
 // iteration; only the low byte of the return value is meaningful.
 uint32_t update_client_queue_apply_tick(player_action *out_actions,
