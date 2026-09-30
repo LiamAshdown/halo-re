@@ -1,7 +1,10 @@
 // trigger_create_projectiles  (Ghidra: trigger_create_projectiles, already named)
 // address 0x4c4c40, size 2193 bytes
 // name confidence: 0.85 (cea-pdb hint, strings "primary trigger"/"secondary trigger")
-// rewrite confidence: 0.85
+// rewrite confidence: 0.95
+// VERIFIED against disassembly 0x4c4c40..0x4c54ca (2026-09-30) instruction by instruction (register/stack argument orders of
+//   0x5658f0, 0x4593b0, 0x40f7e0, 0x4f53a0, 0x4cd1b0, 0x4cd670, 0x4c54e0, 0x4f54b0, 0x568f80, 0x4f7b70, the tracer/error/first-direction logic and
+//   the 0x6c-byte marker stride); the only change made was to do the up-vector normalisation in extended precision.
 // REWRITTEN from objdump 0x4c4c40..0x4c54c9 (the draft left out the whole autoaim block and mis-called the
 //   reposition, spread, randomise and perpendicular helpers). Stack: (weapon, trigger, role). For each trigger
 //   marker (all of them with trigger flag 0x20, else one): start at the marker; a live unit holder projects the
@@ -239,22 +242,24 @@ void trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint
             }
             vector3d_build_perpendicular(&placement.up, &placement.forward);
             {
-                real length = (real)sqrt(placement.up.i * placement.up.i + placement.up.j * placement.up.j +
-                                         placement.up.k * placement.up.k);
+                // x87 extended precision throughout (fld/fmul/faddp/fsqrt, 1.0 / length via fdivr), so double is used here
+                double length = sqrt((double)placement.up.i * (double)placement.up.i +
+                                     (double)placement.up.j * (double)placement.up.j +
+                                     (double)placement.up.k * (double)placement.up.k);
 
-                if (!(fabs(length) < 9.999999747378752e-05)) {
-                    real inverse = 1.0f / length;
+                if (!(fabs(length) < 9.999999747378752e-05)) { // 0x672bd8
+                    double inverse = 1.0 / length;
 
-                    placement.up.i *= inverse;
-                    placement.up.j *= inverse;
-                    placement.up.k *= inverse;
+                    placement.up.i = (float)(placement.up.i * inverse);
+                    placement.up.j = (float)(placement.up.j * inverse);
+                    placement.up.k = (float)(placement.up.k * inverse);
                 }
             }
             weapon_trigger_barrel_spread_offset(&placement.forward, &placement.up, (uint16_t)shot, W(trigger, 0x6c),
                                                 F(trigger, 0x70), (uint32_t)count);
             projectile_definition = TAG_DATA(projectile_tag);
             if (projectile_definition != 0 && (*(uint32_t *)(projectile_definition + 0x17c) & 0x10) &&
-                holder != k_datum_index_none) {
+                holder != k_datum_index_none) { // the original has no holder guard (it would read object 0xffff); kept as a safety check
                 // inherit the root parent's velocity
                 uint8_t *root = OBJECT_DATA(holder);
 
