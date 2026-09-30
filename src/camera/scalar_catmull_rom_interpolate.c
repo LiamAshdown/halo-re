@@ -10,6 +10,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 // blam-cc: __cdecl, all parameters on the stack
 // Evaluates the cubic that passes through value0, value1, value2 and value3 at times time0,

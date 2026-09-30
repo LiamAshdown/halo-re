@@ -31,6 +31,7 @@
 #include "game.h"
 #include "camera.h"
 #include "fn_game.h"
+#include "fn_camera.h"
 
 extern data_array *object_data;                             // 0x008603b0
 extern player_control_globals *player_control_globals_ptr;  // 0x006b145c
@@ -43,8 +44,7 @@ extern double sqrt(double x);     // FSQRT
 
 
 // blam-cc: ECX -> properties; angle, out = stack
-extern void first_person_camera_track_offset(unit_camera_properties *properties, float angle,
-    Vector3D *out);
+
 
 // blam-cc: ESI -> forward, EDI -> up
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *up);

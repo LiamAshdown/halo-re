@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern uint8_t *hs_camera_control_pointer;                 // 0x0087bc0c, hs module
 extern camera_script_globals camera_script;                // 0x006869d0
@@ -21,13 +22,7 @@ extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern director directors[1];                              // 0x006ac560
 
 // blam-cc: ECX -> unit, stack -> out_state; result in AX
-extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state); // 0x445b20, this module
-extern void camera_debug_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x444d50, this module (the scripted camera pov)
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x446d60, this module
-extern void camera_third_person_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x447370, this module
+
 
 // hs camera_control: true hands local player 0 to the scripted camera, false returns it to the
 // gameplay camera its seat wants.

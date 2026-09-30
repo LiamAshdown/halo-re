@@ -17,6 +17,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_camera.h"
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t DAT_00689471;    // 0x00689471, the smoothing toggle
@@ -24,7 +25,7 @@ extern uint8_t DAT_00689471;    // 0x00689471, the smoothing toggle
 extern uint8_t object_nudge_position_by_velocity(uint32_t object_index, real_point3d *out); // 0x4f7c40, EAX, stack
 extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index); // 0x4f52c0, ESI, EDI
 extern double sqrt(double x);      // a single x87 FSQRT
-extern uint8_t real_is_valid(float value); // 0x4476c0
+
 
 static uint8_t coordinate_in_range(float value)
 {

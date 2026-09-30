@@ -16,6 +16,7 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern uint8_t controls_input_capture_flags;                    // 0x00712542
 extern player_globals *local_player_globals;        // 0x0087a478
@@ -25,14 +26,13 @@ extern director directors[1];                       // 0x006ac560
 extern director_pov_proc director_last_pov_proc;    // 0x006f17f8
 extern observer observers[1];                       // 0x006ac65c
 
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // 0x446d60, this module
-extern void camera_debug_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // 0x444d50, this module
+
 // blam-cc: DI -> local_player_index, stack -> reset
-extern void director_choose_gameplay_camera(int16_t local_player_index, uint8_t reset); // 0x445dc0, this module
+
 // blam-cc: AX -> local_player_index, CL -> force
-extern void director_set_flying_camera(int16_t local_player_index, uint8_t force);      // 0x445f40, this module
+
 // blam-cc: stack -> local_player_index, ESI -> input; result in AL
-extern uint8_t director_build_camera_input(int16_t local_player_index, camera_input *input); // 0x445f90, this module;
+
                                                 // the result is stored to a dead stack slot
 
 // Top-level per-frame camera update: reads input, applies pending mode changes, computes the

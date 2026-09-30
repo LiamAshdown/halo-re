@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "camera.h"
 #include "fn_math.h"
+#include "fn_camera.h"
 
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
 extern data_array *object_data;                     // 0x008603b0

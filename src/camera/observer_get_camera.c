@@ -9,6 +9,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern observer observers[1]; // 0x006ac65c
 

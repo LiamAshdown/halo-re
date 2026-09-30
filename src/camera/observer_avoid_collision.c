@@ -32,6 +32,7 @@
 #include "projectiles.h"
 #include "structures.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (types/structures.h)
 extern ScenarioStructureBSP *global_structure_bsp;       // 0x00746f9c
@@ -48,8 +49,7 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
 
 // blam-cc: EAX -> origin, DL -> use_alternate_mask, ESI -> target; stack -> out_fraction
 // (this module)
-extern uint8_t observer_collision_test_ray(real_point3d *origin, uint8_t use_alternate_mask,
-    real_point3d *target, float *out_fraction);
+
 
 // blam-cc: EAX -> forward; position, up, distance, radius_scale = stack
 // Shrinks *distance to keep the third person camera out of nearby geometry: probes up/down/

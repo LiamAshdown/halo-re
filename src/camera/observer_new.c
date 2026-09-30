@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_camera.h"
 #include <string.h>
 
 extern const real_vector3d *global_forward3d_pointer;    // 0x00696718 -> (1, 0, 0)

@@ -11,11 +11,12 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern observer observers[1]; // 0x006ac65c
 
 // blam-cc: EDX -> this
-extern void observer_new(observer *this); // 0x447740, this module
+
 
 void observer_initialize(void)
 {

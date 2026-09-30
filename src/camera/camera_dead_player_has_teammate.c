@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_camera.h"
 #include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (no types/players.h yet)

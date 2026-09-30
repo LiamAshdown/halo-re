@@ -13,20 +13,21 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern observer observers[1]; // 0x006ac65c
 extern float observer_dt;     // 0x006ac658
 
 // blam-cc: EAX -> target, ECX -> current, EDX -> out (this module)
-extern void observer_compute_remaining_offset(float *target, float *current, float *out);
+
 // blam-cc: EDX -> local_player_index (this module)
-extern void observer_compute_spline_coefficients(int16_t local_player_index);
+
 // blam-cc: EAX -> local_player_index (this module)
-extern void observer_evaluate_spline_acceleration(int16_t local_player_index);
+
 // blam-cc: EAX -> local_player_index (this module)
-extern void observer_evaluate_spline_velocity(int16_t local_player_index);
+
 // blam-cc: EAX -> local_player_index (this module)
-extern void observer_evaluate_spline_value_and_orthonormalize(int16_t local_player_index);
+
 
 // blam-cc: DI -> local_player_index
 // Re-fits the observer's quintic spline from its current remaining offset/velocity/acceleration

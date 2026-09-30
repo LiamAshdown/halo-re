@@ -20,6 +20,7 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern uint8_t *hs_camera_control_pointer;                 // 0x0087bc0c, hs module
 extern player_globals *local_player_globals;               // 0x0087a478
@@ -28,18 +29,11 @@ extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern director directors[1];                              // 0x006ac560
 
 // blam-cc: AX -> local_player_index, BL -> force
-extern void director_update_seat_camera(int16_t local_player_index, uint8_t force); // 0x445c00, this module
+
 // blam-cc: ECX -> unit, stack -> out_state; result in AX
-extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state);  // 0x445b20, this module
+
 // blam-cc: EAX -> this, DX -> local_player_index, stack -> unit
-extern dead_camera_data *dead_camera_new(dead_camera_data *this, int16_t local_player_index,
-    datum_index unit);                                                              // 0x4450e0, this module
-extern void camera_track_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x445380, this module (the dead camera pov)
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x446d60, this module
-extern void camera_third_person_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x447370, this module
+
 
 // blam-cc: DI -> local_player_index, stack -> reset
 void director_choose_gameplay_camera(int16_t local_player_index, uint8_t reset)

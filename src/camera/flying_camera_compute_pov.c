@@ -18,6 +18,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern uint8_t flying_camera_follow_script;                 // 0x006f17fd, UNSURE name
 extern void *flying_camera_render_frame;                    // 0x00686aa4 -> 0x007c3100; +0x14 is a render_camera
@@ -30,10 +31,9 @@ extern flying_camera_transition_proc flying_camera_transition_procs[2][2]; // 0x
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 
-extern void camera_debug_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x444d50, this module (the scripted camera pov)
+
 // blam-cc: EAX -> object_index
-extern void flying_camera_attach_to_object(datum_index object_index); // 0x446470, this module
+
 
 // blam-cc: stack -> (data, input, command)
 void flying_camera_compute_pov(director_camera_data *data, camera_input *input, observer_command *command)

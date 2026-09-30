@@ -20,6 +20,7 @@
 #include "game.h"
 #include "camera.h"
 #include "fn_math.h"
+#include "fn_camera.h"
 
 extern Scenario *global_scenario;                    // 0x00746f8c
 extern camera_script_globals camera_script;   // 0x006869d0
@@ -27,13 +28,12 @@ extern player_globals *local_player_globals;          // 0x0087a478
 extern float observer_dt;                             // 0x006ac658
 extern observer observers[1];                         // 0x006ac65c
 
-extern void camera_update(float dt);                  // 0x445640, this module
+
 // blam-cc: DX -> local_player_index
-extern void observer_set_command(int16_t local_player_index);  // 0x447ab0, this module
+
 // blam-cc: DI -> local_player_index
-extern void observer_advance(int16_t local_player_index);      // 0x447b50, this module
+
 // blam-cc: AX -> local_player_index
-extern void observer_commit(int16_t local_player_index);       // 0x448900, this module
 
 
 // hs camera_set: point camera_script_globals at cutscene camera point `camera_point_index` of

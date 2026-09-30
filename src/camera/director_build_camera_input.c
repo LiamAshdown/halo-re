@@ -29,6 +29,7 @@
 #include "saved_games.h"
 #include "input.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern void *mouse_device;                          // 0x006b1804, input module
 extern uint8_t input_suppressed;                    // 0x006b15f9, input module
@@ -41,11 +42,7 @@ extern director directors[1];                       // 0x006ac560
 // blam-cc: ECX -> key_index; result in AL
 extern uint8_t input_get_key_state(int16_t key_index); // 0x490b50, input module
 // blam-cc: AX -> local_player_index, stack -> (key_bits, zoom)
-extern void camera_input_axes_update(int16_t local_player_index, uint32_t key_bits, float zoom); // 0x446170, this module
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x446d60, this module
-extern void camera_third_person_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x447370, this module
+
 
 // blam-cc: stack -> local_player_index, ESI -> input; result in AL
 uint8_t director_build_camera_input(int16_t local_player_index, camera_input *input)

@@ -18,6 +18,7 @@
 #include "objects.h"
 #include "units.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern data_array *object_data; // 0x008603b0
 
@@ -31,11 +32,10 @@ extern void unit_get_camera_position(datum_index unit, real_point3d *out); // 0x
     // blam-cc: ECX -> unit, EDI -> out
 
 // blam-cc: EAX -> unit (0x447110, this module)
-extern unit_camera_properties *unit_get_camera_properties(datum_index unit);
+
 
 // blam-cc: ECX -> properties; angle, out = stack (0x447190, this module)
-extern void first_person_camera_track_offset(unit_camera_properties *properties, float angle,
-    Vector3D *out);
+
 
 // MSVC 7.1 CRT _CIasin: operand and result on the x87 stack, no stack arguments (0x628630 is
 // sub esp,0xc / fst QWORD [esp] / call / call / ret). The `push edx` at 0x4472e0 right before

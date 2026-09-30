@@ -19,12 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern director directors[1]; // 0x006ac560
 
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // 0x446d60, this module
-extern void camera_debug_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // 0x444d50, this module
-extern void camera_third_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // 0x447370, this module (rewritten separately)
 
 // blam-cc: CX -> local_player_index
 // Recomputes (and caches) director.camera_type from the active pov procedure.

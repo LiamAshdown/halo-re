@@ -33,6 +33,7 @@
 #include "fn_game.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_camera.h"
 
 extern data_array *player_data;         // 0x0087a480
 extern data_array *object_data;         // 0x008603b0
@@ -43,10 +44,8 @@ extern char camera_observer_find_best_target(real_point3d *observer_position, ob
     real_vector3d *facing, datum_index exclude_object, int16_t team, void *out); // 0x459a00, EBX, stack
 
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out); // 0x459e80, EAX, EDX, EDI
-extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state); // 0x445b20, ECX, stack
-extern void first_person_camera_deterministic(Point3D *out_position, datum_index unit, Vector3D *out_direction); // 0x446a90, EAX, ECX, stack
-extern void first_person_camera_apply_weapon_offset(real_point3d *position, datum_index unit,
-    real_vector3d *aiming_direction); // 0x447290, EAX, EBX, ESI
+
+
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, void *result); // 0x505880, stack
 

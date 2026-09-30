@@ -16,6 +16,7 @@
 #include "game.h"
 #include "camera.h"
 #include "fn_game.h"
+#include "fn_camera.h"
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern player_globals *local_player_globals;           // 0x0087a478
@@ -24,7 +25,7 @@ extern director_pov_proc director_last_pov_proc;       // 0x006f17f8
 // blam-cc: EAX -> player_handle, ECX -> yaw_pitch, ESI -> out_forward
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
     real_vector3d *out_forward); // 0x473d70, game module
-extern void first_person_camera_for_unit_and_vector(observer_command *command, Vector3D *vector, datum_index unit); // 0x446b70, this module
+
 // blam-cc: AX -> local_player_index (0x446dbb mov ax,[edi] right before the call)
 // UNSURE name: the game module calls 0x471f90 game_engine_get_max_look_pitch, but this caller
 // stores its result as the command field of view and eases the fov channel when it changes.

@@ -13,14 +13,14 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern director directors[1]; // 0x006ac560
 
 // blam-cc: EAX -> data, stack -> local_player_index
-extern void flying_camera_initialize(editor_camera_data *data, int16_t local_player_index); // 0x446350, this module
+
 // the flying pov procedure 0x4464f0 (no Ghidra function; see README known gaps)
-extern void flying_camera_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x4464f0, this module
+
 
 // blam-cc: AX -> local_player_index, CL -> force
 void director_set_flying_camera(int16_t local_player_index, uint8_t force)

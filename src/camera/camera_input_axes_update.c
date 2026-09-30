@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern director_globals camera_director_globals;          // 0x006ac558
 extern director directors[1];                             // 0x006ac560

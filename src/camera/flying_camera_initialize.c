@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern Scenario *global_scenario;                           // 0x00746f8c, cache module
 extern uint8_t flying_camera_home_initialized;              // 0x006f17ff

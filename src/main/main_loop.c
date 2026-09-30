@@ -54,6 +54,7 @@
 #include "cutscene.h"
 #include "fn_game.h"
 #include "fn_gamespy.h"
+#include "fn_camera.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -181,9 +182,7 @@ extern char update_server_send_update(int32_t ticks, uint8_t frame_time_overflow
 extern void *data_iterator_next(data_iterator *iterator);                   // 0x4d05d0, blam-cc: EDI -> iterator
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
     const char *format, ...);                                               // 0x4e5ea0, blam-cc: EAX, ECX
-extern void camera_update(float dt);                                        // 0x445640, foreign (camera)
-extern uint8_t camera_is_local_player_default_first_person(void);           // 0x4455f0, foreign (camera)
-extern void observer_update(float dt, uint8_t add_bob);                     // 0x447880, foreign (camera)
+
 
 extern void main_save_map_private(void);                                    // this module, 0x4c9a70
 extern void timedemo_benchmark_update(void);                                // this module, 0x4c6f30

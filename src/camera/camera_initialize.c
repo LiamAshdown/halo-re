@@ -14,12 +14,12 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern director_globals camera_director_globals;         // 0x006ac558
 extern director directors[1];                     // 0x006ac560
 extern camera_input_axis_definition camera_input_axes[4]; // 0x00686a28
 
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // 0x446d60, this module
 
 // Resets the camera subsystem to its default state: following mode, first person as the active
 // pov procedure, a fresh transition, unit look scale, and every debug-look axis reset to its

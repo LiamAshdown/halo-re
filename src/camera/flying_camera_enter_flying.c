@@ -15,6 +15,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern void *flying_camera_render_frame;                    // 0x00686aa4 -> 0x007c3100; +0x14 is a render_camera
 extern datum_index flying_camera_attached_object;           // 0x00686aa0
@@ -25,7 +26,7 @@ extern double atan2(double y, double x);
 extern double sqrt(double x);
 
 // blam-cc: EAX -> object_index
-extern void flying_camera_attach_to_object(datum_index object_index); // 0x446470, this module
+
 
 // blam-cc: stack -> data
 void flying_camera_enter_flying(editor_camera_data *data)

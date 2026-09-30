@@ -31,6 +31,7 @@
 #include "math.h"
 #include "cache.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern camera_script_globals camera_script; // 0x006869d0

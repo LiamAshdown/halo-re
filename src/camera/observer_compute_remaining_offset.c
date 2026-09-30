@@ -24,6 +24,7 @@
 #include "math.h"
 #include "camera.h"
 #include "fn_math.h"
+#include "fn_camera.h"
 
 extern double sqrt(double x);   // FSQRT
 extern double fabs(double x);   // FABS

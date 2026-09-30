@@ -17,6 +17,7 @@
 #include "math.h"
 #include "objects.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern data_array *object_data;                         // 0x008603b0, objects module
 extern const real_point3d *global_origin3d_pointer;     // 0x00696714, math module

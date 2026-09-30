@@ -11,11 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern uint8_t *hs_camera_control_pointer; // 0x0087bc0c, hs module
 
-extern void camera_initialize(void);        // 0x445580, this module
-extern void camera_control(uint8_t enable); // 0x445cc0, this module
 
 void director_game_state_loaded(void)
 {

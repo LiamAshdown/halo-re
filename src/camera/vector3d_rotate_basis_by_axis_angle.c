@@ -14,6 +14,7 @@
 #include "math.h"
 #include "camera.h"
 #include "fn_math.h"
+#include "fn_camera.h"
 
 
 extern double fsin(double angle); // FSIN

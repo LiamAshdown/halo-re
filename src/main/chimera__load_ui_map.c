@@ -39,6 +39,7 @@
 #include "networking.h"
 #include "main.h"
 #include "fn_game.h"
+#include "fn_camera.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -59,10 +60,8 @@ extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0
 
 
 extern void game_scenario_session_begin(network_scenario_load_request *request); // 0x4c95f0, this module
-extern void camera_debug_start(int16_t camera_point_index, int16_t ticks,
-                                datum_index relative_object); // 0x444c00, foreign (camera module)
-extern void camera_debug_compute_pov(director_camera_data *data, camera_input *input,
-                                      observer_command *command); // 0x444d50, foreign (camera module)
+
+
 extern void predicted_resource_list_touch(TagReflexive *resources); // 0x4449f0, foreign (cache); blam-cc: ESI -> resources
 
 // Loads the front-end map ("levels\\ui\\ui") as a scenario session: switches the cache file to

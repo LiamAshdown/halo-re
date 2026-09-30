@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 // cos/sin/atan2/sqrt are single x87 instructions in the original code; declared locally instead
 // of via <math.h> because -I types shadows that header name with types/math.h.

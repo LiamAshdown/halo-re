@@ -14,11 +14,11 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern director directors[1];                // 0x006ac560
 
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // 0x446d60, this module
 
 // True if the first local player exists and its active pov procedure is the default first
 // person one (i.e. not third person, scripted, dead, flying or editor).

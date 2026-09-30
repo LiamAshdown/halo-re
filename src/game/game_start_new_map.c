@@ -27,6 +27,7 @@
 #include "fn_game.h"
 #include "fn_rasterizer.h"
 #include "fn_objects.h"
+#include "fn_camera.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
@@ -72,8 +73,6 @@ extern Scenario *global_scenario; // 0x00746f8c
 extern uint8_t *object_globals_pointer; // TYPES-GAP
 
 
-extern void camera_initialize(void);                       // 0x445580
-extern void observer_new(observer *this);                    // 0x447740, blam-cc: EDX -> this
 extern observer observers[];                                 // 0x006ac65c, one per local player (0x29c each)
 
 extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c2c0,

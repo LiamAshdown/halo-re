@@ -22,6 +22,7 @@
 #include "game.h"
 #include "objects.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern data_array *player_data;                    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern game_time_globals *game_time;               // 0x006f1d6c
@@ -37,8 +38,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void *datum_get(datum_index handle, data_array *array);                  // 0x4d0680, memory module
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *out_up); // 0x4479c0, this module
                                                      // (rewritten separately); blam-cc: ESI -> forward, EDI -> out_up
-extern uint8_t camera_dead_player_has_teammate(datum_index reference_player);               // this module
-extern datum_index camera_dead_find_next_teammate(datum_index reference_player, datum_index current_target, uint8_t require_same_team); // this module
+
 
 // blam-cc: stack -> (data, input, command)
 // The dead (orbiting) camera's point of view: focuses on the tracked target unit's bounding

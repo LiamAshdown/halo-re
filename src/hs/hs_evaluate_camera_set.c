@@ -13,11 +13,11 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_camera.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
-extern void camera_debug_start(int16_t camera_point_index, int16_t ticks, datum_index relative_object);
     // 0x444c00, blam-cc: AX -> camera_point_index, stack -> (ticks, relative_object)
 
 void hs_evaluate_camera_set(int16_t function_index, uint32_t thread_index, char first)

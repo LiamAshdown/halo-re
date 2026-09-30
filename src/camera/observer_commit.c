@@ -29,6 +29,7 @@
 #include "objects.h"
 #include "structures.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern observer observers[1];               // 0x006ac65c
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (types/structures.h)
@@ -47,8 +48,7 @@ extern float scenario_location_water_surface_distance(bsp_leaf_reference *locati
 extern void predicted_resource_list_touch(TagReflexive *resources);           // 0x4449f0, cache module
 
 // blam-cc: forward in EAX; position, up, distance, radius_scale = stack (this module)
-extern void observer_avoid_collision(real_vector3d *forward, real_point3d *position,
-    real_vector3d *up, float *distance, float radius_scale);
+
 
 // blam-cc: AX -> local_player_index
 // Publishes observers[local_player_index]'s eased parameters to observers_camera[local_player_index]:

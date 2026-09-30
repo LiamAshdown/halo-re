@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern Globals *global_globals;      // 0x00746fa0

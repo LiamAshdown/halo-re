@@ -22,6 +22,7 @@
 #include "camera.h"
 #include "sound.h"
 #include "fn_math.h"
+#include "fn_camera.h"
 #include <string.h>
 
 extern data_array *player_data;                               // 0x0087a480
@@ -36,7 +37,7 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern datum_index local_player_to_player_index(int16_t local_player_index); // 0x474d30, AX
-extern observer_camera *observer_get_camera(int16_t player_index); // 0x4479a0, CX
+
 extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out); // 0x568f50, ECX, ESI
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,
     sound_location_proc location_proc, void *callback_data, int32_t callback_data_size,

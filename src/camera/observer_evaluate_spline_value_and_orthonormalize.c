@@ -27,6 +27,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern observer observers[1];       // 0x006ac65c
 extern float observer_dt;           // 0x006ac658
@@ -37,8 +38,7 @@ extern double sqrt(double x);     // FSQRT
 extern double fabs(double x);     // FABS
 
 // blam-cc: EAX -> axis_angle; forward, up = stack (0x448880, this module)
-extern void vector3d_rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forward,
-    Vector3D *up);
+
 
 // blam-cc: AX -> local_player_index
 void observer_evaluate_spline_value_and_orthonormalize(int16_t local_player_index)

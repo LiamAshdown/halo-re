@@ -19,11 +19,11 @@
 #include "objects.h"
 #include "units.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern void first_person_camera_for_unit_and_vector(observer_command *command, Vector3D *vector,
-                                                      datum_index unit); // 0x446b70, this module;
+
                                                      // blam-cc: EBX -> command, EAX -> vector, stack -> unit
 
 // blam-cc: ECX -> unit, stack -> command

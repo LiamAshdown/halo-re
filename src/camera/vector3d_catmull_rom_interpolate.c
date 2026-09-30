@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 // blam-cc: __cdecl, all parameters on the stack (0x447000, this module)
-extern double scalar_catmull_rom_interpolate(float value0, float value1, float value2,
-    float value3, float time0, float dt, float time);
+
 
 // blam-cc: source1 = EBX, source3 = ESI, source2 = EDI; out, source0, time0, dt, time = stack
 // (param_1..param_5)

@@ -9,6 +9,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#include "fn_camera.h"
 
 
 // Returns whether value is a valid (non-NaN) float.

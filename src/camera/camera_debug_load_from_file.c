@@ -22,19 +22,18 @@
 #include "math.h"
 #include "camera.h"
 #include "fn_math.h"
+#include "fn_camera.h"
 
 extern director directors[1]; // 0x006ac560
 
 // blam-cc: EAX -> out, ECX -> direction, EDX -> position
-extern void editor_camera_set_position_and_direction(editor_camera_data *out, Vector3D *direction,
-    Point3D *position);                                           // 0x446e30, this module
+
 // blam-cc: ESI -> forward, EDI -> out_up
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *out_up); // 0x4479c0, this module
 // blam-cc: EDX -> a, ECX -> b; result on the x87 stack
 
 // the editor pov procedure 0x446e90 (no Ghidra function; see README known gaps)
-extern void editor_camera_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command);                                   // 0x446e90, this module
+
 
 // Loads camera.txt and switches local player 0 to the editor camera at that position and
 // orientation. The roll is recovered as the signed angle between the saved up vector and the

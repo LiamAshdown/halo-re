@@ -21,6 +21,7 @@
 #include "game.h"
 #include "camera.h"
 #include "fn_units.h"
+#include "fn_camera.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480, stride 0x200
@@ -30,20 +31,17 @@ extern director directors[1];                // 0x006ac560
 extern float observer_dt;                    // 0x006ac658
 extern observer observers[1];                // 0x006ac65c
 
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input,
-    observer_command *command); // 0x446d60, this module
 
 // blam-cc: ECX -> object_index, stack -> kind
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 
 // blam-cc: DX -> local_player_index (0x447ab0, this module)
-extern void observer_set_command(int16_t local_player_index);
+
 
 // blam-cc: DI -> local_player_index (0x447b50, this module)
-extern void observer_advance(int16_t local_player_index);
+
 
 // blam-cc: AX -> local_player_index (0x448900, this module)
-extern void observer_commit(int16_t local_player_index);
 
 
     // 0x55cca0, units module

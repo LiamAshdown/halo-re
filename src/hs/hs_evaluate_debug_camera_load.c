@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_camera.h"
 
-
-extern void camera_debug_load_from_file(void); // 0x445940
 
 void hs_evaluate_debug_camera_load(int16_t function_index, uint32_t thread_index, char first)
 {
