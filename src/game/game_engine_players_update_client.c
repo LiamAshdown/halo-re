@@ -63,8 +63,8 @@ extern void player_apply_pickup_effect(datum_index player_handle, datum_index it
 extern void unit_release_selected_equipment(datum_index unit_handle); // 0x56d300, units module, not in this batch
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
                                                 real_vector3d *out_forward); // this batch, 0x473d70
-extern void unit_apply_control_block(void *record_or_field, int32_t grenade_value); // 0x5639f0, units module,
-    // not in this batch; blam-cc: EDX -> record_or_field, ECX -> grenade_value
+extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id); // 0x5639f0,
+    // blam-cc: EAX -> unit_index, EDX -> control, stack -> source_id (every call site pushes -1; FIXED 2026-09-30 from the disassembly 0x474848/0x4748ff)
 extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_t flag); // this module's next batch, 0x4782a0
 
 // Client-side per-tick players update: fills a 16-entry player_action array from this machine's
@@ -163,8 +163,12 @@ void game_engine_players_update_client(void)
 
                     memset(&ctrl, 0, sizeof(ctrl));
                     ctrl.control_flags = (uint16_t)current_action.control_flags;
+                    // 0x474790..0x474824: the view forward vector lands in the AIMING slot (ESI = &ctrl.aiming_vector) and is copied to
+                    // the facing and looking vectors
                     player_compute_view_forward_vector(player_handle, &current_action.desired_yaw,
-                                                        &ctrl.facing_vector);
+                                                        &ctrl.aiming_vector);
+                    ctrl.facing_vector = ctrl.aiming_vector;
+                    ctrl.looking_vector = ctrl.aiming_vector;
                     ctrl.throttle.i = current_action.throttle_x;
                     ctrl.throttle.j = current_action.throttle_y;
                     ctrl.throttle.k = 0.0f;
@@ -175,7 +179,7 @@ void game_engine_players_update_client(void)
                     ctrl.unknown_0a = 0;
                     ctrl.animation_state = 3;
                     ctrl.aiming_speed = 0;
-                    unit_apply_control_block(&ctrl, 0);
+                    unit_apply_control_block(plr->unit, &ctrl, -1);
                 } else if (unit->swarm_actor_index == (datum_index)-1 && unit->actor_index == (datum_index)-1) {
                     unit_control_data ctrl;
 
@@ -191,7 +195,7 @@ void game_engine_players_update_client(void)
                     ctrl.facing_vector = unit->desired_facing_vector;
                     ctrl.aiming_vector = unit->desired_aiming_vector;
                     ctrl.looking_vector = unit->desired_looking_vector;
-                    unit_apply_control_block(&ctrl, 0);
+                    unit_apply_control_block(plr->unit, &ctrl, -1);
                 }
             }
         }
