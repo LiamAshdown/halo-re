@@ -1,8 +1,12 @@
 // biped_ground_adjust_solve  (Ghidra: biped_ground_adjust_solve, renamed)
 // address 0x558000, size 2123 bytes
-// name confidence: 0.4   rewrite confidence: 0.8
+// name confidence: 0.4   rewrite confidence: 0.9
 // REWRITTEN from objdump 0x558000..0x55885e (the draft passed a 12-byte local as the physics model,
 //   took a third argument the binary never has, and guessed the helper signatures).
+// VERIFIED against disassembly 0x558000..0x55885e (2026-09-30): tolerance / progress gates, sphere query and slide call arguments
+//   (EAX/EBX/stack bindings), the 4-pass BFS with its 64-entry queue, segment start 0.015 / length 1.03, the push-out
+//   arithmetic (2.5 * tolerance), the stretch restoration and every constant (checked in the image). Only the summation order of
+//   the plane-distance dot product differs inside the both-embedded case (i, k, j for the node; the C keeps j, k, i).
 // blam-cc: stack -> object_index, nodes (biped_ground_adjust_step 0x557b48 pushes exactly these two)
 // The limp body pass for a biped (object +0x524 iteration, +0x525 limit, 0 < limit < 30):
 //   - tolerance = the animation graph's limp body node radius (+0x60), 0.03 when ~0, negative or > 0.07;
