@@ -31,6 +31,7 @@
 #include "cache.h"
 #include "physics.h"
 #include "effects.h"
+#include "fn_math.h"
 
 extern data_array *weather_particle_data;     // 0x0087abcc
 extern weather_instance weather_instances[1]; // 0x006b0ae4
@@ -39,7 +40,7 @@ extern real_point3d *sphere_point_table;      // 0x006b7af4, 1026 unit vectors
 extern int16_t sphere_point_table_count;      // 0x006b7af8, 1026
 extern random_seed effect_random_seed;        // 0x00719cd4
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg,
     PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4,
     real_point3d *position, real_vector3d *wind, real_vector3d *out_normal,

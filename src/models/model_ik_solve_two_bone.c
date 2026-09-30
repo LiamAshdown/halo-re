@@ -25,9 +25,10 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern double sqrt(double x); // a single x87 FSQRT instruction, see src/math/quaternion_normalize.c
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 
 // Roles (review pass, from the reads and writes): `middle` is the ROOT joint of the chain
 // (shoulder / hip): its position is only read, its rotation is re-aimed. `end` is the MIDDLE

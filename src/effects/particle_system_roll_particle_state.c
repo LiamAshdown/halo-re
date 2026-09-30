@@ -24,10 +24,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_math.h"
 
 extern random_seed effect_random_seed; // 0x00719cd4
 
-extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170
 
 void particle_system_roll_particle_state(int16_t index, ParticleSystemTypeParticleState *states,
     particle_state_values *out) // blam-cc: in_AX, in_ECX, in_EDX

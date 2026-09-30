@@ -31,6 +31,7 @@
 #include "objects.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 // actor_flee_source_reason now lives in types/ai.h (folded from this file).
 
@@ -41,7 +42,7 @@ extern void * datum_get(datum_index handle, data_array *array);                 
 extern void *object_try_and_get(datum_index object_index, int32_t kind);        // 0x4f6ec0
 extern void object_get_position(real_point3d *out_position, datum_index object_index);           // 0x4f6900, EAX->out, ECX->object_index
 extern void unit_get_primary_eye_marker_position(datum_index object_index, real_point3d *out); // 0x568f50, ECX->object_index, ESI->out (see UNSURE)
-extern real vector3d_normalize_with_length(real_vector3d *v);                          // 0x401990, vector in ECX
+
 
 // blam-cc: EAX -> reason, EDI -> out, stack -> actor_index
 // Fills *out with a direction (or, for a handful of reason codes, an absolute point copied

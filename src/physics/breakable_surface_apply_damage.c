@@ -22,6 +22,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "physics.h"
+#include "fn_math.h"
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
                                     // UNSURE name: an earlier objects-module pass named this
@@ -30,7 +31,7 @@ extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
                                     // supersedes that and is owed back as a reconciliation.
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern tag_instance *tag_instances;        // 0x0087bc14
-extern real random_real_range(real min, real max); // 0x401050
+
 extern GlobalsMaterial *globals_material_get(int16_t material_type); // 0x53e7c0, scenario/globals
                                     // module, not physics; resolves Globals.materials[type], or
                                     // a fallback record when the type is out of range.

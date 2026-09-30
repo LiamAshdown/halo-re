@@ -21,13 +21,13 @@
 #include "projectiles.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_main_globals *main_game_globals; // 0x006b0b80
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 extern real random_real(void); // 0x4019f0
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX

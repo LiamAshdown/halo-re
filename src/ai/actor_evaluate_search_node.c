@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -34,7 +35,7 @@ extern uint8_t unit_seat_flag_bit10(uint32_t unit_index, int16_t seat_index); //
 extern uint8_t unit_seat_flag_bit3(uint32_t unit_index, int16_t seat_index); // 0x56cd70, EAX, CX
 
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, EAX, ECX
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)

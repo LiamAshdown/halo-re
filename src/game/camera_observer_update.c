@@ -32,6 +32,7 @@
 #include "game.h"
 #include "fn_game.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *player_data;         // 0x0087a480
 extern data_array *object_data;         // 0x008603b0
@@ -40,7 +41,7 @@ extern game_time_globals *game_time;    // 0x006f1d6c
 
 extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone,
     real_vector3d *facing, datum_index exclude_object, int16_t team, void *out); // 0x459a00, EBX, stack
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out); // 0x459e80, EAX, EDX, EDI
 extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state); // 0x445b20, ECX, stack
 extern void first_person_camera_deterministic(Point3D *out_position, datum_index unit, Vector3D *out_direction); // 0x446a90, EAX, ECX, stack
@@ -48,12 +49,11 @@ extern void first_person_camera_apply_weapon_offset(real_point3d *position, datu
     real_vector3d *aiming_direction); // 0x447290, EAX, EBX, ESI
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, void *result); // 0x505880, stack
-extern void vector3d_normalize(real_vector3d *v); // 0x4cd320, ECX
+
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
-extern uint8_t vector3d_rotate_toward(real_vector3d *target, real_vector3d *source, real_vector3d *out, real sin_angle,
-    real cos_angle); // 0x4cd950, ECX, ESI, EDI, stack
+
 
 // REWRITTEN from objdump. EAX = the player; stack = (the projectile origin, the aim direction, rotated in place).
 //   Using the unit's weapon autoaim cone (0x459e80: EAX = unit_noop(unit), DX = its zoom level +0x320), the

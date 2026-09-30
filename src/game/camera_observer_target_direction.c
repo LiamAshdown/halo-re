@@ -24,10 +24,11 @@
 #include "math.h"
 #include "memory.h"
 #include "game.h"
+#include "fn_math.h"
 
 extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector,
     real_point3d *reference_point, real_point3d *out_closest); // 0x45a280, ECX unit, EBX aux, stack (reference, out)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern char camera_observer_target_is_valid(datum_index exclude_object,
     real_point3d *observer_position, real_point3d *target_position,
     datum_index target_object); // this batch, 0x459dd0

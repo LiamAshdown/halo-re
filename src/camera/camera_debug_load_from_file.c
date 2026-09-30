@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_math.h"
 
 extern director directors[1]; // 0x006ac560
 
@@ -30,7 +31,7 @@ extern void editor_camera_set_position_and_direction(editor_camera_data *out, Ve
 // blam-cc: ESI -> forward, EDI -> out_up
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *out_up); // 0x4479c0, this module
 // blam-cc: EDX -> a, ECX -> b; result on the x87 stack
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);     // 0x4cd4f0, math module
+
 // the editor pov procedure 0x446e90 (no Ghidra function; see README known gaps)
 extern void editor_camera_compute_pov(director_camera_data *data, camera_input *input,
     observer_command *command);                                   // 0x446e90, this module

@@ -43,15 +43,11 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // 0x44d950, out of this module and still unnamed in symbols/functions.txt; ECX = out plane,
 // EAX = first point, EDX = second point. Returns out_plane, or NULL if the points coincide.
-extern real_plane2d *plane2d_from_points(real_plane2d *out_plane, const real_point2d *a, const real_point2d *b);
 
-extern int16_t polygon2d_clip_to_plane(real_point2d *out, int16_t count, real_point2d *in,
-                                        real_plane2d *plane, int16_t maximum_count,
-                                        uint32_t *edge_bitmask, uint8_t *clipped_flag,
-                                        real epsilon); // 0x4caff0, out in EDX
 
 // Clips a 2D polygon against every edge of a second (clip) polygon in turn, double-buffering
 // the vertex list between clips. Returns the final vertex count, or -1 if any single clip

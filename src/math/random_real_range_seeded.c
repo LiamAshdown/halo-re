@@ -10,6 +10,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Returns a pseudo-random float between min and max, advancing the caller-supplied RNG state
 // (*seed) instead of the engine's global seed.

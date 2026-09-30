@@ -31,6 +31,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -39,8 +40,6 @@ extern real_vector3d *global_up3d_pointer; // 0x00696720, indirect pointer to ma
 extern double cos(double x); // x87 FCOS
 extern double sin(double x); // x87 FSIN
 
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 
 // vector3d_cross_product (0x4052c0) computes  *out = stack_operand x ecx_operand,  with out
 // in EAX, ecx_operand in ECX and stack_operand pushed -- read out of the callee own

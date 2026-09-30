@@ -10,6 +10,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // out = t*a + (1-t)*b
 void vector3d_lerp(real_vector3d *out, real_vector3d *a, real_vector3d *b, real t)

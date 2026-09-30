@@ -12,6 +12,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern double acos(double x); // 0x00628140, CRT/compiler helper
 

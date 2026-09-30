@@ -28,10 +28,8 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
-
-extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius); // 0x4ce6c0
-extern int segment3d_within_radius_of_segment(real_point3d *a_start, real_point3d *b_start, real_vector3d *a_direction, real_vector3d *b_direction, real radius); // 0x4ceae0
 
 // blam-cc: EAX -> trajectory_direction, ECX -> source_actor_index, stack ->
 // exclude_object_index, landing_position, out_blocking_prop

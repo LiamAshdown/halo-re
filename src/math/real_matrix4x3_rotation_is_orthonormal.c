@@ -18,6 +18,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern uint8_t vector3d_is_unit_length(real_vector3d *v); // 0x4476e0, v in EAX
 extern uint8_t real_approximately_equal(real a, real b); // 0x447680

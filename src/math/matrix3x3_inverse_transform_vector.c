@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Transforms a vector by the transpose of a 3x3 matrix (inverse transform for an orthonormal
 // matrix).

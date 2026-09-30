@@ -21,9 +21,10 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
-extern void vector3d_normalize(real_vector3d *v); // 0x4cd320
+
 
 uint8_t ray_intersects_sphere(real_point3d *origin, real_vector3d *normal_out, real_vector3d *direction, real *t_out, real_point3d *center, real radius)
 {

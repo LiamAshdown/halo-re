@@ -10,6 +10,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Multiplies two 3x3 matrices.
 void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b)

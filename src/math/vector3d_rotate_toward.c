@@ -25,9 +25,9 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670
+
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820
 
 // Returns 1 and writes a direction rotated (by exactly sin_angle/cos_angle) from source toward

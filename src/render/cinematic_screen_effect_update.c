@@ -34,6 +34,7 @@
 #include "game.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_math.h"
 
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4 (named _state;
                                              // a variable cannot share the typedef's own name in C)
@@ -41,7 +42,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern ColorRGB *default_axis_b; // 0x00686b0c -> {0,0,0} at 0x0065515c
 extern ColorRGB *global_real_rgb_green_pointer; // 0x00686b14 -> {0,1,0} at 0x0065517c
 
-extern void real_lerp_clamped(real *out, real a, real b, real t); // 0x4cd900, math module;
+
                                                                   // blam-cc: ECX -> out
 
 static float progress(float start_time, float end_time)

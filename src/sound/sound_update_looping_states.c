@@ -23,6 +23,7 @@
 #include "math.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_math.h"
 
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -35,7 +36,6 @@ extern random_seed effect_random_seed;   // 0x00719cd4
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
 extern void datum_delete(data_array *array, datum_index handle);       // 0x4d0510, memory module
 extern void cache_evict_entry(datum_index handle, struct cache *self); // 0x4d1c20, memory module
-extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170, math module
 
 
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,

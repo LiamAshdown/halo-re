@@ -21,6 +21,7 @@
 #include "networking.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,7 +31,7 @@ extern int16_t network_game_mode;   // 0x00719720
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern network_server_globals *network_server; // 0x0071c2d4
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);  // 0x4f6610
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
@@ -38,7 +39,7 @@ extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); //
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack
 
-extern real random_real_range(real min, real max); // 0x401050
+
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity); // 0x4bef80, EAX, EDX
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
     uint32_t ignore_object_index); // 0x4f7b70, stack, ECX

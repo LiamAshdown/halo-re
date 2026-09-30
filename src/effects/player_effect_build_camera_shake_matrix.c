@@ -34,6 +34,7 @@
 #include "effects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_math.h"
 
 extern player_effect_globals *player_effect_globals_pointer; // 0x006f1884
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -47,9 +48,8 @@ extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern double cos(double x);
 extern double sin(double x);
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *a, real_vector3d *b); // 0x4052c0
-extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle,
-                                       real cos_angle); // 0x4cb880
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll); // 0x4cba10
+
+
 extern real transition_function_evaluate(int16_t type, real phase); // 0x4ccac0, CX type, stack phase
 extern real periodic_function_evaluate(int16_t type, double phase); // 0x4cc9b0, AX type, stack phase (a double)
 extern void player_effect_random_shake_offset(real_matrix4x3 *out, real magnitude, real angle); // 0x457280,

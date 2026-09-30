@@ -19,11 +19,10 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
-
-extern real random_real_range(real min, real max); // 0x401050
 
 
 uint8_t actor_request_move_and_face(datum_index actor_index)

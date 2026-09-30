@@ -12,6 +12,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // sqrt is a single x87 FSQRT instruction in the original code (Ghidra's SQRT() pseudo-function);
 // declared locally instead of via <math.h> because -I types shadows that header name.

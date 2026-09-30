@@ -24,6 +24,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_math.h"
 #include <stdint.h>
 
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -32,7 +33,7 @@ extern data_array *object_data;      // 0x008603b0
 extern int16_t objects_get_ambient_cluster(void); // 0x4f7a50, not in this batch; UNSURE exact signature
 extern data_array *player_data;         // 0x0087a480
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0; blam-cc: EDI -> iterator
-extern void bit_vector_or(uint32_t *a, int16_t bit_count, uint32_t *b, uint32_t *dst); // 0x4cb760, EAX a, CX count, EDX b, stack dst
+
     // (a second operand is presumably elided, same shape as every other 1-visible-arg call here)
 
 // Zeroes a 16-dword (512-bit) output bitmask, then for every player (or, when

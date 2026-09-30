@@ -55,13 +55,12 @@
 #include "ai.h"
 #include "game.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
-
-extern real random_real_range(real min, real max); // 0x401050, math module
 
 
 extern int16_t ai_group_bucket_find_or_add(void *buckets, int32_t key, int16_t *count,

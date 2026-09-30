@@ -21,6 +21,7 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_math.h"
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
@@ -32,7 +33,7 @@ extern void animation_node_get_translation(ModelAnimationsAnimation *animation, 
                                             int16_t translation_index, int16_t node, real_point3d *out); // 0x4d6cf0
 extern void animation_node_get_scale(ModelAnimationsAnimation *animation, int16_t scale_index,
                                       float frame, float *out); // 0x4d6e80
-extern void quaternion_multiply(real_quaternion *a, real_quaternion *b, real_quaternion *out); // 0x4cdbf0, verified in src/math
+
 
 // Blends `animation` (a type-1 overlay animation) onto *out_orientations for the given frame:
 // for every node it animates, the new rotation is multiplied onto the existing rotation, the

@@ -30,6 +30,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 

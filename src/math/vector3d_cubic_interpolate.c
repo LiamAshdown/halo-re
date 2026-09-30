@@ -24,9 +24,8 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern float cubic_interpolate_divided_difference(float y0, float y1, float y2, float y3,
-    float x0, float x1, float x2, float x3, float x); // 0x4fca60, same file
 
 // blam-cc: EBX -> p1, EDI -> p2, ESI -> p3, stack -> out, p0, t0, t1, t2, t3, t
 void vector3d_cubic_interpolate(real_vector3d *out, real_vector3d *p0, real_vector3d *p1,

@@ -20,12 +20,13 @@
 #include "objects.h"
 #include "units.h"
 #include "effects.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Globals *global_globals;
 
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
     const ColorRGB *color, const effect_tint_source *tint_source);

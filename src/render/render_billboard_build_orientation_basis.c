@@ -25,6 +25,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_math.h"
 
 // billboard_basis: folded into types/render.h (phase-4 review).
 
@@ -32,7 +33,7 @@ extern real_vector3d build_sprite_view_up;   // 0x007c30d0
 extern real_vector3d build_sprite_view_left; // 0x007c30dc
 extern float unknown_00672f20;               // 0x00672f20 UNSURE: parallel-axis threshold
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
     // 0x4052c0, math module; blam-cc: EAX -> out, stack -> a, ECX -> b
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,

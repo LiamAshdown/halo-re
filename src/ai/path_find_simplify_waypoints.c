@@ -21,14 +21,14 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 #include <stdint.h> // uintptr_t
 
 
 extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start,
     int32_t start_surface, real_point3d *end, int32_t target_surface,
     path_find_boundary_crossing *out_result); // 0x43d9b0, stack
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
-    const real_plane3d *plane, const real_point2d *known); // 0x44d860, stack out, AL, SI, EBX, EDI
+
 
 void path_find_simplify_waypoints(path_find_context *context, int16_t count, path_find_waypoint *waypoints,
     int16_t *out_count, path_find_waypoint *out_waypoints, uint8_t *out_valid)

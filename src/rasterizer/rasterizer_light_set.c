@@ -36,6 +36,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_math.h"
 #include <stdint.h> // uintptr_t
 
 extern d3d_caps9 rasterizer_caps;                      // 0x007c10c0
@@ -43,7 +44,7 @@ extern void *rasterizer_device;                        // 0x0071d174
 extern int32_t rasterizer_fixed_function_light_count;  // 0x007c3084
 
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x004052c0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX -> v
+
 
 typedef int32_t (__stdcall *d3d_set_light_fn)(void *device, uint32_t index, const float *light);
 typedef int32_t (__stdcall *d3d_light_enable_fn)(void *device, uint32_t index, int32_t enable);

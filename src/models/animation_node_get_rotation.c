@@ -36,12 +36,12 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_math.h"
 
 extern double floor(double x); // 0x623e40, MSVC CRT, see src/models/animation_overlay_interpolated_frame_orientations.c
 extern void animation_quaternion48_decode(animation_quaternion48 *source, real_quaternion *out); // 0x4d6380, this batch
 extern int16_t animation_keyframe_time_search(uint16_t *times, int16_t count, int16_t frame); // 0x4d6b10, this batch
-extern void quaternion_lerp(real_quaternion *a, real_quaternion *b, real_quaternion *out, real t); // 0x4cdcc0
-extern void quaternion_normalize(real_quaternion *q); // 0x4cdb20
+
 
 // Evaluates one node's compressed rotation curve at a (possibly fractional) frame: finds the
 // two bracketing keyframes (or the node's default, used as an implicit keyframe at time 0

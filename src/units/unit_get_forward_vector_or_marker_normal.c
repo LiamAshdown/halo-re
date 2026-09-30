@@ -15,10 +15,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0, EAX, EDX, stack
 
 void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out) // blam-cc: in_ECX, in_EAX
 {

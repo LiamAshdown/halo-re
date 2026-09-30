@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Builds the rotation part of a matrix4x3 from two vectors and their cross product, leaving
 // scale=1 and translation zeroed.

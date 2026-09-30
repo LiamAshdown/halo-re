@@ -47,6 +47,7 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -56,7 +57,7 @@ extern network_id_table *machine_table; // 0x00687558
     // this one machine_table too; the name is UNSURE in both places); resolves
     // equipment_creation_message.owner_hash into object_placement_data.owner_linkage. UNSURE name.
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0, out = stack_operand x ecx_operand
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message

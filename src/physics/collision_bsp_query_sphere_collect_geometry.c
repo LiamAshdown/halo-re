@@ -21,11 +21,11 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_math.h"
 
 extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, types/math.h (const to
                                                         // match src/math/*.c own declaration)
-extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin,
-                                           real_vector3d *direction, real radius); // 0x4ce6c0
+
 
 // blam-cc: EAX -> query, stack -> surface_index
 void collision_bsp_query_sphere_collect_geometry(collision_bsp_sphere_query *query,

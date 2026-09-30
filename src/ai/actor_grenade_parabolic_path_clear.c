@@ -20,11 +20,12 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
                              uint32_t exclude_object, void *scratch); // 0x505880
-extern int segment3d_within_radius_of_segment(real_point3d *a_start, real_point3d *b_start, real_vector3d *a_direction, real_vector3d *b_direction, real radius); // 0x4ceae0
+
 
 // blam-cc: EAX -> initial_velocity, ECX -> source_actor_index, EDX -> start_position, stack
 // -> total_time, vertical_acceleration, exclude_object_index, wide_mask

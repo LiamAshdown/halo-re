@@ -12,6 +12,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // out = b * a  (quaternion Hamilton product, b outer/left, a inner/right)
 void quaternion_multiply(real_quaternion *a, real_quaternion *b, real_quaternion *out)

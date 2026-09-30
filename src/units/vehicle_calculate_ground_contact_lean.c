@@ -31,6 +31,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -39,17 +40,8 @@ extern real_vector3d *global_forward3d_pointer; // 0x00696718
 extern uint8_t *global_identity_quaternion_pointer;               // 0x00696738, a pointer to 16 bytes copied into the powered entries
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points,
     real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
-extern void vector3d_delta_toward_gravity_biased_clamp_length(real_point3d *origin, real_point3d *target,
-    real_vector3d *out_delta, real max_length_aligned, real max_length_default); // 0x572a90, EAX, ECX, ESI, stack
-extern void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 *out); // 0x4cc560, ECX, EDX, stack
-extern void vector3d_rotate_pair_in_plane(real_vector3d *a, real_vector3d *b, real sin_angle, real cos_angle); // 0x4cd790, EAX, ECX, stack
-extern void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle,
-    real cos_angle); // 0x4cd700, EAX, ECX, stack
-extern void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in); // 0x4cc500, EAX, ECX
-extern void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b); // 0x4cc5f0, EAX, EDX, stack
-extern real_quaternion *quaternion_from_matrix3x3(real_matrix3x3 *m, real_quaternion *out); // 0x4cc780, ECX, stack
-extern void quaternion_to_axis_angle(real_quaternion *quat, real_vector3d *axis_out, real *angle_out); // 0x4cdb90
+
+
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);

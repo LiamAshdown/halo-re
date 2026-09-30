@@ -12,6 +12,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0
 

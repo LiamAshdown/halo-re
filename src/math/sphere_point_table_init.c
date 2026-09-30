@@ -10,9 +10,8 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern uint32_t random_seed_generate(void); // 0x4cd070
-extern sphere_mesh *sphere_mesh_generate(int16_t subdivisions); // 0x4ca4b0, blam-cc: subdivisions in EAX
 
 extern random_seed effect_random_seed;               // 0x00719cd4
 extern real_point3d *sphere_point_table;             // 0x006b7af4

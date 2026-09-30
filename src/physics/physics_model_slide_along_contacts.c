@@ -29,23 +29,20 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_math.h"
 
 extern double fabs(double x);
 extern const real_vector3d *global_up3d_pointer; // 0x00696720
 
 extern uint32_t physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta,
     physics_model_contact *out_contact); // 0x504bb0
-extern uint8_t plane3d_intersect_pair_to_line(real_vector3d *direction_out, real_plane3d *p2, real_plane3d *p1,
-    real_point3d *point_out); // 0x4cf1e0, blam-cc: ECX direction_out, EDX p2, ESI p1, EDI point_out
-extern uint8_t plane3d_intersect_three(real_plane3d *p1, real_plane3d *p2, real_plane3d *p3,
-    real_point3d *out); // 0x4cf040, blam-cc: stack p1, EBX p2, EDI p3, ESI out
-extern void point3d_project_onto_line(real_point3d *point, real_vector3d *direction, real_point3d *line_origin,
-    real_point3d *out_result); // 0x5066e0, blam-cc: stack point, EAX direction, ECX line_origin, EDX out
+
+
 extern void vector3d_project_onto_direction(real_vector3d *out, const real_vector3d *axis,
     const real_vector3d *v); // 0x506760, blam-cc: ECX out, EAX axis, EDX v
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
     // 0x4052c0, blam-cc: EAX out, ECX a, stack b (computes b x a)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX v
+
 
 #define CONTACT_PLANE(c) ((real_plane3d *)&(c)->plane_i)
 

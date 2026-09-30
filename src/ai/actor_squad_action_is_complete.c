@@ -18,6 +18,7 @@
 #include "units.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -27,8 +28,6 @@ extern Scenario *global_scenario;   // 0x00746f8c
 
 extern real vector3d_magnitude_squared(real_vector3d *v);                // 0x401000, EAX
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX a, ECX b
-extern real vector2d_normalize_with_length(real_vector2d *v);            // 0x4018e0, ECX
-extern real vector3d_normalize_with_length(real_vector3d *v);            // 0x401990, ECX
 
 
 extern uint8_t recorded_animation_object_is_playing(datum_index unit_index); // 0x44acc0, ESI

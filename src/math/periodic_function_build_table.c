@@ -62,6 +62,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // cos/sin are single x87 instructions in the original code (Ghidra's fcos()/fsin() pseudo-
 // calls); declared locally instead of via <math.h> because -I types shadows that header name.
@@ -71,7 +72,7 @@ extern double fmod(double x, double y); // 0x628cca, MSVC 7.1 CRT _CIfmod: x in 
 extern int __ftol(double value);        // 0x6391b4
 
 extern random_seed random_seed_global; // 0x00719cd0
-extern void periodic_function_build_noise_table(real *table); // 0x4ccbb0, table in EDX
+
 
 // Builds one of the twelve primary periodic-function byte lookup tables.
 void periodic_function_build_table(periodic_function_t type, uint8_t *out)

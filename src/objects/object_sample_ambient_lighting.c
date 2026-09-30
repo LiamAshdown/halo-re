@@ -32,13 +32,14 @@
 #include "cache.h"
 #include "objects.h"
 #include "rasterizer.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint8_t object_lighting_sample_point(uint8_t flags, real_point3d *point, render_lighting *lighting); // 0x4f2550, cdecl;
     // `sample` below is that 0x74-byte render_lighting (types/rasterizer.h) walked as 29 floats
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 
 // True for the float slots the accumulate/average passes touch. Index 3 is the int16 status
 // word and 0x10..0x12 are never written by this function.

@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_math.h"
 #include <string.h>
 
 extern data_array *object_data;                    // 0x008603b0
@@ -28,7 +29,7 @@ extern uint8_t message_delta_decode_compound_field_forced(void **context, void *
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination); // 0x4ec590, EAX, ECX
 extern uint8_t message_delta_decode_compound_field_staged(void **context); // 0x4ec670, EAX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 extern void unit_propagate_position_delta_to_children(real_point3d *new_position, uint32_t unit_index); // 0x570cb0
 extern double sqrt(double x);
 

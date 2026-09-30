@@ -40,6 +40,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // sin/pow are the C-library spellings of the x87 FSIN instruction and the CRT _CIpow this code
 // calls (Ghidra's fsin() pseudo-call and FUN_006283c0); declared locally instead of via

@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0
 
 void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up)
     // blam-cc: EAX -> out_forward, ECX -> object_index, stack -> out_up

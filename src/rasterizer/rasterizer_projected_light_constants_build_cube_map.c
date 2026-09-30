@@ -21,6 +21,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_math.h"
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -30,7 +31,7 @@ extern rasterizer_projected_light_constants rasterizer_projected_light; // 0x006
 extern uint32_t rasterizer_projected_light_cube_map;                // 0x006e0a64 bitmap tag id
 
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 
 // blam-cc: EAX = light_index
 void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)

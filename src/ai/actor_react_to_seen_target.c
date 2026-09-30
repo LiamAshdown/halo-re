@@ -27,6 +27,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -35,8 +36,6 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern data_array *player_data;     // 0x0087a480, stride 0x200 (no types/players.h yet)
-
-extern real random_real_range(real min, real max); // 0x401050
 
 
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680

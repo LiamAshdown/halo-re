@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Transforms a normal/direction by only the rotation part of a matrix4x3.
 void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m)

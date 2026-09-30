@@ -30,6 +30,7 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern uint32_t random_seed_global; // 0x00719cd0
 extern const real_vector3d *global_left3d_pointer; // 0x0069671c, UNSURE: see file header
@@ -39,7 +40,7 @@ extern double cos(double x);  // FCOS
 extern double sin(double x);  // FSIN
 extern double sqrt(double x); // FSQRT
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX->v, ECX->axis
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch); // 0x505880, not this module, UNSURE signature
 

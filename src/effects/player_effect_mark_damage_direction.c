@@ -21,6 +21,7 @@
 #include "game.h"
 #include "camera.h"
 #include "sound.h"
+#include "fn_math.h"
 #include <string.h>
 
 extern data_array *player_data;                               // 0x0087a480
@@ -31,7 +32,7 @@ extern int32_t player_effect_reentry_count;                   // 0x00719ccc
 extern double atan2(double y, double x); // fpatan is a single x87 FPATAN instruction
 extern double fabs(double x);
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern datum_index local_player_to_player_index(int16_t local_player_index); // 0x474d30, AX

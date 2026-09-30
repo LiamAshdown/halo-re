@@ -22,6 +22,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_math.h"
 
 extern double cos(double x);           // FCOS
 extern double sqrt(double x);          // FSQRT
@@ -31,7 +32,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 
 extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0, blam-cc: EAX out, ECX packed
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
-extern void vector3d_lerp(real_vector3d *out, real_vector3d *a, real_vector3d *b, real t); // 0x4cd8c0, blam-cc: EAX out, ECX a, EDX b
+
 
 // out = s * a + (1 - s) * b over all four channels.
 static uint32_t hud_flash_blend(ColorARGB *a, ColorARGB *b, float s)

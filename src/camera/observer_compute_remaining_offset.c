@@ -23,22 +23,22 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#include "fn_math.h"
 
 extern double sqrt(double x);   // FSQRT
 extern double fabs(double x);   // FABS
 extern double atan2(double y, double x);
 
 // blam-cc: up in EAX, forward in ECX, out on stack
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward,
-    real_matrix4x3 *out); // 0x4cb970
+
 
 // blam-cc: out in EAX, in in ECX
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0
+
 
 extern void (*matrix4x3_multiply_ptr)(void *a, void *b, void *out); // 0x00696664
 
 // blam-cc: ECX -> m, stack -> out
-extern void quaternion_from_matrix4x3(real_matrix4x3 *m, real_quaternion *out); // 0x4cbc00, math module
+
 
 // blam-cc: EAX -> target, ECX -> current, EDX -> out
 // Computes target - current for the first 8 floats (position, focus_offset, distance, field of

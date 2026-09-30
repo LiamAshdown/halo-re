@@ -35,14 +35,15 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_vector3d *global_left3d_pointer; // 0x0069671c, UNSURE: see file header
 extern double sqrt(double x); // a single x87 FSQRT instruction in the original (Ghidra's SQRT())
 extern double sin(double x); // x87 FSIN
 extern double cos(double x); // x87 FCOS
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
+
+
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
     // 0x4cd820, v in EAX, axis in ECX, sin/cos on the stack
 extern void antenna_apply_marker_delta(real_vector3d *out_forward, real_point3d *out_position,

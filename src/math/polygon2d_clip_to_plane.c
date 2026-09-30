@@ -22,6 +22,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // fabs is a single x87 FABS instruction in the original code (Ghidra's ABS() pseudo-function);
 // declared locally instead of via <math.h> because -I types shadows that header name.

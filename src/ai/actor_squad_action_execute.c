@@ -26,6 +26,7 @@
 #include "fn_hs.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 
 extern double fcos(double x); // FCOS
@@ -38,10 +39,6 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern Scenario *global_scenario;   // 0x00746f8c
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX a, ECX b
-extern real random_real_range(real min, real max);             // 0x401050
-extern real vector2d_normalize_with_length(real_vector2d *v);  // 0x4018e0, ECX
-extern real vector3d_normalize_with_length(real_vector3d *v);  // 0x401990, ECX
-extern int32_t random_int_range(int16_t min, int16_t max);      // 0x405320, ECX -> min, stack -> max
 
 
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
@@ -70,7 +67,7 @@ extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_poi
 extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out); // 0x569720, ECX, EAX
 extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta); // 0x56d160, EAX, DX, stack
 
-extern int32_t float_compare_ascending(const void *a, const void *b); // 0x405360
+
 extern const char k_empty_string[]; // 0x0065512c, the empty string: a seat name filter matching every seat
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)

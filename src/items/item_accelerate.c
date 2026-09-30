@@ -37,6 +37,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -58,10 +59,10 @@ extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_own
     // blam-cc: EAX out, EDX signed_index, stack planes_owner
     // UNSURE signature (EAX -> out, EDX -> plane_index, stack -> bsp_globals, per disassembly);
     // almost certainly a plane-table lookup, see file header
-extern real random_real_range(real min, real max); // 0x401050, math module
+
 extern void random_get_table_point(real_vector3d *out); // 0x473560, out in EAX
 extern double sqrt(double x); // a single x87 FSQRT instruction
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
 
 // Applies a translational impulse to an item, adding it into velocity, waking it from a resting

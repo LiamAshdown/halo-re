@@ -15,6 +15,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_math.h"
 
 extern float build_sprite_screen_coverage;      // 0x007c30c4
 extern int16_t build_sprite_large_quad_count;   // 0x007c30c8
@@ -26,8 +27,6 @@ extern render_frustum render_frustum_global;    // 0x007c3168, this module
 extern const real_vector3d *global_up3d_pointer;   // 0x00696720
 extern const real_vector3d *global_left3d_pointer; // 0x0069671c
 
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal,
-                                        real_matrix4x3 *m); // 0x4cbec0
 
 // Per-frame initialization for the billboard/sprite build system: resets the large-quad
 // occlusion accumulators and computes the world up/left axes in view space (through

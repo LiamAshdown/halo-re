@@ -35,6 +35,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_math.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern double sqrt(double x);
@@ -43,7 +44,7 @@ extern float render_time_since_frame; // 0x007c3110, UNSURE: foreign module
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern int8_t object_function_get_value(void); // 0x4f6e70, UNSURE: args not visible here
 extern void glow_chain_build(glow *entry); // 0x4fd830, UNSURE: arg not visible in this decompile,
     // inferred from EDI being the obvious candidate

@@ -27,9 +27,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_math.h"
 
-extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out,
-                                               real_point3d *point); // 0x4cbf80
+
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
                                       real_point3d *point); // 0x5013a0, this module
 

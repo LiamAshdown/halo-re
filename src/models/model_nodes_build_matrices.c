@@ -22,9 +22,10 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_math.h"
 
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
+
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0
 
 // Breadth-first walk of a model's own node tree (as opposed to animation_graph_nodes_build_

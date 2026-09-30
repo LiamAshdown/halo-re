@@ -21,6 +21,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern float k_physics_gravity; // 0x0069c52c, ~0.0035651792 world units/tick^2
 extern void vector3d_clamp_length(real_vector3d *v, real max_length); // 0x459300, ECX->v, stack->max_length

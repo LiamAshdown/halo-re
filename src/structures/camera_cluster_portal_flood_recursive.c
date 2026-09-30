@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_math.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t render_cluster_index;        // 0x007c3348
@@ -42,10 +43,7 @@ extern uint8_t render_cluster_has_sky;      // 0x007c334d
 extern float portal_visibility_tolerance;   // 0x007c3154 (render camera block +0x54)
 
 // math module, canonical form. blam-cc: ECX -> vertex_count, EDX -> vertices
-extern int16_t polygon2d_clip_to_planes(int16_t vertex_count, real_point2d *vertices,
-                                         int16_t clip_point_count, real_point2d *clip_points,
-                                         int16_t maximum_count, real_point2d *out,
-                                         real epsilon); // 0x4caee0
+
 extern void polygon2d_bounds_expand(real_bounds *bounds_xy, polygon2d *polygon);
 extern uint8_t structure_bsp_portal_test_and_project(char same_side, int16_t portal_index,
                                                       polygon2d *out);

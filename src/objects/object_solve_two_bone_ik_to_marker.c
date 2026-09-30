@@ -35,6 +35,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -42,7 +43,7 @@ extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, see UNSURE above about its true ABI
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0
+
 extern void model_ik_solve_two_bone(real_matrix4x3 *target, uint8_t *bone_c, uint8_t *bone_b,
     uint8_t *bone_a); // 0x4d6440, UNSURE: parameter names guessed from the call order below
 

@@ -21,13 +21,14 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t effect_random_seed; // 0x00719cd4
 
 extern glow_particle *glow_particle_datum_new(void); // this module, 0x4fdde0
 extern void glow_particle_reposition(glow *entry, uint8_t *particle, float phase_rate); // 0x4fde40
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
     // (verified by disassembling 0x006391b4: fld st(0) / fst [esp+0x18] / fistp qword /
     // fild qword ... , the classic _ftol2 body). The value arrives on the x87 stack, so

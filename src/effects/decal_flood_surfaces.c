@@ -33,6 +33,7 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_math.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98, same declaration as
     // src/physics/collision_test_movement_segment.c
@@ -43,19 +44,14 @@ extern real_point2d decal_clip_buffers[2][12]; // 0x006b0a18
 
 extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
     // 0x44dad0, src/structures; blam-cc: EAX out, stack planes_owner, EDX signed_index
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
-    const real_plane3d *plane, const real_point2d *known);
+
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 extern real vector3d_angle_between_4cd5e0(const real_vector3d *a, const real_vector3d *b); // 0x4cd5e0,
     // math module; blam-cc: EAX -> a, ECX -> b
-extern real_plane2d *plane2d_from_points(real_plane2d *out_plane, const real_point2d *a,
-    const real_point2d *b); // 0x44d950, math module, no file yet;
+
     // blam-cc: ECX -> out_plane, EAX -> a, EDX -> b (src/math/polygon2d_clip_to_planes.c)
-extern int16_t polygon2d_clip_to_plane(real_point2d *out, int16_t count, real_point2d *in,
-    real_plane2d *plane, int16_t maximum_count, uint32_t *edge_bitmask, uint8_t *clipped_flag,
-    real epsilon); // 0x4caff0, math module; out in EDX
-extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin,
-    real_vector3d *direction, real radius); // 0x4ce6c0, math module;
+
+
     // blam-cc: EAX -> origin, ECX -> center, EDX -> direction, stack -> radius
 
 extern const decal_type_parameters k_decal_type_parameters[4]; // 0x006573f8

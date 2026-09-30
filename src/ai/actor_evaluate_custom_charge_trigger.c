@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -34,7 +35,7 @@ extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0
 
-extern real random_real_range(real min, real max); // 0x401050
+
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, UNSURE signature
 
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX unit

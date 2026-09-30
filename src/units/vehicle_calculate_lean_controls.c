@@ -24,16 +24,17 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_vector3d *global_up3d_pointer; // 0x00696720
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points,
     real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
+
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);

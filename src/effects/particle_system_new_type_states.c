@@ -23,6 +23,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_math.h"
 
 extern data_array *particle_system_data; // 0x0087abd4
 extern tag_instance *tag_instances;      // 0x0087bc14
@@ -33,7 +34,7 @@ extern ScenarioStructureBSP *global_structure_bsp;
                                     // src/physics/breakable_surface_damage_in_blast_radius.c
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
-extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170
+
 extern uint8_t particle_system_update(float delta_time, datum_index handle); // 0x4544f0, this
                                     // module; UNSURE of the real parameter order, see that file
 

@@ -54,6 +54,7 @@
 #include "units.h"
 #include "projectiles.h"
 #include "physics.h"
+#include "fn_math.h"
 #include <string.h>
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
@@ -72,7 +73,7 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
     real_point3d *point); // 0x5013a0, this module (lower half); called with zero visible
                            // arguments at every site in this function -- UNSURE, reused verbatim
                            // from object_physics_compute_mass_point_forces.c's own resolution
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
+
 extern void matrix4x3_from_quaternion(void *quaternion, void *out_matrix); // 0x4cbad0, math
     // module; blam-cc UNSURE, see object_physics_tick.c's own identical UNSURE note
 extern void matrix4x3_multiply(void *a, void *b, void *out); // 0x4cc0d0, math module

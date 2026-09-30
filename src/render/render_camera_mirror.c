@@ -29,13 +29,14 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "structures.h"
+#include "fn_math.h"
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module;
+
                                                                // blam-cc: ECX -> v
-extern real vector3d_cross_product_length(real_vector3d *a, real_vector3d *b); // 0x4cd380, math
+
                                                                                // module; blam-cc:
                                                                                // EAX -> a, ECX -> b
 

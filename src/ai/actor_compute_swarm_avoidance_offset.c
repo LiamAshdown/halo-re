@@ -25,6 +25,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;           // 0x00880360
 extern data_array *swarm_data;           // 0x0088035c
@@ -35,7 +36,7 @@ extern const real_vector2d *global_forward2d_pointer; // 0x006966e8, UNSURE name
                                                        // global_forward3d_pointer @0x696718)
 
 extern double sqrt(double x); // FSQRT
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
+
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 

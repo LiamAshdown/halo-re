@@ -47,6 +47,7 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "render.h"
+#include "fn_math.h"
 
 extern uint8_t render_cluster_has_sky;               // 0x007c334d, structures module
 extern int16_t render_cluster_sky_index;             // 0x007c334e, structures module
@@ -81,7 +82,7 @@ extern int16_t model_markers_get_by_name(datum_index model_tag, const char *name
     uint8_t *permutations, uint32_t reserved, real_matrix4x3 *node_matrices, uint32_t flags,
     object_marker *out, int32_t maximum_count);
     // 0x4d7850, models; blam-cc: ECX -> model_tag, EAX -> name, stack -> the other six
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
+
     // 0x4cd670, math; blam-cc: ECX -> out, EDX -> dir
 extern void light_transient_add(datum_index light_tag, ColorRGB *color, real_point3d *position,
     real_vector3d *direction, real_vector3d *up, float intensity);

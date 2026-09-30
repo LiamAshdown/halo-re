@@ -29,10 +29,11 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_math.h"
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
-extern void quaternion_normalize(real_quaternion *q); // 0x4cdb20, verified in src/math
+
 extern void animation_quaternion48_decode(animation_quaternion48 *source, real_quaternion *out); // 0x4d6380
 extern void animation_node_get_rotation(ModelAnimationsAnimation *animation, float frame,
                                          int16_t rotation_index, int16_t node, real_quaternion *out); // 0x4d6b60

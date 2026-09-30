@@ -16,11 +16,8 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_math.h"
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, EAX, ECX, stack
-extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point); // 0x4cbf80, ECX, EDX, ESI
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
 
 void effect_compute_spawn_basis(int16_t entry_index, uint8_t *context, object_marker *out)
 {

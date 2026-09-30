@@ -18,8 +18,8 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 // Computes a new sphere-mesh vertex by lerping between two existing vertices and re-projecting
 // the result onto the unit sphere.

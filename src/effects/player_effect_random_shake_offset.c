@@ -24,6 +24,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern real_point3d *sphere_point_table;  // 0x006b7af4, 1026 unit vectors
 extern int16_t sphere_point_table_count;  // 0x006b7af8, 1026
@@ -31,8 +32,7 @@ extern random_seed effect_random_seed;    // 0x00719cd4
 
 extern double cos(double x);
 extern double sin(double x);
-extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle,
-                                       real cos_angle); // 0x4cb880
+
 
 // Builds a random offset matrix: when `angle` is nonzero, a rotation of `angle` radians about a
 // random unit axis (via matrix4x3_from_axis_angle); when `magnitude` is nonzero, a random

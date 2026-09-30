@@ -25,12 +25,11 @@
 #include "units.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *prop_data;   // 0x008802c0
 extern data_array *object_data; // 0x008603b0
-
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 
 // blam-cc: EAX -> target_prop_index, ECX -> actor_index, stack -> out_vector

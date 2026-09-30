@@ -38,6 +38,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_math.h"
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data; // 0x008603b0, "objects"
@@ -62,8 +63,7 @@ extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t fo
                                           int16_t new_state); // 0x492e60, new_state in AX
 extern void first_person_weapon_snapshot_pose(int16_t local_player_index, int16_t blend_gap); // 0x4930b0, AX/DX
 extern void first_person_weapon_interface_tick_reset(int16_t local_player_index); // 0x4942e0, AX
-extern uint8_t real_seek_toward_clamped(int wrap, real *velocity, real *value, real target,
-    real accel, real max_speed, real range_min, real range_max); // 0x4cf360
+
 extern real random_range_real(real minimum, real maximum); // 0x444af0
 extern float effect_random_fraction(void);                  // 0x4505b0
 extern float angle_delta_wrapped(float a, float b);         // 0x470d10, returns b - a wrapped

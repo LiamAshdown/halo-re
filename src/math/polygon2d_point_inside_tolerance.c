@@ -17,6 +17,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Tests whether a 2D point lies inside a convex polygon within a given distance tolerance.
 uint8_t polygon2d_point_inside_tolerance(real_point2d *vertices, int16_t count, real_point2d *point, real tolerance)

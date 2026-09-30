@@ -17,9 +17,8 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_math.h"
 
-extern void quaternion_lerp(real_quaternion *a, real_quaternion *b, real_quaternion *out, real t); // 0x4cdcc0
-extern void quaternion_normalize(real_quaternion *q); // 0x4cdb20
 
 // Blends `other` into `in_out` in place, node by node, by weight = (step+1)/steps: rotation is
 // slerped via quaternion_lerp + normalize, translation and scale are plain lerps. Weight

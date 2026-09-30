@@ -12,12 +12,11 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 extern real_vector3d *global_up3d_pointer;      // 0x00696720
-
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 
 
 // REWRITTEN from objdump 0x55add0..0x55aec3. Stack: unit; EDI: the vehicle (or other object) it is leaving -- every

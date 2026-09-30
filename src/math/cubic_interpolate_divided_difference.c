@@ -26,6 +26,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 float cubic_interpolate_divided_difference(float y0, float y1, float y2, float y3,
                                             float x0, float x1, float x2, float x3, float x)

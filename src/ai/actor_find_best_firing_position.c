@@ -41,6 +41,7 @@
 #include "units.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -55,8 +56,6 @@ extern int16_t qsort_candidate_count;                        // 0x006f0c90
 extern actor_firing_position_candidate *qsort_candidate_base;// 0x006f0c94
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
-
-extern real vector3d_normalize_with_length(real_vector3d *v);                // 0x401990
 
 
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point, int32_t start_surface_index, int16_t kind); // 0x412960

@@ -65,6 +65,7 @@
 #include <string.h>
 #include "game.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -85,7 +86,7 @@ extern uint8_t object_collision_context_gather_sphere_shapes(void *context,
                            // 0x10-byte object_collision_context its caller built
 extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point,
     physics_model_contact *out_contact); // 0x504260, this module (higher half)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
+
     // (src/math/vector3d_normalize_with_length.c); normalizes in place, returns the old length
 
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,

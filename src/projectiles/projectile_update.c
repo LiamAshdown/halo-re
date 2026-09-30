@@ -29,6 +29,7 @@
 #include "physics.h"
 #include "fn_game.h"
 #include "fn_sound.h"
+#include "fn_math.h"
 #include <string.h>
 
 extern data_array *object_data;        // 0x008603b0
@@ -56,13 +57,10 @@ extern double sin(double x);
 extern double sqrt(double x);
 extern real vector3d_magnitude_squared(real_vector3d *v); // 0x401000, EAX
 
-extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v,
-    real_vector3d *perp_out); // 0x4cda90, ECX, EDX, ESI, EDI
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
+
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310

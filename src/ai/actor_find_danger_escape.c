@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
@@ -27,7 +28,7 @@ extern const real_vector2d *global_forward2d_pointer; // 0x006966e8
 
 extern double sqrt(double x);
 extern double fabs(double x);
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+
 
 extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction,
                                                 real_point3d *point); // 0x4cde30, EAX, ECX, EDX

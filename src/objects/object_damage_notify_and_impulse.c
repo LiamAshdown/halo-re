@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "fn_game.h"
 #include "fn_units.h"
+#include "fn_math.h"
 #include <stdint.h>
 
 extern data_array *object_data;     // 0x008603b0
@@ -35,7 +36,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value; // 0x0087aa10, read as a dword
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer); // 0x4bd080, EAX, stack
 
 

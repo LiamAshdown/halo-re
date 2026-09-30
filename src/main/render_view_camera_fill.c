@@ -38,6 +38,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "main.h"
+#include "fn_math.h"
 
 extern game_time_globals *game_time;         // 0x006f1d6c, foreign (game module)
 extern console_globals console_globals_data; // 0x006b7020, this module's own header type
@@ -56,10 +57,8 @@ extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445a
     // blam-cc: CX -> local_player_index (0x4c90d4 mov cx,[edi], still live at 0x4c9124)
 extern void player_effect_build_camera_shake_matrix(void *out_shake_matrix, int16_t local_player_index); // 0x457390,
     // blam-cc: stack -> out_shake_matrix, CX -> local_player_index (the definition's parameter order)
-extern void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward,
-    real_point3d *position, real_matrix4x3 *out); // 0x4cbd60, foreign (math module)
-extern void matrix4x3_extract_forward_up_position(real_vector3d *up_out, real_vector3d *forward_out,
-    real_matrix4x3 *matrix, real_point3d *position_out); // 0x4cbd90, foreign, UNSURE signature
+
+
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0, foreign
 
 // blam-cc: EAX -> observer, ECX -> view

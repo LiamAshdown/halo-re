@@ -25,6 +25,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern int __ftol(double value); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
 

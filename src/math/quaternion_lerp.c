@@ -12,6 +12,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // out = signed_t*a + (1-t)*b, where signed_t is +-t chosen so the interpolation takes the
 // shorter path between the two quaternions (dot(a,b) >= 0).

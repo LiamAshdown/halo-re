@@ -38,6 +38,7 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_math.h"
 
 extern tag_instance *tag_instances;       // 0x0087bc14, cache module
 extern const ColorARGB *global_white_argb; // 0x006851fc, points at {1,1,1,1} 0x00655138
@@ -46,7 +47,7 @@ extern void render_sprite_transform_point_and_normal(real_point3d *position, rea
     real_vector3d *out_normal, build_sprite_data *data, uint8_t flags, real_point3d *out_position);
     // 0x511190, this module; blam-cc: EDX -> position, ESI -> normal, EDI -> out_normal,
     // stack -> data/flags/out_position
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
+
     // 0x4cd4f0, math module; blam-cc: ECX -> a, EDX -> b
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
                          int16_t mode, real_point3d *origin, real_vector3d *direction,

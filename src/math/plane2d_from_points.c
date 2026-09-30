@@ -13,6 +13,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern double sqrt(double x); // x87 FSQRT
 

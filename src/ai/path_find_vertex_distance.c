@@ -19,14 +19,14 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
 extern double sqrt(double x); // FSQRT
 extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index,
     uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
     // 0x5015a0, src/physics; blam-cc: EAX bsp, stack (surface_index, axis, sign, point, out_point)
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
-    const real_plane3d *plane, const real_point2d *known);
+
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 
 // Distance from point_a to the point of `surface` nearest to it (written to *out_point).

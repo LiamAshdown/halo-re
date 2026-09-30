@@ -9,6 +9,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // *out = clamp(lerp(a, b, t), 0, 1)
 void real_lerp_clamped(real *out, real a, real b, real t)

@@ -15,8 +15,8 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_math.h"
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 // Steps a 3-component direction toward a target by at most max_delta per component, then
 // renormalizes it. Used to smooth cached lighting directions (render_lighting distant light

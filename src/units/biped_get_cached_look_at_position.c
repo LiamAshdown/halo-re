@@ -17,6 +17,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -31,8 +32,7 @@ extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeomet
 extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp,
     int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis,
     const real_point2d *known); // 0x501470, src/physics
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign,
-    int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
+
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900; blam-cc: EAX out, ECX object_index
 

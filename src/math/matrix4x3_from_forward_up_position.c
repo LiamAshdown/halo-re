@@ -16,8 +16,8 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
 
 // Builds a full matrix4x3 (rotation from two vectors, plus a translation copied from another
 // object) in one call.

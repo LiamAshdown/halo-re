@@ -29,6 +29,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -37,13 +38,13 @@ extern real_point3d *global_origin3d_pointer;   // 0x00696714
 extern real_vector3d *g_006966e4;           // 0x006966e4, UNSURE identity (a 2-float constant)
 
 extern float scenario_location_water_surface_distance(void); // 0x53ee00, UNSURE signature, out of this module's range
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
+
 extern void matrix4x3_inverse_transform_vector(real_matrix4x3 *m); // 0x4cc010, UNSURE args  // real signature (matrix4x3_inverse_transform_vector.c): void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); Ghidra recovered 1 of 3 args at this call site
 extern void matrix4x3_transform_vector(real_matrix4x3 *m); // 0x4cbe50, UNSURE args at this call site  // real signature (matrix4x3_transform_vector.c): void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); Ghidra recovered 1 of 3 args at this call site
 extern void vector3d_clamp_length(float max_length); // 0x459300, UNSURE args
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
                                     real_vector3d *stack_operand); // 0x4052c0, UNSURE args here
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points,
                           void *extra_force, void *extra_torque); // 0x507840, UNSURE signature
 

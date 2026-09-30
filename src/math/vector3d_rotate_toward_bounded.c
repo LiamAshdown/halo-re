@@ -63,15 +63,16 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern double acos(double x);  // 0x628140, MSVC 7.1 CRT; see vector3d_rotate_toward_with_acceleration.c
 extern double cos(double x);   // x87 FCOS
 extern double sin(double x);   // x87 FSIN
 extern double sqrt(double x);  // x87 FSQRT
 extern double atan2(double y, double x); // fpatan is a single x87 FPATAN instruction (see quaternion_to_axis_angle.c)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0
+
 extern real_point3d global_origin3d; // 0x0065c230, reached via global_origin3d_pointer @0x00696714
 
 extern void bounded_ramp_profile_build(real position_error, real initial_velocity, real max_velocity,

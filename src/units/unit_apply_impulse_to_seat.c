@@ -22,12 +22,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;         // 0x008603b0
 extern tag_instance *tag_instances;     // 0x0087bc14
 extern real_vector3d *global_up3d_pointer;  // 0x00696720
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place
 
 // Applies a linear impulse to the unit's velocity and, if the resulting up-cross-impulse axis is
 // non-degenerate, an angular impulse (scaled by pi times its length) to its angular velocity --

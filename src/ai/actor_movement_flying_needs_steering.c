@@ -29,12 +29,12 @@
 #include "ai.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX -> v
 
 // blam-cc: EAX -> actor_index, ECX -> destination, EDI -> out_avoidance_distance
 uint8_t actor_movement_flying_needs_steering(datum_index actor_index, const real_point3d *destination,

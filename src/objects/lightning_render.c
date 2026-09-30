@@ -29,6 +29,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern uint8_t *lightning_instances; // 0x006b8d74, UNSURE: raw table, see light_volume_render.c
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -48,8 +49,8 @@ extern void vector3d_cross_product(); // math module, 0x4052c0.
     // the other call site(s) of the same address, because the missing operands travel in
     // registers it could not source. The empty parameter list is the convention this module
     // already uses for FUN_00450870 -- one declaration per symbol, no invented signature.
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
-extern void vector3d_normalize(real_vector3d *v); // 0x4cd320, vector in ECX
+
+
 extern int32_t texture_cache_get(uint32_t a, uint32_t b); // out of module scope, unexamined; begins a
     // geometry batch and returns an opaque handle
 extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);  // out of module scope, unexamined

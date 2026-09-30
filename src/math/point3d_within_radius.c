@@ -15,6 +15,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Returns whether point `a` is within `radius` of point `b` (squared-distance comparison, no
 // sqrt).

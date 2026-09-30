@@ -24,6 +24,7 @@
 #include "effects.h"
 #include "fn_game.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -39,8 +40,7 @@ extern real_point3d *sphere_point_table; // 0x006b7af4, a POINTER
 extern int16_t sphere_point_table_count; // 0x006b7af8
 extern real_point3d player_placement_ring[9]; // 0x006574c0
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, EAX, ECX, stack
+
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, EAX, EDX, stack (EAX still = out after it)
 extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX

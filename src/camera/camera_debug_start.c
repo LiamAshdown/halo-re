@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_math.h"
 
 extern Scenario *global_scenario;                    // 0x00746f8c
 extern camera_script_globals camera_script;   // 0x006869d0
@@ -33,7 +34,7 @@ extern void observer_set_command(int16_t local_player_index);  // 0x447ab0, this
 extern void observer_advance(int16_t local_player_index);      // 0x447b50, this module
 // blam-cc: AX -> local_player_index
 extern void observer_commit(int16_t local_player_index);       // 0x448900, this module
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll); // 0x4cba10, math module
+
 
 // hs camera_set: point camera_script_globals at cutscene camera point `camera_point_index` of
 // the current scenario (position/orientation/fov), give it `ticks` to live and, when

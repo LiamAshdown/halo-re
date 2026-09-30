@@ -34,6 +34,7 @@
 #include "cache.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_math.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;   // 0x00746f9c
 extern int32_t render_cluster_index;          // 0x007c3348
@@ -54,10 +55,7 @@ extern void render_frustum_compute_screen_clip_bounds(float *out, void *camera);
 // -1 for "fully inside, unchanged" or 0 for "fully clipped away". The 0x38d1b717 magic constant is
 // the same one every caller in this module passes -- an internal epsilon/version tag the routine
 // itself owns.
-extern int16_t polygon2d_clip_to_planes(int16_t vertex_count, real_point2d *vertices,
-                                         int16_t clip_point_count, real_point2d *clip_points,
-                                         int16_t maximum_count, real_point2d *out,
-                                         real epsilon); // 0x4caee0
+
 
 // this batch (0x554850): projects a portal/mirror polygon into view space, near-clips it and
 // perspective-projects the survivors into `out`. Returns 0 (fully visible), 1 (fully behind/culled)

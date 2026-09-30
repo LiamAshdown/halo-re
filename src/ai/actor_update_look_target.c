@@ -30,6 +30,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -42,7 +43,7 @@ extern uint8_t point3d_within_horizontal_cone(const real_point3d *to_point, cons
 
 
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+
 extern double cos(double x);
 extern double fabs(double x);
 

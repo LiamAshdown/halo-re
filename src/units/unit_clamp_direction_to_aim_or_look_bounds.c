@@ -24,6 +24,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;   // 0x008603b0
 extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8, a POINTER (-> 0x65c230 {0,0,0})
@@ -33,7 +34,7 @@ extern double fcos(double x);
 extern double fsin(double x);
 extern double sqrt(double x); // a single x87 FSQRT instruction in the original (Ghidra's SQRT())
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0
+
 
 // FIXED (objdump 0x5697a0): the original reads exactly two stack arguments ([ebp+8] the direction,
 //   [ebp+0xc] the flag) and writes the clamped direction back through the first (EAX = ECX = [ebp+8] at the

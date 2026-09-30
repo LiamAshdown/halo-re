@@ -22,12 +22,13 @@
 #include "cache.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
 
 extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command); // 0x569470, EAX, ECX

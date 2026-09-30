@@ -24,14 +24,13 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *object_data;     // 0x008603b0
 
 extern double fabs(double x);
-extern real random_real_range(real min, real max); // 0x401050
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 
 extern int8_t teams_are_enemies(int16_t a, int16_t b); // 0x45bd50, CX/DX; UNSURE, see file header

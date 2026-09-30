@@ -23,6 +23,7 @@
 #include "physics.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *object_data;      // 0x008603b0
@@ -31,7 +32,7 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern const real_vector3d *global_up3d_pointer;   // 0x00696720
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c
 
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+
 extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
                                                 ModelCollisionGeometryBSP *bsp,
                                                 int16_t breakable_surface_count,

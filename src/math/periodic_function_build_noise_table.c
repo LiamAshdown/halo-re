@@ -14,6 +14,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // cos is a single x87 FCOS instruction in the original code (Ghidra's fcos() pseudo-call);
 // declared locally instead of via <math.h> because -I types shadows that header name.

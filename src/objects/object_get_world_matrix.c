@@ -22,11 +22,11 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
 
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
 
 real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out) // blam-cc: EAX -> object_index, EDI -> out
 {

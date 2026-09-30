@@ -23,6 +23,7 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_math.h"
 
 extern uint8_t unknown_006893ff;                                    // 0x006893ff UNSURE: lens flares enable toggle
 extern int16_t unknown_00719aac;                                    // 0x00719aac UNSURE: at most 1 allowed
@@ -32,9 +33,9 @@ extern tag_instance *tag_instances;                                 // 0x0087bc1
 extern int16_t render_window_index;                                 // 0x007c310a render module (int16, render.h)
 
 // blam-cc: ECX -> out, EDX -> dir
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670
+
 // blam-cc: ECX -> v
-extern real vector3d_normalize_with_length(real_vector3d *v);       // 0x401990
+
 // blam-cc: ESI -> direction
 
 // blam-cc: EBX -> candidate

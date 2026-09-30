@@ -24,10 +24,10 @@
 #include "math.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_math.h"
 
 extern random_seed effect_random_seed; // 0x00719cd4
 
-extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170, math module
 
 // Randomized pitch multiplier: a random value within the tag's random_pitch_bounds, scaled by
 // the zero_pitch_modifier..one_pitch_modifier blend at the sound's current distance fraction.

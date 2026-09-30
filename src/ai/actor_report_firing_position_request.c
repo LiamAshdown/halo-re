@@ -17,10 +17,9 @@
 #include "units.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *actor_data; // 0x00880360
-
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
 
 
 // blam-cc: EAX -> actor_index, ECX -> query, EBX -> candidate

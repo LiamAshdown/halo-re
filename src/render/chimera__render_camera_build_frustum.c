@@ -49,14 +49,14 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_math.h"
 
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> {0,0,0} at 0x0065c230 (types/math.h
                                                    // global_math_constant_pointers slot 10; slot 17,
                                                    // 0x00696714, global_origin3d_pointer, points at the
                                                    // same constant)
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math; blam-cc: ECX -> v
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in);
+
     // 0x4cb7a0, math module; blam-cc: EAX -> out, ECX -> in
 extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane);
     // 0x4cbf10, math module; blam-cc: EAX -> out, ECX -> m, EDX -> plane

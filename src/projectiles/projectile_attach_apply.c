@@ -34,6 +34,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -46,7 +47,7 @@ extern uint8_t message_delta_decode_compound_field(void *decode_context, void *d
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index); // 0x4f6440
-extern real random_real_range(real min, real max); // 0x401050, math module
+
 
 // Receiver of network message 0x33 (k_message_projectile_attach), sent by the attach response
 // (projectile_response, this batch) when a projectile stuck to an object and both ends are

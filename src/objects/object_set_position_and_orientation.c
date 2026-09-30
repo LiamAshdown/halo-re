@@ -31,10 +31,11 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 // 0x4052c0: out (EAX) = stack_operand x ecx_operand. Verified against the body at 0x4052c0:
 //   *EAX = ECX[2]*stack[1] - stack[2]*ECX[1], i.e. the classic cross product with the stack
 //   argument as the LEFT operand.

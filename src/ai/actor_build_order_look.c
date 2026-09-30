@@ -21,13 +21,12 @@
 #include "ai.h"
 #include "cache.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern real random_real_range(real min, real max);          // 0x401050
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 // Builds a "look" order (code 0). If the actor has not committed to an order and is not a
 // swarm: picks a randomized look-duration from the actor tag's cowering_time (when

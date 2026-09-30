@@ -27,6 +27,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -39,8 +40,7 @@ extern real point3d_distance_squared_to_segment(real_point3d *segment_start, rea
 extern real segment3d_distance_squared_to_segment(real_point3d *b_start, real_point3d *a_start, real_vector3d *a_direction,
     real_vector3d *b_direction); // 0x4cdef0, stack, EBX, ESI, EDI
 
-extern real ray_intersect_sphere_distance(real_point3d *origin, real_point3d *center, real_vector3d *direction,
-    real radius); // 0x4ce7d0
+
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 

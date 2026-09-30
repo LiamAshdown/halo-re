@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_math.h"
 
 extern data_array *effect_data;     // 0x0087abdc
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -27,7 +28,7 @@ extern random_seed effect_random_seed; // 0x00719cd4
 
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680,
     // blam-cc: EDX -> handle, ESI -> array
-extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170
+
 
 // Begins event `event_index` on an effect: resets its elapsed time and started flag, and rolls
 // its duration from the tag's delay bounds using the deterministic global seed.

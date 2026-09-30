@@ -33,6 +33,7 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_math.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
@@ -41,8 +42,7 @@ extern void structure_surface_material_locate(ScenarioStructureBSP *global_struc
     int16_t *out_material_index, int16_t *out_lightmap_index); // 0x552110, this module
 
 // math module, out of this batch. blam-cc: EAX -> v0, EDX -> v1, ECX -> v2, ESI -> point
-extern uint8_t triangle_point_barycentric_2d(real_point3d *a, real_point3d *v_ecx, real_point3d *v_edx, real_point3d *p,
-    real *out_u, real *out_v); // 0x4ce8c0, src/math: EAX a, ECX v_ecx, EDX v_edx, ESI p
+
 
 // Walks one BSP leaf's surface references looking for a surface that lies on `accepted_plane`
 // (the collision plane the caller's segment test reported) and whose triangle actually contains

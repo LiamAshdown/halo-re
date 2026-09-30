@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t *local_player_globals; // 0x0087a478, same declaration as objects_update.c and
@@ -44,7 +45,7 @@ extern char ai_marker_name_a[]; // FIXED: an array ("head"); its address is the 
 
 extern int16_t object_get_root_parent_placement(uint32_t object_index,
     object_placement_cursor *out_cursor); // 0x4f5f70, blam-cc: EAX -> object_index, ESI -> out_cursor
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, v in ECX
+
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, DX, EDI
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, OUTSIDE this batch, UNSURE: see file header

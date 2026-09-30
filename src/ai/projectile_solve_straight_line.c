@@ -31,8 +31,8 @@
 #include "tags.h"
 #include "math.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
 
 // Computes the straight-line direction (unnormalized, target - origin) from *origin to *target,
 // its length, and the flight time at the given speed (0 when speed is not positive). Writes the

@@ -31,15 +31,15 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0, out = stack_operand x ecx_operand
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, up in EAX, forward in ECX
-extern void quaternion_rotate_vector(real_quaternion *q, real_vector3d *v, real_vector3d *out); // 0x4cdd40, q on the stack, v in ECX, out in EDX
+
+
 extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker,
     real_matrix4x3 *output_matrix); // 0x4f62f0, obj in EAX
 extern double sqrt(double x); // a single x87 FSQRT instruction

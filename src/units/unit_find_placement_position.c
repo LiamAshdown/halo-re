@@ -23,6 +23,7 @@
 #include "projectiles.h" // collision_result
 #include "physics.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -34,7 +35,7 @@ extern real_vector3d placement_offset_table[27]; // 0x0065e660
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
     float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context); // 0x504e10, EDI, ECX
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
 extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_position, float sample_radius,
     float x_margin, float y_margin, uint32_t exclude_object_index, real_point3d *out_position); // 0x507170, ESI, stack

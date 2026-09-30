@@ -13,6 +13,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle)
 {

@@ -20,6 +20,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern real vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); // 0x44d8e0, outside this module

@@ -27,13 +27,14 @@
 #include "effects.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_math.h"
 
 extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t creator, real_vector3d *velocity,
     int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale,
     int32_t color, int32_t tint, int32_t force); // 0x450980, this call site's shape
 
     // 0x543d80, EDX definition_index, EAX placement, stack scale
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern const real_vector3d *global_down3d_pointer;    // 0x0069672c
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern char *particle_impact_vector_names[2];         // 0x00687018: "velocity", "gravity"

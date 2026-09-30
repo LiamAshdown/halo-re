@@ -28,6 +28,7 @@
 #include "sound.h"
 #include "physics.h"
 #include "fn_sound.h"
+#include "fn_math.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -44,7 +45,7 @@ extern float k_physics_gravity;           // 0x0069c52c
 extern char s_ground_point_marker[];   // 0x0066b180 "ground point"
 
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags,
     uint32_t exclude_object_index, collision_result *result); // 0x401a20, EAX, ECX, stack
@@ -56,7 +57,7 @@ extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t 
     real_point3d *point); // 0x4bd5d0, EAX, ECX, stack
 extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, ECX, stack
 extern real_matrix4x3 *object_get_node_marker_address(uint32_t object_index, int16_t node_index); // 0x4f6000, EAX, stack
-extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point); // 0x4cbf80, ECX, EDX, ESI
+
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, EAX, EDX, stack
 extern void item_compute_rotation(uint32_t object_index); // 0x4bd500, EAX
 extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index); // 0x505490, stack, EDI

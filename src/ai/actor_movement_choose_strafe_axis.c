@@ -24,8 +24,9 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX -> v
+
 extern const real_vector3d *global_origin3d_pointer;            // 0x00696714
 
 // blam-cc: EAX -> direction, BL -> use_3d, ESI -> facing, EDI -> reference, stack -> out_axis, out_index

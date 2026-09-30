@@ -26,12 +26,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern real vector3d_length(real_vector3d *v); // 0x401960, UNSURE args at every call site here
-extern void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out); // 0x4cda30, EAX parallel, ECX axis, EDX v, ESI perp //  // real signature (vector3d_project_onto_unit_axis.c): void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out); Ghidra recovered 0 of 4 args at this call site
+
 extern float fabsf(float x);
 
 // Evaluates the four ObjectFunctionIn selectors on the Vehicle tag (vehicle_a_in..d_in) against

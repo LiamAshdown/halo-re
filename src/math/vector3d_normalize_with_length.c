@@ -8,6 +8,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // sqrt/fabs are single x87 instructions (FSQRT/FABS) in the original code, which Ghidra
 // renders as the pseudo-functions SQRT()/ABS(); declared locally instead of via <math.h>

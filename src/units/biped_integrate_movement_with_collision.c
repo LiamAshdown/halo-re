@@ -45,6 +45,7 @@
 #include "fn_ai.h"
 #include "fn_game.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -78,8 +79,7 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
 extern game_main_globals *main_game_globals; // 0x006b0b80
 
-extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction,
-    real radius); // 0x4ce6c0, ECX center, EAX origin, EDX direction, stack radius
+
 extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane); // 0x4cbf10, EAX, ECX, EDX
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, src/objects
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, EAX -> object_index (src/objects)

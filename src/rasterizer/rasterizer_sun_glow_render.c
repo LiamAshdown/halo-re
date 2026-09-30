@@ -24,6 +24,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_math.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -37,7 +38,7 @@ extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effec
 extern rasterizer_dynamic_screen_vertex rasterizer_shadow_screen_quad[4]; // 0x006e1720 static quad (also used by 0x525320)
 
 // blam-cc: ECX -> v, returns the length in ST0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 // blam-cc: EAX -> out, ECX -> packed
 
 

@@ -31,13 +31,14 @@
 #include "objects.h"
 #include "units.h"
 #include "render.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0, objects module
 
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
+
     // 0x4cd670, math module; blam-cc: ECX -> out, EDX -> dir
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math; blam-cc: ECX -> v
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
+
+
     // 0x4cb970, math module; blam-cc: EAX -> up, ECX -> forward, stack -> out
 extern uint8_t rasterizer_object_shadow_begin(real_matrix4x3 *projection, ColorRGB *color,
                                               float radius, float *out_radius);

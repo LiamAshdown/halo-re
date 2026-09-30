@@ -43,6 +43,7 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_math.h"
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
@@ -55,9 +56,7 @@ extern void animation_node_get_rotation(ModelAnimationsAnimation *animation, rea
                                          int16_t rotation_index, int16_t node, real_quaternion *out); // 0x4d6b60, this batch
 extern void animation_node_get_translation(ModelAnimationsAnimation *animation, real frame,
                                             int16_t translation_index, int16_t node, real_point3d *out); // 0x4d6cf0, this batch
-extern void quaternion_multiply(real_quaternion *a, real_quaternion *b, real_quaternion *out); // 0x4cdbf0
-extern void quaternion_normalize(real_quaternion *q); // 0x4cdb20
-extern void quaternion_lerp(real_quaternion *a, real_quaternion *b, real_quaternion *out, real t); // 0x4cdcc0
+
 
 // Splits value/divisor into a floor()'d integer part and a [0,1) fractional part, using the
 // truncate-then-fmod idiom the compiler generated inline at both call sites (yaw and pitch).

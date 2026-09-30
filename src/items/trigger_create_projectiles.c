@@ -22,6 +22,7 @@
 #include "items.h"
 #include "fn_ai.h"
 #include "fn_game.h"
+#include "fn_math.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern data_array *actor_data;         // 0x00880360
@@ -38,14 +39,13 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern void unit_project_onto_aiming_axis(datum_index unit_index, real *out_speed, uint8_t project_point,
     uint8_t use_unit_aiming_vector, real_point3d *point, real_vector3d *axis); // 0x5658f0, stack, EAX, EBX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 
 
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role); // 0x4f53a0, EAX, stack
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed,
     real lo, real hi); // 0x4cd1b0, EAX, EBX, EDI, stack
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
+
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index,
     int16_t distribution_function, real distribution_angle, uint32_t flags); // 0x4c54e0, stack + AX
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0

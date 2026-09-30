@@ -9,6 +9,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 
 extern periodic_function_table *periodic_function_tables[12]; // 0x006b7aa8

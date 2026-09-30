@@ -22,11 +22,11 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // ABS
-extern void vector2d_tangent_edge_directions(const real_vector2d *direction, real_vector2d *edge_pos,
-                         real_vector2d *edge_neg, real distance, real extent, real *adjacent_out); // 0x43c400, math helper, not rewritten here; blam-cc: ECX -> direction, EDX -> edge_pos, ESI -> edge_neg
+
 
 // blam-cc: ECX -> list, EAX(low16) -> point_index, EDX -> position, ESI -> edge_neg,
 //   stack -> radius, out_a, out_b

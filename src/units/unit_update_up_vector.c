@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_math.h"
 
 extern real_vector3d *global_forward3d_pointer; // 0x00696718 (1, 0, 0)
 extern real_vector3d *global_left3d_pointer;    // 0x0069671c (0, 1, 0)
@@ -30,7 +31,7 @@ extern double cos(double x);
 extern double sin(double x);
 extern double acos(double x); // 0x628140 is the CRT's x87 _CIacos (atan2(sqrt((1+x)(1-x)), x))
 extern double fabs(double x);
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX v
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
     // 0x4052c0, blam-cc: EAX out, ECX a, stack b -- computes b x a
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);

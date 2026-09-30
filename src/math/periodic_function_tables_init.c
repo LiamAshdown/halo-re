@@ -9,9 +9,8 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern void periodic_function_build_table(periodic_function_t type, uint8_t *out); // 0x4ccdb0
-extern void periodic_function_build_transition_table(transition_function_t type, uint8_t *table); // 0x4cccb0
 
 extern periodic_function_table *periodic_function_tables[12]; // 0x006b7aa8
 extern periodic_function_table *transition_function_tables[6]; // 0x006b7ad8

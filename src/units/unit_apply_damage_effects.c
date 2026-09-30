@@ -36,6 +36,7 @@
 #include "networking.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -48,11 +49,7 @@ extern uint8_t is_dedicated_server_flag; // 0x00724a44
 extern Globals *global_globals;
 extern uint8_t network_object_index_cache[]; // 0x006870d8
 
-extern real random_real_range(real min, real max); // 0x401050
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
 
-
-extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480, ESI, EDI
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key); // 0x4e9d40, EAX, ESI

@@ -21,12 +21,13 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_math.h"
 
 extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, types/math.h (const to
                                                         // match src/math/*.c own declaration)
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 extern double fabs(double x);
-extern int16_t vector3d_major_axis_index(real_vector3d *v); // 0x44d820, not physics
+
 
 static void append_quad_vertices(physics_model_shape *shape, float quad[4][3],
                                   projection_axis_pair proj)

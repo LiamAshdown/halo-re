@@ -30,6 +30,7 @@
 #include <string.h>
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;        // 0x00880360
 extern data_array *swarm_data;        // 0x0088035c
@@ -56,10 +57,10 @@ extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, b
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
     int16_t squad_index); // 0x4290f0, blam-cc: EAX, EBX, stack
 extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out); // 0x569720, ECX, EAX
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, blam-cc: ECX
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
     // 0x4052c0, blam-cc: EAX -> out, ECX -> a, stack -> b
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX
+
 
 #define A_U8(offset) (*(uint8_t *)(self + (offset)))
 #define A_I16(offset) (*(int16_t *)(self + (offset)))

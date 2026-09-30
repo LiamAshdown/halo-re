@@ -17,8 +17,8 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_math.h"
 
-extern int32_t uint32_log2_floor(uint32_t value); // 0x4cb740; ECX -> value
 
 // blam-cc: unaff_EBX -> bitmap
 // Computes the number of mipmap levels to generate for a bitmap, honouring its requested

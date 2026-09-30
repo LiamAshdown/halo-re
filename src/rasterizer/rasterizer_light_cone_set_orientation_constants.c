@@ -26,6 +26,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_math.h"
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -37,10 +38,10 @@ extern rasterizer_light rasterizer_lights[k_rasterizer_maximum_lights]; // 0x007
 extern void *rasterizer_device;                        // 0x0071d174
 
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0, blam-cc: AX = type
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll); // 0x4cba10, blam-cc: EAX = out
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0, blam-cc: EAX = out, EDX = normal
+
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 // blam-cc: EAX -> bitmap_tag_id, CX -> bitmap_type, stack -> (stage, default_index, frame, effect_slot)
 
 

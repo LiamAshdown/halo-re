@@ -23,9 +23,10 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#include "fn_math.h"
 
 extern uint32_t bitmap_data_depth_valid_for_type(int32_t depth, BitmapDataType_t type); // 0x43fe30, this module
-extern int32_t uint32_log2_floor(uint32_t value); // 0x4cb740, math module (src/math/uint32_log2_floor.c)
+
 
 // blam-cc: EDX -> bitmap, stack -> require_runtime
 // Validates bitmap's tag-side fields (signature, flags, type, format, width, height, depth,

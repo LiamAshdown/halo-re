@@ -20,6 +20,7 @@
 #include "cache.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 #include <stdint.h>
 
 extern data_array *object_data;     // 0x008603b0
@@ -27,7 +28,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
     real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); // 0x4f6fe0
-extern int point3d_within_radius(const real_point3d *a, const real_point3d *b, real radius); // 0x43c340, EAX, ECX, stack
+
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); // 0x4f6a20, EAX, EDI
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
 

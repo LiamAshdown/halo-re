@@ -23,16 +23,15 @@
 #include "memory.h"
 #include "math.h"
 #include "scenario.h"
+#include "fn_math.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 
 // blam-cc: up in EAX, forward in ECX, out on stack
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward,
-    real_matrix4x3 *out); // math module, 0x4cb970
+
 
 // blam-cc: m in ECX, out in EDX, point in ESI (parameter order as src/math defines it)
-extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out,
-    real_point3d *point); // math module, 0x4cbf80
+
 
 // blam-cc: EAX -> trigger_volume_index, ECX -> point
 // Tests whether `point` lies inside a scenario trigger volume. Type 0 (fixed) reads the volume's

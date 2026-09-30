@@ -33,6 +33,7 @@
 #include "projectiles.h"
 #include "game.h"
 #include "fn_rasterizer.h"
+#include "fn_math.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -44,7 +45,7 @@ extern cache *rasterizer_decal_vertex_cache_handle;  // 0x0071d1c0, the decal ge
 extern void *rasterizer_decal_vertex_cache;          // 0x0071d1bc, IDirect3DVertexBuffer
 extern int16_t rasterizer_vertex_buffer_lock_state;  // 0x0069c632
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
     // 0x4052c0, EAX out, ECX a, stack b
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even)
@@ -57,7 +58,7 @@ extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB 
     // 0x43f6a0, blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
 extern void *texture_cache_get(void *bitmap, uint8_t wait, uint8_t allocate_if_missing);
     // 0x444550, EAX bitmap, stack (wait, allocate_if_missing)
-extern int16_t vector3d_major_axis_index(real_vector3d *v); // 0x44d820, EAX
+
 extern void structure_lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite_index, real scale,
     real *out_extent, real *out_sprite_rect, const Decal *decal_definition);
     // 0x44db30 (the decal sprite rectangle builder), EDX out_sprite_rect, EDI decal_definition
@@ -69,10 +70,9 @@ extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accum
     int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type,
     int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue,
     uint16_t *fallback_queue_count); // 0x44e730
-extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle,
-    real cos_angle); // 0x4cb880, EAX out, ECX axis
+
 extern real vector3d_angle_between_4cd5e0(real_vector3d *a, real_vector3d *b); // 0x4cd5e0, EAX a, ECX b
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX out, EDX dir
+
 extern datum_index cache_allocate_block(cache *self, uint32_t requested_bytes); // 0x4d1840
 extern void cache_evict_entry(datum_index handle, cache *self); // 0x4d1c20, EBX handle, EDI self
 

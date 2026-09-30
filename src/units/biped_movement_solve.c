@@ -19,6 +19,7 @@
 #include "units.h"
 #include "physics.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720
@@ -27,7 +28,7 @@ extern double sqrt(double x);
 extern double fabs(double x);
 extern data_array *object_data;                      // 0x008603b0
 extern float k_default_resting_plane[4];             // 0x0069c53c
-extern real vector3d_length(real_vector3d *v);       // 0x401960, blam-cc: EAX v
+
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius,
     float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); // 0x506440
@@ -37,8 +38,8 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 
 extern void real_matrix4x3_rotation_from_forward(real_vector3d *forward, real_vector3d *left,
     real_vector3d *up); // 0x55eed0, blam-cc: ESI forward, EBX left, EDI up
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX v
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, blam-cc: ECX v
+
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
     // 0x4052c0, blam-cc: EAX out, ECX a, stack b -- computes b x a
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale);

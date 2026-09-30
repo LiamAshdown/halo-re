@@ -27,6 +27,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 extern random_seed random_seed_global; // 0x00719cd0
 

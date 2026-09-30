@@ -28,6 +28,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#include "fn_math.h"
 
 // qsort comparator: records with is_type_9 clear sort before records with it set; within
 // each group, ascending distance_squared. The flag test is a raw byte compare (any nonzero

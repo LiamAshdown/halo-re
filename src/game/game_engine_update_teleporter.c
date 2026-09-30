@@ -47,6 +47,7 @@
 #include <wchar.h>
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_math.h"
 
 extern data_array *player_data;      // 0x0087a480
 extern Scenario *global_scenario;    // 0x00746f8c
@@ -66,7 +67,7 @@ extern uint32_t teleport_effect_const_00687b04; // 0x00687b04
 extern uint32_t teleport_effect_const_00687b08; // 0x00687b08
 extern int16_t teleport_effect_const_006f1d30;  // 0x006f1d30
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern double atan2(double y, double x); // x87 FPATAN
 extern double fcos(double radians); // a single x87 FCOS instruction

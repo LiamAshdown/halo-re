@@ -12,6 +12,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 void vector3d_rotate_pair_in_plane(real_vector3d *a, real_vector3d *b, real sin_angle, real cos_angle)
 {

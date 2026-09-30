@@ -17,11 +17,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_math.h"
 
 extern render_frustum render_frustum_global; // 0x007c3168, this module (render_nonplayer_frame.c)
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0
+
 
 // Transforms a sprite's origin (and, if given, its normal) from world space into view space
 // through render_frustum_global.world_to_view, unless the sprite build is screen-space (data's

@@ -29,10 +29,11 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x);
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
+
 
 // blam-cc: EAX -> to_point, ECX -> forward, EDX -> cone_axis, stack -> min_cos_threshold,
 //   stack -> side_thresholds

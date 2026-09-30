@@ -22,6 +22,7 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern double sqrt(double x);
 
@@ -31,7 +32,7 @@ extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_down3d_pointer;    // 0x0069672c -> 0x0065c25c (0, 0, -1)
 
 extern uint8_t scenario_cluster_visibility_test(int16_t row_cluster, int16_t column_cluster); // 0x53eb60, stack, CX
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale); // 0x401930, EAX, ECX, stack
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object, void *result); // 0x505880

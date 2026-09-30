@@ -35,10 +35,11 @@
 #include "tags.h"
 #include "math.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern float k_physics_gravity; // 0x0069c52c, k_physics_gravity (types/physics.h); named
     // k_physics_gravity here to match src/ai/actor_solve_grenade_lob.c's existing extern
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
+
 extern const real_vector3d *global_up3d_pointer; // 0x00696720 == 0x0065c224 (types/math.h)
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 

@@ -20,12 +20,13 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;             // 0x008603b0
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 extern real_vector3d *global_up3d_pointer;      // 0x00696720
 
-extern real vector3d_normalize_with_length(real_vector3d *v);    // 0x401990
+
 // vector3d_rotate_about_axis (0x4cd820) rotates the vector in EAX about the axis in ECX in
 // place, by the (sin_angle, cos_angle) pair pushed on the stack -- the callee own
 // decompilation is a Rodrigues formula over in_EAX / in_ECX / param_1 / param_2, and

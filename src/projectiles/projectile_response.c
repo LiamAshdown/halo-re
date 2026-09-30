@@ -49,6 +49,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -73,11 +74,10 @@ extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_refere
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index); // 0x4f6440
 extern void projectile_send_attach(datum_index projectile_index, datum_index parent_object_index, int16_t marker_index); // 0x4bf120, this batch
 extern void projectile_request_state(datum_index projectile_index, int16_t requested_state); // 0x4bf0f0, this batch
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
-extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis,
-    real_vector3d *v, real_vector3d *perp_out); // 0x4cda90, src/math/vector3d_project_onto_axis.c
+
+
     // blam-cc: ECX -> parallel_out, EDX -> axis, ESI -> v, EDI -> perp_out
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
+
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, void *seed,
     real lo, real hi); // 0x4cd1b0, EAX, EBX, EDI, stack
 extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index,

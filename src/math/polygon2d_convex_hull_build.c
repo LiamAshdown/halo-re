@@ -24,6 +24,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // atan2/fabs are the C-library spellings of the x87 FPATAN/FABS instructions the original code
 // uses directly (Ghidra's fpatan()/ABS() pseudo-calls); declared locally instead of via
@@ -31,7 +32,6 @@
 extern double atan2(double y, double x);
 extern double fabs(double x);
 
-extern int16_t polygon2d_points_classify(real_point2d *points, int16_t count); // 0x4caa40
 
 // Computes the convex hull of a 2D point array using an angular gift-wrapping walk, returning
 // hull vertex indices.

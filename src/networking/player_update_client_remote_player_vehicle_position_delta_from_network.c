@@ -35,6 +35,7 @@
 #include "networking.h"
 #include <string.h>
 #include "objects.h"
+#include "fn_math.h"
 
 extern data_array *player_data; // 0x0087a480
 extern network_id_table *machine_table;
@@ -50,7 +51,7 @@ extern void message_delta_decode_compound_field_staged(void *decode_context);
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a,
     const real_vector3d *b); // 0x4052c0; blam-cc: EAX -> out, ECX -> a, stack -> b;
                              // computes out = b x a
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990; blam-cc: ECX -> v
+
 extern void player_update_client_remote_player_vehicle_update_from_network(
     datum_index player_index, int32_t update_id, int32_t control_sequence,
     vehicle_update_body vehicle); // this module, 0x4e6510

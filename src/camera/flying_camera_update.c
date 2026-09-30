@@ -24,6 +24,7 @@
 #include "math.h"
 #include "objects.h"
 #include "camera.h"
+#include "fn_math.h"
 
 extern data_array *object_data;                         // 0x008603b0, objects module
 extern const real_point3d *global_origin3d_pointer;     // 0x00696714, math module
@@ -36,7 +37,7 @@ extern double cos(double x);
 extern double sin(double x);
 
 // blam-cc: ECX -> v; length returned on the x87 stack
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
+
 // blam-cc: EAX -> v, ECX -> axis, stack -> (sin_angle, cos_angle)
 extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle,
     real cos_angle);                                             // 0x4cd820, math module

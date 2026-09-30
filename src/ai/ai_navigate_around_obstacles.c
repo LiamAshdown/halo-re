@@ -24,15 +24,13 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp;                         // 0x00746f9c
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // FABS
 
-
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
-    const real_plane3d *plane, const real_point2d *known); // 0x44d860
 
 static real_plane3d *ai_navigate_surface_plane(ModelCollisionGeometryBSP *bsp, int32_t surface)
 {

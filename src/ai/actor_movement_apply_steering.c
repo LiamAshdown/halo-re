@@ -23,6 +23,7 @@
 #include "ai.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -36,8 +37,7 @@ extern double sin(double x);  // FSIN
 extern double cos(double x);  // FCOS
 extern double fabs(double x);
 
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX out, ECX a, stack b
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack
 

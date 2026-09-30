@@ -34,13 +34,14 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, this batch; all four on the stack
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, this batch
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, out in EAX, in in ECX
+
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m);
     // 0x4cbde0; out in EAX, in in EDX, matrix on the stack
 extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker,

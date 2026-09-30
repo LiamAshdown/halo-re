@@ -23,6 +23,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // SSE-optimized implementation of matrix4x3 multiplication, selected at startup when the CPU
 // supports the required feature. (Actually AMD 3DNow!; see header.)

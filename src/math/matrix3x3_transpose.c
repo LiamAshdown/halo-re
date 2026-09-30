@@ -9,6 +9,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Transposes a 3x3 matrix, handling in-place (aliased) transposition.
 void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in)

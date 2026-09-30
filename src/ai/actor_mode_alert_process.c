@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -34,8 +35,6 @@ extern Scenario *global_scenario;
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
 
-
-extern real random_real_range(real min, real max); // 0x401050
 
 #include <string.h>
 

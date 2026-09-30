@@ -15,6 +15,7 @@
 #include "crt.h"
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Three-way float comparator in qsort() order: -1 if *a < *b, 1 if *b < *a, 0 otherwise
 // (including when either is NaN, since neither x87 comparison then succeeds).

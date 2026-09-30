@@ -19,12 +19,13 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;    // 0x008603b0
 extern char ai_marker_name_a[]; // 0x0066bfa0, shared with unit_get_primary_eye_marker_position.c
 
 extern double fcos(double x);
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
                                                 uint32_t maximum_markers); // 0x4f6080
 

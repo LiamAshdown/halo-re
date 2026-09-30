@@ -28,6 +28,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Projects `point` onto the segment [segment_start, segment_end]; if the projection parameter
 // falls inside [0,1] the lerped point is written to `out`, otherwise `out` is set to

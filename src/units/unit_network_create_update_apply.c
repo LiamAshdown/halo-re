@@ -31,6 +31,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_math.h"
 #include <string.h>
 
 extern data_array *object_data;                    // 0x008603b0
@@ -41,7 +42,7 @@ extern uint8_t network_object_index_cache[];       // 0x006870d8
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key); // 0x4e9cd0, EAX container, ECX key, stack slot
 

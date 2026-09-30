@@ -12,14 +12,13 @@
 #include "crt.h"
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern void sphere_point_table_init(void); // 0x4cd0e0
-extern void periodic_function_tables_init(void); // 0x4cc8d0
+
 extern int cpu_get_type(int feature); // 0x5402a0, system module
 
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0, scalar
-extern void matrix4x3_multiply_sse(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc250 -- true SSE build, see header note
-extern void matrix4x3_multiply_3dnow(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc3a0 -- AMD 3DNow! build, Ghidra names it matrix4x3_multiply_sse
+
 
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
 extern int32_t shell_argc; // 0x00721e94

@@ -52,6 +52,7 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_math.h"
 #include <stdint.h> // uintptr_t
 
 extern data_array *contrail_point_data;              // 0x0087abe8, effects module
@@ -79,8 +80,8 @@ extern int32_t rasterizer_dynamic_vertex_cache_reserve(int16_t vertex_type, int3
     // 0x51bdd0; blam-cc: AX = vertex_type, ESI = count
 extern void *rasterizer_dynamic_index_slot_lock(int32_t slot_index); // 0x511e80; ECX
 extern void *rasterizer_dynamic_vertex_cache_lock(int32_t slot_index); // 0x51be40; EAX
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990; ECX -> v
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0; ECX -> v
+
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
     // 0x4052c0, math module; blam-cc: EAX -> out, stack -> a, ECX -> b
 extern real contrail_compute_edge_fade_factor(real_vector3d *direction, real_point3d *point,

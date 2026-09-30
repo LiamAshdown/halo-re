@@ -38,6 +38,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_rasterizer.h"
+#include "fn_math.h"
 
 extern uint8_t unknown_006893ff;    // 0x006893ff lens flares enabled
 extern uint8_t lens_flare_occlusion_queries_supported; // 0x006e1dc0
@@ -59,7 +60,6 @@ extern uint8_t unknown_00689426;            // 0x00689426
 extern void rasterizer_set_shader_stage_config(int16_t mode);       // 0x519200
 
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 // blam-cc: ESI -> flare, DI -> mode
 
 extern double fpatan(double y, double x); // x87 FPATAN, atan2(y, x) (harness/x87_shims.c)

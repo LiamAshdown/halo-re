@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Transforms a normal/direction into a matrix4x3's local space using only the transposed
 // rotation.

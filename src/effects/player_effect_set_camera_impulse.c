@@ -39,6 +39,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_math.h"
 
 extern int32_t *player_control_globals_ptr; // 0x006b145c, UNSURE: foreign module (player look/aim
                                     // globals); stride 0x40, +0x1c pitch, +0x20 yaw
@@ -49,9 +50,9 @@ extern const real *global_up3d_pointer; // 0x00696720, UNSURE: foreign module (r
 
 extern double cos(double x);
 extern double sin(double x);
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *a, real_vector3d *b); // 0x4052c0
-extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480
+
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,
                                         real cos_angle); // 0x4cd820
 

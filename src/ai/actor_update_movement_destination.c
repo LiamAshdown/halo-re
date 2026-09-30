@@ -23,6 +23,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 #include <string.h>
 
 extern data_array *actor_data;      // 0x00880360
@@ -32,7 +33,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern Scenario *global_scenario;
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
-extern real random_real_range(real min, real max); // 0x401050
+
 extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point,
     int32_t start_surface_index, int16_t kind); // 0x412960, EDX, stack

@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Transforms a point from world space into a matrix4x3's local space (inverse transform)
 // without computing a full inverse matrix.

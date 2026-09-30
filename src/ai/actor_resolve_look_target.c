@@ -32,14 +32,13 @@
 #include "cache.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 // actor_recognition_scan_result now lives in types/ai.h (folded from this file).
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
-
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 
 
                                                      // blam-cc: stack x6, ESI -> base_direction, BL -> check_obstruction

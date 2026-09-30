@@ -17,13 +17,14 @@
 #include "objects.h"
 #include <stdint.h>
 #include "effects.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern real_vector3d *global_down3d_pointer;    // 0x0069672c, the gravity direction
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 extern real_vector3d *global_origin3d_pointer;  // 0x00696714
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
 extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index,
     datum_index definition_index, datum_index object_index, uint16_t node_index,

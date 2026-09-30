@@ -28,6 +28,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -44,7 +45,7 @@ extern void animation_aiming_screen_blend(void *animation, void *screen, real ya
     // 0x4d5c00, EDI, stack
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
-extern void matrix4x3_inverse_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cc080
+
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 

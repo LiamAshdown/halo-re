@@ -18,6 +18,7 @@
 #include "ai.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *actor_data; // 0x00880360
 
@@ -25,7 +26,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_get_position(real_point3d *out, uint32_t object_index);       // 0x4f6900
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
-extern int object_sort_by_flag_then_distance(const void *a, const void *b); // 0x433c70, library code, not rewritten in this batch
 
 
 void ai_object_process_nearby_actors(uint32_t ai_reference, datum_index vehicle_index, char *seat_name,

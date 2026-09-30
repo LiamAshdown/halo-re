@@ -15,11 +15,11 @@
 #include "ai.h"
 #include "cache.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern real random_real_range(real min, real max); // 0x401050
 
 // Variant table paired with the sighted/recognized/directional/danger/flee/seen families.
 extern int16_t actor_dialogue_variant_table_g[]; // 0x0065562c

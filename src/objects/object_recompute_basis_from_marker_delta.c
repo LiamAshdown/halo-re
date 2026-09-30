@@ -36,15 +36,14 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
     // PHASE-4 REVIEW: this file used to call the same global `matrix4x3_multiply_dispatch`
     // and document its parameters as (dest, a, b). src/math/math_initialize.c, which assigns
     // the global, and the five other files that read it all use the name and the (a, b, out)
     // order below; the two call sites here already pass their operands in that order.
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, up in EAX, forward in ECX
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, out in EAX, in in ECX
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 
 // Produces the transform that carries the object from its current placement to the marker's
 // node placement, and reorthonormalizes the object's own forward/up basis on the way through.

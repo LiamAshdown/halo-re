@@ -9,6 +9,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Returns the bit-index of the highest set bit of its argument (0 for an input of 0).
 int32_t uint32_log2_floor(uint32_t value)

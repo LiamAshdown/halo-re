@@ -18,8 +18,7 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
-
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+#include "fn_math.h"
 
 
 int16_t ai_search_add_node(ai_search_context *context, int16_t parent, real_point2d *position, int32_t surface_index,

@@ -29,6 +29,7 @@
 #include "items.h"
 #include "effects.h"
 #include "units.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -37,7 +38,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
     const ColorRGB *color, const effect_tint_source *tint_source);
     // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
-extern real random_real_range(real min, real max); // 0x401050, math module
+
 
 // Lazily seeds an item's detonation_countdown, exactly once, from the Item tag's
 // detonation_delay range converted to ticks.

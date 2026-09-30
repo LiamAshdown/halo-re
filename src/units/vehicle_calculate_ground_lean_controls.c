@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -36,14 +37,10 @@ extern float DAT_0069c52c; // UNSURE global, per sibling files
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points,
     real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
-extern void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle,
-    real cos_angle); // 0x4cd700, EAX, ECX, stack
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, EAX, ECX, stack
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, EAX, ECX
+
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 via [0x696664]
-extern void quaternion_from_matrix4x3(real_matrix4x3 *m, real_quaternion *out); // 0x4cbc00, ECX, stack
-extern void quaternion_to_axis_angle(real_quaternion *quat, real_vector3d *axis_out, real *angle_out); // 0x4cdb90, EAX, ESI, EDI
+
+
 extern double sin(double x);
 extern double cos(double x);
 extern double fabs(double x);

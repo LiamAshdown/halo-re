@@ -39,6 +39,7 @@
 #include "ai.h"
 #include "physics.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
@@ -48,8 +49,7 @@ extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_se
                                                 uint32_t *breakable_surfaces, real_point3d *origin,
                                                 real_vector3d *delta, float max_fraction);
     // 0x502060, src/physics/collision_bsp_query_segment_init.c; flags in EAX, result in ECX
-extern uint8_t ray_intersects_cylinder(real height, real radius, real_vector3d *hit_out, real *t_out,
-    real_point3d *center, real_point3d *origin, real_vector3d *direction); // 0x4ce4e0, stack x3, EAX, ECX, EBX, ESI // 0x4ce4e0, EAX/ECX + stack
+
 
 // blam-cc: EAX -> out_elevation, ECX -> sample, EDX -> out_end_point, EDI -> context,
 //          stack -> out_distance, out_clear_counter

@@ -22,16 +22,17 @@
 #include "units.h"
 #include "projectiles.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
+
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0
+
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
-extern uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold); // 0x4cf7a0, UNSURE signature
+
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
 extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8

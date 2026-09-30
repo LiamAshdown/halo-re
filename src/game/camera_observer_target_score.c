@@ -31,11 +31,12 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_math.h"
 
 extern data_array *object_data;         // 0x008603b0
 extern tag_instance *tag_instances;     // 0x0087bc14
 extern Globals *global_globals;         // 0x00746fa0
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern double acos(double x);           // 0x628140, CRT/compiler helper; operand on the x87 stack
 
 extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector,

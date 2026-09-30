@@ -16,8 +16,8 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_math.h"
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 // blam-cc: EAX -> point, ESI -> pill, EDI -> out_normal, stack -> out_depth
 // FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were

@@ -43,6 +43,7 @@
 #include "networking.h"
 #include "units.h"
 #include "fn_game.h"
+#include "fn_math.h"
 
 extern data_array *player_data; // 0x0087a480
 extern void *object_network_id_table; // 0x00687130, table pointer at +0x28, UNSURE name
@@ -51,7 +52,7 @@ extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game ti
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a,
     const real_vector3d *b); // 0x4052c0; blam-cc: EAX -> out, ECX -> a, stack -> b;
                              // computes out = b x a. Open-coded inline by this function.
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990; blam-cc: ECX -> v
+
 extern uint8_t is_remote_player_update_in_order(player *target_player, uint8_t control_sequence,
     int32_t update_id); // blam-cc: EAX -> target_player, DL -> control_sequence,
                         // ESI -> update_id; this module, 0x4e6a20

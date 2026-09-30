@@ -29,12 +29,13 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;                 // 0x00880360
 extern real_vector2d *global_forward2d_pointer; // 0x006966e8
 
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
-extern real vector2d_normalize_with_length(real_vector2d *v);       // 0x4018e0, ECX
+
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340

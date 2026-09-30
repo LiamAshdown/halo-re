@@ -25,10 +25,9 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, ECX
-extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle,
-                                       real cos_angle); // 0x4cb880
+
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50
 extern double sin(double x);
 extern double cos(double x);

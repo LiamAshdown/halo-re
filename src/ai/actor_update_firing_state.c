@@ -23,6 +23,7 @@
 #include "game.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -30,9 +31,9 @@ extern data_array *prop_data;       // 0x008802c0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern player_globals *local_player_globals; // 0x0087a478
 
-extern real random_real_range(real min, real max);          // 0x401050
+
 extern real random_real(void);                                // 0x4019f0
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale); // 0x401930, EAX, ECX, stack
 extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0, EAX, ECX
 extern real vector3d_magnitude_squared(real_vector3d *v);        // 0x401000, EAX

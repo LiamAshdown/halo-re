@@ -16,11 +16,12 @@
 #include "math.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_math.h"
 
 extern random_seed effect_random_seed; // 0x00719cd4
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
 
-extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170, math module
+
 extern double cos(double x); // x87 FCOS
 extern double sin(double x); // x87 FSIN
 

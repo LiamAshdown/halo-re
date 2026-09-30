@@ -40,6 +40,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_math.h"
 #include <stdint.h>
 
 extern data_array *player_data;              // 0x0087a480
@@ -55,7 +56,7 @@ extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *a, real_vector3d *b);
     // blam-cc: EAX -> out, ECX -> a, stack -> b; foreign (< this batch), 0x4052c0
-extern real vector3d_normalize_with_length(real_vector3d *v); // blam-cc: ECX -> v; foreign (< this batch), 0x401990
+
 extern datum_index players_find_local_owned_unclear(void); // foreign (< this module), 0x477280; returns a handle here
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX -> handle, ESI -> array
 extern uint8_t is_local_player_update_in_order(int32_t current_update_id, int32_t new_update_id);

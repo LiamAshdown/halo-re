@@ -19,8 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_math.h"
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 // Tests a world-space ray (origin, delta) against sphere, the ray counterpart of

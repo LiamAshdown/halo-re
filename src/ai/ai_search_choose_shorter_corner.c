@@ -13,10 +13,11 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // FABS
-extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480, ESI a, EDI b
+
 
 static void ai_search_corner_direction(const real_point2d *point, const real_point2d *corner, real_vector2d *out)
 {

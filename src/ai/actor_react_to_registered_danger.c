@@ -18,13 +18,12 @@
 #include "ai.h"
 #include "cache.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern double fabs(double x);
-extern real random_real_range(real min, real max); // 0x401050
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340

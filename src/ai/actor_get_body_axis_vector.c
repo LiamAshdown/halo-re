@@ -27,6 +27,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 // TYPES (folded into types/ai.h by the review pass): see note above.
 
@@ -35,7 +36,7 @@ extern data_array *object_data; // 0x008603b0
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;       // 0x00696720
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 // 0x569720, not yet rewritten (a different module): fetches the reference vector for a unit
 // other than the actor's own, by pointer (see UNSURE above).

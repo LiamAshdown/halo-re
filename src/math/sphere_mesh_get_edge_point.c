@@ -18,9 +18,8 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern void sphere_mesh_interpolate_vertex(int16_t position, int16_t total, sphere_mesh *mesh,
-                                            int16_t new_index, int16_t vertex_lo, int16_t vertex_hi); // 0x4ca9a0
 
 // Resolves (with caching) the shared point index for a position along an edge between two base
 // vertices, so adjacent faces don't duplicate vertices.

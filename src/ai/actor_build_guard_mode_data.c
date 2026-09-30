@@ -17,6 +17,7 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -31,7 +32,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point, int32_t start_surface_index,
     int16_t kind); // 0x412960, EDX actor, stack
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 
 uint8_t actor_build_guard_mode_data(datum_index actor_index, uint8_t *out)
 {

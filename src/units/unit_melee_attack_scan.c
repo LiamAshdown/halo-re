@@ -27,6 +27,7 @@
 #include "units.h"
 #include "projectiles.h"
 #include "fn_units.h"
+#include "fn_math.h"
 #include <string.h>
 
 extern data_array *object_data;      // 0x008603b0
@@ -36,8 +37,8 @@ extern char ai_marker_name_a[];  // 0x0066bfa0
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX (returns out in EAX)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
+
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,

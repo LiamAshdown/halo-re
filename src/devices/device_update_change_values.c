@@ -50,6 +50,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "devices.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -57,8 +58,7 @@ extern data_array *device_groups; // 0x0087abf0
 
 extern void device_play_state_change_effect(uint32_t object_index, TagID tag_id); // 0x44c1a0, this batch
     // blam-cc: EAX -> object_index, ECX -> tag_id
-extern uint8_t real_seek_toward_clamped(int wrap, real *velocity, real *value, real target,
-    real accel, real max_speed, real range_min, real range_max); // 0x4cf360, established
+
 
 uint8_t device_update_change_values(uint32_t object_index)
 {

@@ -13,6 +13,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out)
 {

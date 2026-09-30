@@ -32,6 +32,7 @@
 #include "fn_ai.h"
 #include "fn_game.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -55,9 +56,8 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
 extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger); // 0x4c2990
 extern void weapon_set_ready_timer(datum_index item_index, real value); // 0x4c2b20
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
-extern void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, real_vector3d *target_direction,
-    real_vector3d *angular_velocity, real maximum_velocity, real acceleration); // 0x4cf530, ESI, EDI, stack
+
+
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale); // 0x543dd0, EDX, stack
 

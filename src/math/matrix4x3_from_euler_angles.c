@@ -10,6 +10,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // cos/sin are single x87 FCOS/FSIN instructions in the original code (Ghidra's fcos()/fsin()
 // pseudo-calls); declared locally instead of via <math.h> because -I types shadows that header

@@ -24,6 +24,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 #include <stdint.h>
 
 extern data_array *object_data;     // 0x008603b0
@@ -33,7 +34,7 @@ extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 extern real_point3d *global_origin3d_pointer;   // 0x00696714
 
-extern real vector3d_normalize_with_length(real_vector3d *v);
+
 extern void * data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern void biped_integrate_movement(uint32_t object_index, uint8_t *working_copy,
                                       uint8_t *output_flags); // 0x55bea0, this batch

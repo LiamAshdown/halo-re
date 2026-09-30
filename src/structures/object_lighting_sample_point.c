@@ -52,6 +52,7 @@
 #include "rasterizer.h"
 #include "structures.h"
 #include "fn_rasterizer.h"
+#include "fn_math.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
 extern ScenarioStructureBSP *global_structure_bsp;       // 0x00746f9c
@@ -74,10 +75,8 @@ extern void bsp_material_sample_base_map_color(BitmapData *bitmap, float weight_
 extern void bsp_lightmap_sample_vertex_color(BitmapData *bitmap, float weight_1, float weight_2,
     ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices);
     // 0x4f0730, blam-cc: ECX material, EDX triangle_vertex_indices, rest on the stack
-extern void vector3d_barycentric_interpolate(real_vector3d *out, real_vector3d *v1, real_vector3d *v2,
-    real_vector3d *v0, float w2, float w1);
+
     // 0x4f06d0, blam-cc: EAX out, ECX v1, EDX v2, ESI v0, stack (w2, w1)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, blam-cc: ECX v
 
 
 extern void object_build_effect_parameter_block(uint8_t flags, real_vector3d *shading_normal, float intensity,

@@ -36,6 +36,7 @@
 #include "networking.h"
 #include <string.h>
 #include "objects.h"
+#include "fn_math.h"
 
 extern data_array *player_data; // 0x0087a480
 extern network_id_table *machine_table;
@@ -52,7 +53,7 @@ extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a,
     const real_vector3d *b); // 0x4052c0, math module; blam-cc: EAX -> out, ECX -> a, stack -> b
                              // computes out = b x a (see file header)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990; blam-cc: ECX -> v
+
 extern void player_update_history_log_printf_filtered(player *target_player, int32_t category,
     const char *format, ...); // this module, 0x4e5f20
 extern void handle_remote_player_action_update(remote_player_action_state *control_source,

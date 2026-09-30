@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern Globals *global_globals;
@@ -31,8 +32,7 @@ extern uint32_t game_engine_unknown_aa00;    // 0x0087aa00
 extern uint32_t motion_sensor_override_value;         // 0x006f1cc0
 extern int16_t network_game_mode;         // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
-extern real vector3d_normalize_with_length(real_vector3d *v);                      // 0x401990
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);    // 0x4cd670, UNSURE signature
+
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role); // 0x4f53a0, UNSURE signature
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0, UNSURE signature
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers); // 0x4f6080

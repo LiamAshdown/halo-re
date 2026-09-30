@@ -20,13 +20,14 @@
 #include "objects.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern void object_get_root_location(int32_t *out, uint32_t object_index); // 0x4f6b10, blam-cc: EAX -> out, ECX -> object_index
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, blam-cc: EAX out, EDX point
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0, blam-cc: EAX out, EDX normal
+
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
     real_vector3d *out_angular_velocity); // 0x4f6aa0, blam-cc: EAX -> object_index, ESI -> out_velocity, EDI -> out_angular_velocity
 

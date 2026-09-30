@@ -18,12 +18,11 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place
-extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle,
-                                       real cos_angle); // 0x4cb880, UNSURE signature
+
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward,
                                                  real_vector3d *up, real_point3d *position); // 0x4f51c0

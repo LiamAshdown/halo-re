@@ -24,6 +24,7 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -35,7 +36,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern float actor_vocalization_duration[14];  // 0x00655660
 extern int16_t actor_vocalization_variant[14][2]; // 0x00655628, second column for alert_level > 3
 
-extern real random_real_range(real min, real max); // 0x401050
+
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680, matches src/memory/datum_get.c
 
 

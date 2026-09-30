@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -35,10 +36,9 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, seven stack arguments
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
-extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
+
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale); // 0x401930, EAX, ECX, stack
-extern real vector3d_length(real_vector3d *v); // 0x401960, EAX
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 
 extern void *actor_get_threat_weapon_definition(int32_t actor_index); // 0x40f970, EAX
 extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX

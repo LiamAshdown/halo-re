@@ -20,10 +20,10 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern double sqrt(double x); // FSQRT
-extern void path_find_closest_point_on_segment(const real_point3d *point, const real_point3d *segment_start,
-    const real_point3d *segment_end, real_point3d *out); // 0x43b2f0, EAX point, ECX start, EDX end, ESI out
+
 
 // blam-cc: EBX -> context, ECX -> segment_start, EDX -> segment_end, stack -> out_distance
 // Scores how much the segment [segment_start, segment_end] passes near the context's avoid sphere (+0x28,

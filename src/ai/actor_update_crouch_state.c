@@ -37,6 +37,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -46,7 +47,6 @@ extern double exp2(double x); // the inline x87 ROUND / f2xm1 / fscale sequence
 extern int32_t __ftol(double x); // 0x6391b4, MSVC float-to-long (truncating)
 
 extern float vector3d_magnitude_squared(const real_vector3d *v); // 0x401000, EAX -> v
-extern real vector3d_normalize_with_length(real_vector3d *v);    // 0x401990, ECX -> v
 
 
 extern int16_t actor_evaluate_flank_offset(const real_vector3d *cover_direction,

@@ -27,10 +27,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_math.h"
 
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
-extern void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v,
-    real_vector3d *perp_out); // 0x4cda30, EAX, ECX, EDX, ESI
+
 
 // friction[0..2] holds the force on entry. Type 0 keeps it all parallel (friction[3..5]) with no
 // perpendicular part and returns without blending. Types 1, 2 and 3 split it against an axis --

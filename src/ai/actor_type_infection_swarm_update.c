@@ -29,6 +29,7 @@
 #include "units.h"
 #include "cache.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 #include <string.h>
 
 extern data_array *actor_data;           // 0x00880360, 0x724-byte actors
@@ -41,8 +42,7 @@ extern uint32_t random_seed_global;      // 0x00719cd0
 extern game_time_globals *game_time;     // 0x006f1d6c, game time at +0x0c
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
 
-extern real random_real_range(real min, real max); // 0x401050
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX out, ECX a, stack b
 
 

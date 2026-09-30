@@ -20,6 +20,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern uint8_t *global_scenario; // 0x00746f8c
@@ -30,7 +31,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern memory_pool *object_memory_pool; // 0x006b8cb4
 
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll); // 0x4cba10, EAX out
+
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0,
     // blam-cc: EAX -> out, EDX -> point, stack -> m
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0,

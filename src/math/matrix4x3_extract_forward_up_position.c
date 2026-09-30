@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Unpacks two rotation-basis vectors and the translation out of a matrix4x3 structure.
 void matrix4x3_extract_forward_up_position(real_vector3d *out_up, real_vector3d *out_forward,

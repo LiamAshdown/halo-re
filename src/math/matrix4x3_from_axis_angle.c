@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Builds a matrix4x3 rotation from a rotation axis and precomputed sin/cos of the angle
 // (Rodrigues' formula).

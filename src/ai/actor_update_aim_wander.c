@@ -20,6 +20,7 @@
 #include "ai.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -39,7 +40,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
     datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340
 extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
 extern float weapon_trigger_get_average_damage(datum_index weapon_tag_id, float *out_max_rate_of_fire); // 0x4c12b0, EAX, ECX
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
+
 
 static float aim_wander_random_fraction(void)
 {

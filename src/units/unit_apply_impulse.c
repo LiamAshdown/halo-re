@@ -17,13 +17,14 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global;   // 0x00719cd0, types/math.h
 extern real_vector3d *global_up3d_pointer; // 0x00696720, indirect pointer to math.h global_up3d (0x0065c224)
 
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, returns length, ECX
+
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0
 
 extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, next batch: levels the up-vector toward target

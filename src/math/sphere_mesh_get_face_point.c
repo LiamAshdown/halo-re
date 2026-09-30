@@ -33,12 +33,8 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
-extern int16_t sphere_mesh_get_edge_point(int16_t vertex_a, int16_t vertex_b, sphere_mesh *mesh,
-                                           int16_t position, int16_t *next_point_index,
-                                           sphere_mesh_edge_cache *edge_cache); // 0x4ca8c0
-extern void sphere_mesh_interpolate_vertex(int16_t position, int16_t total, sphere_mesh *mesh,
-                                            int16_t new_index, int16_t vertex_lo, int16_t vertex_hi); // 0x4ca9a0
 
 // Resolves (with caching) the point index for a given barycentric position inside a subdivided
 // octahedron face.

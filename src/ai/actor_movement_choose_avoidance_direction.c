@@ -23,6 +23,7 @@
 #include "objects.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -36,8 +37,6 @@ extern double fabs(double x);
 
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, EAX, ECX
 
-
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
 
 extern float actor_avoidance_samples_a[16][7]; // 0x00880380, two rays per direction
 extern float actor_avoidance_circle[8][3];     // 0x00880540, the eight directions (forward, left, up frame)

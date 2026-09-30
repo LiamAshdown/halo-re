@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -34,7 +35,7 @@ extern int16_t network_game_mode;                // 0x00719720, word; 0 = local 
 extern char *s_stand;                                // 0x0069fdec "stand"
 extern double fabs(double x);
 
-extern int32_t random_int_range(int16_t min, int16_t max); // 0x405320, blam-cc: ECX -> min, stack -> max
+
 extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index); // 0x4c2ea0, blam-cc: EAX
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
     int32_t stream); // 0x4d6280, blam-cc: EAX -> animation_graph_tag, DX -> first_animation, stack -> stream

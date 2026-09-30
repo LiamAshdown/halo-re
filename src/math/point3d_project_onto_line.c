@@ -17,6 +17,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_math.h"
 
 // Projects *point onto the infinite line through *line_origin in direction *direction, and
 // writes the projected point to *out_result. out_result may alias point.

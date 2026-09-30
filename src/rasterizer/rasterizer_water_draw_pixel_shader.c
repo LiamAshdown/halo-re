@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_rasterizer.h"
+#include "fn_math.h"
 
 extern uint8_t rasterizer_caps_flag_689;                 // 0x0069c689
 extern uint8_t rasterizer_water_enabled;         // 0x006893fe (also gates 0x534f80)
@@ -49,7 +50,6 @@ extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_ta
 
 // blam-cc: ECX -> group
 
-extern real vector3d_length(real_vector3d *v); // 0x401960, EAX
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

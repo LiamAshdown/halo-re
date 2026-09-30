@@ -24,6 +24,7 @@
 #include "units.h"
 #include "cache.h"
 #include "camera.h"
+#include "fn_math.h"
 
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
 extern data_array *object_data;                     // 0x008603b0
@@ -38,10 +39,8 @@ extern void object_get_root_object_velocities(datum_index object_index, real_vec
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, objects module
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *out_up); // 0x4479c0, this module
                                                      // (rewritten separately); blam-cc: ESI -> forward, EDI -> out_up
-extern void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward,
-                                                real_point3d *position, real_matrix4x3 *out); // 0x4cbd60, math module
-extern void matrix4x3_inverse_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cc080
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0
+
+
 // cdecl, four stack arguments (0x446b1e..0x446b30 / 0x446c56..0x446c68: four pushes, add
 // esp,0x10); the result is tested as AX. The objects module rewrite declares EAX/ECX/EDX
 // register arguments and an int32 result for this function, which these call sites and the

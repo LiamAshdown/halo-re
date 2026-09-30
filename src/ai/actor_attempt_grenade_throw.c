@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -27,7 +28,7 @@ extern uint32_t random_seed_global; // 0x00719cd0
 extern ai_globals *ai_globals_ptr;
 
 extern real random_real(void); // 0x4019f0
-extern real random_real_range(real min, real max); // 0x401050
+
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
 extern void unit_set_control_countdown(uint32_t unit_index, int32_t countdown, uint32_t extra_control_flags); // 0x563b20, EAX, stack
 

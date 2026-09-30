@@ -27,6 +27,7 @@
 #include "camera.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_math.h"
 
 extern game_time_globals *game_time;              // 0x006f1d6c
 extern player_globals *local_player_globals;       // 0x0087a478
@@ -42,7 +43,7 @@ extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_
     int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,
     sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); // 0x549af0
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, math module
+
 extern void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cc010, math module
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718

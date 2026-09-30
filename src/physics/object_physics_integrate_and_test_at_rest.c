@@ -71,16 +71,13 @@
 #include "units.h"
 #include "projectiles.h"
 #include "physics.h"
+#include "fn_math.h"
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t physics_disable_integration; // 0x0071cfbc
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 
-extern void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 *out); // 0x4cc560
-extern void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b); // 0x4cc5f0
-extern void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in); // 0x4cc500
-extern void matrix3x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix3x3 *m); // 0x4cc710
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970, up in EAX, forward in ECX
+
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
 extern void object_physics_mass_point_update_orientation(real_vector3d *axis, real_vector3d *up, real_vector3d *forward,
     real_vector3d *fallback_forward, real_vector3d *fallback_up); // 0x5096f0, this module

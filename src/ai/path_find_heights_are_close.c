@@ -20,11 +20,11 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_math.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
 extern double fabs(double x); // ABS
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
-    const real_plane3d *plane, const real_point2d *known);
+
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 
 // Whether `point` lies at nearly the same height on the planes of surface_a and surface_b of the

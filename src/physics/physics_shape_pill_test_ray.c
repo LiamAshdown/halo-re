@@ -27,10 +27,11 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_math.h"
 
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base,
                                 float scale); // 0x401930
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
+
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 // Tests a world-space ray (origin, delta) against pill, the ray counterpart of

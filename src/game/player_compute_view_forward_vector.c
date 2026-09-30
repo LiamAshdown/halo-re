@@ -32,6 +32,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_math.h"
 
 extern data_array *player_data;      // 0x0087a480
 extern data_array *object_data;      // 0x008603b0
@@ -44,11 +45,7 @@ extern double fsin(double radians); // a single x87 FSIN instruction
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
                                     real_vector3d *stack_operand); // 0x4052c0, out = stack_operand x ecx_operand
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, vector in ECX
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward,
-                                       real_matrix4x3 *out); // 0x4cb970, up in EAX, forward in ECX
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal,
-                                        real_matrix4x3 *m); // 0x4cbec0
+
 
 // Computes a forward-facing unit vector from (yaw, pitch) into *out_forward. Then, if
 // player_handle's unit is attached to a parent object (e.g. seated in a vehicle) and that

@@ -31,13 +31,14 @@
 #include "units.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_math.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0
 
-extern real random_real_range(real min, real max); // 0x401050
+
 extern double cos(double x);
 extern double sin(double x);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role); // 0x4f53a0

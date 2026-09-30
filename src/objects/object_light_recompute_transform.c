@@ -45,6 +45,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_math.h"
 
 extern data_array *light_data; // 0x00860b14
 extern data_array *object_data; // 0x008603b0
@@ -61,13 +62,12 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m);
     // 0x4cbde0; out in EAX, in in EDX, matrix on the stack (0x4f2adb lea eax,[esi+0x30] /
     // lea edx,[esi+0x60] / push edi)
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal,
-                                                  real_matrix4x3 *m); // 0x4cbec0, same shape,
+
     // and it returns its output pointer in EAX (0x4f2af9 mov edx,eax feeds the next call)
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
+
     // 0x4cd670; out in ECX, dir in EDX (verified against the body, which reads only in_ECX
     // and in_EDX)
-extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
+
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0: EAX node, ECX bsp, EDX point
     // 0x5013a0; globals in ECX, point in EDX, index in EAX
 extern void object_get_root_location(int32_t *out, uint32_t object_index); // 0x4f6b10, EAX out (leaf, cluster), ECX object
