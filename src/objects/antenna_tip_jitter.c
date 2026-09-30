@@ -24,6 +24,7 @@ extern uint32_t effect_random_seed; // 0x00719cd4
 
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50
 
+// VERIFIED against disassembly 0x4fef40..0x4ff004 (2026-09-30); fixed: see the block in the body.
 void antenna_tip_jitter(real_vector3d *amplitude /*ECX*/, real_point3d *position /*ESI*/,
                          real_matrix4x3 *m)
     // blam-cc: ECX -> amplitude, ESI -> position, stack -> m (UNSURE, see file header)
@@ -38,13 +39,18 @@ void antenna_tip_jitter(real_vector3d *amplitude /*ECX*/, real_point3d *position
     rx = (float)(effect_random_seed >> 16) * 1.5259022e-05f;
 
     {
-        real i = amplitude->i, j = amplitude->j, k = amplitude->k;
+        real_vector3d jitter;
 
-        matrix4x3_transform_vector((real_vector3d *)position, amplitude, m); // UNSURE, see header
-
-        position->x = (rx + rx - 1.0f) * i + position->x;
-        position->y = (ry + ry - 1.0f) * j + position->y;
-        position->z = (rz + rz - 1.0f) * k + position->z;
+        // 0x4fefa9..0x4fefe0: jitter = ((2*r3-1)*amp.i, (2*r2-1)*amp.j, (2*r1-1)*amp.k) is rotated IN PLACE by the matrix
+        //   (matrix4x3_transform_vector with EAX = EDX = &jitter, stack m), then added to *position. The draft rotated the
+        //   amplitude into *position (overwriting it) and added the un-rotated jitter.
+        jitter.i = (rx + rx - 1.0f) * amplitude->i;
+        jitter.j = (ry + ry - 1.0f) * amplitude->j;
+        jitter.k = (rz + rz - 1.0f) * amplitude->k;
+        matrix4x3_transform_vector(&jitter, &jitter, m);
+        position->x = jitter.i + position->x;
+        position->y = jitter.j + position->y;
+        position->z = jitter.k + position->z;
     }
 }
 

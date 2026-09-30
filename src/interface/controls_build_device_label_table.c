@@ -37,6 +37,9 @@ extern tag_instance *tag_instances;      // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group, stack path
 extern void controls_device_label_add(const uint16_t *name, int32_t device_type); // 0x4b4830, this module
 
+// VERIFIED against disassembly 0x4b4890..0x4b4972 (2026-09-30): the profile select, the 0x840-dword clear, the tag string
+//   terminator patch (((size & ~1) - 2) bytes in), the default label add, and the four 0x220-byte profile label copies match.
+//   The function returns nothing: the EAX difference a difftest shows is leftover register content.
 void __cdecl controls_build_device_label_table(void)
 {
     uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? (uint8_t *)0 : saved_item_working_copy;
