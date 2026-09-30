@@ -20,17 +20,21 @@
 #include "math.h"
 #include "objects.h"
 
+// VERIFIED against disassembly 0x4f8d80..0x4f8dc6 (2026-09-30); fixed: signed 16-bit permutation number compares and the 32-bit
+//   count bound (see the loop).
 int16_t object_permutation_find_matching_group(ModelRegion *region, int16_t group, int16_t *out)
     // blam-cc: ESI -> region, DI -> group, stack -> out
 {
     int16_t count = 0;
     int16_t i;
 
-    for (i = 0; i < (int16_t)region->permutations.count; i++) {
+    for (i = 0; (int32_t)i < (int32_t)region->permutations.count; i++) { // 0x4f8dbd: movsx ecx, dx; cmp ecx, [esi+0x40]
         ModelRegionPermutation *perm = (ModelRegionPermutation *)region->permutations.pointer + i;
         if ((perm->flags & 1) == 0) {
-            if ((perm->permutation_number == group) ||
-                ((group == -1) && (perm->permutation_number < 100))) {
+            // 0x4f8d9e..0x4f8db1: 16-bit compares, and `< 100` is SIGNED (jge): the tag field is declared uint16_t, so without the
+            // casts 0xffff never equalled group -1 and any value >= 0x8000 failed `< 100`.
+            if (((int16_t)perm->permutation_number == group) ||
+                ((group == -1) && ((int16_t)perm->permutation_number < 100))) {
                 out[count] = i;
                 count++;
             }
