@@ -9,9 +9,6 @@
 //   object_recalculate_bounding_radius (0x4f8310).
 // register convention: position vector pointer in ESI (unaff_ESI), object index in EDI
 //   (unaff_EDI).
-// UNSURE: bsp3d_node_find_leaf (also seen in scenario_objects_place_for_structure_bsp) is called first
-//   with no visible arguments and its result is discarded; preserved for its side effect only,
-//   whatever that is.
 // reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"
@@ -25,18 +22,31 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, this batch
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch; NULL location probes it
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
+extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
 
 void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index)
     // blam-cc: ESI -> position, EDI -> object_index
 {
     object *obj;
+    bsp_leaf_reference location;
+    int32_t leaf;
 
-    bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, position); // 0x4f52c3 mov ecx,ds:0x746f90 / mov edx,esi / xor eax,eax
+    // VERIFIED against disassembly 0x4f52c0..0x4f534a (2026-09-30): the leaf found for the new position and its
+    // cluster (leaf masked with 0x7fffffff, cluster -1 for a -1 leaf) are built in a stack {leaf, cluster} pair
+    // that is passed to object_set_cluster_and_parent (0x4f5c30) as its location; the old C discarded it and passed 0.
+    leaf = (int32_t)bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, position);
+    location.leaf_index = leaf;
+    if (leaf == -1) {
+        location.cluster_index = -1;
+    } else {
+        location.cluster_index =
+            (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
+    }
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_unlink_cluster_or_notify_parent(object_index);
     *(real_point3d *)&((object *)obj)->position.x = *position;
-    object_set_cluster_and_parent(object_index, 0); // UNSURE: flag argument not visible here
+    object_set_cluster_and_parent(object_index, &location);
     object_recalculate_bounding_radius(object_index);
 }
 

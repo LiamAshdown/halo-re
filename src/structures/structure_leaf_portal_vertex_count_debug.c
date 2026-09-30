@@ -26,7 +26,7 @@ void structure_leaf_portal_vertex_count_debug(int32_t leaf_index, structure_bsp_
     // blam-cc: EAX -> leaf_index, ECX -> leaf_map
 {
     ScenarioStructureBSPGlobalMapLeaf *leaf =
-        (ScenarioStructureBSPGlobalMapLeaf *)leaf_map->leaves.pointer + leaf_index;
+        (ScenarioStructureBSPGlobalMapLeaf *)leaf_map->leaves.pointer + (leaf_index & 0x7fffffff); // VERIFIED 0x5520b7: and eax,0x7fffffff
     int32_t portal_ref_count = leaf->portal_indices.count;
     int32_t *portal_indices = (int32_t *)leaf->portal_indices.pointer;
     ScenarioStructureBSPGlobalLeafPortal *portals =
@@ -35,7 +35,7 @@ void structure_leaf_portal_vertex_count_debug(int32_t leaf_index, structure_bsp_
     int32_t i;
 
     for (i = 0; i < portal_ref_count; i = i + 1) {
-        int32_t portal_index = portal_indices[i];
+        int32_t portal_index = portal_indices[i] & 0x7fffffff; // VERIFIED 0x5520d8: and eax,0x7fffffff
         int32_t vertex_count = portals[portal_index].vertices.count;
 
         discarded_count = 2;
