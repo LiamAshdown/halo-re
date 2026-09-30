@@ -42,7 +42,7 @@ extern uint16_t chat_local_prompt_string[]; // 0x006607a0, L"%d"
 extern uint8_t network_game_search_entry_is_fresh(const uint8_t *entry); // 0x4da770, blam-cc: ESI entry; reads entry+0x12d and a QPC age
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
+extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...); // 0x557910, blam-cc: EDX count
 
 void server_list_menu_update(widget_instance *widget)
 {
@@ -132,7 +132,7 @@ void server_list_menu_update(widget_instance *widget)
                         }
                     }
                 }
-                string_format_wide_va_bounded((wchar_t *)buf, L"%s %s", source, entry + 0x1c); // EDX 0xf
+                string_format_wide_va_bounded(0xf, (wchar_t *)buf, L"%s %s", source, entry + 0x1c); // EDX 0xf (FIXED: count passed)
                 ((uint16_t *)row->text)[0xf] = 0;
             }
         }
@@ -231,7 +231,7 @@ void server_list_menu_update(widget_instance *widget)
 
                 r8->text = b;
                 if (b != (uint16_t *)0) {
-                    string_format_wide_va_bounded((wchar_t *)b, (const wchar_t *)chat_local_prompt_string, // EDX 3
+                    string_format_wide_va_bounded(3, (wchar_t *)b, (const wchar_t *)chat_local_prompt_string, // EDX 3 (FIXED: count passed)
                                                    (int32_t)*(uint16_t *)(sel + 0x124));
                     ((uint16_t *)r8->text)[3] = 0;
                 }
@@ -241,7 +241,7 @@ void server_list_menu_update(widget_instance *widget)
 
                 r9->text = b;
                 if (b != (uint16_t *)0) {
-                    string_format_wide_va_bounded((wchar_t *)b, (const wchar_t *)chat_local_prompt_string, // EDX 3
+                    string_format_wide_va_bounded(3, (wchar_t *)b, (const wchar_t *)chat_local_prompt_string, // EDX 3 (FIXED: count passed)
                                                    (int32_t)*(int16_t *)(sel + 0x128));
                     ((uint16_t *)r9->text)[3] = 0;
                 }

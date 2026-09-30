@@ -35,7 +35,7 @@ extern uint8_t game_engine_is_inactive(void); // 0x461610
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
     int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast); // 0x460c10, blam-cc: BL broadcast
 extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index); // 0x468840, this batch
-extern void game_engine_ctf_notify_flag_carried_throttled(void); // 0x4689e0, this batch
+extern void game_engine_ctf_notify_flag_carried_throttled(int32_t target_player); // 0x4689e0, blam-cc: EDI target_player
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 
 // While `player_index` is valid and hosting: if the player is standing back on their own flag's
@@ -70,7 +70,7 @@ uint8_t game_engine_ctf_player_flag_tick(uint32_t flag_handle, uint32_t player_i
                 return 0;
             }
             if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) != 0) {
-                game_engine_ctf_notify_flag_carried_throttled();
+                game_engine_ctf_notify_flag_carried_throttled((int32_t)player_index); // FIXED: `mov edi,ebx` (0x4698bc), EDI = player_index
             }
             return 0;
         }
