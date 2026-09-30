@@ -229,7 +229,7 @@ void encounters_update_activation(void)
         if (enc->units_active == 0 || enc->activation_delay <= 0x1e) {
             any_dependent_pending = 0;
             if (0 < enc->activation_link_count) {
-                dependents = (uint16_t *)&enc->unknown_22;
+                dependents = (uint16_t *)&enc->activation_link[0];
                 for (i = enc->activation_link_count; i != 0; i = i - 1) {
                     if (0 < ((encounter *)encounter_data->data)[*dependents].activation_delay) {
                         any_dependent_pending = 1;

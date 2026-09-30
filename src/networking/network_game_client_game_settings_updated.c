@@ -138,7 +138,7 @@ uint32_t network_game_client_game_settings_updated(network_server_globals *host)
         memset(controls_input_capture_buffer, 0, sizeof(controls_input_capture_buffer));
         controls_capture_row = -1;
     }
-    host->unknown_9bc[0x19] = 0; // 0x9d5
+    host->handshake_blocked = 0; // 0x9d5
 
     result = network_game_server_load_scenario();
     if ((char)result == 1) {

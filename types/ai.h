@@ -1056,7 +1056,8 @@ typedef struct prop {
                                       //    passes it to actor_danger_register_point
     int16_t state;                    // 0x24 0..3 perception states, 4 / 5 the uninspected / inspected orphan (the
                                       //    CEA _prop_state_*), 6 parented
-    uint8_t unknown_26[2];            // 0x26
+    int16_t reaction_timer;           // 0x26 actor_target_relationship_think counts it up per tick (>>3 for non-enemies, >>1
+                                      //    when distance_class > 2) against the actor reaction threshold, then zeroes it
     int32_t swarm_reassign_time;      // 0x28 game time of the last swarm reassignment: stamped at init for a
                                       //    swarm-owned object, 0x41c4b0 reassigns at most every 90 ticks
     datum_index acknowledge_progress; // 0x2c a float accumulator in this slot: state 1 adds the inverse (non-combat /
@@ -1074,9 +1075,8 @@ typedef struct prop {
     int16_t inspection_ticks;         // 0x3c ticks the orphan has been looked at; at 45 (300 when nearly dead) state
                                       //    4 becomes 5 (inspected orphan)
     uint8_t unknown_3e[2];            // 0x3e
-    uint32_t unknown_40;              // 0x40
-    uint32_t unknown_44;              // 0x44
-    uint32_t unknown_48;              // 0x48
+    real_vector3d perceived_to_known_delta; // 0x40 actor_copy_prop_and_reset: last_known_position - last_perceived_position;
+                                      //    actor_find_best_firing_position reads it as the query target_vault_point
     int16_t lost_timer;               // 0x4c 10 (60 when seen) on entering state 2; while set and near
                                       //    last_perceived_position the prop stays in state 2
     uint8_t dead_confirmed;           // 0x4e 0x41c4b0: an orphan whose object is dead, not feigning, unperceived and
@@ -1238,12 +1238,13 @@ typedef struct encounter {
     int16_t pre_combat_living_count;  // 0x1a living_count copied while idle / stood down (0x437940); post-combat
                                       //    lines compare against it
     int16_t live_count;               // 0x1c only actors with counts_toward_encounter set are counted
-    uint8_t unknown_1e[2];            // 0x1e
+    uint8_t squads_carried_over;      // 0x1e ai_squads_merge: 1 on the target encounter, 0 on the source, once
+                                      //    the squad references were remapped; also gates skipping empty squads
+    uint8_t pad_1f;                   // 0x1f
     int16_t activation_link_count;    // 0x20 encounters linked by hs ai_link_activation (0x437820), at most 3, at
                                       //    0x22
-    int16_t unknown_22;               // 0x22
-    int16_t unknown_24;               // 0x24
-    uint8_t unknown_26[2];            // 0x26
+    int16_t activation_link[3];       // 0x22 encounter indices linked by ai_link_activation; encounters_update_activation
+                                      //    keeps this encounter active while any of them is pending (count at 0x20)
     uint8_t dirty;                    // 0x28 set by every member add / remove; 0x435f00 re-runs morale for dirty encounters
     uint8_t unknown_29;               // 0x29
     int16_t living_count;             // 0x2a weighted member count (1 per unit, cluster_count per swarm); hs
@@ -1373,9 +1374,7 @@ typedef struct ai_scored_candidate {
 // @0x435900 hands out and ai_object_attention_remove @0x435990 compacts, keyed by an object
 // handle. The count lives in ai_globals.unknown_3b6 and the table runs 0x3b8..0x8b7, which is
 // exactly up to ai_globals.vehicle_entry_count at 0x8b8.
-// UNSURE: ai_globals is not re-laid-out around this table because the communication code
-// reads ai_globals.unknown_3f0 and unknown_3fa, which fall inside row 1. Use
-// (ai_object_attention_record *)ai_globals->unknown_3b8 to address it.
+// ai_globals.object_attention_table is this table (the earlier overlapping unknown_3f0/3fa were unit fields).
 typedef struct ai_object_attention_record {
     datum_index object_index;  // 0x00 the key; the search compares the whole 32-bit handle
     float weight;              // 0x04 seeded to 8.0 on creation
@@ -1443,6 +1442,15 @@ typedef struct ai_conversation_event {
     uint8_t unknown_08[8];            // 0x08
 } ai_conversation_event; // size 0x10
 
+// One slot of the 32-entry ring at ai_globals.recent_events that ai_accumulate_repeated_event
+// @0x42c0f0 maintains.
+typedef struct ai_recent_event_record {
+    int16_t event_id;      // 0x00 -1 marks an expired or free slot
+    int16_t count;         // 0x02
+    real_point3d position; // 0x04 running (weighted) average position
+    int32_t last_tick;     // 0x10
+} ai_recent_event_record; // size 0x14
+
 // ---------------------------------------------------------------------------
 // ai globals
 // ---------------------------------------------------------------------------
@@ -1460,34 +1468,30 @@ typedef struct ai_globals {
     uint8_t dialogue_triggers_enabled; // 0x10 hs ai_dialogue_triggers (the CEA ai_globals_dialogue_triggers_enabled)
     uint8_t unknown_11;               // 0x11
     int16_t unknown_12;               // 0x12
-    datum_index unknown_14;           // 0x14 0x42d230 zeroes 0x14..0x2b, ai_reset_for_new_map sets them all to none
-    datum_index unknown_18;           // 0x18
-    datum_index unknown_1c;           // 0x1c
-    datum_index unknown_20;           // 0x20
-    datum_index unknown_24;           // 0x24
-    datum_index unknown_28;           // 0x28
+    int32_t loudest_line_tick[3][2];  // 0x14 0x42d230 zeroes 0x14..0x2b, ai_reset_for_new_map sets them all to none.
+                                      //    [tier][category]: ai_communication_record_line_played
+                                      //    (0x42f9e0) max-accumulates its stamp into [0] when tier <= 5, [1] when
+                                      //    tier >= 3, [2] when tier >= 5; category is
+                                      //    actor_classify_communication_object_type (0 or 1). Read as
+                                      //    (int32_t *)&loudest_line_tick[tier][0] + category
     int16_t conversation_event_count; // 0x2c high-water mark, capped at 16
     int16_t conversation_event_cursor;// 0x2e next ring slot, modulo 16
     ai_conversation_event conversation_events[16];// 0x30 0x42d230 zeroes the whole 0x100-byte ring
     int16_t recent_event_head;        // 0x130 ring head (oldest) of the 32 recent events at 0x134
                                       //    (ai_accumulate_repeated_event 0x42c610)
     int16_t recent_event_tail;        // 0x132 next free slot of that ring
-    uint8_t recent_events[0x280];     // 0x134 0x134 the 32-entry ring of ai_recent_event_record (0x14 each, 0x280
-                                      //    bytes) between recent_event_head/tail; ai_accumulate_repeated_event casts
-                                      //    it to ai_recent_event_record*, ai_reset_for_new_map zeroes it
+    ai_recent_event_record recent_events[32]; // 0x134 the 32-entry ring between recent_event_head/tail
+                                      //    (ai_accumulate_repeated_event 0x42c610); ai_reset_for_new_map zeroes it
     uint8_t grenades_enabled;         // 0x3b4 the ai_grenades script command; actors only throw while set
                                      //       (actor_attempt_grenade_throw); ai_reset_for_new_map sets it
     uint8_t unknown_3b5;              // 0x3b5
     int16_t object_attention_count;   // 0x3b6 entries of the 32 x 0x28 object attention table at 0x3b8
-    uint8_t object_attention_table[56]; // 0x3b8 0x3b8 the 32 x 0x28 ai_object_attention_record table (runs
-                                        //    0x3b8..0x8b7, count is object_attention_count at 0x3b6);
-                                        //    ai_object_attention_find_or_create / ai_object_attention_remove cast it
-                                        //    to ai_object_attention_record*. Declared size [56] is far smaller than
-                                        //    the table
-    int32_t unknown_3f0;              // 0x3f0 ai_communication_record_line_played
-    uint8_t unknown_3f4[6];           // 0x3f4
-    int16_t unknown_3fa;              // 0x3fa
-    uint8_t unknown_3fc[1212];        // 0x3fc
+    ai_object_attention_record object_attention_table[32]; // 0x3b8 0x500 bytes, runs 0x3b8..0x8b7; the count is
+                                      //    object_attention_count at 0x3b6 (ai_object_attention_find_or_create /
+                                      //    ai_object_attention_remove). The old unknown_3f0/3f4/3fa/3fc fields
+                                      //    were phantoms: ai_communication_record_line_played (objdump-verified)
+                                      //    reads +0x3f0/+0x3fa off the SPEAKING UNIT, not ai_globals, so they
+                                      //    are just record 1 (0x3e0..0x407) of this table
     int16_t vehicle_entry_count;      // 0x8b8 ai_process_vehicle_entry_queue drains the queue and zeroes this
     uint8_t unknown_8ba[2];           // 0x8ba
     datum_index vehicle_entry_queue[8];// 0x8bc unit object indices waiting for a seat
@@ -1595,7 +1599,9 @@ typedef struct ai_search_node {
     uint8_t side;                     // 0x1a which tangent side this node bends around
     uint8_t unknown_1b;               // 0x1b
     int16_t side_link;                // 0x1c two child links, one per side; initialized to -1
-    uint8_t unknown_1e[2];            // 0x1e
+    uint8_t squads_carried_over;      // 0x1e ai_squads_merge: 1 on the target encounter, 0 on the source, once
+                                      //    the squad references were remapped; also gates skipping empty squads
+    uint8_t pad_1f;                   // 0x1f
     float cost;                       // 0x20 length plus the inherited cost
     int16_t parent;                   // 0x24 the node this one was expanded from
     uint8_t unknown_26[2];            // 0x26
@@ -2073,14 +2079,6 @@ typedef struct ai_priority_target_list {
     ai_priority_target_record records[256];
 } ai_priority_target_list; // size 0xc04
 
-// One slot of the 32-entry ring at ai_globals.unknown_134 that ai_accumulate_repeated_event
-// @0x42c0f0 maintains.
-typedef struct ai_recent_event_record {
-    int16_t event_id;      // 0x00 -1 marks an expired or free slot
-    int16_t count;         // 0x02
-    real_point3d position; // 0x04 running (weighted) average position
-    int32_t last_tick;     // 0x10
-} ai_recent_event_record; // size 0x14
 
 // The trace scratch actor_evaluate_engagement_reachability @0x42b1f0 hands to the collision
 // request at 0x505880.

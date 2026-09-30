@@ -349,8 +349,8 @@ restart:
     }
 
     if (self->keep_unit_alive == 0) {
-        *(int16_t *)&target->unknown_26[0] += 1;
-        timer = *(int16_t *)&target->unknown_26[0];
+        target->reaction_timer += 1;
+        timer = target->reaction_timer;
         if (target->enemy == 0) {
             timer = (int16_t)(timer >> 3);
         }
@@ -361,7 +361,7 @@ restart:
             need_aim_refresh = 1;
             refresh_needed = 1;
             timer = 0;
-            *(int16_t *)&target->unknown_26[0] = 0;
+            target->reaction_timer = 0;
             danger_reacted = 1;
         }
         if ((int16_t)reaction_ticks < timer) {
@@ -399,7 +399,7 @@ restart:
         }
     } else {
         target->in_use = 0;
-        *(int16_t *)&target->unknown_26[0] = 0;
+        target->reaction_timer = 0;
     }
 
     switch (target->state) {

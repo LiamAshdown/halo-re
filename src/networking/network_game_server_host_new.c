@@ -77,16 +77,16 @@ void *network_game_server_host_new(void)
             machine->players_removed_broadcast = 0;
         }
         host->update_tick = 0;
-        *(uint32_t *)&host->unknown_9bc[0x08] = 0; // 0x9c4
-        *(uint32_t *)&host->unknown_9bc[0x0c] = 0; // 0x9c8
-        *(uint32_t *)&host->unknown_9bc[0x10] = 0; // 0x9cc
-        *(uint32_t *)&host->unknown_9bc[0x00] = 0; // 0x9c0 -- UNSURE: see header re 0x9bc range
-        *(uint32_t *)&host->unknown_9bc[0x14] = 0; // 0x9d0
+        host->first_join_ms = 0; // 0x9c4
+        host->handshake_timer.remaining_ms = 0; // 0x9c8
+        host->handshake_timer.last_tick_ms = 0; // 0x9cc
+        host->last_challenge_sent_ms = 0; // 0x9bc
+        host->unknown_9d0 = 0; // 0x9d0
         host->scenario_announced = 0;
         host->new_server_pending = 0;
         host->join_finalize_pending = 0;
         *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1; // see above
-        *(uint32_t *)&host->unknown_9bc[0x18] = 0; // 0x9d4
+        *(uint32_t *)&host->handshake_state = 0; // 0x9d4
         if (network_game_session_reset_defaults() != 0) {
             network_session_host_start(0);
             goto done;

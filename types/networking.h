@@ -510,7 +510,21 @@ typedef struct network_server_globals {
     network_machine machines[16]; // 0x3b8
     int32_t update_tick;       // 0x9b8 +1 per server update drained in state 1; cleared by host_new, the round
                                //       reset, a settings update and the scenario announcement
-    uint8_t unknown_9bc[0x3c]; // 0x9bc
+    uint32_t last_challenge_sent_ms; // 0x9bc network_server_resend_challenge_periodic resends every 5000 ms and stamps it
+    uint32_t last_stamp_ms;    // 0x9c0 QPC ms stamp: network_host_update_tick throttles the map cycle broadcast to 3000 ms
+                               //       with it, network_game_message_handle_ping_timestamp subtracts it for a ping.
+                               //       UNSURE: the two uses disagree on what it stamps
+    uint32_t first_join_ms;    // 0x9c4 client_handle_client_join stamps QPC ms when 0 and zeroes it on the first join;
+                               //       host_new, round reset and settings update zero it
+    network_timer_pair handshake_timer; // 0x9c8 network_client_connection_handshake_tick
+    uint32_t unknown_9d0;      // 0x9d0 the handshake tick zeroes it; host_new and round reset zero it
+    uint8_t handshake_state;   // 0x9d4 network_client_connection_handshake_tick: 0 or 1
+    uint8_t handshake_blocked; // 0x9d5 the handshake tick returns while set; settings update and new server clear it
+    uint8_t handshake_flag;    // 0x9d6 the handshake tick sets and clears it
+    uint8_t pad_9d7;           // 0x9d7
+    network_player_entry pending_join_entry; // 0x9d8 network_game_client_handle_map_data stores the validated entry
+                               //       here (0x20 bytes, join_finalize_pending at 0x9f8 set); its machine_index at
+                               //       0x9f4 is the machine id network_game_server_per_frame_tick finalizes
     uint8_t join_finalize_pending; // 0x9f8 the per-frame tick finalizes the join of the machine whose id is
                                //       at 0x9f4 and clears it
     uint8_t scenario_announced; // 0x9f9 network_host_send_scenario_announcement sends once per round
@@ -793,7 +807,10 @@ typedef struct message_delta_field_type {
 // (0x4ec900). That also resolves what used to be recorded as a separate unnamed table of 0x18
 // records at 0x0069a304: those are this table's `registered` bytes, one per record.
 typedef struct message_delta_field_type_vtable {
-    uint8_t unknown_00[8];                                   // 0x00
+    uint8_t unknown_00[4];                                   // 0x00
+    uint8_t kind_flag;                                       // 0x04 message_delta_compound_initialize (kind 9) and
+                                                             //      message_delta_index_teardown (kind 13) test it against 1
+    uint8_t unknown_05[3];                                   // 0x05
     int32_t (*compute_size)(message_delta_field_type *type); // 0x08 0x0069a2f8
     void (*initialize)(message_delta_field_type *type);      // 0x0c 0x0069a2fc
     void (*teardown)(message_delta_field_type *type);        // 0x10 0x0069a300

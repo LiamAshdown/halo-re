@@ -19,12 +19,12 @@ extern char network_game_session_reset_defaults(void); // 0x4e1820, outside this
 // blam-cc: EAX -> host
 void network_host_round_reset(network_server_globals *host)
 {
-    *(uint32_t *)&host->unknown_9bc[0x0c] = 0; // 0x9c8
-    *(uint32_t *)&host->unknown_9bc[0x10] = 0; // 0x9cc
-    *(uint32_t *)&host->unknown_9bc[0x14] = 0; // 0x9d0
-    *(uint32_t *)&host->unknown_9bc[0x18] = 0; // 0x9d4
+    host->handshake_timer.remaining_ms = 0; // 0x9c8
+    host->handshake_timer.last_tick_ms = 0; // 0x9cc
+    host->unknown_9d0 = 0; // 0x9d0
+    *(uint32_t *)&host->handshake_state = 0; // 0x9d4
     host->update_tick = 0;
-    *(uint32_t *)&host->unknown_9bc[0x08] = 0; // 0x9c4
+    host->first_join_ms = 0; // 0x9c4
     host->scenario_announced = 0;
     host->new_server_pending = 0;
     host->join_finalize_pending = 0;

@@ -10,7 +10,7 @@
 uint8_t message_delta_compound_initialize(message_delta_field_type *field_type)
 {
     message_delta_array_field_list *list = (message_delta_array_field_list *)field_type->array_descriptor;
-    uint8_t result = message_delta_field_type_table[9].unknown_00[4] != 1;
+    uint8_t result = message_delta_field_type_table[9].kind_flag != 1;
     int32_t i;
 
     if (list->count <= 0) {

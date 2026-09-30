@@ -185,7 +185,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
 
             if (target->state > 3 && target->state < 6) {
                 query->have_target_vault_point = 1;
-                query->target_vault_point = *(real_point3d *)&((struct prop *)target)->unknown_40;
+                query->target_vault_point = *(real_point3d *)&((struct prop *)target)->perceived_to_known_delta;
             }
 
             query->target_is_large = (uint8_t)(query->goal_kind == 4 || query->goal_kind == 6);

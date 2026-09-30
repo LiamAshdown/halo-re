@@ -57,7 +57,7 @@ void network_game_server_per_frame_tick(network_player_entry *entry, int16_t upd
             int8_t saved_machine_id;
             network_machine *machine;
 
-            saved_machine_id = *((int8_t *)server + 0x9f4); // UNSURE: within unknown_9bc
+            saved_machine_id = *((int8_t *)server + 0x9f4); // pending_join_entry.machine_index
             i = 0;
             while (server->machines[i].machine_id != (int16_t)saved_machine_id) {
                 i = i + 1;
