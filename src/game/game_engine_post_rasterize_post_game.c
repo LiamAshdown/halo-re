@@ -66,7 +66,7 @@ extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const 
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0, blam-cc: ECX tag_id, DX index
 // tag_lookup("ui\\multiplayer_game_text") + text_string_list_get_string(tag, index), or the empty string when the tag is missing.
 // (This is the inlined `lookup + get_string(N)` pair the disassembly shows at every use; NOT the function at 0x45ce90, which
-// is multiplayer_game_text_string(entry) == get_place_string.)
+// is game_engine_get_default_multiplayer_string(entry) == get_place_string.)
 static wchar_t *multiplayer_game_text_string(int16_t index)
 {
     datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr'
