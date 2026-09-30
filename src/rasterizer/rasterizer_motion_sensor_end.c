@@ -1,7 +1,8 @@
-// rasterizer_motion_sensor_end  (Ghidra: FUN_0052bc40, unnamed; the earlier placeholder called it
+// rasterizer_motion_sensor_end  (Ghidra: FUN_0052bc40, unnamed; the earlier draft called it
 //   rasterizer_debug_marker_draw_textured)
 // address 0x52bc40, size 2141 bytes
-// name confidence: 0.6   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x52bc40..0x52c49d (2026-09-30): exit paths, the additive sweep quad (sweep <= 2.75), the mask multiply quad, the window target restore and the composite quad (32 / 42 pixel half size) with c13..c17
+// name confidence: 0.6   rewrite confidence: 0.9
 // evidence: the last call of motion_sensor_render 0x4b4120, made with EBX = 0x00873d38 (the
 //   sensor screen position the caller just stored as two floats) and the sweep value
 //   0x0071943c on the stack. While render target 5 is still bound it adds the sweep
