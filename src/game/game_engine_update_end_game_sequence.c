@@ -1,16 +1,13 @@
 // game_engine_update_end_game_sequence  (Ghidra: game_engine_update_end_game_sequence, already
 // named)
 // address 0x45fdf0, size 308 bytes
-// name confidence: 0.55   rewrite confidence: 0.3
+// name confidence: 0.55   rewrite confidence: 0.9
 // evidence: types/game.h game_engine_state (0x0087aa10), game_engine_end_game_timer (0x0087aa08,
 // "7.0 s, then 5.0 s"), game_engine_post_game_fade (0x0087aa0c, "ramps 0 -> 1"),
 // game_engine_dedicated_idle/_timer (0x0087aa18/0x0087aa1c), network_server (0x0071c2d4).
-// UNSURE: two float comparisons below are Ghidra's `(a < b) == (a == b)` / `(a < b) != (a == b)`
-// idiom for an FPU flag test that doesn't reduce to a plain `<`; simplified to the algebraically
-// equivalent `a > 0.0` / `a <= 0.0` (see header derivation in this batch's working notes -- both
-// forms are logically forced regardless of NaN, since neither operand is ever NaN here).
-// DAT_0071c2de, DAT_007124a0 and DAT_007124a1 are not attributed to this module anywhere in this
-// batch's evidence; kept as raw externs with generic names.
+// The two float tests are `fcomp / test ah,0x41 / jp` idioms that reduce to `a > 0.0` and `a <= 0.0` (no NaN can occur).
+// input_get_key_state takes ECX = key 0x66 (0x45feb3); FIXED 2026-09-30: the draft called it with no key.
+// DAT_0071c2de, DAT_007124a0 and DAT_007124a1 are not attributed to this module; kept as raw externs with generic names.
 
 #include "tags.h"
 #include "memory.h"
@@ -31,7 +28,7 @@ extern uint8_t chimera_loading_screen_cleanup_gate;                    // UNSURE
 
 extern void game_engine_end_game_sequence_stage3(void); // 0x467180, not in this batch
 extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
-extern char input_get_key_state(void); // 0x490b50, not in this batch
+extern uint8_t input_get_key_state(int16_t key_index); // 0x490b50, blam-cc: ECX key_index
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 extern void chat_close(void); // 0x4aa900
 extern void network_game_client_game_settings_updated(void *session); // 0x4df2e0
@@ -86,7 +83,7 @@ void game_engine_update_end_game_sequence(float delta_time)
             }
         }
 
-        if (unknown_007124a0 != 0 || input_get_key_state() == 1 || idle_timer_expired) {
+        if (unknown_007124a0 != 0 || input_get_key_state(0x66) == 1 || idle_timer_expired) {
             network_game_client_game_settings_updated(network_server);
         }
     }
