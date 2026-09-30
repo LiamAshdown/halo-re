@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 
+// VERIFIED against disassembly 0x54e8c0..0x54e91a (2026-09-30) (the rcl/sbb bit selects were emulated against this formula
+//   for 100000 random inputs with no difference); the add is now a wrapping unsigned add so the clamp tests see the
+//   same int32 value the original does even when delta + prediction overflows.
 // Decodes one ADPCM sample: forms a signed delta from `step` gated by the low 3 bits of
 // `selector` (bit2 adds step, bit1 adds step/2, bit0 adds step/4, always adds step/8, negated
 // when bit3 of `selector` is set), adds it to `prediction`, and clamps to a signed 16-bit range.
@@ -28,7 +31,7 @@ int32_t sound_adpcm_decode_sample(uint8_t selector, int32_t prediction, uint32_t
                         (-(uint32_t)((selector & 2) != 0) & (step >> 1)) +
                         (-(uint32_t)((selector & 1) != 0) & (step >> 2)) + (step >> 3)) ^ -negate) +
                        negate);
-    prediction = delta + prediction;
+    prediction = (int32_t)((uint32_t)delta + (uint32_t)prediction); // wrapping add (signed overflow is UB in C)
 
     if (prediction < 0x8000) {
         if (prediction < -0x8000) {

@@ -19,18 +19,23 @@
 #include "game.h"
 #include <stdint.h>
 
+// VERIFIED against disassembly 0x4705f0..0x470623 (2026-09-30); fixed: key is the full ESI (zero-extended by the callers) and
+//   the two byte comparisons sign-extend the stored bytes, so a stored byte >= 0x80 never matches / always reports changed.
 // blam-cc: ECX -> base, EBX -> new_value, ESI -> key
 // Scans the 16-entry, 0x20-stride table at base+0x1a2 for the entry whose key byte (+0x1f)
 // equals `key`; if found, stores `new_value` at that entry's value byte (+0x1e) and returns
 // whether it actually changed. Returns 0 if no entry matches.
-uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, int8_t key)
+uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, uint32_t key)
 {
     uint8_t *entry = base + 0x1a2;
     int32_t i;
 
     for (i = 0; i < 16; i++) {
-        if ((int8_t)entry[0x1f] == key) {
-            uint8_t changed = entry[0x1e] != new_value;
+        // 0x470600: movsx edi, byte [entry+0x1f]; cmp edi, esi -- the callers pass the key ZERO-extended (movzx esi, cl), so
+        // a stored key byte >= 0x80 (sign-extended negative) never matches
+        if ((int32_t)(int8_t)entry[0x1f] == (int32_t)key) {
+            // 0x470613: movsx eax, byte [entry+0x1e]; movzx edx, bl; cmp; setne -- the stored byte is SIGN-extended
+            uint8_t changed = (int32_t)(int8_t)entry[0x1e] != (int32_t)new_value;
             entry[0x1e] = new_value;
             return changed;
         }

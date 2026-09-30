@@ -56,7 +56,7 @@ extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670
     // (canonical form, per game_engine_handle_kill_feed_network_event.c)
 extern uint8_t game_engine_team_close_game_check(int32_t side, int32_t filter_value); // this batch, 0x470790
 extern uint8_t game_engine_team_is_leading(int32_t filter_value); // this batch, 0x470720
-extern uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, int8_t key); // this batch, 0x4705f0
+extern uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, uint32_t key); // this batch, 0x4705f0
 extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired); // this batch, 0x470630
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -105,14 +105,14 @@ void game_engine_update_lead_change_state(void **envelope, uint8_t *message)
             return;
         }
 
-        if (!player_customization_slot_set(network_client + 8, (uint8_t)leading_or_side, (int8_t)color)) {
+        if (!player_customization_slot_set(network_client + 8, (uint8_t)leading_or_side, (uint8_t)color)) {
             return;
         }
 
         if ((network_client[6] >> 2 & 1) == 0) {
-            player_customization_slot_set(network_client + 0xb14, (uint8_t)leading_or_side, (int8_t)color);
+            player_customization_slot_set(network_client + 0xb14, (uint8_t)leading_or_side, (uint8_t)color);
         }
-        player_set_team_by_color((uint8_t)leading_or_side, (int8_t)color);
+        player_set_team_by_color((uint8_t)leading_or_side, (uint8_t)color);
 
         {
             data_iterator player_iter;
