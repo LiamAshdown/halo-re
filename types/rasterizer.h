@@ -223,7 +223,9 @@ typedef struct rasterizer_dynamic_vertex_slot {
 typedef struct rasterizer_dynamic_index_slot {
     int32_t first_index;            // 0x00
     int32_t index_count;            // 0x04
-    int32_t unknown_08;             // 0x08 no writer found in this module
+    int32_t locked_indices;         // 0x08 0x08 out pointer of the index buffer Lock in
+                                    //    rasterizer_dynamic_index_slot_lock, which returns it; the sibling
+                                    //    rasterizer_dynamic_vertex_slot keeps locked_vertices
 } rasterizer_dynamic_index_slot;    // size 0x0c
 
 // ---------------------------------------------------------------------------
@@ -597,7 +599,9 @@ typedef struct rasterizer_window_parameters {
     int16_t window_index;           // 0x002 (used) 0x007c1222; lens flare instances carry it
                                     //       and only draw in the matching window; -1 for the
                                     //       loading screen path at 0x50bdc0
-    uint8_t unknown_04;             // 0x004 (used) 0x007c1224; gates the second environment
+    uint8_t has_mirror;             // 0x004 0x04 render_window stores its has_mirror argument here; the dynamic
+                                    //    mirror draw, environment self illumination technique and glass shader test
+                                    //    it together with type == 1
                                     //       technique path 0x520b90/0x520e50
     uint8_t clear_target;           // 0x005 (used) 0 asks 0x52ccc0 to clear the new target
     uint16_t unknown_06;            // 0x006
@@ -748,7 +752,9 @@ typedef enum rasterizer_model_draw_flags {
 typedef struct rasterizer_model_draw_context {
     uint32_t flags;                 // 0x00 rasterizer_model_draw_flags; bits 8..23 also feed
                                     //      set_model_skinning
-    uint32_t unknown_04;            // 0x04 copied into group +0x04
+    uint32_t object_index;          // 0x04 0x04 render_model stores object_index here; the model pixel shader seeds a
+                                    //    per object pseudo random value from it and group_build copies it to the
+                                    //    transparent group
     uint32_t node_matrices;         // 0x08 real_matrix4x3* set_model_skinning reads scale/forward/left/up/position
     int16_t node_count;             // 0x0c
     int16_t unknown_0e;             // 0x0e
@@ -797,7 +803,8 @@ typedef enum transparent_geometry_group_flags {
 typedef struct transparent_geometry_group {
     uint32_t flags;                 // 0x00 transparent_geometry_group_flags (from the caller or
                                     //      the model draw context)
-    uint32_t unknown_04;            // 0x04 model draw context +0x04, else 0
+    uint32_t object_index;          // 0x04 0x04 copied from rasterizer_model_draw_context.object_index (render_model)
+                                    //    by rasterizer_transparent_geometry_group_build, 0 for non model groups
     int32_t sort_key;               // 0x08 compare tiebreak; draw batches runs of equal keys
     uint32_t shader;                // 0x0c void* Shader tag data; NULL means a callback group
     uint16_t shader_permutation;    // 0x10 passed as the bitmap index to set_texture

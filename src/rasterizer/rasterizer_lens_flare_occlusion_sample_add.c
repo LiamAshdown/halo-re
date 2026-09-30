@@ -59,7 +59,7 @@ void rasterizer_lens_flare_occlusion_sample_add(void *procedure, const real_poin
     group->dynamic_vertex_slot = -1;
 
     group->flags = 0;
-    group->unknown_04 = 0;
+    group->object_index = 0;
     group->sort_key = 0;
     group->shader = 0;
     group->shader_permutation = 0;

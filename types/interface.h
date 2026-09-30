@@ -374,7 +374,10 @@ typedef struct first_person_weapon_interface {
     int16_t blend_end;         // 0x008a
     uint8_t animation_control[0x800]; // 0x008c node control block fed to the animation system
     uint8_t previous_pose[0x800];     // 0x088c copied from animation_control by 0x4930b0
-    uint8_t unknown_108c[0xd00];      // 0x108c node scratch gathered by 0x493ea0 and 0x4924b0
+    uint8_t node_matrices[0xd00];     // 0x108c 0x108c 0xd00 bytes = 64 real_matrix4x3 (0x34 each);
+                                      //    first_person_weapon_get_marker_data casts it to real_matrix4x3* and
+                                      //    update_lighting feeds it to hud_meter_permute_node_records as the node
+                                      //    scratch
     uint8_t weapon_hud_valid;         // 0x1d8c result of hud_meter_find_matching_element
     uint8_t pad_1d8d;                 // 0x1d8d
     int16_t weapon_hud_element[0x40]; // 0x1d8e match table filled by 0x493f00
@@ -821,7 +824,10 @@ typedef struct loading_thread_record {
 // The rasterizer side is not rewritten, so only the fields 0x494730 writes are named.
 // ---------------------------------------------------------------------------
 typedef struct weapon_screen_effect_parameters {
-    int16_t unknown_00;                // 0x00 never written by 0x494730
+    int16_t convolution_extra_passes;  // 0x00 0x00 shared layout with
+                                       //    cinematic_screen_effect_globals.convolution_extra_passes;
+                                       //    rasterizer_screen_effect_render computes pass_count = (value + 1) << 1
+                                       //    from it
     int16_t convolution_type;          // 0x02 2 when a convolution amount is set
     float convolution_amount;          // 0x04 radius interpolated over the fov bounds
     uint32_t mask_bitmap_data;         // 0x08 mask bitmap tag +0x64, bitmaps.pointer

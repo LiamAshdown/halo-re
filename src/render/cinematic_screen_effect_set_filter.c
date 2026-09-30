@@ -53,8 +53,8 @@ void cinematic_screen_effect_set_filter(float light_enhancement_lower, float lig
     g->filter_desaturation_is_additive = is_additive;
 
     start_time = (float)game_time->game_time * 0.033333335f;
-    g->unknown_21 = 0;
-    g->unknown_22 = 0;
+    g->night_vision_masked = 0;
+    g->desaturation_masked = 0;
     g->filter_start_time = start_time;
     g->filter_end_time = start_time + duration;
 }

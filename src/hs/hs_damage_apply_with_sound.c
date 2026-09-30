@@ -39,13 +39,13 @@ void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect
     if (object_index != k_datum_index_none) {
         memset(&request, 0, sizeof(request));
         request.damage_effect = damage_effect;
-        request.unknown_10 = 0xffff;
+        request.team_index = 0xffff;
         request.causer = 0xffffffff;
         request.attacker = 0xffffffff;
         request.sound_index = 0xffff;
         request.scale_a = 1.0f;
         request.scale_b = 1.0f;
-        request.unknown_4c = 0xffff; // FIXED: material type -1 (0x488a6b)
+        request.material_type = 0xffff; // FIXED: material type -1 (0x488a6b)
 
         object_get_position((real_point3d *)&request.position, object_index);
         *(Point3D *)&request.direction = *(Point3D *)&request.position;

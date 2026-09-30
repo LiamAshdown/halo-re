@@ -54,7 +54,7 @@ void structure_bsp_expand_visible_clusters_by_subcluster(ScenarioStructureBSP *t
         if (debug_render_cluster_pvs != 0 || render_cluster_index == -1) {
             frustum_or_camera = (void *)0x7c3168;
         } else {
-            frustum_or_camera = &visible_clusters[i].unknown_014;
+            frustum_or_camera = &visible_clusters[i].frustum;
         }
 
         for (int32_t j = 0; j < (int32_t)cluster->subclusters.count; j++) {

@@ -218,7 +218,7 @@ void render_window(int16_t local_player_index, render_camera *source_camera,
     render_frustum_global = *source_frustum;
     parameters.camera = *rasterizer_camera;
     parameters.frustum = *rasterizer_frustum;
-    parameters.unknown_04 = has_mirror;
+    parameters.has_mirror = has_mirror;
     parameters.type = rasterizer_target;
     parameters.window_index = render_window_index;
     parameters.fog = render_fog_state;

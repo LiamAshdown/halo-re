@@ -96,10 +96,10 @@ void hs_object_runtime_cleanup(void)
             hs_object_hierarchy_test(object_index) == 0) {
             object = hs_object_record_get(object_index);
             // role 0 unparents (EDI object) and then deletes like role 3 (the binary falls through)
-            if (object->unknown_04 == 0) {
+            if (object->network_role == 0) {
                 object_delete_unparented(object_index);
                 object_delete_recursive(object_index, 0);
-            } else if (object->unknown_04 == 3) {
+            } else if (object->network_role == 3) {
                 object_delete_recursive(object_index, 0);
             }
         }

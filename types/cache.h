@@ -128,7 +128,8 @@ typedef struct cache_file_header {
     char name[32];                 // 0x020 scenario name, NUL terminated, < 0x20 chars
     uint8_t unknown_040[32];       // 0x040 the published retail layout puts build[32] here;
                                    //       nothing in the image reads it
-    int16_t unknown_060;           // 0x060 the published layout calls this map type
+    int16_t map_type;              // 0x060 0x060 header comment cites the published layout calling this map type;
+                                   //    cache_file_open_by_name casts it to cache_file_slot_category to pick the slot
     int16_t unknown_062;           // 0x062
     uint32_t crc32;                // 0x064 the map checksum. Copied into the saved-game
                                    //       header and compared back in the game_state

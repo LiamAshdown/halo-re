@@ -188,7 +188,9 @@ typedef struct structure_bsp_visible_cluster {
     int16_t unknown_02;            // 0x002 alignment
     real_bounds screen_bounds_x;   // 0x004 min then max, seeded from *0x00696744
     real_bounds screen_bounds_y;   // 0x00c
-    uint8_t unknown_014[0x18c];    // 0x014 the per-cluster clipped view frustum, written by the
+    uint8_t frustum[0x18c];        // 0x014 0x014 per cluster clipped view frustum; collect_visible_objects and both
+                                   //    expand_visible_clusters functions pass its address to
+                                   //    render_frustum_test_sphere / as the frustum
                                    //       render module; no function here reads it
 } structure_bsp_visible_cluster;   // size 0x1a0
 

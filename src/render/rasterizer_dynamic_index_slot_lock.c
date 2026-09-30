@@ -35,8 +35,8 @@ void *rasterizer_dynamic_index_slot_lock(int32_t slot_index) // blam-cc: ECX -> 
     slot = &rasterizer_dynamic_index_slots[slot_index];
     lock = *(d3d_lock_fn *)((uint8_t *)*(void **)rasterizer_dynamic_index_buffer + 0x2c);
     lock(rasterizer_dynamic_index_buffer, slot->first_index * 6, slot->index_count * 6,
-         (void **)&slot->unknown_08, 0x1000);
-    return (void *)slot->unknown_08;
+         (void **)&slot->locked_indices, 0x1000);
+    return (void *)slot->locked_indices;
 }
 
 #if 0

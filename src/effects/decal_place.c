@@ -580,7 +580,7 @@ void decal_place(datum_index decal_tag_index, collision_result *placement, real_
         self->position = placement->point;
         self->creation_game_time = game_time->game_time;
         self->sequence_index = (uint8_t)sequence_index;
-        self->unknown_1b = (uint8_t)sprite_bitmap_index;
+        self->sprite_bitmap_index = (uint8_t)sprite_bitmap_index;
         self->unknown_1a = 0;
         self->lifetime = decal_place_random_fraction() * (definition->lifetime[1] - definition->lifetime[0]) +
             definition->lifetime[0];

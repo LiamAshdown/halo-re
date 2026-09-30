@@ -146,7 +146,7 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
     if (!console_debug_toggle_689428 || rasterizer_window.type != 1) {
         return;
     }
-    pass_count = (int16_t)((uint16_t)(p->unknown_00 + 1) << 1);
+    pass_count = (int16_t)((uint16_t)(p->convolution_extra_passes + 1) << 1);
 
     rasterizer_screen_effect_quad[0].color = 0xffffffff;
     rasterizer_screen_effect_quad[1].color = 0xffffffff;

@@ -58,7 +58,7 @@ int16_t structure_bsp_collect_visible_objects(
                 get_bounds(handle, &center, &radius);
                 if (written < max_count &&
                     (render_cluster_index == -1 ||
-                     render_frustum_test_sphere(&visible_clusters[i].unknown_014, &center,
+                     render_frustum_test_sphere(&visible_clusters[i].frustum, &center,
                                                  radius) != 0)) {
                     out_handles[written] = (int32_t)handle;
                     written++;

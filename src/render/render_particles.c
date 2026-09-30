@@ -192,7 +192,7 @@ void render_particles(void)
 
                 if (p->object_index == 0xffffffff) {
                     origin = p->position;
-                    direction = p->unknown_3c;
+                    direction = p->direction;
                     p->object_index = 0xffffffff;
                 } else {
                     real_matrix4x3 *m = 0;
@@ -236,7 +236,7 @@ void render_particles(void)
                     origin.x = pos.z * m->up.i + pos.y * m->left.i + pos.x * m->forward.i + m->position.x;
                     origin.y = pos.x * m->forward.j + pos.z * m->up.j + pos.y * m->left.j + m->position.y;
                     origin.z = pos.z * m->up.k + pos.y * m->left.k + pos.x * m->forward.k + m->position.z;
-                    dir = p->unknown_3c;
+                    dir = p->direction;
                     direction.i = dir.k * m->up.i + dir.j * m->left.i + dir.i * m->forward.i;
                     direction.j = dir.k * m->up.j + dir.j * m->left.j + dir.i * m->forward.j;
                     direction.k = dir.k * m->up.k + dir.j * m->left.k + dir.i * m->forward.k;
@@ -280,7 +280,7 @@ void render_particles(void)
                     }
                     build_sprite(&data, p->sequence_index, p->frame_index,
                                  (int16_t)(uint16_t)definition->orientation, &origin, &direction,
-                                 p->unknown_54, scale, &p->color, fade, flags);
+                                 p->rotation, scale, &p->color, fade, flags);
                     p->last_update_tick = render_frame_index;
                 }
             }
