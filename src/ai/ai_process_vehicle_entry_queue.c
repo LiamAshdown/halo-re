@@ -1,7 +1,7 @@
 // ai_process_vehicle_entry_queue  (Ghidra: ai_process_vehicle_entry_queue, already named)
 // address 0x42bf90, size 423 bytes
 // name confidence: 0.9   rewrite confidence: 0.85
-// REWRITTEN from objdump 0x42bf90..0x42c136 (the draft left the placement request out of actor_place_new_unit,
+// VERIFIED against disassembly 0x42bf90..0x42c136 (2026-09-30); rewritten from it (the draft left the placement request out of actor_place_new_unit,
 //   never used the transformed point and entered the seat without the gunner's unit).
 //   For every queued vehicle (ai_globals +0x8bc, count +0x8b8), every seat (tag +0x2e4/+0x2e8, 0x11c each) with a
 //   built-in gunner (seat +0x104) gets a zeroed placement request (+0x1a = -1) at the vehicle's position (+0x5c),

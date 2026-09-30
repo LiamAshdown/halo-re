@@ -1,7 +1,7 @@
 // ai_search_choose_shorter_corner  (Ghidra: ai_search_choose_shorter_corner, renamed)
 // address 0x43d240, size 614 bytes
 // name confidence: 0.35  rewrite confidence: 0.85
-// REWRITTEN from objdump 0x43d240..0x43d4a5 (the draft had lost ECX, EDX and the fifth argument). ECX = point p,
+// VERIFIED against disassembly 0x43d240..0x43d4a5 (2026-09-30); rewritten from it (the draft had lost ECX, EDX and the fifth argument). ECX = point p,
 //   EBX = corner A, EDX = point q; stack: corner B, point r, out. The unit directions (normalised only when longer
 //   than 0.0001) from each corner to p, q and r give the turn around that corner as the sum of the signed angles
 //   (vector2d_angle_between, ESI a, EDI b) r->q and q->p. Corner A is taken (copied to out, returns 1) when
