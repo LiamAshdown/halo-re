@@ -30,6 +30,7 @@
 #include "fn_camera.h"
 #include "fn_memory.h"
 #include "fn_effects.h"
+#include "fn_saved_games.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
@@ -89,9 +90,6 @@ extern void interface_local_player_state_reset(void);                           
 extern void scenario_objects_place(Scenario *scenario); // 0x4f3ba0. One plain stack
     // argument -- objdump shows 0x4f3ba0 reading [esp+0x24] twice and taking no register input,
     // so src/objects/scenario_objects_place.c's "blam-cc: EAX -> param_1" is wrong.          // 0x4f3ba0, UNSURE arg
-
-
-extern void game_state_build_header(void);                                     // 0x538000
 
 
 // Resets game state (objects, scripts, particle/effect pools, network server) to begin a new

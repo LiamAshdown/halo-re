@@ -18,8 +18,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_saved_games.h"
 
-extern uint8_t saved_game_file_exists(char *name); // 0x538770
+
 extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, void *callback, void *user_data); // 0x538e70
 extern uint8_t ui_restoring_previous_widget; // 0x00718fcb
 extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, blam-cc: EAX

@@ -14,6 +14,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern uint8_t *game_state_base; // 0x006e2dc8
 extern int32_t game_state_cursor; // 0x006e2dcc
@@ -21,8 +22,7 @@ extern uint32_t game_state_crc; // 0x006e2dd4
 extern game_state_header *game_state_header_ptr; // 0x006e2de0
 
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
-extern void *game_state_allocate_buffer(int32_t cpu_size, int32_t extra_size); // 0x5385f0
-extern void game_state_create_persistent_storage_file(void); // 0x538690
+
 
 void game_state_startup(void)
 {

@@ -15,6 +15,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern uint8_t game_state_write_in_progress; // 0x006e3000
 extern uint32_t game_state_size; // 0x006e2df0

@@ -25,11 +25,11 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first,
     checkpoint_enumerate_proc callback, void *user_data); // 0x538e70
-extern uint8_t game_checkpoint_reclaim_slot_callback(int32_t index, const char *name, int32_t level_index,
-    int32_t difficulty, int32_t game_time_ticks, const win32_systemtime *time, void *user_data); // 0x538ac0
+
 
 // blam-cc: out_name in ESI, then the recognized stack parameter (directory)
 // Finds the first unused "checkpoints\checkpointN" (N = 0..99) slot under directory and writes

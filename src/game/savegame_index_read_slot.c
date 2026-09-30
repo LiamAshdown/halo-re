@@ -22,6 +22,7 @@
 #include "hs.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_saved_games.h"
 
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
 extern file_reference savegame_index_file; // 0x00721330
@@ -32,7 +33,7 @@ extern uint8_t file_reference_close(file_reference *ref); // 0x555890, ESI ref
 extern uint8_t file_reference_seek(int32_t offset, file_reference *ref); // 0x5558f0, EAX offset, ECX ref
 extern uint32_t file_reference_get_size(file_reference *reference); // 0x555950
 extern uint8_t file_reference_read(file_reference *ref, void *buffer, uint32_t size); // 0x555a20, EDX ref, ECX buffer, ESI size
-extern void path_append_component(char *destination, const char *component); // 0x555ec0
+
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
 // CORRECTED by review: the four path/file_reference helpers above were declared argument-less
 // because Ghidra elides their register arguments. savegame_index_file_exists.c's own objdump

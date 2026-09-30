@@ -23,6 +23,7 @@
 #include "saved_games.h"
 #include "input.h"
 #include "fn_cache.h"
+#include "fn_saved_games.h"
 
 #include <wchar.h>
 
@@ -35,7 +36,7 @@ extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffe
     // 0x0053a770; blam-cc: ECX -> out_buffer
 extern uint8_t input_profile_copy_bindings_by_device(int32_t category, saved_player_profile *dst,
     saved_player_profile *src); // this module, 0x490280
-extern void player_profile_save_539bf0(int32_t handle, saved_player_profile *profile); // saved_games
+
     // module, 0x539bf0
 
 // blam-cc: device_name in EDI

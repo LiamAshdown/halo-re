@@ -13,8 +13,8 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_saved_games.h"
 
-extern uint8_t game_checkpoint_save_new(void); // 0x538db0
 
 uint8_t ui_event_4a47b0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

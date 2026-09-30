@@ -38,6 +38,7 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_saved_games.h"
 
 // TYPES-GAP: one entry of the campaign level path table at 0x00692acc (stride 8, second dword
 // always read as part of the (&table)[i*2] indexing but never itself examined here).
@@ -68,8 +69,7 @@ extern uint8_t quit_confirm_error_is_error;                       // 0x00718fb1
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, void *param_3); // 0x49cc80
 extern int32_t growable_array_add_element(growable_array *array); // 0x4cf810
-extern uint8_t game_state_read_checkpoint_summary(uint8_t *corrupt_flag, int16_t *out_difficulty,
-    char *out_scenario_name); // 0x538320, EAX corrupt_flag, ESI out_difficulty, EDI out_scenario_name
+
 extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profile,
     int16_t *out_level); // 0x539e00, ECX out_type, EDX profile, ESI out_level
 

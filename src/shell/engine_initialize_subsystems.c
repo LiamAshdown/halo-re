@@ -25,6 +25,7 @@
 #include "shell.h"
 #include "fn_math.h"
 #include "fn_cseries.h"
+#include "fn_saved_games.h"
 
 extern large_integer performance_frequency;   // 0x006ac8f8 QueryPerformanceFrequency result
 extern char profile_directory[0x105];         // 0x006ac900 (types/cache.h); memset clears 0x105
@@ -56,7 +57,7 @@ extern void directory_create_recursive(char *path);     // 0x00449250
 extern void input_directinput_initialize(void);          // 0x00490520
 
 extern uint32_t render_initialize(void);                       // 0x00511da0, module unknown
-extern void game_state_startup(void);                     // 0x00537f90
+
 extern uint32_t sound_initialize(void);                    // 0x005492f0
 
 // Top-level engine bring-up routine: sets timer resolution, resolves the D3D9/DirectSound/

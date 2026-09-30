@@ -34,13 +34,14 @@
 #include "math.h"
 #include "objects.h"
 #include "structures.h"
+#include "fn_saved_games.h"
 
 extern uint8_t *game_state_base;   // 0x006e2dc8, game.h (saved_games)
 extern int32_t game_state_cursor;  // 0x006e2dcc, game.h (saved_games)
 extern uint32_t game_state_crc;    // 0x006e2dd4, game.h (saved_games)
 
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0, memory module
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
+
     // 0x5380d0; name and maximum_count on the stack, element_size in EBX
     // (blam-cc: EBX -> element_size)
 

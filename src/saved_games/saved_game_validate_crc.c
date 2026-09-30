@@ -24,6 +24,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4 (saved_player_profile_slots[0].handle)
 

@@ -20,9 +20,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); // 0x5558f0, this module
-extern void saved_games_report_last_error(void); // 0x556170, this module
+
 
 // blam-cc: EAX -> offset, ESI -> ref
 // Seeks ref's open handle to offset, then truncates or extends the file to that length.

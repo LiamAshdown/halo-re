@@ -25,6 +25,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern file_enumeration_position file_enumeration_pos; // 0x0069fa5c
 extern uint32_t file_enumeration_flags_value; // 0x0069fa58
@@ -32,8 +33,7 @@ extern void *file_enumeration_handles[8]; // 0x0069fb60
 extern char file_enumeration_path[0x100]; // 0x0069fa60
 extern win32_find_dataa file_enumeration_find_data; // 0x0069fba0
 
-extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
-extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
+
 extern void path_remove_last_component(char *path); // 0x555f80, this module
 
 

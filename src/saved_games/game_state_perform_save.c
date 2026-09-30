@@ -19,13 +19,13 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern game_state_proc game_state_before_save_proc; // 0x0069e7ac
 extern uint8_t unknown_00719769; // 0x00719769, UNSURE: interface busy flag
 extern uint8_t unknown_0071976a; // 0x0071976a, UNSURE: interface done flag
 extern uint8_t game_state_revert_available; // 0x006e2dd9
 
-extern uint8_t game_state_queue_write(uint8_t is_checkpoint); // 0x538700, returns in AL
 
 void game_state_perform_save(uint8_t is_checkpoint)
 {

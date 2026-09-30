@@ -15,9 +15,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
-
-extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
-extern void saved_games_report_last_error(void); // 0x556170, this module
+#include "fn_saved_games.h"
 
 
 // blam-cc: reference record in ESI; open-mode flags as the one stack argument

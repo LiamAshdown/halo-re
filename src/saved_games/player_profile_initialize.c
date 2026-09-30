@@ -31,6 +31,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern uint32_t safe_mode; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
 extern uint32_t cpu_speed; // machine class threshold, matches player_profile_set_default_video_options
@@ -45,7 +46,7 @@ extern uint8_t player_profile_set_default_video_options(saved_player_profile *pr
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, this module, blam-cc: EBX capacity_and_count
 extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); // 0x53a770, this module
-extern void control_profile_fill_default_gamepad_slots(saved_player_profile *profile); // 0x53b7f0, this module
+
 extern void *memset(void *dest, int32_t value, uint32_t count);
 extern void *memcpy(void *dest, const void *src, uint32_t count);
 

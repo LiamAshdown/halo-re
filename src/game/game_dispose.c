@@ -21,6 +21,7 @@
 #include "fn_hs.h"
 #include "fn_game.h"
 #include "fn_objects.h"
+#include "fn_saved_games.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t player_profile_cache_initialized;     // 0x006f1d38
@@ -57,7 +58,7 @@ extern uint32_t game_state_persistent_storage_created; // TYPES-GAP
 
 extern void widget_close_all(void);           // 0x498650, widget module
 
-extern void saved_game_files_dispose(void);   // 0x53c480, saved_games module
+
 extern void network_shutdown(void);           // 0x4416e0, network module
 
 // Tears down the memory pools and Win32 resources allocated by game_initialize (0x45a9c0).

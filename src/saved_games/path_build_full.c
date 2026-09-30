@@ -9,6 +9,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_saved_games.h"
 #include <string.h>
 
 extern char file_root_template[4]; // 0x0069fa50

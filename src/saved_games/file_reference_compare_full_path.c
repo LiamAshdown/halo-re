@@ -25,11 +25,8 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
-extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
-extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
-    char **name_end_out, char **ext_start_out, uint8_t split_extension); // 0x556000, this module
-extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
 
 int32_t file_reference_compare_full_path(const file_reference_record *a, const file_reference_record *b)
 {

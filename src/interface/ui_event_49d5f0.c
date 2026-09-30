@@ -23,10 +23,11 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_saved_games.h"
 
 extern uint8_t *map_list; // 0x00712dcc, map_list_entry[] (0xc bytes, +0 the map path)
 extern int32_t map_list_count; // 0x00712dd0
-extern uint8_t saved_game_last_mp_map_read(uint8_t *out_data); // 0x53d670
+
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current; // 0x00692c04
 extern uint8_t ui_list_has_default; // 0x007192f8

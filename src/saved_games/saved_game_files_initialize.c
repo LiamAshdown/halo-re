@@ -24,6 +24,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "fn_networking.h"
+#include "fn_saved_games.h"
 
 extern char profile_directory[0x105]; // 0x006ac900 (cache module)
 extern file_reference_record savegame_index_file; // 0x00721330
@@ -52,7 +53,7 @@ extern uint8_t unknown_0072132a; // 0x0072132a
 extern char directory_create_recursive(char *path); // 0x449250, foreign module
 extern void player_profile_initialize(saved_player_profile *profile, int32_t local_player_index,
     uint8_t merge_existing); // 0x53a1c0, this module
-extern void player_profile_write_default_files(void); // 0x53a610, this module
+
 
 // blam-cc: __cdecl, no parameters
 // One-time module init: zeroes the saved-game-files globals block, copies profile_directory as

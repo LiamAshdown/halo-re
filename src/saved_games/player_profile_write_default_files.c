@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern char default_player_profiles_directory[0x100]; // 0x00721849
 
@@ -30,7 +31,7 @@ extern void player_profile_initialize(saved_player_profile *profile, int32_t loc
     uint8_t merge_existing); // 0x53a1c0
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
 extern void path_remove_last_component(char *path); // 0x555f80, this module
-extern uint8_t file_reference_create(file_reference_record *ref); // this module
+
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // this module
 extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); // this module
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // this module

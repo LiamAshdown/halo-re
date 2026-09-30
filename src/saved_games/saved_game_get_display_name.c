@@ -17,6 +17,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern uint16_t saved_game_display_name_buffer[0x80]; // 0x006e3008
 

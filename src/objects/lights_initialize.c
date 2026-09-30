@@ -16,6 +16,7 @@
 #include "objects.h"
 #include "structures.h"
 #include "fn_objects.h"
+#include "fn_saved_games.h"
 
 extern data_array *light_data;  // 0x00860b14
 extern uint8_t *lights_enabled; // 0x0071cfb8
@@ -24,7 +25,7 @@ extern uint8_t *game_state_base;  // 0x006e2dc8, UNSURE: checksum region base, m
 extern int32_t game_state_cursor;  // 0x006e2dcc, UNSURE: checksum region cursor, memory/cache module
 extern uint32_t game_state_crc;  // 0x006e2dd4, UNSURE: running crc32 accumulator, memory/cache module
 
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
+
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // memory module, 0x4d02d0
 extern void cluster_partition_new(cluster_reference_group *out, char *name); // 0x551e30, blam-cc: ESI -> out, EDI -> name
 extern cluster_reference_group light_cluster_first; // 0x00860b20 (light_cluster_first, then the two pools)

@@ -13,6 +13,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern game_state_proc game_state_after_load_procs[k_game_state_after_load_proc_count]; // 0x0069e7b4
 

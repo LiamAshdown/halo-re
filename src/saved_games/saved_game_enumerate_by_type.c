@@ -26,6 +26,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "fn_game.h"
+#include "fn_saved_games.h"
 
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 extern network_mutex_record *savegame_index_mutex; // 0x00721440
@@ -33,7 +34,7 @@ extern uint8_t savegame_index_dirty; // 0x00721447
 extern file_reference_record savegame_index_file; // 0x00721330 (types/hs.h keeps this opaque as
                                                     // file_reference; same bytes, field layout here)
 
-extern void saved_game_list_rebuild_index(void); // 0x53d720, this module
+
 extern int32_t savegame_index_get_slot_count(void); // 0x53e420, FUN_0053e420 (src/game): current index entry count
 
 

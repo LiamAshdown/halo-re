@@ -47,6 +47,7 @@
 #include "saved_games.h"
 #include "main.h"
 #include "fn_networking.h"
+#include "fn_saved_games.h"
 
 typedef struct win32_process_information { // Win32 PROCESS_INFORMATION
     void *process;
@@ -67,18 +68,14 @@ extern main_globals main_globals_data;       // 0x00719700
 extern int32_t movie_playback_abort;         // 0x007196d4, UNSURE owner
 extern int32_t autopatch_update_check_state; // 0x0069fe04
 
-extern uint8_t file_reference_create(file_reference_record *ref);                       // 0x5555b0, blam-cc: EAX ref
+
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode);           // 0x5557a0, blam-cc: ESI ref, stack mode
 extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref);         // 0x5558f0, blam-cc: EAX offset, ECX ref
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, blam-cc: EDX ref, ECX buffer, ESI size
 extern uint8_t file_reference_close(file_reference_record *ref);                        // 0x555890, blam-cc: ESI ref
 extern uint8_t file_reference_delete(file_reference_record *ref);                       // 0x555670, blam-cc: ESI ref
 extern void path_remove_last_component(char *path);                                     // 0x555f80, blam-cc: EBX path
-extern void path_append_component(char *destination, const char *component);            // 0x555ec0, blam-cc: ESI destination, EBX component
-extern void path_append_extension(char *destination, const char *suffix);               // 0x555f20, blam-cc: ESI destination, EBX suffix
-extern void path_build_full(char *source, char *destination, int16_t location);         // 0x5560d0, blam-cc: EAX source, EDX destination, CX location
-extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
-    char **name_end_out, char **ext_start_out, uint8_t split_extension);                // 0x556000, blam-cc: EBX, ESI, EDI, then stack
+
 
 static uint32_t autopatch_string_length(const char *string)
 {

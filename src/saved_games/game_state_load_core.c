@@ -15,14 +15,12 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern uint8_t *game_state_base; // 0x006e2dc8
 extern game_state_proc game_state_revert_proc; // 0x0069e7b0
 
-extern uint8_t game_state_read_profile_header(char *name, int32_t size, void *buffer); // 0x539460
-extern uint8_t saved_game_verify_version_and_checksum(game_state_header *header, uint8_t report_error); // 0x538430
-extern void game_state_read_profile_file(char *name, int32_t size, void *buffer); // 0x5394e0
-extern void game_state_dispatch_load_callbacks(void); // 0x537f70
+
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
 
 // blam-cc: name in EAX

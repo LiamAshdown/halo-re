@@ -15,6 +15,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "fn_game.h"
+#include "fn_saved_games.h"
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -23,7 +24,7 @@
 extern uint8_t playlist_profiles_need_defaults; // 0x0069e8d0
 
 extern void string_format_wide_va_bounded(uint16_t *dest, const char *format, ...); // foreign, UNSURE shape, 0x557910
-extern void playlist_profile_create_default_profiles_on_disk(void); // foreign, 0x53bc70
+
 extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag); // foreign, UNSURE shape, 0x53c4e0
 extern uint8_t saved_game_get_variant(int32_t saved_game_id, uint16_t *out_name); // foreign, UNSURE shape
 

@@ -22,15 +22,14 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first,
     checkpoint_enumerate_proc callback, void *user_data); // 0x538e70
-extern uint8_t game_checkpoint_print_list_entry(int32_t index, const char *name, int32_t level_index,
-    int32_t difficulty, int32_t game_time_ticks, const win32_systemtime *time, void *user_data); // 0x539110
-extern uint8_t saved_game_load_checkpoint_by_name(char *name); // 0x5391a0
+
 
 // blam-cc: name in EAX
 // Resolves a checkpoint name and loads it: NULL/empty means "autosave", "*" instead prints the

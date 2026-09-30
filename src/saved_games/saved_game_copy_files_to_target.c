@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 
 // blam-cc: source_directory in ESI, source_name in EDI, then the recognized stack parameter

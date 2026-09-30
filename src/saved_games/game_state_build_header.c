@@ -17,6 +17,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "cache.h"
+#include "fn_saved_games.h"
 
 extern game_state_header *game_state_header_ptr; // 0x006e2de0
 extern uint8_t game_state_header_valid; // 0x006e2dd8

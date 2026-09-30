@@ -29,6 +29,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
 extern file_reference_record savegame_index_file; // 0x00721330
@@ -39,8 +40,8 @@ extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, ES
 extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); // 0x5558f0, EAX offset, ECX ref
 extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size); // 0x555a20, EDX ref, ECX buffer, ESI size
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, EDX ref, ECX buffer, ESI size
-extern uint8_t file_reference_set_length(int32_t offset, file_reference_record *ref); // 0x5559b0, EAX offset, ESI ref
-extern void path_append_component(char *destination, const char *component); // 0x555ec0, ESI destination, EBX component
+
+
 extern void path_remove_last_component(char *path); // 0x555f80, EBX path
 extern uint8_t file_reference_get_size_by_path(file_reference_record *ref, uint32_t *out_size); // 0x555b00, ESI ref, stack out_size
 

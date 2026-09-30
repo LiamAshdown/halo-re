@@ -18,6 +18,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 
 // blam-cc: destination in ESI, component in EBX

@@ -18,14 +18,14 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern uint8_t saved_game_open_file_by_handle(int32_t handle, file_reference_record *out_reference); // 0x53c9f0, not in this batch
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
 extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); // this module
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // this module
 extern uint8_t file_reference_close(file_reference_record *ref); // this module
-extern uint8_t player_profile_rename(int32_t handle, uint16_t *new_name); // 0x53ce80, blam-cc: EAX handle
-extern uint8_t saved_game_delete_by_handle(int32_t handle); // 0x53c960, this module, blam-cc: EDI handle
+
 
 // Checksums `profile` and writes it to the save slot named by `handle`. On a successful close,
 // re-syncs the slot's name/index via player_profile_rename(profile->name) (keeps the on-disk

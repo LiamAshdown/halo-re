@@ -29,6 +29,7 @@
 #include "networking.h"
 #include "main.h"
 #include "fn_game.h"
+#include "fn_saved_games.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -49,7 +50,7 @@ extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0
 extern void main_ensure_local_players(void);    // 0x4c8800, this module
 extern char scenario_load(char *scenario_path); // 0x53e6a0, foreign (game module)
     // blam-cc: EAX -> scenario_path (0x4c961d mov eax,ebp; the callee hands EAX to 0x442290)
-extern void game_state_load_checkpoint(void);    // 0x538280, foreign (game module)
+
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210, foreign (math module)
 extern int64_t performance_frequency; // 0x006ac8f8, foreign (math module)
 

@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_saved_games.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -49,7 +50,7 @@ extern uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text); // 0x4a8
 extern uint8_t ui_variant_name_is_available(const uint16_t *name); // 0x4a8b50, blam-cc: EDI
 extern uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t character); // 0x4a8b80, blam-cc: EAX mode, CL character
 extern uint32_t time_query_performance_counter_ms(void);              // 0x449210, millisecond clock
-extern uint8_t saved_game_name_is_available(const uint16_t *name); // 0x53d1e0, blam-cc: EAX; profile module name test
+
 extern uint8_t saved_item_name_matches(const uint16_t *text); // 0x495e70
 extern uint16_t fortune_easter_egg_text[];         // 0x0066a8b4, L".fortune"
 

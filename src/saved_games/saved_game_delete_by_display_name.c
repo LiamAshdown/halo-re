@@ -25,13 +25,14 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern saved_player_profile default_profile_data; // 0x0071d280
 
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, this module, blam-cc: EBX capacity_and_count
 extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); // 0x53a770, blam-cc: ECX out_buffer
-extern uint8_t saved_game_delete_by_handle(int32_t handle); // 0x53c960, this module, blam-cc: EDI handle
+
 extern void input_apply_named_device_default_profile(const uint16_t *name); // 0x4901b0, blam-cc: EDI name
 
 // blam-cc: search name (narrow) in ECX

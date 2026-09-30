@@ -13,6 +13,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_saved_games.h"
 #include <string.h>
 
 extern uint16_t text_find_character_boundary(uint8_t *string, int16_t *length_inout); // 0x5576d0

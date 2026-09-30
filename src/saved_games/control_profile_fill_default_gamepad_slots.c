@@ -28,6 +28,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern int32_t input_device_count; // 0x006b1844, input.h (0..8 connected input devices)
 extern uint8_t input_devices[]; // 0x006b1868, stride 0x240; UNSURE name

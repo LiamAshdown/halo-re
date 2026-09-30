@@ -38,6 +38,7 @@
 #include "cache.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_saved_games.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -60,11 +61,10 @@ typedef struct rebuild_file_reference {
 extern uint8_t file_reference_exists(rebuild_file_reference *ref); // 0x555720, blam-cc: EAX
 extern void file_enumerate_start(uint32_t flags, rebuild_file_reference *ref); // 0x555b90
 extern uint8_t file_enumerate_find_next(rebuild_file_reference *out_entry, uint32_t *out_write_time); // 0x555c10
-extern void path_append_component(char *destination, const char *component); // 0x555ec0, blam-cc: ESI destination, EBX component
+
 extern void path_remove_last_component(char *path); // 0x555f80, blam-cc: EBX
-extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, blam-cc: EAX, EDX, CX
-extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
-    char **name_end_out, char **ext_start_out, uint8_t split_extension); // 0x556000, blam-cc: EBX, ESI, EDI, stack
+
+
 extern int32_t file_reference_compare_full_path(const void *a, const void *b); // 0x483d20
 
 extern datum_index global_scenario_index; // 0x0069e8d4

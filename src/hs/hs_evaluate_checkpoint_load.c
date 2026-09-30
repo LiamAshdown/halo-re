@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_saved_games.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern uint8_t saved_game_load_checkpoint(char *name); // 0x539290, blam-cc: EAX
 
 void hs_evaluate_checkpoint_load(int16_t function_index, uint32_t thread_index, char first)
 {

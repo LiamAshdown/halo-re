@@ -19,6 +19,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern network_thread_record *variant_write_thread; // 0x00721324
 extern variant_write_request variant_write_request_state; // 0x00721288 (0x29-dword zeroed block

@@ -26,13 +26,14 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern network_thread_record *player_profile_thread; // 0x0072127c
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 
 extern void player_profile_initialize(saved_player_profile *profile, int32_t local_player_index,
     uint8_t merge_existing); // 0x53a1c0
-extern uint16_t *saved_game_get_display_name(int32_t handle); // 0x53c600, not in this batch
+
 extern uint8_t saved_game_open_file_by_handle(int32_t handle, file_reference_record *out_reference); // 0x53c9f0, not in this batch
 extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size); // this module
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0

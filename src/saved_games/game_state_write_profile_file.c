@@ -16,6 +16,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern char game_state_core_directory[0x100]; // 0x006e2efc
 

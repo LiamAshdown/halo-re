@@ -13,6 +13,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 // blam-cc: profile in EDI, gamepad_index in EBX
 // True if the gamepad slot is in use (a nonzero first name word) and any of its button, action,

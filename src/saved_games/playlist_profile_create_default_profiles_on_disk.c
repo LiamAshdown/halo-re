@@ -36,6 +36,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern int16_t default_game_variant_count; // 0x00721328
 extern uint8_t savegame_index_dirty; // 0x00721447
@@ -45,9 +46,9 @@ extern uint16_t missing_string_text[]; // 0x00671fac, the characters of L"<missi
 extern game_variant_defaults_proc default_game_variant_procs[k_default_game_variant_count]; // 0x0069e838
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
-extern void directory_ensure_empty(const char *directory_path); // 0x555520, this module
+
 extern void path_remove_last_component(char *path); // 0x555f80, this module
-extern uint8_t file_reference_create(file_reference_record *ref); // 0x5555b0, this module
+
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, this module
 extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); // 0x5558f0, this module
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, this module

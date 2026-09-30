@@ -18,6 +18,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "fn_game.h"
+#include "fn_saved_games.h"
 
 extern uint8_t savegame_index_dirty; // 0x00721447
 extern char savegames_directory[0x100]; // 0x00721549

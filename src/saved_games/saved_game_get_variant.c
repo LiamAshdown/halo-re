@@ -38,13 +38,14 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern network_thread_record *variant_write_thread; // 0x00721324
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 
 extern game_variant *game_engine_variant_defaults_classic_slayer(game_variant *out); // 0x463c40
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
-extern uint16_t *saved_game_get_display_name(int32_t handle); // 0x53c600, this module
+
 extern uint8_t saved_game_open_file_by_handle(int32_t handle, file_reference_record *out_ref); // 0x53c9f0, this module
 extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size); // 0x555a20, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module

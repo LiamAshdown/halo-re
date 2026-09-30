@@ -29,6 +29,7 @@
 #include "hs.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_saved_games.h"
 
 extern file_reference savegame_index_file; // 0x00721330
 
@@ -36,7 +37,7 @@ extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes
 extern uint8_t file_reference_open(file_reference *reference, int32_t mode); // 0x5557a0;
     // blam-cc: ESI -> reference, stack -> mode
 extern uint32_t file_reference_get_size(file_reference *reference); // 0x555950; blam-cc: EAX -> reference
-extern void path_append_component(char *destination, const char *component); // 0x555ec0;
+
     // blam-cc: EBX -> component, ESI -> reference
 extern void path_remove_last_component(uint8_t *path); // 0x555f80; blam-cc: EBX -> path
     // (called with file_reference + 8, i.e. the path field itself)

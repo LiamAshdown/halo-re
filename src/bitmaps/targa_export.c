@@ -25,8 +25,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
-extern uint8_t file_reference_create(file_reference_record *ref); // 0x5555b0, src/saved_games/file_reference_create.c
+
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, src/saved_games/file_reference_open.c
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, src/saved_games/file_reference_write.c
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, src/saved_games/file_reference_close.c

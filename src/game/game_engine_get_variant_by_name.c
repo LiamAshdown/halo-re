@@ -35,6 +35,7 @@
 #include "math.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_saved_games.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -87,7 +88,7 @@ extern void game_engine_variant_defaults_assault(game_variant *out); // 0x467270
 extern void string_convert_ascii_to_unicode(wchar_t *out_name, int32_t max_chars); // 0x557990, not in this batch;
     // blam-cc: EAX -> out_name, EDI -> max_chars. UNSURE identity, but it is what fills the
     // 24-wchar buffer the custom-variant scan then compares against (objdump 0x4629bc: EDI = 0x30).
-extern void playlist_profile_create_default_profiles_on_disk(void); // 0x53bc70
+
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
     // 0x53c4e0; blam-cc: EBX -> an in/out capacity-then-count int32 (100 in, the number of

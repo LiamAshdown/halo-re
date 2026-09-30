@@ -21,6 +21,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_saved_games.h"
 
 extern uint8_t loading_thread_result;                    // 0x00718fc0
 extern uint8_t playlist_profiles_need_defaults;    // 0x0069e8d0, TYPES-GAP
@@ -28,7 +29,7 @@ extern char last_profile_name[];                          // 0x00718e80
 extern int32_t cached_profile_slot;                       // 0x0068e66c
 
 extern uint32_t saved_game_check_storage_availability(void); // 0x53d120
-extern void playlist_profile_create_default_profiles_on_disk(void); // 0x53bc70
+
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
 extern uint8_t saved_game_last_profile_read(char *name_buffer); // 0x53d2b0

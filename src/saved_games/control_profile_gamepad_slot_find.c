@@ -19,6 +19,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 // blam-cc: profile in EDX, key in EBX
 // Searches the profile's four gamepad slots for one whose device_key matches key's device_key

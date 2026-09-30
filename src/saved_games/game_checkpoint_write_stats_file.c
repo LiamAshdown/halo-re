@@ -21,6 +21,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern game_time_globals *game_time; // 0x006f1d6c

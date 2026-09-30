@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern char unknown_00719779[]; // 0x00719779, UNSURE: current scenario/level name buffer
 extern game_main_globals *main_game_globals; // 0x006b0b80

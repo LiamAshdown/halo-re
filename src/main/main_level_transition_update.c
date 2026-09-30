@@ -34,6 +34,7 @@
 #include "networking.h"
 #include "main.h"
 #include "fn_game.h"
+#include "fn_saved_games.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -57,7 +58,7 @@ extern int32_t _access(const char *path, int32_t mode); // 0x624236, UNSURE, CRT
 extern void main_menu_music_stop(void);            // 0x4c8b40, this module
 extern void game_scenario_session_begin(network_scenario_load_request *request); // 0x4c95f0, this module
 extern void main_menu_on_shown(int32_t fade_milliseconds); // 0x498ab0, foreign (interface module)
-extern void player_profile_select_local_slot(int16_t local_player_index); // 0x539cb0, foreign (saved_games module)
+
 extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0x45aea0, foreign (game module)
     // blam-cc: EAX -> path, BL -> apply_state
 

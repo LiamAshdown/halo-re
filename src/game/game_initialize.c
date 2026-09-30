@@ -33,6 +33,7 @@
 #include "fn_structures.h"
 #include "fn_memory.h"
 #include "fn_effects.h"
+#include "fn_saved_games.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -70,13 +71,12 @@ extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d0
 
     // memory module; blam-cc: element size in EBX, then the stack pair (name, maximum_count)
 
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
+
     // maximum_count. CORRECTED by review: the first pass dropped the EBX element size
     // (Ghidra never shows it), which is the same 3-argument form players_initialize.c
     // uses and which types/game.h's own header note derives. The sizes below come from
     // objdump -d --start-address=0x45a9c0 --stop-address=0x45b050.
     // NOTE: src/hs still declares the 2-argument view of this function.
-extern void saved_game_files_initialize(void);                       // 0x53c260
 
 
 // One-time post-map-load initialization that bump-allocates every particle/effect/render-state

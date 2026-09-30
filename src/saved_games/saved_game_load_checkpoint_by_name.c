@@ -24,15 +24,15 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern int16_t pending_difficulty; // 0x00696564
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
-extern int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *name,
-    int32_t *out_game_time, win32_systemtime *out_time); // 0x538c60
+
 extern void main_queue_map_change(char *map_name); // 0x4c8740, blam-cc: EAX -> map_name
-extern uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_name, char *target_name); // 0x5387e0
+
 
 extern char *campaign_level_paths[10]; // 0x00696574
 

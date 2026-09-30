@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_saved_games.h"
 
 extern data_array *flag_data; // 0x008603a8
 
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 
 void flags_initialize(void)
 {

@@ -18,6 +18,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "cache.h"
+#include "fn_saved_games.h"
 
 extern uint16_t game_time_force_single_tick; // 0x007196d8, UNSURE: guards this whole path
 extern int16_t pending_difficulty; // 0x00696564
@@ -25,12 +26,6 @@ extern uint8_t *game_state_base; // 0x006e2dc8
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern game_state_proc game_state_revert_proc; // 0x0069e7b0
 
-extern uint8_t saved_game_validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_buffer,
-    uint32_t *expected_crc, uint8_t *corrupt_flag); // 0x539570
-extern uint8_t saved_game_verify_version_and_checksum(game_state_header *header, uint8_t report_error); // 0x538430
-extern void game_state_read_persistent_storage_block(int32_t size, void *buffer); // 0x539850, blam-cc: EAX size
-extern void game_state_dispatch_load_callbacks(void); // 0x537f70
-extern void game_state_perform_save(uint8_t is_checkpoint); // 0x5381c0
 
 void game_state_load_checkpoint(void)
 {

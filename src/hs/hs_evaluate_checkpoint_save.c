@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_saved_games.h"
 
-
-extern uint8_t game_checkpoint_save_new(void); // 0x538db0
 
 void hs_evaluate_checkpoint_save(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -37,6 +37,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "fn_game.h"
+#include "fn_saved_games.h"
 
 extern uint8_t savegame_index_dirty; // 0x00721447
 extern int16_t quit_confirm_error_string_index; // 0x00718fac, UNSURE name (interface error code slot)
@@ -45,14 +46,14 @@ extern uint8_t quit_confirm_error_modal; // 0x00718fb0
 extern uint8_t quit_confirm_error_is_error; // 0x00718fb1
 extern char savegames_directory[0x100]; // 0x00721549
 
-extern void saved_game_list_rebuild_index(void); // 0x53d720, this module
+
 extern int32_t saved_game_check_storage_availability(void); // 0x53d120, this module
 extern int32_t savegame_index_get_slot_count(void); // 0x53e420, FUN_0053e420 (src/game)
 
 extern uint8_t savegame_index_append_slot(const saved_game_index_entry *entry, int32_t *out_slot); // 0x53e300, FUN_0053e300 (src/game); bool in AL
 extern void *game_state_open_persistent_storage(char *directory_path); // 0x5398e0, outside this batch
-extern file_reference_record *file_reference_init(file_reference_record *ref, const char *component, uint8_t is_file); // 0x5554c0, this module
-extern uint8_t file_reference_create(file_reference_record *ref); // 0x5555b0, this module
+
+
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, this module

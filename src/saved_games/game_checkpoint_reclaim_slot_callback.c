@@ -21,6 +21,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 
 uint8_t game_checkpoint_reclaim_slot_callback(int32_t index, const char *name, int32_t level_index,

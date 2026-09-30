@@ -58,6 +58,7 @@
 #include "fn_cache.h"
 #include "fn_scenario.h"
 #include "fn_networking.h"
+#include "fn_saved_games.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -123,10 +124,10 @@ extern uint8_t network_autojoin_from_command_line(void);                    // 0
 extern void movie_play_bink(const char *movie_path);                        // this module, 0x43ed20
 extern uint32_t game_frame_rate_average_update(void);                       // this module, 0x4c6e80
 extern void main_switch_structure_bsp_and_notify(void);                     // this module, 0x4c9b60
-extern void game_state_perform_revert(void);                                // 0x538200, foreign (saved_games)
+
 extern void campaign_level_advance(void);                                   // this module, 0x4c9bd0
 
-extern uint8_t game_state_queue_write(uint8_t is_checkpoint);               // 0x538700, returns in AL
+
 extern void hud_display_checkpoint_message(uint8_t is_begin);               // 0x4aa310, foreign (interface)
     // blam-cc: DL -> is_begin
 extern void main_level_transition_update(void);                             // this module, 0x4c9770
@@ -138,11 +139,10 @@ extern void input_reset_state_and_axis_configs(void);                       // 0
 extern void main_ensure_local_players(void);                                // this module, 0x4c8800
 
 
-extern uint8_t game_state_write_profile_file(int32_t size, char *name, const void *buffer); // 0x5393d0
     // blam-cc: EDI -> size, stack -> name, buffer
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // this module, 0x4c67c0
     // blam-cc: AL -> clear_first
-extern void game_state_load_core(char *name);                               // 0x538390, foreign (saved_games)
+
     // blam-cc: EAX -> name
 extern void main_menu_return_and_reset(void);                               // this module, 0x4c8a60
 extern void game_engine_flush_pending_simulation_ticks(void);               // this module, 0x4c99e0

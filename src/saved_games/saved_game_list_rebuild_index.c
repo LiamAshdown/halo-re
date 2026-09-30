@@ -33,6 +33,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 extern char savegames_directory[0x100]; // 0x00721549
@@ -41,17 +42,15 @@ extern int16_t savegame_index_write_count; // 0x00721444
 extern uint8_t saved_game_index_file_open; // 0x00721448
 extern uint8_t savegame_index_dirty; // 0x00721447
 
-extern uint8_t saved_game_index_open_for_write(void); // 0x53daa0, this module
-extern int16_t saved_game_index_register_default_playlists(void); // 0x53db40, this module
-extern int16_t saved_game_index_register_default_profiles(void); // 0x53dde0, this module
+
 extern void path_remove_last_component(char *path); // 0x555f80, this module
-extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
+
 extern uint8_t file_reference_exists(file_reference_record *ref); // 0x555720, this module
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, this module
 extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size); // 0x555a20, this module
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
-extern void saved_games_report_last_error(void); // 0x556170, this module
+
 
 extern int32_t savegame_find_first(const char *root, void *out_find_data); // 0x551bc0, game module; blam-cc: EAX out_find_data, stack root
 extern uint8_t savegame_find_next(void *out_find_data, int32_t handle); // 0x551d30, game module; blam-cc: EAX out_find_data, ECX handle

@@ -15,6 +15,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern uint8_t checkpoint_sort_newest_first; // 0x0069e7e8
 

@@ -15,11 +15,12 @@
 #include "objects.h"
 #include "effects.h"
 #include "fn_effects.h"
+#include "fn_saved_games.h"
 
 extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8
 
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
+
     // blam-cc: EBX -> element_size, stack -> (name, maximum_count)
 
 // Registers the contrail and contrail-point datum tables. If only one of the two allocations

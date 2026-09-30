@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_saved_games.h"
 
 extern data_array *game_looping_sound_data;  // 0x007461a0
 extern game_sound_globals *game_sound_globals_ptr; // 0x007461a4
@@ -23,7 +24,7 @@ extern int32_t game_state_cursor;  // 0x006e2dcc
 extern uint32_t game_state_crc;    // 0x006e2dd4
 
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
+
     // blam-cc: EBX -> element_size, stack -> (name, maximum_count); see src/ai/actors_initialize.c
 
 // Allocates the object-looping-sounds datum array and registers the game_sound_globals block

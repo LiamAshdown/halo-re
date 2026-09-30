@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "fn_effects.h"
+#include "fn_saved_games.h"
 
 extern data_array *decal_data;          // 0x0087abe4
 extern decal_grid *decal_grid_block;    // 0x006b0ad8
@@ -27,7 +28,7 @@ extern uint8_t *game_state_base;        // 0x006e2dc8
 extern int32_t game_state_cursor;       // 0x006e2dcc
 extern uint32_t game_state_crc;         // 0x006e2dd4
 
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
+
     // blam-cc: EBX -> element_size, stack -> (name, maximum_count)
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0, memory module
 extern void rasterizer_decals_initialize(void); // 0x51a6a0

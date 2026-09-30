@@ -18,6 +18,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern char saved_game_root_path[0x100]; // 0x006e3108
 extern file_reference_record savegame_index_file; // 0x00721330
@@ -25,8 +26,8 @@ extern int16_t savegame_index_write_count; // 0x00721444
 extern uint8_t saved_game_index_file_open; // 0x00721448
 
 extern void path_remove_last_component(char *path); // 0x555f80, this module
-extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
-extern uint8_t file_reference_create(file_reference_record *ref); // 0x5555b0, this module
+
+
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, this module
 
 // blam-cc: no arguments

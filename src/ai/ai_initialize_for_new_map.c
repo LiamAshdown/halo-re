@@ -17,6 +17,7 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_saved_games.h"
 #include <string.h>
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
@@ -27,7 +28,6 @@ extern int32_t game_state_cursor;  // 0x006e2dcc
 extern uint32_t game_state_crc;    // 0x006e2dd4
 
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 
 
 extern char prop_array_name[]; // 0x0065f008, the literal "prop"

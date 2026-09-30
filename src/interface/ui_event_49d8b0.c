@@ -26,18 +26,19 @@
 #include "units.h"
 #include "fn_game.h"
 #include "fn_memory.h"
+#include "fn_saved_games.h"
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern uint8_t variant_carousel_slots[0x1d4]; // 0x00879d60 (variant_carousel_slot[3])
 extern heap *widget_memory_pool; // 0x006926c4
 
 extern uint8_t playlist_profiles_need_defaults; // 0x0069e8d0
-extern void playlist_profile_create_default_profiles_on_disk(void); // 0x53bc70
+
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count); // 0x53c4e0, blam-cc: EBX capacity_and_count
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current; // 0x00692c04
 extern uint8_t ui_list_has_default; // 0x007192f8
-extern uint8_t saved_game_last_mp_variant_read(uint8_t *out_data); // 0x53d3f0
+
 extern int32_t saved_game_find_by_name(char *name, int16_t type); // 0x53d4a0
 
 extern uint8_t saved_game_get_variant(int32_t handle, void *out); // 0x53bee0

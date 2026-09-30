@@ -15,11 +15,11 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern char last_multiplayer_map_path[0x100]; // 0x00721d49
 
-extern file_reference_record *file_reference_init(file_reference_record *ref, const char *component, uint8_t is_file); // 0x5554c0, this module
-extern uint8_t file_reference_create(file_reference_record *ref); // 0x5555b0, this module
+
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, this module

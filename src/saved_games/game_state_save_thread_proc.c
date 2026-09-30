@@ -21,6 +21,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern void *game_state_write_event; // 0x006e2ffc
@@ -33,9 +34,7 @@ extern uint8_t game_state_write_completed; // 0x006e2df5
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
-extern void game_state_write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, int32_t header_size, int32_t total_size); // 0x539710
-extern void game_checkpoint_write_stats_file(char *scenario_name, int32_t difficulty); // 0x538b70
-extern uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_name, char *target_name); // 0x5387e0
+
 
 void game_state_save_thread_proc(void)
 {

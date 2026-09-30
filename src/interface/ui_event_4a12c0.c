@@ -14,9 +14,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_saved_games.h"
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
-extern uint8_t saved_game_delete_by_handle(int32_t handle); // 0x53c960, blam-cc: EDI handle
+
 
 uint8_t ui_event_4a12c0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

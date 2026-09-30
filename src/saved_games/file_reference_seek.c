@@ -16,8 +16,8 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
-extern void saved_games_report_last_error(void); // 0x556170, this module
 
 // blam-cc: EAX -> offset, ECX -> ref
 // Seeks ref's open handle to an absolute byte offset. Returns 1 on success, 0 on failure (after

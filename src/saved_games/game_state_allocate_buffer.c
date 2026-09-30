@@ -19,6 +19,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern void *map_memory; // 0x006ac548
 extern uint8_t *game_state_snapshot_source; // 0x006e2dec
@@ -31,7 +32,6 @@ extern char game_state_core_directory[0x100]; // 0x006e2efc
 extern uint8_t game_state_write_in_progress; // 0x006e3000
 extern void *game_state_write_event; // 0x006e2ffc
 
-extern void game_state_save_thread_proc(void); // 0x538980
 
 // blam-cc: cpu_size as the recognized stack parameter, extra_size in ECX
 // Allocates the game-state working buffer (cpu_size + extra_size bytes), builds the

@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_saved_games.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void saved_game_delete_by_display_name(const char *name); // 0x53b9b0, blam-cc: ECX
 
 void hs_evaluate_profile_load(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_saved_games.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -29,7 +30,7 @@ extern data_array *team_data;                              // 0x0087a47c, "teams
 extern player_globals *local_player_globals;                // 0x0087a478, 0x98 of game state
 extern player_control_globals *player_control_globals_ptr;  // 0x006b145c, 0x50 of game state
 
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
+
     // 0x5380d0, blam-cc: EBX -> element_size, then the stack pair (name, maximum_count).
     // Builds a full data_array header (name, maximum_count, element size, 'd@t@' signature,
     // data pointer) out of the game-state arena, exactly like data_new but bump-allocating

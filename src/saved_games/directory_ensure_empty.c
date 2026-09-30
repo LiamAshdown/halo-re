@@ -17,10 +17,11 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
-extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
+
 extern uint8_t file_reference_exists(file_reference_record *ref); // 0x555720, this module
-extern uint8_t file_reference_create(file_reference_record *ref); // 0x5555b0, this module
+
 extern void file_enumerate_start(uint32_t flags, file_reference_record *ref); // 0x555b90, this module
 extern uint8_t file_enumerate_find_next(file_reference_record *out_entry, uint32_t *out_write_time); // 0x555c10, this module
 extern uint8_t file_reference_delete(file_reference_record *ref); // 0x555670, this module

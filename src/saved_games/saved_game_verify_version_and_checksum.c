@@ -21,6 +21,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "cache.h"
+#include "fn_saved_games.h"
 
 extern uint32_t game_state_crc; // 0x006e2dd4
 extern int16_t local_player_count; // 0x006894b8

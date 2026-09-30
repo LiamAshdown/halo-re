@@ -27,6 +27,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 
@@ -34,8 +35,8 @@ extern uint8_t saved_game_open_file_by_handle(int32_t handle, file_reference_rec
 extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref); // 0x5558f0, this module
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
-extern uint8_t player_profile_rename(int32_t handle, uint16_t *new_name); // 0x53ce80, this module, blam-cc: EAX handle
-extern uint8_t saved_game_delete_by_handle(int32_t handle); // 0x53c960, this module
+
+
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
 
 // blam-cc: one stack argument (request)

@@ -19,6 +19,7 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_saved_games.h"
 
 extern data_array *encounter_data;                            // 0x008802c8
 extern encounter_squad_state *encounter_squad_states;         // 0x008802cc
@@ -28,7 +29,7 @@ extern uint8_t *game_state_base;   // 0x006e2dc8
 extern int32_t game_state_cursor;  // 0x006e2dcc
 extern uint32_t game_state_crc;    // 0x006e2dd4
 
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
+
     // blam-cc: EBX -> element_size, stack -> (name, maximum_count)
 extern void crc32_update(uint32_t *crc, void *data, int32_t length); // 0x4d02d0
 

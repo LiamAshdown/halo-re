@@ -22,8 +22,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
-extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
+
 extern void path_remove_last_component(char *path); // 0x555f80, this module
 
 // blam-cc: plain stack arguments (ref, component, is_file)

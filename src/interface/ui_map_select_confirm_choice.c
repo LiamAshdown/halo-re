@@ -39,6 +39,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_cache.h"
+#include "fn_saved_games.h"
 
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current;      // 0x00692c04
@@ -47,7 +48,7 @@ extern int32_t map_list_count;       // 0x00712dd0
 
 
 extern void main_queue_map_change_by_name_or_clear(char *name);              // 0x4c87a0, blam-cc: EDI name
-extern void saved_game_last_mp_map_clear(const void *data);                  // 0x53d5e0, cdecl
+
 extern void widget_play_sound_effect(int16_t effect_id);                     // 0x498e90, blam-cc: AX effect_id
 
 // Accepts the selected entry of the multiplayer map list: if its cache file exists, queues the

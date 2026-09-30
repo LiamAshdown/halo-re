@@ -17,6 +17,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_saved_games.h"
 
 extern uint8_t *game_state_base; // 0x006e2dc8
 extern int32_t game_state_cursor; // 0x006e2dcc
