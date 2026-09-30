@@ -57,7 +57,7 @@ extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t
     int16_t stimulus_value); // 0x42c2a0, EDX, BX, DI (post-fire cue)
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index,
     int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
-extern void weapon_reload_recovery_finish(datum_index item_index, int16_t trigger_index); // 0x4c4940
+extern void weapon_reload_recovery_finish(datum_index item_index); // 0x4c4940, EBX item_index
 extern void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index); // 0x4c48f0
 extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
     real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
@@ -343,7 +343,7 @@ tail:
     if (weapon_tag->heat_detonation_threshold < wd->heat) {
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         if ((real)(random_seed_global >> 0x10) * 1.5259022e-05f < weapon_tag->heat_detonation_fraction) {
-            weapon_reload_recovery_finish(item_index, trigger_index);
+            weapon_reload_recovery_finish(item_index);
         }
     }
 
