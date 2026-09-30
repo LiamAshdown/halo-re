@@ -7,6 +7,8 @@
 // register convention: DX -> start_index; stack -> list, radius, out_bitmask.
 //   // blam-cc: EDX -> start_index, stack -> list, radius, out_bitmask
 //
+// VERIFIED against disassembly 0x43ca40..0x43cb5c (2026-09-30): frame, bitmask clear, worklist, radius sum order and the
+//   <= compare match (the 128-entry int16 worklist is the [esp+0x10] area).
 // UNSURE: the `asStack_10100[32760]` stack array Ghidra shows in the original is never read
 // or written anywhere in the decompiled body and is omitted here as dead/unused stack space
 // (a 128-entry `int16_t` worklist, `local_100`, is the one actually used).
@@ -42,7 +44,7 @@ void ai_search_flood_fill_group(ai_search_obstacle_list *list, float radius, uin
                 for (j = 0; j < list->count; j = j + 1) {
                     uint32_t bit = 1u << (j & 0x1f);
                     if ((out_bitmask[j >> 5] & bit) == 0) {
-                        float combined_radius = radius + cur->radius + radius + list->obstacles[j].radius;
+                        float combined_radius = (radius + list->obstacles[j].radius) + (radius + cur->radius); // 0x43caec..0x43cb08 order
                         float dx = list->obstacles[j].position.x - cur->position.x;
                         float dy = list->obstacles[j].position.y - cur->position.y;
                         if (dy * dy + dx * dx <= combined_radius * combined_radius) {

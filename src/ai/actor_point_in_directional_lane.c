@@ -33,6 +33,8 @@ extern double sqrt(double x); // FSQRT
 extern double fabs(double x);
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX
 
+// VERIFIED against disassembly 0x414990..0x414a8e (2026-09-30): the 0.0001 (double) length test, the normalisation, the
+//   three thresholds and the cross-sign selector all match the code below.
 // blam-cc: EAX -> to_point, ECX -> forward, EDX -> cone_axis, stack -> min_cos_threshold,
 //   stack -> side_thresholds
 // Five-stage gate over the horizontal (x,y) components of three vectors: to_point must have

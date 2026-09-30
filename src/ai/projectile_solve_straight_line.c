@@ -33,6 +33,8 @@
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
 
+// VERIFIED against disassembly 0x4bee20..0x4beeb2 (2026-09-30): delta, in-place normalisation (ECX), time, stores and the
+//   NULL tests on EBX/EDI/EBP match.
 // Computes the straight-line direction (unnormalized, target - origin) from *origin to *target,
 // its length, and the flight time at the given speed (0 when speed is not positive). Writes the
 // direction to *out_direction unconditionally; out_speed_echo, out_length and out_time_of_flight
@@ -49,7 +51,7 @@ uint8_t projectile_solve_straight_line(real_point3d *target, real_point3d *origi
     scratch.k = target->z - origin->z;
     length = vector3d_normalize_with_length(&scratch);
 
-    if (speed <= 0.0f) {
+    if (!(speed > 0.0f)) { // 0x4bee59: fcomp 0; jne (<= 0 or unordered)
         time_fraction = 0.0f;
     } else {
         time_fraction = length / speed;

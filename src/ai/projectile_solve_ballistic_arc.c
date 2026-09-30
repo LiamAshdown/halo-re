@@ -41,6 +41,10 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math 
 extern const real_vector3d *global_up3d_pointer; // 0x00696720 == 0x0065c224 (types/math.h)
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
+// VERIFIED (logic) against disassembly 0x4beb30..0x4bee17 (2026-09-30): every branch, constant, stack argument slot and
+//   output store was traced through the x87 stack and matches. STILL-UNSURE: the original keeps intermediates in 80-bit
+//   registers (gravity, shallow_speed, discriminant are never rounded between operations), the C rounds each to float,
+//   so tiny gravity scales can differ (underflow of gravity^2 -> NaN) even though the algorithm is identical.
 // Solves a gravity-arc firing solution from *origin to *target: gravity is
 // k_physics_gravity * gravity_scale (clamped to >= 0), the launch speed is capped by
 // speed_limit (or by *max_speed_override when non-NULL, which also skips the max_time-derived
@@ -62,6 +66,7 @@ uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origi
     real chosen_max, t, vertical_velocity, inv_t;
     real_vector3d dir;
     real length;
+    real horizontal_speed;
     uint8_t used_root;
 
     dx = target->x - origin->x;
@@ -122,6 +127,7 @@ have_root:
     dir.j = dy * inv_t;
     vertical_velocity = t * gravity * 0.5f + inv_t * dz;
     dir.k = vertical_velocity;
+    horizontal_speed = (real)sqrt((double)(dir.j * dir.j + dir.i * dir.i)); // 0x4bed38..0x4bed4a, before the normalise
 
     length = vector3d_normalize_with_length(&dir);
     if (length == 0.0f) {
@@ -150,7 +156,7 @@ have_root:
         *out_half_gravity_term = vertical_velocity;
     }
     if (out_horizontal_speed != (real *)0) {
-        *out_horizontal_speed = (real)sqrt((double)(dx * inv_t * (dx * inv_t) + dy * inv_t * (dy * inv_t)));
+        *out_horizontal_speed = horizontal_speed;
     }
     if (out_time_of_flight != (real *)0) {
         *out_time_of_flight = t;

@@ -21,6 +21,8 @@
 #include "math.h"
 #include "ai.h"
 
+// VERIFIED against disassembly 0x43b2b0..0x43b2e8 (2026-09-30): probe order, wrap mask, node stride 0x34 and offsets
+//   (hash 0xe08a, vertex_id 0x8c) match; the difftest hang is a random table with no empty slot.
 // blam-cc: EDX -> context, ESI -> vertex_id
 int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id)
 {

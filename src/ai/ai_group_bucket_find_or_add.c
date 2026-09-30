@@ -26,6 +26,8 @@
 
 // ai_group_bucket_entry now lives in types/ai.h (folded from this file).
 
+// VERIFIED against disassembly 0x420de0..0x420e46 (2026-09-30): search, capacity test and the seven field initialisers
+//   (stride 0x1c) match; the original returns EAX = 0xffff0000|index for a new entry (only AX is meaningful).
 // blam-cc: EAX -> buckets, EBX -> key, EDI -> count, stack -> capacity
 // Finds or allocates a small fixed-capacity aggregation-bucket slot keyed by an id, used by the
 // nearby-actor scanning helpers to group results per actor type. Returns the slot index, or -1
