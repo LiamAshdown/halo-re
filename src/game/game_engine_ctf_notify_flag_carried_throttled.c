@@ -6,14 +6,8 @@
 //   0x78 ticks == 4.0 s at k_game_ticks_per_second (30).
 // register convention: no parameters.
 //   // blam-cc: EDI -> target_player
-// FIXED (register inputs, objdump): EDI carries target_player (read at 0x4689f8, the call to
-// game_engine_queue_multiplayer_sound, which its own file documents as reading EDI for the
-// target player at the true machine ABI level, even though its own C rewrite deliberately
-// dropped that register to keep its ~20 existing single-parameter callers compiling). This
-// function's EDI is never written before that call, so it is a genuine pass-through input; it is
-// added as a parameter here so the register is accounted for, but left unused in the body since
-// game_engine_queue_multiplayer_sound.c is outside this batch and its C signature has no way to
-// receive it.
+// EDI carries target_player (never written here, so a pass-through input read by game_engine_queue_multiplayer_sound at 0x4689f8);
+// it is forwarded to that call below.
 // FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
 //   call(s) here now pass all three as the binary loads them (they passed one value before).
 
@@ -31,7 +25,6 @@ extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index
 // blam-cc: EDI -> target_player
 void game_engine_ctf_notify_flag_carried_throttled(int32_t target_player)
 {
-    (void)target_player; // see FIXED note above: genuine input, not forwardable here
     if (ctf_notify_throttle_tick < game_time->game_time) {
         game_engine_queue_multiplayer_sound(0x1c, (datum_index)target_player, 1); // 0x4689f1..0x4689f8
         ctf_notify_throttle_tick = game_time->game_time + 0x78;
