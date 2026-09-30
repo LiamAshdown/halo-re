@@ -1,6 +1,7 @@
 // rasterizer_lens_flare_batching_select_mode  (Ghidra: FUN_00537130)
 // address 0x537130, size 1054 bytes
-// name confidence: 0.4   rewrite confidence: 0.7
+// VERIFIED against disassembly 0x537130..0x53754e (2026-09-30): both modes: every render/texture-stage/sampler state, the effect begin/pass branch, and the batch key reset
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: functions.md summary ("Selects a rendering technique/mode (values 5 and 6 observed)
 //   and, for mode 5, resets all per-frame state used by the screen-space sprite (lens-flare/decal)
 //   batching system"). Ghidra's decompile of every SetRenderState/SetTextureStageState/
@@ -12,7 +13,7 @@
 // register convention: AX -> mode, ECX -> flags (in_ECX; bit0 selects ZENABLE, bit1 selects
 //   SHADEMODE, both only for mode 5).
 // blam-cc: AX -> mode, ECX -> flags
-// UNSURE: `unknown_0069da10` is read once through a dead compare against the literal address
+// NOTE: `unknown_0069da10` is read once through a dead compare against the literal address
 //   0x69da10 (always false, omitted here as in the other files in this range) before the real
 //   null check; and 0x0071d278 (rasterizer_effect_pool_scratch, per lens_flare_render_all.c) is
 //   set to `&unknown_0069da10` itself (a pointer to the variable, not its value), matching that
@@ -27,7 +28,7 @@
 extern void *rasterizer_device; // 0x0071d174
 extern uint8_t console_debug_toggle_689425; // 0x00689425
 extern uint8_t lens_flare_occlusion_queries_supported; // 0x006e1dc0
-extern void *unknown_0069da10; // 0x0069da10 UNSURE: an ID3DXEffect-shaped object, see file header
+extern void *unknown_0069da10; // 0x0069da10 an ID3DXEffect-shaped object, see file header
 extern void *rasterizer_effect_pool_scratch; // 0x0071d278
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 extern uint32_t lens_flare_batch_clock; // 0x00746fa8
@@ -104,7 +105,7 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         set_render_state(0x1c, 0);  // FOGENABLE = FALSE
     }
 
-    rasterizer_effect_pool_scratch = &unknown_0069da10; // see file header UNSURE note
+    rasterizer_effect_pool_scratch = &unknown_0069da10; // see file header note
     if (unknown_0069da10 != 0) {
         void **effect_vt = *(void ***)unknown_0069da10;
         uint32_t pass_count = 0;
