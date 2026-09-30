@@ -1181,7 +1181,7 @@ typedef struct autopatch_download_slot {
 // global 0x007227c0: network_mutex_record *autopatch_download_mutex
 // global 0x007227c4: network_thread_record *autopatch_download_thread
 // global 0x007227bc: uint8_t autopatch_download_pool_stop
-// global 0x007227c8: int32_t autopatch_download_active_count
+// global 0x007227c8: uint8_t autopatch_download_active_count   (BYTE: 0x576ba4 / 0x576bae / 0x576d9c / 0x576de9 all access one byte)
 // The build string 0x577310 and 0x578190 hand out is 01.00.10.0621.
 
 // ---------------------------------------------------------------------------

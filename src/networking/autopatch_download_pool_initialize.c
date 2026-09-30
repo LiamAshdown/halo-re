@@ -22,13 +22,17 @@ extern network_thread_record network_thread_table[k_network_thread_table_count];
 extern network_mutex_record *autopatch_download_mutex;   // 0x007227c0
 extern network_thread_record *autopatch_download_thread; // 0x007227c4
 extern uint8_t autopatch_download_pool_stop;              // 0x007227bc, set to 1 once init has run
-extern int32_t autopatch_download_active_count;           // 0x007227c8, UNSURE: used as a stop signal, see autopatch_download_worker_thread.c
+extern uint8_t autopatch_download_active_count;           // 0x007227c8, UNSURE: used as a stop signal, see autopatch_download_worker_thread.c
 
 extern void ghttpStartup(void); // foreign, UNSURE
 
-extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
+extern int32_t _snprintf(char *buffer, uint32_t count, const char *format, ...);
 extern uint32_t autopatch_download_worker_thread(void); // 0x576b80, this module
 
+// VERIFIED against disassembly 0x576c30..0x576db0 (2026-09-30): slot init (5 dwords, request id -1), the 32 entry 0x28 byte
+//   mutex scan (in_use at +0x24, name at +4), the 32 entry 8 byte thread scan, the CreateThread/SetThreadPriority/ResumeThread
+//   sequence and the cleanup match. Fixed: 0x7227c8 (autopatch_download_active_count) is a BYTE everywhere in the original (the
+//   4-byte C store clobbered 0x7227c9..0x7227cb), and the mutex name uses the CRT _snprintf.
 // Initializes the two-slot asynchronous download table, then inline-allocates a named mutex
 // (mirroring mutex_create) and a suspended worker thread (mirroring network_thread_create),
 // resuming it on success. Returns 1 once the pool is fully up, 0 if the mutex or thread could
@@ -66,7 +70,7 @@ uint8_t autopatch_download_pool_initialize(void)
     if (mutex_slot != 0) {
         int32_t name_index = network_mutex_name_counter;
         network_mutex_name_counter = network_mutex_name_counter + 1;
-        snprintf(mutex_slot->name, 0x20, "mutex_%ld", name_index);
+        _snprintf(mutex_slot->name, 0x20, "mutex_%ld", name_index); // 0x576cbb: CRT _snprintf (0x623a2d)
         mutex_slot->handle = CreateMutexA(0, 0, 0);
         if (mutex_slot->handle == 0) {
             mutex_slot = 0;
