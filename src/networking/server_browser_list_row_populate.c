@@ -37,7 +37,7 @@ extern wchar_t empty_string[]; // see UNSURE
 extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[]; // ping format string, see UNSURE
 
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, memory module
-extern heap widget_memory_pool; // 0x006926c4
+extern heap *widget_memory_pool; //  0x006926c4 -- the global holds a POINTER to the heap (mov esi,[0x6926c4] at every call site)
 // blam-cc: EAX -> dest, EDI -> dest capacity in BYTES, EBX -> ASCII source.
 // Widens an ASCII string into dest and returns dest, or NULL when it does not fit.
 extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source); // 0x557990
@@ -62,7 +62,7 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w2 = w1->next_sibling;
     w1->highlight_flag = 1;
     w1->visible = flag2 != 0;
-    text = (wchar_t *)heap_reallocate(0, 0x80, &widget_memory_pool);
+    text = (wchar_t *)heap_reallocate(0, 0x80, widget_memory_pool);
     w2->label_text = text;
     if (text != 0) {
         wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, server_name);
@@ -70,7 +70,7 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         *(uint16_t *)((uint8_t *)w2->label_text + 0x7e) = 0;
     }
     w1 = w2->next_sibling;
-    text = (wchar_t *)heap_reallocate(0, 0x40, &widget_memory_pool);
+    text = (wchar_t *)heap_reallocate(0, 0x40, widget_memory_pool);
     w1->label_text = text;
     if (text != 0) {
         wcsncpy(text, map_name, 0x1f);
@@ -80,7 +80,7 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w2 = w1->next_sibling;
     w1->highlight_flag = 1;
     w1->visible = flag3 != 0;
-    text = (wchar_t *)heap_reallocate(0, 0x40, &widget_memory_pool);
+    text = (wchar_t *)heap_reallocate(0, 0x40, widget_memory_pool);
     w2->label_text = text;
     if (text != 0) {
         wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, gametype_name);
@@ -88,7 +88,7 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         *(uint16_t *)((uint8_t *)w2->label_text + 0x3e) = 0;
     }
     w1 = w2->next_sibling;
-    text = (wchar_t *)heap_reallocate(0, 0x40, &widget_memory_pool);
+    text = (wchar_t *)heap_reallocate(0, 0x40, widget_memory_pool);
     w1->label_text = text;
     if (text != 0) {
         if (count_a == -1 || count_b == -1) {
@@ -99,7 +99,7 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         }
     }
     w1 = w1->next_sibling;
-    text = (wchar_t *)heap_reallocate(0, 0x10, &widget_memory_pool);
+    text = (wchar_t *)heap_reallocate(0, 0x10, widget_memory_pool);
     w1->label_text = text;
     if (text != 0) {
         if (0 < ping && ping < 9999) {

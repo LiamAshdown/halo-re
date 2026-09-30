@@ -30,7 +30,7 @@
 #include <wchar.h>
 #include <stdint.h>
 
-extern heap widget_memory_pool; // 0x006926c4, "widget_memory_pool" (built by 0x4979b0)
+extern heap *widget_memory_pool; //  0x006926c4, "widget_memory_pool" (built by 0x4979b0) -- the global holds a POINTER to the heap (mov esi,[0x6926c4] at every call site)
 
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80
 
@@ -84,7 +84,7 @@ void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
             // The whole buffer fits inside the display width: a straight copy from the start.
             display_text = (wchar_t *)heap_reallocate((void *)(uintptr_t)text_row[0xf],
                 (uint32_t)((uint16_t)((int16_t)(self->length + 1)) & 0x7fff) << 1,
-                &widget_memory_pool);
+                widget_memory_pool);
             text_row[0xf] = (uint32_t)(uintptr_t)display_text;
             if (display_text != 0) {
                 wcsncpy(display_text, self->text, self->length);
@@ -97,7 +97,7 @@ void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
 
             max_width[0] = text_measure_string_fit_width(max_width);
             display_text = (wchar_t *)heap_reallocate((void *)(uintptr_t)text_row[0xf],
-                (uint32_t)(((tail_length + max_width[0]) * 2 + 2) & 0xffff), &widget_memory_pool);
+                (uint32_t)(((tail_length + max_width[0]) * 2 + 2) & 0xffff), widget_memory_pool);
             text_row[0xf] = (uint32_t)(uintptr_t)display_text;
             if (display_text != 0) {
                 wcsncpy(display_text, self->text + self->scroll_cursor, tail_length);
@@ -113,7 +113,7 @@ void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
         }
     } else {
         display_text = (wchar_t *)heap_reallocate((void *)(uintptr_t)text_row[0xf],
-            (uint32_t)((fit_count * 2 + 2) & 0xffff), &widget_memory_pool);
+            (uint32_t)((fit_count * 2 + 2) & 0xffff), widget_memory_pool);
         text_row[0xf] = (uint32_t)(uintptr_t)display_text;
         if (display_text != 0) {
             wcsncpy(display_text, self->text + self->scroll_cursor, fit_count);

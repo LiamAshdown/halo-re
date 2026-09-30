@@ -24,7 +24,7 @@
 #include "networking.h"
 #include <wchar.h>
 
-extern heap widget_memory_pool; // 0x006926c4, "widget_memory_pool" (built by 0x4979b0)
+extern heap *widget_memory_pool; //  0x006926c4, "widget_memory_pool" (built by 0x4979b0) -- the global holds a POINTER to the heap (mov esi,[0x6926c4] at every call site)
 
 extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
 
@@ -37,9 +37,9 @@ void ticker_text_buffer_reset(ticker_text_buffer *self)
         heap_block *block = (heap_block *)((uint8_t *)self->text - 0x10);
         uint32_t size = block->size & k_heap_block_size_mask;
 
-        heap_unlink_block(block, &widget_memory_pool);
-        widget_memory_pool.bytes_allocated -= (int32_t)size;
-        widget_memory_pool.allocation_count -= 1;
+        heap_unlink_block(block, widget_memory_pool);
+        widget_memory_pool->bytes_allocated -= (int32_t)size;
+        widget_memory_pool->allocation_count -= 1;
     }
     self->text = 0;
     self->capacity = 0;

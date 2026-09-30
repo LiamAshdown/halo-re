@@ -22,7 +22,7 @@
 #include "networking.h"
 #include <wchar.h>
 
-extern heap widget_memory_pool; // 0x006926c4, "widget_memory_pool" (built by 0x4979b0)
+extern heap *widget_memory_pool; //  0x006926c4, "widget_memory_pool" (built by 0x4979b0) -- the global holds a POINTER to the heap (mov esi,[0x6926c4] at every call site)
 
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80
 
@@ -41,7 +41,7 @@ void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_
             self->capacity = 0x20;
         }
         self->text = (wchar_t *)heap_reallocate(0, (uint16_t)((int16_t)self->capacity) << 1,
-            &widget_memory_pool);
+            widget_memory_pool);
         self->length = 0;
         self->start_column = reset_column;
     } else {
@@ -55,7 +55,7 @@ void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_
                     self->capacity = self->capacity * 2;
                 }
                 self->text = (wchar_t *)heap_reallocate(self->text,
-                    (uint16_t)((int16_t)self->capacity) << 1, &widget_memory_pool);
+                    (uint16_t)((int16_t)self->capacity) << 1, widget_memory_pool);
             } while (self->capacity <= self->length + 1 + text_length);
         }
         if (self->text != 0) {

@@ -67,7 +67,7 @@ extern wchar_t DAT_00719498[0x100];             // ticker label buffer
 extern uint8_t DAT_00719696;                    // see server_browser_open.c UNSURE
 extern uint8_t server_browser_require_valid_entry; // 0x006953f0
 extern int32_t server_browser_total_players;    // 0x00719474
-extern heap widget_memory_pool;                 // 0x006926c4
+extern heap *widget_memory_pool;                 //  0x006926c4 -- the global holds a POINTER to the heap (mov esi,[0x6926c4] at every call site)
 extern char k_empty_string[];                     // shared empty-string default buffer
 extern wchar_t empty_string[];                  // see UNSURE, argument to server_browser_list_row_populate
 
@@ -326,7 +326,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
 
         w_iter = browser_widget->status_root->first_child;
         if (bVar11) {
-            label = heap_reallocate(0, 0x40, &widget_memory_pool);
+            label = heap_reallocate(0, 0x40, widget_memory_pool);
             w_iter->label_text = (wchar_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy(scratch_80, 0x40, 6);
@@ -336,7 +336,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
-            label = heap_reallocate(0, 0x40, &widget_memory_pool);
+            label = heap_reallocate(0, 0x40, widget_memory_pool);
             w_iter->label_text = (wchar_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy(scratch_80, 0x40, 7);
@@ -346,7 +346,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
-            label = heap_reallocate(0, 0x40, &widget_memory_pool);
+            label = heap_reallocate(0, 0x40, widget_memory_pool);
             w_iter->label_text = (wchar_t *)label;
             if (label != 0) {
                 if (player_count < 1) {
