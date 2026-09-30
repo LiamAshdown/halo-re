@@ -59,7 +59,7 @@ int16_t actor_claim_firing_position(datum_index actor_index, datum_index previou
 
         self->firing_position_index = firing_position_index;
         self->firing_position_without_path = (uint8_t)(path_ok == 0);
-        self->unknown_3bb = 0;
+        self->grenade_evasion_active = 0;
         // 0x41410d: a found path's context is handed on so the move reuses it
         if (actor_movement_set_destination_firing_position(actor_index, firing_position_index,
                 path_ok ? path_context : (path_find_context *)0) != 0) {

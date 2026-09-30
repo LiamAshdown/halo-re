@@ -245,7 +245,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         query->crouching_gun_offset = *(real_vector3d *)&variant->custom_crouch_gun_offset;
     }
 
-    if (self->danger_type > 0 && self->unknown_287[0] != 0 &&
+    if (self->danger_type > 0 && self->danger_reacting != 0 &&
         self->danger_unknown_2d4 < self->danger_radius + 3.0f) {
         query->danger_active = 1;
     }

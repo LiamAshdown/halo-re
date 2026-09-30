@@ -40,9 +40,9 @@ void actor_update_facing_change_timer(datum_index actor_index)
     Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
     // 0x354/0x358/0x35a all fall inside types/ai.h's opaque actor.unknown_350[0x1c] run, which
     // has no individual field names; addressed here as raw offsets from that array's base.
-    uint8_t *pending_flag = &self->unknown_350[0x358 - 0x350];
-    int16_t *ticks_field = (int16_t *)&self->unknown_350[0x35a - 0x350];
-    float *smoothing_field = (float *)&self->unknown_350[0x354 - 0x350];
+    uint8_t *pending_flag = &self->unknown_358;
+    int16_t *ticks_field = &self->unknown_35a;
+    float *smoothing_field = &self->danger_meter;
 
     if (*pending_flag != 0 && actor_tag->change_facing_stand_time > 0.0f) {
         *pending_flag = 0;

@@ -114,7 +114,7 @@ datum_index actor_new(datum_index actor_variant_tag)
     self->try_to_fight_type = 0;
     self->conversation_index = (datum_index)k_datum_index_none;
 
-    memset(self->unknown_350, 0, 0x1a * sizeof(uint32_t)); // 0x350..0x3b7
+    memset(&self->unknown_350, 0, 0x1a * sizeof(uint32_t)); // 0x350..0x3b7
 
     self->last_cover_attempt_time = (datum_index)k_datum_index_none;
     *(uint32_t *)&self->search_wait_time = 0xffffffff;

@@ -88,9 +88,9 @@ void actor_look_randomize_direction(datum_index actor_index, float *deviation_ta
                                                     base_direction, 0, &look_point)) { // BL = 0 (xor bl,bl at 0x41507e)
             return;
         }
-        *(real_point3d *)&self->unknown_56e[18] = look_point; // self+0x580
+        self->idle_look_point = look_point; // self+0x580
         out_in_front = 0;
-        *(int16_t *)&self->unknown_56e[14] = 4; // self+0x57c
+        self->idle_look_direction_type = 4; // self+0x57c
     }
 
     wait_ticks = actor_look_get_wait_ticks(actor_index, 2, out_in_front, deviation_table);

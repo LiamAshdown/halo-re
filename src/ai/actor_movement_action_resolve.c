@@ -96,7 +96,7 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
     }
 
     if (self->order_committed != 0 || type == 0 || type == 1 ||
-        (type == 3 && self->unknown_3bb != 0)) {
+        (type == 3 && self->grenade_evasion_active != 0)) {
         self->movement_action_complete = 0;
         self->movement_timer = 0;
         self->movement_completed = 1;

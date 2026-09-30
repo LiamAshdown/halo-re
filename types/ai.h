@@ -513,7 +513,11 @@ typedef struct actor {
     int16_t try_to_fight_type;        // 0x1d4 0 nothing / 1 ai reference / 2 player: hs
                                       //    ai_try_to_fight(_nothing/_player) -> 0x434cc0 etc.; tracking-speed code
                                       //    marks props preferred_target accordingly
-    uint8_t unknown_1d6[6];           // 0x1d6
+    uint8_t unknown_1d6[2];           // 0x1d6
+    uint32_t try_to_fight_reference;  // 0x1d8 packed ai reference set by ai_reference_set_search_target_point
+                                      //    (try_to_fight_type 1); actor_target_update_tracking_speed matches its low
+                                      //    word to the owner's encounter and reads the word at 0x1da as the
+                                      //    squad/platoon index (kind in the top bits)
     datum_index conversation_index;   // 0x1dc ai_conversation_stop clears this and conversation_participant
     datum_index conversation_participant;// 0x1e0
     int16_t post_combat_action;       // 0x1e4 int16 line id written by encounter_choose_vocalizations 0x438580
@@ -549,7 +553,10 @@ typedef struct actor {
     int16_t danger_unknown_282;       // 0x282
     int16_t danger_unknown_284;       // 0x284
     uint8_t danger_unknown_286;       // 0x286
-    uint8_t unknown_287[3];           // 0x287
+    uint8_t danger_reacting;          // 0x287 actor_target_relationship_think sets it when a danger is noticed;
+                                      //    actor_find_best_firing_position only reports a danger when set
+    uint8_t danger_dive;              // 0x288 dive_from_grenade_chance roll (relationship_think); 0 for own danger
+    uint8_t unknown_289;              // 0x289
     uint8_t danger_is_own;            // 0x28a actor_danger_update_reaction 0x41eda0: the danger projectile's parent
                                       //    is this actor's unit; suppresses danger reaction / avoidance (0x41abd0,
                                       //    0x40c040)
@@ -612,7 +619,23 @@ typedef struct actor {
     uint8_t unknown_349;              // 0x349
     int16_t perception_event;         // 0x34a 0x422070 records the highest-priority pending perception event
     int32_t perception_event_data;    // 0x34c
-    uint8_t unknown_350[0x1c];        // 0x350 actor_new zeroes 0x1a dwords starting here, i.e. 0x350..0x3b7
+    // 0x350..0x36b block; actor_new zeroes 0x1a dwords starting here, i.e. 0x350..0x3b7. Member types agree between
+    // actor_update_crouch_state, actor_update_facing_change_timer, actor_update_grenade_and_morale_reactions and
+    // actor_movement_update; the ROLE of 0x358/0x35a is contested (crouch state + crouch timer vs facing-change
+    // pending flag + ticks) so those stay unknown_*. 0x35c..0x35f flags only used by crouch_state.
+    float unknown_350;                // 0x350 crouch_state: threat level (single user)
+    float danger_meter;               // 0x354 smoothed threat level (crouch_state) / danger meter reset to 0 by
+                                      //    grenade reactions / smoothing clamp (facing_change_timer)
+    uint8_t unknown_358;              // 0x358 byte flag; crouching (crouch_state) vs pending flag (facing timer);
+                                      //    also copied to 0x426/0x427 by fight/charge/avoid mode updates
+    uint8_t unknown_359;              // 0x359
+    int16_t unknown_35a;              // 0x35a tick counter (crouch timer / facing-change ticks)
+    uint8_t unknown_35c[4];           // 0x35c crouch_state neighbour flags
+    int16_t unknown_360;              // 0x360 countdown: crouch_state; actor_movement_update tests >= 1
+    uint8_t unknown_362[6];           // 0x362
+    int16_t evasion_delay_ticks;      // 0x368 evasion_delay_time * 30 set by grenade reactions, must be 0 to retry;
+                                      //    crouch_state counts it down
+    uint8_t unknown_36a[2];           // 0x36a
     datum_index last_evasion_time;    // 0x36c 0x40b920: at most every 30 ticks (dive from retreat threat /
                                       //    evasion_seek_cover roll once danger meter +0x354 >= evasion threshold);
                                       //    actor_new -1
@@ -678,7 +701,9 @@ typedef struct actor {
     uint8_t firing_position_without_path; // 0x3ba actor_claim_firing_position = !path_ok; blocks random fallback
                                           //    (0x413e50) and the fight_tick discard (recognition push);
                                           //    saved/restored by flee
-    uint8_t unknown_3bb;              // 0x3bb
+    uint8_t grenade_evasion_active;   // 0x3bb set with evasion_delay_ticks by grenade reactions; cleared by
+                                      //    actor_claim_firing_position / set_destination_firing_position;
+                                      //    movement_action_resolve completes a type-3 action at once while set
     uint8_t target_lost;              // 0x3bc actor_should_hold_position sets it when shooting at a prop in state
                                       //    4..5; cleared on new target (0x40cdf0) and by 0x41fbc0(none)
     uint8_t unknown_3bd[3];           // 0x3bd
@@ -759,7 +784,10 @@ typedef struct actor {
     uint8_t unknown_4a9[19];          // 0x4a9
     float path_remaining_distance;    // 0x4bc path record +0x14 (0x43a4d0: distance from path end to goal); 0x41a460
                                       //    completes when near; 0x401da0 marks target engaged when > wait radius
-    uint8_t unknown_4c0[12];          // 0x4c0
+    uint8_t unknown_4c0;              // 0x4c0 advance_waypoint: with waypoint_reached, completes the movement action
+    int8_t waypoint_count;            // 0x4c1 advance_waypoint stops advancing at count - 1
+    int8_t waypoint_cursor;           // 0x4c2 current index into the 16-byte waypoint records at 0x4c8
+    uint8_t unknown_4c3[9];           // 0x4c3
     uint32_t unknown_4cc;             // 0x4cc
     uint8_t unknown_4d0[52];          // 0x4d0
     uint8_t moving;                   // 0x504 CEA control.moving; movement_update 0x416790/advance_waypoint 0x4163e0
@@ -816,7 +844,18 @@ typedef struct actor {
     int16_t idle_major_direction_type; // 0x56c code word of 16-byte direction_specification at 0x56c (1 prop, 4
                                        //    point) written by 0x414d00/0x415480, decoded by 0x4146c0; 0x428470
                                        //    replace_object_reference patches 0x570
-    uint8_t unknown_56e[35];          // 0x56e
+    uint8_t unknown_56e[2];           // 0x56e
+    union {
+        real_point3d idle_major_point;  // 0x570 idle_major_direction_type 4
+        datum_index idle_major_prop_index; // 0x570 idle_major_direction_type 1
+    };
+    int16_t idle_look_direction_type; // 0x57c 1 prop, 4 point (actor_look_randomize_direction writes 4)
+    uint8_t unknown_57e[2];           // 0x57e
+    union {
+        real_point3d idle_look_point;   // 0x580 idle_look_direction_type 4
+        datum_index idle_look_prop_index; // 0x580 idle_look_direction_type 1 (replace_object_reference patches it)
+    };
+    uint8_t unknown_58c[5];           // 0x58c
     uint8_t turn_required;            // 0x591 set by 0x415480 when body must turn to its aim and by 0x4180c0 when no
                                       //    step taken; enables oversteer hold 0x594; mirrored to control flags bit
                                       //    0x20 by 0x415480
