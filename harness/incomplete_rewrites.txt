@@ -25,13 +25,13 @@ ai_communication_initialize                        # ai: rewrite says 'not model
 ai_communication_line_fade_multiplier              # ai: rewrite says 'placeholder'
 ai_communication_play_event_line                   # ai: rewrite says 'not rewritten'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 ai_conversation_resolve_participant                # ai: rewrite says 'not reproduced'
-ai_object_process_nearby_actors                    # ai: rewrite says 'not rewritten'
+ai_object_process_nearby_actors                    # ai: rewrite says 'not rewritten'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
 ai_process_vehicle_entry_queue                     # ai: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 ai_reference_detach_actors_from_encounters         # ai: rewrite says 'not rewritten'
 ai_reference_resolve_squad_datum                   # ai: rewrite says 'simplified'
 ai_release_inactive_encounters                     # ai: rewrite says 'not modeled'
 ai_search_choose_shorter_corner                    # ai: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
-ai_search_compute_point_tangents                   # ai: rewrite says 'not rewritten'
+ai_search_compute_point_tangents                   # ai: rewrite says 'not rewritten'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
 ai_search_find_nearest_visible_point               # ai: rewrite says 'not rewritten'
 ai_search_flood_fill_group                         # ai: rewrite says 'omitted'
 ai_search_gather_obstacles                         # ai: rewrite says 'not rewritten'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
@@ -47,7 +47,7 @@ cache_io_thread_proc_async                         # cache: rewrite says 'not re
 sound_cache_new                                    # cache: rewrite says 'not rewritten'
 observer_evaluate_spline_acceleration              # camera: rewrite says 'omitted'
 observer_evaluate_spline_velocity                  # camera: rewrite says 'omitted'
-chimera__letterbox                                 # cutscene: rewrite says 'placeholder'
+chimera__letterbox                                 # cutscene: rewrite says 'placeholder'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
 device_control_touched                             # devices: rewrite says 'simplified'
 dialog_static_hyperlink_install                    # dialogs: rewrite says 'not rewritten'
 decal_place                                        # effects: rewrite says 'omitted'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
@@ -58,7 +58,7 @@ particle_creation_physics_jet                      # effects: rewrite says 'plac
 particle_impact_response_dispatch                  # effects: rewrite says 'placeholder'
 particle_system_new_type_states                    # effects: rewrite says 'not modeled'
 particle_system_update_physics_default             # effects: rewrite says 'placeholder'
-particle_system_update_physics_explosion           # effects: rewrite says 'placeholder'
+particle_system_update_physics_explosion           # effects: rewrite says 'placeholder'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
 particle_update_motion                             # effects: rewrite says 'simplified'
 particle_update_physics_default                    # effects: rewrite says 'placeholder'
 player_effect_set_camera_impulse                   # effects: rewrite says 'placeholder'
@@ -94,7 +94,7 @@ hs_object_angle_predicate_helper                   # hs: rewrite says 'simplifie
 hs_parse_nonprimitive                              # hs: rewrite says 'simplified'
 hs_parse_variable                                  # hs: rewrite says 'placeholder'
 input_device_list_print                            # input: rewrite says 'omitted'
-controls_binding_clear                             # interface: rewrite says 'placeholder'
+controls_binding_clear                             # interface: rewrite says 'placeholder'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
 first_person_weapon_interface_tick_reset           # interface: rewrite says 'placeholder'
 first_person_weapon_snapshot_pose                  # interface: rewrite says 'not modelled'
 first_person_weapon_update_animation_controls      # interface: rewrite says 'not rewritten'
@@ -204,7 +204,7 @@ rasterizer_shader_transparent_plasma_draw          # rasterizer: rewrite says 'p
 rasterizer_sun_glow_render                         # rasterizer: rewrite says 'placeholder'
 rasterizer_vertex_buffer_create                    # rasterizer: rewrite says 'placeholder'
 render_frame                                       # render: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
-render_nonplayer_frame                             # render: rewrite says 'placeholder'
+render_nonplayer_frame                             # render: rewrite says 'placeholder'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
 render_object_shadow_begin                         # render: rewrite says 'not reproduced'
 render_particles                                   # render: rewrite says 'not rewritten'
 render_player_frame                                # render: rewrite says 'simplified'
@@ -221,7 +221,7 @@ hwreq_parse_exception_destruct                     # shell: rewrite says 'not re
 hwreq_parser_construct                             # shell: rewrite says 'omitted'
 hwreq_parser_create                                # shell: rewrite says 'omitted'
 hwreq_parser_destruct                              # shell: rewrite says 'omitted'
-hwreq_parser_find_property_set                     # shell: rewrite says 'not reproduced'
+hwreq_parser_find_property_set                     # shell: rewrite says 'not reproduced'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
 hwreq_parser_get_error_message                     # shell: rewrite says 'placeholder'
 hwreq_parser_get_graphics_device_name              # shell: rewrite says 'placeholder'
 hwreq_string_pair_construct                        # shell: rewrite says 'not rewritten'
@@ -238,12 +238,12 @@ biped_reset_state                                  # units: rewrite says 'placeh
 biped_update                                       # units: rewrite says 'simplified'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 biped_update_scale_function_inputs                 # units: rewrite says 'placeholder'
 unit_ai_update_stagger_allocate                    # units: rewrite says 'placeholder'
-unit_ai_update_stagger_reset                       # units: rewrite says 'placeholder'
+unit_ai_update_stagger_reset                       # units: rewrite says 'placeholder'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
 unit_apply_damage_effects                          # units: rewrite says 'not reproduced'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 unit_commit_speech                                 # units: rewrite says 'simplified'
 unit_exit_seat_end                                 # units: rewrite says 'placeholder'
-unit_find_weapon_marker_transform                  # units: rewrite says 'not reproduced'
-unit_forget_object_reference                       # units: rewrite says 'placeholder'
+unit_find_weapon_marker_transform                  # units: rewrite says 'not reproduced'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
+unit_forget_object_reference                       # units: rewrite says 'placeholder'  [2026-09-30 audit: STALE? keyword hit is about another function or history; run difftest then delete]
 unit_melee_lunge_damage_tick                       # units: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 unit_new                                           # units: rewrite says 'placeholder'
 unit_pick_random_spawned_actor_count               # units: rewrite says 'simplified'
