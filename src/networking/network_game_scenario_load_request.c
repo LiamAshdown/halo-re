@@ -14,14 +14,14 @@
 // local_104[260]) and the two 0x43-dword (0x10c byte) loops that zero and copy the record pin
 // the real layout: seed at +0x06, salt at +0x08, map_name at +0x0c, total size 0x10c. The
 // struct now lives in types/networking.h as network_scenario_load_request.
-// UNSURE: +0x3a4 (the same session-relative "salt" offset touched by
-// network_game_server_host_create.c) and +0x134 could not be tied to specific declared fields;
-// kept as raw offsets. DAT_006b0b80 (the scenario_load staging buffer) has no established name
-// or type anywhere in this batch.
+// +0x3a4 (the session-relative "salt", also touched by network_game_server_host_create.c) is kept
+// as a raw offset; +0x134 is session->variant + 0x30 (the variant's engine index).
+// DAT_006b0b80 (main_game_globals) is the scenario_load staging area (request copied to +8).
 // register convention: fully recovered cdecl (session is the only parameter).
 // reconciled: R33 game_time_globals.unknown_00 -> initialized (uint8 at +0x00, same byte)
 // reconciled: R13 network_scenario_load_request.seed (+0x06) -> difficulty (campaign difficulty, lands at game globals +0x0e)
 
+// VERIFIED against disassembly 0x4de6d0..0x4de865 (2026-09-30): FIXED: cache_file_switch_map_by_path(EAX = request.map_name, EBX = 1) x2, game_engine_apply_variant(EDX = &session->variant) and scenario_load(EAX = request.map_name) were called without their register arguments (scenario_load was handed main_game_globals); order of calls, the mode 1/2/3 salt selection, player loop and host tick-record tail compared. The null guard on the shared session is an addition (the original dereferences it unchecked)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -35,17 +35,17 @@ extern network_client_globals *network_client; // 0x0071c2d8
 extern game_time_globals *game_time; // 0x006f1d6c
 extern uint8_t *main_game_globals;  // 0x006b0b80, UNSURE identity/type
 
-extern void cache_file_switch_map_by_path(void); // outside this batch
+extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0x45aea0; blam-cc: EAX -> path, EBX -> apply_state (1 here)
 extern void game_unload_map(void); // outside this batch
 extern void game_start_new_map(void); // outside this batch
 extern void game_stop_current_map(void); // outside this batch
 extern void game_engine_reset_all_players(void); // outside this batch
-extern void game_engine_apply_variant(void); // outside this batch
+extern void game_engine_apply_variant(const game_variant *variant); // 0x45b990; blam-cc: EDX -> variant
 extern void game_engine_init_tick_record_for_mode(void); // outside this batch
 extern void main_menu_music_stop(void); // outside this batch
 extern int32_t network_channel_key_open(network_player_entry *entry); // 0x4de870, this batch
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
-extern char scenario_load(void *staged_request); // 0x53e6a0, outside this batch
+extern char scenario_load(char *path); // 0x53e6a0; blam-cc: EAX -> path
 
 
 char network_game_scenario_load_request(network_game_session *session)
@@ -77,21 +77,18 @@ char network_game_scenario_load_request(network_game_session *session)
             request.salt = *(uint32_t *)((uint8_t *)session + 0x3a4); // UNSURE
         }
     }
-    cache_file_switch_map_by_path();
+    cache_file_switch_map_by_path(request.map_name, 1);
     if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0)) {
-        // UNSURE: game_time->initialized is documented as "never read or written" elsewhere in
-        // types/game.h, so this condition is effectively always false in practice; preserved
-        // verbatim rather than simplified away.
         game_stop_current_map();
         game_unload_map();
     }
     main_menu_music_stop();
     if (*(int32_t *)((uint8_t *)session + 0x134) != 0) {
-        game_engine_apply_variant();
+        game_engine_apply_variant(&session->variant);
     }
-    cache_file_switch_map_by_path();
+    cache_file_switch_map_by_path(request.map_name, 1);
     memcpy(main_game_globals + 8, &request, sizeof(request));
-    loaded = scenario_load(main_game_globals);
+    loaded = scenario_load(request.map_name);
     if (loaded == 0) {
         if (*main_game_globals == 0) {
             return session->map_loaded;
