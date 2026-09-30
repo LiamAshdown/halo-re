@@ -9,22 +9,18 @@
 // 0x4e2d4b ("network_game_server_add_player_to_game__hook_add_player", misattributed, not a
 // real function -- see that file's note and this batch's summary).
 // register convention: __cdecl, no arguments.
-// UNSURE (major): the datum-resolve idiom (bounds/salt check against player_data, then a raw
-// offset add) is replaced here with a plain datum_get call, which performs the identical check
-// internally; this is a simplification, not a literal transcription.
-// UNSURE: sv_players_find_by_team_index_desired (FUN_004e2c10) is called here with zero visible
-// arguments; the value it should receive (something team/slot-shaped off the current
-// network_player_entry) is not recoverable from this function's own decompile.
-// UNSURE: network_player_entry_is_valid (FUN_004de9f0) is likewise called with no visible
-// arguments.
-// UNSURE: the "TK Num"/"TK Timer" column labels (from the header row) are printed from
-// player::medal_streak_count/medal_streak_timer, which types/game.h names for an unrelated
-// medal-streak mechanism; either the column reuses that same field for team-kill tracking, or
-// game.h's name does not universally apply. Preserved literally either way.
-// UNSURE: the per-row name lookup goes through a raw function-pointer call at
-// current_game_engine+0x54, whose signature is not independently established.
+// The real function spans 0x4e2c70..0x4e2e40 (the size in the header above is Ghidra's truncated
+// first piece; the row loop and the "server-only" error path live past 0x4e2d64).
+// Rewritten from the disassembly: header row and per-player rows go to console_out with three
+// different color pointers (EAX = [0x685214] header, [0x686af8] rows, [0x6851fc] the error text);
+// each valid row (network_player_entry_validate, EAX = entry) looks up the live player through
+// sv_players_find_by_team_index_desired (ESI = entry->slot_index) and the player datum with an inline
+// salt check; the row prints machine_index+1, the entry's name converted to ASCII (12 chars max),
+// "Red"/"Blue", player.ping (+0xdc), the engine callback string ([current_game_engine+0x54](handle,
+// buffer) fills the wide "Score" text), medal_streak_count (+0xe0) and medal_streak_timer/30.
 // reconciled: R04 0x006f1d20 void * network_engine_callback_block -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
+// VERIFIED against disassembly 0x4e2c70..0x4e2e41 (2026-09-30; header size 244 is only the first piece, real size 465): FIXED: three different console color pointers, header labels are literal strings (the old code read string bytes as pointers), team colour test was inverted (team_index 0 = Red), validate/find/convert take their register args, name column is the ASCII-converted entry name, datum resolve done inline exactly, sprintf (no count)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -37,84 +33,104 @@ extern int16_t network_game_mode; // 0x00719720, 2 == host
 extern network_server_globals *network_server; // 0x0071c2d4
 extern data_array *player_data; // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
-    // "resolve player display name" callback (UNSURE)
-extern wchar_t k_empty_string[]; // 0x0065512c (UNSURE: assumed empty/dash)
-extern char *network_team_color_names[]; // 0x0066db78/0x0066db80/0x0066db88, the three column
-    // header labels "Number"/"Name"/etc referenced positionally by the format string (UNSURE
-    // grouping: these are printed as three separate varargs, not a real array)
-extern char network_team_color_name_red[]; // 0x0066db48 (UNSURE name)
-extern char network_team_color_name_blue[]; // 0x0066db40 (UNSURE name)
+extern wchar_t k_empty_string[]; // 0x0065512c
+extern char network_team_color_name_red[]; // 0x0066db48 "Red"
+extern char network_team_color_name_blue[]; // 0x0066db40 "Blue"
 
-extern char network_player_entry_validate(void); // 0x4de9f0, other module, called with no
-    // visible arguments (UNSURE, see header)
-extern uint32_t sv_players_find_by_team_index_desired(void); // this module, 0x4e2c10,
-    // called with no visible arguments (UNSURE, see header)
-extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memory module
-extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX
+extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, EAX -> entry
+extern uint32_t sv_players_find_by_team_index_desired(int8_t team_index_desired); // 0x4e2c10, blam-cc: ESI -> team_index_desired
+extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI -> dest, EDI -> source, stack -> capacity
+extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX
+extern void *console_color_00685214; // 0x00685214, a ColorARGB *
+extern void *console_color_00686af8; // 0x00686af8, a ColorARGB *
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
+// Inline datum resolve at 0x4e2d02..0x4e2d3c: NULL when the index is out of range, the slot's
+// identifier is 0, or the handle carries a nonzero identifier that differs from the slot's.
+static player *sv_players_resolve_player(uint32_t handle)
+{
+    int16_t index = (int16_t)handle;
+    int16_t salt = (int16_t)(handle >> 16);
+    uint8_t *element;
+
+    if (index < 0 || index >= player_data->maximum_count) {
+        return 0;
+    }
+    element = (uint8_t *)player_data->data + (int32_t)player_data->size * (int32_t)index;
+    if (*(int16_t *)element == 0) {
+        return 0;
+    }
+    if (salt != 0 && *(int16_t *)element != salt) {
+        return 0;
+    }
+    return (player *)element;
+}
+
 // Console command: prints a formatted scoreboard header, then one row per valid player entry
-// in the session's player table, including score and team-kill statistics resolved from the
-// matching live player object.
+// in the session's player table, including the ping, engine score text and team-kill statistics
+// of the matching live player.
 void sv_players(void)
 {
     char line[256];
-    uint16_t name_buf[256];
+    uint16_t score_text[256];
+    char ascii_name[16];
     network_player_entry *entry;
     int32_t remaining;
 
     if (network_game_mode != 2) {
-        chimera__console_out((ColorARGB *)console_color_00685214, "sv_players is a server-only function!");
+        chimera__console_out((ColorARGB *)global_white_argb, "sv_players is a server-only function!");
         return;
     }
 
-    snprintf(line, sizeof(line), "%-8s%-*s %-6s %-6s %-6s %-6s %-8s", "Number", 0xc,
-             network_team_color_names[0], network_team_color_names[1], network_team_color_names[2],
-             "Score", "TK Num", "TK Timer");
+    sprintf(line, "%-8s%-*s %-6s %-6s %-6s %-6s %-8s", "Number", 0xc, "Name", "Team", "Ping",
+            "Score", "TK Num", "TK Timer");
     chimera__console_out((ColorARGB *)console_color_00685214, line);
 
     entry = network_server->session.players;
     remaining = 16;
     do {
-        if (network_player_entry_validate() != 0) {
-            uint32_t found = sv_players_find_by_team_index_desired();
+        if (network_player_entry_validate(entry) != 0) {
+            uint32_t found = sv_players_find_by_team_index_desired(entry->slot_index);
             player *p = 0;
+            int32_t ping;
+            int32_t tk_num;
+            int32_t tk_timer;
+            uint16_t *score_display;
+            char *team_color;
 
             if (found != 0xffffffff) {
-                p = (player *)datum_get((datum_index)found, player_data);
+                p = sv_players_resolve_player(found);
             }
 
-            name_buf[0] = 0;
+            score_text[0] = 0;
             if (found != 0xffffffff) {
-                void (*resolve_name)(uint32_t, uint16_t *) =
+                void (*resolve_score_text)(uint32_t, uint16_t *) =
                     *(void (**)(uint32_t, uint16_t *))((uint8_t *)current_game_engine + 0x54);
-                resolve_name(found, name_buf);
+                resolve_score_text(found, score_text);
             }
 
-            {
-                int32_t score, tk_num, tk_timer;
-                uint16_t *name_display;
-                char *team_color;
+            // the original leaves ascii_name unwritten when the name does not fit in 11 characters
+            ascii_name[0] = 0;
+            string_convert_unicode_to_ascii((uint8_t *)ascii_name, entry->name, 0xc);
 
-                if (p == 0) {
-                    score = 0;
-                    tk_num = 0;
-                    tk_timer = 0;
-                    name_display = (uint16_t *)k_empty_string;
-                } else {
-                    score = p->ping;
-                    tk_num = p->medal_streak_count;
-                    tk_timer = (p->medal_streak_timer < 0) ? 0 : p->medal_streak_timer / 30;
-                    name_display = name_buf;
-                }
-
-                team_color = (entry->team_index != 0) ? network_team_color_name_red : network_team_color_name_blue;
-
-                snprintf(line, sizeof(line), "%-3d     %-*s %-6s %-4d   %-6ls %-3d    %-4d",
-                         entry->machine_index + 1, 0xc, name_buf, team_color, score,
-                         name_display, tk_num, tk_timer);
-                chimera__console_out((ColorARGB *)console_color_00685214, line);
+            if (p == 0) {
+                ping = 0;
+                tk_num = 0;
+                tk_timer = 0;
+                score_display = (uint16_t *)k_empty_string;
+            } else {
+                ping = p->ping;
+                tk_num = p->medal_streak_count;
+                tk_timer = (p->medal_streak_timer < 0) ? 0 : p->medal_streak_timer / 30;
+                score_display = score_text;
             }
+
+            team_color = (entry->team_index == 0) ? network_team_color_name_red : network_team_color_name_blue;
+
+            sprintf(line, "%-3d     %-*s %-6s %-4d   %-6ls %-3d    %-4d",
+                    (int32_t)entry->machine_index + 1, 0xc, ascii_name, team_color, ping,
+                    score_display, tk_num, tk_timer);
+            chimera__console_out((ColorARGB *)console_color_00686af8, line);
         }
         entry = entry + 1;
         remaining = remaining - 1;
