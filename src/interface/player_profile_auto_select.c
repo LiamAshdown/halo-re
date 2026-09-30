@@ -1,6 +1,6 @@
 // player_profile_auto_select  (Ghidra: FUN_004952c0, unnamed)
 // address 0x4952c0, size 174 bytes
-// name confidence: 0.4   rewrite confidence: 0.65
+// name confidence: 0.4   rewrite confidence: 0.95
 // evidence: out/phase4/interface_functions.md "Attempts to automatically select and load an
 // existing player profile at startup, falling back to a default (-1) profile if none is found
 // valid."; src/game/game_engine_get_variant_by_name.c's saved_game_enumerate_by_type
@@ -11,7 +11,7 @@
 // (1 in), the slot array is one entry long, and the profile record at +8 is what
 // player_profile_get fills (ECX) and player_profile_load copies (EDX, player index 0 in EAX,
 // slot on the stack). Each enumeration is only trusted when its returned count is positive.
-// UNSURE: player_profile_get / saved_game_enumerate_by_type are owned by the profile module
+// Note: player_profile_get / saved_game_enumerate_by_type are owned by the profile module
 // (0x0053a000 region) and not rewritten in this tree.
 
 #include "tags.h"
