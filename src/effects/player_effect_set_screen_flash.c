@@ -28,32 +28,41 @@ extern int16_t screen_flash_pass[8]; // 0x00687218
 
 // VERIFIED against disassembly 0x4578a0..0x4579a7 (2026-09-30): the update condition, the 14-dword copy, the ticks __ftol
 //   (scaled duration), the blend/clamp and the flag byte match; NaN inputs now take the same path as the x87 compares.
-//   STILL-UNSURE: the difftest's 65/200 mismatch (intensity 0 vs 0.6884) was not explained by this comparison.
+//   Emulated against the original (unicorn, 300 random descriptors, x87 and SSE2 builds): identical bytes. The old difftest
+//   mismatch (intensity 0 vs 0.6884) came from the 1-ulp float rounding of the blend, fixed with the double temporaries.
 void player_effect_set_screen_flash(player_effect *self, player_screen_flash *descriptor,
     float intensity_falloff, float duration_scale) // blam-cc: stack, unaff_EBX, stack, stack
 {
     if ((self->flash.priority <= descriptor->priority ||
          (float)self->flash_ticks <= duration_scale * 30.0f * descriptor->duration) &&
         screen_flash_pass[descriptor->type] != 0) {
-        float blended;
+        double blended;
 
         self->flash = *descriptor;
-        self->flash.duration = duration_scale * 30.0f * descriptor->duration;
-        self->flash_ticks = (int16_t)self->flash.duration;
+        {
+            // 0x4578a9: duration_scale * 30 is stored as a float ([esp+8]); the product with the descriptor duration is
+            // stored as a float too, but the __ftol for the tick count uses the unrounded register value
+            double scaled_duration = (double)(duration_scale * 30.0f) * (double)descriptor->duration;
+
+            self->flash.duration = (float)scaled_duration;
+            self->flash_ticks = (int16_t)(int32_t)scaled_duration;
+        }
 
         // FIXED (objdump 0x457916..0x4579a3): the weight is descriptor +0x24 (intensity) and the clamp maximum is
         //   +0x20; the result lands in the copied flash's +0x24. The draft swapped the two fields.
         {
-            float weight = descriptor->intensity;
-            float maximum = *(float *)&descriptor->maximum_intensity;
+            // x87: (1 - weight) * falloff + weight stays in a register (no rounding between the operations), then is
+            // compared with 0 and the maximum, and only the chosen value is stored as a float.
+            double weight = descriptor->intensity;
+            double maximum = *(float *)&descriptor->maximum_intensity;
 
-            blended = (1.0f - weight) * intensity_falloff + weight;
-            if (blended < 0.0f) {                 // 0x457929: fcomp 0; jp -> (>= 0 or unordered) continues
+            blended = (1.0 - weight) * (double)intensity_falloff + weight;
+            if (blended < 0.0) {                  // 0x457929: fcomp 0; jp -> (>= 0 or unordered) continues
                 self->flash.intensity = 0.0f;
             } else if (blended > maximum) {       // 0x457962: fcomp max; jne when <= (NaN stores blended)
-                self->flash.intensity = maximum;
+                self->flash.intensity = (float)maximum;
             } else {
-                self->flash.intensity = blended;
+                self->flash.intensity = (float)blended;
             }
             self->flags |= _player_effect_screen_flash_bit;
         }
