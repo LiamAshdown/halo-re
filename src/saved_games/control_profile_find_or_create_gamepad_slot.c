@@ -21,6 +21,10 @@ extern int32_t control_profile_gamepad_slot_find(saved_player_profile *profile, 
 extern void control_profile_reset_slot(saved_player_profile *profile, int32_t gamepad_index); // 0x53b2b0, this module
 extern uint8_t control_profile_finalize_slot(saved_player_profile *profile, int32_t gamepad_index); // 0x53b500, this module
 
+// VERIFIED against disassembly 0x53b470..0x53b4f4 (2026-09-30): the NULL/duplicate early exits (return 0), the first free slot
+//   test (first 16-bit unit of the 0x220 byte record == 0), reset / 0x88-dword copy / finalize order and the return values match;
+//   the callee register conventions (find: EDX profile, EBX key; reset: ESI, EDX; finalize: EDI + stack) are as the callees declare.
+//   A difftest crash here would come from one of those three callees on random data.
 uint8_t control_profile_find_or_create_gamepad_slot(controls_gamepad_record *source, saved_player_profile *profile)
 {
     int32_t i;

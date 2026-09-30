@@ -12,6 +12,10 @@
 //   allow_repeat, the minimum repeat interval 0x65e964 in seconds -- FLT_MAX always, 0 never -- elapsed since the
 //   last line, and the request above the current/pending, or the current being 2/7 or the request 6), else 0.
 //   The index and chain are written back and out_unknown_3f0 receives +0x3f0.
+// VERIFIED against disassembly 0x560d00..0x560f1a (2026-09-30): the five stack arguments (requested priority, allow_repeat,
+//   out_unknown_3f0, dialogue index ptr, chain value ptr) and EAX/DL, the fallback walk, the priority arbitration (results
+//   0 / 1 / 2 / 3), the repeat interval test (FLT_MAX 0x672be0, __ftol of interval * 30) and the write-backs match; all nine
+//   callers in src/ pass seven arguments with non-NULL dialogue/chain pointers, which resolves the old "null chain_value" note.
 // blam-cc: EAX -> unit_index, DL -> follow_fallback, stack -> requested_priority, allow_repeat, out_unknown_3f0,
 //   dialogue_index, chain_value
 
