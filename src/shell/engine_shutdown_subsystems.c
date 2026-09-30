@@ -19,6 +19,7 @@
 #include "shell.h"
 #include "fn_sound.h"
 #include "fn_math.h"
+#include "fn_cache.h"
 
 extern uint32_t global_scenario_index;   // hs.h: datum_index global_scenario_index, -1 = none
 extern uint16_t global_structure_bsp_index;   // physics.h/items.h: int16_t structure bsp index
@@ -36,8 +37,6 @@ extern void *external_00686b5c;      // GlobalFree'd if non-null, then cleared
 extern uint32_t external_00686b54;   // cleared to 0
 
 
-extern void cache_file_unload(void);                     // 0x00442430
-extern void data_file_close(void);                        // 0x00442a50
 extern void input_directinput_release_devices(void);      // 0x00490580
 
 extern void rasterizer_shutdown(void);                    // 0x00518450

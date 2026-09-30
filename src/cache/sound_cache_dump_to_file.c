@@ -21,6 +21,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 #include <stdint.h>
 
 extern int32_t sound_cache_page_count;   // 0x006f17e4

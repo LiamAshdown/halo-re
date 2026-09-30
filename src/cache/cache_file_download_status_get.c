@@ -29,8 +29,8 @@
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
-extern int16_t cache_file_download_poll(float *progress_out); // blam-cc: stack; this module, 0x442720
 
 extern int16_t map_download_slot_index;                  // 0x006ac472
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428

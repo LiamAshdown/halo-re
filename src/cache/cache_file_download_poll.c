@@ -28,6 +28,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 
 extern map_download_state *map_download; // 0x006869c0

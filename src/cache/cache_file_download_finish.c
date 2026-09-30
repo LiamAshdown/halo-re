@@ -21,9 +21,8 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
-
-extern void cache_file_slot_read_header(int32_t slot_index); // blam-cc: EAX; this module, 0x4435e0
 
 extern map_download_state *map_download; // 0x006869c0
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428

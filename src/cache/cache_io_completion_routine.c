@@ -13,6 +13,7 @@
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 // APC-based completion routine passed to overlapped ReadFileEx calls. `overlapped` is really the
 // cache_io_request the read was issued against; runs the request's optional per-request

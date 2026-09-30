@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "scenario.h"
+#include "fn_cache.h"
 
 extern int16_t global_structure_bsp_index;              // 0x0069e8d8
 extern Scenario *global_scenario;                        // 0x00746f8c
@@ -49,8 +50,7 @@ extern void scenario_structure_bsp_deactivate_callbacks(void);
 extern void scenario_structure_bsp_activate_callbacks(void);
 
 // blam-cc: EDI -> bsp (see file header)
-extern uint32_t structure_bsp_load(ScenarioBSP *bsp); // src/cache/structure_bsp_load.c, 0x4424b0
-extern void structure_bsp_dispose(ScenarioBSP *bsp);  // src/cache/structure_bsp_dispose.c, 0x442520
+
 
 // blam-cc: SI -> structure_bsp_index
 // Switches the resident structure bsp to structure_bsp_index: runs the deactivate table and

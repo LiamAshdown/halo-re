@@ -22,8 +22,8 @@
 
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
-extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; this module, 0x4425d0
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void *rasterizer_device;            // 0x0071d174

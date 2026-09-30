@@ -14,9 +14,9 @@
 
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
-extern void structure_bsp_dispose_material_vertex_buffers(
-    ScenarioStructureBSPCompiledHeader *compiled_header); // blam-cc: EAX // blam-cc: EAX;
+
     // Ghidra: FUN_004431a0; this module, 0x4431a0
 
 extern void *structure_bsp_data;    // 0x006a8958

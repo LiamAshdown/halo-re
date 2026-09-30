@@ -32,6 +32,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_cache.h"
 
 extern uint8_t rasterizer_vertex_buffer_create(int16_t *record, int16_t vertex_type, int32_t count, uint32_t *source_data, int32_t second_stream, uint32_t size); // UNSURE, see structure_bsp_load_material_vertex_
     // buffers.c; rasterizer module, 0x524980
@@ -40,7 +41,7 @@ extern uint8_t rasterizer_vertex_buffer_create(int16_t *record, int16_t vertex_t
 extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc: ESI
     int32_t offset, uint32_t size, void *destination, uint8_t priority,
     uint8_t data_file_index); // this module, 0x442b20
-extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; this module, 0x4425d0
+
 
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern uint32_t rasterizer_device_version;  // 0x007c118c

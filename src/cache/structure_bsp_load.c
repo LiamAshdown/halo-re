@@ -24,12 +24,12 @@
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc: ESI
     int32_t offset, uint32_t size, void *destination, uint8_t priority,
     uint8_t data_file_index); // this module, 0x442b20
-extern void structure_bsp_load_material_vertex_buffers(
-    ScenarioStructureBSPCompiledHeader *compiled_header); // blam-cc: EAX // Ghidra: FUN_00443020; this batch
+
     // 0x443020, called with structure_bsp_data already set as its EAX argument (see that file)
 
 extern void *structure_bsp_data;            // 0x006a8958

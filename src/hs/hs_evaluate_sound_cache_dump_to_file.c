@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_cache.h"
 
-
-extern void sound_cache_dump_to_file(void); // 0x444240
 
 void hs_evaluate_sound_cache_dump_to_file(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -28,6 +28,7 @@
 #include "cache.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_cache.h"
 
 extern data_array *sound_data;            // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances;       // 0x0087bc14
@@ -36,7 +37,7 @@ extern data_array *sound_cache_entries;   // 0x006ac528
 extern struct cache *sound_cache;         // 0x006ac530
 extern data_array *looping_sound_data;    // 0x00724a50, "looping sounds" 0x80 x 0xe4
 
-extern void sound_permutation_release_page(SoundPermutation *permutation); // 0x443d30, cache module
+
 extern void cache_evict_entry(datum_index handle, struct cache *self);    // 0x4d1c20, memory module
 extern void *datum_get(datum_index handle, data_array *array);            // 0x4d0680, memory module
 extern void datum_delete(data_array *array, datum_index handle);          // 0x4d0510, memory module

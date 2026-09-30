@@ -20,8 +20,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 
-extern void sound_cache_decode_permutation(SoundPermutation *permutation); // 0x443d60, this module
 
 // Cache-I/O completion procedure installed by sound_cache_page_allocate for every sound format
 // except xbox_adpcm. Recovers the SoundPermutation from the completion record's sound_cache_entry

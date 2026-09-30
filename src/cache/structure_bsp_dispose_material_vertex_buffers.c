@@ -17,6 +17,7 @@
 
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern void *rasterizer_device; // 0x0071d174
 

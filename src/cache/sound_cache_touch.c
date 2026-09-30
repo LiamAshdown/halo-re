@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "math.h"
+#include "fn_cache.h"
 
 extern data_array *sound_cache_entries;  // 0x006ac528
 extern struct cache *sound_cache;        // 0x006ac530
@@ -38,8 +39,6 @@ extern int64_t performance_frequency;    // 0x006ac8f8/0x006ac8fc
 extern int32_t sound_time;      // 0x0072520c
 
 
-extern void sound_cache_decode_permutation(SoundPermutation *permutation); // this module, sound_cache_decode_permutation.c
-extern void sound_cache_page_allocate(SoundPermutation *permutation, uint8_t priority); // blam-cc:
     // permutation in EAX; this module, sound_cache_page_allocate.c
 extern uint32_t sound_idle_update(void); // outside this module; frame-watchdog pump, UNSURE
 

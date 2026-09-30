@@ -36,6 +36,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern char profile_directory[0x105];                              // 0x006ac900
@@ -48,13 +49,11 @@ extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_
 
 // blam-cc: request in ESI, size in EBX, offset in EDX, completion_routine in EDI (the three
 // named stack arguments are all Ghidra shows); 0x442c70, outside this module
-extern void cache_io_read_file_ex_retry(void *read_file_ex, void *file, void *buffer,
-    cache_io_request *request, uint32_t size, uint32_t offset, void *completion_routine);
+
 // blam-cc: flag in ESI; returns *flag in AL. 0x442ce0, outside this module
-extern uint8_t cache_io_wait_for_flag(uint8_t *flag);
+
 // The ReadFileEx APC FUN_00442c70 installs; declared only to take its address. 0x443b00
-extern void cache_io_completion_routine(uint32_t error_code, uint32_t bytes_transferred,
-    cache_io_request *overlapped);
+
 extern uint8_t code_address_cache_io_completion_routine[]; // 0x00443b00: the original APC in the hooked build; in the
                                              // standalone build a __stdcall (ret 0xc) thunk into the C above
 

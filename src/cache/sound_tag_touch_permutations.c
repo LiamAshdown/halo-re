@@ -16,6 +16,7 @@
 
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 

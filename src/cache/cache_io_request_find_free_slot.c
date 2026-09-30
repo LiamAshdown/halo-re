@@ -13,6 +13,7 @@
 
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 

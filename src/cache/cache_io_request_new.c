@@ -17,12 +17,12 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 extern void *cache_io_event;                // 0x006ac498
 
-extern int16_t cache_io_request_find_free_slot(void); // this module, 0x443270
 
 // blam-cc: completion in ESI
 // Claims a free slot in the 0x200-entry async IO request queue, fills it in as a pending read of

@@ -9,6 +9,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern void *cache_io_event;   // 0x006ac498, auto-reset event that wakes the worker
 extern void *cache_io_thread;  // 0x006ac49c, 0x4000-byte stack
@@ -16,8 +17,6 @@ extern int32_t os_platform;    // 0x00721ef0
 
 extern void os_platform_identify(void); // 0x5427e0
 
-extern uint32_t cache_io_thread_proc_sync(void *unused);  // this module, cache_io_thread_proc_sync.c
-extern uint32_t cache_io_thread_proc_async(void *unused); // this module, cache_io_thread_proc_async.c
 
 // Creates the synchronization event and background worker thread that services the async
 // cache-IO request queue, picking the synchronous or overlapped worker procedure depending on

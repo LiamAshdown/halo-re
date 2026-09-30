@@ -29,6 +29,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "fn_rasterizer.h"
+#include "fn_cache.h"
 
 extern void *rasterizer_device;                          // 0x0071d174
 extern void *rasterizer_direct3d;                        // 0x0071d178
@@ -104,7 +105,7 @@ extern int32_t rasterizer_dx9_effects_initialize(void);                         
 
 extern int32_t rasterizer_lens_flare_occlusion_queries_create(void);             // 0x536f70
 
-extern void texture_cache_new(void);                                             // 0x4444d0
+
 extern uint8_t __cdecl rasterizer_reset_device_if_needed(void);                  // 0x517500
 
 

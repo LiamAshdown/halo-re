@@ -43,6 +43,7 @@
 #include "shell.h"
 #include <string.h>
 #include "interface.h"
+#include "fn_cache.h"
 
 #if defined(_MSC_VER)
 #include <excpt.h>   // GetExceptionInformation is the _exception_info intrinsic, not a function
@@ -121,7 +122,7 @@ typedef void *(__stdcall *direct3d_create9_fn)(uint32_t sdk_version);
 
 extern void *memory_global_alloc(uint32_t size);                   // 0x449370, blam-cc: size in EAX; GlobalAlloc(0, size)
 extern void memory_global_free(void *block);                       // 0x449380, blam-cc: block in EAX; GlobalFree
-extern void cache_reserve_map_memory(void);                        // 0x4448d0
+
 extern void main_loop(void);                                       // 0x4c7610 (Ghidra: game_state_save_core, see header)
 extern uint8_t engine_initialize_subsystems(void);                 // 0x540ee0
 extern void engine_shutdown_subsystems(void);                      // 0x541010

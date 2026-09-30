@@ -26,11 +26,12 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_cache.h"
 
 #include <string.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
-extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; cache module, 0x4425d0
+
 
 // Scans every InputDeviceDefaults ("devc") tag for a mouse/keyboard or joystick/gamepad entry
 // whose device_id matches device_guid, and copies its saved_player_profile-sized profile block

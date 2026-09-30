@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_cache.h"
 
 extern uint8_t map_download_in_progress;   // 0x006ac470
 extern char *rasterizer_shader_file_name;      // 0x00722bbc
@@ -31,11 +32,11 @@ extern uint8_t last_profile_name;  // TYPES-GAP
 
 extern char *strrchr(const char *s, int32_t c); // CRT
 extern int16_t cache_file_find_slot_by_name(char *path); // 0x443770, UNSURE args
-extern uint8_t cache_file_open_by_name(char *name, uint8_t report_fatal_error); // 0x443360,
+
     // blam-cc: EAX -> name, stack -> report_fatal_error (matches src/cache/cache_file_open_by_name.c)
 extern uint8_t cache_file_download_matches(char *path);   // 0x4432f0, UNSURE args
-extern void cache_file_download_stop(void);   // 0x443510
-extern void cache_file_download_finish(void); // 0x443540
+
+
 extern void main_queue_cache_file_open(void); // UNSURE module
 extern void saved_game_get_directory_by_handle(void); // UNSURE module
 extern void saved_game_last_profile_clear(void); // 0x53d220

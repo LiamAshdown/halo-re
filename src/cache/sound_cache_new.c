@@ -16,6 +16,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern data_array *sound_cache_entries; // 0x006ac528
 extern int32_t sound_cache_size_megabytes; // 0x006869c4, read but not owned by this module

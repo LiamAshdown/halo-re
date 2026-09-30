@@ -23,11 +23,12 @@
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // this module, texture_cache_get.c
-extern void sound_tag_touch_permutations(TagID tag); // this module, sound_tag_touch_permutations.c
+
 
 // blam-cc: resources in ESI
 // Walks a PredictedResource list (bitmap/sound references predicted to be needed soon, e.g. by

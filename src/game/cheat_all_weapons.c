@@ -23,10 +23,11 @@
 #include "cache.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_cache.h"
 
 extern Globals *global_globals; // 0x00746fa0
 
-extern datum_index tag_iterator_next(tag_iterator *iterator); // 0x4425d0, blam-cc: ESI ->
+
     // iterator (matches src/cache/tag_iterator_next.c)
 
 

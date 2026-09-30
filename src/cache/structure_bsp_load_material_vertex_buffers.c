@@ -29,6 +29,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_cache.h"
 
 extern int8_t rasterizer_vertex_buffer_create(void *fields, int32_t format, int32_t vertex_count,
     void *rendered_data, void *lightmap_data, int32_t size); // UNSURE, see file header;

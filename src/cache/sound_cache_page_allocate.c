@@ -30,6 +30,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern tag_instance *tag_instances;      // 0x0087bc14
 extern struct cache *sound_cache;        // 0x006ac530
@@ -38,7 +39,7 @@ extern void *sound_cache_base;           // 0x006ac52c
 
 extern datum_index cache_allocate_block(struct cache *self, uint32_t requested_bytes); // 0x4d1840
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array); // 0x4d03d0
-extern void sound_cache_dump_to_file(void); // this module, sound_cache_dump_to_file.c
+
 
 extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc: ESI
     int32_t offset, uint32_t size, void *destination, uint8_t priority,

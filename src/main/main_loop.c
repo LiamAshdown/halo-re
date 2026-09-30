@@ -55,6 +55,7 @@
 #include "fn_game.h"
 #include "fn_gamespy.h"
 #include "fn_camera.h"
+#include "fn_cache.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -145,8 +146,8 @@ extern void main_menu_return_and_reset(void);                               // t
 extern void game_engine_flush_pending_simulation_ticks(void);               // this module, 0x4c99e0
 extern int16_t cache_file_download_status_get(float *progress_out);        // 0x4434a0, foreign (cache)
     // blam-cc: EAX -> progress_out
-extern void cache_file_download_finish(void);                               // 0x443540, foreign (cache)
-extern uint8_t cache_file_open_by_name(char *name, uint8_t report_fatal_error); // 0x443360, foreign (cache)
+
+
     // blam-cc: EAX -> name, stack -> report_fatal_error
 extern void network_game_client_connect_to_resolved_address(void);          // this module, 0x4c8660
 extern void input_directinput_poll_devices(void);                           // 0x490760, foreign (input)

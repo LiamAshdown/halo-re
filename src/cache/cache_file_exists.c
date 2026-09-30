@@ -18,6 +18,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 
 extern char map_path_prefix[]; // 0x006f16d8

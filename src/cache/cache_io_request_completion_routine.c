@@ -12,6 +12,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 // Marks an asynchronous cache read finished: raises the caller's completion flag and frees
 // the request slot for the worker thread.

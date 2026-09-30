@@ -15,6 +15,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 #include <stdint.h>
 
 extern data_array *sound_cache_entries; // 0x006ac528
@@ -23,7 +24,6 @@ extern int32_t sound_decode_buffer_size; // 0x006f17f0
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 
-extern void sound_permutation_release_page(SoundPermutation *permutation); // this module, sound_permutation_release_page.c
 
 // Fully tears down the sound cache: releases every live entry's page-cache reference (through
 // its owning permutation), invalidates the entry array, and frees the shared decode scratch

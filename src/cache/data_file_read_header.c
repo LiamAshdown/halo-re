@@ -13,6 +13,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern int32_t printf(const char *format, ...); // 0x62427c _printf
 

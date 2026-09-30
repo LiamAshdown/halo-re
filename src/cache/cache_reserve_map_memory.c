@@ -22,6 +22,7 @@
 #include "tags.h"
 #include "cache.h"
 #include "memory.h"
+#include "fn_cache.h"
 #include <string.h>
 
 extern void *map_memory;             // 0x006ac548, VirtualAlloc at 0x40000000, 0x1b40000 bytes

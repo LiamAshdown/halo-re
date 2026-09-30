@@ -24,13 +24,14 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_cache.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0
 extern tag_instance *tag_instances;         // 0x0087bc14
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630
     // memory module; blam-cc: DX -> after_index, EDI -> array
-extern datum_index tag_iterator_next(tag_iterator *iterator); // 0x4425d0
+
     // blam-cc: ESI -> iterator
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
     // blam-cc: EAX -> array, EDX -> handle

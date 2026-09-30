@@ -23,6 +23,7 @@
 #include "tags.h"
 #include "cache.h"
 #include "fn_sound.h"
+#include "fn_cache.h"
 
 extern int32_t sound_decode_buffer_size; // 0x006f17f0
 extern void *sound_decode_buffer;        // 0x006f17ec

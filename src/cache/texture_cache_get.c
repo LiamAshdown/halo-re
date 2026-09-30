@@ -40,6 +40,7 @@
 #include "cache.h"
 #include "math.h"
 #include "fn_rasterizer.h"
+#include "fn_cache.h"
 
 extern data_array *texture_cache_entries;  // 0x006ac538
 extern struct cache *texture_cache;        // 0x006ac540
@@ -51,7 +52,6 @@ extern int32_t sound_time;        // 0x0072520c
 
 extern void console_print_va(const char *format, ...);       // 0x4c6920
 
-extern uint32_t texture_cache_page_allocate(BitmapData *bitmap, uint8_t priority); // this module, texture_cache_page_allocate.c
 
 extern uint32_t sound_idle_update(void); // outside this module; frame-watchdog pump, UNSURE
 

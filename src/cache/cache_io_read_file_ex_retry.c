@@ -29,6 +29,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 
 // The Win32 ReadFileEx signature, as this function calls it through the pointer it is handed.

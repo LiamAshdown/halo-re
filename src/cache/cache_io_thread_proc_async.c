@@ -19,6 +19,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern void *cache_io_event;                    // 0x006ac498
 extern cache_io_request *cache_io_requests;      // 0x006ac4a0, 0x200 entries
@@ -31,16 +32,14 @@ extern data_file bitmaps_data_file;              // 0x006ac4e8
 // blam-cc: request in ESI, size in EBX, offset in EDX, completion_routine in EDI; the three
 // named arguments are the stack ones. Recovered by disassembly at this call site
 // (0x004439e1-0x004439f6) and in the callee itself; see cache_file_slot_read_header.c.
-extern void cache_io_read_file_ex_retry(void *read_file_ex, void *file, void *buffer,
-    cache_io_request *request, uint32_t size, uint32_t offset, void *completion_routine); // 0x442c70
+
 
 // The APC this worker installs (0x443ae0): sets *request->completion.flag and clears the
 // request's pending/started bytes. Distinct from cache_io_completion_routine @0x443b00, which
 // runs completion.procedure instead and leaves the queue bookkeeping alone. Ghidra gives
 // 0x443ae0 no function boundary, so it is not listed in out/phase4/cache_functions.md and has
 // no file of its own; declared here only to take its address.
-extern void __stdcall cache_io_request_completion_routine(uint32_t error_code, uint32_t bytes_transferred,
-    cache_io_request *overlapped); // 0x443ae0
+
 
 // blam-cc: unused CreateThread parameter
 // Background IO thread procedure that services queued cache-file read requests using overlapped

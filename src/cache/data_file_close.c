@@ -15,9 +15,8 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
-
-extern void cache_io_wait_all_requests(void); // this module, 0x4432b0
 
 extern int16_t cache_file_index;            // 0x006ac494
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428

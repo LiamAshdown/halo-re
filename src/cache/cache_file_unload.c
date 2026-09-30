@@ -15,14 +15,14 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 
-extern void sound_cache_dispose(void); // this module, 0x443f30
+
 extern void cache_flush(cache *self); // blam-cc: self in ESI; 0x4d17f0 memory module
-extern void cache_io_wait_all_requests(void); // this module, 0x4432b0
-extern void structure_bsp_dispose_material_vertex_buffers(
-    ScenarioStructureBSPCompiledHeader *compiled_header); // blam-cc: EAX // blam-cc: EAX;
+
+
     // this module, 0x4431a0 (Ghidra: FUN_004431a0)
-extern void model_dispose_vertex_buffers(void); // Ghidra: FUN_00442f00, misattributed name
+
     // (out/phase4/cache_types_notes.md item 2); this module, 0x442f00
 
 extern uint8_t cache_file_loaded;                  // 0x006a8150

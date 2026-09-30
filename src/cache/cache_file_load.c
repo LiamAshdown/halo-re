@@ -23,13 +23,14 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern void data_delete_all(data_array *array); // 0x4d0580 memory module
 extern int16_t cache_file_find_slot_by_name(char *name); // blam-cc: name in EDI; 0x443770
 extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc: ESI
     int32_t offset, uint32_t size, void *destination, uint8_t priority,
     uint8_t data_file_index); // 0x442b20
-extern void model_load_vertex_buffers(cache_file_tag_header *header); // blam-cc: header in EAX.
+
     // Ghidra: chimera__on_map_load_client, misattributed
     // (out/phase4/cache_types_notes.md item 2); 0x442d10
 

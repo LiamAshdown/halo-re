@@ -22,6 +22,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 
 // blam-cc: flag in ESI

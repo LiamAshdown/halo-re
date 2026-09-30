@@ -21,14 +21,13 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern void os_platform_identify(void); // 0x5427e0
 
-extern int32_t data_file_read_header(data_file *file, int32_t expected_file_id); // blam-cc:
+
     // file in ESI; this module, 0x443b30
-extern uint8_t data_file_read_data_block(data_file *file); // blam-cc: ESI; this module, 0x443ba0
-extern uint8_t data_file_read_offset_table(data_file *file); // blam-cc: EDI; this module, 0x443c20
-extern void cache_io_thread_start(void); // this module, 0x4438d0
+
 
 extern data_file bitmaps_data_file; // 0x006ac4e8
 extern data_file sounds_data_file;  // 0x006ac4a8

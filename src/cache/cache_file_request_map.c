@@ -28,16 +28,17 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern void interface_handle_quit_request(void); // 0x499170
 
 extern int16_t cache_file_find_slot_by_name(char *name); // blam-cc: EDI; 0x443770
 extern uint8_t cache_file_download_matches(char *name); // blam-cc: EAX; this module, 0x4432f0
-extern void cache_file_download_finish(void); // this module, 0x443540
+
 extern int16_t cache_file_download_status_get(float *progress_out, int32_t unaff_ecx);
     // blam-cc: EAX, ECX; this module, 0x4434a0. Named with a _get suffix: the natural name
     // collides with types/cache.h's own cache_file_download_status enum typedef.
-extern uint8_t cache_file_open_by_name(char *name, uint8_t report_fatal_error); // blam-cc: EAX,
+
     // stack; this module, 0x443360
 
 extern uint8_t map_download_in_progress; // 0x006ac470

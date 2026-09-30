@@ -15,6 +15,7 @@
 #include "game.h"
 #include "scenario.h"
 #include "fn_game.h"
+#include "fn_cache.h"
 
 extern uint8_t map_download_in_progress;   // 0x006ac470
 extern game_main_globals *main_game_globals; // 0x006b0b80
@@ -33,8 +34,7 @@ extern void render_pregame_view_initialize(void);              // UNSURE module
 extern void movie_capture_frame_export(void); // 0x4c9530
 extern void widget_close_all(void);           // 0x498650
 extern void interface_handle_quit_request(void); // 0x499170
-extern void cache_file_download_finish(void); // 0x443540
-extern void cache_file_unload(void);          // 0x442430
+
 
 // Spins pumping the download/movie-export loop until any pending cache download finishes, then
 // unloads the current map cache file and resets the tag-index globals to their unloaded state.

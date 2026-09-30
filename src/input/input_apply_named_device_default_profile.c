@@ -22,11 +22,12 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_cache.h"
 
 #include <wchar.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
-extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; cache module, 0x4425d0
+
 
 extern uint32_t saved_game_create_default_profile(uint16_t *name); // saved_games module, 0x00539ab0;
     // blam-cc: ECX -> name (0x490226 also pushes a 0 that the callee's rewrite does not read)

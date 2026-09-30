@@ -32,6 +32,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_cache.h"
 #include <string.h>
 #include <ctype.h>
 
@@ -39,7 +40,6 @@ extern map_list_entry *map_list;     // 0x00712dcc
 extern int32_t map_list_count;       // 0x00712dd0
 extern int32_t map_list_capacity;    // 0x00712dd4
 
-extern uint8_t cache_file_exists(char *name, cache_file_header *header_out); // 0x442bb0
 
 // blam-cc: EAX -> path, stack -> map_id
 // Appends one entry to the growable map_list: grows the array by 0x13 entries first if it is

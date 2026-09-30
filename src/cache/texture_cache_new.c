@@ -16,6 +16,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern data_array *texture_cache_entries; // 0x006ac538
 extern struct cache *texture_cache;       // 0x006ac540

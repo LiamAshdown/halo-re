@@ -17,6 +17,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern struct cache *sound_cache; // 0x006ac530
 

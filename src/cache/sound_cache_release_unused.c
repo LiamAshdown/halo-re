@@ -12,13 +12,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_cache.h"
 #include <stdint.h>
 
 extern data_array *sound_cache_entries; // 0x006ac528
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 
-extern void sound_permutation_release_page(SoundPermutation *permutation); // this module, sound_permutation_release_page.c
 
 // Releases page-cache references for every sound entry that is neither locked nor currently
 // playing, without a full cache teardown. A no-op if the sound cache has not been created yet.

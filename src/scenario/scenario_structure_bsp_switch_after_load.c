@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "scenario.h"
+#include "fn_cache.h"
 
 extern int16_t global_structure_bsp_index;                  // 0x0069e8d8
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94
@@ -33,8 +34,7 @@ extern void *structure_bsp_data;                             // 0x006a8958
 extern tag_instance *tag_instances;                           // 0x0087bc14
 
 // blam-cc: EAX -> compiled_header
-extern void structure_bsp_dispose_material_vertex_buffers(
-    ScenarioStructureBSPCompiledHeader *compiled_header); // src/cache module, 0x4431a0
+
 
 // blam-cc: SI -> structure_bsp_index
 extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); // this module, 0x53eeb0

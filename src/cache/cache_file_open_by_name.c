@@ -49,16 +49,14 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_cache.h"
 
 extern void os_platform_identify(void); // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern void interface_handle_quit_request(void); // 0x499170
 
 extern int16_t cache_file_find_slot_by_name(char *name); // blam-cc: EDI; 0x443770
-extern uint8_t cache_file_exists(char *name, cache_file_header *header_out); // blam-cc: EAX, ESI; 0x442bb0
-extern int16_t cache_file_find_oldest_slot(cache_file_slot_category slot_category,
-    int32_t required_size); // blam-cc: EAX, stack; 0x4437b0
-extern void cache_file_slot_read_header(int32_t slot_index); // blam-cc: EAX; 0x4435e0
+
 
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern char map_path_prefix[]; // 0x006f16d8
