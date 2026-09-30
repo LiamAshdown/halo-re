@@ -19,6 +19,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <string.h>
 

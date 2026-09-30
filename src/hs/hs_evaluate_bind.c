@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_input.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void hs_bind_control(const char *device_class_name, const char *input_name, const char *action_name); // 0x48b750, blam-cc: EAX device, stack input, action
 
 void hs_evaluate_bind(int16_t function_index, uint32_t thread_index, char first)
 {

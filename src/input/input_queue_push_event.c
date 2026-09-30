@@ -20,6 +20,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern input_event_queue input_event_queue_active;                    // 0x00712cc0
 extern int64_t performance_frequency;                           // 0x006ac8f8/0x006ac8fc

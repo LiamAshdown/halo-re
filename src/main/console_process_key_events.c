@@ -29,13 +29,12 @@
 #include "input.h"
 #include "main.h"
 #include "fn_main.h"
+#include "fn_input.h"
 #include <string.h>
 
 extern console_globals console_globals_data;         // 0x006b7020
 extern uint8_t chat_dialog_open;                 // 0x006b3858
 extern input_abstraction_globals input_globals;  // 0x00710328 (system_key_states at +0x14a8)
-
-extern uint8_t input_get_mouse_button_state(int16_t button_index); // 0x490e00
 
 
 extern char console_process_command(char *command_line, uint32_t context_flags); // this module, 0x4c6a80, blam-cc: EDI -> command_line, stack -> context_flags

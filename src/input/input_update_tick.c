@@ -22,6 +22,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 #include <string.h>
 
 extern input_abstraction_globals input_globals; // 0x00710328
@@ -30,10 +31,7 @@ extern int16_t system_keys[k_input_system_key_count];         // 0x0068e40c
 extern int64_t performance_frequency;                         // 0x006ac8f8/0x006ac8fc
 
 extern uint8_t input_get_key_state(int16_t key_index);        // 0x00490b50, blam-cc: CX -> key
-extern void input_key_block_timers_expire(void);              // 0x00490ca0
-extern void input_scan_any_bound_input(void);                 // 0x0048f8c0 (already named)
-extern void input_menu_generate_events(void);                 // 0x0048ec50 (see input_types_notes.md)
-extern void input_game_action_update(void);                   // 0x0048cca0 (body runs on through 0x48d270 to 0x48ea4f)
+
 
 // Per-frame input tick. Resyncs the millisecond time base, marks the frame idle (cleared later
 // if the game action update finds a change), expires key-block timers, refreshes the three

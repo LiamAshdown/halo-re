@@ -15,11 +15,11 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <wchar.h>
 #include <string.h>
 
-extern void input_get_mouse_button_name(int16_t button_index, uint16_t *out_name); // this module, 0x490f20
 
 // Resolves a mouse button display name string (ASCII, case-insensitive) back to its numeric
 // button index (0 .. k_control_mouse_button_count - 1), or 0xffff if none match.

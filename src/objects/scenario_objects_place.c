@@ -23,6 +23,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_objects.h"
+#include "fn_input.h"
 
 extern int32_t network_server;  // 0x0071c2d4, pointer; +8 is its connection state
 extern int32_t network_client;   // 0x0071c2d8, pointer; +0xb14 is its connection state
@@ -32,13 +33,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t g_control_binding_secondary_active; // 0x008607a1
 extern uint8_t g_control_binding_state; // 0x008607a0
 extern data_array *object_data; // 0x008603b0
-
-extern void control_binding_table_initialize(void); // 0x4f3700
-extern void control_binding_table_register_single(int32_t target, int32_t selector, int32_t raw_id,
-    uint32_t raw_value); // 0x4f37d0, blam-cc: EDX -> target, EAX -> selector, EDI -> raw_id, EBX -> raw_value
-extern void control_binding_table_update_a(void); // 0x4f3890
-extern void control_binding_table_update_b(void); // 0x4f39d0
-extern uint8_t control_binding_table_query(int32_t target, int32_t raw_id); // 0x4f3ad0, EDX target, stack raw_id
 
 
 static datum_index palette_tag(TagReflexive *palette, int16_t type)

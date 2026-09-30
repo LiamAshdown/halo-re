@@ -17,11 +17,11 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <wchar.h>
 #include <string.h>
 
-extern void input_get_keyboard_key_name(int16_t key_index, uint16_t *out_name); // this module, 0x490e30
 
 // Resolves a keyboard key display name string (ASCII, case-insensitive) back to its numeric key
 // index (0 .. k_control_keyboard_key_count - 1), or 0xffff if none match.

@@ -20,6 +20,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <string.h>
 
@@ -37,7 +38,7 @@ extern int32_t joystick_slot_devices[4];    // 0x006b2ce8
 // slot-to-device map.
 // FIXED 2026-09-28 (retail-independence loop): the EnumDevices callback is the C input_enumerate_gamepad_callback,
 // not the literal retail address 0x491d70 (original code the standalone cannot run).
-extern int32_t __stdcall input_enumerate_gamepad_callback(const di_device_instance *instance, void *reference); // 0x491d70
+
 
 uint32_t input_system_initialize(void)
 {

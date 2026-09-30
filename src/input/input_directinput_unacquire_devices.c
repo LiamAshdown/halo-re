@@ -15,13 +15,12 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern void *joystick_devices[8]; // 0x006b1848
 extern void *mouse_device;        // 0x006b1804
 extern void *keyboard_device;     // 0x006b1800
 extern uint8_t input_acquired;    // 0x006b15f8
-
-extern void input_error_log_once(int32_t error_code, char *description, ...); // this module, 0x492150
 
 
 // Unacquires (but does not release) every joystick, the mouse, and the keyboard, then marks

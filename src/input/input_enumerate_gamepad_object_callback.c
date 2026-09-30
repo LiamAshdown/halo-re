@@ -17,9 +17,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern void *joystick_devices[8];             // 0x006b1848, IDirectInputDevice8A*
-extern void input_error_log_once(int32_t error_code, char *description, ...); // 0x492150
+
 
 int32_t __stdcall input_enumerate_gamepad_object_callback(const di_device_object_instance *object, void *reference)
 {

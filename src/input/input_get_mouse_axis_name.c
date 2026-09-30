@@ -19,13 +19,14 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <wchar.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550
 extern uint16_t missing_string_text[];                  // 0x00671fac, L"<missing string>" (the string itself, not a pointer)
-extern void input_get_axis_direction_name(int16_t direction_index, uint16_t *out_name); // this module, 0x491180
+
 
 // blam-cc: axis_index and direction on the stack, out_name in ESI
 // Builds the display name for mouse axis axis_index (0..2) by combining the tag-provided axis

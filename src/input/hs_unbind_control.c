@@ -21,11 +21,12 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern uint8_t input_parse_device_binding_string(const char *device_class_name, const char *input_name,
                                                   control_binding_descriptor *out_binding);
     // 0x0048fea0, blam-cc: EDI -> device_class_name, stack -> input_name, ESI -> out_binding
-extern void input_clear_control_binding(control_binding_descriptor *binding);
+
     // 0x0048b9b0 (this module, see input_clear_control_binding.c), blam-cc: EAX -> binding
 extern void console_out_printf(uint8_t unknown, const char *format, ...); // 0x004c6860
 

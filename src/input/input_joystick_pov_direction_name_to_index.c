@@ -16,6 +16,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern char pov_direction_names[8][10]; // 0x0065b938, "north" .. "northwest"
 

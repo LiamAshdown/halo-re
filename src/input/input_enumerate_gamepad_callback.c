@@ -23,6 +23,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -32,12 +33,10 @@ extern void *joystick_devices[8];             // 0x006b1848, IDirectInputDevice8
 extern input_device input_devices[8];         // 0x006b1868
 extern di_data_format joystick_data_format;   // 0x0068e51c
 
-extern void input_error_log_once(int32_t error_code, char *description, ...); // 0x492150
-extern void input_device_release(int16_t slot_index); // 0x491f80, ESI
-extern int32_t input_device_count_by_guid(const uint32_t *guid); // 0x491d30
+
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX, EDI, EBX
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, EDX, stack
-extern int32_t __stdcall input_enumerate_gamepad_object_callback(const di_device_object_instance *object, void *reference); // 0x491c50
+
 
 typedef int32_t (__stdcall *idirectinputdevice8_getcapabilities_proc)(void *self, di_device_caps *caps);
 typedef int32_t (__stdcall *idirectinputdevice8_enumobjects_proc)(void *self, void *callback, void *reference,

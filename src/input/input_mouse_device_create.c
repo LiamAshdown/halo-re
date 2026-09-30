@@ -19,6 +19,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern int16_t mouse_button_map[k_input_mouse_button_count]; // 0x0068e534
 extern void *direct_input;      // 0x006b15fc, IDirectInput8A*
@@ -26,8 +27,6 @@ extern void *mouse_device;      // 0x006b1804, IDirectInputDevice8A*
 extern input_guid guid_sys_mouse; // 0x0064e25c, GUID_SysMouse
 extern di_data_format c_dfDIMouse2; // 0x0064e1e4
 extern void *shell_window;      // 0x007461c4, HWND
-
-extern void input_error_log_once(int32_t error_code, char *description, ...); // this module, 0x492150
 
 
 // Seeds mouse_button_map[0..1] from the system's left/right swap setting, then creates and

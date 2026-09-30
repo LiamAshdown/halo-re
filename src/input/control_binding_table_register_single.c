@@ -32,6 +32,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern uint32_t control_binding_device_type; // 0x006f1cb8, UNSURE: 1..4, device type selector
 

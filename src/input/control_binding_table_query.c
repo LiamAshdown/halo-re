@@ -27,6 +27,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern uint32_t current_game_engine; // 0x006f1d20, same global as control_binding_table_initialize.c
 

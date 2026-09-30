@@ -19,6 +19,7 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_input.h"
 #include <string.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -26,7 +27,7 @@ extern int32_t ui_cursor_x; // 0x00718f84
 extern int32_t ui_cursor_y; // 0x00718f88
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
 extern uint8_t input_event_queue_active; // 0x00712cc0
-extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); // 0x492340, blam-cc: EAX, EDI
+
 
 static void widget_absolute_origin(widget_instance *widget, int16_t *x, int16_t *y)
 {

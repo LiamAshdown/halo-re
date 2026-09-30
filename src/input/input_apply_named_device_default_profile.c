@@ -24,6 +24,7 @@
 #include "input.h"
 #include "fn_cache.h"
 #include "fn_saved_games.h"
+#include "fn_input.h"
 
 #include <wchar.h>
 
@@ -34,8 +35,7 @@ extern uint32_t saved_game_create_default_profile(uint16_t *name); // saved_game
     // blam-cc: ECX -> name (0x490226 also pushes a 0 that the callee's rewrite does not read)
 extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); // saved_games module,
     // 0x0053a770; blam-cc: ECX -> out_buffer
-extern uint8_t input_profile_copy_bindings_by_device(int32_t category, saved_player_profile *dst,
-    saved_player_profile *src); // this module, 0x490280
+
 
     // module, 0x539bf0
 

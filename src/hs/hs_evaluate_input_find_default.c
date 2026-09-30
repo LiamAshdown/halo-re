@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_input.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void test_input_device_defaults_find(char *device_id_ansi); // 0x490090, blam-cc: ESI (ECX loaded here)
 
 void hs_evaluate_input_find_default(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_input.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void input_joystick_set_axis_scale_y(int16_t slot, float value); // 0x48c9a0, blam-cc: CX, stack
 
 void hs_evaluate_set_gamepad_strafe_threshold(int16_t function_index, uint32_t thread_index, char first)
 {

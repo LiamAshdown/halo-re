@@ -22,12 +22,13 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern char joystick_pov_prefix[0x18]; // 0x0065b920, "pov"
 extern char decimal_suffixes[0x20][3]; // 0x0065b988, "0" .. "31" (only the first 16 are scanned)
 
 extern char *strstr(const char *haystack, const char *needle); // CRT strstr (0x625430: the MSVC asm strstr, haystack then needle; case-sensitive)
-extern int16_t input_joystick_pov_direction_name_to_index(char *name); // this module, 0x491480,
+
     // blam-cc: name in EBX
 
 // blam-cc: name in EAX, out_direction on the stack

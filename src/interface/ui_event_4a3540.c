@@ -24,12 +24,13 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_input.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
 extern uint8_t input_event_queue_active; // 0x00712cc0
-extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); // 0x492340, blam-cc: EAX, EDI
+
 
 static void row_clicked(widget_instance *list, int32_t row, int32_t old_committed, uint8_t double_click)
 {

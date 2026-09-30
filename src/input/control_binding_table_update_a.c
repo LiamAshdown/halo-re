@@ -36,6 +36,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern uint32_t control_word_primary; // 0x006f1ce8
 extern uint32_t control_binding_device_type; // 0x006f1cb8, 1..4

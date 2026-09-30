@@ -18,6 +18,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 // Accumulates a digitally-pressed control's contribution into the corresponding movement/look
 // axis of *state (throttle_x for forward/backward, throttle_y for left/right, look_x for

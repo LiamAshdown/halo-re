@@ -32,6 +32,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <string.h>
 
@@ -54,7 +55,7 @@ extern uint32_t mouse_double_click_time;           // 0x00712c28
 extern int64_t performance_frequency;              // 0x006ac8f8/0x006ac8fc
 
 extern uint8_t input_get_key_state(int16_t key_index); // this module, 0x490b50, blam-cc: ECX
-extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); // this module, 0x492340
+
 
 // blam-cc: virtual_key_id claims/releases one direction's repeat slot; see file header.
 static void menu_direction_update(menu_repeat_state *state, uint8_t active, int32_t now_ms,

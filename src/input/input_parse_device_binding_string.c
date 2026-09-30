@@ -21,15 +21,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern int32_t _stricmp(const char *a, const char *b); // 0x628d8b, libc
 
-extern uint32_t input_keyboard_key_name_to_index(char *name);                     // this module, 0x490ea0
-extern uint32_t input_mouse_button_name_to_index(char *name);                     // this module, 0x490f90
-extern uint32_t input_mouse_axis_name_to_index(char *name, uint8_t *out_direction); // this module, 0x4910c0
-extern int16_t input_joystick_button_name_to_index(char *name);                   // this module, 0x4912e0, blam-cc: EAX
-extern int16_t input_joystick_axis_name_to_index(char *name, uint8_t *out_direction); // this module, 0x4913e0, blam-cc: EAX
-extern int16_t input_joystick_pov_name_to_index(char *name, int16_t *out_direction);  // this module, 0x491590, blam-cc: EAX
 
 // blam-cc: device_class_name in EDI, name on the stack, out_binding in ESI
 // Parses device_class_name (keyboard/key, mouse, mouseaxis, joystick, joystickaxis, joystickpov)

@@ -61,6 +61,7 @@
 #include "fn_saved_games.h"
 #include "fn_main.h"
 #include "fn_shell.h"
+#include "fn_input.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -128,8 +129,6 @@ extern void hud_display_checkpoint_message(uint8_t is_begin);               // 0
 
     // blam-cc: SI -> structure_bsp_index
 
-extern void input_reset_state_and_axis_configs(void);                       // 0x490aa0, foreign (input)
-
 
     // blam-cc: EDI -> size, stack -> name, buffer
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // this module, 0x4c67c0
@@ -144,10 +143,7 @@ extern int16_t cache_file_download_status_get(float *progress_out);        // 0x
 
     // blam-cc: EAX -> name, stack -> report_fatal_error
 
-extern void input_directinput_poll_devices(void);                           // 0x490760, foreign (input)
-extern void input_update_tick(void);                                        // 0x48b4b0, foreign (input)
 
-extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); // 0x492340, foreign (input)
     // blam-cc: EAX -> queue_index, EDI -> record
 
 

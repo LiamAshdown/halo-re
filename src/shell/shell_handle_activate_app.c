@@ -18,6 +18,7 @@
 #include "sound.h"
 #include "fn_sound.h"
 #include "fn_shell.h"
+#include "fn_input.h"
 
 extern uint8_t shell_application_inactive;   // 0x00721e8c
 extern uint8_t shell_window_proc_bypass;     // 0x00721e8d
@@ -29,9 +30,6 @@ extern sound_driver *current_sound_driver;   // 0x00725208
 extern int32_t sound_time;                   // 0x0072520c
 
 
-extern void input_directinput_unacquire_devices(void);    // 0x4906e0
-extern void input_directinput_acquire_devices(void);      // 0x490620
-extern void input_reset_state_and_axis_configs(void);     // 0x490aa0
 extern void chat_close(void);                             // 0x4aa900
 extern int32_t time_query_performance_counter_ms(void);   // 0x449210
 

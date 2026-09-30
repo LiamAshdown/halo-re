@@ -53,6 +53,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 #include <string.h>
 
 extern input_abstraction_globals input_globals;                  // 0x00710328
@@ -79,14 +80,7 @@ extern real look_yaw_rate_setting[k_maximum_local_players];      // 0x006f1d74, 
 extern real look_pitch_rate_setting[k_maximum_local_players];    // 0x006f1d78, game module
 
 extern uint8_t input_get_key_state(int16_t key_index);           // 0x00490b50, blam-cc: CX
-extern void input_accumulate_axis_value(player_control_settings *settings,
-    local_player_input_state *state, int16_t action);            // 0x0048ca10, blam-cc: EAX, ECX, DX
-extern float input_mouse_acceleration_evaluate(float sensitivity, int32_t magnitude); // 0x0048cb60
-extern uint8_t input_accumulator_is_idle(local_player_input_state *current,
-    local_player_input_state *previous);                         // 0x0048fce0, blam-cc: ECX, EDX
-extern uint8_t input_should_invert_look(int16_t local_player_index); // 0x0048fd60, blam-cc: AX
-extern void input_last_used_binding_set(int16_t action, int16_t device_type, int16_t device_index,
-    int16_t input_kind, int16_t input_index, int32_t direction); // 0x00490050
+
 
 // Scales one analog step onto a throttle axis and clamps it to [-1, 1] exactly like the
 // inlined x87 sequences (compare against -1 first, then against 1, NaN stores unchanged).

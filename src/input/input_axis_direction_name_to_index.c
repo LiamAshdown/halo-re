@@ -15,11 +15,11 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <wchar.h>
 #include <string.h>
 
-extern void input_get_axis_direction_name(int16_t direction_index, uint16_t *out_name); // this module, 0x491180
 
 // Resolves an axis-direction display name string (ASCII, case-insensitive) back to its numeric
 // direction index (0 or 1), or 0xffff if neither matches.

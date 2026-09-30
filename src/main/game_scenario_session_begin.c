@@ -31,6 +31,7 @@
 #include "fn_game.h"
 #include "fn_saved_games.h"
 #include "fn_main.h"
+#include "fn_input.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -42,8 +43,7 @@ extern int32_t interface_loading_screen_address_a;   // 0x0068e680, foreign (int
 extern int32_t interface_loading_screen_address_b;   // 0x0068e684, foreign (interface module)
 extern uint8_t *main_game_globals;           // 0x006b0b80, foreign (networking module)
 
-extern void input_reset_state_and_axis_configs(void); // 0x490aa0, foreign (input module)
-extern void input_bind_capture_reset(void);            // 0x48b5f0, foreign (input module)
+
 extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0x45aea0, foreign (game module)
     // blam-cc: EAX -> path, BL -> apply_state
 

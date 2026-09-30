@@ -20,6 +20,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern void *mouse_device;                    // 0x006b1804
 extern uint8_t input_suppressed;              // 0x006b15f9

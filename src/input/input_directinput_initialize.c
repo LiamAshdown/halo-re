@@ -18,18 +18,12 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern void *shell_instance;         // 0x007461c0, HINSTANCE
 extern void *direct_input8_create;   // 0x00746268, FARPROC (shell module)
 extern input_guid iid_directinput8a; // 0x0064e2ac, IID_IDirectInput8A
 extern void *direct_input;           // 0x006b15fc, IDirectInput8A*
-
-extern void input_directinput_release_devices(void); // this module, 0x490580
-extern uint8_t input_keyboard_device_create(void);    // this module, 0x4918a0 (result ignored here)
-extern uint8_t input_mouse_device_create(void);       // this module, 0x4919c0 (result ignored here)
-extern uint32_t input_system_initialize(void);        // this module, 0x491a80 (result ignored here)
-extern void input_directinput_acquire_devices(void);  // this module, 0x490620
-extern void input_error_log_once(int32_t error_code, char *description, ...); // this module, 0x492150
 
 
 // Creates the shared IDirectInput8A object and, on success, the keyboard, mouse, and joystick

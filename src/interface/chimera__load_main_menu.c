@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_input.h"
 
 extern uint8_t main_menu_reload_pending; // 0x006926c8, UNSURE name
 extern char *shell_command_line;    // 0x006e35c0, TYPES-GAP, UNSURE name
@@ -29,8 +30,7 @@ extern int16_t network_join_error_code;        // 0x00718fa4
 extern uint8_t main_menu_music_pending;  // 0x00718fc6
 extern datum_index cached_saved_game_something; // 0x00692af8, TYPES-GAP, UNSURE name
 
-extern void input_time_base_resync(void); // 0x48b470
-extern void input_queue_sample_time_update(void); // 0x492210, UNSURE
+
 extern void player_profile_check_storage_and_defaults(void); // 0x49c680, UNSURE
 extern void widget_close_all(void); // 0x498650
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,

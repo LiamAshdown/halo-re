@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_input.h"
 
-
-extern void input_device_list_print(void); // 0x491750
 
 void hs_evaluate_input_show_joystick_info(int16_t function_index, uint32_t thread_index, char first)
 {

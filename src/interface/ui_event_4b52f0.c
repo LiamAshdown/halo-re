@@ -16,9 +16,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_input.h"
 
 extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity
-extern void input_bind_scan_set_active(uint8_t enable_scan); // 0x48b6b0, blam-cc: AL
+
 
 uint8_t ui_event_4b52f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

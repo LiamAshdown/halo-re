@@ -26,6 +26,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern input_abstraction_globals input_globals; // 0x00710328
 extern input_device input_devices[8];            // 0x006b1868
@@ -41,8 +42,7 @@ extern int16_t gamepad_action_buttons[k_control_gamepad_count][2];              
 extern int16_t gamepad_axis_bindings[k_control_gamepad_count][k_control_gamepad_axis_count][2];  // 0x00710536
 extern int16_t gamepad_pov_bindings[k_control_gamepad_count][k_control_gamepad_pov_count][k_control_gamepad_pov_direction_count]; // 0x00710736
 
-extern void input_last_used_binding_set(int16_t action, int16_t device_type, int16_t device_index,
-                                         int16_t input_kind, int16_t input_index, int32_t direction);
+
     // 0x00490050 (already rewritten), blam-cc: AX -> action, CX -> device_type, DX -> device_index,
     // stack -> input_kind, input_index, direction
 

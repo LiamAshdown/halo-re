@@ -16,6 +16,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern input_abstraction_globals input_globals; // 0x00710328
 

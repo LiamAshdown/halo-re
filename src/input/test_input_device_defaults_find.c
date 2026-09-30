@@ -18,8 +18,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
-extern uint8_t input_guid_parse_ansi(input_guid *out_guid, char *ansi); // this module, 0x491670,
+
     // blam-cc: ansi in ESI
 extern uint32_t input_device_default_profile_tag_find(input_guid device_guid, void *out_profile);
     // this module, 0x490110

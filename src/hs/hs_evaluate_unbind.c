@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_input.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void hs_unbind_control(const char *device_class_name, const char *input_name); // 0x48b8d0, blam-cc: EDI, EBX
 
 void hs_evaluate_unbind(int16_t function_index, uint32_t thread_index, char first)
 {

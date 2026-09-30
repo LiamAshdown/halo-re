@@ -15,6 +15,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern key_block_timer key_block_timers[k_input_key_block_timer_count]; // 0x006b1600
 extern int64_t performance_frequency;                                   // 0x006ac8f8/0x006ac8fc

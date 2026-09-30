@@ -117,24 +117,56 @@ def sort_headers(headers):
 
 
 def complete_includes(body, mod, headers):
-    """Adds the type headers the prototypes need, found by compiling the header alone with host gcc."""
+    """Adds the type headers the prototypes need, found by compiling the header alone with host gcc. A type used inside
+    another header (e.g. input.h using ui_input_event from interface.h) also constrains the include order: the
+    defining header must come before the header that uses it."""
     flags = ["-m32", "-D__stdcall=", "-D__cdecl=", "-D__fastcall=", "-fsyntax-only", "-std=gnu99", "-I", os.path.join(ROOT, "types")]
-    for _ in range(10):
+    must = collections.defaultdict(set)          # header -> headers that must precede it
+
+    def enforce(hs):
+        hs = sort_headers(hs)
+        for _ in range(len(hs) * len(hs) + 1):
+            moved = False
+            for user, deps in must.items():
+                for d in sorted(deps):
+                    if user in hs and d in hs and hs.index(d) > hs.index(user):
+                        hs.remove(d)
+                        hs.insert(hs.index(user), d)
+                        moved = True
+            if not moved:
+                break
+        return hs
+
+    def render(hs):
+        return re.sub(r'((?:#include "[^"]+"\n)+)', "".join('#include "%s"\n' % h for h in hs), body, count=1)
+
+    for _ in range(20):
         with tempfile.TemporaryDirectory() as tmp:
             hp = os.path.join(tmp, "fn_%s.h" % mod)
             open(hp, "w").write(body)
             r = subprocess.run(["gcc"] + flags + ["-x", "c", hp], capture_output=True, text=True,
                                env=dict(os.environ, LC_ALL="C", LANG="C"))
-        missing = set(re.findall(r"unknown type name '(\w+)'", r.stderr))
+        missing = set()
         new = []
-        for n in sorted(missing):
-            h = defining_header(n)
-            if h and h not in headers and h not in new:
-                new.append(h)
-        if not new:
-            return body, headers, missing
-        headers = sort_headers(headers + new)   # canonical include order (dependencies first)
-        body = re.sub(r'((?:#include "[^"]+"\n)+)', "".join('#include "%s"\n' % h for h in headers), body, count=1)
+        for m in re.finditer(r"([^\s:]+):\d+:\d+: error: unknown type name '(\w+)'", r.stderr):
+            user, tp = os.path.basename(m.group(1)), m.group(2)
+            missing.add(tp)
+            h = defining_header(tp)
+            if h and h != user:
+                if user.endswith(".h") and not user.startswith("fn_"):
+                    must[user].add(h)
+                if h not in headers and h not in new:
+                    new.append(h)
+        order_changed = False
+        if must:
+            fixed = enforce(headers + new)
+            order_changed = fixed != headers
+        else:
+            fixed = headers + new
+        if not new and not order_changed:
+            return body, headers, {tp for tp in missing if not defining_header(tp)}
+        headers = fixed
+        body = render(headers)
     return body, headers, missing
 
 

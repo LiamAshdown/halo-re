@@ -34,13 +34,14 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc, UNSURE: nonzero -> "secondary control word in use", see below
 extern uint8_t g_control_binding_state;     // 0x008607a0, UNSURE: not independently typed
 extern uint8_t g_control_binding_secondary_active; // 0x008607a1, UNSURE: not independently typed
 extern Globals *global_globals;
 extern uint32_t current_game_engine; // 0x006f1d20, UNSURE: nonzero selects the per-profile default source
-extern uint32_t control_word_extract_field(uint32_t which_word, uint32_t field_index); // 0x4f3680, same pass
+
 
 // UNSURE (function-wide): raw byte offsets into the control-binding region starting at
 // 0x008603e4; see file header. Modeled as a byte array so the arithmetic below matches the

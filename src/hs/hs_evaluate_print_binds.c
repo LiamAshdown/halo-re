@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_input.h"
 
-
-extern void input_print_bound_controls(void); // 0x48bea0
 
 void hs_evaluate_print_binds(int16_t function_index, uint32_t thread_index, char first)
 {

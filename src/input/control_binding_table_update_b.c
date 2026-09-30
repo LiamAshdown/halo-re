@@ -25,6 +25,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern uint32_t control_word_secondary; // 0x006f1cec
 extern uint32_t control_word_primary;   // 0x006f1ce8

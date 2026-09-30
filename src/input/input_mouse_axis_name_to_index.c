@@ -18,11 +18,12 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <wchar.h>
 #include <string.h>
 
-extern void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *out_name);
+
     // this module, 0x491010
 
 // Resolves a mouse axis-plus-direction display name string (ASCII, case-insensitive) back to

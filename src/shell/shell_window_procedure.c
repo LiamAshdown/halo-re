@@ -59,6 +59,7 @@
 #include "shell.h"
 #include "fn_sound.h"
 #include "fn_shell.h"
+#include "fn_input.h"
 
 
 // Minimal GDI BITMAP layout: only the fields GetObjectA's caller reads are named (bmWidth,
@@ -72,12 +73,11 @@ typedef struct win32_bitmap {
 
 
 extern uint32_t time_query_performance_counter_ms(void);       // 0x449210, foreign (math)
-extern void input_directinput_acquire_devices(void);           // 0x490620, foreign (input)
-extern void input_directinput_unacquire_devices(void);         // 0x4906e0, foreign (input)
-extern void input_reset_state_and_axis_configs(void);          // 0x490aa0, foreign (input)
+
+
 extern void input_record_windows_key_message(int32_t key_or_char, int32_t message); // 0x490d10, foreign (input);
                                                                  // blam-cc: EAX -> key_or_char, ECX -> message
-extern void input_key_block_timer_set(int16_t key, int32_t duration_ms); // 0x490bf0, foreign (input);
+
                                                                  // blam-cc: EDI -> key, stack -> duration_ms
 extern void chat_close(void);                                  // 0x4aa900, foreign (interface)
 extern void chat_submit_input(void);                            // 0x4aa9b0, foreign (interface)

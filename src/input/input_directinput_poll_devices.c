@@ -23,6 +23,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <string.h>
 
@@ -44,11 +45,8 @@ extern void *joystick_devices[8];              // 0x006b1848
 extern joystick_state joystick_states[4];      // 0x006b2a68
 extern joystick_state joystick_neutral_state;  // 0x006b2cf8
 
-extern void input_error_log_once(int32_t error_code, char *description, ...); // this module, 0x492150
-extern void input_mouse_state_process(mouse_state *dest, di_mouse_state2 *raw); // this module, 0x491bc0,
+
     // blam-cc: dest on the stack, raw in ECX
-extern void input_joystick_state_process(joystick_raw_state *raw, joystick_state *dest,
-    input_device *device); // this module, 0x491fd0, blam-cc: device in EBX
 
 
 // The two "device needs reacquiring" HRESULTs this poll checks for, from the binary's own

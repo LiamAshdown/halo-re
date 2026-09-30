@@ -14,6 +14,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 // Converts a raw sensitivity value (clamped to 0.001 .. 100.0) into a radians-per-unit turn-rate
 // scale factor by multiplying it by 2*pi/1000.

@@ -17,6 +17,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern uint32_t input_queue_sample_time;                      // 0x00712c34
 extern int64_t performance_frequency;                          // 0x006ac8f8/0x006ac8fc

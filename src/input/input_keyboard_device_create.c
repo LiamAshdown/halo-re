@@ -21,6 +21,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <string.h>
 
@@ -35,8 +36,6 @@ extern void *keyboard_device;                 // 0x006b1800, IDirectInputDevice8
 extern input_guid guid_sys_keyboard;          // 0x0064e24c, GUID_SysKeyboard
 extern di_data_format c_dfDIKeyboard;         // 0x0064dfdc
 extern void *shell_window;                    // 0x007461c4, HWND
-
-extern void input_error_log_once(int32_t error_code, char *description, ...); // this module, 0x492150
 
 
 // Resets the keyboard runtime state and key block timers, then creates and configures the

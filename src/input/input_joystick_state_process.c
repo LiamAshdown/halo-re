@@ -18,6 +18,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 // blam-cc: input_device in EBX
 // Normalizes a raw joystick sample (raw) into the engine's joystick_state (dest), for the axis

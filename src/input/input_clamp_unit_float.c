@@ -13,6 +13,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 // Clamps a floating-point input value to the 0..1 range.
 float input_clamp_unit_float(float value)

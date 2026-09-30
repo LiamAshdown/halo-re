@@ -33,6 +33,7 @@
 
 #include "objects.h"
 #include "units.h"
+#include "fn_input.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480

@@ -22,13 +22,13 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <string.h>
 
 extern char joystick_axis_prefix[0x18]; // 0x0065b908, "axis"
 extern char decimal_suffixes[0x20][3];  // 0x0065b988, "0" .. "31"
 
-extern int16_t input_axis_direction_name_to_index(char *name); // this module, 0x4911f0
 
 // blam-cc: name in EAX
 // Resolves a joystick axis-plus-direction name string (e.g. "axis3 +") back to its numeric axis

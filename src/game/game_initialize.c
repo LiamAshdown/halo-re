@@ -34,6 +34,7 @@
 #include "fn_memory.h"
 #include "fn_effects.h"
 #include "fn_saved_games.h"
+#include "fn_input.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -62,8 +63,6 @@ extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c
     // blam-cc: EBX -> variant (matches src/game/game_engine_load_from_variant.c)
 
 
-extern void input_state_initialize(void);                     // 0x48b3e0
-extern void input_queue_initialize(void);   // UNSURE module
 extern void interface_globals_allocate(void);   // UNSURE module
 extern void player_profile_subsystem_initialize(void);   // UNSURE module
 extern void widget_memory_pool_initialize(void);              // 0x4979b0

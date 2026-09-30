@@ -18,13 +18,8 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
-extern void input_get_keyboard_key_name(int16_t key_index, uint16_t *out_name);            // this module, 0x490e30
-extern void input_get_mouse_button_name(int16_t button_index, uint16_t *out_name);         // this module, 0x490f20
-extern void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *out_name); // this module, 0x491010
-extern void chimera__button_text(int16_t button_index, uint16_t *out_text);                 // this module, 0x491270
-extern void chimera__axis_text(int16_t axis_index, uint8_t direction, uint16_t *out_text);   // this module, 0x491340
-extern void chimera__pov_text(int16_t pov_index, int16_t direction_index, uint16_t *out_text); // this module, 0x4914c0
 
 // Given a device-input descriptor, dispatches to the correct per-device name/text formatting
 // routine (keyboard key, mouse button/axis, or joystick button/axis/pov), writing the result

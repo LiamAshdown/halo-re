@@ -15,6 +15,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern int32_t input_device_count;    // 0x006b1844
 extern input_device input_devices[8]; // 0x006b1868

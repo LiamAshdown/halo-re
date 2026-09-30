@@ -18,11 +18,12 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#include "fn_input.h"
 
 extern input_abstraction_globals input_globals; // 0x00710328
 extern int32_t last_input_device;                // 0x0087a460
 
-extern uint8_t input_refresh_last_used_binding(int32_t device_class, int16_t action);
+
     // 0x0048bae0 (this module, see input_refresh_last_used_binding.c)
     // blam-cc: ECX -> device_class, ESI -> action
 

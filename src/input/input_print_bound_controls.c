@@ -34,6 +34,7 @@
 #include "saved_games.h"
 #include "cache.h"
 #include "input.h"
+#include "fn_input.h"
 
 #include <wchar.h>
 #include <string.h>
@@ -54,9 +55,7 @@ extern tag_instance *tag_instances;                            // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path);    // cache module, 0x442550
 extern uint16_t missing_string_text[];                  // 0x00671fac, L"<missing string>" (the string itself, not a pointer)
 
-extern void input_get_keyboard_key_name(int16_t key_index, uint16_t *out_name);           // this module, 0x490e30
-extern void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *out_name); // this module, 0x491010
-extern void chimera__pov_text(int16_t pov_index, int16_t direction_index, uint16_t *out_text);     // this module, 0x4914c0
+
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);  // 0x557910
 extern void console_printf_verbose(ColorARGB *color, char *format, ...);                   // interface module, 0x496a80
 
