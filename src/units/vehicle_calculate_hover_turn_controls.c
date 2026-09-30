@@ -5,8 +5,8 @@
 //   effects). Ghidra split it at 0x5738b0 and 0x5739a0, which is why this range shows unaffected registers, x87 values with no
 //   source and offsets from the caller's frame (ebp - 4 .. ebp - 0x58). Nothing calls or jumps to 0x5738b0 from outside the
 //   function. This file has no body of its own and must never be hooked; the whole function still needs to be rewritten
-//   once, as a single unit, in vehicle_calculate_wing_flex_controls.c (whose current C covers only the first 992 bytes and
-//   is not faithful).
+//   once, as a single unit, in vehicle_calculate_wing_flex_controls.c (whose current C is sized 992 bytes, i.e. does not cover the whole range, and is marked
+//   low confidence).
 
 #include "tags.h"
 #include "memory.h"
