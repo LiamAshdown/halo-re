@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // Returns 0 on success, -19 (0xffffffed) if the list is empty (last_index < 0) or `entry` is
 // not present in list->entries.

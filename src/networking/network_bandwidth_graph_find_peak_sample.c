@@ -27,6 +27,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // blam-cc: EBX -> out_peak_countdown, stack -> graph
 int32_t network_bandwidth_graph_find_peak_sample(int32_t *out_peak_countdown, network_bandwidth_graph *graph)

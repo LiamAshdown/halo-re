@@ -6,6 +6,7 @@
 // blam-cc: stack -> vector (12 bytes by value)
 
 #include "message_delta_codec.h"
+#include "fn_networking.h"
 
 int32_t digital_throttle_encode_vector(real_vector3d vector)
 {

@@ -23,6 +23,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
@@ -37,7 +38,7 @@ extern int16_t network_game_mode; // 0x00719720
 extern network_client_globals *network_client;
 extern void *network_session_create(void); // 0x4d8a80, blam-cc: EAX -> client
 extern uint8_t network_host_handoff_requested; // 0x0071c2de
-extern void network_client_globals_dispose(void); // 0x4dde70
+
 extern void network_game_setup_teardown(void); // 0x495520
 
 uint8_t ui_event_49d480(widget_instance *widget, int16_t *event, uint8_t *out_handled)

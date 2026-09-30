@@ -23,6 +23,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern uint8_t network_disabled_flag;      // 0x007196ec, UNSURE: see network_dispatch_initialize.c
@@ -31,9 +32,9 @@ extern uint32_t network_local_address;     // 0x006869b0, byte swapped before bi
 extern uint32_t network_resolved_local_address; // 0x006869b4, UNSURE
 extern int32_t network_initialized_at_ms;  // 0x006f14c0, UNSURE
 
-extern int network_local_hostent_get(void **out_hostent); // 0x441540, this module
+
 extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
-extern uint32_t __stdcall autopatch_proxy_initialize(void *parameter); // 0x5771c0, the proxy thread
+
 
 int16_t network_initialize(void)
 {

@@ -5,9 +5,8 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#include "fn_networking.h"
 
-extern int32_t message_delta_float_array_encode(message_delta_field_type *field_type, float *previous, float *values,
-    bit_stream *stream); // 0x4e9db0
 
 int32_t message_delta_vector_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {

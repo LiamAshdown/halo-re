@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_thread_record network_thread_table[k_network_thread_table_count]; // 0x006f0cb0
 

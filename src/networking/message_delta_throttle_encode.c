@@ -6,8 +6,8 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#include "fn_networking.h"
 
-extern int32_t digital_throttle_encode_vector(real_vector3d vector); // 0x4eb050
 
 int32_t message_delta_throttle_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {

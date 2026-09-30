@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_networking.h"
 
-
-extern void sv_players(void); // 0x4e2c70
 
 void hs_evaluate_sv_players(int16_t function_index, uint32_t thread_index, char first)
 {

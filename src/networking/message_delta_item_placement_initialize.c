@@ -6,11 +6,12 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#include "fn_networking.h"
 
 extern uint32_t item_placement_bits_x; // 0x0069a2e0
 extern uint32_t item_placement_bits_y; // 0x0069a2e4
 extern uint32_t item_placement_bits_z; // 0x0069a2e8
-extern void message_delta_parameters_protocol_register(char *scope, char *name, int32_t type, void *value); // 0x4ebe00, EAX scope
+
 extern uint8_t message_delta_parameters_enabled; // 0x0071cfa8
 
 uint8_t message_delta_item_placement_initialize(message_delta_field_type *field_type)

@@ -23,6 +23,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_handle_registry_slot network_handle_registry[64]; // 0x006f14d0
 

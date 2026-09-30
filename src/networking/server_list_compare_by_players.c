@@ -10,6 +10,7 @@
 
 #include "crt.h"
 #include "tags.h"
+#include "fn_networking.h"
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 extern const char *SBServerGetStringValue(void *server, const char *key, const char *default_value); // 0x617490 SBServerGetStringValue
@@ -34,7 +35,6 @@ static int32_t key_order(const void *a, const void *b, const char *key)
     return server_browser_sort_ascending != 0 ? result : -result;
 }
 
-extern int32_t server_list_compare_by_string_key(void **a, void **b, const char *key); // 0x4b6be0
 
 int32_t server_list_compare_by_players(const void *a, const void *b)
 {

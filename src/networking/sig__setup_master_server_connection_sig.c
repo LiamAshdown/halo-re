@@ -11,6 +11,7 @@
 
 #include "win32.h"
 #include "tags.h"
+#include "fn_networking.h"
 
 extern uint8_t server_browser_join_requested;    // 0x00719491
 extern void *master_server_query_engine;         // 0x0071946c, the ServerBrowser
@@ -18,7 +19,7 @@ extern uint32_t master_server_request_flags;     // 0x0071969c
 extern int32_t master_server_last_result;        // 0x007196a4
 extern char network_session_start_host_name[];   // 0x00722798 (the qr2 game name)
 extern char network_session_start_map_name[];    // 0x007227a0 (the qr2 secret key)
-extern void master_server_process_pending_requests(void); // 0x4b5d70
+
 extern void network_channel_gap_4ba660(void *sb, uint32_t reason, void *server, void *instance); // 0x4ba660
 extern void *ServerBrowserNew(const char *queryForGamename, const char *queryFromGamename, const char *queryFromKey,
     int32_t queryFromVersion, int32_t maxConcurrentUpdates, int32_t queryVersion, void *callback, void *instance); // 0x616eb0

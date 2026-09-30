@@ -31,6 +31,7 @@
 #include "networking.h"
 #include <stdint.h>
 #include "units.h"
+#include "fn_networking.h"
 
 extern data_array *player_data; // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
@@ -46,8 +47,7 @@ extern int32_t build_remote_player_vehicle_update(uint8_t *cache, uint8_t update
     uint8_t flags, char is_full, player_action *control, int32_t network_key); // this module, 0x4e84d0
 extern int32_t build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
     uint8_t flags, char is_full, player_action *control, int32_t network_key); // this module, 0x4e86f0
-extern void build_remote_player_action_update(uint32_t player_index, uint32_t network_key,
-    uint8_t update_id_byte, player_action control); // this module, 0x4e7890
+
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits,
     int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority); // 0x4e1930
 

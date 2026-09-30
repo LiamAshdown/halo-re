@@ -17,10 +17,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-
-
-extern void message_delta_sample_ring_buffer_append(message_delta_sample_ring_buffer *ring, const int32_t *entry); // 0x4ed390, this module
 
 // blam-cc: EAX -> a, ECX -> c, EDX -> b, stack -> ring
 // Builds a 5-field sample record out of three inputs and appends it to the ring buffer.

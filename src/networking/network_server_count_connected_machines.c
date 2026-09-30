@@ -12,6 +12,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // Counts machine-table slots that have both a live channel and a connected (non -1) id.
 int32_t network_server_count_connected_machines(network_server_globals *server)

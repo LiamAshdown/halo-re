@@ -40,6 +40,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -52,15 +53,15 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, shared with
 extern char network_player_entry_validate(network_player_entry *entry);
     // blam-cc: EAX -> entry; 0x4de9f0. The EAX convention is pinned by 0x4e0f80 `mov eax,esi` /
     // 0x4e102b `lea eax,[esp+0x20]`, both immediately before the call.
-extern uint32_t network_game_settings_broadcast_send(uint32_t round, uint32_t *record);
+
     // 0x4df0e0; both arguments are pushed: (server, the 32-byte player entry)
-extern uint32_t network_player_entry_remove(network_player_entry *key, network_game_session *session);
+
     // blam-cc: EAX -> key, EBX -> session; 0x4de640. 0x4e105f passes the server session (EBX = server + 8),
     // 0x4e108a the client's (EBX = network_client + 0xb14).
 extern void network_channel_remove_child(network_channel *channel); // other module (UNSURE)
 extern void gcd_disconnect_user(int32_t id, int32_t value); // GameSpy library (UNSURE)
 extern void gcd_disconnect_all(int32_t id); // GameSpy library (UNSURE)
-extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50
+
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // The call at 0x4e1187 also sets EAX = network_message_scratch and EDX = 0x7ff8, two

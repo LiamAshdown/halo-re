@@ -15,6 +15,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
 

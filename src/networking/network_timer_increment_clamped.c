@@ -13,9 +13,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-
-extern void network_timer_advance(network_timer_pair *timer); // 0x4deb50, this batch
 
 // blam-cc: EAX -> timer, EBX -> upper_bound, EDI -> increment
 void network_timer_increment_clamped(network_timer_pair *timer, int32_t upper_bound, int32_t increment)

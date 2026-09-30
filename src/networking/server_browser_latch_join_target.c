@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_thread_record *server_list_thread; // 0x007196ac
 extern network_mutex_record *server_list_mutex; // 0x007196a8

@@ -20,9 +20,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <time.h>
 
-extern ban_list_entry *ban_list_find_by_name(char *key); // this batch, 0x4e37d0
+
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Looks up `key` (a CD-key hash) in the ban list; if found and either indefinite or not yet

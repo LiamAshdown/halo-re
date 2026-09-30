@@ -12,6 +12,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count]; // 0x006f0db0
 

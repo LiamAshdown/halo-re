@@ -35,6 +35,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
@@ -52,9 +53,7 @@ extern void datum_new_at_index_with_salt(void); // 0x4d03d0, memory module (UNSU
 extern void player_update_queue_create(void); // other module (UNSURE)
 extern void game_engine_player_new_life(uint32_t player_datum); // other module (UNSURE)
 extern int32_t game_engine_player_profile_cache_find(void); // 0x466e80, other module (UNSURE)
-extern void network_game_server_handoff_object_ownership(int32_t *object_count_passthrough,
-    network_server_globals *server, network_machine *machine); // 0x4dfa10, this batch
-extern void network_object_release_ownership_claim(uint8_t slot_index); // 0x4dfc10, this batch
+
 
 // One-time per-round bookkeeping (first call this round records whether a listen-server
 // client exists and stamps a millisecond timestamp), then scans the 16 player-table slots

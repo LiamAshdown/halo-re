@@ -30,6 +30,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 
 extern data_array *player_data;              // 0x0087a480
 extern int16_t network_game_mode;            // 0x00719720
@@ -42,7 +43,7 @@ extern datum_index machine_to_player[16];    // 0x006b1460
     // blam-cc: ESI -> queue
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array,
     // EDX -> handle
-extern uint32_t network_machine_clear_flag_by_id(network_server_globals *server, int32_t machine_id); // 0x4e0b90,
+
     // EDX server, EDI machine_id
 
 // Notifies the active game engine that this player's object is going away, then -- only while

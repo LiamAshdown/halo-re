@@ -28,15 +28,16 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
-extern int32_t network_channel_service_close_if_disconnected(network_channel *channel); // 0x4dd3f0
+
 extern network_server_globals *network_server; // 0x0071c2d4
 extern network_client_globals *network_client; // 0x0071c2d8
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data; // 0x0087a480
 extern void *datum_get(datum_index index); // 0x4d0680
-extern void network_client_globals_dispose(void); // 0x4dde70, not in this batch
+
 extern void network_client_globals_create(void); // 0x4dde50, not in this batch
 extern uint8_t network_channel_table_default_flag; // 0x0071c2c1, UNSURE name; see file header
 extern void network_client_begin_connect(const wchar_t *name); // 0x4dc8d0, this batch (not yet rewritten at time of writing)

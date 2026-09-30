@@ -13,6 +13,7 @@
 // global at a different address, so the link bound it there).
 
 #include "tags.h"
+#include "fn_networking.h"
 
 typedef struct server_list_globals server_list_globals;
 extern uint8_t server_browser_initialized;       // 0x00719470
@@ -22,12 +23,7 @@ extern int32_t server_browser_selected_index;    // 0x006953f4
 extern int32_t server_browser_last_click_ms;   // 0x0071947c, UNSURE name
 extern int32_t SBServerHasBasicKeys(void *server); // 0x6175c0 SBServerHasBasicKeys
 extern int32_t SBServerHasFullKeys(void *server); // 0x6175d0 SBServerHasFullKeys
-extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms); // 0x4ba760
-extern int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array); // 0x4ba8a0
-extern void server_list_mutex_unlock(server_list_globals **list_slot); // 0x4ba7a0
-extern int32_t dynamic_pointer_array_find_index(server_list_globals *array, void *value); // 0x4ba870
-extern void dynamic_pointer_array_remove_at(int32_t index, server_list_globals *array); // 0x4ba940
-extern void server_browser_ui_refresh(void); // 0x4b73a0
+
 
 void network_channel_gap_4ba660(void *sb, uint32_t reason, void *server, void *instance)
 {

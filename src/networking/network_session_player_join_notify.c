@@ -32,11 +32,11 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern network_client_globals *network_client; // 0x0071c2d8
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 
 
 // blam-cc: EAX -> client, ECX -> source

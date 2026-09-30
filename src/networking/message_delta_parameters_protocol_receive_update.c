@@ -13,13 +13,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t message_delta_parameters_enabled;            // 0x0071cfa8
 extern int32_t message_delta_parameters_protocol_sequence;  // 0x0071cfac
 
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination); // 0x4ec590, this module
 extern void message_delta_decode_compound_field_staged(void **context); // 0x4ec670, this module
-extern void message_delta_parameters_protocol_format_received_values(int32_t *values); // 0x4ec230, this module
+
 
 // blam-cc: EAX -> context
 // Handles an incoming dynamic-parameters protocol message: for a baseline (non-incremental)

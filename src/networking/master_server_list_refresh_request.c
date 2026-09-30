@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint32_t master_server_request_flags; // 0x0071969c
 extern int32_t DAT_006953fc; // see UNSURE, a millisecond deadline

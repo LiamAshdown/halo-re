@@ -11,6 +11,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 
 // Reads the installed game's "DistID" (distribution/channel id) DWORD value from the registry.

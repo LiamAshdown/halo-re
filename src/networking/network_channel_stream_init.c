@@ -18,6 +18,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 extern int32_t network_bit_chunk_size; // 0x0071c2cc
 

@@ -13,6 +13,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 
 // blam-cc: requested capacity in AX (in_AX, low 16 bits of EAX)

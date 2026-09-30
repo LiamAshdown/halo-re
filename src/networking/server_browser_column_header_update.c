@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // blam-cc: header widget in EAX (in_EAX), sort direction in EDX (in_EDX)
 void server_browser_column_header_update(network_ui_widget *header, int32_t sort_direction)

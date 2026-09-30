@@ -23,16 +23,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_mutex_record *server_list_mutex; // 0x007196a8
 extern network_thread_record *server_list_thread; // 0x007196ac, see UNSURE
 extern uint32_t master_server_request_flags;    // 0x0071969c
 extern int32_t master_server_last_result;       // 0x007196a4
 
-extern int32_t mutex_create(network_mutex_record **out_handle); // 0x440510, this module
-extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
-                                       network_thread_record **out_handle); // 0x440460, this module
-extern uint32_t __stdcall sig__setup_master_server_connection_sig(void *parameter); // 0x4b5f80, the thread routine
 
 // Resets the master-server request state, creates the server-list mutex, and starts the
 // background thread that owns the master-server connection. On thread-creation failure, tears

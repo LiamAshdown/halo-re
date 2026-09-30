@@ -6,6 +6,7 @@
 // blam-cc: ECX -> out, EDX -> code
 
 #include "message_delta_codec.h"
+#include "fn_networking.h"
 
 extern double sqrt(double x);
 

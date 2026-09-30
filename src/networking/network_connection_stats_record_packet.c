@@ -26,6 +26,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdint.h>
 
 extern uint8_t debug_log_level;          // 0x0087ac06, byte-wide (R01)
@@ -38,7 +39,7 @@ extern void network_bandwidth_graph_accumulate_received(int32_t enabled); // 0x4
 extern void *gt2GetConnectionData(void *gamespy_connection); // foreign, GameSpy library
 extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; see UNSURE
 extern uint16_t gt2GetRemotePort(int32_t object); // 0x6147d0: returns the uint16 at object+0x04 in AX // foreign, GameSpy library; see UNSURE
-extern int32_t network_connection_stats_lookup_or_add(int32_t connection_id, uint16_t connection_key); // 0x440a80, this module
+
 extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
 
 // blam-cc: GameSpy connection handle in EAX (in_EAX), payload byte length in ECX (in_ECX),

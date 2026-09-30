@@ -22,11 +22,10 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 extern int32_t network_rate_override; // 0x00710308
 extern int32_t network_rate_table[]; // 0x00697edc
-
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
 
 
 void network_channel_scan_retransmit_timeouts(network_channel *channel)

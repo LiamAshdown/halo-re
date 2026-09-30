@@ -34,6 +34,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -41,11 +42,10 @@ extern uint32_t network_local_address; // 0x006869b0
 extern int32_t network_game_socket_port; // 0x00698208
 extern int16_t network_join_error_code; // 0x00718fa4, WORD-sized
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
-extern int32_t network_game_process_incoming_messages(network_client_globals *client); // 0x4db180, this batch
-extern void network_connection_send_keepalive(network_client_globals *client); // 0x4d9400
+
+
 extern void network_debug_fill_canary_buffer(void); // 0x4e0790, UNSURE argument; not in this batch
-extern int32_t network_connection_initiate(network_client_globals *connection, const uint32_t *target,
-    const uint32_t *session_info); // 0x4d8cf0
+
 
 // blam-cc: EAX -> client
 uint32_t network_join_handshake_tick(network_client_globals *client)

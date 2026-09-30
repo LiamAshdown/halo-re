@@ -27,10 +27,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern void network_host_presence_broadcast_tick(network_client_globals *client); // 0x4dadb0
+
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
-extern int32_t network_game_process_incoming_messages(network_client_globals *client); // 0x4db180
+
 extern int16_t network_join_error_code; // 0x00718fa4, WORD-sized; -1 means "none pending"
 
 // blam-cc: ESI -> client

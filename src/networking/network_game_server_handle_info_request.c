@@ -28,15 +28,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
     void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
     int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 
-extern void network_game_server_handle_client_join(int32_t *object_count_passthrough, network_server_globals *server,
-    network_machine *machine, uint8_t bl_passthrough); // 0x4dfc90, stack (server, machine)
-extern char network_server_build_full_game_info_packet(network_machine *machine); // 0x4e0bd0, stack
 
 uint32_t network_game_server_handle_info_request(network_server_globals *server, network_machine *machine, uint8_t *record,
     int32_t length)

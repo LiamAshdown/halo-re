@@ -30,6 +30,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 typedef int32_t (*network_game_message_handler_proc)(network_client_globals *client, const void *record,
     int32_t record_length, const uint32_t *sender);

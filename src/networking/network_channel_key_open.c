@@ -12,8 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern uint8_t network_channel_key_resolve_target(network_player_entry *entry); // 0x4ddcc0, this batch
+
 extern int32_t player_new_network(int32_t machine_index, int16_t machine_player_index); // 0x473780, outside this batch
 extern void network_index_cache_find_or_allocate_slot(int32_t index); // 0x4e9c20, outside this batch
 

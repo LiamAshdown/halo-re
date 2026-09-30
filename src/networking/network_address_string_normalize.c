@@ -14,9 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdio.h>
 
-extern char network_address_parse_port(char *address_string, int32_t *port_out); // 0x4dc560, this module
 
 // Parses the leading "%d.%d.%d.%d" of address_string (tolerating one extra dot-delimited field
 // it never uses), range-checks each byte to 0..255, reports via out_is_any whether all four are

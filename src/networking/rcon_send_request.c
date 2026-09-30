@@ -20,6 +20,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern network_client_globals *network_client; // 0x0071c2d8
@@ -29,7 +30,6 @@ extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b
 extern int32_t message_delta_encode_message(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX, EDX
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, ESI stream (channel +0x10), stack channel, mode
 
 
 // FIXED 2026-09-28 (send-path audit, from the disassembly 0x4e4dc0..0x4e4ef8 -- the function is 0x130 bytes; the

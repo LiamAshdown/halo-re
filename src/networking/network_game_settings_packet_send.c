@@ -51,6 +51,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0
 extern int32_t join_ui_state; // 0x00718f8c, per network_client_state_dispatch.c cluster naming
@@ -59,7 +60,6 @@ extern void *shell_product_id; // 0x007461a8, UNSURE name/type
 extern uint8_t profile_globals_block[0x1ffc]; // 0x00712dd8, UNSURE name/size (0x7ff dwords)
 extern void gcd_compute_response(void *a, void *request, uint8_t *out); // 0x617c70, not in this batch
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 
 
 // blam-cc: EBX -> client, stack -> request

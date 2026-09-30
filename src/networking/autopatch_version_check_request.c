@@ -14,12 +14,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t autopatch_proxy_ready;       // 0x007228d0
 extern int32_t autopatch_update_check_state; // 0x0069fe04, -1 not started, 0 no update thread failed, 1 running
 
-extern char *registry_get_halo_version(void);  // 0x5776d0, this module
-extern uint32_t registry_get_dist_id(void);    // 0x577760, this module
+
 extern int32_t ptCheckForPatch(int32_t request_type, char *version, uint32_t dist_id,
                              void *callback, int32_t a5, int32_t a6); // foreign, UNSURE
 extern void autopatch_version_check_completed(void); // UNSURE: the request-completion callback

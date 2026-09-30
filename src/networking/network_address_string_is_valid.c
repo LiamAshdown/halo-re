@@ -12,9 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <ctype.h>
 
-extern char network_address_string_normalize(char *address_string, char *out_buffer, uint8_t *out_is_any); // 0x4dc5e0, this module
 
 // blam-cc: EAX -> address_string
 char network_address_string_is_valid(char *address_string)

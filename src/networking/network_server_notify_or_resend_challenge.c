@@ -13,6 +13,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -22,7 +23,7 @@ extern uint8_t network_session_send_to_machine(int32_t machine_id, network_serve
 extern int16_t network_join_error_code; // 0x00718fa4
 extern uint8_t network_host_handoff_requested; // 0x0071c2de
 extern void chat_close(void); // 0x4aa900
-extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms); // 0x4df090, blam-cc: ESI machine
+
 
 uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server)
 {

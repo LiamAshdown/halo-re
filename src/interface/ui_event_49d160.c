@@ -19,8 +19,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern void network_client_globals_dispose(void); // 0x4dde70
+
 extern network_server_globals *network_server; // 0x0071c2d4
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
 extern uint8_t network_server_host_valid; // 0x0071c2dd, UNSURE identity

@@ -15,10 +15,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <wchar.h>
 
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
-extern wchar_t *network_game_get_random_player_name(void); // 0x4dea80, this batch
+
 
 // blam-cc: EAX -> session
 void network_game_generate_unique_random_name(network_game_session *session, wchar_t *out_name)

@@ -15,11 +15,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see network_banlist_save.c
 
-extern ban_list_entry *ban_list_find_by_name(char *key); // this batch, 0x4e37d0
+
 extern uint32_t growable_array_add_element(growable_array *array); // 0x4cf810, ESI -> array
 
 // Finds the existing ban-list entry for `cd_key_hash`, or appends and initializes a new one

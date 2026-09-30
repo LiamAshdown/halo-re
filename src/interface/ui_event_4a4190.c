@@ -13,8 +13,8 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_networking.h"
 
-extern uint8_t autopatch_launch_updater(void); // 0x577310
 
 uint8_t ui_event_4a4190(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

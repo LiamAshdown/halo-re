@@ -12,6 +12,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 
 // Walks history's linked list looking for the node whose update_id equals target_id. If prune

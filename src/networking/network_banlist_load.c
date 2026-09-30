@@ -53,6 +53,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,7 +66,7 @@ extern char network_ban_indefinite_marker[];          // 0x0066b038, "--"
 extern char *network_log_path_resolve(char *requested_path); // this module, 0x4e40a0
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186     // 0x624186, fopen-shaped CRT wrapper
 extern void string_trim_whitespace(char **string_ptr);       // this module, 0x4e4040, blam-cc: EDI -> string_ptr
-extern ban_list_entry *ban_list_get_or_add_entry(char *name, char *cd_key_hash); // this module, 0x4e3890
+
 
 // Reloads the server's ban list from banned<suffix>.txt (see sv_banlist_file / network_banlist_save
 // for the companion writer). Each non-comment line is "name,cd_key_hash,ban_count,expiry", where

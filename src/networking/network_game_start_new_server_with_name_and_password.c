@@ -22,6 +22,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -44,9 +45,9 @@ extern int16_t network_game_mode; // 0x00719720
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc
 extern int32_t sv_maxplayers_value; // 0x00699584
 
-extern void network_channels_open(void); // this module (earlier batch), 0x441300
+
 extern void network_game_server_host_dispose(network_server_globals *server); // this module (earlier batch), 0x4deda0
-extern void network_client_globals_dispose(void); // this module (earlier batch), 0x4dde70
+
 extern uint8_t network_game_server_host_create(void); // this module (earlier batch), 0x4ddd40
 extern network_client_globals *network_session_create(void); // this module (earlier batch), 0x4d8a80
 extern uint8_t game_engine_ensure_variant_history_has_entry(void); // foreign, UNSURE shape

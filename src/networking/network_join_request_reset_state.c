@@ -11,13 +11,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 
-extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, blam-cc: EAX channel, ECX out
+
 extern uint32_t network_local_address; // 0x006869b0
-extern uint8_t network_session_host_reject_or_cleanup_client(const char *response, const char *challenge, uint32_t ip,
-    int32_t local_id); // 0x575ff0, blam-cc: EAX response, ECX challenge, EDX ip, ESI local_id
+
 
 uint8_t network_join_request_reset_state(network_machine *machine, const char *response)
 {

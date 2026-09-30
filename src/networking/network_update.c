@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t network_high_res_clock_ms;    // 0x006a6144, UNSURE: exact unit/consumer
 extern uint8_t network_update_unknown_869bf; // 0x006869bf, UNSURE
@@ -26,9 +27,9 @@ extern int32_t network_game_socket;          // 0x006f14c4
 extern int32_t network_query_socket;         // 0x006f14c8
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 
-extern void network_connection_stats_log_tick(void); // 0x440d80, this module
+
 extern void gt2Think(int32_t socket); // foreign GameSpy transport call, "pump" a channel
-extern void gamespy_think_all(void);          // 0x6154f0, GameSpy
+
 
 uint32_t network_update(void)
 {

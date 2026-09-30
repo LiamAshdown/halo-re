@@ -17,15 +17,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t network_game_socket; // 0x006f14c4
 
 extern void gt2SetSocketData(int32_t socket, void *data); // 0x614810 gt2SetSocketData (socket +0x30)
 extern int32_t gt2Listen(int32_t socket, void *callback); // foreign, GameSpy library // foreign, GameSpy library
-extern void network_listen_connection_request_handler(int32_t listen_handle, int32_t reply_socket,
-                                                         uint32_t remote_address, uint32_t remote_port_raw,
-                                                         int32_t transport_handle, uint32_t *payload,
-                                                         uint32_t payload_length); // 0x442090, this module
+
 
 // blam-cc: receive-queue pointer in ESI (unaff_ESI)
 uint32_t network_listen_start(network_receive_queue *queue)

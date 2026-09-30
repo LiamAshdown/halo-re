@@ -39,12 +39,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, EAX, ECX
-extern int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream); // 0x4ec490, EAX, EDI
-extern int32_t message_delta_decode_array_field(void **context); // 0x4ec510, EAX
-extern void network_game_action_apply(void **context, network_client_globals *client); // 0x4da320, EAX, ECX
-extern void network_disconnect_notify_dropped_machines(network_client_globals *client); // 0x4d9340, EBX
 
 char network_game_action_queue_drain(network_client_globals *client, bit_stream *stream, const uint32_t *sender)
 {

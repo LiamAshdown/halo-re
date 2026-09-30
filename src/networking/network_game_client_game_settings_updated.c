@@ -24,6 +24,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern data_array *local_player_globals;  // 0x0087a478, UNSURE identity, see update_server_send_update.c
@@ -38,16 +39,13 @@ extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity
 extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE identity
 extern uint8_t controls_input_capture_buffer[0x280]; // 0x00712544, UNSURE identity/size
 
-extern void message_delta_parameters_protocol_dump_to_config_file(void); // 0x4ec330, outside this batch
-extern void network_stats_summary_log_write(void); // 0x440820, this module
-extern void message_delta_protocol_initialize(void); // 0x4ec2f0, outside this batch
-extern void network_stats_summary_log_open(void); // 0x440670, this module
+
 extern datum_index datum_get(data_array *array, datum_index index); // 0x4d0680, memory module
 
 
 extern void widget_close(int32_t widget); // outside this batch
 extern void widget_pool_list_free_all(void); // outside this batch
-extern char network_game_server_load_scenario(void); // 0x4e0720, outside this batch, elided args
+
 extern void network_host_full_state_broadcast(network_server_globals *host); // 0x4df510, this
     // batch; UNSURE: Ghidra types it void but the caller reads its result as if it returned a
     // value (the same leftover-register pattern documented elsewhere in this batch) -- treated

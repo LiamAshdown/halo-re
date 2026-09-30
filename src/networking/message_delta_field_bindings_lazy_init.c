@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 
 extern message_delta_field_type_vtable message_delta_field_type_table[]; // 0x0069a2f0

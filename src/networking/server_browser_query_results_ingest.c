@@ -34,6 +34,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdint.h>
 
 extern uint8_t server_browser_initialized;   // 0x00719470
@@ -43,7 +44,7 @@ extern uint8_t server_browser_query_pending;  // 0x0071948a, cleared once ingest
 extern server_list_globals server_list; // 0x007196bc, see file header
 
 extern void server_list_reset(uint8_t *entry); // 0x4b65f0, outside this batch; blam-cc: EAX -> entry
-extern int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array); // 0x4ba8a0, this batch
+
 extern void server_browser_result_array_sort(server_list_globals *array); // 0x4ba9c0, this batch
 
 extern int32_t ServerBrowserGetServer(void *query_engine, int32_t index); // 0x617020, GameSpy: enumerate result at index

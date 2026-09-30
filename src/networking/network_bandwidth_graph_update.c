@@ -22,6 +22,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdio.h>
 
 extern network_screen_point game_window_top_left;     // 0x0069c634

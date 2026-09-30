@@ -8,6 +8,7 @@
 
 #include "crt.h"
 #include "tags.h"
+#include "fn_networking.h"
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 extern const char *SBServerGetStringValue(void *server, const char *key, const char *default_value); // 0x617490 SBServerGetStringValue

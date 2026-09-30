@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_networking.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void sv_map(uint32_t argument_count, uint16_t **arguments); // 0x4e2b20, blam-cc: EAX, EBX
 
 void hs_evaluate_sv_map(int16_t function_index, uint32_t thread_index, char first)
 {

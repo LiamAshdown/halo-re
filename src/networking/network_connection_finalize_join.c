@@ -52,6 +52,7 @@
 #include "networking.h"
 #include "fn_game.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 extern uint8_t debug_log_level;                  // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
@@ -59,7 +60,7 @@ extern void *network_summary_log_file;           // 0x006a6140, FILE *
 extern char network_build_string[];              // 0x00719879
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int16_t network_game_mode; // 0x00719720
-extern char network_game_scenario_load_request(network_game_session *session); // 0x4de6d0
+
 extern data_array *player_data; // 0x0087a480
 extern player_globals *local_player_globals; // 0x0087a478
 extern int32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0
@@ -68,7 +69,7 @@ extern int32_t data_packet_group_encode_packet(uint8_t *buffer, uint32_t *capaci
     int32_t packet_type, int32_t version); // 0x4d0ae0; UNSURE, this call site's own 4-arg shape
 extern uint16_t network_challenge_packet_block; // 0x006b7f98, UNSURE name
 extern uint32_t network_broadcast_body[]; // 0x006b7f9a, UNSURE name/size
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
+
 
 extern void widget_close_all(void); // 0x498650
 

@@ -24,6 +24,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_client_globals *network_client;
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
@@ -34,7 +35,7 @@ extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, TYPES-GAP
 extern uint32_t network_server_reset_game_stats(void); // 0x4a1670
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc]; // 0x00714ddc, TYPES-GAP
-extern void network_client_globals_dispose(void); // 0x4dde70
+
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
 extern uint8_t network_server_host_valid; // 0x0071c2dd, UNSURE identity
 

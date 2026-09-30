@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_networking.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern uint32_t network_bandwidth_graph_set_units_command(const char *units_name, const char *direction_name); // 0x4d7d90, blam-cc: ECX, stack
 
 void hs_evaluate_net_graph_show(int16_t function_index, uint32_t thread_index, char first)
 {

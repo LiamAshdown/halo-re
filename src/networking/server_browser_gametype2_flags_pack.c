@@ -11,6 +11,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // blam-cc: EAX -> flags
 // Encodes 3 boolean flags into a compact code tagged with type id 2 (the low 3 bits).

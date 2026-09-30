@@ -11,6 +11,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // blam-cc: EDX -> values
 // Encodes two small (0..2) numeric fields into a compact code tagged with type id 5 (the low 3

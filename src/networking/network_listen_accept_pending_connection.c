@@ -26,6 +26,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_cseries.h"
+#include "fn_networking.h"
 
 extern int32_t network_pending_connection_count; // 0x006f16d0
 extern network_pending_connection network_pending_connections[k_network_pending_connection_count]; // 0x0087bc20
@@ -37,9 +38,9 @@ extern void network_channel_gap_441f30(void); // raw code address, see UNSURE
 
 
 extern int32_t gt2Accept(int32_t reply_socket, network_listen_accept_config *config); // foreign, GameSpy library
-extern network_receive_queue *network_receive_queue_new(void); // 0x441bf0, this module
+
 extern void gt2SetConnectionData(int32_t socket, network_receive_queue *queue); // foreign, GameSpy library // foreign, GameSpy library
-extern void network_channel_receive_callback(void *handle, uint8_t *data, int32_t length); // 0x441ed0, this module
+
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue); // 0x441ce0, this module
 extern char *network_address_to_string(s_network_address *addr); // 0x440570, this module
 

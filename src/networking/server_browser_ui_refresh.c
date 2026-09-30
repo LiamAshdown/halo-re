@@ -17,6 +17,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <wchar.h>
 
 extern wchar_t DAT_00719498[0x100]; // see server_list_reset.c UNSURE

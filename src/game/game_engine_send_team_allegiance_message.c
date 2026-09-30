@@ -29,6 +29,7 @@
 #include "networking.h"
 #include "fn_game.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 #include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -43,7 +44,6 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // the seven stack arguments (see game_engine_notify_kill_event.c)
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, ESI stream (channel +0x10), stack channel, mode
 
 
 // blam-cc: stack -> broadcast

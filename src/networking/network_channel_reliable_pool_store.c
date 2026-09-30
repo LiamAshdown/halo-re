@@ -15,9 +15,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern int32_t network_channel_reliable_pool_ensure_capacity(network_channel *channel,
-    int32_t body_capacity_needed, int32_t header_capacity_needed); // 0x4dcc30, this batch
 
 // blam-cc: EAX -> header_bits, ECX -> body_bits
 void network_channel_reliable_pool_store(network_channel *channel, uint8_t *body_data,

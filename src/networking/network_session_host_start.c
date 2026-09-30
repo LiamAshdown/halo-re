@@ -10,6 +10,7 @@
 
 #include "tags.h"
 #include "fn_gamespy.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -20,20 +21,14 @@ extern char network_session_start_host_name[];           // 0x00722798 (the qr2 
 extern char network_session_start_map_name[];            // 0x007227a0 (the qr2 secret key)
 extern uint8_t network_session_host_flags_byte;          // 0x0069fe00
 extern int32_t network_console_connection_id;            // 0x0069fdfc (the CD key game id)
-extern void network_session_host_dispose(void);          // 0x5778f0
-extern void network_channels_open(void);                 // 0x441300
+
+
 extern int32_t qr2_init_socketA(void **qrec_out, uint32_t socket, int32_t port, const char *gamename, const char *secret_key,
     int32_t ispublic, int32_t natnegotiate, void *server_key, void *player_key, void *team_key, void *key_list, void *count,
     void *adderror, void *userdata); // 0x616340 qr2_init_socketA
 
 extern void gcd_init_qr2(void *qrec, int32_t game_id, int32_t use_network); // 0x61b6d0 gcd_init_qr2
-extern void network_session_host_natneg_callback(int32_t cookie); // 0x578160
-extern void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *user_data); // 0x5779c0
-extern void network_session_host_dispatch_message(int32_t key_id, int32_t index, void *buffer, void *user_data); // 0x577e40
-extern void network_session_host_qr2_team_key(int32_t key_id, int32_t index, void *buffer, void *user_data); // 0x577f40
-extern void network_session_host_qr2_key_list(int32_t key_type, void *keybuffer, void *user_data); // 0x577fb0
-extern int32_t network_session_host_qr2_count(int32_t key_type, void *user_data); // 0x5780c0
-extern void network_session_host_qr2_add_error(int32_t error, char *message, void *user_data); // 0x578100
+
 
 int32_t network_session_host_start(void *user_data)
 {

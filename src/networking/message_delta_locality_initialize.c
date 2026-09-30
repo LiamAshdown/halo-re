@@ -7,13 +7,14 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#include "fn_networking.h"
 
 extern uint32_t message_delta_vector3d_absolute_bits_mode1; // 0x0069a2cc
 extern uint32_t message_delta_vector3d_delta_bits;          // 0x0069a2d0
 extern real message_delta_vector3d_delta_range;             // 0x0069a2d4
 extern real message_delta_vector3d_delta_epsilon;           // 0x0069a2d8
 extern uint32_t message_delta_vector3d_absolute_bits_mode0; // 0x0069a2dc
-extern void message_delta_parameters_protocol_register(char *scope, char *name, int32_t type, void *value); // 0x4ebe00, EAX scope
+
 extern uint8_t message_delta_parameters_enabled; // 0x0071cfa8
 
 uint8_t message_delta_locality_initialize(message_delta_field_type *field_type)

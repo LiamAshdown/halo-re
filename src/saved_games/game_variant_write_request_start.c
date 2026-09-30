@@ -21,13 +21,13 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_networking.h"
 
 extern network_thread_record *variant_write_thread; // 0x00721324
 extern variant_write_request variant_write_request_state; // 0x00721288
 
 extern uint32_t game_variant_write_thread_proc(variant_write_request *request); // 0x53c150, this module
-extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
-    network_thread_record **out_handle); // 0x440460
+
 
 // blam-cc: __cdecl, plain stack arguments (handle, variant)
 // Waits for and clears any in-flight game-variant writer thread, fills

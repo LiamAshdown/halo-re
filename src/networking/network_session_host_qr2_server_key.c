@@ -12,6 +12,7 @@
 #include "crt.h"
 #include "tags.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -26,12 +27,12 @@ extern uint8_t game_engine_variant[];  // 0x006f1c88 (game_variant)
 extern uint8_t motion_sensor_override_value; // 0x006f1cc0
 extern int32_t game_engine_variant_score_limit; // 0x006f1ce0
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI dest, EDI source
-extern void autopatch_current_version_string_get(char *out); // 0x578190, blam-cc: EAX out
+
 extern char *server_browser_custom_options_pack(void *options); // 0x576180, blam-cc: EAX options
 extern uint32_t server_browser_gametype1_flags_pack(void *options); // 0x5767d0, blam-cc: ECX
-extern uint32_t server_browser_gametype2_flags_pack(uint8_t *flags); // 0x576920, blam-cc: EAX
+
 extern uint32_t server_browser_gametype3_flags_pack(void *options); // 0x5769c0, blam-cc: ECX
-extern uint32_t server_browser_gametype5_flags_pack(int32_t *values); // 0x576960, blam-cc: EDX
+
 extern int32_t players_active_count(void); // 0x45c6a0
 
 extern int32_t network_server_password_is_set(void *server); // 0x4e08e0, blam-cc: EAX server

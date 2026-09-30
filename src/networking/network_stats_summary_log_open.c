@@ -34,6 +34,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <stdio.h>
 #include <time.h>

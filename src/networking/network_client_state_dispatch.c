@@ -17,6 +17,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // The five per-state handlers. 0x4d8bb0's own dispatch table shows how each is reached:
 //   case 0  mov eax,esi / jmp 0x4daa20   -> client in EAX, tail call
@@ -26,9 +27,7 @@
 //   case 4  mov eax,esi / jmp 0x4db100   -> client in EAX, tail call
 extern char network_join_handshake_tick(network_client_globals *client);        // 0x4daa20
 extern char network_join_connect_retry_tick(network_client_globals *client);    // 0x4dab80
-extern char network_host_lobby_tick(network_client_globals *client);            // 0x4daef0
-extern int8_t network_game_client_update(network_client_globals *client);       // 0x4daf80
-extern char network_host_channel_service_tick(network_client_globals *client);  // 0x4db100
+
 
 int8_t network_client_state_dispatch(network_client_globals *client) // blam-cc: EAX -> client
 {

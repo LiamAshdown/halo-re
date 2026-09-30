@@ -24,6 +24,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -32,10 +33,7 @@ extern char *SBServerGetStringValue(void *entry, const char *key, const char *de
 extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
 extern int32_t SBServerGetPing(void *entry); // foreign, GameSpy library, ping accessor, no key
 extern void map_list_get_friendly_level_name(const char *map_name, wchar_t out_buffer[0x20]); // foreign, outside this session's range
-extern void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,
-                                               const char *server_name, wchar_t *map_name,
-                                               const char *gametype_name, uint8_t flag3,
-                                               int32_t count_a, int32_t count_b, int32_t ping); // 0x4b67e0, this module
+
 extern wchar_t empty_string[]; // see server_browser_open.c UNSURE
 
 // blam-cc: row widget as param_1 (real parameter); flag byte in AL (in_AL); GameSpy entry

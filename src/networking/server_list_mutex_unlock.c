@@ -13,6 +13,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_thread_record *server_list_thread; // 0x007196ac, the worker record
     // network_thread_create parks here (push 0x7196ac at 0x4b601e); NULL until it starts

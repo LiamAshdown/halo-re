@@ -25,6 +25,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdlib.h>
 
 extern int32_t server_browser_selected_index; // 0x006953f4, -1 when nothing is selected
@@ -32,9 +33,6 @@ extern uint8_t server_browser_skip_reselect;  // 0x00719480, nonzero suppresses 
 extern int32_t server_list_scroll_offset;  // 0x00719478, visible-page window start, 16 rows
 
 
-
-extern server_browser_sort_comparator server_browser_sort_comparator_select(void); // 0x4ba970
-extern void server_browser_total_players_compute(server_list_globals *array); // 0x4baa60, this
     // batch; blam-cc: EDI -> array (see that file's header for why the register differs from
     // this function's own EAX -> array)
 extern void server_list_scroll_clamp(void); // outside this batch, unnamed, scroll-window refresh

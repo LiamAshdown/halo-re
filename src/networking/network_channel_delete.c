@@ -19,11 +19,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-
-extern void network_receive_queue_free(network_receive_queue *queue, int32_t connection_id,
-    int16_t connection_key); // 0x441c80, this module
-extern int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list); // 0x441b00, this module
 
 void network_channel_delete(network_channel *channel)
 {

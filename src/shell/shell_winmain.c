@@ -44,6 +44,7 @@
 #include <string.h>
 #include "interface.h"
 #include "fn_cache.h"
+#include "fn_networking.h"
 
 #if defined(_MSC_VER)
 #include <excpt.h>   // GetExceptionInformation is the _exception_info intrinsic, not a function
@@ -132,8 +133,7 @@ extern int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointer
 extern void keystone_library_load(void);                           // 0x542ad0
 extern void keystone_library_unload(void);                         // 0x542cf0
 extern void game_single_instance_check(int32_t mode);              // 0x542d70
-extern void network_session_host_start_info_set(char *game_name, char *secret_key, char *ip_address,
-                                                int32_t port);     // 0x576100, blam-cc: EAX, ESI, EDI, stack
+
 extern char *shell_parse_config_txt(uint32_t adapter_index, d3d9_interface *d3d); // 0x57d410, ECX, EDX
 extern void shell_detect_hardware_specs(void);                     // 0x57d880
 extern int32_t shell_check_previous_run_crash(void);               // 0x57e850, full EAX result

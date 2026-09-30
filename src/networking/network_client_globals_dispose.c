@@ -15,15 +15,15 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern uint8_t network_session_active;         // 0x0071c2c2
 extern uint8_t network_host_handoff_requested;  // 0x0071c2de
 
-extern void message_delta_parameters_protocol_dump_to_config_file(void); // 0x4ec330, outside this batch
+
 extern void player_update_history_destroy(void *update_history); // 0x4e6b10, outside this batch, elided arg
-extern void network_channel_delete(network_channel *channel); // 0x4dcae0, this batch
-extern void network_stats_summary_log_write(void); // 0x440820, this module
+
 
 void network_client_globals_dispose(void)
 {

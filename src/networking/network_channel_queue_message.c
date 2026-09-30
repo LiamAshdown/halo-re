@@ -30,11 +30,12 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 
 extern void network_channel_reliable_pool_store(network_channel *channel, uint8_t *body_data,
     uint8_t *header_data, int32_t priority, uint32_t header_bits, uint32_t body_bits); // 0x4dcdb0, this batch
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
+
 
 // blam-cc: EBX -> body_bit_count, EDI -> channel
 char network_channel_queue_message(network_channel *channel, uint32_t header_value, uint32_t body_value,

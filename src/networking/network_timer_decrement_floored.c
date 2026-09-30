@@ -12,9 +12,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-
-extern void network_timer_advance(network_timer_pair *timer); // 0x4deb50, this batch
 
 // blam-cc: EAX -> timer, EDI -> decrement
 void network_timer_decrement_floored(network_timer_pair *timer, int32_t decrement)

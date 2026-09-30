@@ -29,9 +29,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-
-
-extern uint8_t server_browser_server_passes_filter(void *server_record); // 0x4b7080, this module
+#include "fn_networking.h"
 
 
 int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array)

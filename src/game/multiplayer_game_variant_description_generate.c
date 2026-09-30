@@ -89,6 +89,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 #include <wchar.h>
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
@@ -98,10 +99,7 @@ extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticke
 // The four packed-option decoders, already rewritten in the networking module. Each takes its
 // destination buffer by pointer/register; see those files for the exact blam-cc register
 // mapping (EDX/ESI, EAX/ECX, EAX/ECX, ECX/EDX respectively).
-extern void server_browser_custom_options_unpack(char *text, server_browser_custom_options *out); // 0x5764a0
-extern void server_browser_gametype1_flags_unpack(uint32_t code, server_browser_gametype1_decoded *out); // 0x576890 (ctf)
-extern void server_browser_gametype3_flags_unpack(uint32_t code, server_browser_gametype3_options *out); // 0x576a20 (oddball)
-extern void server_browser_gametype5_flags_unpack(uint32_t code, int32_t *out); // 0x576990 (race), out[0]/out[1]
+
 
 // Same globals unicode_string_list_get_string.c declares extern ownership of; this function
 // duplicates that function's tag-walk once inline (see the repeated "if (options.unknown_00[0])"

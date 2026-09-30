@@ -23,6 +23,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern void *gt2GetConnectionData(void *gamespy_connection); // foreign, GameSpy library; -> network_receive_queue*
 extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; address byte source

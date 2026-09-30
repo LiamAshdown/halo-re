@@ -38,6 +38,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
@@ -45,29 +46,10 @@ extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_p
     int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, UNSURE name
-extern uint32_t network_game_message_handle_keepalive(network_channel **channel, int32_t *record); // 0x4e2110, EAX machine, stack
-extern char network_game_server_handle_join_password(network_machine *machine, network_server_globals *server, uint8_t *buffer,
-    int32_t length); // 0x4e21d0, EBX machine, stack (server, record, length)
-extern char network_game_server_handle_join_confirm(network_machine *machine, network_server_globals *server, uint8_t *buffer,
-    int32_t length); // 0x4e2400, EAX machine, ECX server, EDX record, stack length
-extern uint32_t network_game_message_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e24d0
-extern uint32_t network_game_message_handle_player_count_broadcast(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2530
-extern uint32_t network_game_message_handle_player_entry_update(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2580
-extern uint32_t network_game_message_handle_handshake_forward(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e25e0
-extern uint32_t network_game_message_handle_retry_schedule(network_server_globals *server, network_machine *machine,
-    uint8_t *record, int32_t length); // 0x4e26a0
-extern uint32_t network_game_message_handle_build_version(network_server_globals *server, network_machine *machine,
-    uint8_t *record, int32_t length); // 0x4e2630
-extern uint32_t network_game_server_handle_info_request(network_server_globals *server, network_machine *machine,
-    uint8_t *record, int32_t length); // 0x4e2700
+
+
 extern void network_game_client_apply_position_update(uint8_t *state, uint32_t *packet, void *tick_count, void *object); // 0x4dff70, stack
-extern uint32_t network_game_client_handle_map_data(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2790
-extern uint32_t network_game_client_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e2810
-extern uint32_t network_game_client_handle_retry_schedule(network_server_globals *server, network_machine *machine,
-    uint8_t *record, int32_t length); // 0x4e2870
-extern uint32_t network_game_message_handle_settings_relay_role2(network_server_globals *server, uint8_t *record, int32_t length); // 0x4e28d0
-extern uint32_t network_game_message_handle_join_finalize_ack_role2(network_server_globals *server, network_machine *machine,
-    uint8_t *record, int32_t length); // 0x4e2930
+
 
 uint32_t network_game_process_incoming_message(int32_t length, network_machine *machine, uint16_t *record, network_server_globals *server)
 {

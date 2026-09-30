@@ -6,6 +6,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_networking.h"
 
 void *gamespy_array_nth(void *array, int32_t index)
 {

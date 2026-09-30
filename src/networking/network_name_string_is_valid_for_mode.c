@@ -13,6 +13,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern void *tag_lookup(const char *tag_path); // foreign, UNSURE shape

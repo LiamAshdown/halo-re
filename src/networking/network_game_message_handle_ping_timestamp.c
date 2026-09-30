@@ -28,6 +28,7 @@
 #include "networking.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_networking.h"
 
 extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path

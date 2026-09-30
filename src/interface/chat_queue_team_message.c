@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 #include <stdint.h>
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
@@ -38,7 +39,6 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, ESI stream (channel +0x10), stack channel, mode
 
 
 // Encodes a chat message and, for every connected machine whose player is on team_index (or

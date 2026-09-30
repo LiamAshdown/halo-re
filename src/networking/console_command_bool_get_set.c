@@ -27,6 +27,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern char * string_to_lowercase(char *string); // 0x4491e0, other module

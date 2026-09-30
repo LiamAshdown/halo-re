@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 

@@ -34,13 +34,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t network_incoming_message_scratch[0x510]; // 0x00861de0, UNSURE size
-extern int32_t network_channel_incoming_read_item(network_channel *channel, uint8_t *destination,
-    int32_t *out_bit_offset, int32_t *out_remaining_bits, s_network_address *out_address,
-    int32_t max_item_bits); // 0x4dcf10, stack x5, EAX max bits
-extern char network_incoming_item_dispatch(network_client_globals *client, uint32_t item_flag, bit_stream *stream,
-    const uint32_t *sender); // 0x4db630, stack, stack, ECX, ESI
+
 
 typedef struct network_item_stream {
     bit_stream stream;             // 0x00

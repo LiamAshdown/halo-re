@@ -18,6 +18,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 

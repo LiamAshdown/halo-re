@@ -8,6 +8,7 @@
 
 #include "message_delta_codec.h"
 #include "fn_math.h"
+#include "fn_networking.h"
 
 
 extern double acos(double x);

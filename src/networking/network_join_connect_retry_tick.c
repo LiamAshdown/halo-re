@@ -21,6 +21,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int16_t network_join_error_code; // 0x00718fa4, WORD-sized
@@ -33,8 +34,8 @@ extern int16_t network_game_mode; // 0x00719720
 extern int32_t join_ui_state; // 0x00718f8c
 extern int32_t interface_loading_screen_request_id; // 0x0068e688
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
-extern int32_t network_game_process_incoming_messages(network_client_globals *client); // 0x4db180
-extern void network_join_status_text_update(int32_t mode, network_client_globals *client); // 0x4db4c0
+
+
     // UNSURE: called here with no visible arguments; mode reconstructed as 1 (the animated
     // "Connecting..." case), matching this call site's own "still waiting, tick the dots" context.
 

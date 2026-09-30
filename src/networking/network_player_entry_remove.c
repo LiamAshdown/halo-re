@@ -13,8 +13,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern char network_player_entry_find(network_game_session *session, network_player_entry *key); // 0x4de900, this batch
+
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
 
 // blam-cc: EAX -> key, EBX -> session

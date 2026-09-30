@@ -30,17 +30,16 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc
-extern void network_timer_advance(network_timer_pair *timer); // 0x4deb50, this module
-extern void network_timer_increment_clamped(network_timer_pair *timer, int32_t upper_bound, int32_t increment); // 0x4debb0
-extern void network_timer_decrement_floored(network_timer_pair *timer, int32_t decrement); // 0x4debd0
-extern void network_timer_start(network_timer_pair *timer, int32_t duration_ms); // 0x4debf0
+
+
 extern char network_game_all_machines_have_player(network_server_globals *server); // 0x4e04f0, this batch
 extern char network_game_any_team_empty(network_server_globals *server); // 0x4e0480, this batch
 extern void time_query_performance_counter_ms(void); // other module (UNSURE)
 extern char network_channel_short_disconnect_timeout(void); // other module (UNSURE)
-extern int32_t network_server_count_connected_machines(network_server_globals *server); // 0x4e1880, this batch
+
 
 void network_client_connection_handshake_tick(int16_t state, network_server_globals *owner)
 {

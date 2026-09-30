@@ -27,18 +27,19 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int32_t time_query_performance_counter_ms(void); // other module; returns a tick value here (UNSURE)
 extern void *network_prepare_challenge_packet(void); // 0x4deaf0, this module
-extern void network_timer_advance(network_timer_pair *timer); // 0x4deb50, this module
-extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms); // 0x4df090, other module
+
+
 extern char network_host_send_scenario_announcement(network_server_globals *server); // 0x4df1c0, this module (UNSURE args)
 extern char network_game_all_machines_have_player(network_server_globals *server); // 0x4e04f0, this batch
 extern char network_game_any_team_empty(network_server_globals *server); // 0x4e0480, this batch
-extern char network_game_server_load_scenario(void); // 0x4e0720, this batch
-extern uint8_t network_server_any_machine_awaiting_flag(network_server_globals *server); // 0x4e14e0, this batch
+
+
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
     void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
     // blam-cc: ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6;

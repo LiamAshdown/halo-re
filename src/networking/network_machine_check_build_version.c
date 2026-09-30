@@ -23,6 +23,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern char network_build_string[]; // 0x00719879
 

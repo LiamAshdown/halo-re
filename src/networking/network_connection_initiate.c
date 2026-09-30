@@ -52,6 +52,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 extern int32_t network_game_socket_port; // 0x00698208, port of network_game_socket (0x006f14c4)

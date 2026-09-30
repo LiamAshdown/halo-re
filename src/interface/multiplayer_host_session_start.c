@@ -20,6 +20,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, TYPES-GAP
@@ -35,7 +36,7 @@ extern uint8_t game_engine_ensure_variant_history_has_entry(void); // foreign, U
 extern void network_game_setup_teardown(void); // 0x495520, tears down the multiplayer game-setup UI widget
 extern network_client_globals *network_session_create(void); // 0x4d8a80
 extern uint8_t network_game_server_host_create(void); // 0x4ddd40
-extern void network_client_globals_dispose(void); // 0x4dde70, UNSURE
+
 extern void network_game_server_host_dispose(network_server_globals *server); // 0x4deda0
 
 // Tears down any prior host state, creates a new hosted game engine, applies the active custom

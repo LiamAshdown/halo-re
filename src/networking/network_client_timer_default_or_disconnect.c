@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_host_handoff_requested;          // 0x0071c2de

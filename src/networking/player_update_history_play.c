@@ -38,6 +38,7 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern void *memcpy(void *dest, const void *src, int32_t count);
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
@@ -46,8 +47,7 @@ extern data_array *object_data; // 0x008603b0
 extern uint8_t unit_updates_suppressed; // 0x0071c419, UNSURE: set 1 for the duration of every
     // single object_update/biped_update call in the replay loop below
 
-extern player_update_history_node *player_update_history_find_and_prune(
-    player_update_history *history, int32_t target_id, uint8_t prune); // this module, 0x4e6f60
+
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
     const char *format, ...); // this module, 0x4e5ea0
 extern uint8_t unit_seat_flag_bit2(datum_index parent_object, int16_t vehicle_seat_index); // 0x56cd10,

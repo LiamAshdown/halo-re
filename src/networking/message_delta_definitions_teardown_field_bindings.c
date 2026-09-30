@@ -13,9 +13,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
-extern void message_delta_field_bindings_teardown(message_delta_static_fields *list); // 0x4ec900, this module
+
 
 // Runs message_delta_field_bindings_teardown over both field-binding lists of every registered
 // message type and clears each definition's initialized flag, undoing

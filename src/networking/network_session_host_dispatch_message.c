@@ -15,6 +15,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_networking.h"
 
 extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
 extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add

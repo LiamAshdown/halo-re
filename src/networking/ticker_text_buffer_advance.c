@@ -28,6 +28,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 #include <wchar.h>
 #include <stdint.h>
 

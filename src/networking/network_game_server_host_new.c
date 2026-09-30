@@ -17,11 +17,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 
 // FIXED 2026-09-28 (retail-independence loop): the session's message callback is the C
 // network_session_reject_pending_connection_callback, not the literal retail address 0x4e1410.
-extern int32_t network_session_reject_pending_connection_callback(void *unused, int32_t reject_code); // 0x4e1410
+
 
 extern network_server_globals network_server_storage; // 0x00861340
 extern uint8_t network_session_active2;                // 0x0071c2ec, UNSURE name; "network_server_active" per header
@@ -31,14 +32,11 @@ extern uint8_t unknown_00861d4e;                        // 0x00861d4e, UNSURE id
 extern uint8_t unknown_00861d4f;                        // 0x00861d4f, UNSURE identity
 extern int16_t pending_difficulty;                        // 0x00696564, UNSURE identity; seeds session.difficulty
 
-extern void network_channels_open(void); // 0x441300, this module
-extern network_channel *network_channel_new(uint32_t flags); // 0x4dc9b0, this batch
-extern void network_game_session_reset(network_game_session *session); // 0x4de470, this batch
+
 extern void network_game_server_host_dispose(network_server_globals *host); // 0x4deda0, this batch
 extern char network_game_session_reset_defaults(void); // 0x4e1820, outside this batch, elided args
 extern void * network_session_host_start(int32_t user_data); // 0x577850, outside this batch
-extern void message_delta_protocol_initialize(void); // 0x4ec2f0, outside this batch
-extern void network_stats_summary_log_open(void); // 0x440670, this module
+
 
 void *network_game_server_host_new(void)
 {

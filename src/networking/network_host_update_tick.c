@@ -26,18 +26,18 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t time_query_performance_counter_ms(void); // outside this batch, tick/ms counter
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
 extern int32_t network_channel_remove_child(network_channel *parent, network_channel *child); // 0x4dd090, this batch
 extern char network_server_count_machines_and_resolve_address(network_server_globals *host, network_channel *new_child); // 0x4e0d30, outside this batch
-extern void network_map_cycle_list_broadcast(void); // 0x4deec0, this batch
-extern char network_server_service_machines_tick(network_server_globals *host); // 0x4e11d0, outside this batch, elided arg
+
+
 extern char network_server_heartbeat_tick(network_server_globals *host); // 0x4e15a0, outside this batch, elided arg
 extern char network_server_status_periodic_print(network_server_globals *host); // 0x4e1520, outside this batch, elided arg
 extern char network_server_resend_challenge_periodic(network_server_globals *host); // 0x4e1450, outside this batch, elided arg
 
-extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
 
 char network_host_update_tick(network_server_globals *host)
 {

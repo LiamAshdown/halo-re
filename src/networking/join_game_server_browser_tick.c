@@ -36,6 +36,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 #include <wchar.h>
 
 extern void *server_browser_join_target;        // 0x00719450
@@ -75,37 +76,31 @@ extern wchar_t empty_string[];                  // see UNSURE, argument to serve
 extern int32_t network_join_request_resolve_host(void); // foreign, outside this session's range, see UNSURE
 extern void widget_close_all(void); // 0x498650, outside this session's range
 extern int32_t input_get_key_state(void); // foreign, outside this session's range, see UNSURE
-extern void server_list_scroll_page_up(uint8_t jump_to_top); // 0x4b7b20, this module
-extern void server_list_scroll_page_down(uint8_t jump_to_bottom); // 0x4b7bb0, this module
+
+
 extern void server_list_reset(void); // 0x4b65f0, this module
 extern uint8_t DAT_00719698; // motd/autopatch state, see server_browser_open.c UNSURE
 extern void widget_play_sound_effect(void); // 0x498e90, outside this session's range
-extern void server_browser_list_row_gather(network_ui_widget *row, uint8_t flag, void *entry); // 0x4b69c0, this module
-extern void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,
-                                               const char *server_name, wchar_t *map_name,
-                                               const char *gametype_name, uint8_t flag3,
-                                               int32_t count_a, int32_t count_b, int32_t ping); // 0x4b67e0, this module
-extern void server_browser_filter_headers_refresh(network_ui_widget *row); // 0x4b7f70, this module, see UNSURE below at its call site
-extern void master_server_process_pending_requests(void); // 0x4b5d70, this module
-extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms); // 0x4ba760, this module
+
+
 extern void server_browser_result_array_sort(void); // foreign, outside this session's range
 extern void server_browser_query_results_ingest(void); // 0x4baae0, outside this session's range
 extern int32_t SBServerHasFullKeys(void *entry); // foreign, GameSpy library
 extern void server_browser_player_list_populate(void *entry); // 0x4b73e0, this module
-extern int32_t server_browser_selected_variant_description_build(void *entry); // 0x4b74e0, this module
+
 extern int32_t ServerBrowserState(void *engine); // foreign, GameSpy library
 
-extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index); // 0x4b6160, this module, see UNSURE
+
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
     // the bound (0x1f at the 0x4b84e0 call sites) rides in EDX and is not modeled here // foreign, see UNSURE
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
-extern void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self); // 0x4b8b40, this
+
     // module; its `widget` parameter is a raw byte pointer there because the body walks it by
     // literal offset (see that file), so the network_ui_widget is cast at the call sites.
 extern ticker_text_buffer server_browser_player_ticker;  // 0x006b5e58
 extern ticker_text_buffer server_browser_variant_ticker; // 0x006b5e74
-extern void master_server_list_refresh_request(void); // 0x4b6660, this module
-extern void server_browser_ui_refresh(void); // 0x4b73a0, this module
+
+
 extern uint8_t autopatch_download_get_result(int32_t *result_a, int32_t *result_b); // foreign,
     // outside this session's range; the result is tested as `test al,al` at 0x4b88a8
 // blam-cc: EAX -> dest, EDI -> dest capacity in BYTES, EBX -> ASCII source.

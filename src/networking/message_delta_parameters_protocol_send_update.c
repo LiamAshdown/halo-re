@@ -13,13 +13,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t message_delta_parameters_enabled;   // 0x0071cfa8
 extern uint8_t message_delta_parameters_sending;   // 0x0071cfb4, UNSURE: reentrancy/in-progress flag
 extern int32_t message_delta_parameters_protocol_sequence; // 0x0071cfac, rolling 0..3 sequence number
 extern uint8_t message_delta_parameters_protocol_broadcast_target[]; // 0x00871de0, UNSURE: passed straight to network_session_broadcast_to_all
 
-extern void message_delta_parameters_protocol_format_registered_values(void); // 0x4ec050, this module
+
 extern void message_delta_parameters_protocol_pack_values(void);              // 0x4ec1a0, this module
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,

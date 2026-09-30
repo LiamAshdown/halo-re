@@ -27,16 +27,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint32_t network_local_address; // 0x006869b0
 extern int32_t network_pending_connection_count; // 0x006f16d0
 
-extern int32_t network_channel_list_mark_readable(network_channel_list *list); // 0x4419d0, this module
-extern int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list); // 0x441b00, this module
-extern network_receive_queue *network_listen_accept_pending_connection(void); // 0x4421b0, this module
-extern uint32_t network_listen_reject_pending_connection(int32_t reject_code); // 0x442250, this module
-extern network_channel *network_channel_new_child(network_receive_queue *endpoint); // 0x4dd430, this batch
-extern char network_channel_transmit(network_channel *channel); // 0x4dd730, this batch
+
 extern int32_t network_server_validate_join_request(network_receive_queue *listen_endpoint); // 0x4e0850, outside this batch, elided arg
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue); // 0x441ce0, this module
 

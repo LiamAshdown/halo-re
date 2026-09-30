@@ -14,13 +14,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern char network_session_start_host_name[];    // 0x00722798
 extern char network_session_start_map_name[];      // 0x007227a0
 extern char network_session_start_variant_name[];  // 0x007227a8
 extern int32_t network_session_start_game_type;    // 0x007227b8
 
-extern void qr2_register_key(int32_t keyid, const char *key); // 0x61bb40, GameSpy qr2: custom server key names
 
 // blam-cc: EAX -> host_name, ESI -> map_name, EDI -> variant_name, stack -> game_type
 // Stashes the host, map and (optional) variant names plus a game-type value into the globals a

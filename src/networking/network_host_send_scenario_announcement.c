@@ -14,12 +14,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern void *message_delta_definition_table; // 0x00871de0, UNSURE identity, see
     // update_server_send_update.c
 extern network_server_globals *network_server; // 0x0071c2d4
 
-extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50, outside this batch
+
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size

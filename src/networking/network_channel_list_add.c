@@ -15,6 +15,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // blam-cc: entry pointer in EAX (in_EAX), list pointer in ECX (in_ECX)
 // Appends `entry` to the write-cursor slot of `list->entries`, then adds its socket_key to the

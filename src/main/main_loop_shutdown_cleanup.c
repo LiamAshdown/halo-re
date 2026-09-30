@@ -19,6 +19,7 @@
 #include "networking.h"
 #include "main.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 
 extern main_globals main_globals_data; // 0x00719700
 extern growable_array ban_list;              // 0x006b859c, foreign (networking module)
@@ -26,8 +27,8 @@ extern network_server_globals *network_server; // 0x0071c2d4, foreign (networkin
 extern uint8_t network_server_host_valid;    // 0x0071c2dd, foreign (interface module)
 
 extern void map_list_free_all(void);   // 0x495260, foreign (interface module)
-extern void network_buffer_pair_pool_clear(void);              // 0x4e3ed0, foreign (networking module)
-extern void network_client_globals_dispose(void);              // 0x4dde70, foreign (networking module)
+
+
 extern void network_game_server_host_dispose(network_server_globals *server); // 0x4deda0, foreign (networking module)
 
 

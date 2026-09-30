@@ -18,6 +18,7 @@
 #include "hs.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t autopatch_update_check_state; // 0x0069fe04, -1 not started, 0 failed, 1 running
 
@@ -27,7 +28,7 @@ extern char file_reference_exists(file_reference *reference); // 0x555720
 extern uint8_t file_reference_delete(void); // 0x555670, UNSURE args elided
 extern void path_append_component(char *destination, const char *component); // 0x555ec0
 extern void path_remove_last_component(uint8_t *path); // 0x555f80
-extern uint32_t autopatch_version_check_request(void); // 0x5771e0, this module
+
 
 // One-time entry point that kicks off the background thread which checks bungie.net for a game
 // update: if the update-config directory is writable, deletes any stale "currentupdate.cfg"

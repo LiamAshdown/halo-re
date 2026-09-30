@@ -17,15 +17,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t server_browser_sort_column; // 0x00719489, UNSURE name (see file header)
 
 
 extern int32_t server_list_scroll_clamp(const void *, const void *); // 0x4b7360-adjacent, outside this batch
 extern int32_t server_list_compare_by_ping_then_hostname(const void *, const void *);     // outside this batch
-extern int32_t server_list_compare_by_gametype(const void *, const void *); // 0x4b6fb0, outside this batch, UNSURE name
-extern int32_t server_list_compare_by_players(const void *, const void *); // 0x4b6e70, outside this batch, UNSURE name
-extern int32_t server_list_compare_by_hostname(const void *, const void *); // 0x4b6cd0, outside this batch, UNSURE name
+
 
 // blam-cc: no register inputs
 server_browser_sort_comparator server_browser_sort_comparator_select(void)

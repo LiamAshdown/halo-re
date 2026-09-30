@@ -42,6 +42,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_networking.h"
 
 extern uint8_t console_debug_toggle_6893e0;       // 0x006893e0 frame statistics enabled
 extern int32_t frame_statistics_key_a_latch;      // 0x0071d120, this module
@@ -69,7 +70,7 @@ extern void fg_add_sample(int32_t index, float sample);   // 0x512d90, this modu
     // blam-cc: ECX -> index, stack -> sample
 extern void fg_render(uint8_t render_graph, uint8_t render_infos); // 0x5129a0, this module;
     // blam-cc: BL=render_graph, AL=render_infos
-extern void network_bandwidth_graph_update(void); // 0x4d7ad0, networking module
+
 extern void hud_text_draw_configure(int16_t font_table_index, uint16_t color_or_flags,
     int16_t column, uint32_t unknown_4730, int16_t color_table_index, int16_t color_index);
     // 0x4944c0, interface module (cdecl)

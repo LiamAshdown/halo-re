@@ -13,12 +13,12 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_gamespy.h"
+#include "fn_networking.h"
 
 extern void *network_session_host_object; // 0x00722a20
 extern int32_t network_session_host_state; // 0x00722a18, UNSURE
 extern int32_t network_console_connection_id; // 0x0069fdfc
 
-extern void network_session_host_update(void); // 0x577940, this module
 
 extern void qr2_shutdown(void *object); // foreign, UNSURE
 

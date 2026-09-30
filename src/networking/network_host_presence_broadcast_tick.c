@@ -27,12 +27,12 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern char cache_file_request_map(int32_t unknown); // 0x442640, UNSURE argument
 extern char network_build_string[]; // 0x00719879
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 
 
 // blam-cc: EAX -> client

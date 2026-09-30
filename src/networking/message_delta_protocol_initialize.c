@@ -11,13 +11,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t message_delta_parameters_enabled;                // 0x0071cfa8
 extern uint8_t message_delta_unknown_table_0069a304[28][0x18];  // 0x0069a304, UNSURE: contents beyond byte 0
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 
-extern void message_delta_parameters_protocol_reload_from_config_file(void); // 0x4ebda0, this module
-extern void message_delta_field_layout_compute_size(message_delta_definition *definition); // 0x4ec790, this module
 
 // One-time message-delta protocol startup: reloads parameters.cfg (when the parameters protocol
 // is enabled), marks every entry of an unresolved 28-record table, and computes each registered

@@ -17,11 +17,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern char network_channel_service(int32_t mode); // 0x4dd110, other module (UNSURE args beyond this site)
-extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms); // 0x4df090, other module
+
 extern char network_server_check_machine_timeout(network_server_globals *server, network_machine *machine); // 0x4e0ef0, this batch
-extern char network_channel_drain_bitstream(network_server_globals *server, network_machine *machine); // 0x4e1290, this batch
+
 
 // For each of the 16 machine slots with a connected id: if the machine is still "pending"
 // (unknown_10 == 0), either restarts its timeout timer (when its channel is dead, unservicable,

@@ -11,12 +11,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
-extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine,
-    network_server_globals *server); // 0x4e0af0, blam-cc: CX reason, EDI machine
+
 
 void network_session_host_cd_key_callback(int32_t game_id, int32_t local_id, int32_t authenticated, const char *message,
     void *instance)

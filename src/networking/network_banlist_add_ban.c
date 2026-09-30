@@ -26,6 +26,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <time.h>
 
 extern int32_t network_console_connection_id; // 0x0069fdfc, "the rcon/console connection id" (networking.h)
@@ -34,9 +35,8 @@ extern int32_t sv_ban_penalty_seconds[4]; // 0x00699574
 extern char *gcd_getkeyhash(int32_t connection_id, int32_t identity_lookup_key); // foreign (< this module), CD-key hash lookup
 extern void string_convert_unicode_to_ascii(char *dest, network_player_entry *player, int32_t dest_size);
     // foreign (this module, later batch), blam-cc: ESI -> dest, EDI -> player, stack -> dest_size
-extern void network_banlist_load(void);  // this module, 0x4e3160 (excluded from this batch)
-extern ban_list_entry *ban_list_get_or_add_entry(char *name, char *cd_key_hash); // this batch, 0x4e3890
-extern void network_banlist_save(void); // this batch, 0x4e3380
+
+
 extern void format_local_time_and_date(char *date_dest, int32_t max_len, int32_t time_value,
     char *time_dest); // this batch, 0x4e52c0
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)

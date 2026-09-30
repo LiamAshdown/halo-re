@@ -28,6 +28,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern void *master_server_query_engine;        // 0x0071946c, see UNSURE
 extern uint32_t master_server_request_flags;    // 0x0071969c
@@ -40,7 +41,7 @@ extern uint8_t DAT_00695424[10];                // see UNSURE
 extern uint32_t network_session_start_game_type;                   // see UNSURE
 extern int32_t server_browser_selected_index; // 0x006953f4, see UNSURE
 
-extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms); // 0x4ba760, this module
+
 extern void server_list_reset(void); // 0x4b65f0, this module
 
 extern void ServerBrowserHalt(void *engine); // foreign, GameSpy library

@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_networking.h"
 
-
-extern void network_banlist_print(void); // 0x4e34e0
 
 void hs_evaluate_sv_banlist(int16_t function_index, uint32_t thread_index, char first)
 {

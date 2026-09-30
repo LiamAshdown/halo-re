@@ -48,6 +48,7 @@
 #include "networking.h"
 #include "fn_gamespy.h"
 #include "fn_cseries.h"
+#include "fn_networking.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -86,11 +87,9 @@ extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the u
 
 extern uint32_t ServerBrowserGetMyPublicIPAddr(void *handle);   // address byte source
 
-extern void network_channels_open(void); // 0x441300, this module (declared void: see UNSURE)
-extern int32_t network_random_offset(int32_t base); // 0x4403b0, this module
+
 extern void ServerBrowserSendNatNegotiateCookieToServer(void *handle, char *hostname, uint32_t port, int32_t request_id); // foreign, GameSpy library
-extern void network_join_hostname_resolved_callback(int32_t resolve_failed, uint32_t unused,
-    uint8_t *hostent); // 0x4ba270, this module
+
 
 extern int32_t NNBeginNegotiationWithSocket(int32_t hostname, int32_t request_id, int32_t one,
     void (*progress_callback)(void), void (*complete_callback)(int32_t, uint32_t, uint8_t *),

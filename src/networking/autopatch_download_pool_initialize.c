@@ -15,6 +15,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_gamespy.h"
+#include "fn_networking.h"
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count];   // 0x006f0db0
@@ -27,7 +28,7 @@ extern int32_t autopatch_download_active_count;           // 0x007227c8, UNSURE:
 
 
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
-extern uint32_t autopatch_download_worker_thread(void); // 0x576b80, this module
+
 
 // Initializes the two-slot asynchronous download table, then inline-allocates a named mutex
 // (mirroring mutex_create) and a suspended worker thread (mirroring network_thread_create),

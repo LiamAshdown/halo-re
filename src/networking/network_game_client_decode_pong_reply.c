@@ -20,13 +20,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
     void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
     // 0x4d09d0, blam-cc: EAX -> remaining_length, stack -> the rest
 extern data_packet_group network_game_messages_group; // 0x006994f8
-extern void network_connection_retransmit_if_overdue(const uint32_t *sender_address,
-    network_client_globals *client, uint32_t deadline_ms, int32_t remote_time);
+
     // 0x4d93b0, blam-cc: ECX sender_address, ESI client, EDI deadline_ms, stack remote_time
 
 // blam-cc: EAX -> client, EDX -> buffer, stack -> length, sender_address

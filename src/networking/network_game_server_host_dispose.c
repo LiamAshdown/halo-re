@@ -18,6 +18,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_gamespy.h"
+#include "fn_networking.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -28,16 +29,15 @@ extern void *network_session_host_object; // 0x00722a20
 extern int32_t network_session_host_state; // 0x00722a18
 
 extern void gcd_disconnect_all(int32_t connection_id); // outside this batch, foreign
-extern void message_delta_parameters_protocol_dump_to_config_file(void); // 0x4ec330, outside this batch
-extern void network_stats_summary_log_write(void); // 0x440820, this module
+
+
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
     void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
     // blam-cc: ECX -> server, stack -> param_1, data, param_3, param_4, force, param_6;
     // this module, 0x4e19c0
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
-extern void network_channel_delete(network_channel *channel); // 0x4dcae0, this batch
-extern void network_session_host_update(void); // 0x577940, outside this batch
+
 
 extern void qr2_shutdown(void *object); // outside this batch, foreign
 

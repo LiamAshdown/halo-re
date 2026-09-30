@@ -24,6 +24,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 #include <stdint.h>
 
 extern data_array *player_data;      // 0x0087a480
@@ -32,7 +33,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t network_game_mode;    // 0x00719720
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
-extern void network_player_update_history_log_write(const char *format, ...); // established name (CEA/Chimera)
+
 
 // While hosting: for every player whose unit has its (UNSURE) +0x4b8 flag set, clears the flag,
 // copies +0x4bc into player+0xf4, and copies the unit's parent object's (or its own, if

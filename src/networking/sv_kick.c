@@ -22,6 +22,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int16_t network_game_mode; // 0x00719720 (types/game.h), 2 == host
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -29,7 +30,7 @@ extern network_server_globals *network_server; // 0x0071c2d4
 extern network_player_entry *sv_find_client_by_name_or_index(char *name_or_index); // this batch, 0x4e3f70
 extern network_machine *network_machine_find_by_id(network_server_globals *server, int16_t machine_id);
     // blam-cc: ESI -> server, EDI -> machine_id; foreign (< this batch), 0x4e0810
-extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
+
     // blam-cc: ECX -> reason, EDI -> machine, stack -> server; foreign (< this batch), 0x4e0af0
 extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX
 extern void *console_message_default_color; // 0x00685218, a ColorARGB * the original loads into EAX

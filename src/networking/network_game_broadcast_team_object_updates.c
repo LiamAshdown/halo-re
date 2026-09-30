@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
 extern void *object_type_definitions[12]; // 0x0069bfdc, an ARRAY of the 12 object type definitions (was a pointer variable)

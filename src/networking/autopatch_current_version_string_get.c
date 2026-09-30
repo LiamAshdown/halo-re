@@ -12,6 +12,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // blam-cc: EAX -> out
 // Writes the hardcoded current game build version string ("01.00.10.0621") into out (a 14-byte

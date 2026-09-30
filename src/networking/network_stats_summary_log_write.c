@@ -20,6 +20,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdio.h>
 
 extern uint8_t debug_log_level;                   // 0x0087ac06, byte-wide (R01)

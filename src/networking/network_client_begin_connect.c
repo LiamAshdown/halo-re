@@ -30,6 +30,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -41,8 +42,7 @@ extern uint8_t profile_globals_block[0x1ffc]; // 0x00712dd8, established name (s
 
 extern network_client_globals *network_session_create(void); // 0x4d8a80, outside this batch
 extern void network_debug_fill_canary_buffer(void); // 0x4e0790, outside this batch's range, elided args unresolved
-extern int8_t chimera__on_connect(const uint32_t *target_address, network_client_globals *client,
-    const uint32_t *session_info); // 0x4d8ed0, this module
+
 extern uint32_t chat_close(void); // 0x4aa900, this module's leave-game path
 
 

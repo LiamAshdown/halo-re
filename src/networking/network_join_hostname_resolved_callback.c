@@ -19,6 +19,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_networking.h"
 
 extern uint8_t server_browser_join_target_has_password;   // 0x00719454, nonzero selects network_join_target_address
 extern uint16_t network_join_target_address[128]; // 0x00719458, a hostname/address string

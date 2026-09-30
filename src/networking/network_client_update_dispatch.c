@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern network_client_globals *network_client; // 0x0071c2d8
@@ -26,7 +27,7 @@ extern int32_t unknown_006982e8;                // 0x006982e8, UNSURE identity
 
 extern void main_menu_music_stop(void); // 0x4c8b40, outside this batch
 extern void chimera__load_ui_map(char reset); // 0x4c8930, outside this batch
-extern void network_client_globals_dispose(void); // 0x4dde70, this batch
+
 extern void network_game_server_host_dispose(network_server_globals *host); // 0x4deda0, this batch
 extern char network_client_state_dispatch(void); // 0x4d8bb0, outside this batch
 extern int32_t network_client_connect_progress_percent(void); // 0x4d8c10, outside this batch

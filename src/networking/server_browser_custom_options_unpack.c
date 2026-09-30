@@ -15,7 +15,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-
+#include "fn_networking.h"
 
 
 extern int32_t sscanf(const char *buffer, const char *format, ...);

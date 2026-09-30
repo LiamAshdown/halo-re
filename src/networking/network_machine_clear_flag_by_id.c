@@ -18,6 +18,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t DAT_00000050; // UNSURE: see header note; likely a decompilation artifact
 

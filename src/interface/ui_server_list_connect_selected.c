@@ -22,6 +22,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_networking.h"
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int16_t network_game_mode;               // 0x00719720
@@ -31,8 +32,7 @@ extern void *widget_instance_find_root(widget_instance *widget); // 0x498e10, UN
 extern int32_t widget_get_sibling_index(widget_instance *widget); // 0x498e30
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
 extern void chat_close(void); // 0x4aa900
-extern int32_t network_connection_initiate(network_client_globals *connection, const uint32_t *target,
-                                            const uint32_t *session_info); // 0x4d8cf0
+
 extern void network_debug_fill_canary_buffer(void); // 0x4e0790, UNSURE argument
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,

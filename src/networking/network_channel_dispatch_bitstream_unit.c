@@ -29,12 +29,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream); // 0x4de420, EDI, stack, EBX
-extern uint32_t network_game_process_incoming_message(int32_t length, network_machine *machine,
-    uint16_t *record, network_server_globals *server); // 0x4e1c60, EAX, ECX, EDX, stack
-extern char network_client_drain_queued_updates(network_server_globals *server, network_machine *machine,
-    bit_stream *stream); // 0x4e1f40, stack, stack, ECX
 
 char network_channel_dispatch_bitstream_unit(network_server_globals *server, uint32_t unit, bit_stream *stream,
     network_machine *machine)

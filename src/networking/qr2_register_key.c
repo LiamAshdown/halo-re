@@ -11,6 +11,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_networking.h"
 
 extern const char *qr2_registered_key_list[255]; // 0x00683990
 

@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -27,7 +28,7 @@ extern uint8_t network_server_name_is_default; // 0x00699606 (UNSURE name)
 extern network_server_globals *network_server; // 0x0071c2d4
 
 extern wchar_t *string_convert_ascii_to_unicode(void); // foreign, presumed to return &scratch (UNSURE, see header)
-extern uint8_t network_name_string_is_valid_for_mode(char *name, void *dest, int32_t mode); // 0x4e4350, this module
+
 extern void network_password_field_set(void); // 0x4df070, this module, called here with no
     // visible arguments (UNSURE, see header)
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)

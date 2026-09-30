@@ -28,12 +28,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern game_time_globals *game_time; // 0x006f1d6c
 extern random_seed random_seed_global; // 0x00719cd0
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
-extern void network_disconnect_notify_dropped_machines(network_client_globals *client); // 0x4d9340
+
 extern void update_client_advance_read_cursor(void *payload); // 0x4734b0, UNSURE argument; not in this batch
 
 // blam-cc: stack -> client, record

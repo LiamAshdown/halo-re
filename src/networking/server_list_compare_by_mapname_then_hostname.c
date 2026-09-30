@@ -21,10 +21,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 
-extern int32_t server_list_compare_by_mapname(void **a, void **b); // 0x4b6c20, this module
+
 extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library
 
 int32_t server_list_compare_by_mapname_then_hostname(void **a, void **b)

@@ -24,6 +24,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_bandwidth_graph network_bandwidth_graph_globals; // 0x00719ce0
 extern uint8_t network_bandwidth_overlay_enabled; // 0x00710305
@@ -32,8 +33,6 @@ extern int32_t network_bandwidth_unit_name_to_index(const char *name); // 0x4d8a
 extern int32_t network_bandwidth_direction_name_to_index(const char *name); // 0x4d8a50, blam-cc: EDI -> name, outside this
     // batch; evidence names this network_bandwidth_direction_name_to_index
 
-extern void network_bandwidth_graph_instance_init(network_bandwidth_graph *graph,
-    int32_t units_index, int32_t direction_index); // 0x4d7de0, this batch
 
 // blam-cc: ECX -> units_name, stack -> direction_name
 uint32_t network_bandwidth_graph_set_units_command(const char *units_name, const char *direction_name)

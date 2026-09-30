@@ -12,12 +12,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_bandwidth_graph network_bandwidth_graph_globals; // 0x00719ce0
 extern uint32_t network_bandwidth_graph_default_interval_ms;    // 0x006894b0
 
-extern void network_bandwidth_graph_instance_update_layout(network_bandwidth_graph *graph,
-    uint8_t force_refresh); // 0x4d7e20, this batch
 
 uint32_t network_bandwidth_graph_reset(void)
 {

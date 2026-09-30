@@ -11,6 +11,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t server_list_scroll_offset; // 0x00719478
 extern int32_t server_browser_selected_index; // 0x006953f4

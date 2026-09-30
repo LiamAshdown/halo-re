@@ -22,6 +22,7 @@
 #include "networking.h"
 #include <stdint.h>
 #include "objects.h"
+#include "fn_networking.h"
 
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_client_vehicle_ack_enabled; // 0x006894a1

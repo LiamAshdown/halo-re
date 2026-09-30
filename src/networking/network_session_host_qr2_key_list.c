@@ -14,6 +14,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_networking.h"
 
 extern game_engine_definition *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add

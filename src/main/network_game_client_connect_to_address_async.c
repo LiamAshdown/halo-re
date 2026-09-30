@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -31,11 +32,10 @@ extern void *connect_thread;   // 0x00719b64, this module; HANDLE of the hostnam
 extern int32_t join_ui_state; // 0x00718f8c, foreign (interface module); see
     // src/networking/network_join_request_resolve_host.c for the same global under this name
 
-extern char network_address_string_is_valid(char *address_string);   // 0x4dc730, foreign (networking module)
+
     // blam-cc: EAX -> address_string
-extern char network_address_string_normalize(char *address_string, char *out_buffer,
-                                              uint8_t *out_is_any);   // 0x4dc5e0, foreign
-extern char network_address_parse_port(char *address_string, int32_t *port_out); // 0x4dc560, foreign
+
+
     // blam-cc: EAX -> address_string, stack -> port_out
 extern void widget_close_all(void);              // 0x498650, foreign (interface module)
 extern void interface_loading_screen_reset(void); // 0x4978d0, foreign

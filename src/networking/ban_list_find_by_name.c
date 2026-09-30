@@ -13,6 +13,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see network_banlist_save.c
 

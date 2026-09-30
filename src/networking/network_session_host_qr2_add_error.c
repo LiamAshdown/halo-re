@@ -6,6 +6,7 @@
 // blam-cc: cdecl (a qr2 add-error callback)
 
 #include "tags.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 

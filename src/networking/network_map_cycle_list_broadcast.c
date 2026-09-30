@@ -25,6 +25,7 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+#include "fn_networking.h"
 
 
 extern network_server_globals *network_server; // 0x0071c2d4

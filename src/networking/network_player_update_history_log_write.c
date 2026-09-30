@@ -11,6 +11,7 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+#include "fn_networking.h"
 #include <stdio.h>
 #include <stdarg.h>
 

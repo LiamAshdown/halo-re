@@ -8,10 +8,11 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#include "fn_networking.h"
 
 extern uint32_t message_delta_vector3d_mode; // 0x0069b350, nonzero picks the first bit widths
 
-extern void vector3d_quantize(int32_t *out_indices, int32_t *descriptor, real *point); // 0x4eb4a0
+
 extern uint32_t message_delta_unary_ones[]; // 0x0065d438
 
 static int32_t write_zero_bit(bit_stream *stream)

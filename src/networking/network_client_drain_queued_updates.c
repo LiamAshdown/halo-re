@@ -40,13 +40,12 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 
-extern int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream); // 0x4ec490, EAX, EDI
-extern int32_t message_delta_decode_array_field(void **context); // 0x4ec510, EAX
-extern void network_game_client_apply_received_update(network_machine *machine, uint32_t server, void **message); // 0x4e0280
+
 extern void chat_server_relay_incoming_message(void **context, network_machine *machine); // 0x4aabd0
 
-extern uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_server_globals *server); // 0x4e20b0
+
 extern void network_server_handle_rcon_request(network_player_entry *client, void *message); // 0x4e4f00
 
 char network_client_drain_queued_updates(network_server_globals *server, network_machine *machine, bit_stream *stream)

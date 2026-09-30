@@ -22,16 +22,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t network_channel_service_backoff_bypass; // 0x0071c2c8
 extern int32_t unknown_00697ed8; // 0x00697ed8, UNSURE identity
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t network_game_mode; // 0x00719720
 
-extern void network_channel_scan_retransmit_timeouts(network_channel *channel); // 0x4dd9d0, this batch
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
-extern char network_channel_listen_service(network_channel *channel, network_channel **out_new_child); // 0x4dd4e0
-extern char network_channel_transmit(network_channel *channel); // 0x4dd730, this batch
 
 // blam-cc: EAX -> timeout_ms, EDI -> channel
 char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child)

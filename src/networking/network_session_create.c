@@ -29,14 +29,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t network_session_active; // 0x0071c2c2
 extern network_client_globals network_client_storage; // 0x00872de0
-extern void message_delta_protocol_initialize(void); // 0x4ec2f0
-extern network_channel *network_channel_new(uint32_t flags); // 0x4dc9b0
+
+
 extern void network_session_destroy(network_client_globals *client); // 0x4d8b70, blam-cc: EAX -> client
-extern void network_game_session_reset(network_game_session *session); // 0x4de470, blam-cc: EDX -> session
-extern void network_stats_summary_log_open(void); // 0x440670
+
 
 network_client_globals *network_session_create(void)
 {

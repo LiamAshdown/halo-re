@@ -20,6 +20,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t network_connection_stats_count; // 0x006f14bc
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count]; // 0x0087bec0

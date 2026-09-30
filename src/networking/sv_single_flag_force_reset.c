@@ -32,12 +32,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t network_single_flag_force_reset_value; // 0x0071c306 (UNSURE name)
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
-extern void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments,
-    const char *name); // 0x4e2990, this module
+
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // blam-cc: stack -> argument_count, arguments

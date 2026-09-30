@@ -36,9 +36,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern int32_t network_bandwidth_graph_find_peak_sample(int32_t *out_peak_countdown,
-    network_bandwidth_graph *graph); // 0x4d8140, this batch
 
 // blam-cc: EAX -> new_sample, stack -> graph
 void network_bandwidth_graph_update_columns(int32_t new_sample, network_bandwidth_graph *graph)

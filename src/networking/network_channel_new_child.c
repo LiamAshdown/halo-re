@@ -13,13 +13,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 
 extern circular_buffer *circular_buffer_new(char *name, int32_t requested_size); // 0x4d0170, memory
     // module; redeclared returning a pointer, see network_channel_new.c's UNSURE note
-extern void network_channel_delete(network_channel *channel); // 0x4dcae0, this batch
-extern void network_channel_record_timestamp(network_channel *channel); // 0x4dd930, this batch
-extern void network_channel_stream_init(network_channel_stream *stream); // 0x4dd980, this batch
+
 
 network_channel *network_channel_new_child(network_receive_queue *endpoint)
 {

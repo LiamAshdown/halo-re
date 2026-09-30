@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_networking.h"
 
 extern char profile_directory[0x105]; // 0x006ac900 (cache module)
 extern file_reference_record savegame_index_file; // 0x00721330
@@ -47,7 +48,7 @@ extern variant_write_request variant_write_request_state; // 0x00721288
 extern int16_t default_game_variant_count; // 0x00721328
 extern uint8_t unknown_0072132a; // 0x0072132a
 
-extern int32_t mutex_create(network_mutex_record **out_handle); // 0x440510
+
 extern char directory_create_recursive(char *path); // 0x449250, foreign module
 extern void player_profile_initialize(saved_player_profile *profile, int32_t local_player_index,
     uint8_t merge_existing); // 0x53a1c0, this module

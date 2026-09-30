@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 extern uint8_t message_delta_parameters_enabled;           // 0x0071cfa8
 extern uint8_t message_delta_parameters_sending;            // 0x0071cfb4

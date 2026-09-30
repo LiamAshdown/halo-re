@@ -34,6 +34,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdint.h>
 
 extern uint8_t server_browser_require_valid_entry; // 0x006953f0

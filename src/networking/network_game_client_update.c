@@ -21,25 +21,25 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, UNSURE name; see file header
 extern void ui_network_wait_timeout_start(void); // 0x49c810, not in this batch
 extern char network_channel_service_light(int32_t flag); // 0x4dd240, UNSURE argument; not in this batch
 extern int16_t network_game_mode; // 0x00719720
-extern void network_channel_record_timestamp(network_channel *channel); // 0x4dd930, per types/networking.h
-extern int32_t network_game_process_incoming_messages(network_client_globals *client); // 0x4db180
+
+
 extern int8_t network_channel_service_retransmit_only(void); // 0x4dd330, not in this batch
 extern int16_t network_join_error_code; // 0x00718fa4, the pending join/disconnect error
                                         // string index; -1 means none. WORD-sized everywhere
                                         // (cmp/mov WORD PTR ds:0x718fa4), consumed and reset by
                                         // the main-menu display_error call at 0x4a9ff0.
-extern void network_connection_send_keepalive(network_client_globals *client); // 0x4d9400
+
 extern uint8_t network_ping_debug_log_enabled; // 0x00710306, UNSURE name
 extern uint32_t network_ping_debug_last_sample; // 0x0071c2c4, UNSURE name
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, cseries: current time in milliseconds
-extern int32_t message_delta_sample_ring_buffer_average(message_delta_sample_ring_buffer *ring); // 0x4ed350, blam-cc: ECX ring
 
 
 // blam-cc: stack -> client

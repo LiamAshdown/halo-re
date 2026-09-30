@@ -13,6 +13,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -24,10 +25,7 @@ extern const char *gcd_getkeyhash(int32_t game_id, int32_t local_id); // 0x61aa5
 extern void gcd_disconnect_user(int32_t game_id, int32_t local_id); // 0x61b350 gcd_disconnect_user
 extern void gcd_disconnect_all(int32_t game_id); // 0x61b3f0 gcd_disconnect_all
 extern uint8_t ban_list_check_and_reject_player(char *key); // 0x4e3820, blam-cc: EDI key
-extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine,
-    network_server_globals *server); // 0x4e0af0
-extern void network_session_host_cd_key_callback(int32_t game_id, int32_t local_id, int32_t authenticated,
-    const char *message, void *instance); // 0x5760a0
+
 
 uint8_t network_session_host_reject_or_cleanup_client(const char *response, const char *challenge, uint32_t ip, int32_t local_id)
 {

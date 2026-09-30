@@ -20,6 +20,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <wchar.h>
 
 extern wchar_t empty_string; // 0x00660c34, the built-in fallback string

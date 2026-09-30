@@ -16,11 +16,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern char network_local_hostname_buffer[0x100]; // 0x006a4040
 extern uint8_t network_hostname_ready;             // 0x006f14cc
 
-extern void network_hostname_thread_proc(char *hostname_buffer); // 0x441510, this module
 
 int network_local_hostent_get(void **out_hostent)
 {

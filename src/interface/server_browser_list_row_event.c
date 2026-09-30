@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#include "fn_networking.h"
 
 extern int32_t server_browser_selected_index;             // 0x006953f4
 extern int32_t server_list_scroll_offset;                 // 0x00719478
@@ -20,12 +21,12 @@ extern uint8_t server_browser_skip_reselect;              // 0x00719480
 extern uint8_t server_browser_player_list_ready;          // 0x00719481
 extern uint32_t master_server_request_flags;              // 0x0071969c
 extern uint8_t server_browser_player_ticker[0x1c];        // 0x006b5e58
-extern void server_list_scroll_page_up(uint8_t jump_to_top);   // 0x4b7b20, AL
-extern void server_list_scroll_page_down(uint8_t jump_to_bottom); // 0x4b7bb0, AL
+
+
 extern uint32_t server_list_result_count_get(void);       // 0x4ba820
 extern uint32_t time_query_performance_counter_ms(void);  // 0x449210
-extern void server_browser_latch_join_target(void);       // 0x4b6730
-extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index); // 0x4b6160, ESI, EBX
+
+
 extern void ticker_text_buffer_append(uint16_t *text, int32_t reset_column, void *self); // 0x4b8a60, EDI self
 
 uint8_t server_browser_list_row_event(widget_instance *widget, int16_t *event, uint8_t *out_handled)

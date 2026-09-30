@@ -26,13 +26,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
     void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
     int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
 
-extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms); // 0x4df090, ESI, stack
 
 uint32_t network_game_client_handle_retry_schedule(network_server_globals *server, network_machine *machine, uint8_t *record,
     int32_t length)

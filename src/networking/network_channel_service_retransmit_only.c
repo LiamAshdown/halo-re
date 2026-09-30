@@ -14,10 +14,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-
-extern void network_channel_scan_retransmit_timeouts(network_channel *channel); // 0x4dd9d0, this batch
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
 
 // blam-cc: EDI -> channel
 int32_t network_channel_service_retransmit_only(network_channel *channel)

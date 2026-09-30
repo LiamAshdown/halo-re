@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 

@@ -20,6 +20,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
@@ -27,7 +28,7 @@
 extern char network_banlist_full_path[0x104]; // 0x0071c308
 extern char profile_directory[0x105]; // 0x006ac900 (types/cache.h); pushed as an address (0x4e3e90)
 
-extern void network_banlist_load(void); // this module, 0x4e3160 (excluded from this batch)
+
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 
 // Console command: with no arguments, reports the current ban-list filename suffix; with one,

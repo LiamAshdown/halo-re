@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern int16_t network_game_mode; // 0x00719720, 2 == host, 0 == local/not in a game

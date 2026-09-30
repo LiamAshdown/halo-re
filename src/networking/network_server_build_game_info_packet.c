@@ -38,15 +38,15 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 #include <string.h>
 
-extern char *autopatch_temp_name_generate(void); // other module (UNSURE): source string for the machine's short name
+
 extern uint8_t network_game_info_packet_flag; // 0x006894a2 (UNSURE name)
 extern char data_packet_group_encode_packet(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type); // 0x4d0ae0, this module family
 extern uint16_t *network_message_block_build(uint32_t size); // 0x440350, this module (UNSURE: packs the
     // just-encoded message into a newly allocated buffer; see this module's very first
     // function for the closest available context)
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 
 
 // Stamps `machine`'s short name and a snapshot of the server's name/game-data block, encodes

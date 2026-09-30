@@ -20,6 +20,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern char message_delta_metrics_filename_suffix[]; // 0x0069b24c, UNSURE: e.g. a map/scenario name
 

@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdio.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -28,7 +29,7 @@ extern uint8_t debug_log_level;          // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern FILE *network_summary_log_file; // 0x006a6140
 extern char network_build_string[]; // 0x00719879
-extern char network_game_scenario_load_request(network_game_session *session); // 0x4de6d0, this module
+
 
 // Resets the two per-round counters and loads the pending scenario for `network_server`'s
 // session, optionally logging the build string to the summary log when verbose,

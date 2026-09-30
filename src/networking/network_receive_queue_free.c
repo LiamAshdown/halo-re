@@ -22,13 +22,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library
 extern uint16_t gt2GetRemotePort(int32_t object); // 0x6147d0: returns the uint16 at object+0x04 in AX // foreign, GameSpy library
 extern void gt2SetConnectionData(int32_t socket, network_receive_queue *queue); // foreign, GameSpy library // foreign, GameSpy library
 extern void network_connection_stats_end(int32_t connection_id, int16_t connection_key); // 0x440d20, this module
 extern void network_receive_queue_close_socket(network_receive_queue *queue); // 0x442040, this module
-extern void network_handle_registry_close_all(void); // 0x441bb0, this module
+
 
 // blam-cc: queue pointer in EAX (in_EAX); connection_id in EBX and connection_key in DI are an
 // unmodified pass-through into network_connection_stats_end (see UNSURE above)

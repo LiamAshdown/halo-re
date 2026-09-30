@@ -7,12 +7,12 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#include "fn_networking.h"
 
 extern uint32_t message_delta_vector3d_mode; // 0x0069b350, nonzero picks the first bit widths
 extern double floor(double x);
 extern uint32_t message_delta_quantize_float_to_int(uint32_t max_level, real value, real minimum, real maximum); // 0x4ea480, ESI max_level
 
-extern void vector3d_to_angles(real *out, real_vector3d vector); // 0x4ea720
 
 int32_t message_delta_normal_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {

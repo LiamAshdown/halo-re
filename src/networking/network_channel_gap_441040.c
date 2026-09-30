@@ -6,10 +6,9 @@
 // blam-cc: cdecl (a GT2 dump callback)
 
 #include "tags.h"
+#include "fn_networking.h"
 #include <string.h>
 
-extern void network_connection_stats_record_packet(void *gamespy_connection, int32_t payload_length, uint8_t is_sent,
-    uint8_t is_reliable, uint8_t is_resend); // 0x440b20, blam-cc: EAX connection, ECX length
 
 void network_channel_gap_441040(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message,
     int32_t length)

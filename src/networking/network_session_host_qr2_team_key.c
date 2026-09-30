@@ -7,6 +7,7 @@
 // blam-cc: cdecl (a qr2 team key callback)
 
 #include "tags.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 

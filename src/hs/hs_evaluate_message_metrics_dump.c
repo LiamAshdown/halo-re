@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_networking.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void message_delta_metrics_dump(char *suffix); // 0x4ec3d0, blam-cc: ESI
 
 void hs_evaluate_message_metrics_dump(int16_t function_index, uint32_t thread_index, char first)
 {

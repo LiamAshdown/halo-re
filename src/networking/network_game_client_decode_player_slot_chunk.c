@@ -26,18 +26,17 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern data_packet_group network_game_messages_group; // 0x006994f8
 
 
-extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, this module
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
     void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,
     int16_t expected_class); // 0x4d09d0, EAX remaining, stack x6
-extern uint8_t network_session_player_table_index_apply(network_client_globals *client, int32_t table_index,
-    const uint8_t *candidate); // stack client, table index; EBX candidate // 0x4d9190, elided
+
     // register args unresolved; the visible params are this function's own best-guess mapping
-extern void network_disconnect_notify_dropped_machines(network_client_globals *client); // 0x4d9340, elided register args unresolved
+
 
 // blam-cc: ESI -> client (unaff_ESI)
 char network_game_client_decode_player_slot_chunk(network_client_globals *client, uint8_t *param_1,

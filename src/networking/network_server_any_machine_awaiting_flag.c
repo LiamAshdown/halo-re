@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // Returns 1 if no machine slot is both connected (id 0..15) and free of
 // k_network_machine_version_mismatch; returns 0 as soon as one is found.

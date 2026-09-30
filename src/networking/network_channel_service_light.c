@@ -16,6 +16,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t network_channel_service_backoff_bypass; // 0x0071c2c8
 extern int32_t unknown_00697ed8; // 0x00697ed8, UNSURE identity
@@ -23,8 +24,6 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t network_game_mode; // 0x00719720
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
-extern char network_channel_listen_service(network_channel *channel, network_channel **out_new_child); // 0x4dd4e0
-extern char network_channel_transmit(network_channel *channel); // 0x4dd730, this batch
 
 // FIXED in the review pass: like 0x4dd110, this function has a third, stack-passed
 // argument Ghidra dropped -- 0x4dd2ef is `mov edx,[esp+0x18]`, forwarded to

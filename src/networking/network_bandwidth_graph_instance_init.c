@@ -19,11 +19,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint32_t network_bandwidth_graph_default_interval_ms; // 0x006894b0
 
-extern void network_bandwidth_graph_instance_update_layout(network_bandwidth_graph *graph,
-    uint8_t force_refresh); // 0x4d7e20, already committed
 
 // blam-cc: EAX -> graph, stack -> units_index, direction_index
 void network_bandwidth_graph_instance_init(network_bandwidth_graph *graph, int32_t units_index,

@@ -15,9 +15,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern void network_channels_open(void);
-extern void network_handle_registry_close_all(void); // 0x441bb0
 
 // blam-cc: __cdecl, no arguments
 // Ensures the main channels are open and any stale handles are swept, then allocates and

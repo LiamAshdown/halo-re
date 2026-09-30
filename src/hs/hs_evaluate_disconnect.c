@@ -16,11 +16,12 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_hs.h"
+#include "fn_networking.h"
 
 
 extern network_client_globals *network_client;
 extern int16_t network_game_mode; // 0x00719720
-extern void network_client_rejoin_check(int8_t machine_player_index); // 0x4de390
+
 
 void hs_evaluate_disconnect(int16_t function_index, uint32_t thread_index, char first)
 {

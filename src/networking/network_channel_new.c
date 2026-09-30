@@ -24,17 +24,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 
-extern network_channel_list *network_channel_list_new(int16_t requested_capacity); // 0x441960, this module
-extern int32_t network_channel_list_add(network_receive_queue *entry, network_channel_list *list); // 0x441a40, this module
-extern network_receive_queue *network_receive_queue_new(void); // 0x441bf0, this module
-extern uint32_t network_listen_start(network_receive_queue *queue); // 0x442170, this module
 extern circular_buffer *circular_buffer_new(char *name, int32_t requested_size); // 0x4d0170, memory
     // module; redeclared returning a pointer, see header UNSURE note
-extern void network_channel_delete(network_channel *channel); // 0x4dcae0, this batch
-extern void network_channel_record_timestamp(network_channel *channel); // 0x4dd930, this batch
-extern void network_channel_stream_init(network_channel_stream *stream); // 0x4dd980, this batch
+
 
 // Allocates the 0xae4-byte listening variant when flags has k_network_channel_listening set, or
 // the 0xa9c-byte plain variant when it has k_network_channel_client set; any other combination

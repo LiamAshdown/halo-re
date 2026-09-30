@@ -15,9 +15,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list); // 0x441b00, this module
-extern void network_channel_delete(network_channel *channel); // 0x4dcae0, this batch
 
 // blam-cc: EDI -> parent
 int32_t network_channel_remove_child(network_channel *parent, network_channel *child)

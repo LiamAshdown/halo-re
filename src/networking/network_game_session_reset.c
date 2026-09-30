@@ -23,6 +23,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern uint8_t network_channel_table_default_flag; // 0x0071c2c1, UNSURE name; copied into

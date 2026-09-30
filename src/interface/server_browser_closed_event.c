@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#include "fn_networking.h"
 
 extern uint8_t server_browser_initialized;                // 0x00719470
 extern void *server_list_thread;                          // 0x007196ac
@@ -43,11 +44,11 @@ extern uint8_t server_browser_allow_full;                 // 0x006953fb
 extern uint8_t server_browser_filter_gametype;            // 0x0071948e
 extern uint8_t server_browser_filter_teamplay;            // 0x0071948f
 extern uint8_t server_browser_filter_ping_limit_index;    // 0x00719490
-extern void master_server_connection_wait_thread(void);  // 0x4b6070
+
 extern void ServerBrowserFree(void *sb);                  // 0x616f30
 extern void server_list_reset(uint8_t *entry);            // 0x4b65f0, EAX
 extern void ticker_text_buffer_reset(void *self);         // 0x4b8a00, EDI
-extern uint32_t autopatch_download_pool_shutdown(void);   // 0x576db0
+
 extern void saved_item_select(int32_t item);              // 0x495be0, EBX
 extern uint8_t saved_item_has_unsaved_changes(void);      // 0x495ea0
 extern uint8_t player_profile_save(void);                 // 0x495d40

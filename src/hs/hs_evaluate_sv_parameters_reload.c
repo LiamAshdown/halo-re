@@ -12,12 +12,11 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_networking.h"
 
 
 extern uint8_t message_delta_parameters_enabled; // 0x0071cfa8
-extern void message_delta_parameters_protocol_reload_from_config_file(void); // 0x4ebda0
-extern void message_delta_definitions_invoke_field_bindings(void); // 0x4ec390
-extern void message_delta_parameters_protocol_send_update(void); // 0x4ebf50
+
 
 void hs_evaluate_sv_parameters_reload(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -15,9 +15,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
-extern void message_delta_field_bindings_invoke(message_delta_static_fields *list); // 0x4ec700, this module
+
 
 // Runs message_delta_field_bindings_invoke over both field-binding lists (the separately
 // allocated statics list and the definition's own inline field list) of every registered

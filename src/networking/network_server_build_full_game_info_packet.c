@@ -26,10 +26,10 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 extern char data_packet_group_encode_packet(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type); // 0x4d0ae0
 extern uint16_t *network_message_block_build(uint32_t size); // 0x440350, this module (UNSURE)
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60
 
 
 // Encodes a type-7 "full game info" message into a 0x600-byte scratch record, then -- unless

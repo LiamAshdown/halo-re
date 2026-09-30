@@ -17,6 +17,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -29,16 +30,14 @@ extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_p
 extern uint32_t network_game_session_finalize_and_add_player(network_player_entry *entry, network_server_globals *server,
     network_machine *machine); // 0x4df840, blam-cc: EAX entry, ECX server, EDX machine
 extern uint32_t network_game_broadcast_player_set_changed(network_server_globals *server, uint8_t *param_1); // 0x4e1bf0 (reads its stack server)
-extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine,
-    network_server_globals *server); // 0x4e0af0
+
 extern uint8_t network_game_info_packet_flag; // 0x006894a2
-extern char network_server_build_full_game_info_packet(network_machine *machine); // 0x4e0bd0
-extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390
-extern uint8_t network_join_request_reset_state(network_machine *machine, const char *response); // 0x4e0ab0, blam-cc: EAX machine
+
+
 extern void network_debug_fill_canary_buffer(uint32_t *buffer); // 0x4e0790, blam-cc: EAX buffer
-extern void network_server_password_get(network_server_globals *server, wchar_t *dest); // 0x4e0930, blam-cc: EAX server, ESI dest
+
 extern int32_t network_server_password_is_set(network_server_globals *server); // 0x4e08e0, blam-cc: EAX server
-extern int32_t network_machine_reset(network_machine *machine); // 0x4df690, blam-cc: ESI machine
+
 
 char network_game_server_handle_join_password(network_machine *machine, network_server_globals *server, uint8_t *buffer,
     int32_t length)

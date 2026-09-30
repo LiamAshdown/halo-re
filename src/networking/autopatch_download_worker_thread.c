@@ -11,13 +11,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t autopatch_download_active_count; // 0x007227c8, UNSURE: per types/networking.h's
                                                  // name, but used here as a 0/nonzero stop signal
                                                  // (autopatch_download_pool_shutdown sets it to 1
                                                  // to request the worker thread exit)
 
-extern int32_t autopatch_download_pool_tick(void); // 0x576bc0, this module
 
 // Background worker thread that repeatedly polls the download pool until told to stop.
 uint32_t autopatch_download_worker_thread(void)

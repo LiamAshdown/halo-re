@@ -31,6 +31,7 @@
 #include "fn_ai.h"
 #include "fn_game.h"
 #include "fn_objects.h"
+#include "fn_networking.h"
 
 extern uint8_t DAT_0087ab18;                 // 0x0087ab18, UNSURE: "simulation in progress" reentrancy flag
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
@@ -52,7 +53,7 @@ extern void player_effect_clear_dead_players(void);                    // UNSURE
 extern void first_person_weapon_interface_tick(void);                    // UNSURE module (hs-related, guarded by
                                                    //   player_effect_reentry_count)
 extern void hud_update_dispatch(void);                    // UNSURE module
-extern void network_client_send_local_player_updates(void); // 0x4e77e0, UNSURE module
+
 extern void network_event_feed_flush(void *queue);             // UNSURE module (flushes a message queue)
 
 

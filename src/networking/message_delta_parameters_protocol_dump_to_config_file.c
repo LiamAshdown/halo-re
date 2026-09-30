@@ -13,14 +13,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t message_delta_parameters_enabled;                // 0x0071cfa8
 extern uint8_t message_delta_unknown_table_0069a304[28][0x18];  // 0x0069a304
 extern char message_delta_config_text_buffer[];                 // 0x00860b40
 extern char message_delta_config_write_mode_string[];           // 0x0066e674, fopen mode, UNSURE exact text
 
-extern void message_delta_definitions_teardown_field_bindings(void); // 0x4ec750, this module
-extern void message_delta_parameters_protocol_free_registered(void); // 0x4ebd50, this module
 
 // Tears down every message type's field bindings and, if the dynamic-parameters protocol is
 // enabled, writes the current formatted parameter values out to parameters.cfg and frees the

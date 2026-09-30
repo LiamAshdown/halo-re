@@ -22,6 +22,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t network_game_socket;    // 0x006f14c4
 extern int32_t network_query_socket;   // 0x006f14c8

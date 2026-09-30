@@ -2838,3 +2838,4 @@ types/interface.h first_person_weapon_interface 0x28 unknown_28 -> charge_blend_
 - extern removal: dialogs -> types/fn_dialogs.h (5 prototypes, 6 files edited); 0 names skipped (callers disagree): 
 - extern removal: shaders -> types/fn_shaders.h (1 prototypes, 2 files edited); 4 names skipped (callers disagree): chimera__shader_get_vertex_shader_permutation, shader_draw_before_water, shader_is_decal, shader_texture_animation_evaluate
 - extern removal: items -> types/fn_items.h (50 prototypes, 77 files edited); 11 names skipped (callers disagree)
+- extern removal: networking -> types/fn_networking.h (252 prototypes, 386 files edited); 148 names skipped (callers disagree): autopatch_download_get_result, autopatch_download_pool_initialize, autopatch_download_start, autopatch_get_proxy_settings, autopatch_version_check_completed, autopatch_version_string_is_outdated

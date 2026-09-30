@@ -15,6 +15,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern void console_printf_verbose(const char *format, ...); // 0x496a80
 extern int32_t interface_loading_screen_progress; // 0x00718f90

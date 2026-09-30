@@ -21,6 +21,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint32_t master_server_request_flags; // 0x0071969c
 extern network_thread_record *server_list_thread; // 0x007196ac, see UNSURE

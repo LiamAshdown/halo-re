@@ -30,13 +30,14 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_cseries.h"
+#include "fn_networking.h"
 
 extern int32_t network_query_socket; // 0x006f14c8
 extern int32_t network_game_socket;  // 0x006f14c4
 extern int16_t network_join_error_code; // 0x00718fa4, WORD-sized (see note above)
 extern uint8_t network_host_handoff_requested;      // 0x0071c2de
 
-extern void network_channels_open(void); // 0x441300, this module
+
 extern void chat_close(void); // foreign
 extern int gt2NetworkToHostInt(unsigned int value); // 0x614890
 extern char *gt2AddressToString(unsigned int ip, unsigned short port, char *string); // 0x6148b0
@@ -44,8 +45,8 @@ extern int gt2Connect(void *socket, void **connection_out, const char *remote_ad
     int len, unsigned long timeout, const void *callbacks, int blocking); // 0x6145a0, cdecl
 extern void gt2SetConnectionData(void *connection, void *data); // 0x614830
 extern int32_t network_connect_timeout_ms; // 0x006894ac
-extern void network_channel_connected_callback(void *connection, int32_t result, const uint8_t *message, int32_t length); // 0x441e00
-extern void network_channel_receive_callback(void *handle, uint8_t *data, int32_t length); // 0x441ed0
+
+
 extern void network_channel_gap_441f30(void *connection); // 0x441f30
 
 

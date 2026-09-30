@@ -26,6 +26,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t network_disconnect_notice_shown; // 0x00697e78, UNSURE name
 extern uint8_t local_player_globals[8]; // 0x0087a478, UNSURE name/size; only +4 is read here

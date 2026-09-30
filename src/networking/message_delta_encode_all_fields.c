@@ -18,12 +18,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_field_changed_flags[0x40];      // 0x006b89c0, shared scratch (16 dwords)
 
 typedef int32_t (*message_delta_field_encode_fn)(void *field_type, int32_t changed, int32_t offset, void *stream_or_ctx);
-extern uint8_t message_delta_encode_field(int32_t changed_offset, uint8_t *ctx, int32_t field_index, int32_t type_offset); // 0x4ecde0, EAX changed_offset, ESI ctx
+
 
 // Encodes all of one item's static fields (unconditionally, via each field type's own encode
 // callback) and then every top-level field (via message_delta_encode_field), aggregating whether

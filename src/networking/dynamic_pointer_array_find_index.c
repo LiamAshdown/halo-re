@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 
 // Linear search for `value` in `array`, returning its index or -1 if it is not present (or the

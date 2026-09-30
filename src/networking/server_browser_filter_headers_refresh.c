@@ -21,6 +21,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern uint8_t server_browser_sort_column;            // 0x00719489
 extern uint8_t server_browser_sort_ascending;          // 0x006953f8
@@ -28,7 +29,6 @@ extern uint8_t server_browser_allow_password;          // 0x006953f9
 extern uint8_t server_browser_filter_dedicated_only;   // 0x0071948b
 extern uint8_t server_browser_filter_classic_only;     // 0x0071948c
 
-extern void server_browser_column_header_update(network_ui_widget *header, int32_t sort_direction); // 0x4b7f10, this module
 
 // blam-cc: filter-row widget in EAX (in_EAX)
 void server_browser_filter_headers_refresh(network_ui_widget *row)

@@ -57,6 +57,7 @@
 #include "fn_camera.h"
 #include "fn_cache.h"
 #include "fn_scenario.h"
+#include "fn_networking.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -109,12 +110,12 @@ extern int32_t rasterizer_present_counter_high;             // 0x0069c64c
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, foreign (render)
 
 extern void console_initialize(void);                                       // 0x4c62d0 (Ghidra splits it at 0x4c62f0 / 0x4c6340)
-extern uint32_t network_bandwidth_graph_reset(void);                        // 0x4d7980, foreign (networking)
+
 extern void ui_chat_window_reset_position(void);                            // 0x4aa6b0, foreign (interface)
 
 extern void map_list_add_entry(char *path, int32_t map_id);                 // 0x4950c0, foreign (interface)
     // blam-cc: EAX -> path, stack -> map_id
-extern void network_banlist_load(void);                                     // 0x4e3160, foreign (networking)
+
 extern void chimera__exec_init(void);                                       // this module, 0x4c6390
 extern void game_start_new_single_player_map(void);                         // this module, 0x4c9dd0
 extern void game_timer_reset(void);                                         // this module, 0x4c9f30
@@ -156,15 +157,12 @@ extern void input_update_tick(void);                                        // 0
 extern void shell_pump_windows_messages(void);                              // 0x541a20, foreign (shell)
 extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); // 0x492340, foreign (input)
     // blam-cc: EAX -> queue_index, EDI -> record
-extern void network_session_host_update(void);                                             // 0x577940, foreign
 
-extern uint32_t network_update(void);                                       // 0x4418d0, foreign (networking)
+
 extern void network_bandwidth_graph_instance_history_reset(network_bandwidth_graph *graph); // 0x4d8080
     // blam-cc: ESI -> graph
-extern void network_bandwidth_graph_tick(network_bandwidth_graph *graph);   // 0x4d84d0, blam-cc: EAX -> graph
-extern void network_bandwidth_rate_compute(network_bandwidth_graph *graph); // 0x4d8540, blam-cc: ESI -> graph
-extern char network_client_update_dispatch(void);                           // 0x4dded0, foreign (networking)
-extern int32_t network_host_shutdown_or_defer(void);                        // 0x4ddd90, result tested in AL
+
+
 extern void chat_close(void);                                               // 0x4aa900, foreign (interface)
 extern void main_loop_frame_pacer(void);                                    // this module, 0x4c9f90
 extern void ui_cursor_update(void);                                         // 0x4972c0, foreign (interface)

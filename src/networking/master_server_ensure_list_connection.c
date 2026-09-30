@@ -16,6 +16,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern void *master_server_query_engine; // 0x0071946c
 extern uint32_t master_server_request_flags; // 0x0071969c
@@ -24,7 +25,7 @@ extern int32_t server_browser_query_elapsed_ms; // 0x007196c8
 
 extern int32_t ServerBrowserState(void *engine); // foreign, GameSpy library; connection state
 extern int32_t ServerBrowserCount(void *engine); // foreign, GameSpy library: result count // foreign, GameSpy library; start/poll connect attempt
-extern void master_server_list_refresh_request(void); // 0x4b6660, this module
+
 
 // blam-cc: __cdecl, no arguments
 // If the master-server connection is already established or connecting (state 1 or 2),

@@ -17,6 +17,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
@@ -24,9 +25,7 @@ extern int32_t ghttpGetEx(void *path, int32_t a2, int32_t a3, int32_t a4, int32_
                              int32_t a7, void *progress_callback, void *complete_callback, int32_t a8); // foreign, UNSURE
 extern int32_t ghttpSaveEx(void *url, void *filename, void *headers, void *post, int32_t throttle, int32_t blocking,
                              void *progress_callback, void *complete_callback, void *param); // 0x61bef0 ghttpSaveEx
-extern void autopatch_download_progress_callback(int32_t request, int32_t state, const char *buffer,
-    int32_t buffer_length, int32_t bytes_received, int32_t total_size, void *param); // 0x576a70
-extern uint32_t autopatch_download_complete_callback(int32_t request_id, int32_t error, uint8_t *data, uint32_t size); // 0x576ad0, this module
+
 
 // blam-cc: stack -> path, EDX -> local_file
 // Starts an asynchronous download (or local file read, when local_file is set) into a free pool

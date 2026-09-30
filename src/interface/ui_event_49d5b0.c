@@ -14,10 +14,11 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_networking.h"
 
 extern int16_t local_player_count; // 0x006894b8
 extern uint8_t save_in_progress_00719010; // 0x00719010
-extern void network_dispatch_initialize(void); // 0x4414c0
+
 
 uint8_t ui_event_49d5b0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

@@ -46,6 +46,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "main.h"
+#include "fn_networking.h"
 
 typedef struct win32_process_information { // Win32 PROCESS_INFORMATION
     void *process;

@@ -18,6 +18,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_memory.h"
+#include "fn_networking.h"
 
 extern uint8_t network_disabled_flag; // 0x007196ec, UNSURE: see note above
 extern int16_t network_join_error_code; // 0x00718fa4, UNSURE
@@ -25,8 +26,6 @@ extern int32_t network_join_error_reason; // 0x0071973c, UNSURE
 extern uint8_t split_screen_quit_prompt_string[4]; // 0x00719754, UNSURE: byte 2 is never
                                                   // touched by this function
 extern data_packet_group network_game_messages_group; // 0x006994f8
-
-extern int16_t network_initialize(void); // 0x4415c0, this module
 
 
 void network_dispatch_initialize(void)

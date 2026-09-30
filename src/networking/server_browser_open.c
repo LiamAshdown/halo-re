@@ -33,6 +33,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -76,15 +77,14 @@ extern uint8_t server_browser_filter_panel_mode;     // 0x007196b4
 extern int32_t DAT_006953fc;
 extern uint8_t DAT_00719488;
 
-extern void network_channels_open(void); // 0x441300, this module
-extern int32_t master_server_connection_start(void); // 0x4b6000, this module
+
 extern void *ServerBrowserNew(void *a, void *b, void *c, int32_t d, int32_t e, int32_t f,
                            void *callback, int32_t h); // foreign, GameSpy library
 extern void network_channel_gap_4ba660(void); // callback, outside this session's range
 extern void autopatch_download_pool_initialize(void); // 0x576c30, outside this session's range
 extern int32_t shell_load_localized_string(int32_t id, char *out_buffer); // foreign, see UNSURE
 extern int32_t autopatch_download_start(const char *source); // 0x576e60, outside this session's range
-extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index); // 0x4b6160, this module, see UNSURE
+
 extern int32_t tag_lookup(const char *path); // foreign, tags module
 extern uint16_t *text_string_list_get_string(int32_t tag_index, int32_t string_index); // foreign, see UNSURE
 extern void server_list_reset(void); // 0x4b65f0, this module

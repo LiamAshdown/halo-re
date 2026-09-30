@@ -20,11 +20,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, cseries: current time in milliseconds (QPC-based)
-extern void message_delta_sample_record_and_append(int32_t a, int32_t c, int32_t b,
-    message_delta_sample_ring_buffer *ring); // 0x4ed310, blam-cc: EAX a, ECX c, EDX b, stack ring
-extern int32_t message_delta_sample_ring_buffer_average(message_delta_sample_ring_buffer *ring); // 0x4ed350, blam-cc: ECX ring
 
 
 // blam-cc: ECX -> sender_address, ESI -> client, EDI -> deadline_ms, stack -> remote_time

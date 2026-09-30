@@ -26,6 +26,7 @@
 #include "game.h"
 #include "objects.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern data_array *object_data; // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -36,7 +37,7 @@ extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, mem
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
-extern void network_player_update_history_log_write(const char *format, ...); // this module, 0x4e7f90
+
 
 // If plr's queued vehicle-ack sequence number is valid (0..63), stages a local_player_vehicle_update_ack
 // from plr's cached fields and plr's vehicle object's transform, and, unless the previous ack is

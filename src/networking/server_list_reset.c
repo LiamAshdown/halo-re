@@ -31,6 +31,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <wchar.h>
 
 extern int32_t server_browser_total_players; // 0x00719474
@@ -42,7 +43,7 @@ extern uint8_t server_browser_player_list_ready; // see UNSURE
 extern int32_t DAT_00719484; // see UNSURE
 extern wchar_t DAT_00719498[0x100]; // see UNSURE
 
-extern void server_list_result_reset(uint8_t *entry); // 0x4ba7c0, this module (entry == NULL here)
+
 extern ticker_text_buffer server_browser_player_ticker;  // 0x006b5e58
 extern ticker_text_buffer server_browser_variant_ticker; // 0x006b5e74
 extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self); // 0x4b8a60, this module

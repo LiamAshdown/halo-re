@@ -11,6 +11,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // blam-cc: ECX -> code, EDX -> out
 // Decodes the compact type-5 code produced by server_browser_gametype5_flags_pack back into two

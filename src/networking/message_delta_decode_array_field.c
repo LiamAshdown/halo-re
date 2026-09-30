@@ -13,9 +13,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
-extern int32_t message_delta_decode_field_changed_flags(void **context); // 0x4ed070, this module
+
 
 // blam-cc: EAX -> context
 // Decodes one array-typed message-delta field: reads its changed-flags/static-field payload via

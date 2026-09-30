@@ -12,6 +12,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern void *network_session_host_object;   // 0x00722a20
 extern int32_t network_session_host_state;  // 0x00722a18

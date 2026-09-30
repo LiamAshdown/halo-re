@@ -25,6 +25,7 @@
 #include "game.h"
 #include "objects.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <stdint.h>
 
 extern double sin(double x); // FSIN

@@ -17,8 +17,8 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
-extern char network_player_entry_find(network_game_session *session, network_player_entry *key); // 0x4de900, this batch
 
 // blam-cc: EAX -> incoming, ECX -> session
 uint8_t network_player_entry_update(network_player_entry *incoming, network_game_session *session)

@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#include "fn_networking.h"
 
-extern void master_server_list_refresh_request(void);      // 0x4b6660
-extern void master_server_ensure_list_connection(void);    // 0x4b66c0
+
 extern void server_browser_filter_panel_set_mode(void *panel, uint8_t internet_mode); // 0x4b61c0, EAX panel
-extern void server_browser_latch_join_target(void);        // 0x4b6730
+
 extern void widget_play_sound_effect(int16_t effect_id);  // 0x498e90, AX
 
 uint8_t server_browser_button_event(widget_instance *widget, int16_t *event, uint8_t *out_handled)

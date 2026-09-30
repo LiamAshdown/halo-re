@@ -16,6 +16,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t network_pending_connection_count; // 0x006f16d0
 

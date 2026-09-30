@@ -19,6 +19,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 // network_buffer_pair is types/networking.h (0x08; folded out of this file by the review pass).
 

@@ -18,10 +18,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 
 extern int32_t network_mutex_name_counter; // 0x006f0cac
 
-extern network_mutex_record *network_mutex_slot_allocate(void); // 0x440420, this module
+
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
 
 // blam-cc: EDI -> out_handle

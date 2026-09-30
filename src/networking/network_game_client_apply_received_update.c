@@ -36,6 +36,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_networking.h"
 #include <string.h>
 
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state,
@@ -47,7 +48,7 @@ extern uint8_t message_delta_decode_compound_field(void *decode_context, void *d
     // previous-state pointer and the caller destination (0x4ec591..0x4ec59a).
 extern char network_client_check_connection_quality(void); // 0x4e0080, this batch (UNSURE args here; see its own file)
 extern void network_game_client_apply_position_update(void *state, uint32_t *packet, void *tick_count, void *object); // 0x4dff70, this batch
-extern void network_player_update_history_log_write(const char *format, ...); // 0x4e7f90, other module
+
 
 // Stages `machine`'s connect_state, dispatches the message record by its type (either merges
 // changed sub-fields or takes the FUN_004ec590 path), restores connect_state, and -- if the

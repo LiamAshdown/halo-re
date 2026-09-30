@@ -23,6 +23,7 @@
 #include "fn_game.h"
 #include "fn_objects.h"
 #include "fn_items.h"
+#include "fn_networking.h"
 
 extern int16_t network_game_mode; // 0x00719720
 extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE name
@@ -52,8 +53,8 @@ extern void projectile_create_from_network(void **context); // 0x4c0ca0, EAX
 extern void equipment_create_from_creation_message(void **context); // 0x4bbe20, EAX
 extern void weapon_create_from_creation_message(void **context); // 0x4c5c10, EAX
 extern int32_t network_channel_key_send_state(network_client_globals *client, void **context); // 0x4de950, ESI, EDX
-extern void message_delta_parameters_protocol_receive_update(void **context); // 0x4ec000, EAX
-extern void message_delta_definitions_invoke_field_bindings(void); // 0x4ec390
+
+
 extern void player_update_client_local_player_update_from_network(void **context); // 0x4e5390, EAX
 extern void player_update_client_local_player_vehicle_update_from_network(void **context); // 0x4e5490, EAX
 extern void player_update_client_remote_player_action_update_from_network(void **context); // 0x4e5620, EDX
