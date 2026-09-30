@@ -28,6 +28,7 @@
 #include "interface.h"
 #include "cutscene.h"
 #include "fn_cutscene.h"
+#include "fn_bitmaps.h"
 
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 extern float fabsf(float x); // x87 FABS
@@ -55,7 +56,7 @@ extern uint32_t text_shadow_color_argb;                 // 0x0071d144, the text 
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
 
 // blam-cc: EAX -> out, ECX -> packed color (src/bitmaps/color_argb_int_to_real.c, this batch)
-extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0
+
 
 // blam-cc: ECX -> font, EAX -> color, stack -> style, justification, flags
 // (src/text/text_set_render_context.c, already committed)

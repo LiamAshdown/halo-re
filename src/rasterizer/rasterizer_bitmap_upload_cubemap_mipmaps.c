@@ -23,6 +23,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_bitmaps.h"
 #include <string.h>
 // reconciled: the Direct3D texture is BitmapData.hardware_texture (+0x28, retail PC runtime); tags.h's `pointer` (+0x24) is a different field
 
@@ -31,7 +32,7 @@ extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c
 extern void *rasterizer_device; // 0x0071d174
 extern int8_t bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
 
-extern void *bitmap_data_get_pixel_address(BitmapData *bitmap, int32_t mip_level); // 0x43fb20, UNSURE signature
+
 extern int16_t bitmap_data_calculate_mip_depth(BitmapData *bitmap, int32_t mip_level); // 0x43fbe0, UNSURE signature
 extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t mip_level); // 0x43fc10, UNSURE signature
 

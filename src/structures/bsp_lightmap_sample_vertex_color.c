@@ -58,10 +58,10 @@
 #include "structures.h"
 #include "fn_rasterizer.h"
 #include "fn_structures.h"
+#include "fn_bitmaps.h"
 
 // UNSURE: signature reconstructed from this call site; see file header.
 
-extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, EAX out, ECX packed (src/bitmaps)
 
 // blam-cc: ECX -> material, EDX -> triangle_vertex_indices, stack -> bitmap, weight_1, weight_2, out
 void bsp_lightmap_sample_vertex_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out,

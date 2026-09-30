@@ -18,9 +18,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_bitmaps.h"
 
 // blam-cc: EAX -> bitmap
-extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); // 0x43fb70
+
 // blam-cc: ESI -> bitmap
 
 extern font_glyph_cache g_font_glyph_cache; // 0x006d8828

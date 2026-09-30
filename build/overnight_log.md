@@ -2845,3 +2845,4 @@ types/interface.h first_person_weapon_interface 0x28 unknown_28 -> charge_blend_
 - extern removal: devices -> types/fn_devices.h (7 prototypes, 20 files edited); 2 names skipped (callers disagree): device_can_change_position, device_new
 - extern removal: physics -> types/fn_physics.h (65 prototypes, 101 files edited); 16 names skipped (callers disagree). gen_prototypes.py now orders included headers by the majority include order of src/*.c.
 - extern removal: main -> types/fn_main.h (37 prototypes, 53 files edited); 9 names skipped (callers disagree). gen_prototypes.py pins tags/memory/math first in generated includes.
+- extern removal: bitmaps -> types/fn_bitmaps.h (15 prototypes, 32 files edited); 11 names skipped (callers disagree): bitmap_data_calculate_mip_depth, bitmap_data_calculate_mip_level_pixel_count, bitmap_data_free, bitmap_data_get_row_address, bitmap_group_get_bitmap_data, bitmap_group_sequence_get_bitmap_data

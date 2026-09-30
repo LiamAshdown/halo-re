@@ -14,6 +14,7 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#include "fn_bitmaps.h"
 
 // blam-cc: EAX -> packed, stack -> out
 // Unpacks the r5g6b5 color at *packed into out as 8-bit-per-channel blue/green/red, with alpha

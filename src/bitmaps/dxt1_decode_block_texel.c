@@ -27,8 +27,8 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#include "fn_bitmaps.h"
 
-extern void color_565_unpack_to_rgb888(uint16_t *packed, ColorARGBInt *out); // 0x43ff80, this module
 
 // (2*near + far + 1) / 3, i.e. a color 2/3 of the way from far to near. See the file header for
 // the equivalence to Ghidra's fixed-point multiply.

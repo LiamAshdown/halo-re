@@ -11,6 +11,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+#include "fn_bitmaps.h"
 
 // blam-cc: EAX -> out, ECX -> packed color
 void color_argb_int_to_real(ColorARGB *out, uint32_t packed)

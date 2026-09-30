@@ -13,6 +13,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+#include "fn_bitmaps.h"
 
 // blam-cc: ECX -> color, EDX -> hsv; returns hsv in EAX (mov eax,edx at both exits)
 real_hsv_color *color_rgb_to_hsv(ColorRGB *color, real_hsv_color *hsv)

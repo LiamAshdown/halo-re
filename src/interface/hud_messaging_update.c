@@ -38,6 +38,7 @@
 #include "units.h"
 #include "cutscene.h"
 #include "fn_game.h"
+#include "fn_bitmaps.h"
 
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern player_globals *local_player_globals;   // 0x0087a478
@@ -73,7 +74,7 @@ extern const uint16_t hud_text_no_button_icon[]; // 0x0066a94c, L"<no button ico
 extern int32_t __ftol(double x); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
 extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpow
 
-extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0; blam-cc: EAX -> out, ECX -> packed
+
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
 extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
                                                  const int16_t *offset, int16_t *out, int32_t selector); // 0x4ab690, blam-cc: AL has_scale, EDX offset, ECX child placement (selector)

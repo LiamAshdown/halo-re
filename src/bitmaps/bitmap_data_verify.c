@@ -24,8 +24,7 @@
 #include "tags.h"
 #include "bitmaps.h"
 #include "fn_math.h"
-
-extern uint32_t bitmap_data_depth_valid_for_type(int32_t depth, BitmapDataType_t type); // 0x43fe30, this module
+#include "fn_bitmaps.h"
 
 
 // blam-cc: EDX -> bitmap, stack -> require_runtime

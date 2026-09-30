@@ -20,6 +20,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_bitmaps.h"
 #include <string.h>
 // reconciled: the Direct3D texture is BitmapData.hardware_texture (+0x28, retail PC runtime); tags.h's `pointer` (+0x24) is a different field
 
@@ -28,11 +29,9 @@ extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c
 extern void *rasterizer_device; // 0x0071d174
 extern int8_t bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
 
-extern void *bitmap_data_get_cube_map_pixel_address(BitmapData *bitmap, int32_t mip_level, int16_t x, int16_t y,
-                                                    int16_t face); // 0x43fa90; ECX mip, EDI bitmap, stack (x, y, face)
-extern uint32_t bitmap_data_calculate_mip_dimension(BitmapData *bitmap, int32_t mip_level); // 0x43fbb0
+
 extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t mip_level); // 0x43fc10
-extern uint32_t bitmap_data_calculate_mip_row_byte_size(BitmapData *bitmap, int32_t mip_level); // 0x43fce0
+
 extern int16_t rasterizer_cube_face_to_d3d_face[6]; // 0x0065e088: 0, 2, 1, 3, 4, 5 (Halo face order -> D3DCUBEMAP_FACES)
 
 typedef int32_t (__stdcall *d3d_lock_rect_fn)(void *self, uint32_t face, uint32_t level, void *out_rect, const void *rect, uint32_t flags);

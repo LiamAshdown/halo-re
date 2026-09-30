@@ -26,6 +26,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "fn_saved_games.h"
+#include "fn_bitmaps.h"
 
 
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, src/saved_games/file_reference_open.c

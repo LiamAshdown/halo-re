@@ -19,6 +19,7 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#include "fn_bitmaps.h"
 
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count]; // 0x006571f4 (types/bitmaps.h)
 

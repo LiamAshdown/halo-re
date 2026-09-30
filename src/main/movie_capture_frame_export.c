@@ -31,6 +31,7 @@
 #include "main.h"
 #include "fn_saved_games.h"
 #include "fn_main.h"
+#include "fn_bitmaps.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -40,7 +41,7 @@ extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitm
 
     // blam-cc: ESI -> destination, EBX -> component
 extern void path_remove_last_component(uint8_t *path); // 0x555f80, foreign (game module)
-extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); // 0x43fe60, foreign
+
     // blam-cc: EAX -> bitmap, EBX -> destination (0x4c95cb mov eax,[0x719724] ; lea ebx,[esp+0x10])
 
 // Captures the current frame into movie_frame_bitmap and, once per call while capturing is

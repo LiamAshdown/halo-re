@@ -30,6 +30,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_bitmaps.h"
 
 extern uint16_t formatted_prompt_scratch[0x100]; // 0x006b2fe8, copy of the source text split in place
 extern int16_t ui_prompt_clip_y; // 0x006e4770, word store
@@ -58,7 +59,7 @@ extern void ui_widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor
     // blam-cc: EAX -> cursor, ECX -> origin
 extern uint8_t input_get_last_used_binding(int16_t key, uint8_t *out_binding); // 0x48bde0; blam-cc: EAX -> key, stack -> 12 byte out
 extern void input_get_binding_display_name(uint8_t *binding, uint16_t *out_name); // 0x48c7f0; blam-cc: EAX -> binding, ECX -> out_name
-extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0; blam-cc: EAX -> out, ECX -> packed
+
 extern void ui_button_prompt_draw_icon(HUDGlobalsButtonIcon *icon); // 0x49ac80; blam-cc: ESI -> icon
 
 // Draws one span at the running cursor: clip offset is the non-negative distance the cursor has

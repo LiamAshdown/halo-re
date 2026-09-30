@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_math.h"
+#include "fn_bitmaps.h"
 
 extern double cos(double x);           // FCOS
 extern double sqrt(double x);          // FSQRT
@@ -30,7 +31,7 @@ extern double fmod(double x, double y); // 0x628cca, _CIfmod
 
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed); // 0x43f5a0, blam-cc: EAX out, ECX packed
+
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
 
 

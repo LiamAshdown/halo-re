@@ -15,6 +15,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+#include "fn_bitmaps.h"
 
 // blam-cc: EDI -> hsv, ESI -> color; returns color in EAX (mov eax,esi at every exit)
 ColorRGB *color_hsv_to_rgb(real_hsv_color *hsv, ColorRGB *color)

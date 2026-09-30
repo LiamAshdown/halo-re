@@ -16,6 +16,7 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#include "fn_bitmaps.h"
 
 // blam-cc: ECX (CL) -> level, EDX -> bitmap
 // Computes bitmap's height at mip level `level` (>>= level, clamped to a minimum of 1), rounded

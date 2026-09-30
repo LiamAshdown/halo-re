@@ -29,14 +29,13 @@
 #include "rasterizer.h"
 #include "bitmaps.h"
 #include "fn_rasterizer.h"
+#include "fn_bitmaps.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count]; // 0x006571f4 (types/bitmaps.h)
 extern uint8_t bitmap_group_debug_dump; // 0x006f1874, .bss, always 0 in the retail image
 
 extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t level); // 0x43fc10, this module (src/bitmaps)
-extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); // 0x43fb70, this module (src/bitmaps)
-extern uint8_t bitmap_data_verify(BitmapData *bitmap, uint8_t require_runtime); // 0x43fd30, this module (src/bitmaps)
 
 
 // blam-cc: stack -> tag_id, skip_hardware_textures

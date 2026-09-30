@@ -29,12 +29,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_bitmaps.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern int32_t ui_real_to_int_truncate(float value); // 0x4ab590
 extern uint32_t color_rgb_float_to_int(const float *rgb); // 0x4ab5d0, a ColorRGB
-extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, blam-cc: EAX out, ECX packed
+
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame

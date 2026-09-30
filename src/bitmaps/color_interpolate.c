@@ -18,11 +18,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+#include "fn_bitmaps.h"
 
 extern float fabsf(float x); // x87 FABS
 
-extern real_hsv_color *color_rgb_to_hsv(ColorRGB *color, real_hsv_color *hsv); // 0x43f330, this batch
-extern ColorRGB *color_hsv_to_rgb(real_hsv_color *hsv, ColorRGB *color); // 0x43f460, this batch
 
 // blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
 ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest,

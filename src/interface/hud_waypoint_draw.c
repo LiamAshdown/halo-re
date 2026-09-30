@@ -31,6 +31,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_bitmaps.h"
 
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern player_globals *local_player_globals;  // 0x0087a478
@@ -53,7 +54,7 @@ extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, blam-cc: EAX out, EDX point
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
                                                     void *camera); // 0x50de30, blam-cc: ECX out, EDX point, ESI frustum, EDI camera
-extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, blam-cc: EAX out, ECX packed
+
 extern uint32_t color_rgb_float_to_int(const float *rgb); // 0x4ab5d0
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset); // 0x4ab8d0, blam-cc: EAX frame_index

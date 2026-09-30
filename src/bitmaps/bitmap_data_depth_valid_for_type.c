@@ -14,6 +14,7 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#include "fn_bitmaps.h"
 
 // blam-cc: EAX (AX) -> depth, stack -> type
 // Validates a BitmapData's depth against its type: depth must be in (0, k_bitmap_maximum_depth],

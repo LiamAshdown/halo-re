@@ -38,9 +38,8 @@
 #include "structures.h"
 #include "fn_rasterizer.h"
 #include "fn_structures.h"
+#include "fn_bitmaps.h"
 
-
-extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, EAX out, ECX packed (src/bitmaps)
 
 // blam-cc: EAX -> material, ECX -> triangle_vertex_indices, stack -> bitmap, weight_1, weight_2, out
 void bsp_material_sample_base_map_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out,
