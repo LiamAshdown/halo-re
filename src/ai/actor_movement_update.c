@@ -214,7 +214,9 @@ void actor_movement_update(datum_index actor_index)
                 turn.i *= inverse;
                 turn.j *= inverse;
                 turn.k *= inverse;
-                vector3d_rotate_about_axis(&turn, &turn, (real)sin(length), (real)cos(length));
+                // VERIFIED against disassembly 0x416a74..0x416ab6 (2026-09-30): EAX = actor+0x518 (desired_movement_vector, rotated in place),
+                // ECX = the normalized axis copy (esp+0x44), stack = sin/cos of the axis length
+                vector3d_rotate_about_axis((real_vector3d *)&a->desired_movement_vector, &turn, (real)sin(length), (real)cos(length));
             }
             avoidance_scale = a->avoidance_scale;
         }
