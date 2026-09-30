@@ -5,11 +5,11 @@
 // find". Validates the key record via network_player_entry_validate, then scans session->players[] for a
 // machine_index/machine_player_index match. Both callers in this batch (network_player_entry_
 // update.c, network_player_entry_remove.c) only ever test the low byte of this function's
-// return (truthy/falsy) and then redo their own scan, so the packed pointer-derived high bytes
-// of Ghidra's CONCAT31 return are not reproduced -- this rewrite returns a plain 0/1.
+// return (truthy/falsy); only AL is defined in the original, so a plain 0/1 return is equivalent.
 // register convention: session in param_1 (stack), key in ESI (unaff_ESI). blam-cc: ESI -> key,
 // stack -> session
 
+// VERIFIED against disassembly 0x4de900..0x4de941 (2026-09-30): validate(ESI key via EAX), scan of machine_index (+0x1c) then machine_player_index (+0x1d) over 16 rows
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
