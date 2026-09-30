@@ -53,7 +53,8 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
         cube_map_tag_index = *(int32_t *)&((struct Light *)definition)->secondary_cube_map.tag_id;
     }
 
-    vector3d_cross_product(&cross_axis, &light->forward, &light->up);
+    // VERIFIED against disassembly 0x521608..0x521626 (2026-09-30): EAX=cross_axis, ECX=&light->up (esi+0x1c), stack=&light->forward (esi+0x10)
+    vector3d_cross_product(&cross_axis, &light->up, &light->forward);
     vector3d_normalize_with_length(&cross_axis);
 
     rasterizer_projected_light.position = light->position;
