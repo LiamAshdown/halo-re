@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "devices.h"
 #include "fn_memory.h"
+#include "fn_devices.h"
 
 extern Scenario *global_scenario; // 0x00746f8c, the Scenario tag data; same spelling as the
     // six declarations in src/hs

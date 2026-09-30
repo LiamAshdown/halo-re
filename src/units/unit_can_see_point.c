@@ -35,6 +35,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_devices.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -48,7 +49,7 @@ extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t 
 
 extern void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index,
     int32_t collision_surface_index); // 0x4ffde0, EBX, stack
-extern void device_machine_melee_attacked(uint32_t object_index); // 0x44b5d0, ECX
+
 
 // Tests line-of-sight/visibility from the unit toward a target point along a caller-supplied
 // grid basis, applying melee-response damage and decal/light effects along the trace.

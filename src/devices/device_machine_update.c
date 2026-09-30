@@ -73,6 +73,7 @@
 #include "units.h"
 #include "devices.h"
 #include "fn_objects.h"
+#include "fn_devices.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -83,7 +84,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-N
     // uint8_t use at this same address in the items module
 extern void *team_pair_data; // 0x006b0b84, +0xa4 is the per-team bitmask array this reads
 
-extern uint8_t device_group_set_value(uint16_t group_index, float value); // 0x44bd70, this batch
+
     // blam-cc: ESI -> group_index, stack -> value; returns 0/1 in AL (both call sites here
     // discard it, but the declaration must agree with src/devices/device_group_set_value.c)
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,

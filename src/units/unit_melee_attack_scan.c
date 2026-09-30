@@ -28,6 +28,7 @@
 #include "projectiles.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_devices.h"
 #include <string.h>
 
 extern data_array *object_data;      // 0x008603b0
@@ -46,7 +47,6 @@ extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t 
 
 extern void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index,
                                            int32_t collision_surface_index); // 0x4ffde0, EBX, stack
-extern void device_machine_melee_attacked(uint32_t object_index); // 0x44b5d0, ECX
 
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)

@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_devices.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void device_group_set_value_immediate(uint16_t group_index, float value); // 0x44bea0, SI group, stack value
 
 void hs_evaluate_device_group_set_immediate(int16_t function_index, uint32_t thread_index, char first)
 {

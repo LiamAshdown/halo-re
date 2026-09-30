@@ -9,10 +9,10 @@
 #include "memory.h"
 #include "math.h"
 #include "fn_memory.h"
+#include "fn_devices.h"
 
 extern data_array *device_groups; // 0x0087abf0
 
-extern void device_groups_initialize(void); // 0x44c220 (tail call)
 
 void device_groups_dispose(void)
 {

@@ -17,10 +17,11 @@
 #include "math.h"
 #include "objects.h"
 #include "devices.h"
+#include "fn_devices.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern void device_group_set_value_immediate(uint16_t group_index, float value); // 0x44bea0
+
     // blam-cc: ESI -> group_index, stack -> value
 
 void device_machine_melee_attacked(uint32_t object_index)

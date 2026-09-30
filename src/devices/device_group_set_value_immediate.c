@@ -19,6 +19,7 @@
 #include "math.h"
 #include "objects.h"
 #include "devices.h"
+#include "fn_devices.h"
 
 extern data_array *device_groups; // 0x0087abf0
 

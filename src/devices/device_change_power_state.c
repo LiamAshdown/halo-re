@@ -56,13 +56,13 @@
 #include "cache.h"
 #include "objects.h"
 #include "devices.h"
+#include "fn_devices.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *device_groups;   // 0x0087abf0
 
-extern uint8_t device_group_set_value(uint16_t group_index, float value); // 0x44bd70, this batch
-extern void device_play_state_change_effect(uint32_t object_index, TagID tag_id); // 0x44c1a0 (out of range)
+
     // blam-cc: EAX = object_index, ECX = tag_id (signature per
     // src/devices/device_group_set_value.c's disassembly-verified header)
 

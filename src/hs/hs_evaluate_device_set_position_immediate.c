@@ -12,12 +12,13 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_devices.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
 extern data_array *object_data; // 0x008603b0
-extern void device_group_set_value_immediate(uint16_t group_index, float value); // 0x44bea0, blam-cc: ESI, stack
+
 
 void hs_evaluate_device_set_position_immediate(int16_t function_index, uint32_t thread_index, char first)
 {

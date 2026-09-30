@@ -47,12 +47,13 @@
 #include "cache.h"
 #include "objects.h"
 #include "devices.h"
+#include "fn_devices.h"
 
 extern data_array *device_groups; // 0x0087abf0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
-extern void device_play_state_change_effect(uint32_t object_index, TagID tag_id); // 0x44c1a0, this batch
+
     // blam-cc: EAX -> object_index, ECX -> tag_id
 
 uint8_t device_group_set_value(uint16_t group_index, float value)

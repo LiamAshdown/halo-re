@@ -28,6 +28,7 @@
 #include "math.h"
 #include "objects.h"
 #include "devices.h"
+#include "fn_devices.h"
 
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, established
