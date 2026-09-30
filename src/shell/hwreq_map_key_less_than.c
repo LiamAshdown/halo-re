@@ -24,9 +24,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos,
-    const char *s, uint32_t n2); // 0x57ce10, same pass
 
 uint8_t hwreq_map_key_less_than(const msvc_std_string *this, const msvc_std_string *other)
 {

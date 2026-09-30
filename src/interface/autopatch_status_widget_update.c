@@ -18,6 +18,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_networking.h"
+#include "fn_shell.h"
 
 extern uint8_t autopatch_status_active_00719235; // 0x00719235, TYPES-GAP
 extern uint8_t autopatch_status_flag_00692b11;    // 0x00692b11, TYPES-GAP
@@ -29,7 +30,6 @@ extern uint8_t quit_confirm_error_is_error;     // 0x00718fb1
 
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, current time in milliseconds
 extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0
-extern int32_t security_check_write_access(void); // 0x542840, UNSURE args
 
 
 // blam-cc: param_1 is a larger record embedding a widget_instance; see file header.

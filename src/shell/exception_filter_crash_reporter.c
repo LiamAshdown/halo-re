@@ -46,6 +46,7 @@
 #include "interface.h"
 #include "fn_rasterizer.h"
 #include "fn_sound.h"
+#include "fn_shell.h"
 
 #if defined(_MSC_VER)
 #define CRASH_TRY __try
@@ -55,9 +56,6 @@
 #define CRASH_EXCEPT if (0)
 #endif
 
-
-extern int32_t __stdcall dialog_center_on_screen(void *hwnd, uint32_t message, uint32_t wparam,
-                                                 int32_t lparam);              // 0x542f00
 
 extern void *shell_stack_guard_page;                                           // 0x00721f08
 extern uint32_t shell_stack_guard_old_protect;                                 // 0x00721f0c

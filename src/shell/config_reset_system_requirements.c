@@ -13,6 +13,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern int32_t config_maximum_resolution;                 // 0x0069fe3c
 extern int32_t config_linear_texture_addressing;           // 0x00722b28

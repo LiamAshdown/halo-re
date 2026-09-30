@@ -25,14 +25,13 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 typedef struct hwreq_map_value_type {
     msvc_std_string key; // 0x00
     uint32_t value;       // 0x1c hwreq_property_set *
 } hwreq_map_value_type; // size 0x20
 
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
-    uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
 // blam-cc: ECX -> source, stack -> left, parent, right, color
 hwreq_map_node *tree_node_allocate(uint32_t left, uint32_t parent, uint32_t right, uint8_t color,

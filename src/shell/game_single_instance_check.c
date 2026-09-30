@@ -12,6 +12,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern int32_t shell_instance_mode_value;    // 0x0069eab4, UNSURE: named _value -- shell.h's shell_instance_mode enum typedef occupies that identifier
 extern int32_t shell_instance_index;         // 0x00721f04

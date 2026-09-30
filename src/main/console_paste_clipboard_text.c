@@ -19,11 +19,12 @@
 #include "saved_games.h"
 #include "main.h"
 #include "fn_main.h"
+#include "fn_shell.h"
 
 extern terminal_console *console_active; // 0x006b2f0c
 extern console_globals console_globals_data;  // 0x006b7020 (0x006b7024 is &console_globals_data.terminal)
 
-extern uint32_t clipboard_get_text(char *buffer, uint32_t capacity); // 0x541ac0
+
 extern void widget_text_edit_insert_string(text_edit_state *state, char *insert_str); // 0x44c640, blam-cc: ESI -> state, EAX -> insert_str
 
 // Reads the current clipboard text into a local buffer and, if the console's own text edit is

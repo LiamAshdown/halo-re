@@ -16,6 +16,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 // blam-cc: EAX -> subtree_root_left_field
 hwreq_map_node *tree_find_min(hwreq_map_node **subtree_root_left_field)

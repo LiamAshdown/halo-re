@@ -39,6 +39,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 typedef struct hwreq_parse_exception {
     uint32_t vtable;         // 0x00
@@ -48,8 +49,7 @@ typedef struct hwreq_parse_exception {
 } hwreq_parse_exception; // size 0x28
 
 extern void *logic_error_vtable; // 0x00655080
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
-    uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
+
 
 hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *this, const msvc_std_string *message)
 {

@@ -16,8 +16,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern hwreq_parser *hwreq_parser_construct(hwreq_parser *this); // 0x579ef0
 
 // Allocates a hardware-requirements parser object and default-constructs it; returns NULL if
 // the allocation fails.

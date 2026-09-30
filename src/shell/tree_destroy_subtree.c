@@ -26,8 +26,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern void hwreq_map_node_key_destruct(hwreq_map_node *node); // 0x57cde0, same pass
 
 // blam-cc: ECX -> map_self, stack -> node
 void tree_destroy_subtree(void *map_self, hwreq_map_node *node)

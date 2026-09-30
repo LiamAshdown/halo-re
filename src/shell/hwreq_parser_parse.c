@@ -29,15 +29,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *source, uint32_t count); // 0x57bc90
 
-extern uint8_t hwreq_parser_find_requirements_section(hwreq_parser *parser); // 0x57ae50, blam-cc: ESI -> parser
-extern uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *parser); // 0x57a3e0, blam-cc: ECX -> parser
-extern uint8_t hwreq_parser_scan_for_applytoall_or_vendor(hwreq_parser *parser); // 0x57a220, blam-cc: ESI -> parser
-extern uint8_t hwreq_parser_parse_vendor_block(hwreq_parser *parser); // 0x57a680, blam-cc: EAX -> parser
-extern uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *parser); // 0x57aa40, blam-cc: EAX -> parser
-extern uint8_t hwreq_parser_scan_for_applytoall(hwreq_parser *parser); // 0x57a320, blam-cc: ESI -> parser
 
 extern char hwreq_open_error_text[]; // 0x00723058
 extern const char hwreq_cannot_find_format[]; // 0x00672378 "Cannot find '%s'"

@@ -17,9 +17,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
-    uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
 hwreq_string_pair *hwreq_string_pair_construct(hwreq_string_pair *dest, const msvc_std_string *first_source,
                                                 const msvc_std_string *second_source)

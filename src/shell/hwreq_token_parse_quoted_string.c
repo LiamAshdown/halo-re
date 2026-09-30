@@ -11,6 +11,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern char hwreq_quoted_string[k_hwreq_quoted_string_length]; // 0x00722d58
 

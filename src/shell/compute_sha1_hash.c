@@ -14,6 +14,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 extern uint32_t crypt_provider; // 0x00722bcc

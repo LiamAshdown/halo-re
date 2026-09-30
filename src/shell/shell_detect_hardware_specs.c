@@ -47,16 +47,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 #include <string.h>
 
 
-
-extern int32_t hex_string_to_uint(char *string);                               // 0x57d7f0, string in EDX
-extern void hex_string_to_bytes(uint8_t *dest, const char *source);            // 0x57d830, dest in ECX, source in EDX
 extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70
-extern int32_t __stdcall shell_display_adapter_enumerate_callback(void *guid, char *description,
-                                                                  char *driver_name, void *context,
-                                                                  void *monitor); // 0x57d370, not a Ghidra function
+
 
 extern uint32_t physical_memory;                                               // 0x00722ba8
 extern uint32_t cpu_speed;                                                     // 0x00722bac

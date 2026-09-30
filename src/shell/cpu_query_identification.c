@@ -24,6 +24,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern char cpu_vendor_string[0x10];      // 0x006e35ac EBX/EDX/ECX of leaf 0, 12 bytes
 extern char cpu_brand_string[0x30];       // 0x006e357c EAX/EBX/ECX/EDX of leaves 0x80000002..4

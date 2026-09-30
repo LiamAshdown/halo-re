@@ -19,9 +19,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
-extern hwreq_map_node *hwreq_map_find(msvc_std_map *map, msvc_std_string *key); // 0x57b7a0, blam-cc: map in EDI, key in ESI, iterator slot in EBX (folded into the return value); library code (std::map<string,T*>::find); returns the found node or the map's head sentinel
+
 extern void free(void *block); // 0x6277e8 CRT
 
 // Looks name up in the parser's property_sets map ("propertyset" definitions) and returns the

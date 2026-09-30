@@ -10,12 +10,11 @@
 #include "tags.h"
 #include "cache.h"
 #include "fn_cache.h"
+#include "fn_shell.h"
 
 extern void *cache_io_event;   // 0x006ac498, auto-reset event that wakes the worker
 extern void *cache_io_thread;  // 0x006ac49c, 0x4000-byte stack
 extern int32_t os_platform;    // 0x00721ef0
-
-extern void os_platform_identify(void); // 0x5427e0
 
 
 // Creates the synchronization event and background worker thread that services the async

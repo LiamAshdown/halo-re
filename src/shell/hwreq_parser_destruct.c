@@ -25,18 +25,18 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern hwreq_parser_vtable hwreq_parser_vtable_instance; // 0x006721e8
 
-extern void hwreq_property_set_flags_destruct(hwreq_property_set *set); // 0x57b990, blam-cc: set in EBX; library code (map neighbour), not in the function list
-extern void hwreq_string_pair_destruct(hwreq_string_pair *pair); // 0x5785b0
+
 extern hwreq_map_node **tree_erase_range(hwreq_map_node **out_iterator, hwreq_map_node *first,
                               hwreq_map_node *last, msvc_std_map *tree); // 0x57c310, src/shell; blam-cc: tree in ESI (objdump: reads
                               // [esi+4] with no this-load at entry, live from the caller); out_iterator,
                               // first, last on the stack, in that order. Parameter order follows src/shell/tree_erase_range.c. Library code (map neighbour of
                               // the skip-listed tree_* helpers), not in the function list.
                               // UNSURE: out_iterator's exact purpose; unused by every caller in this file.
-extern void tree_iterator_increment(hwreq_map_node **iterator); // 0x57c5e0, blam-cc: iterator address in EDX, updated in place
+
 extern void free(void *block); // 0x6277e8, CRT free
 
 // Full destructor for the hardware-requirements parser object: frees the flags / requirements

@@ -19,13 +19,14 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
 
 extern hwreq_string_pair *hwreq_string_pair_construct(hwreq_string_pair *dest, msvc_std_string *first,
                                                         msvc_std_string *second); // 0x0057b670
 extern void hwreq_device_list_push_back(hwreq_property_set *property_set, hwreq_string_pair *pair); // 0x0057b5e0, set in EAX, pair on the stack
-extern void hwreq_string_pair_destruct(hwreq_string_pair *pair); // 0x005785b0, this module
+
 
 static uint32_t hwreq_string_length(const char *text)
 {

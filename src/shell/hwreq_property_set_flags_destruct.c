@@ -11,8 +11,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern void hwreq_string_pair_destruct(hwreq_string_pair *pair); // 0x5785b0
+
 extern void free(void *block); // 0x6277e8, CRT free
 
 void hwreq_property_set_flags_destruct(hwreq_property_set *set)

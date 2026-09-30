@@ -31,12 +31,12 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include "interface.h"
+#include "fn_shell.h"
 
 // The IDirect3D9 slot typedefs (d3d9_get_adapter_identifier_fn / d3d9_get_device_caps_fn) and the
 // hwreq_parser_vtable slot typedefs (hwreq_*_fn) are in types/shell.h.
 
-extern hwreq_parser *hwreq_parser_create(void); // 0x57b4c0
-extern void config_reset_system_requirements(void); // 0x57cfe0
+
 extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70
 
 extern large_integer graphics_driver_version; // 0x00722ba0

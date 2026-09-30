@@ -14,6 +14,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 extern void *shell_window; // 0x007461c4

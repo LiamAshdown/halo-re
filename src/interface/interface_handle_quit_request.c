@@ -24,6 +24,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_shell.h"
 
 extern uint8_t ui_force_quit;   // 0x00718fca
 extern uint8_t ui_split_screen; // 0x00718fc9
@@ -41,7 +42,6 @@ extern int16_t quit_confirm_error_unknown_ae;   // 0x00718fae
 extern uint8_t quit_confirm_error_modal;        // 0x00718fb0
 extern uint8_t quit_confirm_error_is_error;     // 0x00718fb1
 
-extern void keystone_library_unload(void); // 0x542cf0, UNSURE module
 
 // Either force-quits the process immediately (unloading the keystone/DRM library first) when
 // ui_force_quit is set, or arms a "are you sure you want to quit" confirmation prompt: the

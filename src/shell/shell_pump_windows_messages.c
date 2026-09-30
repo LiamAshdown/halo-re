@@ -11,6 +11,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern void *chat_gui_root_handle;                    // 0x00721ea4
 extern void *keystone_module;                  // 0x00721e9c

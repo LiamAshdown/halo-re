@@ -26,6 +26,7 @@
 #include "fn_math.h"
 #include "fn_cseries.h"
 #include "fn_saved_games.h"
+#include "fn_shell.h"
 
 extern large_integer performance_frequency;   // 0x006ac8f8 QueryPerformanceFrequency result
 extern char profile_directory[0x105];         // 0x006ac900 (types/cache.h); memset clears 0x105

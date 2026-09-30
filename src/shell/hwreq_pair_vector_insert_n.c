@@ -25,18 +25,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern hwreq_string_pair *uninit_copy_string_pair(hwreq_string_pair *source_begin, hwreq_string_pair *source_end,
-    hwreq_string_pair *dest); // 0x57cf50, blam-cc: ECX -> source_begin, stack -> source_end, dest
-extern void uninit_fill_n_string_pair(hwreq_string_pair *dest, uint32_t count, const hwreq_string_pair *value); // 0x57ce80
-extern void destroy_range_string_pair(hwreq_string_pair *first, hwreq_string_pair *last); // 0x57be00, EAX first, EDI last
-extern void fill_string_pair_range(hwreq_string_pair *first, hwreq_string_pair *last, const hwreq_string_pair *value); // 0x57cda0
-extern hwreq_string_pair *string_pair_construct_empty(hwreq_string_pair *dest, const hwreq_string_pair *source); // 0x57c640 (a copy constructor)
-extern void hwreq_string_pair_destruct(hwreq_string_pair *pair); // 0x5785b0
-extern int32_t hwreq_device_list_size(const msvc_std_vector *this); // 0x57b5b0
-extern hwreq_string_pair *copy_backward_string_pair(hwreq_string_pair *first, hwreq_string_pair *last,
-    hwreq_string_pair *dest_end); // 0x57cf10, blam-cc: EBX -> first, ECX -> last, EAX -> dest_end
-extern void hwreq_pair_vector_throw_length_error(void); // 0x57c130, throws length_error("vector<T> too long")
 
 static uint32_t pair_count(uint32_t from, uint32_t to)
 {

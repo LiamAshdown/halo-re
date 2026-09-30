@@ -19,10 +19,11 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern void hwreq_property_set_upsert(hwreq_property_set *property_set, char *key, char *value); // 0x00578410
+
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
-extern hwreq_property_set **hwreq_property_set_map_index(msvc_std_string *key, msvc_std_map *map); // 0x57b6e0, blam-cc: key in EDI, map on the stack; library code (map::operator[]), not in the function list
+
 
 // Parses one 'flag = value' assignment line from the requirements script, storing it in the
 // flag table and, for the special OverallGraphicDetail flag, also recording its value for the

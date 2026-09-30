@@ -17,10 +17,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern hwreq_parser_vtable hwreq_parser_vtable_instance; // 0x006721e8
 
-extern hwreq_map_node *tree_head_node_allocate(void); // 0x57cbf0, allocates a 0x30 byte sentinel node (left/parent/right zeroed, color = black, is_nil = 0)
 
 // Default-constructs the hardware-requirements parser object in place: installs the vtable,
 // empties the five embedded strings, and allocates and self-links the head sentinel node of

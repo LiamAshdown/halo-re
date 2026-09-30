@@ -16,6 +16,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 void hwreq_map_node_key_destruct(hwreq_map_node *node)

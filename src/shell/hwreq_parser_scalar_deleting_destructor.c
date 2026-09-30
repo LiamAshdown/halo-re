@@ -16,8 +16,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern void hwreq_parser_destruct(hwreq_parser *parser); // 0x0057a010
 
 // Scalar deleting destructor for the hardware-requirements parser object: destructs it via
 // hwreq_parser_destruct and frees its storage.

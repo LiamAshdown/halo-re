@@ -29,6 +29,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 typedef struct hwreq_map_value_type {
     msvc_std_string key;
@@ -40,9 +41,7 @@ typedef struct hwreq_tree_insert_result {
     uint8_t inserted;
 } hwreq_tree_insert_result;
 
-extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos,
-    const char *s, uint32_t n2); // 0x57ce10, same pass
-extern void tree_iterator_decrement(hwreq_map_node **iterator); // 0x57cd40, same pass
+
 extern hwreq_map_node **tree_splice_insert(msvc_std_map *tree, hwreq_map_node *parent, hwreq_map_node **result_holder,
     uint8_t insert_as_left, const hwreq_map_value_type *value); // 0x57c390, blam-cc: EDI tree, ECX parent, stack rest
 

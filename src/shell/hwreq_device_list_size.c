@@ -13,6 +13,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 int32_t hwreq_device_list_size(const msvc_std_vector *this)
 {

@@ -13,6 +13,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 // Opens (creating if necessary) HKLM\Software\Microsoft\Microsoft Games\Halo and writes its

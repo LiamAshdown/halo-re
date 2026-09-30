@@ -18,6 +18,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern char k_empty_string; // 0x0065512c, the shared MSVC empty std::string/char literal
 

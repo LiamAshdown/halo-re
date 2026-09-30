@@ -38,18 +38,16 @@
 #include "fn_rasterizer.h"
 #include "fn_sound.h"
 #include "fn_dialogs.h"
+#include "fn_shell.h"
 
-extern int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32_t buffer_capacity, void *module,
-                                           char *buffer); // 0x57e110
+
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern char *strcat(char *dst, const char *src);                // CRT, statically linked
-extern void shell_registry_set_exit_flag_clean(void); // 0x57ea10
+
 
                                                                  // in ESI, dialog_id/parent on the stack; "dialogs"
                                                                  // module function, not in the function list
 
-
-extern void keystone_library_unload(void); // 0x542cf0, below this module's rewrite range
 
 extern void *shell_module_handle;               // 0x00722bb8
 extern char fatal_error_text[k_shell_fatal_error_text_length];       // 0x006effe8

@@ -22,6 +22,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 extern char *shell_module_path; // 0x006a32e8, UNSURE: see file header

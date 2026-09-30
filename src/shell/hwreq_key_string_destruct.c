@@ -10,6 +10,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern void free(void *block); // CRT: 0x6277e8
 

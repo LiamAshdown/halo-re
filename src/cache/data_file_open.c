@@ -22,8 +22,7 @@
 #include "tags.h"
 #include "cache.h"
 #include "fn_cache.h"
-
-extern void os_platform_identify(void); // 0x5427e0
+#include "fn_shell.h"
 
 
     // file in ESI; this module, 0x443b30

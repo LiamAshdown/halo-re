@@ -22,10 +22,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern void uninit_fill_n_string_pair(hwreq_string_pair *dest, uint32_t count, const hwreq_string_pair *value); // 0x57ce80, same pass
-extern hwreq_string_pair **hwreq_pair_vector_insert(msvc_std_vector *this, hwreq_string_pair **result,
-    hwreq_string_pair *where, const hwreq_string_pair *value); // 0x57b920, blam-cc: EDI -> this, stack -> result, where, value
 
 // blam-cc: EAX -> this, stack -> value
 // FIXED (first-boot track, objdump 0x57b651..0x57b65b): the grow path calls insert(result, where, value) with a

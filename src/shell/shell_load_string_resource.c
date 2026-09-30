@@ -19,6 +19,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 // Loads Win32 string-table resource entry `id` (block (id>>4)+1, index id&0xf) from `module` for

@@ -30,6 +30,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 // blam-cc: ECX -> this, stack -> new_capacity, preserve_count

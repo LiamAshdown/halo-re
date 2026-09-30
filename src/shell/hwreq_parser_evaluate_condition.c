@@ -20,10 +20,11 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern int32_t hwreq_token_parse_number(hwreq_parser *parser); // 0x00578b20
-extern uint32_t hwreq_token_parse_hex_id(hwreq_parser *parser); // 0x00578ef0
-extern int32_t hwreq_token_parse_hex_id_byteswap(hwreq_parser *parser); // 0x00578f80
+
+
 extern uint32_t hwreq_token_match_keyword(const char *keyword, hwreq_parser *parser); // 0x00578fa0
 
 // Parses one comparison-operator term of a requirements-script condition (against a driver GUID,

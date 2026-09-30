@@ -17,8 +17,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's current cursor to the end of the file, parsing every
 // "applytoall { ... }" block it finds into this->flags. Returns false only if a matched

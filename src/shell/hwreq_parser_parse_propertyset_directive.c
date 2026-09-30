@@ -29,13 +29,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern void hwreq_parser_report_error(hwreq_parser *this, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
-extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
+
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
-extern hwreq_property_set **hwreq_property_set_map_index(msvc_std_string *key, msvc_std_map *map); // 0x57b6e0, blam-cc: key in EDI, map on the stack; library code, not in the function list; map::operator[], returns the (possibly freshly inserted) value slot
-extern void hwreq_property_set_flags_destruct(hwreq_property_set *set); // 0x57b990, blam-cc: set in EBX; library code, not in the function list
-extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
+
 
 // Scans forward from the parser's cursor for "propertyset" directives, parsing each one's
 // "= \"name\" { ... }" form into a freshly allocated property set that is registered in

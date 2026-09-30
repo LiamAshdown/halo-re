@@ -25,6 +25,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *dest, const char *s, uint32_t count); // 0x57bc90, blam-cc: ECX dest, stack (s, count)
 

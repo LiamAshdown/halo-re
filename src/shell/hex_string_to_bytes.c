@@ -14,6 +14,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 // Decodes consecutive lowercase hex digit pairs ('0'-'9', 'a'-'f') from source into raw bytes at
 // dest, stopping at the first character that is not a hex digit (so an odd trailing digit, or a

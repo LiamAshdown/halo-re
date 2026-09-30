@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_rasterizer.h"
+#include "fn_shell.h"
 
 extern uint8_t video_force_mode_flag;    // 0x0071d170, UNSURE name (distinct byte from 0x0071d16c below)
 extern int32_t os_platform;     // 0x00721ef0, UNSURE name, set by os_platform_identify
@@ -39,7 +40,6 @@ extern int32_t rasterizer_gamma_exponent;      // 0x0071d1e0, UNSURE name
 
 extern void video_resolution_list_build(void); // 0x4bad40, this module
 extern uint32_t video_refresh_rate_find_index(int32_t resolution_index, int32_t refresh_rate); // 0x4bae80, blam-cc: ECX resolution_index, EDI refresh_rate
-extern void os_platform_identify(void); // 0x5427e0
 
 
 void video_options_menu_populate(uint8_t *context, uint8_t *settings)

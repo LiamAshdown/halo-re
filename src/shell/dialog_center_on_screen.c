@@ -13,6 +13,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include "interface.h"
+#include "fn_shell.h"
 
 
 // WM_INITDIALOG handler snippet that centers the given dialog/window over the desktop.

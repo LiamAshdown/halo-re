@@ -13,6 +13,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 // Destructs a heap-embedded pair of strings, releasing any out-of-line buffers each string owns.

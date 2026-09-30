@@ -17,6 +17,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 typedef struct hwreq_map_value_type {
     msvc_std_string key;
@@ -37,8 +38,8 @@ extern msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *
 
 extern hwreq_map_node *tree_node_allocate(uint32_t left, uint32_t parent, uint32_t right, uint8_t color,
     const hwreq_map_value_type *source); // 0x57cc30, blam-cc: ECX source, stack left, parent, right, color
-extern void tree_rotate_left(hwreq_map_node *x, msvc_std_map *tree); // 0x57cb10
-extern void tree_rotate_right(hwreq_map_node *x, msvc_std_map *tree); // 0x57cb90
+
+
 extern void *length_error_vtable; // 0x0065508c
 extern uint8_t length_error_throw_info[]; // 0x00673524, _ThrowInfo for std::length_error
 

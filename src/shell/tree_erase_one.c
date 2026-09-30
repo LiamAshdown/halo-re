@@ -15,6 +15,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 typedef struct hwreq_parse_exception {
     uint32_t vtable;         // 0x00
@@ -28,11 +29,7 @@ extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_except
 extern __declspec(noreturn) void __stdcall _CxxThrowException(void *object, void *throw_info); // CRT: 0x639177
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *source, uint32_t count); // 0x57bc90
 
-extern void tree_iterator_increment(hwreq_map_node **iterator); // 0x57c5e0, blam-cc: EDX
-extern hwreq_map_node *tree_find_min(hwreq_map_node **subtree_root_left_field); // 0x57cb70, blam-cc: EAX
-extern hwreq_map_node *tree_find_max(hwreq_map_node *node); // 0x57cd20, blam-cc: EAX
-extern void tree_rotate_left(hwreq_map_node *x, msvc_std_map *tree); // 0x57cb10
-extern void tree_rotate_right(hwreq_map_node *x, msvc_std_map *tree); // 0x57cb90
+
 extern void *out_of_range_vtable; // 0x00655098
 extern uint8_t out_of_range_throw_info[]; // 0x00673560, _ThrowInfo for std::out_of_range
 

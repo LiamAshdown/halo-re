@@ -260,12 +260,12 @@ typedef enum cpu_query {
 // ---------------------------------------------------------------------------
 // operating system  (os_platform_identify 0x5427e0, security_check_write_access 0x542840)
 // ---------------------------------------------------------------------------
-typedef enum os_platform {
+typedef enum os_platform_kind {
     k_os_platform_unknown = 0,                      // not yet identified; callers identify lazily
     k_os_platform_other = 1,                        // GetVersionExA dwPlatformId other than 1 / 2
     k_os_platform_windows_9x = 2,                   // VER_PLATFORM_WIN32_WINDOWS
     k_os_platform_windows_nt = 3                    // VER_PLATFORM_WIN32_NT; the only one that runs the ACL test
-} os_platform;
+} os_platform_kind;
 
 typedef enum shell_access_check_state {
     k_shell_access_check_unknown = -1,              // 0x0069eab0 initializer

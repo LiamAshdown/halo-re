@@ -10,6 +10,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 // Tokenizer helper that advances the parser's cursor to the start of the next line, updating
 // the cached line-start pointer and line-number counter.

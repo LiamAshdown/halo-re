@@ -44,19 +44,17 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern void hwreq_parser_report_error(hwreq_parser *this, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
 extern int32_t hwreq_token_parse_number(hwreq_parser *this); // 0x578b20, blam-cc: this in EAX; below this module's rewrite range; -1 on error
-extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
+
 extern void hwreq_token_skip_whitespace(hwreq_parser *this); // 0x578a00, blam-cc: this in EDX; below this module's rewrite range
 extern uint32_t hwreq_token_match_keyword(const char *keyword, hwreq_parser *this); // 0x578fa0, blam-cc: keyword in EDX, this in EDI; below this module's rewrite range; does not advance the cursor
-extern const char *hwreq_d3dcaps_field_resolve(hwreq_parser *this); // 0x578ff0, blam-cc: this in EAX; below this module's rewrite range; (const char*)0 false, (const char*)1 true, else a real error message string (see UNSURE above)
-extern const char *hwreq_parser_parse_flag_assignment(hwreq_parser *this, hwreq_property_set *target); // 0x578cf0, blam-cc: this in ECX, target on the stack; below this module's rewrite range; 0 success, else an error message string (see UNSURE above)
-extern uint32_t hwreq_device_override_list_find(hwreq_property_set *set, const char *key, char *dest_buffer, uint32_t capacity); // 0x578630, blam-cc: set in EAX, key in EBX, dest_buffer/capacity on the stack; below this module's rewrite range
+
+
 extern void hwreq_key_string_construct_cstr(msvc_std_string *dest, const char *source); // 0x57b520, blam-cc: dest in ECX, source on the stack; library code (map neighbour), not in the function list; constructs dest fresh from source
-extern void hwreq_key_string_destruct(msvc_std_string *key); // 0x57b560, blam-cc: key in ECX (thiscall); library code, not in the function list
-extern hwreq_map_node *hwreq_map_find(msvc_std_map *map, msvc_std_string *key); // 0x57b7a0, blam-cc: map in EDI, key in ESI; library code (std::map<string,T*>::find), not in the function list. It also takes an EBX scratch output slot that every caller here only reads back through the returned pointer, so it is folded into an ordinary return value here (see the file header note above); returns the found node, or the map's own head sentinel if the key is absent
-extern void hwreq_property_set_apply(hwreq_property_set *source, hwreq_property_set *target); // 0x57b470, blam-cc: source in EAX, target on the stack; library code, not in the function list; merges every (name,value) pair of source->flags into target via hwreq_property_set_upsert (0x578410, below this module's rewrite range)
+
 
 // Parses one nested block of the hardware-requirements script line by line, starting at the
 // parser's current cursor: "if <condition>" / "endif" toggle which lines are active; "break"

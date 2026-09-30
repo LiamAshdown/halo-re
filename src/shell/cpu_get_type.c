@@ -16,6 +16,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 extern int32_t cpu_identification_state; // 0x00721e88
@@ -32,7 +33,6 @@ extern uint32_t cpu_l2_tlb_large;        // 0x00721e78
 extern uint32_t cpu_l2_tlb_4k;           // 0x00721e7c
 extern uint32_t cpu_l2_cache;            // 0x00721e80
 
-extern int32_t cpu_query_identification(void); // 0x00540da0
 
 // Lazily gathers CPUID data (via cpu_query_identification) then, depending on mode, returns
 // either the CPU vendor / model, one of the cached string pointers, a single feature bit, or a

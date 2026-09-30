@@ -15,11 +15,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
-extern void string_throw_length_error(void); // 0x638eb4, _Xlen: throws length_error("string too long")
-extern void string_erase(msvc_std_string *this, uint32_t pos, uint32_t count); // 0x57bd80
-extern void string_grow_reserve(msvc_std_string *this, uint32_t new_capacity, uint32_t preserve_count); // 0x57c6d0
 
 static char *string_data(const msvc_std_string *s)
 {

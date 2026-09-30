@@ -28,15 +28,15 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern void hwreq_parser_report_error(hwreq_parser *this, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
 extern int32_t hwreq_token_parse_number(hwreq_parser *this); // 0x578b20, blam-cc: this in EAX; below this module's rewrite range; -1 on error
-extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
+
 extern void hwreq_token_skip_whitespace(hwreq_parser *this); // 0x578a00, blam-cc: this in EDX; below this module's rewrite range
-extern void hwreq_token_skip_line(hwreq_parser *this); // 0x5789d0, blam-cc: this in EAX; below this module's rewrite range
+
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
-extern msvc_std_string *hwreq_string_assign_cstr(msvc_std_string *dest, const char *source); // 0x57b590, blam-cc: source in EDX, dest on the stack; library code, not in the function list
-extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
+
 
 // Scans forward from the parser's cursor for an "audiovendor[=id] = \"name\" { ... }" directive
 // whose id matches the detected sound device vendor (or the literal keyword "unknown", which

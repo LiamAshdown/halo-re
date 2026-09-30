@@ -14,6 +14,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 
 // Looks up a key in the device-override list and, if found, copies its associated value string

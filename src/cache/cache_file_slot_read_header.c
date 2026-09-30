@@ -37,13 +37,14 @@
 #include "tags.h"
 #include "cache.h"
 #include "fn_cache.h"
+#include "fn_shell.h"
 
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern char profile_directory[0x105];                              // 0x006ac900
 extern int32_t os_platform;                                        // 0x00721ef0
 extern char *rasterizer_shader_file_name;                           // 0x00722bbc
 
-extern void os_platform_identify(void);                            // 0x5427e0
+
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 
 

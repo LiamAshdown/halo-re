@@ -10,8 +10,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern int32_t hwreq_token_parse_hex_digit(hwreq_parser *parser); // 0x00578ad0
 
 // Parses a 4-hex-digit token (e.g. a vendor or device ID) into a 16-bit value, returning -1 on
 // any invalid digit.

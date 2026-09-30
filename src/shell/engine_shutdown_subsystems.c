@@ -20,6 +20,7 @@
 #include "fn_sound.h"
 #include "fn_math.h"
 #include "fn_cache.h"
+#include "fn_shell.h"
 
 extern uint32_t global_scenario_index;   // hs.h: datum_index global_scenario_index, -1 = none
 extern uint16_t global_structure_bsp_index;   // physics.h/items.h: int16_t structure bsp index

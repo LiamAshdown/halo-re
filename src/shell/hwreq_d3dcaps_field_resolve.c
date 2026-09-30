@@ -28,10 +28,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern uint32_t hwreq_token_match_keyword(const char *keyword, hwreq_parser *parser); // 0x00578fa0
-extern const char *hwreq_parser_evaluate_condition(hwreq_parser *parser, int32_t kind,
-                                                     uint32_t value); // 0x00579690
+
 
 typedef struct d3dcaps_field_entry {
     const char *keyword;

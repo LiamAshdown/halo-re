@@ -16,6 +16,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 hwreq_map_node *tree_find_max(hwreq_map_node *node)
 {

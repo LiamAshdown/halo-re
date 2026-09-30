@@ -21,6 +21,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 typedef struct hwreq_parse_exception {
     uint32_t vtable;
@@ -31,8 +32,7 @@ typedef struct hwreq_parse_exception {
 
 extern void *logic_error_vtable; // 0x00655080
 extern void exception_copy_construct(hwreq_parse_exception *this, const hwreq_parse_exception *other); // 0x627dd2, UNSURE: opaque Dinkumware `exception::exception(const exception&)`
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
-    uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
+
 
 void hwreq_parse_exception_copy_construct(hwreq_parse_exception *this, const hwreq_parse_exception *other)
 {

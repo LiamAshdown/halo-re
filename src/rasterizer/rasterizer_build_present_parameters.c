@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_shell.h"
 
 extern uint32_t config_disable_buffering; // 0x00722b54 UNSURE: debug/flags toggle
 extern uint8_t unknown_0071d18d;  // 0x0071d18d UNSURE: debug/flags toggle
@@ -28,7 +29,6 @@ extern uint8_t video_force_mode_flag;    // 0x0071d170 UNSURE (also read by rast
 extern uint32_t game_time_force_single_tick;   // 0x007196d8 UNSURE: vsync override toggle
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 
-extern void os_platform_identify(void); // 0x5427e0
 
 // blam-cc: EAX -> source(opt), stack -> dest
 // Reads or constructs a D3D present-parameters block. With no source display mode, copies the

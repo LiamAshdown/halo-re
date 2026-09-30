@@ -14,6 +14,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 void tree_iterator_decrement(hwreq_map_node **iterator)
 {

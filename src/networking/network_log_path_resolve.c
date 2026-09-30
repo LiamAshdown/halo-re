@@ -27,11 +27,11 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+#include "fn_shell.h"
 
 extern uint8_t network_log_path_buffer[0x104]; // 0x006b85b8
 extern char network_log_path_format[];         // 0x0065efec, UNSURE: assumed to be "%s"
 
-extern int32_t security_check_write_access(void); // 0x542840, foreign module
 
 // blam-cc: ESI -> requested_path
 // Zeroes the shared path buffer, then formats requested_path into it with "%s" if the process

@@ -17,8 +17,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's cursor for a line beginning "Requirements" followed by a
 // delimiter; once found, skips that line and parses the remainder of the file as a block into

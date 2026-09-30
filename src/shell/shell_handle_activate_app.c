@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_shell.h"
 
 extern uint8_t shell_application_inactive;   // 0x00721e8c
 extern uint8_t shell_window_proc_bypass;     // 0x00721e8d

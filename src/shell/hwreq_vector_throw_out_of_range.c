@@ -13,6 +13,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 typedef struct hwreq_parse_exception {
     uint32_t vtable;         // 0x00

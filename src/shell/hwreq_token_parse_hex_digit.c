@@ -9,6 +9,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 // Parses a single hexadecimal digit at the cursor, advancing past it and returning its value,
 // or -1 if the character is not a hex digit.

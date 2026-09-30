@@ -10,8 +10,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern void hwreq_property_set_upsert(hwreq_property_set *property_set, char *key, char *value); // 0x578410
 
 static char *c_str(msvc_std_string *s)
 {

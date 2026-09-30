@@ -14,8 +14,8 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
-extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 
 void string_erase(msvc_std_string *this, uint32_t pos, uint32_t count)
 {

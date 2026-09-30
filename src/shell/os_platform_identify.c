@@ -11,6 +11,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern int32_t os_platform_value; // 0x00721ef0, UNSURE: named os_platform_value not os_platform -- shell.h's os_platform enum typedef occupies that identifier in the same C namespace, so the documented global name does not compile as written
 

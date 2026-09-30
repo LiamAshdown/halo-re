@@ -12,6 +12,7 @@
 #include "rasterizer.h"
 #include "interface.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 extern void *keystone_module;                 // 0x00721e9c
 extern keystone_translate_accelerator_fn keystone_translate_accelerator;  // 0x00721eb0

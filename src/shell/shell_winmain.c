@@ -46,6 +46,7 @@
 #include "fn_cache.h"
 #include "fn_networking.h"
 #include "fn_main.h"
+#include "fn_shell.h"
 
 #if defined(_MSC_VER)
 #include <excpt.h>   // GetExceptionInformation is the _exception_info intrinsic, not a function
@@ -126,22 +127,14 @@ extern void *memory_global_alloc(uint32_t size);                   // 0x449370, 
 extern void memory_global_free(void *block);                       // 0x449380, blam-cc: block in EAX; GlobalFree
 
 
-extern uint8_t engine_initialize_subsystems(void);                 // 0x540ee0
-extern void engine_shutdown_subsystems(void);                      // 0x541010
-extern char **command_line_parse_to_argv(char *command_line, int32_t *out_count); // 0x5425f0, command_line in EDI
 extern uint8_t command_line_check_flag(const char *flag_name, const char **out_value); // 0x542760, out_value in EDI; result in AL only
-extern int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exception_pointers); // 0x542fa0
-extern void keystone_library_load(void);                           // 0x542ad0
-extern void keystone_library_unload(void);                         // 0x542cf0
-extern void game_single_instance_check(int32_t mode);              // 0x542d70
+
 
 extern char *shell_parse_config_txt(uint32_t adapter_index, d3d9_interface *d3d); // 0x57d410, ECX, EDX
-extern void shell_detect_hardware_specs(void);                     // 0x57d880
-extern int32_t shell_check_previous_run_crash(void);               // 0x57e850, full EAX result
-extern void shell_registry_set_exit_flag_clean(void);              // 0x57ea10
+
+
 extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70
-extern void shell_init_localization_strings(void);                 // 0x57efa0
-extern char *shell_build_product_id_string(void);                  // 0x57f3f0
+
 
 // The game's WinMain: loads the localized strings, takes the single instance mutex, arms a
 // no-access guard byte inside a 0x2000 byte stack buffer, shows the EULA on first run, parses the

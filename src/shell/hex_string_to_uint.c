@@ -14,6 +14,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 // Parses consecutive lowercase hex digits ('0'-'9', 'a'-'f') from the given string into an
 // unsigned integer, stopping at the first non-hex-digit character. Returns 0 for an empty or

@@ -15,6 +15,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_shell.h"
 
 void tree_rotate_left(hwreq_map_node *x, msvc_std_map *tree)
 {

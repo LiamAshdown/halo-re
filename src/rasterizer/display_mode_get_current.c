@@ -15,12 +15,13 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_shell.h"
 
 extern d3d_display_mode rasterizer_desktop_display_mode;           // 0x007c11f0
 
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern int32_t os_platform;      // 0x00721ef0
-extern void os_platform_identify(void); // 0x5427e0
+
 
 // blam-cc: unaff_EDI -> out
 // Builds a display-mode descriptor from the current cached present parameters, applying the

@@ -15,11 +15,12 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_shell.h"
 
 extern d3d_display_mode rasterizer_desktop_display_mode;           // 0x007c11f0
 
 extern int32_t os_platform;            // 0x00721ef0
-extern void os_platform_identify(void); // 0x5427e0
+
 
 // blam-cc: unaff_ESI -> requested_rate
 // Returns `requested_rate` (or the default enumerated rate when it is 0) once the platform has
