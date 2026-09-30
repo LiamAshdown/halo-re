@@ -5,14 +5,17 @@
 //   target derived from param_1")
 // rewrite confidence: 0.65
 // evidence: types/tags.h ColorRGB (red, green, blue).
-// register convention: intensity target in EAX (param_1), color vector in ECX (in_ECX).
+// register convention: the intensity is a plain STACK argument ([esp+8] after the `push ecx`; EAX is only scratch), the color
+//   vector is in ECX (in_ECX). VERIFIED against disassembly 0x4f3410..0x4f34bb (2026-09-30): fixed the comment (and the blam-cc
+//   line below), which routed the intensity through EAX; the arithmetic below matches, and the caller
+//   object_build_effect_parameter_block already declares it as (stack, ECX).
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
 
-void object_color_clamp_to_intensity(float intensity, ColorRGB *color) // blam-cc: EAX -> intensity, ECX -> color
+void object_color_clamp_to_intensity(float intensity, ColorRGB *color) // blam-cc: stack -> intensity, ECX -> color
 {
     float max_channel = color->green <= color->blue ? color->blue : color->green;
     float scale;
