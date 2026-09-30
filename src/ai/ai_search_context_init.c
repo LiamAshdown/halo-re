@@ -32,13 +32,13 @@ void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint
 {
     int16_t covering_point;
 
-    context->unknown_00 = unknown_00;
-    context->unknown_0c = unknown_0c;
+    context->search_radius = unknown_00;
+    context->structure_bsp = unknown_0c;
     context->unknown_04 = unknown_04;
     context->obstacles = (uint32_t)(uintptr_t)obstacles;
     context->complete = 0;
     context->origin = *origin;
-    context->unknown_18 = unknown_18;
+    context->origin_surface_index = unknown_18;
 
     // UNSURE: ai_search_obstacle_list.unknown_00 is declared uint32_t in types/ai.h, but
     // ai_search_find_covering_point.c reads this same value back as a float radius; another
@@ -48,7 +48,7 @@ void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint
     context->goal_point_id = (covering_point == -1) ? -1 : obstacles->obstacles[covering_point].link;
 
     context->unknown_29 = unknown_29;
-    context->unknown_2a = unknown_2a;
+    context->ignore_flagged_obstacles = unknown_2a;
     context->result_node = -1;
     context->best_cost = 3.4028235e+38f;
     context->best_node = -1;

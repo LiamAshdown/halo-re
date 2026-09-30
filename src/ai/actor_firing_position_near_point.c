@@ -72,8 +72,8 @@ uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *
         }
         request.pathfinding_radius = actor_definition->pathfinding_radius;
         request.ignores_glass = 1;
-        request.unknown_08 = (datum_index)0xffffffff;
-        request.unknown_0c = (datum_index)0xffffffff;
+        request.exclude_object_index_a = (datum_index)0xffffffff;
+        request.exclude_object_index_b = (datum_index)0xffffffff;
         request.have_start = 1;
         request.start_position.x = point->x;
         request.start_position.y = point->y;
@@ -90,7 +90,7 @@ uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *
         for (n = 0; n < 0x12; n++) {
             ((uint32_t *)&context)[n] = ((uint32_t *)&request)[n];
         }
-        context.unknown_48 = 0;
+        context.obstacle_cache = 0;
         path_find_run(&context);
     }
 

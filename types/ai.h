@@ -230,7 +230,9 @@ typedef struct actor_recognition_entry {
 // functions (actor_mode_<mode>_*) use, relative to actor + 0x9c.
 typedef struct actor_mode_wait_data {
     uint8_t unknown_00[3];              // 0x00
-    uint8_t unknown_03;                 // 0x03 (actor + 0x9f) while clear, countdown_0c runs
+    uint8_t following_friend;           // 0x03 0x03 (actor+0x9f) set by actor_mode_wait_process when a nearby friend
+                                        //    is further than 3.5 and worth following (then movement goes toward it);
+                                        //    while clear the tick runs countdown_0c
     uint8_t unknown_04[4];              // 0x04
     int32_t start_game_time;            // 0x08 game_time when waiting began; process gives up after 2700 ticks
     int16_t countdown_0c;               // 0x0c counted down by the tick while unknown_03 is clear
@@ -1439,13 +1441,21 @@ typedef struct ai_globals {
 typedef struct path_find_node {
     int16_t unknown_00;               // 0x00
     int16_t parent;                   // 0x02 0xffff on the start node; the reconstruction walks this chain
-    int32_t unknown_04;               // 0x04 path_find_push_start_node sets -1
+    int32_t previous_vertex_id;       // 0x04 0x04 vertex_id of the node this one was expanded from (path_find_search
+                                      //    next->unknown_04 = node->vertex_id); an edge equal to it is not passable,
+                                      //    so the search never steps straight back; -1 on the start node
     uint32_t vertex_id;               // 0x08 hashed as (vertex_id & 0x1ff) into the 512-bucket table
     real_point3d position;            // 0x0c
     float cost;                       // 0x18 g, zero on the start node
-    float unknown_1c;                 // 0x1c path_find_push_start_node sets FLT_MAX
-    float unknown_20;                 // 0x20
-    float unknown_24;                 // 0x24
+    float avoid_distance;             // 0x1c 0x1c smallest avoid-sphere distance seen along the path (FLT_MAX on the
+                                      //    start node; path_find_search keeps min(parent, edge) and compute_heuristic
+                                      //    returns it as out_secondary)
+    float travelled_distance;         // 0x20 0x20 plain path length so far (parent + step), compared with
+                                      //    request.limit_distance and used as the leash in
+                                      //    path_find_compute_heuristic; 0 on the start node
+    float accumulated_cost;           // 0x24 0x24 g, the parent accumulated_cost plus this edge weighted cost (step
+                                      //    scaled by the avoid penalty); distance = g + goal distance; 0 on the start
+                                      //    node
     float distance;                   // 0x28 the heuristic distance to the goal
     int16_t key;                      // 0x2c the heap ordering key
     int16_t waypoint;                 // 0x2e index into the caller waypoint array, must stay below 0x40
@@ -1467,7 +1477,10 @@ typedef struct path_find_context {
     real_point3d start_position;      // 0x14 path_find_push_start_node rejects a z below -1000.0
     uint32_t start_vertex_id;         // 0x20 none means there is nothing to search from
     uint8_t unknown_24[36];           // 0x24
-    uint32_t unknown_48;              // 0x48 path_find_context_init stores its second argument here
+    uint32_t obstacle_cache;          // 0x48 0x48 second argument of path_find_context_init, a pointer to the
+                                      //    per-actor obstacle/search cache (valid +0x10588, count +0x1058a, lists
+                                      //    +0x1058c, searches +0x12dac) that ai_navigate_around_obstacles reads;
+                                      //    callers pass 0 for none
     uint8_t have_goal;                // 0x4c the whole search and the reconstruction are gated on this
     uint8_t unknown_4d[3];            // 0x4d
     real_point3d goal_position;       // 0x50
@@ -1479,7 +1492,9 @@ typedef struct path_find_context {
     int16_t best_node;                // 0x68
     uint8_t unknown_6a[2];            // 0x6a
     float best_cost;                  // 0x6c
-    float unknown_70;                 // 0x70
+    float best_estimate;              // 0x70 0x70 f (g + goal distance) of the node that last improved best_cost;
+                                      //    FLT_MAX at path_find_run start; the search stops once node distance
+                                      //    exceeds max(5, best_cost) * 10 + this
     real_point3d best_position;       // 0x74
     int16_t node_count;               // 0x80 capped at 1024 by the array below
     uint8_t unknown_82[2];            // 0x82
@@ -1504,7 +1519,8 @@ typedef struct ai_search_obstacle {
 // ai_search_gather_obstacles @0x43c510 fills this from object_find_in_sphere plus each
 // objects vault / cover surface points; 0x43c4b0 appends and refuses past 0x80 entries.
 typedef struct ai_search_obstacle_list {
-    int16_t unknown_00;               // 0x00
+    int16_t group_count;              // 0x00 0x00 zeroed before gathering; ai_search_partition_into_groups uses it as
+                                      //    the next group id and increments per flood-filled group
     int16_t count;                    // 0x02 0x43c4b0 refuses to append past 0x80
     int16_t flagged_count;            // 0x04 entries whose flags bit 0 is set
     uint8_t unknown_06[2];            // 0x06
@@ -1530,13 +1546,18 @@ typedef struct ai_search_node {
 // expand step and 0x43be20 drives it to completion. The heap count is addressed both as
 // context+0x1430 and as the dword index 0x50c of the same base, which is the same byte.
 typedef struct ai_search_context {
-    uint32_t unknown_00;              // 0x00
+    uint32_t search_radius;           // 0x00 0x00 float stored as a dword; ai_navigate_around_obstacles passes
+                                      //    max(request.pathfinding_radius, 0.2); read as the float radius by
+                                      //    ai_search_step, ai_search_expand_point_neighbors and the covering-point
+                                      //    lookup
     uint8_t unknown_04;               // 0x04
     uint8_t unknown_05[3];            // 0x05
     uint32_t obstacles;               // 0x08 pointer to the ai_search_obstacle_list this search reads
-    uint32_t unknown_0c;              // 0x0c
+    uint32_t structure_bsp;           // 0x0c 0x0c pointer to the structure bsp the search traces surfaces in (passed
+                                      //    as map to ai_search_evaluate_edge_cost and path_find_heights_are_close)
     real_point2d origin;              // 0x10
-    uint32_t unknown_18;              // 0x18
+    uint32_t origin_surface_index;    // 0x18 0x18 surface index of origin, compared with each edge.surface_index and
+                                      //    passed to path_find_heights_are_close(origin, surface, edge surface)
     int16_t goal_point_id;            // 0x1c taken from obstacle[goal].link, or -1
     int16_t result_node;              // 0x1e -1 until a node reaches the goal
     int16_t best_node;                // 0x20 the fallback best-effort node
@@ -1544,7 +1565,9 @@ typedef struct ai_search_context {
     float best_cost;                  // 0x24 FLT_MAX until best_node is set
     uint8_t complete;                 // 0x28 set when result_node is valid
     uint8_t unknown_29;               // 0x29
-    uint8_t unknown_2a;               // 0x2a
+    uint8_t ignore_flagged_obstacles; // 0x2a 0x2a set to 1 by the rerun in ai_navigate_around_obstacles that ignores
+                                      //    flagged obstacles; forwarded to ai_search_evaluate_edge_cost by
+                                      //    ai_search_step and ai_search_expand_point_neighbors
     uint8_t unknown_2b;               // 0x2b
     int16_t node_count;               // 0x2c 0x43b5a0 refuses past 0x80
     uint8_t unknown_2e[2];            // 0x2e
@@ -1597,7 +1620,9 @@ typedef struct actor_movement_context {
     int16_t obstacle_count;           // 0x3c actor_movement_collect_obstacle_candidates refuses past 0x400
     uint8_t unknown_3e[2];            // 0x3e
     actor_movement_obstacle obstacles[1024];// 0x40
-    float unknown_6040;               // 0x6040 1.0
+    float ray_scale;                  // 0x6040 0x6040 1.0; multiplies the sample direction before the actor position
+                                      //    is added in actor_movement_test_obstacle_ray (set by
+                                      //    actor_movement_choose_avoidance_direction)
     float search_radius;              // 0x6044 12.0
 } actor_movement_context; // size 0x6048
 
@@ -1668,15 +1693,24 @@ typedef struct actor_firing_position_query {
     int16_t explicit_target_unknown_34;// 0x34
     uint8_t unknown_36;                // 0x36
     uint8_t unknown_37;                // 0x37
-    float unknown_38;                  // 0x38 copied to the avoidance radius when have_explicit_target
-    float unknown_3c;                  // 0x3c
+    float avoid_weight;                // 0x38 0x38 copied to path_find_request.avoid_weight in
+                                       //    actor_find_best_firing_position (the old comment said avoidance radius,
+                                       //    the code says weight)
+    float avoid_radius;                // 0x3c 0x3c copied to path_find_request.avoid_radius in
+                                       //    actor_find_best_firing_position
     uint8_t danger_active;             // 0x40 the actor is registering a danger; the threat rule runs the segment tests
-    uint8_t unknown_41;                // 0x41 prefer the alternate aim point of the target
+    uint8_t use_last_seen_position;    // 0x41 0x41 target_lead_position takes the prop last_seen_position instead of
+                                       //    head_position when set and the target was ever seen;
+                                       //    actor_check_melee_target_reachable and
+                                       //    actor_request_path_with_grenade_arc set it from record[4] / actor[0xa0]
     uint8_t unknown_42;                // 0x42 goal_kind == 5
     uint8_t want_direction_from_target;// 0x43 also fill direction_from_target on each candidate
     uint8_t flying;                    // 0x44 copy of actor.flying; skips every path query
-    uint8_t unknown_45;                // 0x45 run the ally aim-cone test
-    uint8_t unknown_46;                // 0x46
+    uint8_t check_vehicle_aim_cone;    // 0x45 0x45 set when actor.vehicle_driving_type == 4;
+                                       //    actor_score_firing_positions_by_threat then penalises/rewards candidates
+                                       //    by their angle to the driven vehicle forward vector
+    uint8_t vehicle_ignore_velocity;   // 0x46 0x46 set together with check_vehicle_aim_cone; skips the vehicle-speed
+                                       //    test in actor_score_firing_positions_by_threat
     uint8_t unknown_47;                // 0x47
     uint32_t marked_group_mask;        // 0x48 a second group mask; matching candidates take marked_group_penalty
     float marked_group_penalty;        // 0x4c
@@ -1738,8 +1772,13 @@ typedef struct path_find_request {
     float pathfinding_radius;          // 0x00 Actor.pathfinding_radius
     uint8_t ignores_glass;             // 0x04 actor.ignores_glass
     uint8_t unknown_05[3];             // 0x05
-    datum_index unknown_08;            // 0x08 both callers set none
-    datum_index unknown_0c;            // 0x0c both callers set none
+    datum_index exclude_object_index_a; // 0x08 0x08 object excluded when ai_navigate_around_obstacles gathers
+                                        //    obstacles (ai_search_gather_obstacles arg);
+                                        //    actor_build_path_find_request sets the actor unit, the firing position
+                                        //    callers set none
+    datum_index exclude_object_index_b; // 0x0c 0x0c second object excluded from the gathered obstacles
+                                        //    (ai_search_gather_obstacles arg); none for most callers,
+                                        //    actor_movement_action_resolve passes the movement action extra
     uint8_t have_start;                // 0x10
     uint8_t unknown_11[3];             // 0x11
     real_point3d start_position;       // 0x14
@@ -1835,10 +1874,13 @@ typedef struct actor_type_table_entry {
     int16_t unknown_06;                // 0x06
     int16_t unknown_08;                // 0x08
     int16_t unknown_0a;                // 0x0a
-    uint8_t unknown_0c;                // 0x0c compared against actor.swarm by 0x435420
+    uint8_t swarm;                     // 0x0c 0x0c compared against the actor swarm flag (caller_type_flag) in
+                                       //    actor_validate_grenade_ally_candidate
     uint8_t unknown_0d[3];             // 0x0d
     uint32_t proc_10;                  // 0x10 actor_dispatch_type_vtable @0x426670
-    uint32_t unknown_14;               // 0x14
+    uint32_t proc_14;                  // 0x14 0x14 per-actor-type procedure called with the actor index each pass of
+                                       //    actor_run_mode_transition_loop when non-null (same proc_10/18/1c
+                                       //    convention)
     uint32_t proc_18;                  // 0x18 @0x4266a0
     uint32_t proc_1c;                  // 0x1c @0x4266d0
 } actor_type_table_entry; // size 0x20, only verified up to 0x1f
@@ -2152,7 +2194,8 @@ typedef struct actor_placement_request {
     uint8_t unknown_10[2];  // 0x10 UNSURE
     uint8_t unknown_12;     // 0x12 read as a signed byte
     uint8_t unknown_13[3];  // 0x13 FIXED: was [2], which put unknown_16.. one byte low (pack(1) header)
-    int16_t unknown_16;     // 0x16 actor.unknown_60 override when positive
+    int16_t initial_state_override; // 0x16 0x16 when positive replaces the squad initial_state passed to
+                                    //    actor_new_and_attach_to_unit in actor_place_new_unit
     uint8_t unknown_18[2];  // 0x18
     uint8_t unknown_1a[2];  // 0x1a UNSURE
     int16_t unknown_1c;     // 0x1c UNSURE, actor.unknown_62 default

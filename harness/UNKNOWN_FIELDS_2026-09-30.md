@@ -1,0 +1,8 @@
+# unknown_* field naming log (2026-09-30)
+Method: read-only agents propose maps from in-repo evidence; maps are dry-run, filtered, applied with tools/rename_field.py,
+then tools/check32.sh must pass. Full skip/conflict reasons from the agents are summarised here.
+
+- objects.map: 11 applied (light, light_transient, antenna, antenna_vertex, damage_data, vehicle_data). 98 fields have no uses in src; 21 more skipped for weak evidence.
+- ai2.map: 23 of 26 applied. Dropped: ai_search_context.unknown_04 (caller says ignores_glass, callee header says ignore_permission), actor_firing_position_query.unknown_42 (goal_kind_is_5 too weak), ScenarioNetgameEquipment.unknown_ffffffff (types/tags.h is generated from invader).
+  Conflicts kept unknown: path_find_node.unknown_00 (scratch, not stable). Stale header note: actor_firing_position_query 0x38/0x3c follow the code (avoid_weight / avoid_radius).
+- Open conflicts elsewhere: actor 0x350 block (actor_update_crouch_state vs actor_update_facing_change_timer disagree on 0x354/0x358/0x35a).

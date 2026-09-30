@@ -213,7 +213,7 @@ uint8_t actor_movement_action_resolve(datum_index actor_index, uint8_t record_di
     } else {
         actor_build_path_find_request(actor_index, &request);
         if (self->active_movement.extra != (uint32_t)-1) {
-            request.unknown_0c = (datum_index)self->active_movement.extra;
+            request.exclude_object_index_b = (datum_index)self->active_movement.extra;
         }
         if (self->danger_type > 0 && self->danger_is_own == 0 &&
             (((uint8_t *)actor_definition)[4] & 0x10) == 0) {

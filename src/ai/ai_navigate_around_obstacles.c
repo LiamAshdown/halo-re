@@ -55,7 +55,7 @@ uint8_t ai_navigate_around_obstacles(path_find_context *context, int16_t count, 
     path_find_request *request = (path_find_request *)context;
     ModelCollisionGeometryBSP *collision_bsp = global_structure_collision_bsp;
     float radius = (request->pathfinding_radius > 0.2f) ? request->pathfinding_radius : 0.2f;
-    uint8_t *cache = *(uint8_t **)&((struct path_find_context *)context)->unknown_48;
+    uint8_t *cache = *(uint8_t **)&((struct path_find_context *)context)->obstacle_cache;
     ai_search_obstacle_list local_obstacles;
     ai_search_context local_search;
     path_find_waypoint path[0x80];
@@ -108,10 +108,10 @@ uint8_t ai_navigate_around_obstacles(path_find_context *context, int16_t count, 
         }
         if (cache == 0 || cache[0x10588] == 0 || !(i < *(int16_t *)(cache + 0x1058a))) {
             // 0x43c027: gather this leg's obstacles
-            obstacles->unknown_00 = 0;
+            obstacles->group_count = 0;
             obstacles->count = 0;
             obstacles->flagged_count = 0;
-            ai_search_gather_obstacles(obstacles, from, 4.0f, &direction, request->unknown_08, request->unknown_0c);
+            ai_search_gather_obstacles(obstacles, from, 4.0f, &direction, request->exclude_object_index_a, request->exclude_object_index_b);
             if (request->have_avoid_sphere && obstacles->count != 0x80) {
                 ai_search_obstacle *entry = &obstacles->obstacles[obstacles->count++];
 

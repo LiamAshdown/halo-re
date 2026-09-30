@@ -100,7 +100,7 @@ void actor_movement_choose_avoidance_direction(uint32_t actor_index, real_vector
     context.left.j = context.up.k * context.forward.i - context.up.i * context.forward.k;
     context.left.k = context.up.i * context.forward.j - context.forward.i * context.up.j;
     context.search_radius = 12.0f;
-    context.unknown_6040 = 1.0f;
+    context.ray_scale = 1.0f;
     actor_movement_collect_obstacle_candidates(&context);
 
     for (i = 0; i < 8; i++) {

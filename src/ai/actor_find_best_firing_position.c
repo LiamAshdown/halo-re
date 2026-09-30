@@ -177,7 +177,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
             query->target_relationship_object = target->relationship_object_index;
             query->target_unknown_658 = target->danger_radius;
 
-            if (query->unknown_41 == 0 || ((struct prop *)target)->last_seen_time == -1) {
+            if (query->use_last_seen_position == 0 || ((struct prop *)target)->last_seen_time == -1) {
                 query->target_lead_position = *(real_point3d *)&((struct prop *)target)->head_position_x;
             } else {
                 query->target_lead_position = *(real_point3d *)&((struct prop *)target)->last_seen_position_x;
@@ -251,8 +251,8 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
     }
     query->flying = self->flying;
     if (self->vehicle_driving_type == 4) {
-        query->unknown_45 = 1;
-        query->unknown_46 = 1;
+        query->check_vehicle_aim_cone = 1;
+        query->vehicle_ignore_velocity = 1;
     }
 
     // ------------------------------------------------------------------ danger spheres
@@ -443,8 +443,8 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                 }
                 request.pathfinding_radius = actor_definition->pathfinding_radius;
                 request.ignores_glass = self->ignores_glass;
-                request.unknown_08 = (datum_index)0xffffffff;
-                request.unknown_0c = (datum_index)0xffffffff;
+                request.exclude_object_index_a = (datum_index)0xffffffff;
+                request.exclude_object_index_b = (datum_index)0xffffffff;
                 request.start_position = query->target_surface_point;
                 request.start_surface_index = query->target_surface_index;
                 request.have_start = 1;
@@ -459,7 +459,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                 for (n = 0; n < 0x12; n++) {
                     ((uint32_t *)&target_context)[n] = ((uint32_t *)&request)[n];
                 }
-                target_context.unknown_48 = 0;
+                target_context.obstacle_cache = 0;
                 path_find_run(&target_context);
 
                 for (i = 0; i < candidate_count; i++) {
@@ -501,8 +501,8 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
                     ((prop *)prop_data->data)[query->target_prop_index & 0xffff].object_index;
             }
             request.avoid_position = query->target_position;
-            request.avoid_radius = query->unknown_3c;
-            request.avoid_weight = query->unknown_38;
+            request.avoid_radius = query->avoid_radius;
+            request.avoid_weight = query->avoid_weight;
             request.have_avoid_sphere = 1;
         } else if (self->danger_type > 0 && (actor_definition->more_flags & 0x10) == 0 /* pathfinding_ignores_danger */) {
             request.avoid_position = self->flee_from_point;
@@ -520,7 +520,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index,
         for (n = 0; n < 0x12; n++) {
             ((uint32_t *)path_context)[n] = ((uint32_t *)&request)[n];
         }
-        path_context->unknown_48 = 0;
+        path_context->obstacle_cache = 0;
         if (path_find_run(path_context) != 0) {
             *out_path_ok = 1;
         }

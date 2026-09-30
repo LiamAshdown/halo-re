@@ -35,8 +35,8 @@ extern int16_t ai_search_add_node(ai_search_context *context, int16_t parent, re
 void ai_search_expand_point_neighbors(ai_search_context *context, int16_t node_index, int16_t start_point_id)
 {
     ai_search_obstacle_list *list = (ai_search_obstacle_list *)(uintptr_t)context->obstacles;
-    void *map = (void *)(uintptr_t)context->unknown_0c;
-    float radius = *(float *)&context->unknown_00;
+    void *map = (void *)(uintptr_t)context->structure_bsp;
+    float radius = *(float *)&context->search_radius;
     ai_search_node *node = &context->nodes[node_index];
     uint32_t visited[8];
     int16_t worklist[0x78];
@@ -61,7 +61,7 @@ void ai_search_expand_point_neighbors(ai_search_context *context, int16_t node_i
             ai_search_edge_result edge;
 
             ai_search_evaluate_edge_cost(map, context->unknown_04, list, point, &node->position,
-                *(int32_t *)&node->z, radius, radius + radius + tangent_distance, 0, 0, context->unknown_2a, &edge,
+                *(int32_t *)&node->z, radius, radius + radius + tangent_distance, 0, 0, context->ignore_flagged_obstacles, &edge,
                 &directions[side]);
             if (edge.point_id != -1 && (visited[edge.point_id >> 5] & (1u << (edge.point_id & 0x1f))) == 0) {
                 visited[edge.point_id >> 5] |= 1u << (edge.point_id & 0x1f);

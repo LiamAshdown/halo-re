@@ -174,7 +174,7 @@ next_candidate:
         ;
     }
 
-    if (query->unknown_45 == 0 || self->active_unit_index == (datum_index)0xffffffff) {
+    if (query->check_vehicle_aim_cone == 0 || self->active_unit_index == (datum_index)0xffffffff) {
         return;
     }
 
@@ -198,7 +198,7 @@ next_candidate:
                   dy * ((vehicle_object *)vehicle)->base.forward.j +
                   dz * ((vehicle_object *)vehicle)->base.forward.k) / (float)sqrt((double)distance_squared);
 
-        if ((query->unknown_46 == 0 &&
+        if ((query->vehicle_ignore_velocity == 0 &&
              ((vehicle_object *)vehicle)->base.velocity.k * ((vehicle_object *)vehicle)->base.velocity.k +
              ((vehicle_object *)vehicle)->base.velocity.j * ((vehicle_object *)vehicle)->base.velocity.j +
              ((vehicle_object *)vehicle)->base.velocity.i * ((vehicle_object *)vehicle)->base.velocity.i <=

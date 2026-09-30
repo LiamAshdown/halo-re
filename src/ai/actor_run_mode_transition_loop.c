@@ -42,8 +42,8 @@ void actor_run_mode_transition_loop(datum_index actor_index)
 
         {
             actor_type_table_entry *type_entry = (actor_type_table_entry *)actor_type_procs[self->type];
-            if (type_entry->unknown_14 != 0) {
-                ((void (*)(datum_index))type_entry->unknown_14)(actor_index);
+            if (type_entry->proc_14 != 0) {
+                ((void (*)(datum_index))type_entry->proc_14)(actor_index);
             }
         }
 

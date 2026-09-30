@@ -49,7 +49,7 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
 
     memset(&query, 0, sizeof(query));
     memset(&candidate, 0, sizeof(candidate));
-    query.unknown_41 = record[4];
+    query.use_last_seen_position = record[4];
     if (*(int16_t *)(record + 0xc) > 0) {
         query.goal_kind = 1;
         if (*(int16_t *)record > 0) {
@@ -100,7 +100,7 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
         memset(&target_context, 0, sizeof(target_context));
         target_context.structure_bsp = (uint32_t)global_structure_bsp;
         memcpy(&target_context, request, sizeof(request));
-        target_context.unknown_48 = 0;
+        target_context.obstacle_cache = 0;
         target_context.have_goal = 1;
         target_context.goal_position = *(real_point3d *)goal;
         target_context.goal_vertex_id = *(uint32_t *)(goal + 0x14);
