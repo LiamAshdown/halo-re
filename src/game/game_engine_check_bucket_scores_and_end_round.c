@@ -56,7 +56,7 @@ extern void game_engine_player_profile_cache_sync_all(datum_index player_handle)
     // function of the same address prefix; distinct call shape here, single int arg)
 extern void widget_close(void *widget); // 0x497c00
 extern void widget_pool_list_free_all(void); // 0x4994b0
-extern void sound_start_unspatialized(float volume); // 0x543dd0
+extern datum_index sound_start_unspatialized(datum_index definition_index, float scale); // 0x543dd0, EDX definition, stack scale
 extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_index); // 0x46bde0, this batch
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -120,7 +120,7 @@ void game_engine_check_bucket_scores_and_end_round(void)
                 if (mp_info != (GlobalsMultiplayerInformation *)0 && (int32_t)mp_info->sounds.count > 1) {
                     uint8_t *sound1 = (uint8_t *)mp_info->sounds.pointer + 0x10;
                     if ((int32_t)mp_info->sounds.pointer != -0x10 && *(int32_t *)(sound1 + 0xc) != -1) {
-                        sound_start_unspatialized(1.0f);
+                        sound_start_unspatialized(*(datum_index *)(sound1 + 0xc), 1.0f); // FIXED: EDX = the sound tag id
                     }
                 }
             } else {
@@ -139,7 +139,7 @@ void game_engine_check_bucket_scores_and_end_round(void)
                     if (mp_info != (GlobalsMultiplayerInformation *)0 && (int32_t)mp_info->sounds.count > 1) {
                         uint8_t *sound1 = (uint8_t *)mp_info->sounds.pointer + 0x10;
                         if ((int32_t)mp_info->sounds.pointer != -0x10 && *(int32_t *)(sound1 + 0xc) != -1) {
-                            sound_start_unspatialized(1.0f);
+                            sound_start_unspatialized(*(datum_index *)(sound1 + 0xc), 1.0f); // FIXED: EDX = the sound tag id
                         }
                     }
                 }
