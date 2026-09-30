@@ -32,6 +32,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_ai.h"
+#include "fn_scenario.h"
 
 // sqrt/fabs are single x87 instructions (FSQRT/FABS) in the original code, which
 // Ghidra renders as the pseudo-functions SQRT()/ABS(); declared locally instead of via
@@ -43,7 +44,7 @@ extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
-extern uint8_t scenario_location_background_sound_is_deafening_to_ais(bsp_leaf_reference *location); // 0x53e810, EAX
+
 extern uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b,
     ScenarioStructureBSP *structure_bsp); // 0x552210, EAX, ECX, EDI
 

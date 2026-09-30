@@ -30,6 +30,7 @@
 #include "cache.h"
 #include "scenario.h"
 #include "fn_cache.h"
+#include "fn_scenario.h"
 
 extern int16_t global_structure_bsp_index;              // 0x0069e8d8
 extern Scenario *global_scenario;                        // 0x00746f8c
@@ -45,9 +46,9 @@ extern ScenarioStructureBSP *global_structure_bsp;         // 0x00746f9c
 extern tag_instance *tag_instances;                        // 0x0087bc14
 
 // this module, 0x53e660: runs the 10-slot deactivate table (out of this batch's range)
-extern void scenario_structure_bsp_deactivate_callbacks(void);
+
 // this module, 0x53e680: runs the 13-slot activate table (out of this batch's range)
-extern void scenario_structure_bsp_activate_callbacks(void);
+
 
 // blam-cc: EDI -> bsp (see file header)
 

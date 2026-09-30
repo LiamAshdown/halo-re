@@ -16,6 +16,7 @@
 
 #include "tags.h"
 #include "scenario.h"
+#include "fn_scenario.h"
 
 extern Globals *global_globals;              // 0x00746fa0
 extern uint8_t material_table_warning_issued;      // 0x00721e4c, owned by types/physics.h

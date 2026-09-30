@@ -31,6 +31,7 @@
 #include "rasterizer.h"
 #include "scenario.h"
 #include "fn_game.h"
+#include "fn_scenario.h"
 
 extern float sqrtf(float x);
 

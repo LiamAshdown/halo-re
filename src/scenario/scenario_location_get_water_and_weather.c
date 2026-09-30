@@ -29,15 +29,15 @@
 #include "objects.h"
 #include "cache.h"
 #include "scenario.h"
+#include "fn_scenario.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern tag_instance *tag_instances;                // 0x0087bc14
 
 // blam-cc: EAX -> leaf, EBX -> point
-extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf,
-    real_point3d *point); // this module, 0x53ec30
+
 // blam-cc: AX -> fog_region
-extern uint32_t scenario_fog_region_resolve_tag(int16_t fog_region); // this module, 0x53ed10
+
 
 // blam-cc: EBX -> point, stack -> leaf, weather_index_out
 // Resolves whether a location is in water, and which weather palette entry applies there. The

@@ -46,6 +46,7 @@
 #include "sound.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 #include "game.h"
+#include "fn_scenario.h"
 
 extern player_globals *local_player_globals;  // 0x0087a478
 extern int16_t local_player_0_cluster_index;  // 0x006ac6e0, observers[0].camera.cluster_index
@@ -56,7 +57,6 @@ extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94
 extern SoundEnvironment k_default_sound_environment; // 0x0065e508
 extern tag_instance *tag_instances;           // 0x0087bc14
 
-extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point); // 0x53ec30, src/scenario
 
 void sound_environment_update(uint32_t *out_environment_ptr, void **out_environment_slot, uint8_t *out_changed)
 {

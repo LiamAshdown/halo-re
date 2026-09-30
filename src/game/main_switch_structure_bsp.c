@@ -33,6 +33,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_scenario.h"
 #include <stdint.h>
 
 extern player_globals *local_player_globals; // 0x0087a478
@@ -54,7 +55,7 @@ extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: 
 extern void player_effect_apply_generic_damage_feedback(datum_index player_index, real fade_fraction); // 0x4569d0, EDX player, stack fade_fraction
 
 extern void player_kill_streak_tick(datum_index player_handle); // this batch, 0x479d10, blam-cc: EAX -> player_handle
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
+
     // 0x53f020
 extern void console_print_va(const char *format, ...); // 0x4c6920
 extern void hud_display_loading_message(uint8_t is_begin); // 0x4aa2a0, AL

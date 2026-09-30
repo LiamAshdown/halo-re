@@ -28,6 +28,7 @@
 #include "game.h"
 #include "units.h"
 #include "fn_game.h"
+#include "fn_scenario.h"
 
 extern player_globals *local_player_globals;            // 0x0087a478
 extern data_array *player_data;                         // 0x0087a480
@@ -39,7 +40,7 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position,
     uint32_t exclude_object_index); // 0x505490, EDI position, stack
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
+
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
     float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point

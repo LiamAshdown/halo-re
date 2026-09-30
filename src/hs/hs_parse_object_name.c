@@ -19,8 +19,9 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_scenario.h"
 
-extern int16_t scenario_object_name_find_index(Scenario *scenario, char *name);
+
     // blam-cc: ECX -> scenario, stack -> name; objects module, 0x0053ebb0, not yet rewritten
 
 extern data_array *hs_syntax_data;                 // 0x0087a474

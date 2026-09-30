@@ -14,6 +14,7 @@
 
 #include "tags.h"
 #include "scenario.h"
+#include "fn_scenario.h"
 #include <string.h> // strcmp: an inlined byte-compare loop in the original
 
 // blam-cc: ECX -> scenario, stack -> name

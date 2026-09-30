@@ -23,6 +23,7 @@
 #include "objects.h"
 #include "physics.h"
 #include "fn_math.h"
+#include "fn_scenario.h"
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
                                     // UNSURE name: an earlier objects-module pass named this
@@ -32,7 +33,7 @@ extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern tag_instance *tag_instances;        // 0x0087bc14
 
-extern GlobalsMaterial *globals_material_get(int16_t material_type); // 0x53e7c0, scenario/globals
+
                                     // module, not physics; resolves Globals.materials[type], or
                                     // a fallback record when the type is out of range.
 extern void breakable_surface_shatter(uint16_t surface_index, damage_data *damage, int32_t collision_surface_index); // 0x500090

@@ -26,6 +26,7 @@
 #include "cache.h"
 #include "scenario.h"
 #include "fn_cache.h"
+#include "fn_scenario.h"
 
 extern int16_t global_structure_bsp_index;                  // 0x0069e8d8
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94
@@ -37,7 +38,7 @@ extern tag_instance *tag_instances;                           // 0x0087bc14
 
 
 // blam-cc: SI -> structure_bsp_index
-extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); // this module, 0x53eeb0
+
 
 // Resyncs the resident structure bsp to the game state after a save-game load: when the loaded
 // scenario_game_globals->structure_bsp_index no longer matches the currently resident bsp, tears

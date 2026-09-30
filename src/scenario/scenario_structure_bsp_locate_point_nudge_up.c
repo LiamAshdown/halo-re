@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "scenario.h"
+#include "fn_scenario.h"
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, physics module
 

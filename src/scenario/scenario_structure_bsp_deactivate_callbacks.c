@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "scenario.h"
+#include "fn_scenario.h"
 
 extern structure_bsp_procedure structure_bsp_deactivate_procedures[k_structure_bsp_deactivate_procedure_count]; // 0x0069e910
 

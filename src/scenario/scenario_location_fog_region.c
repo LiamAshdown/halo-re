@@ -26,12 +26,13 @@
 #include "objects.h"
 #include "cache.h"
 #include "scenario.h"
+#include "fn_scenario.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern tag_instance *tag_instances;                // 0x0087bc14
 
 // blam-cc: AX -> fog region
-extern uint32_t scenario_fog_region_resolve_tag(int16_t fog_region); // this module, 0x53ed10
+
 
 // blam-cc: EAX -> leaf, EBX -> point
 // Resolves the fog region that applies at a location. The cluster's fog word (+0x02) is either

@@ -56,6 +56,7 @@
 #include "fn_gamespy.h"
 #include "fn_camera.h"
 #include "fn_cache.h"
+#include "fn_scenario.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -128,7 +129,7 @@ extern uint8_t game_state_queue_write(uint8_t is_checkpoint);               // 0
 extern void hud_display_checkpoint_message(uint8_t is_begin);               // 0x4aa310, foreign (interface)
     // blam-cc: DL -> is_begin
 extern void main_level_transition_update(void);                             // this module, 0x4c9770
-extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index);  // 0x53eeb0, foreign (game)
+
     // blam-cc: SI -> structure_bsp_index
 
 extern void input_reset_state_and_axis_configs(void);                       // 0x490aa0, foreign (input)

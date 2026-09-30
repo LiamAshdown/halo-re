@@ -14,6 +14,7 @@
 
 #include "tags.h"
 #include "scenario.h"
+#include "fn_scenario.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 

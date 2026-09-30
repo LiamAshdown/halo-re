@@ -24,6 +24,7 @@
 #include "math.h"
 #include "scenario.h"
 #include "fn_math.h"
+#include "fn_scenario.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 

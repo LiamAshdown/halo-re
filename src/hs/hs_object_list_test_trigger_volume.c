@@ -13,8 +13,9 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_scenario.h"
 
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
+
     // 0x53f020, blam-cc: EAX, ECX
 
 extern data_array *object_list_header_data;    // 0x0087a464

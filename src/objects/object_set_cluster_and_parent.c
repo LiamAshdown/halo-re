@@ -31,6 +31,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_objects.h"
+#include "fn_scenario.h"
 
 extern data_array *object_data; // 0x008603b0
 extern player_globals *local_player_globals; // 0x0087a478
@@ -40,7 +41,7 @@ extern ScenarioStructureBSP *global_structure_bsp;
                                            //   reads at +0x134, here read at +0xe4
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
-extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); // 0x53e780, ESI out, EDX point
+
 extern datum_index *noncollideable_cluster_first; // 0x008603c0, the per-cluster list descriptor
 extern datum_index *collideable_cluster_first;    // 0x008603d0
 extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position,

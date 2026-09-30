@@ -51,6 +51,7 @@
 #include "scenario.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "fn_scenario.h"
 
 extern data_array *object_data;            // 0x008603b0
 extern tag_instance *tag_instances;        // 0x0087bc14
@@ -58,7 +59,7 @@ extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint32_t random_seed_global;        // 0x00719cd0
 extern int16_t network_game_mode;          // 0x00719720, 0 local, 1 client, 2 host
 
-extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point); // 0x53ec30
+
     // blam-cc: EAX -> leaf, EBX -> point
 extern void projectile_compute_rotation(uint32_t object_index);            // 0x4c0180, blam-cc: EAX -> object_index
 extern void projectile_update_function_values(uint32_t object_index);      // 0x4c0250, blam-cc: stack -> object_index

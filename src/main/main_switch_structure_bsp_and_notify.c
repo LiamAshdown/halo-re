@@ -26,13 +26,14 @@
 #include "interface.h"
 #include "game.h"
 #include "main.h"
+#include "fn_scenario.h"
 #include <wchar.h>
 
 extern HUDGlobals *hud_globals_tag_data;   // 0x0071941c, foreign (the hud globals tag)
 extern uint8_t *hud_messaging;             // 0x006b3a40, foreign (interface module), TYPES-GAP
 extern main_globals main_globals_data;     // 0x00719700
 
-extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); // 0x53eeb0, foreign (game module)
+
     // blam-cc: SI -> structure_bsp_index (0x4c9b61 mov esi,[0x719754])
 extern player_globals *local_player_globals; // 0x0087a478, foreign (game module)
 extern uint16_t *hud_get_message_string(int32_t message_index); // 0x4aa3f0, foreign (interface module)

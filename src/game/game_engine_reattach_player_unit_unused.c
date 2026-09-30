@@ -31,6 +31,7 @@
 #include "networking.h"
 #include "fn_game.h"
 #include "fn_units.h"
+#include "fn_scenario.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
@@ -42,7 +43,7 @@ extern game_time_globals *game_time;         // 0x006f1d6c
 extern network_client_globals *network_client;
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
+
 extern int32_t bsp3d_node_find_leaf(void); // 0x5013a0, not in this batch; UNSURE args/return
 extern void object_get_node_local_transform(datum_index object_index, int32_t node_index,
                                              void *out_transform, int32_t unknown); // 0x4f6080, UNSURE args

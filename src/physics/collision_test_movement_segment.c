@@ -37,6 +37,7 @@
 #include "projectiles.h"
 #include "cache.h"
 #include "physics.h"
+#include "fn_scenario.h"
 
 // collision_test_movement_segment_flags now lives in types/physics.h.
 
@@ -66,7 +67,7 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
     real_point3d *point); // 0x5013a0, this module (lower half)
 // blam-cc: ESI -> out_leaf_reference (writes leaf_index and cluster_index); point comes from
 // whatever bsp3d_node_find_leaf was last called with
-extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); // 0x53e780; ESI out, EDX point
+
 extern void plane3d_negate(real_plane3d *out, real_plane3d *in); // 0x44da20, effects module
 // blam-cc: EAX -> object_index (the object whose chain is being walked)
 extern uint8_t object_collision_test_ray_nearby_chain(uint32_t object_index, uint32_t flags, uint32_t sanitized_flags,

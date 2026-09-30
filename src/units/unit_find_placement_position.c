@@ -24,6 +24,7 @@
 #include "physics.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_scenario.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -45,7 +46,7 @@ extern uint8_t object_collision_context_test_pill(object_collision_context *cont
     real_vector3d *delta, float radius_scale, object_node_collision_result *out_result); // 0x5050b0
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
     uint32_t flags, uint32_t exclude_object_index, collision_result *result); // 0x401a20, EAX, ECX, stack
-extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); // 0x53e780, ESI, EDX
+
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack

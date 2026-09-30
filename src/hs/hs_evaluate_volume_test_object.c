@@ -13,12 +13,13 @@
 #include "hs.h"
 #include "objects.h"
 #include "fn_hs.h"
+#include "fn_scenario.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
 extern data_array *object_data; // 0x008603b0
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
+
 
 void hs_evaluate_volume_test_object(int16_t function_index, uint32_t thread_index, char first)
 {

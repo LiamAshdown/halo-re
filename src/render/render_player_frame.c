@@ -37,6 +37,7 @@
 #include "units.h"
 #include "cutscene.h"
 #include "fn_structures.h"
+#include "fn_scenario.h"
 
 extern render_fog render_fog_state;                  // 0x007c32f4, this module (named
                                                      // render_fog_state; a variable cannot share
@@ -63,8 +64,7 @@ extern int16_t unknown_00719aac; // UNSURE name/owner: screenshot tile grid divi
     // module; blam-cc: EDX -> point (passed straight on to the leaf probe 0x5013a0; the
     // src/structures rewrite reads the global 0x007c3114 instead, which is not set yet here)
 
-extern void scenario_sky_fog_state_update(int16_t sky_index, int16_t local_player_index,
-    real_point3d *camera_position, render_fog *out); // 0x53e8c0, blam-cc: AX -> sky_index, stack -> local_player_index,
+
     // camera_position, out (0x50bab1..0x50babe)
 
 

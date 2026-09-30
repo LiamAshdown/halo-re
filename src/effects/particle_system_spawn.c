@@ -27,6 +27,7 @@
 #include "effects.h"
 #include "units.h"
 #include "fn_memory.h"
+#include "fn_scenario.h"
 
 extern data_array *object_data;                   // 0x008603b0
 extern data_array *particle_system_particle_data; // 0x0087abd8
@@ -48,7 +49,7 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
     object_marker *out, uint32_t maximum); // 0x492ad0
 extern void object_get_root_location(int32_t *out, uint32_t object_index); // 0x4f6b10, blam-cc: EAX, ECX
-extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); // 0x53e780, ESI, EDX
+
 
 static real particle_roll(void)
 {

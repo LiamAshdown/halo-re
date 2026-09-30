@@ -17,11 +17,12 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_scenario.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;
 extern tag_instance *tag_instances;    // 0x0087bc14
 
-extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point); // 0x53ec30, EAX, EBX
+
 extern void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags,
     real_vector3d *out); // 0x53f940, blam-cc: AX, stack, stack, EDI
 
