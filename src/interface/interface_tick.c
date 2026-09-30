@@ -151,7 +151,7 @@ void interface_tick(void)
                 // Ghidra tests `widget != 0 && widget->unknown_15 == 1` (bVar4), then re-tests
                 // it or ui_split_screen in three mutually exclusive branches that all reduce,
                 // algebraically, to the same single condition: widget != NULL. See the header
-                // comment's control-flow note; simplified here rather than reproduced verbatim.
+                // comment's control-flow note (verified equivalent against 0x497ffe..0x49804e).
                 root = widget;
                 if (widget != (widget_instance *)0) {
                     UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
