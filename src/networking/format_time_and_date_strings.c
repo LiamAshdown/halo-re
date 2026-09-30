@@ -18,6 +18,9 @@
 #include <stdio.h>
 #include <time.h>
 
+// VERIFIED against disassembly 0x4e5320..0x4e5381 (2026-09-30); fixed: the original calls the CRT _snprintf (0x623a2d),
+//   which writes count characters and does NOT NUL-terminate on truncation (the C99 snprintf the draft used writes a
+//   NUL at count-1); the forced NUL at max_len-1 is the only terminator, as here.
 // Formats time_value's hour:min:sec into time_dest and its year-mon-mday into date_dest, each
 // truncated to at most max_len-1 characters with a forced NUL. Either destination may be NULL
 // (skipped), and nothing is written if max_len is 0.
@@ -25,11 +28,11 @@ void format_time_and_date_strings(char *date_dest, struct tm *time_value, int32_
     char *time_dest) // blam-cc: EBX -> date_dest, ESI -> time_value, EDI -> max_len, stack -> time_dest
 {
     if (time_dest != 0 && max_len != 0) {
-        snprintf(time_dest, max_len - 1, "%02d:%02d:%02d", time_value->tm_hour, time_value->tm_min, time_value->tm_sec);
+        _snprintf(time_dest, max_len - 1, "%02d:%02d:%02d", time_value->tm_hour, time_value->tm_min, time_value->tm_sec);
         time_dest[max_len - 1] = 0;
     }
     if (date_dest != 0 && max_len != 0) {
-        snprintf(date_dest, max_len - 1, "%04d-%02d-%02d", time_value->tm_year + 0x76c, time_value->tm_mon + 1, time_value->tm_mday);
+        _snprintf(date_dest, max_len - 1, "%04d-%02d-%02d", time_value->tm_year + 0x76c, time_value->tm_mon + 1, time_value->tm_mday);
         date_dest[max_len - 1] = 0;
     }
 }
