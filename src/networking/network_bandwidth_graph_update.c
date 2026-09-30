@@ -17,6 +17,7 @@
 // the struct's declared end. The screen client-area corners are types/networking.h's
 // network_screen_point.
 
+// VERIFIED against disassembly 0x4d7ad0..0x4d7d8d (2026-09-30): FIXED: right_raw/baseline_raw had br.x/br.y swapped (orig: +0x24 = (br.x-0x40)-W*0.2, +0x26 = (br.y-0x40)-H*0.4, +0x28 = br.x-0x40, +0x2a = br.y-0x40); 640/480 divisors are the raw height/width, not the scaled ones; snprintf(0x200) not sprintf; stray +0x12 store removed; network_stats_overlay_draw takes the graph in ESI
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -31,7 +32,7 @@ extern uint8_t network_bandwidth_overlay_enabled;              // 0x00710305
 extern network_bandwidth_graph network_bandwidth_graph_globals; // 0x00719ce0
 
 extern void network_bandwidth_graph_instance_history_reset(network_bandwidth_graph *graph); // 0x4d8080, this batch
-extern void network_stats_overlay_draw(void); // 0x4d8620, this batch
+extern void network_stats_overlay_draw(network_bandwidth_graph *graph); // 0x4d8620, this batch; blam-cc: ESI -> graph
 
 extern const char *network_bandwidth_units_label_table[2];     // 0x0065d428
 extern const char *network_bandwidth_direction_label_table[2]; // 0x0065d430
@@ -48,9 +49,9 @@ void network_bandwidth_graph_update(void)
         if (*(int32_t *)(base + 0x14) != width || *(int32_t *)(base + 0x18) != height) {
             float x_scale = (float)width * 0.2f;
             float y_scale = (float)height * 0.4f;
-            float right_raw = (float)(game_window_bottom_right.x - 0x40);
+            float right_raw = (float)(game_window_bottom_right.y - 0x40);   // FIXED: this is br.y - 0x40 (edx at 0x4d7ad0..), stored at +0x2a and combined with y_scale;
             float right_minus_yscale = right_raw - y_scale;
-            float baseline_raw = (float)(game_window_bottom_right.y - 0x40);
+            float baseline_raw = (float)(game_window_bottom_right.x - 0x40); // FIXED: this is br.x - 0x40, stored at +0x28 and combined with x_scale;
             float baseline_minus_xscale = baseline_raw - x_scale;
             float box_x1, box_y1, box_x0, box_y0;
             int16_t field24_v;
@@ -97,15 +98,14 @@ void network_bandwidth_graph_update(void)
             *(float *)(base + 0xa4) = box_x0;
             *(float *)(base + 0xa8) = box_y0;
 
-            r1 = 640.0f / y_scale;
-            r2 = 480.0f / x_scale;
+            r1 = 640.0f / (float)height; // FIXED: divides by the raw height (fst [esp+0x1c] before the *0.4), not y_scale
+            r2 = 480.0f / (float)width;  // FIXED: raw width, not x_scale
             {
                 int16_t v2c = (int16_t)((float)field24_v * r2);
                 int16_t v3x = (int16_t)((float)graph->left * r1); // Ghidra's uVar5 reused across
                                                                     // three fields, see header
 
                 *(int16_t *)(base + 0x2e) = v3x;
-                *(int16_t *)(base + 0x12) = 0; // unreferenced; placeholder removed below
                 *(int16_t *)(base + 0x2c) = v2c;
                 *(int16_t *)(base + 0x32) = 0x280;
                 *(int16_t *)(base + 0x30) = 0x1e0;
@@ -121,11 +121,11 @@ void network_bandwidth_graph_update(void)
                 *(int16_t *)(base + 0x40) = 0x1e0;
             }
 
-            sprintf((char *)(base + 0x23e0), "%s %s",
+            _snprintf((char *)(base + 0x23e0), 0x200, "%s %s",
                 network_bandwidth_units_label_table[graph->units_index],
                 network_bandwidth_direction_label_table[graph->direction_index]);
         }
-        network_stats_overlay_draw();
+        network_stats_overlay_draw(graph);
     }
 }
 
