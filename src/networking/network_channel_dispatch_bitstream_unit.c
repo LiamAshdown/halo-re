@@ -23,6 +23,7 @@
 // (EAX length = first word >> 4, ECX machine, EDX record, stack server). The previous C passed the unit flag as the
 // server and no stream.
 
+// VERIFIED against disassembly 0x4e18b0..0x4e1927 (2026-09-30): ESI machine, ECX stream, stack (server, unit); unit 1 -> drain_queued_updates(ECX stream; server, machine); unit 0 -> read_sized_buffer then process_incoming_message(EAX length, ECX machine, EDX record, stack server)
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
