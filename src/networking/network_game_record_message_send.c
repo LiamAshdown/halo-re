@@ -8,14 +8,10 @@
 // misattributed/library code in out/phase4/networking_types_notes.md.
 // register convention: client in the sole cdecl stack parameter; the 8-dword source record
 // arrives in EDX (in_EDX). // blam-cc: EDX -> source, stack -> client
-// UNSURE: the buffer/local_602 stack layout (declared by Ghidra as 7 dwords plus one trailing
-// byte, 29 bytes, but filled by an 8-dword/32-byte copy) is modeled as one 32-byte buffer, with
-// `local_602` at its byte offset 30 (0x620-0x602), which is the only reading consistent with
-// the copy loop's own size.
-// UNSURE: the returned "garbage" upper three bytes come from `client` itself here (unlike the
-// sibling functions in this cluster, which reuse a decoded-record pointer); simplified to a
-// plain 0/1 return per the "callers only read the low byte" idiom used throughout this module.
-
+// The 8-dword source record is copied to a local (byte 30 of it is forced from 0xff to 0), encoded
+// into a separate 0x600-byte buffer by data_packet_group_encode_packet (EAX = that buffer, EBX =
+// network_game_messages_group 0x6994f8, stack = record, &size, 0x12, 1), and the encoded bytes
+// are wrapped by network_message_block_build. Return value is only the low byte (0/1).
 // FIXED in the review pass: this file's 2-argument guess at network_channel_stream_flush is
 // resolved. Every message-send call site in the module is the same three operands --
 // `lea esi,[channel+0x10]` (channel->outgoing), `push <channel>`, `push 1` -- e.g. 0x4d9108,
@@ -25,14 +21,16 @@
 // the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
 // the encoded bits from record; the C passed placeholders or dropped the arguments.
 
+// VERIFIED against disassembly 0x4da130..0x4da250 (2026-09-30): FIXED: encode call takes EAX = separate 0x600 output buffer and EBX = network_game_messages_group (was missing); block_build now wraps that encoded buffer, not the 32-byte record copy; stream-space/flush/write sequence matches
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
 
-extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int16_t **capacity,
-    int32_t packet_type, int32_t version); // 0x4d0ae0; UNSURE, this call site's own 4-arg shape
+extern int32_t data_packet_group_encode_packet(uint8_t *buffer, data_packet_group *group, void *payload,
+    int32_t *capacity, int32_t message_type, int32_t flag); // 0x4d0ae0; blam-cc: EAX -> buffer, EBX -> group, stack -> payload, capacity, message_type, flag
+extern data_packet_group network_game_messages_group; // 0x006994f8
 extern uint16_t network_challenge_packet_block[]; // 0x006b7f98, the reused message block
 extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length); // 0x440350, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
@@ -41,61 +39,55 @@ extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t 
 // blam-cc: EDX -> source, stack -> client
 int32_t network_game_record_message_send(network_client_globals *client, const uint32_t *source)
 {
-    uint8_t buffer[32];
+    uint8_t record_copy[32];
+    uint8_t encoded[0x600];
     uint32_t *dst;
     int32_t i;
-    int16_t *capacity;
+    int32_t capacity;
     uint16_t *record;
-    uint8_t *channel;
+    network_channel *channel;
     int32_t bits_to_send;
     int32_t total_bits;
-    int32_t retransmit_ok;
+    uint32_t item_flag;
 
-    dst = (uint32_t *)buffer;
+    dst = (uint32_t *)record_copy;
     for (i = 8; i != 0; i = i - 1) {
         *dst = *source;
         source = source + 1;
         dst = dst + 1;
     }
-    if (buffer[30] == 0xff) {
-        buffer[30] = 0;
+    if (record_copy[30] == 0xff) {
+        record_copy[30] = 0;
     }
 
-    capacity = (int16_t *)0x600;
-    if ((char)data_packet_group_encode_packet(buffer, &capacity, 0x12, 1) == 0) {
+    capacity = 0x600;
+    if ((char)data_packet_group_encode_packet(encoded, &network_game_messages_group, record_copy, &capacity, 0x12, 1) == 0) {
         return 0;
     }
 
-    // FIXED in the review pass: network_message_block_build takes the destination block in
-    // EAX, the source buffer in ECX, a 2-bit flag value in DL and the byte length on the
-    // stack. Every inlined copy of this idiom in the module is the same four operands --
-    // `push <encoded length> / mov eax,0x6b7f98 / lea ecx,[<buffer>] / mov dl,3` -- so the
-    // first draft's single-argument call was passing the length where the destination goes.
-    record = network_message_block_build(network_challenge_packet_block, (uint32_t *)buffer, 3,
-                                        (uint32_t)(int32_t)capacity); // 0x4da18d
+    // network_message_block_build: EAX = destination block, ECX = the encoded buffer, DL = 3, stack = encoded length
+    record = network_message_block_build(network_challenge_packet_block, (uint32_t *)encoded, 3,
+                                        (uint32_t)capacity);
     if (record == 0) {
         return 0;
     }
 
-    channel = (uint8_t *)client->channel;
-    bits_to_send = (uint32_t)(*record >> 4) * 8;
+    channel = client->channel;
+    bits_to_send = (int32_t)(*record >> 4) * 8;
     total_bits = bits_to_send + 1;
-    if ((*(uint8_t *)&((network_channel *)channel)->flags & 1) == 0) {
-        if (((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit + *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
-                 *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1 < total_bits) {
-            retransmit_ok = network_channel_stream_flush((network_channel_stream *)(channel + 0x10), (network_channel *)channel, 1);
-            if (retransmit_ok == 0) {
+    if ((channel->flags & 1) == 0) {
+        if ((int32_t)(channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8 -
+                      channel->outgoing.stream.bit_cursor) + 1 < total_bits) {
+            if (network_channel_stream_flush(&channel->outgoing, channel, 1) == 0) {
                 return 0;
             }
         }
-        {
-
-            ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + total_bits;
-            { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
-            ((network_channel *)channel)->outgoing.empty = 0;
-            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(record), bits_to_send);
-            ((network_channel *)channel)->outgoing.empty = 0;
-        }
+        channel->send_budget = channel->send_budget + total_bits;
+        item_flag = 0;
+        bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
+        channel->outgoing.empty = 0;
+        bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)record, bits_to_send);
+        channel->outgoing.empty = 0;
     }
     return 1;
 }
