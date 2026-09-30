@@ -20,6 +20,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_objects.h"
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, UNSURE
 

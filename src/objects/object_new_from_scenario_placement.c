@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern datum_index *object_name_list; // 0x006b8cb8
@@ -26,8 +27,7 @@ extern datum_index *object_name_list; // 0x006b8cb8
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role); // 0x4f53a0, blam-cc: EAX -> placement, stack -> definition_tag, role
 
-extern datum_index object_new(object_placement_data *placement); // 0x4f5460, blam-cc: ECX -> placement
-extern void object_type_definitions_notify_two_args_0x2c(uint32_t object_index, uint32_t event_argument); // 0x4f3f20
+
 extern void object_reserve_render_cache_slot(uint32_t object_index, int16_t slot); // 0x4f9ac0, EDX object, CX slot
 
 datum_index object_new_from_scenario_placement(uint8_t *placement, TagReflexive *palette)

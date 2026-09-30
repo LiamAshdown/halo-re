@@ -29,6 +29,7 @@
 #include "fn_game.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 #include <stdint.h>
 
 extern data_array *object_data;     // 0x008603b0
@@ -41,8 +42,8 @@ extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t a
 
 
 extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); // 0x56cc80, EAX
-extern void object_queue_pickup_denied_event(void *param_1, int32_t key, uint32_t *source); // 0x4efbf0, stack, ECX, EDI
-extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity); // 0x4bef80, EAX, EDX
+
+
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
 
 

@@ -31,6 +31,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "fn_game.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -42,11 +43,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     const ColorRGB *color, const effect_tint_source *tint_source); // 0x4507a0, EAX, ECX, stack
 
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
-extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
-extern void object_delete_teardown(uint32_t object_index); // 0x4edc80, EAX
-extern void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index, real_vector3d *normal,
-    real_vector3d *incident, real_point3d *impact_position, uint32_t object_index); // 0x4f0010, stack, EAX, ECX, EBX, EDI
-extern void object_destroy_region(uint32_t object_index, int32_t region_index); // 0x4f02d0, EAX, stack
+
 
 void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index, void *plane,
     uint8_t *geometry, uint8_t *material, uint8_t *effect_block, damage_data *dd, uint32_t *notify_flags,

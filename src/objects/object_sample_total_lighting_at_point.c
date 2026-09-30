@@ -37,6 +37,7 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "structures.h"
+#include "fn_objects.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
 extern real_vector3d *default_axis_b; // 0x00686b0c

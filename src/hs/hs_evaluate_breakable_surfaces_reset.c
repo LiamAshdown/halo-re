@@ -12,9 +12,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_objects.h"
 
-
-extern void breakable_surfaces_reset(void); // 0x4ffd40
 
 void hs_evaluate_breakable_surfaces_reset(int16_t function_index, uint32_t thread_index, char first)
 {

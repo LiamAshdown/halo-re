@@ -25,6 +25,7 @@
 #include "game.h"
 #include "hs.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *light_data;      // 0x00860b14
 extern game_time_globals *game_time;         // 0x006f1d6c, game time globals; +0x0c is the current tick

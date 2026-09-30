@@ -38,6 +38,7 @@
 #include "fn_ai.h"
 #include "fn_game.h"
 #include "fn_units.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
@@ -63,17 +64,11 @@ extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, C
 
 
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
-extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
-extern int32_t object_get_controlling_player_index(datum_index object_index); // 0x4ee2e0, EAX
+
+
 extern void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index); // 0x4ee3c0, stack, EDI
-extern void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index, void *plane,
-    uint8_t *geometry, uint8_t *material, uint8_t *effect_block, damage_data *dd, uint32_t *notify_flags,
-    float *body_damage_out, float *material_multiplier_out, float damage, uint8_t is_local); // 0x4ef2a0
-extern void object_apply_shield_damage(uint32_t target_index, uint8_t *geometry, uint8_t *material,
-    uint8_t *effect_block, uint32_t *notify_flags, float *shield_damage_out, float *remaining_damage,
-    uint8_t is_local, uint8_t apply_state, object_shield_impulse_result *record); // 0x4ef820, EBX record
-extern void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, uint32_t notify_flags,
-    float shield_damage, float body_damage, uint32_t unused_6, int32_t region_index, uint32_t is_local); // 0x4efcf0
+
+
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack

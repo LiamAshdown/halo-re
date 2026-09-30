@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_objects.h"
 
-
-extern void objects_dump_memory(void); // 0x4fa500
 
 void hs_evaluate_objects_dump_memory(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_objects.h"
 
 extern data_array *player_data;              // 0x0087a480
 extern data_array *object_data;           // 0x008603b0
@@ -33,10 +34,6 @@ extern tag_instance *tag_instances;          // 0x0087bc14
 extern player_globals *local_player_globals; // 0x0087a478
 extern uint8_t *main_game_globals;             // 0x006b0b80, UNSURE identity, see header note
 extern int16_t network_game_mode;            // 0x00719720
-
-extern uint8_t object_shield_recharge_start(uint32_t object_index); // 0x4edba0, UNSURE exact signature
-
-extern uint8_t object_restore_full_body_vitality(uint32_t object_index); // 0x4ed9d0, UNSURE exact signature
 
 
 extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index,

@@ -35,13 +35,12 @@
 #include "hs.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;                // 0x008603b0
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468
 
-extern void object_initialize_shield_stun_thresholds(uint32_t object_index,
-    float *override_max_body_vitality, float *override_max_shield_vitality); // 0x4ed440, objects module
 
 void ai_object_list_initialize_shield_stun_thresholds(datum_index object_list_header_handle,
     float override_max_body_vitality, float override_max_shield_vitality)

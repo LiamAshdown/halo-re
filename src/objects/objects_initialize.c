@@ -20,6 +20,7 @@
 #include "math.h"
 #include "objects.h"
 #include "structures.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern memory_pool *object_memory_pool; // 0x006b8cb4
@@ -30,9 +31,7 @@ extern uint8_t *game_state_base; // 0x006e2dc8, UNSURE: foreign (memory/checksum
 extern int32_t game_state_cursor;     // 0x006e2dcc, UNSURE: running offset into that table
 extern uint32_t game_state_crc;         // 0x006e2dd4, passed to crc32_update by address
 
-extern void widgets_initialize(void); // 0x4ff9d0
-extern void object_type_definition_chain_build(void); // 0x4f3db0, this batch
-extern void lights_initialize(void); // 0x4f0a20
+
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 extern memory_pool *game_state_new_pool(char *name, int32_t pool_size); // 0x538150, stack name, EBX pool_size
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);

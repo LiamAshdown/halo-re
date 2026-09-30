@@ -25,12 +25,13 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 #include <stdint.h>
 
 extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *object_data;      // 0x008603b0
 
-extern int16_t objects_get_ambient_cluster(void); // 0x4f7a50, not in this batch; UNSURE exact signature
+
 extern data_array *player_data;         // 0x0087a480
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0; blam-cc: EDI -> iterator
 

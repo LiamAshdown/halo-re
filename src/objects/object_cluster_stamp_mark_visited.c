@@ -9,6 +9,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern int32_t object_cluster_stamp; // 0x008603cc

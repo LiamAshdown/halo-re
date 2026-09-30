@@ -16,6 +16,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -24,7 +25,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
     const ColorRGB *color, const effect_tint_source *tint_source);
     // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
-extern void object_regions_reset_permutation_lock(uint32_t object_index, int8_t unlock); // 0x4f03e0
+
 
 void object_set_shield_depleted_flag(uint32_t object_index)
 {

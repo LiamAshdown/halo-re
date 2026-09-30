@@ -20,6 +20,7 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#include "fn_objects.h"
 
 extern player_globals *local_player_globals;  // 0x0087a478
 extern data_array *player_data;               // 0x0087a480
@@ -30,8 +31,7 @@ extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f18
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
                                                uint32_t maximum_markers); // 0x4f6080
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
-extern void object_get_center_of_mass_and_scale(real_point3d *out_center, uint32_t object_index,
-                                                float *out_radius); // 0x4088e0, blam-cc: EAX out_center, ECX object_index
+
 extern int16_t hud_waypoint_visibility(int16_t local_player_index, const real_point3d *eye,
                                        const real_point3d *target, datum_index ignore_object); // 0x4af540, blam-cc: AX, ECX eye, EDX target
 

@@ -27,12 +27,13 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
-extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
+
+
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
     // No prototype is asserted: Ghidra models fewer or differently-typed arguments here than

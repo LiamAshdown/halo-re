@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern uint8_t object_type_definitions_query_0x44(uint32_t object_index); // this module, 0x4f41d0
 
 void object_children_recurse_prune(uint32_t object_index)
 {

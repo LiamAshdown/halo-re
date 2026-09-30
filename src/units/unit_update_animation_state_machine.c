@@ -34,6 +34,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -49,7 +50,6 @@ extern uint16_t unit_reset_light_effect(void *state, uint32_t animation_graph_ta
     // 0x56ec10 (the animation slot advance), ECX, EAX, stack
 
 
-extern void object_delete_teardown(uint32_t object_index); // 0x4edc80, EAX
 extern int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index); // 0x568540, EDI
 
 extern void model_animation_get_frame_delta(int16_t frame, void *animation, real_vector3d *out, void *model);

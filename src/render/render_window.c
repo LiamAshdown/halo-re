@@ -54,6 +54,7 @@
 #include "game.h"
 #include "render.h"
 #include "fn_rasterizer.h"
+#include "fn_objects.h"
 
 extern int32_t render_window_count;                   // 0x007c3104, this module
 extern int16_t current_local_player_index;             // 0x007c3108, this module
@@ -90,14 +91,12 @@ extern void first_person_weapon_update_zoom_static_tint(uint8_t enabled); // 0x4
 extern void billboard_system_frame_init(void);        // 0x511410, this module
 extern void render_sky(void);                         // 0x510c50, this module
 extern void first_person_weapon_update_active_state(void); // 0x492430, interface module
-extern void object_lights_update_all(void);           // 0x4f0cf0, objects module
+
 extern void render_objects(void);                     // 0x50e930, this module
 extern void structure_picked_polygon_refresh(void);   // 0x5527f0, structures module
 extern void structure_picked_polygon_draw(void);      // 0x5528f0, structures module
 
 extern void render_object_shadows(object_render_data *data); // 0x50eb70, this module; EAX
-extern void lights_apply_spot_falloff(void);          // 0x4f1780, objects module
-extern void lights_apply_spot_falloff_specular(void); // 0x4f1950, objects module
 
 
 extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200; blam-cc: AX -> mode

@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_rasterizer.h"
+#include "fn_objects.h"
 
 extern uint8_t *light_volume_instances; // 0x006b8d70, UNSURE: raw table, no struct defined
 extern tag_instance *tag_instances;     // 0x0087bc14
@@ -38,7 +39,6 @@ extern float camera_forward_z; // 0x007c3128 (UNSURE: foreign module)
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
 
-extern void light_volume_render_procedure(uint32_t object_index, datum_index light_volume_handle); // 0x4fea80
 
 void light_volume_render(uint32_t object_index, datum_index light_volume_handle, uint32_t unused,
                           uint8_t *function_context)

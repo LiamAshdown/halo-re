@@ -61,6 +61,7 @@
 #include "objects.h"
 #include "units.h"
 #include "projectiles.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -74,13 +75,12 @@ extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
-extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
+
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
                                  int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610, objects module, UNSURE signature
-extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
-    uint32_t ignore_object_index); // 0x4f7b70, stack, ECX
+
     // see file header
 extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time); // 0x44ca60, EDI, stack
     // blam-cc: EDI -> the contrail attachment handle

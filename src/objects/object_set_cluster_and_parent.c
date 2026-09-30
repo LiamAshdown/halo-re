@@ -30,6 +30,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern player_globals *local_player_globals; // 0x0087a478

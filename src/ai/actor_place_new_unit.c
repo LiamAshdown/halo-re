@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_objects.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *object_data;     // 0x008603b0
@@ -30,7 +31,7 @@ extern object_type_definition *object_type_definitions[k_maximum_object_types]; 
 
 extern double cos(double x); // x87 FCOS
 extern double sin(double x); // x87 FSIN
-extern void objects_garbage_collection(void); // 0x4f9c60
+
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role); // 0x4f53a0, EAX, stack
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0

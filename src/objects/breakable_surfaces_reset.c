@@ -13,6 +13,7 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+#include "fn_objects.h"
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, types/physics.h breakable_surface_globals
 

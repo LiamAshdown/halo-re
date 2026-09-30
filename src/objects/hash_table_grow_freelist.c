@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 
 void hash_table_grow_freelist(hash_table *table)

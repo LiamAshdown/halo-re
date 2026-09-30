@@ -32,6 +32,7 @@
 #include "math.h"
 #include "objects.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 
@@ -40,8 +41,8 @@ extern data_array *object_data; // 0x008603b0
 //   *EAX = ECX[2]*stack[1] - stack[2]*ECX[1], i.e. the classic cross product with the stack
 //   argument as the LEFT operand.
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
-extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch; NULL location probes it
+
+
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, this batch
 
 // Repositions and reorients an object: writes the supplied position, forward and up vectors

@@ -24,6 +24,7 @@
 #include "game.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -32,12 +33,11 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index,
     int16_t material_index, uint32_t plane); // 0x4ee5e0
-extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag); // 0x4ed990, EDX, stack
+
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
 extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage); // 0x4b16e0, ECX, stack
-extern void object_dispatch_effect_notify(uint32_t forwarded_eax, uint32_t forwarded_ecx); // 0x4efff0, EAX, ECX
-extern void object_regions_reset_permutation_lock(uint32_t object_index, int8_t unlock); // 0x4f03e0, EAX, BL
+
 
 // 0x4ed7cd / 0x4ed88c: one damage timer pair decays by 1/60 a tick once running
 static void object_decay_damage_timer(int32_t *ticks, float *current, float *recent)

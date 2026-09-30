@@ -34,6 +34,7 @@
 #include "models.h"
 #include "game.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;          // 0x008603b0
 extern tag_instance *tag_instances;      // 0x0087bc14
@@ -47,7 +48,7 @@ extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAni
     real_orientation *out_orientations); // 0x4d53f0, EDI animation
 extern void animation_overlay_frame_orientations_weighted(ModelAnimationsAnimation *animation, int16_t frame,
     float weight, real_orientation *out_orientations); // 0x4d51a0, EDI animation
-extern void object_type_definitions_notify_two_args_0x48(uint32_t object_index, uint32_t event_argument); // 0x4f4250
+
 extern void model_nodes_blend_transforms(real_orientation *in_out, int16_t node_count, real_orientation *other,
     int16_t step, int16_t steps); // 0x4d69e0, EAX in_out, CX node_count
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0, ECX q, EDX out

@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_objects.h"
 
 extern Globals *global_globals;      // 0x00746fa0
 extern data_array *object_data;   // 0x008603b0
@@ -27,7 +28,7 @@ extern game_variant game_engine_variant; // 0x006f1c88 (unknown_8c aliased 0x006
 
 extern void object_placement_data_initialize(object_placement_data *placement,
     datum_index definition_tag, datum_index role); // 0x4f53a0
-extern datum_index object_new(object_placement_data *placement); // 0x4f5460, UNSURE signature
+
 extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0
 
 

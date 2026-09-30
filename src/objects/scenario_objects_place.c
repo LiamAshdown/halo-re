@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_objects.h"
 
 extern int32_t network_server;  // 0x0071c2d4, pointer; +8 is its connection state
 extern int32_t network_client;   // 0x0071c2d8, pointer; +0xb14 is its connection state
@@ -38,9 +39,7 @@ extern void control_binding_table_register_single(int32_t target, int32_t select
 extern void control_binding_table_update_a(void); // 0x4f3890
 extern void control_binding_table_update_b(void); // 0x4f39d0
 extern uint8_t control_binding_table_query(int32_t target, int32_t raw_id); // 0x4f3ad0, EDX target, stack raw_id
-extern datum_index object_new_from_scenario_placement(uint8_t *placement, TagReflexive *palette); // 0x4f9b70
-extern void objects_garbage_collection(void); // 0x4f9c60
-extern void scenario_objects_place_for_structure_bsp(uint8_t place); // 0x4f4880, stack -> place
+
 
 static datum_index palette_tag(TagReflexive *palette, int16_t type)
 {

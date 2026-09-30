@@ -16,6 +16,7 @@
 #include <wchar.h>
 #include "objects.h"
 #include "fn_game.h"
+#include "fn_objects.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -29,7 +30,7 @@ extern uint32_t race_vehicle_counts[4]; // 0x006b13c0, custom vehicle set: warth
 
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role); // 0x4f53a0, blam-cc: EAX placement
-extern datum_index object_new(object_placement_data *placement); // 0x4f5460, blam-cc: ECX placement
+
 extern double cos(double x); // C runtime
 extern double sin(double x); // C runtime
 

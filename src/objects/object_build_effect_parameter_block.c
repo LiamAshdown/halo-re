@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_objects.h"
 
 extern double pow(double x, double y);
 extern double sqrt(double x);

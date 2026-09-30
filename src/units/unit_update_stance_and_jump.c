@@ -27,6 +27,7 @@
 #include "units.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -39,7 +40,7 @@ extern double fabs(double x);
 extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index); // 0x4c2ea0, blam-cc: EAX
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
     int32_t stream); // 0x4d6280, blam-cc: EAX -> animation_graph_tag, DX -> first_animation, stack -> stream
-extern void object_delete_teardown(uint32_t object_index); // 0x4edc80, blam-cc: EAX
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX, stack
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
     // 0x4f6b70, blam-cc: EAX -> object_index, DX -> requested_count

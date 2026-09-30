@@ -29,6 +29,7 @@
 #include "physics.h"
 #include "fn_sound.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -56,7 +57,7 @@ extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16
 extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal,
     real_point3d *point); // 0x4bd5d0, EAX, ECX, stack
 extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, ECX, stack
-extern real_matrix4x3 *object_get_node_marker_address(uint32_t object_index, int16_t node_index); // 0x4f6000, EAX, stack
+
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, EAX, EDX, stack
 extern void item_compute_rotation(uint32_t object_index); // 0x4bd500, EAX

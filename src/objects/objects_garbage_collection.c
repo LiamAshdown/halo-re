@@ -33,6 +33,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern memory_pool *object_memory_pool; // 0x006b8cb4

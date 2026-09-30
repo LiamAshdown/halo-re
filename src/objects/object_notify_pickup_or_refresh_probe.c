@@ -27,6 +27,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_objects.h"
 
 
 extern data_array *player_data;         // 0x0087a480, players module (not owned here)
@@ -37,7 +38,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0; object handle in ECX, type mask on the stack. Verified against the body at
     // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and param_1 & 1 << header->type) and against the
     // call site in this file.
-extern void object_throttled_multiplayer_sound_event(void); // this module, 0x4ee370 // this module, 0x4ee370 (object_throttled_multiplayer_sound_event)
+
 extern int32_t network_index_cache_get(hash_table *table, int32_t key); // 0x4e9d20, stack table, ECX key
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size

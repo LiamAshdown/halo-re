@@ -29,6 +29,7 @@
 #include "fn_ai.h"
 #include "fn_game.h"
 #include "fn_sound.h"
+#include "fn_objects.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -68,7 +69,7 @@ extern void widget_memory_pool_initialize(void);              // 0x4979b0
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0, memory module
 extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370,
     // memory module; blam-cc: element size in EBX, then the stack pair (name, maximum_count)
-extern void objects_initialize(void);                           // 0x4f4ad0
+
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
     // maximum_count. CORRECTED by review: the first pass dropped the EBX element size
     // (Ghidra never shows it), which is the same 3-argument form players_initialize.c

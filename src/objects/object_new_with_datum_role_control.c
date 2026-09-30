@@ -50,6 +50,7 @@
 #include "units.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_objects.h"
 
 // TagID {index;id} is bit-identical in memory to a datum_index (low 16 bits index, high 16
 // bits salt/identifier), so a TagID is reinterpreted in place wherever the object header wants
@@ -78,16 +79,15 @@ extern void object_type_definitions_notify_0x38(uint32_t object_index); // 0x4f4
 extern int object_type_override_get_0x64(uint32_t object_index, void *buffer, int32_t buffer_size); // 0x4f44f0, this batch; handle in ESI
 extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, this batch; handle in ESI
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, this batch
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch; NULL location probes it
+
 extern void object_set_collision_enabled(uint32_t object_index, uint8_t enable); // EAX object_index // 0x4f6850, UNSURE: unexamined in this batch.
     // The original builds the argument with CONCAT31, so only the low byte is meaningful.
 extern void object_block_data_free(data_array *array, datum_index object_index); // 0x4f7de0, UNSURE: unexamined in this batch
-extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
+
 extern void object_notify_node_array_if_animated(uint32_t object_index); // 0x4f8b10, EAX object_index
 extern void object_initialize_change_colors(uint32_t object_index, ColorRGB *colors); // 0x4f8b70, EAX object_index
 extern void object_refresh_region_permutations(uint32_t object_index); // 0x4f8f50, EBX object_index
-extern void object_initialize_shield_stun_thresholds(uint32_t object_index,
-    float *override_max_body_vitality, float *override_max_shield_vitality); // 0x4ed440.
+
     // Ghidra shows a bare call here; the two override pointers are passed as NULL because that
     // is the only shape consistent with the definition. UNSURE: not visible at this call site.
 extern void object_update_functions(uint32_t object_index); // 0x4f92f0, EAX -> object_index
@@ -97,7 +97,7 @@ extern void object_update_change_colors(uint32_t object_index); // 0x4f9110, EAX
     // call 0x4f9110`, and EBX is the new object index; 0x4f92f0 and 0x4f9110 both open by
     // masking EAX with 0xffff into the object_data stride. The index is now passed.
 extern void widget_new(uint32_t object_index); // 0x4ffa80, EAX object_index
-extern void object_create_attachments(uint32_t object_index); // 0x4f9750
+
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
     const ColorRGB *color, const effect_tint_source *tint_source); // 0x4507a0, EAX creator, ECX definition

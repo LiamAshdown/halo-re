@@ -35,6 +35,7 @@
 #include "math.h"
 #include "objects.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 
@@ -46,7 +47,7 @@ extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_
     // 0x4cbde0; out in EAX, in in EDX, matrix on the stack
 extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker,
     real_matrix4x3 *output_matrix); // 0x4f62f0, this batch; obj in EAX
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch
+
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, uint32_t marker_word);
     // 0x4f6440, this batch
 

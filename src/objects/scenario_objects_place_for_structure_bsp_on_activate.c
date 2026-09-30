@@ -11,10 +11,10 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_objects.h"
 
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 
-extern void scenario_objects_place_for_structure_bsp(uint8_t place); // 0x4f4880, stack -> place
 
 void scenario_objects_place_for_structure_bsp_on_activate(void)
 {

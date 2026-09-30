@@ -34,6 +34,7 @@
 #include "game.h"
 #include "hs.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern data_array *object_data; // 0x008603b0
@@ -49,7 +50,7 @@ extern void object_clear_pending_delete_flag(uint32_t object_index); // 0x4f5130
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, this batch
 extern void object_update(uint32_t object_index); // 0x4f7ef0
 extern void object_delete_4f9030(uint32_t object_index, char recurse_siblings); // 0x4f9030
-extern void objects_garbage_collection(void); // 0x4f9c60
+
 extern void structure_decals_update_switch_transitions(void *previous_pvs, void *current_pvs, int32_t cluster_count); // 0x5530d0
 
 void objects_update(void)

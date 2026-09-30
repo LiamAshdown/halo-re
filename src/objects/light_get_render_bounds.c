@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+#include "fn_objects.h"
 
 extern data_array *light_data; // 0x00860b14
 static uint8_t *light_get(datum_index handle)

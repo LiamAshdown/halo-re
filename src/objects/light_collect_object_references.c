@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *light_data;              // 0x00860b14
 extern data_array *light_object_references; // 0x00860b28

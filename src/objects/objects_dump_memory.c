@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 // FIXED 2026-09-28 (retail-independence loop): the second fopen argument is the mode "a+b" (0x00660144, pushed at
 //   0x4fa66d); the earlier 0 would crash in the CRT, and fopen_00624186 bound to nothing (a direct trap).
@@ -36,7 +37,7 @@ extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, thi
 extern void objects_get_statistics(void *out); // 0x4f7950, this batch (object_statistics)
 extern void object_dump_accumulate_stats(uint32_t object_index, object_memory_dump_record *record); // 0x4fa3d0, this batch
 extern void object_dump_write(object_memory_dump_record *record, void *file); // 0x4fa490, this batch
-extern int object_dump_compare_by_total_size(const object_memory_dump_record *a, const object_memory_dump_record *b); // 0x4fa3a0, this batch
+
 
 void objects_dump_memory(void)
 {

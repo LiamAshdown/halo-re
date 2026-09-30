@@ -17,6 +17,7 @@
 #include "objects.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_objects.h"
 #include <stdint.h>
 
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> 0x0065c230 {0,0,0}

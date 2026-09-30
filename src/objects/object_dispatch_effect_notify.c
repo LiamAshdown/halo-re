@@ -22,6 +22,7 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_objects.h"
 
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,

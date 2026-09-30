@@ -36,6 +36,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "game.h"
+#include "fn_objects.h"
 #include <stdint.h> // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 
 extern data_array *particle_data;   // 0x0087abd0
@@ -57,8 +58,7 @@ extern int effect_random_int_between(int16_t minimum, int16_t maximum); // 0x44c
     // blam-cc: ECX -> minimum, stack -> maximum
 extern real particle_current_radius(datum_index particle_handle); // 0x4566f0, this module
 extern uint8_t particle_next_sequence(datum_index particle_handle); // 0x455e60, this module
-extern void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *lightmap_color,
-    real_vector3d *base_map_color, uint8_t wait_for_textures); // 0x4f1e60, objects module, cdecl
+
 
 // Creates a new individual particle from a particle_creation_data block: resolves its spawn
 // position (explicit world position, an object marker, or a first person weapon marker), rolls

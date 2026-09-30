@@ -18,14 +18,15 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, this batch
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch; NULL location probes it
+
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
-extern void object_recalculate_bounding_radius(uint32_t object_index); // 0x4f8310
+
 
 void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index)
     // blam-cc: ESI -> position, EDI -> object_index

@@ -18,11 +18,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
-extern void object_set_shield_depleted_flag(uint32_t object_index); // 0x4edb10, EDI
 
 // REWRITTEN from objdump 0x561b80..0x561cab: each fraction is the value over its maximum (maximum body
 //   +0xd8, shield +0xdc), 1 when the value reaches the maximum, 0 when the maximum is not positive; a

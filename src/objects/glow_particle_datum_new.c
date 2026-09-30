@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *glow_particle_data; // 0x008603a4
 extern datum_index datum_new(data_array *array); // memory module, 0x4d0480

@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include "effects.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern real_vector3d *global_down3d_pointer;    // 0x0069672c, the gravity direction

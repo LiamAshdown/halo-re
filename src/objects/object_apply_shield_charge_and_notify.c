@@ -21,13 +21,14 @@
 #include "math.h"
 #include "objects.h"
 #include "fn_units.h"
+#include "fn_objects.h"
 
 extern network_id_table *object_network_id_table; // 0x00687130
 
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value); // UNSURE: out of range, 0x4ec590
 extern uint8_t message_delta_decode_compound_field_staged(void **context); // UNSURE: zero visible args; out of range, 0x4ec670
-extern void object_set_shield_depleted_flag(uint32_t object_index); // this module, 0x4edb10
-extern void object_throttled_multiplayer_sound_event(void); // this module, 0x4ee370 // this module, 0x4ee370 (object_throttled_multiplayer_sound_event)
+
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0; object handle in ECX, type mask on the stack. Verified against the body at
     // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and message & 1 << header->type) and against the

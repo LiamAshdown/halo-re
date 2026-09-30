@@ -25,6 +25,7 @@
 #include "physics.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -33,7 +34,6 @@ extern real_vector3d *global_forward3d_pointer;     // 0x00696718
 extern real_vector3d *global_up3d_pointer;          // 0x00696720
 
 
-extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, EAX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 

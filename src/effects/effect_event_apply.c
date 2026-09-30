@@ -51,6 +51,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_sound.h"
+#include "fn_objects.h"
 
 extern random_seed random_seed_global;               // 0x00719cd0
 extern random_seed effect_random_seed;                // 0x00719cd4
@@ -61,13 +62,12 @@ extern const real_vector3d *global_origin3d_pointer;  // 0x00696714
 extern real random_range_real(real min, real max); // 0x444af0
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX handle, ESI array
-extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag); // 0x4ed990
+
 extern void damage_apply_area_effect(damage_data *dd); // 0x4edd30 (the caller also pushes an unread -1)
-extern datum_index light_new_positioned(datum_index light_tag, int32_t marker_index,
-    int16_t marker_sub_index, real_point3d *position, uint32_t param_5, real_vector3d *direction); // 0x4f0c10
+
 extern void object_placement_data_initialize(object_placement_data *placement,
     datum_index definition_tag, datum_index role); // 0x4f53a0
-extern datum_index object_new(object_placement_data *placement); // 0x4f5460, ECX
+
 extern void effect_random_velocity_vector(effect *self, random_seed *seed,
     real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity,
     real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset); // 0x451310, EAX self

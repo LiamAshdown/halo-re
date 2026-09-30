@@ -16,12 +16,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void object_set_health_frozen_flag(uint32_t object_index);   // 0x4eda20
-extern void object_children_recurse_prune(uint32_t object_index);   // 0x4edc10
+
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
     const ColorRGB *color, const effect_tint_source *tint_source);

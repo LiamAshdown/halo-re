@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern uint8_t *global_scenario; // 0x00746f8c
@@ -36,9 +37,9 @@ extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, re
     // blam-cc: EAX -> out, EDX -> point, stack -> m
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0,
     // blam-cc: EAX -> node_index, ECX -> bsp, EDX -> point
-extern void objects_garbage_collection(void); // 0x4f9c60
+
 extern void block_list_compact(memory_pool *arena); // 0x4d1eb0, blam-cc: EBX -> arena
-extern datum_index object_new_from_scenario_placement(uint8_t *placement, TagReflexive *palette); // 0x4f9b70
+
 
 void scenario_objects_place_for_structure_bsp(uint8_t place)
 {

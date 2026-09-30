@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_objects.h"
 #include <stdint.h>
 
 extern data_array *object_data;       // 0x008603b0
@@ -38,7 +39,7 @@ extern char *weapon_get_label(datum_index item_index); // 0x4c24d0, ECX
 extern void weapon_ready(datum_index item_index); // 0x4c2840, EAX
 extern int32_t weapon_put_away(datum_index item_index, int8_t force); // 0x4c28f0, ESI, AL
 extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0, EAX
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, stack
+
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, EAX
 extern void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name,
     uint32_t object_index, char *object_marker_name); // 0x4f6180, stack, stack, ESI, EDI

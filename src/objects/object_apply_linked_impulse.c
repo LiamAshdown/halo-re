@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern network_id_table *object_network_id_table; // 0x00687130
 

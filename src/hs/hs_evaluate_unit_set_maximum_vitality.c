@@ -12,13 +12,13 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_objects.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
 extern data_array *object_data; // 0x008603b0
-extern void object_initialize_shield_stun_thresholds(uint32_t object_index, float *override_max_body_vitality,
-    float *override_max_shield_vitality); // 0x4ed440, blam-cc: EAX, ESI, EDI
+
 
 void hs_evaluate_unit_set_maximum_vitality(int16_t function_index, uint32_t thread_index, char first)
 {

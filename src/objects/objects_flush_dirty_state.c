@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern object_type_definition *object_type_definition_list; // 0x008603dc
 extern data_array *light_data; // 0x00860b14
@@ -33,7 +34,7 @@ extern data_array *noncollideable_object_references; // 0x008603c4
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
 extern void object_block_data_free(data_array *array, datum_index object_index); // 0x4f7de0, UNSURE: argument inferred by analogy
-extern void widgets_dispose_clear_flag(void); // 0x4ffa50
+
 
 void objects_flush_dirty_state(void)
 {

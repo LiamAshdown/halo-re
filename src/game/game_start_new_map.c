@@ -26,6 +26,7 @@
 #include "fn_ai.h"
 #include "fn_game.h"
 #include "fn_rasterizer.h"
+#include "fn_objects.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
@@ -87,8 +88,7 @@ extern void data_delete_all(data_array *array); // blam-cc: ESI -> array (src/me
 extern void scenario_objects_place(Scenario *scenario); // 0x4f3ba0. One plain stack
     // argument -- objdump shows 0x4f3ba0 reading [esp+0x24] twice and taking no register input,
     // so src/objects/scenario_objects_place.c's "blam-cc: EAX -> param_1" is wrong.          // 0x4f3ba0, UNSURE arg
-extern void objects_reset(void);                                           // 0x4f4bb0
-extern void breakable_surfaces_reset(void); // 0x4ffd40, objects (breakable_surface_globals reset, R79)
+
 
 extern void game_state_build_header(void);                                     // 0x538000
 extern void ambient_color_randomize(void);                                                  // UNSURE module

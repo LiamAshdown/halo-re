@@ -15,11 +15,12 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, this batch
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch; NULL location probes it
+
 
 // FIXED (objdump 0x4f5379): the stack argument is the new leaf location, passed straight to 0x4f5c30 (0 there
 //   means "find the leaf from the bounding centre"); the draft always passed 0.

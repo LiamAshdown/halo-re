@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types]; // 0x0069c010
 extern object_type_definition *object_type_definition_list; // 0x008603dc

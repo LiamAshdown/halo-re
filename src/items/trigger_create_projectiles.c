@@ -23,6 +23,7 @@
 #include "fn_ai.h"
 #include "fn_game.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern data_array *actor_data;         // 0x00880360
@@ -50,8 +51,7 @@ extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d 
     int16_t distribution_function, real distribution_angle, uint32_t flags); // 0x4c54e0, stack + AX
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
-extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
-    uint32_t ignore_object_index); // 0x4f7b70, stack, ECX
+
 
 extern double fabs(double x);
 extern double sqrt(double x);

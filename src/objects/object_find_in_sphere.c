@@ -24,13 +24,13 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t cluster_flood_in_progress; // 0x006e3f01, foreign module, UNSURE
 extern int32_t cluster_flood_stamp; // 0x006e3f04, foreign module, UNSURE
 
-extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count,
-    int16_t *cluster_indices, int16_t max_output, datum_index *out_objects); // 0x4f7180, this batch
+
 extern int16_t cluster_flood_fill_within_radius(int16_t start_cluster, real_point3d *center,
     float radius, int16_t max_clusters, int16_t *out_clusters); // 0x554d10, foreign module, UNSURE
 

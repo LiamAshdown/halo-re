@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_objects.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -29,7 +30,6 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value;    // 0x0087aa10
 
 
-extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20
 extern void unit_exit_vehicle_seat(uint32_t player_index); // 0x568120, UNSURE: see header
 extern void player_reset_after_unit_change(uint32_t player_index); // this batch, 0x474e10
 

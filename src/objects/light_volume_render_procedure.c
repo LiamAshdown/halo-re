@@ -29,6 +29,7 @@
 #include "objects.h"
 #include "bitmaps.h"
 #include "fn_rasterizer.h"
+#include "fn_objects.h"
 
 extern uint8_t *light_volume_instances; // 0x006b8d70
 extern tag_instance *tag_instances;     // 0x0087bc14

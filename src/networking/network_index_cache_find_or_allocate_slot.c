@@ -19,10 +19,9 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_objects.h"
 
 
-
-extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value); // 0x4f0530,
     // memory module; UNSURE: signature inferred, see file header
 
 // Looks up key in container's index cache; if present, returns its cached slot. Otherwise scans

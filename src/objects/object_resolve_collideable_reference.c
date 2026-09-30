@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern datum_index *collideable_cluster_first; // 0x008603d0
 extern data_array *collideable_object_references; // 0x008603d4

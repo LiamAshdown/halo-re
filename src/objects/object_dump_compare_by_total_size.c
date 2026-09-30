@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 int object_dump_compare_by_total_size(const object_memory_dump_record *a, const object_memory_dump_record *b)
 {

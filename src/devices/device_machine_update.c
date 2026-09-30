@@ -72,6 +72,7 @@
 #include "objects.h"
 #include "units.h"
 #include "devices.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -87,7 +88,7 @@ extern uint8_t device_group_set_value(uint16_t group_index, float value); // 0x4
     // discard it, but the declaration must agree with src/devices/device_group_set_value.c)
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
     real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); // 0x4f6fe0
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
+
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0
 
 uint32_t device_machine_update(uint32_t object_index)

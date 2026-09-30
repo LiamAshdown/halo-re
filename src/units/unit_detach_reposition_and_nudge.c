@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,8 +31,8 @@ extern void object_get_position(real_point3d *out, uint32_t object_index);      
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);         // 0x4f6610, stack
 extern uint8_t scenario_structure_bsp_locate_point_nudge_up(real_point3d *point);   // 0x53e870, EDX
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);          // 0x4f5de0, EAX
-extern void object_recalculate_bounding_radius(uint32_t object_index);              // 0x4f8310, stack
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, stack
+
+
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
     int32_t invoke_callback); // 0x4f9a20, EAX, stack
 

@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *light_data;                 // 0x00860b14
 extern uint8_t *lights_enabled;                // 0x0071cfb8

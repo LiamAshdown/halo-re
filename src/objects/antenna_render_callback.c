@@ -14,11 +14,12 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *antenna_data; // 0x008603ac
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt); // 0x4fae10
-extern void antenna_render_geometry(Antenna *antenna_tag, antenna *ant); // 0x4fb340, blam-cc: EDI -> antenna_tag, stack -> ant
+
 
 void antenna_render_callback(datum_index object_index, datum_index antenna_index)
 {

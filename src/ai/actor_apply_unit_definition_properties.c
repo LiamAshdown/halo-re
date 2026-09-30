@@ -24,6 +24,7 @@
 #include "units.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;           // 0x008603b0
 extern tag_instance *tag_instances;       // 0x0087bc14
@@ -33,8 +34,7 @@ extern object_type_definition *object_type_definitions[12]; // 0x0069bfdc
 
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
     // 0x43f6a0, blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
-extern void object_initialize_shield_stun_thresholds(uint32_t object_index, float *override_max_body_vitality,
-    float *override_max_shield_vitality); // 0x4ed440, blam-cc: EAX, ESI, EDI
+
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role); // 0x4f53a0, blam-cc: EAX -> placement, stack -> definition_tag, role
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0

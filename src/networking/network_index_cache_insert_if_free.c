@@ -18,10 +18,11 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_objects.h"
 
 
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
-extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value); // 0x4f0530
+
 
 // If container's cache slot is unoccupied (-1) and key is not already present in the hash
 // table, binds slot to key and returns true.

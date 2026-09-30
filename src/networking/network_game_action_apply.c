@@ -21,6 +21,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_objects.h"
 
 extern int16_t network_game_mode; // 0x00719720
 extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE name
@@ -66,8 +67,8 @@ extern void weapon_apply_ammo_correction(void **context); // 0x4c3870, EAX
 extern void weapon_apply_ammo_correction_and_resync(void **context); // 0x4c4ac0, EAX
 extern void game_engine_spawn_or_replay_netgame_equipment(void **context); // 0x45f8f0, EAX
 extern void projectile_detonation_message_apply(void **context); // 0x4bdb40, EAX
-extern void object_apply_linked_impulse(void **context); // 0x4efc80, EAX
-extern void object_apply_shield_charge_and_notify(void **context); // 0x4ee4d0, EAX
+
+
 extern void projectile_attach_apply(void **context); // 0x4bf1c0, EAX
 extern void network_player_ping_field_update_and_report(void **context); // 0x4dbaa0, EAX
 extern void network_client_handle_server_text_message(void **context); // 0x4e5140, EDX

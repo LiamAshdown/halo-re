@@ -21,6 +21,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *light_data;      // 0x00860b14
 extern tag_instance *tag_instances; // 0x0087bc14

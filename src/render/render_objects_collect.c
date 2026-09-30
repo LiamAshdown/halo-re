@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern int32_t object_cluster_stamp;           // 0x008603cc, objects module
 extern object_globals *object_globals_pointer; // 0x006b8cbc, objects module
@@ -46,9 +47,9 @@ extern datum_index object_cluster_collideable_iterate_next(uint32_t *cursor);   
 extern datum_index object_cluster_noncollideable_iterate_begin(uint32_t *cursor, int16_t cluster_index);
     // 0x4f5e90
 extern datum_index object_cluster_noncollideable_iterate_next(uint32_t *cursor);    // 0x4f5ed0
-extern uint8_t object_cluster_stamp_not_visited(datum_index object_index);
+
     // 0x4f96f0 (functions.txt: object_disconnect_from_map)
-extern uint8_t object_cluster_stamp_mark_visited(datum_index object_index);        // 0x4f9720
+
 
 extern void render_object_get_cull_sphere(datum_index object_index, real_point3d *center,
                                           float *radius); // 0x50e8d0, this module (cdecl)

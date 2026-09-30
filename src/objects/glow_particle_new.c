@@ -19,11 +19,11 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t effect_random_seed; // 0x00719cd4
 
-extern glow_particle *glow_particle_datum_new(void); // this module, 0x4fdde0
 
 static float glow_next_random_unit(void)
 {

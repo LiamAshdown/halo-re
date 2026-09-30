@@ -27,6 +27,7 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern float k_default_resting_plane[4]; // 0x0069c53c
@@ -37,7 +38,7 @@ extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3
     float radius, float x_offset, float y_offset, uint32_t exclude_object_index,
     physics_model *model); // 0x506440, this module (higher half)
 extern int16_t physics_resolve_material_type(uint32_t object_index, int16_t vertex_slot); // 0x507a40
-extern void object_set_shield_depleted_flag(uint32_t object_index); // 0x4edb10, objects module,
+
     // UNSURE args
 
 // Seeds mass_point's resting plane to k_default_resting_plane and computes its ground_depth

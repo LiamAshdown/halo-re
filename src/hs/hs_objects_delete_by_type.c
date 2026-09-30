@@ -16,8 +16,9 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_objects.h"
 
-extern void objects_garbage_collection(void); // objects module, 0x4f9c60
+
 extern void block_list_compact(memory_pool *arena); // 0x4d1eb0, EBX
 extern memory_pool *object_memory_pool; // 0x006b8cb4
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI

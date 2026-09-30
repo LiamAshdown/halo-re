@@ -30,12 +30,13 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c, the game time globals (types/game.h)
 
-extern void object_set_shield_depleted_flag(uint32_t object_index); // 0x4edb10, blam-cc: EDI -> object_index
+
   // real signature (object_set_shield_depleted_flag.c): void object_set_shield_depleted_flag(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, blam-cc: EAX -> object_index
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0, index in a register

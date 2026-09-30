@@ -22,6 +22,7 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_objects.h"
 #include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 
 extern data_array *particle_system_data; // 0x0087abd4
@@ -29,8 +30,7 @@ extern uint8_t particle_systems_enabled; // 0x0069c566
 
 extern datum_index datum_new(data_array *array); // 0x4d0480
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
-extern void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *lightmap_color,
-    real_vector3d *base_map_color, uint8_t wait_for_textures); // 0x4f1e60, objects module, cdecl
+
 extern uint8_t particle_system_new_type_states(datum_index handle); // 0x4538b0, this module
 
 datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position,

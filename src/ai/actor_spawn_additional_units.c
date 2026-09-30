@@ -32,6 +32,7 @@
 #include "fn_ai.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -42,7 +43,7 @@ extern uint32_t random_seed_global; // 0x00719cd0
 extern double cos(double x);
 extern double sin(double x);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role); // 0x4f53a0
-extern datum_index object_new(object_placement_data *placement); // 0x4f5460, UNSURE signature
+
 extern void object_delete(datum_index object_index); // 0x4f5bd0, UNSURE signature
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
 

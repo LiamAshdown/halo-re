@@ -42,13 +42,13 @@
 #include "math.h"
 #include "objects.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
 
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, this batch, blam-cc: EAX -> object_index
 
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30, this batch, blam-cc: EAX -> object_index, ECX -> location
 
 void object_snap_to_parent_marker_and_detach(uint32_t object_index) // blam-cc: stack -> object_index
 {

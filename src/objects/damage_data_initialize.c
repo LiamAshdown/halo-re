@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag)
 {

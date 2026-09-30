@@ -22,6 +22,7 @@
 #include "fn_ai.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -40,9 +41,6 @@ extern void object_set_position_and_relink(real_point3d *position, uint32_t obje
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack
 
 
-extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity); // 0x4bef80, EAX, EDX
-extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
-    uint32_t ignore_object_index); // 0x4f7b70, stack, ECX
 extern void object_delete(uint32_t object_index);            // 0x4f5bd0, EAX
 extern uint8_t object_is_delete_pending(uint32_t object_index); // 0x4f5c10, EAX
 extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, ESI

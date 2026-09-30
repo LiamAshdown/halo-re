@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "interface.h"
 #include "fn_game.h"
+#include "fn_objects.h"
 
 extern player_globals *local_player_globals;  // 0x0087a478
 extern data_array *player_data;               // 0x0087a480
@@ -29,8 +30,7 @@ extern hud_waypoint_state *hud_waypoints;     // 0x006b3a44
 extern Scenario *global_scenario; // 0x00746f8c
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
-extern void object_get_center_of_mass_and_scale(real_point3d *out_center, uint32_t object_index,
-                                                float *out_radius); // 0x4088e0, blam-cc: EAX out_center, ECX object_index
+
 
 extern void hud_waypoint_draw(const real_point3d *position, int16_t local_player_index, int16_t arrow_index,
                               int16_t visibility, uint8_t show_distance); // 0x4af5e0, blam-cc: EAX position

@@ -36,6 +36,7 @@
 #include "game.h"
 #include "units.h"
 #include "fn_rasterizer.h"
+#include "fn_objects.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *light_data; // 0x00860b14
@@ -64,11 +65,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_light_recompute_transform(uint32_t light_index); // 0x4f2a00
 extern int16_t structure_bsp_collect_visible_objects(datum_index *out_list, int32_t max_count, void *iterate_begin,
     void *iterate_next, void *get_bounds, void *predicate, void *accept); // 0x554420
-extern datum_index light_cluster_iterate_begin(datum_index *cursor, int16_t cluster_index); // 0x4f34c0
-extern datum_index light_cluster_iterate_next(datum_index *cursor); // 0x4f3500
-extern void light_get_render_bounds(datum_index handle, real_point3d *center_out, float *radius_out); // 0x4f3530
-extern uint8_t light_not_marked_this_frame(datum_index handle); // 0x4f3620
-extern uint8_t light_mark_this_frame(datum_index handle); // 0x4f3650
 
 
 extern void *color_interpolate_argb_with_tint(uint32_t flags, void *color1, void *dest, void *tint, void *color0,

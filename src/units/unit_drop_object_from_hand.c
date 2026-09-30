@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_objects.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -30,7 +31,7 @@ extern game_engine_definition *current_game_engine;
 extern char s_left_hand_marker[];    // 0x00671ffc "left hand"
 extern char k_empty_string[];   // 0x0065512c ""
 
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
+
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
                                               int32_t invoke_callback); // 0x4f9a20, EAX, stack
 extern void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name,
@@ -42,8 +43,7 @@ extern void object_get_root_object_velocities(uint32_t object_index, real_vector
     real_vector3d *out_angular_velocity); // 0x4f6aa0, EAX, ESI, EDI
 extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer); // 0x4bd080, EAX, stack
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
-extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position,
-    uint32_t ignore_object_index); // 0x4f7b70, stack, ECX
+
 extern void object_delete(uint32_t object_index);            // 0x4f5bd0, EAX
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0

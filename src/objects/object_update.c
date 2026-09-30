@@ -31,6 +31,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -41,10 +42,10 @@ extern real_vector3d *global_origin3d_pointer; // 0x00696714, a pointer variable
     // same address.
 extern float fabsf(float x); // x87 FABS
 
-extern uint8_t object_type_definitions_query_0x34(uint32_t object_index); // 0x4f4000, EAX -> object_index
+
 extern void object_type_definitions_notify_0x38(uint32_t object_index); // 0x4f4080, EBX -> object_index
-extern void object_update_vitality_and_regeneration(uint32_t object_index); // established
-extern void object_recalculate_bounding_radius(uint32_t object_index); // established
+
+
 extern void object_update_functions(uint32_t object_index); // 0x4f92f0, this batch, UNSURE: EAX assumed
 extern void object_update_change_colors(uint32_t object_index); // 0x4f9110, this batch, UNSURE: EAX assumed
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); // 0x4f9a20, this batch

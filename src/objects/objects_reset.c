@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_objects.h"
 
 extern uint32_t object_unknown_006b8c60; // 0x006b8c60, UNSURE: foreign/undocumented global
 extern int32_t object_sound_event_last_tick; // 0x006b8a00, UNSURE: foreign/undocumented global
@@ -38,8 +39,7 @@ extern void *noncollideable_cluster_partition; // 0x008603c8
 extern int32_t object_cluster_stamp; // 0x008603cc
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 
-extern void widgets_dispose(void); // 0x4ffa10
-extern void lights_dispose_all(void); // 0x4f0aa0
+
 extern void data_delete_all(data_array *array); // 0x4d0580, memory module
 
 void objects_reset(void)

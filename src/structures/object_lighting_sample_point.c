@@ -53,6 +53,7 @@
 #include "structures.h"
 #include "fn_rasterizer.h"
 #include "fn_math.h"
+#include "fn_objects.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
 extern ScenarioStructureBSP *global_structure_bsp;       // 0x00746f9c
@@ -79,9 +80,6 @@ extern void bsp_lightmap_sample_vertex_color(BitmapData *bitmap, float weight_1,
     // 0x4f06d0, blam-cc: EAX out, ECX v1, EDX v2, ESI v0, stack (w2, w1)
 
 
-extern void object_build_effect_parameter_block(uint8_t flags, real_vector3d *shading_normal, float intensity,
-    ColorRGB *lightmap_color, real_vector3d *lightmap_normal, ColorRGB *base_map_color,
-    render_lighting *lighting);
     // 0x4f2ff0, blam-cc: stack (flags, shading_normal, intensity), ECX lightmap_color,
     // EAX lightmap_normal, EDX base_map_color, ESI lighting (this call site; see UNSURE)
 

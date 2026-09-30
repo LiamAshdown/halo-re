@@ -20,13 +20,12 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_objects.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void object_sample_total_lighting_at_point(real_point3d *point, bsp_leaf_reference *location,
-                                                   real_vector3d *out_rgb); // 0x4f1c20, cdecl (orphan pass 4)
-extern real object_sum_attached_light_luminance(uint32_t object_index); // 0x4f1b30, UNSURE signature
+
 
 // Computes and caches the unit's current light/luminosity value from its RGB color state, or
 // inherits both cached values from a parent/attached object when one is present.
