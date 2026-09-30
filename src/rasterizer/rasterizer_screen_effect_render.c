@@ -1,7 +1,8 @@
 // rasterizer_screen_effect_render  (Ghidra: rasterizer_screen_effect_video_technique_select; the
-//   earlier placeholder kept that name)
+//   earlier draft kept that name)
 // address 0x52d8a0, size 2599 bytes
-// name confidence: 0.6   rewrite confidence: 0.75
+// VERIFIED against disassembly 0x52d8a0..0x52e0de (2026-09-30): early-out conditions, quad setup, pass ping-pong and source size, the video noise pass, the four stage binds with sampler states, uv transform, technique selection (0..10) with the vector handles, the blend/pass loop and the exit paths
+// name confidence: 0.6   rewrite confidence: 0.9
 // evidence: rebuilt from the raw disassembly; Ghidra lost the stack frame (the parameter block
 //   pointer is kept in the argument slot), every device and ID3DXEffect call argument and the
 //   technique selection. Caller: first_person_weapon_update_screen_effects 0x494730, twice, with
@@ -19,7 +20,7 @@
 //   night vision / desaturation techniques on the last pass. The last pass blends onto the frame.
 // register convention: stack -> input (weapon_screen_effect_parameters*, handed to 0x512360 in EAX).
 // blam-cc: stack -> input
-// UNSURE: the source target is rasterizer_render_targets[-1] (the 0x14 bytes before the table)
+// NOTE: the source target is rasterizer_render_targets[-1] (the 0x14 bytes before the table)
 //   when there is a single pass; the binary reads it for the quad texture coordinates.
 
 #include "tags.h"
@@ -33,7 +34,7 @@ extern void *rasterizer_device;                             // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220
 extern uint8_t rasterizer_software_vertex_processing;       // 0x0069c680
 extern uint8_t console_debug_toggle_689428;                 // 0x00689428 screen effects enabled
-extern uint32_t config_use_alternate_convolve_mask;         // 0x00722b78 UNSURE: picks technique 3 over 2
+extern uint32_t config_use_alternate_convolve_mask;         // 0x00722b78 picks technique 3 over 2
 extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_targets]; // 0x0069d358
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
