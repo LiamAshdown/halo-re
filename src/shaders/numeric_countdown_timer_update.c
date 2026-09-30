@@ -23,6 +23,7 @@
 #include "math.h"
 #include "game.h"
 #include "shaders.h"
+#include "fn_shaders.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int32_t numeric_countdown_timer_remaining_ms;   // 0x00721e50

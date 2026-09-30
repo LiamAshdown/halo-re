@@ -2836,3 +2836,4 @@ types/interface.h first_person_weapon_interface 0x28 unknown_28 -> charge_blend_
 - extern removal: cseries -> types/fn_cseries.h (8 prototypes, 21 files edited); 6 names skipped (callers disagree): md5_hex_digest, time_query_performance_counter_ms, write_to_error_file, md5_final, md5_transform, md5_update
 - extern removal: projectiles -> types/fn_projectiles.h (5 prototypes, 8 files edited); 5 names skipped (callers disagree): projectile_attach_apply, projectile_create_from_network, projectile_detonate, projectile_detonation_message_apply, projectile_update_function_values
 - extern removal: dialogs -> types/fn_dialogs.h (5 prototypes, 6 files edited); 0 names skipped (callers disagree): 
+- extern removal: shaders -> types/fn_shaders.h (1 prototypes, 2 files edited); 4 names skipped (callers disagree): chimera__shader_get_vertex_shader_permutation, shader_draw_before_water, shader_is_decal, shader_texture_animation_evaluate

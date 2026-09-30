@@ -10,6 +10,7 @@
 #include "math.h"
 #include "game.h"
 #include "fn_sound.h"
+#include "fn_shaders.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern game_time_globals *game_time;   // 0x006f1d6c
@@ -20,7 +21,6 @@ extern void particle_systems_update(real delta_time);                    // UNSU
 extern void particles_update(real tick_delta_time);                 // UNSURE module
 extern void widgets_update_all(real tick_delta_time);             // 0x4ffd10
 extern void weather_update(void);                                  // 0x53f5c0
-extern void numeric_countdown_timer_update(void);                                 // 0x540240
 
 
 // Per-tick update that advances contrail, weather, timer, sound and widget systems by a
