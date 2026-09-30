@@ -12,7 +12,8 @@
 // esp,-8;sub esp,0x28;push ebx;push ebp;push esi;push edi at 0x497e80, popped in the matching
 // order). It owns no callers and no types of its own; its logic is folded in below rather than
 // written as a separate file. See PLAN.md / this file's own summary note for the full case.
-// name confidence: 0.8   rewrite confidence: 0.4
+// VERIFIED against disassembly 0x497e80..0x49832e (2026-09-30)
+// name confidence: 0.8   rewrite confidence: 0.9
 // evidence: out/phase4/interface_functions.md; types/interface.h's progress-screen and
 // widget_instance notes; register/stack layout cross-checked against disassembly at
 // 0x497e80..0x49832d for every call this file could not otherwise resolve (chimera__load_ui_
@@ -25,8 +26,7 @@
 // widget_instance_handle_input_event consumes (Ghidra's `LARGE_INTEGER local_28[2]`, 16 bytes)
 // is not a type this session resolved; passed through as an opaque byte buffer, exactly as
 // large as Ghidra's own frame layout reserves for it.
-// UNSURE: input_queue_pop_event's real role (its own decompile was not read in this session) is modeled
-// only from this call site: `input_queue_pop_event(scratch, controller_index)` returning a bool, matching
+// Note: input_queue_pop_event's role is modeled only from this call site: `input_queue_pop_event(scratch, controller_index)` returning a bool, matching
 // the phase-4 summary "advances timers ... updates the active widget's input/selection state".
 // UNSURE: DAT_00718fac/ae/b0/b1 is the same "pending non-modal message" record
 // interface_handle_quit_request.c names quit_confirm_error_*; despite that name it is used here
@@ -53,7 +53,7 @@
 
 extern int32_t ui_time_milliseconds;              // 0x00718f9c
 extern loading_thread_record *loading_thread;      // 0x00718fbc
-extern uint8_t loading_thread_result;               // 0x00718fc0, UNSURE: 1/2 select which error string
+extern int16_t loading_thread_result;               // 0x00718fc0 (read with movsx word), 1/2 select which error string
 extern uint8_t ui_input_batch_mode;                 // 0x00718fc5, UNSURE name
 extern uint8_t virtual_keyboard;             // 0x007193a8 (virtual_keyboard_globals::active)
 extern widget_instance *ui_root_widget[1];          // 0x00718f94
@@ -156,13 +156,19 @@ void interface_tick(void)
                 if (widget != (widget_instance *)0) {
                     UIWidgetDefinition *tag = (UIWidgetDefinition *)tag_instances[widget->definition & 0xffff].data;
                     int32_t scratch_i;
+                    uint8_t looped = 0;
 
                     for (scratch_i = 0; scratch_i < 16; scratch_i++) event_scratch[scratch_i] = 0;
                     root = widget;
+                    // 0x498074..0x498112: in the non-batch mode the event queue is drained first; when it holds NO event (or in batch
+                    // mode) the handler is still called once with an empty event whose controller word (+2) is the widget's controller.
+                    // FIXED 2026-09-30: the draft only called the handler when an event was actually popped, so idle frames never
+                    // reached the widget.
                     if (ui_input_batch_mode == 0) {
                         uint8_t got_event = input_queue_pop_event(event_scratch, widget->controller_index);
 
                         if (got_event != 0) {
+                            looped = 1;
                             do {
                                 if ((is_paused == 0 &&
                                      (widget_instance_handle_input_event(widget, tag, event_scratch, &handled),
@@ -173,11 +179,11 @@ void interface_tick(void)
                                 got_event = input_queue_pop_event(event_scratch, widget->controller_index);
                             } while (got_event != 0);
                         }
-                    } else {
-                        if (is_paused == 0) {
-                            widget_instance_handle_input_event(widget, tag, event_scratch, &handled);
-                            root = ui_root_widget[0];
-                        }
+                    }
+                    if (looped == 0 && is_paused == 0) {
+                        *(uint16_t *)(event_scratch + 2) = widget->controller_index;
+                        widget_instance_handle_input_event(widget, tag, event_scratch, &handled);
+                        root = ui_root_widget[0];
                     }
                     handled = 1;
                     if (root == (widget_instance *)0 && ui_widget_history[0] != (widget_history_node *)0) {
