@@ -22,6 +22,8 @@
 // `4 - (finished_event signaled)` look swapped relative to cache_file_download_status's enum
 // names, but that is exactly what the code computes.
 
+// VERIFIED against disassembly 0x442720..0x442830 (2026-09-30) (the earlier "simplified" wording only refers to the codes
+// cache_file_download_status maps these to).
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.
