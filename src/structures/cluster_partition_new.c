@@ -44,6 +44,10 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
     // 0x5380d0; name and maximum_count on the stack, element_size in EBX
     // (blam-cc: EBX -> element_size)
 
+// VERIFIED against disassembly 0x551e30..0x551ef4 (2026-09-30): the 0x800-byte head table reservation and its size checksum,
+//   the four sprintf formats ("cluster %s" / "%s cluster" then "%s reference") and both game_state_new calls (EBX = 0xc,
+//   0x800 entries) with the stores at out+0/+4/+8 match. A difftest "died" needs a valid game-state arena for the
+//   reservations, not a logic difference.
 // Reserves a new cluster-reference partition for one object category (e.g. "collideable" /
 // "noncollideable"): an 0x800-byte, CRC-tracked per-cluster head table, and two named,
 // CRC-tracked object_cluster_reference pools -- one for the clusters' chains of referencing

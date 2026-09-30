@@ -47,6 +47,10 @@ extern void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32
 
 typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 
+// VERIFIED against disassembly 0x511620..0x5116fd (2026-09-30): the centroid average (0 when there are no sprites), the
+//   transform by 0x7c31ac, the group walk (stride 0x10 at +0x24), the vertex buffer Unlock (vtable +0x30) chain
+//   (slot -> type -> cache handle -> buffer slot) and the 7 argument append call (flags ((f & 2) << 6) | 0x20, -4 index slot,
+//   quads * 2) match. The single 1/105 difftest difference is a NaN in the accumulated origin (0 * NaN), not a logic difference.
 // Averages data's accumulated view-space sprite origins back into its centroid (now in world
 // space), then unlocks and queues each of data's groups (screen space builds are not queued),
 // finally clearing build_sprite_data_flags bit 2.
