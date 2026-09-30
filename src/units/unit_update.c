@@ -33,6 +33,7 @@
 #include "fn_game.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -54,8 +55,6 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     const void *color, const void *tint_source); // 0x4507a0, EAX, ECX, stack
 
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
-extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger); // 0x4c2990
-extern void weapon_set_ready_timer(datum_index item_index, real value); // 0x4c2b20
 
 
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970

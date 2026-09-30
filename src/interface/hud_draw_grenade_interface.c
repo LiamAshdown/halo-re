@@ -24,6 +24,7 @@
 #include "objects.h"
 #include "interface.h"
 #include "units.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -32,7 +33,7 @@ extern player_globals *local_player_globals;         // 0x0087a478
 extern game_time_globals *game_time;                 // 0x006f1d6c
 extern hud_weapon_interface_state *hud_weapon_state; // 0x00719430
 
-extern uint32_t weapon_prevents_grenade_throwing(datum_index item_index); // 0x4c2f30, blam-cc: ECX item_index
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern int8_t unit_get_current_grenade_index(uint32_t unit_index); // 0x56e060, blam-cc: EAX unit_index
 extern int32_t unit_get_grenade_count(uint32_t unit_index, int16_t grenade_type); // 0x56e030, blam-cc: EAX unit_index, CX grenade_type

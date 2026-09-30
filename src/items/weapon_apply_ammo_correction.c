@@ -45,6 +45,7 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination

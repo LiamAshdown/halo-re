@@ -12,9 +12,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
-extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
+
 
 // Forces a weapon back to idle unless its current state is one of the three that may persist
 // (7 = charged_primary, 8 = charged_secondary, 10 = put_away).

@@ -15,14 +15,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index,
-    int16_t category, int16_t mode); // 0x4c2f80
-extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index); // 0x4c3900
-extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index); // 0x4c4a00, ECX, BX
 
 // Resets every trigger's effect state to the "reset" sentinel and every magazine back to idle,
 // nudging along any magazine that was mid-reload so its animation isn't left stranded. Used by

@@ -27,11 +27,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level); // 0x4c2d70, EAX, DX
 
 // Fills `out[0..3]` with the current weapon's autoaim/magnetism angle and range bounds
 // (aspect-corrected, forming an observer_target_cone), plus `out[4]` = the larger of the

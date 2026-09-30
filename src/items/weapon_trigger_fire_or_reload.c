@@ -20,6 +20,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -27,9 +28,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out); // 0x53ed60, EBX point, stack
 extern void weapon_fire_trigger(datum_index item_index, int16_t trigger_index); // 0x4c3f10
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
-    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
-extern void weapon_trigger_effect_set_state(datum_index item_index, int16_t trigger_index, int8_t state, int16_t counter); // 0x4c49c0
+
 
 // Decides what a pulled (or forced) weapon trigger should do this tick: refuse while reloading
 // or overheated, otherwise fire immediately, or enter the charging/overload effect state.

@@ -24,6 +24,7 @@
 #include "items.h"
 #include "interface.h"
 #include "units.h"
+#include "fn_items.h"
 
 extern player_globals *local_player_globals;         // 0x0087a478
 extern data_array *player_data;                      // 0x0087a480
@@ -32,7 +33,7 @@ extern tag_instance *tag_instances;                  // 0x0087bc14
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern hud_weapon_interface_state *hud_weapon_state; // 0x00719430
 
-extern void weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out); // 0x4c29d0, blam-cc: EAX item_index
+
 extern int16_t unit_count_deployed_weapons(datum_index unit_index); // 0x56d990, blam-cc: EAX
 extern void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index,
                                                  int32_t weapon_or_vehicle_index, void *state_ptr); // 0x4b1970, blam-cc: EAX hud_interface_tag_id

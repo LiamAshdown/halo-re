@@ -23,6 +23,7 @@
 #include "items.h"
 #include "projectiles.h"
 #include "fn_ai.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14

@@ -21,6 +21,7 @@
 #include "units.h"
 #include "effects.h"
 #include "fn_math.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -33,7 +34,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
     // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six
 extern void unit_invalidate_local_player_zoom_level(uint32_t unit_index);                             // 0x4726f0, UNSURE signature
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
-extern uint32_t weapon_prevents_grenade_throwing(datum_index item_index); // 0x4c2f30, ECX
+
 extern void weapon_reset_triggers(datum_index weapon_index);                        // 0x4c4b50, UNSURE signature
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90

@@ -35,6 +35,7 @@
 #include "game.h"
 #include "fn_ai.h"
 #include "fn_game.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -53,15 +54,12 @@ extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x47
 extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action); // 0x4940f0
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, EBX, EAX
-extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
+
 extern void trigger_create_projectiles(datum_index item_index, int16_t trigger_index, int32_t role); // 0x4c4c40
 
 extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index,
     int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
-extern void weapon_reload_recovery_finish(datum_index item_index, int16_t trigger_index); // 0x4c4940
-extern void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index); // 0x4c48f0
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
-    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
+
 
 // Fires one round of a weapon trigger: consumes ammo (or misfires), resolves the firing effect
 // and heat/age gain, spawns projectiles (or defers to the host), applies a self-damage/knockback

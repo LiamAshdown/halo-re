@@ -24,6 +24,7 @@
 #include "fn_game.h"
 #include "fn_math.h"
 #include "fn_objects.h"
+#include "fn_items.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern data_array *actor_data;         // 0x00880360
@@ -47,8 +48,7 @@ extern void object_placement_data_initialize(object_placement_data *placement, d
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed,
     real lo, real hi); // 0x4cd1b0, EAX, EBX, EDI, stack
 
-extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index,
-    int16_t distribution_function, real distribution_angle, uint32_t flags); // 0x4c54e0, stack + AX
+
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
 

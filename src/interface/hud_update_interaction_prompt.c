@@ -38,6 +38,7 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_items.h"
 #include <wchar.h>
 
 extern tag_instance *tag_instances;          // 0x0087bc14
@@ -56,7 +57,7 @@ extern void hud_set_action_text_shown(int16_t local_player_index, uint8_t shown)
 extern int16_t object_get_hud_text_message_index(datum_index object_index); // 0x4a9b40, blam-cc: EAX
 extern uint8_t weapon_hud_ammo_state_is_empty(const weapon_hud_ammo_state *state); // 0x4a9750, blam-cc: EAX
 extern uint8_t game_engine_pick_hud_hint(datum_index player_index, int32_t maximum_length, uint16_t *out_text); // 0x463150, blam-cc: ECX player, EAX 0x400
-extern void weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out); // 0x4c29d0, blam-cc: EAX item
+
 extern int16_t unit_count_deployed_weapons(datum_index unit_index); // 0x56d990, blam-cc: EAX
 extern int16_t unit_find_next_zone_permitted_weapon_slot(datum_index unit_index, int32_t start_slot, int16_t direction); // 0x56dba0, blam-cc: EAX unit
 extern datum_index unit_get_weapon_object_index(datum_index unit_index, int16_t slot_index); // 0x569970, blam-cc: EAX unit, CX slot

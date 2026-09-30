@@ -15,6 +15,7 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index,

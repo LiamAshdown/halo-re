@@ -22,12 +22,13 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970; blam-cc: EAX, CX
-extern void weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out); // 0x4c29d0, blam-cc: EAX item_index
+
 
 // blam-cc: player -> EAX
 // Fills out with the HUD ammo state of the weapon the player is holding, or of the seat

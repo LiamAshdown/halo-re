@@ -21,10 +21,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void weapon_build_creation_message(datum_index item_index, uint32_t unused_param_2,
-    uint32_t unused_param_3, uint32_t object_flags); // 0x4c5a50, this module
+
 
 // The weapon row's "send creation" hook (object_type_definition +0x64). Builds and sends the
 // weapon creation message, advertising _object_at_rest_bit in the message's object_flags only

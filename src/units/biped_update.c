@@ -30,6 +30,7 @@
 #include "fn_ai.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -44,9 +45,8 @@ extern real_point3d *global_origin3d_pointer;   // 0x00696714
 
 
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
-extern uint32_t weapon_prevents_melee_attack(datum_index item_index); // 0x4c2ee0, ECX
-extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category,
-    int16_t mode); // 0x4c2f80, EAX, CX, stack
+
+
 extern void weapon_reset_triggers(datum_index item_index); // 0x4c4b50, stack
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)

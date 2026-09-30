@@ -86,7 +86,12 @@ def complete_includes(body, mod, headers):
                 new.append(h)
         if not new:
             return body, headers, missing
-        headers = headers + new
+        own = mod + ".h"
+        if own in headers:                       # dependencies must precede the module's own header
+            i = headers.index(own)
+            headers = headers[:i] + new + headers[i:]
+        else:
+            headers = headers + new
         body = re.sub(r'((?:#include "[^"]+"\n)+)', "".join('#include "%s"\n' % h for h in headers), body, count=1)
     return body, headers, missing
 

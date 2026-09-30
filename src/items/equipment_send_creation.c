@@ -24,10 +24,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
-extern void equipment_build_creation_message(uint32_t item_index, uint32_t unused_arg2,
-    uint32_t unused_arg3, uint32_t object_flags); // 0x4bbc90, this module
+
 
 // The equipment row's "send creation" hook (object_type_definition +0x64). Builds and sends the
 // equipment creation message, advertising _object_at_rest_bit in the message's object_flags only

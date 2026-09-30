@@ -22,6 +22,7 @@
 #include "networking.h"
 #include "fn_game.h"
 #include "fn_objects.h"
+#include "fn_items.h"
 
 extern int16_t network_game_mode; // 0x00719720
 extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE name
@@ -61,10 +62,8 @@ extern void player_update_client_remote_player_position_delta_from_network(void 
 extern void player_update_client_remote_player_vehicle_position_delta_from_network(void **context); // 0x4e5d60, EAX
 extern void player_update_client_remote_player_total_biped_update_from_network(void **context); // 0x4e5870, EDX
 extern void player_update_client_remote_player_total_vehicle_update_from_network(void **context); // 0x4e5a30, EDX
-extern void weapon_predict_ammo(void **context); // 0x4c3530, EAX
-extern int32_t weapon_add_ammunition(void **context); // 0x4c25a0, EAX
-extern void weapon_apply_ammo_correction(void **context); // 0x4c3870, EAX
-extern void weapon_apply_ammo_correction_and_resync(void **context); // 0x4c4ac0, EAX
+
+
 extern void game_engine_spawn_or_replay_netgame_equipment(void **context); // 0x45f8f0, EAX
 extern void projectile_detonation_message_apply(void **context); // 0x4bdb40, EAX
 

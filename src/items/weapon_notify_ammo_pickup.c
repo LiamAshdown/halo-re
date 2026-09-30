@@ -20,6 +20,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_items.h"
 
 extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0

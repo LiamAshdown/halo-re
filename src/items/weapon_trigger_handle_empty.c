@@ -13,12 +13,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void weapon_reload_recovery_finish(datum_index item_index, int16_t trigger_index); // 0x4c4940
-extern void weapon_trigger_enter_recovery(datum_index item_index, int16_t trigger_index); // 0x4c3d00
 
 void weapon_trigger_handle_empty(datum_index item_index, int16_t trigger_index)
 {

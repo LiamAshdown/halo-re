@@ -11,6 +11,7 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
 

@@ -22,6 +22,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130

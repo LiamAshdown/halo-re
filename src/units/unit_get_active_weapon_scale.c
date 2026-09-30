@@ -13,10 +13,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level); // 0x4c2d70, EAX, DX
 
 // FIXED (objdump 0x565ae7): a stack argument (the zoom level) goes on to weapon_get_zoom_magnification in DX with
 //   the weapon in EAX (tail jump); the draft called it with nothing and its caller passed the zoom level as the unit.

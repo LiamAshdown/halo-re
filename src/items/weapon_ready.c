@@ -17,19 +17,17 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void weapon_reset_triggers(datum_index item_index); // 0x4c4b50
-extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
+
 extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action); // 0x4940f0
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, EBX, EAX
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
-    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
-extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index,
-    int16_t category, int16_t mode); // 0x4c2f80
+
 
 // Starts a weapon's "ready" state, kicks off its first-person ready animation/sound, and seeds
 // the action_ticks cooldown that keeps weapon_update from accepting triggers until it elapses.

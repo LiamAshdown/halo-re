@@ -17,11 +17,12 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern int8_t weapon_has_active_state(datum_index item_index); // 0x4c3070
-extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
+
 extern void weapon_reset_triggers(datum_index item_index); // 0x4c4b50
 extern void effect_delete(datum_index handle); // 0x450be0
 extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature

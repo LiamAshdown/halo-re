@@ -16,12 +16,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
-    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
+
 extern void object_delete_unparented(datum_index object_index); // 0x4f5aa0
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings); // 0x4f59d0
 

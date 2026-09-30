@@ -18,10 +18,11 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern real k_weapon_zoom_fov_maximum; // 0x00672ea0
 extern real k_weapon_zoom_fov_minimum; // 0x00672ea4
-extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level); // 0x4c2d70
+
 
 // Converts a magnification factor for one zoom level into a target field of view, falling back
 // to the unclamped base FOV when the magnification is trivial (1.0) or the resulting FOV would

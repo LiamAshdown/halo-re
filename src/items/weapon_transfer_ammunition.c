@@ -20,6 +20,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -29,7 +30,7 @@ extern void equipment_definition_play_pickup_sound(uint32_t equipment_tag_id); /
 extern void object_delete(uint32_t object_index); // 0x4f5bd0
 extern void object_delete_unparented(datum_index object_index); // 0x4f5aa0
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings); // 0x4f59d0
-extern void weapon_notify_ammo_pickup(datum_index item_index, int16_t magazine_index, int16_t rounds); // 0x4c2510
+
 
 // Moves reserve ammunition from one item into another. If both items share the same weapon tag,
 // rounds are moved magazine-for-magazine out of the source's own reserve; otherwise the target's

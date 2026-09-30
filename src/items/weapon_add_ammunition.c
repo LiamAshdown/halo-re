@@ -47,6 +47,7 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern network_id_table *object_network_id_table; // 0x00687130
     // variable's value is the table root, and +0x28 off it is the hash -> datum_index array

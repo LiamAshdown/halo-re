@@ -28,6 +28,7 @@
 #include "units.h"
 #include "fn_units.h"
 #include "fn_objects.h"
+#include "fn_items.h"
 #include <stdint.h>
 
 extern data_array *object_data;       // 0x008603b0
@@ -35,9 +36,8 @@ extern tag_instance *tag_instances;   // 0x0087bc14
 extern game_time_globals *game_time;  // 0x006f1d6c
 
 extern void item_set_holder(uint32_t item_index, datum_index holder_index); // 0x4bcfc0, ECX item, EDX holder
-extern char *weapon_get_label(datum_index item_index); // 0x4c24d0, ECX
-extern void weapon_ready(datum_index item_index); // 0x4c2840, EAX
-extern int32_t weapon_put_away(datum_index item_index, int8_t force); // 0x4c28f0, ESI, AL
+
+
 extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0, EAX
 
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0, EAX

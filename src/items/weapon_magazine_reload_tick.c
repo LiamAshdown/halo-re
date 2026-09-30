@@ -22,6 +22,7 @@
 #include "items.h"
 #include "units.h"
 #include "game.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -29,8 +30,6 @@ extern int16_t network_game_mode;   // 0x00719720
 extern uint8_t weapon_bottomless_clip; // 0x0087abc2
 extern game_engine_definition *current_game_engine;
 
-extern void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted); // 0x4c35b0
-extern void weapon_notify_reload_step(datum_index item_index, int16_t magazine_index); // 0x4c37b0
 
 // Host-side continuation of a magazine reload: moves rounds_reloaded worth of ammunition from
 // reserve into the magazine, and either starts loading the next round or finishes the reload.

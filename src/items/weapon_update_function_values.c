@@ -54,13 +54,12 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern real weapon_trigger_get_charge_fraction(datum_index item_index, int16_t trigger_index); // 0x4c3100, this module
-extern int32_t weapon_is_reloading(datum_index item_index); // 0x4c2ad0, this module
 
 void weapon_update_function_values(uint32_t object_index) // blam-cc: stack -> object_index
 {

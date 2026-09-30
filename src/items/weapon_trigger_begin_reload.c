@@ -18,20 +18,15 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t network_game_mode;   // 0x00719720
 
-extern int32_t weapon_triggers_idle(datum_index item_index); // 0x4c30c0
-extern void weapon_trigger_effect_clear(datum_index item_index, int16_t trigger_index); // 0x4c3e40
-extern void weapon_notify_reload_begin(datum_index item_index, int16_t magazine_index); // 0x4c3470
-extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
-extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,
-    real scale_b); // 0x4c47d0, ECX item, EDI tag, stack (scale_a, scale_b)
+
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code); // 0x492790, EAX, EDI
-extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index,
-    int16_t category, int16_t mode); // 0x4c2f80
+
 
 // Starts loading a fresh round into a weapon trigger's chamber/magazine. When called
 // client-side with is_client_predicted, first copies the client's own predicted round counts

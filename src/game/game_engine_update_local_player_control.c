@@ -51,6 +51,7 @@
 #include "game.h"
 #include "fn_game.h"
 #include "fn_units.h"
+#include "fn_items.h"
 
 extern player_globals *local_player_globals;                 // 0x0087a478
 extern data_array *object_data;                           // 0x008603b0
@@ -79,7 +80,7 @@ extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, in
     int16_t direction);                                        // 0x56dba0, units; blam-cc: EAX unit
 
                                                                                // blam-cc: ECX
-extern int32_t weapon_get_next_zoom_level(int32_t current_level, datum_index item_index);
+
                                         // 0x4c2cf0, items; blam-cc: EAX -> current_level, ECX -> item
 extern uint8_t player_profile_get_flag_by_id(int16_t local_player_index); // 0x495a60; blam-cc: EDX; UNSURE identity
 

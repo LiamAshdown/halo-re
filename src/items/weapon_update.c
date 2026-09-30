@@ -32,6 +32,7 @@
 #include "units.h"
 #include "items.h"
 #include "models.h"
+#include "fn_items.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -43,25 +44,11 @@ extern void object_set_permutation_by_name(uint32_t object_index, char *name, in
 extern char *weapon_blur_permutation_names[2]; // 0x006961b8
 extern void effect_stop(datum_index effect_handle, uint8_t stop_immediately); // 0x450b20, EAX, stack
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code); // 0x492790, EAX, EDI
-extern uint32_t weapon_stop_object_effect(datum_index item_index, datum_index tag_id); // 0x4c48a0
+
 extern void item_detonation_timer_start(uint32_t object_index); // 0x4bd450, this module
 extern animation_state_advance_result animation_state_advance(uint32_t animation_graph_tag_index, animation_state *state,
     int32_t *sound_tag_id, animation_random_stream random_stream); // 0x4d48d0, EAX, ESI, EBX, stack
-extern void weapon_set_state_indicator_flags(datum_index item_index); // 0x4c5580
-extern void weapon_force_settled_state(datum_index item_index); // 0x4c5630
-extern void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted); // 0x4c35b0
-extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index); // 0x4c3900
-extern void weapon_magazine_reload_tick_predicted(datum_index item_index, int16_t magazine_index); // 0x4c3a20
-extern void weapon_magazine_begin_chamber(datum_index item_index, int16_t magazine_index); // 0x4c3b00
-extern int32_t weapon_trigger_ready_to_fire(datum_index item_index, int16_t trigger_index); // 0x4c3190
-extern void weapon_trigger_fire_or_reload(datum_index item_index, int16_t trigger_index, int8_t force); // 0x4c3280
-extern void weapon_trigger_continue_burst(datum_index item_index, int16_t trigger_index); // 0x4c3c60
-extern void weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index); // 0x4c3bc0
-extern void weapon_trigger_enter_recovery(datum_index item_index, int16_t trigger_index); // 0x4c3d00
-extern void weapon_trigger_handle_empty(datum_index item_index, int16_t trigger_index); // 0x4c3de0
-extern void weapon_trigger_effect_set_out_of_ammo(datum_index item_index, int16_t trigger_index); // 0x4c3e70
-extern void weapon_trigger_reset_tracking(datum_index item_index, int16_t trigger_index); // 0x4c3eb0
-extern void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index); // 0x4c48f0
+
 
 // 0x4c1f6a: a hidden weapon (object flag 1) that is attached shows its blur on the holder
 static uint32_t weapon_blur_target(uint32_t item_index)
