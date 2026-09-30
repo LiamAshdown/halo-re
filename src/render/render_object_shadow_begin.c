@@ -1,6 +1,7 @@
 // render_object_shadow_begin  (Ghidra: FUN_0050f830; CEA render_object_shadow_begin(data, lod),
 // hint only)
 // address 0x50f830, size 327 bytes
+// VERIFIED against disassembly 0x50f830..0x50f977 (2026-09-30)
 // name confidence: 0.6   rewrite confidence: 0.8
 // evidence: objdump -d -M intel 0x50f830..0x50f976, written from the disassembly because the
 //   Ghidra decompile drops the colour blend and the active camouflage scale entirely (it shows
@@ -20,9 +21,6 @@
 //     shadow_radius), whose AL result is returned (render_object 0x50eba0 tests AL at 0x50ed04).
 // register convention: EAX = object_render_data*, one stack float (fade); returns AL.
 //   // blam-cc: EAX=data, stack=fade
-// UNSURE: unit +0x37c is the 1/120 ramped unit value render.h calls unit_37c (most likely the
-//   active camouflage amount); the dead store of the object index into the argument slot at
-//   0x50f943 is a register-allocation artefact and is not reproduced.
 
 #include "tags.h"
 #include "memory.h"

@@ -2,6 +2,7 @@
 // which documents this address throughout as "render_nonplayer_frame 0x50bdc0", the sibling of
 // render_player_frame 0x50ba80)
 // address 0x50bdc0, size 211 bytes
+// VERIFIED against disassembly 0x50bdc0..0x50be93 (2026-09-30)
 // name confidence: 0.6   rewrite confidence: 0.8
 // evidence: out/phase4/render_types_notes.md's register-conventions section documents this
 //   function's arguments (EAX = nonplayer type, one stack view). Disassembly (objdump -d -M

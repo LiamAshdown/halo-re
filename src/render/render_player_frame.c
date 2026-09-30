@@ -4,6 +4,8 @@
 // CEA's prototype for its callee render_window as (local_player_index, source_camera,
 // source_frustum, rasterizer_camera, rasterizer_frustum, rasterizer_target, has_mirror)).
 // address 0x50ba80, size 830 bytes
+// VERIFIED against disassembly 0x50ba80..0x50bdbe (2026-09-30). the mirror gate is always true in retail
+//   (0x50bcdd..0x50bce4)
 // name confidence: 0.6   rewrite confidence: 0.75
 // evidence: types/render.h's module header and the register-conventions section of
 //   out/phase4/render_types_notes.md document this function's EAX argument (screenshot tile,

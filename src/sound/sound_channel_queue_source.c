@@ -1,5 +1,6 @@
 // sound_channel_queue_source  (Ghidra: FUN_00547c80)
 // address 0x547c80, size 721 bytes
+// VERIFIED against disassembly 0x547c80..0x547f51 (2026-09-30)
 // name confidence: 0.45   rewrite confidence: 0.8
 // evidence: out/phase4/sound_functions.md summary "Queues a new sound source for playback on a
 //   channel, initializing or chaining onto the channel's streaming state machine."; reached

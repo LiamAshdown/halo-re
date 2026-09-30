@@ -1,5 +1,7 @@
 // structure_bsp_build_fog_environment  (Ghidra: FUN_00555330, still unnamed there)
 // address 0x555330, size 387 bytes
+// VERIFIED against disassembly 0x555330..0x5554b3 (2026-09-30). the sky lookup is structure_bsp_resolve_fog_tag
+//   inlined (0x55536d..0x55539e)
 // name confidence: 0.6 -- matches types/structures.h's own detailed documentation of this exact
 //   address ("structure_fog_environment (the out-block 0x00555330 fills through ESI)").
 // rewrite confidence: 0.55 -- clean decompile, every field resolved via
@@ -10,10 +12,6 @@
 // register convention: in_AX -> cluster_index, unaff_ESI -> out (structure_fog_environment *).
 //   No stack parameters.
 //   // blam-cc: AX -> cluster_index, ESI -> out
-// UNSURE: the `_pad_2c[8]` (structure_fog_environment.unknown_04) span this function never
-//   touches, per structures.h's own note; also the `*(float*)(puVar2+2)*0.0` fog-plane-vector
-//   z-seed is reproduced exactly even though it is always zero (see inline comment) -- preserved
-//   rather than simplified, in case it is a compiler artifact of a since-optimized-out multiply.
 
 #include "tags.h"
 #include "memory.h"

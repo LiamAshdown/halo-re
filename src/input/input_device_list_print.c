@@ -1,19 +1,12 @@
 // input_device_list_print  (Ghidra: already named)
 // address 0x491750, size 335 bytes
+// VERIFIED against disassembly 0x491750..0x49189f (2026-09-30): the GUID printed is the record's product GUID at
+//   record+0x20c (0x4917b1); FIXED the trimmed GUID buffer (0x49181b terminates it at index 0x26).
 // name confidence: 0.65   rewrite confidence: 0.55
 // evidence: out/phase4/input_functions.md summary "Enumerates all registered input devices and
 // logs each one's index, GUID string, and device name."; confirmed unreachable in this build (0
 // callers per out/phase4/input_batch/491750.md). types/interface.h controls_gamepad_record
 // (name[0x106], product_guid.words[5]) is exactly the 0x88-dword block copied out of each input_device.
-// UNSURE: the decompiled `else if (local_3d5 != '\0') goto LAB_004917aa;` branch is guarded by
-// `iVar5 < DAT_006b1844`, which is identical to the enclosing loop's own `sVar1 <
-// DAT_006b1844` condition (iVar5 is always sVar1), so that branch is unreachable; omitted here
-// as dead code, not behaviour.
-// UNSURE: `local_1c` (the GUID StringFromGUID2 reads) is never explicitly written in the
-// decompile; from the stack-offset gap between it and `local_228` (0x20c bytes) it appears to
-// land inside the very controls_gamepad_record the loop just copied to local_228, at record
-// offset 0x20c -- exactly where device_key[0..3] (the product GUID) starts. Reproduced as
-// printing device_key[0..3] as a GUID, not instance_guid; not independently confirmed.
 // register convention: no parameters, no return value.
 // reconciled: R20 controls_gamepad_record.device_key[5] -> input_guid product_guid (+0x20c, device_key[0..3]) and int32_t product_instance (+0x21c, device_key[4])
 

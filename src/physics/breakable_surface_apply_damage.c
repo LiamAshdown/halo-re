@@ -4,6 +4,9 @@
 // "extension") and every other field it touches is damage_data / DamageEffect, so this rewrite
 // uses the more accurate name established from out/phase4/physics_types_notes.md instead.)
 // address 0x4ffde0, size 305 bytes
+// VERIFIED against disassembly 0x4ffde0..0x4fff11 (2026-09-30). the material argument of globals_material_get is the
+//   value just loaded into ECX (0x4ffe42) and the shatter call's stack arguments are (surface_index,
+//   collision_surface_index) (0x4fff02)
 // name confidence: 0.5   rewrite confidence: 0.6
 // evidence: breakable_surface_globals.health/active and
 //   damage_data.random_blend/damage_effect_tag/unknown_4c confirmed field-by-field in

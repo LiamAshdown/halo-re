@@ -1,6 +1,7 @@
 // particle_system_update_physics_explosion  (Ghidra: no function created; the phase-4 types
 //   agent carved a placeholder "missed_4554d0" from the .rdata dispatch-table evidence)
 // address 0x4554d0, size 5 bytes
+// VERIFIED against disassembly 0x4554d0..0x4554d5 (2026-09-30)
 // name confidence 0.6, rewrite confidence 0.9
 // evidence: out/phase4/effects_types_notes.md section 2: the two-entry `.rdata` table at
 //   0x0065743c lists 0x4554d0 as entry [1], "system update physics, explosion". objdump shows

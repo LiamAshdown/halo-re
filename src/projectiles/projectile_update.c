@@ -1,6 +1,7 @@
 // projectile_update  (Ghidra: FUN_004bdc00; renamed per out/phase4/projectiles_types_notes.md; 0x4be1b0 is a
 //   mid-function address Ghidra promoted to a bogus "resolution_list_add_resolution", not a function)
 // address 0x4bdc00, size 3873 bytes
+// VERIFIED against disassembly 0x4bdc00..0x4beb21 (2026-09-30)
 // name confidence: 0.6   rewrite confidence: 0.85
 // REWRITTEN from objdump 0x4bdc00..0x4beb20. The draft's homing crossed the vectors the wrong way round (turning
 //   away from the target) and never fetched the target's eye, rotated nothing (argless rotate calls), called the

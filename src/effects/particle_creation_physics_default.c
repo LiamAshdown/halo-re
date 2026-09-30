@@ -1,6 +1,7 @@
 // particle_creation_physics_default  (Ghidra: no function created; the phase-4 types agent
 //   carved a placeholder "missed_455310" from the .rdata dispatch-table evidence)
 // address 0x455310, size 59 bytes
+// VERIFIED against disassembly 0x455310..0x45534b (2026-09-30)
 // name confidence 0.6, rewrite confidence 0.85
 // evidence: out/phase4/effects_types_notes.md section 2: the three-entry `.rdata` table at
 //   0x00657444 lists 0x455310 as entry [0], "particle creation physics, default". Matches

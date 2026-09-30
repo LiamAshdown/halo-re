@@ -1,6 +1,10 @@
 // projectile_response  (Ghidra: FUN_004bf390; renamed per
 // out/phase4/projectiles_types_notes.md "Renames this pass establishes")
 // address 0x4bf390, size 3554 bytes
+// VERIFIED against disassembly 0x4bf390..0x4c0172 (2026-09-30). FIXED: the velocity fallback is the zero vector at
+//   0x696714 (not up), attach-on-structure sets hit_ground | at_rest (0x14), the detonation_started effect test is
+//   (!timer_started && (at_rest || attach)), the alignment / angle scores and speed / reflection sums follow the
+//   original rounding order
 // name confidence: 0.85   rewrite confidence: 0.65 (raised by the phase-4 verification pass, which re-derived
 //   this function from `objdump -d -M intel bin/halo.exe` rather than from the decompilation;
 //   the corrections it made are listed in src/projectiles/README.md)

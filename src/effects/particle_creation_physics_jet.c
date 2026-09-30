@@ -1,6 +1,7 @@
 // particle_creation_physics_jet  (Ghidra: no function created; the phase-4 types agent carved a
 //   placeholder "missed_455610" from the .rdata dispatch-table evidence)
 // address 0x455610, size 301 bytes
+// VERIFIED against disassembly 0x455610..0x45573d (2026-09-30)
 // name confidence 0.55, rewrite confidence 0.4 (see the UNSURE note)
 // evidence: out/phase4/effects_types_notes.md section 2: the three-entry `.rdata` table at
 //   0x00657444 lists 0x455610 as entry [2], "particle creation physics, jet". Same

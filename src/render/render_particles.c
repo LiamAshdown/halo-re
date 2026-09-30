@@ -1,6 +1,7 @@
 // render_particles  (Ghidra: contrail_render_all_active, phase-2 name, wrong: it never touches
 // contrails; CEA render_particles(void), hint only; renamed)
 // address 0x50fd90, size 1645 bytes
+// VERIFIED against disassembly 0x50fd90..0x5103fd (2026-09-30)
 // name confidence: 0.75   rewrite confidence: 0.7
 // evidence: objdump -d -M intel 0x50fd90..0x510403 (__chkstk 0x24f4 frame), every stack slot
 //   followed. Types: types/effects.h particle (0x70), types/render.h rendered_particle_datum,

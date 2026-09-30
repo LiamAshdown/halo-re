@@ -2,6 +2,7 @@
 // out/phase4/projectiles_types_notes.md: "byte-for-byte analogue of item_compute_rotation
 // (0x4bd500) on projectile 0x264..0x278")
 // address 0x4c0180, size 194 bytes
+// VERIFIED against disassembly 0x4c0180..0x4c0242 (2026-09-30)
 // name confidence: 0.8   rewrite confidence: 0.9 (raised by the phase-4 verification pass, which re-derived
 //   this function from `objdump -d -M intel bin/halo.exe` rather than from the decompilation;
 //   the corrections it made are listed in src/projectiles/README.md)

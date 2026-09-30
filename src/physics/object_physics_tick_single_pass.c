@@ -3,6 +3,12 @@
 //   implementation of the antenna physics tick... used instead of the general multi-vertex path",
 //   picked by object_physics_tick (0x507840, this module) when Physics.radius > 0.0)
 // address 0x509e80, size 5129 bytes -- the largest function in this module.
+// VERIFIED against disassembly 0x509e80..0x50b289 (2026-09-30). FIXED: the mass point local position is
+//   Physics.center_of_mass-relative, the ground block also needs Physics.ground_depth > 0 and scales the normal force
+//   by the OBJECT mass, the orientation vectors and every dot product / length follow the original k,j,i (or i,j,k)
+//   summation order, air friction is always computed (powered variant only with the flag and value), the angular
+//   acceleration is total_torque / moment, the powered matrix product is a full 0x34 byte matrix (the draft
+//   overflowed a 3x3)
 // name confidence: 0.35   rewrite confidence: 0.20 (raised from 0.12: phase-4 integration pass restored the two missing delta terms of the at-rest test and un-swapped its velocity/angular-velocity thresholds) -- the lowest-confidence file in this batch.
 //   This function fuses object_physics_compute_mass_point_forces (0x507cc0) and
 //   object_physics_integrate_and_test_at_rest (0x5097e0)'s jobs into one pass with a simplified
@@ -28,22 +34,6 @@
 // register convention: none recognized as in_EAX etc; all five are Ghidra's own ordinary
 //   parameters, identical in shape to object_physics_tick's own
 //   (object_index, powered_states, mass_point_states, extra_force, extra_torque).
-// UNSURE (major): the two vector3d_rotate_about_axis calls near the end (rotating the object's
-//   forward and up by this tick's angular velocity, then re-orthonormalizing up against forward)
-//   show only their sin/cos arguments; their v/axis register pair is reconstructed by direct
-//   analogy with object_physics_mass_point_update_orientation's (0x5096f0) own, already-confirmed
-//   version of the identical idiom, not read from this function's own decompile.
-// UNSURE (major): the aggregate angular-acceleration step normalizes the summed torque into an
-//   axis, then sums a per-mass-point scalar "moment of inertia along that axis"
-//   (offset-perpendicular-to-axis squared, plus 0.4x the offset-along-axis squared, times mass
-//   and Physics.moment_scale) to divide the torque magnitude by, rather than using a proper
-//   inverse inertia tensor the way object_physics_integrate_and_test_at_rest does. This is
-//   preserved exactly as decompiled, not "corrected" to match that function's approach.
-// UNSURE: the ground-friction antigrav-adjusted push block, and the plain antigrav block at the
-//   very end, are read by direct field-for-field analogy with
-//   object_physics_compute_mass_point_forces.c's own already-confirmed versions of the identical
-//   formulas (this function's own decompile shows the same float10-heavy, argument-starved shape
-//   for both).
 // reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"

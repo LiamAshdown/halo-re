@@ -1,6 +1,7 @@
 // particle_update_physics_default  (Ghidra: no function created; the phase-4 types agent carved
 //   a placeholder "missed_455350" from the .rdata dispatch-table evidence)
 // address 0x455350, size 369 bytes
+// VERIFIED against disassembly 0x455350..0x4554c1 (2026-09-30)
 // name confidence 0.6, rewrite confidence 0.9 (VERIFIED against objdump 0x455350..0x4554c0)
 // evidence: out/phase4/effects_types_notes.md section 2: the one-entry `.rdata` table at
 //   0x00657450 lists 0x455350 as entry [0], "particle update physics, default". particle_system_
@@ -14,18 +15,10 @@
 //   exactly on the 0x10/0x20/0x40 bits this function tests against point_physics_tick's result).
 // register convention: four plain stack arguments (system [esp+4], type_index [esp+8], delta_time
 //   [esp+0xc], particle [esp+0x10]); blam-cc: stack -> (system, type_index, delta_time, particle).
-// UNSURE: point_physics_tick's `velocity` argument (register ESI) is dropped from Ghidra's
-//   decompile of this call; objdump 0x45548a (`lea esi,[ebx+0x28]`, ebx = particle) shows it is
-//   `&particle->unknown_28` -- the same field the creation-physics procedures fill, now reused as
-//   the particle's per-tick velocity. Resolved here to `&particle->unknown_28` accordingly.
 // Cleanup-pass review (objdump 0x455350..0x4554c0): FUN_0050b9e0 takes EAX = a 0x40-byte stack
 //   PointPhysics, ECX / EDX = the current / next state's point_physics tags and the fraction on
 //   the stack, and blends them into the local, which is what point_physics_tick then gets; the
 //   draft passed only the fraction and used the return value. Fixed.
-// (superseded) UNSURE: FUN_0050b9e0 (0x50b9e0) is outside this pass's range; declared opaque, returning the
-//   tag_instances data pointer for a physics tag interpolated between the current and next
-//   particle states by the transition fraction, matching how its result is used identically to
-//   the plain tag lookup in the non-transitioning branch.
 
 #include "tags.h"
 #include "memory.h"

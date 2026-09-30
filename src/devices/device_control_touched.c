@@ -2,6 +2,8 @@
 // "device_control_maybe_update" was phase 2's guess; this dispatches the power-change guard
 // only for device_control objects)
 // address 0x44c090, size 45 bytes
+// VERIFIED against disassembly 0x44c090..0x44c0bd (2026-09-30). the original tests `type != 7 && type == 8`; the
+//   single equality is equivalent; the tail `jmp 0x44adf0` passes EAX unchanged
 // name confidence: 0.45   rewrite confidence: 0.6
 // evidence: types/objects.h object (type 0x0b4), _object_type_device_machine (7),
 // _object_type_device_control (8); functions.md: "Dispatches to the device power-change guard

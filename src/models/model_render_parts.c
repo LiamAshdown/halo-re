@@ -2,6 +2,7 @@
 // types/models.h's own naming ("render_model 0x4d6fc0, model_render_parts 0x4d72a0"); no other
 // already-committed module calls this one directly, so there is no cross-module name to match)
 // address 0x4d72a0, size 849 bytes
+// VERIFIED against disassembly 0x4d72a0..0x4d75f1 (2026-09-30)
 // name confidence: 0.55   rewrite confidence: 0.75
 // evidence: out/phase4/models_types_notes.md's model_render_pass, model_part_group_link and
 //   GBXModelGeometryPart sections. Ghidra's own decompilation is complete for the region/

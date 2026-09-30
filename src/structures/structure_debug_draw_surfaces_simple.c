@@ -1,5 +1,6 @@
 // structure_debug_draw_surfaces_simple  (Ghidra: FUN_00552b40; named here)
 // address 0x552b40, size 180 bytes
+// VERIFIED against disassembly 0x552b40..0x552bf4 (2026-09-30)
 // name confidence: 0.5   rewrite confidence: 0.6
 // evidence: disassembly (objdump -d -M intel bin/halo.exe, 0x552b40..0x552bf3). The prologue is
 //   `mov eax,0x4000; call __chkstk`, so the return address sits at esp+0x4000 and arg_n at

@@ -2,6 +2,9 @@
 //   out/phase4/physics_functions.md's own summary of its caller, 0x50b460: "Attempts to move a
 //   clamped scalar value toward a target using physics_clamp_value_to_spring_range")
 // address 0x50b370, size 227 bytes
+// VERIFIED against disassembly 0x50b370..0x50b453 (2026-09-30). the sign tests are single fcomp / test ah idioms; the
+//   negative branch always re-clamps against the lower bound, the positive branch returns early when within the upper
+//   bound
 // name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x50b370..0x50b452; rate offsets probed)
 // evidence: out/phase4/physics_functions.md summary of this address ("Clamps a scalar
 //   spring-related value against direction-dependent upper and lower limits scaled by a rate
@@ -14,13 +17,6 @@
 //   magnitude: its sign picks the positive or negative branch, its absolute value scales every
 //   limit).
 //   // blam-cc: ECX -> value, EDX -> rates, stack -> step
-// UNSURE: the two "which sign is *value* itself" tests
-//   (`fVar1 < 0.0 == (fVar1 == 0.0)`, `*extraout_ECX... `) are decompiler artifacts of a single
-//   sign-bit test; simplified below to a plain `> 0.0f` comparison, which is the only case the
-//   two-way XNOR of "<0" and "==0" can be picking out. The asymmetry between the two branches
-//   (the negative-step branch always falls through to re-clamp against the lower bound; the
-//   positive-step branch returns early when already within the upper bound) is preserved
-//   exactly as Ghidra shows it, not "fixed" to be symmetric.
 
 #include "tags.h"
 #include "math.h"

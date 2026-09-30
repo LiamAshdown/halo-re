@@ -1,6 +1,7 @@
 // particle_system_new_type_states  (Ghidra: FUN_004538b0, still unnamed there; named directly by
 //   out/phase4/effects_types_notes.md: "particle_system_new_type_states 0x4538b0")
 // address 0x4538b0, size 338 bytes
+// VERIFIED against disassembly 0x4538b0..0x453a02 (2026-09-30)
 // name confidence: 0.5   rewrite confidence: 0.5
 // evidence: types/effects.h particle_system.location (+0x18, bsp_leaf_reference),
 //   particle_system.flags (+0x04, _particle_system_in_update_bit) and type_states[4] (+0x58,
@@ -12,9 +13,6 @@
 //   is the exact LCG this function inlines to roll the first state's duration. Confirmed against
 //   objdump -d -M intel, 0x4538b0..0x453928, for the bsp3d_node_find_leaf call's register arguments.
 // register convention: none -- handle is the single Ghidra-recognized stack parameter.
-// UNSURE: the byte cleared at [esp+0x13] before the bsp3d_node_find_leaf call (`bl=0`) is not read
-//   afterward in this function and is not modeled as an argument. UNSURE: 0x3a83126f is exactly
-//   0.001f, used as a delta_time to run one immediate micro-update right after creation.
 // reconciled: R05 0x00746f90 global_globals -> ModelCollisionGeometryBSP *global_collision_bsp (ScenarioStructureBSP +0xb4; global_globals is the matg globals at 0x00746fa0)
 
 #include "tags.h"

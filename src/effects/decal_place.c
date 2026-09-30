@@ -1,6 +1,8 @@
 // decal_place  (Ghidra: FUN_0044edc0; phase 2 guessed "decal_new" -- WRONG, that name belongs to 0x44dd90 which this
 // function calls)
 // address 0x44edc0, size 6111 bytes
+// VERIFIED against disassembly 0x44edc0..0x45059f (2026-09-30). FIXED: the uv / colour byte maths runs in extended
+//   precision (done in double here), the rest compared block by block
 // name confidence: 0.6   rewrite confidence: 0.85
 // REWRITTEN 2026-09-27 (static loop) from objdump 0x44edc0..0x4505aa, replacing the 0.15 skeleton whose stopgap
 // skipped every decal. Walkthrough, per pass of the next_decal_in_chain loop:
@@ -540,35 +542,37 @@ void decal_place(datum_index decal_tag_index, collision_result *placement, real_
 
             for (i = 0; i < count; i++) {
                 const decal_flood_vertex_record *record = &accumulator.vertices[i];
-                real u = u_span * record->u + sprite_rect[0];
-                real v = v_span * record->v + sprite_rect[2];
+                // 0x450090..0x4501e4: the u / v maths runs in extended precision on the x87 stack (products of two
+                //   floats are exact there), so it is done in double here rather than rounding every step to float
+                double u = (double)u_span * (double)record->u + (double)sprite_rect[0];
+                double v = (double)v_span * (double)record->v + (double)sprite_rect[2];
                 int16_t u_byte;
                 int16_t v_byte;
 
-                if (u < 0.0f) {
-                    u = 0.0f;
-                } else if (u > 1.0f) {
-                    u = 1.0f;
+                if (u < 0.0) {
+                    u = 0.0;
+                } else if (u > 1.0) {
+                    u = 1.0;
                 }
-                if (v < 0.0f) {
-                    v = 0.0f;
-                } else if (v > 1.0f) {
-                    v = 1.0f;
+                if (v < 0.0) {
+                    v = 0.0;
+                } else if (v > 1.0) {
+                    v = 1.0;
                 }
-                u = u * 255.0f;
-                if (u < 0.0f) {
-                    u = 0.0f;
-                } else if (u > 254.0f) {
-                    u = 254.0f;
+                u = u * 255.0;
+                if (u < 0.0) {
+                    u = 0.0;
+                } else if (u > 254.0) {
+                    u = 254.0;
                 }
-                u_byte = (int16_t)lrint((double)(real)floor((double)(u + 0.5f)));
-                v = v * 255.0f;
-                if (v < 0.0f) {
-                    v = 0.0f;
-                } else if (v > 254.0f) {
-                    v = 254.0f;
+                u_byte = (int16_t)lrint((double)(real)floor(u + 0.5));
+                v = v * 255.0;
+                if (v < 0.0) {
+                    v = 0.0;
+                } else if (v > 254.0) {
+                    v = 254.0;
                 }
-                v_byte = (int16_t)lrint((double)(real)floor((double)(v + 0.5f)));
+                v_byte = (int16_t)lrint((double)(real)floor(v + 0.5));
 
                 local_vertices[i].texcoord = (uint32_t)((((int32_t)u_byte << 8) | (int32_t)v_byte) << 8);
                 local_vertices[i].position.x = lift.i + record->position.x;
@@ -597,10 +601,11 @@ void decal_place(datum_index decal_tag_index, collision_result *placement, real_
 
             color_interpolate(&definition->color_upper_bounds, &definition->color_lower_bounds, &color,
                 (uint32_t)((*(const uint8_t *)&definition->flags >> 1) & 3), fraction);
-            self->color = ((uint32_t)lrint((double)(color.blue * 255.0f)) & 0xff) |
-                (((uint32_t)lrint((double)(color.green * 255.0f)) & 0xff) << 8) |
-                (((uint32_t)lrint((double)(color.red * 255.0f)) & 0xff) << 16) |
-                ((uint32_t)lrint((double)(intensity * 255.0f)) << 24);
+            // 0x450353..0x4503d6: the four products stay in extended precision until each fistp
+            self->color = ((uint32_t)lrint((double)color.blue * 255.0) & 0xff) |
+                (((uint32_t)lrint((double)color.green * 255.0) & 0xff) << 8) |
+                (((uint32_t)lrint((double)color.red * 255.0) & 0xff) << 16) |
+                ((uint32_t)lrint((double)intensity * 255.0) << 24);
             self->alpha = 0xff;
         }
 
