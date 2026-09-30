@@ -29,10 +29,8 @@
 //   0x526 (types/units.h unknown_526). The three-slot pointer array handed to the encoder is
 //   reproduced slot for slot; which slot the encoder treats as "changed" versus "items" is the
 //   same open question src/units/unit_submit_periodic_network_update.c records.
-// NOTE (not fixed here, other files): the biped sibling unit_submit_periodic_network_update.c
-//   drops the same EAX/EDX buffer/budget arguments and treats its object index as an unresolved
-//   ECX read, but objdump 0x55b444 shows it is stack parameter 1 exactly as here; and
-//   object_type_override_call_0x6c.c drops the three forwarded stack arguments.
+// NOTE: the biped sibling unit_submit_periodic_network_update.c was rewritten with the same (index, buffer, budget, flag)
+//   parameters; object_type_override_call_0x6c.c (src/objects) still drops the three forwarded stack arguments.
 // register convention: plain stack parameters, no register inputs.
 //   // blam-cc: stack -> (vehicle_index, buffer, bit_budget, full_update)
 
