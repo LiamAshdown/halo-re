@@ -1,6 +1,6 @@
 // actor_target_relationship_think  (Ghidra: actor_target_relationship_think, renamed)
 // address 0x41abd0, size 3351 bytes
-// name confidence: 0.45   rewrite confidence: 0.7 (all 25 call sites verified against objdump 0x41abd0..0x41b8e6 (registers, stack order, payload); inner branch logic not re-derived)
+// name confidence: 0.45   rewrite confidence: 0.9 (all call sites and the inner branch logic verified against disassembly 0x41abd0..0x41b936)
 // evidence: out/phase2/results/ai_02.json -- large per-target-data state machine (prop.kind
 // states 0-5) that calls dodge/aim updates (actor_target_data_refresh,
 // actor_target_update_tracking_speed), target-data release (actor_target_data_release), squad
@@ -47,6 +47,9 @@
 //    unrelated lifetimes into one wrongly-typed local. Rewritten below as plain int16_t
 //    arithmetic per the disassembly.
 //
+// VERIFIED against disassembly 0x41abd0..0x41b936 (2026-09-30): the whole state machine was re-derived. FIXED: the case selector table
+//   (it was shifted by one entry), a state-1 prop whose progress stays below 1.0 no longer gets state = -1, and a state-2 prop that
+//   allocated a paired prop passes that prop (not -1) to actor_replace_object_reference.
 // UNSURE: types/ai.h declares prop.unknown_2c as a datum_index, but this function's
 // disassembly does `fadd`/`fst` on it (0x41b1bb/0x41b1be) -- it is a float accumulator here.
 // Accessed through a float pointer cast rather than changing the header.
@@ -135,11 +138,12 @@ extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, ga
 // Row = actor_target_get_priority_class's result (0..3). Column = target.unknown_30 (0..3;
 // column 0 is unreachable from here since the caller only takes this path when
 // target.unknown_30 != 0, but is included verbatim for fidelity). See file header UNSURE note.
+// FIXED (0x655898): the draft table was shifted by one entry; the int16 array is {0,0,1,3, 0,1,2,3, 0,2,3,4, 0,3,4,4}.
 static const uint8_t k_relationship_recheck_case[4][4] = {
-    { 0, 1, 3, 0 },
-    { 1, 2, 3, 0 },
-    { 2, 3, 4, 0 },
-    { 3, 4, 4, 1 },
+    { 0, 0, 1, 3 },
+    { 0, 1, 2, 3 },
+    { 0, 2, 3, 4 },
+    { 0, 3, 4, 4 },
 };
 
 void actor_target_relationship_think(datum_index actor_index)
@@ -165,6 +169,7 @@ void actor_target_relationship_think(datum_index actor_index)
     int16_t danger_type;
     int16_t timer;                 // the corrected int16 "aim refresh due" scratch (Ghidra's local_ac)
     actor *owner;
+    datum_index paired_prop;
     struct { int16_t team; int16_t object_type; char is_enemy; } payload; // Ghidra local_78/local_76/local_74
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
@@ -430,6 +435,11 @@ restart:
             if (*(float *)&target->acknowledge_progress >= 1.0f) {
                 new_kind = 3;
             }
+            // FIXED (0x41b1c9..0x41b462): a still-growing progress on a state-1 prop leaves new_kind at -1, which skips the
+            //   apply block (0x41b45c) instead of writing state = -1
+            if (new_kind == -1) {
+                goto check_cooldown;
+            }
             goto apply_new_kind;
         }
         *(float *)&target->acknowledge_progress = 0.0f; // UNSURE, see file header
@@ -448,14 +458,19 @@ restart:
             owner = (target->owner_actor_index == (datum_index)k_datum_index_none)
                         ? (actor *)0
                         : (actor *)((uint8_t *)actor_data->data + (target->owner_actor_index & 0xffff) * sizeof(actor));
+            paired_prop = (datum_index)0xffffffff;
             if (target->enemy != 0 && target->dead == 0 &&
                 (target->is_parented != 0 ||
                  ((owner == (actor *)0 || (owner->active != 0 && owner->keep_unit_alive == 0)) &&
                   target->distance * target->distance <= 1600.0f))) {
                 actor_target_data_refresh(actor_index, target_prop_index, scratch2, 0, 0);
                 actor_target_get_relationship_object(target_prop_index);
-                actor_allocate_paired_prop(actor_index, target_prop_index);
+                paired_prop = actor_allocate_paired_prop(actor_index, target_prop_index);
             }
+            // FIXED (0x41b2d4..0x41b378): ESI = the paired prop the allocation returned (-1 when none was made)
+            actor_replace_object_reference(actor_index, paired_prop, target_prop_index);
+            new_kind = 0;
+            goto apply_new_kind;
         replace_and_idle:
             actor_replace_object_reference(actor_index, 0xffffffff, target_prop_index); // 0x41b36d: ESI -1, EDI prop
             new_kind = 0;
