@@ -1,14 +1,14 @@
 // rasterizer_ksml_ui_shutdown  (Ghidra: rasterizer_ksml_ui_shutdown, already named)
 // address 0x5198a0, size 213 bytes
-// name confidence: 0.55  rewrite confidence: 0.35
+// name confidence: 0.55  rewrite confidence: 0.9
 // evidence: guarded by a live engine instance + two engine callback pointers, finds and
 //   releases (twice) the editbox and log document handles, then destroys the engine and clears
 //   it; matches its own name and the functions.md summary.
 // register convention: none -- __cdecl, no parameters.
-// UNSURE: the compiler-generated x86 SEH frame setup/teardown (ExceptionList, the local
-//   exception registration record) around the two "find document" calls is compiler plumbing,
-//   not application logic, and is omitted here rather than modeled -- the observable calls and
-//   their order are preserved exactly.
+// The compiler-generated x86 SEH frame (fs:[0] registration, push 0x672b68 / 0x628dfc) is plumbing and is not modeled;
+//   the observable calls and their order are exactly the original's.
+// VERIFIED against disassembly 0x5198a0..0x519970 (2026-09-30): guard on the three pointers, find/release x2 per document
+//   (keys read from 0x69c698 / 0x69c69c), destroy, clear 0x721ea4.
 
 #include "tags.h"
 #include "memory.h"
@@ -16,11 +16,11 @@
 #include "rasterizer.h"
 
 extern void *chat_gui_root_handle;                                  // 0x00721ea4 KSML UI engine instance (interface module name)
-extern int32_t (*unknown_00721eb8)(void *engine, void *key); // 0x00721eb8 UNSURE: "find document"
-extern void (*unknown_00721ec8)(int32_t document); // 0x00721ec8 UNSURE: "release document"
-extern void (*unknown_00721eac)(void *engine); // 0x00721eac UNSURE: "destroy engine"
-extern void *chat_gui_find_object_arg; // 0x0069c698 UNSURE: editbox document key
-extern void *chat_listbox_gui_find_object_arg; // 0x0069c69c UNSURE: log document key
+extern int32_t (*unknown_00721eb8)(void *engine, void *key); // 0x00721eb8: "find document"
+extern void (*unknown_00721ec8)(int32_t document); // 0x00721ec8: "release document"
+extern void (*unknown_00721eac)(void *engine); // 0x00721eac: "destroy engine"
+extern void *chat_gui_find_object_arg; // 0x0069c698: editbox document key
+extern void *chat_listbox_gui_find_object_arg; // 0x0069c69c: log document key
 
 // Tears down the debug KSML UI engine: releases the editbox and log documents (each released
 // twice, matching the original) and destroys the engine instance, only while all three engine
