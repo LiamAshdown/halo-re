@@ -12,10 +12,9 @@
 // leaves it undeclared -- see that header's note on the message-delta-decoded announcement
 // record); accessed via raw offsets on a `uint8_t *` view, matching the type notes' own
 // convention.
-// UNSURE: the real return value is `CONCAT31(garbage, result_byte)` in Ghidra; simplified to a
-// plain 0/1 return, matching the "callers only read the low byte" idiom used throughout this
-// module.
+// Return: only AL is defined (0 or 1), so a plain 0/1 return is equivalent.
 
+// VERIFIED against disassembly 0x4da7d0..0x4daa16 (2026-09-30): FIXED: eviction scans for the first entry with joinable == 0 (+0x12c, cl at 0x4da8a0), not unknown_12f (+0x12f); everything else (expiry, identity match on dword 0, free slot, field copies/offsets, name fallback L"???", flags) matches
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
@@ -76,13 +75,13 @@ int32_t network_game_search_results_add_or_update(network_game_search_entry *res
             }
         }
     }
-    // Otherwise, if the announced game is joinable, evict the first non-"unknown_12f" slot.
+    // Otherwise, if the announced game is joinable, evict the first entry that is not joinable.
     if (slot == -1) {
         if (!joinable) {
             return 0;
         }
         for (i = 0; i < 9; i = i + 1) {
-            if (results[i].unknown_12f == 0) {
+            if (results[i].joinable == 0) {
                 memset(&results[i], 0, sizeof(network_game_search_entry));
                 slot = i;
                 break;
