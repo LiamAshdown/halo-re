@@ -23,6 +23,14 @@
 //   +0xc), 0x00696664 matrix4x3_multiply_procedure.
 // register convention: object index is the sole, genuinely-stack, parameter (Ghidra's own
 //   "object_recalculate_bounding_radius(uint param_1)").
+// RE-VERIFIED against disassembly 0x4f8310..0x4f8b03 (2026-09-30): every step below was compared instruction by instruction --
+//   orientation buffer choice, parent matrix, base animation / default pose calls (EAX model, EDI animation, stack frame,
+//   out), the overlay loop (entry +0/+2/+4 = animation / function / mode, 0x168 stride flag 2, interpolated and weighted
+//   calls), the scale on the root, the type notify, the blend call, the breadth-first walk (root: parent * world *
+//   orientation * root, mirrored parent/left negation, +0x8c / +0x14 offsets; other nodes: parent * local) and the bounding
+//   sphere. No difference was found in this function, so the T-pose seen in play-testing (2026-09-27) is not caused by
+//   anything in this body; suspect the callees (animation_get_frame_orientations 0x4d4a80, model_nodes_get_default_transforms
+//   0x4d7610, matrix4x3_from_quaternion 0x4cbad0, animation_overlay_* 0x4d53f0 / 0x4d51a0, model_nodes_blend_transforms 0x4d69e0).
 // REWRITTEN (objdump 0x4f8310..0x4f8b03, 2026-09-27): the earlier body was a confidence-0.15 transliteration of
 // Ghidra with guessed helper arguments. Every call below is taken from the disassembly (addresses inline).
 
