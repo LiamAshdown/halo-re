@@ -500,9 +500,7 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                     float cos_angle = (real)cos((double)axis_length);
                     real_vector3d forward_length_check;
 
-                    // UNSURE: v/axis register pair reconstructed by analogy with
-                    // object_physics_mass_point_update_orientation's (0x5096f0) own confirmed
-                    // rotate-forward-then-up-then-reorthonormalize idiom; see file header.
+                    // VERIFIED against disassembly 0x50b054..0x50b081 (2026-09-30): EAX=esi+0x74 (forward) then esi+0x80 (up), ECX=axis (ebp-0x24)
                     vector3d_rotate_about_axis(&self->forward, &axis, sin_angle, cos_angle);
                     vector3d_rotate_about_axis(&self->up, &axis, sin_angle, cos_angle);
 
