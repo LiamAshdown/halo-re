@@ -21,6 +21,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "dialogs.h"
+#include "fn_dialogs.h"
 
 
 extern uint32_t shell_language_id; // 0x0069ff20, shell-owned; see types/dialogs.h

@@ -37,14 +37,14 @@
 #include "interface.h"
 #include "fn_rasterizer.h"
 #include "fn_sound.h"
+#include "fn_dialogs.h"
 
 extern int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32_t buffer_capacity, void *module,
                                            char *buffer); // 0x57e110
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern char *strcat(char *dst, const char *src);                // CRT, statically linked
 extern void shell_registry_set_exit_flag_clean(void); // 0x57ea10
-extern int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *module, const char *template_name,
-                                          void *parent_window); // 0x57e1f0, EBX proc, ESI module; the template is MAKEINTRESOURCE(id) // 0x57e1f0, blam-cc: dialog_proc in EBX, module
+
                                                                  // in ESI, dialog_id/parent on the stack; "dialogs"
                                                                  // module function, not in the function list
 
@@ -67,8 +67,7 @@ extern uint8_t shell_window_proc_bypass;   // 0x00721e8d
 extern int32_t safe_mode;                  // 0x007196f4 (32 bit BOOL)
 extern int32_t fatal_error_remember_choice; // 0x00722bc0, types/shell.h (R15)
 
-extern int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32_t wparam,
-                                                  int32_t lparam); // 0x57e5a0, the DLGPROC for this dialog; a
+
                                                                     // "dialogs" module function, not in the
                                                                     // function list -- referenced only as an
                                                                     // opaque callback pointer

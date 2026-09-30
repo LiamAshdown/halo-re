@@ -21,18 +21,17 @@
 #include "win32.h"
 #include "tags.h"
 #include "dialogs.h"
+#include "fn_dialogs.h"
 
 
 // The two subclass procs are referenced only as values (push 0x57e350 at 0x57e526,
 // push 0x57e2a0 at 0x57e4f8, cmp eax,0x57e2a0 at 0x57e4e8), declared here so their addresses
 // can be passed to SetWindowLongA without raw immediates.
-extern int32_t __stdcall dialog_static_hyperlink_subclass_proc(void *window, uint32_t message, uint32_t wparam,
-                                                                 int32_t lparam); // 0x57e350, this module
+
 // Not a Ghidra function (out/phase4/dialogs_types_notes.md), so not rewritten yet. Its address is
 // the immediates above; its __stdcall WNDPROC shape is confirmed by objdump at 0x57e2a0 (hwnd read
 // at [esp+0x10] after four pushes, every exit is ret 0x10).
-extern int32_t __stdcall dialog_static_hyperlink_parent_proc(void *window, uint32_t message, uint32_t wparam,
-                                                               int32_t lparam); // 0x57e2a0, not a Ghidra function
+
 
 // Converts a static text control (`control`) into a clickable, underlined hyperlink-style
 // control: subclasses the control's parent dialog with dialog_static_hyperlink_parent_proc,

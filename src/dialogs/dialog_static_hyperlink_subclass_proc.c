@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "interface.h"
 #include "dialogs.h"
+#include "fn_dialogs.h"
 
 
 extern int32_t dialog_hyperlink_hovered; // 0x00722bc8, this module; written only here, read by
