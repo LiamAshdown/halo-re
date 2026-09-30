@@ -1,6 +1,6 @@
 // game_engine_cleanup_stray_items  (Ghidra: FUN_00468010; named per this rewrite)
 // address 0x468010, size 308 bytes
-// name confidence: 0.4   rewrite confidence: 0.45
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: out/phase4/game_functions.md's summary ("...except when engine type 1 (CTF) applies
 //   special handling") is CORRECTED here: the guarded global is network_game_mode (0x00719720,
 //   "0 local, 1 client, 2 host, 3 replay" per types/game.h), not a game_engine_index -- the test
@@ -13,11 +13,9 @@
 //   tag_instance. object_delete_unparented / object_delete_recursive already carry this exact
 //   pair-call shape from the sibling function.
 // register convention: no parameters.
-// UNSURE: the inner block re-resolves the SAME iterated handle through the object_header table a
-//   second time and tests the header's own type bit against _object_mask_weapon plus a bit at
-//   tag-data offset 0x308 (bit 3) before allowing a "protected, do not delete" skip outside
-//   oddball (game_engine_variant.game_engine_index != 3). Transcribed literally; the exact
-//   meaning of the tag-data bit is not recovered here (see types/tags.h TODO for Weapon flags).
+// The inner block re-resolves the SAME iterated handle through the object_header table a second time (0x46807e..0x4680f4) and,
+// for a weapon whose tag flags (offset 0x308) have bit 3 (must_be_readied) set, skips the deletion outside oddball
+// (game_engine_variant.game_engine_index != 3). Transcribed literally from the disassembly.
 
 #include "tags.h"
 #include "memory.h"
@@ -38,7 +36,7 @@ extern void object_delete_recursive(datum_index object_index, uint8_t recurse_si
 
 // Sweeps every live item (weapon/equipment/garbage) object and deletes any that has come
 // unparented and is not currently held (item_data flags 0x01/0x40 both clear), skipping objects
-// that a redundant header re-lookup shows to be a still-protected weapon (see UNSURE above)
+// that a redundant header re-lookup shows to be a still-protected weapon (see note above)
 // except in Oddball games. On a client, only objects whose network_role is 3 are considered.
 void game_engine_cleanup_stray_items(void)
 {
@@ -67,7 +65,7 @@ void game_engine_cleanup_stray_items(void)
                     ((1 << (hdr->type & 0x1f)) & _object_mask_weapon) != 0) {
                     if (hdr->data != (object *)0) {
                         uint32_t *tag_data = (uint32_t *)tag_instances[obj->definition_tag & 0xffff].data;
-                        // UNSURE: tag-data offset 0x308, bit 3 -- exact Weapon-tag flag not recovered
+                        // tag-data offset 0x308 bit 3 = Weapon.weapon_flags must_be_readied
                         if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0 &&
                             game_engine_variant.game_engine_index != _game_engine_oddball) {
                             goto next;
