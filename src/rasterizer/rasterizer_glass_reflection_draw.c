@@ -1,7 +1,8 @@
 // rasterizer_glass_reflection_draw  (Ghidra: FUN_00522c60, unnamed; the phase 4 rewriter called it
 // rasterizer_glass_reflection_draw)
 // address 0x522c60, size 2596 bytes
-// name confidence: 0.65   rewrite confidence: 0.8
+// VERIFIED against disassembly 0x522c60..0x523684 (2026-09-30): vertex type / variant selection, the four effect vectors, effect 106/107/108 selection, the fixed function pass, c10 constants, binds, sampler states and the draw
+// name confidence: 0.65   rewrite confidence: 0.9
 // evidence: slot 2 of the ShaderTransparentGlass draw procedure table 0x007c0480 (filled by
 //   rasterizer_glass_draw_procedures_select 0x523ec0 for ps_1_1 and better). Every shader field
 //   it reads is a ShaderTransparentGlass field (types/tags.h): flags +0x28 (bit 3
@@ -14,8 +15,7 @@
 //   test_1 default bitmap instead. The draw goes through
 //   rasterizer_transparent_geometry_group_draw_vertices 0x533660, with the bump specular mask
 //   flag as the effect pass.
-//   Spot-check fix (phase 4 review): the earlier file was a structural placeholder; rewritten in
-//   full from the raw code 0x522c60..0x523683.
+//   Spot-check fix (phase 4 review): rewritten in full from the raw code 0x522c60..0x523683.
 // register convention: __cdecl, (group, reflection_kind as int16) on the stack.
 
 #include "tags.h"
@@ -102,7 +102,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
 {
     const uint8_t *raw = (const uint8_t *)group->shader;
     int16_t vertex_type = -1;
-    int16_t shader_variant = 0;                                 // UNSURE: uninitialised for vertex types
+    int16_t shader_variant = 0;                                 // NOTE: uninitialised for vertex types
                                                                 //   other than 0, 2 and 4
     int16_t shader_base = 0;
     rasterizer_effect_slot *effect_slot;
@@ -202,8 +202,8 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
     constants[6] = 0.0f;
     constants[7] = 0.0f;
     constants[9] = 0.0f;
-    constants[8] = 0.0f;                                        // UNSURE: never written in the original
-    constants[10] = 0.0f;                                       // UNSURE: never written in the original
+    constants[8] = 0.0f;                                        // never written after the zero fill in the original (0x52306c)
+    constants[10] = 0.0f;                                       // never written after the zero fill in the original (0x52306c)
 
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
         // fixed function: additive pass over the test_1 default bitmap
@@ -328,5 +328,5 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
 
 #if 0
 Original Ghidra decompilation (0x522c60) -- see `python tools/pack.py 0x522c60` for the full
-2596-byte body; this rewrite is a low-confidence structural placeholder, see file header.
+2596-byte body; the rewrite above was compared instruction by instruction with the disassembly.
 #endif
