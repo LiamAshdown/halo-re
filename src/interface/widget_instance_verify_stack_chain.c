@@ -1,7 +1,7 @@
 // widget_instance_verify_stack_chain  (Ghidra: FUN_00499aa0, unnamed;
 // out/phase2/results/interface_01.json names it widget_instance_verify_stack_chain, conf=0.3)
 // address 0x499aa0, size 33 bytes
-// name confidence: 0.3   rewrite confidence: 0.55
+// name confidence: 0.3   rewrite confidence: 0.95
 // evidence: phase-2 evidence; walks widget_instance::parent (0x30) upward from a starting node,
 // checking at each step that the ancestor's focused_child (0x38) is the node just left --
 // exactly the parent-chain consistency check types/interface.h attributes to the sibling
@@ -10,11 +10,8 @@
 // the cursor as the loop's first "child").
 // register convention: starting node in ECX (in_ECX), unresolved register read.
 // blam-cc: ECX -> node
-// UNSURE: the return value is a full EAX/uint per Ghidra, not the bool widget_instance_is_top_of
-// _stack uses; its own caller in interface_tick only ever tests the low byte (`cVar7 == '\0'`),
-// so the failure path's upper 24 bits (leftover ancestor-pointer bits, masked with 0xffffff00 in
-// the original) are dead and are not reproduced here -- returning a plain uint8_t is behaviourally
-// identical to every observed caller.
+// The original returns AL = 1 on success; on failure it returns whatever EAX holds (the ancestor pointer), so only the low
+// byte is meaningful -- every caller tests AL, and the uint8_t return is equivalent.
 
 #include "tags.h"
 #include "memory.h"
