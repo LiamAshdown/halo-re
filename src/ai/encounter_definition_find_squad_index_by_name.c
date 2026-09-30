@@ -7,7 +7,9 @@
 // encounter_definition_find_platoon_index_by_name (0x4322c0), both this batch.
 // register convention: unaff_ESI (inherited unchanged from the caller); param_1 is a real
 // stack argument.
-//   // blam-cc: ESI -> encounter_definition, stack -> name
+//   // VERIFIED against disassembly (2026-09-30): count/pointer offsets, element stride, _strnicmp(.., 0x20) and the -1 return match.
+//   The register-ESI first argument is the only reason a difftest that passes it on the stack would crash the rewrite.
+// blam-cc: ESI -> encounter_definition, stack -> name
 
 #include "crt.h"
 #include "tags.h"
