@@ -8,14 +8,13 @@
 // +0x1a0) is the cross-check that pinned network_game_session::player_count.
 // register convention: __cdecl, no arguments.
 //
-// Same two foldings as network_stats_summary_log_open.c (identical shape, same technique as
-// src/math/random_seed_generate.c folding __allmul/__alldiv):
-//  1. the "gamespy Metrics" stack scratch text is dead (never read) and is not reproduced.
-//  2. the manual find-end-of-string / dword-copy loops are ordinary strcpy/strcat.
-// UNSURE: same foreign-function notes as network_stats_summary_log_open.c apply to
-// join_game_server_browser_tick, FUN_00449210 and the fopen mode string at 0x0065fd30.
+// The stack copy of "Gamespy Metrics" (0x65fd4c) is NOT dead: it is the requested_path handed to
+// network_log_path_resolve (ESI), whose shared buffer becomes the log directory. The manual
+// find-end-of-string / dword-copy loops are ordinary strcpy/strcat; the mode string at
+// 0x0065fd30 is "wt".
 // reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
+// VERIFIED against disassembly 0x440d80..0x441014 (2026-09-30): FIXED: the log directory comes from network_log_path_resolve("Gamespy Metrics") (0x4e40a0, ESI = the stack copy of that text), not join_game_server_browser_tick; formats, columns, offsets, /1000, 100 ms gate and cleared fields all compared
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
@@ -40,7 +39,7 @@ extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_summary_log_mode_string[]; // 0x0065fd30, shared by both stats logs
 
 extern int32_t time_query_performance_counter_ms(void); // foreign module, millisecond tick reader
-extern char *join_game_server_browser_tick(void);   // foreign module (> 0x4b80f0), log base directory path
+extern char *network_log_path_resolve(char *requested_path); // 0x4e40a0; blam-cc: ESI -> requested_path
 extern char directory_create_recursive(char *path); // 0x449250, foreign module
 
 void network_connection_stats_log_tick(void)
@@ -66,7 +65,7 @@ void network_connection_stats_log_tick(void)
             tm_now = localtime(&now_time);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = join_game_server_browser_tick();
+            base_path = network_log_path_resolve("Gamespy Metrics");
             strcpy(path_buf, base_path);
             directory_create_recursive(path_buf);
 
