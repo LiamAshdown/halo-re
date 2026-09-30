@@ -18,7 +18,7 @@
 //     the raw byte assignments. It has no observable effect and is not reproduced here.
 //  2. The three manual "walk to the NUL, then dword/byte-copy" loops that follow are ordinary
 //     strcpy/strcat, and are written as such.
-// UNSURE: join_game_server_browser_tick (foreign, > 0x4b80f0) is assumed to return the base log-directory path
+// The base log-directory path comes from network_log_path_resolve (0x4e40a0; ESI = "Gamespy Metrics", not dead text)
 // (its result is what gets a directory created for it, then has the log filename appended).
 // UNSURE: FUN_00449210 (foreign) is used here as a zero-argument millisecond tick reader
 // (QueryPerformanceCounter scaled by its frequency, same shape as random_seed_generate.c);
