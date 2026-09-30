@@ -1,6 +1,6 @@
 // actor_spawn_additional_units  (Ghidra: actor_spawn_additional_units, renamed)
 // address 0x427280, size 716 bytes
-// name confidence: 0.45   rewrite confidence: 0.85 (spawn loop REWRITTEN from objdump 0x427370..0x427545)
+// name confidence: 0.45   rewrite confidence: 0.85 (spawn loop VERIFIED against disassembly 0x427370..0x427545, 2026-09-30)
 // evidence: phase-4 summary "Spawns one or more additional units around an existing actor's
 // position and attaches new actors to them, optionally randomizing their health/scale."
 // types/ai.h actor.unknown_334/unknown_336 (a squad/platoon-index pair the header does not
@@ -9,14 +9,10 @@
 // actor_apply_unit_definition_properties (0x426cf0), object_placement_data_initialize /
 // object_new / object_delete / object_get_position (all established), random_real_range
 // (0x401050), and unit_apply_impulse/unit_find_placement_position, neither established elsewhere in this repo.
-//   UNSURE: this is one of the least-confident rewrites in this pass. actor_new_and_attach_to_unit
-//   is called here with only two of its twelve established parameters visible in Ghidra's
-//   decompile; the remaining ten are left at whatever this function's own stack/registers
-//   happen to hold, which this rewrite cannot reconstruct without objdump, so only the two
-//   visible ones (reuse_existing, unit_index) are passed and the rest default to zero/none.
-//   The object_placement_data_initialize call's returned value being fed to fcos/fsin (an
-//   unkbyte10, i.e. an x87 register) rather than a float looks like decompiler noise from a
-//   dead computation; the two trig calls are omitted here as they have no visible effect.
+// VERIFIED against disassembly 0x427280..0x427557 (2026-09-30): all twelve actor_new_and_attach_to_unit arguments, the
+//   trig / position math, the unit_find_placement_position call (EDX = placement position), the impulse block and the
+//   loop's return value (the spawned count) agree. The object type test is a WORD compare (object+0xb4, int16); the
+//   earlier dword compare also read the next field.
 // register convention: EBX -> actor_variant_tag, DX -> spawn_count, stack -> source_actor_index,
 //   health_scale.
 //   // blam-cc: EBX -> actor_variant_tag, EDX -> spawn_count, stack -> source_actor_index,
@@ -39,9 +35,9 @@ extern real random_real_range(real min, real max); // 0x401050
 extern double cos(double x);
 extern double sin(double x);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role); // 0x4f53a0
-extern datum_index object_new(object_placement_data *placement); // 0x4f5460, UNSURE signature
-extern void object_delete(datum_index object_index); // 0x4f5bd0, UNSURE signature
-extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
+extern datum_index object_new(object_placement_data *placement); // 0x4f5460, ECX -> placement (src/objects/object_new.c)
+extern void object_delete(datum_index object_index); // 0x4f5bd0, EAX -> object_index (src/objects/object_delete.c)
+extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, EAX -> out_position, ECX -> object_index
 extern void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index); // 0x426cf0
 extern datum_index actor_new_and_attach_to_unit(
     char reuse_existing, datum_index unit_index, datum_index actor_variant_tag,
@@ -128,7 +124,7 @@ int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spaw
                     char reuse_existing = (char)((*(const uint32_t *)actor_tag_data >> 0x1a) & 1);
                     datum_index new_actor;
 
-                    if (*(uint32_t *)&((object *)new_obj)->type == 0) {
+                    if (((object *)new_obj)->type == 0) {
                         unit_find_placement_position(new_object, 0xffffffff, 0, 1.0f, 1, 0, 0, 0,
                             (real_vector3d *)&placement.position);
                     }
@@ -151,7 +147,7 @@ int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spaw
                         impulse.i = impulse.i * health_scale;
                         impulse.j = impulse.j * health_scale;
                         impulse.k = r2 * health_scale;
-                        if (*(uint32_t *)&((object *)new_obj)->type == 0) {
+                        if (((object *)new_obj)->type == 0) {
                             unit_apply_impulse(new_object, &impulse);
                         }
                     }

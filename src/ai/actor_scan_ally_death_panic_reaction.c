@@ -8,11 +8,8 @@
 //   actor_scale_value_by_ally_exposure (0x420c90) and actor_find_prop_for_object, both already established
 //   in this module. Sibling of actor_scan_backup_and_panic_reaction @0x423220, which shares
 //   the identical friend_killed_panic_chance / panic_in_groups / ally-exposure pattern.
-//   UNSURE: actor_scale_value_by_ally_exposure's own header documents its apparent boolean
-//   return as decompiler noise (always truthy in practice, from a function whose real return
-//   type is void); this function's "return if the roll fails AND that flag is false" branch
-//   is accordingly never actually taken and is omitted here, matching how
-//   actor_scan_backup_and_panic_reaction already treats the same call.
+// VERIFIED against disassembly 0x4233d0..0x4234e2 (2026-09-30): the exposure scaler's return value is tested (nonzero skips the
+//   random roll, exactly as the C does), so no branch is omitted.
 // register convention: EAX -> target_prop_index, EBX -> actor_index (both unaff_).
 //   // blam-cc: EAX -> target_prop_index, EBX -> actor_index
 

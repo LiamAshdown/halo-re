@@ -1,7 +1,7 @@
 // actor_consider_combat_mode  (Ghidra: actor_consider_combat_mode, already named)
 // address 0x401a60, size 737 bytes
 // name confidence: 0.5   rewrite confidence: 0.85
-// REWRITTEN from objdump 0x401a60..0x401d40 (the draft called unit_get_weapon_marker_indices without the unit, flag
+// VERIFIED against disassembly 0x401a60..0x401d40 (2026-09-30); rewritten from it (the draft called unit_get_weapon_marker_indices without the unit, flag
 //   or outputs). Stack: actor_index, mode, out (the 0x38-byte consideration, zeroed, +0 stamped with the game time,
 //   +4 the resulting mode). Modes 4/5 succeed for a vehicle actor (+0x15e > 1). Mode 0 turns into 1 (stalking) for a
 //   use_stalking_behavior (flag 0x20000) actor at alertness (+0x6e) 5 or more that is not committed (+0x378).

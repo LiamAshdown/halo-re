@@ -18,13 +18,9 @@
 // this frame (sub esp,0x18 plus four pushes) is the SECOND stack parameter, and EDI is exactly
 // the implicit deviation-table argument of actor_look_get_wait_ticks. So param_2 is the float
 // pair table, forwarded on; the one caller already passes its idle_range table for it.
-// UNSURE: require_trust and use_aiming_deviation are forwarded to actor_select_facing_
-// target_prop / used to pick between the aiming- and looking-deviation tag fields; their
-// true intent is not established (see actor_select_facing_target_prop.c).
-// UNSURE: actor_look_get_wait_ticks's second argument is a uint32 whose only live bit is its
-// low byte (out_in_front from actor_select_facing_target_prop); Ghidra's own signature for
-// that function types it as a float because of a union reuse inside it. Passed here as the
-// same uint32 bit pattern the disassembly shows, not reinterpreted.
+// VERIFIED against disassembly 0x414d00..0x414f43 (2026-09-30): all field offsets, both min() selections, the pi
+// fallback (require_trust), the horizontal aim direction and the 6-slot push sequence for the cone call agree with the C.
+// actor_look_get_wait_ticks's second argument is a uint32 whose only live bit is its low byte (out_in_front).
 
 #include "tags.h"
 #include "memory.h"

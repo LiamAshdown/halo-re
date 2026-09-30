@@ -1,6 +1,6 @@
 // ai_search_compute_point_tangents  (Ghidra: ai_search_compute_point_tangents, renamed)
 // address 0x43c9a0, size 149 bytes
-// name confidence: 0.4   rewrite confidence: 0.85 (verified against objdump)
+// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED against disassembly 0x43c9a0..0x43ca34, 2026-09-30)
 // evidence: types/ai.h ai_search_obstacle_list.obstacles(+0x08, stride 0x14) and
 // ai_search_obstacle.position(+0x08)/radius(+0x10). phase-4 summary "computes tangent offset
 // directions for steering around a specific point-array entry, used while scoring candidate
@@ -38,11 +38,12 @@ void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t poi
     float dy = point->position.y - position->y;
     float distance = (float)sqrt(dx * dx + dy * dy);
 
-    if (fabs(distance) < 0.0001) {
+    if (fabs(distance) < (double)0.0001f) { // constant at 0x672bd8 is the float 0.0001f widened
         distance = 0.0f;
     } else {
-        dx = dx * (1.0f / distance);
-        dy = dy * (1.0f / distance);
+        double inv = 1.0 / distance; // fdiv result stays in x87 extended precision
+        dx = (float)(dx * inv);
+        dy = (float)(dy * inv);
     }
     direction.i = dx;
     direction.j = dy;

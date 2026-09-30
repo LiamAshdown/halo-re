@@ -1,7 +1,6 @@
 // actor_check_step_obstruction  (Ghidra: actor_check_step_obstruction, renamed)
 // address 0x417bb0, size 661 bytes
-// name confidence: 0.25  rewrite confidence: 0.85 (REWRITTEN/verified end to end against 0x417bb0; fixed the inverted second-probe result) (best-effort; several callee signatures
-// guessed from the visible stack args alone, no disassembly cross-check on this file)
+// name confidence: 0.25  rewrite confidence: 0.85 (REWRITTEN/verified end to end against 0x417bb0; fixed the inverted second-probe result)
 // evidence: only reachable when actor.flying is clear; projects a step point along a
 // caller-supplied 2D direction from body_position, runs a trace (path_find_test_segment_unobstructed) against it,
 // and, when either the trace fails or a positive step_up is requested, runs up to two more
@@ -15,12 +14,9 @@
 // parameter are genuine stack parameters.
 // blam-cc: EAX -> actor_index, EDI -> direction, stack -> step_distance, stack -> step_up,
 //   stack -> out_flag, stack -> extra_param
-// UNSURE: path_find_test_segment_unobstructed and collision_bsp_query_segment_init are trace/point-clearance utilities outside this
-// module, not rewritten here; their parameter types are guesses from Ghidra's own untyped
-// call sites (undefined4/undefined1), not independently confirmed.
-// UNSURE: PTR_DAT_0069672c (used as a 3-float direction, by the 0x696714/0x696718/0x69671c/
-// 0x696720 pattern this module already reads as "zero"/"forward"/"right"/"up") would be
-// "down" by that same pattern; not confirmed here.
+// VERIFIED against disassembly 0x417bb0..0x417e44 (2026-09-30): trace call (EBX map, EAX point A, 7 stack args), both probe
+// calls (EAX = 3, ECX = result buffer, FLT_MAX last), the dz / step_up decision tree and the inverted-looking hit handling agree.
+// 0x69672c is used as the "down" axis (step_up * down).
 // reconciled: R54 0x502060 prototype -> physics signature collision_bsp_query_segment_init(flags EAX = 3, result ECX, bsp, 0, 0, origin, delta, FLT_MAX); both calls now pass the flags and a result buffer
 
 #include "tags.h"

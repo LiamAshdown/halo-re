@@ -17,12 +17,9 @@
 //  - matrix4x3_transform_point takes the output point in EAX and the source point in EDX
 //    (record + 0x10 == ModelCollisionGeometrySphere.center) with the matrix pushed; Ghidra
 //    prints only the pushed matrix.
-// UNSURE: the two register arguments of object_get_world_matrix and the trailing literal 0 it
-// is passed are read off this call site only; that function is not rewritten.
-// UNSURE: object + 0x1f2 is an int16 byte offset from the object base to its node matrix
-// array (stride 0x34); types/objects.h does not name it.
-// UNSURE: "bottom" and "height" are the names types/ai.h already gives the two derived
-// floats; this function is the only writer and neither name is independently confirmed.
+// VERIFIED against disassembly 0x418ce0..0x418f6f (2026-09-30): object_get_world_matrix takes EAX = object index and EDI = out
+// matrix; matrix4x3_transform_point takes EAX = out, EDX = &sphere.center plus the matrix on the stack; object + 0x1f2 is the
+// int16 node-matrix offset (nodes.offset); the obstacle's position.z slot (+0x0c) is bottom, written last.
 
 #include "tags.h"
 #include "memory.h"

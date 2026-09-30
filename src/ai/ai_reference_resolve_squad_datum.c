@@ -10,15 +10,10 @@
 // counter that can never realistically reach 0xffff. Both are kept exactly as decompiled
 // rather than simplified away, since Ghidra's rendering, however oddly, is a faithful
 // (if redundant) copy of the real comparisons the compiler emitted.
-// UNSURE, substantially: on every early-exit path (invalid globals/reference, or a kind==1
-// reference whose platoon has no matching squad), the original returns whatever was in
-// local iVar2 at that point, which for the "no match" case is never reassigned from its
-// initial value of DAT_00880354 itself (the ai_globals pointer, not a squad-derived value).
-// This looks like a genuine decompiler/register-reuse artifact rather than an intentional
-// sentinel, but it is reproduced exactly as a defensive default rather than guessed away.
+// VERIFIED against disassembly 0x432c80..0x432d26 (2026-09-30): on the early-exit paths EAX is whatever the code left in it:
+// ai_globals (invalid / other kind), the squad-array pointer (kind 1, no platoon match) or encounter_index*0xb0 (kind 1, no squads).
 // register convention: Ghidra fully resolved the parameter.
-//   // blam-cc: stack -> packed_reference (EAX, per sibling convention; not independently
-//   confirmed with objdump for this file)
+//   // blam-cc: stack -> packed_reference
 
 #include "tags.h"
 #include "memory.h"
@@ -46,6 +41,9 @@ int32_t ai_reference_resolve_squad_datum(uint32_t packed_reference)
                 &((ScenarioEncounter *)global_scenario->encounters.pointer)[packed_reference & 0xffff];
             int32_t squad_count = encounter_definition->squads.count;
 
+            if (squad_count <= 0) {
+                return (int32_t)((packed_reference & 0xffff) * sizeof(ScenarioEncounter)); // EAX = index * 0xb0
+            }
             if (squad_count > 0) {
                 ScenarioSquad *squads = (ScenarioSquad *)encounter_definition->squads.pointer;
                 int32_t squad_index = 0;
@@ -59,6 +57,7 @@ int32_t ai_reference_resolve_squad_datum(uint32_t packed_reference)
                     }
                     squad_index = squad_index + 1;
                 } while (squad_index < squad_count);
+                return (int32_t)squads; // EAX = the squad array pointer
             }
         }
     }

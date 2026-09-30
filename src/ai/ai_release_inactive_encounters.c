@@ -24,10 +24,7 @@ extern Scenario *global_scenario;           // 0x00746f8c
 
 extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index,
     uint8_t is_dead); // 0x42ab00, EAX, EDI, stack, BL
-    // UNSURE: the call site only supplies one visible stack argument (-1); the callee's own
-    // decompile also reads unaff_EDI and in_EAX, which appear to be whatever this caller's
-    // registers happen to hold rather than real inputs. Left as a single-argument prototype;
-    // resolve together with 0x42ab00's own rewrite.
+    // VERIFIED against disassembly 0x42ae50..0x42af40 (2026-09-30): EAX = encounter datum, EDI = -1, stack = -1, BL = 1.
 extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead); // 0x4288e0, stack, AL
 
 // Iterates a prioritized list of things AI cleanup still needs to release -- whole encounters

@@ -1,7 +1,7 @@
 // actor_place_new_unit  (Ghidra: actor_place_new_unit, already named)
 // address 0x427080, size 500 bytes
 // name confidence: 0.55   rewrite confidence: 0.95
-// REWRITTEN from objdump 0x427080..0x427273. EAX: the placement request (+0x0 position, +0xc yaw, +0x12 byte,
+// VERIFIED against disassembly 0x427080..0x427273 (2026-09-30); rewritten from it. EAX: the placement request (+0x0 position, +0xc yaw, +0x12 byte,
 //   +0x14 / +0x16 state words, +0x1a word); stack: variant (or palette entry when use_palette_entry: its +0x30),
 //   encounter, squad, use_palette_entry, permutation. Creates the variant's unit (+0x20) at the position facing
 //   (cos yaw, sin yaw, 0) with role 3 (0 when [0x719720] == 2 and the unit's object type definition has a +0x10

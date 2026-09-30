@@ -16,11 +16,8 @@
 // types/ai.h already names individually in that range (movement_action_complete at 0x4a8,
 // unknown_4a9[19], unknown_4bc, unknown_4c0[12]); not reconciled with the header here, only
 // accessed through raw offsets from a local byte pointer, matching what this function does.
-// UNSURE: POPCOUNT(bVar12)&1 (Ghidra's parity-bit rendering of a single boolean OR of a
-// less-than compare and a NaN check) is simplified here to a plain floating compare, which is
-// equivalent for the non-NaN case and returns false (not "true", as POPCOUNT's odd/even flip
-// might otherwise suggest) when the compared value is NaN; not independently re-derived from
-// the flags.
+// VERIFIED against disassembly 0x4163e0..0x4166fb (2026-09-30): every x87 status-word test (fnstsw / test ah,0x41 / 5) was
+// decoded; the reject tests are plain "< 0.0225f" / "< 0.0625f" (0x673100 / 0x672ba4), a NaN never rejects.
 
 #include "tags.h"
 #include "memory.h"

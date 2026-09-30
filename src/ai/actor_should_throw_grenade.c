@@ -8,9 +8,8 @@
 //   and vitality thresholds".
 // register convention: actor index in EAX, a "force" flag in the recognized stack parameter.
 //   // blam-cc: EAX -> actor_index, stack -> force
-// UNSURE: the original packs its bool result together with unrelated NaN/sign/zero
-// classification bits from two float comparisons (the CONCAT2x patterns); simplified here to
-// a plain bool, matching the treatment used elsewhere in this session for the same pattern.
+// VERIFIED against disassembly 0x40b840..0x40b91f (2026-09-30): the x87 status-word tests reduce to the plain
+// comparisons below (NaN inputs are the only difference); the bool result is returned in AL only.
 
 #include "tags.h"
 #include "memory.h"
