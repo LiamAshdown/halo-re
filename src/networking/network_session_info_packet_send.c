@@ -12,6 +12,9 @@
 // channel's outgoing bit stream exactly as in network_game_record_message_send. Return is AL only.
 
 // VERIFIED against disassembly 0x4d9050..0x4d9174 (2026-09-30): FIXED: state 3 builds message type 0x1d (was 0x23); states 0/1 -> 0, >4 -> 1 per the jump table at 0x4d9174; send sequence compared
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
 #include "game.h"
 #include "networking.h"
 

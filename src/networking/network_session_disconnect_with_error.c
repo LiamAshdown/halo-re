@@ -4,9 +4,9 @@
 // evidence: out/phase4/networking_functions.md summary ("Records an error code and triggers a
 // network-session disconnect/cleanup").
 // register convention: the error code arrives in AX (in_AX). // blam-cc: AX -> error_code
-// UNSURE: `network_join_error_code + error_code + 0x2b` is an odd combination (a retry-limit
-// slot being seeded from an error code plus a constant); preserved exactly, not simplified.
+// Stores error_code + 0x2b (an error-string index) as the pending join error only if none is pending.
 
+// VERIFIED against disassembly 0x4d97e0..0x4d97ff (2026-09-30): word compare with -1, word store of error_code + 0x2b, flag store, tail call to chat_close
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
