@@ -1,19 +1,14 @@
 // actor_choose_best_target  (Ghidra: actor_choose_best_target, already named)
 // address 0x4203a0, size 1266 bytes
-// name confidence: 0.6   rewrite confidence: 0.6
+// name confidence: 0.6   rewrite confidence: 0.95
 // evidence: walks the actor's prop list (actor.first_prop, chained through prop.next_in_actor),
 // rebuilds actor.tally from scratch, keeps the prop with the highest prop.desirability, and
 // commits it to actor.target_unit_index -- re-rating both the old and the new target as it
 // swaps -- before refreshing the combat status and the awareness level.
 // register convention: actor_index is a genuine stack parameter.
 // blam-cc: stack -> actor_index
-// UNSURE: the dropped register arguments of actor_update_target_combat_status and
-// actor_update_awareness_level; every other call site in this module passes the actor index
-// in EAX, which is what is assumed here.
-// UNSURE: the second actor_rate_potential_target call re-reads actor.target_unit_index (which
-// this function has just overwritten with `best`) instead of using `best` directly. That is
-// exactly what the original does -- the two are equal at that point -- and it is transcribed
-// literally rather than simplified.
+// VERIFIED against disassembly 0x4203a0..0x42088d (2026-09-30): both callees take the actor index in EAX (the second is a tail
+// jump); the second actor_rate_potential_target call re-reads actor.target_unit_index exactly as the original does.
 // UNSURE: prop.unknown_12d, unknown_12f, unknown_135, unknown_122, unknown_9c, unknown_32 and
 // unknown_38 keep their placeholder names; this function is a counter of them, not an
 // explanation of them.
