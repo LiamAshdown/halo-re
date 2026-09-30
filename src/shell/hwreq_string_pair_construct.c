@@ -5,8 +5,8 @@
 // rewrite confidence: 0.55 (standard library code, confirmed against objdump and consistent
 //   with string_pair_construct_empty.c's field offsets)
 // evidence: types/shell.h hwreq_string_pair (first 0x00, second 0x1c).
-// register convention: __cdecl-style stack arguments (dest, first_source, second_source), callee pops
-//   0xc (ret 0xc); returns dest in EAX. The earlier 'EAX = dest' note was wrong.
+// register convention: all three arguments (dest, first_source, second_source) are stack arguments
+//   and the callee pops them (ret 0xc); the function returns dest. There is no register argument.
 // blam-cc: (all three on the stack)
 
 // VERIFIED against disassembly 0x57b670..0x57b6df (2026-09-30): all three arguments are on the stack (ret 0xc), no register argument

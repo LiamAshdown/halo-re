@@ -9,7 +9,7 @@
 // into EBP (survives the calls); `machine` (network_machine*) is a live-in forwarded through ESI
 // -- never set locally -- straight into network_game_process_incoming_message's own verified
 // ECX -> machine slot at its call site (0x4e190b `mov ecx,esi`).
-// blam-cc: ESI -> machine, stack -> unit
+// blam-cc: ECX -> stream, ESI -> machine, stack -> server, unit
 // FIXED (register inputs, objdump): ESI is a genuine live-in (0x4e18ce `push esi`,
 // 0x4e190b `mov ecx,esi`) that the notes did not map; added as `machine`. While tracing that
 // call, also found the previously-modeled `server` stack parameter does not exist in the binary
