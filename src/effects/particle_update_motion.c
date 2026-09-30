@@ -174,7 +174,7 @@ uint8_t particle_update_motion(datum_index particle_handle, real delta_time)
 
     if (self->velocity.k * self->velocity.k + self->velocity.j * self->velocity.j +
         self->velocity.i * self->velocity.i >= 0.0625f) {
-        self->unknown_3c = self->velocity;
+        self->direction = self->velocity;
     } else if (settled) {
         if ((tag->flags & 0x10) != 0) { // dies_at_rest
             particle_impact(particle_handle);
@@ -183,7 +183,7 @@ uint8_t particle_update_motion(datum_index particle_handle, real delta_time)
         self->flags |= _particle_at_rest_bit;
     }
 
-    self->unknown_54 = self->unknown_54 + delta_time * self->unknown_58; // UNSURE: contradicts
+    self->rotation = self->rotation + delta_time * self->angular_velocity; // UNSURE: contradicts
                                     // types/effects.h's "no reader in this module" note for both
                                     // fields; kept as read here since the disassembly plainly
                                     // does it

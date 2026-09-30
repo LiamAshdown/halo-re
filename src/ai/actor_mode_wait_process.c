@@ -38,7 +38,7 @@ uint8_t actor_mode_wait_process(datum_index actor_index)
     if (!act[0x4c]) {
         return act[0x9c];
     }
-    ((struct actor *)act)->mode_data.wait.unknown_03 = 0;
+    ((struct actor *)act)->mode_data.wait.following_friend = 0;
     actor_find_nearest_grenade_ally(actor_index, act[0x1cc]);
     if (act[0x9d]) {
         if (((struct actor *)act)->nearby_friend_prop_index == k_datum_index_none) {
@@ -64,10 +64,10 @@ uint8_t actor_mode_wait_process(datum_index actor_index)
                 follow = act[0xa0] == 0;
             }
             if (follow && distance > 3.5f) {
-                ((struct actor *)act)->mode_data.wait.unknown_03 = 1;
+                ((struct actor *)act)->mode_data.wait.following_friend = 1;
                 act[0x9c] = 0;
             } else {
-                ((struct actor *)act)->mode_data.wait.unknown_03 = 0;
+                ((struct actor *)act)->mode_data.wait.following_friend = 0;
                 act[0x9c] = 0;
             }
         }
@@ -76,7 +76,7 @@ decided:
     if (act[0x6]) {
         return act[0x9c];
     }
-    if (((struct actor *)act)->mode_data.wait.unknown_03) {
+    if (((struct actor *)act)->mode_data.wait.following_friend) {
         uint8_t done = act[0x9c];
 
         if (!actor_movement_set_destination_near_target(((struct actor *)act)->nearby_friend_prop_index, actor_index, 8.0f)) {

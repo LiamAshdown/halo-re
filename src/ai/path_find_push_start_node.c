@@ -68,20 +68,20 @@ uint8_t path_find_push_start_node(path_find_context *context)
     context->node_count = node_index + 1;
 
     node->parent = -1;
-    node->unknown_04 = -1;
+    node->previous_vertex_id = -1;
     node->vertex_id = context->start_vertex_id;
     node->position = context->start_position;
     node->distance = value;
     node->cost = 0.0f;
-    node->unknown_20 = 0.0f;
-    node->unknown_1c = 3.4028235e+38f;
-    node->unknown_24 = 0.0f;
+    node->travelled_distance = 0.0f;
+    node->avoid_distance = 3.4028235e+38f;
+    node->accumulated_cost = 0.0f;
     node->key = (int16_t)key;
     node->waypoint = 0;
 
     if (context->have_goal != 0) {
         context->best_cost = value;
-        context->unknown_70 = value;
+        context->best_estimate = value;
         context->best_position.x = context->start_position.x;
         context->best_position.y = context->start_position.y;
         context->best_node = node_index;

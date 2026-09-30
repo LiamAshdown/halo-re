@@ -94,7 +94,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     uint32_t pass;
 
     if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f9 == 0 ||
-        rasterizer_window.unknown_04 == 0 || rasterizer_window.type != 1) {
+        rasterizer_window.has_mirror == 0 || rasterizer_window.type != 1) {
         return;
     }
 

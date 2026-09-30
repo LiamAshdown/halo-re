@@ -144,7 +144,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
         }
     }
 
-    context.unknown_04 = (uint32_t)object_index;
+    context.object_index = (uint32_t)object_index;
     context.lighting = *lighting;
     context.center = *bounding_center;
     context.bounding_radius = bounding_radius;

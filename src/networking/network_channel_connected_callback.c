@@ -50,8 +50,8 @@ void network_channel_connected_callback(void *connection, int32_t result, const 
                 reason = code;
             }
         }
-        queue->unknown_18 = reason;
-        queue->unknown_05 = 1;
+        queue->reject_reason = reason;
+        queue->connection_failed = 1;
         queue->last_error = -0x18;
         network_receive_queue_close_socket(queue);
         queue->flags |= 0x40;

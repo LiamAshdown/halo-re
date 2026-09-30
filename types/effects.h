@@ -250,7 +250,9 @@ typedef struct decal {
     uint8_t sequence_index;         // 0x18 random in [0, bitmap sequence count)
     uint8_t unknown_19;             // 0x19 never written by decal_place
     uint8_t unknown_1a;             // 0x1a written as 0 by decal_place
-    uint8_t unknown_1b;             // 0x1b a per surface index computed during projection; 0 on
+    uint8_t sprite_bitmap_index;    // 0x1b 0x1b decal_place stores its sprite_bitmap_index local here;
+                                    //    rasterizer_decals_draw_cluster hands it to chimera__rasterizer_set_texture
+                                    //    as the bitmap frame
                                     //      the path that is not media mapped
     float lifetime;                 // 0x1c random in Decal.lifetime; 0 means it never expires
     float decay_time;               // 0x20 random in Decal.decay_time
@@ -434,8 +436,12 @@ typedef struct effect {
     uint16_t identifier;            // 0x00 datum header
     uint16_t flags;                 // 0x02 effect_flags
     datum_index definition_index;   // 0x04 the Effect tag
-    int16_t unknown_08;             // 0x08 written by effect_new_at_texture_coordinate 0x4506d0
-    int16_t unknown_0a;             // 0x0a written by the same call; neither is read here
+    int16_t a_scale_function_index; // 0x08 0x08 effect_update passes it to object_function_get_value to fill
+                                    //    effect.a_scale (object function index); written from the u argument of
+                                    //    effect_new_at_texture_coordinate
+    int16_t b_scale_function_index; // 0x0a 0x0a effect_update passes it to object_function_get_value to fill
+                                    //    effect.b_scale (object function index); written from the v argument of
+                                    //    effect_new_at_texture_coordinate
     int16_t change_color_index;     // 0x0c -1 selects the default white; otherwise indexes
                                     //      object.change_colors at object +0x1b8
     int16_t unknown_0e;             // 0x0e never written
@@ -593,7 +599,10 @@ typedef struct particle_system_particle {
     bsp_leaf_reference location;    // 0x14
     real_point3d position;          // 0x1c the point matrix4x3_transform_point is handed; proved
                                     //      by lea edx,[edi+0x1c] at 0x00454ccc
-    real_point3d unknown_28;        // 0x28 filled by the creation physics procedure; UNSURE,
+    real_point3d velocity;          // 0x28 0x28 initial velocity: creation physics procs (default/explosion/jet)
+                                    //    write system->velocity plus scatter into it and
+                                    //    particle_update_physics_default passes it to point_physics_tick as the
+                                    //    velocity; not read inside effects.h module
                                     //      never read inside this module
     real_vector3d direction;        // 0x34 rotated into view space to orient the sprite
     float rotation;                 // 0x40 radians, advanced by rotation_rate; random at create
@@ -700,13 +709,19 @@ typedef struct particle {
     int16_t frame_index;            // 0x26 sprite index inside that sequence
     bsp_leaf_reference location;    // 0x28 the address handed to the point physics submit
     real_point3d position;          // 0x30
-    real_vector3d unknown_3c;       // 0x3c copied from particle_creation_data +0x1c; UNSURE, no
+    real_vector3d direction;        // 0x3c 0x3c copied from particle_creation_data.direction (+0x1c) in particle_new,
+                                    //    refreshed from velocity when speed >= 0.25 in particle_update_motion, read
+                                    //    as the sprite direction by render_particles
                                     //      reader in this module
     real_vector3d velocity;         // 0x48 gravity is folded in at create for a world particle,
                                     //      and the velocity is damped by
                                     //      Particle.contact_deterioration at 0x88 on contact
-    float unknown_54;               // 0x54 copied from particle_creation_data +0x40
-    float unknown_58;               // 0x58 copied from particle_creation_data +0x44
+    float rotation;                 // 0x54 0x54 copied from particle_creation_data.rotation (+0x40) in particle_new,
+                                    //    advanced by delta_time * angular_velocity in particle_update_motion, passed
+                                    //    to the sprite draw in render_particles
+    float angular_velocity;         // 0x58 0x58 copied from particle_creation_data.angular_velocity (+0x44) in
+                                    //    particle_new, multiplied by delta_time into rotation in
+                                    //    particle_update_motion
     float scale;                    // 0x5c multiplies the Particle.radius_animation lerp
     ColorARGB color;                // 0x60 alpha then RGB; the RGB is multiplied by the ambient
                                     //      lightmap sample unless Particle is self_illuminated,
@@ -769,10 +784,13 @@ typedef struct weather_instance {
                                     //      weather_instance_update (0x458429); render_frame stores
                                     //      that frame delta at 0x50bec2. Not a per-tick delta (R45)
     float intensity;                // 0x0c scales the per type target count
-    uint32_t unknown_10;            // 0x10 copied from 0x007c3344, handed to FUN_0053ed60 as the
+    uint32_t render_leaf_index;     // 0x10 0x10 weather_update_local_player stores the render_leaf_index global here
+                                    //    and hands it (with cluster_index) to scenario_location_get_water_and_weather
+                                    //    as a bsp_leaf_reference
                                     //      sample point and to the render submit as the field
                                     //      origin. UNSURE of its real type
-    int16_t unknown_14;             // 0x14 copied from 0x007c3348
+    int16_t render_cluster_index;   // 0x14 0x14 weather_update_local_player stores the render_cluster_index global
+                                    //    here, the cluster half of the bsp_leaf_reference that starts at 0x10
     int16_t unknown_16;             // 0x16 never written
     int16_t cluster_index;          // 0x18 FUN_0053ed60 output, -1 when outside the BSP
     uint8_t in_sky;                 // 0x1a FUN_0053ed60 return; picks render mode 5 or 7
@@ -856,16 +874,22 @@ typedef enum player_effect_flags {
 // ---------------------------------------------------------------------------
 typedef struct player_screen_flash {
     int16_t type;                   // 0x00 index into the table at 0x00687218
-    int16_t unknown_02;             // 0x02
+    int16_t priority;               // 0x02 0x02 mirrors DamageEffect.priority (tag 0x26, screen flash block is
+                                    //    tag+0x24); player_effect_set_screen_flash keeps the flash with the higher
+                                    //    value and generic damage feedback sets 2 (high)
     uint32_t unknown_04;            // 0x04
     uint32_t unknown_08;            // 0x08
     uint32_t unknown_0c;            // 0x0c
     float duration;                 // 0x10 seconds; multiplied by the caller scale and 30 to
                                     //      give the tick count
-    uint32_t unknown_14;            // 0x14
+    uint32_t fade_function;         // 0x14 0x14 mirrors DamageEffect.fade_function (tag 0x38);
+                                    //    player_effect_build_screen_flash feeds its int16 to
+                                    //    transition_function_evaluate with the elapsed fraction
     uint32_t unknown_18;            // 0x18
     uint32_t unknown_1c;            // 0x1c
-    uint32_t unknown_20;            // 0x20
+    uint32_t maximum_intensity;     // 0x20 0x20 mirrors DamageEffect.maximum_intensity (tag 0x44);
+                                    //    player_effect_set_screen_flash clamps the blended intensity to it, generic
+                                    //    damage feedback stores the damage fraction here
     float intensity;                // 0x24 the descriptor bounds blended by the caller falloff
                                     //      and clamped to the maximum
     ColorARGB color;                // 0x28
@@ -897,13 +921,17 @@ typedef struct player_camera_impulse {
 typedef struct player_camera_shake {
     float duration;                 // 0x00 seconds, scaled to ticks
     uint32_t unknown_04;            // 0x04
-    uint32_t unknown_08;            // 0x08
+    uint32_t random_translation;    // 0x08 0x08 mirrors DamageEffect.camera_shaking_random_translation (tag 0xd4,
+                                    //    shake block is tag+0xcc, duration matches at 0xc8/0xcc); generic damage
+                                    //    feedback writes fraction * 0.01 here
     uint32_t unknown_0c;            // 0x0c
     uint32_t unknown_10;            // 0x10
     uint32_t unknown_14;            // 0x14
     uint32_t unknown_18;            // 0x18
     uint32_t unknown_1c;            // 0x1c
-    float unknown_20;               // 0x20 also multiplied by the caller scale and 30
+    float wobble_period;            // 0x20 0x20 mirrors DamageEffect.camera_shaking_wobble_period (tag 0xec);
+                                    //    player_effect_set_camera_shake multiplies it by scale * 30 to convert
+                                    //    seconds to ticks like duration
     uint32_t unknown_24;            // 0x24
     float intensity;                // 0x28 the blend the next shake must beat to replace this
                                     //      one

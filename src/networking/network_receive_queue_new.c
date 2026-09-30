@@ -35,7 +35,7 @@ network_receive_queue *network_receive_queue_new(void)
     if (queue != 0) {
         queue->socket = 0;
         queue->data_ready = 0;
-        queue->unknown_05 = 0;
+        queue->connection_failed = 0;
         queue->socket_key = 0xffffffff;
         queue->flags = 0;
         queue->unknown_0d = 0x14;
@@ -55,7 +55,7 @@ network_receive_queue *network_receive_queue_new(void)
         }
         queue->incoming = buffer;
         queue->unknown_14 = 0xffffffff;
-        queue->unknown_18 = 0;
+        queue->reject_reason = 0;
     }
     return queue;
 }

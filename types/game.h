@@ -328,20 +328,24 @@ typedef struct game_engine_definition {
     void *post_rasterize;              // 0x34 render_scene_draw (0x50bfb0)
     void *update;                      // 0x38 game_engine_tick
     void *object_in_play_update;       // 0x3c 0x45f560 (per-tick pickup bookkeeping)
-    void *unknown_40;                  // 0x40
+    void *weapon_ready_state_change;   // 0x40 0x40 (weapon, player) -> bool, called by
+                                       //    game_engine_notify_weapon_ready_state_change
     void *object_expired;              // 0x44 0x45f510 (unclaimed item about to despawn)
     void *unknown_48;                  // 0x48
     void *get_score;                   // 0x4c 0x463480 / kill-feed builder; takes a player
                                        //      handle (or -1) and returns its score
     void *get_team_score;              // 0x50 called with 0 and 1
-    void *unknown_54_build_player_text;// 0x54 (player, wchar buffer) -> scoreboard row text
+    void *build_player_text;           // 0x54 0x54 (player, wchar buffer) -> scoreboard row text (end game result,
+                                       //    post game and in-game score rasterizers)
     void *build_score_header_text;     // 0x58 (wchar buffer)
     void *build_team_score_text;       // 0x5c (team, wchar buffer)
     void *unknown_60;                  // 0x60 reached from the units module (0x56da00)
     void *unknown_64;                  // 0x64 reached from the units module (0x5674a0)
-    void *unknown_68;                  // 0x68 fired first thing in game_engine_on_player_death
+    void *on_player_death;             // 0x68 0x68 (killer, death_object, victim, is_suicide) fired first thing in
+                                       //    game_engine_on_player_death
     void *build_message_text;          // 0x6c variant override for the kill-feed text builder
-    void *unknown_70;                  // 0x70
+    void *rate_starting_location;      // 0x70 0x70 (player, location) -> float scale applied last by
+                                       //    game_engine_rate_player_starting_location
     void *player_team_changed;         // 0x74 0x4611b0
     void *allow_grenade_counts;        // 0x78 game_engine_apply_player_grenade_counts
     void *unknown_7c;                  // 0x7c
@@ -618,12 +622,17 @@ typedef struct player {
     int32_t unknown_f8;                // 0xf8
     uint8_t unknown_fc[0x104 - 0xfc];  // 0xfc
     int32_t unknown_104;               // 0x104 network constructor writes -1
-    uint8_t unknown_108;               // 0x108
+    uint8_t connection_quality_started; // 0x108 network_client_check_connection_quality: 0 until the first sample,
+                                        //    then 1 (constructor writes 0)
     uint8_t pad_109[3];                // 0x109
-    int32_t unknown_10c;               // 0x10c
-    int32_t unknown_110;               // 0x110
-    int32_t unknown_114;               // 0x114
-    int32_t unknown_118;               // 0x118
+    int32_t loss_window_start_ms;      // 0x10c network_client_check_connection_quality: QPC ms at which the loss
+                                       //    window opened; the window restarts after 10000 ms
+    int32_t loss_window_units;         // 0x110 network_client_check_connection_quality: units (packets/bytes)
+                                       //    accumulated in the window; loss ratio = it / window seconds
+    int32_t latency_last_sample_ms;    // 0x114 network_client_check_connection_quality: QPC ms of the previous
+                                       //    sample; latency = units / elapsed seconds
+    int32_t latency_bad_sample_count;  // 0x118 network_client_check_connection_quality: consecutive samples with
+                                       //    latency > 39.9; more than 5 rejects the client
     int32_t unknown_11c;               // 0x11c
     player_update_queue update_history;       // 0x120 120 records of 0x2c
     int32_t last_remote_update_id;     // 0x15c (R35) last remote update sequence (byte
@@ -933,8 +942,9 @@ typedef struct player_profile {
     int16_t suicides;          // 0x1c <- player + 0xb0
     int32_t objective_time;    // 0x1e <- player + 0xc4 (seconds here, ticks in the player;
                                //         the king engine rescales by 30 across the copy)
-    int16_t unknown_22;        // 0x22 <- player + 0xc8
-    int32_t unknown_24;        // 0x24 <- player + 0x88
+    int16_t objective_score;   // 0x22 <- player + 0xc8 (game_engine_capture_player_profile /
+                               //    apply_player_profile_entry)
+    int32_t slayer_target;     // 0x24 <- player + 0x88 (slayer_target)
     uint8_t odd_man_out;       // 0x28 <- player + 0x8c
     uint8_t pad_29[3];         // 0x29
     float speed;               // 0x2c <- player + 0x6c
@@ -981,7 +991,9 @@ typedef struct team_pair_globals {
 // ---------------------------------------------------------------------------
 typedef struct scoreboard_entry {
     datum_index player;        // 0x00
-    int32_t unknown_04;        // 0x04 never compared
+    int32_t single_sort_key;   // 0x04 the one sort key of the non-default scoreboard modes (1 score key, 2 kills, 3
+                               //    assists, 4 deaths; negated when inverted); game_engine_get_scoreboard_place
+                               //    compares it for ties
     int32_t key_0;             // 0x08 primary sort key, built by 0x45cc30: a clamped score
     int32_t key_1;             // 0x0c   biased by +1000 plus bit 0x40000000 when the player
     int32_t key_2;             // 0x10   still has lives left and bit 0x20000000 when the

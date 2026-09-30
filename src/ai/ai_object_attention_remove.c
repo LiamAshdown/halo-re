@@ -28,7 +28,7 @@ void ai_object_attention_remove(datum_index object_index)
     int32_t *src;
     int32_t *dst;
 
-    table = (ai_object_attention_record *)ai_globals_ptr->unknown_3b8;
+    table = (ai_object_attention_record *)ai_globals_ptr->object_attention_table;
 
     if (object_index == (datum_index)k_datum_index_none) {
         return;

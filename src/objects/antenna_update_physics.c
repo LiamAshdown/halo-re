@@ -91,7 +91,7 @@ void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt)
                 }
                 tag_vertex = &tag_vertices[tag_index];
                 blend = antenna_tag->spring_strength_coefficient * tag_vertex->spring_strength_coefficient;
-                vertex->unknown_1c += 1;
+                vertex->step_count += 1;
 
                 if (completed == 0) {
                     new_position = marker_position;

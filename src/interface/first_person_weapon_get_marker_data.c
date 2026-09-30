@@ -68,7 +68,7 @@ uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const cha
         // 0x492b50..0x492b6d: ECX = tag +0x468 (the model), EAX = marker_name, push 0, fp+0x1d8e, fp+0x108c, 0, out,
         // maximum
         return (uint32_t)model_markers_get_by_name(*(datum_index *)(item_tag_data + 0x468), marker_name,
-            (uint8_t *)0, fp->weapon_hud_element, (real_matrix4x3 *)fp->unknown_108c, 0, out, (int16_t)maximum);
+            (uint8_t *)0, fp->weapon_hud_element, (real_matrix4x3 *)fp->node_matrices, 0, out, (int16_t)maximum);
     }
     return 0;
 }

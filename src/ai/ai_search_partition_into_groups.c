@@ -32,17 +32,17 @@ void ai_search_partition_into_groups(ai_search_obstacle_list *list, float radius
     uint32_t group_bitmask[4];
     int16_t i;
 
-    list->unknown_00 = 0;
+    list->group_count = 0;
     for (i = 0; i < list->count; i = i + 1) {
         list->obstacles[i].link = -1;
     }
 
     for (i = 0; i < list->count; i = i + 1) {
         if (list->obstacles[i].link == -1) {
-            int16_t group_id = list->unknown_00;
+            int16_t group_id = list->group_count;
             int16_t j;
 
-            list->unknown_00 = group_id + 1;
+            list->group_count = group_id + 1;
             ai_search_flood_fill_group(list, radius, group_bitmask, i);
 
             for (j = 0; j < list->count; j = j + 1) {

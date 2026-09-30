@@ -58,7 +58,7 @@ void structure_bsp_expand_visible_clusters_by_plane(ScenarioStructureBSP *tag)
         if (debug_render_cluster_pvs != 0 || render_cluster_index == -1) {
             frustum_or_camera = (void *)0x7c3168;
         } else {
-            frustum_or_camera = &visible_clusters[i].unknown_014;
+            frustum_or_camera = &visible_clusters[i].frustum;
         }
 
         // surface_indices is the run-encoded form (structure_bsp_cluster_surface_run): a 3-dword

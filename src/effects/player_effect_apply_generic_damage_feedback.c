@@ -52,12 +52,12 @@ void player_effect_apply_generic_damage_feedback(datum_index player_index, float
     if (local_player_index != -1) {
         player_effect *self = &player_effect_globals_pointer->players[local_player_index];
 
-        *(float *)&shake_descriptor.unknown_08 = (float)((double)fraction * 0.01);
+        *(float *)&shake_descriptor.random_translation = (float)((double)fraction * 0.01);
         shake_descriptor.duration = 1.0f;
         flash_descriptor.type = 1;
-        flash_descriptor.unknown_02 = 2;
+        flash_descriptor.priority = 2;
         flash_descriptor.duration = 1.0f;
-        *(float *)&flash_descriptor.unknown_20 = fraction;
+        *(float *)&flash_descriptor.maximum_intensity = fraction;
         flash_descriptor.intensity = 0.0f;
         flash_descriptor.color = *global_white_argb;
 

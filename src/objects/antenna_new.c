@@ -51,7 +51,7 @@ datum_index antenna_new(datum_index antenna_tag)
             ant->degenerate = tag_vertex_count < 2;
             ant->definition_tag = antenna_tag;
             ant->object_index = k_datum_index_none;
-            ant->unknown_06 = 0;
+            ant->update_counter = 0;
             ant->previous_marker_position.x = 0.0f;
             ant->previous_marker_position.y = 0.0f;
             ant->previous_marker_position.z = 0.0f;
@@ -65,7 +65,7 @@ datum_index antenna_new(datum_index antenna_tag)
                 vertex->velocity.j = 0.0f;
                 vertex->velocity.k = 0.0f;
                 vertex->texture_scale = 0.0f;
-                vertex->unknown_1c = 0;
+                vertex->step_count = 0;
 
                 if (tag->bitmaps.tag_id.index != 0xffff) {
                     Bitmap *bitmap = (Bitmap *)tag_instances[tag->bitmaps.tag_id.index & 0xffff].data;

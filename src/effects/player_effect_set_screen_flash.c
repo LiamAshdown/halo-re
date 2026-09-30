@@ -29,7 +29,7 @@ extern int16_t screen_flash_pass[8]; // 0x00687218
 void player_effect_set_screen_flash(player_effect *self, player_screen_flash *descriptor,
     float intensity_falloff, float duration_scale) // blam-cc: stack, unaff_EBX, stack, stack
 {
-    if ((self->flash.unknown_02 <= descriptor->unknown_02 ||
+    if ((self->flash.priority <= descriptor->priority ||
          (float)self->flash_ticks <= duration_scale * 30.0f * descriptor->duration) &&
         screen_flash_pass[descriptor->type] != 0) {
         float blended;
@@ -42,7 +42,7 @@ void player_effect_set_screen_flash(player_effect *self, player_screen_flash *de
         //   +0x20; the result lands in the copied flash's +0x24. The draft swapped the two fields.
         {
             float weight = descriptor->intensity;
-            float maximum = *(float *)&descriptor->unknown_20;
+            float maximum = *(float *)&descriptor->maximum_intensity;
 
             blended = (1.0f - weight) * intensity_falloff + weight;
             if (!(blended >= 0.0f)) {

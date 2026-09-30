@@ -118,7 +118,7 @@ transparent_geometry_group *rasterizer_transparent_geometry_group_build(
 
 fill:
     group->flags = flags;
-    group->unknown_04 = context->unknown_04;
+    group->object_index = context->object_index;
     if (flags & 0x100) {
         group->node_part_indices = (uint32_t)(uintptr_t)rasterizer_node_part_indices;
         group->node_part_count = rasterizer_node_part_count;

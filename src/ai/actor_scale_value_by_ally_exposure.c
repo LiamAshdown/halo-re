@@ -55,7 +55,7 @@ uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value
 
             if (ally->pending_panic_type < 1 &&
                 (ally->mode != 4 || *(int16_t *)((uint8_t *)ally + 0xa8) < 1)) {
-                if (target->unknown_12c != 0) {
+                if (target->owner_stalled != 0) {
                     exposed_count++;
                 }
             } else {

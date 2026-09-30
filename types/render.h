@@ -325,7 +325,8 @@ typedef struct cinematic_screen_effect_globals {
                                     //      0.0001
     int16_t convolution_type;       // 0x02 the rasterizer runs the effect when it is non zero
     float convolution_radius;       // 0x04 lerp of the two bounds below by the convolution time
-    uint32_t unknown_08;            // 0x08 the rasterizer tests it for non zero; only the
+    uint32_t mask_bitmap_data;      // 0x08 0x08 shares its layout with weapon_screen_effect_parameters, whose 0x08 is
+                                    //    the mask BitmapData pointer the rasterizer tests for non zero (see 0x512360)
                                     //      block clears write it. The weapon block that shares
                                     //      this layout (types/interface.h
                                     //      weapon_screen_effect_parameters) keeps its mask
@@ -335,9 +336,13 @@ typedef struct cinematic_screen_effect_globals {
     ColorRGB filter_desaturation_tint; // 0x14 replaced by *0x00686b14 while it equals
                                     //      *0x00686b0c (black)
     uint8_t filter_desaturation_is_additive; // 0x20
-    uint8_t unknown_21;             // 0x21 cleared by the filter setter only; the weapon block
+    uint8_t night_vision_masked;    // 0x21 0x21 shared layout with
+                                    //    weapon_screen_effect_parameters.night_vision_masked; cleared by
+                                    //    cinematic_screen_effect_set_filter
                                     //      keeps night_vision_masked here
-    uint8_t unknown_22;             // 0x22 cleared by the filter setter only; the weapon block
+    uint8_t desaturation_masked;    // 0x22 0x22 shared layout with
+                                    //    weapon_screen_effect_parameters.desaturation_masked; cleared by
+                                    //    cinematic_screen_effect_set_filter
                                     //      keeps desaturation_masked here
     uint8_t video_enabled;          // 0x23 1 from the video setter, 0 from the other two
     int16_t video_overbright_mode;  // 0x24

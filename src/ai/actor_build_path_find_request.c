@@ -66,10 +66,10 @@ void actor_build_path_find_request(datum_index actor_index, path_find_request *r
         clear++;
     }
 
-    request->unknown_08 = unit_index;
+    request->exclude_object_index_a = unit_index;
     request->pathfinding_radius = radius;
     request->ignores_glass = ignores_glass;
-    request->unknown_0c = (datum_index)k_datum_index_none;
+    request->exclude_object_index_b = (datum_index)k_datum_index_none;
     request->have_start = 1;
     request->start_position.x = *(float *)&self->pathfinding_point;
     request->start_position.y = *(float *)&self->unknown_16c;

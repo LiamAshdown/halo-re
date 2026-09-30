@@ -68,50 +68,50 @@ uint32_t network_client_check_connection_quality(uint32_t machine_index, uint8_t
         now_ms = (int32_t)((main_globals_data * 1000) / performance_frequency);
         added = units;
 
-        if (plr->unknown_108 == 0) {
-            plr->unknown_10c = now_ms;
-            plr->unknown_110 = added;
-            plr->unknown_114 = now_ms;
-            plr->unknown_118 = 0;
-            plr->unknown_108 = 1;
+        if (plr->connection_quality_started == 0) {
+            plr->loss_window_start_ms = now_ms;
+            plr->loss_window_units = added;
+            plr->latency_last_sample_ms = now_ms;
+            plr->latency_bad_sample_count = 0;
+            plr->connection_quality_started = 1;
         } else {
-            plr->unknown_110 = plr->unknown_110 + added;
-            sample_count = (uint32_t)(now_ms - plr->unknown_10c);
+            plr->loss_window_units = plr->loss_window_units + added;
+            sample_count = (uint32_t)(now_ms - plr->loss_window_start_ms);
             // The two casts to (uint32_t) below replicate the original's manual
             // "add 4.2949673e+09 when negative" bit-pattern correction: both quantities are
             // computed as signed subtractions/sums but are meant to be read as unsigned.
             if (sample_count == 0) {
                 loss_ratio = 0.0f;
             } else {
-                loss_ratio = (float)(uint32_t)plr->unknown_110 / ((float)sample_count * 0.001f);
+                loss_ratio = (float)(uint32_t)plr->loss_window_units / ((float)sample_count * 0.001f);
             }
             if (sample_count > 10000) {
-                plr->unknown_10c = now_ms;
-                plr->unknown_110 = added;
+                plr->loss_window_start_ms = now_ms;
+                plr->loss_window_units = added;
                 sample_count = 0;
             }
 
             {
                 uint32_t latency_window;
 
-                latency_window = (uint32_t)(now_ms - plr->unknown_114);
+                latency_window = (uint32_t)(now_ms - plr->latency_last_sample_ms);
                 if (latency_window == 0) {
                     latency = 0.0f;
                 } else {
                     latency = (float)added / ((float)latency_window * 0.001f);
                 }
-                plr->unknown_114 = now_ms;
+                plr->latency_last_sample_ms = now_ms;
 
                 if (loss_ratio > 36.0f && sample_count > 5000) {
                     return 0;
                 }
                 if (latency != 0.0f) {
                     if (latency <= 39.9f) {
-                        plr->unknown_118 = 0;
+                        plr->latency_bad_sample_count = 0;
                         return 1;
                     }
-                    plr->unknown_118 = plr->unknown_118 + 1;
-                    if (plr->unknown_118 > 5) {
+                    plr->latency_bad_sample_count = plr->latency_bad_sample_count + 1;
+                    if (plr->latency_bad_sample_count > 5) {
                         return 0;
                     }
                 }

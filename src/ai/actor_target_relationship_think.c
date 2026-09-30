@@ -200,14 +200,14 @@ void actor_target_relationship_think(datum_index actor_index)
                 }
             }
         } else {
-            self->unknown_287[0] = 1;
+            self->danger_reacting = 1;
             should_react = (uint8_t)(self->danger_unknown_284 > 0);
             self->danger_unknown_284 = 0;
         }
 
         if (should_react) {
             if (danger_type == 1) {
-                self->unknown_287[0] = 1;
+                self->danger_reacting = 1;
             } else {
                 float threshold = -1.0f;
                 if (danger_type == 2) {
@@ -216,19 +216,19 @@ void actor_target_relationship_think(datum_index actor_index)
                     threshold = definition->notice_vehicle_chance;
                 }
                 if (threshold > 0.0f && random_real() < threshold) {
-                    self->unknown_287[0] = 1;
+                    self->danger_reacting = 1;
                 }
             }
 
-            if (self->unknown_287[0] != 0) {
+            if (self->danger_reacting != 0) {
                 if (self->danger_is_own == 0) {
                     if (self->danger_unknown_282 == 0 && danger_type != 3 && danger_type != 1) {
-                        self->unknown_287[1] = (uint8_t)(random_real() < definition->dive_from_grenade_chance);
+                        self->danger_dive = (uint8_t)(random_real() < definition->dive_from_grenade_chance);
                     } else {
-                        self->unknown_287[1] = 1;
+                        self->danger_dive = 1;
                     }
                 } else {
-                    self->unknown_287[1] = 0;
+                    self->danger_dive = 0;
                 }
                 actor_notify_squad_of_threat_direction(&self->flee_from_point, actor_index, (uint16_t)self->danger_type,
                     (uint16_t)self->danger_unknown_282); // 0x41ad9c: EBX point, EDI actor, stack (0x280, 0x282)
@@ -243,8 +243,8 @@ void actor_target_relationship_think(datum_index actor_index)
             }
         }
         if (self->danger_is_own != 0) {
-            self->unknown_287[0] = 1;
-            self->unknown_287[1] = 0;
+            self->danger_reacting = 1;
+            self->danger_dive = 0;
         }
     }
 
@@ -349,8 +349,8 @@ restart:
     }
 
     if (self->keep_unit_alive == 0) {
-        *(int16_t *)&target->unknown_26[0] += 1;
-        timer = *(int16_t *)&target->unknown_26[0];
+        target->reaction_timer += 1;
+        timer = target->reaction_timer;
         if (target->enemy == 0) {
             timer = (int16_t)(timer >> 3);
         }
@@ -361,7 +361,7 @@ restart:
             need_aim_refresh = 1;
             refresh_needed = 1;
             timer = 0;
-            *(int16_t *)&target->unknown_26[0] = 0;
+            target->reaction_timer = 0;
             danger_reacted = 1;
         }
         if ((int16_t)reaction_ticks < timer) {
@@ -378,9 +378,9 @@ restart:
                               (self->vocalization_line != 0 && *(int16_t *)&self->vocalization_unknown_54c == 1 &&
                                self->vocalization_unknown_550 == target_prop_index) ||
                               (self->idle_major_active != 0 && self->idle_major_direction_type == 1 &&
-                               *(uint32_t *)&self->unknown_56e[2] == target_prop_index) ||
-                              (self->idle_look_state[1] != 0 && *(int16_t *)&self->unknown_56e[14] == 1 &&
-                               *(uint32_t *)&self->unknown_56e[18] == target_prop_index));
+                               self->idle_major_prop_index == target_prop_index) ||
+                              (self->idle_look_state[1] != 0 && self->idle_look_direction_type == 1 &&
+                               self->idle_look_prop_index == target_prop_index));
                 target->in_use = important;
                 if (target->state > 3 && target->state < 6) {
                     prop *pair = (prop *)((uint8_t *)prop_data->data + (target->pair_index & 0xffff) * sizeof(prop));
@@ -399,7 +399,7 @@ restart:
         }
     } else {
         target->in_use = 0;
-        *(int16_t *)&target->unknown_26[0] = 0;
+        target->reaction_timer = 0;
     }
 
     switch (target->state) {
@@ -535,7 +535,7 @@ tail:
             actor_notify_target_engaged(target_prop_index, actor_index, 0); // 0x41b620: DL 0
         }
         if (self->unit_index != (datum_index)k_datum_index_none && target->dead == 0 &&
-            target->allegiance != 0 && target->unknown_62 != 0) {
+            target->allegiance != 0 && target->team_pair_status != 0) {
             float dist_threshold;
             payload.object_type = target->team;
             payload.team = self->team;
@@ -582,7 +582,7 @@ tail:
             }
             if (self->unit_index != (datum_index)k_datum_index_none) {
                 if (self->awareness_level < 3) {
-                    if (target->unknown_12c != 0) {
+                    if (target->owner_stalled != 0) {
                         ai_communication_broadcast(0xf, target->object_index, self->unit_index, 2, (uint32_t)-1, 2, 0);
                     }
                 } else {

@@ -68,7 +68,7 @@ char network_channel_stream_flush(network_channel_stream *stream, network_channe
         send_result = bit_stream_write_bits_chunked(&stream->stream, (const uint32_t *)&byte_count, network_bit_chunk_size);
         if (send_result == network_bit_chunk_size) {
             do {
-                if (channel->endpoint->unknown_05 == 1) {
+                if (channel->endpoint->connection_failed == 1) {
                     break;
                 }
                 send_mode = mode != 0;

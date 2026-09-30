@@ -51,8 +51,8 @@ datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum
 
         self->object_index = object_index;
         self->first_person_weapon_index = (int16_t)local_player_index_for_object(object_index); // FIXED: ESI = the object (0x450709)
-        self->unknown_08 = u;
-        self->unknown_0a = v;
+        self->a_scale_function_index = u;
+        self->b_scale_function_index = v;
         self->change_color_index = change_color_index;
         self->tint_source.proc = 0;
         self->tint_source.unknown_08 = 0;

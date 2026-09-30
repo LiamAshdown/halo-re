@@ -174,7 +174,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
             new_material_index = dd.material_type;
         }
         // 0x4bf5b6 `mov edx,[esp+0x90]` reads damage_data + 0x48, not + 0x44 (multiplier).
-        fade_out = *(real *)&dd.unknown_48;
+        fade_out = *(real *)&dd.remaining_vitality;
     }
 
     pd->material_response_index = new_material_index;
@@ -257,7 +257,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
             surface_response = (ProjectileMaterialResponse *)tag->projectile_material_response.pointer +
                                hit->material_type;
         }
-        breakable_surface_damage.unknown_50 = (uint32_t)surface_response;
+        breakable_surface_damage.material_response = (uint32_t)surface_response;
 
         // 0x4bf8bc..0x4bf8d9: the bsp_leaf_reference pair is copied in as two dwords.
         breakable_surface_damage.location_leaf_index = *(int32_t *)&hit->leaf;

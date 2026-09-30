@@ -43,17 +43,17 @@ int32_t ai_conversation_get_run_to_player_range(ai_conversation_range_lookup *ou
     out->conversation_index = 0;
     out->unknown_04 = 0;
     out->run_to_player_dist = 0.0f;
-    out->unknown_0c = 0;
+    out->player_unit_index = 0;
     out->unknown_10 = 0;
 
     out->conversation_index = conversation_index;
     out->run_to_player_dist = distance;
     if (distance == 0.0f) {
-        out->unknown_0c = -1;
+        out->player_unit_index = -1;
         out->unknown_10 = 0xffffffff;
         return 1;
     }
-    out->unknown_0c = conv->player_unit_index;
+    out->player_unit_index = conv->player_unit_index;
     out->unknown_10 = 0xffffffff;
     return 1;
 }

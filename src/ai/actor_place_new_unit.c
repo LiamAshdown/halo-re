@@ -98,8 +98,8 @@ datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum
         return_state = *(uint16_t *)(squad + 0x26);
         start_active = (char)((*(uint32_t *)(encounter + 0x20) >> 4) & 1);
     }
-    if (((struct actor_placement_request *)request)->unknown_16 > 0) {
-        initial_state = *(uint16_t *)&((struct actor_placement_request *)request)->unknown_16;
+    if (((struct actor_placement_request *)request)->initial_state_override > 0) {
+        initial_state = *(uint16_t *)&((struct actor_placement_request *)request)->initial_state_override;
     }
     if (*(const int16_t *)(request + 0x14) > 0) {
         return_state = *(const uint16_t *)(request + 0x14);

@@ -47,13 +47,13 @@ void actor_movement_advance_waypoint(datum_index actor_index)
     waypoints = &self->movement_action_complete; // 0x4a8
     if (self->movement_action_complete != 0) {
         for (;;) {
-            int cursor = (int)(int8_t)self->unknown_4c0[2];
+            int cursor = (int)(int8_t)self->waypoint_cursor;
             float *cur;
             float *next;
             float dx, dy, ex, ey;
             uint8_t reject;
 
-            if ((int)(int8_t)self->unknown_4c0[1] <= cursor + 1) break;
+            if ((int)(int8_t)self->waypoint_count <= cursor + 1) break;
 
             cur = (float *)(waypoints + (cursor + 2) * 0x10);
             next = (float *)(waypoints + (cursor + 3) * 0x10);
@@ -82,11 +82,11 @@ void actor_movement_advance_waypoint(datum_index actor_index)
                 if (!reject) break;
             }
 
-            self->unknown_4c0[2] = self->unknown_4c0[2] + 1;
+            self->waypoint_cursor = self->waypoint_cursor + 1;
             self->waypoint_reached = 0;
         }
 
-        if (self->waypoint_reached != 0 && self->unknown_4c0[0] != 0) {
+        if (self->waypoint_reached != 0 && self->unknown_4c0 != 0) {
             self->movement_action_complete = 0;
             self->movement_completed = 1;
             self->movement_timer = 0;
@@ -96,7 +96,7 @@ void actor_movement_advance_waypoint(datum_index actor_index)
             float *cur;
             real_point3d *target;
             self->moving = 1;
-            cur = (float *)((uint8_t *)self + 0x4c8 + (int8_t)self->unknown_4c0[2] * 0x10);
+            cur = (float *)((uint8_t *)self + 0x4c8 + (int8_t)self->waypoint_cursor * 0x10);
             target = (real_point3d *)&self->current_waypoint;
             target->x = cur[0];
             target->y = cur[1];

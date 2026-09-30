@@ -55,13 +55,13 @@ void network_bandwidth_graph_update_columns(int32_t new_sample, network_bandwidt
     graph->history[319] = new_sample;
 
     if (new_sample < graph->peak_scale) {
-        graph->unknown_00d4 -= 1;
-        if (graph->unknown_00d4 == 0) {
-            graph->peak_scale = network_bandwidth_graph_find_peak_sample(&graph->unknown_00d4, graph);
+        graph->peak_samples_remaining -= 1;
+        if (graph->peak_samples_remaining == 0) {
+            graph->peak_scale = network_bandwidth_graph_find_peak_sample(&graph->peak_samples_remaining, graph);
         }
     } else {
         graph->peak_scale = new_sample;
-        graph->unknown_00d4 = 0x140;
+        graph->peak_samples_remaining = 0x140;
     }
 
     if (old_peak_scale == graph->peak_scale) {

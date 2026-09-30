@@ -98,11 +98,11 @@ datum_index player_new_network(datum_index requested_index, uint32_t machine_ind
         p->unknown_f0 = 0;
         p->unknown_f4 = (datum_index)-1;
         p->unknown_104 = -1;
-        p->unknown_108 = 0;
-        p->unknown_10c = 0;
-        p->unknown_110 = 0;
-        p->unknown_114 = 0;
-        p->unknown_118 = 0;
+        p->connection_quality_started = 0;
+        p->loss_window_start_ms = 0;
+        p->loss_window_units = 0;
+        p->latency_last_sample_ms = 0;
+        p->latency_bad_sample_count = 0;
         p->unknown_11c = 0;
 
         p->update_history.queue.capacity = -1;

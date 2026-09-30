@@ -230,7 +230,9 @@ typedef struct actor_recognition_entry {
 // functions (actor_mode_<mode>_*) use, relative to actor + 0x9c.
 typedef struct actor_mode_wait_data {
     uint8_t unknown_00[3];              // 0x00
-    uint8_t unknown_03;                 // 0x03 (actor + 0x9f) while clear, countdown_0c runs
+    uint8_t following_friend;           // 0x03 0x03 (actor+0x9f) set by actor_mode_wait_process when a nearby friend
+                                        //    is further than 3.5 and worth following (then movement goes toward it);
+                                        //    while clear the tick runs countdown_0c
     uint8_t unknown_04[4];              // 0x04
     int32_t start_game_time;            // 0x08 game_time when waiting began; process gives up after 2700 ticks
     int16_t countdown_0c;               // 0x0c counted down by the tick while unknown_03 is clear
@@ -511,7 +513,11 @@ typedef struct actor {
     int16_t try_to_fight_type;        // 0x1d4 0 nothing / 1 ai reference / 2 player: hs
                                       //    ai_try_to_fight(_nothing/_player) -> 0x434cc0 etc.; tracking-speed code
                                       //    marks props preferred_target accordingly
-    uint8_t unknown_1d6[6];           // 0x1d6
+    uint8_t unknown_1d6[2];           // 0x1d6
+    uint32_t try_to_fight_reference;  // 0x1d8 packed ai reference set by ai_reference_set_search_target_point
+                                      //    (try_to_fight_type 1); actor_target_update_tracking_speed matches its low
+                                      //    word to the owner's encounter and reads the word at 0x1da as the
+                                      //    squad/platoon index (kind in the top bits)
     datum_index conversation_index;   // 0x1dc ai_conversation_stop clears this and conversation_participant
     datum_index conversation_participant;// 0x1e0
     int16_t post_combat_action;       // 0x1e4 int16 line id written by encounter_choose_vocalizations 0x438580
@@ -547,7 +553,10 @@ typedef struct actor {
     int16_t danger_unknown_282;       // 0x282
     int16_t danger_unknown_284;       // 0x284
     uint8_t danger_unknown_286;       // 0x286
-    uint8_t unknown_287[3];           // 0x287
+    uint8_t danger_reacting;          // 0x287 actor_target_relationship_think sets it when a danger is noticed;
+                                      //    actor_find_best_firing_position only reports a danger when set
+    uint8_t danger_dive;              // 0x288 dive_from_grenade_chance roll (relationship_think); 0 for own danger
+    uint8_t unknown_289;              // 0x289
     uint8_t danger_is_own;            // 0x28a actor_danger_update_reaction 0x41eda0: the danger projectile's parent
                                       //    is this actor's unit; suppresses danger reaction / avoidance (0x41abd0,
                                       //    0x40c040)
@@ -610,7 +619,23 @@ typedef struct actor {
     uint8_t unknown_349;              // 0x349
     int16_t perception_event;         // 0x34a 0x422070 records the highest-priority pending perception event
     int32_t perception_event_data;    // 0x34c
-    uint8_t unknown_350[0x1c];        // 0x350 actor_new zeroes 0x1a dwords starting here, i.e. 0x350..0x3b7
+    // 0x350..0x36b block; actor_new zeroes 0x1a dwords starting here, i.e. 0x350..0x3b7. Member types agree between
+    // actor_update_crouch_state, actor_update_facing_change_timer, actor_update_grenade_and_morale_reactions and
+    // actor_movement_update; the ROLE of 0x358/0x35a is contested (crouch state + crouch timer vs facing-change
+    // pending flag + ticks) so those stay unknown_*. 0x35c..0x35f flags only used by crouch_state.
+    float unknown_350;                // 0x350 crouch_state: threat level (single user)
+    float danger_meter;               // 0x354 smoothed threat level (crouch_state) / danger meter reset to 0 by
+                                      //    grenade reactions / smoothing clamp (facing_change_timer)
+    uint8_t unknown_358;              // 0x358 byte flag; crouching (crouch_state) vs pending flag (facing timer);
+                                      //    also copied to 0x426/0x427 by fight/charge/avoid mode updates
+    uint8_t unknown_359;              // 0x359
+    int16_t unknown_35a;              // 0x35a tick counter (crouch timer / facing-change ticks)
+    uint8_t unknown_35c[4];           // 0x35c crouch_state neighbour flags
+    int16_t unknown_360;              // 0x360 countdown: crouch_state; actor_movement_update tests >= 1
+    uint8_t unknown_362[6];           // 0x362
+    int16_t evasion_delay_ticks;      // 0x368 evasion_delay_time * 30 set by grenade reactions, must be 0 to retry;
+                                      //    crouch_state counts it down
+    uint8_t unknown_36a[2];           // 0x36a
     datum_index last_evasion_time;    // 0x36c 0x40b920: at most every 30 ticks (dive from retreat threat /
                                       //    evasion_seek_cover roll once danger meter +0x354 >= evasion threshold);
                                       //    actor_new -1
@@ -676,7 +701,9 @@ typedef struct actor {
     uint8_t firing_position_without_path; // 0x3ba actor_claim_firing_position = !path_ok; blocks random fallback
                                           //    (0x413e50) and the fight_tick discard (recognition push);
                                           //    saved/restored by flee
-    uint8_t unknown_3bb;              // 0x3bb
+    uint8_t grenade_evasion_active;   // 0x3bb set with evasion_delay_ticks by grenade reactions; cleared by
+                                      //    actor_claim_firing_position / set_destination_firing_position;
+                                      //    movement_action_resolve completes a type-3 action at once while set
     uint8_t target_lost;              // 0x3bc actor_should_hold_position sets it when shooting at a prop in state
                                       //    4..5; cleared on new target (0x40cdf0) and by 0x41fbc0(none)
     uint8_t unknown_3bd[3];           // 0x3bd
@@ -757,7 +784,10 @@ typedef struct actor {
     uint8_t unknown_4a9[19];          // 0x4a9
     float path_remaining_distance;    // 0x4bc path record +0x14 (0x43a4d0: distance from path end to goal); 0x41a460
                                       //    completes when near; 0x401da0 marks target engaged when > wait radius
-    uint8_t unknown_4c0[12];          // 0x4c0
+    uint8_t unknown_4c0;              // 0x4c0 advance_waypoint: with waypoint_reached, completes the movement action
+    int8_t waypoint_count;            // 0x4c1 advance_waypoint stops advancing at count - 1
+    int8_t waypoint_cursor;           // 0x4c2 current index into the 16-byte waypoint records at 0x4c8
+    uint8_t unknown_4c3[9];           // 0x4c3
     uint32_t unknown_4cc;             // 0x4cc
     uint8_t unknown_4d0[52];          // 0x4d0
     uint8_t moving;                   // 0x504 CEA control.moving; movement_update 0x416790/advance_waypoint 0x4163e0
@@ -814,7 +844,18 @@ typedef struct actor {
     int16_t idle_major_direction_type; // 0x56c code word of 16-byte direction_specification at 0x56c (1 prop, 4
                                        //    point) written by 0x414d00/0x415480, decoded by 0x4146c0; 0x428470
                                        //    replace_object_reference patches 0x570
-    uint8_t unknown_56e[35];          // 0x56e
+    uint8_t unknown_56e[2];           // 0x56e
+    union {
+        real_point3d idle_major_point;  // 0x570 idle_major_direction_type 4
+        datum_index idle_major_prop_index; // 0x570 idle_major_direction_type 1
+    };
+    int16_t idle_look_direction_type; // 0x57c 1 prop, 4 point (actor_look_randomize_direction writes 4)
+    uint8_t unknown_57e[2];           // 0x57e
+    union {
+        real_point3d idle_look_point;   // 0x580 idle_look_direction_type 4
+        datum_index idle_look_prop_index; // 0x580 idle_look_direction_type 1 (replace_object_reference patches it)
+    };
+    uint8_t unknown_58c[5];           // 0x58c
     uint8_t turn_required;            // 0x591 set by 0x415480 when body must turn to its aim and by 0x4180c0 when no
                                       //    step taken; enables oversteer hold 0x594; mirrored to control flags bit
                                       //    0x20 by 0x415480
@@ -983,7 +1024,10 @@ typedef struct swarm_component {
     uint8_t unknown_03;               // 0x03
     real_point3d position;            // 0x04 object_get_position of the component unit
     datum_index marker_index;         // 0x10 object+0x4d8 when object+0xb4 is 0, otherwise none
-    uint32_t unknown_14;              // 0x14 swarm_add_component sets -1
+    uint32_t leap_target_index;       // 0x14 0x14 -1 at swarm_add_component / actor_create_swarm;
+                                      //    actor_compute_swarm_avoidance_offset uses it as 'target' for the leap
+                                      //    solve when flag bit 0 is set; actor_replace_object_reference remaps it
+                                      //    like the other object references
     uint8_t unknown_18[40];           // 0x18
 } swarm_component;      // size 0x40
 // global 0x00880358: data_array *swarm_component_data  element size 0x40, capacity 0x100
@@ -1012,7 +1056,8 @@ typedef struct prop {
                                       //    passes it to actor_danger_register_point
     int16_t state;                    // 0x24 0..3 perception states, 4 / 5 the uninspected / inspected orphan (the
                                       //    CEA _prop_state_*), 6 parented
-    uint8_t unknown_26[2];            // 0x26
+    int16_t reaction_timer;           // 0x26 actor_target_relationship_think counts it up per tick (>>3 for non-enemies, >>1
+                                      //    when distance_class > 2) against the actor reaction threshold, then zeroes it
     int32_t swarm_reassign_time;      // 0x28 game time of the last swarm reassignment: stamped at init for a
                                       //    swarm-owned object, 0x41c4b0 reassigns at most every 90 ticks
     datum_index acknowledge_progress; // 0x2c a float accumulator in this slot: state 1 adds the inverse (non-combat /
@@ -1030,9 +1075,8 @@ typedef struct prop {
     int16_t inspection_ticks;         // 0x3c ticks the orphan has been looked at; at 45 (300 when nearly dead) state
                                       //    4 becomes 5 (inspected orphan)
     uint8_t unknown_3e[2];            // 0x3e
-    uint32_t unknown_40;              // 0x40
-    uint32_t unknown_44;              // 0x44
-    uint32_t unknown_48;              // 0x48
+    real_vector3d perceived_to_known_delta; // 0x40 actor_copy_prop_and_reset: last_known_position - last_perceived_position;
+                                      //    actor_find_best_firing_position reads it as the query target_vault_point
     int16_t lost_timer;               // 0x4c 10 (60 when seen) on entering state 2; while set and near
                                       //    last_perceived_position the prop stays in state 2
     uint8_t dead_confirmed;           // 0x4e 0x41c4b0: an orphan whose object is dead, not feigning, unperceived and
@@ -1050,7 +1094,12 @@ typedef struct prop {
     uint8_t allegiance;               // 0x61 team_pair_flag_test(actor team, object team), the bitmap hs
                                       //    ai_allegiance_broken tests; recomputed by
                                       //    ai_recompute_all_relationship_flags
-    uint8_t unknown_62;               // 0x62 0x45be00 of object_type
+    uint8_t team_pair_status;         // 0x62 0x62 actor_init_prop_from_object stores
+                                      //    team_pair_override_get_flag(actor.team, prop.team), the
+                                      //    team_pair_override.status byte (0x45be00); the relationship think gates
+                                      //    the team broadcast on it, and the
+                                      //    ai_mark_recognized/ai_notify_actors_of_encounter_state_change loops set 0
+                                      //    / 1 next to allegiance
     uint8_t in_use;                   // 0x63 set while the actor references the prop (target, vocalization / search
                                       //    slots, ...), mirrored to the pair; an in-use prop is never dropped
     uint8_t combat_dirty;             // 0x64 actor_target_reset_combat_flags sets it
@@ -1120,7 +1169,9 @@ typedef struct prop {
     uint32_t head_position_y;         // 0x108
     uint32_t head_position_z;         // 0x10c
     int32_t relationship_object_index;// 0x110 actor_target_get_relationship_object caches it lazily
-    float unknown_114;                // 0x114
+    float parent_object_index;        // 0x114 0x114 actor_target_data_refresh stores -1, then the parent object
+                                      //    handle when the tracked unit's parent is a non-vehicle unit (biped);
+                                      //    actor_update_firing_state reads it as the 'exclude' object of the aim ray
     uint8_t in_water;                 // 0x118 scenario_location_get_water_and_weather at the body marker
     uint8_t unknown_119[3];           // 0x119
     float distance;                   // 0x11c the ascending sort key of ai_target_distance_qsort_compare
@@ -1142,7 +1193,11 @@ typedef struct prop {
     uint8_t just_sighted;             // 0x12a visual_perception rose from 0; relationship_think notifies the
                                       //    engagement and clears it
     uint8_t owner_not_in_combat;      // 0x12b the owning actor's awareness_level < 3
-    uint8_t unknown_12c;              // 0x12c
+    uint8_t owner_stalled;            // 0x12c 0x12c actor_target_update_tracking_speed stores the local owner_stalled
+                                      //    (owner awareness_level == 3 and minimum_combat_status < combat_status, 0
+                                      //    with no owner) here; read by actor_scale_value_by_ally_exposure (counts
+                                      //    exposed allies) and actor_target_relationship_think (broadcast 0xf while
+                                      //    awareness < 3)
     uint8_t unknown_12d;              // 0x12d
     uint8_t is_parented;              // 0x12e 0x43e640 sets it when the tracked object has a parent (object+0x30)
     uint8_t shooting;                 // 0x12f stimulus_type 1 (weapon fire)
@@ -1183,12 +1238,13 @@ typedef struct encounter {
     int16_t pre_combat_living_count;  // 0x1a living_count copied while idle / stood down (0x437940); post-combat
                                       //    lines compare against it
     int16_t live_count;               // 0x1c only actors with counts_toward_encounter set are counted
-    uint8_t unknown_1e[2];            // 0x1e
+    uint8_t squads_carried_over;      // 0x1e ai_squads_merge: 1 on the target encounter, 0 on the source, once
+                                      //    the squad references were remapped; also gates skipping empty squads
+    uint8_t pad_1f;                   // 0x1f
     int16_t activation_link_count;    // 0x20 encounters linked by hs ai_link_activation (0x437820), at most 3, at
                                       //    0x22
-    int16_t unknown_22;               // 0x22
-    int16_t unknown_24;               // 0x24
-    uint8_t unknown_26[2];            // 0x26
+    int16_t activation_link[3];       // 0x22 encounter indices linked by ai_link_activation; encounters_update_activation
+                                      //    keeps this encounter active while any of them is pending (count at 0x20)
     uint8_t dirty;                    // 0x28 set by every member add / remove; 0x435f00 re-runs morale for dirty encounters
     uint8_t unknown_29;               // 0x29
     int16_t living_count;             // 0x2a weighted member count (1 per unit, cluster_count per swarm); hs
@@ -1318,9 +1374,7 @@ typedef struct ai_scored_candidate {
 // @0x435900 hands out and ai_object_attention_remove @0x435990 compacts, keyed by an object
 // handle. The count lives in ai_globals.unknown_3b6 and the table runs 0x3b8..0x8b7, which is
 // exactly up to ai_globals.vehicle_entry_count at 0x8b8.
-// UNSURE: ai_globals is not re-laid-out around this table because the communication code
-// reads ai_globals.unknown_3f0 and unknown_3fa, which fall inside row 1. Use
-// (ai_object_attention_record *)ai_globals->unknown_3b8 to address it.
+// ai_globals.object_attention_table is this table (the earlier overlapping unknown_3f0/3fa were unit fields).
 typedef struct ai_object_attention_record {
     datum_index object_index;  // 0x00 the key; the search compares the whole 32-bit handle
     float weight;              // 0x04 seeded to 8.0 on creation
@@ -1388,6 +1442,15 @@ typedef struct ai_conversation_event {
     uint8_t unknown_08[8];            // 0x08
 } ai_conversation_event; // size 0x10
 
+// One slot of the 32-entry ring at ai_globals.recent_events that ai_accumulate_repeated_event
+// @0x42c0f0 maintains.
+typedef struct ai_recent_event_record {
+    int16_t event_id;      // 0x00 -1 marks an expired or free slot
+    int16_t count;         // 0x02
+    real_point3d position; // 0x04 running (weighted) average position
+    int32_t last_tick;     // 0x10
+} ai_recent_event_record; // size 0x14
+
 // ---------------------------------------------------------------------------
 // ai globals
 // ---------------------------------------------------------------------------
@@ -1405,28 +1468,30 @@ typedef struct ai_globals {
     uint8_t dialogue_triggers_enabled; // 0x10 hs ai_dialogue_triggers (the CEA ai_globals_dialogue_triggers_enabled)
     uint8_t unknown_11;               // 0x11
     int16_t unknown_12;               // 0x12
-    datum_index unknown_14;           // 0x14 0x42d230 zeroes 0x14..0x2b, ai_reset_for_new_map sets them all to none
-    datum_index unknown_18;           // 0x18
-    datum_index unknown_1c;           // 0x1c
-    datum_index unknown_20;           // 0x20
-    datum_index unknown_24;           // 0x24
-    datum_index unknown_28;           // 0x28
+    int32_t loudest_line_tick[3][2];  // 0x14 0x42d230 zeroes 0x14..0x2b, ai_reset_for_new_map sets them all to none.
+                                      //    [tier][category]: ai_communication_record_line_played
+                                      //    (0x42f9e0) max-accumulates its stamp into [0] when tier <= 5, [1] when
+                                      //    tier >= 3, [2] when tier >= 5; category is
+                                      //    actor_classify_communication_object_type (0 or 1). Read as
+                                      //    (int32_t *)&loudest_line_tick[tier][0] + category
     int16_t conversation_event_count; // 0x2c high-water mark, capped at 16
     int16_t conversation_event_cursor;// 0x2e next ring slot, modulo 16
     ai_conversation_event conversation_events[16];// 0x30 0x42d230 zeroes the whole 0x100-byte ring
     int16_t recent_event_head;        // 0x130 ring head (oldest) of the 32 recent events at 0x134
                                       //    (ai_accumulate_repeated_event 0x42c610)
     int16_t recent_event_tail;        // 0x132 next free slot of that ring
-    uint8_t unknown_134[0x280];       // 0x134 ai_reset_for_new_map zeroes 0xa0 dwords from here
+    ai_recent_event_record recent_events[32]; // 0x134 the 32-entry ring between recent_event_head/tail
+                                      //    (ai_accumulate_repeated_event 0x42c610); ai_reset_for_new_map zeroes it
     uint8_t grenades_enabled;         // 0x3b4 the ai_grenades script command; actors only throw while set
                                      //       (actor_attempt_grenade_throw); ai_reset_for_new_map sets it
     uint8_t unknown_3b5;              // 0x3b5
     int16_t object_attention_count;   // 0x3b6 entries of the 32 x 0x28 object attention table at 0x3b8
-    uint8_t unknown_3b8[56];          // 0x3b8
-    int32_t unknown_3f0;              // 0x3f0 ai_communication_record_line_played
-    uint8_t unknown_3f4[6];           // 0x3f4
-    int16_t unknown_3fa;              // 0x3fa
-    uint8_t unknown_3fc[1212];        // 0x3fc
+    ai_object_attention_record object_attention_table[32]; // 0x3b8 0x500 bytes, runs 0x3b8..0x8b7; the count is
+                                      //    object_attention_count at 0x3b6 (ai_object_attention_find_or_create /
+                                      //    ai_object_attention_remove). The old unknown_3f0/3f4/3fa/3fc fields
+                                      //    were phantoms: ai_communication_record_line_played (objdump-verified)
+                                      //    reads +0x3f0/+0x3fa off the SPEAKING UNIT, not ai_globals, so they
+                                      //    are just record 1 (0x3e0..0x407) of this table
     int16_t vehicle_entry_count;      // 0x8b8 ai_process_vehicle_entry_queue drains the queue and zeroes this
     uint8_t unknown_8ba[2];           // 0x8ba
     datum_index vehicle_entry_queue[8];// 0x8bc unit object indices waiting for a seat
@@ -1439,13 +1504,21 @@ typedef struct ai_globals {
 typedef struct path_find_node {
     int16_t unknown_00;               // 0x00
     int16_t parent;                   // 0x02 0xffff on the start node; the reconstruction walks this chain
-    int32_t unknown_04;               // 0x04 path_find_push_start_node sets -1
+    int32_t previous_vertex_id;       // 0x04 0x04 vertex_id of the node this one was expanded from (path_find_search
+                                      //    next->unknown_04 = node->vertex_id); an edge equal to it is not passable,
+                                      //    so the search never steps straight back; -1 on the start node
     uint32_t vertex_id;               // 0x08 hashed as (vertex_id & 0x1ff) into the 512-bucket table
     real_point3d position;            // 0x0c
     float cost;                       // 0x18 g, zero on the start node
-    float unknown_1c;                 // 0x1c path_find_push_start_node sets FLT_MAX
-    float unknown_20;                 // 0x20
-    float unknown_24;                 // 0x24
+    float avoid_distance;             // 0x1c 0x1c smallest avoid-sphere distance seen along the path (FLT_MAX on the
+                                      //    start node; path_find_search keeps min(parent, edge) and compute_heuristic
+                                      //    returns it as out_secondary)
+    float travelled_distance;         // 0x20 0x20 plain path length so far (parent + step), compared with
+                                      //    request.limit_distance and used as the leash in
+                                      //    path_find_compute_heuristic; 0 on the start node
+    float accumulated_cost;           // 0x24 0x24 g, the parent accumulated_cost plus this edge weighted cost (step
+                                      //    scaled by the avoid penalty); distance = g + goal distance; 0 on the start
+                                      //    node
     float distance;                   // 0x28 the heuristic distance to the goal
     int16_t key;                      // 0x2c the heap ordering key
     int16_t waypoint;                 // 0x2e index into the caller waypoint array, must stay below 0x40
@@ -1467,7 +1540,10 @@ typedef struct path_find_context {
     real_point3d start_position;      // 0x14 path_find_push_start_node rejects a z below -1000.0
     uint32_t start_vertex_id;         // 0x20 none means there is nothing to search from
     uint8_t unknown_24[36];           // 0x24
-    uint32_t unknown_48;              // 0x48 path_find_context_init stores its second argument here
+    uint32_t obstacle_cache;          // 0x48 0x48 second argument of path_find_context_init, a pointer to the
+                                      //    per-actor obstacle/search cache (valid +0x10588, count +0x1058a, lists
+                                      //    +0x1058c, searches +0x12dac) that ai_navigate_around_obstacles reads;
+                                      //    callers pass 0 for none
     uint8_t have_goal;                // 0x4c the whole search and the reconstruction are gated on this
     uint8_t unknown_4d[3];            // 0x4d
     real_point3d goal_position;       // 0x50
@@ -1479,7 +1555,9 @@ typedef struct path_find_context {
     int16_t best_node;                // 0x68
     uint8_t unknown_6a[2];            // 0x6a
     float best_cost;                  // 0x6c
-    float unknown_70;                 // 0x70
+    float best_estimate;              // 0x70 0x70 f (g + goal distance) of the node that last improved best_cost;
+                                      //    FLT_MAX at path_find_run start; the search stops once node distance
+                                      //    exceeds max(5, best_cost) * 10 + this
     real_point3d best_position;       // 0x74
     int16_t node_count;               // 0x80 capped at 1024 by the array below
     uint8_t unknown_82[2];            // 0x82
@@ -1504,7 +1582,8 @@ typedef struct ai_search_obstacle {
 // ai_search_gather_obstacles @0x43c510 fills this from object_find_in_sphere plus each
 // objects vault / cover surface points; 0x43c4b0 appends and refuses past 0x80 entries.
 typedef struct ai_search_obstacle_list {
-    int16_t unknown_00;               // 0x00
+    int16_t group_count;              // 0x00 0x00 zeroed before gathering; ai_search_partition_into_groups uses it as
+                                      //    the next group id and increments per flood-filled group
     int16_t count;                    // 0x02 0x43c4b0 refuses to append past 0x80
     int16_t flagged_count;            // 0x04 entries whose flags bit 0 is set
     uint8_t unknown_06[2];            // 0x06
@@ -1520,7 +1599,9 @@ typedef struct ai_search_node {
     uint8_t side;                     // 0x1a which tangent side this node bends around
     uint8_t unknown_1b;               // 0x1b
     int16_t side_link;                // 0x1c two child links, one per side; initialized to -1
-    uint8_t unknown_1e[2];            // 0x1e
+    uint8_t squads_carried_over;      // 0x1e ai_squads_merge: 1 on the target encounter, 0 on the source, once
+                                      //    the squad references were remapped; also gates skipping empty squads
+    uint8_t pad_1f;                   // 0x1f
     float cost;                       // 0x20 length plus the inherited cost
     int16_t parent;                   // 0x24 the node this one was expanded from
     uint8_t unknown_26[2];            // 0x26
@@ -1530,13 +1611,18 @@ typedef struct ai_search_node {
 // expand step and 0x43be20 drives it to completion. The heap count is addressed both as
 // context+0x1430 and as the dword index 0x50c of the same base, which is the same byte.
 typedef struct ai_search_context {
-    uint32_t unknown_00;              // 0x00
+    uint32_t search_radius;           // 0x00 0x00 float stored as a dword; ai_navigate_around_obstacles passes
+                                      //    max(request.pathfinding_radius, 0.2); read as the float radius by
+                                      //    ai_search_step, ai_search_expand_point_neighbors and the covering-point
+                                      //    lookup
     uint8_t unknown_04;               // 0x04
     uint8_t unknown_05[3];            // 0x05
     uint32_t obstacles;               // 0x08 pointer to the ai_search_obstacle_list this search reads
-    uint32_t unknown_0c;              // 0x0c
+    uint32_t structure_bsp;           // 0x0c 0x0c pointer to the structure bsp the search traces surfaces in (passed
+                                      //    as map to ai_search_evaluate_edge_cost and path_find_heights_are_close)
     real_point2d origin;              // 0x10
-    uint32_t unknown_18;              // 0x18
+    uint32_t origin_surface_index;    // 0x18 0x18 surface index of origin, compared with each edge.surface_index and
+                                      //    passed to path_find_heights_are_close(origin, surface, edge surface)
     int16_t goal_point_id;            // 0x1c taken from obstacle[goal].link, or -1
     int16_t result_node;              // 0x1e -1 until a node reaches the goal
     int16_t best_node;                // 0x20 the fallback best-effort node
@@ -1544,7 +1630,9 @@ typedef struct ai_search_context {
     float best_cost;                  // 0x24 FLT_MAX until best_node is set
     uint8_t complete;                 // 0x28 set when result_node is valid
     uint8_t unknown_29;               // 0x29
-    uint8_t unknown_2a;               // 0x2a
+    uint8_t ignore_flagged_obstacles; // 0x2a 0x2a set to 1 by the rerun in ai_navigate_around_obstacles that ignores
+                                      //    flagged obstacles; forwarded to ai_search_evaluate_edge_cost by
+                                      //    ai_search_step and ai_search_expand_point_neighbors
     uint8_t unknown_2b;               // 0x2b
     int16_t node_count;               // 0x2c 0x43b5a0 refuses past 0x80
     uint8_t unknown_2e[2];            // 0x2e
@@ -1597,7 +1685,9 @@ typedef struct actor_movement_context {
     int16_t obstacle_count;           // 0x3c actor_movement_collect_obstacle_candidates refuses past 0x400
     uint8_t unknown_3e[2];            // 0x3e
     actor_movement_obstacle obstacles[1024];// 0x40
-    float unknown_6040;               // 0x6040 1.0
+    float ray_scale;                  // 0x6040 0x6040 1.0; multiplies the sample direction before the actor position
+                                      //    is added in actor_movement_test_obstacle_ray (set by
+                                      //    actor_movement_choose_avoidance_direction)
     float search_radius;              // 0x6044 12.0
 } actor_movement_context; // size 0x6048
 
@@ -1668,15 +1758,24 @@ typedef struct actor_firing_position_query {
     int16_t explicit_target_unknown_34;// 0x34
     uint8_t unknown_36;                // 0x36
     uint8_t unknown_37;                // 0x37
-    float unknown_38;                  // 0x38 copied to the avoidance radius when have_explicit_target
-    float unknown_3c;                  // 0x3c
+    float avoid_weight;                // 0x38 0x38 copied to path_find_request.avoid_weight in
+                                       //    actor_find_best_firing_position (the old comment said avoidance radius,
+                                       //    the code says weight)
+    float avoid_radius;                // 0x3c 0x3c copied to path_find_request.avoid_radius in
+                                       //    actor_find_best_firing_position
     uint8_t danger_active;             // 0x40 the actor is registering a danger; the threat rule runs the segment tests
-    uint8_t unknown_41;                // 0x41 prefer the alternate aim point of the target
+    uint8_t use_last_seen_position;    // 0x41 0x41 target_lead_position takes the prop last_seen_position instead of
+                                       //    head_position when set and the target was ever seen;
+                                       //    actor_check_melee_target_reachable and
+                                       //    actor_request_path_with_grenade_arc set it from record[4] / actor[0xa0]
     uint8_t unknown_42;                // 0x42 goal_kind == 5
     uint8_t want_direction_from_target;// 0x43 also fill direction_from_target on each candidate
     uint8_t flying;                    // 0x44 copy of actor.flying; skips every path query
-    uint8_t unknown_45;                // 0x45 run the ally aim-cone test
-    uint8_t unknown_46;                // 0x46
+    uint8_t check_vehicle_aim_cone;    // 0x45 0x45 set when actor.vehicle_driving_type == 4;
+                                       //    actor_score_firing_positions_by_threat then penalises/rewards candidates
+                                       //    by their angle to the driven vehicle forward vector
+    uint8_t vehicle_ignore_velocity;   // 0x46 0x46 set together with check_vehicle_aim_cone; skips the vehicle-speed
+                                       //    test in actor_score_firing_positions_by_threat
     uint8_t unknown_47;                // 0x47
     uint32_t marked_group_mask;        // 0x48 a second group mask; matching candidates take marked_group_penalty
     float marked_group_penalty;        // 0x4c
@@ -1738,8 +1837,13 @@ typedef struct path_find_request {
     float pathfinding_radius;          // 0x00 Actor.pathfinding_radius
     uint8_t ignores_glass;             // 0x04 actor.ignores_glass
     uint8_t unknown_05[3];             // 0x05
-    datum_index unknown_08;            // 0x08 both callers set none
-    datum_index unknown_0c;            // 0x0c both callers set none
+    datum_index exclude_object_index_a; // 0x08 0x08 object excluded when ai_navigate_around_obstacles gathers
+                                        //    obstacles (ai_search_gather_obstacles arg);
+                                        //    actor_build_path_find_request sets the actor unit, the firing position
+                                        //    callers set none
+    datum_index exclude_object_index_b; // 0x0c 0x0c second object excluded from the gathered obstacles
+                                        //    (ai_search_gather_obstacles arg); none for most callers,
+                                        //    actor_movement_action_resolve passes the movement action extra
     uint8_t have_start;                // 0x10
     uint8_t unknown_11[3];             // 0x11
     real_point3d start_position;       // 0x14
@@ -1824,7 +1928,8 @@ typedef struct ai_conversation_range_lookup {
     uint32_t conversation_index;       // 0x00 echoes the caller index
     uint32_t unknown_04;               // 0x04 always zero
     float run_to_player_dist;          // 0x08 ScenarioAIConversation.run_to_player_dist, or 0 when disabled
-    int32_t unknown_0c;                // 0x0c ai_conversation.unknown_10, or -1 when the range is disabled
+    int32_t player_unit_index;         // 0x0c 0x0c ai_conversation_get_run_to_player_range copies
+                                       //    ai_conversation.player_unit_index here (-1 when run_to_player_dist is 0)
     uint32_t unknown_10;               // 0x10 always -1
 } ai_conversation_range_lookup; // size 0x14
 
@@ -1835,10 +1940,13 @@ typedef struct actor_type_table_entry {
     int16_t unknown_06;                // 0x06
     int16_t unknown_08;                // 0x08
     int16_t unknown_0a;                // 0x0a
-    uint8_t unknown_0c;                // 0x0c compared against actor.swarm by 0x435420
+    uint8_t swarm;                     // 0x0c 0x0c compared against the actor swarm flag (caller_type_flag) in
+                                       //    actor_validate_grenade_ally_candidate
     uint8_t unknown_0d[3];             // 0x0d
     uint32_t proc_10;                  // 0x10 actor_dispatch_type_vtable @0x426670
-    uint32_t unknown_14;               // 0x14
+    uint32_t proc_14;                  // 0x14 0x14 per-actor-type procedure called with the actor index each pass of
+                                       //    actor_run_mode_transition_loop when non-null (same proc_10/18/1c
+                                       //    convention)
     uint32_t proc_18;                  // 0x18 @0x4266a0
     uint32_t proc_1c;                  // 0x1c @0x4266d0
 } actor_type_table_entry; // size 0x20, only verified up to 0x1f
@@ -1971,14 +2079,6 @@ typedef struct ai_priority_target_list {
     ai_priority_target_record records[256];
 } ai_priority_target_list; // size 0xc04
 
-// One slot of the 32-entry ring at ai_globals.unknown_134 that ai_accumulate_repeated_event
-// @0x42c0f0 maintains.
-typedef struct ai_recent_event_record {
-    int16_t event_id;      // 0x00 -1 marks an expired or free slot
-    int16_t count;         // 0x02
-    real_point3d position; // 0x04 running (weighted) average position
-    int32_t last_tick;     // 0x10
-} ai_recent_event_record; // size 0x14
 
 // The trace scratch actor_evaluate_engagement_reachability @0x42b1f0 hands to the collision
 // request at 0x505880.
@@ -2152,7 +2252,8 @@ typedef struct actor_placement_request {
     uint8_t unknown_10[2];  // 0x10 UNSURE
     uint8_t unknown_12;     // 0x12 read as a signed byte
     uint8_t unknown_13[3];  // 0x13 FIXED: was [2], which put unknown_16.. one byte low (pack(1) header)
-    int16_t unknown_16;     // 0x16 actor.unknown_60 override when positive
+    int16_t initial_state_override; // 0x16 0x16 when positive replaces the squad initial_state passed to
+                                    //    actor_new_and_attach_to_unit in actor_place_new_unit
     uint8_t unknown_18[2];  // 0x18
     uint8_t unknown_1a[2];  // 0x1a UNSURE
     int16_t unknown_1c;     // 0x1c UNSURE, actor.unknown_62 default

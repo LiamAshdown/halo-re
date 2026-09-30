@@ -129,7 +129,7 @@ void first_person_weapon_update_lighting(void)
     if (fp->weapon_hud_valid != 0 && *(int32_t *)(weapon_tag_data + 0x468) != -1) {
         uint32_t model_tag_ref = *(uint32_t *)(weapon_tag_data + 0x468); // objdump 0x492612
 
-        hud_meter_permute_node_records(node_scratch, fp->unknown_108c, model_tag_ref,
+        hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
                                         fp->weapon_hud_element);
         render_model(model_tag_ref, node_scratch, 0, 0, (ColorRGB *)((char *)weapon_obj + 0x1b8),
                      (float *)((char *)weapon_obj + 0x134), light_sample, &render_camera_global, 0,
@@ -139,7 +139,7 @@ void first_person_weapon_update_lighting(void)
         *(int32_t *)&((struct GlobalsFirstPersonInterface *)first_person_interface)->first_person_hands.tag_id != -1) {
         uint32_t model_tag_ref = *(uint32_t *)&((struct GlobalsFirstPersonInterface *)first_person_interface)->first_person_hands.tag_id; // objdump 0x492680
 
-        hud_meter_permute_node_records(node_scratch, fp->unknown_108c, model_tag_ref,
+        hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
                                         fp->device_hud_element);
         render_model(model_tag_ref, node_scratch, 0, 0, (ColorRGB *)((char *)unit_obj + 0x1b8),
                      (float *)((char *)unit_obj + 0x134), light_sample, &render_camera_global, 0,

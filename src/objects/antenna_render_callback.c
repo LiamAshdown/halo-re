@@ -29,11 +29,11 @@ void antenna_render_callback(datum_index object_index, datum_index antenna_index
         return;
     }
     self->object_index = object_index;
-    if (self->unknown_06 > 5) {
+    if (self->update_counter > 5) {
         antenna_update_physics(self, tag, 0.05f);
         antenna_update_physics(self, tag, 0.05f);
         antenna_update_physics(self, tag, 0.05f);
     }
-    self->unknown_06 = 0;
+    self->update_counter = 0;
     antenna_render_geometry(tag, self);
 }

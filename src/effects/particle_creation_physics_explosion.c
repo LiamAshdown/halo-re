@@ -80,9 +80,9 @@ void particle_creation_physics_explosion(particle_system *system, int32_t type_i
     particle->direction.j = scaled_y;
     particle->direction.k = 0.0f;
 
-    particle->unknown_28.x = scaled_x * k2 + system->velocity.i;
-    particle->unknown_28.y = scaled_y * k2 + system->velocity.j;
-    particle->unknown_28.z = k2 * scaled_z + system->velocity.k;
+    particle->velocity.x = scaled_x * k2 + system->velocity.i;
+    particle->velocity.y = scaled_y * k2 + system->velocity.j;
+    particle->velocity.z = k2 * scaled_z + system->velocity.k;
 
     vector3d_rotate_about_axis(&particle->direction, global_up3d_pointer, 1.0f, 0.0f);
 }

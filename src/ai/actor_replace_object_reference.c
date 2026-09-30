@@ -111,8 +111,8 @@ void actor_replace_object_reference(datum_index actor_index, uint32_t new_refere
         int16_t i;
         for (i = 0; i < s->component_count; i++) {
             swarm_component *component = &((swarm_component *)swarm_component_data->data)[s->component_index[i] & 0xffff];
-            if (component->unknown_14 == old_reference) {
-                component->unknown_14 = new_reference;
+            if (component->leap_target_index == old_reference) {
+                component->leap_target_index = new_reference;
             }
         }
     }

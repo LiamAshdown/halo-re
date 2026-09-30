@@ -282,7 +282,7 @@ void game_engine_post_rasterize_post_game(void)
             hud_text_draw_color_g = alt_color_bl;
             hud_text_draw_color_b = alt_color_br;
         }
-        ((void (*)(datum_index, wchar_t *))current_game_engine->unknown_54_build_player_text)(
+        ((void (*)(datum_index, wchar_t *))current_game_engine->build_player_text)(
             player_handle, score_text);
         string_format_wide_va_bounded(0x100, line, L" \t \t \t%s", score_text);
         hud_draw_scoreboard_row_text(0, line, 0);

@@ -76,13 +76,13 @@ int16_t actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const flo
 
     out_end_point->x = (sample[3] * context->up.i + sample[2] * context->left.i +
                         sample[1] * context->forward.i + global_origin3d_pointer->i) *
-                       context->unknown_6040 + context->position.x;
+                       context->ray_scale + context->position.x;
     out_end_point->y = (sample[3] * context->up.j + sample[2] * context->left.j +
                         sample[1] * context->forward.j + global_origin3d_pointer->j) *
-                       context->unknown_6040 + context->position.y;
+                       context->ray_scale + context->position.y;
     out_end_point->z = (sample[3] * context->up.k + sample[2] * context->left.k +
                         sample[1] * context->forward.k + global_origin3d_pointer->k) *
-                       context->unknown_6040 + context->position.z;
+                       context->ray_scale + context->position.z;
 
     scale = context->search_radius * sample[0];
     out_elevation->i = elevation.i * scale;

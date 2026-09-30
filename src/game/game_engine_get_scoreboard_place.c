@@ -38,7 +38,7 @@ int32_t game_engine_get_scoreboard_place(datum_index player, int32_t mode, uint8
 
     if (entries[0].player != player && 1 < count) {
         for (i = 1; i < count; i++) {
-            if (entries[i - 1].unknown_04 != entries[i].unknown_04) {
+            if (entries[i - 1].single_sort_key != entries[i].single_sort_key) {
                 place = place + 1;
             }
             if (entries[i].player == player) {

@@ -39,12 +39,10 @@ void ai_communication_reset(void)
     uint8_t *element;
 
     ai_globals_ptr->dialogue_triggers_enabled = 1;
-    ai_globals_ptr->unknown_14 = (datum_index)0;
-    ai_globals_ptr->unknown_18 = (datum_index)0;
-    ai_globals_ptr->unknown_1c = (datum_index)0;
-    ai_globals_ptr->unknown_20 = (datum_index)0;
-    ai_globals_ptr->unknown_24 = (datum_index)0;
-    ai_globals_ptr->unknown_28 = (datum_index)0;
+    for (i = 0; i < 3; i++) {
+        ai_globals_ptr->loudest_line_tick[i][0] = 0;
+        ai_globals_ptr->loudest_line_tick[i][1] = 0;
+    }
 
     entries = (int32_t *)communication_line_base;
     entry_count = communication_line_count * 2;

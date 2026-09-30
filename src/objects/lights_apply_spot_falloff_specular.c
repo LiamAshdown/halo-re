@@ -48,7 +48,7 @@ void lights_apply_spot_falloff_specular(void)
             light *l = &((light *)light_data->data)[light_active_list[i] & 0xffff];
 
             if ((l->flags & _light_always_visible_bit) != 0) {
-                int32_t queue_slot = *(int32_t *)&((struct light *)l)->unknown_08;
+                int32_t queue_slot = *(int32_t *)&((struct light *)l)->queue_slot;
 
                 if (queue_slot != -1) {
                     Light *tag = (Light *)tag_instances[l->definition_tag & 0xffff].data;

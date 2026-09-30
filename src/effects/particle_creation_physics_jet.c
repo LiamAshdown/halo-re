@@ -67,11 +67,11 @@ void particle_creation_physics_jet(particle_system *system, int32_t type_index,
     table_index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
         (uint32_t)(int32_t)sphere_point_table_count) >> 16);
 
-    particle->unknown_28.x = sphere_point_table[table_index].x * random_weight +
+    particle->velocity.x = sphere_point_table[table_index].x * random_weight +
         forward_weight * marker->node_transform.forward.i + system->velocity.i;
-    particle->unknown_28.y = sphere_point_table[table_index].y * random_weight +
+    particle->velocity.y = sphere_point_table[table_index].y * random_weight +
         forward_weight * marker->node_transform.forward.j + system->velocity.j;
-    particle->unknown_28.z = sphere_point_table[table_index].z * random_weight +
+    particle->velocity.z = sphere_point_table[table_index].z * random_weight +
         forward_weight * marker->node_transform.forward.k + system->velocity.k;
 
     particle->position.x = marker->node_transform.position.x;
@@ -80,10 +80,10 @@ void particle_creation_physics_jet(particle_system *system, int32_t type_index,
 
     if (k2 != 0.0f) {
         vector3d_cross_product((real_vector3d *)&particle->direction,
-            (real_vector3d *)&particle->unknown_28, global_up3d_pointer);
+            (real_vector3d *)&particle->velocity, global_up3d_pointer);
     } else {
         vector3d_cross_product((real_vector3d *)&particle->direction,
-            &marker->node_transform.forward, (real_vector3d *)&particle->unknown_28);
+            &marker->node_transform.forward, (real_vector3d *)&particle->velocity);
     }
 }
 

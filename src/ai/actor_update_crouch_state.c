@@ -96,16 +96,16 @@ void actor_update_crouch_state(datum_index actor_index)
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
     actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
 
-    threat_level           = (float *)&self->unknown_350[0x00];
-    threat_level_smoothed  = (float *)&self->unknown_350[0x04];
-    crouching              = &self->unknown_350[0x08];
-    crouch_timer           = (int16_t *)&self->unknown_350[0x0a];
-    flag_35c               = &self->unknown_350[0x0c];
-    flag_35d               = &self->unknown_350[0x0d];
-    flag_35e               = &self->unknown_350[0x0e];
-    flag_35f               = &self->unknown_350[0x0f];
-    countdown_360          = (int16_t *)&self->unknown_350[0x10];
-    countdown_368          = (int16_t *)&self->unknown_350[0x18];
+    threat_level           = &self->unknown_350;
+    threat_level_smoothed  = &self->danger_meter;
+    crouching              = &self->unknown_358;
+    crouch_timer           = &self->unknown_35a;
+    flag_35c               = &self->unknown_35c[0];
+    flag_35d               = &self->unknown_35c[1];
+    flag_35e               = &self->unknown_35c[2];
+    flag_35f               = &self->unknown_35c[3];
+    countdown_360          = &self->unknown_360;
+    countdown_368          = &self->evasion_delay_ticks;
 
     if (self->berserking != 0 &&
         (self->combat_status == 0 || self->awareness_level < 3 ||

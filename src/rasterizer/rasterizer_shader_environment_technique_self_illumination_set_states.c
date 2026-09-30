@@ -31,7 +31,7 @@ void rasterizer_shader_environment_technique_self_illumination_set_states(void)
     d3d_call3_fn set_sampler_state;
 
     if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f9 == 0 ||
-        rasterizer_window.unknown_04 == 0 || rasterizer_window.type != 1) {
+        rasterizer_window.has_mirror == 0 || rasterizer_window.type != 1) {
         return;
     }
 

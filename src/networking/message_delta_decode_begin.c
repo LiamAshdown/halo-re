@@ -36,7 +36,7 @@ int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream
     header_bits = message_delta_decode_message_header(stream, state);
     if (0 < header_bits) {
         state->bits_read = header_bits;
-        state->unknown_14 = initial_offset;
+        state->start_bit_offset = initial_offset;
         state->stream = stream;
         state->processed_count = 1;
         return 1;

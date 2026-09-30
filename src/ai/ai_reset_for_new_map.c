@@ -39,12 +39,10 @@ void ai_reset_for_new_map(void)
     g->first_encounterless_actor = (datum_index)k_datum_index_none;
     g->grenades_enabled = 1;
     g->dialogue_triggers_enabled = 1;
-    g->unknown_14 = (datum_index)k_datum_index_none;
-    g->unknown_18 = (datum_index)k_datum_index_none;
-    g->unknown_1c = (datum_index)k_datum_index_none;
-    g->unknown_20 = (datum_index)k_datum_index_none;
-    g->unknown_24 = (datum_index)k_datum_index_none;
-    g->unknown_28 = (datum_index)k_datum_index_none;
+    for (int32_t tier = 0; tier < 3; tier++) {
+        g->loudest_line_tick[tier][0] = -1;
+        g->loudest_line_tick[tier][1] = -1;
+    }
 
     actor_data->valid = 1;
     data_delete_all(actor_data);
@@ -60,7 +58,7 @@ void ai_reset_for_new_map(void)
 
     g->recent_event_tail = 0;
     g->recent_event_head = 0;
-    memset(g->unknown_134, 0, sizeof(g->unknown_134));
+    memset(g->recent_events, 0, sizeof(g->recent_events));
 
     g->actors_valid = 1;
 }

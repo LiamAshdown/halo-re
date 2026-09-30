@@ -66,11 +66,11 @@ real game_engine_rate_player_starting_location(ScenarioPlayerStartingLocation *l
             score = game_engine_rate_location_ally_bonus(player_handle,
                                                         (real_point3d *)&location->position) * score;
         }
-        if (current_game_engine->unknown_70 != 0) {
+        if (current_game_engine->rate_starting_location != 0) {
             // Called as "push esi ; push ebp ; call [engine+0x70]": cdecl, so the first
             // argument is EBP (the player handle) and the second is ESI (the location).
             real override_scale = ((real (*)(datum_index, ScenarioPlayerStartingLocation *))
-                                   current_game_engine->unknown_70)(player_handle, location);
+                                   current_game_engine->rate_starting_location)(player_handle, location);
             return override_scale * score;
         }
     }

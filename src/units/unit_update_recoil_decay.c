@@ -46,7 +46,7 @@ void unit_update_recoil_decay(uint32_t object_index)
     real_vector3d axis;
     real length;
 
-    vehicle->unknown_4ce -= 1;
+    vehicle->decay_ticks_remaining -= 1;
 
     obj->velocity.i *= 0.835f;
     obj->velocity.j *= 0.835f;
@@ -71,7 +71,7 @@ void unit_update_recoil_decay(uint32_t object_index)
         matrix4x3_transform_vector(&up, &obj->up, &rotation);
     }
 
-    if (vehicle->unknown_4ce == 0) {
+    if (vehicle->decay_ticks_remaining == 0) {
         obj->velocity.i = 0.0f;
         obj->velocity.j = 0.0f;
         obj->velocity.k = 0.0f;

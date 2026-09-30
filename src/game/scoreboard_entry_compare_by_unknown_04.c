@@ -17,10 +17,10 @@
 // Ascending qsort comparator on scoreboard_entry::unknown_04. Unreferenced in this build.
 uint32_t scoreboard_entry_compare_by_unknown_04(const scoreboard_entry *a, const scoreboard_entry *b)
 {
-    if (b->unknown_04 < a->unknown_04) {
+    if (b->single_sort_key < a->single_sort_key) {
         return 0xffffffff;
     }
-    return (uint32_t)(a->unknown_04 < b->unknown_04);
+    return (uint32_t)(a->single_sort_key < b->single_sort_key);
 }
 
 #if 0

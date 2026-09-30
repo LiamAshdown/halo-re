@@ -88,7 +88,7 @@ int32_t network_join_connect_retry_tick(network_client_globals *client)
     }
 
     attempt->unknown_00 = 0;
-    if (attempt->unknown_0c == 0) {
+    if (attempt->loading_started == 0) {
         attempt->elapsed_counter = 0;
         console_printf_verbose("Loading");
         interface_loading_screen_progress = 0;
@@ -98,18 +98,18 @@ int32_t network_join_connect_retry_tick(network_client_globals *client)
                     interface_loading_screen_request_id = -1;
                 }
                 join_ui_state = 8;
-                attempt->unknown_0c = 1;
+                attempt->loading_started = 1;
                 goto service_channel;
             }
         } else if (join_ui_state != 1 && join_ui_state != 2) {
             if (join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;
-                attempt->unknown_0c = 1;
+                attempt->loading_started = 1;
                 goto service_channel;
             }
             join_ui_state = 7;
         }
-        attempt->unknown_0c = 1;
+        attempt->loading_started = 1;
     }
 service_channel:
     // 0x4dad7d: edi = client->channel; 0x4dad83: push ebp (zero for the whole function, set

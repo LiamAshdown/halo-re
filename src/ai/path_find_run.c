@@ -74,14 +74,14 @@ static uint8_t path_find_search(path_find_context *context)
                 break;
             }
             limit = (5.0f > context->best_cost) ? 5.0f : context->best_cost;
-            if (node->distance > limit * 10.0f + context->unknown_70) {
+            if (node->distance > limit * 10.0f + context->best_estimate) {
                 break;
             }
         }
         edge_count = path_find_gather_adjacent_edges((void *)(uintptr_t)context->structure_bsp, node->vertex_id, edges);
         for (e = 0; e < edge_count; e++) {
             path_find_adjacent_edge *edge = &edges[e];
-            uint8_t passable = (uint8_t)((uint32_t)edge->edge_id != (uint32_t)node->unknown_04);
+            uint8_t passable = (uint8_t)((uint32_t)edge->edge_id != (uint32_t)node->previous_vertex_id);
             real_point3d candidate;
             float step;
             float travelled;
@@ -147,18 +147,18 @@ static uint8_t path_find_search(path_find_context *context)
 
                 step = (float)sqrt(dz * dz + dy * dy + dx * dx);
             }
-            travelled = step + node->unknown_20;
+            travelled = step + node->travelled_distance;
             if (request->have_avoid_sphere) {
                 cost = (path_find_score_avoidance_penalty(context, &node->position, &candidate, &avoid_distance) + 1.0f) *
                     step;
-                if (!(node->unknown_1c > avoid_distance)) {
-                    avoid_distance = node->unknown_1c;
+                if (!(node->avoid_distance > avoid_distance)) {
+                    avoid_distance = node->avoid_distance;
                 }
             } else {
                 cost = step;
                 avoid_distance = 0.0f;
             }
-            g = cost + node->unknown_24;
+            g = cost + node->accumulated_cost;
             f = g;
             if (context->have_goal) {
                 float dx = context->goal_position.x - candidate.x;
@@ -205,13 +205,13 @@ static uint8_t path_find_search(path_find_context *context)
 
             next = &context->nodes[index];
             next->parent = current;
-            next->unknown_04 = (int32_t)node->vertex_id;
+            next->previous_vertex_id = (int32_t)node->vertex_id;
             next->vertex_id = (uint32_t)edge->edge_id;
             next->position = candidate;
             next->cost = step;
-            next->unknown_1c = avoid_distance;
-            next->unknown_20 = travelled;
-            next->unknown_24 = g;
+            next->avoid_distance = avoid_distance;
+            next->travelled_distance = travelled;
+            next->accumulated_cost = g;
             next->distance = f;
             next->key = (int16_t)key;
             next->waypoint = (int16_t)(node->waypoint + 1);
@@ -238,7 +238,7 @@ static uint8_t path_find_search(path_find_context *context)
                     context->best_cost = distance;
                     context->best_position = best_point;
                     context->best_node = index;
-                    context->unknown_70 = f;
+                    context->best_estimate = f;
                 }
             }
         }
@@ -261,7 +261,7 @@ uint8_t path_find_run(path_find_context *context)
     }
     context->best_node = -1;
     context->best_cost = 3.4028235e+38f;
-    context->unknown_70 = 3.4028235e+38f;
+    context->best_estimate = 3.4028235e+38f;
     if (!path_find_push_start_node(context)) {
         return 0;
     }

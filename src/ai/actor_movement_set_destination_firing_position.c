@@ -38,7 +38,7 @@ uint8_t actor_movement_set_destination_firing_position(datum_index actor_index, 
         *(int16_t *)&self->queued_movement.destination = formation_slot;
         self->queued_movement.extra = (uint32_t)-1;
         self->active_movement = self->queued_movement;
-        self->unknown_3bb = 0;
+        self->grenade_evasion_active = 0;
         return actor_movement_action_resolve(actor_index, 1, path_context); // 0x4178e7: the second stack argument
     }
     if (self->needs_new_path != 0 && self->path_resolved_this_tick == 0) {

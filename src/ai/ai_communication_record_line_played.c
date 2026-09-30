@@ -4,7 +4,7 @@
 // evidence: out/phase4/ai_functions.md signature and summary ("records the current tick as
 // the last-played time for a spoken line across the relevant per-unit, per-class, and
 // per-line-id timestamp tables"). types/ai.h already attributes ai_globals.unknown_3f0 and
-// unknown_3fa to this exact address; ai_globals.unknown_14/18/1c/20/24/28 (all zeroed by
+// unknown_3fa to this exact address; ai_globals.loudest_line_tick[3][2] (unknown_14..28; all zeroed by
 // ai_communication_reset.c) are the six-slot, two-tier "loudest recent line" accumulator
 // this function maxes into, resolved once it becomes clear that Ghidra's "iVar7" is
 // reassigned to ai_globals_ptr partway through and stays that way for the rest of the
@@ -80,18 +80,18 @@ void ai_communication_record_line_played(datum_index object_index, int16_t tier,
 
     // 0x42fa99..0x42fadf: the tier slots keep the max of themselves and the STAMP (the draft used the bare tick)
     if (tier <= 5) {
-        slot = (int32_t *)&ai_globals_ptr->unknown_14 + category;
+        slot = &ai_globals_ptr->loudest_line_tick[0][category];
         if (*slot <= stamp) {
             *slot = stamp;
         }
         if (tier >= 3) {
-            slot = (int32_t *)&ai_globals_ptr->unknown_1c + category;
+            slot = &ai_globals_ptr->loudest_line_tick[1][category];
             if (*slot <= stamp) {
                 *slot = stamp;
             }
         }
         if (tier >= 5) {
-            slot = (int32_t *)&ai_globals_ptr->unknown_24 + category;
+            slot = &ai_globals_ptr->loudest_line_tick[2][category];
             if (*slot <= stamp) {
                 *slot = stamp;
             }

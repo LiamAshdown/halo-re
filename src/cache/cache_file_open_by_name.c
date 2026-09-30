@@ -104,7 +104,7 @@ uint8_t cache_file_open_by_name(char *name, uint8_t report_fatal_error)
     }
 
     slot_index = cache_file_find_oldest_slot(
-        (cache_file_slot_category)header.unknown_060, header.file_size);
+        (cache_file_slot_category)header.map_type, header.file_size);
 
     destination = (uint32_t *)&cache_file_slots[slot_index].header;
     for (i = 0x200; i != 0; i--) {

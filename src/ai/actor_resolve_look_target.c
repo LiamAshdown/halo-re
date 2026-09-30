@@ -105,7 +105,7 @@ uint8_t actor_resolve_look_target(real_point3d *preferred_direction, datum_index
 
         self->idle_major_direction_type = 4;
         if (!actor_look_pick_random_point_in_cone(&self->aim_origin, -yaw_half, yaw_half, pitch_center, pitch_half,
-                                                    &direction, 1, (real_point3d *)&self->unknown_56e[2])) {
+                                                    &direction, 1, &self->idle_major_point)) {
             return (uint8_t)out_in_front;
         }
     }

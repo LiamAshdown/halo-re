@@ -85,13 +85,13 @@ int16_t network_channel_attempt_connect(s_network_address *address, network_rece
                                     (const unsigned char *)&unused_param_1, 4, (unsigned long)network_connect_timeout_ms,
                                     callbacks, 0);
         if (connect_result == 0) {
-            queue->unknown_05 = 0;
+            queue->connection_failed = 0;
             gt2SetConnectionData((void *)queue->socket, queue);
             queue->last_error = 0;
             return 0;
         }
     }
-    queue->unknown_05 = 1;
+    queue->connection_failed = 1;
     if (network_join_error_code == -1) {
         network_join_error_code = 7;
     }

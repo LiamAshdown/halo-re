@@ -62,7 +62,7 @@ uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_
     dx = point->x - node->position.x;
     dy = point->y - node->position.y;
     dz = point->z - node->position.z;
-    leash = node->unknown_20;
+    leash = node->travelled_distance;
 
     secondary = 0.0f;
     if (((path_find_request *)context)->have_avoid_sphere != 0) {
@@ -81,8 +81,8 @@ uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_
             float fz = closest_z - ((path_find_request *)context)->avoid_position.z;
             secondary = (float)sqrt(fx * fx + fy * fy + fz * fz);
         }
-        if (node->unknown_1c < secondary) {
-            secondary = node->unknown_1c;
+        if (node->avoid_distance < secondary) {
+            secondary = node->avoid_distance;
         }
     }
 

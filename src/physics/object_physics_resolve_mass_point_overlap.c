@@ -181,7 +181,7 @@ uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, 
             self_vehicle->accumulated_torque.j += self_torque.j;
             self_vehicle->accumulated_torque.k += self_torque.k;
             self_object->flags &= ~_object_at_rest_bit;
-            self_vehicle->unknown_524 = 1; // UNSURE: raw offset, see file header
+            self_vehicle->collision_update_pending = 1; // UNSURE: raw offset, see file header
         }
 
         if (other_definition->radius <= 0.0f &&
@@ -194,7 +194,7 @@ uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, 
             other_vehicle->accumulated_torque.j += other_torque.j;
             other_vehicle->accumulated_torque.k += other_torque.k;
             other_object->flags &= ~_object_at_rest_bit;
-            other_vehicle->unknown_524 = 1;
+            other_vehicle->collision_update_pending = 1;
         }
     }
 

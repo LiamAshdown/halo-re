@@ -519,7 +519,9 @@ typedef struct hs_object_header_entry {
 typedef struct hs_object_record {
     uint32_t tag_id;                     // 0x00 UNSURE: the tag reference of the object; inferred
                                          //      from the match test in hs_objects_delete_by_type only
-    int32_t unknown_04;                  // 0x04 placement kind; 0 and 3 are dispatched on
+    int32_t network_role;                // 0x04 0x04 mirrors object.network_role (types/objects.h 0x004,
+                                         //    object_delete dispatches on 0 versus 3); hs_object_runtime_cleanup and
+                                         //    hs_objects_delete_by_type dispatch on the same 0 and 3
     uint8_t unknown_08[0xb4 - 0x08];     // 0x08
     uint8_t type;                        // 0xb4
     uint8_t unknown_b5[0xdc - 0xb5];     // 0xb5
@@ -572,7 +574,8 @@ typedef struct hs_damage_request {
     uint8_t unknown_04[0x08 - 0x04]; // 0x04
     uint32_t causer;                 // 0x08 UNSURE, set to -1 by both callers
     uint32_t attacker;               // 0x0c UNSURE, set to -1 by both callers
-    uint16_t unknown_10;             // 0x10 set to 0xffff by both callers
+    uint16_t team_index;             // 0x10 0x10 mirrors damage_data.team_index (objects.h 0x10, 0xffff); both hs
+                                     //    damage callers write 0xffff
     uint16_t unknown_12;             // 0x12 FIXED: explicit padding. hs.h is #pragma pack(1), so
                                      //      without it every field from sound_impulse on sat 2
                                      //      bytes low and damage_apply_area_effect read a garbage
@@ -589,7 +592,8 @@ typedef struct hs_damage_request {
     float scale_a;                   // 0x40 both callers write 1.0
     float scale_b;                   // 0x44 both callers write 1.0
     uint8_t unknown_48[0x4c - 0x48]; // 0x48
-    uint16_t unknown_4c;             // 0x4c
+    uint16_t material_type;          // 0x4c 0x4c mirrors damage_data.material_type (objects.h 0x4c, 0xffff = none);
+                                     //    both hs damage callers write 0xffff
     uint8_t unknown_4e[0x54 - 0x4e]; // 0x4e
 } hs_damage_request;                 // size 0x54
 

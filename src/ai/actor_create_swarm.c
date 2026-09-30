@@ -60,7 +60,7 @@ datum_index actor_create_swarm(datum_index actor_index)
                     swarm_component *component = &((swarm_component *)swarm_component_data->data)[component_index & 0xffff];
                     datum_index marker;
 
-                    component->unknown_14 = 0xffffffff;
+                    component->leap_target_index = 0xffffffff;
                     s2->unit_index[s2->component_count] = unit_index;
                     s2->component_index[s2->component_count] = component_index;
                     s2->component_count = s2->component_count + 1;

@@ -66,7 +66,7 @@ void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index u
                 object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
                 swarm_component *component = &((swarm_component *)swarm_component_data->data)[s->component_index[i] & 0xffff];
                 uint16_t flags = *(uint16_t *)&((struct swarm_component *)component)->flags; // UNSURE offset
-                datum_index target = component->unknown_14;
+                datum_index target = component->leap_target_index;
 
                 if ((flags & 1) == 0 || target == (datum_index)k_datum_index_none) {
                     if ((flags & 8) != 0 && (flags & 0x10) != 0) {

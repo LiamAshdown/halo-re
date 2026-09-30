@@ -12,7 +12,7 @@ extern void hash_table_dispose(hash_table *table); // 0x4f04c0, EDI table
 
 void message_delta_index_teardown(message_delta_field_type *field_type)
 {
-    int32_t *descriptor = message_delta_field_type_table[13].unknown_00[4] == 1 ? (int32_t *)field_type->array_descriptor : 0;
+    int32_t *descriptor = message_delta_field_type_table[13].kind_flag == 1 ? (int32_t *)field_type->array_descriptor : 0;
 
     GlobalFree((void *)descriptor[10]);
     hash_table_dispose((hash_table *)(descriptor + 3));

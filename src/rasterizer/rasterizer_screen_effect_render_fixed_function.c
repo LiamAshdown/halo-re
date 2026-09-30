@@ -134,7 +134,7 @@ void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_paramet
     rasterizer_screen_effect_quad[3].v = 0.0f;
 
     if (raw[0x23]) {
-        int16_t pass_count = (int16_t)((uint16_t)(p->unknown_00 + 1) << 1);
+        int16_t pass_count = (int16_t)((uint16_t)(p->convolution_extra_passes + 1) << 1);
         int16_t pass;
         float identity[4][4];
 

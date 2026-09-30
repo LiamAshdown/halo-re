@@ -184,7 +184,7 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
         p->preferred_target = (uint8_t)(unit->flags >> 11) & 1; // UNSURE: bit not named
         if (self->try_to_fight_type == 1) {
             if (p->owner_actor_index != (datum_index)k_datum_index_none) {
-                uint32_t team_ref = *(uint32_t *)&self->unknown_1d6[2]; // actor+0x1d8
+                uint32_t team_ref = self->try_to_fight_reference; // actor+0x1d8
                 if (team_ref != 0xffffffff) {
                     actor *owner = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
                     if (((owner->encounter_index ^ team_ref) & 0xffff) == 0) {
@@ -195,9 +195,9 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
                         // platoon_index, compared 16-bit with the zero-extended byte at actor+0x1da;
                         // the draft read them from the owner's encounter and truncated them to 8 bits.
                         if (team_kind == 1) {
-                            match = ((uint16_t)self->unknown_1d6[4] /* actor+0x1da */ == (uint16_t)owner->squad_index);
+                            match = (*(uint16_t *)((uint8_t *)&self->try_to_fight_reference + 2) /* actor+0x1da */ == (uint16_t)owner->squad_index);
                         } else if (team_kind == 2) {
-                            match = ((uint16_t)self->unknown_1d6[4] == (uint16_t)owner->platoon_index);
+                            match = (*(uint16_t *)((uint8_t *)&self->try_to_fight_reference + 2) == (uint16_t)owner->platoon_index);
                         } else if (team_kind != 0) {
                             match = 0;
                         }
@@ -363,13 +363,13 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
                 owner_not_fully_aware = (owner->awareness_level < 3);
                 owner_stalled = (owner->awareness_level == 3 && owner->minimum_combat_status < owner->combat_status);
                 reachable = actor_check_burst_length_exceeded(p->owner_actor_index);
-                if (owner_stalled && p->unknown_12c == 0 && !p->enemy && self->awareness_level < 3) {
+                if (owner_stalled && p->owner_stalled == 0 && !p->enemy && self->awareness_level < 3) {
                     engage_flag = 1;
                 }
             }
             p->unknown_12d = reachable;
             p->owner_not_in_combat = owner_not_fully_aware;
-            p->unknown_12c = owner_stalled;
+            p->owner_stalled = owner_stalled;
         }
 
         if (engage_flag) {
@@ -405,7 +405,7 @@ after_engage:
                     use_urgent = 0;
                 } else if (!p->enemy) {
                     use_urgent = 0;
-                    if (self->awareness_level < 3 && (p->dead || p->unknown_12c != 0)) {
+                    if (self->awareness_level < 3 && (p->dead || p->owner_stalled != 0)) {
                         use_urgent = 1;
                     }
                 } else if (2 <= p->state && p->state < 4) {

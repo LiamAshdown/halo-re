@@ -32,9 +32,9 @@ void particle_creation_physics_default(particle_system *system, int32_t type_ind
     particle->position.y = marker->node_transform.position.y;
     particle->position.z = marker->node_transform.position.z;
 
-    particle->unknown_28.x = system->velocity.i;
-    particle->unknown_28.y = system->velocity.j;
-    particle->unknown_28.z = system->velocity.k;
+    particle->velocity.x = system->velocity.i;
+    particle->velocity.y = system->velocity.j;
+    particle->velocity.z = system->velocity.k;
 }
 
 #if 0

@@ -113,29 +113,29 @@ int32_t game_engine_build_sorted_player_list(uint8_t invert_low_stat,
             break;
         }
         case 1: {
-            entry->unknown_04 = 0;
+            entry->single_sort_key = 0;
             if (current_game_engine->get_score != (void *)0) {
                 int32_t score = ((int32_t (*)(datum_index, int32_t))current_game_engine->get_score)(
                     entry->player, 0);
-                entry->unknown_04 = (int32_t)game_engine_build_scoreboard_sort_key(entry->player, score);
+                entry->single_sort_key = (int32_t)game_engine_build_scoreboard_sort_key(entry->player, score);
             }
             break;
         }
         case 2:
-            entry->unknown_04 = p->kills;
+            entry->single_sort_key = p->kills;
             break;
         case 3:
-            entry->unknown_04 = p->assists;
+            entry->single_sort_key = p->assists;
             break;
         case 4:
-            entry->unknown_04 = p->deaths;
+            entry->single_sort_key = p->deaths;
             break;
         default:
             break; // UNSURE: the real jump table has no entry past mode 4; unreachable in practice
         }
 
         if (negate) {
-            entry->unknown_04 = -entry->unknown_04;
+            entry->single_sort_key = -entry->single_sort_key;
         }
     }
 

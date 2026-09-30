@@ -219,7 +219,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         if (shader[0x6c] & 1) {
             phase = 0.0f;
         } else {
-            uint32_t seed = (context->unknown_04 * 0x19660d + 0x3c6ef35f) >> 16;
+            uint32_t seed = (context->object_index * 0x19660d + 0x3c6ef35f) >> 16;
 
             phase = (float)seed * 1.5259022e-05f;
         }

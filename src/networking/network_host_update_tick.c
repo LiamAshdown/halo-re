@@ -65,9 +65,9 @@ char network_host_update_tick(network_server_globals *host)
             service_result = 0;
             if (proceed != 0) {
                 now_ms = time_query_performance_counter_ms();
-                if ((uint32_t)(*(int32_t *)&host->unknown_9bc[4] + 3000) < now_ms) {
+                if ((uint32_t)((int32_t)host->last_stamp_ms + 3000) < now_ms) {
                     network_map_cycle_list_broadcast();
-                    *(uint32_t *)&host->unknown_9bc[4] = now_ms;
+                    host->last_stamp_ms = now_ms;
                 }
                 service_result = network_server_service_machines_tick(host);
                 if (service_result == 0) {

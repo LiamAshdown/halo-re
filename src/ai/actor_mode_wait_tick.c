@@ -46,7 +46,7 @@ void actor_mode_wait_tick(datum_index actor_index)
             act[0x9c] = 1;
         }
     }
-    if (!((struct actor *)act)->mode_data.wait.unknown_03 && ((struct actor *)act)->mode_data.wait.countdown_0c > 0) {
+    if (!((struct actor *)act)->mode_data.wait.following_friend && ((struct actor *)act)->mode_data.wait.countdown_0c > 0) {
         ((struct actor *)act)->mode_data.wait.countdown_0c -= 1;
     }
 }

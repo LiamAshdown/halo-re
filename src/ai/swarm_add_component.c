@@ -29,7 +29,7 @@ void swarm_add_component(datum_index component_index, uint32_t unit_index, datum
     swarm *s = &((swarm *)swarm_data->data)[swarm_index & 0xffff];
     swarm_component *component = &((swarm_component *)swarm_component_data->data)[component_index & 0xffff];
 
-    component->unknown_14 = 0xffffffff;
+    component->leap_target_index = 0xffffffff;
     s->unit_index[s->component_count] = unit_index;
     s->component_index[s->component_count] = component_index;
     s->component_count = s->component_count + 1;

@@ -40,7 +40,7 @@ void path_find_context_init(path_find_context *context, const path_find_request 
         dst = dst + 1;
     }
 
-    context->unknown_48 = second_param;
+    context->obstacle_cache = second_param;
 }
 
 #if 0

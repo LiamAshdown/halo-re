@@ -3,7 +3,7 @@
 // name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x43e840..0x43e90c (EAX dest, ECX src).)
 // evidence: types/ai.h prop (identifier/actor_index/next_in_actor/pair_index preserved
 // across the copy; kind(+0x24)=4 after; unknown_3a/unknown_3c reset; noticed_a/b/c(+0xb9..bb)
-// cleared; unknown_40/44/48 set to last_known_position(+0xbc) minus unknown_80(+0x80);
+// cleared; perceived_to_known_delta set to last_known_position(+0xbc) minus unknown_80(+0x80);
 // unknown_d4(+0xd4, real_point3d) set from the module's {1,0,0}-ish constant; unknown_123
 // cleared). phase-4 summary "copies a firing-position node record into another slot and
 // resets its per-instance runtime state."
@@ -46,9 +46,9 @@ void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop)
         float dx = dest->last_known_position.x - dest->last_perceived_position.x;
         float dy = dest->last_known_position.y - dest->last_perceived_position.y;
         float dz = dest->last_known_position.z - dest->last_perceived_position.z;
-        dest->unknown_40 = *(uint32_t *)&dx;
-        dest->unknown_44 = *(uint32_t *)&dy;
-        dest->unknown_48 = *(uint32_t *)&dz;
+        dest->perceived_to_known_delta.i = dx;
+        dest->perceived_to_known_delta.j = dy;
+        dest->perceived_to_known_delta.k = dz;
     }
     dest->velocity = *global_origin3d_pointer;
     dest->speed_class = 0;

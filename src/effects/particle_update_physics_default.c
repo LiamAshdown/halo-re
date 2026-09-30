@@ -85,7 +85,7 @@ void particle_update_physics_default(particle_system *system, int16_t type_index
             physics = &blended;
         }
 
-        collision_flags = point_physics_tick((real_vector3d *)&particle->unknown_28, 0, physics,
+        collision_flags = point_physics_tick((real_vector3d *)&particle->velocity, 0, physics,
             &particle->location, (uint32_t)-1, &particle->position, (real_vector3d *)0,
             (real_vector3d *)0, (int16_t *)0, radius, dt);
 

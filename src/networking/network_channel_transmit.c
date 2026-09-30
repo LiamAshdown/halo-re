@@ -80,7 +80,7 @@ char network_channel_transmit(network_channel *channel)
         if ((int32_t)incoming_available < 0) {
             incoming_available = incoming_available + incoming->capacity;
         }
-        if (channel->endpoint->unknown_05 == 1) { // UNSURE: offset +0x05 has no named field
+        if (channel->endpoint->connection_failed == 1) { // UNSURE: offset +0x05 has no named field
             if (incoming_available != 0) {
                 goto do_transfer;
             }

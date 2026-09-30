@@ -68,15 +68,15 @@ char network_channel_listen_service(network_channel *channel, network_channel **
         }
         return 0;
     }
-    channel->listen_list->unknown_110 = 0;
+    channel->listen_list->service_cursor = 0;
     found_one = 0;
     for (;;) {
-        idx = channel->listen_list->unknown_110;
+        idx = channel->listen_list->service_cursor;
         if (channel->listen_list->last_index < idx) {
             return result;
         }
         entry = channel->listen_list->entries[idx];
-        channel->listen_list->unknown_110 = idx + 1;
+        channel->listen_list->service_cursor = idx + 1;
         if (entry == 0) {
             return result;
         }
@@ -139,10 +139,10 @@ char network_channel_listen_service(network_channel *channel, network_channel **
             } else {
                 reject_code = 6;
             }
-            if (channel->unknown_008 == 0) {
+            if (channel->accept_callback == 0) {
                 network_listen_reject_pending_connection(reject_code);
             } else {
-                ((network_channel_accept_callback)(void *)(uint32_t)channel->unknown_008)(entry);
+                ((network_channel_accept_callback)(void *)(uint32_t)channel->accept_callback)(entry);
             }
         } else {
             for (i = 0; i < 0x10; i++) {

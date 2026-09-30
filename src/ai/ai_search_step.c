@@ -45,16 +45,16 @@ uint8_t ai_search_step(ai_search_context *context)
             ai_search_node *node = &context->nodes[index];
             ai_search_edge_result edge;
 
-            ai_search_evaluate_edge_cost((void *)(uintptr_t)context->unknown_0c, context->unknown_04,
+            ai_search_evaluate_edge_cost((void *)(uintptr_t)context->structure_bsp, context->unknown_04,
                 (ai_search_obstacle_list *)(uintptr_t)context->obstacles, -1, &node->position, *(int32_t *)&node->z,
-                *(float *)&context->unknown_00, node->length, (uint8_t)(node->parent == -1), 1, context->unknown_2a,
+                *(float *)&context->search_radius, node->length, (uint8_t)(node->parent == -1), 1, context->ignore_flagged_obstacles,
                 &edge, &node->direction);
             if (edge.edge_index == -1) {
                 if (edge.point_id == -1) {
                     // 0x43bd5d: the origin is in reach
-                    if (edge.surface_index == (int32_t)context->unknown_18 ||
-                        path_find_heights_are_close((ScenarioStructureBSP *)(uintptr_t)context->unknown_0c,
-                            &context->origin, (int32_t)context->unknown_18, edge.surface_index)) {
+                    if (edge.surface_index == (int32_t)context->origin_surface_index ||
+                        path_find_heights_are_close((ScenarioStructureBSP *)(uintptr_t)context->structure_bsp,
+                            &context->origin, (int32_t)context->origin_surface_index, edge.surface_index)) {
                         real_point2d position;
 
                         position.x = edge.cost * node->direction.i + node->position.x;
