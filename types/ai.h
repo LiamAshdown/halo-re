@@ -985,7 +985,10 @@ typedef struct swarm_component {
     uint8_t unknown_03;               // 0x03
     real_point3d position;            // 0x04 object_get_position of the component unit
     datum_index marker_index;         // 0x10 object+0x4d8 when object+0xb4 is 0, otherwise none
-    uint32_t unknown_14;              // 0x14 swarm_add_component sets -1
+    uint32_t leap_target_index;       // 0x14 0x14 -1 at swarm_add_component / actor_create_swarm;
+                                      //    actor_compute_swarm_avoidance_offset uses it as 'target' for the leap
+                                      //    solve when flag bit 0 is set; actor_replace_object_reference remaps it
+                                      //    like the other object references
     uint8_t unknown_18[40];           // 0x18
 } swarm_component;      // size 0x40
 // global 0x00880358: data_array *swarm_component_data  element size 0x40, capacity 0x100
@@ -1052,7 +1055,12 @@ typedef struct prop {
     uint8_t allegiance;               // 0x61 team_pair_flag_test(actor team, object team), the bitmap hs
                                       //    ai_allegiance_broken tests; recomputed by
                                       //    ai_recompute_all_relationship_flags
-    uint8_t unknown_62;               // 0x62 0x45be00 of object_type
+    uint8_t team_pair_status;         // 0x62 0x62 actor_init_prop_from_object stores
+                                      //    team_pair_override_get_flag(actor.team, prop.team), the
+                                      //    team_pair_override.status byte (0x45be00); the relationship think gates
+                                      //    the team broadcast on it, and the
+                                      //    ai_mark_recognized/ai_notify_actors_of_encounter_state_change loops set 0
+                                      //    / 1 next to allegiance
     uint8_t in_use;                   // 0x63 set while the actor references the prop (target, vocalization / search
                                       //    slots, ...), mirrored to the pair; an in-use prop is never dropped
     uint8_t combat_dirty;             // 0x64 actor_target_reset_combat_flags sets it
@@ -1122,7 +1130,9 @@ typedef struct prop {
     uint32_t head_position_y;         // 0x108
     uint32_t head_position_z;         // 0x10c
     int32_t relationship_object_index;// 0x110 actor_target_get_relationship_object caches it lazily
-    float unknown_114;                // 0x114
+    float parent_object_index;        // 0x114 0x114 actor_target_data_refresh stores -1, then the parent object
+                                      //    handle when the tracked unit's parent is a non-vehicle unit (biped);
+                                      //    actor_update_firing_state reads it as the 'exclude' object of the aim ray
     uint8_t in_water;                 // 0x118 scenario_location_get_water_and_weather at the body marker
     uint8_t unknown_119[3];           // 0x119
     float distance;                   // 0x11c the ascending sort key of ai_target_distance_qsort_compare
@@ -1144,7 +1154,11 @@ typedef struct prop {
     uint8_t just_sighted;             // 0x12a visual_perception rose from 0; relationship_think notifies the
                                       //    engagement and clears it
     uint8_t owner_not_in_combat;      // 0x12b the owning actor's awareness_level < 3
-    uint8_t unknown_12c;              // 0x12c
+    uint8_t owner_stalled;            // 0x12c 0x12c actor_target_update_tracking_speed stores the local owner_stalled
+                                      //    (owner awareness_level == 3 and minimum_combat_status < combat_status, 0
+                                      //    with no owner) here; read by actor_scale_value_by_ally_exposure (counts
+                                      //    exposed allies) and actor_target_relationship_think (broadcast 0xf while
+                                      //    awareness < 3)
     uint8_t unknown_12d;              // 0x12d
     uint8_t is_parented;              // 0x12e 0x43e640 sets it when the tracked object has a parent (object+0x30)
     uint8_t shooting;                 // 0x12f stimulus_type 1 (weapon fire)
@@ -1419,12 +1433,18 @@ typedef struct ai_globals {
     int16_t recent_event_head;        // 0x130 ring head (oldest) of the 32 recent events at 0x134
                                       //    (ai_accumulate_repeated_event 0x42c610)
     int16_t recent_event_tail;        // 0x132 next free slot of that ring
-    uint8_t unknown_134[0x280];       // 0x134 ai_reset_for_new_map zeroes 0xa0 dwords from here
+    uint8_t recent_events[0x280];     // 0x134 0x134 the 32-entry ring of ai_recent_event_record (0x14 each, 0x280
+                                      //    bytes) between recent_event_head/tail; ai_accumulate_repeated_event casts
+                                      //    it to ai_recent_event_record*, ai_reset_for_new_map zeroes it
     uint8_t grenades_enabled;         // 0x3b4 the ai_grenades script command; actors only throw while set
                                      //       (actor_attempt_grenade_throw); ai_reset_for_new_map sets it
     uint8_t unknown_3b5;              // 0x3b5
     int16_t object_attention_count;   // 0x3b6 entries of the 32 x 0x28 object attention table at 0x3b8
-    uint8_t unknown_3b8[56];          // 0x3b8
+    uint8_t object_attention_table[56]; // 0x3b8 0x3b8 the 32 x 0x28 ai_object_attention_record table (runs
+                                        //    0x3b8..0x8b7, count is object_attention_count at 0x3b6);
+                                        //    ai_object_attention_find_or_create / ai_object_attention_remove cast it
+                                        //    to ai_object_attention_record*. Declared size [56] is far smaller than
+                                        //    the table
     int32_t unknown_3f0;              // 0x3f0 ai_communication_record_line_played
     uint8_t unknown_3f4[6];           // 0x3f4
     int16_t unknown_3fa;              // 0x3fa
@@ -1863,7 +1883,8 @@ typedef struct ai_conversation_range_lookup {
     uint32_t conversation_index;       // 0x00 echoes the caller index
     uint32_t unknown_04;               // 0x04 always zero
     float run_to_player_dist;          // 0x08 ScenarioAIConversation.run_to_player_dist, or 0 when disabled
-    int32_t unknown_0c;                // 0x0c ai_conversation.unknown_10, or -1 when the range is disabled
+    int32_t player_unit_index;         // 0x0c 0x0c ai_conversation_get_run_to_player_range copies
+                                       //    ai_conversation.player_unit_index here (-1 when run_to_player_dist is 0)
     uint32_t unknown_10;               // 0x10 always -1
 } ai_conversation_range_lookup; // size 0x14
 

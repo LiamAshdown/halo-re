@@ -81,7 +81,7 @@ void ai_notify_actors_of_encounter_state_change(int16_t zone_a, int16_t zone_b, 
                 if (p->team == other_zone) {
                     if (force_update == 0) {
                         p->allegiance = 1;
-                        p->unknown_62 = 1;
+                        p->team_pair_status = 1;
                     }
                     if (status == 0 || force_update != 0) {
                         p->enemy = status;

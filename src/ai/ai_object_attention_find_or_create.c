@@ -32,7 +32,7 @@ ai_object_attention_record *ai_object_attention_find_or_create(datum_index objec
     int16_t index;
     int32_t i;
 
-    table = (ai_object_attention_record *)ai_globals_ptr->unknown_3b8;
+    table = (ai_object_attention_record *)ai_globals_ptr->object_attention_table;
     record = 0;
 
     if (object_index == (datum_index)k_datum_index_none) {

@@ -60,7 +60,7 @@ void ai_reset_for_new_map(void)
 
     g->recent_event_tail = 0;
     g->recent_event_head = 0;
-    memset(g->unknown_134, 0, sizeof(g->unknown_134));
+    memset(g->recent_events, 0, sizeof(g->recent_events));
 
     g->actors_valid = 1;
 }

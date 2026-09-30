@@ -76,7 +76,7 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
         // BX actor, stack object
         p->enemy = teams_are_enemies(p->team, ((struct actor *)self)->team);
         p->allegiance = team_pair_flag_test(((struct actor *)self)->team, p->team);
-        p->unknown_62 = team_pair_override_get_flag(((struct actor *)self)->team, p->team);
+        p->team_pair_status = team_pair_override_get_flag(((struct actor *)self)->team, p->team);
 
         is_vault = (*(uint8_t *)&((struct object *)object)->vitality_flags >> 2) & 1; // 0x43e73d: the object's firing bit, not the tag's
         p->dead = is_vault;

@@ -49,7 +49,7 @@ void ai_accumulate_repeated_event(int32_t event_type, real_point3d *position, in
         return;
     }
     current_tick = game_engine_get_current_tick();
-    records = (ai_recent_event_record *)&ai_globals_ptr->unknown_134;
+    records = (ai_recent_event_record *)&ai_globals_ptr->recent_events;
 
     found = 0;
     just_reset = 1;

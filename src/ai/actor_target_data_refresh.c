@@ -166,7 +166,7 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
     target->relationship_object_index = -1;
     target->is_vehicle_gunner = 0;
     target->is_vehicle_driver = 0;
-    *(uint32_t *)&target->unknown_114 = 0xffffffff; // types/ai.h types this field as a float,
+    *(uint32_t *)&target->parent_object_index = 0xffffffff; // types/ai.h types this field as a float,
                                                     // but the original stores the raw -1
                                                     // sentinel bit pattern here, not 0.0
 
@@ -188,7 +188,7 @@ void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index,
                 target->is_vehicle_driver = 0;
             }
         } else if ((1 << (parent_obj->type & 0x1f) & 3) != 0) {
-            *(uint32_t *)&target->unknown_114 = parent_index;
+            *(uint32_t *)&target->parent_object_index = parent_index;
         }
     }
 

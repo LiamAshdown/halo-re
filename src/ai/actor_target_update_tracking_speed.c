@@ -363,13 +363,13 @@ void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target
                 owner_not_fully_aware = (owner->awareness_level < 3);
                 owner_stalled = (owner->awareness_level == 3 && owner->minimum_combat_status < owner->combat_status);
                 reachable = actor_check_burst_length_exceeded(p->owner_actor_index);
-                if (owner_stalled && p->unknown_12c == 0 && !p->enemy && self->awareness_level < 3) {
+                if (owner_stalled && p->owner_stalled == 0 && !p->enemy && self->awareness_level < 3) {
                     engage_flag = 1;
                 }
             }
             p->unknown_12d = reachable;
             p->owner_not_in_combat = owner_not_fully_aware;
-            p->unknown_12c = owner_stalled;
+            p->owner_stalled = owner_stalled;
         }
 
         if (engage_flag) {
@@ -405,7 +405,7 @@ after_engage:
                     use_urgent = 0;
                 } else if (!p->enemy) {
                     use_urgent = 0;
-                    if (self->awareness_level < 3 && (p->dead || p->unknown_12c != 0)) {
+                    if (self->awareness_level < 3 && (p->dead || p->owner_stalled != 0)) {
                         use_urgent = 1;
                     }
                 } else if (2 <= p->state && p->state < 4) {

@@ -535,7 +535,7 @@ tail:
             actor_notify_target_engaged(target_prop_index, actor_index, 0); // 0x41b620: DL 0
         }
         if (self->unit_index != (datum_index)k_datum_index_none && target->dead == 0 &&
-            target->allegiance != 0 && target->unknown_62 != 0) {
+            target->allegiance != 0 && target->team_pair_status != 0) {
             float dist_threshold;
             payload.object_type = target->team;
             payload.team = self->team;
@@ -582,7 +582,7 @@ tail:
             }
             if (self->unit_index != (datum_index)k_datum_index_none) {
                 if (self->awareness_level < 3) {
-                    if (target->unknown_12c != 0) {
+                    if (target->owner_stalled != 0) {
                         ai_communication_broadcast(0xf, target->object_index, self->unit_index, 2, (uint32_t)-1, 2, 0);
                     }
                 } else {
