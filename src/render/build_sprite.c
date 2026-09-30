@@ -160,7 +160,8 @@ void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprit
 
     shader = (LightningShader *)data->shader;
     if (shader != 0 && shader->framebuffer_fade_mode != 0 && mode != 0) {
-        vector3d_cross_product(&basis.normal, &basis.tangent, &basis.bitangent);
+        // VERIFIED against disassembly 0x511889..0x511896 (2026-09-30): EAX=normal (ebp-0x74), ECX=bitangent (ebp-0x80), stack=tangent (ebp-0x8c)
+        vector3d_cross_product(&basis.normal, &basis.bitangent, &basis.tangent);
         fade = render_billboard_compute_view_fade((real_vector3d *)&transformed_origin,
                                                   &basis.normal,
                                                   shader->framebuffer_fade_mode) * fade;
