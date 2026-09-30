@@ -1,6 +1,6 @@
 // player_profile_save  (Ghidra: player_profile_save, already named)
 // address 0x495d40, size 290 bytes
-// name confidence: 0.7   rewrite confidence: 0.55
+// name confidence: 0.7   rewrite confidence: 0.95
 // evidence: cea-pdb hint via the "profile not saved since it was a default profile" string;
 // out/phase4/interface_functions.md "Saves the currently-selected map or game-variant profile
 // entry to disk, refusing to overwrite an unm[atched/named default]."; reuses saved_item_select.c's
@@ -12,10 +12,8 @@
 // ECX = 0x714e80 and then push ECX unchanged as game_variant_write_request_start's second argument, and
 // saved_game_get_directory_by_handle takes the slot in EAX and a 0x100 byte local name buffer in ESI, which is then
 // pushed to saved_game_last_mp_variant_clear. 0x714f14 is cleared with a byte AND.
-// UNSURE: game_variant_sanitize_options, saved_game_create_custom_variant, game_variant_write_request_start, saved_game_get_directory_by_handle and
-// saved_game_last_mp_variant_clear are profile/saved-game module functions not rewritten here;
-// the ECX-preserved argument to game_variant_write_request_start assumes 0x466730 leaves ECX intact, as the
-// compiler evidently did.
+// game_variant_sanitize_options (0x466730) only reads ECX, so the second argument of game_variant_write_request_start is the
+// same working-copy pointer (verified against the disassembly of 0x466730).
 
 #include "tags.h"
 #include "memory.h"

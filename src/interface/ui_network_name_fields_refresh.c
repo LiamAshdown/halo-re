@@ -1,13 +1,14 @@
 // ui_network_name_fields_refresh  (Ghidra: FUN_004a4b60, renamed)
 // renamed from FUN_004a4b60 in the naming pass
 // address 0x4a4b60, size 272 bytes, callers=0 in this build
-// name confidence: 0.3   rewrite confidence: 0.2
+// name confidence: 0.3   rewrite confidence: 0.9
 // evidence: functions.md: "Refreshes the name/team display widgets from the pending name-entry
 // globals and commits the change." Simplified two-row version of FUN_004a2cb0.c's name/team
 // refresh, with the same tab-group commit pattern and set_profile_name call at the end.
 // register convention: cdecl, the one recognized stack parameter (widget).
-// UNSURE: set_profile_name's implicit widget/EBX argument, same as FUN_004a2cb0.c and
-// FUN_004a4650.c, modeled as the outer `widget` parameter.
+// FIXED 2026-09-30 (disassembly): set_profile_name's EBX is tab_group->first_child->next_sibling (0x4a4c5d), not the outer widget; and the
+// profile block copy is 0x7ff dwords (0x1ffc bytes), not 0x2000. Everything else (two heap_reallocate/wcsncpy text rows, the
+// tab-group selection commit) matches the disassembly 0x4a4b60..0x4a4c70.
 
 #include "crt.h"
 #include "tags.h"
@@ -64,10 +65,10 @@ void ui_network_name_fields_refresh(widget_instance *widget)
     }
 
     {
-        uint8_t profile_copy[0x2000];
+        uint8_t profile_copy[0x1ffc];
 
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        set_profile_name(tab_group->first_child->next_sibling, (const uint16_t *)(profile_copy + 2));
     }
 }
 

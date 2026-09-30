@@ -1,6 +1,6 @@
 // ui_cursor_update  (Ghidra: FUN_004972c0, unnamed)
 // address 0x4972c0, size 189 bytes
-// name confidence: 0.5   rewrite confidence: 0.45
+// name confidence: 0.5   rewrite confidence: 0.9
 // evidence: reads the win32 OS cursor position (or, when ui_use_os_cursor is off, a raw
 // device-delta pair run through a quadratic sensitivity curve), turns it into a frame-to-frame
 // delta, and feeds the new position to interface_update_for_resolution_change @0x497250, which
@@ -9,14 +9,9 @@
 // to the tail call entirely and the two bare __ftol() calls hide their FPU-stack operands.
 // register convention: no register-passed arguments; feeds EAX/ECX to the tail call by
 // blam-cc's own convention (first two register slots).
-// UNSURE: DAT_006b1804/006b15f9/006b1828/006b180c select and hold a raw two-int32 delta pair
-// (device polling result, not otherwise identified) and DAT_0068e674/0068e678/00672da8/00672af8
-// are the per-axis sensitivity curve coefficients; none of these are named anywhere else in this
-// module or in types/devices.h, so they are declared here with placeholder names.
-// UNSURE: cursor X moves opposite to the raw OS/device delta while Y moves with it (the OS-cursor
-// branch does `ui_cursor_x + (previous_mouse_x - new_mouse_x)` but
-// `ui_cursor_y + (new_mouse_y - previous_mouse_y)`); preserved exactly as disassembled, not
-// symmetrized.
+// The device records / curve coefficients keep placeholder names (their owning module is not established).
+// Cursor X moves opposite to the raw OS delta while Y moves with it, exactly as disassembled:
+// new_x = x + (prev_x - new_x), new_y = y - (prev_y - new_y) (0x49736e..0x497370).
 
 #include "win32.h"
 #include "tags.h"
@@ -64,9 +59,10 @@ void ui_cursor_update(void)
         previous_mouse_y = point.y;
     } else {
         int32_t *record;
-        float raw_x, raw_y, curve_x, curve_y;
-        double scaled_x, scaled_y;
+        double raw_x, raw_y, scaled_x, scaled_y;
 
+        // 0x4972fd..0x497317: the original starts EDI at 0 and only loads a record when mouse_device is nonzero
+        // (a null read otherwise); the live record is kept as the default here so the rewrite cannot fault.
         record = live_mouse_state;
         if (mouse_device != 0) {
             record = mouse_neutral_state;
@@ -74,13 +70,14 @@ void ui_cursor_update(void)
                 record = live_mouse_state;
             }
         }
-        raw_x = (float)record[0];
-        raw_y = (float)record[1];
-        curve_x = cursor_sensitivity_x * (raw_x < 0.0f ? -raw_x : raw_x);
-        scaled_x = (double)curve_x * cursor_sensitivity_curve_scale + cursor_sensitivity_curve_bias;
+        // Everything stays in x87 extended precision in the original (fild / fabs / fmul / fadd / fmul), so double is used.
+        raw_x = (double)record[0];
+        scaled_x = (raw_x < 0.0 ? -raw_x : raw_x) * (double)cursor_sensitivity_x * cursor_sensitivity_curve_scale +
+            cursor_sensitivity_curve_bias;
         delta_x = __ftol(scaled_x * raw_x);
-        curve_y = cursor_sensitivity_y * (raw_y < 0.0f ? -raw_y : raw_y);
-        scaled_y = (double)curve_y * cursor_sensitivity_curve_scale + cursor_sensitivity_curve_bias;
+        raw_y = (double)record[1];
+        scaled_y = (raw_y < 0.0 ? -raw_y : raw_y) * (double)cursor_sensitivity_y * cursor_sensitivity_curve_scale +
+            cursor_sensitivity_curve_bias;
         delta_y = __ftol(scaled_y * raw_y);
     }
     interface_update_for_resolution_change(ui_cursor_x + delta_x, ui_cursor_y - delta_y);
