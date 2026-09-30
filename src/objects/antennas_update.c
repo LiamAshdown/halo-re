@@ -39,8 +39,8 @@ void antennas_update(float dt)
         antenna *ant = (antenna *)antenna_data->data + (handle & 0xffff);
 
         if (ant->degenerate == 0) {
-            ant->unknown_06 = ant->unknown_06 + 1;
-            if ((ant->object_index != k_datum_index_none) && (ant->unknown_06 < 5)) {
+            ant->update_counter = ant->update_counter + 1;
+            if ((ant->object_index != k_datum_index_none) && (ant->update_counter < 5)) {
                 Antenna *tag = (Antenna *)tag_instances[ant->definition_tag & 0xffff].data;
                 float clamped_dt = (dt <= 0.06666667f) ? dt : 0.06666667f;
                 antenna_update_physics(ant, tag, clamped_dt);

@@ -124,8 +124,8 @@ int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
             }
             vehicle_obj = ((object_header *)object_data->data)[parent_object & 0xffff].data;
             vehicle_ext = (unit_data *)((uint8_t *)vehicle_obj + 0x1f4);
-            if (((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->unknown_524 != 0) {
-                ((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->unknown_524 = 0;
+            if (((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending != 0) {
+                ((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending = 0;
                 return (int32_t)vehicle_obj;
             }
         }

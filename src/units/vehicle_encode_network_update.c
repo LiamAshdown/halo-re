@@ -146,7 +146,7 @@ int32_t vehicle_encode_network_update(datum_index vehicle_index, void *buffer, i
             &slots[1], &slots[2], 0, 1, 0);
     }
 
-    vehicle->unknown_524 = 0;
+    vehicle->collision_update_pending = 0;
     if (result > 0) {
         vehicle->network_update_sequence++;
         if (vehicle->network_update_sequence >= 0xff) {  // `cmp cl,0xff; jb`: unsigned

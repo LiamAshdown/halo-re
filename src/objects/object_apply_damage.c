@@ -430,7 +430,7 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
         if (!reported && (shield_damage > 0.0001f || body_damage > 0.0001f)) {
             if (shield_damage > body_damage) {
                 dd->material_type = *(int16_t *)(geometry + 0xd2);
-                dd->unknown_48 = *(uint32_t *)&((object *)obj)->shield_vitality;
+                dd->remaining_vitality = *(uint32_t *)&((object *)obj)->shield_vitality;
             } else {
                 float vitality = ((object *)obj)->body_vitality;
 
@@ -439,7 +439,7 @@ void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t 
                 } else if (vitality > 1.0f) {
                     vitality = 1.0f;
                 }
-                *(float *)&dd->unknown_48 = vitality;
+                *(float *)&dd->remaining_vitality = vitality;
             }
             reported = 1;
         }

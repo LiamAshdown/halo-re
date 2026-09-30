@@ -41,9 +41,9 @@ void light_transient_add(datum_index light_tag, real_vector3d *color, real_point
         slot->definition = tag_instances[light_tag & 0xffff].data;
         slot->position = *position;
         // 0x4f16a4: ESI = the second and third stack arguments (the light's forward and up)
-        slot->unknown_10 = vector3d_pack_normal_11_11_10((real_vector3d *)direction);
-        slot->unknown_14 = vector3d_pack_normal_11_11_10((real_vector3d *)param_3);
-        slot->unknown_22 = render_window_index;
+        slot->packed_forward = vector3d_pack_normal_11_11_10((real_vector3d *)direction);
+        slot->packed_up = vector3d_pack_normal_11_11_10((real_vector3d *)param_3);
+        slot->render_window_index = render_window_index;
         slot->unknown_1e = -1;
         slot->unknown_1c = -1;
         slot->slot_index = light_transient_count;

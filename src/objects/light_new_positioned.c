@@ -47,7 +47,7 @@ datum_index light_new_positioned(datum_index light_tag, int32_t marker_index, in
         entry->marker_link = game_time->game_time; // +0x0c, the current tick
         entry->definition_tag = light_tag;
         *(int32_t *)&((struct light *)raw)->owner_object = marker_index; // UNSURE: overlaps light.owner_object
-        entry->unknown_78 = param_5;
+        entry->transient_color_scale = param_5;
         entry->flags = 3; // _light_always_visible_bit | _light_attached_bit
 
         entry->next_light = (datum_index)0xffffffff;

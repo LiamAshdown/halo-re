@@ -27,7 +27,7 @@ void vehicle_reset_state(uint32_t object_index)
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
 
     vehicle->flags = 0;
-    vehicle->unknown_4ce = 0;
+    vehicle->decay_ticks_remaining = 0;
     vehicle->airborne_ticks = 0;
     vehicle->unknown_4d1 = 0;
     vehicle->unknown_4d2 = 0;

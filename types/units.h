@@ -797,7 +797,9 @@ typedef struct vehicle_data {
                                         //       hovering, bit 4 = controls were active this
                                         //       tick; vehicle_update writes it a byte and a
                                         //       word at a time, never as a dword
-    int16_t unknown_4ce;                // 0x4ce vehicle_update reloads it with 0xf while the
+    int16_t decay_ticks_remaining;      // 0x4ce 0x4ce reloaded with 15 while controls are active;
+                                        //    unit_update_recoil_decay damps velocity by 0.835 per tick and stops on
+                                        //    the 0 edge
                                         //       controls move; unit_update_recoil_decay
                                         //       counts it down and fires on the 0 edge
     uint8_t airborne_ticks;             // 0x4d0 0x575640 increments it while off the ground
@@ -837,7 +839,8 @@ typedef struct vehicle_data {
                                         //       0x50798d, zeroed 0x5079a5..0x5079b5)
     uint32_t active_marker_mask;        // 0x520 one bit per hover / contact marker; 0x575e30
                                         //       averages the positions of the set ones
-    uint8_t unknown_524;                // 0x524 cleared by 0x5724d0 after a film snapshot
+    uint8_t collision_update_pending;   // 0x524 0x524 set when mass-point overlap applies force to the vehicle;
+                                        //    cleared by vehicle_encode_network_update and player_update_history_play
     uint8_t unknown_525;                // 0x525 the scripted spawn seeds it with 1
     uint8_t unknown_526;                // 0x526 read into the film snapshot
     uint8_t network_update_sequence;    // 0x527 0x5724d0 increments it and wraps it at 0xff

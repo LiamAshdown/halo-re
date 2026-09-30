@@ -514,13 +514,15 @@ typedef struct damage_data {
     float random_blend;             // 0x40 1.0; blends the fixed and random damage amounts
     float multiplier;               // 0x44 1.0; divided by the child count when a vehicle
                                     //      spreads damage across its seated bipeds
-    uint32_t unknown_48;            // 0x48
+    uint32_t remaining_vitality;    // 0x48 0x48 float; object_apply_damage stores the damaged object's shield or body
+                                    //    vitality, projectile_response reads it back
     int16_t material_type;          // 0x4c 0xffff; the collision material of the damaged
                                     //      surface. 0x4ffde0 hands it to 0x53e7c0 (the matg
                                     //      materials block, stride 0x374) and scales by
                                     //      DamageEffect +0x200 + material_type * 4
     int16_t unknown_4e;             // 0x4e
-    uint32_t unknown_50;            // 0x50
+    uint32_t material_response;     // 0x50 0x50 the ProjectileMaterialResponse row selected by the surface material
+                                    //    (projectile_response, breakable surface request)
 } damage_data;                      // size 0x54
 
 // ---------------------------------------------------------------------------
@@ -752,7 +754,9 @@ typedef struct light {
     int16_t identifier;             // 0x00 datum salt
     uint16_t flags;                 // 0x02 light_flags
     datum_index definition_tag;     // 0x04 the Light tag
-    uint32_t unknown_08;            // 0x08
+    uint32_t queue_slot;            // 0x08 0x08 rasterizer queue slot, -1 when not queued this frame
+                                    //    (object_lights_update_all resets it; lights_apply_spot_falloff,
+                                    //    object_lights_gather_nearest test it)
     int32_t creation_tick;          // 0x0c seeded from the light frame counter minus 1
     datum_index next_light;         // 0x10 -1 at create
     uint8_t unknown_14[0x18];       // 0x14
@@ -778,7 +782,8 @@ typedef struct light {
                                     //      path transforms it into position above. The attached
                                     //      form uses the int16 here as a change_color_index.
     real_vector3d local_direction;  // 0x6c node-space direction, transformed into direction above
-    uint32_t unknown_78;            // 0x78
+    uint32_t transient_color_scale; // 0x78 0x78 light_new_positioned param_5; object_lights_update_all multiplies the
+                                    //    transient fade (1 - transition(age / duration)) by it
 } light;                            // size 0x7c
 
 // ---------------------------------------------------------------------------
@@ -788,13 +793,15 @@ typedef struct light {
 typedef struct light_transient {
     void *definition;               // 0x00 tag data of the Light definition
     real_point3d position;          // 0x04
-    uint32_t unknown_10;            // 0x10
-    uint32_t unknown_14;            // 0x14
+    uint32_t packed_forward;        // 0x10 0x10 light forward packed by vector3d_pack_normal_11_11_10
+                                    //    (light_transient_add 0x4f16a4)
+    uint32_t packed_up;             // 0x14 0x14 light up packed by vector3d_pack_normal_11_11_10 (light_transient_add
+                                    //    0x4f16a4)
     uint32_t color;                 // 0x18 packed ARGB
     int16_t unknown_1c;             // 0x1c 0xffff
     int16_t unknown_1e;             // 0x1e 0xffff
     int16_t slot_index;             // 0x20 the index of this entry
-    uint8_t unknown_22;             // 0x22
+    uint8_t render_window_index;    // 0x22 0x22 stamped from the render_window_index byte (light_transient_add)
     uint8_t intensity;              // 0x23 the scalar argument rounded into 0..255
     uint32_t unknown_24;            // 0x24
 } light_transient;                  // size 0x28
@@ -845,7 +852,7 @@ typedef struct antenna_vertex {
     real_point3d position;          // 0x00 laid out along the tag vertex offsets at create
     real_vector3d velocity;         // 0x0c zeroed at create
     float texture_scale;            // 0x18 AntennaVertex length divided by the bitmap span
-    int16_t unknown_1c;             // 0x1c zeroed at create
+    int16_t step_count;             // 0x1c 0x1c zeroed at create, incremented once per antenna_update_physics pass
     int16_t unknown_1e;             // 0x1e
 } antenna_vertex;                   // size 0x20
 
@@ -854,7 +861,8 @@ typedef struct antenna {
     int16_t unknown_02;             // 0x02
     uint8_t unknown_04;             // 0x04 zeroed at create
     uint8_t degenerate;             // 0x05 set when the tag has fewer than two vertices
-    int16_t unknown_06;             // 0x06
+    int16_t update_counter;         // 0x06 0x06 incremented per antennas_update, reset by antenna_render_callback;
+                                    //    physics runs three catch-up steps when above 5
     datum_index definition_tag;     // 0x08 the Antenna tag
     datum_index object_index;       // 0x0c -1 at create
     real_point3d previous_marker_position; // 0x10 widget_apply_marker_delta shifts every

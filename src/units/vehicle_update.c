@@ -253,7 +253,7 @@ uint32_t vehicle_update(uint32_t object_index)
             }
             unit_update_ground_contact_counter(object_index, contact_points);
             if (((unit_object *)obj)->base.flags & 0x20) {
-                ((struct vehicle_object *)obj)->vehicle.unknown_4ce = 15;
+                ((struct vehicle_object *)obj)->vehicle.decay_ticks_remaining = 15;
             }
             if (!(((unit_object *)obj)->base.flags & 0x1000000) &&
                 ((1u << (*(uint8_t *)(tag + 0x2f4) & 0x1f)) & 0x28)) {
@@ -268,7 +268,7 @@ uint32_t vehicle_update(uint32_t object_index)
                     F(obj, 0x70) -= ((F(obj, 0x64) - ceiling_z) * 0.015625f + F(obj, 0x70) * 0.0625f) * F(obj, 0x338);
                 }
             }
-        } else if (((struct vehicle_object *)obj)->vehicle.unknown_4ce > 0) {
+        } else if (((struct vehicle_object *)obj)->vehicle.decay_ticks_remaining > 0) {
             unit_update_recoil_decay(object_index);
             unit_update_marker_traction_effects(object_index);
         }
