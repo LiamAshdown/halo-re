@@ -45,7 +45,7 @@ void network_connection_retransmit_if_overdue(const uint32_t *sender_address,
                                                    (message_delta_sample_ring_buffer *)endpoint->control_block);
             doubled = (int16_t)message_delta_sample_ring_buffer_average(
                 (message_delta_sample_ring_buffer *)endpoint->control_block);
-            endpoint->unknown_20 = doubled << 1;
+            endpoint->current_ping_ms = doubled << 1;
         }
     }
 }

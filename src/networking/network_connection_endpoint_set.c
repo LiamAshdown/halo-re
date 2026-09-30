@@ -48,7 +48,7 @@ int32_t network_connection_endpoint_set(const uint32_t *source, network_client_g
     endpoint->last_send_ms = 0;
     endpoint->message_count = 0;
     endpoint->retry_count = 0;
-    endpoint->unknown_20 = 0;
+    endpoint->current_ping_ms = 0;
     endpoint->ready = 0;
     endpoint->unknown_23 = 0;
     endpoint->control_block = 0;

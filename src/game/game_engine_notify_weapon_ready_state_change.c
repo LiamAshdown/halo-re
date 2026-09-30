@@ -60,8 +60,8 @@ uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, dat
         }
     }
     ((struct weapon_object *)weapon)->weapon.flags |= 0x20;
-    if (current_game_engine->unknown_40 != 0) {
-        return ((uint8_t (*)(datum_index, datum_index))current_game_engine->unknown_40)
+    if (current_game_engine->weapon_ready_state_change != 0) {
+        return ((uint8_t (*)(datum_index, datum_index))current_game_engine->weapon_ready_state_change)
             (weapon_index, player_index_from_unit_index(unit_index));
     }
     return 1;

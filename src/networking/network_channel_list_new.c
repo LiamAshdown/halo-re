@@ -35,7 +35,7 @@ network_channel_list *network_channel_list_new(int16_t requested_capacity)
         if (entries != 0) {
             list->capacity = requested_capacity;
             list->last_index = -1;
-            list->unknown_110 = 0;
+            list->service_cursor = 0;
             return list;
         }
     }

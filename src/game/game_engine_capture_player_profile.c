@@ -71,8 +71,8 @@ void game_engine_capture_player_profile(int32_t slot, int32_t commit)
     snapshot.deaths = p->deaths;
     snapshot.suicides = p->suicides;
     snapshot.objective_time = p->objective_time;
-    snapshot.unknown_22 = p->objective_score;
-    snapshot.unknown_24 = p->slayer_target;
+    snapshot.objective_score = p->objective_score;
+    snapshot.slayer_target = p->slayer_target;
     snapshot.odd_man_out = p->odd_man_out;
     snapshot.speed = p->speed;
 
@@ -94,8 +94,8 @@ void game_engine_capture_player_profile(int32_t slot, int32_t commit)
         player_profile_cache[slot].deaths = snapshot.deaths;
         player_profile_cache[slot].suicides = snapshot.suicides;
         player_profile_cache[slot].objective_time = snapshot.objective_time;
-        player_profile_cache[slot].unknown_22 = snapshot.unknown_22;
-        player_profile_cache[slot].unknown_24 = snapshot.unknown_24;
+        player_profile_cache[slot].objective_score = snapshot.objective_score;
+        player_profile_cache[slot].slayer_target = snapshot.slayer_target;
         player_profile_cache[slot].odd_man_out = snapshot.odd_man_out;
         player_profile_cache[slot].speed = snapshot.speed;
     }

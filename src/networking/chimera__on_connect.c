@@ -69,7 +69,7 @@ int8_t chimera__on_connect(const uint32_t *target_address, network_client_global
 
     attempt->elapsed_counter = 0;
     attempt->started_ms = started_ms;
-    attempt->unknown_0c = 0;
+    attempt->loading_started = 0;
     for (i = 0; i < 9; i = i + 1) {
         attempt->session_info[i] = session_info[i];
     }
@@ -97,7 +97,7 @@ int8_t chimera__on_connect(const uint32_t *target_address, network_client_global
         endpoint->last_send_ms = 0;
         endpoint->message_count = 0;
         endpoint->retry_count = 0;
-        endpoint->unknown_20 = 0;
+        endpoint->current_ping_ms = 0;
         endpoint->ready = 0;
         endpoint->unknown_23 = 0;
         endpoint->control_block = 0;

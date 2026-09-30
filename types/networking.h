@@ -173,7 +173,8 @@ typedef struct network_summary_statistics {
 typedef struct network_receive_queue {
     int32_t socket;            // 0x00 0 until a connection is accepted or opened
     uint8_t data_ready;        // 0x04 set by the transport when a read can succeed
-    uint8_t unknown_05;        // 0x05
+    uint8_t connection_failed; // 0x05 0 on new / successful gt2Connect, 1 when the connect fails or the server
+                               //    rejects; the transmit and flush paths stop sending when it is 1
     int16_t pad_06;            // 0x06
     int32_t socket_key;        // 0x08 -1 when unused; the fd_set entry value
     uint8_t flags;             // 0x0c bit0 connection oriented (buffer the payload),
@@ -183,7 +184,8 @@ typedef struct network_receive_queue {
     int16_t last_error;        // 0x0e see network_error_code
     circular_buffer *incoming; // 0x10 0x18 header plus 0x10001 bytes
     int32_t unknown_14;        // 0x14 constructed as -1
-    int32_t unknown_18;        // 0x18
+    int32_t reject_reason;     // 0x18 network_channel_connected_callback stores the 1..8 code from a rejected
+                               //    connection (result 2), default 1
 } network_receive_queue;       // size 0x1c
 
 // ---------------------------------------------------------------------------
@@ -198,7 +200,7 @@ typedef struct network_channel_list {
     network_receive_queue **entries; // 0x104 capacity pointers, GlobalAlloc backed
     int32_t capacity;          // 0x108 the constructor refuses more than 0x40
     int32_t last_index;        // 0x10c -1 when empty, else the highest used index
-    int32_t unknown_110;       // 0x110
+    int32_t service_cursor;    // 0x110 network_channel_listen_service walks entries[0..last_index] with it
 } network_channel_list;        // size 0x114
 
 // ---------------------------------------------------------------------------
@@ -254,7 +256,8 @@ typedef enum network_channel_flags {
 typedef struct network_channel {
     network_receive_queue *endpoint; // 0x000
     int32_t last_activity_ms;  // 0x004 network_channel_record_timestamp, QPC milliseconds
-    int32_t unknown_008;       // 0x008
+    int32_t accept_callback;   // 0x008 network_channel_listen_service calls it with the accepted endpoint, else
+                               //    rejects the pending connection
     circular_buffer *incoming; // 0x00c named "transport-incoming"
     network_channel_stream outgoing;    // 0x010 the message staging stream: every queue/send
                                //       path does `lea esi,[channel+0x10]` before calling
@@ -540,7 +543,8 @@ typedef struct network_connection_endpoint {
     int32_t last_send_ms;        // 0x18 (0xacc) last keepalive send, QPC milliseconds
     int16_t message_count;       // 0x1c (0xad0) incremented once per keepalive sent
     int16_t retry_count;         // 0x1e (0xad2) incremented once per overdue retransmit
-    int16_t unknown_20;          // 0x20 (0xad4) set to (0x4ed350's result << 1) on retransmit
+    int16_t current_ping_ms;     // 0x20 printed as "current ping time"; 0x4d93b0 sets it to twice the sample ring
+                                 //    average on every overdue retransmit
     uint8_t ready;               // 0x22 (0xad6) 0 while being rebuilt, 1 once populated
     uint8_t unknown_23;          // 0x23 (0xad7)
     void *control_block;         // 0x24 (0xad8) GlobalAlloc of 0x264, first two dwords zeroed
@@ -559,7 +563,8 @@ typedef struct network_connection_attempt_state {
     uint32_t unknown_00;         // 0x00 (0xae0) cleared at the start of every attempt
     int32_t started_ms;          // 0x04 (0xae4) QPC milliseconds; the progress bar's time base
     int32_t elapsed_counter;     // 0x08 (0xae8) driven by the join status text animation
-    uint8_t unknown_0c;          // 0x0c (0xaec) cleared at the start of every attempt
+    uint8_t loading_started;     // 0x0c network_join_connect_retry_tick sets it once after printing "Loading" and
+                                 //    choosing the join ui state
     uint8_t pad_0d;              // 0x0d (0xaed)
     uint32_t session_info[9];    // 0x0e (0xaee) nine dwords copied from the caller, unaligned
     uint8_t unknown_32[2];       // 0x32 (0xb12) not written by any function in this module
@@ -988,7 +993,9 @@ typedef struct message_delta_decode_state {
     int32_t item_count;        // 0x08 total items in this message
     int32_t bits_read;         // 0x0c accumulates what message_delta_read_changed_subfields returns
     void *stream;              // 0x10 bit cursor; 0x4ed1d0 reads +0x08/+0x0c/+0x10/+0x14
-    int32_t unknown_14;        // 0x14
+    int32_t start_bit_offset;  // 0x14 bit offset of the message start from the stream's first_bit
+                               //    (message_delta_decode_begin); every array/compound/skip decoder rewinds the
+                               //    cursor to first_bit + it when a field is unchanged
     int32_t processed_count;   // 0x18 items the drain loop has already dispatched
     uint8_t more_items;        // 0x1c the drain loop stops when this clears
     uint8_t changed;           // 0x1d every delta handler stores 1 here after decoding
@@ -1122,7 +1129,9 @@ typedef struct network_bandwidth_graph {
     float rate_sent;             // 0x00c8 bits per second
     float rate_received;         // 0x00cc bits per second
     int32_t pending_sample;      // 0x00d0 folded into history on the next interval
-    int32_t unknown_00d4;        // 0x00d4
+    int32_t peak_samples_remaining; // 0x00d4 counts down per sample below peak_scale; at 0 the peak is re-found from
+                                    //    history (network_bandwidth_graph_find_peak_sample); reset to 320 on a new
+                                    //    peak
     int32_t history[320];        // 0x00d8
     network_graph_vertex columns[320]; // 0x05d8
     int32_t peak_scale;          // 0x23d8 initialized to 1

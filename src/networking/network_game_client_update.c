@@ -95,7 +95,7 @@ tail:
 
         network_ping_debug_last_sample = (uint16_t)endpoint->message_count;
         console_print_error_va(0, "current ping time[%d]  samples received[%d]  samples sent[%d]\n",
-            endpoint->unknown_20, endpoint->retry_count, (uint16_t)endpoint->message_count);
+            endpoint->current_ping_ms, endpoint->retry_count, (uint16_t)endpoint->message_count);
         server_base_time = *(int32_t *)endpoint->control_block;
         // 0x4db0ca: ECX = the connection's sample ring (client + 0xad8)
         challenge_time = message_delta_sample_ring_buffer_average((message_delta_sample_ring_buffer *)endpoint->control_block);

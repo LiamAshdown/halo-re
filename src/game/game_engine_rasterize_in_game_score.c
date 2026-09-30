@@ -206,7 +206,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
                 if ((int16_t)(row_player >> 16) != 0 && p->identifier != (int16_t)(row_player >> 16)) continue;
                 if (teams_enabled != 0 && highlight_team != p->team) continue;
 
-                ((void (*)(datum_index, void *))current_game_engine->unknown_54_build_player_text)(
+                ((void (*)(datum_index, void *))current_game_engine->build_player_text)(
                     row_player, header_names_buf);
 
                 {

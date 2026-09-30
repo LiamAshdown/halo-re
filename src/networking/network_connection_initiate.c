@@ -88,7 +88,7 @@ int32_t network_connection_initiate(network_client_globals *connection, const ui
     started_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
 
     attempt->elapsed_counter = 0;
-    attempt->unknown_0c = 0;
+    attempt->loading_started = 0;
     attempt->started_ms = started_ms;
     for (i = 0; i < 9; i = i + 1) {
         attempt->session_info[i] = session_info[i];
@@ -123,7 +123,7 @@ rebuild_endpoint:
     endpoint->last_send_ms = 0;
     endpoint->message_count = 0;
     endpoint->retry_count = 0;
-    endpoint->unknown_20 = 0;
+    endpoint->current_ping_ms = 0;
     endpoint->ready = 0;
     endpoint->unknown_23 = 0;
     endpoint->control_block = 0;
