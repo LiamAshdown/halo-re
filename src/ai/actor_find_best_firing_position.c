@@ -42,6 +42,7 @@
 #include "fn_ai.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_cseries.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -64,7 +65,6 @@ extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_po
                                                  // blam-cc: EAX -> target_prop_index
 
 
-extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare); // 0x449590, EAX count, ECX elements, stack compare
 extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction, real_point3d *point); // 0x4cde30, EAX, ECX, EDX
 
 extern void unit_get_aiming_vector(uint32_t unit_index, real_vector3d *out); // 0x5696f0, ECX, EAX

@@ -7,8 +7,8 @@
 // blam-cc: cdecl
 
 #include "tags.h"
+#include "fn_cseries.h"
 
-extern void tea_encrypt_block(uint32_t *block, const uint32_t *key); // 0x6181c0
 
 void tea_encrypt_buffer(int32_t length, uint8_t *data, const uint32_t *key)
 {

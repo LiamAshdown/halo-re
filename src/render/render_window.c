@@ -56,6 +56,7 @@
 #include "fn_rasterizer.h"
 #include "fn_objects.h"
 #include "fn_structures.h"
+#include "fn_cseries.h"
 
 extern int32_t render_window_count;                   // 0x007c3104, this module
 extern int16_t current_local_player_index;             // 0x007c3108, this module
@@ -140,7 +141,7 @@ extern void render_window_structure_transparent_0x512080(void *shader_data,
     int32_t surface_count);
 extern void render_window_structure_material_0x5120c0(void *shader_data, int16_t shader_permutation,
     int32_t render_context, int32_t first_surface, int32_t surface_count);
-extern void function_do_nothing(void);                 // 0x44ad80: a bare ret
+
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 

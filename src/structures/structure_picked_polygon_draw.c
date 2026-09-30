@@ -17,6 +17,7 @@
 #include "structures.h"
 #include "fn_rasterizer.h"
 #include "fn_structures.h"
+#include "fn_cseries.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern uint8_t picked_surfaces_valid;    // 0x006e3ad8, this module
@@ -31,7 +32,6 @@ extern void ***rasterizer_device; // 0x0071d174, foreign render module (read, no
 
 // TYPES-GAP: matches the callback typedefs declared in structure_leaf_faces_for_each.c.
 
-extern void function_do_nothing(void); // 0x44ad80
 
 extern void structure_leaf_faces_for_each(int32_t render_context,
     structure_lightmap_begin_callback lightmap_begin, structure_material_callback material_cb,

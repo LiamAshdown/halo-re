@@ -22,9 +22,9 @@ extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/obje
 
 #include "cseries.h"
 #include "fn_structures.h"
+#include "fn_cseries.h"
 
 
-extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare);
     // 0x449590; blam-cc: EAX -> count, ECX -> elements, stack -> compare (0x552d01..0x552d0b)
 
 // Sorts `face_indices` (ascending) and then copies each named surface's vertex/index record into

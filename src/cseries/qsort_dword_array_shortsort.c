@@ -12,6 +12,7 @@
 
 #include "tags.h"
 #include "cseries.h"
+#include "fn_cseries.h"
 
 // blam-cc: last in EAX, then the stack parameters first, compare (EAX, stack)
 // Selection-sorts the inclusive range [first, last] of 4-byte elements: each pass finds the

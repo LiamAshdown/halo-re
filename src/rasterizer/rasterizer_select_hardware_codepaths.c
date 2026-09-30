@@ -19,6 +19,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_cseries.h"
 
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 extern void *unknown_007c048c; // 0x007c048c shader_environment self-illumination draw procedure
@@ -27,7 +28,6 @@ extern void *unknown_007c0494; // 0x007c0494 UNSURE: draw function pointer
 extern void *rasterizer_water_draw_procedure; // 0x007bf050
 
 
-extern void function_do_nothing(void);  // 0x44ad80
 // 0x51fd80, 0x51fad0, 0x51e8f0, 0x51e570 and 0x51e2a0 are functions Ghidra never defined (they are only
 //   referenced by these immediate stores); all have C now (2026-09-28).
 

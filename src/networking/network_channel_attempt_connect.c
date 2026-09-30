@@ -29,6 +29,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_cseries.h"
 
 extern int32_t network_query_socket; // 0x006f14c8
 extern int32_t network_game_socket;  // 0x006f14c4
@@ -46,7 +47,7 @@ extern int32_t network_connect_timeout_ms; // 0x006894ac
 extern void network_channel_connected_callback(void *connection, int32_t result, const uint8_t *message, int32_t length); // 0x441e00
 extern void network_channel_receive_callback(void *handle, uint8_t *data, int32_t length); // 0x441ed0
 extern void network_channel_gap_441f30(void *connection); // 0x441f30
-extern void function_do_nothing(void); // 0x44ad80
+
 
 // FIXED 2026-09-28 (networking call audit, from the disassembly 0x441f60..0x442036): gt2Connect takes eight
 // arguments -- the socket, the queue (whose +0 receives the connection), the formatted remote address, a 4-byte

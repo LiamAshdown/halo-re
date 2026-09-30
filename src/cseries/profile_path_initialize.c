@@ -24,6 +24,7 @@
 #include "crt.h"
 #include "tags.h"
 #include "cseries.h"
+#include "fn_cseries.h"
 #include <stdio.h>
 #include <string.h>
 

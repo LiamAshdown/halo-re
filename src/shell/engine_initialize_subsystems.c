@@ -24,6 +24,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include "fn_math.h"
+#include "fn_cseries.h"
 
 extern large_integer performance_frequency;   // 0x006ac8f8 QueryPerformanceFrequency result
 extern char profile_directory[0x105];         // 0x006ac900 (types/cache.h); memset clears 0x105
@@ -51,7 +52,7 @@ extern uint16_t console_debug_word_8;         // 0x0087ac08 (16 bit store, mov w
 
 extern uint8_t data_file_open(void);                    // 0x00442840
 extern void directory_create_recursive(char *path);     // 0x00449250
-extern void profile_path_initialize(void);               // 0x00449390
+
 extern void input_directinput_initialize(void);          // 0x00490520
 
 extern uint32_t render_initialize(void);                       // 0x00511da0, module unknown

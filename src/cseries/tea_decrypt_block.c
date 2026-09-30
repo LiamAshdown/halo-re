@@ -11,6 +11,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_cseries.h"
 
 void tea_decrypt_block(uint32_t *block, const uint32_t *key)
 {

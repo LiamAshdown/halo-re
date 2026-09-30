@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_cseries.h"
 
 // Returns immediately; used wherever a callback slot needs a harmless default.
 void function_do_nothing(void)

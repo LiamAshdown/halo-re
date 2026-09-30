@@ -8,6 +8,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_cseries.h"
 
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern const char md5_hex_byte_format[]; // 0x0064e4dc "%02x"

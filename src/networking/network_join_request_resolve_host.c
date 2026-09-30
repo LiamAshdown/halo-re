@@ -47,6 +47,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_gamespy.h"
+#include "fn_cseries.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -90,7 +91,7 @@ extern int32_t network_random_offset(int32_t base); // 0x4403b0, this module
 extern void ServerBrowserSendNatNegotiateCookieToServer(void *handle, char *hostname, uint32_t port, int32_t request_id); // foreign, GameSpy library
 extern void network_join_hostname_resolved_callback(int32_t resolve_failed, uint32_t unused,
     uint8_t *hostent); // 0x4ba270, this module
-extern void function_do_nothing(void); // 0x44ad80
+
 extern int32_t NNBeginNegotiationWithSocket(int32_t hostname, int32_t request_id, int32_t one,
     void (*progress_callback)(void), void (*complete_callback)(int32_t, uint32_t, uint8_t *),
     int32_t zero); // foreign, GameSpy library async hostname resolve

@@ -16,8 +16,8 @@
 #include "crt.h"
 #include "tags.h"
 #include "cseries.h"
+#include "fn_cseries.h"
 
-extern void qsort_dword_array_shortsort(int32_t *last, int32_t *first, qsort_dword_compare_proc compare);
 
 // blam-cc: count in EAX, elements in ECX, compare on the stack
 // Sorts a flat array of count 4-byte elements in place, ordering them by compare. This is the
