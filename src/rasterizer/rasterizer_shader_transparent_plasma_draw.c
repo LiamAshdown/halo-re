@@ -1,7 +1,8 @@
 // rasterizer_shader_transparent_plasma_draw  (Ghidra: FUN_0052c4a0, unnamed; the earlier
-//   placeholder called it rasterizer_light_glow_draw)
+//   draft called it rasterizer_light_glow_draw)
 // address 0x52c4a0, size 1402 bytes
-// name confidence: 0.7   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x52c4a0..0x52ca1a (2026-09-30): tint/intensity/offset from lighting_extra, c13..c18 layout for both pixel shader paths, texture and sampler setup, the 11 render states, c10..c12 and the effect pass loop
+// name confidence: 0.7   rewrite confidence: 0.9
 // evidence: its only caller is the shader_type 11 (transparent_plasma) case of
 //   rasterizer_transparent_geometry_group_draw 0x533850, and every shader offset it reads is a
 //   ShaderTransparentPlasma field (types/tags.h): intensity_source/exponent +0x2c/+0x30,
@@ -12,7 +13,7 @@
 //   disassembly: Ghidra lost EBX, both pow calls and every device call argument.
 // register convention: EBX -> group.
 // blam-cc: EBX -> group
-// UNSURE: group.lighting_extra is read as {ColorRGB *colors, float *function_values} here (the
+// NOTE: group.lighting_extra is read as {ColorRGB *colors, float *function_values} here (the
 //   tint comes from colors[tint_color_source - 1]); elsewhere only the second dword is read.
 
 #include "tags.h"
