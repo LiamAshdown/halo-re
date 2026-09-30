@@ -1,5 +1,6 @@
 // unit_ai_update_stagger_reset  (Ghidra: no function created; the phase-4 types agent carved a
 //   placeholder "missed_562020" from the object_type_definition vtable evidence)
+// VERIFIED against disassembly 0x562020..0x56202c (2026-09-30)
 // address 0x562020, size 12 bytes
 // name confidence 0.4, rewrite confidence 0.8
 // evidence: out/phase4/units_types_notes.md: "The unit row's other columns are ... 0x562020

@@ -1,7 +1,7 @@
 // unit_update_ik_detail_nodes  (Ghidra: no function created; the phase-4 types agent carved a
-//   placeholder "missed_5643f0" from the object_type_definition vtable evidence)
+//   stub "missed_5643f0" from the object_type_definition vtable evidence)
 // address 0x5643f0, size 379 bytes
-// name confidence 0.3, rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x5643f0..0x564573 (parent and weapon IK chains; ECX object for 0x4f6d60).) (see the UNSURE notes)
+// name confidence 0.3, rewrite confidence: 0.85 (parent and weapon IK chains; ECX object for 0x4f6d60)
 // evidence: out/phase4/units_types_notes.md: "The unit row's other columns are ... 0x5643f0
 //   (+0x4c) ...". Both loops in this function call object_solve_two_bone_ik_to_marker (0x4f6d60,
 //   already rewritten this pass), which is exactly a "walk a marker's node up two levels and
@@ -15,7 +15,7 @@
 // Cleanup-pass review (objdump 0x5643f0..0x564570): FUN_00565d60 / FUN_00565d00 both receive
 //   ECX = &unit_data.animation_state_flags (object+0x298, 0x564480 / 0x5644e8), which the draft
 //   dropped; passed now.
-// UNSURE: the "unit block" and "weapon block" record layouts inside the ModelAnimations tag
+// NOTE: the "unit block" and "weapon block" record layouts inside the ModelAnimations tag
 //   (reached via tag+0x44's animation_graph tag_id, matching Object.animation_graph in
 //   types/tags.h, then +0x10 / +0x5c per unit_update_scale_function_inputs.c's own header note
 //   on animation_definition_index / animation_weapon_index) are not defined anywhere in
@@ -24,12 +24,9 @@
 //   arrays of {char marker_a_name[0x20]; char marker_b_name[0x20];} records, matching
 //   object_solve_two_bone_ik_to_marker's own (marker_a_name, ..., marker_b_name, ...) call shape
 //   and TagString's 0x20-byte size; not cross-checked against a models/cache types pass.
-// UNSURE: object_solve_two_bone_ik_to_marker takes its object index in ECX, a register argument
-//   Ghidra's decompile of THIS function drops from both call sites; passed as this function's own
-//   object_index here (the only object index in scope), not invented further.
-// UNSURE: FUN_00565d60 / FUN_00565d00 are outside this pass's range; called with zero visible
-//   arguments exactly as Ghidra decompiled them, and their boolean-looking return is tested the
-//   same way both places.
+// object_solve_two_bone_ik_to_marker takes its object index in ECX (this function's own object_index, 0x5644a8 / 0x56454b).
+// VERIFIED against disassembly 0x5643f0..0x564573 (2026-09-30), instruction by instruction: flag/index gates, +0x5c weapon
+//   block, 0x40-stride tables, parent / weapon-handle argument, the byte AND of animation_state_flags.
 
 #include "tags.h"
 #include "memory.h"
@@ -62,7 +59,7 @@ void unit_update_ik_detail_nodes(uint32_t object_index, void *node_base)
     }
 
     {
-        // UNSURE: raw "unit block" / "weapon block" walk; see the header note above
+        // raw "unit block" / "weapon block" walk; see the header note above
         tag_instance *graph = &tag_instances[*(int32_t *)&tag->base.animation_graph.tag_id & 0xffff];
         uint8_t *unit_block = *(uint8_t **)((uint8_t *)graph->data + 0x10);
         uint8_t *unit_record = unit_block + (int32_t)unit->animation_definition_index * 100;

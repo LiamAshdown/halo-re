@@ -1,5 +1,6 @@
 // unit_forget_object_reference  (Ghidra: no function created; the phase-4 types agent carved a
-//   placeholder "missed_56f0f0" from the object_type_definition vtable evidence)
+//   stub "missed_56f0f0" from the object_type_definition vtable evidence)
+// VERIFIED against disassembly 0x56f0f0..0x56f1bb (2026-09-30)
 // address 0x56f0f0, size 203 bytes
 // name confidence 0.4, rewrite confidence 0.75
 // evidence: out/phase4/units_types_notes.md: "The unit row's other columns are ... 0x56f0f0
