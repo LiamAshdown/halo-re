@@ -30,11 +30,11 @@
 
 extern real_vector3d build_sprite_view_up;   // 0x007c30d0
 extern real_vector3d build_sprite_view_left; // 0x007c30dc
-extern float unknown_00672f20;               // 0x00672f20 UNSURE: parallel-axis threshold
+extern float unknown_00672f20;               // 0x00672f20 = 0.99f, parallel-axis threshold
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-    // 0x4052c0, math module; blam-cc: EAX -> out, stack -> a, ECX -> b
+    // 0x4052c0, math module; blam-cc: EAX -> out, ECX -> a, stack -> b
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,
                                         real cos_angle); // 0x4cd820
 
@@ -69,13 +69,15 @@ void render_billboard_build_orientation_basis(build_sprite_data *data, int16_t r
     }
 
     if (render_type == 2) {
-        // UNSURE: this is a weighted combination of build_sprite_view_up/left against `normal`
-        // (a 6 term dot-product-like expression spanning a deep, hard to fully verify x87 stack
-        // sequence at objdump 0x511296..0x5112c7), scaled by unknown_00672f20 and compared
-        // against a second FPU value to choose the reference axis. The exact comparison operator
-        // was not recovered; the structure (pick whichever camera axis is less parallel to the
-        // normal) is preserved, defaulting to view_left as objdump's fall-through path does.
-        axis = &build_sprite_view_left;
+        // VERIFIED against disassembly 0x511269..0x5112d5 (2026-09-30): ECX starts as &build_sprite_view_up
+        // (0x7c30d0) and is replaced by &build_sprite_view_left (0x7c30dc) when 0.99 * |normal|^2 <
+        // dot(view_up, normal)^2 (the normal is nearly parallel to view up).
+        dot = build_sprite_view_up.j * normal->j + build_sprite_view_up.i * normal->i +
+              build_sprite_view_up.k * normal->k;
+        axis = &build_sprite_view_up;
+        if ((normal->i * normal->i + normal->j * normal->j + normal->k * normal->k) * unknown_00672f20 < dot * dot) {
+            axis = &build_sprite_view_left;
+        }
 
         vector3d_cross_product(&out->tangent, axis, normal);
         vector3d_normalize_with_length(&out->tangent);
