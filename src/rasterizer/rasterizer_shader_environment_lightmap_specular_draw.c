@@ -191,5 +191,5 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
 
 #if 0
 Original Ghidra decompilation (0x521f90) -- see `python tools/pack.py 0x521f90` for the full
-866-byte body; this rewrite is a low-confidence structural sketch.
+866-byte body; the rewrite above was compared instruction by instruction with the disassembly.
 #endif
