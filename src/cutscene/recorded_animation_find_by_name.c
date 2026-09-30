@@ -15,6 +15,7 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_cutscene.h"
 
 
 // blam-cc: EBX -> name, ESI -> scenario

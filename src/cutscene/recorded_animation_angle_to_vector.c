@@ -13,6 +13,7 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_cutscene.h"
 
 // cos/sin are single x87 FCOS/FSIN instructions in the original code (Ghidra's fcos()/fsin()
 // pseudo-calls); declared locally instead of via <math.h> because -I types shadows that header

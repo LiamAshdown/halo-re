@@ -15,11 +15,11 @@
 #include "units.h"
 #include "cutscene.h"
 #include "fn_hs.h"
+#include "fn_cutscene.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
-extern recorded_animation *recorded_animation_find_by_object(datum_index unit_index, datum_index *out_index);
     // 0x44ad20, blam-cc: EBX, stack
 
 void hs_evaluate_recording_kill(int16_t function_index, uint32_t thread_index, char first)

@@ -27,6 +27,7 @@
 #include "fn_ai.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_cutscene.h"
 
 
 extern double fcos(double x); // FCOS
@@ -48,8 +49,6 @@ extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, i
 extern void ai_communication_target_result_reset(ai_communication_target_result *record); // 0x42d310, EAX
 
 
-extern int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario); // 0x449f80, EBX, ESI
-extern uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags);
     // 0x44a930, EAX, CX, stack
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI

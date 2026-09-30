@@ -33,6 +33,7 @@
 #include "fn_objects.h"
 #include "fn_networking.h"
 #include "fn_effects.h"
+#include "fn_cutscene.h"
 
 extern uint8_t DAT_0087ab18;                 // 0x0087ab18, UNSURE: "simulation in progress" reentrancy flag
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
@@ -46,7 +47,6 @@ extern int32_t network_scenario_round_counter_b;             // 0x0071cc24, TYPE
 extern uint8_t unknown_0071cc20[];           // 0x0071cc20, TYPES-GAP: message queue buffer
 
 
-extern void recorded_animations_update(void);            // 0x44aa90, UNSURE module
 extern void effects_update_all(float seconds_per_tick);  // 0x450aa0, UNSURE module/role
 
 

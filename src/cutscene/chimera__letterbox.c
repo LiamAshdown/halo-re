@@ -27,6 +27,7 @@
 #include "cache.h"
 #include "interface.h"
 #include "cutscene.h"
+#include "fn_cutscene.h"
 
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 extern float fabsf(float x); // x87 FABS

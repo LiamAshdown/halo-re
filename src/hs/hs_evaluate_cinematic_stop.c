@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_cutscene.h"
 
-
-extern void cutscene_stop(void); // 0x449eb0
 
 void hs_evaluate_cinematic_stop(int16_t function_index, uint32_t thread_index, char first)
 {

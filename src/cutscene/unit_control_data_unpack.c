@@ -14,6 +14,7 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_cutscene.h"
 
 extern unit_control_data_field_layout *unit_control_data_version_layouts[4]; // 0x00686d88
 

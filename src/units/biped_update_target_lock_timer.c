@@ -12,12 +12,12 @@
 #include "units.h"
 #include "fn_ai.h"
 #include "fn_units.h"
+#include "fn_cutscene.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern uint8_t DAT_0087abc3;        // UNSURE global (cheat/debug toggle)
 
 
-extern uint8_t recorded_animation_object_is_playing(datum_index unit_index); // 0x44acc0, blam-cc: ESI
 extern int32_t unit_get_local_player_weapon_index(datum_index unit);        // 0x4726b0, blam-cc: EAX
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
     // 0x474fc0, blam-cc: ESI -> new_unit, DI -> local_player_index

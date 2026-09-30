@@ -13,6 +13,7 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_cutscene.h"
 
 // blam-cc: EAX -> angles, EDX -> delta
 // Identical to recorded_animation_apply_char_difference, but the delta is a full 16 bit

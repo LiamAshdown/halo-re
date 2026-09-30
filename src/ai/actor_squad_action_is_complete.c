@@ -19,6 +19,7 @@
 #include "fn_ai.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_cutscene.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -30,7 +31,6 @@ extern real vector3d_magnitude_squared(real_vector3d *v);                // 0x40
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX a, ECX b
 
 
-extern uint8_t recorded_animation_object_is_playing(datum_index unit_index); // 0x44acc0, ESI
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
 

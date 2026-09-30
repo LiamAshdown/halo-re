@@ -13,6 +13,7 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_cutscene.h"
 
 // blam-cc: EAX -> angles, EDX -> delta
 // Adds a compressed 8 bit yaw/pitch delta to a wrapped 1000-unit fixed-point angle pair,

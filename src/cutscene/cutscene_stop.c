@@ -23,6 +23,7 @@
 #include "interface.h"
 #include "cutscene.h"
 #include "fn_sound.h"
+#include "fn_cutscene.h"
 
 
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error); // 0x498f20

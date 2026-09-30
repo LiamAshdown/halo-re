@@ -20,9 +20,8 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_cutscene.h"
 
-extern void unit_control_data_unpack(unit_control_data *control, uint8_t **cursor,
-    uint8_t version); // 0x449fd0, this module
 
 // blam-cc: stack -> (state, control, cursor, version)
 // Uncompressed (versions 1..3) codec begin. Unpacks the initial unit_control_data from *cursor

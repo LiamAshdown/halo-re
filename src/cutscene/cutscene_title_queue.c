@@ -13,6 +13,7 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_cutscene.h"
 
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 

@@ -31,6 +31,7 @@
 #include "units.h"
 #include "cutscene.h"
 #include "fn_hs.h"
+#include "fn_cutscene.h"
 #include <stdint.h>
 
 extern data_array *recorded_animations;     // 0x006b0a10

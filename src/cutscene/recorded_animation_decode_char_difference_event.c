@@ -23,11 +23,8 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_cutscene.h"
 
-extern void recorded_animation_apply_char_difference(recorded_animation_angles *angles,
-    recorded_animation_char_difference *delta); // 0x44a110, this batch
-extern void recorded_animation_angle_to_vector(real_vector3d *out,
-    recorded_animation_angles *angles); // 0x44a190, this batch
 
 // cos/sin are single x87 FCOS/FSIN instructions in the original code (Ghidra's fcos()/fsin()
 // pseudo-calls); declared locally instead of via <math.h> because -I types shadows that header

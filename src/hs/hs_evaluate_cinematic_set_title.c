@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_cutscene.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void cutscene_title_queue(int16_t title_index, float delay_seconds); // 0x449960
 
 void hs_evaluate_cinematic_set_title(int16_t function_index, uint32_t thread_index, char first)
 {

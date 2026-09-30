@@ -17,6 +17,7 @@
 #include "cutscene.h"
 #include "fn_game.h"
 #include "fn_sound.h"
+#include "fn_cutscene.h"
 
 
 extern float sound_music_gain;                      // 0x007252a8
