@@ -1,20 +1,12 @@
-// vehicle_calculate_hover_lift_toward_target  (Ghidra: unit_start_user_animation -- per
-//   out/phase4/units_types_notes.md this pre-existing name is WRONG: it is the same
-//   hovering-vehicle physics as 0x5738b0, entered when a target direction is already known; the
-//   real unit_start_user_animation is 0x5702a0, this batch)
+// vehicle_calculate_hover_lift_toward_target  (NOT A FUNCTION: an address inside vehicle_calculate_wing_flex_controls)
 // address 0x5739a0, size 1315 bytes
-// name confidence: 0.3 (units_types_notes.md's correction; the replacement name is new)
-// rewrite confidence: 0.05 -- identical situation to vehicle_calculate_hover_turn_controls.c
-//   (0x5738b0, this batch): every operand is an untraceable "unaff_" register or an
-//   out-of-frame stack access, the unmistakable signature of a mid-function tail Ghidra split
-//   off incorrectly. No faithful rewrite is possible without the real caller.
-// evidence: same as vehicle_calculate_hover_turn_controls.c; the tail from the "0x4cc & 8" flag
-//   check onward is byte-for-byte identical to that function (per functions.md: "Nearly
-//   identical tail logic to FUN_005738b0 ... entered when a target direction is already
-//   known"); callee vehicle_create_hover_thruster_midpoint_effects (0x574bc0, this batch).
-// register convention: UNRESOLVED.
-//   // blam-cc: UNSURE -- see header
-// UNSURE: everything; see file header.
+// VERIFIED against disassembly 0x5734d0..0x573ede (2026-09-30): 0x5734d0 (`push ebp; mov ebp,esp`) to 0x573edd (the only `ret`)
+//   is ONE 2574-byte function (a hovering vehicle's per-tick physics: forward/turn controls, lift toward the target, thruster
+//   effects). Ghidra split it at 0x5738b0 and 0x5739a0, which is why this range shows unaffected registers, x87 values with no
+//   source and offsets from the caller's frame (ebp - 4 .. ebp - 0x58). Nothing calls or jumps to 0x5739a0 from outside the
+//   function. This file has no body of its own and must never be hooked; the whole function still needs to be rewritten
+//   once, as a single unit, in vehicle_calculate_wing_flex_controls.c (whose current C covers only the first 992 bytes and
+//   is not faithful).
 
 #include "tags.h"
 #include "memory.h"
@@ -22,12 +14,9 @@
 #include "objects.h"
 #include "units.h"
 
-extern void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index); // 0x574bc0, this batch
-
-// UNSURE: placeholder only; see file header.
-void vehicle_calculate_hover_lift_toward_target(uint32_t unit_index)
+// Not callable: see the header. Kept only so the address stays listed in the symbol tables.
+void vehicle_calculate_hover_lift_toward_target(void)
 {
-    vehicle_create_hover_thruster_midpoint_effects(unit_index);
 }
 
 #if 0

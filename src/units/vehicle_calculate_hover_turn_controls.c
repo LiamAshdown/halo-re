@@ -1,27 +1,12 @@
-// vehicle_calculate_hover_turn_controls  (Ghidra: unit_get_custom_animation_time -- per
-//   out/phase4/units_types_notes.md this pre-existing name is WRONG: the function is hovering-
-//   vehicle turn/lift physics, not an animation-time getter (the real getter is
-//   unit_get_custom_animation_time_remaining, 0x5701b0, this batch); since the current name
-//   actively misleads and this address needed a fresh identity, a proper Blam-style name is
-//   chosen here per the task's rule for FUN_xxxxxx-equivalent cases)
+// vehicle_calculate_hover_turn_controls  (NOT A FUNCTION: an address inside vehicle_calculate_wing_flex_controls)
 // address 0x5738b0, size 267 bytes
-// name confidence: 0.3 (units_types_notes.md's correction; the replacement name is new)
-// rewrite confidence: 0.05 -- by a wide margin the least reconstructible function in this
-//   batch. Every operand (unaff_EBP, unaff_ESI, unaff_EBX, unaff_EDI, in_ECX, in_ST0) arrives
-//   with zero traceable origin, and unaff_EBP is used as if it were the *caller's* stack frame
-//   (offsets from -4 to -0x58), which is the unambiguous signature of a mid-function tail
-//   Ghidra split off incorrectly rather than a real, independently callable function. No
-//   faithful rewrite is possible without first recovering the real caller.
-// evidence: types/units.h vehicle_data.flags (0x4cc, bit 3 tested), .ground_lean (0x4ec),
-//   .airborne_ticks (0x4d0); types/objects.h object.velocity (0x068); types/units.h
-//   unit_data.throttle (0x278); types/tags.h Vehicle.maximum_forward_speed (0x2f8, via a
-//   pointer this decompile never resolves); callee
-//   vehicle_create_hover_thruster_midpoint_effects (0x574bc0, this batch).
-// register convention: UNRESOLVED.
-//   // blam-cc: UNSURE -- see header
-// UNSURE: everything. This file is a placeholder that documents the address and its one
-// recoverable side effect (calling vehicle_create_hover_thruster_midpoint_effects on whatever
-// unit index the caller's frame held at +8) rather than a working reconstruction.
+// VERIFIED against disassembly 0x5734d0..0x573ede (2026-09-30): 0x5734d0 (`push ebp; mov ebp,esp`) to 0x573edd (the only `ret`)
+//   is ONE 2574-byte function (a hovering vehicle's per-tick physics: forward/turn controls, lift toward the target, thruster
+//   effects). Ghidra split it at 0x5738b0 and 0x5739a0, which is why this range shows unaffected registers, x87 values with no
+//   source and offsets from the caller's frame (ebp - 4 .. ebp - 0x58). Nothing calls or jumps to 0x5738b0 from outside the
+//   function. This file has no body of its own and must never be hooked; the whole function still needs to be rewritten
+//   once, as a single unit, in vehicle_calculate_wing_flex_controls.c (whose current C covers only the first 992 bytes and
+//   is not faithful).
 
 #include "tags.h"
 #include "memory.h"
@@ -29,15 +14,9 @@
 #include "objects.h"
 #include "units.h"
 
-extern void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index); // 0x574bc0, this batch
-
-// UNSURE: placeholder only; see file header. The original computes hovering-vehicle turn/lift
-// physics each tick from a caller-supplied stack frame this rewrite cannot reconstruct, then
-// triggers the hover-thruster midpoint effect on the unit whose index lives at the caller's
-// frame offset +8.
-void vehicle_calculate_hover_turn_controls(uint32_t unit_index)
+// Not callable: see the header. Kept only so the address stays listed in the symbol tables.
+void vehicle_calculate_hover_turn_controls(void)
 {
-    vehicle_create_hover_thruster_midpoint_effects(unit_index);
 }
 
 #if 0
