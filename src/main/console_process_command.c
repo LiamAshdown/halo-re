@@ -28,12 +28,12 @@
 #include "hs.h"
 #include "main.h"
 #include "fn_hs.h"
+#include "fn_main.h"
 #include <string.h>
 
 extern console_globals console_globals_data; // 0x006b7020
 extern uint8_t hs_preserve_token_case;  // 0x007102fd
 
-extern uint32_t console_command_context_mask(uint32_t context_flags); // this module, 0x4c69c0
 
     // stack -> category_mask, results; // 0x483c90, foreign (hs module)
     // blam-cc: EAX -> partial_name, ECX -> mode (0x100, UNSURE), EDX -> context_mask, stack -> max_count, out_names

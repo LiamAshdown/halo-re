@@ -15,6 +15,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_networking.h"
+#include "fn_main.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern network_client_globals *network_client; // 0x0071c2d8
@@ -25,7 +26,7 @@ extern uint32_t split_screen_quit_prompt_string;               // 0x00719754, UN
 extern uint32_t network_join_error_reason;               // 0x0071973c, UNSURE identity
 extern int32_t unknown_006982e8;                // 0x006982e8, UNSURE identity
 
-extern void main_menu_music_stop(void); // 0x4c8b40, outside this batch
+
 extern void chimera__load_ui_map(char reset); // 0x4c8930, outside this batch
 
 extern void network_game_server_host_dispose(network_server_globals *host); // 0x4deda0, this batch

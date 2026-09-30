@@ -20,6 +20,7 @@
 #include "main.h"
 #include "fn_game.h"
 #include "fn_networking.h"
+#include "fn_main.h"
 
 extern main_globals main_globals_data; // 0x00719700
 extern growable_array ban_list;              // 0x006b859c, foreign (networking module)
@@ -32,7 +33,6 @@ extern void map_list_free_all(void);   // 0x495260, foreign (interface module)
 extern void network_game_server_host_dispose(network_server_globals *server); // 0x4deda0, foreign (networking module)
 
 
-extern void console_deactivate(void);        // 0x4c64b0, this module
 extern void chat_close(void);                // 0x4aa900, foreign (interface module)
 
 // Final teardown when the main loop exits: releases the map cache index, resets the ban list,

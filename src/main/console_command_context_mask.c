@@ -25,6 +25,7 @@
 #include "saved_games.h"
 #include "input.h"
 #include "main.h"
+#include "fn_main.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern main_globals main_globals_data;                    // 0x00719700

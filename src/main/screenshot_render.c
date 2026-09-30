@@ -37,6 +37,7 @@
 #include "saved_games.h"
 #include "hs.h"
 #include "main.h"
+#include "fn_main.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -45,7 +46,7 @@ extern int16_t screenshot_scale;       // 0x00696568, foreign (rasterizer module
 extern Rectangle2D game_window_top_left;   // 0x0069c634, foreign (rasterizer module)
 
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, this module
-extern void console_deactivate(void); // 0x4c64b0, this module
+
 extern void render_frame(Point2DInt *screenshot_tile, render_view *views, int16_t count,
     Point2DInt *screenshot_page, float time_since_tick, float time_since_frame); // 0x50bea0, foreign (render module)
 extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); // 0x518180, foreign (rasterizer module)

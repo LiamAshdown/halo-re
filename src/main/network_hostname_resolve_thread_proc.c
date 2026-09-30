@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
+#include "fn_main.h"
 
 extern void *hostname_resolve_result;      // 0x00719b6c, this module; struct hostent * from gethostbyname
 extern int32_t hostname_resolve_complete;  // 0x00719b68, this module; set once the lookup returns

@@ -21,6 +21,7 @@
 #include "units.h"
 #include "cutscene.h"
 #include "fn_game.h"
+#include "fn_main.h"
 
 extern main_globals main_globals_data; // 0x00719700
 extern game_time_globals *game_time;   // 0x006f1d6c, foreign (game module)

@@ -20,6 +20,7 @@
 #include "networking.h"
 #include "fn_game.h"
 #include "fn_networking.h"
+#include "fn_main.h"
 #include <string.h>
 
 extern int16_t network_game_mode; // 0x00719720, 2 == host, 0 == local/not in a game
@@ -32,7 +33,7 @@ extern char game_engine_is_map_and_variant_valid(void); // foreign, validates th
 
 extern void widget_close_all(void); // 0x498650, other module
 
-extern void console_deactivate(void); // 0x4c64b0, other module
+
 extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0
 
 extern char network_game_start_new_server_from_profile(uint32_t param_1); // 0x4e40f0, this

@@ -39,6 +39,7 @@
 #include "render.h"
 #include "main.h"
 #include "fn_math.h"
+#include "fn_main.h"
 
 extern game_time_globals *game_time;         // 0x006f1d6c, foreign (game module)
 extern console_globals console_globals_data; // 0x006b7020, this module's own header type

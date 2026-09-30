@@ -29,6 +29,7 @@
 #include "interface.h"
 #include "main.h"
 #include "fn_networking.h"
+#include "fn_main.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,7 +43,6 @@ extern widget_instance *ui_root_widget[1];                   // 0x00718f94
 extern int16_t network_join_error_code; // 0x00718fa4, foreign (interface module), -1 when none pending
 
 
-extern char network_hostname_resolve_with_timeout(char *hostname); // 0x4c8370, this module
 extern uint8_t network_game_client_connect_to_address_async(char *address, char *password); // 0x4c8500, this module
 
 // Resolves host_port_string (a "host" or "host:port" string, GlobalAlloc'd by the caller) and

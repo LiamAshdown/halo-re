@@ -18,6 +18,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "main.h"
+#include "fn_main.h"
 
 extern main_frame_rate_average frame_rate_average_data; // 0x00719ab0
 

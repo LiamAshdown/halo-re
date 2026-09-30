@@ -18,6 +18,7 @@
 #include "saved_games.h"
 #include "input.h"
 #include "main.h"
+#include "fn_main.h"
 #include <string.h>
 
 extern console_globals console_globals_data; // 0x006b7020

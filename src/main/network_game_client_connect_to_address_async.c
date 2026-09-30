@@ -24,6 +24,7 @@
 #include "interface.h"
 #include "main.h"
 #include "fn_networking.h"
+#include "fn_main.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -40,7 +41,7 @@ extern int32_t join_ui_state; // 0x00718f8c, foreign (interface module); see
 extern void widget_close_all(void);              // 0x498650, foreign (interface module)
 extern void interface_loading_screen_reset(void); // 0x4978d0, foreign
 extern void interface_loading_screen_set_text(const char *text); // 0x4978a0, foreign; blam-cc: EAX -> text
-extern uint32_t __stdcall network_game_client_connect_by_hostname(char *host_port_string); // 0x4c83e0, this module (thread proc)
+
 
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal,
                            uint8_t is_error); // 0x498f20, foreign (interface module)

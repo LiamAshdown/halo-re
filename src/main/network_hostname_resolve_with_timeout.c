@@ -15,11 +15,11 @@
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
+#include "fn_main.h"
 
 extern int32_t hostname_resolve_complete; // 0x00719b68, this module (network_hostname_resolve_thread_proc.c)
 extern void *hostname_resolve_result;     // 0x00719b6c, this module (network_hostname_resolve_thread_proc.c)
 
-extern uint32_t network_hostname_resolve_thread_proc(char *hostname); // 0x4c8340, this module
 
 // blam-cc: ECX -> hostname
 // Resolves hostname on a worker thread, waiting up to 10 seconds; kills the thread if it hasn't

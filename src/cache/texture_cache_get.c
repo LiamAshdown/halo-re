@@ -41,6 +41,7 @@
 #include "math.h"
 #include "fn_rasterizer.h"
 #include "fn_cache.h"
+#include "fn_main.h"
 
 extern data_array *texture_cache_entries;  // 0x006ac538
 extern struct cache *texture_cache;        // 0x006ac540
@@ -49,8 +50,6 @@ extern tag_instance *tag_instances;        // 0x0087bc14
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 extern int64_t performance_frequency;      // 0x006ac8f8/0x006ac8fc
 extern int32_t sound_time;        // 0x0072520c
-
-extern void console_print_va(const char *format, ...);       // 0x4c6920
 
 
 extern uint32_t sound_idle_update(void); // outside this module; frame-watchdog pump, UNSURE

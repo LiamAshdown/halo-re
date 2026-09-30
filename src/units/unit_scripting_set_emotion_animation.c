@@ -20,11 +20,12 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_main.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern int16_t animation_graph_find_animation_by_name(uint32_t unit_index, const char *name); // 0x4d6ab0, UNSURE signature
-extern void console_print_va(const char *format, ...); // 0x4c6920
+
 
 // blam-cc: EAX -> unit_index, ECX -> emotion_name
 void unit_scripting_set_emotion_animation(uint32_t unit_index, const char *emotion_name)

@@ -22,6 +22,7 @@
 #include "main.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_main.h"
 
 extern main_globals main_globals_data; // 0x00719700
 extern int32_t game_time_force_single_tick; // 0x007196d8, foreign (main-owned global per main.h)

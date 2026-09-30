@@ -28,6 +28,7 @@
 #include "interface.h"
 #include "shell.h"
 #include "main.h"
+#include "fn_main.h"
 #include <stdint.h> // uintptr_t
 
 extern int32_t movie_playback_abort;       // 0x007196d4, UNSURE owner (see header)

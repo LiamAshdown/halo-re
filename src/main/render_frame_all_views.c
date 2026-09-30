@@ -43,6 +43,7 @@
 #include "units.h"
 #include "cutscene.h"
 #include "fn_sound.h"
+#include "fn_main.h"
 
 extern int32_t player_effect_reentry_count; // 0x00719ccc, foreign (effects module)
 extern main_globals main_globals_data;      // 0x00719700
@@ -70,12 +71,9 @@ extern double tan(double x);
 extern double atan2(double y, double x);
 
 
-extern void viewport_split_rect_compute(int32_t view_count, int32_t view_index,
-    Rectangle2D *window, Rectangle2D *out_viewport); // 0x4c8da0, this module
-extern void render_view_camera_fill(observer_camera *observer, render_view *view); // 0x4c9050, this module
 extern void render_frame(Point2DInt *screenshot_tile, render_view *views, int16_t count,
     Point2DInt *screenshot_page, float time_since_tick, float time_since_frame); // 0x50bea0, foreign (render module)
-extern void screenshot_render(render_view *views); // 0x4ca1a0, this module
+
 
 // Builds this frame's render_views array (one entry per local player, plus a trailing
 // non-player view) and dispatches to render_frame (or, when a screenshot is pending, to

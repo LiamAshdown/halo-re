@@ -35,6 +35,7 @@
 #include "main.h"
 #include "fn_game.h"
 #include "fn_saved_games.h"
+#include "fn_main.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -55,8 +56,8 @@ extern int16_t pending_difficulty; // 0x00696564, foreign (main-owned global per
 extern int16_t local_player_count;      // 0x006894b8, foreign (saved_games module)
 
 extern int32_t _access(const char *path, int32_t mode); // 0x624236, UNSURE, CRT-shaped; see file header
-extern void main_menu_music_stop(void);            // 0x4c8b40, this module
-extern void game_scenario_session_begin(network_scenario_load_request *request); // 0x4c95f0, this module
+
+
 extern void main_menu_on_shown(int32_t fade_milliseconds); // 0x498ab0, foreign (interface module)
 
 extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0x45aea0, foreign (game module)

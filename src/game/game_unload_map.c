@@ -16,6 +16,7 @@
 #include "scenario.h"
 #include "fn_game.h"
 #include "fn_cache.h"
+#include "fn_main.h"
 
 extern uint8_t map_download_in_progress;   // 0x006ac470
 extern game_main_globals *main_game_globals; // 0x006b0b80
@@ -30,8 +31,8 @@ extern Globals *global_globals;   // 0x00746fa0
 
 extern int16_t cache_file_download_status_get(float *progress_out, int32_t unaff_ecx); // 0x4434a0,
     // blam-cc: EAX -> progress_out, ECX -> unaff_ecx (src/cache/cache_file_download_status_get.c) // 0x4434a0
-extern void render_pregame_view_initialize(void);              // UNSURE module
-extern void movie_capture_frame_export(void); // 0x4c9530
+
+
 extern void widget_close_all(void);           // 0x498650
 extern void interface_handle_quit_request(void); // 0x499170
 

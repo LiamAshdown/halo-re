@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_main.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -28,7 +29,7 @@ extern int16_t animation_graph_find_animation_by_name(datum_index animation_grap
     // 0x4d6ab0, blam-cc: EAX, EBX
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
     int32_t stream); // 0x4d6280, blam-cc: EAX, DX, stack
-extern void console_print_va(const char *format, ...); // 0x4c6920
+
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); // 0x4f6b70, EAX, DX
 
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0

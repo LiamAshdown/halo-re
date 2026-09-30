@@ -30,6 +30,7 @@
 #include "hs.h"
 #include "main.h"
 #include "fn_saved_games.h"
+#include "fn_main.h"
 #include <stdio.h>
 #include <string.h>
 

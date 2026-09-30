@@ -28,6 +28,7 @@
 #include "saved_games.h"
 #include "input.h"
 #include "main.h"
+#include "fn_main.h"
 #include <string.h>
 
 extern console_globals console_globals_data;         // 0x006b7020
@@ -35,10 +36,8 @@ extern uint8_t chat_dialog_open;                 // 0x006b3858
 extern input_abstraction_globals input_globals;  // 0x00710328 (system_key_states at +0x14a8)
 
 extern uint8_t input_get_mouse_button_state(int16_t button_index); // 0x490e00
-extern void console_toggle(void);                        // this module, 0x4c6530
-extern void console_deactivate(void);                     // this module, 0x4c64b0
-extern uint32_t console_paste_clipboard_text(void);        // this module, 0x4c6570
-extern void console_autocomplete_command(void);            // this module, 0x4c6bc0
+
+
 extern char console_process_command(char *command_line, uint32_t context_flags); // this module, 0x4c6a80, blam-cc: EDI -> command_line, stack -> context_flags
 extern void widget_text_edit_reset_length(text_edit_state *state); // 0x44c5b0, blam-cc: ESI -> state
 

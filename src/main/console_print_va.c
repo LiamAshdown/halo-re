@@ -21,6 +21,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_main.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>

@@ -59,6 +59,7 @@
 #include "fn_scenario.h"
 #include "fn_networking.h"
 #include "fn_saved_games.h"
+#include "fn_main.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -110,33 +111,23 @@ extern int32_t rasterizer_present_counter_low;              // 0x0069c648, forei
 extern int32_t rasterizer_present_counter_high;             // 0x0069c64c
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, foreign (render)
 
-extern void console_initialize(void);                                       // 0x4c62d0 (Ghidra splits it at 0x4c62f0 / 0x4c6340)
 
 extern void ui_chat_window_reset_position(void);                            // 0x4aa6b0, foreign (interface)
 
 extern void map_list_add_entry(char *path, int32_t map_id);                 // 0x4950c0, foreign (interface)
     // blam-cc: EAX -> path, stack -> map_id
 
-extern void chimera__exec_init(void);                                       // this module, 0x4c6390
-extern void game_start_new_single_player_map(void);                         // this module, 0x4c9dd0
-extern void game_timer_reset(void);                                         // this module, 0x4c9f30
-extern uint8_t network_autojoin_from_command_line(void);                    // 0x4c9c80, foreign (interface)
-extern void movie_play_bink(const char *movie_path);                        // this module, 0x43ed20
-extern uint32_t game_frame_rate_average_update(void);                       // this module, 0x4c6e80
-extern void main_switch_structure_bsp_and_notify(void);                     // this module, 0x4c9b60
 
-extern void campaign_level_advance(void);                                   // this module, 0x4c9bd0
+extern uint8_t network_autojoin_from_command_line(void);                    // 0x4c9c80, foreign (interface)
 
 
 extern void hud_display_checkpoint_message(uint8_t is_begin);               // 0x4aa310, foreign (interface)
     // blam-cc: DL -> is_begin
-extern void main_level_transition_update(void);                             // this module, 0x4c9770
+
 
     // blam-cc: SI -> structure_bsp_index
 
 extern void input_reset_state_and_axis_configs(void);                       // 0x490aa0, foreign (input)
-
-extern void main_ensure_local_players(void);                                // this module, 0x4c8800
 
 
     // blam-cc: EDI -> size, stack -> name, buffer
@@ -144,14 +135,14 @@ extern void console_print_error_va(uint8_t clear_first, const char *format, ...)
     // blam-cc: AL -> clear_first
 
     // blam-cc: EAX -> name
-extern void main_menu_return_and_reset(void);                               // this module, 0x4c8a60
-extern void game_engine_flush_pending_simulation_ticks(void);               // this module, 0x4c99e0
+
+
 extern int16_t cache_file_download_status_get(float *progress_out);        // 0x4434a0, foreign (cache)
     // blam-cc: EAX -> progress_out
 
 
     // blam-cc: EAX -> name, stack -> report_fatal_error
-extern void network_game_client_connect_to_resolved_address(void);          // this module, 0x4c8660
+
 extern void input_directinput_poll_devices(void);                           // 0x490760, foreign (input)
 extern void input_update_tick(void);                                        // 0x48b4b0, foreign (input)
 extern void shell_pump_windows_messages(void);                              // 0x541a20, foreign (shell)
@@ -164,7 +155,7 @@ extern void network_bandwidth_graph_instance_history_reset(network_bandwidth_gra
 
 
 extern void chat_close(void);                                               // 0x4aa900, foreign (interface)
-extern void main_loop_frame_pacer(void);                                    // this module, 0x4c9f90
+
 extern void ui_cursor_update(void);                                         // 0x4972c0, foreign (interface)
 extern void interface_tick(void);                                           // 0x497e80, foreign (interface)
 extern uint32_t time_query_performance_counter_ms(void);                    // 0x449210, foreign (math)
@@ -172,7 +163,7 @@ extern void console_process_input_events(void);                             // 0
 extern uint8_t console_process_queued_input(void);                          // 0x4965e0, foreign (interface)
 extern void console_message_expire_old(void);                               // 0x4966e0, foreign (interface)
 extern void console_update_display(void);                                   // 0x496d40, foreign (interface)
-extern uint8_t console_process_key_events(void);                            // this module, 0x4c65c0
+
 
 extern void game_engine_update_local_player_control(int16_t local_player_index, float delta_time,
     int32_t ticks_this_frame);                                              // 0x471ae0, foreign (game)
@@ -184,14 +175,9 @@ extern void player_update_history_log_write(uint32_t category_flags, int32_t use
     const char *format, ...);                                               // 0x4e5ea0, blam-cc: EAX, ECX
 
 
-extern void main_save_map_private(void);                                    // this module, 0x4c9a70
-extern void timedemo_benchmark_update(void);                                // this module, 0x4c6f30
-extern void render_frame_all_views(float time_since_tick, float time_since_frame); // this module, 0x4c9260
-extern void render_pregame_view_initialize(void);                           // this module, 0x4c8f20
-extern void movie_capture_frame_export(void);                               // this module, 0x4c9530
 extern void rasterizer_frame_statistics_sample(rasterizer_frame_statistics *statistics, uint8_t dropped); // 0x512530
     // blam-cc: EBX -> statistics, stack -> dropped
-extern void main_loop_shutdown_cleanup(void);                               // this module, 0x4c9e90
+
 
 // The engine main loop. Before the first frame it seeds the default scenario (b30), the timers,
 // the console, the multiplayer map list, the ban list and the -exec script, starts the first

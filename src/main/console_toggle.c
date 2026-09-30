@@ -18,12 +18,13 @@
 #include "saved_games.h"
 #include "input.h"
 #include "main.h"
+#include "fn_main.h"
 
 extern console_globals console_globals_data; // 0x006b7020
 extern uint8_t virtual_keyboard; // 0x007193a8, UNSURE: only tested here; blocks opening
                                            // the console while set (movie playback? name is a guess)
 
-extern void console_deactivate(void); // this module, 0x4c64b0
+
 extern uint8_t console_open(terminal_console *console); // 0x496510, blam-cc: EDI -> console
 extern void input_keyboard_set_capture_mode(uint8_t enable_capture); // 0x48b650, blam-cc: AL -> enable_capture
 

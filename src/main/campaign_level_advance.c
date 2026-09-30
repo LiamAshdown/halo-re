@@ -16,6 +16,7 @@
 #include "interface.h"
 #include "main.h"
 #include "fn_saved_games.h"
+#include "fn_main.h"
 
 extern main_globals main_globals_data;       // 0x00719700
 extern char *campaign_level_paths[k_main_campaign_level_count]; // 0x00696574
@@ -23,7 +24,7 @@ extern int16_t local_player_count;           // 0x006894b8, foreign (saved_games
 
 extern int campaign_level_find_index_for_path(char *path); // 0x4c8b90, this module
 
-extern void credits_load_directly_for_endgame(void); // 0x4c8d40, this module
+
 extern void main_queue_map_change(char *map_name);   // 0x4c8740, this module
 
 // Determines the next single-player campaign level after finishing the current one (by finding

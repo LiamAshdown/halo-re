@@ -27,6 +27,7 @@
 #include "game.h"
 #include "main.h"
 #include "fn_scenario.h"
+#include "fn_main.h"
 #include <wchar.h>
 
 extern HUDGlobals *hud_globals_tag_data;   // 0x0071941c, foreign (the hud globals tag)

@@ -29,6 +29,7 @@
 #include "networking.h"
 #include "fn_game.h"
 #include "fn_networking.h"
+#include "fn_main.h"
 #include <string.h>
 
 extern int16_t network_game_mode; // 0x00719720
@@ -42,7 +43,7 @@ extern void cache_file_switch_map_by_path(void); // outside this batch
 
 extern void game_engine_apply_variant(void); // outside this batch
 
-extern void main_menu_music_stop(void); // outside this batch
+
 extern int32_t network_channel_key_open(network_player_entry *entry); // 0x4de870, this batch
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
 extern char scenario_load(void *staged_request); // 0x53e6a0, outside this batch

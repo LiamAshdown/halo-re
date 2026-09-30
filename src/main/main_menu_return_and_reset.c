@@ -31,6 +31,7 @@
 #include "main.h"
 #include "fn_hs.h"
 #include "fn_game.h"
+#include "fn_main.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700

@@ -111,7 +111,9 @@ def header_rank():
 
 def sort_headers(headers):
     rank = header_rank()
-    return sorted(headers, key=lambda h: (rank.get(h, 10 ** 6), h))
+    base = [h for h in TYPE_HEADERS if h in headers]          # the prelude always comes first, in this order
+    rest = sorted((h for h in headers if h not in TYPE_HEADERS), key=lambda h: (rank.get(h, 10 ** 6), h))
+    return base + rest
 
 
 def complete_includes(body, mod, headers):

@@ -25,6 +25,7 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "main.h"
+#include "fn_main.h"
 #include <string.h>
 
 extern int32_t rasterizer_window_requested; // 0x0071d1a8, see src/rasterizer/rasterizer_initialize_direct3d.c

@@ -34,6 +34,7 @@
 #include "game.h"
 #include "fn_game.h"
 #include "fn_scenario.h"
+#include "fn_main.h"
 #include <stdint.h>
 
 extern player_globals *local_player_globals; // 0x0087a478
@@ -57,7 +58,7 @@ extern void player_effect_apply_generic_damage_feedback(datum_index player_index
 extern void player_kill_streak_tick(datum_index player_handle); // this batch, 0x479d10, blam-cc: EAX -> player_handle
 
     // 0x53f020
-extern void console_print_va(const char *format, ...); // 0x4c6920
+
 extern void hud_display_loading_message(uint8_t is_begin); // 0x4aa2a0, AL
     // split_screen_quit_prompt_string
 extern void player_update_nearby_interactions_primary(datum_index player_handle); // this batch, 0x478400, blam-cc: EDI -> player_handle

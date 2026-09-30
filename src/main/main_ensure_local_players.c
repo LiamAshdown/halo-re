@@ -32,6 +32,7 @@
 #include "game.h"
 #include "main.h"
 #include "fn_game.h"
+#include "fn_main.h"
 
 extern main_globals main_globals_data; // 0x00719700
 extern player_globals *local_player_globals; // 0x0087a478, foreign (game module)

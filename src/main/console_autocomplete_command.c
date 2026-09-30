@@ -26,6 +26,7 @@
 #include "interface.h"
 #include "main.h"
 #include "fn_hs.h"
+#include "fn_main.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdint.h> // uintptr_t

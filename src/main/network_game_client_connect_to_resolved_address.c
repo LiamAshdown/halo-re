@@ -31,6 +31,7 @@
 #include "interface.h"
 #include "main.h"
 #include "fn_networking.h"
+#include "fn_main.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -48,7 +49,7 @@ extern int16_t network_join_error_code; // 0x00718fa4, foreign (interface module
 
 
 extern void widget_close_all(void);            // 0x498650, foreign (interface module)
-extern void main_menu_music_stop(void);        // 0x4c8b40, this module
+
 extern uint32_t network_game_client_connect_to_address(char *address_string,
                                                         uint16_t *target_string); // 0x4dc790, foreign
 

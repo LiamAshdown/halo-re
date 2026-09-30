@@ -25,12 +25,13 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_main.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern int16_t animation_graph_find_animation_by_name(datum_index animation_graph_tag, const char *name); // 0x4d6ab0, EAX, EBX
-extern void console_print_va(const char *format, ...); // 0x4c6920
+
 
 void object_start_animation(uint32_t object_index, datum_index graph_tag, char *name, int16_t requested_frame)
     // blam-cc: EAX -> object_index, EDI -> graph_tag, ECX -> name (UNSURE), stack -> requested_frame

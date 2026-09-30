@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "main.h"
+#include "fn_main.h"
 
 extern console_globals console_globals_data; // 0x006b7020
 extern ColorARGB console_default_color;      // 0x00696554
