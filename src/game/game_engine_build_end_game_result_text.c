@@ -1,25 +1,23 @@
 // game_engine_build_end_game_result_text  (Ghidra: FUN_0045cf30; named per
 // out/phase4/game_functions.md)
 // address 0x45cf30, size 1286 bytes
-// name confidence: 0.45   rewrite confidence: 0.2
+// VERIFIED against disassembly 0x45cf30..0x45d436 (2026-09-30)
+// name confidence: 0.45   rewrite confidence: 0.9
 // evidence: out/phase4/game_functions.md ("Builds the localized end-of-game result text (e.g.
 // who is leading or tied) by comparing player or team scores through the active game engine's
 // callbacks"); types/game.h game_variant (lives_per_round +0x50, teams +0x34),
-// game_engine_state, game_engine_definition (is_winner, build_score_header_text,
-// build_team_score_text, get_team_score); scoreboard_entry (place, tie bit 0x80000000);
-// game_engine_get_default_multiplayer_string.c / game_engine_get_player_scoreboard_entry.c
-// (this batch).
-// register convention: none recognized by Ghidra; both parameters are its own explicit stack
-// args.
-// UNSURE (pervasive through this file): almost every text_string_list_get_string() /
-// tag_lookup() pair in the original decompilation is called with no visible string-table index
-// -- the index lives in a register Ghidra could not trace across this function's many branches.
-// Two of them were pinned by disassembly (indices 0x3f and 0x40, see
-// game_engine_get_default_multiplayer_string.c's own header) but the rest could not be, and are
-// modeled here as calls to that same helper with a placeholder index per branch, each flagged
-// individually. The reflexive-style direct-offset string read for the "no result" / tie case
-// (offsets +0x44c/+0x458 on the tag data, count gated on > 0x37) mirrors the same idiom used
-// throughout game_engine_post_rasterize_post_game.c and is transcribed just as literally.
+// game_engine_state, game_engine_definition (is_winner +0x8c, get_team_score +0x50, build_player_text +0x54,
+// build_team_score_text +0x5c); scoreboard_entry (place +0x18, tie bit 0x80000000).
+// register convention: none; both parameters are stack args (player handle, out wchar_t[0x50]).
+// REWRITTEN 2026-09-30 from the disassembly. Every string index is now pinned (the draft used placeholder indices 0..11 through
+// a mis-modelled helper): every lookup is `tag_lookup('ustr', "ui\\multiplayer_game_text")` + text_string_list_get_string(tag, N)
+// with N = 0x34 / 0x35 / 0x36 (no lives / one life / N lives, the last one a format string), 0x37 (no clear leader, read
+// straight from the tag data), 0x38 / 0x39 (result 0 with / without teams), 0x3a / 0x3b (result 1 with / without teams),
+// 0x3c / 0x3d / 0x3e (team game: team 0 ahead / team 1 ahead / tied), 0x3f / 0x40 (player line, tied / not tied). Other
+// corrections: game_engine_is_object_winning takes the player handle in EAX; string_format_wide_va_bounded takes its
+// character count in EDX (0x80 for the lives text, 0x50 otherwise); the player line has FOUR arguments (place string from
+// game_engine_get_default_multiplayer_string(&entry) [0x45ce90 is really get_place_string], the player text, the lives text) and
+// the team lines list the leading team first (team 1 first when it is ahead); the team text buffers are only 0x1c bytes.
 
 #include "tags.h"
 #include "memory.h"
@@ -40,49 +38,56 @@ extern wchar_t empty_string;                          // 0x00660c34
 // bytes ("<m") happen to look like a pointer value.
 extern wchar_t missing_string_text[];          // 0x00671fac, L"<missing string>"
 
-extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
-extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
-extern char game_engine_is_object_winning(void); // 0x463660, not in this batch; UNSURE exact meaning
-extern wchar_t *game_engine_get_default_multiplayer_string(int16_t string_index); // 0x45ce90, this batch
-extern void game_engine_get_player_scoreboard_entry(datum_index player_handle, scoreboard_entry *out); // 0x45cee0, this batch
+extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
+extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0, blam-cc: ECX tag_id, DX index
+extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...); // 0x557910, EDX count
+extern uint32_t game_engine_is_object_winning(uint32_t handle); // 0x463660, blam-cc: EAX handle
+extern wchar_t *game_engine_get_default_multiplayer_string(const scoreboard_entry *entry); // 0x45ce90 (really get_place_string), EAX entry
+extern void game_engine_get_player_scoreboard_entry(datum_index player_handle, scoreboard_entry *out); // 0x45cee0, blam-cc: EAX player, EBX out
 
-// blam-cc: none recognized; param_1 (player) and param_2 (out, wchar_t[0x50]) are Ghidra's own stack args
+// tag_lookup("ui\\multiplayer_game_text") + text_string_list_get_string(tag, index), or the empty string when the tag is missing.
+static wchar_t *multiplayer_game_text_string(int16_t index)
+{
+    datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr'
+
+    if (tag_id == k_datum_index_none) {
+        return &empty_string;
+    }
+    return text_string_list_get_string(tag_id, index);
+}
+
+// blam-cc: none; param_1 (player) and param_2 (out, wchar_t[0x50]) are stack args
 // Builds the localized "who is leading / tied / how many lives left" line for the end-of-game
 // or in-progress scoreboard, using the active game engine's score-comparison callbacks.
 void game_engine_build_end_game_result_text(datum_index player_handle, wchar_t *out)
 {
     wchar_t *lives_text = &empty_string;
+    wchar_t lives_buffer[0x80];
 
     if (0 < game_engine_variant.lives_per_round) {
         player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-        int32_t lives_left = game_engine_variant.lives_per_round - p->deaths;
+        int32_t lives_left = game_engine_variant.lives_per_round - (int32_t)(int16_t)p->deaths;
 
         if (lives_left == 0) {
-            lives_text = game_engine_get_default_multiplayer_string(0); // UNSURE: index not visible
+            lives_text = multiplayer_game_text_string(0x34);
         } else if (lives_left == 1) {
-            lives_text = game_engine_get_default_multiplayer_string(1); // UNSURE: index not visible
+            lives_text = multiplayer_game_text_string(0x35);
         } else {
-            wchar_t fmt_buffer[128]; // matches Ghidra's local_300 (254 bytes) + terminator
-            wchar_t *fmt = game_engine_get_default_multiplayer_string(2); // UNSURE: index not visible
-            string_format_wide_va_bounded(fmt_buffer, fmt, lives_left);
-            fmt_buffer[0x7f] = 0;
-            lives_text = fmt_buffer; // NOTE: Ghidra returns a pointer to a function-local buffer
-                                      // here too (`local_300`), used immediately below before the
-                                      // function returns, so lifetime is not actually a problem.
+            string_format_wide_va_bounded(0x80, lives_buffer, multiplayer_game_text_string(0x36), lives_left);
+            lives_buffer[0x7f] = 0;
+            lives_text = lives_buffer;
         }
     }
 
     if (game_engine_state_value == _game_engine_state_ending) {
-        char result; // -1 no clear leader/tie, 0 or 1 select which of two phrasings
+        int32_t result = 0; // -1 no clear leader, 0 / 1 the two result phrasings; anything else writes nothing
         uint8_t teams = 0;
 
-        result = 0;
         if (current_game_engine != 0) {
             if (current_game_engine->is_winner == 0) {
-                result = game_engine_is_object_winning();
+                result = (int32_t)game_engine_is_object_winning(player_handle);
             } else {
-                result = ((char (*)(datum_index))current_game_engine->is_winner)(player_handle);
+                result = ((int32_t (*)(datum_index))current_game_engine->is_winner)(player_handle);
             }
             teams = (uint8_t)game_engine_variant.teams;
         }
@@ -96,7 +101,7 @@ void game_engine_build_end_game_result_text(datum_index player_handle, wchar_t *
                 text = missing_string_text;
                 if (0x37 < *tag_data) {
                     uint8_t *entry = (uint8_t *)tag_data[1];
-                    uint32_t len = *(uint32_t *)(entry + 0x44c);
+                    uint32_t len = *(uint32_t *)(entry + 0x44c); // string 0x37: entries are 0x14 bytes
                     if (0 < (int32_t)len) {
                         wchar_t *string_data = *(wchar_t **)(entry + 0x458);
                         *(uint16_t *)((uint8_t *)string_data + ((len & 0xfffffffe) - 2)) = 0;
@@ -107,57 +112,36 @@ void game_engine_build_end_game_result_text(datum_index player_handle, wchar_t *
             }
             wcsncpy(out, text, 0x50);
         } else if (result == 0) {
-            wchar_t *text = teams
-                ? game_engine_get_default_multiplayer_string(3)  // UNSURE: index not visible
-                : game_engine_get_default_multiplayer_string(4); // UNSURE: index not visible
-            wcsncpy(out, text, 0x50);
-            goto done;
+            wcsncpy(out, multiplayer_game_text_string(teams ? 0x38 : 0x39), 0x50);
         } else if (result == 1) {
-            wchar_t *text = !teams
-                ? game_engine_get_default_multiplayer_string(5)  // UNSURE: index not visible
-                : game_engine_get_default_multiplayer_string(6); // UNSURE: index not visible
-            wcsncpy(out, text, 0x50);
-            goto done;
-        } else {
-            wcsncpy(out, L"", 0x50);
+            wcsncpy(out, multiplayer_game_text_string(teams ? 0x3a : 0x3b), 0x50);
         }
     } else if (current_game_engine == 0 || game_engine_variant.teams == 0) {
         scoreboard_entry entry;
-        wchar_t header[128]; // matches Ghidra's local_200 (0x1c0 == 7 dwords, but used here as
-                              // build_score_header_text's own output buffer -- see UNSURE below
+        wchar_t header[0x80];
         wchar_t *fmt;
 
         game_engine_get_player_scoreboard_entry(player_handle, &entry);
-        ((void (*)(datum_index, wchar_t *))current_game_engine->build_player_text)(
-            player_handle, header);
+        ((void (*)(datum_index, wchar_t *))current_game_engine->build_player_text)(player_handle, header);
 
-        if ((entry.place & 0x80000000) == 0) {
-            fmt = game_engine_get_default_multiplayer_string(7); // UNSURE: index not visible
-        } else {
-            fmt = game_engine_get_default_multiplayer_string(8); // UNSURE: index not visible
-        }
-        string_format_wide_va_bounded(out, fmt, header, lives_text);
+        fmt = multiplayer_game_text_string((entry.place & 0x80000000) != 0 ? 0x3f : 0x40);
+        string_format_wide_va_bounded(0x50, out, fmt, game_engine_get_default_multiplayer_string(&entry), header, lives_text);
     } else {
-        wchar_t team0_text[128];
-        wchar_t team1_text[128];
+        wchar_t team0_text[14];
+        wchar_t team1_text[14];
         int32_t score0, score1;
-        wchar_t *fmt;
 
         ((void (*)(int32_t, wchar_t *))current_game_engine->build_team_score_text)(0, team0_text);
         ((void (*)(int32_t, wchar_t *))current_game_engine->build_team_score_text)(1, team1_text);
         score0 = ((int32_t (*)(int32_t))current_game_engine->get_team_score)(0);
         score1 = ((int32_t (*)(int32_t))current_game_engine->get_team_score)(1);
 
-        if (score1 < score0) {
-            fmt = game_engine_get_default_multiplayer_string(9); // UNSURE: index not visible
-            string_format_wide_va_bounded(out, fmt, team1_text, team0_text, lives_text);
-        } else if (score1 <= score0) {
-            fmt = game_engine_get_default_multiplayer_string(10); // UNSURE: index not visible
-            string_format_wide_va_bounded(out, fmt, team1_text, lives_text);
-            goto done;
+        if (score0 > score1) {
+            string_format_wide_va_bounded(0x50, out, multiplayer_game_text_string(0x3c), team0_text, team1_text, lives_text);
+        } else if (score0 < score1) {
+            string_format_wide_va_bounded(0x50, out, multiplayer_game_text_string(0x3d), team1_text, team0_text, lives_text);
         } else {
-            fmt = game_engine_get_default_multiplayer_string(11); // UNSURE: index not visible
-            string_format_wide_va_bounded(out, fmt, team0_text, team1_text, lives_text);
+            string_format_wide_va_bounded(0x50, out, multiplayer_game_text_string(0x3e), team1_text, lives_text);
         }
     }
 

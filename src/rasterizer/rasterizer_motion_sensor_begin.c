@@ -1,7 +1,8 @@
-// rasterizer_motion_sensor_begin  (Ghidra: FUN_0052b690, unnamed; the earlier placeholder called
+// rasterizer_motion_sensor_begin  (Ghidra: FUN_0052b690, unnamed; the earlier draft called
 //   it rasterizer_debug_marker_setup)
 // address 0x52b690, size 1081 bytes
-// name confidence: 0.6   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x52b690..0x52bac9 (2026-09-30): bitmap resolution, residency checks, render target 5 setup (viewport from GetDesc, clear), all sampler/render/stage states, decl 8 with the declaration 6 usage bits, and the 5-vector constant block
+// name confidence: 0.6   rewrite confidence: 0.9
 // evidence: called once, first, by motion_sensor_render 0x4b4120 before the per blip helper
 //   FUN_004b37a0 (which reaches rasterizer_motion_sensor_blip_draw 0x52bad0) and before
 //   rasterizer_motion_sensor_end 0x52bc40. It resolves Globals.interface_bitmaps[0]
@@ -11,7 +12,7 @@
 //   states. Rebuilt from the raw disassembly (Ghidra lost every device call argument).
 // register convention: none.
 // blam-cc: none
-// UNSURE: 0x0069c689 is only known as a byte that disables the motion sensor path when set.
+// NOTE: 0x0069c689 is only known as a byte that disables the motion sensor path when set.
 
 #include "tags.h"
 #include "memory.h"

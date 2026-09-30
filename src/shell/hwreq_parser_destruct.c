@@ -20,6 +20,7 @@
 //   plumbing, not application logic, and is omitted here -- the observable calls, frees and
 //   field writes are preserved exactly, in the same order.
 
+// VERIFIED against disassembly 0x57a010..0x57a21d (2026-09-30): flags/requirements, both map walks and erase_range arg order, five strings
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

@@ -32,6 +32,10 @@ extern char *hs_compile_error;            // 0x006b14d4
 extern int32_t hs_compile_error_offset;   // 0x006b14d8
 extern data_array *hs_syntax_data;        // 0x0087a474
 
+// VERIFIED against disassembly 0x485540..0x4856ed (2026-09-30): allocation/scenario buffer split, the copy, the error
+//   resets, both datum_new results, the node field writes (wrap +0x10/+0x8/+0xc/+0x6, inspect +0x8/+0xc/+0x2=0x16/+0x6/+0x4=2),
+//   the hs_parse(wrap, 4) call and the error offset rebasing match. Fixed: the empty-expression test looks at the cursor after
+//   skip_whitespace.
 // blam-cc: text length in EAX
 // Tokenizes and wraps a single standalone expression string into a "(inspect <expr>)"
 // syntax-node tree ready for immediate evaluation, returning its root node index or
@@ -83,7 +87,7 @@ datum_index hs_compile_expression(char *text, uint32_t length, char **error_mess
         hs_compile_error_offset = -1;
         cursor = hs_compiled_source + start;
         skip_whitespace(&cursor);
-        if (*(hs_compiled_source + start) != '\0') {
+        if (*cursor != '\0') { // 0x4855f7: the cursor AFTER skip_whitespace (the draft tested the first character)
             expr_index = hs_tokenize(&cursor);
             if (hs_compile_error == 0) {
                 wrap_index = datum_new(hs_syntax_data);

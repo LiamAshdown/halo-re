@@ -8,19 +8,20 @@
 // evidence: src/hs/README.md (quoted above); __ftol (0x6391b4) is already used throughout this
 //   codebase as `ROUND` (e.g. src/ai/actor_danger_update_reaction.c: "Ghidra ROUND(): a bare
 //   x87 fistp, i.e. round-to-nearest-even").
-// register convention: cdecl, one stack float argument, tail-jumped straight into `ROUND`.
-// blam-cc: hs_object_orient(float x) -- cdecl, identical to ROUND(x)
+// register convention: cdecl, one stack float argument, tail-jumped straight into `__ftol` (truncation).
+// blam-cc: hs_object_orient(float x) -- cdecl, identical to (int32_t)x
 // UNSURE: kept as its own file (rather than deleted / merged) because the task's address list
 // names it explicitly; it is not genuinely hs-module code.
 
 #include "tags.h"
 #include "math.h"
 
-extern int32_t ROUND(float x); // 0x6391b4, __ftol, MSVC round-to-nearest helper
-
+// VERIFIED against disassembly 0x48ab80..0x48ab88 and 0x6391b4 (2026-09-30): `fld [esp+4]; jmp 0x6391b4` tail-jumps into the
+// CRT __ftol (_ftol2: fistp, then a correction step), which TRUNCATES toward zero. The draft called ROUND (fistp,
+// round-to-nearest-even), which returns -3 for -2.7 where the original returns -2. The C cast truncates the same way.
 int32_t hs_object_orient(float x)
 {
-    return ROUND(x);
+    return (int32_t)x;
 }
 
 #if 0

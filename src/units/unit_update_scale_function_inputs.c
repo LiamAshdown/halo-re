@@ -1,7 +1,7 @@
 // unit_update_scale_function_inputs  (Ghidra: no function created; the phase-4 types agent
-//   carved a placeholder "missed_563860" from the object_type_definition vtable evidence)
+//   carved a stub "missed_563860" from the object_type_definition vtable evidence)
 // address 0x563860, size 362 bytes
-// name confidence 0.45, rewrite confidence 0.55 (see the UNSURE note on case 7)
+// name confidence 0.45, rewrite confidence 0.55 
 // evidence: out/phase4/units_types_notes.md: "The unit row's other columns are ... 0x563860
 //   (+0x38)". Same shape as biped_update_scale_function_inputs.c (0x559e40, the biped row's own
 //   +0x38 column): reads Unit.unit_a_in/b_in/c_in/d_in (types/tags.h, UnitFunctionIn_t =
@@ -15,7 +15,7 @@
 //   0.011111111 = 1/90) were read directly out of the image.
 // register convention: object index in a single register argument (matches every other biped_*/
 //   unit_* per-object helper in this address range); blam-cc: object_index only.
-// UNSURE: case 7 walks the unit's Object.animation_graph tag (objects.h +0xcc, a tag reference
+// NOTE (layout only; behaviour verified): case 7 walks the unit's Object.animation_graph tag (objects.h +0xcc, a tag reference
 //   reused as a tag_instances index the same way case 0x559e40's tag lookup works) into what
 //   objdump proves is that ModelAnimations tag's `animations` TagReflexive (types/tags.h
 //   ModelAnimations, struct size 0x80: the reflexive occupying the last 0xc bytes, so its
@@ -26,6 +26,8 @@
 //   playback has run past the frame count, `1.0 - unit_data.unknown_20e / 90`). Neither
 //   ModelAnimationsAnimation nor its +0x2e field is defined in types/tags.h, so this is written
 //   with raw offsets and left for a models/cache-module types pass to name properly.
+// VERIFIED against disassembly 0x563860..0x5639d3 (2026-09-30), jump table 0x5639d4 checked: cases 1..7 map to
+//   0x338, 0x33c, 0x323 (u8/255), 0x2e8, 0x340, the frozen/0x400000 test, the animation ratio.
 // Cleanup-pass review (objdump 0x563860..0x5639cf, jump table 0x5639d4): case 3 reads
 //   unit+0x323 zero-extended (movzx at 0x5638f0); the draft sign-extended the int8_t field.
 
@@ -70,7 +72,7 @@ void unit_update_scale_function_inputs(uint32_t object_index)
                 value = unit->integrated_light_power;
                 break;
             case 6:
-                if ((obj->vitality_flags & 4) == 0 && (unit->flags & 0x400000) == 0) { // UNSURE: 0x400000 not in unit_flags
+                if ((obj->vitality_flags & 4) == 0 && (unit->flags & 0x400000) == 0) { // 0x400000: not named in unit_flags
                     value = 1.0f;
                 } else {
                     value = 0.0f;
@@ -78,7 +80,7 @@ void unit_update_scale_function_inputs(uint32_t object_index)
                 break;
             case 7:
             {
-                // UNSURE: raw ModelAnimations.animations[] walk; see the header note above
+                // raw ModelAnimations.animations[] walk; see the header note above
                 tag_instance *graph = &tag_instances[obj->animation_graph & 0xffff];
                 uint8_t *animations_pointer = *(uint8_t **)((uint8_t *)graph->data + 0x78);
                 int16_t frame_count = *(int16_t *)(animations_pointer + (int32_t)obj->animation_index * 0xb4 + 0x2e);

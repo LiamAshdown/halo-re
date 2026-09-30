@@ -17,7 +17,7 @@
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void weapon_reload_recovery_finish(datum_index item_index, int16_t trigger_index); // 0x4c4940
+extern void weapon_reload_recovery_finish(datum_index item_index); // 0x4c4940, EBX item_index
 extern void weapon_trigger_enter_recovery(datum_index item_index, int16_t trigger_index); // 0x4c3d00
 
 void weapon_trigger_handle_empty(datum_index item_index, int16_t trigger_index)
@@ -31,7 +31,7 @@ void weapon_trigger_handle_empty(datum_index item_index, int16_t trigger_index)
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
 
     if (tag_trigger->overcharged_action == 1) {
-        weapon_reload_recovery_finish(item_index, trigger_index);
+        weapon_reload_recovery_finish(item_index);
     } else if (tag_trigger->overcharged_action == 2) {
         weapon_trigger_enter_recovery(item_index, trigger_index);
     }

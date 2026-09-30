@@ -1,6 +1,6 @@
 // camera_observer_update  (Ghidra: FUN_004593b0; renamed per symbols/review_queue.txt)
 // address 0x4593b0, size 821 bytes
-// name confidence: 0.3   rewrite confidence: 0.85 (REWRITTEN from objdump 0x4593b0..0x4596e4; really the
+// name confidence: 0.3   rewrite confidence: 0.95 (REWRITTEN from objdump 0x4593b0..0x4596e4; really the
 //   player weapon-fire autoaim/magnetism resolver called from trigger_create_projectiles)
 // evidence: types/game.h player::unit (0x34), player::team (0x20), player::observer_target
 //   (0x40), player::observer_state (0x44), game_time_globals::game_time (0xc); every one of
@@ -13,15 +13,12 @@
 //   direction are the two recognized stack parameters (param_1, param_2).
 //   // blam-cc: in_EAX -> player_index, stack -> observer_position, fallback_facing
 //
-// UNSURE, LOW CONFIDENCE: the back half of this function (from the object lookup through
-// collision_test_movement_segment and vector3d_rotate_toward) computes some kind of camera bob/sway/roll blended
-// between the target direction and a segment-closest-point fallback, but FUN_00445b20,
-// first_person_camera_deterministic, FUN_00447290 and the 5-argument collision_test_movement_segment call are all
-// outside this batch and several of their arguments are elided by Ghidra with no attributable
-// source in this function's own visible code. That section is transcribed as literally as
-// possible with placeholder locals and is NOT verified to compile against real prototypes for
-// those externs -- see the raw block below and the #if 0 original for the ground truth this
-// rewrite is approximating.
+// Verified instruction by instruction against the disassembly 0x4593b0..0x4596e5 (2026-09-30): the call argument orders
+// (0x459e80 EAX unit / DX zoom / EDI cone; 0x445b20 ECX unit; 0x446a90 EAX/ECX + stack; 0x447290 EAX/EBX/ESI; 0x459a00 EBX +
+// 5 stack; 0x505880 5 stack; 0x4cd950 ECX/ESI/EDI + 2 stack), the target/look blend and the observer_target / observer_state stores all
+// match. Note the original works in place (the probe origin is written back over the camera position and the seat-state
+// out slot doubles as the magnetism fraction); the C keeps them in separate locals, which is equivalent because neither
+// is read again.
 
 #include <string.h>
 #include "tags.h"

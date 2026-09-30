@@ -1,5 +1,6 @@
 // vector3d_rotate_about_axis_perpendicular  (Ghidra: FUN_004cd700; renamed, no established name)
 // address 0x4cd700, size 137 bytes
+// VERIFIED against disassembly 0x4cd700..0x4cd789 (2026-09-30)
 // name confidence: 0.4   rewrite confidence: 0.65
 // evidence: math_functions.md: "Rotates the vector at EAX around the axis at ECX by a given
 //   sin/cos pair, using the simplified formula valid only when the vector is already

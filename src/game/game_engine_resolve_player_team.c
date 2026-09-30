@@ -7,7 +7,8 @@
 // caller), player::local_player_index (+0x02), player::team (+0x20).
 // register convention: a player index in EAX (in_EAX).
 //   // blam-cc: EAX -> player_index
-// UNSURE: the sign-correcting mask (`& 0x80000001`, then the two's-complement fixup for a
+// VERIFIED against disassembly 0x4611b0..0x4611ef (2026-09-30); fixed: the +0x74 callback takes the player index.
+// The sign-correcting mask (`& 0x80000001`, then the two's-complement fixup for a
 // negative result) computes local_player_index modulo 2 with defensive handling for a negative
 // index; transcribed literally rather than simplified to `% 2`, since local_player_index is
 // documented elsewhere as -1 for a non-local player and this function runs for every player, not
@@ -32,7 +33,7 @@ void game_engine_resolve_player_team(uint32_t player_index)
         return;
     }
     if (current_game_engine->player_team_changed != 0) {
-        ((void (*)(void))current_game_engine->player_team_changed)(); // UNSURE: real arguments unrecoverable
+        ((void (*)(uint32_t))current_game_engine->player_team_changed)(player_index); // 0x4611c1: push eax (unmasked player index)
         return;
     }
 

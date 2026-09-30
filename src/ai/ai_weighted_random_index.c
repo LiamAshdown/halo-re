@@ -6,6 +6,7 @@
 // weights, excluding indices flagged in a bitmask"); not tied to any ai.h struct. Uses the
 // same LCG (0x19660d / 0x3c6ef35f) and 1.5259022e-05 (1/65536) scale already established
 // elsewhere in this module for random_seed_global.
+// VERIFIED against disassembly 0x432100..0x4321f5 (2026-09-30).
 // register convention: Ghidra resolved param_1..param_4 as ordinary stack parameters and
 // left only the byte offset in DX unresolved.
 //   // blam-cc: EDX -> weight_offset, stack -> base, stride, count, exclude_mask

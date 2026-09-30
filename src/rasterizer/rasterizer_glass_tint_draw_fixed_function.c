@@ -4,7 +4,10 @@
 //   0x007c0480 holds ShaderTransparentGlass draw procedures: the shader fields these functions
 //   read are glass fields (background_tint_map +0x70, diffuse_map +0x164, diffuse_detail_map
 //   +0x178, reflection_map +0xb8, bump_map +0xcc; types/tags.h), not decal fields.
-// name confidence: 0.4   rewrite confidence: 0.55
+// name confidence: 0.4   rewrite confidence: 0.9
+// VERIFIED against disassembly 0x523980..0x523b89 (2026-09-30). FIXED: the draft packed group->tint (0x88); the binary packs the
+//   glass shader's background_tint_color (+0x54..0x5c) with alpha = blend_factor (mode 1) or 1.0. Everything else (vertex type 4
+//   delegation, set_texture args, the render/texture stage states and the draw_vertices(ECX group, 0) call) matched.
 // evidence: out/phase2/results/rasterizer_01.json ("Draws a decal using a simplified combiner
 // setup for the pre-1.1 capability path, falling back to the newer renderer for material index
 // 4."); selected by rasterizer_glass_draw_procedures_select.c for pixel_shader_version <
@@ -12,11 +15,9 @@
 // at +0x54, shader_permutation at +0x10, matching "passed as the bitmap index to set_texture"
 // per its own header comment). Vertex type 4 (model_uncompressed) delegates to
 // rasterizer_glass_tint_draw (0x522930) regardless of capability. The four `__ftol` calls
-// pack `group->tint` (ColorARGB: alpha, red, green, blue, in that order) into a 0xAARRGGBB
-// D3DCOLOR for render state 0x3c (D3DRS_TEXTUREFACTOR), matching color_rgb_float_to_int's
-// established *255 packing idiom elsewhere in this codebase (but truncating rather than
-// rounding, per __ftol's semantics).
-// register convention: param_1 as the recognized parameter.
+// pack the glass shader's background tint color and the group's blend factor into the 0xAARRGGBB D3DCOLOR for render state
+// 0x3c (D3DRS_TEXTUREFACTOR); see the block in the function.
+// register convention: param_1 on the stack.
 
 #include "tags.h"
 #include "memory.h"
@@ -86,10 +87,20 @@ fallback:
     set_render_state(rasterizer_device, 0x14, 3);
     set_render_state(rasterizer_device, 0xf, 1);
 
-    decal_color = ((((uint32_t)(int32_t)(group->tint.alpha * 255.0f) & 0xff) << 8 |
-                    ((uint32_t)(int32_t)(group->tint.red * 255.0f) & 0xff)) << 8 |
-                   ((uint32_t)(int32_t)(group->tint.green * 255.0f) & 0xff)) << 8 |
-                  ((uint32_t)(int32_t)(group->tint.blue * 255.0f) & 0xff);
+    // 0x523a3d..0x523aad: the factor is the group's blend_factor (+0x18) in mode 1, else 1.0; the color is the glass shader's
+    //   background tint color (shader +0x54/+0x58/+0x5c). D3DCOLOR = (factor * 255) << 24 | r << 16 | g << 8 | b, each
+    //   channel truncated by __ftol; the first ftol is masked to a byte before the alpha is or'ed in.
+    {
+        ShaderTransparentGlass *glass = (ShaderTransparentGlass *)(void *)group->shader;
+        double factor = (group->parameters.mode == 1) ? (double)group->parameters.blend_factor : 1.0;
+
+        decal_color = (uint32_t)(int32_t)((double)glass->background_tint_color.red * 255.0) & 0xff;
+        decal_color |= (uint32_t)(int32_t)(factor * 255.0) << 8;
+        decal_color <<= 8;
+        decal_color |= (uint32_t)(int32_t)((double)glass->background_tint_color.green * 255.0) & 0xff;
+        decal_color <<= 8;
+        decal_color |= (uint32_t)(int32_t)((double)glass->background_tint_color.blue * 255.0) & 0xff;
+    }
     set_render_state(rasterizer_device, 0x3c, decal_color);
 
     vtable = *(void ***)rasterizer_device;

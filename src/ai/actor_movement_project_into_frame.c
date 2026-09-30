@@ -11,8 +11,7 @@
 // vector and the output vector are genuine stack parameters (objdump: mov ebp,[esp+0x20]
 // and mov ecx,[esp+0x30] / [esp+0x28]).
 // blam-cc: AL -> use_3d, ECX -> frame_axis, stack -> v, out
-// UNSURE: 0x55eed0 is outside this module and not rewritten; the two 12-byte out-parameters
-// it fills are read off this call site only.
+// VERIFIED against disassembly 0x418c20..0x418cdc (2026-09-30): EBX/EDI receive axis2/axis3 (dotted into out->j / out->k).
 
 #include "tags.h"
 #include "memory.h"

@@ -1,15 +1,15 @@
 // weapon_magazine_begin_chamber  (Ghidra: FUN_004c3b00; named per types/items.h
 // weapon_magazine_state_enum comment block: "weapon_magazine_begin_chamber (0x4c3b00)")
 // address 0x4c3b00, size 181 bytes
+// VERIFIED against disassembly 0x4c3b00..0x4c3bb5 (2026-09-30)
 // name confidence: 0.4   rewrite confidence: 0.9 (VERIFIED against objdump 0x4c3b00..0x4c3bb4)
 // evidence: types/items.h weapon_magazine_state_enum (_weapon_magazine_chambering = 3),
 //   weapon_state (_weapon_state_chamber_primary=3/_secondary=4); types/tags.h
 //   WeaponMagazine.chamber_time (0x1c).
 // register convention: item index is a Ghidra-recognized parameter; magazine index in EAX.
 // blam-cc: stack -> item_index, EAX -> magazine_index
-// UNSURE: the value truncated by __ftol() into state_ticks is not shown in the decompilation
-// (no FPU load precedes it); rendered as chamber_time * 30 ticks/second, matching every other
-// tag-duration-to-ticks conversion in this module.
+// The x87 operand Ghidra dropped is `fld [magazine_tag+0x1c]; fmul [0x672ac8]` (= 30.0f), then __ftol
+// into state_ticks: chamber_time * 30.0f, confirmed in the disassembly.
 
 #include "tags.h"
 #include "memory.h"

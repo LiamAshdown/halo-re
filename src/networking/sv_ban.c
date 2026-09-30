@@ -8,6 +8,7 @@
 // register convention: EAX -> argument_count, ECX -> arguments.
 //   // blam-cc: EAX -> argument_count, ECX -> arguments
 
+// VERIFIED against disassembly 0x4e3990..0x4e3a77 (2026-09-30): FIXED: console_out colors were wrong (server-only text uses global_white_argb, both "Incorrect usage" prints use NULL, "Can't ban a local client" uses [0x685218]); arg count checks, parse_time_duration_string(EAX=argv[1], stack 'm', table), find/find_by_id/add_ban/notify register args compared
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -40,14 +41,14 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
     network_machine *machine;
 
     if (network_game_mode != 2) {
-        chimera__console_out((ColorARGB *)0, "sv_ban is a server-only function!");
+        chimera__console_out((ColorARGB *)global_white_argb, "sv_ban is a server-only function!");
         return;
     }
     if (0 < (int32_t)argument_count && (int32_t)argument_count < 3) {
         if (argument_count == 2) {
             duration = parse_time_duration_string((char *)arguments[1], 'm', (uint8_t *)sv_ban_penalty_arg_buffer);
             if (duration == -1) {
-                chimera__console_out((ColorARGB *)console_message_default_color, "Incorrect usage. Type help sv_ban for more information.");
+                chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_ban for more information.");
                 return;
             }
         }
@@ -55,7 +56,7 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
         if (player != 0) {
             machine = network_machine_find_by_id(network_server, player->machine_index);
             if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
-                chimera__console_out((ColorARGB *)0, "sv_ban:  Can't ban a local client!");
+                chimera__console_out((ColorARGB *)console_message_default_color, "sv_ban:  Can't ban a local client!");
                 return;
             }
             network_banlist_add_ban(machine->gcd_user_id, duration, player);
@@ -63,7 +64,7 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
         }
         return;
     }
-    chimera__console_out((ColorARGB *)global_white_argb, "Incorrect usage. Type help sv_ban for more information.");
+    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_ban for more information.");
 }
 
 #if 0

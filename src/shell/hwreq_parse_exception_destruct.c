@@ -12,6 +12,7 @@
 // UNSURE: FUN_00627e1c (`exception::~exception`, the Dinkumware base-class destructor) and
 //   `free` are opaque CRT calls, not rewritten here.
 
+// VERIFIED against disassembly 0x578310..0x57837e (2026-09-30): vtable reset, string cleared, base dtor
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"

@@ -10,14 +10,12 @@
 // (in_EAX is `undefined4 *`, so this scales to byte +0x1c) and `(int)in_EAX + 0x1d` are the
 // incoming record's own machine_index/machine_player_index, validated to be in 0..15 / ==0
 // (matching the header's "machine_player_index always 0 on PC build" note) before the lookup.
-// UNSURE: the unrolled 4-way duplicate-key scan (checking slots i, i+1, i+2, i+3's key against
-// the incoming record in one pass before advancing 4 at a time) is preserved exactly rather than
-// simplified to a single per-slot loop, since collapsing it risks changing which slot index the
-// "already present" early-exit reports; only the final iVar5==0x10 (no existing match found)
-// case matters for control flow, which this rewrite preserves via an equivalent single loop.
+// The original's unrolled 4-way duplicate-key scan (slots i..i+3 per pass) only distinguishes
+// "some slot matches" from "none matches", so the single per-slot loop below is equivalent.
 // register convention: session in param_1 (stack), incoming record in EAX (in_EAX). blam-cc:
 // EAX -> incoming, stack -> session
 
+// VERIFIED against disassembly 0x4de4e0..0x4de5e3 (2026-09-30): range checks, unrolled duplicate scan (== plain per-slot scan), validate(EAX), free-row search on slot_index==-1, preferred incoming slot, 8-dword copy, player_count++; only AL (1) is returned
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,8 +28,8 @@ extern char network_player_entry_validate(network_player_entry *entry); // 0x4de
 // Looks up an existing player row by (machine_index, machine_player_index); if none matches,
 // validates the incoming record (network_player_entry_validate), finds a free row (preferring the incoming
 // record's own slot_index if it names an empty row), copies the 32-byte record in, and bumps
-// player_count. Returns a packed (slot_index<<8 | 1) value on success (matching Ghidra's
-// CONCAT31 return), or 0 on failure.
+// player_count. Returns 1 on success, 0 on failure (only AL is defined; the upper bytes of EAX
+// are leftovers, not a packed slot index).
 uint32_t network_player_entry_add(network_game_session *session, network_player_entry *incoming)
 {
     int8_t machine_index;
@@ -79,7 +77,7 @@ uint32_t network_player_entry_add(network_game_session *session, network_player_
                 dst[k] = src[k];
             }
             session->player_count = session->player_count + 1;
-            return ((uint32_t)free_index << 8) | 1;
+            return 1;
         }
     }
     return 0;

@@ -6,12 +6,9 @@
 // adopts it if none was expected), and sets the global-reference flag on success.
 // register convention: the node index is unrecognized by Ghidra (in_EAX); by the blam-cc
 // convention this is the first register slot, EAX.
-// UNSURE: the error-message sprintf here has three %s placeholders but Ghidra's decompiled
-// call shows only two usable arguments (one of which, "hs_global_get_address(hs_type_names[...])",
-// passes a type-name STRING into a function whose only other use in this module takes a
-// hs_global_reference -- itself strong evidence Ghidra dropped/misattributed a stack argument
-// in this variadic call). Reconstructed here as the three arguments the format string actually
-// needs: expected type name, variable name (hs_global_get_name(global)), actual type name.
+// VERIFIED against disassembly 0x486560..0x48667c (2026-09-30): the error sprintf pushes (buffer, format, expected type name,
+// variable name from hs_global_get_name, actual type name); the node type is re-tested after the compatibility check and always
+// skips the assignment in that path; the global reference is stored sign-extended (movsx).
 
 #include "tags.h"
 #include "memory.h"

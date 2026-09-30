@@ -2,6 +2,7 @@
 // out/phase4/items_functions.md, "Applies a server ammo correction for a weapon trigger, then
 // resynchronizes any in-progress reload state")
 // address 0x4c4ac0, size 139 bytes
+// VERIFIED against disassembly 0x4c4ac0..0x4c4b4b (2026-09-30)
 // name confidence: 0.5   rewrite confidence: 0.8
 // evidence: network message dispatch case 0x2e (k_message_weapon_reload_cancel); types/items.h
 //   weapon_magazine_ammo_message, weapon_magazine_state rounds fields at 0x2b0 + i*0x0c + 6/8,

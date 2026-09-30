@@ -1,6 +1,6 @@
 // rasterizer_screen_flash_render  (Ghidra: rasterizer_screen_flash_render, already named)
 // address 0x52ed00, size 2656 bytes
-// name confidence: 0.8   rewrite confidence: 0.55
+// name confidence: 0.8   rewrite confidence: 0.9
 // evidence: cea-pdb name match; the six technique handles it selects between (screen_flash_techniques,
 //   set up by rasterizer_screen_flash_init_shaders 0x52ec40) and the render_screen_flash fields it
 //   reads (rasterizer_window.screen_flash, 0x007c1458..0x007c146c) confirm the identification.
@@ -12,21 +12,20 @@
 //   offsets across the two places the compiler pushes an argument before finishing a scratch
 //   buffer that a later call still points into (the vertex/pixel shader constant blocks below).
 // register convention: none -- __cdecl, no arguments.
-// UNSURE: several things are transcribed exactly as found without a full explanation:
-//   - After the initial null checks the raw code does `xor eax,eax; cmp eax,0x69e270; je ...`
-//     before the real `mov eax,[0x69e270]; test eax,eax; je ...` null check. The first compare is
-//     always false (eax is freshly zeroed and 0x69e270 is a nonzero immediate), so it can never
-//     branch; it is omitted here as dead code rather than transcribed literally.
-//   - Case 3 ("Max") and case 4 ("Min") each have a sub-path (taken when config_min_max_blend_op_is_broken is
-//     nonzero) that renders with an additive blend and the FlashLighten technique
-//     (screen_flash_techniques[0]) instead of their own technique -- confirmed by direct
-//     disassembly of the SetTechnique argument, not a copy/paste mistake in this rewrite.
-//   - Case 4's fallback path (src_blend_caps bit clear) sets TEXTUREFACTOR to the current color
-//     twice in a row (once inline, once at the branch merge point); the duplicate call is in the
-//     original code and is preserved rather than folded away.
-//   - Phase 4 review: the 0xffffffff dword at +0xc of each quad vertex is the packed white
-//     colour of rasterizer_dynamic_screen_vertex (x, y, z, color, u, v), not a float; and
-//     0x0069e270 is rasterizer_effects[115].effect (0x0069d410 + 115 * 0x20).
+// FIXED 2026-09-30 (disassembly): Darken's DESTBLEND is 2 (ONE), not 6; the Max/Min alpha-blend fallback limits the scaled alpha
+//   to AT MOST 0.25 (the draft floored it); vertex shader constant c15 is (0, 0, 0, 0.5), not (0, 0, 0.5, 0); a null flash effect
+//   skips the whole draw (the draft dereferenced it).
+// VERIFIED against disassembly 0x52ed00..0x52f760 (2026-09-30): the colour packing, the jump table 0x52f760 (types 1..6), every
+//   per-type render state / technique, the common tail, the constant blocks and the pass loop. Notes on the raw code:
+//   - After the initial null checks the raw code does `xor eax,eax; cmp eax,0x69e270; je ...` before the real null check; the
+//     first compare can never branch and is omitted.
+//   - Case 3 ("Max") and case 4 ("Min") each have a sub-path (taken when config_min_max_blend_op_is_broken is nonzero) that
+//     renders with a SRCALPHA / INVSRCALPHA blend and the FlashLighten technique (screen_flash_techniques[0]).
+//   - Case 4 sets TEXTUREFACTOR twice on the src_blend_caps path (once inline, once at the merge point).
+//   - The 0xffffffff dword at +0xc of each quad vertex is the packed white colour of rasterizer_dynamic_screen_vertex, not a
+//     float; 0x0069e270 is rasterizer_effects[115].effect (0x0069d410 + 115 * 0x20).
+//   - D3DBLEND values used: 2 ONE, 5 SRCALPHA, 6 INVSRCALPHA, 0xa INVDESTCOLOR, 0xf (BOTHINVSRCALPHA family in the draft; the
+//     value is what the binary pushes).
 
 #include "tags.h"
 #include "memory.h"
@@ -77,12 +76,12 @@ static uint32_t pack_argb_bytes(float alpha, float red, float green, float blue)
     return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
-// The clamped-alpha color variant used by the "Max"/"Min" additive fallback: the alpha channel is
-// floored to 0.25 before scaling so the additive blend is never fully invisible.
+// The clamped-alpha color variant used by the "Max"/"Min" alpha blend fallback: the scaled alpha is limited to at most
+// 0.25 (0x52efd8: `fld 0.25; fcomp st(1); test ah,5; jp` keeps the alpha unless 0.25 < alpha).
 static uint32_t pack_argb_bytes_clamped_alpha(ColorARGB color, float intensity)
 {
     float alpha_i = color.alpha * intensity;
-    if (alpha_i < 0.25f) {
+    if (0.25f < alpha_i) {
         alpha_i = 0.25f;
     }
     return pack_argb_bytes(alpha_i, color.red * intensity, color.green * intensity, color.blue * intensity);
@@ -123,7 +122,12 @@ void rasterizer_screen_flash_render(void)
                                      (1.0f - color.green) * intensity, (1.0f - color.blue) * intensity);
 
     effect = rasterizer_screen_flash_effect;
-    if (effect != 0) {
+    if (effect == 0) {
+        // 0x52ee8e: no effect -> straight to the final SetSoftwareVertexProcessing, no draw
+        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+        return;
+    }
+    {
         set_render_state(0x16, 3);   // CULLMODE = D3DCULL_CCW
         set_render_state(0xa8, 7);   // COLORWRITEENABLE = RGB
         set_render_state(0x1b, 1);   // ALPHABLENDENABLE = TRUE
@@ -133,7 +137,7 @@ void rasterizer_screen_flash_render(void)
         switch (flash->type) {
         case 1: // Lighten
             set_render_state(0x13, 2);  // SRCBLEND = ONE
-            set_render_state(0x14, 6);  // DESTBLEND = SRCCOLOR
+            set_render_state(0x14, 6);  // DESTBLEND = INVSRCALPHA
             set_render_state(0xab, 1);  // BLENDOP = ADD
             set_render_state(0x3c, current_color); // TEXTUREFACTOR
             technique = screen_flash_techniques[0];
@@ -142,7 +146,7 @@ void rasterizer_screen_flash_render(void)
 
         case 2: // Darken
             set_render_state(0x13, 2);  // SRCBLEND = ONE
-            set_render_state(0x14, 6);  // DESTBLEND = SRCCOLOR
+            set_render_state(0x14, 2);  // DESTBLEND = ONE (0x52ef72: push 2; push 0x14)
             set_render_state(0xab, 3);  // BLENDOP = MIN
             set_render_state(0x3c, current_color);
             technique = screen_flash_techniques[1];
@@ -153,7 +157,7 @@ void rasterizer_screen_flash_render(void)
             if (config_min_max_blend_op_is_broken != 0) {
                 uint32_t clamped = pack_argb_bytes_clamped_alpha(color, intensity);
                 set_render_state(0x13, 5);  // SRCBLEND = SRCALPHA
-                set_render_state(0x14, 6);  // DESTBLEND = SRCCOLOR
+                set_render_state(0x14, 6);  // DESTBLEND = INVSRCALPHA
                 set_render_state(0xab, 1);  // BLENDOP = ADD
                 set_render_state(0x3c, clamped);
                 technique = screen_flash_techniques[0]; // FlashLighten, per the raw code
@@ -178,7 +182,7 @@ void rasterizer_screen_flash_render(void)
             if (config_min_max_blend_op_is_broken != 0) {
                 uint32_t clamped = pack_argb_bytes_clamped_alpha(color, intensity);
                 set_render_state(0x13, 5);  // SRCBLEND = SRCALPHA
-                set_render_state(0x14, 6);  // DESTBLEND = SRCCOLOR
+                set_render_state(0x14, 6);  // DESTBLEND = INVSRCALPHA
                 set_render_state(0xab, 1);  // BLENDOP = ADD
                 set_render_state(0x3c, clamped);
                 technique = screen_flash_techniques[0]; // FlashLighten, per the raw code
@@ -237,9 +241,8 @@ void rasterizer_screen_flash_render(void)
         }
     }
 
-    // Common tail: draw the full-screen quad through the flash pixel/vertex shader pair,
-    // regardless of whether a technique was selected above (the null-effect and out-of-range-type
-    // cases both fall straight through to here too).
+    // Common tail: draw the full-screen quad through the flash pixel/vertex shader pair, whether or not a
+    // technique was selected above (an out-of-range type jumps straight here, 0x52eeea).
     set_render_state(0xf, 0); // ALPHATESTENABLE = FALSE
     set_render_state(0x7, 0); // ZENABLE = FALSE
 
@@ -271,8 +274,8 @@ void rasterizer_screen_flash_render(void)
         constants[1][3] = 1.0f + inv_h;
         constants[2][0] = 0.0f;
         constants[2][1] = 0.0f;
-        constants[2][2] = 0.5f;
-        constants[2][3] = 0.0f;
+        constants[2][2] = 0.0f;
+        constants[2][3] = 0.5f;
         constants[3][0] = 0.0f;
         constants[3][1] = 0.0f;
         constants[3][2] = 0.0f;

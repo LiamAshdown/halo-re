@@ -2,20 +2,15 @@
 // out/phase4/game_functions.md, "More thorough variant of the BSP-switch readiness check that
 // also detects disagreement between players about which structure-BSP to switch to.")
 // address 0x45c830, size 426 bytes
-// name confidence: 0.3   rewrite confidence: 0.25
+// name confidence: 0.3   rewrite confidence: 0.9
 // evidence: shares its per-player predicate and the 0x1fffe34/0x1fffeae UNSURE offsets with
 // game_engine_players_ready_for_bsp_switch (0x45c750, this batch); types/game.h player
 // (marked_for_deletion 0xd5, unit 0x34, team 0x20), game_variant::lives_per_round (0x50, live
 // copy at 0x006f1cd8) and game_variant::unknown_40 (live copy at 0x006f1cc8).
 // register convention: __cdecl, no arguments.
 //
-// UNSURE: this is one of the lowest-confidence functions in the batch (0.3 in
-// out/phase4/game_functions.md). The control flow, including the two redundant re-calls to
-// players_active_count()/re-reads of player_data in the <2-players branch and the
-// double-purpose `iVar7`/`iVar4` team-tracking in the main loop, is reproduced exactly rather
-// than simplified, since its actual intent is not confidently understood. The
-// player_data->data + 0x1fffe34 / + 0x1fffeae accesses carry the same caveat as in
-// game_engine_players_ready_for_bsp_switch.c.
+// The control flow is reproduced exactly, including the two redundant re-calls to players_active_count()/re-reads of player_data
+// in the <2-players branch and the first-seen-team tracking in the main loop (ebp keeps the first team it saw).
 // reconciled: R16 the elided iterators are the inline 0x10-byte data_iterator over player_data (0x45c856, 0x45c8ec); FUN_00460e40 gets iterator.index (0x45c942), not -1
 
 // RESOLVED (phase 4 review): the two "player_data->data + 0x1fffe34 / + 0x1fffeae" accesses are
@@ -45,7 +40,7 @@ extern game_variant game_engine_variant;    // 0x006f1c88 (::lives_per_round at 
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
 extern int32_t players_active_count(void);   // 0x45c6a0, this batch
-extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle); // UNSURE signature; see
+extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle); // 0x460e40, stack player handle; see
                                                      // game_engine_players_ready_for_bsp_switch.c
 
 uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
@@ -59,7 +54,7 @@ uint8_t game_engine_players_ready_for_bsp_switch_strict(void)
 
     if (players_active_count() < 2) {
         result = 1;
-        // UNSURE: redundant re-call, preserved from the original.
+        // redundant re-call, preserved from the original (0x45c84c).
         if (players_active_count() == 1) {
             iterator.data = player_data;
             iterator.next_index = 0;

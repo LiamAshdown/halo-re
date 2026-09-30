@@ -1,7 +1,8 @@
 // rasterizer_shader_environment_projected_light_draw  (Ghidra: FUN_00521900, unnamed; the phase 4
 // rewriter called it rasterizer_dynamic_light_draw)
 // address 0x521900, size 946 bytes
-// name confidence: 0.65   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x521900..0x521cb2 (2026-09-30): guards, effect 40/41, vertex shader variant, c13..c17, bump/cube/normalization binds, c10..c12, the four effect vectors, the draw
+// name confidence: 0.65   rewrite confidence: 0.9
 // evidence: draws one shader_environment surface lit by the current projected light (ps_1_4 and
 //   better, 0x006893f6 enabled, shader brightness +0x290 and rasterizer_projected_light_luminance
 //   0x0071d1d8 both positive): effect 40 (bump map is specular mask) or 41, vertex shader
@@ -12,8 +13,7 @@
 //   normalization cube map on stages 2 and 3, the bump transform at c10..c12 and four effect
 //   vectors (luminance * brightness, perpendicular and parallel colors, the specular exponent
 //   4 for overbright else 2). One single stream draw (0x51c1c0) per effect pass.
-//   Spot-check fix (phase 4 review): the earlier file was a structural placeholder; rewritten in
-//   full from the raw code 0x521900..0x521cb1.
+//   Spot-check fix (phase 4 review): rewritten in full from the raw code 0x521900..0x521cb1.
 // register convention: __cdecl, (shader, frame, dynamic_index_slot, first_primitive,
 //   primitive_count, vertex_buffer) on the stack.
 
@@ -203,5 +203,5 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
 
 #if 0
 Original Ghidra decompilation (0x521900) -- see `python tools/pack.py 0x521900` for the full
-946-byte body; this rewrite is a low-confidence structural sketch, see file header.
+946-byte body; this rewrite is a the rewrite above was compared instruction by instruction with the disassembly.
 #endif

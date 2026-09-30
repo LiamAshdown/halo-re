@@ -10,6 +10,7 @@
 // UNSURE: the compiler-generated x86 SEH frame is compiler plumbing, not application logic, and
 //   is omitted here.
 
+// VERIFIED against disassembly 0x57b4c0..0x57b518 (2026-09-30): operator new(0x6b8), NULL check, construct
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"

@@ -7,10 +7,9 @@
 //   at 0x24c, tag_id at 0x258) and Unit.spawned_actor_count[2] (int16 at 0x25c/0x25e).
 // register convention: unit index arrives in EDI, unaffected by anything earlier in the caller.
 //   // blam-cc: unaff_EDI -> unit_index
-// UNSURE: the final CONCAT22 term reconstructs a 32-bit value from a 16-bit low half
-//   (spawned_actor_count[0]) and an upper half taken from `DAT_0087bc14`'s own high 16 bits,
-//   which is almost certainly decompiler noise (the real source likely just adds the two
-//   int16s as plain ints); reproduced literally rather than simplified since it is bit-exact.
+// The result keeps the high half of the tag_instances pointer register (EDX) above the 16-bit count, as in the
+//   original; only the low word is used by the spawn call and callers ignore the rest.
+// VERIFIED against disassembly 0x568540..0x568601 (2026-09-30)
 
 #include "tags.h"
 #include "memory.h"
@@ -37,7 +36,7 @@ int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index) // blam-cc: un
         if (*(int32_t *)&unit_tag->spawned_actor.tag_id != -1) {
             random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
             int32_t range = (int32_t)(int16_t)(unit_tag->spawned_actor_count[1] + 1) - (int32_t)unit_tag->spawned_actor_count[0];
-            result = (range * (int32_t)(random_seed_global >> 0x10) >> 0x10) +
+            result = (int32_t)(((uint32_t)range * (random_seed_global >> 0x10)) >> 0x10) +
                      (int32_t)((((uint32_t)tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
             if (0 < (int16_t)result) {
                 // FIXED (objdump 0x5685d2..0x5685eb): EBX = the tag's spawned actor (+0x258), DX = the count,

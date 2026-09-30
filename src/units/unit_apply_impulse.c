@@ -61,7 +61,8 @@ void unit_apply_impulse(uint32_t object_index, real_vector3d *impulse)
     if ((obj->vitality_flags & 4) != 0 || (*(uint8_t *)((uint8_t *)tag_data + 0x2f4) & 0x44) != 0) {
         real_vector3d jitter_axis;
         float length;
-        vector3d_cross_product(&jitter_axis, impulse, global_up3d_pointer); // UNSURE: ecx_operand guessed as impulse
+        // VERIFIED against disassembly 0x55a066..0x55a072 (2026-09-30): EAX=jitter_axis, ECX=edi=impulse, stack=[0x696720] global up
+        vector3d_cross_product(&jitter_axis, impulse, global_up3d_pointer);
         length = vector3d_normalize_with_length(&jitter_axis);
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
         {

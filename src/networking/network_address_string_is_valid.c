@@ -16,6 +16,7 @@
 
 extern char network_address_string_normalize(char *address_string, char *out_buffer, uint8_t *out_is_any); // 0x4dc5e0, this module
 
+// VERIFIED against disassembly 0x4dc730..0x4dc78a (2026-09-30): every branch and the return value match.
 // blam-cc: EAX -> address_string
 char network_address_string_is_valid(char *address_string)
 {

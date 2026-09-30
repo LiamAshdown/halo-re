@@ -11,8 +11,8 @@
 // FIXED (verified against 0x470c13..0x470c45): update_run_catchup_ticks takes the tick count in BX, and
 //   network_game_server_per_frame_tick the tick count in CX with network_server in ESI; both were called
 //   without arguments.
-// UNSURE: network_game_server_per_frame_tick.c models an EAX `entry` argument that 0x4e03c0 overwrites
-//   at its first instruction; host path only, not reached on the first-boot track.
+// network_game_server_per_frame_tick has no EAX argument (0x4e03c0 overwrites EAX at its first
+//   instruction; the entry it uses is server + 0x9d8), so it takes only (update_count, server).
 
 #include "tags.h"
 #include "memory.h"
@@ -29,8 +29,8 @@ extern game_time_globals *game_time;          // 0x006f1d6c
 extern void game_simulate_tick(uint32_t predict_pass); // 0x45b780
 extern void update_run_catchup_ticks(int16_t tick_count); // 0x473310, blam-cc: BX -> tick_count
 extern network_server_globals *network_server;
-extern void network_game_server_per_frame_tick(void *entry, int16_t update_count, uint8_t *server);
-    // 0x4e03c0, blam-cc: EAX -> entry, CX -> update_count, ESI -> server
+extern void network_game_server_per_frame_tick(int16_t update_count, uint8_t *server);
+    // 0x4e03c0, blam-cc: CX -> update_count, ESI -> server
 extern void game_effects_update(float delta_time); // 0x45b4f0
 extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder); // this batch, 0x470b30
 
@@ -57,7 +57,7 @@ void game_engine_advance_simulation_ticks(float delta_time)
     } else if (network_game_mode == 2) {
         // 0x470c24..0x470c2c: ESI = network_server, CX = the tick count; EAX is 0 here (mode - 2) and
         // 0x4e03c0 overwrites it first thing (movzx eax,[esi+4])
-        network_game_server_per_frame_tick(0, (int16_t)tick_count, (uint8_t *)network_server);
+        network_game_server_per_frame_tick((int16_t)tick_count, (uint8_t *)network_server);
     }
 
     for (i = tick_count; i > 0; i--) {

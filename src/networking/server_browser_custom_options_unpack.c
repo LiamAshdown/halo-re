@@ -20,6 +20,9 @@
 
 extern int32_t sscanf(const char *buffer, const char *format, ...);
 
+// VERIFIED against disassembly 0x5764a0..0x576747 (2026-09-30): all seven jump tables (0x576748..0x5767b0), the flag bit
+//   moves, both nibble clamps, the byte/dword field offsets and the sscanf "%d,%d" call match. A difftest "process died"
+//   here is the modern CRT aborting on an invalid string pointer, not a logic difference.
 // blam-cc: EDX -> text, ESI -> out
 // Parses a "%d,%d" text string and unpacks the bitfields back into a custom game-options struct,
 // mirroring server_browser_custom_options_pack field for field and bit for bit.

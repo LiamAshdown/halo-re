@@ -1,5 +1,6 @@
 // player_profile_set_default_server_options  (Ghidra: FUN_0053a150, renamed)
 // address 0x53a150, size 105 bytes
+// VERIFIED against disassembly 0x53a150..0x53a1b9 (2026-09-30)
 // name confidence: 0.4   rewrite confidence: 0.6
 // evidence: out/phase4/saved_games_functions.md summary "Sets default server name/password and
 // game-option fields, used when starting a server without an existing profile." Same field

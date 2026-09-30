@@ -82,7 +82,8 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
     matrix4x3_from_euler_angles(&orientation, yaw, pitch, roll);
     matrix4x3_transform_normal(&axis_a, &light->forward, &orientation); // UNSURE: source vector
     matrix4x3_transform_normal(&axis_b, &light->up, &orientation);      // UNSURE: source vector
-    vector3d_cross_product(&axis_c, &axis_a, &axis_b);
+    // VERIFIED against disassembly 0x51db28..0x51db47 (2026-09-30): EAX=axis_c (ebp-0x20), ECX=axis_b (ebp-0x14), stack=axis_a (ebp-0x2c)
+    vector3d_cross_product(&axis_c, &axis_b, &axis_a);
     vector3d_normalize_with_length(&axis_c);
 
     constants_vs[0][0] = light->position.x;

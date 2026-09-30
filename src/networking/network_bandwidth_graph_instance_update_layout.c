@@ -27,6 +27,7 @@
 // Since types/*.h cannot be edited, the label buffer is reached by raw offset from the struct
 // pointer rather than through a (missing) named field.
 
+// VERIFIED against disassembly 0x4d7e20..0x4d8074 (2026-09-30): FIXED (same defects as network_bandwidth_graph_update: br.x/br.y swap, 640/480 divisors, _snprintf)
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
@@ -40,9 +41,6 @@ extern network_screen_point game_window_bottom_right;  // 0x0069c638
 
 extern void network_bandwidth_graph_instance_history_reset(network_bandwidth_graph *graph); // 0x4d8080, this batch
 
-// UNSURE: Ghidra's callee is _snprintf; since the buffer size it enforces (0x200, matching the
-// label buffer exactly) is not itself meaningfully different from an unbounded sprintf here,
-// plain sprintf (declared by <stdio.h> below) is used for fidelity with what Ghidra shows.
 extern const char *network_bandwidth_units_label_table[2];     // 0x0065d428, indexed by units_index
 extern const char *network_bandwidth_direction_label_table[2]; // 0x0065d430, indexed by direction_index
 
@@ -56,8 +54,8 @@ void network_bandwidth_graph_instance_update_layout(network_bandwidth_graph *gra
     if (*(int32_t *)(base + 0x14) != width || *(int32_t *)(base + 0x18) != height || force_refresh != 0) {
         float x_scale = (float)width * 0.2f;
         float y_scale = (float)height * 0.4f;
-        float right_raw = (float)(game_window_bottom_right.x - 0x40);   // Ghidra's fVar1 (before reuse)
-        float baseline_raw = (float)(game_window_bottom_right.y - 0x40); // Ghidra's fVar2 (before reuse)
+        float right_raw = (float)(game_window_bottom_right.y - 0x40);   // FIXED: this is br.y - 0x40 (edx at 0x4d7ad0..), stored at +0x2a and combined with y_scale;   // Ghidra's fVar1 (before reuse)
+        float baseline_raw = (float)(game_window_bottom_right.x - 0x40); // FIXED: this is br.x - 0x40, stored at +0x28 and combined with x_scale; // Ghidra's fVar2 (before reuse)
         float box_y1, box_x1, box_x0, box_y0;
         int16_t field24_v;
         float r1, r2;
@@ -106,8 +104,8 @@ void network_bandwidth_graph_instance_update_layout(network_bandwidth_graph *gra
         *(float *)(base + 0xa8) = box_y0;
 
         // Label quad texture-space scaling; see file header UNSURE note.
-        r1 = 640.0f / y_scale;
-        r2 = 480.0f / x_scale;
+        r1 = 640.0f / (float)height; // FIXED: divides by the raw height (fst [esp+0x1c] before the *0.4), not y_scale
+        r2 = 480.0f / (float)width;  // FIXED: raw width, not x_scale
         {
             int16_t v2c = (int16_t)((float)field24_v * r2);
             int16_t v36 = (int16_t)((float)graph->right * r1);
@@ -128,7 +126,7 @@ void network_bandwidth_graph_instance_update_layout(network_bandwidth_graph *gra
             *(int16_t *)(base + 0x40) = 0x1e0;
         }
 
-        sprintf((char *)(base + 0x23e0), "%s %s",
+        _snprintf((char *)(base + 0x23e0), 0x200, "%s %s",
             network_bandwidth_units_label_table[graph->units_index],
             network_bandwidth_direction_label_table[graph->direction_index]);
     }

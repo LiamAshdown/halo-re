@@ -13,11 +13,9 @@
 // register convention: plain __cdecl, no parameters.
 // blam-cc: (no arguments)
 //
-// UNSURE: the two static .rdata tables at 0x655aa0 (stride 0x28) and 0x656b08 (stride 0x24)
-// are not modeled as named structs -- neither appears in types/tags.h, and their element
-// layout beyond the terminator (offset 0x28 = the field this loop tests) and the
-// conversation-index field (also offset 0x28 within the first table) is not established
-// here. Treated as opaque byte arrays, matching how Ghidra itself decompiled the walk.
+// VERIFIED against disassembly 0x42cf20..0x42d229 (2026-09-30) after two FIXED items (CRC of the allocation size, and the
+// conversation-index lookup, which compares each entry's first word rather than the loop position). The two static .rdata
+// tables at 0x655aa0 (stride 0x28) and 0x656b08 (stride 0x24) stay opaque byte arrays.
 
 #include "crt.h"
 #include "tags.h"
@@ -64,10 +62,11 @@ void ai_communication_initialize(void)
     } while (*(int16_t *)entry != -1);
 
     if (communication_line_base == 0) {
-        int32_t count = communication_line_count;
+        // FIXED (0x42cf5e..0x42cfff): the CRC covers the allocation size (line count * 0x10), not the line count.
+        int32_t allocation_size = (int32_t)communication_line_count * 0x10;
         communication_line_base = (int32_t)(game_state_base + game_state_cursor);
-        game_state_cursor = game_state_cursor + count * 0x10;
-        crc32_update(&game_state_crc, (uint8_t *)&count, 4);
+        game_state_cursor = game_state_cursor + allocation_size;
+        crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
     }
 
     conversation_line_count = 0;
@@ -78,10 +77,10 @@ void ai_communication_initialize(void)
     } while (*(int16_t *)entry != -1);
 
     if (conversation_line_base == 0) {
-        int32_t count = conversation_line_count;
+        int32_t allocation_size = (int32_t)conversation_line_count * 0x10; // FIXED: CRC of the size, as above (0x42d02d)
         conversation_line_base = (int32_t)(game_state_base + game_state_cursor);
-        game_state_cursor = game_state_cursor + count * 0x10;
-        crc32_update(&game_state_crc, (uint8_t *)&count, 4);
+        game_state_cursor = game_state_cursor + allocation_size;
+        crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
     }
 
     conversation_index = 0;
@@ -89,18 +88,18 @@ void ai_communication_initialize(void)
         conversation_index_lookup[conversation_index] = -1;
         entry = ai_communication_lines;
         position = 0;
-        next_conversation_index = *(int16_t *)(entry + 0x28);
+        next_conversation_index = 0; // FIXED (0x42d10c): CX starts at 0; the loop then reads the FIRST WORD of each following entry
         for (;;) {
-            if (position == conversation_index) {
+            if (next_conversation_index == conversation_index) {
                 conversation_index_lookup[conversation_index] = position;
                 break;
             }
+            next_conversation_index = *(int16_t *)(entry + 0x28); // word 0 of the next entry (0x42d115)
+            entry = entry + 0x28;
+            position = position + 1;
             if (next_conversation_index == -1) {
                 break;
             }
-            entry = entry + 0x28;
-            next_conversation_index = *(int16_t *)(entry + 0x28);
-            position = position + 1;
         }
         conversation_index = conversation_index + 1;
         if (0x38 < conversation_index) {

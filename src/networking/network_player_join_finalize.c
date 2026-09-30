@@ -20,13 +20,12 @@
 // stack -> &client->session), and that network_player_entry_add itself only ever returns a
 // plain bool in AL (never re-read as a pointer) -- resolving the two UNSURE notes below about
 // those two calls' arguments.
-// UNSURE: `update_server_queue_create_entry`, `network_channel_key_open`, `datum_new_at_index_with_salt` and
-// `game_set_local_player` are all called with no visible arguments; none are in this task's
-// address range, so their signatures below are placeholders reflecting only that they are
-// called, not what they take. (network_channel_key_open in particular is called with a computed
-// per-slot address, client + 0xcb6 + slot_index*0x20, not with no arguments -- out of scope for
-// this pass since it does not involve the EAX register this fix addresses.)
+// The row created by network_player_entry_add is players[entry->slot_index]; its own slot_index feeds
+// player_data_iterator_advance (stack), whose result is the player handle used by
+// game_set_local_player (ECX handle, SI player index), datum_new_at_index_with_salt (EAX handle,
+// EDX = update_client_queues) and update_server_queue_create_entry (EAX handle).
 
+// VERIFIED against disassembly 0x4d9e30..0x4d9ecc (2026-09-30): FIXED: player_data_iterator_advance result (handle) is now kept and passed to game_set_local_player (ECX, SI), datum_new_at_index_with_salt (EAX, EDX = update_client_queues) and update_server_queue_create_entry (EAX); network_channel_key_open gets its row (EAX); row indexed by signed slot_index
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -36,18 +35,19 @@
 extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, EAX -> entry
 extern char network_player_entry_add(network_player_entry *entry, network_game_session *session); // 0x4de4e0, EAX -> entry, stack -> session
-extern char network_channel_key_open(void); // 0x4de870, UNSURE argument; not in this batch
-extern int32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0
-extern void game_set_local_player(void); // 0x474d50, UNSURE argument
-extern void datum_new_at_index_with_salt(void); // 0x4d03d0, UNSURE argument
-extern void update_server_queue_create_entry(void); // 0x472c90, UNSURE argument; not in this batch
+extern int32_t network_channel_key_open(network_player_entry *entry); // 0x4de870, EAX -> entry
+extern int32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0, stack; returns the player handle
+extern void game_set_local_player(datum_index player_handle, int16_t local_player_index); // 0x474d50; blam-cc: ECX -> player_handle, SI -> local_player_index
+extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array); // 0x4d03d0; blam-cc: EAX -> requested_handle, EDX -> array
+extern void update_server_queue_create_entry(datum_index requested_handle); // 0x472c90; blam-cc: EAX -> requested_handle
+extern data_array *update_client_queues; // 0x006f7ed0
 
 // blam-cc: EDI -> client, EAX -> entry
 char network_player_join_finalize(network_client_globals *client, network_player_entry *entry)
 {
     char ok;
-    int8_t slot_index;
-    uint16_t *client_words;
+    network_player_entry *row;
+    datum_index player_handle;
 
     ok = network_player_entry_validate(entry);
     if (ok == 0) {
@@ -55,22 +55,21 @@ char network_player_join_finalize(network_client_globals *client, network_player
     }
 
     ok = network_player_entry_add(entry, &client->session);
-    if (ok != 0 && client->state == 3) { // UNSURE: live connection-mode value, not padding
-        slot_index = entry->slot_index;
-        ok = network_channel_key_open();
+    if (ok != 0 && client->state == 3) {
+        row = &client->session.players[(int8_t)entry->slot_index];
+        ok = (char)network_channel_key_open(row);
         if (ok == 0) {
             return 0;
         }
 
-        player_data_iterator_advance(client->session.players[(uint8_t)slot_index].slot_index);
+        player_handle = (datum_index)player_data_iterator_advance((int16_t)row->slot_index);
 
-        client_words = (uint16_t *)client;
-        if ((int8_t)client_words[(int32_t)slot_index * 0x10 + 0x669] == (uint32_t)*client_words) {
-            game_set_local_player();
+        if ((int32_t)row->machine_index == (int32_t)*(uint16_t *)client) {
+            game_set_local_player(player_handle, (int16_t)row->machine_player_index);
         }
-        datum_new_at_index_with_salt();
+        datum_new_at_index_with_salt(player_handle, update_client_queues);
         if (network_server != 0) {
-            update_server_queue_create_entry();
+            update_server_queue_create_entry(player_handle);
         }
     }
     return ok;

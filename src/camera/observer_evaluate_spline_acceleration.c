@@ -8,6 +8,9 @@
 // that resets channel_times on overflow. The dead byte-remainder loop Ghidra shows after the
 // zero-fill (iVar5 starts at, and stays, 0) is omitted as unreachable.
 // register convention: local player index in AX (in_AX); no other parameters.
+// VERIFIED against disassembly 0x447e40..0x448003 (2026-09-30): pointer bases (+0x120 acceleration, +0x158..+0x1dc the
+// coefficients, +0x5c channel times), the limit test (> limit or < -limit), the reset of coupled channels and the term
+// association order agree.
 
 #include "tags.h"
 #include "memory.h"
@@ -37,6 +40,8 @@ void observer_evaluate_spline_acceleration(int16_t local_player_index)
     for (channel = 0; channel < k_observer_parameter_count; channel++) {
         int16_t count = observer_derivative_float_counts[channel];
         float t = o->current_command.channel_times[channel] - observer_dt;
+        float t2 = t * t;
+        float t3 = t2 * t;
         int16_t i;
 
         if (t <= 0.0f) {
@@ -46,10 +51,9 @@ void observer_evaluate_spline_acceleration(int16_t local_player_index)
         } else {
             for (i = 0; i < count; i++) {
                 int32_t idx = float_index + i;
-                float value = coefficient_t2[idx] + coefficient_t2[idx] +
-                    t * coefficient_t3[idx] * 6.0f +
-                    t * t * coefficient_t4[idx] * 12.0f +
-                    t * t * t * coefficient_t5[idx] * 20.0f;
+                // same association order as the fmul/faddp sequence at 0x447ee4..0x447f26
+                float value = (((t3 * coefficient_t5[idx] * 20.0f + t2 * coefficient_t4[idx] * 12.0f) +
+                    t * coefficient_t3[idx] * 6.0f) + (coefficient_t2[idx] + coefficient_t2[idx]));
 
                 acceleration[idx] = value;
 

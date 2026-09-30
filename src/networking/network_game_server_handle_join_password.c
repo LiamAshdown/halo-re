@@ -12,6 +12,7 @@
 //   reason; every path returns 1.
 // blam-cc: EBX -> machine, stack -> server, buffer, length
 
+// VERIFIED against disassembly 0x4e21d0..0x4e23f2 (2026-09-30): compared every branch (state/flags gate, full-game-info shortcut, decode args, reject reasons 0/6/1/2/3, add player, rate 4 or body+0x6b, type 0xa accept packet via send_to_machine 7 stack args); FIXED broadcast_player_set_changed takes only the session (one stack arg)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,7 +29,7 @@ extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_p
     uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class); // 0x4d09d0, blam-cc: EAX remaining_length
 extern uint32_t network_game_session_finalize_and_add_player(network_player_entry *entry, network_server_globals *server,
     network_machine *machine); // 0x4df840, blam-cc: EAX entry, ECX server, EDX machine
-extern uint32_t network_game_broadcast_player_set_changed(network_server_globals *server, uint8_t *param_1); // 0x4e1bf0 (reads its stack server)
+extern uint32_t network_game_broadcast_player_set_changed(uint8_t *param_1); // 0x4e1bf0, one stack argument (the session)
 extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine,
     network_server_globals *server); // 0x4e0af0
 extern uint8_t network_game_info_packet_flag; // 0x006894a2
@@ -85,7 +86,7 @@ char network_game_server_handle_join_password(network_machine *machine, network_
             uint32_t payload = 0;
             uint16_t *packet;
 
-            network_game_broadcast_player_set_changed(server, (uint8_t *)server);
+            network_game_broadcast_player_set_changed((uint8_t *)server);
             *(int32_t *)((uint8_t *)machine->channel + 0xa88) = network_game_info_packet_flag == 0 ? 4 : body[0x6b];
             packet = network_prepare_challenge_packet(0xa, &payload);
             if (packet != 0 && machine->machine_id != -1) {

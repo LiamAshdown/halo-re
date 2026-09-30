@@ -20,6 +20,9 @@
 //   destroyed, object killed through 0x4eda20, notify 1) or the damaged threshold (+0x94: the damaged effect
 //   +0xa4 once, +0x106 bit 1). Damage flag 2 spawns the geometry's hit effect (+0x7c) at the hit
 //   (0x4f0010), damage flag 1 above +0x80 the body damage effect (+0x90) unless category 7.
+// VERIFIED against disassembly 0x4ef2a0..0x4ef81a (2026-09-30): the one __ftol (0x4ef506) converts
+//   taken * 255.0 + (int)region byte, as written below; every branch, callee register/stack argument and store was
+//   compared.
 // blam-cc: stack=(target_index, region_index, node_index, plane, geometry, material, effect_block, dd,
 //   notify_flags, body_damage_out, material_multiplier_out, damage, is_local)
 

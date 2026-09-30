@@ -42,6 +42,8 @@
 // describes; types/cache.h's own field name is left unchanged since this module's convention is
 // not to rename fields on inference alone.
 
+// VERIFIED against disassembly 0x443360..0x443496 (2026-09-30): the "Not rewritten separately" note above refers to the
+// misattributed cache_file_read_request, which is folded into this function (its tail), not to a gap in this rewrite.
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.

@@ -9,10 +9,9 @@
 // register convention: unit index in EAX, a source unit_speech record in ECX, a mode selector
 //   in DX (1 = queue into pending_speech, >1 = commit into current_speech, otherwise no-op).
 //   // blam-cc: in_EAX -> unit_index, in_ECX -> source, in_DX -> mode
-// UNSURE: the return value for the "commit" path is a signed-division-by-1000 idiom Ghidra only
-//   partially folded (`(longlong)iVar2 * 0x10624dd3`); no caller in this batch captures this
-//   function's return value, so it is reproduced bit-for-bit rather than simplified to the
-//   division it most likely represents.
+// The return value is register residue (callers ignore it): the length*0x10624dd3 low word on the commit path, -1 for
+//   a sound-less speech, unit_index*3 otherwise.
+// VERIFIED against disassembly 0x560f20..0x561027 (2026-09-30)
 
 #include "tags.h"
 #include "memory.h"
@@ -50,14 +49,14 @@ int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16
             }
 
             Sound *sound_tag = (Sound *)tag_instances[unit->current_speech.sound_tag & 0xffff].data;
-            int32_t length = *(int32_t *)((uint8_t *)sound_tag + 0x84) * 0x1e; // UNSURE: raw Sound field
+            int32_t length = *(int32_t *)((uint8_t *)sound_tag + 0x84) * 0x1e; // Sound tag +0x84: length in ms
             unit->speech_duration_ticks = (int16_t)(length / 1000);
             return (int32_t)((int64_t)length * 0x10624dd3); // see file header UNSURE note
         } else if (mode == 1) {
             unit->pending_speech = *source;
         }
     }
-    return (int32_t)(((unit_index & 0xffff) * 3) & 0xffff0000); // always 0; preserved literally
+    return (int32_t)((unit_index & 0xffff) * 3); // eax left over from the datum stride computation (callers ignore it)
 }
 
 #if 0

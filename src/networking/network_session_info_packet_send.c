@@ -5,39 +5,13 @@
 // packet for the connection, when its connection-mode field indicates that one is needed").
 // register convention: the 8-dword source record arrives in EAX (in_EAX); client is the sole
 // cdecl stack parameter. // blam-cc: EAX -> source, stack -> client
-// UNSURE: `network_prepare_challenge_packet` (0x4deaf0, outside this task's range) is called
-// with no visible argument right after `source` is copied into an 8-dword local; reconstructed
-// as taking that local's address, since nothing else in scope makes sense as its argument.
-// UNSURE: the free-space check and the two bit_stream_write_bits_chunked calls read/write
-// channel+0xa8c/+0x24/+0x1c/+0x20/+0xa80/+0x2c via raw offsets rather than through
-// types/networking.h's named `in`/`out` network_channel_stream sub-objects: offsets 0x1c/0x20/0x24
-// land inside `channel->in` (the *receive*-side stream) by the header's own layout, which is
-// surprising for what looks like outgoing-bandwidth bookkeeping (send_budget at +0xa80 is
-// unambiguously an outgoing-side field). The same unresolved raw-offset pattern, on the same
-// four fields plus +0x2c, already appears in src/game/game_engine_send_team_allegiance_message.c
-// (reviewed in an earlier session) without being resolved there either, so it is left exactly as
-// raw offsets here too rather than guessed into (possibly wrong) named fields; worth revisiting
-// in a future types-reconciliation pass together with that file.
-// UNSURE: bit_stream_write_bits_chunked's value/stream arguments (EDX/ESI, per its own
-// established signature in src/memory/bit_stream_write_bits_chunked.c) are not reloaded
-// anywhere in this function's own body; per the same precedent file, they must already be live
-// from network_prepare_challenge_packet's return sequence and are modeled as uninitialized
-// locals rather than invented.
-// UNSURE (major, preserved exactly): mode 0 and 1 explicitly return 0 (not ready), and modes 2/3/4
-// with the challenge packet not yet ready also return 0 -- but any *other* mode value falls to
-// the switch's `default:` case, which jumps directly past the `result = 0;` reset and returns the
-// function's initial value of 1. This asymmetry (unhandled modes reporting "sent" while the two
-// explicitly-idle modes report "not sent") is exactly what Ghidra decompiles; not simplified away.
+// Dispatch on client->state (jump table at 0x4d9174): 0 and 1 return 0, 2 builds message type
+// 0x10, 3 builds 0x1d, 4 builds 0x23, and any other state returns 1 without sending. The 8-dword
+// source record is copied to a local whose address is the payload (EDX) of
+// network_prepare_challenge_packet (EAX = message type); the resulting record is appended to the
+// channel's outgoing bit stream exactly as in network_game_record_message_send. Return is AL only.
 
-// FIXED in the review pass: this file's 2-argument guess at network_channel_stream_flush is
-// resolved. Every message-send call site in the module is the same three operands --
-// `lea esi,[channel+0x10]` (channel->outgoing), `push <channel>`, `push 1` -- e.g. 0x4d9108,
-// 0x4d9698, 0x4d9791, 0x4d9bcd, 0x4da0af, 0x4da2b4, 0x4dae96, 0x4dce68 and 0x4de254.
-
-// FIXED 2026-09-28 (send-path audit, from the disassembly): the two bit_stream_write_bits_chunked calls write into
-// the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
-// the encoded bits from challenge; the C passed placeholders or dropped the arguments.
-
+// VERIFIED against disassembly 0x4d9050..0x4d9174 (2026-09-30): FIXED: state 3 builds message type 0x1d (was 0x23); states 0/1 -> 0, >4 -> 1 per the jump table at 0x4d9174; send sequence compared
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -54,62 +28,56 @@ char network_session_info_packet_send(const uint32_t *source, network_client_glo
     char result;
     uint32_t local_buffer[8];
     uint16_t *challenge;
-    uint16_t challenge_word;
-    uint8_t *channel;
+    network_channel *channel;
     int32_t bits_to_send;
+    int32_t message_type;
     int32_t i;
+    uint32_t item_flag;
 
-    result = 1;
-    switch (client->state) { // UNSURE: live connection-mode value, not padding
+    switch (client->state) {
     case 0:
     case 1:
-        break;
+        return 0;
     case 2:
-        for (i = 0; i < 8; i = i + 1) {
-            local_buffer[i] = source[i];
-        }
-        // 0x4d9083: eax = 0x10; 0x4d907f: edx = local_buffer.
-        challenge = network_prepare_challenge_packet(0x10, local_buffer);
-        if (challenge != 0) {
-            challenge_word = *challenge;
-            channel = (uint8_t *)client->channel;
-            goto have_challenge;
-        }
+        message_type = 0x10;
         break;
     case 3:
-        goto case_3_or_4;
+        message_type = 0x1d;
+        break;
     case 4:
-case_3_or_4:
-        for (i = 0; i < 8; i = i + 1) {
-            local_buffer[i] = source[i];
-        }
-        // 0x4d90b3: eax = 0x23; 0x4d90c1: edx = the caller-supplied payload in EDI.
-        challenge = network_prepare_challenge_packet(0x23, local_buffer);
-        if (challenge != 0) {
-            challenge_word = *challenge;
-            channel = (uint8_t *)client->channel;
-have_challenge:
-            bits_to_send = (uint32_t)(challenge_word >> 4) * 8;
-            result = 1;
-            if (((*(uint8_t *)&((network_channel *)channel)->flags & 1) == 0) &&
-                (bits_to_send + 1 <=
-                     ((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit + *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
-                      *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1 ||
-                 (result = network_channel_stream_flush((network_channel_stream *)(channel + 0x10), (network_channel *)channel, 1), result != 0))) {
-
-                ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + bits_to_send + 1;
-                { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
-                ((network_channel *)channel)->outgoing.empty = 0;
-                bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
-                ((network_channel *)channel)->outgoing.empty = 0;
-            }
-            return result;
-        }
+        message_type = 0x23;
         break;
     default:
-        return result; // UNSURE: preserves the default-case returns-1 asymmetry; see file header
+        return 1;
     }
-    result = 0;
+
+    for (i = 0; i < 8; i = i + 1) {
+        local_buffer[i] = source[i];
+    }
+    challenge = network_prepare_challenge_packet(message_type, local_buffer);
+    if (challenge == 0) {
+        return 0;
+    }
+
+    channel = client->channel;
+    bits_to_send = (int32_t)(*challenge >> 4) * 8;
+    result = 1;
+    if ((channel->flags & 1) == 0) {
+        if (bits_to_send + 1 >
+            (int32_t)(channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8 -
+                      channel->outgoing.stream.bit_cursor) + 1) {
+            result = network_channel_stream_flush(&channel->outgoing, channel, 1);
+            if (result == 0) {
+                return 0;
+            }
+        }
+        channel->send_budget = channel->send_budget + bits_to_send + 1;
+        item_flag = 0;
+        bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
+        channel->outgoing.empty = 0;
+        bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)challenge, bits_to_send);
+        channel->outgoing.empty = 0;
+    }
     return result;
 }
 

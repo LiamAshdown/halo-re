@@ -3,12 +3,16 @@
 //   formerly src/objects/object_lights_update_all_continued.c, which is the tail of this loop)
 // name confidence: 0.5 (out/phase4/objects_functions.md)
 // rewrite confidence: 0.8
-// REWRITTEN (first-boot track, objdump 0x4f0cf0..0x4f15f1) -- the old transcription called the render callbacks
+// VERIFIED against disassembly 0x4f0cf0..0x4f15f1 (2026-09-30), after these FIXED items: step 1 only processes lights with a
+//   creation tick (the branches were inverted), and for a transient light the radius / flare-intensity blend is the bit pattern
+//   of its integer age (the original reads a stale stack slot), not the colour factor t.
+// REWRITTEN (first-boot track) -- the old transcription called the render callbacks
 //   with no arguments, passed zeros for the five collection callbacks, returned out of the loop into its own tail
 //   and never filled the light record it queued. Per frame:
-//   1. every light: flag bit 3 cleared, queue slot (+8) = -1. A transient light (creation tick at +0x58) older than
-//      its tag's duration (+0xf4) leaves the clusters and is deleted; a persistent one whose owner object (+0x2c)
-//      still exists leaves the clusters when flag bit 1 is set (and clears bit 2), then object_light_recompute_transform.
+//   1. every light: flag bit 3 cleared, queue slot (+8) = -1. A transient (positioned) light (creation tick at +0x58, != -1)
+//      older than its tag's duration (+0xf4) leaves the clusters and is deleted; otherwise, if its owner object (+0x2c) still
+//      exists, it leaves the clusters when flag bit 1 is set (and clears bit 2), then object_light_recompute_transform.
+//      Attached lights (+0x58 == -1) are not touched here.
 //   2. light_frame_counter++, the visible lights are collected (structure_bsp_collect_visible_objects with the five
 //      light callbacks at 0x4f34c0..0x4f3650), the rasterizer lights are cleared and each visible cluster adds
 //      its BSP lens flares.
@@ -35,6 +39,7 @@
 #include "rasterizer.h"
 #include "game.h"
 #include "units.h"
+#include <string.h>
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *light_data; // 0x00860b14
@@ -126,18 +131,22 @@ void object_lights_update_all(void)
 
         light[2] &= ~8;
         *(int32_t *)&((struct rasterizer_light *)light)->position.y = -1;
+        // FIXED (0x4f0d49..0x4f0dea): only lights with a creation tick (marker_link != -1, the positioned form) are processed
+        //   here -- attached lights (marker_link == -1) are skipped. An expired one is removed and deleted; otherwise, when its
+        //   owner object still exists, it leaves its clusters (flag bit 1) and its transform is recomputed.
         if (((struct light *)light)->marker_link != -1) {
             float age = (float)(tick - ((struct light *)light)->marker_link);
             if (!(age <= *(float *)(tag_data(((struct light *)light)->definition_tag) + 0xf4))) {
                 cluster_reference_remove_all(handle, (datum_index *)(light + 0x10), &light_cluster_first);
                 datum_delete(light_data, handle);
+            } else if (object_try_and_get(((struct light *)light)->owner_object, 0xffffffff) != 0) {
+                light = (uint8_t *)light_data->data + (handle & 0xffff) * 0x7c;
+                if ((light[2] & 2) != 0) {
+                    cluster_reference_remove_all(handle, (datum_index *)(light + 0x10), &light_cluster_first);
+                    light[2] &= ~4;
+                }
+                object_light_recompute_transform(handle);
             }
-        } else if (object_try_and_get(((struct light *)light)->owner_object, 0xffffffff) != 0) {
-            if ((light[2] & 2) != 0) {
-                cluster_reference_remove_all(handle, (datum_index *)(light + 0x10), &light_cluster_first);
-                light[2] &= ~4;
-            }
-            object_light_recompute_transform(handle);
         }
     }
 
@@ -163,6 +172,8 @@ void object_lights_update_all(void)
         uint8_t *owner = 0;
         float dim = 1.0f;
         float t;
+        float blend; // [esp+0x10] in the original: the colour blend factor for a persistent light, but the INTEGER AGE (its bit
+                     // pattern read as a float, a denormal ~0) for a transient one -- see the FIXED note below
         float *color = (float *)(light + 0x14);
 
         if (owner_handle != k_datum_index_none) {
@@ -185,10 +196,15 @@ void object_lights_update_all(void)
             t = function_index == -1 ? 1.0f : *(float *)(object_data_get(owner_handle) + 0x134 + function_index * 4);
             tint = color_index == -1 ? (void *)global_white_color : (void *)(owner + 0x1b8 + color_index * 12);
             color_interpolate_argb_with_tint(*(uint32_t *)(tag + 0x34), tag + 0x48, color, tint, tag + 0x38, t);
+            blend = t;
         } else {
-            float phase = (float)(tick - ((struct light *)light)->marker_link) / *(float *)(tag + 0xf4);
+            int32_t age_ticks = tick - ((struct light *)light)->marker_link;
+            float phase = (float)age_ticks / *(float *)(tag + 0xf4);
             t = (1.0f - transition_function_evaluate(*(int16_t *)(tag + 0xfa), phase)) * *(float *)&((struct light *)light)->transient_color_scale;
             color_interpolate(tag + 0x4c, tag + 0x3c, color, *(uint32_t *)(tag + 0x34), t);
+            // FIXED (0x4f1013..0x4f105f): the intensity / radius blend and the flare intensity byte below read [esp+0x10], which in
+            //   this path still holds the integer age (the fild operand), not t.
+            memcpy(&blend, &age_ticks, sizeof(blend));
         }
 
         if (owner != 0) {
@@ -214,7 +230,7 @@ void object_lights_update_all(void)
         }
 
         if ((light[2] & 1) != 0) {
-            float intensity = ((1.0f - t) * *(float *)(tag + 8) + t * *(float *)(tag + 0xc)) * *(float *)(tag + 4);
+            float intensity = ((1.0f - blend) * *(float *)(tag + 8) + blend * *(float *)(tag + 0xc)) * *(float *)(tag + 4);
 
             ((struct light *)light)->radius = intensity;
             if (intensity != 0.0f) {
@@ -259,7 +275,7 @@ void object_lights_update_all(void)
                           (uint32_t)(fistp_round(color[1] * 255.0f) & 0xff) << 8 |
                           (uint32_t)(fistp_round(color[0] * 255.0f) & 0xff) << 16 |
                           (uint32_t)fistp_round(dim * 255.0f) << 24;
-            flare.intensity = (uint8_t)fistp_round(t * 255.0f);
+            flare.intensity = (uint8_t)fistp_round(blend * 255.0f);
             flare.window_flags = render_window_index;
             flare.visibility_high = (int16_t)light_handle;
             flare.object_index = salt == -1 ? 0 : salt;

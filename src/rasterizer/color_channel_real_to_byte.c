@@ -10,12 +10,15 @@
 #include "math.h"
 #include "rasterizer.h"
 
-// Converts a normalized [0,1] float color channel to a rounded byte (0..255). The multiply can
-// overflow past 255 for an out-of-range input; Ghidra's ROUND() truncates the cast to uint8_t
-// exactly as shown, so that overflow is preserved here rather than clamped.
+extern int32_t fistp_round(float x); // harness/x87_shims.c: FISTP in the current (round-to-nearest-even) mode
+
+// VERIFIED against disassembly 0x5132b0..0x5132ca (2026-09-30): the original is fmul 255.0, fstp dword, fld, FISTP
+// (round to nearest, ties to even, NOT `+ 0.5` then truncate: they differ on exact halves and on negatives) and
+// returns only AL. The multiply can overflow past 255 for an out-of-range input; the cast to uint8_t keeps the low
+// byte exactly as the original's `mov al, [esp]` does.
 uint8_t __cdecl color_channel_real_to_byte(float channel)
 {
-    return (uint8_t)(int32_t)(channel * 255.0f + 0.5f); // ROUND(channel * 255.0)
+    return (uint8_t)fistp_round(channel * 255.0f);
 }
 
 #if 0

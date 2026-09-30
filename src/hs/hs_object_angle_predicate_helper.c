@@ -1,7 +1,7 @@
 // hs_object_angle_predicate_helper  (Ghidra: FUN_004878f0)
 // address 0x4878f0, size 180 bytes
 // name confidence: 0.4   rewrite confidence: 0.9
-// REWRITTEN (objdump 0x4878f0..0x4879a3; the draft passed none of the look-cone arguments). EAX = the target
+// VERIFIED against disassembly 0x4878f0..0x4879a3 (2026-09-30); rewritten from it ( the draft passed none of the look-cone arguments). EAX = the target
 //   object, [esp+4] = the viewing unit, [esp+8] = the cone angle in degrees. The target point is the "head" marker
 //   (0x0066bfa0) of a unit target (object_try_and_get(ECX target, 3)) -- node_transform.position, +0x60, read
 //   whatever the marker count -- otherwise the object's centre (+0xa0). Returns

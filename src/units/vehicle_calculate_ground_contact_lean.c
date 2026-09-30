@@ -3,11 +3,10 @@
 // address 0x573f60, size 1279 bytes
 // name confidence: 0.4 (phase2 proposal at 0.4, matches functions.md summary; dispatched from
 //   vehicle_calculate_mounted_controls_dispatch's "not > 0" branch)
-// rewrite confidence: 0.8 (REWRITTEN from objdump 0x573f60..0x57445e) -- the densest function in this batch: several register-dropped
-//   matrix3x3/quaternion calls in the middle (matrix3x3_transpose, matrix3x3_multiply,
-//   quaternion_from_matrix3x3, quaternion_to_axis_angle) could not be bound to arguments at
-//   all, and Physics-tag fields at +8/+0x50/+0x54/+0x58/+0x68 are not documented anywhere.
-//   Reproduced with Ghidra's own float locals rather than invented names for that section.
+// rewrite confidence: 0.9 (REWRITTEN from objdump 0x573f60..0x57445e; VERIFIED 2026-09-30, see below). The matrix3x3 / quaternion
+//   calls in the middle are bound (EAX/ECX/EDX/ESI/EDI and stack) in the extern prototypes and the frame offsets were traced
+//   through the callee-not-popping sub esp,8 / push sequences; Physics-tag fields at +8/+0x50/+0x54/+0x58/+0x68 are
+//   still raw offsets (not in the tag headers).
 // evidence: types/units.h vehicle_data.forward_velocity (0x4d4), .ground_contact_fraction
 //   (0x4f0); types/units.h unit_data.desired_facing_vector (0x224), .unknown_338 (0x338),
 //   .driver_unit_index (0x324); types/objects.h object.velocity/forward/up/angular_velocity;
@@ -16,12 +15,11 @@
 //   .turn_rate (0x314), .fixed_gun_pitch (0x364, used as a fixed rotation angle here); callee
 //   vector3d_delta_toward_gravity_biased_clamp_length (this batch, out of scope, a math helper) and object_physics_tick (established
 //   5-argument shape elsewhere in this batch, though here it is called with an extra pointer
-//   pair that does not fit that shape -- see UNSURE).
-// register convention: unit object index in EAX (param_1); an output record pointer in ECX
-//   (param_2, byte-offset-addressed); an output transform pointer in EDX (param_3).
-//   // blam-cc: EAX -> unit_index, ECX -> out_record, EDX -> out_transform
-// UNSURE: essentially every field derived from the Physics tag and the quaternion section; see
-//   file header.
+//   pair (force, torque).
+// register convention: stack parameters (unit_index, powered mass points, contact points).
+//   // blam-cc: stack -> unit_index, out_record, out_transform
+// VERIFIED against disassembly 0x573f60..0x57445e (2026-09-30): physics mode 2 gate, force/torque arithmetic and clamp constants
+//   (0.2, 0.01, 0.05, 0.005, 1/pi, 1/3 checked in the image), the basis build, the lean easing and the object_physics_tick call.
 
 #include <string.h>
 #include "tags.h"

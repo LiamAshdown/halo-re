@@ -1,14 +1,15 @@
 // weapon_prevents_melee_attack  (Ghidra: FUN_004c2ee0; renamed per items_types_notes.md:
 // "(weapon_flags >> 9) & 1 = prevents_melee_attack, OR trigger 0 charging/charged")
 // address 0x4c2ee0, size 79 bytes
-// name confidence: 0.4   rewrite confidence: 0.6
+// VERIFIED against disassembly 0x4c2ee0..0x4c2f2f (2026-09-30)
+// name confidence: 0.4   rewrite confidence: 0.9
 // evidence: types/tags.h Weapon.weapon_flags (WeaponFlags bit 9 = prevents_melee_attack);
 //   types/items.h weapon_trigger_effect_state (_weapon_trigger_effect_charging = 2,
 //   _weapon_trigger_effect_charged = 3).
 // register convention: item index in ECX.
 // blam-cc: ECX -> item_index
-// UNSURE: the original ANDs the shifted flag with 0xffffff01 rather than 1, which only matters
-// for the discarded upper bits; simplified to a plain bool here.
+// The original does `shr eax,9; and al,1` (only the low byte is meaningful) and forces AL=1 when the
+// trigger-0 effect state (+0x261) is 2 or 3; the C below returns the same 0/1 value.
 
 #include "tags.h"
 #include "memory.h"

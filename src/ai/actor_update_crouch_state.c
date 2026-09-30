@@ -23,8 +23,8 @@
 //    0x4217b4 multiplies [esp+0x34..0x3c] (the flank offset) by [esp+0x28..0x30] (the
 //    in-place-normalized copy of unknown_518).
 //  - the crouch/stand timer is (int16)__ftol(time * 30.0), the constant at 0x00672ac8.
-// UNSURE: 0x420970, 0x424090, 0x4141a0 and ai_communication_broadcast are not rewritten; the
-// argument lists are what this call site allows.
+// VERIFIED against disassembly 0x4213b0..0x421a24 (2026-09-30) after the FIXED items marked below (case 2 direction, the last
+// flank probe's arguments). The argument lists of 0x420970 / 0x424090 / 0x4141a0 are those of the call sites.
 // UNSURE: the six threat levels (0, 0.7, 1.2, 1.6, 1.8, 2.0) and the exponential smoother are
 // transcribed literally; the original computes exp(-0.04620981216430664) with the inline x87
 // ROUND / f2xm1 / fscale sequence on two compile-time constants.
@@ -79,6 +79,7 @@ void actor_update_crouch_state(datum_index actor_index)
     int16_t *countdown_360;
     int16_t *countdown_368;
     real_vector3d cover_direction;
+    real_vector3d target_direction; // copy of the target prop's +0xe0 vector (0x4215d9)
     real_vector3d flank_offset;
     real_vector3d steering_direction;
     real_point3d probe_point;
@@ -171,6 +172,12 @@ void actor_update_crouch_state(datum_index actor_index)
             *flag_35e = 0;
             *flag_35f = 0;
 
+            if (combat_status > 8) {
+                // FIXED (0x4215bd..0x4215ee): the target prop's +0xe0 vector is copied to [esp+0x4c] and used as the
+                // "cover direction" of the last flank probe below.
+                target_direction = *(real_vector3d *)((uint8_t *)prop_data->data +
+                                                      (self->target_unit_index & 0xffff) * sizeof(prop) + 0xe0);
+            }
             for (prop_index = self->first_prop; prop_index != (datum_index)k_datum_index_none;
                  prop_index = p->next_in_actor) {
                 p = &((prop *)prop_data->data)[prop_index & 0xffff];
@@ -212,9 +219,9 @@ void actor_update_crouch_state(datum_index actor_index)
                                     grade_second = grade;
                                 }
                                 if (grade_second >= 1) {
-                                    dot = flank_offset.i * steering_direction.i +
+                                    dot = flank_offset.k * steering_direction.k +
                                           flank_offset.j * steering_direction.j +
-                                          flank_offset.k * steering_direction.k;
+                                          flank_offset.i * steering_direction.i;
                                     if (vector3d_magnitude_squared(&flank_offset) >= 0.25f) {
                                         cosine_limit = 0.8660254f;
                                     } else {
@@ -229,9 +236,11 @@ void actor_update_crouch_state(datum_index actor_index)
                     }
 
                     if (combat_status > 8) {
-                        grade = actor_evaluate_flank_offset(&cover_direction, &flank_offset,
-                                                            &self->body_position,
-                                                            &p->last_known_position);
+                        // FIXED (0x42181a..0x421830): ESI = the prop position, EDI = our position, EBX = NULL (no
+                        //   offset wanted), ECX = the copied target vector; the draft passed them the other way round.
+                        grade = actor_evaluate_flank_offset(&target_direction, (real_vector3d *)0,
+                                                            &p->last_known_position,
+                                                            &self->body_position);
                         if (grade > 1) {
                             *flag_35e = 1;
                         }
@@ -269,7 +278,8 @@ void actor_update_crouch_state(datum_index actor_index)
             want_crouch = (uint8_t)(*threat_level_smoothed > threshold);
             break;
         case 2:
-            want_crouch = (uint8_t)(*(float *)&self->shield_vitality > threshold);
+            // FIXED (0x421914): the compare is `shield < threshold` (jp on C0|C2 falls back to 0).
+            want_crouch = (uint8_t)(*(float *)&self->shield_vitality < threshold);
             break;
         case 3:
             want_crouch = (uint8_t)(*(float *)&self->shield_vitality > threshold &&

@@ -13,6 +13,8 @@
 //   the 4x4 block (bits per pixel from 0x006571f4) with the DXT1/DXT3/DXT5 texel decoders; uncompressed ones
 //   expand R5G6B5 / A1R5G5B5 / A4R4G4B4 to A8R8G8B8 or read 32 or 8 bits (the 8-bit case indexes with a 4-byte
 //   stride, as the binary does). UnlockRect (vtable +0x50) then returns the texel.
+// VERIFIED against disassembly 0x524590..0x524967 (2026-09-30), jump table 0x524968 (formats 6, 8, 9, 10, 11; 7 and others -1): mip
+//   selection, level dimensions, coordinate wrap, LockRect args, DXT block addressing, the three 16-bit expanders and unlock.
 // blam-cc: stack -> bitmap, uv, mip_bias (cdecl)
 
 #include "tags.h"
@@ -182,7 +184,6 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
 }
 
 #if 0
-Original Ghidra decompilation (0x524590) -- see `python tools/pack.py 0x524590` for the full
-983-byte body; this rewrite is a lower-confidence structural approximation past the mip/UV
-selection stage, see file header.
+Original Ghidra decompilation: see `python tools/pack.py 0x524590`; the rewrite above was compared instruction by instruction with
+the disassembly.
 #endif

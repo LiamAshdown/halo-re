@@ -1,6 +1,6 @@
 // game_engine_players_update_server  (Ghidra: FUN_004740a0; named per this rewrite)
 // address 0x4740a0, size 1262 bytes
-// name confidence: 0.4   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4740a0..0x47458d (respawn, action / exchange / equipment / must-be-readied, control block, idle branch); the network transform-update OPEN stays.)
+// name confidence: 0.4   rewrite confidence: 0.95 (VERIFIED 2026-09-28 against objdump 0x4740a0..0x47458d (respawn, action / exchange / equipment / must-be-readied, control block, idle branch); the network transform-update OPEN stays.)
 // evidence: out/phase4/game_functions.md ("Main per-tick players update used on the
 //   server/single-player path: applies queued client input, handles respawning, and processes
 //   each player's action flags"); types/game.h player_action (0x20 bytes, this batch's
@@ -29,14 +29,10 @@
 // the per-player carry array; the real arguments (read off the disassembly) are the player's own
 // handle, and the carry record's dwords at +4 and +8 (not the -1 sentinel Ghidra invented).
 //
-// UNSURE (pervasive through the back half): the per-player "client_update_carry" record's byte
-// and dword fields (only ever produced by update_client_queue_apply_tick.c's own equally-UNSURE
-// "out_b" output) are given placeholder names; the two divergent code paths that each build a
-// unit_control_data on the stack before calling unit_apply_control_block were reconstructed field-by-field
-// from the disassembly, but the second (network-idle) path's exact byte alignment against the
-// struct base was not independently re-verified byte-for-byte, only through its own internal
-// consistency (animation_state/aiming_speed/control_flags packed into one dword, throttle/
-// facing_vector/aiming_vector/looking_vector following in order).
+// Re-verified against the disassembly 0x4740a0..0x474584 on 2026-09-30: both unit_control_data constructions (action path: base at
+// [esp+0x30], forward vector output at +0x28 and copied to +0x1c/+0x34; idle path: base at [esp+0x70]) match the C field for field, as
+// do the respawn/interaction/weapon-readiness logic and the closing bitmask/local_player_count updates. The carry record's byte and
+// dword fields keep placeholder names (produced by update_client_queue_apply_tick).
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 // reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 
@@ -73,9 +69,10 @@ extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0
 extern void player_respawn(datum_index player_handle); // this module's next batch, 0x477ea0
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
                                                 real_vector3d *out_forward); // this batch, 0x473d70
-extern void build_remote_player_transform_update(datum_index player_handle, int32_t field1, int32_t field2); // 0x4e7b50,
-    // networking module, not in this batch; UNSURE: also implicitly reads a 32-byte copy of the
-    // player's player_action record staged on the caller's stack immediately below these args
+extern void build_remote_player_transform_update(datum_index player_handle, int32_t field1, int32_t field2,
+    player_action action); // 0x4e7b50, networking module: stack (handle, carry +4, carry +8) followed by the 0x20-byte player_action
+    // BY VALUE (0x474186..0x47419b: `sub esp,0x20; ... rep movsd` copies the action under the three pushed dwords).
+    // NOTE: src/networking/build_remote_player_transform_update.c still declares the older (player_index, control *, network_key) shape.
 extern uint8_t player_execute_pending_interaction(datum_index player_handle); // this batch, 0x4793a0, stack -> player_handle
 extern uint8_t player_execute_weapon_drop_interaction(datum_index player_handle); // this batch, 0x4790d0, stack -> player_handle
 extern void player_apply_pickup_effect(datum_index player_handle, datum_index item_index); // this batch, 0x479930
@@ -100,9 +97,7 @@ extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_
 // rebuilds the two encounter/squad-presence bitmasks and player_globals::local_player_count.
 // FIXED (objdump 0x4740a0..0x47458d): unit_apply_control_block takes the unit in EAX and the block in EDX
 //   (the draft dropped the unit); the action path fills facing, aiming and looking with the same forward vector.
-// OPEN: 0x47419b pushes (handle, carry +4, carry +8) plus the 0x20-byte player_action by value, which neither
-//   this call nor src/networking/build_remote_player_transform_update.c's signature reproduces (network server
-//   only).
+// FIXED 2026-09-30: 0x47419b pushes (handle, carry +4, carry +8) plus the 0x20-byte player_action by value; the call now passes all four.
 void game_engine_players_update_server(void)
 {
     player_action actions[16];
@@ -139,7 +134,7 @@ void game_engine_players_update_server(void)
 
         if (entry->flag_a == 1) {
             if (network_game_mode == 2 && entry->field2 == entry->field3 + 1) {
-                build_remote_player_transform_update(player_handle, entry->field1, entry->field2);
+                build_remote_player_transform_update(player_handle, entry->field1, entry->field2, *action); // FIXED: action by value
             }
             if (entry->flag_b == 1) {
                 grenade_value = entry->field1;

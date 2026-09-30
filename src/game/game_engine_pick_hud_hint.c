@@ -9,12 +9,13 @@
 // ctf_value_80 (+0x80, aliased 0x006f1d08); this batch's game_engine_player_is_eliminated
 // (0x460f30), game_engine_player_has_respawn_priority (0x460e40) and
 // game_engine_build_message_text (0x460890).
-// register convention: an "out" buffer forwarded in EAX (in_EAX, only ever masked and passed
-// through -- never actually written here); a player index in ECX (in_ECX).
-//   // blam-cc: EAX -> out (forwarded), ECX -> player_index
-// UNSURE: same unrecoverable forwarded-register situation as game_engine_build_message_text
-// (this function is its only caller, and never sets ESI/EDI/its own stack args for it either --
-// modeled with the same three forwarded parameters).
+// register convention: ECX -> player_index, EAX -> maximum_length (0x400 from hud_update_interaction_prompt, forwarded as
+//   the builders' buffer_size), stack -> out_text. (Ghidra took the EAX value for the output buffer; the buffer is the
+//   one stack argument.)
+//   // blam-cc: ECX -> player_index, EAX -> maximum_length, stack -> out_text
+// VERIFIED against disassembly 0x463150..0x46328f (2026-09-30). Fixed: the +0x6c override gets five stack args
+//   (player, type, extra, out, size); 0x45e680 gets EAX = the player, EBX = out and stack (type, extra, size); the
+//   0x460890 calls get EAX = out, ESI = size, EDI = subject (-1, or player.hud_message_player) and stack (player, type).
 
 #include "tags.h"
 #include "memory.h"
@@ -30,20 +31,22 @@ extern game_variant game_engine_variant;            // 0x006f1c88 (game_engine_i
 
 extern uint8_t game_engine_player_is_eliminated(uint32_t player_index); // 0x460f30, this batch
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_index); // 0x460e40, this batch
+// blam-cc: EAX -> out, ESI -> buffer_size, EDI -> subject, stack -> param_1, message_type
 extern uint8_t game_engine_build_message_text(wchar_t *out, uint32_t buffer_size, datum_index subject,
     uint32_t param_1, uint32_t message_type); // 0x460890, this batch
-extern uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_type,
+// blam-cc: EAX -> recipient, EBX -> out, stack -> message_type, subject, buffer_size
+extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type,
     datum_index subject, size_t buffer_size); // 0x45e680
 
-// blam-cc: EAX -> out (forwarded), ECX -> player_index, unaff_ESI -> buffer_size, unaff_EDI -> subject
-uint32_t game_engine_pick_hud_hint(wchar_t *out, uint32_t player_index, uint32_t buffer_size,
-    datum_index subject, uint32_t forwarded_param_1) // UNSURE: last param, see file header
+// blam-cc: ECX -> player_index, EAX -> maximum_length, stack -> out_text
+uint8_t game_engine_pick_hud_hint(datum_index player_index, int32_t maximum_length, uint16_t *out_text)
 {
+    wchar_t *out = (wchar_t *)out_text;
+    uint32_t buffer_size = (uint32_t)maximum_length;
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    uint32_t result = 0; // UNSURE: passthrough default, matches Ghidra's masked in_EAX
 
     if (current_game_engine == 0) {
-        return result;
+        return 0;
     }
 
     if (0x16 < (int32_t)p->hud_message_index && (int32_t)p->hud_message_index < 0x1b) {
@@ -67,31 +70,29 @@ uint32_t game_engine_pick_hud_hint(wchar_t *out, uint32_t player_index, uint32_t
             message_type = 0x19;
         }
 
-        {
-            char handled = 0;
-            if (current_game_engine->build_message_text != 0) {
-                handled = ((char (*)(void))current_game_engine->build_message_text)(); // UNSURE args
-            }
-            if (handled == 0) {
-                // UNSURE: Ghidra shows only (message_type, extra) at this call site; `extra`
-                // (the respawn countdown in seconds, not a real handle) fills the "subject" slot,
-                // which the builder just treats as its generic %d/%s format argument.
-                return game_engine_build_kill_feed_message_text(out, message_type, (datum_index)extra, buffer_size);
+        if (current_game_engine->build_message_text != 0) {
+            // 0x463207..0x463215: push size, out, extra, type, player
+            char handled = ((char (*)(datum_index, uint32_t, int32_t, wchar_t *, uint32_t))
+                current_game_engine->build_message_text)(player_index, message_type, extra, out, buffer_size);
+            if (handled != 0) {
+                return (uint8_t)handled;
             }
         }
+        return game_engine_build_kill_feed_message_text(player_index, out, message_type, (datum_index)extra, buffer_size);
     } else {
         if (game_time->game_time < 0x1c2) {
             if (p->hud_message_index == (datum_index)0xffffffff ||
                 game_engine_variant.game_engine_index != _game_engine_ctf ||
                 game_engine_variant.engine.ctf.single_flag_time < 1) {
-                return game_engine_build_message_text(out, buffer_size, subject, forwarded_param_1, 0);
+                // 0x46325b: message type 0x1d, subject -1 (EDI is still the -1 loaded at 0x463182)
+                return game_engine_build_message_text(out, buffer_size, (datum_index)0xffffffff, player_index, 0x1d);
             }
         } else if (p->hud_message_index == (datum_index)0xffffffff) {
-            return result;
+            return 0;
         }
-        result = game_engine_build_message_text(out, buffer_size, subject, forwarded_param_1, 0);
+        // 0x463271/0x463278: message type = the pending hud message, subject = player.hud_message_player (+0x78)
+        return game_engine_build_message_text(out, buffer_size, p->hud_message_player, player_index, p->hud_message_index);
     }
-    return result;
 }
 
 #if 0

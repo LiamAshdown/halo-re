@@ -16,7 +16,7 @@
 #include "networking.h"
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
-extern int32_t autopatch_download_active_count;              // 0x007227c8, UNSURE: stop signal, see autopatch_download_worker_thread.c
+extern uint8_t autopatch_download_active_count;              // 0x007227c8, UNSURE: stop signal, see autopatch_download_worker_thread.c
 extern network_thread_record *autopatch_download_thread;     // 0x007227c4
 extern network_mutex_record *autopatch_download_mutex;       // 0x007227c0
 

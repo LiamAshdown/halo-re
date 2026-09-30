@@ -32,7 +32,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data; // 0x0087a480
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; blam-cc: EDI -> iterator
-extern uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_type,
+extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type,
     datum_index subject, size_t buffer_size); // 0x45e680, blam-cc: EAX -> recipient, EBX -> out
 extern void chimera__multiplayer_message(wchar_t *text); // 0x4ab4b0
 
@@ -67,7 +67,7 @@ void game_engine_player_changed_object(uint32_t param)
                         (recipient, 0x1c, param, message, 0x400); // UNSURE: override signature
                 }
                 if (built == 0) {
-                    built = game_engine_build_kill_feed_message_text(message, 0x1c, param, 0x400);
+                    built = game_engine_build_kill_feed_message_text(recipient, message, 0x1c, param, 0x400);
                 }
                 if (built != 0) {
                     message[0x3ff] = 0;

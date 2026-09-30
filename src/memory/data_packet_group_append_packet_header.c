@@ -27,6 +27,9 @@ extern byte_swap_definition packet_header_byte_swap_definition; // 0x00696780
 extern void struct_definition_byte_swap(byte_swap_definition *definition, int32_t data,
     int32_t *codes, int32_t *out_consumed_bytes, int32_t *out_consumed_records);
 
+// VERIFIED against disassembly 0x4d0b60..0x4d0bb5 (2026-09-30): signed cursor, unsigned limit test, the byte store, the 5
+//   argument struct_definition_byte_swap call (definition 0x696780, codes [0x696788]), cursor increment and both error
+//   states match. A remaining difftest header-bit mismatch would come from struct_definition_byte_swap, not from here.
 int32_t data_packet_group_append_packet_header(uint8_t *buffer, data_packet_group *group,
     int16_t *cursor, uint8_t header_byte)
 {

@@ -61,7 +61,8 @@ void actor_died_unit_grenade_count_mod(object *unit_object, const uint8_t *actor
             if (min_count > 0 || max_count > 0) {
                 int16_t count;
                 random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                count = (int16_t)((((int32_t)(int16_t)(max_count + 1) - min_count) * (int32_t)(random_seed_global >> 0x10)) >> 0x10) + min_count;
+                // VERIFIED against disassembly 0x428ddd (2026-09-30): imul then LOGICAL shr 0x10, so the product is shifted as uint32_t
+                count = (int16_t)((uint32_t)(((int32_t)(int16_t)(max_count + 1) - min_count) * (int32_t)(random_seed_global >> 0x10)) >> 0x10) + min_count;
                 weapon_set_ammo_counts(&count);
             }
         }

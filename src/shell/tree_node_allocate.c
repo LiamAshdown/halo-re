@@ -19,6 +19,7 @@
 //   (key + value to copy into the new node).
 // UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern, not rewritten here.
 
+// VERIFIED against disassembly 0x57cc30..0x57ccc4 (2026-09-30): ECX=source, stack left/parent/right/color, ret 0x10; value copied from source+0x1c
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"

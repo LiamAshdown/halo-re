@@ -24,6 +24,9 @@ extern object_type_definition *object_type_definitions[k_maximum_object_types]; 
 extern tag_instance *tag_instances; // 0x0087bc14
 
 
+// VERIFIED against disassembly 0x4fa490..0x4fa4fe (2026-09-30): name selection ("unknown" 0x655130 / type definition name / tag
+//   path), the eight numbers in the printed order (+0xc,+0xe,+0x10,+0x12,+0x14,+0x16,+6,[+8]) and the fprintf format match;
+//   fixed: the tag index is sign-extended (movsx), not masked to 16 bits unsigned.
 void object_dump_write(object_memory_dump_record *record, void *file) // blam-cc: EAX -> record, stack -> file
 {
     const char *name = "unknown";
@@ -33,7 +36,7 @@ void object_dump_write(object_memory_dump_record *record, void *file) // blam-cc
             name = object_type_definitions[record->type]->name;
         }
     } else {
-        name = tag_instances[record->definition_tag & 0xffff].path;
+        name = tag_instances[(int16_t)record->definition_tag].path; // 0x4fa49c: movsx ecx, dx (a 16-bit SIGNED index)
     }
 
     fprintf(file, "% 6d (% 6d) [% 7d/% 7d/% 7d/% 7d] % 7d % 7d %s\r\n",

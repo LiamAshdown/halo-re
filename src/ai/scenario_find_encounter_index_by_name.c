@@ -10,7 +10,9 @@
 // register convention: unaff_ESI (inherited unchanged from the caller, i.e. a genuine
 // implicit parameter Ghidra could not attach to the signature); param_1 is a real stack
 // argument.
-//   // blam-cc: ESI -> scenario, stack -> name
+//   // VERIFIED against disassembly (2026-09-30): count/pointer offsets, element stride, _strnicmp(.., 0x20) and the -1 return match.
+//   The register-ESI first argument is the only reason a difftest that passes it on the stack would crash the rewrite.
+// blam-cc: ESI -> scenario, stack -> name
 
 #include "crt.h"
 #include "tags.h"

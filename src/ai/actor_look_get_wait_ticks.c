@@ -11,7 +11,8 @@
 // blam-cc: EAX -> actor_index, stack -> mode, stack -> flags, EDI -> deviation_table
 // FIXED (objdump 0x415150): EAX is the actor, whose threat weapon (0x4282c0, then its tag) scales the wait by
 //   Weapon +0x410; the draft had no actor and called a different helper without operands.
-// UNSURE: flags is a 4-byte union -- its bit pattern is used both as a float (the fallback
+// VERIFIED against disassembly 0x415150..0x41525a (2026-09-30).
+// NOTE: flags is a 4-byte union -- its bit pattern is used both as a float (the fallback
 // value when mode selects neither of the three real pairs) and as a plain byte (the 1.5x
 // bonus flag); reinterpreted via a pointer cast to match exactly what the disassembly reads,
 // rather than splitting it into two parameters that were never two parameters in the ABI.

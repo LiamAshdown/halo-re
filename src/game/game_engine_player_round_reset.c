@@ -19,6 +19,8 @@
 // callback_argument) then `push ebx` (player_handle), `call eax`), not zero as the old
 // `(void (*)(void))` cast modeled -- corrected here since it was found while tracing player_handle.
 
+// VERIFIED against disassembly 0x463620..0x463651 (2026-09-30): callback (+0x98) gets (player_handle, callback_argument).
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

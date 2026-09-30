@@ -18,28 +18,30 @@
 // here. Every UI-widget-tree hop goes through types/networking.h's network_ui_widget, the
 // interface module's menu-tree node as this module reads it (this file supplied the
 // status_root field at +0x4c when the eight per-file copies were folded into the header).
-// UNSURE (many, grouped): FUN_00490b50 is called four times bare with no visible argument,
-// most likely four different literal action-id constants that Ghidra could not attribute;
-// string_convert_ascii_to_unicode's single call here is likewise bare; string_format_wide_va_bounded's third
-// argument (`local_80`, a 128-byte stack buffer never otherwise written) and
-// autopatch_download_get_result's exact output semantics were not resolved; mouse_device/
-// input_suppressed/mouse_neutral_state/live_mouse_state (a mouse-wheel-ish state pair) and DAT_007196a0/
-// DAT_0071948a (a query-mode flag) have no documented names. Two float bit patterns
-// (0x3f800000 == 1.0f, 0x3eaa7efa ~ 0.3333f) are written through a `uint32_t*` reinterpretation
-// of the `alpha` field to avoid any floating-point literal rounding.
+// Resolved against the disassembly (0x4b80f0..0x4b89c5): the four bare FUN_00490b50 calls are
+// input_get_key_state(ECX = 0x53 / 0x52 / 0x56 / 0x55) and the scroll helpers get AL = 0 / 1 / 0 / 1;
+// widget_play_sound_effect takes AX = 2; the sort / ingest / server_list_reset calls take the locked
+// list in EAX; the row-gather flag is (selected_index == scan_index); the blank rows pass the empty
+// strings 0x65512c (ASCII) and 0x660c34 (wide); status labels are reallocated from their current
+// label_text; autopatch_download_get_result takes the slot in ECX; the tag lookup uses group 'ustr'
+// (EDI) and string index 5. Global widths: 0x719458 is the 128-wchar hostname buffer (first word
+// tested), 0x719696 is a word and 0x719698 a dword. The two float bit patterns
+// (0x3f800000 == 1.0f, 0x3eaa7efa ~ 0.3333f) are written through the `alpha` field as integers.
 
+// VERIFIED against disassembly 0x4b80f0..0x4b89c5 (2026-09-30): compared every block of 0x4b80f0..0x4b89c5 (join target, key/scroll handling, widget walk, list populate loop, status labels, arrows, master-server result switch, ticker timing, autopatch state machine); FIXED the missing register/stack args, widths and roles listed above
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "cache.h"
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
 
 extern void *server_browser_join_target;        // 0x00719450
 extern uint8_t server_browser_join_target_has_password; // 0x00719454
-extern uint8_t network_join_target_address;                    // see server_browser_open.c UNSURE
+extern uint16_t network_join_target_address[128];   // 0x00719458 (hostname buffer; the tick tests/clears its first WORD)
 extern uint8_t DAT_007193be;                    // see UNSURE
 extern int32_t mouse_device;                    // see UNSURE (mouse-wheel-ish state)
 extern uint8_t input_suppressed;                    // see UNSURE
@@ -64,21 +66,21 @@ extern int32_t DAT_006953fc;                    // see master_server_list_refres
 extern int32_t DAT_00695420;                    // see server_browser_open.c UNSURE
 extern autopatch_download_slot autopatch_download_slots[k_network_autopatch_download_slots]; // 0x006ef93c
 extern wchar_t DAT_00719498[0x100];             // ticker label buffer
-extern uint8_t DAT_00719696;                    // see server_browser_open.c UNSURE
+extern uint16_t DAT_00719696;                   // 0x00719696 (word stores)
 extern uint8_t server_browser_require_valid_entry; // 0x006953f0
 extern int32_t server_browser_total_players;    // 0x00719474
-extern heap widget_memory_pool;                 // 0x006926c4
-extern char k_empty_string[];                     // shared empty-string default buffer
-extern wchar_t empty_string[];                  // see UNSURE, argument to server_browser_list_row_populate
+extern heap *widget_memory_pool;                 //  0x006926c4 -- the global holds a POINTER to the heap (mov esi,[0x6926c4] at every call site)
+extern char k_empty_string[];                     // 0x0065512c, shared empty ASCII string
+extern wchar_t empty_string[];                  // 0x00660c34, empty wide string
 
 extern int32_t network_join_request_resolve_host(void); // foreign, outside this session's range, see UNSURE
 extern void widget_close_all(void); // 0x498650, outside this session's range
-extern int32_t input_get_key_state(void); // foreign, outside this session's range, see UNSURE
+extern uint8_t input_get_key_state(int16_t key_index); // 0x490b50; blam-cc: ECX -> key_index
 extern void server_list_scroll_page_up(uint8_t jump_to_top); // 0x4b7b20, this module
 extern void server_list_scroll_page_down(uint8_t jump_to_bottom); // 0x4b7bb0, this module
-extern void server_list_reset(void); // 0x4b65f0, this module
-extern uint8_t DAT_00719698; // motd/autopatch state, see server_browser_open.c UNSURE
-extern void widget_play_sound_effect(void); // 0x498e90, outside this session's range
+extern void server_list_reset(uint8_t *entry); // 0x4b65f0, this module; blam-cc: EAX -> entry
+extern int32_t DAT_00719698; // 0x00719698, motd/autopatch state (dword stores)
+extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90; blam-cc: AX -> effect_id
 extern void server_browser_list_row_gather(network_ui_widget *row, uint8_t flag, void *entry); // 0x4b69c0, this module
 extern void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,
                                                const char *server_name, wchar_t *map_name,
@@ -87,8 +89,8 @@ extern void server_browser_list_row_populate(network_ui_widget *row, uint8_t fla
 extern void server_browser_filter_headers_refresh(network_ui_widget *row); // 0x4b7f70, this module, see UNSURE below at its call site
 extern void master_server_process_pending_requests(void); // 0x4b5d70, this module
 extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms); // 0x4ba760, this module
-extern void server_browser_result_array_sort(void); // foreign, outside this session's range
-extern void server_browser_query_results_ingest(void); // 0x4baae0, outside this session's range
+extern void server_browser_result_array_sort(server_list_globals *array); // 0x4ba9c0; blam-cc: EAX -> array
+extern void server_browser_query_results_ingest(server_list_globals *list); // 0x4baae0; blam-cc: EAX -> list
 extern int32_t SBServerHasFullKeys(void *entry); // foreign, GameSpy library
 extern void server_browser_player_list_populate(void *entry); // 0x4b73e0, this module
 extern int32_t server_browser_selected_variant_description_build(void *entry); // 0x4b74e0, this module
@@ -105,14 +107,13 @@ extern ticker_text_buffer server_browser_player_ticker;  // 0x006b5e58
 extern ticker_text_buffer server_browser_variant_ticker; // 0x006b5e74
 extern void master_server_list_refresh_request(void); // 0x4b6660, this module
 extern void server_browser_ui_refresh(void); // 0x4b73a0, this module
-extern uint8_t autopatch_download_get_result(int32_t *result_a, int32_t *result_b); // foreign,
-    // outside this session's range; the result is tested as `test al,al` at 0x4b88a8
+extern uint8_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index); // 0x576f00; blam-cc: ECX -> slot_index
 // blam-cc: EAX -> dest, EDI -> dest capacity in BYTES, EBX -> ASCII source.
 // Widens an ASCII string into dest and returns dest, or NULL when it does not fit.
 extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source); // 0x557990
 extern wchar_t string_widen_scratch[0x400]; // 0x006b5e90, the 0x800-byte shared target
-extern int32_t tag_lookup(const char *path); // foreign, tags module
-extern uint16_t *text_string_list_get_string(int32_t tag_index, int32_t string_index); // foreign, see UNSURE
+extern datum_index tag_lookup(tag_group group, char *path); // 0x442550; blam-cc: EDI -> group
+extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index); // 0x5578c0; blam-cc: ECX -> list_id, EDX -> index
 
 // blam-cc: list-panel widget as param_1
 int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
@@ -157,8 +158,8 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
     int32_t bVar12;
 
     if (server_browser_join_target != 0) {
-        if (server_browser_join_target_has_password == 0 || network_join_target_address != 0) {
-            clicked = network_join_request_resolve_host();
+        if (server_browser_join_target_has_password == 0 || network_join_target_address[0] != 0) {
+            clicked = (uint8_t)network_join_request_resolve_host(); // AL only
             if (clicked != 0) {
                 widget_close_all();
                 return 1;
@@ -170,7 +171,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
             password_panel->parent->selected_child = password_panel;
             password_panel->first_child->first_child->value = 0x2a;
         }
-        network_join_target_address = 0;
+        network_join_target_address[0] = 0;
         server_browser_join_target_has_password = 0;
         server_browser_join_target = 0;
     }
@@ -182,25 +183,23 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
             scroll_target = live_mouse_state;
         }
     }
-    clicked = input_get_key_state();
-    if (clicked == 1) {
+    // 0x4b818f..0x4b81fd: keys 0x53 / 0x56 scroll a page, keys 0x52 / 0x55 jump to the top / bottom
+    // (AL is still 1 from the compare at the second and fourth call); each plays effect 2
+    if (input_get_key_state(0x53) == 1) {
         server_list_scroll_page_up(0);
-        widget_play_sound_effect();
+        widget_play_sound_effect(2);
     }
-    clicked = input_get_key_state();
-    if (clicked == 1) {
-        server_list_scroll_page_up(0);
-        widget_play_sound_effect();
+    if (input_get_key_state(0x52) == 1) {
+        server_list_scroll_page_up(1);
+        widget_play_sound_effect(2);
     }
-    clicked = input_get_key_state();
-    if (clicked == 1) {
+    if (input_get_key_state(0x56) == 1) {
         server_list_scroll_page_down(0);
-        widget_play_sound_effect();
+        widget_play_sound_effect(2);
     }
-    clicked = input_get_key_state();
-    if (clicked == 1) {
-        server_list_scroll_page_down(0);
-        widget_play_sound_effect();
+    if (input_get_key_state(0x55) == 1) {
+        server_list_scroll_page_down(1);
+        widget_play_sound_effect(2);
     }
     if (scroll_target != 0) {
         if (scroll_target[2] < 0) {
@@ -249,17 +248,17 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
     if (browser_widget->selected_child == w_iter && w_iter->selected_child == 0) {
         w_iter->selected_child = list_container;
     }
-    // UNSURE: this call is bare in the original (no visible EAX); `sort_widget` is the closest
-    // in-scope widget matching server_browser_filter_headers_refresh.c's expected row shape.
+    // EAX = sort_widget (mov eax,esi at 0x4b82fd)
     server_browser_filter_headers_refresh(sort_widget);
 
+    player_count = 0;
     if (master_server_query_engine == 0) {
         idx = 0;
         do {
             row_entry = col_headers[idx];
             row_entry->highlight_flag = (row_entry->parent->selected_child == row_entry);
-            server_browser_list_row_populate(row_entry, 0, 0, 0, empty_string, 0, 0, 0xffffffff,
-                                              0xffffffff, 0xffffffff);
+            server_browser_list_row_populate(row_entry, 0, 0, k_empty_string, empty_string, k_empty_string, 0,
+                                              0xffffffff, 0xffffffff, 0xffffffff);
             idx = idx + 1;
             row_entry->hidden = 1;
         } while (idx < 0xf);
@@ -274,10 +273,10 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
             if (server_browser_query_pending == 0) {
                 if (0x32 < locked->pending_count ||
                     (0 < locked->pending_count && locked->result_count < 100)) {
-                    server_browser_result_array_sort();
+                    server_browser_result_array_sort(locked);
                 }
             } else {
-                server_browser_query_results_ingest();
+                server_browser_query_results_ingest(locked);
             }
             player_count = locked->result_count;
             idx = 0;
@@ -288,12 +287,12 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
                 } else {
                     entry = locked->list[scan_index];
                 }
-                server_browser_list_row_gather(col_headers[idx], 0, entry);
+                server_browser_list_row_gather(col_headers[idx], (uint8_t)(server_browser_selected_index == scan_index), entry);
                 if (server_browser_selected_index == scan_index && server_browser_player_list_ready == 0) {
                     if (entry == 0) {
                         server_browser_selected_index = -1;
                         server_browser_last_click_ms = 0;
-                        server_list_reset();
+                        server_list_reset((uint8_t *)locked);
                     } else {
                         probe = SBServerHasFullKeys(entry);
                         if (probe != 0) {
@@ -326,7 +325,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
 
         w_iter = browser_widget->status_root->first_child;
         if (bVar11) {
-            label = heap_reallocate(0, 0x40, &widget_memory_pool);
+            label = heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
             w_iter->label_text = (wchar_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy(scratch_80, 0x40, 6);
@@ -336,7 +335,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
-            label = heap_reallocate(0, 0x40, &widget_memory_pool);
+            label = heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
             w_iter->label_text = (wchar_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy(scratch_80, 0x40, 7);
@@ -346,7 +345,7 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
-            label = heap_reallocate(0, 0x40, &widget_memory_pool);
+            label = heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
             w_iter->label_text = (wchar_t *)label;
             if (label != 0) {
                 if (player_count < 1) {
@@ -444,7 +443,7 @@ scroll_fade_settled:
             ticker_text_buffer_advance((uint8_t *)w17, &server_browser_player_ticker);
             ticker_text_buffer_advance((uint8_t *)w18, &server_browser_variant_ticker);
         }
-        if (DAT_006953fc < now_ms) {
+        if ((uint32_t)DAT_006953fc < (uint32_t)now_ms) {
             if (server_browser_require_valid_entry == 0 && server_browser_selected_index == -1) {
                 master_server_list_refresh_request();
             }
@@ -458,7 +457,7 @@ scroll_fade_settled:
             }
             switch (state) {
             case 4:
-                got_result = autopatch_download_get_result(&result_a, &result_b);
+                got_result = autopatch_download_get_result((void **)&result_a, &result_b, autopatch_slot);
                 if (got_result != 0) {
                     if (result_a == 0 || result_b == 0) {
                         join_game_ticker_string_copy(DAT_00719498, 0x100, 5);
@@ -490,10 +489,9 @@ scroll_fade_settled:
                 DAT_00695420 = -1;
                 DAT_00719698 = 2;
                 DAT_00719498[0] = 0;
-                tag_idx = tag_lookup(
-                    "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
+                tag_idx = tag_lookup(0x75737472, "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels"); // 'ustr'
                 if (tag_idx != -1) {
-                    src = text_string_list_get_string(tag_idx, 0);
+                    src = text_string_list_get_string(tag_idx, 5);
                     wcsncpy(DAT_00719498, src, 0xff);
                     DAT_00719696 = 0;
                 }

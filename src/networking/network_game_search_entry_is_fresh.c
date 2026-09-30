@@ -7,11 +7,10 @@
 // network_game_search_entry::in_use and ::received_ms exactly, and 0x1771 (6001 ms) matches
 // k_network_game_search_expiry_ms (6000) plus one.
 // register convention: the entry pointer arrives in ESI (unaff_ESI). // blam-cc: ESI -> entry
-// UNSURE: the real return value is `CONCAT31(garbage, result_byte)` in Ghidra (garbage from an
-// uninitialized `in_EAX` on the not-in-use path, or from the elapsed-time computation on the
-// stale path); simplified to a plain 0/1 return, matching the "callers only read the low byte"
-// idiom used throughout this module.
+// Return: only AL is defined (0 or 1; the upper EAX bytes are scratch), so a plain 0/1 uint8_t
+// return is equivalent.
 
+// VERIFIED against disassembly 0x4da770..0x4da7ce (2026-09-30): in_use at +0x12d, QPC*1000/freq via _allmul/_alldiv, elapsed (signed) <= 0x1770; AL result only
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"

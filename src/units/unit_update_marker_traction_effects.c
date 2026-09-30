@@ -1,7 +1,7 @@
 // unit_update_marker_traction_effects  (Ghidra: FUN_00575170; renamed from the phase2 proposal)
 // address 0x575170, size 750 bytes
 // name confidence: 0.35 (phase2 proposal at 0.35, matches functions.md summary)
-// rewrite confidence: 0.85 (REWRITTEN from objdump 0x575170..0x57545d) -- the animation-graph node-array traversal (iVar6/local_18, its own
+// rewrite confidence: 0.9 (REWRITTEN from objdump 0x575170..0x57545d) -- the animation-graph node-array traversal (iVar6/local_18, its own
 //   nested count+pointer sub-block at +0x68/+0x6c) and the per-physics-node record it indexes
 //   into (physics_tag+0x78, stride 0x80) are not documented in any header available to this
 //   module; reproduced with Ghidra's own locals rather than invented field names.
@@ -10,9 +10,9 @@
 //   types/tags.h Vehicle.suspension_sound (tag_id at absolute 0x3bc, per the module's
 //   TagDependency-at-relative-+0xc idiom); the physics.tag_id-at-0x8c idiom (contact-point
 //   count at Physics+0x74).
-// UNSURE: essentially the whole per-node transform/hit-test block (matrix4x3_from_forward_up,
-//   the two matrix4x3_transform_point/normal calls and collision_test_movement_segment) is register-resident with
-//   no visible arguments, and is reproduced as literally as Ghidra's own locals allow.
+// VERIFIED against disassembly 0x575170..0x57545d (2026-09-30): node/graph gates, the mass point transform (0x38 / 0x50),
+//   origin/delta arithmetic, the clamps, the traction byte, the largest rise and the 0x3bc sound call (constants 0.3 and 1/0.6
+//   checked in the image).
 
 #include "tags.h"
 #include "memory.h"
@@ -30,7 +30,7 @@ extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, re
 extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
-extern uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold); // 0x4cf7a0, UNSURE signature
+extern uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold); // 0x4cf7a0
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
 extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8

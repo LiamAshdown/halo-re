@@ -21,6 +21,8 @@
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern random_seed effect_random_seed; // 0x00719cd4
 
+// VERIFIED against disassembly 0x44ced0..0x44cf76 (2026-09-30); fixed: the sequence range test is a SIGNED compare (a
+//   huge/negative count rerolls instead of indexing the table) and the random scale ends in a logical shift.
 // Advances to the next frame of the current bitmap sequence, and once the sequence or frame runs
 // past the end of the Bitmap's sequence table, rerolls a new random sequence within
 // Contrail.first_sequence_index/sequence_count and resets frame_index to 0.
@@ -35,7 +37,7 @@ void contrail_next_sequence(contrail *self)
     sequence_index = self->sequence_index;
     self->animation_timer = 0.0f;
 
-    if (sequence_index >= 0 && (uint32_t)(int32_t)sequence_index < bitmap->bitmap_group_sequence.count &&
+    if (sequence_index >= 0 && (int32_t)sequence_index < (int32_t)bitmap->bitmap_group_sequence.count && // 0x44cf17: signed jge
         self->frame_index >= 0 &&
         self->frame_index < (int16_t)sequences[sequence_index].bitmap_count) {
         return;
@@ -45,8 +47,9 @@ void contrail_next_sequence(contrail *self)
         int16_t first = tag->first_sequence_index;
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        self->sequence_index = (int16_t)(((int16_t)(tag->sequence_count + first) - first) *
-            (int32_t)(effect_random_seed >> k_random_value_shift) >> 16) + first;
+        // 0x44cf5f..0x44cf68: signed imul, then a LOGICAL shr 16
+        self->sequence_index = (int16_t)((((uint32_t)(int32_t)(((int16_t)(tag->sequence_count + first) - first) *
+            (int32_t)(effect_random_seed >> k_random_value_shift))) >> 16) + first);
         self->frame_index = 0;
     }
 }

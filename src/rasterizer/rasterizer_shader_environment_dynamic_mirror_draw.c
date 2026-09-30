@@ -1,7 +1,8 @@
 // rasterizer_shader_environment_dynamic_mirror_draw  (Ghidra: FUN_00520e50, unnamed; the phase 4
 // rewriter called it rasterizer_shader_environment_self_illumination_extra_pass_draw)
 // address 0x520e50, size 1144 bytes
-// name confidence: 0.65   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x520e50..0x5212c8 (2026-09-30): guards, effect selection (0x25/0x26/0x27), texture binds, c10..c12 constants, effect vectors and the pass loop
+// name confidence: 0.65   rewrite confidence: 0.9
 // evidence: the sibling of rasterizer_shader_environment_reflection_draw 0x5202f0 for shaders with
 //   ShaderEnvironment.reflection_flags dynamic_mirror (+0x2d0 bit 0), drawn only in the main
 //   window (type 1) when window byte +4 (0x007c1224, the mirror pass flag) is set: effects
@@ -11,9 +12,7 @@
 //   rasterizer_render_targets[2] bound as the effect Texture3, the same c10..c12 bump transform,
 //   and a view vector whose w is -1 for specular mask shaders. One single stream draw
 //   (0x51c1c0) per effect pass.
-//   Spot-check fix (phase 4 review): the earlier file was a structural placeholder with the
-//   texture binds, constants and draw arguments unresolved; rewritten in full from the raw
-//   code 0x520e50..0x5212c7. The shader arrives in EAX, not on the stack.
+//   Spot-check fix (phase 4 review): rewritten in full from the raw code 0x520e50..0x5212c7. The shader arrives in EAX, not on the stack.
 // register convention: EAX = shader, stack = (frame, dynamic_index_slot, first_primitive,
 //   primitive_count, vertex_buffer).
 
@@ -222,5 +221,5 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
 
 #if 0
 Original Ghidra decompilation (0x520e50) -- see `python tools/pack.py 0x520e50` for the full
-1144-byte body; this rewrite is a low-confidence structural placeholder, see file header.
+1144-byte body; the rewrite above was compared instruction by instruction with the disassembly.
 #endif

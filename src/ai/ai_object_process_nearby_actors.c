@@ -2,7 +2,7 @@
 //   ai_go_to_vehicle_override, hs evaluators 0x47d9d0 / 0x47da20)
 // address 0x433cc0, size 335 bytes
 // name confidence: 0.2   rewrite confidence: 0.9
-// REWRITTEN from objdump 0x433cc0..0x433e1b (the draft took the ai reference from the stack and passed the
+// VERIFIED against disassembly 0x433cc0..0x433e1b (2026-09-30); rewritten from it (the draft took the ai reference from the stack and passed the
 //   seat search the wrong object). EAX: the packed ai reference (-1 = nothing); stack (vehicle, seat name,
 //   allow actors already boarding). For a biped or vehicle, the seats matching the name (any flags, at most 16)
 //   are collected (0x56a310); the referenced actors (at most 0x40) are sorted by (already boarding, distance to

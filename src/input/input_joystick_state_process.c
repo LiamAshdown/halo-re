@@ -19,6 +19,8 @@
 #include "saved_games.h"
 #include "input.h"
 
+// VERIFIED against disassembly 0x491fd0..0x49213f (2026-09-30): button saturation, the pov threshold cascade (negative or
+//   0xffff low word -> none, >= 0x83d6 -> north), axis copy and all three loop counts (+0x238/+0x23c/+0x234) match.
 // blam-cc: input_device in EBX
 // Normalizes a raw joystick sample (raw) into the engine's joystick_state (dest), for the axis
 // count, button count, and POV count that device reports: button hold-frame counters (saturating

@@ -1,6 +1,7 @@
 // weapon_ready  (Ghidra: FUN_004c2840; named from out/phase4/items_functions.md, "Starts an
 // item's action animation/sound (e.g. ready/deploy) and its associated cooldown timer")
 // address 0x4c2840, size 161 bytes
+// VERIFIED against disassembly 0x4c2840..0x4c28e1 (2026-09-30)
 // name confidence: 0.35   rewrite confidence: 0.85
 // evidence: types/items.h weapon_data.action_ticks (0x23a; seeded from
 //   weapon_get_first_person_animation_time(0,-1) per the weapon_data comment block);
@@ -23,7 +24,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void weapon_reset_triggers(datum_index item_index); // 0x4c4b50
 extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force); // 0x4c5670
-extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature
+extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module; stack arg = item index (verified at 0x4c2881)
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action); // 0x4940f0
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, EBX, EAX
 extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a,

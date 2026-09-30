@@ -7,8 +7,9 @@
 // evidence: types/objects.h light_transient (every field) and its global table at 0x008609cc,
 // k_maximum_transient_lights (8), light_transient_count (0x00860b0c); render_window_index is the same
 // unresolved byte used by object_lights_update_all.c's queue path.
-// UNSURE: vector3d_pack_normal_11_11_10 is called twice with zero visible arguments and its results are stored
-// into light_transient.unknown_10/unknown_14; what it actually computes is not established.
+// VERIFIED against disassembly 0x4f1600..0x4f16fc (2026-09-30): vector3d_pack_normal_11_11_10 takes its vector in ESI; it is
+// called with the two stack arguments after the position (the light's forward and up vectors); the intensity byte is a plain
+// fistp of intensity * 255.0 (round to nearest), not "+ 0.5 and truncate".
 // register convention: datum_index light_tag in EAX (in_EAX); real_vector3d *color in EDX
 // (in_EDX); real_point3d *position on the stack (param_1); two undefined4 values on the stack
 // (param_2/param_3, forwarded to vector3d_pack_normal_11_11_10 — UNSURE how); float intensity on the stack
@@ -24,8 +25,9 @@
 extern int16_t light_transient_count;        // 0x00860b0c
 extern light_transient light_transient_table[k_maximum_transient_lights]; // 0x008609cc
 extern tag_instance *tag_instances;           // 0x0087bc14
-extern uint8_t render_window_index;                  // UNSURE: not owned by this module
+extern uint8_t render_window_index;                  // 0x007c310a (low byte), owned by src/render
 
+extern int32_t fistp_round(float x); // harness/x87_shims.c
 extern uint32_t color_real_to_argb_pack(float alpha, real_vector3d *color); // 0x44da60
 extern uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction); // 0x5132d0, ESI
 
@@ -37,7 +39,7 @@ void light_transient_add(datum_index light_tag, real_vector3d *color, real_point
         light_transient *slot = &light_transient_table[light_transient_count];
 
         slot->color = color_real_to_argb_pack(1.0f, color);
-        slot->intensity = (uint8_t)(int32_t)(intensity * 255.0f + 0.5f); // UNSURE: ROUND()
+        slot->intensity = (uint8_t)fistp_round(intensity * 255.0f); // fistp (0x4f1686)
         slot->definition = tag_instances[light_tag & 0xffff].data;
         slot->position = *position;
         // 0x4f16a4: ESI = the second and third stack arguments (the light's forward and up)

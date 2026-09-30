@@ -23,14 +23,13 @@
 //   parameters (`antenna_object_compute_vertex_forces(uint *param_1, int param_2, undefined4
 //   *param_3, float *param_4, float *param_5)`), confirmed as (context, powered_states,
 //   out_mass_points, out_force, out_torque) by object_physics_tick's own call site.
-// UNSURE (major): the float10 (x87 80-bit extended) arithmetic throughout the antigrav-adjusted
-//   friction and antigrav-lift blocks is narrowed to plain float here; this changes rounding
-//   only, not the formula. UNSURE: pfVar11 (Ghidra's "high 32 bits of FUN_005013a0's 64-bit
-//   return") is really just &mass_point->position, a leftover register value unrelated to that
-//   call's actual (32-bit) result; this rewrite drops the bogus 64-bit split. UNSURE:
-//   matrix4x3_multiply is invoked indirectly through the function-pointer global
-//   PTR_matrix4x3_multiply_00696664 rather than called directly; this rewrite calls it directly,
-//   which is observationally identical unless something else in the game retargets that pointer.
+// VERIFIED against disassembly 0x507cc0..0x508a0a (2026-09-30), every block compared instruction by instruction
+//   (gravity seed, powered/plain basis, leaf lookup, offset/velocity, material scales, ground normal + friction incl. the
+//   powered friction push, water depth/buoyancy/friction/lift, air friction/lift, at-rest / contact flags, thrust,
+//   antigrav probe, total force/torque, accumulate). FIXED: the cluster lookup did not mask the leaf index with
+//   0x7fffffff (0x507f5a). Remaining notes: the x87 extended-precision intermediates are narrowed to float here
+//   (rounding only, not the formula); Ghidra's "64-bit return" of bsp3d_node_find_leaf is really a leftover register;
+//   matrix4x3_multiply is called through the function-pointer global at 0x696664 in the binary and directly here.
 // reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
@@ -154,7 +153,7 @@ void object_physics_compute_mass_point_forces(object_physics_context *context,
 
         mp->leaf_index = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster; // 0x507f5a: and eax,0x7fffffff
 
         offset.i = mp->position_x - obj->position.x;
         offset.j = mp->position_y - obj->position.y;

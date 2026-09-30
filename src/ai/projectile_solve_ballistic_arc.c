@@ -41,6 +41,10 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math 
 extern const real_vector3d *global_up3d_pointer; // 0x00696720 == 0x0065c224 (types/math.h)
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
+// VERIFIED (logic) against disassembly 0x4beb30..0x4bee17 (2026-09-30): every branch, constant, stack argument slot and
+//   output store was traced through the x87 stack and matches. STILL-UNSURE: the original keeps intermediates in 80-bit
+//   registers (gravity, shallow_speed, discriminant are never rounded between operations), the C rounds each to float,
+//   so tiny gravity scales can differ (underflow of gravity^2 -> NaN) even though the algorithm is identical.
 // Solves a gravity-arc firing solution from *origin to *target: gravity is
 // k_physics_gravity * gravity_scale (clamped to >= 0), the launch speed is capped by
 // speed_limit (or by *max_speed_override when non-NULL, which also skips the max_time-derived
@@ -56,57 +60,69 @@ uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origi
     real *out_time_of_flight, real *out_range, real *out_half_gravity_term,
     real *out_horizontal_speed)
 {
+    // x87 dataflow (0x4beb30..0x4bee17): every `fst/fstp dword` below rounds to float (real), everything else stays in an
+    // 80-bit register, modelled with double. This matters: the root2 step subtracts two nearly equal numbers
+    // (sqrt(a^2 - disc) vs a), which loses most of its digits if the intermediates are rounded to float.
     real dx, dy, dz;
-    real gravity, quarter_gravity_sq, distance_sq, discriminant;
-    real shallow_time, shallow_speed, dz_gravity;
-    real chosen_max, t, vertical_velocity, inv_t;
+    real dxy2, qg, twoqg, distance_sq, disc, shallow_time, dzg, chosen_max, a, disc2, root2, t;
+    double g, d2, disc_ext, neg_root, shallow_speed_ext, dzg_ext, s_ext;
+    double inv_t, vertical_velocity_ext;
     real_vector3d dir;
     real length;
-    uint8_t used_root;
+    real horizontal_speed, vertical_velocity;
+    uint8_t used_root = 1;
 
     dx = target->x - origin->x;
-    used_root = 1;
     dy = target->y - origin->y;
     dz = target->z - origin->z;
+    dxy2 = (real)((double)dy * dy + (double)dx * dx);                   // 0x4beb57..0x4beb69 -> [esp+0x1c]
 
-    gravity = k_physics_gravity * gravity_scale;
-    if (gravity < 0.0f) {
-        gravity = 0.0f;
+    g = (double)k_physics_gravity * (double)gravity_scale;             // 0x4beb6d: stays in st(0)
+    if (g < 0.0) {
+        g = 0.0;
     }
-    quarter_gravity_sq = gravity * gravity * 0.25f;
-    distance_sq = dz * dz + (dy * dy + dx * dx); // x87 order, 0x4beb57..0x4beba4
-    discriminant = distance_sq * quarter_gravity_sq * 4.0f;
-    shallow_speed = -(real)sqrt((double)discriminant);
-    shallow_time = (real)sqrt((double)((-1.0f / (quarter_gravity_sq + quarter_gravity_sq)) * shallow_speed));
-    dz_gravity = gravity * dz;
-    shallow_speed = dz_gravity - shallow_speed;
-    if (shallow_speed < 0.0f) {            // `test ah,5; jp`: a NaN takes the sqrt branch
-        shallow_speed = 0.0f;
+    qg = (real)(g * g * 0.25);                                         // 0x4beb8e..0x4beb98 -> [esp+8]
+    d2 = (double)dz * dz + (double)dxy2;                               // 0x4beb9c..0x4bebba
+    distance_sq = (real)d2;                                            // [esp+0x10]
+    disc_ext = d2 * (double)qg * 4.0;
+    disc = (real)disc_ext;                                             // [esp+0x14]
+    neg_root = -sqrt(disc_ext);                                        // fsqrt; fchs
+    twoqg = qg + qg;                                                   // [esp+0x18]
+    shallow_time = (real)sqrt((-1.0 / (double)twoqg) * neg_root);      // 0x4bebc8..0x4bebd6 -> [esp+0x1c]
+    dzg_ext = g * (double)dz;
+    dzg = (real)dzg_ext;                                               // [esp+0xc]
+    s_ext = dzg_ext - neg_root;
+    shallow_speed_ext = (s_ext < 0.0) ? 0.0 : sqrt(s_ext);             // `test ah,5; jp`: NaN takes the sqrt
+
+    if (max_speed_override != (real *)0) {
+        chosen_max = *max_speed_override;
     } else {
-        shallow_speed = (real)sqrt((double)shallow_speed);
-    }
-
-    if (max_speed_override == (real *)0) {
         chosen_max = speed_limit;
         if ((max_time != (real *)0) && (0.0f < *max_time)) {
-            real scaled = shallow_time * *max_time;
-            real scaled_sq = scaled * scaled;
-            real candidate = (real)sqrt((double)(dz_gravity - -(scaled_sq * quarter_gravity_sq + distance_sq / scaled_sq)));
-            if (candidate < speed_limit) {
-                chosen_max = candidate;
+            double scaled = (double)shallow_time * (double)*max_time;
+            double scaled_sq = scaled * scaled;
+            double sum = scaled_sq * (double)qg + (double)distance_sq / scaled_sq;
+            double candidate = sqrt((double)dzg + sum);
+
+            if ((double)speed_limit > candidate) {
+                chosen_max = (real)candidate;                          // 0x4bec55
             }
         }
-    } else {
-        chosen_max = *max_speed_override;
     }
 
-    if (shallow_speed <= chosen_max) {
-        real a = dz_gravity - chosen_max * chosen_max;
-        real disc2 = a * a - discriminant;
+    // 0x4bec5d: proceed only when chosen_max >= shallow_speed
+    if (!((double)chosen_max < shallow_speed_ext)) {
+        double a_ext = (double)dzg - (double)chosen_max * (double)chosen_max;
+        double disc2_ext;
+
+        a = (real)a_ext;                                               // 0x4bec7a -> [esp+0x3c]
+        disc2_ext = a_ext * (double)a - (double)disc;                  // fmul (unrounded a_ext) * a; fsub disc
+        disc2 = (real)disc2_ext;                                       // 0x4bec86 -> [esp+0x14]
         if ((a < 0.0f) && (0.0f <= disc2)) {
-            real root2 = ((real)sqrt((double)disc2) * (real)((int)((use_high_arc != 0) * 2) - 1) - a) /
-                         (quarter_gravity_sq + quarter_gravity_sq);
-            if (0.0f < root2) {
+            double root2_ext = (sqrt((double)disc2) * (double)(int)((use_high_arc != 0) * 2 - 1) - (double)a) / (double)twoqg;
+
+            root2 = (real)root2_ext;                                   // 0x4becd1
+            if (root2_ext > 0.0) {
                 t = (real)sqrt((double)root2);
                 goto have_root;
             }
@@ -114,14 +130,16 @@ uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origi
     }
     used_root = 0;
     t = shallow_time;
-    chosen_max = shallow_speed;
+    chosen_max = (real)shallow_speed_ext;                              // 0x4becf4
 
 have_root:
-    inv_t = 1.0f / t;
-    dir.i = dx * inv_t;
-    dir.j = dy * inv_t;
-    vertical_velocity = t * gravity * 0.5f + inv_t * dz;
-    dir.k = vertical_velocity;
+    inv_t = 1.0 / (double)t;
+    dir.i = (real)((double)dx * inv_t);
+    dir.j = (real)((double)dy * inv_t);
+    vertical_velocity_ext = inv_t * (double)dz + (double)t * g * 0.5;
+    dir.k = (real)vertical_velocity_ext;
+    vertical_velocity = (real)vertical_velocity_ext;
+    horizontal_speed = (real)sqrt((double)dir.j * dir.j + (double)dir.i * dir.i); // 0x4bed38..0x4bed4a, before the normalise
 
     length = vector3d_normalize_with_length(&dir);
     if (length == 0.0f) {
@@ -141,7 +159,7 @@ have_root:
     out_direction->k = dir.k;
 
     if (out_range != (real *)0) {
-        *out_range = t * chosen_max;
+        *out_range = (real)((double)t * (double)chosen_max);
     }
     if (out_speed != (real *)0) {
         *out_speed = chosen_max;
@@ -150,7 +168,7 @@ have_root:
         *out_half_gravity_term = vertical_velocity;
     }
     if (out_horizontal_speed != (real *)0) {
-        *out_horizontal_speed = (real)sqrt((double)(dx * inv_t * (dx * inv_t) + dy * inv_t * (dy * inv_t)));
+        *out_horizontal_speed = horizontal_speed;
     }
     if (out_time_of_flight != (real *)0) {
         *out_time_of_flight = t;

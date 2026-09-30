@@ -1,6 +1,6 @@
 // camera_observer_target_score  (Ghidra: FUN_00459b10; renamed per symbols/review_queue.txt)
 // address 0x459b10, size 419 bytes
-// name confidence: 0.3   rewrite confidence: 0.85
+// name confidence: 0.3   rewrite confidence: 0.95
 // evidence: types/game.h observer_target_candidate / observer_target_cone; the acos operand and
 //   the EAX/EBX aliasing below were read directly out of the disassembly
 //   (objdump -d -M intel --start-address=0x459b10 --stop-address=0x459cb0 bin/halo.exe), because
@@ -12,17 +12,10 @@
 //   read by this function and is not modelled here.
 //   // blam-cc: EAX -> cone, ECX -> object, ESI -> out, stack -> reference_position
 //
-// UNSURE: the disassembly proves the dot product feeding acos is
-//   direction.i*cone->angle_a + direction.j*cone->distance_a + direction.k*cone->angle_b --
-//   i.e. it reads the cone's angle/distance bounds as if they were a 3-component vector. This
-//   looks like a deliberate reuse of the same 16-byte buffer for two purposes rather than a
-//   transcription mistake (it is symmetric with the falloff weights computed just below, which
-//   read the very same four floats as angle_a/distance_a/angle_b/distance_b), but the intent is
-//   not otherwise documented; preserved exactly as observed.
-// UNSURE: the secondary-weight multiplier read through global_globals+0x114+8 could not be
-//   pinned to a named field of GlobalsPlayerInformation (types/tags.h); its own layout puts a
-//   TagDependency, not a float, at that offset. RESOLVED in the phase 4 review: it is
-//   Globals::player_control.pointer -> GlobalsPlayerControl::inconsequential_target_scale.
+// The angle is acos(dot(direction, facing)), clamped to [-1, 1], where `facing` is the vector in EAX/EBX (0x459b77..0x459b79);
+// the cone's angle_a/distance_a/angle_b/distance_b are the falloff bounds (offsets 0/4/8/0xc) fed to distance_falloff_fraction.
+// The secondary-weight multiplier read through global_globals+0x114+8 is Globals::player_control.pointer ->
+// GlobalsPlayerControl::inconsequential_target_scale.
 
 #include "tags.h"
 #include "memory.h"
@@ -42,8 +35,7 @@ extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vecto
 
 // Fills in one observer_target_candidate: the closest point on the target's look ray to
 // `reference_position` (via vector3d_closest_point_on_segment), the offset/direction/distance
-// from that point, the angle formed against the cone's own bounds treated as a vector (see
-// header UNSURE note), and the two falloff-weighted scores. Returns 1 when either weight is
+// from that point, the angle between that direction and `facing`, and the two falloff-weighted scores. Returns 1 when either weight is
 // positive.
 // REWRITTEN 2026-09-27 (static loop) from objdump 0x459b10..0x459cb2: EAX is the FACING vector (EBX: the
 // closest-point aux vector and the angle's dot product), the stack carries (cone, reference_position). The draft
@@ -58,10 +50,7 @@ uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_con
     Unit *target_tag;
 
     out->object = target;
-    // UNSURE: threads this function's own `cone` argument through as vector3d_closest_point_
-    // on_segment's `aux_vector`/`nudge_clamp_length`, matching the live EBX/[esp] values at this
-    // call site in the disassembly (see that file's header); the clamp bound itself is not
-    // otherwise named.
+    // 0x459b21: ECX = target, EBX = facing, stack (reference_position, &out->point)
     vector3d_closest_point_on_segment(target, facing, reference_position, &out->point);
 
     out->offset.i = out->point.x - reference_position->x;

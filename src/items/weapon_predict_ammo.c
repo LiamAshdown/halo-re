@@ -2,6 +2,7 @@
 // block: "predicted_rounds_*. FUN_004c3530 writes 0x2d4 + i*2 and 0x2d8 + i*2 from an incoming
 // message and sets flag 0x08")
 // address 0x4c3530, size 121 bytes
+// VERIFIED against disassembly 0x4c3530..0x4c35a9 (2026-09-30)
 // name confidence: 0.5   rewrite confidence: 0.8
 // evidence: network message dispatch case 0x2b (k_message_weapon_reload_begin); types/items.h
 //   weapon_magazine_ammo_message (the 0xc-byte stack buffer, `sub esp,0xc` at 0x4c3534),

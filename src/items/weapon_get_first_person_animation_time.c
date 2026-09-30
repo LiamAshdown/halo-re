@@ -4,6 +4,7 @@
 // that address is one of the shell/main fragments and is not a real function; this is the
 // genuine owner)
 // address 0x4c2f80, size 225 bytes
+// VERIFIED against disassembly 0x4c2f80..0x4c3061 (2026-09-30)
 // name confidence: 0.45   rewrite confidence: 0.85
 // evidence: types/tags.h Weapon.first_person_animations (tag_id 0x478), ModelAnimations
 //   .first_person_weapons (TagReflexive 0x48) and .animations (TagReflexive 0x74),

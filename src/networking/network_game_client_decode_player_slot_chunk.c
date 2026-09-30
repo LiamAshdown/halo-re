@@ -21,6 +21,7 @@
 // group, body, record + 2, out_type, out_version_used, expected class), not 8 (the extra one made the class 0);
 // network_disconnect_notify_dropped_machines gets the client (EBX).
 
+// VERIFIED against disassembly 0x4dc2e0..0x4dc397 (2026-09-30): sender check, state 2/3/4 gate (trailing state==4 test is unreachable in the binary too), decode args (remaining in EAX, class 4), apply(client, body+0x20, EBX body), notify_dropped(EBX client)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

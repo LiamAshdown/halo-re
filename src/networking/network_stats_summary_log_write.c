@@ -6,14 +6,15 @@
 // (network_stats_summary_log_open.c) that follow "Map" -- that column is written by this
 // function's caller, not here.
 // register convention: __cdecl, no arguments.
-// UNSURE: Ghidra's decompile shows the first fprintf call ("%f\t" for the "Length (seconds)"
-// column) with eight extra trailing arguments (fVar4, fVar2, fVar5, fVar6, fVar7, fVar8,
-// fVar9, fVar10) that duplicate values the next eight individually-shown fprintf calls
-// already print on their own with matching formats; keeping both would print 15 values for a
-// 14-column, one-"%f\t"-per-call log row. Treated as a decompiler call-folding artifact and
-// not reproduced -- each value is written exactly once, in column order.
+// Ghidra's "eight extra trailing arguments" on the first fprintf are stack residue: the
+// disassembly shows exactly fourteen fprintf calls with one value each, in the column order used
+// here (elapsed s, avg players, packets sent/recv (%d), pkts/s sent/recv, bytes sent/recv (%d),
+// bytes/s sent/recv, kbits-style per-player rates x8, bytes per packet sent/recv), then fflush.
+// Only rounding differs: the original keeps E = elapsed*0.001 and 1/E in x87 registers instead of
+// rounding them to float; the intermediate float stores (avg, rates, per-packet) match.
 // reconciled: R01 0x0087ac06 int16 network_statistics_level -> uint8 debug_log_level (the binary reads a byte)
 
+// VERIFIED against disassembly 0x440820..0x440a7d (2026-09-30): gate (level>=3, enabled, file open), x87 sequence, all 14 format strings and column order
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"

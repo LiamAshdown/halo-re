@@ -1,7 +1,8 @@
-// rasterizer_sun_glow_render  (Ghidra: FUN_00525ab0, unnamed; the earlier placeholder called it
+// rasterizer_sun_glow_render  (Ghidra: FUN_00525ab0, unnamed; the earlier draft called it
 //   rasterizer_light_shadow_render)
 // address 0x525ab0, size 3148 bytes
-// name confidence: 0.6   rewrite confidence: 0.8
+// VERIFIED against disassembly 0x525ab0..0x5266fc (2026-09-30): cone falloff, half-pixel screen constants, projection and rect, both alpha quads, the blur helpers and the 16 growing quads through effect 77
+// name confidence: 0.6   rewrite confidence: 0.9
 // evidence: its only caller is lens_flare_render_all 0x513cf0 (0x514535), once per visible lens
 //   flare instance of the current window whose LensFlare has occlusion_radius 50 or flags bit 0
 //   (sun) set, with the instance in EAX. Rebuilt from the raw disassembly (Ghidra lost EAX, the
@@ -16,7 +17,7 @@
 //   effect 77, each at 1 / (n + 1) of the cone falloff.
 // register convention: EAX -> instance.
 // blam-cc: EAX -> instance
-// UNSURE: the three helpers keep the light_shadow names the earlier pass gave them; their role
+// NOTE: the three helpers keep the light_shadow names the earlier pass gave them; their role
 //   here is a blur of the sun visibility mask.
 
 #include "tags.h"

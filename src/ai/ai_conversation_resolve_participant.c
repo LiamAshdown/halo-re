@@ -16,21 +16,16 @@
 // blam-cc: EAX -> conversation_index, stack -> participant_index, out_resolved,
 //          out_wants_alternate, out_blocked_by_player, inout_minimum_distance
 //
-// UNSURE, substantially:
-//  - `goto LAB_00431850` in Ghidra's decompile is the loop's *advance* step (fetch the next
-//    candidate), not an early exit; every `continue` below is one of those. Getting this
-//    wrong would turn the whole candidate scan into a single-pass test.
-//  - The `bVar7` (fixed-object) path deliberately clears its own cursor to -1 after its one
-//    candidate so the next advance yields nothing; that single-shot behaviour is preserved.
-//  - ScenarioAIConversationParticipant.selection_type's case values (0/2/3/4/6/7) are
-//    handled exactly as the original switch does; the tag enum names them but the image
-//    carries no strings, so the case bodies are commented by effect only.
-//  - Ghidra invents two enormous phantom stack arrays (afStackY_60060 / asStackY_10084) for
-//    this function; they are decompiler artifacts of the switch and do not exist.
-//  - teams_are_enemies is this repo's `teams_are_enemies` (0x45bd50, CX/DX); Ghidra shows it with
-//    no arguments here, so the two teams passed are a guess.
-//  - actor+0x161 and the candidate's "already chosen by another participant" scan are
-//    transcribed literally.
+// VERIFIED against disassembly 0x431680..0x431cdf (2026-09-30), after FIXED items: teams_are_enemies takes ECX = the player's
+// team and EDX = the candidate's team (they were passed the other way round), and the squared-distance terms are summed in the
+// x87 order dz, dy, dx. Notes confirmed by the disassembly:
+//  - `goto LAB_00431850` in Ghidra's decompile is the loop's *advance* step (fetch the next candidate), not an early exit;
+//    every `continue` below is one of those.
+//  - The fixed-object path clears its own cursor to -1 after its one candidate so the next advance yields nothing.
+//  - selection_type's case values (0/2/3/4/6/7) follow the jump table at 0x431ce8 (0 and 6 share the enemy check, 4 and 7 the
+//    counts-toward-encounter bonus, 1 and 5 are the default).
+//  - Ghidra's two phantom stack arrays are decompiler artifacts.
+//  - actor+0x161 and the candidate's "already chosen by another participant" scan are transcribed literally.
 
 #include "tags.h"
 #include "memory.h"
@@ -59,7 +54,7 @@ extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sigh
                                                     datum_index *out_player_object_index,
                                                     float *out_distance,
                                                     datum_index object_index); // 0x4303f0
-extern int8_t teams_are_enemies(int16_t a, int16_t b); // 0x45bd50, CX/DX; UNSURE args here
+extern int8_t teams_are_enemies(int16_t a, int16_t b); // 0x45bd50, blam-cc: ECX -> a, EDX -> b (table lookup [b][a])
 
 // blam-cc: EAX -> conversation_index, stack -> participant_index, out_resolved,
 //          out_wants_alternate, out_blocked_by_player, inout_minimum_distance
@@ -263,9 +258,10 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
             case 0:
             case 6:
                 // Any friendly actor: reject when the player is an enemy of it.
+                // FIXED (0x431a08..0x431a13): CX = the player's team (object +0xb8), DX = the candidate's team (actor +0x3e).
                 if (player_object != 0 &&
-                    teams_are_enemies(candidate->team,
-                                      ((struct object *)player_object)->owner_team) != 0) {
+                    teams_are_enemies(((struct object *)player_object)->owner_team,
+                                      candidate->team) != 0) {
                     continue;
                 }
                 break;
@@ -308,7 +304,7 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
                     dx = positions[i * 3 + 0] - candidate->body_position.x;
                     dy = positions[i * 3 + 1] - candidate->body_position.y;
                     dz = positions[i * 3 + 2] - candidate->body_position.z;
-                    dx = dx * dx + dy * dy + dz * dz;
+                    dx = dz * dz + dy * dy + dx * dx; // x87 term order (0x431aea..0x431afa)
                     if (dx < nearest) {
                         nearest = dx;
                     }
@@ -382,9 +378,8 @@ have_variant:
     if ((participant->flags & 2) == 0) {
         goto report;
     }
-    out_resolved = out_wants_alternate;
-    if (out_resolved != 0) {
-        *out_resolved = 1;
+    if (out_wants_alternate != 0) {
+        *out_wants_alternate = 1;
     }
     goto report;
 

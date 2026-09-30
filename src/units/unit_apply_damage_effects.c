@@ -21,6 +21,9 @@
 //   globals +0x174 block's +0x8c and +0x90, times 30) in multiplayer or on a dedicated server. Finally a local
 //   kill or knock-down releases transient state (0x568610) and a killed authoritative unit (role 0) broadcasts
 //   the record (0x566c00), leaves the network index cache and becomes role 3.
+// VERIFIED (ftol operands only) against disassembly 0x5674a0..0x56811e (2026-09-30): the four __ftol calls (0x56767f
+//   max(1, (random + tag+0x230) * 30), 0x568048 effect+0x28 * 30, 0x56805c and 0x56806f shake +0x8c / +0x90 * 30)
+//   match the operands written below. The rest of the body was not re-compared instruction by instruction.
 // blam-cc: stack=(unit_index, dd, notify_flags, shield_damage, body_damage, region_index, is_local)
 
 #include "tags.h"

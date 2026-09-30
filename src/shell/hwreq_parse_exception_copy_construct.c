@@ -16,6 +16,7 @@
 // UNSURE: `exception::exception(this, other)` (0x627dd2, the Dinkumware base-class copy
 //   constructor) and FUN_0057b830 (string::assign) are opaque externs, not rewritten here.
 
+// VERIFIED against disassembly 0x57bc20..0x57bc85 (2026-09-30): returns this (mov eax,esi; ret 4)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -34,7 +35,7 @@ extern void exception_copy_construct(hwreq_parse_exception *this, const hwreq_pa
 extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
-void hwreq_parse_exception_copy_construct(hwreq_parse_exception *this, const hwreq_parse_exception *other)
+hwreq_parse_exception *hwreq_parse_exception_copy_construct(hwreq_parse_exception *this, const hwreq_parse_exception *other)
 {
     exception_copy_construct(this, other); // UNSURE: opaque base-class copy constructor
     this->vtable = (uint32_t)&logic_error_vtable;
@@ -42,6 +43,7 @@ void hwreq_parse_exception_copy_construct(hwreq_parse_exception *this, const hwr
     this->message.size = 0;
     this->message.buffer.inline_buffer[0] = 0;
     string_assign_substr(&this->message, &other->message, 0, 0xffffffff);
+    return this;
 }
 
 #if 0

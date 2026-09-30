@@ -2,6 +2,9 @@
 //   own summary in out/phase4/effects_functions.md: "Dispatches a particle's impact response,
 //   spawning an effect or playing a sound depending on the referenced tag's group")
 // address 0x4565a0, size 326 bytes
+// VERIFIED against disassembly 0x4565a0..0x4566e6 (2026-09-30). registers: EAX self, ECX fourcc, ESI
+//   definition_index, stack intensity; effect_new_with_color gets its 12 stack args and
+//   vector3d_normalize_with_length works on the local direction copy (0x456637)
 // name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN from objdump 0x4565a0..0x4566e5)
 // evidence: types/cache.h tag_instance.group_tag; src/items/weapon_play_trigger_tag_effect.c and
 //   src/devices/device_play_state_change_effect.c establish the same 0x65666665 ('effe') /
@@ -10,14 +13,6 @@
 //   recognized stack parameter (param_1) -- particle_update_motion 0x4561a0 passes a 0..1
 //   collision speed fraction here, particle_impact 0x456550 passes a literal 0.
 //   // blam-cc: in_ECX -> fourcc, stack -> intensity
-// UNSURE (heavily): Ghidra drops every other argument to both callees, including whatever
-//   position/bundle data they need -- neither call site shows anything besides the fourcc and
-//   this one float. `vector3d_normalize_with_length` is called with no visible operand at all
-//   (kept as a no-op placeholder call site is not possible in C, so it is omitted here rather
-//   than fabricated with a wrong vector), and effect_new_with_color 0x450980 -- a 10 parameter
-//   function -- is called with zero visible arguments; this rewrite calls it with every
-//   argument zeroed except the two scale factors (set from `intensity`), which is a guess, not
-//   evidence. sound_start_at_location's bundle pointer is likewise unrecoverable here and passed as NULL.
 
 #include "tags.h"
 #include "memory.h"

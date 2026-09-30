@@ -7,6 +7,7 @@
 // (only FUN_xxxxxx placeholders get renamed).
 // register convention: __cdecl, one recognized parameter.
 
+// VERIFIED against disassembly 0x4e37d0..0x4e3819 (2026-09-30): count reloaded from 0x6b85a0 each iteration, entry stride 0x38, _stricmp(entry+0xd,key)
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"

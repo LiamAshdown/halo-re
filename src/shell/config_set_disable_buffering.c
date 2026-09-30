@@ -11,6 +11,7 @@
 //   table-shape consistency but unread (this setter is a bare presence flag).
 // blam-cc: (value on the stack, unused).
 
+// VERIFIED against disassembly 0x57d110..0x57d11b (2026-09-30): single flag store, returns 1
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

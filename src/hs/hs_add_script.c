@@ -10,16 +10,13 @@
 // accepts a stub redefinition of an already-static script of the same type).
 // register convention: node_index is unrecognized by Ghidra (in_EAX); by the blam-cc
 // convention this is the first register slot, EAX.
-// UNSURE: the two string_table_index_of search-text arguments (script-type keyword, return-type
-// keyword) are not visible in Ghidra's decompile of this function (zero-argument calls,
-// register-passed); modeled as each keyword token's own source text, matching hs_add_global's
-// identical situation.
-// UNSURE: the byte-copy loop before the final success return
-// (`pcVar12[iVar8] = *pcVar12`) is read as copying the token's name text into the
-// ScenarioScript's own TagString name field (offset 0, `iVar2` is exactly `&existing_script->
-// name`) -- functionally a no-op since hs_script_find_by_name already matched this name
-// case-sensitively-ish, but preserved since it is what the bytes do.
-
+// The byte-copy loop before the final success return copies the token's name text into the ScenarioScript's own name
+// field (offset 0), as the bytes do.
+// RE-VERIFIED against disassembly 0x485d50..0x486113 (2026-09-30): string_table_index_of(EAX = keyword text, stack = count,
+// table) for the script type (5, 0x688b3c) and return type (0x31, 0x688a78); the stub-override, error texts/offsets (the
+// "couldn't allocate a syntax node" error sets no offset), node field writes and the hs_parse(new_root, return_type) call
+// all agree. (The "IS a stub" wording in the note below refers to the STUB script type, not to this rewrite.)
+//
 // VERIFIED: every branch, error message, error offset and node write below was checked
 // field by field against the full Ghidra decompile of 0x485d50, and the polarity of the
 // hs_parse result was confirmed against the retail bytes (this function's success path is

@@ -13,12 +13,16 @@
 // cmp [ecx+edx*1+0x34],-1" against the player handle in EDI. It is not a 32 MB offset.
 // Several float comparisons below use Ghidra's `(a < b) == (a == b)` idiom for an FPU flag test
 // that reduces to `a > b`; see game_engine_update_end_game_sequence.c for the derivation.
+// VERIFIED against disassembly 0x45ff30..0x4601f1 (2026-09-30). Fixed: the per-player callbacks/calls take the iterated
+//   player handle (the draft passed -1); player_kill_streak_set_max gets (0, player, 0xf); the inline medal-streak
+//   countdown (player +0xe0/+0xe4) Ghidra dropped is restored; 0x4df290 gets ESI = network_server.
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "networking.h"
 #include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -36,14 +40,17 @@ extern void game_engine_update_netgame_equipment(char force_respawn); // 0x45f9f
 extern void game_engine_player_profile_cache_sync_all(datum_index player_handle); // 0x466cb0, not in this batch
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
 extern void game_engine_clear_unit_shields_when_disabled(datum_index player_handle); // 0x45fd20, this batch
-extern void player_kill_streak_set_max(int32_t unknown); // 0x479ca0, not in this batch
+// blam-cc: EAX -> player_index, ESI -> value, stack -> slot
+extern void player_kill_streak_set_max(int16_t slot, uint32_t player_index, int16_t value); // 0x479ca0
 extern void game_engine_update_teleporter(datum_index player_handle); // 0x461630
 extern char game_engine_announce_time_remaining(void); // 0x45cae0, not in this batch
 extern void game_engine_begin_end_game_sequence(void); // 0x45fd90, this batch
 extern void sound_class_set_gain_by_name(const char *class_name, float gain, int32_t ticks); // 0x545390
 extern void game_engine_end_game_sequence_stage2(void); // 0x4670f0, not in this batch
 extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
-extern void network_server_advance_connect_state(void); // 0x4df290, not in this batch
+extern void network_server_advance_connect_state(network_server_globals *server); // 0x4df290, blam-cc: ESI -> server
+extern network_server_globals *network_server; // 0x0071c2d4
+extern int32_t sv_tk_cooldown_ticks; // 0x00699570
 
 extern char k_empty_string[]; // 0x0065512c, UNSURE exact contents (a sound class name)
 
@@ -84,14 +91,49 @@ void game_engine_tick(void)
                 ((game_engine_variant.flags & 0x10) != 0 ||
                  (current_game_engine->time_scale_override != 0 &&
                   ((char (*)(datum_index, int32_t))current_game_engine->time_scale_override)(
-                      (datum_index)0xffffffff, 1) != 0)) &&
+                      player_iter.index, 1) != 0)) &&
                 ((player *)player_element)->unit != k_datum_index_none) {
-                player_kill_streak_set_max(0);
+                player_kill_streak_set_max(0, player_iter.index, 0xf); // 0x46000e: push 0; esi = 0xf; eax = player
             }
 
-            game_engine_update_teleporter((datum_index)0xffffffff);
+            game_engine_update_teleporter(player_iter.index);
             if (current_game_engine->update != 0) {
-                ((void (*)(datum_index))current_game_engine->update)((datum_index)0xffffffff);
+                ((void (*)(datum_index))current_game_engine->update)(player_iter.index);
+            }
+
+            // 0x46003f..0x4600ed (Ghidra dropped it): count the multikill-medal streak down. A negative timer counts
+            // up to 0 and then rearms to sv_tk_cooldown_ticks; a positive one counts down and, at 0, drops one streak
+            // step and rearms only while the count is still nonzero.
+            {
+                datum_index handle = player_iter.index;
+                int16_t index = (int16_t)handle;
+                int16_t salt = (int16_t)((uint32_t)handle >> 16);
+
+                if (handle != (datum_index)0xffffffff && index >= 0 && index < player_data->maximum_count) {
+                    player *q = (player *)((uint8_t *)player_data->data + player_data->size * index);
+
+                    if (q->identifier != 0 && (salt == 0 || q->identifier == salt) && q->medal_streak_count != 0) {
+                        int32_t timer = q->medal_streak_timer;
+
+                        if (timer < 0) {
+                            q->medal_streak_timer = timer + 1;
+                            if (timer + 1 >= 0) {
+                                q->medal_streak_timer = sv_tk_cooldown_ticks;
+                            }
+                        } else if (timer > 0) {
+                            q->medal_streak_timer = timer - 1;
+                            if (timer - 1 <= 0) {
+                                int32_t count = q->medal_streak_count - 1;
+
+                                q->medal_streak_count = count;
+                                if (count < 0) {
+                                    q->medal_streak_count = 0;
+                                }
+                                q->medal_streak_timer = (q->medal_streak_count != 0) ? sv_tk_cooldown_ticks : 0;
+                            }
+                        }
+                    }
+                }
             }
 
             player_element = data_iterator_next(&player_iter);
@@ -119,7 +161,7 @@ void game_engine_tick(void)
         if (game_engine_end_game_timer <= 0.0f && network_game_mode == 2) {
             game_engine_end_game_sequence_stage2();
             game_engine_send_end_game_notification(2); // FIXED 2026-09-28: 0x4601bf loads EAX = 2
-            network_server_advance_connect_state();
+            network_server_advance_connect_state(network_server); // 0x4601c9: esi = [0x71c2d4]
         }
     }
 }

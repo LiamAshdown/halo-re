@@ -2,6 +2,8 @@
 //   section 5, which resolves this whole call family to the object Physics tag rather than the
 //   phase2 antenna_* guess)
 // address 0x507840, size 503 bytes
+// VERIFIED against disassembly 0x507840..0x507a37 (2026-09-30). matrix4x3_from_quaternion takes ECX = the entry's
+//   quaternion (+0x1c), EDX = its matrix (+0x2c); the integrate call takes the force in ECX (0x507a16..0x507a1a)
 // name confidence: 0.4   rewrite confidence: 0.9
 // evidence: types/physics.h section 5 ("0x00507840 picks [object_physics_tick_single_pass] when Physics.radius >
 //   0.0; the multi-mass-point path runs when the radius is 0 or less") and its
@@ -17,17 +19,6 @@
 //   parameters (`FUN_00507840(uint param_1, int param_2, undefined4 param_3, float *param_4,
 //   float *param_5)`). extraout_EDX (matrix4x3_from_quaternion's implicit result register) is
 //   the address of powered_mass_points[i].matrix_scale.
-// UNSURE (major): matrix4x3_from_quaternion is called with zero visible arguments. param_2 is
-//   confirmed as powered_mass_point_state* (not a quaternion array) by
-//   object_physics_compute_mass_point_forces' own use of it at stride 0x60 =
-//   sizeof(powered_mass_point_state), so the actual quaternion source here is some other,
-//   entirely hidden input this function's decompile never shows -- this rewrite calls
-//   matrix4x3_from_quaternion with a NULL placeholder rather than guess at it.
-// UNSURE: the final antenna_object_integrate_and_test_rest (0x5097e0, renamed
-//   object_physics_integrate_and_test_at_rest in this batch) call passes only &local_54 (the base
-//   of the contiguous {torque, force} accumulator this function builds); whether that callee
-//   really expects one combined 6-float pointer or something else is confirmed only by that
-//   function's own rewrite.
 // reconciled: R24 vehicle_data unknown_508..unknown_51c -> real_vector3d accumulated_force (+0x508) / accumulated_torque (+0x514); read through vehicle_data instead of raw offsets
 
 #include "tags.h"

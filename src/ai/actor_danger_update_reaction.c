@@ -1,7 +1,7 @@
 // actor_danger_update_reaction  (Ghidra: actor_danger_update_reaction, renamed)
 // address 0x41eda0, size 1533 bytes
 // name confidence: 0.45  rewrite confidence: 0.85
-// REWRITTEN from objdump 0x41eda0..0x41f39c (the draft called object_try_and_get, object_get_root_object_index,
+// VERIFIED against disassembly 0x41eda0..0x41f39c (2026-09-30); rewritten from it (the draft called object_try_and_get, object_get_root_object_index,
 //   actor_evaluate_engagement_reachability and the perception test without their arguments). Once per tick for the
 //   actor's registered danger (+0x280 kind 1..3, object +0x28c; a vanished object clears it):
 //   - geometry: position -> +0x2b0, velocity -> +0x2bc, end point 45 ticks on -> +0x2c8, midpoint -> +0x2dc,

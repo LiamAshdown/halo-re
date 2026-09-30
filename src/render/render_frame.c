@@ -2,6 +2,8 @@
 // and out/phase4/render_types_notes.md, which document this exact address throughout as
 // "render_frame 0x50bea0")
 // address 0x50bea0, size 269 bytes
+// VERIFIED against disassembly 0x50bea0..0x50bfad (2026-09-30). the disassembly does test the screenshot page pointer
+//   (0x50bf3c) before dereferencing it
 // name confidence: 0.6   rewrite confidence: 0.8
 // evidence: out/phase4/render_types_notes.md's register-conventions section: "EBX = screenshot
 //   index (Point2DInt*, never loaded inside the function), plus five stack arguments (views,
@@ -15,8 +17,6 @@
 // register convention: EBX = screenshot_tile (Point2DInt*, may be 0), stack = (views, count,
 //   screenshot_page [Point2DInt*, may be 0], time_since_tick, time_since_frame).
 //   // blam-cc: EBX=screenshot_tile, stack=(views, count, screenshot_page, time_since_tick, time_since_frame)
-// UNSURE: the third stack argument is dereferenced as a Point2DInt* here even though it is
-//   documented as "screenshot page index"; disassembly leaves no doubt (see below).
 
 #include "tags.h"
 #include "memory.h"

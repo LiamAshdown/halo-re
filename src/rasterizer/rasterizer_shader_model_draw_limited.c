@@ -1,7 +1,8 @@
-// rasterizer_shader_model_draw_limited  (Ghidra: FUN_00528be0, unnamed; the earlier placeholder
+// rasterizer_shader_model_draw_limited  (Ghidra: FUN_00528be0, unnamed; the earlier draft
 //   called it rasterizer_shader_environment_draw_limited)
 // address 0x528be0, size 1614 bytes
-// name confidence: 0.55   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x528be0..0x52922e (2026-09-30): z/decal/cull states, the change color and TFACTOR packing, the u/v animation matrix, the two draw paths (fog declaration 14 vs vertex shader 27 -> declaration 15) and the raster caps clean-up
+// name confidence: 0.55   rewrite confidence: 0.9
 // evidence: installed in 0x007c0474 by rasterizer_shader_environment_select_draw_functions
 //   0x52b630 when D3DCAPS9.MaxStreams <= 1, and called through it by
 //   rasterizer_shader_environment_draw_dispatch 0x52b050 for every shader type but 3. Every

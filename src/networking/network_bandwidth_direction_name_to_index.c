@@ -11,8 +11,8 @@
 // (0x0066c2f0, 0x0066c2e8) are not referenced by this function's decompiled body and are
 // omitted here.
 // register convention: the string to match arrives in EDI (unaff_EDI). // blam-cc: EDI -> name
-// UNSURE: none.
 
+// VERIFIED against disassembly 0x4d8a50..0x4d8a7c (2026-09-30): _stricmp(name, label[i]) over two labels, -1 if none
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"

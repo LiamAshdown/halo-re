@@ -19,6 +19,9 @@
 // value's own further meaning is resolvable without that caller's or the five per-type render
 // hooks' (0x4fb980 etc., not in this batch) own address ranges, so both are kept opaque.
 
+// VERIFIED against disassembly 0x4ffca0..0x4ffd0e (2026-09-30): hook (row +0x24, stride 0x28) called with (EDI, widget+4,
+//   stack arg, EBX) cdecl.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

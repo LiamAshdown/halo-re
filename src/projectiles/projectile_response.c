@@ -1,6 +1,10 @@
 // projectile_response  (Ghidra: FUN_004bf390; renamed per
 // out/phase4/projectiles_types_notes.md "Renames this pass establishes")
 // address 0x4bf390, size 3554 bytes
+// VERIFIED against disassembly 0x4bf390..0x4c0172 (2026-09-30). FIXED: the velocity fallback is the zero vector at
+//   0x696714 (not up), attach-on-structure sets hit_ground | at_rest (0x14), the detonation_started effect test is
+//   (!timer_started && (at_rest || attach)), the alignment / angle scores and speed / reflection sums follow the
+//   original rounding order
 // name confidence: 0.85   rewrite confidence: 0.65 (raised by the phase-4 verification pass, which re-derived
 //   this function from `objdump -d -M intel bin/halo.exe` rather than from the decompilation;
 //   the corrections it made are listed in src/projectiles/README.md)
@@ -194,10 +198,12 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         // 0x4bf600..0x4bf63e: `fld vn / fchs` keeps -vn, then `fld st(1) / fchs / fmulp`
         // multiplies the draw by +vn and `fadd st,st(1)` adds the -vn, i.e. a uniform draw over
         // [-velocity_noise, 0). An earlier rewrite of this file negated the multiplicand too.
-        alignment_score = ((response->velocity_noise * (real)(seed_step >> 0x10) * 1.5259022e-05f +
+        // 0x4bf624..0x4bf661: ((r * k) * vn + -vn) - n.k * v.k - n.j * v.j - n.i * v.i, k = the float constant 0x672b84
+        alignment_score = ((((real)(seed_step >> 0x10) * 1.5259022e-05f) * response->velocity_noise +
             -response->velocity_noise) - hit->plane.normal.k * velocity->k) - hit->plane.normal.j * velocity->j -
             hit->plane.normal.i * velocity->i;
-        angle_score = (real)((random_seed_global >> 0x10) * 1.5259022e-05 * (double)(angular_noise - -angular_noise) +
+        // 0x4bf68c..0x4bf6aa: ((noise - -noise) * (r2 * k) + -noise) + (angle - pi/2)
+        angle_score = ((angular_noise - -angular_noise) * ((real)((random_seed_global >> 0x10) & 0xffff) * 1.5259022e-05f) +
             -angular_noise) + (vector3d_angle_between_4cd4f0((real_vector3d *)&hit->plane.normal, (real_vector3d *)velocity) - 1.5707964f);
         // FIXED (0x4bf637..0x4bf675): ECX = &hit->plane.normal (+0x24), EDX = the velocity (ESI)
     }
@@ -282,7 +288,8 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
             if (tag->timer[1] == 0.0f) {
                 response_type = projectileresponse_detonate;
             } else {
-                pd->flags |= _projectile_hit_ground_bit | _projectile_detonation_timer_started_bit;
+                // 0x4bf9c2: `or [proj+0x22c], 0x14` = hit_ground (0x04) | at_rest (0x10)
+                pd->flags |= _projectile_hit_ground_bit | _projectile_at_rest_bit;
                 response_type = projectileresponse_attach;
             }
             goto fall_back_to_up_vector;
@@ -308,8 +315,8 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
         velocity->k = (1.0f - response->perpendicular_friction) * perpendicular_component.k -
             (1.0f - response->parallel_friction) * parallel_component.k;
     } else {
-    fall_back_to_up_vector:
-        *velocity = *global_up3d_pointer;
+    fall_back_to_up_vector: // 0x4bf9d1: the velocity becomes the zero vector at 0x696714 (not the up vector)
+        *velocity = *(real_vector3d *)global_origin3d_pointer;
     }
 
     if (response->angular_noise != 0.0f) {
@@ -336,7 +343,7 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
     }
 
     {
-        real speed_sq = velocity->k * velocity->k + velocity->j * velocity->j + velocity->i * velocity->i;
+        real speed_sq = (velocity->i * velocity->i + velocity->j * velocity->j) + velocity->k * velocity->k;
         if (response_type != projectileresponse_attach && speed_sq < tag->minimum_velocity * tag->minimum_velocity) {
             projectile_request_state(projectile_index, _projectile_state_detonating);
         }
@@ -378,7 +385,8 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
 
     {
         real_vector3d reflected;
-        real dot2 = 2.0f * (unit_velocity.i * hit->plane.normal.i + unit_velocity.j * hit->plane.normal.j + unit_velocity.k * hit->plane.normal.k);
+        real dot2 = 2.0f * ((unit_velocity.k * hit->plane.normal.k + unit_velocity.j * hit->plane.normal.j) +
+            unit_velocity.i * hit->plane.normal.i);
         reflected.i = unit_velocity.i - dot2 * hit->plane.normal.i;
         reflected.j = unit_velocity.j - dot2 * hit->plane.normal.j;
         reflected.k = unit_velocity.k - dot2 * hit->plane.normal.k;
@@ -409,8 +417,9 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
                 effect_new_with_color(response_effect_tag, projectile_index, 0, 5, projectile_effect_coordinate_system_names, positions, coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }
         }
-        if ((pd->flags & _projectile_at_rest_bit) == 0 &&
-            ((pd->flags & _projectile_hit_ground_bit) != 0 || response_type == projectileresponse_attach)) {
+        // 0x4bfe2c..0x4bfe46: skipped when the detonation timer bit (0x20) is set; runs when at rest (0x10) or attaching
+        if ((pd->flags & _projectile_detonation_timer_started_bit) == 0 &&
+            ((pd->flags & _projectile_at_rest_bit) != 0 || response_type == projectileresponse_attach)) {
             if (hit->type == _collision_result_type_object) {
                 // FIXED (objdump 0x4bfe4b..0x4bfe82): ECX = the tag's detonation_started effect (+0x200)
                 effect_new_on_object_with_node_table(projectile_index, *(uint32_t *)&tag->detonation_started.tag_id,

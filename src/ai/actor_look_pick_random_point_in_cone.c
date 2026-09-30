@@ -1,6 +1,6 @@
 // actor_look_pick_random_point_in_cone  (Ghidra: actor_look_pick_random_point_in_cone, already named)
 // address 0x415260, size 540 bytes
-// name confidence: 0.55  rewrite confidence: 0.9 (VERIFIED against objdump 0x415260..0x41547b)
+// name confidence: 0.55  rewrite confidence: 0.9 (VERIFIED against disassembly 0x415260..0x41547b, 2026-09-30)
 // evidence: phase-4 summary matches directly. Builds a "right" axis perpendicular to the
 // caller-supplied base_direction (falling back to a global right-axis constant when that
 // direction is near-vertical), then up to 10 times: picks a random yaw in [yaw_min,yaw_max]
@@ -104,11 +104,11 @@ uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float 
 
     {
         double length = sqrt((double)(direction.k * direction.k + direction.j * direction.j + direction.i * direction.i));
-        if (0.0001 <= ((length < 0.0) ? -length : length)) {
-            float inv = 1.0f / (float)length;
-            direction.i *= inv;
-            direction.j *= inv;
-            direction.k *= inv;
+        if ((double)0.0001f <= ((length < 0.0) ? -length : length)) {
+            double inv = 1.0 / length; // fdivr keeps the reciprocal in x87 extended precision
+            direction.i = (float)(direction.i * inv);
+            direction.j = (float)(direction.j * inv);
+            direction.k = (float)(direction.k * inv);
         }
         out->x = direction.i;
         out->y = direction.j;

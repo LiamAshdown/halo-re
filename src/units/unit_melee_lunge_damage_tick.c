@@ -1,4 +1,5 @@
 // unit_melee_lunge_damage_tick  (Ghidra: FUN_0056fc80)
+// VERIFIED against disassembly 0x56fc80..0x56ff3c (2026-09-30)
 // address 0x56fc80, size 700 bytes
 // name confidence: 0.35   rewrite confidence: 0.85
 // REWRITTEN from objdump 0x56fc80..0x56ff3b (the draft had the callees' arguments guessed and the damage data

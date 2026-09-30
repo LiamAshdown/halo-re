@@ -10,13 +10,8 @@
 // register convention: EAX -> packed_reference (Ghidra's in_EAX, tested against -1 before
 //   the iterator is built).
 //   // blam-cc: EAX -> packed_reference
-//
-// UNSURE:
-//  - actor_movement_action_cancel is called once before and once after the relink; it is not rewritten
-//    anywhere in this module, and Ghidra shows it with no arguments. It is written here as
-//    taking the actor index, which is the only live value at both call sites.
-//  - actor + 0x10 is set to 0x5a when actor.active is set and 0 otherwise. 0x5a is the same
-//    "re-evaluation countdown" constant encounters_update_activation uses on the same field.
+// VERIFIED against disassembly 0x4351c0..0x435258 (2026-09-30): the movement-cancel callee is 0x428650 (actor index in EDI,
+// preserved across the loop), called before encounter_remove_actor and again after the relink; +0x10 = active ? 0x5a : 0.
 
 #include "tags.h"
 #include "memory.h"

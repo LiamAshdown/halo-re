@@ -1,22 +1,14 @@
 // cheat_spawn_objects_near_camera  (Ghidra: cheat_spawn_objects_near_camera, already named)
 // address 0x45a800, size 441 bytes
-// name confidence: 0.5   rewrite confidence: 0.85
+// name confidence: 0.5   rewrite confidence: 0.95
 // evidence: types/objects.h object_placement_data (0x88 bytes: position 0x18, up 0x40); the
 //   struct writes at local_70/6c/68 (position) and local_48/44/40 (up) land exactly on those
 //   fields relative to a base at local_88.
 // register convention: `tag_array` and `count` are Ghidra's own recognized __cdecl parameters.
 //
-// UNSURE, LOW CONFIDENCE: object_get_position(), object_get_orientation(&local_94) and
-// object_placement_data_initialize(tag, -1) are all called with incomplete argument lists
-// (Ghidra elides the observer/camera object index throughout, and object_get_orientation's
-// first output -- forward -- has no attributable destination here even though its second
-// output, up, clearly lands in the placement struct). The float10 value
-// object_placement_data_initialize appears to return and feed into fcos/fsin is, per the same
-// x87-stack-tracking failure documented elsewhere in this codebase (see
-// src/math/vector3d_angle_between_4cd5e0.c), almost certainly actually the result of the
-// `fpatan` call two lines above it (a yaw angle from the camera's forward vector), collapsed
-// here accordingly. Transcribed with placeholder camera-state locals rather than invented
-// register plumbing; not independently verified against a disassembly.
+// Verified against the disassembly 0x45a800..0x45a9b8 (see the REWRITTEN note below): the position/orientation calls take EAX/ECX
+// (unit) registers, and the yaw stays on the x87 stack across object_placement_data_initialize, so the angle math is
+// done in double here (extended precision in the original); the floats are only stored into the placement.
 
 #include "tags.h"
 #include "memory.h"
@@ -61,6 +53,9 @@ void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
     if (player_index == 0xffffffff) {
         return;
     }
+    if (count <= 0) { // 0x45a853: `test ax,ax; jle` -- the draft looped (uint16_t)count times for a negative count
+        return;
+    }
     unit = *(datum_index *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 0x34);
     object_get_position(&unit_position, unit);
     object_get_orientation(&unit_forward, unit, &unit_up);
@@ -68,25 +63,25 @@ void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
     for (i = 0; i < (int32_t)(uint16_t)count; i++) {
         datum_index tag_handle = *(datum_index *)&tag_array[i].tag_id;
         object_placement_data placement;
-        float spacing;
-        float angle;
+        double spacing;
+        double angle;
         uint32_t role;
 
         if (tag_handle == k_datum_index_none) {
             continue;
         }
-        spacing = 6.2831855f / (float)(int32_t)count;
-        if (!(spacing <= 0.39269909f)) {
-            spacing = 0.39269909f;
+        spacing = (double)6.2831855f / (double)(int32_t)count; // 0x672c20 / count, kept in extended precision
+        if (!(spacing <= (double)0.39269909f)) {                // 0x673160 = pi / 8
+            spacing = (double)0.39269909f;
         }
-        angle = (float)atan2((double)unit_forward.i, (double)unit_forward.j) +
-            (float)(i - (int32_t)count / 2) * spacing;
+        angle = atan2((double)unit_forward.i, (double)unit_forward.j) +
+            (double)(i - (int32_t)count / 2) * spacing;
         object_placement_data_initialize(&placement, tag_handle, k_datum_index_none);
         placement.forward = unit_forward;
         placement.up = unit_up;
         role = 3;
-        placement.position.x = (float)cos((double)angle) * 1.5f + unit_position.x;
-        placement.position.y = (float)sin((double)angle) * 1.5f + unit_position.y;
+        placement.position.x = (float)(cos(angle) * (double)1.5f + (double)unit_position.x);
+        placement.position.y = (float)(sin(angle) * (double)1.5f + (double)unit_position.y);
         placement.position.z = unit_position.z + 0.8f;
         if (network_game_mode == 2) {
             int16_t object_type = *(int16_t *)tag_instances[placement.definition_tag & 0xffff].data;

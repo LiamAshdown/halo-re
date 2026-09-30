@@ -8,11 +8,10 @@
 // data_file::file read for the handle.
 // register convention: CreateThread's LPTHREAD_START_ROUTINE parameter, unused.
 //
-// UNSURE: the call to FUN_00442c70 (outside this function's range, not rewritten here) passes
-// only 3 visible arguments in the decompile; per the note in cache_file_slot_read_header.c, the
-// completion record it actually needs travels through ESI. Here the natural candidate is the
-// cache_io_request's own embedded `completion` field, so that is what is passed explicitly.
-
+// VERIFIED against disassembly 0x443940..0x4439fa (2026-09-30): request in ESI, size in EBX, offset in EDX, completion routine
+// (0x443ae0) in EDI, stack (ReadFileEx, file handle, destination); a candidate replaces the best request only when BOTH its
+// priority and its offset are lower (unsigned).
+//
 // phase-4 review pass: body re-checked instruction by instruction against `objdump -d -M
 // intel` of this address range; every field offset, branch and argument below now matches
 // the machine code rather than only Ghidra's pseudo-C.

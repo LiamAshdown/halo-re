@@ -6,6 +6,8 @@
 //   address is not rewritten as its own file; its logic is folded into this one and it is listed
 //   as a skip in this batch's summary.)
 // address 0x545a30, size 320 bytes (+ 0x545b70, 673 bytes, folded in: 993 bytes total)
+// VERIFIED against disassembly 0x545a30..0x545b70 (2026-09-30). 0x545a30..0x545e0f plus the folded tail; the 3D pool
+//   stores its buffers one slot above the array base (see the call)
 // name confidence: 0.5   rewrite confidence: 0.85
 // evidence: out/phase4/sound_functions.md summary "Allocates the full set of DirectSound channel
 //   buffer pools at startup and releases any interfaces left over from a failed allocation."
@@ -127,8 +129,10 @@ void sound_directsound_probe_channel_pools(int32_t *mono3d_count, uint32_t mono3
 
     if ((pool_mask & 2) != 0 && mono3d_requested != 0) {
         int32_t count = 0;
+        // 0x545b19: the 3D pool stores its buffers at [esp + i*4 + 0x4c], one slot above the array base 0x48 the other
+        //   pools index from, so the next pool's first buffer overwrites (leaks) this pool's last one, as in the binary
         sound_directsound_probe_pool(&count, (int32_t)mono3d_requested, 22050, 1, 2, 0x180b4, 1,
-            buffers, buffers_3d);
+            buffers + 1, buffers_3d);
         *mono3d_count += count;
         used += count;
     }

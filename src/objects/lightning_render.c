@@ -43,11 +43,7 @@ extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 object_marker *marker, uint32_t flags); // 0x4f6080
 extern void antenna_tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m); // 0x4fef40
-extern void vector3d_cross_product(); // math module, 0x4052c0.
-    // No prototype is asserted: Ghidra models fewer or differently-typed arguments here than
-    // the other call site(s) of the same address, because the missing operands travel in
-    // registers it could not source. The empty parameter list is the convention this module
-    // already uses for FUN_00450870 -- one declaration per symbol, no invented signature.
+extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX out, ECX a, stack b
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern void vector3d_normalize(real_vector3d *v); // 0x4cd320, vector in ECX
 extern int32_t texture_cache_get(uint32_t a, uint32_t b); // out of module scope, unexamined; begins a
@@ -176,7 +172,8 @@ void lightning_render(uint32_t object_index, datum_index lightning_handle, uint3
                         axis.i = verts[end * 8 + 0] - verts[base * 8 + 0];
                         axis.j = verts[end * 8 + 1] - verts[base * 8 + 1];
                         axis.k = verts[end * 8 + 2] - verts[base * 8 + 2];
-                        vector3d_cross_product(&axis);
+                        // VERIFIED against disassembly 0x4ff306..0x4ff33f (2026-09-30): EAX=&axis, ECX=0x7c3120 (camera forward), stack=&axis
+                        vector3d_cross_product(&axis, (const real_vector3d *)&camera_forward_x, &axis);
                         if (vector3d_normalize_with_length(&axis) == 0.0f) {
                             axis = *shared_constant_vector_696704;
                         }

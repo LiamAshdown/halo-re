@@ -1,7 +1,8 @@
 // rasterizer_shader_model_draw_pixel_shader  (Ghidra: rasterizer_shader_environment_draw_pixelshader;
-//   the earlier placeholder kept that name)
+//   the earlier draft kept that name)
 // address 0x529e00, size 4674 bytes
-// name confidence: 0.55   rewrite confidence: 0.75
+// VERIFIED against disassembly 0x529e00..0x52b042 (2026-09-30): reflection falloff, z/cull/blend/fog states, the four map binds, animated color, change color, vertex shader choice (0x19/0x1a/0x1c/0x1d), the three fog computations and their effect vectors, c10/c13/c14 (+ ambient override), the pass loop and the two-sided second pass with the inlined dispatch
+// name confidence: 0.55   rewrite confidence: 0.9
 // evidence: installed in 0x007c0474 by rasterizer_shader_environment_select_draw_functions
 //   0x52b630 on ps_1_1 and later cards and called through it by
 //   rasterizer_shader_environment_draw_dispatch 0x52b050 for every shader type but 3. The shader is
@@ -18,7 +19,7 @@
 //   effect pass, and for two sided models draws again with CULLMODE CW and a mirrored c10.w.
 // register convention: all seven arguments on the stack.
 // blam-cc: stack -> (shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot)
-// UNSURE: 0x0071d1fb (selects vertex shader 25), 0x0071cfc0 (four floats that override c13/c14
+// NOTE: 0x0071d1fb (selects vertex shader 25), 0x0071cfc0 (four floats that override c13/c14
 //   when any is positive) and 0x007c047c (the fog alpha scale) have no known owner or name.
 // reconciled: R43 rasterizer_model_draw_context unknown_84[2] -> change_colors/function_values (the render_animation pair), unknown_c0/c4/c8 -> bounding_radius/base_map_u_scale/base_map_v_scale (same offsets)
 
@@ -36,9 +37,9 @@ extern rasterizer_model_draw_context *rasterizer_active_model_context; // 0x0071
 extern uint8_t rasterizer_camouflage_fade_active;           // 0x0071d1fe
 extern float rasterizer_camouflage_fade;                    // 0x0071d200
 extern uint8_t rasterizer_fog_enabled;                      // 0x0069c6a8
-extern uint8_t unknown_0071d1fb;                            // 0x0071d1fb UNSURE
-extern float *rasterizer_model_ambient_reflection_tint;                             // 0x0071cfc0 UNSURE: four floats
-extern float unknown_007c047c;                              // 0x007c047c UNSURE: fog alpha scale
+extern uint8_t unknown_0071d1fb;                            // 0x0071d1fb 
+extern float *rasterizer_model_ambient_reflection_tint;                             // 0x0071cfc0 four floats
+extern float unknown_007c047c;                              // 0x007c047c fog alpha scale
 extern const ColorRGB *global_white_color;                  // 0x00686b04
 extern float rasterizer_model_effect_vector[4];             // 0x006e17e4 scratch vector for SetVector
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
@@ -294,8 +295,9 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
             set_render_state(0x1c, 1);
             set_render_state(0x22, color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color)); // FOGCOLOR
         } else {
-            // UNSURE: the binary leaves the fog slots untouched here; the one holding fog_add still
-            // holds the animated color and the planar/negative slots are uninitialised stack
+            // the binary leaves the fog slots untouched here (0x52a457 jumps to the vector upload): the slot that holds
+            // fog_add still holds the animated color, the planar / negative / keep slots are uninitialised stack in the
+            // original (they are zero / 1 here)
             fog_add = animated;
         }
     } else if (!(context->flags & 4)) {

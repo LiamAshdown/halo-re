@@ -1,6 +1,6 @@
 // controls_binding_clear  (Ghidra: FUN_004b4e20, named in phase 4)
 // address 0x4b4e20, size 259 bytes
-// name confidence: 0.45   rewrite confidence: 0.8
+// name confidence: 0.45   rewrite confidence: 0.95
 // evidence: rewritten from objdump 0x4b4e20..0x4b4f22 in the phase-4 review (the first rewrite
 // had placeholder records for every register argument). EAX is the action index into the
 // 0x18 byte action table at 0x00692fe8, the stack argument the device. Keyboard (0) and mouse

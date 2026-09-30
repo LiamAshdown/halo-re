@@ -1,8 +1,10 @@
 // unit_find_weapon_marker_transform  (Ghidra: FUN_005640a0; it finds a vehicle seat's entry points)
 // address 0x5640a0, size 533 bytes
 // name confidence: 0.2   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x5640a0..0x5642b5 (2026-09-30): stack (vehicle, seat, out_entry, out_seat, out_hint) at
+//   [ebp+8..+0x18]; the seat marker transform is the first multiplicand, the entry point is the product's position.
 // REWRITTEN from objdump 0x5640a0..0x5642b4 (the draft swapped the unit and the vehicle, dropped the entering
-//   unit and returned placeholder positions). EAX: the unit about to enter; stack (vehicle, seat, out_entry,
+//   unit and returned bogus positions). EAX: the unit about to enter; stack (vehicle, seat, out_entry,
 //   out_seat, out_hint). The unit's animation graph (tag +0x44) must have a units block whose label matches the
 //   seat's label (_stricmp, 0x64 each) with more than 7 animations and an "enter" animation (slot 7); otherwise 0.
 //   The seat marker (seat +0x24) of the vehicle gives the seat's world transform; frame 0 of the enter animation

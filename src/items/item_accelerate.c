@@ -133,8 +133,8 @@ void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_de
         }
         seed_snapshot = random_seed_global;
 
-        vector3d_cross_product(&cross_axis, delta, global_up3d_pointer); // UNSURE: ecx_operand
-            // guessed as delta, matching src/units/unit_apply_impulse.c's identical idiom
+        // VERIFIED against disassembly 0x4bd373..0x4bd37f (2026-09-30): EAX=cross_axis, ECX=ebx=delta, stack=[0x696720] global up
+        vector3d_cross_product(&cross_axis, delta, global_up3d_pointer);
         length = vector3d_normalize_with_length(&cross_axis);
         if (length <= 0.0f) {
             random_get_table_point(&cross_axis);

@@ -1,5 +1,6 @@
 // biped_clear_ground_surface_references  (Ghidra: no function created; the phase-4 types agent
-//   carved a placeholder "missed_559f70" from the object_type_definition vtable evidence)
+//   carved a stub "missed_559f70" from the object_type_definition vtable evidence)
+// VERIFIED against disassembly 0x559f70..0x559f9f (2026-09-30)
 // address 0x559f70, size 47 bytes
 // name confidence 0.35, rewrite confidence 0.7
 // evidence: out/phase4/units_types_notes.md: "The biped row's +0x38, +0x50 and +0x54 columns are

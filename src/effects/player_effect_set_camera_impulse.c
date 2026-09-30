@@ -1,6 +1,9 @@
 // player_effect_set_camera_impulse  (Ghidra: FUN_004579b0, still unnamed there; named directly
 //   by out/phase4/effects_types_notes.md: "player_effect_set_camera_impulse 0x4579b0")
 // address 0x4579b0, size 925 bytes
+// VERIFIED against disassembly 0x4579b0..0x457d4d (2026-09-30). cross product operands (out = up x direction), the
+//   two normalize / angle_between register pairs and the rotate / look-update calls were all checked against the
+//   disassembly
 // name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN from objdump 0x4579b0..0x457d4c)
 // evidence: types/effects.h player_effect.impulse (player_camera_impulse, +0x50), impulse_ticks
 //   (+0xe0), flags (_player_effect_camera_impulse_bit); player_camera_impulse (duration +0x00,
@@ -15,21 +18,6 @@
 //   parameters, in that order.
 //   // blam-cc: unaff_EBX -> self, stack -> (local_player_index, descriptor, direction,
 //   //   intensity_falloff, duration_scale)
-// UNSURE (heavily): game_engine_update_local_player_look and player_compute_view_forward_vector (both outside this batch) are called with
-//   almost every argument elided by Ghidra; player_compute_view_forward_vector's call is kept as a bare, argument-less
-//   placeholder (its established use elsewhere -- src/game/game_engine_compute_local_player_
-//   look_vector.c -- takes a unit handle and an out yaw/pitch pointer, neither of which is
-//   recoverable here) and game_engine_update_local_player_look's two arguments are reconstructed from the only visible
-//   arithmetic (a signed triple-product-shaped expression against a foreign "camera basis"
-//   pointer, `global_up3d_pointer` at 0x00696720). `vector2d_angle_between` and both
-//   `vector3d_normalize_with_length` calls are likewise argument-elided; reconstructed from the
-//   two 2D unit vectors the surrounding magnitude checks operate on. The player_camera_impulse
-//   fields at +0x1c/+0x20/+0x24/+0x28/+0x2c (written from the 13-dword descriptor copy but not
-//   otherwise read here) are accessed as raw floats since only duration/intensity are named.
-//   src/effects/player_effect_mark_damage_direction.c's own call to this function passes only
-//   5 arguments and no separate `self`; its EBX must therefore already hold the same
-//   player_effect pointer that function computed for its own use, which is how this rewrite's
-//   signature was fixed to match this function's real (5 stack argument) decompile.
 
 #include "tags.h"
 #include "memory.h"

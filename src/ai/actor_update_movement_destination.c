@@ -1,7 +1,7 @@
 // actor_update_movement_destination  (Ghidra: actor_update_movement_destination, renamed)
 // address 0x403180, size 946 bytes
 // name confidence: 0.4   rewrite confidence: 0.85
-// REWRITTEN from objdump 0x403180..0x403531 (the fight mode's +0x0c process; the draft zeroed memory past its
+// VERIFIED against disassembly 0x403180..0x403531 (2026-09-30); rewritten from it (the fight mode's +0x0c process; the draft zeroed memory past its
 //   own buffer and called the firing-position helpers without their register arguments). Always returns 0.
 //   - nothing unless the actor wants a path (+0x4c) and has not committed to an order (+0x160);
 //   - an actor with a target (+0x358) whose tag allows it (flag 0x20) and whose lead point (+0x168, surface +0x164)

@@ -1,6 +1,8 @@
 // particle_system_update_physics_default  (Ghidra: no function created; the phase-4 types agent
 //   carved a placeholder "missed_4552a0" from the .rdata dispatch-table evidence)
 // address 0x4552a0, size 98 bytes
+// VERIFIED against disassembly 0x4552a0..0x455302 (2026-09-30). point_physics_tick's velocity (ESI) is
+//   &system->velocity (0x4552df)
 // name confidence 0.6, rewrite confidence 0.65
 // evidence: out/phase4/effects_types_notes.md section 2: the two-entry `.rdata` table at
 //   0x0065743c (indexed by ParticleSystem.system_update_physics, tag +0x48) lists 0x4552a0 as
@@ -17,11 +19,6 @@
 //   physical registers carry them -- Ghidra recovered both as plain stack parameters here, and
 //   objdump shows the second one only ever read once, early, to seed the `dt` stack argument of
 //   point_physics_tick, so a register/stack distinction makes no observable difference.
-// UNSURE: point_physics_tick's `velocity` argument (register ESI in its own calling convention)
-//   is dropped from Ghidra's decompile of this call entirely; objdump 0x4552ca..0x4552f7 shows
-//   ESI is reloaded with `system->velocity` (+0x2c) immediately before the call, after briefly
-//   holding this function's own `dt` argument to seed the stack push -- resolved here to
-//   `&system->velocity`, matching the field this function otherwise never touches.
 
 #include "tags.h"
 #include "memory.h"

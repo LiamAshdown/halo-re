@@ -2,6 +2,7 @@
 // symbols/functions.txt; kept as weapon_add_ammunition per out/phase4/items_types_notes.md
 // because object_try_and_get's mask is 4 = weapon, not the item mask)
 // address 0x4c25a0, size 106 bytes
+// VERIFIED against disassembly 0x4c25a0..0x4c260a (2026-09-30)
 // name confidence: 0.6   rewrite confidence: 0.8
 // evidence: called only from the network message dispatcher's case 0x2c
 //   (k_message_weapon_ammo_pickup); types/items.h weapon_ammo_pickup_message (the 8-byte stack
@@ -34,7 +35,7 @@
 // int16_t here and not an unsigned one.
 // NOTE: this function does NOT clamp the result against the tag magazine
 // rounds_reserved_maximum; weapon_transfer_ammunition (0x4c2610) is the path that clamps.
-// UNSURE: on every early-out the original leaves whatever is in EAX as the return value (0 from
+// NOTE: on every early-out the original leaves whatever is in EAX as the return value (0 from
 // object_try_and_get, or the object pointer when network_role != 1); that is reproduced below
 // rather than normalised to a single value, because one caller may be reading it.
 
@@ -70,7 +71,7 @@ int32_t weapon_add_ammunition(void **message_record)
         return message_delta_decode_compound_field_staged(message_record);
     }
     if ((int8_t)message_delta_decode_compound_field(message_record, &decoded) == 0) {
-        return 0; // UNSURE: the original leaves message_delta_decode_compound_field's own EAX here
+        return 0; // NOTE: the original leaves message_delta_decode_compound_field's own EAX here
     }
 
     item_index = (datum_index)0xffffffff;

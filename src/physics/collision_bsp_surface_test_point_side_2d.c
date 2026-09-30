@@ -1,6 +1,8 @@
 // collision_bsp_surface_test_point_side_2d  (Ghidra: FUN_005014a0, still unnamed there; name
 // from out/phase2/results/physics_00.json)
 // address 0x5014a0, size 252 bytes
+// VERIFIED against disassembly 0x5014a0..0x50159c (2026-09-30). returns 0 as soon as a cross product is strictly
+//   positive, 1 after the last edge
 // name confidence: 0.3   rewrite confidence: 0.45
 // evidence: same ModelCollisionGeometryBSP surfaces/edges/vertices layout as
 //   collision_bsp_surface_get_vertices (0x501400); types/math.h projection_axis_pair /
@@ -11,14 +13,6 @@
 //   (real_point2d *, already projected by the caller). param_1/param_2/param_3 are
 //   Ghidra-recognized stack parameters (surface_index, axis, sign).
 //   // blam-cc: EAX -> bsp, EDI -> point, stack -> surface_index, axis, sign
-// UNSURE: Ghidra's return value is a raw x87-flags-and-pointer-residue pack (an FNSTSW/SAHF
-//   style idiom: CONCAT of the high 16 bits of a vertex pointer with condition-code bits for
-//   "cross < 0", "cross is NaN" and "cross == 0", then shifted and OR'd with a 0/1 tail byte).
-//   The only real caller reads the result as a `char`, i.e. only the low byte, which is exactly
-//   0 when the loop returns early (a strictly positive cross product found) and 1 when the loop
-//   runs out of edges without one; that low byte is what this rewrite reproduces. The upper 24
-//   bits of Ghidra's return value are compiler/register residue, not meaningful output, and are
-//   not reproduced.
 
 #include "tags.h"
 #include "memory.h"

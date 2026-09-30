@@ -7,8 +7,7 @@
 // (last_activity_ms), channel[0x2a3]=+0xa8c (flags), channel[0xb]=+0x02c (in.empty),
 // channel[0x158]=+0x560 (out.empty), channel[0x2a0]=+0xa80 (send_budget) all match
 // types/networking.h's network_channel exactly.
-// UNSURE: `timeout_ms` (in_EAX) -- the caller-supplied idle-timeout bound -- is an elided
-// register argument with no further evidence of its source in this function's own body.
+// `timeout_ms` (EAX, kept in ESI): idle timeout added to last_activity_ms; 0 skips the timing block.
 // register convention: timeout_ms in EAX (in_EAX), channel in EDI (unaff_EDI), plus ONE real
 // cdecl stack argument that Ghidra dropped entirely: 0x4dd202 is `mov edx,[esp+0x18]` (the
 // first stack parameter, since the frame is sub esp,8 + three pushes) and it is forwarded
@@ -16,6 +15,7 @@
 // callers (0x4daef0, 0x4db100) push 0 for it.
 // blam-cc: EAX -> timeout_ms, EDI -> channel, stack -> out_new_child
 
+// VERIFIED against disassembly 0x4dd110..0x4dd234 (2026-09-30): now via QPC*1000/freq (_allmul/_alldiv); timeout_ms in EAX = idle timeout; flags/timeout/backoff branches, flush modes 1/0, listen vs transmit dispatch match
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -39,7 +39,7 @@ char network_channel_service(network_channel *channel, int32_t timeout_ms, netwo
     int32_t now_ms;
     uint32_t flags;
 
-    now_ms = (int32_t)0; // placeholder assigned below via the QPC-derived millisecond helper pattern
+
     {
         // QueryPerformanceCounter-derived milliseconds, matching the pattern used throughout
         // this module (see network_channel_record_timestamp.c for the canonical form).

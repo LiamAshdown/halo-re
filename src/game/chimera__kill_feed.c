@@ -25,7 +25,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
 extern int16_t network_game_mode;                   // 0x00719720
 
-extern uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_type,
+extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type,
     datum_index subject, size_t buffer_size); // 0x45e680
 extern void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int32_t message_type, datum_index subject); // 0x4608d0, this batch
 extern void chimera__multiplayer_message(wchar_t *text); // 0x4ab4b0
@@ -70,7 +70,7 @@ void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t messag
                     (hash_key, message_type, subject, message, 0x400); // 0x460aa7..0x460ac2: (hash_key, type, subject, text, 0x400)
             }
             if (built == 0) {
-                built = game_engine_build_kill_feed_message_text(message, message_type, subject, 0x400);
+                built = game_engine_build_kill_feed_message_text(hash_key, message, message_type, subject, 0x400);
             }
             if (built != 0) {
                 message[1023] = 0;

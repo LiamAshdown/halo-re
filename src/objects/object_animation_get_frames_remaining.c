@@ -10,10 +10,8 @@
 // register convention: object index in EAX. Consistent with Ghidra's own "in_EAX" and no other
 //   input.
 //   // blam-cc: EAX -> object_index
-// UNSURE: the byte at object+0x1f4 (bit 0, "animation active") is past the common 0x1f4 object
-//   header, inside the unit/vehicle extension this module does not otherwise define; and the
-//   fallback return value ((object_index & 0xffff) * 3) & 0xffff0000, which is always 0 for any
-//   16-bit object_index, is preserved exactly rather than simplified.
+// VERIFIED against disassembly 0x4fa9b0..0x4faa14 (2026-09-30): the flag byte at object+0x1f4 (bit 0) gates the branch; the
+//   fallback return is ((object_index & 0xffff) * 3) & 0xffff0000 (xor ax,ax on idx*3), preserved literally.
 
 #include "tags.h"
 #include "memory.h"

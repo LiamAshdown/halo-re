@@ -59,6 +59,7 @@ Chimera works by byte signature and was resolved against this file, so its hits 
 Use -process halo.exe instead of -import/-overwrite to apply incrementally to the existing program.
 
 ## Tools
+    python3 tools/emu_difftest.py FUNC [-n N] [--alias a=b] [--mutate 'OLD=>NEW']   Linux/Unicorn difftest of one pure function vs its clang-built rewrite (see the file's docstring)
     python tools\pack.py 0x4xxxxx [more addrs] [--out dir]   context pack for agents (meta + hints + decompiled C)
     python tools\seed_modules.py                               lib tagging + name-prefix seeds into modules.json
     python tools\make_slices.py 300                            Phase 1 inputs, out/slices/NN.md

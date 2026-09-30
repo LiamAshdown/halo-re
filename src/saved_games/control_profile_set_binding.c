@@ -34,6 +34,7 @@ extern int32_t input_device_get_axis_count(int32_t device_index); // 0x491610, g
 extern int32_t input_device_get_button_count(int32_t device_index); // 0x491630, gamepad button count, blam-cc: ECX device_index
 extern int32_t input_device_get_pov_count(int32_t device_index); // 0x491650, gamepad pov-hat count, blam-cc: ECX device_index
 
+// VERIFIED against disassembly 0x53ae10..0x53aff8 (2026-09-30); fixed: an unknown device type returns 0, not 1.
 // blam-cc: binding -> ESI, value -> stack
 uint8_t control_profile_set_binding(const control_binding_descriptor *binding, int16_t value)
 {
@@ -108,7 +109,8 @@ uint8_t control_profile_set_binding(const control_binding_descriptor *binding, i
         return 0;
     }
 
-    return 1;
+    // 0x53ae4a: any device type other than 1..3 jumps to 0x53af45, which returns false (the draft returned true)
+    return 0;
 }
 
 #if 0

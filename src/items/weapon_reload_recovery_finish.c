@@ -2,11 +2,12 @@
 // out/phase4/items_functions.md, "Runs the post-reload recovery step for a trigger, invoking a
 // holder-type-specific finish routine")
 // address 0x4c4940, size 116 bytes
+// VERIFIED against disassembly 0x4c4940..0x4c49b4 (2026-09-30)
 // name confidence: 0.3   rewrite confidence: 0.9 (VERIFIED against objdump 0x4c4940..0x4c49b3; plays overheat_detonation then deletes (FIXED tag))
 // evidence: types/objects.h object.network_role (0/3 dispatch matches every other
 //   object_delete_unparented/object_delete_recursive pairing in this codebase).
-// register convention: item index in EBX (unaff_EBX); trigger index threaded through from the
-// caller (weapon_trigger_handle_empty).
+// register convention: item index in EBX (unaff_EBX); there is no other argument (the callers push nothing;
+// the old trigger_index parameter was spurious and has been removed).
 // blam-cc: EBX -> item_index
 // EDI for weapon_play_trigger_tag_effect = weapon tag +0x390 (overheat_detonation.tag_id), 0x4c496f.
 
@@ -27,7 +28,7 @@ extern void object_delete_recursive(datum_index object_index, uint8_t recurse_si
 
 // Finishes an overcharged trigger's recovery by consuming (deleting) the item itself, since it
 // is presumably a single-use weapon/equipment charge.
-void weapon_reload_recovery_finish(datum_index item_index, int16_t trigger_index)
+void weapon_reload_recovery_finish(datum_index item_index)
 {
     object *item_obj;
 

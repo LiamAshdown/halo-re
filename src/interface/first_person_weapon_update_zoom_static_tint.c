@@ -1,6 +1,6 @@
 // first_person_weapon_update_zoom_static_tint  (Ghidra: FUN_00494af0, unnamed)
 // address 0x494af0, size 425 bytes
-// name confidence: 0.3   rewrite confidence: 0.65
+// name confidence: 0.3   rewrite confidence: 0.95
 // evidence: out/phase4/interface_functions.md "Computes a randomized static/flicker color tint
 // applied while the local player is zoomed in"; the tag is the weapon HUD interface from
 // local_player_get_weapon_hud_interface (0x494560) and +0xac/+0xb0 is its screen_effect block,
@@ -15,8 +15,9 @@
 //    it is the desaturation intensity scaled by the clamped flashlight intensity and the
 //    clamped desaturation script-source value (cinematic_screen_effect_get_script_value, source in EAX, called up to three
 //    times as the original does), capped at 0.75 per channel.
-// UNSURE: the three 0x71d190 floats are named for their use as a tint; the rasterizer reader
-// is not rewritten.
+// Verified against the disassembly 0x494af0..0x494c98: the clamps, the three script-value calls, the 0.75 cap and the offsets
+// (effect +4 mask_flags, +0x24 mask_fullscreen tag id, +0x8c/+0x8e/+0x90 desaturation flags/source/intensity) match. The three
+// 0x71d190 floats are named for their use as a tint; the rasterizer reader is not rewritten.
 
 #include "tags.h"
 #include "memory.h"
@@ -35,7 +36,7 @@ extern float zoom_static_tint_b; // 0x0071d198
 extern int32_t local_player_get_weapon_hud_interface(float *out_intensity); // 0x494560
 extern int32_t local_player_get_zoom_level(int16_t local_player_index); // 0x472740, src/game; blam-cc: CX
 extern int16_t render_local_view_count(void);                  // 0x4c9220, UNSURE: effective local player count
-extern float cinematic_screen_effect_get_script_value(uint16_t source);          // 0x5121a0; blam-cc: EAX -> source
+extern float cinematic_screen_effect_get_script_value(int16_t index);          // 0x5121a0; blam-cc: EAX -> index (signed 16-bit: `movsx edx,[+0x8e]`)
 
 // blam-cc: AL -> enabled
 void first_person_weapon_update_zoom_static_tint(uint8_t enabled)
@@ -46,7 +47,7 @@ void first_person_weapon_update_zoom_static_tint(uint8_t enabled)
     float scale;
     float source_value;
     float product;
-    uint16_t source;
+    int16_t source;
 
     zoom_static_tint_r = 0.0f;
     zoom_static_tint_g = 0.0f;
@@ -88,7 +89,7 @@ void first_person_weapon_update_zoom_static_tint(uint8_t enabled)
     }
     scale = scale * effect->desaturation_intensity;
 
-    source = (uint16_t)effect->desaturation_script_source;
+    source = effect->desaturation_script_source;
     if (cinematic_screen_effect_get_script_value(source) < 0.0f) {
         source_value = 0.0f;
     } else if (cinematic_screen_effect_get_script_value(source) > 1.0f) {

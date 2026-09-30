@@ -1,42 +1,34 @@
 // game_engine_update_teleporter  (Ghidra: game_engine_update_teleporter, already named)
 // address 0x461630, size 1096 bytes
-// name confidence: 0.75   rewrite confidence: 0.2
+// VERIFIED against disassembly 0x461630..0x461a78 (2026-09-30)
+// name confidence: 0.75   rewrite confidence: 0.9
 // evidence: out/phase4/game_functions.md ("Handles teleporting a unit through a level
 // teleporter, finding and validating a destination and reporting failures"); the CEA/PDB string
 // match on "failed to teleport %d"; types/tags.h ScenarioNetgameFlags (position, facing +0xc,
 // usage_id +0x12) and Scenario::netgame_flags (the same +0x37c pointer this batch's
-// game_engine_find_valid_starting_locations reads); types/game.h player::unknown_70 (cached
-// entrance flag index), player::unknown_cc/unknown_d4 (teleported-into counter/flag, both
-// UNRESOLVED offsets in the header, kept as raw offsets here since they fall inside the
-// player struct's own "unresolved" run); types/objects.h object::forward (+0x74),
-// object_set_position_and_orientation's canonical 4-argument form (src/objects/
-// object_set_position_and_orientation.c).
-// register convention: no register-passed arguments; param_1 is this function's own stack
-// parameter (a player index).
-// UNSURE (see individual comments below, this is the least certain file in this batch):
-//  - The stack slot Ghidra renders as a single `float local_ac70` is genuinely reused for an
-//    int32 search-result index (compared bit-for-bit against a `-NaN` sentinel, and multiplied
-//    by 0x94 to index ScenarioNetgameFlags) AND, later, in what Ghidra prints as ordinary float
-//    arithmetic feeding physics_model_build_from_sphere_query. Both readings cannot be literally true of one C variable;
-//    modeled as an int32 `found_index` for the indexing/sentinel uses, and as
-//    `(float)found_index` for the arithmetic use, which at least avoids inventing a value.
-//  - physics_model_build_from_sphere_query, physics_shape_test_point, unit_get_crouch_height_offset and the constant-filled struct built for
-//    player_effect_set_screen_flash_for_player are all far outside this batch's own address range and evidence; they are
-//    preserved as literally as Ghidra's own argument lists allow, with placeholder types.
-//  - object_set_position_and_orientation's own "up" argument is register-passed and not visible
-//    here at all; NULL is substituted. Its "position" argument is likewise not visible, but the
-//    refined destination computed a few lines earlier (`destination_position`) is passed
-//    explicitly instead of inventing a NULL, since nothing else in this function produces a more
-//    plausible candidate.
-//  - RESOLVED (phase 4 review): 0x4726b0 is unit_get_local_player_weapon_index (the misattribution
-//    note in out/phase4/game_types_notes.md is right; objdump confirms it returns
-//    player::local_player_index and takes only EAX). The first pass also passed it the wide
-//    string that was actually pushed for the FOLLOWING chimera__hud_message call, and used
-//    string-list index 0 where the disassembly uses 0x65. Both are fixed.
+// game_engine_find_valid_starting_locations reads); types/game.h player::teleporter_flag_index (+0x70, the cached
+// entrance flag), player +0xcc / +0xd4 (telefrag counter / danger flag).
+// register convention: no register-passed arguments; param_1 is this function's own stack parameter (a player index).
+//
+// FIXED 2026-09-30 (full instruction-level comparison; the earlier draft was "the least certain file in the batch"):
+//  - game_engine_find_valid_starting_locations' first call takes the unit's POSITION (object +0x5c) in EBX; the draft passed NULL. (The second,
+//    exit-flag search really does pass NULL: `xor ebx,ebx` at 0x461733.)
+//  - The stack slot the draft modelled as a "float found_index" is the pill-radius OUT parameter of unit_get_crouch_height_offset
+//    (EAX = position buffer, ECX = unit, EBX = &pill_radius, stack = &pill_height). The sphere query is
+//    physics_model_build_from_sphere_query(0x200380, &destination, 2*radius + height, height, radius, -1, model), with the destination
+//    written over the position buffer with the exit flag's position; the obstruction object is out_contact.object_index (+0x20) of
+//    physics_shape_test_point (a physics_model_contact), NOT a constant -1 (so the draft never flagged the telefrag victim).
+//  - The screen flash is a player_screen_flash (0x38 bytes): type = word[0x687af0] (6), priority 2, duration = [0x687b08] (1.0),
+//    fade function = word[0x6f1d30], maximum intensity = [0x687af4] (1.0), intensity 0, colour ARGB = ([0x687af8], [0x687afc],
+//    [0x687b00], [0x687b04]) = (0.5, 0.35, 1.0, 0.35); it is played for the player index (EAX) with falloff 1.0.
+//  - game_engine_find_one_valid_starting_location is called with type -1 (ECX), team 6 (EDX), origin = the unit position (EBX),
+//    stack (1.0, 0.0); the draft passed (0, -1, NULL, ...).
+//  - 0x4726b0 is unit_get_local_player_weapon_index (really: the controlling player's local player index, EAX = unit).
 
 // CORRECTED (phase 4 review): types/units.h unit_data starts at object + k_unit_data_offset
 // (0x1f4), so a unit_data * built straight from the object pointer reads every field 0x1f4
 // bytes too low. The cast below adds the extension offset.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -44,62 +36,57 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "effects.h"
+#include "physics.h"
 #include <wchar.h>
 #include "networking.h"
 
 extern data_array *player_data;      // 0x0087a480
 extern Scenario *global_scenario;    // 0x00746f8c
 extern data_array *object_data;   // 0x008603b0
-extern int32_t teleport_message_cooldown; // 0x006f1d2c, UNSURE identity
+extern int32_t teleport_message_cooldown; // 0x006f1d2c, ticks until the "cannot teleport" message may show again
 extern wchar_t empty_string;          // 0x00660c34
-extern network_client_globals *network_client;
+extern network_client_globals *network_client; // 0x0071c2d8
 
-// UNSURE: the following ten globals feed a constant-filled struct passed to player_effect_set_screen_flash_for_player; their
-// true meanings are not established anywhere in this batch's evidence.
-extern uint32_t teleport_effect_const_00687af0; // 0x00687af0
-extern uint32_t teleport_effect_const_00687af4; // 0x00687af4
-extern uint32_t teleport_effect_const_00687af8; // 0x00687af8
-extern uint32_t teleport_effect_const_00687afc; // 0x00687afc
-extern uint32_t teleport_effect_const_00687b00; // 0x00687b00
-extern uint32_t teleport_effect_const_00687b04; // 0x00687b04
-extern uint32_t teleport_effect_const_00687b08; // 0x00687b08
-extern int16_t teleport_effect_const_006f1d30;  // 0x006f1d30
+// The teleport screen flash's constants (read at 0x461920..0x461977): all live in the exe's data.
+extern int16_t teleport_flash_type;               // 0x00687af0 (word, value 6)
+extern uint32_t teleport_flash_maximum_intensity; // 0x00687af4 (1.0f)
+extern uint32_t teleport_flash_alpha;             // 0x00687af8 (0.5f)
+extern uint32_t teleport_flash_red;               // 0x00687afc (0.35f)
+extern uint32_t teleport_flash_green;             // 0x00687b00 (1.0f)
+extern uint32_t teleport_flash_blue;              // 0x00687b04 (0.35f)
+extern uint32_t teleport_flash_duration;          // 0x00687b08 (1.0f)
+extern int16_t teleport_flash_fade_function;      // 0x006f1d30 (word)
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern double atan2(double y, double x); // x87 FPATAN
 extern double fcos(double radians); // a single x87 FCOS instruction
 extern double fsin(double radians); // a single x87 FSIN instruction
-extern void player_effect_set_screen_flash_for_player(datum_index player_index, void *descriptor, float intensity_falloff); // 0x456980, EAX player, stack (descriptor, intensity_falloff)
+extern void player_effect_set_screen_flash_for_player(datum_index player_index, player_screen_flash *descriptor,
+    float intensity_falloff); // 0x456980, EAX player, stack (descriptor, intensity_falloff)
 extern int game_engine_find_valid_starting_locations(real_point3d *origin,
     float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type,
-    int32_t max_results, int32_t *results); // 0x461080, this batch
+    int32_t max_results, int32_t *results); // 0x461080, blam-cc: EBX origin (optional), stack rest
 extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team,
-    real_point3d *origin, float max_horizontal_dist, float max_height_delta); // 0x461180, this batch
+    real_point3d *origin, float max_horizontal_dist, float max_height_delta); // 0x461180, ECX type, EDX team, EBX origin, stack
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern int16_t unit_get_local_player_weapon_index(datum_index unit_index); // 0x4726b0, blam-cc:
-    // EAX -> unit_index. RENAMED from symbols/functions.txt's unit_get_local_player_weapon_index:
-    // objdump 0x4726b0..0x4726eb resolves unit -> object+0x218 (controlling_player) and returns
-    // `mov ax,[player+0x02]`, i.e. player::local_player_index, or -1. There is no weapon field
-    // and no stack argument.
+    // EAX -> unit_index. Returns player::local_player_index of the unit's controlling player, or -1.
 extern void chimera__hud_message(int16_t local_player_index, wchar_t *text); // 0x4ae180,
-    // blam-cc: EAX -> local_player_index, stack -> text. The EAX it consumes is the value
-    // unit_get_local_player_weapon_index just returned (objdump 0x4618dc..0x4618e1: the two calls are
-    // back to back with nothing in between, and the text was pushed before both).
+    // blam-cc: EAX -> local_player_index, stack -> text.
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
 extern void player_update_history_free_all(void *queue); // 0x4e6f20
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward,
-    real_vector3d *up, real_point3d *position); // 0x4f51c0
-extern uint8_t physics_shape_test_point(void *candidates, real_point3d *position, void *out_facing); // 0x504260, not in this batch; UNSURE
-extern uint8_t physics_model_build_from_sphere_query(uint32_t tag_group, real_point3d *position, float a, float b,
-    float c, uint32_t exclude, void *candidates_out); // 0x506440, not in this batch; UNSURE
-extern float unit_get_crouch_height_offset(float *out); // 0x55a2e0, not in this batch; UNSURE signature
+    real_vector3d *up, real_point3d *position); // 0x4f51c0, EDI position
+extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point, physics_model_contact *out_contact); // 0x504260, stack
+extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius,
+    float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); // 0x506440, stack
+extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
+    float *pill_radius_out); // 0x55a2e0, blam-cc: EAX object_position, ECX object_index, EBX pill_radius_out, stack pill_height
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing,
-    int16_t local_player_index); // 0x470d80. CORRECTED by review: objdump 0x4619f1..0x4619fb
-    // shows "mov cx,WORD [ebp+0x2]" (player::local_player_index) and "lea eax,[esp+0x1c]"
-    // (the forward vector built just above) live at the call. blam-cc: EAX -> facing,
-    // CX -> local_player_index
+    int16_t local_player_index); // 0x470d80. blam-cc: EAX -> facing, CX -> local_player_index
 
 void game_engine_update_teleporter(uint32_t player_index)
 {
@@ -113,7 +100,7 @@ void game_engine_update_teleporter(uint32_t player_index)
     }
     unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
 
-    // Cache invalidation: if the cached entrance flag (player::unknown_70) is more than 1 unit
+    // Cache invalidation: if the cached entrance flag (player::teleporter_flag_index) is more than 1 unit
     // away from the unit's current position, forget it.
     if (p->teleporter_flag_index != (datum_index)0xffffffff) {
         ScenarioNetgameFlags *cached = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer
@@ -126,9 +113,9 @@ void game_engine_update_teleporter(uint32_t player_index)
         }
     }
 
-    // Find the entrance netgame_flag (team filter 6, no type filter) nearest the unit.
-    found_index = -1; // UNSURE: stands in for Ghidra's bit-pattern "-NaN" sentinel; see file header
-    game_engine_find_valid_starting_locations(0, 0.5f, 0.0f, 6, -1, 1, &found_index);
+    // Find the entrance netgame_flag (team filter 6, no type filter) within 0.5 of the unit's position.
+    found_index = -1;
+    game_engine_find_valid_starting_locations(&unit_object->position, 0.5f, 0.0f, 6, -1, 1, &found_index);
 
     if (found_index != -1 && found_index != (int32_t)p->teleporter_flag_index) {
         ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
@@ -145,32 +132,34 @@ void game_engine_update_teleporter(uint32_t player_index)
             ScenarioNetgameFlags *exit_flag = &flags[found_index];
             real_vector3d forward;
             real_point3d destination_position;
-            float margin;
-            void *candidates[44036 / sizeof(void *)]; // matches Ghidra's local_ac08 [44036]
+            float pill_height;
+            float pill_radius;
+            physics_model candidates;
+            physics_model_contact contact;
             uint8_t blocked;
 
             unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
             forward = unit_object->forward;
-            margin = unit_get_crouch_height_offset(&margin); // UNSURE: real output target and meaning
+            p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+            unit_get_crouch_height_offset(&destination_position, p->unit, &pill_height, &pill_radius);
 
+            // the buffer the callee filled with the unit's position now takes the exit flag's position
             destination_position.x = exit_flag->position.x;
             destination_position.y = exit_flag->position.y;
             destination_position.z = exit_flag->position.z;
 
             blocked = physics_model_build_from_sphere_query(0x200380, &destination_position,
-                (float)found_index + (float)found_index + margin, // UNSURE, see file header
-                margin, (float)found_index, 0xffffffff, candidates);
+                pill_radius + pill_radius + pill_height, pill_height, pill_radius, 0xffffffff, &candidates);
 
             if (blocked != 0) {
-                void *obstruction_facing;
-                blocked = physics_shape_test_point(candidates, &destination_position, &obstruction_facing);
+                blocked = physics_shape_test_point(&candidates, &destination_position, &contact);
             }
 
             if (blocked != 0) {
-                // Destination is obstructed: notify whoever is standing there, then throttle the
-                // failure message.
-                datum_index obstruction = (datum_index)0xffffffff; // UNSURE: really physics_shape_test_point's
-                    // own out-parameter (Ghidra's local_ac20), not modeled as a real output above
+                // Destination is obstructed: mark the controlling player of whatever is standing there, then throttle
+                // the failure message.
+                datum_index obstruction = contact.object_index;
+
                 if (obstruction != (datum_index)0xffffffff) {
                     object *blocker = ((object_header *)object_data->data)[obstruction & 0xffff].data;
                     if (((1 << blocker->type) & _object_mask_unit) != 0) {
@@ -180,9 +169,9 @@ void game_engine_update_teleporter(uint32_t player_index)
                         if (controller != (datum_index)0xffffffff) {
                             player *other = (player *)((uint8_t *)player_data->data +
                                 (controller & 0xffff) * sizeof(player));
-                            ((struct player *)other)->telefrag_danger = 1;      // UNSURE offset
+                            other->telefrag_danger = 1;
                             *(int32_t *)((uint8_t *)other + 0xcc) =
-                                *(int32_t *)((uint8_t *)other + 0xcc) + 1;   // UNSURE offset
+                                *(int32_t *)((uint8_t *)other + 0xcc) + 1;
                         }
                     }
                 }
@@ -202,29 +191,28 @@ void game_engine_update_teleporter(uint32_t player_index)
                 return;
             }
 
-            // Not obstructed: play the teleport cue for a local player and queue its effect.
+            // Not obstructed: play the teleport cue for a local player and queue its flash.
             if (p->local_player_index != -1) {
-                game_engine_queue_multiplayer_sound(0x1b, 0xffffffff, 0); // 0x4618ff..0x461909
+                game_engine_queue_multiplayer_sound(0x1b, 0xffffffff, 0); // 0x461901..0x461909
                 if (p->local_player_index != -1) {
-                    // UNSURE: this ~14-dword struct and its ten DAT_ constants are outside this
-                    // batch's evidence; preserved as a literal field-for-field fill.
-                    uint32_t effect[14];
+                    player_screen_flash flash;
+                    uint8_t *flash_bytes = (uint8_t *)&flash;
                     int32_t i;
-                    for (i = 0; i < 13; i++) {
-                        effect[i] = 0;
+
+                    for (i = 0; i < (int32_t)sizeof(flash); i++) {
+                        flash_bytes[i] = 0;
                     }
-                    *(int16_t *)&effect[13] = 0;
-                    effect[10] = teleport_effect_const_00687b08;
-                    *(int16_t *)((uint8_t *)effect + 0x2c) = teleport_effect_const_006f1d30; // UNSURE offset
-                    *(int16_t *)effect = 0; // local_ac40 low word, overwritten below
-                    effect[1] = teleport_effect_const_00687afc; // UNSURE offset mapping
-                    effect[2] = teleport_effect_const_00687af4;
-                    effect[3] = teleport_effect_const_00687af8;
-                    *(int16_t *)&effect[0] = 2;
-                    effect[4] = 0;
-                    effect[5] = teleport_effect_const_00687b00;
-                    effect[6] = teleport_effect_const_00687b04;
-                    player_effect_set_screen_flash_for_player(player_index, effect, 1.0f); // FIXED: EAX = the player (the draft dropped it and passed 1.0f as an integer) // 1.0f
+                    flash.type = teleport_flash_type;
+                    flash.priority = 2;
+                    flash.duration = *(float *)&teleport_flash_duration;
+                    flash.fade_function = (uint16_t)teleport_flash_fade_function;
+                    flash.maximum_intensity = teleport_flash_maximum_intensity;
+                    flash.intensity = 0.0f;
+                    flash.color.alpha = *(float *)&teleport_flash_alpha;
+                    flash.color.red = *(float *)&teleport_flash_red;
+                    flash.color.green = *(float *)&teleport_flash_green;
+                    flash.color.blue = *(float *)&teleport_flash_blue;
+                    player_effect_set_screen_flash_for_player(player_index, &flash, 1.0f);
                 }
             }
 
@@ -237,16 +225,16 @@ void game_engine_update_teleporter(uint32_t player_index)
                 forward.j = (float)fsin(yaw);
                 vector3d_normalize_with_length(&forward);
 
-                object_set_position_and_orientation(unit, &forward, 0, &destination_position);
+                object_set_position_and_orientation(unit, &forward, 0, &exit_flag->position);
 
                 if (p->local_player_index != -1) {
                     game_engine_compute_look_angles_from_vector(&forward,
                         p->local_player_index);
                 }
 
-                p->teleporter_flag_index = (datum_index)game_engine_find_one_valid_starting_location(0, -1,
-                    0, 1.0f, 0.0f); // UNSURE: original call is FUN_00461180(0x3f800000,0); argument
-                                    // order/identity guessed from that wrapper's own signature
+                // 0x461a00..0x461a1b: type -1 (ECX), team 6 (EDX), origin = the unit position (EBX), stack (1.0, 0.0)
+                p->teleporter_flag_index = (datum_index)game_engine_find_one_valid_starting_location(-1, 6,
+                    &unit_object->position, 1.0f, 0.0f);
 
                 if ((unit_object->network_role == 1 || unit_object->network_role == 2) &&
                     p->local_player_index != -1 && network_client != 0) {

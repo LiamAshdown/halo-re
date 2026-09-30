@@ -1,7 +1,7 @@
 // ai_search_gather_obstacles  (Ghidra: ai_search_gather_obstacles, renamed)
 // address 0x43c510, size 883 bytes
 // name confidence: 0.45  rewrite confidence: 0.8
-// REWRITTEN from objdump 0x43c510..0x43c882. Stack: list, center, radius, direction, self_object_a,
+// VERIFIED against disassembly 0x43c510..0x43c882 (2026-09-30); rewritten from it. Stack: list, center, radius, direction, self_object_a,
 //   self_object_b. object_find_in_sphere(1, types 0xc3, self_object_a's location +0x98, center, radius, 0x100)
 //   gives the candidates; the two selves, hidden objects (+0x10 bit 0), bipeds flagged +0x106 bit 2, and machines
 //   (type 7) whose tag (+0x292) does not block paths or is fully open (bit 2 with +0x208 == 1.0) are skipped, as

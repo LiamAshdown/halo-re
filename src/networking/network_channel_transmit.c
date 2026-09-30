@@ -1,21 +1,16 @@
 // network_channel_transmit  (Ghidra: network_channel_transmit, already named)
 // address 0x4dd730, size 504 bytes
 // name confidence: 0.5   rewrite confidence: 0.35
-// evidence: out/phase4/networking_functions.md: "Pumps queued outgoing bytes for a channel from
-// its internal ring buffer into the underlying transport's write queue in bounded-size chunks."
-// channel->incoming (+0x00c, named "transport-incoming" per types/networking.h) is what gets
-// drained here -- NOT the +0x544 "out" stream the header's own comment attributes to this
-// function; see network_channel_queue_message.c's header for the same discrepancy. endpoint
-// (+0x000), endpoint->data_ready (+0x004) and endpoint->incoming (+0x010, the receive queue's
-// own circular_buffer*) all match types/networking.h's network_receive_queue.
-// UNSURE: this function drains from `channel->incoming` in up-to-0x5000-byte chunks into a
-// local scratch, then calls circular_buffer_write(scratch) with only ONE visible argument; the
-// destination circular_buffer* (presumably endpoint->incoming, i.e. handing bytes to the
-// transport layer to actually send) is elided and reconstructed as such.
-// UNSURE: the exact meaning of "iVar1 == 0/-4/-3" fallthrough cases (0 breaks the loop entirely,
-// -4 sets k_network_channel_dead, anything else marks empty and stops) is preserved by literal
-// value rather than named constants, since no symbolic names for these circular_buffer_write
-// return codes are documented anywhere in this module.
+// evidence: out/phase4/networking_functions.md ("pumps queued bytes ... in bounded-size chunks").
+// Rewritten against the disassembly 0x4dd730..0x4dd927: the pump drains the transport's receive
+// queue (channel->endpoint->incoming, queue +0x10) in chunks of up to 0x5000 bytes into a local
+// scratch buffer and appends each chunk to channel->incoming (channel +0x0c) with
+// circular_buffer_write (EAX = count, EDX = channel->incoming, stack = scratch). The chunk size
+// is limited by the free space in channel->incoming. (The earlier draft had source and
+// destination swapped and passed NULL for the remote-address out parameter.)
+// register convention: cdecl, channel on the stack; network_channel_get_remote_address takes
+// ESI = &local address, EDI = endpoint.
+// blam-cc: (channel on the stack)
 
 #include "win32.h"
 #include "tags.h"
@@ -26,122 +21,114 @@
 #include <string.h>
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
-extern int32_t network_pending_connection_count; // 0x006f16d0, UNSURE: reused here per globals list
+extern int32_t network_pending_connection_count; // 0x006f16d0
 
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue); // 0x441ce0, this module
-extern int32_t circular_buffer_write(uint8_t *data, uint32_t byte_count, circular_buffer *stream); // 0x4d01c0, memory module; UNSURE: stream arg elided here
+extern int32_t circular_buffer_write(uint8_t *data, uint32_t byte_count, circular_buffer *stream); // 0x4d01c0, memory module
 
+static int32_t transmit_circular_buffer_used(circular_buffer *buffer)
+{
+    int32_t used = buffer->write_cursor - buffer->read_cursor;
+    if (used < 0) {
+        used = used + buffer->capacity;
+    }
+    return used;
+}
+
+// VERIFIED against disassembly 0x4dd730..0x4dd927 (2026-09-30)
 char network_channel_transmit(network_channel *channel)
 {
     large_integer counter;
-    circular_buffer *incoming;
-    int32_t available;
+    s_network_address remote_address;
+    circular_buffer *destination;
+    circular_buffer *source;
+    network_receive_queue *queue;
+    int32_t free_space;
+    int32_t chunk;
+    int32_t source_available;
+    int32_t count;
+    int32_t read_cursor;
+    int32_t remaining;
+    uint8_t *scratch_cursor;
     char done;
-    uint32_t chunk;
-    uint32_t incoming_available;
     uint8_t scratch[0x5000];
-    int32_t send_result;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    incoming = channel->incoming;
-    available = incoming->write_cursor - incoming->read_cursor;
+    destination = channel->incoming;
     done = 1;
-    if (available < 0) {
-        available = available + incoming->capacity;
-    }
-    available = incoming->capacity - available;
+    free_space = destination->capacity - transmit_circular_buffer_used(destination) - 1;
 
-    network_channel_get_remote_address(0, channel->endpoint); // UNSURE: out-address argument elided
+    network_channel_get_remote_address(&remote_address, channel->endpoint);
 
-    do {
-        chunk = (uint32_t)(available - 1);
-        incoming = channel->incoming;
-        if (channel->endpoint->data_ready != 1 || network_pending_connection_count < 1) {
-            incoming = channel->incoming;
-            if (incoming == 0) {
+    for (;;) {
+        queue = channel->endpoint;
+        if (queue->data_ready != 1 || network_pending_connection_count < 1) {
+            source = queue->incoming;
+            if (source == 0) {
                 break;
             }
-            incoming_available = incoming->write_cursor - incoming->read_cursor;
-            if ((int32_t)incoming_available < 0) {
-                incoming_available = incoming_available + incoming->capacity;
-            }
-            if ((int32_t)incoming_available < 1) {
+            if (transmit_circular_buffer_used(source) < 1) {
                 break;
             }
         }
-        if ((int32_t)chunk < 1) {
+        if (free_space < 1) {
             break;
         }
-        if (0x4fff < (int32_t)chunk) {
-            chunk = 0x5000;
-        }
-        incoming = channel->incoming;
-        incoming_available = incoming->write_cursor - incoming->read_cursor;
-        if ((int32_t)incoming_available < 0) {
-            incoming_available = incoming_available + incoming->capacity;
-        }
-        if (channel->endpoint->connection_failed == 1) { // UNSURE: offset +0x05 has no named field
-            if (incoming_available != 0) {
-                goto do_transfer;
-            }
-            channel->flags = channel->flags | k_network_channel_dead;
-            done = 0;
-            goto after_transfer;
-        }
-        if (incoming_available == 0) {
-            break;
-        }
-    do_transfer:
-        if ((int32_t)chunk < (int32_t)incoming_available) {
-            incoming_available = chunk;
-        }
-        {
-            int32_t read_cursor = incoming->read_cursor;
-            uint8_t *scratch_cursor = scratch;
-            int32_t tail = incoming->write_cursor - read_cursor;
-            if (tail < 0) {
-                tail = tail + incoming->capacity;
-            }
-            if ((int32_t)incoming_available <= tail) {
-                uint32_t tail_room = (uint32_t)incoming->capacity - (uint32_t)read_cursor;
-                uint32_t first_copy = incoming_available;
-                if (tail_room <= incoming_available) {
-                    memcpy(scratch, incoming->data + read_cursor, tail_room);
-                    read_cursor = 0;
-                    scratch_cursor = scratch + tail_room;
-                    first_copy = incoming_available - tail_room;
-                }
-                if ((int32_t)first_copy > 0) {
-                    memcpy(scratch_cursor, incoming->data + read_cursor, first_copy);
-                    read_cursor = read_cursor + first_copy;
-                }
-                incoming->read_cursor = read_cursor;
-            }
-        }
-        if ((int32_t)incoming_available < 1) {
-            if (incoming_available != 0xfffffffc) {
-                if (incoming_available == 0xfffffffd) {
-                    channel->flags = channel->flags | k_network_channel_dead;
-                    done = 0;
-                    goto after_transfer;
-                }
+        chunk = (free_space < 0x5000) ? free_space : 0x5000;
+
+        source = queue->incoming;
+        source_available = transmit_circular_buffer_used(source);
+        if (queue->connection_failed == 1) {
+            if (source_available == 0) {
+                channel->flags = channel->flags | k_network_channel_dead;
                 done = 0;
-                goto after_transfer;
+                goto refresh;
             }
+        } else if (source_available == 0) {
             break;
         }
-        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-        send_result = circular_buffer_write(scratch, incoming_available, channel->endpoint->incoming); // UNSURE: stream arg
-        (void)send_result;
-    after_transfer:
-        incoming = channel->incoming;
-        available = incoming->write_cursor - incoming->read_cursor;
-        if (available < 0) {
-            available = available + incoming->capacity;
+
+        count = (source_available > chunk) ? chunk : source_available;
+
+        // inline circular_buffer_read of `count` bytes from the transport queue into scratch
+        read_cursor = source->read_cursor;
+        scratch_cursor = scratch;
+        remaining = count;
+        if (count <= transmit_circular_buffer_used(source)) {
+            int32_t tail_room = source->capacity - read_cursor;
+            if (count >= tail_room) {
+                memcpy(scratch, source->data + read_cursor, (uint32_t)tail_room);
+                read_cursor = 0;
+                scratch_cursor = scratch + tail_room;
+                remaining = count - tail_room;
+            }
+            if (remaining > 0) {
+                memcpy(scratch_cursor, source->data + read_cursor, (uint32_t)remaining);
+                read_cursor = read_cursor + remaining;
+            }
+            source->read_cursor = read_cursor;
         }
-        available = incoming->capacity - available;
-    } while (done != 0);
+
+        if (count > 0) {
+            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+            channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+            circular_buffer_write(scratch, (uint32_t)count, channel->incoming);
+        } else {
+            if (count == -4) {
+                break;
+            }
+            if (count == -3) {
+                channel->flags = channel->flags | k_network_channel_dead;
+            }
+            done = 0;
+        }
+    refresh:
+        destination = channel->incoming;
+        free_space = destination->capacity - transmit_circular_buffer_used(destination) - 1;
+        if (done == 0) {
+            break;
+        }
+    }
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     return done;
 }

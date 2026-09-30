@@ -1,6 +1,6 @@
 // first_person_weapon_update_animation_controls  (Ghidra: already named)
 // address 0x493740, size 1299 bytes
-// name confidence: 0.5   rewrite confidence: 0.6
+// name confidence: 0.5   rewrite confidence: 0.95
 // evidence: types/interface.h first_person_weapon_interface names this address directly
 // ("first_person_weapon_update_animation_controls @0x493740"), and its animation_control
 // (+0x8c) / previous_pose (+0x88c) fields are read/written here exactly as documented;
@@ -26,9 +26,10 @@
 //    The state test reads first_person_weapon_interfaces[0], not the indexed entry.
 //  - When the weapon has no first_person_weapons block, only the world transforms run; when
 //    there is no weapon at all, nothing after the aim bookkeeping runs.
-// UNSURE: the 0x4d4xxx animation helpers belong to the animation module and are not rewritten;
-// their meanings (base frame, frame overlay, weighted overlay channel, blend) are inferred from
-// the arguments alone. 0x7c312c is taken to be the camera up vector.
+// Verified against the disassembly 0x493740..0x493c52 (2026-09-30): aim bookkeeping, tag/graph resolution, base pose (0x4d4a80 /
+// 0x4d7610), ammunition / moving / overcharged overlays, the nine sway channels, the blend and the final matrix build all match,
+// including every register/stack argument order. The 0x4d4xxx animation helpers belong to the animation module (not
+// rewritten here); their meanings are inferred from the arguments alone. 0x7c312c is taken to be the camera up vector.
 
 #include "tags.h"
 #include "memory.h"
@@ -154,16 +155,16 @@ void first_person_weapon_update_animation_controls(int16_t local_player_index)
 
                     if (elapsed >= 0x2c) {
                         WeaponMagazine *magazine_tag = (WeaponMagazine *)weapon_tag->magazines.pointer;
-                        float fraction = (float)(elapsed - 0x2c) * 0.2f;
+                        double fraction = (double)(elapsed - 0x2c) * (double)0.2f; // 0x672ab8; kept in x87 extended precision
                         int16_t target;
-                        if (fraction > 1.0f) {
-                            fraction = 1.0f;
+                        if (fraction > 1.0) {
+                            fraction = 1.0;
                         }
                         target = magazine[3];                          // rounds_unloaded
                         if (target > (int16_t)magazine_tag->rounds_loaded_maximum) {
                             target = magazine_tag->rounds_loaded_maximum;
                         }
-                        frame += __ftol((float)(target - (int16_t)frame) * fraction);
+                        frame += __ftol((double)(target - (int16_t)frame) * fraction);
                     }
                     animation_overlay_frame_orientations(ammunition, frame, animation_control);
                 } else if (magazine[4] < (int16_t)ammunition->frame_count) {

@@ -1,5 +1,6 @@
 // dialog_static_hyperlink_install  (Ghidra: dialog_static_hyperlink_install, already named)
 // address 0x57e4c0, size 209 bytes
+// VERIFIED against disassembly 0x57e4c0..0x57e591 (2026-09-30)
 // name confidence: 0.65  rewrite confidence: 0.9
 // evidence: out/phase4/dialogs_functions.md / dialogs_types_notes.md: the only function that
 //   sets the "Old_Proc"/"Old_Font"/"Font"/"Static" window properties dialog_static_hyperlink_

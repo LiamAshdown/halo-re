@@ -34,8 +34,9 @@ extern motion_sensor_globals *motion_sensor;          // 0x00719438
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 
 // Reserves the six HUD runtime-state blocks from the game-state bump allocator, in order, and
-// folds each of the first five blocks' size (not its contents) into the running state checksum
-// (the sixth, motion_sensor, is not checksummed, matching Ghidra exactly).
+// folds each block's size (not its contents) into the running state checksum.
+// VERIFIED against disassembly 0x4a9780..0x4a98c9 (2026-09-30); fixed: the sixth block (motion_sensor, 0x570) is also
+// checksummed (6 crc32_update calls, the draft made 5).
 void hud_state_allocate(void)
 {
     int32_t size;
@@ -68,6 +69,7 @@ void hud_state_allocate(void)
     size = sizeof(motion_sensor_globals);
     motion_sensor = (motion_sensor_globals *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
+    crc32_update(&game_state_crc, (uint8_t *)&size, 4); // 0x4a98b9: the sixth block IS checksummed too
 }
 
 #if 0

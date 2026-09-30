@@ -33,6 +33,11 @@ extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, rea
 extern double sin(double x);
 extern double cos(double x);
 
+// VERIFIED (logic) against disassembly 0x5096f0..0x5097d2 (2026-09-30): register/stack roles (EAX axis, ESI up, EDI forward,
+//   stack fallback_forward/fallback_up), the fcos/fsin call order into matrix4x3_from_axis_angle, both transforms, the
+//   forward renormalise, the Gram-Schmidt step and the zero-length fallback copy match. STILL-UNSURE: the original feeds
+//   fsin/fcos the UNROUNDED extended-precision length returned in st(0); the C rounds it to float first, which only
+//   matters for large random axes (angle > ~1e3 rad), as the difftest uses.
 // Rotates forward and up in place by the small rotation axis gives this tick (treating the
 // axis's length as the rotation angle in radians), then re-orthonormalizes up against forward
 // (Gram-Schmidt: subtract up's projection onto forward, renormalize) to correct drift.

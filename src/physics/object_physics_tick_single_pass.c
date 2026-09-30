@@ -3,6 +3,12 @@
 //   implementation of the antenna physics tick... used instead of the general multi-vertex path",
 //   picked by object_physics_tick (0x507840, this module) when Physics.radius > 0.0)
 // address 0x509e80, size 5129 bytes -- the largest function in this module.
+// VERIFIED against disassembly 0x509e80..0x50b289 (2026-09-30). FIXED: the mass point local position is
+//   Physics.center_of_mass-relative, the ground block also needs Physics.ground_depth > 0 and scales the normal force
+//   by the OBJECT mass, the orientation vectors and every dot product / length follow the original k,j,i (or i,j,k)
+//   summation order, air friction is always computed (powered variant only with the flag and value), the angular
+//   acceleration is total_torque / moment, the powered matrix product is a full 0x34 byte matrix (the draft
+//   overflowed a 3x3)
 // name confidence: 0.35   rewrite confidence: 0.20 (raised from 0.12: phase-4 integration pass restored the two missing delta terms of the at-rest test and un-swapped its velocity/angular-velocity thresholds) -- the lowest-confidence file in this batch.
 //   This function fuses object_physics_compute_mass_point_forces (0x507cc0) and
 //   object_physics_integrate_and_test_at_rest (0x5097e0)'s jobs into one pass with a simplified
@@ -28,22 +34,6 @@
 // register convention: none recognized as in_EAX etc; all five are Ghidra's own ordinary
 //   parameters, identical in shape to object_physics_tick's own
 //   (object_index, powered_states, mass_point_states, extra_force, extra_torque).
-// UNSURE (major): the two vector3d_rotate_about_axis calls near the end (rotating the object's
-//   forward and up by this tick's angular velocity, then re-orthonormalizing up against forward)
-//   show only their sin/cos arguments; their v/axis register pair is reconstructed by direct
-//   analogy with object_physics_mass_point_update_orientation's (0x5096f0) own, already-confirmed
-//   version of the identical idiom, not read from this function's own decompile.
-// UNSURE (major): the aggregate angular-acceleration step normalizes the summed torque into an
-//   axis, then sums a per-mass-point scalar "moment of inertia along that axis"
-//   (offset-perpendicular-to-axis squared, plus 0.4x the offset-along-axis squared, times mass
-//   and Physics.moment_scale) to divide the torque magnitude by, rather than using a proper
-//   inverse inertia tensor the way object_physics_integrate_and_test_at_rest does. This is
-//   preserved exactly as decompiled, not "corrected" to match that function's approach.
-// UNSURE: the ground-friction antigrav-adjusted push block, and the plain antigrav block at the
-//   very end, are read by direct field-for-field analogy with
-//   object_physics_compute_mass_point_forces.c's own already-confirmed versions of the identical
-//   formulas (this function's own decompile shows the same float10-heavy, argument-starved shape
-//   for both).
 // reconciled: R23 collision_result: normal -> plane.normal, unknown_30 -> plane.d, unknown_04 -> first_leaf/first_cluster, unknown_3c -> region_index, marker_index -> node_index, unknown_40 -> permutation_index (int16), unknown_48 -> plane_index, unknown_4d -> breakable_surface_index, unknown_4e -> collision_material_index
 
 #include "tags.h"
@@ -167,49 +157,43 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
         }
 
         mp->flags = 0;
-        if (powered_state == 0) {
-            mp->position_x = local_position.x * step_matrix.forward.i + local_position.y * step_matrix.left.i +
-                local_position.z * step_matrix.up.i + step_matrix.position.x;
-            mp->position_y = local_position.x * step_matrix.forward.j + local_position.y * step_matrix.left.j +
-                local_position.z * step_matrix.up.j + step_matrix.position.y;
-            mp->position_z = local_position.x * step_matrix.forward.k + local_position.y * step_matrix.left.k +
-                local_position.z * step_matrix.up.k + step_matrix.position.z;
+        {
+            // 0x50a08a..0x50a2fd: the local position is the mass point position minus Physics.center_of_mass, scaled by
+            //   the step matrix scale when that is not exactly 1.0, then ((z * up + y * left) + x * forward) + position.
+            //   The orientation vectors are (k * up + j * left) + i * forward of the step matrix, or of
+            //   step matrix * the powered state's matrix when there is a powered state (matrix4x3_multiply_procedure
+            //   at 0x696664 writes a full 0x34 byte matrix).
+            float local_x = mp_def->position.x - definition->center_of_mass.x;
+            float local_y = mp_def->position.y - definition->center_of_mass.y;
+            float local_z = mp_def->position.z - definition->center_of_mass.z;
+            real_matrix4x3 combined;
+            const real_matrix4x3 *basis = &step_matrix;
 
-            mp->forward_i = mp_def->forward.i * step_matrix.forward.i + mp_def->forward.j * step_matrix.left.i +
-                mp_def->forward.k * step_matrix.up.i;
-            mp->forward_j = mp_def->forward.i * step_matrix.forward.j + mp_def->forward.j * step_matrix.left.j +
-                mp_def->forward.k * step_matrix.up.j;
-            mp->forward_k = mp_def->forward.i * step_matrix.forward.k + mp_def->forward.j * step_matrix.left.k +
-                mp_def->forward.k * step_matrix.up.k;
-            mp->up_i = mp_def->up.i * step_matrix.forward.i + mp_def->up.j * step_matrix.left.i +
-                mp_def->up.k * step_matrix.up.i;
-            mp->up_j = mp_def->up.i * step_matrix.forward.j + mp_def->up.j * step_matrix.left.j +
-                mp_def->up.k * step_matrix.up.j;
-            mp->up_k = mp_def->up.i * step_matrix.forward.k + mp_def->up.j * step_matrix.left.k +
-                mp_def->up.k * step_matrix.up.k;
-        } else {
-            real_matrix3x3 combined; // built from step_matrix * powered_state->matrix_scale
-            matrix4x3_multiply(&step_matrix, &powered_state->matrix_scale, &combined);
+            if (step_matrix.scale != 1.0f) {
+                local_x = local_x * step_matrix.scale;
+                local_y = local_y * step_matrix.scale;
+                local_z = local_z * step_matrix.scale;
+            }
+            mp->position_x = ((local_z * step_matrix.up.i + local_y * step_matrix.left.i) +
+                local_x * step_matrix.forward.i) + step_matrix.position.x;
+            mp->position_y = ((local_z * step_matrix.up.j + local_y * step_matrix.left.j) +
+                local_x * step_matrix.forward.j) + step_matrix.position.y;
+            mp->position_z = ((local_z * step_matrix.up.k + local_y * step_matrix.left.k) +
+                local_x * step_matrix.forward.k) + step_matrix.position.z;
 
-            mp->position_x = local_position.x * step_matrix.forward.i + local_position.y * step_matrix.left.i +
-                local_position.z * step_matrix.up.i + step_matrix.position.x;
-            mp->position_y = local_position.x * step_matrix.forward.j + local_position.y * step_matrix.left.j +
-                local_position.z * step_matrix.up.j + step_matrix.position.y;
-            mp->position_z = local_position.x * step_matrix.forward.k + local_position.y * step_matrix.left.k +
-                local_position.z * step_matrix.up.k + step_matrix.position.z;
-
-            mp->forward_i = mp_def->forward.i * combined.forward.i + mp_def->forward.j * combined.left.i +
-                mp_def->forward.k * combined.up.i;
-            mp->forward_j = mp_def->forward.i * combined.forward.j + mp_def->forward.j * combined.left.j +
-                mp_def->forward.k * combined.up.j;
-            mp->forward_k = mp_def->forward.i * combined.forward.k + mp_def->forward.j * combined.left.k +
-                mp_def->forward.k * combined.up.k;
-            mp->up_i = mp_def->up.i * combined.forward.i + mp_def->up.j * combined.left.i +
-                mp_def->up.k * combined.up.i;
-            mp->up_j = mp_def->up.i * combined.forward.j + mp_def->up.j * combined.left.j +
-                mp_def->up.k * combined.up.j;
-            mp->up_k = mp_def->up.i * combined.forward.k + mp_def->up.j * combined.left.k +
-                mp_def->up.k * combined.up.k;
+            if (powered_state != 0) {
+                matrix4x3_multiply(&step_matrix, &powered_state->matrix_scale, &combined);
+                basis = &combined;
+            }
+            mp->forward_i = (mp_def->forward.k * basis->up.i + mp_def->forward.j * basis->left.i) +
+                mp_def->forward.i * basis->forward.i;
+            mp->forward_j = (mp_def->forward.k * basis->up.j + mp_def->forward.j * basis->left.j) +
+                mp_def->forward.i * basis->forward.j;
+            mp->forward_k = (mp_def->forward.k * basis->up.k + mp_def->forward.j * basis->left.k) +
+                mp_def->forward.i * basis->forward.k;
+            mp->up_i = (mp_def->up.k * basis->up.i + mp_def->up.j * basis->left.i) + mp_def->up.i * basis->forward.i;
+            mp->up_j = (mp_def->up.k * basis->up.j + mp_def->up.j * basis->left.j) + mp_def->up.i * basis->forward.j;
+            mp->up_k = (mp_def->up.k * basis->up.k + mp_def->up.j * basis->left.k) + mp_def->up.i * basis->forward.k;
         }
 
         // FIXED (0x50a300..0x50a348): ECX = the collision BSP [0x746f90] (the draft passed NULL and crashed in
@@ -239,13 +223,15 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
         mp->water_depth = scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
             (real_point3d *)&mp->position_x); // EAX mass point +0x34, EDI +0x04
 
-        if (0.0f < mp->ground_depth) {
-            float tangential_speed = mp->resting_plane_i * mp->velocity_i + mp->resting_plane_j * mp->velocity_j +
-                mp->resting_plane_k * mp->velocity_k;
+        // 0x50a40f..0x50a64c: also requires Physics.ground_depth > 0 (the divisor)
+        if (0.0f < mp->ground_depth && 0.0f < definition->ground_depth) {
+            float tangential_speed = (mp->velocity_k * mp->resting_plane_k + mp->velocity_j * mp->resting_plane_j) +
+                mp->velocity_i * mp->resting_plane_i;
             float friction_magnitude = -(mp_def->mass * definition->ground_friction);
 
+            // 0x50a470: scaled by the OBJECT's mass (Physics +0x08), not the mass point's
             mp->ground_normal_magnitude = ((mp->ground_depth / definition->ground_depth) * k_physics_gravity -
-                tangential_speed * definition->ground_damp_fraction) * mp_def->mass;
+                tangential_speed * definition->ground_damp_fraction) * definition->mass;
             mp->ground_normal_force_i = mp->ground_normal_magnitude * mp->resting_plane_i;
             mp->ground_normal_force_j = mp->ground_normal_magnitude * mp->resting_plane_j;
             mp->ground_normal_force_k = mp->ground_normal_magnitude * mp->resting_plane_k;
@@ -259,17 +245,17 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
 
             if (powered_def != 0 && (powered_def->flags & 0x01) != 0 && powered_state->ground_friction != 0.0f) {
                 float lean = real_inverse_lerp_clamped(mp->resting_plane_k, definition->ground_normal_k0, definition->ground_normal_k1);
-                float alignment = mp->resting_plane_i * mp->up_i + mp->up_j * mp->resting_plane_j +
-                    mp->up_k * mp->resting_plane_k;
+                float alignment = (mp->up_k * mp->resting_plane_k + mp->up_j * mp->resting_plane_j) +
+                    mp->up_i * mp->resting_plane_i;
                 float scale, d, push_i, push_j, push_k;
                 float neg_gf = -powered_state->ground_friction;
 
                 if (alignment < 0.0f) alignment = 0.0f;
                 else if (alignment > 1.0f) alignment = 1.0f;
-                scale = alignment * alignment * lean * lean * friction_magnitude;
+                scale = lean * (alignment * alignment * lean) * friction_magnitude;
 
-                d = -(neg_gf * mp->forward_i * mp->resting_plane_i + (neg_gf * mp->forward_j) * mp->resting_plane_j +
-                    (neg_gf * mp->forward_k) * mp->resting_plane_k);
+                d = -(((neg_gf * mp->forward_k) * mp->resting_plane_k + (neg_gf * mp->forward_j) * mp->resting_plane_j) +
+                    (neg_gf * mp->forward_i) * mp->resting_plane_i);
                 push_i = d * mp->resting_plane_i + neg_gf * mp->forward_i;
                 push_j = d * mp->resting_plane_j + neg_gf * mp->forward_j;
                 push_k = d * mp->resting_plane_k + neg_gf * mp->forward_k;
@@ -293,32 +279,13 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
             }
         }
 
-        mp->flags = (mp->velocity_i * mp->velocity_i + mp->velocity_j * mp->velocity_j +
-            mp->velocity_k * mp->velocity_k < 0.0011111111f) ? (mp->flags | _mass_point_at_rest_bit) : mp->flags;
-        mp->flags = (mp->ground_depth <= 0.0f) ? mp->flags : (mp->flags | _mass_point_ground_contact_bit);
-        mp->flags = (mp->water_depth <= 0.0f) ? mp->flags : (mp->flags | _mass_point_water_contact_bit);
-
-        if (mp->water_depth <= 0.0f) {
-            float d = -(mp_def->mass * definition->air_friction);
-            if (powered_def != 0 && (powered_def->flags & 0x04) != 0 && powered_state->air_friction != 0.0f) {
-                float neg = -powered_state->air_friction;
-                float t1 = neg * mp->forward_j + mp->velocity_j;
-                float t2 = neg * mp->forward_k + mp->velocity_k;
-                d = -(mp_def->mass * definition->air_friction);
-                mp->air_friction_force[0] = d * (neg * mp->forward_i + mp->velocity_i);
-                mp->air_friction_force[1] = t1 * d;
-                mp->air_friction_force[2] = t2 * d;
-            } else {
-                mp->air_friction_force[0] = d * mp->velocity_i;
-                mp->air_friction_force[1] = d * mp->velocity_j;
-                mp->air_friction_force[2] = d * mp->velocity_k;
-            }
-        } else {
+        // 0x50a64f..0x50a808: water block (only when the mass point is under water)
+        if (0.0f < mp->water_depth) {
             float water_fade = (definition->water_depth <= mp->water_depth) ? 1.0f :
                 mp->water_depth / definition->water_depth;
 
             if (0.0f < mp_def->density && 0.0f < definition->water_depth) {
-                float buoyancy = (mp_def->mass / mp_def->density) * definition->water_density * water_fade * gravity_scale;
+                float buoyancy = (((definition->water_density / mp_def->density) * mp_def->mass) * water_fade) * gravity_scale;
                 mp->buoyancy_magnitude = buoyancy;
                 mp->buoyancy_force_i = 0.0f;
                 mp->buoyancy_force_j = 0.0f;
@@ -345,39 +312,53 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                 (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
             if (powered_def != 0 && (powered_def->flags & 0x08) != 0 && powered_state->water_lift != 0.0f) {
-                float lift = (float)fabs((double)(mp->velocity_i * mp->forward_i + mp->forward_j * mp->velocity_j +
-                    mp->forward_k * mp->velocity_k)) * powered_state->water_lift * definition->mass * water_fade;
+                float lift = (float)fabs((double)((mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j) +
+                    mp->forward_i * mp->velocity_i)) * powered_state->water_lift * definition->mass * water_fade;
                 mp->powered_force_i += lift * mp->up_i;
                 mp->powered_force_j += lift * mp->up_j;
                 mp->powered_force_k += lift * mp->up_k;
             }
+        }
 
-            if (powered_def != 0 && (powered_def->flags & 0x04) != 0 && powered_state->air_friction != 0.0f) {
-                float neg = -powered_state->air_friction;
-                float t1 = neg * mp->forward_j + mp->velocity_j;
-                float t2 = neg * mp->forward_k + mp->velocity_k;
-                float d = -(mp_def->mass * definition->air_friction);
-                mp->air_friction_force[0] = d * (neg * mp->forward_i + mp->velocity_i);
-                mp->air_friction_force[1] = t1 * d;
-                mp->air_friction_force[2] = t2 * d;
-            } else if (powered_def == 0) {
-                float d = -(mp_def->mass * definition->air_friction);
-                mp->air_friction_force[0] = d * mp->velocity_i;
-                mp->air_friction_force[1] = d * mp->velocity_j;
-                mp->air_friction_force[2] = d * mp->velocity_k;
-            }
+        // 0x50a808..0x50a8c4: air friction is always computed (powered variant when the powered mass point has the
+        //   air friction flag and a non-zero value), then blended
+        if (powered_def != 0 && (powered_def->flags & 0x04) != 0 && powered_state->air_friction != 0.0f) {
+            float neg = -powered_state->air_friction;
+            float t1 = neg * mp->forward_j + mp->velocity_j;
+            float t2 = neg * mp->forward_k + mp->velocity_k;
+            float d = -(mp_def->mass * definition->air_friction);
+            mp->air_friction_force[0] = d * (neg * mp->forward_i + mp->velocity_i);
+            mp->air_friction_force[1] = t1 * d;
+            mp->air_friction_force[2] = t2 * d;
+        } else {
+            float d = -(mp_def->mass * definition->air_friction);
+            mp->air_friction_force[0] = d * mp->velocity_i;
+            mp->air_friction_force[1] = d * mp->velocity_j;
+            mp->air_friction_force[2] = d * mp->velocity_k;
         }
         object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
             mp_def->friction_perpendicular_scale, mp->air_friction_force,
-                (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
+            (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
         if (powered_def != 0 && (powered_def->flags & 0x10) != 0 && powered_state->air_lift != 0.0f) {
-            float lift = (float)fabs((double)(mp->velocity_i * mp->forward_i + mp->forward_j * mp->velocity_j +
-                mp->forward_k * mp->velocity_k)) * definition->mass * powered_state->air_lift;
+            float lift = (float)fabs((double)((mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j) +
+                mp->forward_i * mp->velocity_i)) * definition->mass * powered_state->air_lift;
             mp->powered_force_i += lift * mp->up_i;
             mp->powered_force_j += lift * mp->up_j;
             mp->powered_force_k += lift * mp->up_k;
         }
+
+        // 0x50a941..0x50a9e6: flags and the per-object tallies
+        mp->flags = ((mp->velocity_k * mp->velocity_k + mp->velocity_j * mp->velocity_j) + mp->velocity_i * mp->velocity_i <
+            0.0011111111f) ? (mp->flags | _mass_point_at_rest_bit) : (mp->flags & ~(uint32_t)_mass_point_at_rest_bit);
+        mp->flags = (mp->ground_depth <= 0.0f) ? (mp->flags & ~(uint32_t)_mass_point_ground_contact_bit) :
+            (mp->flags | _mass_point_ground_contact_bit);
+        mp->flags = (mp->water_depth <= 0.0f) ? (mp->flags & ~(uint32_t)_mass_point_water_contact_bit) :
+            (mp->flags | _mass_point_water_contact_bit);
+        at_rest_count += (mp->flags & _mass_point_at_rest_bit) != 0 ? 1 : 0;
+        ground_contact_count += (mp->flags & _mass_point_ground_contact_bit) != 0 ? 1 : 0;
+        on_ground_surface_count += (mp->flags & _mass_point_on_ground_surface_bit) != 0 ? 1 : 0;
+        water_contact_count += (mp->flags & _mass_point_water_contact_bit) != 0 ? 1 : 0;
 
         if (powered_def != 0) {
             if ((powered_def->flags & 0x20) != 0) {
@@ -400,8 +381,8 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                     float clearance = probe_length * probe_result.t - mp_def->radius;
                     float lean = real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0, powered_def->antigrav_normal_k1);
                     float fade = (clearance <= 0.0f) ? 1.0f : 1.0f - clearance / powered_def->antigrav_height;
-                    float dot_nv = probe_result.plane.normal.i * mp->velocity_i + probe_result.plane.normal.k * mp->velocity_k +
-                        probe_result.plane.normal.j * mp->velocity_j;
+                    float dot_nv = (probe_result.plane.normal.j * mp->velocity_j + probe_result.plane.normal.k * mp->velocity_k) +
+                        probe_result.plane.normal.i * mp->velocity_i;
                     float push = (fade * fade * k_physics_gravity - dot_nv * powered_def->antigrav_damp_fraction) *
                         powered_state->antigrav * powered_def->antigrav_strength * definition->mass * lean;
 
@@ -429,11 +410,6 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
         total_torque.i += mp->torque_i;
         total_torque.j += mp->torque_j;
         total_torque.k += mp->torque_k;
-
-        at_rest_count += (mp->flags & _mass_point_at_rest_bit) != 0 ? 1 : 0;
-        ground_contact_count += (mp->flags & _mass_point_ground_contact_bit) != 0 ? 1 : 0;
-        on_ground_surface_count += (mp->flags & _mass_point_on_ground_surface_bit) != 0 ? 1 : 0;
-        water_contact_count += (mp->flags & _mass_point_water_contact_bit) != 0 ? 1 : 0;
     }
 
     {
@@ -446,8 +422,9 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
 
         {
             real_vector3d torque_axis = total_torque;
-            float torque_length = (float)sqrt((double)(torque_axis.i * torque_axis.i +
-                torque_axis.j * torque_axis.j + torque_axis.k * torque_axis.k));
+            // 0x50adbb..0x50ade3: the length and the dot products below sum k, j, i in that order
+            float torque_length = (float)sqrt((double)((torque_axis.k * torque_axis.k +
+                torque_axis.j * torque_axis.j) + torque_axis.i * torque_axis.i));
 
             if (0.0001f <= (float)fabs((double)torque_length) && torque_length != 0.0f) {
                 float inverse_length = 1.0f / torque_length;
@@ -463,21 +440,22 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                     // Parallel-axis theorem: perpendicular-offset term (point mass at its offset,
                     // projected off the torque axis) plus the intrinsic solid-sphere moment of a
                     // mass point of this radius (2/5 * m * r^2, i.e. 0.4 * radius^2).
-                    float along = -(torque_axis.i * mp->offset_x + torque_axis.j * mp->offset_y +
-                        torque_axis.k * mp->offset_z);
+                    float along = -((torque_axis.k * mp->offset_z + torque_axis.j * mp->offset_y) +
+                        torque_axis.i * mp->offset_x);
                     float perp_x = torque_axis.i * along + mp->offset_x;
                     float perp_y = torque_axis.j * along + mp->offset_y;
                     float perp_z = torque_axis.k * along + mp->offset_z;
 
-                    moment_sum += (perp_x * perp_x + mp_def->radius * mp_def->radius * 0.4f +
-                        perp_y * perp_y + perp_z * perp_z) * mp_def->mass * definition->moment_scale;
+                    moment_sum += ((((perp_z * perp_z + perp_y * perp_y) + mp_def->radius * mp_def->radius * 0.4f) +
+                        perp_x * perp_x) * mp_def->mass) * definition->moment_scale;
                 }
 
                 if (moment_sum != 0.0f) {
                     float inverse_moment = 1.0f / moment_sum;
-                    angular_accel.i = torque_axis.i * inverse_moment * torque_length;
-                    angular_accel.j = torque_axis.j * inverse_moment * torque_length;
-                    angular_accel.k = torque_axis.k * inverse_moment * torque_length;
+                    // 0x50aeda..0x50aef5: the unnormalised summed torque times 1 / moment (not axis * length)
+                    angular_accel.i = total_torque.i * inverse_moment;
+                    angular_accel.j = total_torque.j * inverse_moment;
+                    angular_accel.k = total_torque.k * inverse_moment;
                 }
             }
         }
@@ -509,7 +487,7 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
 
         {
             real_vector3d axis = self->angular_velocity;
-            float axis_length = (float)sqrt((double)(axis.i * axis.i + axis.j * axis.j + axis.k * axis.k));
+            float axis_length = (float)sqrt((double)((axis.k * axis.k + axis.j * axis.j) + axis.i * axis.i));
 
             if (0.0001f <= (float)fabs((double)axis_length)) {
                 float inverse_length = 1.0f / axis_length;
@@ -522,17 +500,15 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                     float cos_angle = (real)cos((double)axis_length);
                     real_vector3d forward_length_check;
 
-                    // UNSURE: v/axis register pair reconstructed by analogy with
-                    // object_physics_mass_point_update_orientation's (0x5096f0) own confirmed
-                    // rotate-forward-then-up-then-reorthonormalize idiom; see file header.
+                    // VERIFIED against disassembly 0x50b054..0x50b081 (2026-09-30): EAX=esi+0x74 (forward) then esi+0x80 (up), ECX=axis (ebp-0x24)
                     vector3d_rotate_about_axis(&self->forward, &axis, sin_angle, cos_angle);
                     vector3d_rotate_about_axis(&self->up, &axis, sin_angle, cos_angle);
 
                     forward_length_check = self->forward;
                     {
-                        float len = (float)sqrt((double)(forward_length_check.k * forward_length_check.k +
-                            forward_length_check.j * forward_length_check.j +
-                            forward_length_check.i * forward_length_check.i));
+                        float len = (float)sqrt((double)((forward_length_check.i * forward_length_check.i +
+                            forward_length_check.j * forward_length_check.j) +
+                            forward_length_check.k * forward_length_check.k));
                         if (0.0001f <= (float)fabs((double)len)) {
                             float inv = 1.0f / len;
                             self->forward.i *= inv;
@@ -542,15 +518,15 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
                     }
 
                     {
-                        float neg_dot = -(self->up.i * self->forward.i + self->forward.j * self->up.j +
-                            self->forward.k * self->up.k);
+                        float neg_dot = -((self->forward.k * self->up.k + self->forward.j * self->up.j) +
+                            self->up.i * self->forward.i);
                         self->up.i += neg_dot * self->forward.i;
                         self->up.j += neg_dot * self->forward.j;
                         self->up.k += neg_dot * self->forward.k;
 
                         {
-                            float len = (float)sqrt((double)(self->up.k * self->up.k + self->up.j * self->up.j +
-                                self->up.i * self->up.i));
+                            float len = (float)sqrt((double)((self->up.i * self->up.i + self->up.j * self->up.j) +
+                                self->up.k * self->up.k));
                             if (0.0001f <= (float)fabs((double)len)) {
                                 float inv = 1.0f / len;
                                 self->up.i *= inv;
@@ -575,10 +551,10 @@ void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_s
          self->velocity.k * self->velocity.k) <= 0.0011111111f &&
         (self->angular_velocity.i * self->angular_velocity.i + self->angular_velocity.j * self->angular_velocity.j +
          self->angular_velocity.k * self->angular_velocity.k) <= 0.0027415568f &&
-        (linear_accel.i * linear_accel.i + linear_accel.j * linear_accel.j +
-         linear_accel.k * linear_accel.k) <= 3.0864197e-07f &&
-        (angular_accel.i * angular_accel.i + angular_accel.j * angular_accel.j +
-         angular_accel.k * angular_accel.k) <= 3.0461742e-06f) {
+        ((linear_accel.k * linear_accel.k + linear_accel.j * linear_accel.j) +
+         linear_accel.i * linear_accel.i) <= 3.0864197e-07f &&
+        ((angular_accel.k * angular_accel.k + angular_accel.j * angular_accel.j) +
+         angular_accel.i * angular_accel.i) <= 3.0461742e-06f) {
         self->flags |= _object_at_rest_bit;
     } else {
         self->flags &= ~_object_at_rest_bit;

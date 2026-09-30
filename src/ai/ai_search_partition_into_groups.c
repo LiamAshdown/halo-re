@@ -26,6 +26,8 @@
 extern void ai_search_flood_fill_group(ai_search_obstacle_list *list, float radius, uint32_t *out_bitmask,
                                        int16_t start_index); // 0x43ca40
 
+// VERIFIED against disassembly 0x43cb60..0x43cbff (2026-09-30): link reset, group id increment before the flood fill,
+//   the 4-dword group bitmask and the link assignment match.
 // blam-cc: ESI -> list
 void ai_search_partition_into_groups(ai_search_obstacle_list *list, float radius)
 {

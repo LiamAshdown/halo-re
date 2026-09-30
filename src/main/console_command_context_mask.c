@@ -11,9 +11,9 @@
 // merely to read its `flags` field at a fixed +0x11c; that copy has no other observable effect,
 // so it is not reproduced here (see the UNSURE note).
 // register convention: context_flags is the recognized stack parameter (param_1).
-// UNSURE: the 8188-byte on-stack copy of profile_globals_block[0] before reading its
-// flags field is dropped as a non-observable simplification (no aliasing/threading concern is
-// visible in this function); reading the field directly is behaviourally identical.
+// VERIFIED against disassembly 0x4c69c0..0x4c6a7a (2026-09-30): the 8188-byte on-stack copy of profile_globals_block[0] is
+// dropped (only its flags byte at +0x11c is read, no other effect). Each forbid step is `and eax, 0x0000fffX`, which also
+// clears bits 16..31 of the mask; reproduced with the & 0xffff below.
 // reconciled: R22 saved_player_profile_flags gains _saved_player_profile_end_credits_reached_bit (0x0004); the literal 4 now uses it
 
 #include "tags.h"
@@ -61,25 +61,25 @@ uint32_t console_command_context_mask(uint32_t context_flags)
 
     mask = mask | context_flags;
     if (mask & (_console_context_default_bit << k_console_context_forbidden_shift)) {
-        mask = mask & ~_console_context_default_bit;
+        mask = mask & (~_console_context_default_bit & 0xffffu); // and eax,imm32 (0x0000fffx): also clears bits 16..31
     }
     if (mask & (_console_context_host_bit << k_console_context_forbidden_shift)) {
-        mask = mask & ~_console_context_host_bit;
+        mask = mask & (~_console_context_host_bit & 0xffffu); // and eax,imm32 (0x0000fffx): also clears bits 16..31
     }
     if (mask & (_console_context_unknown_04 << k_console_context_forbidden_shift)) {
-        mask = mask & ~_console_context_unknown_04;
+        mask = mask & (~_console_context_unknown_04 & 0xffffu); // and eax,imm32 (0x0000fffx): also clears bits 16..31
     }
     if (mask & (_console_context_multiplayer_bit << k_console_context_forbidden_shift)) {
-        mask = mask & ~_console_context_multiplayer_bit;
+        mask = mask & (~_console_context_multiplayer_bit & 0xffffu); // and eax,imm32 (0x0000fffx): also clears bits 16..31
     }
     if (mask & (_console_context_no_multiplayer_bit << k_console_context_forbidden_shift)) {
-        mask = mask & ~_console_context_no_multiplayer_bit;
+        mask = mask & (~_console_context_no_multiplayer_bit & 0xffffu); // and eax,imm32 (0x0000fffx): also clears bits 16..31
     }
     if (mask & (_console_context_unknown_20 << k_console_context_forbidden_shift)) {
-        mask = mask & ~_console_context_unknown_20;
+        mask = mask & (~_console_context_unknown_20 & 0xffffu); // and eax,imm32 (0x0000fffx): also clears bits 16..31
     }
     if (mask & (_console_context_always_bit << k_console_context_forbidden_shift)) {
-        mask = mask & ~_console_context_always_bit;
+        mask = mask & (~_console_context_always_bit & 0xffffu); // and eax,imm32 (0x0000fffx): also clears bits 16..31
     }
     return mask;
 }

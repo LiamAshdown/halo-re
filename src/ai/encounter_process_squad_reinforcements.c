@@ -1,6 +1,8 @@
 // encounter_process_squad_reinforcements  (Ghidra: encounter_process_squad_reinforcements, renamed)
 // address 0x4390a0, size 454 bytes
 // name confidence: 0.45  rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4390a0..0x439266; offsets probed)
+// RE-VERIFIED against disassembly 0x4390a0..0x439266 (2026-09-30): the omitted "auStack_1008" array is dead stack space (the
+// prologue only reserves it); every branch, mask bit and register argument of both spawn calls agrees.
 // evidence: types/ai.h encounter / encounter_squad_state; types/tags.h ScenarioEncounter
 //   (squads at 0x80, confirmed) and ScenarioSquad (respawn_min_actors 0x84, respawn_max_actors
 //   0x86, respawn_total 0x88, confirmed by offsetof()). Calls

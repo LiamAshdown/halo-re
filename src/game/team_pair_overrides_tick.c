@@ -1,15 +1,11 @@
 // team_pair_overrides_tick  (Ghidra: FUN_0045bcf0; renamed per symbols/review_queue.txt)
 // address 0x45bcf0, size 91 bytes
-// name confidence: 0.3   rewrite confidence: 0.55
+// name confidence: 0.3   rewrite confidence: 0.9
 // evidence: types/game.h team_pair_override (timer 0x10, refcount 0x0e, timer_reset 0x06),
 //   stride 0x12 (9 shorts) matching this loop exactly.
 // register convention: no arguments.
 //
-// UNSURE: the call `team_pair_set(entry, 0, 0)` at the point an override's refcount reaches
-// zero is transcribed from `FUN_0045c130(0)`, whose `entry` (EAX) and `active` (EBX) arguments
-// are elided here; `entry` is confidently the override just ticked (matches every other call
-// site's own local), `active` = 0 is a best-effort guess (deactivating the pair once its last
-// countdown expires) and is not independently verified.
+// team_pair_set(EAX = the ticked entry, BL = 0 (`xor bl,bl` at 0x45bd26), stack 0 (0x45bd24)): active = 0, clear_secondary = 0.
 
 #include "tags.h"
 #include "memory.h"
@@ -34,7 +30,7 @@ void team_pair_overrides_tick(void)
             if (entry->timer == 0) {
                 entry->refcount = entry->refcount - 1;
                 if (entry->refcount == 0) {
-                    team_pair_set(entry, 0, 0); // UNSURE: see header
+                    team_pair_set(entry, 0, 0); // see header
                 } else {
                     entry->timer = entry->timer_reset;
                 }

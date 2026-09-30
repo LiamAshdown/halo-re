@@ -29,6 +29,9 @@ extern int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint
     uint32_t actor_index, uint16_t order_code, uint8_t byte_a, uint8_t byte_b, uint16_t *order); // 0x403630, this module
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, this module
 
+// VERIFIED against disassembly 0x40de20..0x40de6a (2026-09-30): EAX = the stack argument (resolved target), EDX passed through,
+//   the six/five argument build call, actor_set_mode(actor, 4, buffer) and the 0/1 return match. The in-game crash recorded in
+//   known_bad is inside actor_build_order_grenade_or_melee (0x403630), not in this wrapper.
 // blam-cc: ECX -> order_code, EDX -> use_alt_base, ESI -> actor_index, stack -> resolved_target
 uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base,
     uint16_t order_code, datum_index actor_index)

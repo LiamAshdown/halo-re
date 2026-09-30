@@ -1,6 +1,7 @@
 // weapon_reset_triggers  (Ghidra: FUN_004c4b50; named per types/items.h,
 // "_weapon_trigger_effect_reset = 8 // weapon_reset_triggers (0x4c4b50)")
 // address 0x4c4b50, size 233 bytes
+// VERIFIED against disassembly 0x4c4b50..0x4c4c39 (2026-09-30)
 // name confidence: 0.5   rewrite confidence: 0.9 (VERIFIED against objdump; call arguments FIXED)
 // evidence: types/items.h weapon_trigger_state.effect_state/.effect_state_ticks,
 //   weapon_magazine_state.state/.state_ticks; types/tags.h Weapon.triggers (0x4fc),

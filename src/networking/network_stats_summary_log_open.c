@@ -18,7 +18,7 @@
 //     the raw byte assignments. It has no observable effect and is not reproduced here.
 //  2. The three manual "walk to the NUL, then dword/byte-copy" loops that follow are ordinary
 //     strcpy/strcat, and are written as such.
-// UNSURE: join_game_server_browser_tick (foreign, > 0x4b80f0) is assumed to return the base log-directory path
+// The base log-directory path comes from network_log_path_resolve (0x4e40a0; ESI = "Gamespy Metrics", not dead text)
 // (its result is what gets a directory created for it, then has the log filename appended).
 // UNSURE: FUN_00449210 (foreign) is used here as a zero-argument millisecond tick reader
 // (QueryPerformanceCounter scaled by its frequency, same shape as random_seed_generate.c);
@@ -46,7 +46,7 @@ extern network_summary_statistics network_summary_stats; // 0x0087bea0
 extern char network_summary_log_mode_string[];    // 0x0065fd30, UNSURE: exact text unresolved
 
 extern int32_t time_query_performance_counter_ms(void);        // foreign module, millisecond tick reader; see UNSURE
-extern char *join_game_server_browser_tick(void);          // foreign module (> 0x4b80f0), log base directory path
+extern char *network_log_path_resolve(char *requested_path); // 0x4e40a0; blam-cc: ESI -> requested_path
 extern char directory_create_recursive(char *path); // 0x449250, foreign module
 // time(), localtime(), strftime() and fopen() come from <time.h>/<stdio.h> above; the retail
 // binary calls the 32-bit-time-specific CRT entry points (_time32, localtime, _fsopen) for
@@ -66,7 +66,7 @@ void network_stats_summary_log_open(void)
             tm_now = localtime(&now);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = join_game_server_browser_tick();
+            base_path = network_log_path_resolve("Gamespy Metrics"); // FIXED: was join_game_server_browser_tick (a different function); ESI = the "Gamespy Metrics" text (0x4406f4..0x4406f8)
             strcpy(path_buf, base_path);
             directory_create_recursive(path_buf);
 

@@ -300,7 +300,8 @@ void render_contrail(contrail *c, Contrail *definition, int16_t instance)
             vertices[1].y = side.j * half_width + point->position.y;
             vertices[1].z = side.k * half_width + point->position.z;
             if (has_fade) {
-                vector3d_cross_product(&fade_normal, &segment, &side);
+                // VERIFIED against disassembly 0x50e6dc..0x50e6e9 (2026-09-30): EAX=fade_normal, ECX=side (esp+0x74), stack=segment (esp+0x44)
+                vector3d_cross_product(&fade_normal, &side, &segment);
                 vector3d_normalize_with_length(&fade_normal);
             }
             break;

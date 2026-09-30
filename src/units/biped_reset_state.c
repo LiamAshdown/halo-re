@@ -1,5 +1,6 @@
-// biped_reset_state  (Ghidra: no function created; the phase-4 types agent carved a placeholder
+// biped_reset_state  (Ghidra: no function created; the phase-4 types agent carved a stub
 //   "missed_559f10" from the object_type_definition vtable evidence)
+// VERIFIED against disassembly 0x559f10..0x559f6e (2026-09-30)
 // address 0x559f10, size 94 bytes
 // name confidence 0.4, rewrite confidence 0.65
 // evidence: out/phase4/units_types_notes.md: "The biped row's +0x38, +0x50 and +0x54 columns are

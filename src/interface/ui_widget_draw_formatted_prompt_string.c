@@ -1,7 +1,7 @@
 // ui_widget_draw_formatted_prompt_string  (Ghidra: ui_widget_draw_formatted_prompt_string,
 // already named)
 // address 0x49ade0, size 983 bytes
-// name confidence: 0.5   rewrite confidence: 0.7
+// name confidence: 0.5   rewrite confidence: 0.95
 // evidence: matches the given name; splits the source string on '%' and draws each plain-text
 // span, then resolves what follows each '%' as a button-prompt token
 // (ui_button_prompt_index_from_string) and draws either a literal percent sign, a quoted key
@@ -18,10 +18,9 @@
 // pointers; a failed key-name lookup draws L"???" and a successful one draws the name in quotes
 // (the two branches were swapped); the icon override flag table is 0x006926f4, not 0x00692796;
 // after an unmapped token the cursor only retreats by another 3.
-// UNSURE: the icon color built at 0x49b06a..0x49b154 (the global text color when the icon has no
-// override color or use_text_color is set, premultiplied by the text alpha and packed to
-// ARGB8888) is stored in a local that nothing reads; ui_button_prompt_draw_icon takes only the icon in ESI.
-// It is reproduced for fidelity.
+// The icon color built at 0x49b06a..0x49b154 (the global text color when the icon has no override color or use_text_color is set,
+// premultiplied by the text alpha and packed to ARGB8888 with fistp) is stored in a local that nothing reads;
+// ui_button_prompt_draw_icon takes only the icon in ESI. It is reproduced for fidelity.
 
 #include "crt.h"
 #include "tags.h"

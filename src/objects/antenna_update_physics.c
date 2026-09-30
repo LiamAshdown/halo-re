@@ -19,13 +19,8 @@
 //   signature shows them as ordinary param_1/param_2/param_3 with no in_REG markers, and the
 //   disassembly confirms there is no register-passed argument here.
 //   // blam-cc: stack -> ant, antenna_tag, dt
-// UNSURE: the vector3d_angle_between_4cd4f0 call's two operands (ECX/EDX) were not resolved to
-//   specific stack slots by hand-tracing the FPU-heavy disassembly around 0x4fb0f7/0x4fb0fb, and
-//   Ghidra's own decompilation shows this call with no visible arguments either. `bend_delta`
-//   (the same vector just fed to the perpendicular-axis cross product) and `rest_offset` (the
-//   vector the very next call rotates in place) are used here as the two operands because they
-//   are the only two vectors of the right shape live at that point, but which one is 'a' and
-//   which is 'b' is not confirmed.
+// VERIFIED (2026-09-30): the vector3d_angle_between_4cd4f0 call is (ECX = bend_delta, EDX = the local (0,0,1) at esp+0x8c);
+//   the rest offset is only rotated afterwards (see the call site).
 // UNSURE: PTR_DAT_0069671c (the degenerate-axis fallback vector) is left as an unidentified
 //   constant; it sits 4 bytes past the "up" default at 0x00696718/0x0069671c/0x00696720 that
 //   object_placement_data cites, so it may overlap that vector rather than being independent.
@@ -151,7 +146,13 @@ void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt)
                     offset.j = tag_vertex->offset.y;
                     offset.k = tag_vertex->offset.z;
 
-                    angle = vector3d_angle_between_4cd4f0(&bend_delta, &offset); // UNSURE: operand order, see file header
+                    // VERIFIED against disassembly 0x4fb0f7..0x4fb123 (2026-09-30): ECX = bend_delta (esp+0x28), EDX = the local (0,0,1) built at
+                    // 0x4fae8b..0x4fae99 (esp+0x8c), NOT the rest offset
+                    {
+                        real_vector3d world_up_z = { 0.0f, 0.0f, 1.0f };
+
+                        angle = vector3d_angle_between_4cd4f0(&bend_delta, &world_up_z);
+                    }
                     s = (real)sin((double)angle);
                     c = (real)cos((double)angle);
                     vector3d_rotate_about_axis(&offset, &axis, s, c);

@@ -125,8 +125,9 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
             last_leaf_ref->cluster_index = -1;
             return 0;
         }
+        // VERIFIED against disassembly 0x505a3c/0x505a68/0x505d09/0x505f88/0x506014 (2026-09-30): every leaf lookup masks the index with 0x7fffffff
         last_leaf_ref->cluster_index =
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
         return 0;
     }
 
@@ -182,11 +183,11 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
 
             first_leaf_ref->leaf_index = first_leaf;
             first_leaf_ref->cluster_index = (first_leaf == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[first_leaf].cluster;
+                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[first_leaf & 0x7fffffff].cluster;
 
             last_leaf_ref->leaf_index = last_leaf;
             last_leaf_ref->cluster_index = (last_leaf == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[last_leaf].cluster;
+                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[last_leaf & 0x7fffffff].cluster;
         }
 
         // Water-surface test: does the destination cluster have a fog plane, and does the
@@ -262,7 +263,7 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
             for (i = 0; i < seg_result.leaf_count; i++) {
                 int32_t leaf = seg_result.leaves[i];
                 int16_t cluster_index = (leaf == -1) ? -1 :
-                    ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf].cluster;
+                    ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
 
                 // cluster_index == -1 indexes cluster_visit_stamp[-1], which IS
                 // cluster_flood_stamp itself (0x006e3f04 sits immediately before
@@ -331,7 +332,7 @@ uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, re
                             resolved_leaf = bsp3d_node_find_leaf(0, global_structure_collision_bsp, point);
                             last_leaf_ref->leaf_index = resolved_leaf;
                             last_leaf_ref->cluster_index = (resolved_leaf == -1) ? -1 :
-                                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[resolved_leaf].cluster;
+                                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[resolved_leaf & 0x7fffffff].cluster;
                             if (result->t <= 0.0f) {
                                 break;
                             }

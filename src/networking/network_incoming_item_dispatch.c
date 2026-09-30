@@ -7,7 +7,7 @@
 // register convention: Ghidra's own recovered stack parameters (client, item_flag); ESI is also
 // a genuine live-in, pushed as network_game_action_queue_drain's own `expected_sequence` stack
 // argument (objdump 0x4db652 `push esi`, read with no local setup).
-// // blam-cc: stack -> client, item_flag, ESI -> expected_sequence
+// blam-cc: ECX -> stream, ESI -> sender, stack -> client, item_flag
 // FIXED (register inputs, objdump): ESI is a genuine live-in the notes did not map; added as
 // `expected_sequence` and forwarded instead of the hardcoded pointer-to-zero local. While
 // tracing that call, also found network_game_message_decode_dispatch's own file
@@ -16,8 +16,6 @@
 // stale extern claimed -- and this function was discarding network_message_read_sized_buffer's
 // return value (the record pointer) instead of forwarding it; both fixed below to match
 // objdump 0x4db680-0x4db68b (movzx edi,[eax]; mov edx,eax; shr edi,4).
-// UNSURE: the real return value on the `param_2 == 0` failure path is `param_2 & 0xffffff00`
-// (always 0, since param_2 is already 0 there); modeled directly as 0.
 // REWRITTEN 2026-09-28 (networking call audit) from the disassembly (0x4db630..0x4db6a9): the item's stream
 // arrives in ECX and the sender address in ESI. A game-action item (flag 1) goes to
 // network_game_action_queue_drain(client, stream, sender); a message item (flag 0) is read into a local 0x1000-byte
@@ -25,6 +23,7 @@
 // network_game_message_decode_dispatch with the client (EAX), the record (EDX), its length (the first word >> 4,
 // EDI) and the sender (stack).
 
+// VERIFIED against disassembly 0x4db630..0x4db6a9 (2026-09-30): flag 1 -> drain(client, stream, sender); flag 0 -> read_sized_buffer(EDI buffer, EBX/ECX stream, 0xfff) then decode_dispatch(EAX client, EDX record, EDI length, stack sender); else 0
 #include "tags.h"
 #include "memory.h"
 #include <string.h>

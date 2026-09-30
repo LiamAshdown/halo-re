@@ -8,18 +8,8 @@
 // flagged points, returning its distance and id." Calls ray2d_intersect_circle_distance (a math helper this
 // task's skip list excludes from rewriting, "ray-versus-circle intersection test... returning
 // the entry distance along the ray when it hits" per phase-4).
-//
-// UNSURE, importantly: the loop's own "is this candidate better" test is
-// `param_6 < *out_distance`, comparing the function's own (unmodified) `max_distance`
-// parameter against the output slot that was just set to that exact same value one line
-// above -- an invariant that can never be true, so as decompiled this loop can never accept
-// any candidate. ray2d_intersect_circle_distance is documented elsewhere in this phase as returning "the entry
-// distance along the ray" as its own result, which this call site only captures as a
-// boolean (`cVar2`) and never reads further; the far more plausible original condition is
-// "that returned entry distance is less than the current best", lost to the same kind of
-// hidden-return-value gap seen elsewhere in this module. Not able to confirm the real value
-// without a disassembly of ray2d_intersect_circle_distance, this rewrite preserves the literal (very likely
-// always-false) comparison rather than inventing the missing variable.
+// VERIFIED against disassembly 0x43c8f0..0x43c992 (2026-09-30): the ray distance slot IS the max_distance argument slot (passed to
+// the callee in ESI, and never reset between candidates); a candidate is accepted when result->distance > that slot.
 //
 // register convention: EDI -> out_result (distance + point id + link); stack -> list,
 //   exclude_index, param_3, param_4, radius, max_distance, require_unflagged.

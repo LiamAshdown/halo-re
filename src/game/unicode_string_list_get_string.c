@@ -45,8 +45,7 @@ extern datum_index tag_lookup(tag_group group, char *path);       // 0x442550
 // into the shared scratch buffer. Falls back to the shared L"<missing string>" placeholder when the
 // tag cannot be found or `index` is out of range. When a string is found, its last wide character (the tag
 // data's own list-entry terminator/padding character) is overwritten with a NUL before the
-// copy -- UNSURE why the tag data isn't already terminated one character earlier; this trim is
-// unconditional whenever the raw entry size is positive.
+// copy -- this trim is unconditional whenever the raw entry size is positive (0x4b8d75..0x4b8d7e).
 wchar_t *unicode_string_list_get_string(char *path, int16_t index)
 {
     datum_index tag_id;

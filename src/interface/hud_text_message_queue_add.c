@@ -7,8 +7,7 @@
 // field writes exactly, confirming its own "growable_array hud_text_message_queue" doc.
 // register convention: text in EAX (in_EAX), start_time in EBX (unaff_EBX), tag/index as the one
 // recognized stack parameter. // blam-cc: EAX -> text, EBX -> start_time, stack -> tag
-// UNSURE: DAT_00660c34 is a shared "blank" wide-string constant referenced by several already-
-// rewritten files' wcslen (wide strlen) calls; reused here with the same name.
+// 0x00660c34 is the shared blank wide-string constant (the \s case stores it as the message text, 0x4a3dee).
 
 #include "crt.h"
 #include "tags.h"

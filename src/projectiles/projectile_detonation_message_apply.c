@@ -1,6 +1,7 @@
 // projectile_detonation_message_apply  (Ghidra: FUN_004bdb40; renamed per
 // out/phase4/projectiles_types_notes.md "Renames this pass establishes")
 // address 0x4bdb40, size 185 bytes
+// VERIFIED against disassembly 0x4bdb40..0x4bdbf9 (2026-09-30)
 // name confidence: 0.75   rewrite confidence: 0.85 (raised by the phase-4 verification pass, which re-derived
 //   this function from `objdump -d -M intel bin/halo.exe` rather than from the decompilation;
 //   the corrections it made are listed in src/projectiles/README.md)

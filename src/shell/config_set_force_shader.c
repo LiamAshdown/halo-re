@@ -10,9 +10,12 @@
 // register convention: config.txt property setter; value string is a plain stack parameter
 //   (matches every other entry in this module's config_properties table).
 // blam-cc: (value on the stack, matching Ghidra's recognized parameter).
+// VERIFIED against disassembly 0x57d0c0..0x57d10c (2026-09-30); fixed: parsed starts as the value pointer (the original
+//   scans into its own argument slot).
 // UNSURE: the "2a"/"2A" special case (config_force_shader = 0x270e = 9998) has no attested
 //   meaning beyond "not the numeric ForceShader ID path"; kept exactly as decompiled.
 
+#include <stdint.h>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -26,7 +29,9 @@ extern int32_t config_force_shader; // 0x00722b64
 // shader id, falling back to 9999 (0x270f) when sscanf produces zero (parse failure).
 uint8_t config_set_force_shader(const char *value)
 {
-    int32_t parsed;
+    // 0x57d0d3: sscanf's output pointer is `lea eax,[esp+4]`, i.e. the function's own `value` argument slot, so when
+    // nothing is parsed the "result" is the low 32 bits of the value pointer (nonzero), not 0.
+    int32_t parsed = (int32_t)(uintptr_t)value;
 
     if (*(const uint16_t *)value == 0x6132 || *(const uint16_t *)value == 0x4132) {
         config_force_shader = 0x270e;

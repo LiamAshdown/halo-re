@@ -1,19 +1,23 @@
 // game_engine_update_custom_waypoint_navpoints  (Ghidra: FUN_00462a90; renamed per its summary)
 // address 0x462a90, size 313 bytes
-// name confidence: 0.4   rewrite confidence: 0.2
+// VERIFIED against disassembly 0x462a90..0x462bc9 (2026-09-30)
+// name confidence: 0.4   rewrite confidence: 0.85
 // evidence: out/phase4/game_functions.md ("For each active custom waypoint that passes the
 // player/team filter, pushes an add-or-update call into the interface HUD nav-point system");
 // types/game.h player_globals::local_players (+0x04), player::unit (+0x34), player::team
 // (+0x20), custom_waypoint::team (+0x14), game_variant::ctf_option_7c (+0x7c, aliased
 // 0x006f1d04), game_variant::unknown_3c (+0x3c, aliased 0x006f1cc4), game_engine_index
 // (_game_engine_ctf == 1); this batch's custom_waypoint_matches_filter (0x4620c0).
-// register convention: the local player index in BX (unaff_BX, only ever tested against -1/0
-// and used to index player_globals::local_players -- i.e. it must be 0, matching
-// k_maximum_local_players).
-//   // blam-cc: unaff_BX -> local_player_slot
-// UNSURE: unit_get_primary_eye_marker_position (a per-tick reset of some kind, called once up front), hud_waypoint_visibility (the
-// nav-point add/update call, both its 1- and 2-argument shapes) and hud_waypoint_draw's own
-// arguments here are all outside this batch's evidence.
+// register convention: the local player index in BX (only ever tested against -1/1 and used to index
+// player_globals::local_players -- i.e. it must be 0, matching k_maximum_local_players).
+//   // blam-cc: BX -> local_player_slot
+// FIXED 2026-09-30 (disassembly): (1) the eye position is an OUTPUT of unit_get_primary_eye_marker_position
+// (ECX = the local player's unit, ESI = &eye buffer) and is then the ECX operand of every hud_waypoint_visibility
+// call; the draft passed no arguments to either. (2) hud_waypoint_visibility(EAX = local slot, ECX = eye,
+// EDX = the slot's position, stack ignore_object = -1); hud_waypoint_draw(EAX = the slot's position, stack
+// local slot, icon (u16 at +0x1c), visibility, show_distance): an enemy CTF waypoint is drawn only when visible-test
+// returns 0 (draw args visibility 0, show_distance 0); every other waypoint is drawn with the visibility result and
+// show_distance 1. (3) custom_waypoint_matches_filter takes the player record in EAX and the slot index in EDI.
 
 #include "tags.h"
 #include "memory.h"
@@ -27,18 +31,20 @@ extern player_globals *local_player_globals;          // 0x0087a478
 extern data_array *player_data;                     // 0x0087a480
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f1888
 
-extern uint8_t custom_waypoint_matches_filter(int32_t candidate, custom_waypoint *slot,
-    int32_t reference_team); // 0x4620c0, this batch
-extern void unit_get_primary_eye_marker_position(void); // 0x568f50, not in this batch
-extern int16_t hud_waypoint_visibility(uint32_t unknown_0, uint32_t unknown_1); // 0x4af540, not in this batch;
-    // UNSURE: also called here with just one argument
-extern void hud_waypoint_draw(void); // 0x4af5e0, not in this batch; UNSURE args
+extern uint8_t custom_waypoint_matches_filter(int32_t candidate, player *reference_player,
+    int32_t slot_index); // 0x4620c0, EAX reference_player, EDI slot_index, stack candidate
+extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out); // 0x568f50, ECX object_index, ESI out
+extern int16_t hud_waypoint_visibility(int16_t local_player_index, const real_point3d *eye, const real_point3d *target,
+    datum_index ignore_object); // 0x4af540, AX local_player_index, ECX eye, EDX target, stack ignore_object
+extern void hud_waypoint_draw(const real_point3d *position, int16_t local_player_index, int16_t arrow_index,
+    int16_t visibility, uint8_t show_distance); // 0x4af5e0, EAX position, four stack arguments
 
-// blam-cc: unaff_BX -> local_player_slot
+// blam-cc: BX -> local_player_slot
 void game_engine_update_custom_waypoint_navpoints(int16_t local_player_slot)
 {
     datum_index local_player;
     player *p;
+    real_point3d eye;
     int32_t slot;
 
     if (current_game_engine == 0 || game_engine_variant.objective_indicator != 1 ||
@@ -49,27 +55,29 @@ void game_engine_update_custom_waypoint_navpoints(int16_t local_player_slot)
     if (local_player == (datum_index)0xffffffff) {
         return;
     }
-    p = (player *)((uint8_t *)player_data->data + (local_player & 0xffff) * sizeof(player));
+    p = (player *)((uint8_t *)player_data->data + (local_player & 0xffff) * 0x200);
     if (p->unit == (datum_index)0xffffffff) {
         return;
     }
 
-    unit_get_primary_eye_marker_position();
+    unit_get_primary_eye_marker_position(p->unit, &eye);
 
     for (slot = 0; slot < k_maximum_custom_waypoints; slot++) {
-        if (custom_waypoint_matches_filter((int32_t)local_player, &custom_waypoints[slot], p->team) != 0) {
+        if (custom_waypoint_matches_filter((int32_t)local_player, p, slot) != 0) {
+            custom_waypoint *waypoint = &custom_waypoints[slot];
+
             if (current_game_engine == 0 || current_game_engine->index != _game_engine_ctf ||
                 game_engine_variant.engine.ctf.assault != 0 ||
-                custom_waypoints[slot].team == p->team || custom_waypoints[slot].team == -1) {
-                hud_waypoint_visibility(0xffffffff, 1);
+                waypoint->team == p->team || waypoint->team == -1) {
+                int16_t visibility = hud_waypoint_visibility(local_player_slot, &eye, &waypoint->position, (datum_index)0xffffffff);
+
+                hud_waypoint_draw(&waypoint->position, local_player_slot, (int16_t)(uint16_t)waypoint->icon, visibility, 1);
             } else {
-                int16_t result = hud_waypoint_visibility(0xffffffff, 0); // UNSURE: 1-arg call in Ghidra;
-                    // modeled with a placeholder second argument
-                if (result != 0) {
+                if (hud_waypoint_visibility(local_player_slot, &eye, &waypoint->position, (datum_index)0xffffffff) != 0) {
                     continue;
                 }
+                hud_waypoint_draw(&waypoint->position, local_player_slot, (int16_t)(uint16_t)waypoint->icon, 0, 0);
             }
-            hud_waypoint_draw();
         }
     }
 }

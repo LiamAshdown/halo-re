@@ -1,5 +1,5 @@
 // unit_region_damage_reaction  (Ghidra: no function created; the phase-4 types agent carved a
-//   placeholder "missed_56f1c0" from the object_type_definition vtable evidence)
+//   stub "missed_56f1c0" from the object_type_definition vtable evidence)
 // address 0x56f1c0, size 67 bytes
 // name confidence 0.35, rewrite confidence 0.6
 // evidence: out/phase4/units_types_notes.md: "The unit row's other columns are ... 0x56f1c0
@@ -12,10 +12,8 @@
 //   third value (the region's damage response flags) in a third register; matches this module's
 //   convention of `object_index` plus extra per-call context for object_type_definition columns
 //   that are invoked from the damage system. blam-cc: object_index, param_2 (unused here), flags.
-// UNSURE: param_2 is never read by this function's body; kept in the signature only because
-//   Ghidra recovered it as a live parameter (undefined4 param_2) distinct from the flags word.
-//   UNSURE: the exact meaning of flags bit 0x200 (which reaction, 3 vs 4, it selects) is not
-//   established; ResponseFlags is not defined in types/objects.h.
+// param_2 is never read (the stack slot exists in the caller's call only).
+// VERIFIED against disassembly 0x56f1c0..0x56f203 (2026-09-30): frozen bit test, then reaction 3 + ((flags & 0x200) != 0).
 
 #include "tags.h"
 #include "memory.h"

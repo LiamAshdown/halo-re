@@ -24,6 +24,9 @@ extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, const char *name);
 typedef int32_t (__stdcall *d3dx_validate_technique_fn)(void *effect, void *technique);
 
+// VERIFIED against disassembly 0x530120..0x5301ae (2026-09-30): version split (0x7c118c = caps.PixelShaderVersion, major = bits
+//   8..15, minor = bits 0..7), loop order/reset to minor 9, sprintf argument order, both stdcall vtable calls (+0x34 by name,
+//   +0xf4 validate) and the hr >= 0 test match. A difftest "died" needs a real ID3DXEffect behind EDI.
 // Finds and validates the best pixel-shader technique named "<name>_ps_<major>_<minor>" supported
 // by the current pixel-shader-model version, degrading the minor then major version number until
 // one validates.

@@ -14,11 +14,10 @@
 //   __cdecl to match every other setter in this file group, since it shares their bare `uint8_t`
 //   return shape.
 // blam-cc: (no arguments).
-// UNSURE: the original's return value is `CONCAT31((int3)(DAT_00722ba8 >> 8),1)` -- Ghidra
-//   showing that the upper three bytes of EAX are leftover from a shift used to compute one of
-//   the thresholds, with only the low byte (1) meaningful to any caller treating this as the
-//   `uint8_t (*)(const char *)` setter shape. Reproduced as a plain `return 1;`.
+// Return: only AL is set (mov al,1); the upper EAX bytes are the leftover physical_memory value
+//   and no caller uses them, so `return 1;` is equivalent.
 
+// VERIFIED against disassembly 0x57d250..0x57d293 (2026-09-30): tiers use unsigned >= 0x40/0x80/0x100 (jb); al=1 return, upper EAX bits are dead
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

@@ -1,7 +1,8 @@
 // path_find_test_segment_unobstructed  (Ghidra: path_find_test_segment_unobstructed, renamed)
 // address 0x43de90, size 988 bytes
 // name confidence: 0.4   rewrite confidence: 0.85
-// REWRITTEN from objdump 0x43de90..0x43e26b. EAX = point A, EBX = the path find map, stack: ignore_permission,
+// VERIFIED against disassembly 0x43de90..0x43e26b (2026-09-30); rewritten from it. (The 1/length normal is kept in x87 extended
+//   precision by the original; here it is float.) EAX = point A, EBX = the path find map, stack: ignore_permission,
 //   surface A, point B, surface B, radius, flags, out_result. Tests the 2D segment A -> B for a body of the given
 //   radius by tracing (path_find_trace_bsp_boundary) the two parallel segments offset by +/- radius along the
 //   segment's normal (-dy, dx)/|AB|. Each side first moves its end points sideways by tracing from A (and from B)

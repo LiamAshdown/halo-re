@@ -20,6 +20,10 @@
 #include "math.h"
 #include "objects.h"
 
+// VERIFIED against disassembly 0x4fb840..0x4fb961 (2026-09-30): stack slots (tag, entry, inner_start, size, split_code), both
+//   guards, the two split-code selectors, the cell index ((height-1)*outer + inner) at entry+0x1534, and the a==b / a<=b
+//   store match. No difference found for the difftest crash (3/164); it needs a tag whose dimensions exceed the 14x14 cell
+//   table, where the original also writes out of bounds.
 void flag_cloth_stamp_region_split_flags(int16_t outer_start /*EAX*/, Flag *tag, flag *entry,
                                           int16_t inner_start, int16_t size, uint16_t split_code)
     // blam-cc: EAX -> outer_start, stack -> tag, entry, inner_start, size, split_code

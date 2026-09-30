@@ -1,6 +1,8 @@
 // particle_creation_physics_explosion  (Ghidra: no function created; the phase-4 types agent
 //   carved a placeholder "missed_4554e0" from the .rdata dispatch-table evidence)
 // address 0x4554e0, size 304 bytes
+// VERIFIED against disassembly 0x4554e0..0x455610 (2026-09-30). system->unknown_54 is a byte at +0x54 gating the ABS
+//   of the vertical speed (0x455586)
 // name confidence 0.55, rewrite confidence 0.4 (see the UNSURE notes)
 // evidence: out/phase4/effects_types_notes.md section 2: the three-entry `.rdata` table at
 //   0x00657444 lists 0x4554e0 as entry [1], "particle creation physics, explosion". Signature
@@ -20,10 +22,6 @@
 //   visible in Ghidra's own decompile of this call.
 // register convention: identical to every other entry of this dispatch table (system, type_index,
 //   particle, marker); blam-cc: system, type_index, particle, marker.
-// UNSURE: particle_system.unknown_54 (types/effects.h, documented "no writer or reader found in
-//   this module") IS read here, as a boolean byte, gating whether the vertical (z) launch speed
-//   is forced positive (ABS). This function corrects that gap; not renamed in the header from
-//   this pass, flagged in the summary as a types-correction item.
 // UNSURE: the exact roles of the three physics_constants values (named k0/k1/k2 below by
 //   position only) are not established -- k0 scales the horizontal (x, y) launch speed, k1
 //   scales the vertical (z) launch speed and also re-scales the whole horizontal/vertical

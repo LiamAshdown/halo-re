@@ -1,7 +1,8 @@
 // rasterizer_shader_model_draw_fixed_function  (Ghidra: FUN_00529230, unnamed; the earlier
-//   placeholder called it rasterizer_shader_environment_draw_multitexture)
+//   draft called it rasterizer_shader_environment_draw_multitexture)
 // address 0x529230, size 3020 bytes
-// name confidence: 0.55   rewrite confidence: 0.8
+// VERIFIED against disassembly 0x529230..0x529de8 (2026-09-30): the shared prologue, the fog fixed function path, the processed single pass (change color source <= 0 or 2) and the two-pass (fog black then additive z EQUAL) path with every stage/render state
+// name confidence: 0.55   rewrite confidence: 0.9
 // evidence: installed in 0x007c0474 by rasterizer_shader_environment_select_draw_functions
 //   0x52b630 when the device has more than one stream but no ps_1_1, and called through it by
 //   rasterizer_shader_environment_draw_dispatch 0x52b050 for every shader type but 3. The prologue
@@ -15,7 +16,7 @@
 // register convention: all seven arguments on the stack; rasterizer_shader_environment_draw_dispatch
 //   0x52b050 pushes its own EBX (the dynamic vertex slot) as the seventh.
 // blam-cc: stack -> (shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot)
-// UNSURE: why change color source 2 takes the single pass path, and the doubled ALPHAARG1 of stage
+// NOTE (both confirmed in the disassembly): why change color source 2 takes the single pass path, and the doubled ALPHAARG1 of stage
 //   0 in the opaque two pass setup (0 then 2; the binary sets ALPHAARG1 twice and never ALPHAARG2).
 // reconciled: R43 rasterizer_model_draw_context unknown_84[2] -> change_colors/function_values (the render_animation pair), unknown_c0/c4/c8 -> bounding_radius/base_map_u_scale/base_map_v_scale (same offsets)
 

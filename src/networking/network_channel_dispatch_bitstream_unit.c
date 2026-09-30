@@ -9,7 +9,7 @@
 // into EBP (survives the calls); `machine` (network_machine*) is a live-in forwarded through ESI
 // -- never set locally -- straight into network_game_process_incoming_message's own verified
 // ECX -> machine slot at its call site (0x4e190b `mov ecx,esi`).
-// blam-cc: ESI -> machine, stack -> unit
+// blam-cc: ECX -> stream, ESI -> machine, stack -> server, unit
 // FIXED (register inputs, objdump): ESI is a genuine live-in (0x4e18ce `push esi`,
 // 0x4e190b `mov ecx,esi`) that the notes did not map; added as `machine`. While tracing that
 // call, also found the previously-modeled `server` stack parameter does not exist in the binary
@@ -23,6 +23,7 @@
 // (EAX length = first word >> 4, ECX machine, EDX record, stack server). The previous C passed the unit flag as the
 // server and no stream.
 
+// VERIFIED against disassembly 0x4e18b0..0x4e1927 (2026-09-30): ESI machine, ECX stream, stack (server, unit); unit 1 -> drain_queued_updates(ECX stream; server, machine); unit 0 -> read_sized_buffer then process_incoming_message(EAX length, ECX machine, EDX record, stack server)
 #include "tags.h"
 #include "memory.h"
 #include <string.h>

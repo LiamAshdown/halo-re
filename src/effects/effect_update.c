@@ -23,6 +23,10 @@
 //   color. The draft passed nothing to object_function_get_value (a crash on the first campaign effect).
 // blam-cc: stack -> effect_index, dt (cdecl)
 
+// VERIFIED (ftol operands only) against disassembly 0x451ec2 / 0x451eff (2026-09-30): both __ftol calls convert the
+//   effect_property_random_value result (particle count byte) and the (count - 6) / local players + 6 spread, as written
+//   below. The rest of the body was not re-compared instruction by instruction.
+
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

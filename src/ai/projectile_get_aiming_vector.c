@@ -54,6 +54,8 @@ extern uint8_t projectile_solve_straight_line(real_point3d *target, real_point3d
     real speed, real *out_time_of_flight, real_vector3d *out_direction, real *out_speed_echo,
     real *out_length); // 0x4bee20, this module (same batch)
 
+// VERIFIED against disassembly 0x4beec0..0x4bef72 (2026-09-30): the nine stack args of the ballistic call, the three of the
+//   straight-line call, both register sets (EAX/ECX/ESI/EDI/EBX) and the flag byte stores match.
 // Chooses between the gravity-arc and straight-line aiming solvers for a shot from *origin to
 // *target using tag's Projectile definition, and reports which one it used through
 // *out_used_straight_line (1 for the straight-line solver, 0 for the gravity-arc solver; either

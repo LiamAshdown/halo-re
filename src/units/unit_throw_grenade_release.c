@@ -1,25 +1,12 @@
-// unit_throw_grenade_release  (Ghidra: already named unit_throw_grenade_release -- per
-//   out/phase4/units_types_notes.md this name is WRONG: the real grenade-release function is
-// name confidence: 0.1   rewrite confidence: 1.0 (FRAGMENT: 0x571b40 is inside vehicle_blend_animations 0x5718e0..0x571c6f, whose C covers this code; nothing calls or jumps here)
+// unit_throw_grenade_release  (NOT A FUNCTION: an address inside vehicle_blend_animations)
 // address 0x571b40, size 309 bytes
-// name confidence: 0.4 (pre-existing name kept per the task's renaming rule -- it already
-//   carries a name, even though the notes file says it is misleading)
-// rewrite confidence: 0.1 -- zero recorded callers and total register loss (unaff_EBX/EBP/ESI/
-//   EDI, in_ECX, and even a stack-passed in_stack argument all arrive with no traceable origin)
-//   mark this as a shared tail Ghidra split out of a larger vehicle physics function, most
-//   likely one of the wheel/hover/thruster calculators in this same batch. The leading
-//   byte-rotate loop over unaff_EBX is very likely decompiler noise from a register the real
-//   function never treated as a byte counter at all, and is not reproduced.
-// evidence: types/units.h vehicle_data.contact_point_traction (0x4f4, "0x575170 reads and
-//   rewrites entry i, 0xff meaning full traction" -- the same *(byte*)(i+0x4f4+base) idiom
-//   appears here); types/tags.h Vehicle.wheel_circumference (0x310, matches the
-//   out/phase4/units_types_notes.md note that this function "reads Vehicle.wheel_circumference
-//   (tag 0x310) and vehicle_data 0x4f4").
-// register convention: UNRESOLVED.
-//   // blam-cc: UNSURE -- see header
-// UNSURE: everything below. This file accumulates weighted per-marker force contributions via
-//   animation_overlay_interpolated_frame_orientations, but which markers, which vehicle, and what the
-//   accumulated result feeds could not be determined from this decompile.
+// VERIFIED against disassembly 0x571b40..0x571c6f (2026-09-30): the range starts mid-instruction stream (0x571b40 decodes
+//   as junk, `add bh,bl / loopne`, because it is the tail of a longer instruction at 0x571b3x) and uses EBX/EBP/ESI/EDI, ECX
+//   and stack slots [esp+0x18..0x20] set up by vehicle_blend_animations (0x5718e0..0x571c6f, `ret` at 0x571c6f). It samples
+//   the animation frame for the seat blend and every wheel/contact marker (0x4d53f0), weighting each by
+//   vehicle_data.contact_point_traction[i] (0xff = 1.0, else * 1/255). Nothing calls or jumps to 0x571b40. It is
+//   implemented in vehicle_blend_animations.c; this file has no body of its own and must never be hooked.
+//   The name unit_throw_grenade_release is wrong (the grenade release is unit_release_thrown_grenade, 0x56e440).
 
 #include "tags.h"
 #include "memory.h"
@@ -27,30 +14,9 @@
 #include "objects.h"
 #include "units.h"
 
-extern void animation_overlay_interpolated_frame_orientations(float frame, void *out); // 0x4d53f0, UNSURE signature
-
-// Accumulates weighted per-marker force contributions used when releasing a thrown object (e.g.
-// a grenade) from the unit.
-// UNSURE: reproduced only partially; see the file header. Ghidra's own register-loss makes a
-// faithful full rewrite impossible without first identifying this function's real caller.
-void unit_throw_grenade_release(vehicle_data *vehicle, void *marker_out, uint8_t *object_base,
-                                 Vehicle *tag, void *physics_contact_points, int32_t contact_count)
+// Not callable: see the header. Kept only so the address stays listed in the symbol tables.
+void unit_throw_grenade_release(void)
 {
-    int32_t i;
-
-    (void)vehicle;
-    (void)marker_out;
-    (void)tag;
-
-    for (i = 0; i < contact_count; i++) {
-        int16_t marker_index = *(int16_t *)((uint8_t *)physics_contact_points + i * 0x14 + 2);
-        if (marker_index != -1) {
-            uint8_t traction = object_base[0x4f4 + i]; // vehicle_data.contact_point_traction[i]
-            float weight = (traction == 0xff) ? 1.0f : (float)traction * 0.003921569f;
-            (void)weight; // UNSURE: the frame computed from it needs the animation graph base,
-                          //   which is not recoverable here; see file header
-        }
-    }
 }
 
 #if 0

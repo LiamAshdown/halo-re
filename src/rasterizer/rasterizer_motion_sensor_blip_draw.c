@@ -1,4 +1,4 @@
-// rasterizer_motion_sensor_blip_draw  (Ghidra: FUN_0052bad0, unnamed; the earlier placeholder
+// rasterizer_motion_sensor_blip_draw  (Ghidra: FUN_0052bad0, unnamed; the earlier draft
 //   called it rasterizer_debug_marker_draw_small)
 // address 0x52bad0, size 362 bytes
 // name confidence: 0.6   rewrite confidence: 0.85
@@ -10,6 +10,8 @@
 //   first fld runs before push esi, the second after it).
 // register convention: EAX -> position (float[2], sensor space), EDI -> color (real RGB, 0..1),
 //   stack -> (brightness, size).
+// VERIFIED against disassembly 0x52bad0..0x52bc3a (2026-09-30): argument slots (first stack arg brightness, second size), packed
+//   ARGB (alpha forced 0xff), the four vertices {x,y,z,color,u,v} and DrawPrimitiveUP(6, 2, 0x18) via device vtable +0x14c.
 // blam-cc: EAX -> position, EDI -> color, stack -> (brightness, size)
 
 #include "tags.h"

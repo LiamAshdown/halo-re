@@ -33,7 +33,7 @@ extern int32_t render_unknown_d98f0[];      // 0x006d98f0, UNSURE identity
 extern uint8_t render_unknown_7bf04c[];     // 0x007bf04c, UNSURE identity
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern void *k_render_identity_matrix_ptr;              // 0x0069673c, UNSURE identity
-extern real_vector3d global_white_color;  // 0x00686b04, UNSURE: reused as a generic 3-float default
+extern const real_vector3d *global_white_color;  // 0x00686b04, a POINTER (-> 0x65513c {1,1,1}); 0x46b503 loads [0x686b04] then copies 3 dwords from it
 extern const ColorARGB *global_white_argb;     // 0x006851fc, UNSURE identity (16 bytes copied)
 extern real_vector3d default_axis_b;        // 0x00686b0c, UNSURE identity
 extern king_hill_marker_history king_hill_markers; // 0x0087a9a0
@@ -154,7 +154,7 @@ void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
             *(void **)(record + 0xa) = k_render_identity_matrix_ptr;
 
             if (position_override == (uint32_t *)0) {
-                *(real_vector3d *)(record + 0xe) = global_white_color;
+                *(real_vector3d *)(record + 0xe) = *global_white_color; // 0x46b503: double load (pointer, then the vector)
                 *(uint16_t *)(record + 0x1a) = 0;
                 *(uint16_t *)(record + 0x50) = 0;
                 for (i = 0; i < 16; i++) {

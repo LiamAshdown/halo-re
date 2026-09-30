@@ -32,18 +32,10 @@
 //   effect_* functions).
 //   // blam-cc: stack -> self
 // UNSURE (grouped, in order of appearance):
-//  1. `local_18 = (short)__ftol()` and `sVar15 = (short)__ftol()` each truncate the *float*
-//     result of effect_distribution_function_evaluate directly into a 16-bit count with no
-//     visible multiplication in between. types/effects.h's own note on `previous_event_fraction`
-//     ("a spawn count for a tick is the difference of the distribution function evaluated at the
-//     two fractions") only makes sense if each evaluation is scaled by
-//     self->particle_counts[particle_index] (the per-type count effect_update rolls at event
-//     start) before truncation; modeled that way here, but the multiply itself is not visible in
-//     the decompile.
-//  2. the "if (particle_debug_override == 1) { count = __ftol(); }" sequence mirrors the
-//     identical shape already accepted in src/effects/particle_system_spawn.c
-//     ("if (DAT_0069c566 == 1) { local_37c = __ftol(); }"); modeled the same way, as an opaque
-//     debug override whose real source value cannot be recovered here.
+//  1. RESOLVED (disassembly 0x4520a2..0x4520f7, 2026-09-30): the three __ftol operands are on the x87 stack:
+//     (short)ftol(distribution(type, current_fraction) * (float)particle_counts[type_index]) at 0x4520a6,
+//     ftol(distribution(type, previous_fraction) * (float)particle_counts[type_index]) at 0x4520c8, and, only when
+//     the debug byte 0x69c565 == 1, ftol((float)(short)count * 0.5f) at 0x4520f7. The code below does exactly that.
 //  3. RESOLVED by the phase-4 integration pass. The nine arguments here are
 //     (seed, relative_direction_vector, &out_direction, &out_velocity, velocity[0] 0x84,
 //     velocity[1] 0x88, velocity_cone_angle 0x8c, a_scales_values, b_scales_values), and
@@ -94,7 +86,7 @@
 
 extern uint8_t particle_spawn_debug_mode;   // 0x0069c565, UNSURE name: nonzero enables this
                                             // function at all; ==1 additionally forces a debug
-                                            // spawn-count override (see UNSURE 2)
+                                            // spawn-count override (see note 1)
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern data_array *object_data;             // 0x008603b0
 extern random_seed effect_random_seed;      // 0x00719cd4
@@ -112,7 +104,7 @@ extern effect_location_marker *effect_marker_next(effect *self, datum_index *mar
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
 extern void particle_new(particle_creation_data *creation_data); // 0x455740, this module
-extern int32_t __ftol(void); // 0x6391b4, MSVC runtime float-to-int truncation, UNSURE
+
 extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset,
     uint32_t b_bitset, random_seed *seed, real base_min, real base_max); // 0x451290, this module
 extern void effect_random_velocity_vector(effect *self, random_seed *seed,

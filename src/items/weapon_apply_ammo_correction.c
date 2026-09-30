@@ -2,6 +2,7 @@
 // out/phase4/items_functions.md, "Applies a server-confirmed ammo correction to a weapon
 // trigger and clears the pending-prediction dirty flag")
 // address 0x4c3870, size 138 bytes
+// VERIFIED against disassembly 0x4c3870..0x4c38fa (2026-09-30)
 // name confidence: 0.5   rewrite confidence: 0.8
 // evidence: network message dispatch case 0x2d (k_message_weapon_reload_end); types/items.h
 //   weapon_magazine_ammo_message (the 0xc-byte stack buffer), weapon_magazine_state

@@ -1,6 +1,6 @@
 // unit_predict_movement_delta  (Ghidra: unit_predict_movement_delta, renamed)
 // address 0x55cca0, size 783 bytes
-// name confidence: 0.35   rewrite confidence: 0.3
+// name confidence: 0.35   rewrite confidence: 0.85
 // evidence: the flat local copy of the local player's controlled unit is read back at the exact
 //   same offsets biped_update (0x5590a0) itself pre-processes before calling its movement
 //   solver -- object.parent_object/vitality_flags/position/forward/up (0x11c/0x106/0x05c/0x074/
@@ -10,8 +10,10 @@
 //   before calling biped_integrate_movement (0x55bea0), then diffs the copy's post-solve
 //   position/forward/up against the live object's, scaled by a time fraction, to produce a
 //   prediction delta. player_data's unit-handle offset (+0x34) matches types/units.h.
-// UNSURE: data_iterator_next's exact argument binding (modeled on the local/xor "iterator"
-//   pattern Ghidra shows) and biped_integrate_movement's third (output flags) parameter.
+// FIXED (objdump 0x55cd8b, 0x55cdd1): the planar aim's k is zeroed before it is normalized and the copy's movement_state
+//   byte (+0x4d2) is set from the animation state as in biped_update; the draft omitted both.
+// VERIFIED against disassembly 0x55cca0..0x55cfaf (2026-09-30): data_iterator_next (EDI), the 0x550-byte copy, the pre-solve
+//   steps, biped_integrate_movement(unit, copy, flags) and the clamped delta scaling (29.999998).
 // reconciled: R32 hs_game_time_globals -> game.h game_time_globals (current_tick->game_time, budget_flag_1/2->active/paused, seconds_per_tick->leftover_time; same offsets)
 // reconciled: R16 the local iterator (int32 next_index, no signature) is now the 0x10-byte types/memory.h data_iterator, signature stored as at 0x55cce1
 
@@ -96,13 +98,23 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
                 }
 
                 if ((copy->vitality_flags & 4) != 0 || (*(uint8_t *)((uint8_t *)tag_data + 0x2f4) & 0x44) == 0) {
+                    copy_unit->desired_facing_vector.k = 0.0f; // 0x55cd8b: the planar aim
                     if (vector3d_normalize_with_length(&copy_unit->desired_facing_vector) == 0.0f) {
                         copy_unit->desired_facing_vector = *global_forward3d_pointer;
                     }
                 }
 
-                (void)copy_unit->animation_state; // movement_state classification is computed but
-                                                   // never read back afterward; omitted as dead
+                switch (copy_unit->animation_state) { // 0x55cdd1: byte table 0x55cfbc -> jump table 0x55cfb0
+                case 0: case 2: case 3:
+                    copy_biped->movement_state = 0;
+                    break;
+                case 4: case 5: case 6: case 7:
+                    copy_biped->movement_state = 1;
+                    break;
+                default:
+                    copy_biped->movement_state = 2;
+                    break;
+                }
 
                 if (copy_unit->throttle.i * copy_unit->throttle.i + copy_unit->throttle.j * copy_unit->throttle.j +
                     copy_unit->throttle.k * copy_unit->throttle.k < 0.010000001f) {
@@ -116,7 +128,7 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
                 copy_biped->slipping_ticks = (copy_biped->flags & 2) ?
                     ((copy_biped->slipping_ticks < 0x7f) ? copy_biped->slipping_ticks + 1 : copy_biped->slipping_ticks) : 0;
 
-                output_flags[1] = (copy_unit->control_flags & 1) != 0; // UNSURE: local_56f
+                output_flags[1] = (uint8_t)(copy_unit->control_flags & 1);
                 output_flags[0] = 0;
 
                 biped_integrate_movement(unit_index, working_copy, output_flags);

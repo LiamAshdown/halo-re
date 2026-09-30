@@ -48,6 +48,7 @@
 //   companion of sound_pause) are both in this module's address range but outside this pass's
 //   function list; referenced here by their Ghidra names, not renamed.
 
+// VERIFIED against disassembly 0x541b30..0x542520 (2026-09-30): both dispatch tables (0x542520/0x54254c, 0x5425cc/0x5425d8) and every case body compared: SIZE/FOCUS/PAINT/SETCURSOR/ACTIVATEAPP/DISPLAYCHANGE/SYSCOMMAND/ENTERSIZEMOVE/INITMENUPOPUP/POWERBROADCAST/keyboard/Keystone/chat paths, StretchBlt argument order, stdcall ret 0x10
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"

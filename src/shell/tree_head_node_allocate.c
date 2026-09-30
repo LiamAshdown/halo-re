@@ -24,6 +24,10 @@
 #include "shell.h"
 
 
+// VERIFIED against disassembly 0x57cbf0..0x57cc26 (2026-09-30): malloc(0x30) (0x6277da = the game CRT malloc), left/parent/right = 0,
+//   color (+0x2c) = 1, is_nil (+0x2d) = 0 match; the original does not test the malloc result before the stores (the C null
+//   guard is only safer). A difftest "died" is the tester process calling the game's CRT malloc without its heap being
+//   initialised. NOTE: the allocation must come from the same CRT heap as the code that later frees these nodes.
 hwreq_map_node *tree_head_node_allocate(void)
 {
     hwreq_map_node *node = (hwreq_map_node *)malloc(sizeof(hwreq_map_node));

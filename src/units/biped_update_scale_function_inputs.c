@@ -1,5 +1,5 @@
 // biped_update_scale_function_inputs  (Ghidra: no function created; the phase-4 types agent
-//   carved a placeholder "missed_559e40" from the object_type_definition vtable evidence)
+//   carved a stub "missed_559e40" from the object_type_definition vtable evidence)
 // address 0x559e40, size 193 bytes
 // name confidence 0.45, rewrite confidence 0.6
 // evidence: out/phase4/units_types_notes.md: "The biped row's +0x38 ... columns are 0x559e40,
@@ -17,10 +17,8 @@
 //   confirms EAX at every call site pattern this module uses for `object_index`, matching
 //   biped_apply_idle_fidget's `unaff_EDI`/`param_1` sibling functions in this same address
 //   range); blam-cc: object_index only.
-// UNSURE: only BipedFunctionIn_t value 1 has an implemented case here (ground speed); any other
-//   nonzero selector value falls through Ghidra's `fVar3 = 0.0` default with no further dispatch
-//   in this 193-byte body, so higher selector values (if BipedFunctionIn_t has more than two
-//   states) simply zero the slot in this build. Reproduced exactly as decompiled.
+// Selectors other than 0 and 1 store 0.0 (disassembly: 0x559e89 loads 0.0, only selector 1 replaces it).
+// VERIFIED against disassembly 0x559e40..0x559f00 (2026-09-30); the sum of squares is accumulated i, j, k as in the x87 code.
 
 #include "tags.h"
 #include "memory.h"
@@ -49,9 +47,9 @@ void biped_update_scale_function_inputs(uint32_t object_index)
         if (*selector != 0) {
             float value = 0.0f;
             if (*selector == 1) {
-                value = (float)sqrt((double)(obj->velocity.k * obj->velocity.k +
+                value = (float)sqrt((double)(obj->velocity.i * obj->velocity.i +
                                               obj->velocity.j * obj->velocity.j +
-                                              obj->velocity.i * obj->velocity.i)) /
+                                              obj->velocity.k * obj->velocity.k)) /
                         (tag->max_velocity * 0.033333335f);
                 if (value < 0.0f) {
                     value = 0.0f;

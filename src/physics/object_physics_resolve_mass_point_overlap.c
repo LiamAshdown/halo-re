@@ -2,6 +2,8 @@
 //   renamed per out/phase4/physics_types_notes.md section 5's general guidance for this whole
 //   call family: "object_physics_* / mass_point_*")
 // address 0x5090c0, size 1573 bytes
+// VERIFIED against disassembly 0x5090c0..0x5096e5 (2026-09-30). FIXED the float summation order of the other object's
+//   mass point position and of the squared distance (see the comments in the loop)
 // name confidence: 0.35   rewrite confidence: 0.3
 // evidence: out/phase4/physics_functions.md summary ("Detects overlapping collision spheres
 //   between the vertices of two physics/antenna objects and applies a repulsion impulse to
@@ -19,13 +21,6 @@
 //   is currently processing). param_1 is Ghidra's own recognized stack parameter (other,
 //   object_physics_context * for the nearby candidate object).
 //   // blam-cc: EDX -> self, stack -> other
-// UNSURE: unit_any_flagged_seat_occupied (0x56cc80) is outside this module's slice (called from vehicle_update and
-//   elsewhere); declared opaque. Read from its two call sites here as a network/local-authority
-//   gate: force is applied to an object only when its network_role isn't the "puppet" value (1),
-//   or this gate passes anyway.
-// UNSURE: the field at object_physics_context.definition + 0x00 (Physics.radius) gates whether
-//   *other* receives the accumulated force/torque at all; *self* has no such gate. The asymmetry
-//   is preserved exactly as Ghidra shows it, not "fixed" to be symmetric.
 // reconciled: R24 vehicle_data unknown_508..unknown_51c -> real_vector3d accumulated_force (+0x508) / accumulated_torque (+0x514); the float casts over the uint32 placeholders are gone
 
 #include "tags.h"
@@ -95,14 +90,17 @@ uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, 
                     local_z *= other->scale;
                 }
 
-                delta_x = (local_x * other->forward_i + local_y * other->left_i + local_z * other->up_i + other->position_x)
+                // 0x509224..0x509279: each component is ((z * up + y * left) + x * forward) + position, in that
+                // order (float rounding differs from the x-first order)
+                delta_x = (((local_z * other->up_i + local_y * other->left_i) + local_x * other->forward_i) + other->position_x)
                     - self_world_position.x;
-                delta_y = (local_x * other->forward_j + local_y * other->left_j + local_z * other->up_j + other->position_y)
+                delta_y = (((local_z * other->up_j + local_y * other->left_j) + local_x * other->forward_j) + other->position_y)
                     - self_world_position.y;
-                delta_z = (local_x * other->forward_k + local_y * other->left_k + local_z * other->up_k + other->position_z)
+                delta_z = (((local_z * other->up_k + local_y * other->left_k) + local_x * other->forward_k) + other->position_z)
                     - self_world_position.z;
 
-                distance = (float)sqrt((double)(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z));
+                // 0x50929d..0x5092b9: (dz^2 + dy^2) + dx^2
+                distance = (float)sqrt((double)((delta_z * delta_z + delta_y * delta_y) + delta_x * delta_x));
                 if ((float)fabs((double)distance) < 0.0001f) {
                     distance = 0.0f;
                 } else {

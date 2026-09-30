@@ -22,6 +22,9 @@
 
 extern char map_path_prefix[]; // 0x006f16d8
 
+// VERIFIED against disassembly 0x442bb0..0x442c69 (2026-09-30): the "%s%s%s.map" path build (prefix 0x6f16d8, "maps\\", name), the
+//   CreateFileA/ReadFile arguments, the five header checks (0x800 bytes, 'head', 'foot' at +0x7fc, size in [0, 0x18000000],
+//   name < 0x20, version 7) and the bl return match.
 // blam-cc: name in EAX, header_out in ESI
 // Builds "<map_path_prefix>maps\\<name>.map", opens it, reads its 0x800-byte header into
 // *header_out, and runs the same five-part validation cache_file_load and

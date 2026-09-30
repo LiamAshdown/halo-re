@@ -1,6 +1,9 @@
 // particle_update_motion  (Ghidra: FUN_004561a0, still unnamed there; named directly by
 //   types/effects.h: "particle_update_motion 0x4561a0 (position, velocity, location, flags)")
 // address 0x4561a0, size 929 bytes
+// VERIFIED against disassembly 0x4561a0..0x456541 (2026-09-30). point_physics_tick's velocity is ESI =
+//   &particle->velocity (0x456238) and dt is the last stack push (0x456212); particle_impact_response_dispatch gets
+//   ECX = the dependency group (+0x48), ESI = its tag id (0x4562c6..0x4562d5)
 // name confidence: 0.6   rewrite confidence: 0.85 (VERIFIED against objdump 0x4561a0..0x456540; material call FIXED)
 // evidence: types/effects.h particle fields (flags +0x02 incl. _particle_at_rest_bit,
 //   object_index +0x08, location +0x28, position +0x30, velocity +0x48, unknown_3c/0x54/0x58);
@@ -11,16 +14,6 @@
 //   contact_deterioration +0x88), PointPhysics (mass_scale, air_friction); types/physics.h
 //   point_physics_result_flags; src/physics/point_physics_tick.c establishes point_physics_tick
 //   0x50b530's full 11 argument signature (velocity via ESI, the rest on the stack).
-// UNSURE (heavily): this function's world space branch calls point_physics_tick 0x50b530 with
-//   velocity passed via ESI (a register argument Ghidra drops entirely at this call site) and
-//   with `dt` missing from the visible argument list too (reconstructed here as `delta_time`,
-//   which is what every other caller in the codebase passes for that slot). The three
-//   collision-normal locals (`local_c[8]` + `local_4`) are reconstructed as one contiguous
-//   real_vector3d out_normal, since real_vector3d is exactly 12 bytes and `local_4`'s later use
-//   (`0.8 < local_4`, a "did we land on a floor-like surface" test) has no other visible
-//   assignment. `particle_impact_response_dispatch`'s fourcc argument (in_ECX at that call site)
-//   is not shown here either, so it is passed as 0, which is certainly wrong when the dispatch
-//   is actually reached; flagged there too.
 
 #include "tags.h"
 #include "memory.h"

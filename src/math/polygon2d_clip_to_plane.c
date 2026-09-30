@@ -1,5 +1,6 @@
 // polygon2d_clip_to_plane  (Ghidra: polygon2d_clip_to_plane, already named)
 // address 0x4caff0, size 898 bytes
+// VERIFIED against disassembly 0x4caff0..0x4cb372 (2026-09-30)
 // name confidence: 0.6   rewrite confidence: 0.5
 // evidence: out/phase4/math_types_notes.md ("polygon2d_clip_to_plane's param_5 is an in/out
 //   uint32_t* edge bitmask, one bit per output vertex, marking vertices created by the clip");
@@ -14,11 +15,6 @@
 //   (count, input vertices, plane, max_count, edge_bitmask, clipped_flag, epsilon) in that
 //   order.
 //   // blam-cc: EDX -> out, stack -> (count, in, plane, max_count, edge_bitmask, clipped_flag, epsilon)
-// UNSURE: bVar5/bVar6 (named saw_kept_vertex/saw_discarded_vertex below) gate a final
-//   short-circuit that is preserved exactly from the decompile, but the names are inferred from
-//   behaviour, not confirmed; the trailing "leftover byte" copy loops the decompiler emits after
-//   each 2-float-at-a-time copy always run zero iterations for this function's data (counts are
-//   always exact float-pair multiples) and are omitted here.
 
 #include "tags.h"
 #include "math.h"

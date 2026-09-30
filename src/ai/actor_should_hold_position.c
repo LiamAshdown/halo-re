@@ -6,12 +6,8 @@
 // per types/ai.h) forces actor.unknown_3bc (a flag also read/cleared in
 // actor_update_melee_combat_action, 0x40cdf0) and clears the movement-pause timer.
 // register convention: actor_index in EAX (Ghidra's in_EAX).
-// UNSURE: the final branch reseeds the RNG and immediately truncates a float with __ftol,
-// but no float computation is visible anywhere in the decompiled C before that truncate --
-// this is the same "hidden FPU value" pattern as elsewhere in this module, and the value
-// used below (0.0f) is a placeholder, not a reconstruction. Needs the disassembly review
-// pass to find the real source (almost certainly `(seed >> 16) * 1.5259022e-05f` scaled by
-// some duration constant, per the idiom in src/math/periodic_function_build_noise_table.c).
+// VERIFIED against disassembly 0x4105c0..0x4106ac (2026-09-30): hold timer = ftol(((def+0x84 - def+0x80) * rnd + def+0x80) * 30),
+// rnd = (seed>>16) * 1.5259022e-05 (the binary's constant at 0x672b84, not exactly 1/65536).
 
 #include "tags.h"
 #include "memory.h"
@@ -49,7 +45,7 @@ uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition)
         float r;
 
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        r = (float)(int32_t)(random_seed_global >> 16) * (1.0f / 65536.0f);
+        r = (float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f;
         self->firing_state_timer = (int16_t)(int32_t)(((hi - lo) * r + lo) * 30.0f); // __ftol
     }
     return 1;

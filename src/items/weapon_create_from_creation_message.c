@@ -28,11 +28,10 @@
 // struct rather than a row of zero placeholders. The hash -> datum_index resolution through
 // object_network_id_table + 0x28 is the same idiom as
 // src/objects/object_apply_linked_impulse.c and the four ammo handlers in this module.
-// UNSURE: network_index_cache_insert_if_free (0x4e9cd0) is the networking hash-table insert. It takes the table root
-// in EAX (0x4c5d61 loads the literal 0x6870d8 -- note this is object_network_id_table + 8,
-// a different sub-table from the +0x28 one read above), the new object's datum_index in ECX and
-// the message's object_hash on the stack; only the stack argument is expressible here.
-// UNSURE: the forward/up basis. The record carries forward at B+0x24 and up at B+0x30, but the
+// network_index_cache_insert_if_free (0x4e9cd0) is the networking hash-table insert: EAX = the container ADDRESS
+// 0x6870d8 (network_object_index_cache), ECX = the new object's datum_index (key), stack = the message's
+// object_hash (slot). The earlier draft passed only the stack argument; now all three are passed.
+// The forward/up basis (verified against the disassembly): The record carries forward at B+0x24 and up at B+0x30, but the
 // function does not use them as-is: it re-orthogonalizes up against forward with two cross
 // products before normalizing both, so a slightly stale replicated basis still yields an
 // orthonormal one. vector3d_cross_product's operand order is the one
@@ -61,7 +60,8 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vecto
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand); // 0x4052c0, out = stack_operand x ecx_operand
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
-extern void network_index_cache_insert_if_free(int32_t object_hash); // 0x4e9cd0, networking; see file header
+extern uint8_t network_object_index_cache[]; // 0x006870d8 (the container ADDRESS is passed in EAX: `mov eax,0x6870d8` at 0x4c5d61)
+extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key); // 0x4e9cd0, EAX container, ECX key, stack slot
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 extern void object_set_position_and_recalculate(real_point3d *position, datum_index object_index); // 0x4f52c0
 
@@ -123,7 +123,7 @@ void weapon_create_from_creation_message(void *incoming_record)
         return;
     }
 
-    network_index_cache_insert_if_free(decoded.object_hash);
+    network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object_index); // FIXED: EAX = 0x6870d8, ECX = the new object, stack = hash
 
     obj = ((object_header *)object_data->data)[new_object_index & 0xffff].data;
     wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);

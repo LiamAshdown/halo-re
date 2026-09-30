@@ -1,5 +1,6 @@
 // unit_ai_update_stagger_allocate  (Ghidra: no function created; the phase-4 types agent carved a
 //   placeholder "missed_561fe0" from the object_type_definition vtable evidence)
+// VERIFIED against disassembly 0x561fe0..0x56201d (2026-09-30)
 // address 0x561fe0, size 61 bytes
 // name confidence 0.4, rewrite confidence 0.7
 // evidence: out/phase4/units_types_notes.md: "The unit row's other columns are 0x561fe0 (+0x14

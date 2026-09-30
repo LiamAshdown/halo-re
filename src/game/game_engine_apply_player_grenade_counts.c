@@ -14,11 +14,9 @@
 // register convention: a player index in EAX (in_EAX), used only for the one player->unit read;
 // everything after that operates on the resulting unit handle.
 //   // blam-cc: EAX -> player_index
-// UNSURE: FUN_00462bd0 (case 0xd below) is itself low-confidence (out/phase4/game_functions.md
-// marks it 0.25) and Ghidra shows this call site reading a second result out of `extraout_EDX`,
-// i.e. a value FUN_00462bd0 apparently also leaves in EDX that this decompilation cannot trace
-// to any source. Modeled as an explicit second output parameter on FUN_00462bd0's own
-// declaration (defaulted to 0 by the callee here) rather than left as undefined behavior.
+// VERIFIED against disassembly 0x4613c0..0x46152d (2026-09-30). Fixed: the engine's +0x78 callback takes the player
+// index (push esi) and case 0xd of the weapon-set switch only tests AL of 0x462bd0; it does not read a second
+// result out of EDX (0x462bd0 never touches EDX), it just zeroes both counts when AL == 0.
 
 #include "tags.h"
 #include "memory.h"
@@ -51,7 +49,7 @@ void game_engine_apply_player_grenade_counts(uint32_t player_index)
         return;
     }
     if (current_game_engine->allow_grenade_counts != 0 &&
-        ((char (*)(void))current_game_engine->allow_grenade_counts)() == 0) { // UNSURE: real args
+        ((char (*)(uint32_t))current_game_engine->allow_grenade_counts)(player_index) == 0) { // 0x4613dd: push esi (the player index, unmasked)
         return;
     }
 
@@ -110,16 +108,13 @@ void game_engine_apply_player_grenade_counts(uint32_t player_index)
                 frag_result = frag_result + plasma_result;
                 plasma_result = 0;
                 goto clamp;
-            case 0x0d: {
-                uint32_t packed = game_engine_pack_object_flags_or_passthrough(0);
-                plasma_result = (int32_t)(packed >> 8); // UNSURE: stands in for extraout_EDX, see file header
-                if ((packed & 0xff) != 0) {
-                    break; // skip the plasma_result=0 below
+            case 0x0d:
+                // 0x4614f7: call 0x462bd0 (no args, only AL is tested); zero result means both counts are dropped
+                if ((uint8_t)game_engine_pack_object_flags_or_passthrough(0) == 0) {
+                    frag_result = 0;
+                    plasma_result = 0;
                 }
-                frag_result = 0;
-                plasma_result = 0;
-                goto clamp;
-            }
+                break;
             default:
                 break; // skip the plasma_result=0 below
             }

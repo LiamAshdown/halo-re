@@ -6,12 +6,11 @@
 // register convention: ESI -> max_level (unaff_ESI in the decompile); stack -> value, minimum,
 // maximum.
 //   // blam-cc: ESI -> max_level, stack -> value, minimum, maximum
-// UNSURE: FUN_00623e40's exact effect (a CRT helper taking the scaled double on the FPU stack
-// before __ftol truncates it); modeled as a plain pass-through round-to-nearest, matching the
-// "+ 0.5 then truncate" shape of the surrounding arithmetic. The final
-// `-(uint)(uVar2 != 0) & uVar2` idiom is semantically a no-op (it always evaluates to uVar2) and
-// is simplified accordingly rather than transcribed bit for bit.
+// 0x623e40 is the CRT floor() (see the extern below); the scaled value + 0.5 is passed to it as a
+// double on the stack, then __ftol truncates. The final `-(uint)(uVar2 != 0) & uVar2` idiom is a
+// no-op (it always evaluates to uVar2), so the C omits it.
 
+// VERIFIED against disassembly 0x4ea480..0x4ea4d0 (2026-09-30): x87 sequence, floor (0x623e40) then __ftol, unsigned clamp to max_level; the sbb/and tail is a no-op
 #include "tags.h"
 #include "memory.h"
 #include <math.h>

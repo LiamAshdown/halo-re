@@ -7,14 +7,12 @@
 // (default-name fallback vs. name+score); ticker_text_buffer_append is this module's own
 // rewrite.
 // register convention: GameSpy entry pointer in EBX (unaff_EBX).
-// UNSURE: SBServerGetPlayerStringValue (name/score-by-index accessor) is called with zero visible arguments at
-// every site; reconstructed as (entry, key, index) from the "player"/"score" literal strings
-// and the loop's own index variable -- the real argument shape (a single "player_%d"-style key,
-// vs. separate key+index) was not independently confirmed.
+// SBServerGetPlayerStringValue is called as (entry, index, key, default) (0x4b7450, 0x4b7486).
 // note: ticker_text_buffer_append's `self` (EDI) is invisible in Ghidra's decompile; the
 // disassembly of both call sites (0x4b7440, 0x4b74bc) loads 0x006b5e58, the instance
 // types/networking.h names server_browser_player_ticker after this very function.
 
+// VERIFIED against disassembly 0x4b73e0..0x4b74de (2026-09-30): numplayers clamp (three reads), player/score accessor args (entry,index,key,default), L"???" row (0x669cc8 == hud_text_unbound), name/score row format, append(row,0) with EDI = ticker
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +20,7 @@
 #include "networking.h"
 #include <wchar.h>
 
-extern wchar_t hud_text_unbound[]; // default player-name string, see UNSURE
+extern wchar_t hud_text_unbound[]; // 0x00669cc8, L"???"
 
 extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
 extern char *SBServerGetPlayerStringValue(void *entry, int32_t index, const char *key, const char *default_value); // 0x617530 SBServerGetPlayerStringValue
