@@ -5,14 +5,13 @@
 // name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4c3280..0x4c3464; the effect-state durations now scale seconds to ticks)
 // evidence: types/items.h weapon_data.flags (_weapon_overheated_bit), weapon_trigger_state
 //   .flags (_weapon_trigger_charge_effect_bit 0x20), weapon_data.age (0x240); types/tags.h
-//   Weapon.weapon_flags (bit 11 = 0x800, UNSURE which flag), WeaponTrigger.charging_time (0x48),
+//   Weapon.weapon_flags (bit 11 = 0x800; its tag-field name is not established), WeaponTrigger.charging_time (0x48),
 //   .overload_time (0xc4).
-// register convention: item index in EAX; trigger index and force flag are Ghidra-recognized
-// stack parameters.
-// blam-cc: EAX -> item_index, stack -> (trigger_index, force)
-// UNSURE: scenario_location_get_water_and_weather is outside this module; its address argument is always the base of
-// triggers[0] regardless of trigger_index, which is preserved literally rather than
-// "corrected" to triggers[trigger_index].
+// register convention: none. FIXED 2026-09-30: all three arguments are cdecl stack pushes (the item index is
+// read from [esp+0xc] at entry and every caller pushes item, trigger, force); the old "EAX -> item_index" was wrong.
+// blam-cc: stack -> (item_index, trigger_index, force)
+// NOTE: scenario_location_get_water_and_weather is outside this module; the original passes the item's position (+0x5c,
+// EBX) and location (+0x98), no weather output.
 
 #include "tags.h"
 #include "memory.h"
@@ -73,8 +72,8 @@ void weapon_trigger_fire_or_reload(datum_index item_index, int16_t trigger_index
                     }
                 } else {
                     wd->triggers[trigger_index].effect_handle =
-                        weapon_play_trigger_tag_effect(item_index, *(datum_index *)&tag_trigger->charging_effect.tag_id, 0, 0); // UNSURE:
-                            // tag_id (EDI) placeholder, see weapon_play_trigger_tag_effect.c
+                        weapon_play_trigger_tag_effect(item_index, *(datum_index *)&tag_trigger->charging_effect.tag_id, 0, 0); // 0x4c3390: EDI = trigger tag +0x68
+                            // (charging_effect.tag_id)
                 }
                 // 0x4c33e1..0x4c33ea: seconds * 30.0 (0x672ac8) -> ticks. FIXED 2026-09-27: the draft passed the raw
                 // seconds, so a charge / overload lasted 1/30 as long.
