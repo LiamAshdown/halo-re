@@ -41,7 +41,7 @@ extern void matrix4x3_inverse_transform_vector(real_matrix4x3 *m); // 0x4cc010, 
 extern void matrix4x3_transform_vector(real_matrix4x3 *m); // 0x4cbe50, UNSURE args at this call site  // real signature (matrix4x3_transform_vector.c): void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); Ghidra recovered 1 of 3 args at this call site
 extern void vector3d_clamp_length(float max_length); // 0x459300, UNSURE args
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
-                                    real_vector3d *stack_operand); // 0x4052c0, UNSURE args here
+                                    real_vector3d *stack_operand); // 0x4052c0, EAX out, ECX ecx_operand, stack stack_operand
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points,
                           void *extra_force, void *extra_torque); // 0x507840, UNSURE signature
@@ -221,7 +221,8 @@ void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint
             if (vehicle->airborne_ticks != 0) {
                 real_vector3d axis = cross;
                 real length;
-                vector3d_cross_product(&axis, &cross, &cross); // UNSURE operand identity
+                // VERIFIED against disassembly 0x573cac..0x573cb5 (2026-09-30): EAX=axis (ebp-0x1c), ECX=edi=[0x696720] global up, stack=cross (ebp-0x48)
+                vector3d_cross_product(&axis, global_up3d_pointer, &cross);
                 length = vector3d_normalize_with_length(&axis);
                 if (length > 0.0f) {
                     float t = 1.0f - (float)vehicle->airborne_ticks * 0.033333335f;
