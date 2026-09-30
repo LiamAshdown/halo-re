@@ -17,11 +17,8 @@
 //   there); bit 0x100000 is "special_cinematic_unit" in the UnitFlags bitfield in types/tags.h.
 // register convention: object_index in EAX, the caller's animation-state byte on the stack.
 //   // blam-cc: in_EAX -> object_index, param_1 -> out_animation_state
-// UNSURE: the EAX (destination) and ECX (second operand) bindings of every
-//   vector3d_cross_product / vector3d_normalize_with_length / vector3d_rotate_about_axis call
-//   here -- Ghidra binds only the stack operand. They are reconstructed from the surrounding
-//   arithmetic (the "project the desired facing into the plane perpendicular to up" idiom) and
-//   are the least certain part of this file.
+// VERIFIED (2026-09-30): the EAX/ECX/stack bindings of every vector3d_cross_product call here were
+//   checked against the disassembly (0x55b985, 0x55bb42, 0x55bb52, 0x55bb97, 0x55bd84, 0x55be17, 0x55be3e).
 // vector3d_rotate_toward_bounded's register operands (orphan pass 4 review, 0x55bad1..0x55baee):
 //   ECX = &target (local_1c, the projected desired direction) and ESI = 0 (no transform).
 
@@ -252,7 +249,9 @@ void biped_update_facing(uint32_t object_index, int8_t *out_animation_state) // 
     apply_turn:
         // Bank into the turn: the roll target is how far the desired facing sits off the
         // current forward, scaled by the forward throttle and trimmed by the lateral one.
-        vector3d_cross_product(&scratch, &target, &obj->forward);
+        // VERIFIED against disassembly 0x55b977..0x55b985 (2026-09-30): EAX=scratch (esp+0x2c), ECX=&obj->up (edi+0x80), stack=&obj->forward (edi+0x74);
+        // scratch is dotted with the desired facing (esi) below
+        vector3d_cross_product(&scratch, &obj->up, &obj->forward);
         bank_target = (scratch.i * unit->desired_facing_vector.i +
                        scratch.k * unit->desired_facing_vector.k +
                        scratch.j * unit->desired_facing_vector.j) *
