@@ -30,6 +30,7 @@
 #include "input.h"
 #include "main.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -52,10 +53,8 @@ extern void chimera__load_ui_map(char play_title_music); // 0x4c8930, this modul
 extern void chimera__load_main_menu(void);         // 0x4989f0, foreign (interface module)
 extern void predicted_resource_list_touch(TagReflexive *resources); // 0x4449f0, foreign (cache); blam-cc: ESI -> resources
 extern void hud_chat_listbox_clear(void);          // 0x4ab400, foreign (interface module)
-extern void update_queues_dispose(void);           // 0x472b00, foreign (game module)
+
 extern void update_server_new(void);               // 0x472aa0, foreign (game module)
-extern void update_server_dispose(void);                    // 0x472b70, foreign (game module)
-extern void game_engine_init_tick_record_for_mode(void);                    // 0x470ae0, foreign (game module)
 
 
 // Tears down the current game session and returns to the main menu: (re)loads the UI map if it

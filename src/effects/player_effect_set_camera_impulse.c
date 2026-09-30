@@ -38,6 +38,7 @@
 #include "effects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int32_t *player_control_globals_ptr; // 0x006b145c, UNSURE: foreign module (player look/aim
                                     // globals); stride 0x40, +0x1c pitch, +0x20 yaw
@@ -53,7 +54,7 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *a, real_ve
 extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle,
                                         real cos_angle); // 0x4cd820
-extern void game_engine_update_local_player_look(int16_t local_player_index, real yaw_delta, real pitch_delta); // 0x472160, AX, stack
+
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward); // 0x473d70, EAX, ECX, ESI
 extern player_globals *local_player_globals; // 0x0087a478
 

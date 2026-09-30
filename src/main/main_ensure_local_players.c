@@ -31,13 +31,14 @@
 #include "interface.h"
 #include "game.h"
 #include "main.h"
+#include "fn_game.h"
 
 extern main_globals main_globals_data; // 0x00719700
 extern player_globals *local_player_globals; // 0x0087a478, foreign (game module)
 extern data_array *player_data;              // 0x0087a480, foreign (game module)
 extern int16_t local_player_count;           // 0x006894b8, foreign (saved_games module)
 
-extern int32_t local_player_find_free_slot_index(void); // 0x473730, foreign (game module)
+
 extern datum_index player_new_network(datum_index requested_index, uint32_t machine_index,
     int16_t local_player_index, uint16_t *identifier_record); // 0x473780, foreign (game module)
 

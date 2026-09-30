@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Scenario *global_scenario;                  // 0x00746f8c
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -33,9 +34,7 @@ extern tag_instance *tag_instances;                 // 0x0087bc14
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 extern data_array *object_data;                  // 0x008603b0
 
-extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count,
-    int32_t current_engine_index); // 0x45f7c0, this batch
-extern int32_t tag_reflexive_pick_weighted_random_index(datum_index tag_id); // 0x45f720, this batch
+
 extern void object_placement_data_initialize(object_placement_data *placement,
     datum_index definition_tag, datum_index role); // 0x4f53a0
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement,

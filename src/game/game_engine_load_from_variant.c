@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern uint32_t game_engine_unknown_aa00;                          // 0x0087aa00
 extern int32_t game_engine_auto_team_counter;              // 0x0087aa04
@@ -35,8 +36,6 @@ extern game_variant game_engine_variant;                    // 0x006f1c88
 extern game_engine_definition *game_engine_definitions[7];  // 0x00688308
 extern game_engine_definition *current_game_engine;          // 0x006f1d20
 
-extern void game_variant_sanitize_options(game_variant *variant); // 0x466730, this module
-extern void player_profile_cache_initialize(void);    // 0x466c20
 
 // Resets the end-of-game / round state, and if `variant` selects a real gametype
 // (game_engine_index != 0), copies it into the live variant, sanitizes it, and installs the

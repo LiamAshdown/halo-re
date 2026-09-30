@@ -23,6 +23,7 @@
 #include "game.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *object_data;      // 0x008603b0
@@ -32,9 +33,6 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern void *actor_get_actor_definition(datum_index actor_index); // 0x40fa70, EAX
-
-
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX (difficulty value)
 
 
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)

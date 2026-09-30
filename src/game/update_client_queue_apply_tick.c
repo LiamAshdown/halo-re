@@ -20,12 +20,13 @@
 #include <stdint.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern int32_t update_client_base_tick; // 0x006f7e9c
 extern int32_t update_client_unknown_ea0; // 0x006f7ea0
 extern data_array *update_client_queues;  // 0x006f7ed0
 
-extern update_record *update_client_queue_get_slot(int32_t tick); // this batch, 0x473500
+
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: iterator in EDI
 
 // UNSURE: see header. `out_actions` receives 0x20-byte records (types/game.h player_action) and

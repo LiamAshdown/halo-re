@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern data_array *player_data; // 0x0087a480
@@ -18,7 +19,7 @@ extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX handle, ESI array
 extern int32_t game_engine_bucket_scores_extra[16]; // 0x006b1358
-extern void game_engine_check_bucket_scores_and_end_round(void); // 0x46db70
+
 
 void game_engine_race_player_changed_object(datum_index player_index)
 {

@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_game.h"
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
 

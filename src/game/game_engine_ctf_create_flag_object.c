@@ -29,6 +29,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Globals *global_globals;                                 // 0x00746fa0
 extern int16_t network_game_mode;                                // 0x00719720

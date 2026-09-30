@@ -30,6 +30,7 @@
 #include "units.h"
 #include "effects.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -49,7 +50,7 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
     const void *color, const void *tint_source); // 0x4507a0, EAX, ECX, stack
-extern uint8_t game_engine_is_valid_team_player(uint32_t identifier); // 0x466b60
+
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
 extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger); // 0x4c2990
 extern void weapon_set_ready_timer(datum_index item_index, real value); // 0x4c2b20

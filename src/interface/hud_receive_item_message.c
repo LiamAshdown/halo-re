@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#include "fn_game.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480
@@ -36,9 +37,8 @@ extern int32_t message_delta_decode_compound_field_staged(void *message); // 0x4
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
                                  int16_t count); // 0x4ae400, blam-cc: EAX local_player_index, ECX source, BL source_kind
-extern void player_trigger_shield_recharge_effect(uint32_t player_index); // 0x479710, blam-cc: EDX player_index
-extern void player_trigger_kill_streak_effect(uint32_t player_index);     // 0x4797d0, blam-cc: EDX player_index
-extern void player_trigger_full_health_effect(uint32_t player_index);     // 0x479890, blam-cc: EDX player_index
+
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern void sound_start_unspatialized(datum_index sound, float gain); // 0x543dd0, plays a 2D sound, blam-cc: EDX sound
 

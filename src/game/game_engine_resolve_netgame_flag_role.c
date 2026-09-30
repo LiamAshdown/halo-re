@@ -52,6 +52,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Globals *global_globals;         // 0x00746fa0
 extern game_variant game_engine_variant; // 0x006f1c88 (flags aliased 0x006f1cc0,

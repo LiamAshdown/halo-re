@@ -20,10 +20,8 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
-extern void game_engine_end_game_sequence_stage1(void); // 0x4670c0, this batch
-extern void game_engine_end_game_sequence_stage2(void); // 0x4670f0, this batch
-extern void game_engine_end_game_sequence_stage3(void); // 0x467180, this batch
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590, blam-cc:
     // EAX -> event, ECX -> out_values; UNSURE identity (a network message-delta decode)

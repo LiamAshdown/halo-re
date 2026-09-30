@@ -47,6 +47,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 #include <stdint.h>
 
@@ -64,12 +65,10 @@ extern int16_t global_00719772;              // 0x00719772, UNSURE identity, set
 extern real_vector3d global_origin3d;        // 0x0065c230, reached via global_origin3d_pointer
                                               //   @0x00696714 (see src/math/vector3d_rotate_toward_with_acceleration.c)
 
-extern uint32_t update_client_queue_apply_tick(player_action *out_actions,
-    client_update_carry *out_carry); // 0x4730d0; only AL is meaningful (see that file)
+
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
-extern uint8_t game_engine_player_ready_to_respawn(uint32_t player_index); // 0x460f70
-extern void game_engine_resolve_player_team(uint32_t player_index); // 0x4611b0
-extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0x4613c0
+
+
 extern void player_respawn(datum_index player_handle); // this module's next batch, 0x477ea0
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
                                                 real_vector3d *out_forward); // this batch, 0x473d70

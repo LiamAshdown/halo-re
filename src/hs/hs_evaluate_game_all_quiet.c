@@ -11,9 +11,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 
-
-extern uint32_t game_safe_to_pause(void); // 0x45b9e0
 
 void hs_evaluate_game_all_quiet(int16_t function_index, uint32_t thread_index, char first)
 {

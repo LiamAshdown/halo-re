@@ -16,6 +16,7 @@
 #include "game.h"
 #include <wchar.h>
 #include "networking.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
@@ -25,7 +26,7 @@ extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *
 extern int32_t king_team_hill_seconds_network[16]; // 0x0087a7e0 (the replicated king globals, 0x6b dwords)
 extern int32_t king_hill_broadcast_overrun_value; // 0x0087a984 (replicated king_starting_location_type)
 extern int32_t king_starting_location_type; // 0x006b1064
-extern void game_engine_koth_build_hill_boundary(void); // 0x46a240
+
 
 // The inline tail every decoder shares with message_delta_decode_compound_field: nothing changed, so the stream
 //   cursor moves past this message's bits when the target is inside the stream.

@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern data_array *player_data;      // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -32,13 +33,9 @@ extern uint32_t ctf_team_captured_flags_mask[]; // 0x006b12d4, inside ctf_global
     // batch) showed it participating in 32-bit bitmask arithmetic indexed by team
 extern game_variant game_engine_variant;   // 0x006f1c88 (ctf_option_7c aliased 0x006f1d04)
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
-extern void game_engine_check_bucket_scores_and_end_round(void);      // 0x46db70, this batch
-extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
-    int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast); // 0x460c10, blam-cc: BL broadcast
+
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
-    datum_index subject, char broadcast); // 0x460a30
+
 
 void game_engine_ctf_on_flag_captured(uint32_t flag_index)
 {

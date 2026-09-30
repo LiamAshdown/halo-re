@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // Ascending qsort comparator on scoreboard_entry::unknown_04. Unreferenced in this build.
 uint32_t scoreboard_entry_compare_by_unknown_04(const scoreboard_entry *a, const scoreboard_entry *b)

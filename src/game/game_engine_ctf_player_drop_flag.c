@@ -20,13 +20,14 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
 
 extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index); // 0x56dcd0
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);          // 0x56dec0
-extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index); // 0x468840, blam-cc: EAX object_index
+
 
 // FIXED 2026-09-28: 0x4688f8 hands 0x468840 its own first stack argument (the flag object; 0x468a20 pushes it),
 //   not forwarded registers.

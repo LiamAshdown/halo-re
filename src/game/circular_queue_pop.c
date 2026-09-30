@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // blam-cc: ECX -> queue, EDX -> out_record
 // If the queue is non-empty, writes the storage pointer at read_index into *out_record,

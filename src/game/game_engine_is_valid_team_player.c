@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int32_t game_engine_unknown_aa00; // 0x0087aa00
 extern int32_t light_count_enabled;               // 0x0068944c, UNSURE: not owned by this module

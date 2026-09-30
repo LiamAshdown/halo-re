@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern game_time_globals *game_time;              // 0x006f1d6c
@@ -32,8 +33,6 @@ extern int32_t update_client_base_tick;           // 0x006f7e9c
 extern int32_t update_client_unknown_ea0;         // 0x006f7ea0
 extern update_record update_client_history[128];  // 0x006f7ed4
 
-extern void update_server_dispose(void); // 0x472b70
-extern void update_client_dispose(void); // 0x472fa0
 
 void update_queues_revert(void)
 {

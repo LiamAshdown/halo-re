@@ -22,10 +22,10 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern int32_t update_client_unknown_ea0; // 0x006f7ea0
 
-extern update_record *update_client_queue_get_slot(int32_t tick); // this batch, 0x473500
 
 // REWRITTEN (objdump 0x4734b0..0x4734fb, 2026-09-24): EBX is the tick and EDX a pointer to the 0x304-byte
 //   update record, which is copied into the queue slot after its tick word (`mov esi,edx; rep movs`, 0xc1

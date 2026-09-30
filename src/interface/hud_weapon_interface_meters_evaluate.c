@@ -41,6 +41,7 @@
 #include "objects.h"
 #include "units.h"
 #include "interface.h"
+#include "fn_game.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;               // 0x0087a480, stride 0x200 (no types/players.h yet)
@@ -50,7 +51,7 @@ extern hud_weapon_interface_state *hud_weapon_state; // 0x00719430
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
-extern int32_t local_player_get_zoom_level(int16_t local_player_index); // 0x472740, src/game; blam-cc: CX local_player_index
+
 
 // blam-cc: EAX -> hud_interface_tag_id, stack -> local_player_index, weapon_or_vehicle_index, state_ptr
 void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index,

@@ -26,6 +26,7 @@
 #include "game.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern data_array *object_data;     // 0x008603b0
@@ -41,10 +42,8 @@ extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); // 0x56cc80,
 extern void object_queue_pickup_denied_event(void *param_1, int32_t key, uint32_t *source); // 0x4efbf0, stack, ECX, EDI
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity); // 0x4bef80, EAX, EDX
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
-extern void game_engine_attribute_player_death(datum_index victim_unit, datum_index killer,
-    datum_index death_object, int32_t killer_team, char credit_kills); // 0x46ff00, EAX, stack
-extern void game_engine_on_player_death(datum_index killer, datum_index death_object, datum_index victim,
-    char is_suicide); // 0x460200, EDX, stack
+
+
 extern void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t flags, float shield_damage,
     float body_damage, int32_t region_index, uint8_t is_local); // 0x5674a0, stack
 

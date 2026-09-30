@@ -30,10 +30,11 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "scenario.h"
+#include "fn_game.h"
 
 extern float sqrtf(float x);
 
-extern void value_step_toward_target(float *value, float target, float max_step); // 0x470d40, game module, blam-cc: ECX->value, stack->target,max_step
+
 extern void render_lighting_step_vector3_toward(float *current, float *target, float max_delta); // 0x50f520, render module, blam-cc: ECX->current, EDX->target, stack->max_delta
 
 extern tag_instance *tag_instances;                              // 0x0087bc14

@@ -34,6 +34,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -42,7 +43,6 @@ typedef void (*game_engine_variant_defaults_fn)(game_variant *out);
 extern uint8_t playlist_profiles_need_defaults; // 0x0069e8d0
 
 
-extern void game_engine_apply_current_custom_variant(void); // 0x463b90, this batch
 extern void game_engine_variant_defaults_classic_slayer(game_variant *out); // 0x463c40, this batch
 extern void game_engine_variant_defaults_classic_slayer_pro(game_variant *out); // 0x463d20, this batch
 extern void game_engine_variant_defaults_classic_elimination(game_variant *out); // 0x463e00, this batch
@@ -78,7 +78,7 @@ extern void game_engine_variant_defaults_race(game_variant *out); // 0x467830, n
 extern void game_engine_variant_defaults_oddball(game_variant *out); // 0x467730, not in this batch
 extern void game_engine_variant_defaults_king(game_variant *out); // 0x467650, not in this batch
 extern void game_engine_variant_defaults_juggernaut(game_variant *out); // 0x467540, not in this batch
-extern game_variant *game_engine_variant_defaults_stalker(game_variant *out); // 0x467450, not in
+
     // this batch. RENAMED from FUN_00467450: its string arm is the literal "ctf" (see above), and
     // it ends in the same rep movs out of a local staging buffer as its 37 siblings.
 extern void game_engine_variant_defaults_crazy_king(game_variant *out); // 0x467370, not in this batch

@@ -15,6 +15,7 @@
 #include "game.h"
 #include <wchar.h>
 #include "objects.h"
+#include "fn_game.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -25,8 +26,7 @@ extern Globals *global_globals;
 extern int32_t race_used_locations[8]; // 0x006b139c, the starting locations given a vehicle so far
 extern int32_t race_used_location_count; // 0x006b13bc
 extern uint32_t race_vehicle_counts[4]; // 0x006b13c0, custom vehicle set: warthogs, ghosts, rocket warthogs, the sixth vehicle
-extern int32_t game_engine_find_nearest_unused_type4_location(int32_t *excluded_indices, int32_t excluded_count,
-    real_point3d *reference_point); // 0x46d520, blam-cc: EDI excluded_count, EBX reference_point
+
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role); // 0x4f53a0, blam-cc: EAX placement
 extern datum_index object_new(object_placement_data *placement); // 0x4f5460, blam-cc: ECX placement

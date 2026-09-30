@@ -25,6 +25,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Globals *global_globals;                    // 0x00746fa0
 extern int32_t king_starting_location_count;        // 0x006b0f50
@@ -33,9 +34,7 @@ extern real_point3d king_hill_boundary_points[12];  // 0x006b0f54 (this batch)
 extern double sqrt(double x); // x87 FSQRT
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern double floor(double x); // CRT floor (0x623e40: SSE2-dispatched; its x87 path reports _FpCodeFloor 11)
-extern void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint,
-    uint32_t *position_override, uint32_t *orientation_override, uint32_t param_4,
-    uint32_t param_5, float *vertex_source); // 0x46b2f0, this batch
+
 
 // koth_fence_corner (the 17-float per-corner vertex record; four of them -- a ground/top pair at
 // the current point, then a top/ground pair at the next point -- make one fence quad) now lives

@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 #include <wchar.h>
 

@@ -16,6 +16,7 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -24,9 +25,7 @@ extern int16_t network_game_mode; // 0x00719720
 extern int32_t game_engine_state_value; // 0x0087aa10
 extern int game_engine_find_valid_starting_locations(real_point3d *origin, float max_horizontal_dist,
     float max_height_delta, int16_t team, int16_t type, int32_t max_results, int32_t *results); // 0x461080, blam-cc: EBX origin
-extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team, real_point3d *origin,
-    float max_horizontal_dist, float max_height_delta); // 0x461180, blam-cc: ECX type, EDX team, EBX origin
-extern void game_engine_ctf_score_flag(uint32_t team, int32_t scenario_flag_index); // 0x46e080, blam-cc: EAX scenario_flag_index (the first argument is a player)
+
 
 void game_engine_race_update(datum_index player_index)
 {

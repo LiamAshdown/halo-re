@@ -15,23 +15,24 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
 extern int32_t game_engine_state_value; // 0x0087aa10
 extern int32_t king_hill_move_ticks_006b1068; // 0x006b1068
 extern int32_t king_starting_location_type; // 0x006b1064
 extern int32_t king_starting_location_count; // 0x006b0f50
 extern real_point3d king_hill_boundary_center; // 0x006b1044
-extern int32_t game_engine_pick_random_recent_location(int32_t exclude_value, int32_t fallback); // 0x46a1b0, blam-cc: ECX fallback
-extern void game_engine_koth_build_hill_boundary(void); // 0x46a240
+
+
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, const char *icon_name,
     float height_offset, datum_index player_filter, int16_t team_filter); // 0x462260, blam-cc: EAX owner, CX slot, EBX position, EDI icon
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, blam-cc: AL clear_first
-extern void game_engine_koth_update_hill_occupancy_state(void); // 0x46acb0
+
 
 void game_engine_king_unknown_48(void)
 {

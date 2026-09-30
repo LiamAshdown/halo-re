@@ -20,6 +20,7 @@
 #include "units.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0

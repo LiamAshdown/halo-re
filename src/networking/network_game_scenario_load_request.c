@@ -27,6 +27,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern int16_t network_game_mode; // 0x00719720
@@ -36,12 +37,10 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern uint8_t *main_game_globals;  // 0x006b0b80, UNSURE identity/type
 
 extern void cache_file_switch_map_by_path(void); // outside this batch
-extern void game_unload_map(void); // outside this batch
-extern void game_start_new_map(void); // outside this batch
-extern void game_stop_current_map(void); // outside this batch
-extern void game_engine_reset_all_players(void); // outside this batch
+
+
 extern void game_engine_apply_variant(void); // outside this batch
-extern void game_engine_init_tick_record_for_mode(void); // outside this batch
+
 extern void main_menu_music_stop(void); // outside this batch
 extern int32_t network_channel_key_open(network_player_entry *entry); // 0x4de870, this batch
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch

@@ -21,19 +21,19 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
 
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
     real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); // 0x4f6fe0
-extern void player_check_vehicle_interaction(uint32_t player_index, uint32_t candidate_object); // this batch, 0x478600
-extern void player_check_vehicle_boarding_interaction(uint32_t player_index, uint32_t candidate_object); // 0x4788a0, this
+
+
     // module. CORRECTED by review: Ghidra elides both arguments, but 0x4788a0's own entry reads
     // [esp+0x8] (its second stack argument) and the call site is "push ecx ; push edi ; call",
     // exactly like its two siblings below.
-extern void player_check_assassination_opportunity(uint32_t player_index,
-    uint32_t candidate_object); // 0x478770, this module. CORRECTED by review for the same
+
     // reason: 0x478770 reads [esp+0x4] as a player handle (and 0x8 as the candidate).
 
 // blam-cc: EDI -> player_index

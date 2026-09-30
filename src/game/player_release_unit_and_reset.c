@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
@@ -36,8 +37,7 @@ extern tag_instance *tag_instances;          // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value;    // 0x0087aa10
 
-extern void game_engine_attribute_player_death(datum_index victim_unit, datum_index killer,
-    datum_index death_object, int32_t killer_team, char credit_kills); // 0x46ff00
+
 extern void player_reset_after_unit_change(uint32_t player_index); // this batch, 0x474e10
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
                                               int32_t invoke_callback); // 0x4f9a20

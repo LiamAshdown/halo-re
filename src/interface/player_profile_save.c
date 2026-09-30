@@ -24,6 +24,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern int32_t selected_saved_item;             // 0x00714e7c
@@ -34,7 +35,7 @@ extern uint8_t unknown_00714f14;                 // 0x00714f14, UNSURE: working 
 extern void console_out_printf(uint8_t unknown, const char *format, ...); // 0x4c6860
 extern void player_profile_write_data(int32_t slot, void *profile_data);  // 0x53a950
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
-extern void game_variant_sanitize_options(game_variant *variant); // 0x466730; blam-cc: ECX -> variant
+
 extern void game_variant_write_request_start(int32_t slot, void *variant);    // 0x53c0b0, UNSURE
 extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name); // 0x53d080; blam-cc: EAX -> slot, ESI -> out_name
 extern void saved_game_last_mp_variant_clear(char *name);  // 0x53d360

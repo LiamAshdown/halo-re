@@ -13,10 +13,10 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 
-extern void game_engine_scan_netgame_flags_noop(int16_t needle); // 0x4637c0, this batch
 
 void game_engine_validate_scenario_placements_noop(void)
 {

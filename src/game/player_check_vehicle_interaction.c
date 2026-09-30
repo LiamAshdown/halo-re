@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -30,8 +31,7 @@ extern double cos(double x); // x87 FCOS
 extern uint8_t unit_current_weapon_type_is_2_or_3(uint32_t unit_index); // 0x56bd60, not in this batch; UNSURE exact signature
 extern int16_t unit_find_best_seat_to_enter(uint32_t unit_index, uint32_t vehicle_index,
     uint32_t *out_seat); // 0x566560, UNSURE exact signature
-extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat,
-    uint32_t player_index, uint32_t candidate_object); // this batch, 0x478e00
+
 
 // Examines whether `player_index`'s unit can interact with the vehicle `candidate_object`.
 // Unless it is vitality-frozen: if the vehicle is tipped past minimum_angle_for_vehicle_flipping

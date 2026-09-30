@@ -47,6 +47,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern uint8_t game_engine_attribute_enabled;    // 0x006b1458, UNSURE: see header
 extern game_time_globals *game_time;             // 0x006f1d6c
@@ -57,8 +58,7 @@ extern team_pair_globals *team_pair_data;        // 0x006b0b84
 
 extern datum_index player_index_from_unit_index(datum_index unit); // 0x474db0, not in this batch; UNSURE signature, see header
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50
-extern void game_engine_on_player_death(datum_index killer, datum_index death_object,
-    datum_index victim, char is_suicide); // 0x460200
+
 extern void player_advance_multikill_medal(datum_index player_handle); // 0x479eb0, this batch, UNSURE args (register-passed)
 
 // blam-cc: EAX -> victim_unit, stack -> killer, death_object, killer_team, credit_kills

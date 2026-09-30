@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -31,8 +32,7 @@ extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *or
     real_vector3d *direction, real radius); // 0x4ce6c0
 extern uint8_t device_frontfacing(uint32_t device_index, real_vector3d *forward); // 0x44c130
 extern uint8_t device_can_change_position(uint32_t candidate_object); // 0x44c0c0, not in this batch
-extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat,
-    uint32_t player_index, uint32_t candidate_object); // this batch, 0x478e00
+
 
 // Checks whether `player_index`'s unit is positioned and facing correctly to assassinate
 // `candidate_object`: the candidate's bounding sphere must contain the player's camera position

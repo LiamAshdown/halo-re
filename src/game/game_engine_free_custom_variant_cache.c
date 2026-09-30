@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_variant_history_entry *game_variant_history; // 0x00687b0c
 extern uint32_t game_variant_history_count;              // 0x00687b10

@@ -19,15 +19,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590
 extern void message_delta_decode_compound_field_staged(void *event);                       // 0x4ec670
 
-extern void game_engine_reset_respawns_and_cleanup_bipeds(void); // 0x467e60
-extern void game_engine_cleanup_stray_items(void);                // 0x468010, this batch
-extern void game_engine_cleanup_stray_projectiles(void);          // 0x467f70
 
 // blam-cc: EAX -> event
 // If `event` validates (via message_delta_decode_compound_field), resets respawns/bipeds, deletes stray items and

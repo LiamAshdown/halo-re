@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // blam-cc: EAX -> slot_index, ECX -> type_nibble, DL -> flag_bit_30, stack -> flag_bit_31
 // Packs a 12-bit slot index, a 4-bit type nibble and two boolean flags into one 32-bit handle:

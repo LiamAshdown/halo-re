@@ -11,9 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_game.h"
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
-extern uint8_t players_any_without_unit(void); // 0x475210
+
 
 // Returns true only when there are no nearby dangerous projectiles and no player is currently
 // without a controlled unit (dead/respawning).

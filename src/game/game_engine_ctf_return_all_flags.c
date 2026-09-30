@@ -17,6 +17,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode; // 0x00719720
 extern Scenario *global_scenario; // 0x00746f8c
@@ -24,7 +25,7 @@ extern ctf_globals ctf_globals_live; // 0x006b1290
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_option_7c aliased 0x006f1d04)
 extern int32_t ctf_neutral_flag_id; // 0x006b1314
 
-extern void game_engine_ctf_assign_flag_ids(void); // 0x46d800, this batch
+
 extern int32_t game_engine_ctf_pick_random_flag(int32_t exclude_flag_index); // 0x46dfe0, this batch
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position,
     float height_offset, datum_index player_filter, int16_t team_filter); // 0x462260

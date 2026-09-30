@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 #include <stdint.h>
 

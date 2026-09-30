@@ -27,6 +27,7 @@
 #include "game.h"
 #include "sound.h"
 #include "physics.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern data_array *object_data;        // 0x008603b0
@@ -46,7 +47,7 @@ extern void projectile_response(datum_index projectile_index, collision_result *
     real_vector3d *velocity); // 0x4bf390, stack + EAX
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind,
     int16_t noise, int32_t unused); // 0x42c610
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
+
 extern void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out); // 0x569280, ECX, ESI
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0, EAX, stack
 extern double cos(double x);

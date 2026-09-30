@@ -22,6 +22,7 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_game.h"
 
 extern director directors[1];                           // 0x006ac560
 extern const real_point3d *global_origin3d_pointer;     // 0x00696714, math module
@@ -30,8 +31,7 @@ extern double cos(double x);
 extern double sin(double x);
 
 // blam-cc: AX -> local_player_index, ESI -> out
-extern void chimera__spectate_fp_camera_position(camera_basis_out *out,
-    int16_t local_player_index);                        // 0x472020, game module
+
 // blam-cc: ESI -> forward, EDI -> out_up
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *out_up); // 0x4479c0, this module
 // blam-cc: EAX -> object_index, ESI -> out_velocity, EDI -> out_angular_velocity (may be NULL)

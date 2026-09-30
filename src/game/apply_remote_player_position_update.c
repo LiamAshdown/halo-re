@@ -25,12 +25,12 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int32_t wait_tick_counter;           // 0x007102dc, UNSURE name
 extern uint16_t local_player_name_filter[]; // 0x0071c420, UNSURE name/purpose
 
-extern uint8_t position_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick,
-    real_point3d *out); // this module (a later batch), 0x47a100
+
 extern void player_update_history_log_printf_filtered(int32_t level, const char *format, ...); // 0x4e5f20
 extern void unit_snap_position_if_far(real_point3d *new_position, object *obj); // this batch, 0x4772e0
 extern double sqrt(double x); // x87 FSQRT

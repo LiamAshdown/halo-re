@@ -19,6 +19,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550

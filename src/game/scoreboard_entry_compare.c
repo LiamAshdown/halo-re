@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 int32_t scoreboard_entry_compare(const scoreboard_entry *a, const scoreboard_entry *b)
 {

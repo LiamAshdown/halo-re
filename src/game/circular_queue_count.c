@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // blam-cc: EDX -> queue
 int32_t circular_queue_count(circular_queue *queue)

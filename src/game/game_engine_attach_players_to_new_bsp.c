@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern player_globals *local_player_globals; // 0x0087a478

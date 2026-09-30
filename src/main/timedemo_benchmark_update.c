@@ -38,6 +38,7 @@
 #include "rasterizer.h"
 #include "main.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 #include <stdio.h>
 
 extern main_globals main_globals_data;              // 0x00719700
@@ -77,7 +78,7 @@ extern uint32_t time_query_performance_counter_ms(void);            // 0x449210,
 extern void main_queue_map_change(char *map_name);                  // this module, 0x4c8740
     // blam-cc: EAX -> map_name
 
-extern uint32_t user_profile_signin_state_is_valid(void);           // 0x551620, foreign (game), UNSURE name
+
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186      // 0x624186, CRT fopen wrapper
 
 // Once per presented frame while -timedemo runs: samples the frame time into the timedemo

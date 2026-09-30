@@ -10,10 +10,11 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 
 
 extern Globals *global_globals;
-extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count); // 0x45a800
+
 
 void hs_evaluate_cheat_all_powerups(int16_t function_index, uint32_t thread_index, char first)
 {

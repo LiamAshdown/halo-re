@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f1888
 

@@ -27,6 +27,7 @@
 #include "effects.h"
 #include "fn_hs.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -53,11 +54,9 @@ extern uint32_t *cinematic_globals_ptr; // 0x006f187c, TYPES-GAP (7 dwords)
 
 extern void contrails_initialize(void);                 // 0x44c8b0
 extern void decals_initialize(void);                     // 0x44df90
-extern void team_pair_table_allocate(void);              // this batch, 0x45bc30
+
 extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c2c0,
     // blam-cc: EBX -> variant (matches src/game/game_engine_load_from_variant.c)
-extern void game_engine_allocate_tick_record(void);       // 0x470a80
-extern void players_initialize(void);                     // 0x4735b0
 
 
 extern void input_state_initialize(void);                     // 0x48b3e0

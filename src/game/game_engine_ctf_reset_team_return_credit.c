@@ -22,6 +22,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *object_data; // 0x008603b0
 
@@ -29,7 +30,6 @@ extern uint8_t ctf_team_return_credit_active[2]; // 0x006b0ea4
 extern int32_t ctf_team_return_credit_ticks[2];  // 0x006b0ea8
 extern real_point3d *ctf_team_flag_stand_position[2]; // 0x006b0e88
 
-extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *position); // 0x4666c0
 
 // FIXED 2026-09-28: 0x46884a copies the object handle into EBX and 0x468877 loads EDI with the team's flag stand
 //   before the call to ctf_flag_object_clear_carrier, so neither is a forwarded input; the object is the flag.

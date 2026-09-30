@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 // blam-cc: ECX -> base, EBX -> new_value, ESI -> key

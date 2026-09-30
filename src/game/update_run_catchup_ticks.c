@@ -16,14 +16,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int32_t update_client_unknown_102d4; // 0x007102d4, UNSURE raw counter
 extern uint32_t update_client_staged[8];     // 0x006f7ea4
 
-extern void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source,
-    uint32_t extra); // 0x473390, blam-cc: EAX -> machine_index, EDX -> tick_count, stack -> source, extra
-extern void update_server_push_player_tick_history(void); // 0x472cc0
-extern void update_server_queue_get_history_entry(int32_t *out_record, int32_t *out_tick, datum_index queue_handle);
+
     // 0x472ea0, blam-cc: EAX -> out_tick, ECX -> queue_handle, stack -> out_record
 
 // blam-cc: BX -> tick_count

@@ -22,6 +22,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 extern ctf_globals ctf_globals_live; // 0x006b1290
@@ -29,9 +30,7 @@ extern uint32_t ctf_team_captured_flags_mask[]; // 0x006b12d4, this batch
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_option_7c aliased 0x006f1d04)
 extern int32_t ctf_neutral_flag_id; // 0x006b1314
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
-extern void game_engine_ctf_on_flag_captured(uint32_t flag_index); // 0x46dde0, this batch
-extern uint8_t game_engine_ctf_is_flag_eligible_for_capture(uint32_t team, int32_t flag_id); // 0x46df30, this batch
+
 extern int32_t game_engine_ctf_pick_random_flag(int32_t exclude_flag_index); // 0x46dfe0, this batch
 
 // blam-cc: stack -> team, EAX -> scenario_flag_index

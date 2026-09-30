@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern team_pair_globals *team_pair_data; // 0x006b0b84
 

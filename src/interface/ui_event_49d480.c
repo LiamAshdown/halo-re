@@ -22,6 +22,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
@@ -30,8 +31,8 @@ extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, TYPES-GAP
 extern uint32_t game_engine_ensure_variant_history_has_entry(void); // 0x463b20
 extern int32_t network_game_server_host_create(void); // 0x4ddd40
 extern int32_t game_variant_history_current; // 0x00687b18
-extern void game_engine_apply_current_custom_variant(void); // 0x463b90
-extern void game_engine_sync_variant_defaults(void); // 0x45fc80
+
+
 extern int16_t network_game_mode; // 0x00719720
 extern network_client_globals *network_client;
 extern void *network_session_create(void); // 0x4d8a80, blam-cc: EAX -> client

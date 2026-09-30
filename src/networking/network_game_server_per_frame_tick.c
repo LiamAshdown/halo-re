@@ -26,9 +26,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 
-extern void update_server_push_player_tick_history(void); // other module (UNSURE)
-extern void game_engine_tick(void); // other module, already named
+
 extern char network_game_session_finalize_and_add_player(network_player_entry *entry,
     network_server_globals *server, network_machine *machine); // 0x4df840, this batch
 extern void network_game_broadcast_state_snapshot(void); // 0x4e1b50, this batch (UNSURE args)

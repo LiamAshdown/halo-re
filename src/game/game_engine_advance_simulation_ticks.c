@@ -21,18 +21,18 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern int32_t game_time_force_single_tick; // 0x007196d8
 extern int16_t network_game_mode;            // 0x00719720
 extern game_time_globals *game_time;          // 0x006f1d6c
 
-extern void game_simulate_tick(uint32_t predict_pass); // 0x45b780
-extern void update_run_catchup_ticks(int16_t tick_count); // 0x473310, blam-cc: BX -> tick_count
+
 extern network_server_globals *network_server;
 extern void network_game_server_per_frame_tick(void *entry, int16_t update_count, uint8_t *server);
     // 0x4e03c0, blam-cc: EAX -> entry, CX -> update_count, ESI -> server
 extern void game_effects_update(float delta_time); // 0x45b4f0
-extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder); // this batch, 0x470b30
+
 
 // Computes how many fixed ticks this frame should run (forcing exactly 1 when
 // game_time_force_single_tick is set), runs any host/client catch-up hook for the connection

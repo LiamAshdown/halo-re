@@ -16,6 +16,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern data_array *player_data; // 0x0087a480
@@ -23,10 +24,7 @@ extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
 extern uint32_t king_hill_occupant_table[16]; // 0x006b120c
 extern int32_t oddball_ball_timers_006b11cc[16]; // 0x006b11cc
-extern uint8_t game_engine_is_inactive(void); // 0x461610
-extern void game_engine_koth_alt_scorer_tick(uint32_t player_index); // 0x46c230, blam-cc: EAX player_index
-extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player, int32_t no_source_message,
-    int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast); // 0x460c10, blam-cc: BL broadcast
+
 
 // 0x46c8e0 (ESI player): whether the player holds one of the variant +0x90 balls.
 static uint8_t oddball_is_carrier(datum_index player_index)

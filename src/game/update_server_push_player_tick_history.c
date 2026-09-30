@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern int32_t update_server_tick;              // 0x006f1d8c

@@ -28,6 +28,7 @@
 #include "game.h"
 #include "camera.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern data_array *player_data;                     // 0x0087a480
 extern data_array *object_data;                     // 0x008603b0
@@ -47,19 +48,19 @@ extern void object_delete(uint32_t object_index); // 0x4f5bd0, blam-cc: EAX
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
     int32_t invoke_callback); // 0x4f9a20, blam-cc: EAX, stack
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index); // 0x474fc0, ESI, DI
-extern int16_t player_pick_random_starting_location(datum_index player_handle); // 0x4776d0, stack
+
 extern ScenarioPlayerStartingLocation *game_get_player_starting_location(int16_t index); // 0x477640, CX
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role); // 0x4f53a0, blam-cc: EAX, stack
 extern real *game_engine_get_player_color(uint32_t player_index, real *out_rgb); // 0x463290, EAX, ESI
-extern void object_placement_data_set_change_colors(real *color, object_placement_data *placement); // 0x477670, EAX, ECX
+
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role); // 0x4f54b0
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
-extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index); // 0x470e80, EDX, AX
+
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle,
     uint8_t reset_stats); // 0x473c50, EAX, ECX, stack
-extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0x4613c0, EAX
+
 extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, ESI
 // RESOLVED 2026-09-28: unit_build_network_update now takes (unit, buffer, 0x7ff8) and returns the encoded bit
 // count, as the binary pushes and tests (the buffer is the network scratch 0x871de0, named below after another use).

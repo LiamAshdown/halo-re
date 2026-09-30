@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Globals *global_globals;      // 0x00746fa0
 extern data_array *object_data;   // 0x008603b0
@@ -28,7 +29,7 @@ extern void object_placement_data_initialize(object_placement_data *placement,
     datum_index definition_tag, datum_index role); // 0x4f53a0
 extern datum_index object_new(object_placement_data *placement); // 0x4f5460, UNSURE signature
 extern void object_mark_pending_delete(uint32_t object_index); // 0x4f50f0
-extern void game_engine_koth_find_marker_position(real_point3d *out_position, int16_t type_filter); // 0x46beb0, this batch
+
 
 // Outside game_engine_index 1/2, if the map has a multiplayer "ball" tag, builds a placement
 // block for it, finds a new type-1 marker position, spawns the marker object there, and clears

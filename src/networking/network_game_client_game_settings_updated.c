@@ -23,6 +23,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern data_array *local_player_globals;  // 0x0087a478, UNSURE identity, see update_server_send_update.c
@@ -42,8 +43,8 @@ extern void network_stats_summary_log_write(void); // 0x440820, this module
 extern void message_delta_protocol_initialize(void); // 0x4ec2f0, outside this batch
 extern void network_stats_summary_log_open(void); // 0x440670, this module
 extern datum_index datum_get(data_array *array, datum_index index); // 0x4d0680, memory module
-extern void game_engine_apply_current_custom_variant(void); // outside this batch
-extern void game_engine_sync_variant_defaults(void); // outside this batch
+
+
 extern void widget_close(int32_t widget); // outside this batch
 extern void widget_pool_list_free_all(void); // outside this batch
 extern char network_game_server_load_scenario(void); // 0x4e0720, outside this batch, elided args

@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8

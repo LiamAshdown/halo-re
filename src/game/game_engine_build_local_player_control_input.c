@@ -58,6 +58,7 @@
 #include "items.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern player_globals *local_player_globals;                 // 0x0087a478
 extern data_array *player_data;                              // 0x0087a480
@@ -76,16 +77,13 @@ extern uint8_t look_aim_assist_enabled;                       // 0x006f1d7d, UNS
 extern uint8_t look_rate_doubler_zoom_inverts;                // 0x006f1d7f, UNSURE (see header)
 extern uint8_t look_rate_doubler_enabled;                     // 0x006f1d80, UNSURE (see header)
 
-extern real control_axis_sign(real value);                                    // this batch, 0x471070
-extern real response_curve_evaluate(int16_t table_count, real x, real *table); // this batch, 0x470fb0
+
                                                                               // blam-cc: EDI -> table
 extern real game_engine_get_time_scale(void);                                 // this batch, 0x470ce0
-extern void game_engine_digitize_control_input(player_control_input *input);               // this batch, 0x472760
+
                                                                               // blam-cc: EDX -> input
-extern uint32_t camera_observer_get_target_angles(real *out_weight_primary,
-    real *out_weight_secondary, real *out_yaw_pitch, real *out_yaw_pitch_rate,
-    int16_t local_player_slot);                                              // this batch, 0x4596f0
-extern uint32_t camera_observer_get_target_id(datum_index *out_id, int16_t local_player_slot);
+
+
                                                                               // this batch, 0x459900
 extern float unit_get_active_weapon_scale(uint32_t unit_index, int16_t zoom_level); // 0x565ab0, EAX, stack
                                                               // blam-cc: EAX -> unit_index

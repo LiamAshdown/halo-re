@@ -18,12 +18,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_game.h"
 
 extern int16_t current_local_player_index; // 0x007c3108 (src/effects precedent name)
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
 extern int16_t camera_get_type_for_player(int16_t player_index); // 0x445ac0, module camera; blam-cc: player_index in CX (in_CX)
-extern int32_t local_player_get_zoom_level(int16_t local_player_index); // 0x472740, src/game; blam-cc: CX -> local_player_index
+
 extern void first_person_weapon_set_attached(int16_t local_player_index, uint8_t attached); // 0x493e50, this module
 extern void first_person_weapon_update_animation_controls(int16_t local_player_index); // 0x493740, this module
 

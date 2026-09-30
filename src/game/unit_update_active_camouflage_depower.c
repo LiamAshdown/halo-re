@@ -31,6 +31,7 @@
 #include "cache.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
@@ -38,7 +39,7 @@ extern data_array *object_data;                  // 0x008603b0
 extern tag_instance *tag_instances;                 // 0x0087bc14
 
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970
-extern uint8_t unit_current_weapon_prevents_camo_depower(datum_index player_handle);      // 0x466390
+
 
 // blam-cc: EBX -> player_handle
 // Counts a unit's active-camouflage timer (unit_data+0x37c) down toward a 0.05 floor once per

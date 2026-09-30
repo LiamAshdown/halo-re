@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // Fills a game-variant options block with this built-in multiplayer game type's
 // hardcoded default settings. The block is zeroed first (which is also the default

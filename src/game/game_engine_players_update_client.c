@@ -32,6 +32,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 #include <stdint.h>
 
@@ -49,15 +50,13 @@ extern uint8_t global_00719750;              // 0x00719750, UNSURE identity
 extern int16_t global_00719772;              // 0x00719772, UNSURE identity
 extern real_vector3d global_origin3d;        // 0x0065c230
 
-extern uint32_t update_client_distribute_staged_entry(uint8_t *out); // 0x473270, established
+
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
-extern uint8_t player_update_queue_pop_current(player_update_record *out,
-    player_update_queue *queue); // 0x479fb0, this module; blam-cc: EAX -> out, EBX -> queue
+
 extern void player_apply_first_position_update(uint32_t field0, player *plr); // this batch, 0x476cf0;
     // blam-cc: EDI -> field0, ESI -> plr
-extern uint8_t game_engine_player_ready_to_respawn(uint32_t player_index); // 0x460f70
-extern void game_engine_resolve_player_team(uint32_t player_index); // 0x4611b0
-extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0x4613c0
+
+
 extern void player_respawn(datum_index player_handle); // this module's next batch, 0x477ea0
 extern void player_apply_pickup_effect(datum_index player_handle, datum_index item_index); // this batch, 0x479930
 extern void unit_release_selected_equipment(datum_index unit_handle); // 0x56d300, units module, not in this batch

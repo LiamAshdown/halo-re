@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c

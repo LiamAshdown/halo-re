@@ -49,6 +49,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern player_globals *local_player_globals;                 // 0x0087a478
 extern data_array *object_data;                           // 0x008603b0
@@ -64,10 +65,7 @@ extern uint32_t update_client_staged[8];       // 0x006f7ea4, see update_client_
 extern int32_t update_client_staged_count;     // 0x006f7ecc, zeroed by both callers each frame
 extern int32_t update_client_unknown_ec4;      // 0x006f7ec4, see update_client_distribute_staged_entry.c
 
-extern void game_engine_build_local_player_control_input(int16_t local_player_index, real delta_time,
-    player_control_input *out);                                                // this batch, 0x4710b0
-extern void game_engine_update_local_player_look(int16_t local_player_index, real yaw_delta,
-    real pitch_delta);                                                         // this batch, 0x472160
+
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
                                     // 0x474fc0; blam-cc: EDI -> local_player_index, ESI -> unit_index
 extern int32_t object_find_next_untargeted(int32_t starting_object_index);      // 0x56bdc0, units

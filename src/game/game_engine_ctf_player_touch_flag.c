@@ -19,15 +19,14 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;   // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 
 extern void game_engine_player_profile_cache_sync_all(int32_t commit, void *callback_extra_arg); // 0x466cb0
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
-extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
-    int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast); // 0x460c10, blam-cc: BL broadcast
+
 
 // FIXED 2026-09-28: 0x46894e loads EBX = 1 itself for the profile cache sync; EBX is not an input.
 // blam-cc: stack -> player_index, EAX -> team

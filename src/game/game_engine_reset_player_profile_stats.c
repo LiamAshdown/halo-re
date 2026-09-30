@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;                 // 0x0087a480
 extern player_profile player_profile_cache[16]; // 0x006b0b88

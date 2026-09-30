@@ -28,12 +28,13 @@
 #include "game.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_game.h"
 
 extern data_array *object_data; // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_main_globals *main_game_globals; // 0x006b0b80
 
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
+
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
 extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0, CX, stack
 extern void object_set_shield_depleted_flag(uint32_t object_index); // 0x4edb10, EDI

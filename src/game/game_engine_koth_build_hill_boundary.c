@@ -21,6 +21,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 extern int32_t king_starting_location_type; // 0x006b1064, UNSURE exact identity (see PLAN.md
@@ -35,8 +36,7 @@ extern real_point3d king_hill_boundary_center; // 0x006b1044 (x,y,z = 0x1044/0x1
 extern int32_t game_engine_find_valid_starting_locations(real_point3d *origin,
     float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type,
     int32_t max_results, int32_t *results); // 0x461080
-extern void point3d_array_project_to_xy_plane(real_point3d *source, Point2D *destination,
-    int32_t count); // 0x46a130, this batch (CORRECTED name)
+
 extern int16_t polygon2d_convex_hull_build(int32_t count, Point2D *points); // 0x4caae0,
     // math/geometry module, not yet rewritten; UNSURE exact signature -- writes the hull vertex
     // order back into `points` as int16 indices (Ghidra reads it that way at the caller)

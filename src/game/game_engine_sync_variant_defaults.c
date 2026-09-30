@@ -18,6 +18,7 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern game_variant game_engine_pending_variant; // 0x0087aa80
 extern game_variant game_engine_active_variant;  // 0x0087ab20

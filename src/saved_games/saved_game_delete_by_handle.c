@@ -17,6 +17,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_game.h"
 
 extern uint8_t savegame_index_dirty; // 0x00721447
 extern char savegames_directory[0x100]; // 0x00721549
@@ -24,7 +25,7 @@ extern int32_t cached_saved_game_something; // 0x00692af8, UNSURE name/purpose (
 
 extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry); // 0x53e0e0, FUN_0053e0e0 (src/game)
 extern uint8_t savegame_index_remove_slot(int32_t slot_index); // 0x53e4a0, FUN_0053e4a0 (src/game): removes the in-memory index entry
-extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path); // 0x5519a0, blam-cc: EAX save_game_name, ECX root_path
+
 
 // blam-cc: saved-game handle in EDI
 // Deletes the saved-game entry identified by handle, both from disk (via XDeleteSaveGame,

@@ -31,15 +31,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode;                    // 0x00719720
 extern uint8_t multiplayer_sound_enabled[];          // 0x00688328
 extern int32_t multiplayer_sound_queue_count;        // 0x006b1140
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds]; // 0x006b10f0
 
-extern void game_engine_play_multiplayer_sound(int32_t sound_index, datum_index recipient_player,
-    uint8_t broadcast); // 0x46bd00, this batch
-extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_index); // 0x46bde0, this batch
 
 // FIXED 2026-09-28 from objdump 0x46be40..0x46bea4: the real inputs are ESI sound, EDI player and the stack
 //   broadcast byte (forced to 0 unless hosting); every caller was retrofitted to pass all three from the binary.

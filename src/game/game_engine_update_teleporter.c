@@ -46,6 +46,7 @@
 #include "game.h"
 #include <wchar.h>
 #include "networking.h"
+#include "fn_game.h"
 
 extern data_array *player_data;      // 0x0087a480
 extern Scenario *global_scenario;    // 0x00746f8c
@@ -74,9 +75,8 @@ extern void player_effect_set_screen_flash_for_player(datum_index player_index, 
 extern int game_engine_find_valid_starting_locations(real_point3d *origin,
     float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type,
     int32_t max_results, int32_t *results); // 0x461080, this batch
-extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team,
-    real_point3d *origin, float max_horizontal_dist, float max_height_delta); // 0x461180, this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
+
 extern int16_t unit_get_local_player_weapon_index(datum_index unit_index); // 0x4726b0, blam-cc:
     // EAX -> unit_index. RENAMED from symbols/functions.txt's unit_get_local_player_weapon_index:
     // objdump 0x4726b0..0x4726eb resolves unit -> object+0x218 (controlling_player) and returns
@@ -95,8 +95,7 @@ extern uint8_t physics_model_build_from_sphere_query(uint32_t tag_group, real_po
     float c, uint32_t exclude, void *candidates_out); // 0x506440, not in this batch; UNSURE
 extern float unit_get_crouch_height_offset(float *out); // 0x55a2e0, not in this batch; UNSURE signature
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0
-extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing,
-    int16_t local_player_index); // 0x470d80. CORRECTED by review: objdump 0x4619f1..0x4619fb
+
     // shows "mov cx,WORD [ebp+0x2]" (player::local_player_index) and "lea eax,[esp+0x1c]"
     // (the forward vector built just above) live at the call. blam-cc: EAX -> facing,
     // CX -> local_player_index

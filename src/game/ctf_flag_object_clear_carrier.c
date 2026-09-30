@@ -23,6 +23,7 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *object_data;                    // 0x008603b0
 extern game_time_globals *game_time;                  // 0x006f1d6c

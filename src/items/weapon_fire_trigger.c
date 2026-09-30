@@ -34,6 +34,7 @@
 #include "items.h"
 #include "game.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -48,7 +49,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern real random_real(void); // 0x4019f0, math module
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
-extern void unit_update_active_camouflage_depower(datum_index player_handle); // 0x466420, EBX
+
 extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action); // 0x4940f0
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, EBX, EAX

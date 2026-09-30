@@ -17,12 +17,13 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Globals *global_globals; // 0x00746fa0
 extern int16_t network_game_mode; // 0x00719720
 extern data_array *player_data;   // 0x0087a480
 
-extern void game_engine_queue_status_sound_message(int32_t machine_index); // 0x46bbd0, this batch
+
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680
 extern void sound_start_unspatialized(float volume); // 0x543dd0
 

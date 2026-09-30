@@ -21,6 +21,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -49,8 +50,8 @@ extern void network_client_globals_dispose(void); // this module (earlier batch)
 extern uint8_t network_game_server_host_create(void); // this module (earlier batch), 0x4ddd40
 extern network_client_globals *network_session_create(void); // this module (earlier batch), 0x4d8a80
 extern uint8_t game_engine_ensure_variant_history_has_entry(void); // foreign, UNSURE shape
-extern void game_engine_apply_current_custom_variant(void); // foreign
-extern void game_engine_sync_variant_defaults(void); // foreign
+
+
 extern void network_host_round_reset(void); // this module (earlier batch)
 extern void widget_close_all(void); // foreign
 

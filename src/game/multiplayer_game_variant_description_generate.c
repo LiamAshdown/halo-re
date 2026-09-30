@@ -88,10 +88,11 @@
 #include "cache.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
-extern wchar_t *unicode_string_list_get_string(char *path, int16_t index); // 0x4b8d30, this module (src/game/unicode_string_list_get_string.c)
+
 extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self); // 0x4b8a60, networking module
 
 // The four packed-option decoders, already rewritten in the networking module. Each takes its

@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *object_data;   // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -27,7 +28,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680
-extern void game_engine_notify_item_expired(datum_index object_index); // 0x45f510, this batch
+
 
 // Every tick, sets each item's render/collision scale from its Item tag (or 1.0 while the item
 // is held), then, for items whose game engine implements object_in_play_update, notifies both

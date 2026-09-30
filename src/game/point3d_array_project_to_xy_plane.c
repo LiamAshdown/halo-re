@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // blam-cc: stack -> source, EDI -> destination, EBX -> count
 // Projects `count` real_point3d entries from `source` into `destination` as (x, y) pairs,

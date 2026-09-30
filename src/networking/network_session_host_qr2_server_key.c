@@ -11,6 +11,7 @@
 
 #include "crt.h"
 #include "tags.h"
+#include "fn_game.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -32,7 +33,7 @@ extern uint32_t server_browser_gametype2_flags_pack(uint8_t *flags); // 0x576920
 extern uint32_t server_browser_gametype3_flags_pack(void *options); // 0x5769c0, blam-cc: ECX
 extern uint32_t server_browser_gametype5_flags_pack(int32_t *values); // 0x576960, blam-cc: EDX
 extern int32_t players_active_count(void); // 0x45c6a0
-extern uint8_t game_engine_get_teams_enabled(void); // 0x462bf0
+
 extern int32_t network_server_password_is_set(void *server); // 0x4e08e0, blam-cc: EAX server
 
 void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *user_data)

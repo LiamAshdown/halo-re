@@ -38,6 +38,7 @@
 #include "camera.h"
 #include "networking.h"
 #include "main.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -55,8 +56,8 @@ extern uint8_t *main_game_globals;     // 0x006b0b80, foreign (networking module
 
 extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0x45aea0, foreign (game module)
     // blam-cc: EAX -> path, BL -> apply_state
-extern void game_stop_current_map(void);   // 0x45b370, foreign (game module)
-extern void game_unload_map(void);         // 0x45afb0, foreign (game module)
+
+
 extern void game_scenario_session_begin(network_scenario_load_request *request); // 0x4c95f0, this module
 extern void camera_debug_start(int16_t camera_point_index, int16_t ticks,
                                 datum_index relative_object); // 0x444c00, foreign (camera module)

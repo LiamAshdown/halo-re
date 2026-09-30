@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -29,20 +30,17 @@ extern game_engine_state game_engine_state_value; // 0x0087aa10
 extern float game_engine_end_game_timer; // 0x0087aa08
 extern uint32_t game_engine_unknown_aa00;   // 0x0087aa00, UNSURE identity (flag bitfield)
 
-extern void game_engine_multiplayer_sound_queue_tick(void); // 0x46bd80
-extern void game_engine_cleanup_dropped_objects(void); // 0x45f320, this batch
-extern void game_engine_update_item_scale_and_pickup(void); // 0x45f560, this batch
-extern void game_engine_update_netgame_equipment(char force_respawn); // 0x45f9f0, this batch
+
 extern void game_engine_player_profile_cache_sync_all(datum_index player_handle); // 0x466cb0, not in this batch
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void game_engine_clear_unit_shields_when_disabled(datum_index player_handle); // 0x45fd20, this batch
+
 extern void player_kill_streak_set_max(int32_t unknown); // 0x479ca0, not in this batch
 extern void game_engine_update_teleporter(datum_index player_handle); // 0x461630
 extern char game_engine_announce_time_remaining(void); // 0x45cae0, not in this batch
-extern void game_engine_begin_end_game_sequence(void); // 0x45fd90, this batch
+
 extern void sound_class_set_gain_by_name(const char *class_name, float gain, int32_t ticks); // 0x545390
-extern void game_engine_end_game_sequence_stage2(void); // 0x4670f0, not in this batch
-extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
+
+
 extern void network_server_advance_connect_state(void); // 0x4df290, not in this batch
 
 extern char k_empty_string[]; // 0x0065512c, UNSURE exact contents (a sound class name)

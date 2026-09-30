@@ -20,14 +20,12 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode;        // 0x00719720
 extern data_array *object_data;       // 0x008603b0
 extern game_variant game_engine_variant; // 0x006f1c88 (ball_count aliased 0x006f1d18)
 
-extern void game_engine_koth_find_marker_position(real_point3d *out_position, int16_t type_filter); // 0x46beb0, this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
-extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *position); // 0x4666c0
 
 // FIXED 2026-09-28: 0x46c1b1 copies EAX into EBX and 0x46c20f points EDI at the position 0x46beb0 found (type
 //   filter: the object's +0xb8, 0x46c1cb) before ctf_flag_object_clear_carrier; nothing is forwarded.

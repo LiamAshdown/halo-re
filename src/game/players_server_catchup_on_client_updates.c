@@ -34,6 +34,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern data_array *player_data;                     // 0x0087a480
@@ -47,8 +48,7 @@ extern int32_t server_maximum_queued_client_updates;      // 0x006887b4 UNSURE n
 extern int32_t server_maximum_pending_client_update_ticks; // 0x006887b8 UNSURE name (6)
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
-extern uint8_t player_update_queue_pop_current(player_update_record *out,
-    player_update_queue *queue); // 0x479fb0, blam-cc: EAX -> out, EBX -> queue
+
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
     real_vector3d *out_forward); // 0x473d70, blam-cc: EAX, ECX, ESI
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control,

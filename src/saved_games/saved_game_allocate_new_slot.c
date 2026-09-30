@@ -28,6 +28,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_game.h"
 
 extern char savegames_directory[0x100]; // 0x00721549
 extern uint16_t missing_string_text[]; // 0x00671fac, the characters of L"<missing string>" (an array, not a pointer: mov reg,0x671fac; src/game uses the same name)
@@ -35,8 +36,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
-extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
-    uint32_t out_path_size); // 0x551710, blam-cc: EAX save_game_name (src/game/XCreateSaveGame.c: validity_token)
+
 
 // blam-cc: out wide-name buffer in EBX
 // Looks up the ui\\saved_game_file_strings ustr tag and, for each candidate slot number 1..999,

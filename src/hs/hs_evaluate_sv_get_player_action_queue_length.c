@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void game_engine_find_player_by_name(char *source_name); // 0x473430, blam-cc: EBX
 
 void hs_evaluate_sv_get_player_action_queue_length(int16_t function_index, uint32_t thread_index, char first)
 {

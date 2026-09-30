@@ -18,6 +18,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern int16_t network_game_mode; // 0x00719720, 2 == host, 0 == local/not in a game
@@ -26,13 +27,13 @@ extern game_variant game_variant_saved_default; // 0x00714de0
 extern uint8_t game_variant_saved_default_valid; // 0x00714e78
 
 extern char game_engine_is_map_and_variant_valid(void); // foreign, validates the requested map/variant pair (UNSURE)
-extern void game_engine_free_custom_variant_cache(void); // 0x4638b0
-extern uint32_t game_engine_variant_add_to_history(char *name, game_variant *options, char *path); // 0x463980
+
+
 extern void widget_close_all(void); // 0x498650, other module
-extern void game_engine_begin_end_game_sequence(void); // 0x45fd90
+
 extern void console_deactivate(void); // 0x4c64b0, other module
 extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out); // other module
+
 extern char network_game_start_new_server_from_profile(uint32_t param_1); // 0x4e40f0, this
     // module, called here with a local char-returning prototype (UNSURE, see header)
 extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX

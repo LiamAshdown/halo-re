@@ -20,10 +20,11 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
-extern int32_t game_engine_get_current_tick(void); // 0x470cd0
+
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, src/math; blam-cc: EAX a, ECX b
 
 

@@ -11,14 +11,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t network_game_mode;     // 0x00719720
 extern uint8_t game_time_unknown_49;  // 0x006f1d49
 extern int32_t game_time_unknown_48;  // 0x006f1d48
 
-extern void update_server_dispose(void); // this batch, 0x472b70
-extern void update_client_dispose(void); // this batch, 0x472fa0
 
 // Sets the current tick record's speed to 1.0 and clears its leftover_time accumulator, marks it
 // active, resets the two game_time bookkeeping globals, then re-synchronizes the server or client

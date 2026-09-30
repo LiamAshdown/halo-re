@@ -31,13 +31,12 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;         // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant; // 0x006f1c88 (teams aliased 0x006f1cbc)
 
-extern float game_engine_rate_location_crowding(uint32_t self_index, real_point3d *point); // 0x461ad0, this batch
-extern float game_engine_rate_location_ally_bonus(uint32_t self_index, real_point3d *point); // 0x461c60, this batch
 
 // blam-cc: EAX -> location, stack -> player_handle
 // Scores one candidate player starting location for one player. In a team game whose engine

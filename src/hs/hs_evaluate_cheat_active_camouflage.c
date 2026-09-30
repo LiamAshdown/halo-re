@@ -10,9 +10,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 
-
-extern void cheat_make_selected_object_invincible(void); // 0x45a6c0
 
 void hs_evaluate_cheat_active_camouflage(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -23,11 +23,11 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern real_point3d *ctf_team_flag_stand_position[2]; // 0x006b0e88, UNSURE exact element count
 extern datum_index ctf_team_flag_object[2];           // 0x006b0e90
 
-extern datum_index game_engine_ctf_create_flag_object(real_point3d *position, uint16_t name_index); // 0x468360, this batch
 
 // blam-cc: ESI -> team, EAX -> forwarded_position, stack -> forwarded_name_index
 // If `team` has a configured flag stand position, (re)creates its flag object (forwarding

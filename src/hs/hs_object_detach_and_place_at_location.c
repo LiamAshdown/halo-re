@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -58,7 +59,7 @@ extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
 extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
 extern void player_update_history_free_all(void *history); // 0x4e6f20
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
-extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index); // 0x470d80, EAX, CX
+
 extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0, EAX, ECX
 extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cbec0, EAX, EDX, stack
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664

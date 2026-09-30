@@ -20,13 +20,14 @@
 #include "math.h"
 #include "game.h"
 #include "interface.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern int32_t map_list_count; // 0x00712dd0, interface.h
 extern map_list_entry *map_list; // 0x00712dcc, interface.h, stride 0xc
 
 extern int32_t map_list_find_known_map_index(void); // 0x494ff0
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
+
     // 0x4622d0, this module; blam-cc: ECX -> name, stack -> out. A NULL `out` only tests
     // whether the name is recognized.
 uint32_t game_engine_is_map_and_variant_valid(const char *map_path, const char *variant_name)

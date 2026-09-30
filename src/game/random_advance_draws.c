@@ -13,6 +13,7 @@
 // decompilation; correctness depends on whatever the real calling convention around __ftol does.
 
 #include "tags.h"
+#include "fn_game.h"
 
 extern int32_t __ftol(void); // 0x6391b4, MSVC runtime; UNSURE: real argument is on the x87 stack
 

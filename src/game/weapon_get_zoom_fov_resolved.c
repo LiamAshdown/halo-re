@@ -32,13 +32,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern team_pair_globals *team_pair_data;         // 0x006b0b84
 extern void *main_game_globals;                        // 0x006b0b80, UNSURE: see header
 extern int16_t weapon_zoom_index_substitutions[];     // 0x00657470, indexed by zoom_table_index
 
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, this batch
 
 // blam-cc: ECX -> zoom_table_index, AX -> substitution_check_index
 // In multiplayer (current_game_engine != NULL), forces magnification to 1 and looks up

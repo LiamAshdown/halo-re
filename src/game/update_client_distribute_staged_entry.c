@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern uint32_t update_client_staged[8];   // 0x006f7ea4, see update_client_stage_entry.c

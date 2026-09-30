@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *player_data;    // 0x0087a480
@@ -31,12 +32,9 @@ extern game_engine_state game_engine_state_value; // 0x0087aa10
 extern uint8_t ctf_team_return_credit_active[2]; // 0x006b0ea4
 extern int32_t ctf_team_return_credit_ticks[2];  // 0x006b0ea8
 
-extern uint8_t game_engine_is_inactive(void); // 0x461610
-extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
-    int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast); // 0x460c10, blam-cc: BL broadcast
-extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index); // 0x468840, this batch
+
 extern void game_engine_ctf_notify_flag_carried_throttled(void); // 0x4689e0, this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
 
 // While `player_index` is valid and hosting: if the player is standing back on their own flag's
 // pad (team matches), either finishes returning the flag (ctf_option_7e clear, resetting the

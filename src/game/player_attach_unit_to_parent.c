@@ -19,6 +19,7 @@
 #include "game.h"
 #include <string.h>
 #include "networking.h"
+#include "fn_game.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -46,8 +47,7 @@ extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
 extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
 extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
 extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
-extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object,
-    real_point3d *point); // 0x4757b0
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])

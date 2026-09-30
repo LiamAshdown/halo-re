@@ -22,13 +22,14 @@
 #include "objects.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_game.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
 extern observer observers[1]; // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17), an array, not a pointer
                                     // player (Ghidra prints 0xa7 over a 4-byte element type)
 
-extern uint32_t cheat_get_target_object_index(void); // this batch, 0x45a7a0
+
 extern void console_printf_verbose(const char *format, ...); // 0x496a80, UNSURE identity (on-screen
     // error/log). It also takes a register argument in EAX (DAT_00685220 at this call site)
     // that cannot be expressed through this prototype; see UNSURE below.

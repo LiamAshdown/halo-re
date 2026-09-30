@@ -21,10 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
-extern void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t out_score[2],
-    int32_t filter_value); // this batch, 0x470690
 
 // blam-cc: EBX -> side, stack -> filter_value
 // For `side` 0 or 1, gathers the team totals and, if the other side's score is still behind

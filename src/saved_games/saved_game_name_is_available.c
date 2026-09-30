@@ -19,11 +19,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_game.h"
 
 extern char savegames_directory[0x100]; // 0x00721549
 
-extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
-    uint32_t out_path_size); // 0x551710, blam-cc: EAX save_game_name (src/game/XCreateSaveGame.c: validity_token)
 
 // blam-cc: save-game name in EAX
 // Returns 1 if name is non-null, non-empty and XCreateSaveGame's open-existing query (mode 3)

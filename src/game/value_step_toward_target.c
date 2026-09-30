@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // blam-cc: ECX -> value, stack -> target, max_step
 // Moves *value toward target by at most max_step (in either direction) and writes the result

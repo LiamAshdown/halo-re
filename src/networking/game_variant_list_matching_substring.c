@@ -14,6 +14,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_game.h"
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -25,7 +26,7 @@ extern void string_format_wide_va_bounded(uint16_t *dest, const char *format, ..
 extern void playlist_profile_create_default_profiles_on_disk(void); // foreign, 0x53bc70
 extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag); // foreign, UNSURE shape, 0x53c4e0
 extern uint8_t saved_game_get_variant(int32_t saved_game_id, uint16_t *out_name); // foreign, UNSURE shape
-extern void game_engine_apply_current_custom_variant(void); // foreign, 0x463b90
+
 extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX
 extern void *actor_mode_default_look_weights; // 0x00686af8, a ColorARGB * the original loads into EAX
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)

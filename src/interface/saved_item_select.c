@@ -21,6 +21,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern int32_t selected_saved_item;          // 0x00714e7c
@@ -30,7 +31,7 @@ extern uint32_t unknown_00714eb8;            // 0x00714eb8, UNSURE: flags, bits 
 extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280 (per player_profile_subsystem_initialize.c)
 
 extern uint8_t player_profile_get(int32_t slot, void *out_record); // 0x53a770; blam-cc: ECX -> out_record
-extern void game_engine_apply_current_custom_variant(void); // 0x463b90
+
 extern uint8_t saved_game_get_variant(int32_t slot, game_variant *out); // 0x53bee0, UNSURE
 
 // blam-cc: EBX -> item

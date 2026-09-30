@@ -14,13 +14,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode; // 0x00719720, 2 == host
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 
 extern void widget_close_all(void); // 0x498650, other module
-extern void game_engine_reset_round_objects(void); // 0x468260, game module
-extern void game_engine_send_round_reset_message(void); // 0x4682c0, game module
+
+
 extern void game_engine_player_profile_cache_sync_all(int32_t commit); // 0x466cb0, game
     // module, called here with only its first argument (UNSURE)
 extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX

@@ -16,6 +16,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20

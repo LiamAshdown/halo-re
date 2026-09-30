@@ -19,11 +19,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 extern float game_engine_end_game_timer;          // 0x0087aa08
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
 extern void widget_close_all(void); // 0x498650
 
 // Enters the "ending" end-of-game state: starts the 7-second countdown, queues the end-of-game

@@ -17,14 +17,14 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 #include <wchar.h>
 
 // wcsncpy (0x00627a94 wcsncpy) comes from <wchar.h>; memset is inlined by the compiler.
 extern data_array *player_data; // 0x0087a480
 
-extern datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle); // 0x45e340, this batch
-extern void hud_draw_teammate_nameplate_text(wchar_t *text, int32_t value); // 0x461f20, not in this batch
+
 extern double pow(double base, double exponent); // C runtime (the retail copy is the CRT _CIpow at 0x6283c0)
 
 // blam-cc: EAX -> player

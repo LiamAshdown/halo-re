@@ -20,6 +20,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode; // 0x00719720
 extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE name
@@ -27,10 +28,10 @@ extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE name
 extern void object_delete_by_pooled_node_id(void **context); // 0x4f5b50, EAX
 extern void object_type_override_call_0x70_release_node(void **context, network_client_globals *client); // 0x4f4680, EAX, stack
 extern void hud_receive_item_message(void **context); // 0x4ae200, EAX
-extern void game_engine_apply_player_join_message(void **context); // 0x4778c0, EAX
-extern void game_engine_apply_player_spawn_loadout_message(void **context); // 0x477c70, EAX
+
+
 extern void unit_dispatch_seat_exit_message(void **context); // 0x56c400, EAX
-extern uint8_t game_engine_apply_player_interaction_message(void **context); // 0x478f10, EAX
+
 extern void player_effect_mark_damage_direction_dispatch(void **context); // 0x456ad0, EAX
 extern void unit_apply_network_control_update(void **context); // 0x566c90, EAX
 extern uint8_t game_engine_apply_kill_streak_message(void **context); // 0x479b40, EAX
@@ -41,7 +42,7 @@ extern void game_engine_dispatch_end_game_notification(void **context); // 0x467
 extern void game_engine_apply_partial_round_reset_message(void **context); // 0x468320, EAX
 extern void game_engine_handle_kill_feed_network_event(void **context); // 0x4609d0, EAX
 extern void game_engine_handle_sound_status_event(void **context); // 0x46bca0, EAX
-extern void game_engine_client_apply_team_assignment(void **context); // 0x470a10, EAX
+
 extern void unit_scripting_set_or_drop_weapon(void **context); // 0x56ddb0, EAX
 extern void unit_spawn_with_starting_weapons(void **context); // 0x572110, EAX (the vehicle creation receiver)
 extern void unit_network_create_update_apply(void **context); // 0x55b110, EAX (the biped creation receiver)

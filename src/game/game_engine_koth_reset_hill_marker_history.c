@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern const real_vector3d *global_white_color; // 0x00686b04, a POINTER (-> 0x65513c {1,1,1})
 extern king_hill_marker_history king_hill_markers; // 0x0087a9a0

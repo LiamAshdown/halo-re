@@ -23,6 +23,7 @@
 #include "units.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -35,9 +36,7 @@ extern int32_t king_alt_player_score[];       // 0x006b118c, this batch
 extern int32_t king_alt_score_target;         // 0x006b1148, this batch
 
 extern void unit_reset_gauge_if_flagged(void); // 0x4633a0, UNSURE exact identity
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
-extern void game_engine_koth_alt_scorer_tick(uint32_t player_index); // 0x46c230, this batch
-extern void game_engine_koth_update_occupant_table(uint32_t index); // 0x46c320, this batch
+
 
 uint32_t game_engine_koth_dispatch_player_scoring(uint32_t player_index)
 {

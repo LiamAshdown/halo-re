@@ -14,6 +14,7 @@
 #include "cache.h"
 #include "game.h"
 #include "scenario.h"
+#include "fn_game.h"
 
 extern uint8_t map_download_in_progress;   // 0x006ac470
 extern game_main_globals *main_game_globals; // 0x006b0b80

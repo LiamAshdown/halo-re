@@ -24,6 +24,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;      // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -35,7 +36,7 @@ extern void player_kill_streak_begin(int32_t slot, uint32_t player_handle); // t
     // blam-cc: EAX -> player_handle, stack -> slot
 extern void player_kill_streak_continue(int32_t slot, uint32_t player_handle); // this batch, 0x479de0;
     // blam-cc: EAX -> player_handle, stack -> slot
-extern void player_notify_kill_streak_update(int32_t slot, int16_t amount, uint32_t player_handle); // this batch,
+
     // 0x479aa0; blam-cc: ECX -> player_handle, stack -> slot, amount
 
 // blam-cc: EBX -> player_handle, stack -> slot, amount

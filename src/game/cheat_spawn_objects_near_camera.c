@@ -24,8 +24,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
-extern uint32_t cheat_get_target_object_index(void); // this batch, 0x45a7a0
+
 extern int16_t network_game_mode;   // 0x00719720
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void *object_type_definitions[12]; // 0x0069bfdc, an ARRAY of the 12 object type definitions (was a pointer variable)

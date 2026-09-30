@@ -18,6 +18,7 @@
 #include "game.h"
 #include "networking.h"
 #include "main.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern main_globals main_globals_data;  // 0x00719700
@@ -27,7 +28,7 @@ extern void main_menu_return_and_reset(void); // 0x4c8a60, this module
 extern void game_scenario_session_begin(network_scenario_load_request *request); // 0x4c95f0, this module
 extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0x45aea0, foreign (game module)
     // blam-cc: EAX -> path, BL -> apply_state
-extern void game_stop_current_map(void);   // 0x45b370, foreign (game module)
+
 
 // Starts loading the currently selected map (scenario_path) as a new single-player game
 // session, unless film playback was requested (in which case it switches to that connection

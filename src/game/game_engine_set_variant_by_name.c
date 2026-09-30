@@ -19,11 +19,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_variant game_engine_active_variant; // 0x0087ab20 (NOT 0x006f1c88, which is the live copy)
 extern uint8_t *network_server;             // 0x0071c2d4
 
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
+
     // 0x4622d0, this module; blam-cc: ECX -> name, stack -> out. A NULL `out` only tests
     // whether the name is recognized.
 extern void network_game_broadcast_player_set_changed(void *session); // UNSURE module, propagates a variant change over the network

@@ -14,11 +14,12 @@
 #include "tags.h"
 #include "math.h"
 #include "cache.h"
+#include "fn_game.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global; // 0x00719cd0, types/math.h
 
-extern int32_t random_advance_draws(TagReflexive *reflexive); // 0x45f6e0, EAX reflexive: the sum of the element weights
+
 extern int32_t __ftol(void); // 0x6391b4, MSVC runtime; UNSURE: real argument is on the x87 stack
 
 // REWRITTEN from objdump 0x45f720..0x45f7b0: total = the weight sum (16 bits used); a draw r = ((seed >> 16) * total)

@@ -38,6 +38,7 @@
 #include "units.h"
 #include "items.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern int16_t network_game_mode;               // 0x00719720
@@ -65,16 +66,10 @@ extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slo
 extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0
 extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index); // 0x56dcd0
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);          // 0x56dec0
-extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
-    datum_index subject, char broadcast); // 0x460a30
+
 extern void object_delete(datum_index object_index);                       // 0x4f5bd0
-extern void game_engine_ctf_respawn_team_flag(int32_t team, real_point3d *forwarded_position,
-    uint16_t forwarded_name_index);                                        // 0x468430, this batch
-extern void game_engine_ctf_notify_both_teams(int32_t team); // 0x468460, blam-cc: EAX team
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
-extern void game_engine_broadcast_kill_feed_to_team(int32_t message_type, int32_t team, uint8_t broadcast); // 0x460ba0, blam-cc: ESI message_type, BL broadcast, stack team
-extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index);          // 0x468840, this batch
-extern datum_index game_engine_find_player_holding_object(datum_index target_object);    // 0x468b50, this batch
+
+
 extern uint8_t item_get_effective_position(datum_index object_index, real_point3d *out_position); // 0x4bd740
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position,
     float height_offset, datum_index player_filter, int16_t team_filter); // 0x462260

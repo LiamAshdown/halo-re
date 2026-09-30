@@ -38,6 +38,7 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t game_engine_teams_enabled_flag;       // 0x006f1cbc
@@ -54,10 +55,10 @@ extern uint8_t message_delta_decode_compound_field(void *event, void *out_values
     // EAX -> event, ECX -> out_values (canonical form; here out_values is the 2-byte pair)
 extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670; blam-cc: EAX -> event
     // (canonical form, per game_engine_handle_kill_feed_network_event.c)
-extern uint8_t game_engine_team_close_game_check(int32_t side, int32_t filter_value); // this batch, 0x470790
+
 extern uint8_t game_engine_team_is_leading(int32_t filter_value); // this batch, 0x470720
-extern uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, int8_t key); // this batch, 0x4705f0
-extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired); // this batch, 0x470630
+
+
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size

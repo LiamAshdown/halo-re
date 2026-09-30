@@ -28,6 +28,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern Globals *global_globals; // 0x00746fa0

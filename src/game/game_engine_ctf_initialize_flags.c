@@ -16,6 +16,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Scenario *global_scenario;    // 0x00746f8c
 extern ctf_globals ctf_globals_live; // 0x006b1290
@@ -25,7 +26,7 @@ extern game_variant game_engine_variant;    // 0x006f1c88 (ctf_option_7c aliased
 extern int32_t ctf_neutral_flag_id;         // 0x006b1314
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f1888
 
-extern void game_engine_ctf_assign_flag_ids(void); // 0x46d800, this batch
+
 extern int32_t game_engine_ctf_pick_random_flag(int32_t exclude_id); // 0x46dfe0, this batch
 extern int16_t hud_waypoint_arrow_find(void); // 0x4af070, icon-name lookup
 

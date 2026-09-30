@@ -19,11 +19,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // win32_find_dataa is types/game.h's (the Win32 WIN32_FIND_DATAA layout, 0x140 bytes).
 
 extern char *user_save_path_default; // 0x00721f28
-extern char *user_save_path_lookup(uint32_t user_id); // this batch, 0x5516a0
+
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, EAX dst, EDI capacity, EBX source
 
 // blam-cc: EAX -> find_data, ECX -> handle

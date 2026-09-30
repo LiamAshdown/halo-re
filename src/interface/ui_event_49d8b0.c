@@ -24,6 +24,7 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern uint8_t variant_carousel_slots[0x1d4]; // 0x00879d60 (variant_carousel_slot[3])
@@ -37,7 +38,7 @@ extern int32_t ui_list_current; // 0x00692c04
 extern uint8_t ui_list_has_default; // 0x007192f8
 extern uint8_t saved_game_last_mp_variant_read(uint8_t *out_data); // 0x53d3f0
 extern int32_t saved_game_find_by_name(char *name, int16_t type); // 0x53d4a0
-extern void game_engine_apply_current_custom_variant(void); // 0x463b90
+
 extern uint8_t saved_game_get_variant(int32_t handle, void *out); // 0x53bee0
 extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob, uint32_t data_size, uint8_t is_default); // 0x4a7ba0, blam-cc: EAX group_index, CL is_default
 

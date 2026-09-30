@@ -8,6 +8,7 @@
 // blam-cc: ECX ticks, stack -> count, dest
 
 #include "tags.h"
+#include "fn_game.h"
 #include <stdio.h>
 
 void game_time_format_minutes_seconds_ascii(uint32_t ticks, uint32_t count, char *dest)

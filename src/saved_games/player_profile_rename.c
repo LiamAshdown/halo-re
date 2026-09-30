@@ -29,14 +29,14 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_game.h"
 
 extern char savegames_directory[0x100]; // 0x00721549
 
 extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry); // 0x53e0e0, FUN_0053e0e0 (src/game)
 extern uint8_t savegame_index_write_slot(int32_t slot_index, saved_game_index_entry *entry); // 0x53e1f0, FUN_0053e1f0 (src/game): writes the entry back
-extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
-    uint32_t out_path_size); // 0x551710, blam-cc: EAX save_game_name (src/game/XCreateSaveGame.c: validity_token)
-extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path); // 0x5519a0, blam-cc: EAX save_game_name, ECX root_path
+
+
 extern uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir); // 0x53cb70, this module
 
 // blam-cc: saved-game handle in EAX; new_name as the one stack argument

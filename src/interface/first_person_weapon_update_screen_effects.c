@@ -29,6 +29,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern int16_t current_local_player_index; // 0x007c3108
@@ -46,8 +47,7 @@ extern float cinematic_screen_effect_get_script_value(uint16_t source);         
 extern void rasterizer_screen_effect_render(weapon_screen_effect_parameters *parameters); // 0x52d8a0
 extern void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_parameters *parameters); // 0x52e2d0; blam-cc: EAX -> parameters
 extern void hud_update_player(void);                      // 0x4a99f0
-extern void game_engine_post_rasterize_post_game(void);   // 0x45d700
-extern void hud_update_teammate_nameplate_fade(void);                            // 0x45f220, UNSURE
+
 
 static float clamp_unit(float value)
 {

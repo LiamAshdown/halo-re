@@ -21,6 +21,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "main.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern uint8_t chat_dialog_open;      // 0x006b3858, UNSURE name
@@ -42,7 +43,7 @@ extern uint8_t chat_gui_active;                               // 0x00721eec
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern uint16_t *text_string_list_get_string(void); // 0x5578c0, UNSURE signature, called with no visible arguments
-extern uint8_t game_engine_get_teams_enabled(void); // 0x462bf0, UNSURE signature
+
 extern void input_keyboard_set_capture_mode(void); // 0x48b650, UNSURE signature, not in this module's range
 extern datum_index player_get_vehicle(datum_index player_index); // 0x4ab170, blam-cc: ECX player_index; the vehicle of the player unit or -1
 extern int32_t chat_default_team_channel(void); // 0x4ab1e0

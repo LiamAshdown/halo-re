@@ -30,6 +30,7 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern void *hud_globals_tag_data;                      // 0x0071941c, UNSURE owning module
@@ -63,16 +64,15 @@ extern wchar_t missing_string_text[];          // 0x00671fac, L"<missing string>
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
-extern wchar_t *game_engine_get_default_multiplayer_string(int16_t string_index); // 0x45ce90, this batch
-extern int32_t game_engine_get_scoreboard_place(datum_index player, int32_t mode,
-    uint8_t invert_low_stat); // 0x45d440, this module; blam-cc: EDI -> player, EAX -> mode,
+
+
     // stack -> invert_low_stat. CORRECTED (phase 4 review): Ghidra shows no arguments at all
     // at the four call sites below, but objdump 0x45def0 / 0x45df9f / 0x45e03b / 0x45e0d7 sets
     // EAX to 1, 2, 3 and 4 respectively (the score / kills / assists / deaths column) and
     // pushes 0 for invert_low_stat, with EDI = the player handle.
 extern int32_t select_players_to_display(int32_t mode, int32_t max_count,
     scoreboard_entry *out); // 0x45d4a0, this batch; mode in EAX, max_count in EBX
-extern void hud_draw_scoreboard_row_text(int16_t row, wchar_t *text, int16_t column); // 0x45d670, this batch
+
 extern char game_engine_is_tracked_object_winner(void); // 0x463730, not in this batch; UNSURE exact meaning
 extern void ui_draw_screen_quad(uint32_t unknown_0, int32_t unknown_1, int32_t unknown_2); // 0x498b20
 extern void ui_widget_draw_formatted_prompt_string(void *prompt, int32_t unknown); // 0x49ade0

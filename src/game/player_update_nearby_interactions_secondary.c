@@ -14,18 +14,18 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
 
 extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
     real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); // 0x4f6fe0
-extern void player_check_vehicle_interaction(uint32_t player_index, uint32_t candidate_object); // this batch, 0x478600
-extern void player_check_vehicle_boarding_interaction_lightweight(uint32_t player_index, uint32_t candidate_object); // 0x478c40, this
+
+
     // module. CORRECTED by review: the call site at 0x4785b5 is "push ecx ; push edi ; call",
     // the same two arguments its two siblings get.
-extern void player_check_assassination_opportunity(uint32_t player_index,
-    uint32_t candidate_object); // 0x478770, this module; same correction (0x4785be).
+
 
 // blam-cc: EDI -> player_index
 // As player_update_nearby_interactions_primary, but routes object_type 2/3 candidates to the

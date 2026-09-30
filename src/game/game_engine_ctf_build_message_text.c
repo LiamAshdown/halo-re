@@ -14,6 +14,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern data_array *player_data; // 0x0087a480
@@ -23,8 +24,8 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index); // 0x5578c0, blam-cc: ECX list, EDX index
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, blam-cc: EDX count
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX handle, ESI array
-extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode); // 0x463480
-extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank); // 0x4633f0
+
+
 extern int32_t ctf_flag_auto_return_ticks; // 0x006b0eb0
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t count, wchar_t *dest); // 0x466530, blam-cc: ECX ticks
 

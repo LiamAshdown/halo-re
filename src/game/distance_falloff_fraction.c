@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_game.h"
 
 // Returns 1.0 while `value` is at or below half of `max_range`, 0.0 once it reaches or exceeds
 // `max_range`, and linearly interpolates between those two bounds in between. Used to turn a

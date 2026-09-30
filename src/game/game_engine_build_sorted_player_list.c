@@ -34,6 +34,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern data_array *player_data;                      // 0x0087a480
@@ -42,10 +43,8 @@ extern game_engine_definition *current_game_engine;  // 0x006f1d20
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
 extern void qsort(void *base, uint32_t count, uint32_t size,
     uint32_t (*compare)(const void *, const void *)); // CRT
-extern uint32_t scoreboard_entry_compare_by_unknown_04(const scoreboard_entry *a,
-    const scoreboard_entry *b); // 0x45cbc0, this batch
-extern int32_t scoreboard_entry_compare(const scoreboard_entry *a,
-    const scoreboard_entry *b); // 0x45cbe0, this batch
+
+
 extern uint32_t game_engine_build_scoreboard_sort_key(uint32_t player_index, int32_t score); // 0x45cc30, this batch
 
 // Collects up to 16 active players into `out_entries`, fills each entry's sort fields

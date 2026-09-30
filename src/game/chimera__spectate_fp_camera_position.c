@@ -35,6 +35,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 // camera_basis_out now lives in types/game.h (folded there by the phase-4 review; this file
 // and game_engine_update_local_player_look.c are its two users).

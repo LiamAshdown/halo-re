@@ -15,9 +15,10 @@
 #include "game.h"
 #include "ai.h"
 #include "cutscene.h"
+#include "fn_game.h"
 
 extern void sound_set_music_gain(float gain); // 0x548680
-extern void game_engine_cleanup_stray_projectiles(void); // 0x467f70, this build's tail call target
+
 
 extern float sound_music_gain;                      // 0x007252a8
 extern float cinematic_saved_music_gain;             // 0x00686b60, -1.0 when nothing is saved

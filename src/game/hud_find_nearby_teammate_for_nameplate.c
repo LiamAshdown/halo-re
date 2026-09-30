@@ -16,6 +16,7 @@
 #include "math.h"
 #include "game.h"
 #include "objects.h"
+#include "fn_game.h"
 
 extern data_array *player_data;                          // 0x0087a480
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
@@ -23,15 +24,14 @@ extern data_array *object_data;                        // 0x008603b0
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80, ECX unit, EDI out
-extern void game_engine_compute_local_player_look_vector(real_vector3d *out_forward,
-    int16_t local_player_index); // 0x471f40, EAX out, CX local player
+
 extern int32_t object_collect_local_player_relevant_objects(real_point3d *point, uint8_t (*filter)(uint32_t, void *),
     void *filter_context, int32_t max_count, datum_index *out); // 0x4fa1a0, EDX point, stack
 extern uint32_t camera_observer_target_direction(real_point3d *candidate_point, real_vector3d *facing,
     real_point3d *reference_position, datum_index object, datum_index exclude_object,
     real_vector3d *out_direction, real *out_distance, real *out_angle); // 0x459cc0, EAX, ECX, ESI, stack
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
-extern uint8_t hud_nameplate_candidate_filter(uint32_t object_index, void *player_handle); // 0x45e2e0
+
 
 // Finds the teammate biped the player is aiming at (within the 0.1308 aim cone and 20 world units) to show its
 // nameplate, preferring the player's cached nameplate target while its weight is positive. Returns the target's

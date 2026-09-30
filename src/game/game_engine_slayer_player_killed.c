@@ -15,6 +15,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern data_array *player_data; // 0x0087a480
@@ -24,8 +25,7 @@ extern int32_t slayer_team_score[16]; // 0x006b13d8
 extern int32_t slayer_player_score[16]; // 0x006b1418
 extern int32_t slayer_unknown_0087a4a0[16]; // 0x0087a4a0, UNSURE
 extern int32_t slayer_unknown_0087a4e0[16]; // 0x0087a4e0, UNSURE
-extern void game_engine_animate_hill_pulse_icons(datum_index fading_player, datum_index growing_player); // 0x46f450, blam-cc: EAX fading, ECX growing
-extern void game_engine_player_select_random_target(datum_index player_or_all); // 0x46f1a0
+
 
 // 0x46f540 (EAX player, EDX delta): unless a client, adds delta to the player's team score and its own score.
 static void game_engine_slayer_add_score(datum_index player_index, int32_t delta)

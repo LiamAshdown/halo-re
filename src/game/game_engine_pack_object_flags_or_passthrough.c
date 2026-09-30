@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int32_t game_engine_unknown_aa00; // 0x0087aa00
 extern game_variant game_engine_variant; // 0x006f1c88 (flags aliased 0x006f1cc0)

@@ -33,6 +33,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
@@ -46,7 +47,7 @@ extern int16_t camera_observer_generate_target_candidates(observer_target_cone *
     int16_t start_cluster, real_point3d *observer_position, real_vector3d *facing,
     datum_index exclude_object, int16_t team, int16_t capacity,
     observer_target_candidate *out); // this batch, 0x459f70; cone travels in EDI
-extern int32_t camera_observer_target_compare(const observer_target_candidate *a, const observer_target_candidate *b); // this batch, 0x45a4a0
+
 extern char camera_observer_target_is_valid(datum_index exclude_object,
     real_point3d *observer_position, real_point3d *target_position,
     datum_index target_object); // this batch, 0x459dd0

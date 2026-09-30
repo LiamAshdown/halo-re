@@ -29,6 +29,7 @@
 #include "game.h"
 #include <string.h>
 #include "networking.h"
+#include "fn_game.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
@@ -65,7 +66,7 @@ extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memo
     // below: Ghidra elides both register arguments there.
 extern void player_update_history_free_all(void *queue); // 0x4e6f20
 extern void unit_dispatch_scripted_event_9(uint8_t flag); // 0x56c370, units module, not in this batch
-extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point); // 0x4757b0
+
     // this batch, 0x4757b0
 
 // UNSURE, dead code: see header. Best-effort transcription of a "reattach unit to new parent"

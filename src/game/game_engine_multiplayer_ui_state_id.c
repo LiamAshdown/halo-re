@@ -15,6 +15,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_game.h"
 
 extern uint8_t *network_server; // 0x0071c2d4
 extern uint8_t *network_client;  // 0x0071c2d8

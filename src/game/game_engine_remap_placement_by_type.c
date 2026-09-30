@@ -18,12 +18,11 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern tag_instance *tag_instances;                 // 0x0087bc14
 
-extern int32_t game_engine_resolve_netgame_flag_role(uint32_t handle); // 0x462df0, this batch
-extern uint32_t game_engine_resolve_multiplayer_placement(uint32_t handle); // 0x462c30, this batch
 
 // blam-cc: EAX -> handle
 uint32_t game_engine_remap_placement_by_type(uint32_t handle)

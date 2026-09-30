@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern data_array *player_data;               // 0x0087a480, "players"

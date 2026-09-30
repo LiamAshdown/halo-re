@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern uint32_t user_save_path_keys[k_maximum_user_save_paths]; // 0x00722758
 extern char user_save_paths[k_maximum_user_save_paths][k_user_save_path_slot_stride]; // 0x00721f30

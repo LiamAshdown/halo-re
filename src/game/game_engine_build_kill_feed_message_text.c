@@ -31,6 +31,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -42,7 +43,7 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
     // 0x466530, this module; blam-cc: ECX -> ticks, stack -> (unused, dest)
 extern char input_get_last_used_binding(void *out_140_bytes); // 0x48bde0, not in this batch

@@ -21,6 +21,7 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern int32_t ui_list_current; // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
@@ -37,7 +38,7 @@ extern uint8_t game_variant_saved_default_valid; // 0x00714e78
 extern int16_t network_game_mode; // 0x00719720
 extern uint32_t game_engine_ensure_variant_history_has_entry(void); // 0x463b20
 extern void widget_close_all(void); // 0x498650
-extern void game_engine_begin_end_game_sequence(void); // 0x45fd90
+
 
 static int32_t list_item_id(int16_t index)
 {

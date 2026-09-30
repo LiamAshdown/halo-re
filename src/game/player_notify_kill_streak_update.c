@@ -20,6 +20,7 @@
 #include "objects.h" // hash_table
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 

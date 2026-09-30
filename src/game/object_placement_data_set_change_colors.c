@@ -28,6 +28,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 // Writes the same RGB triple into all four of `placement`'s change-color slots, so the object
 // player_respawn is about to create is tinted entirely in that player's colour.

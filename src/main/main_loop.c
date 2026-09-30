@@ -52,6 +52,7 @@
 #include <stdint.h> // uintptr_t
 #include "units.h"
 #include "cutscene.h"
+#include "fn_game.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -106,7 +107,7 @@ extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c3
 extern void console_initialize(void);                                       // 0x4c62d0 (Ghidra splits it at 0x4c62f0 / 0x4c6340)
 extern uint32_t network_bandwidth_graph_reset(void);                        // 0x4d7980, foreign (networking)
 extern void ui_chat_window_reset_position(void);                            // 0x4aa6b0, foreign (interface)
-extern void game_initialize(void);                                          // 0x45a9c0, foreign (game)
+
 extern void map_list_add_entry(char *path, int32_t map_id);                 // 0x4950c0, foreign (interface)
     // blam-cc: EAX -> path, stack -> map_id
 extern void network_banlist_load(void);                                     // 0x4e3160, foreign (networking)
@@ -119,19 +120,19 @@ extern uint32_t game_frame_rate_average_update(void);                       // t
 extern void main_switch_structure_bsp_and_notify(void);                     // this module, 0x4c9b60
 extern void game_state_perform_revert(void);                                // 0x538200, foreign (saved_games)
 extern void campaign_level_advance(void);                                   // this module, 0x4c9bd0
-extern uint8_t game_engine_attach_players_to_new_bsp(void);                 // 0x473e90, foreign (game)
+
 extern uint8_t game_state_queue_write(uint8_t is_checkpoint);               // 0x538700, returns in AL
 extern void hud_display_checkpoint_message(uint8_t is_begin);               // 0x4aa310, foreign (interface)
     // blam-cc: DL -> is_begin
 extern void main_level_transition_update(void);                             // this module, 0x4c9770
 extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index);  // 0x53eeb0, foreign (game)
     // blam-cc: SI -> structure_bsp_index
-extern void game_stop_current_map(void);                                    // 0x45b370, foreign (game)
+
 extern void input_reset_state_and_axis_configs(void);                       // 0x490aa0, foreign (input)
-extern void game_start_new_map(void);                                             // 0x45b050, foreign (game)
+
 extern void main_ensure_local_players(void);                                // this module, 0x4c8800
-extern void game_engine_init_tick_record_for_mode(void);                                             // 0x470ae0, foreign (game)
-extern void game_engine_reset_all_players(void);                                             // 0x45b8b0, foreign (game)
+
+
 extern uint8_t game_state_write_profile_file(int32_t size, char *name, const void *buffer); // 0x5393d0
     // blam-cc: EDI -> size, stack -> name, buffer
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // this module, 0x4c67c0
@@ -170,19 +171,19 @@ extern uint8_t console_process_queued_input(void);                          // 0
 extern void console_message_expire_old(void);                               // 0x4966e0, foreign (interface)
 extern void console_update_display(void);                                   // 0x496d40, foreign (interface)
 extern uint8_t console_process_key_events(void);                            // this module, 0x4c65c0
-extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder); // 0x470b30
+
 extern void game_engine_update_local_player_control(int16_t local_player_index, float delta_time,
     int32_t ticks_this_frame);                                              // 0x471ae0, foreign (game)
 extern uint8_t chat_poll_hotkeys(void);                                     // 0x4aaa90, foreign (interface)
 extern char update_server_send_update(int32_t ticks, uint8_t frame_time_overflow); // 0x4ddfb0, foreign (networking)
-extern void game_engine_advance_simulation_ticks(float dt);                 // 0x470bf0, foreign (game)
+
 extern void *data_iterator_next(data_iterator *iterator);                   // 0x4d05d0, blam-cc: EDI -> iterator
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
     const char *format, ...);                                               // 0x4e5ea0, blam-cc: EAX, ECX
 extern void camera_update(float dt);                                        // 0x445640, foreign (camera)
 extern uint8_t camera_is_local_player_default_first_person(void);           // 0x4455f0, foreign (camera)
 extern void observer_update(float dt, uint8_t add_bob);                     // 0x447880, foreign (camera)
-extern void game_engine_update_end_game_sequence(float delta_time);         // 0x45fdf0, foreign (game)
+
 extern void main_save_map_private(void);                                    // this module, 0x4c9a70
 extern void timedemo_benchmark_update(void);                                // this module, 0x4c6f30
 extern void render_frame_all_views(float time_since_tick, float time_since_frame); // this module, 0x4c9260

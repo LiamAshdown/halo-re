@@ -27,17 +27,17 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_game.h"
 
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 extern network_mutex_record *savegame_index_mutex; // 0x00721440
 extern file_reference_record savegame_index_file; // 0x00721330
 
 extern int32_t savegame_index_get_slot_count(void); // 0x53e420, FUN_0053e420 (src/game): entry count
-extern uint8_t savegame_index_file_exists(void); // 0x53e060, FUN_0053e060 (src/game): opens savegame_index_file for reading
+
 extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size); // 0x555a20, this module
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
-extern uint32_t savegame_slot_handle_pack(uint32_t slot_index, uint32_t type_nibble, uint8_t flag_bit_30,
-    uint8_t flag_bit_31); // 0x53e630, FUN_0053e630 (src/game); blam-cc: EAX slot, ECX type, DL bit 30, stack byte bit 31
+
 
 // blam-cc: plain stack arguments (name, type)
 // Under both module mutexes, opens the save-game index file and scans every entry for one whose

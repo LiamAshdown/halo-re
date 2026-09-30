@@ -42,6 +42,7 @@
 #include "objects.h"
 #include "networking.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern data_array *player_data; // 0x0087a480
 extern void *object_network_id_table; // 0x00687130, table pointer at +0x28, UNSURE name
@@ -58,7 +59,7 @@ extern int32_t player_update_queue_offset_from_head(player *target_player, int32
     // blam-cc: EDI -> target_player, EDX -> update_id; this module, 0x4e6aa0
 extern uint8_t circular_queue_push(circular_queue *queue, void *source);
     // blam-cc: EBX -> queue, stack -> source; 0x47a1a0
-extern int32_t circular_queue_count(circular_queue *queue); // blam-cc: EDX -> queue; 0x47a230
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void unit_propagate_position_delta_to_children(const real_point3d *position, datum_index object_index);
     // blam-cc: EAX -> position, ECX -> object_index; foreign, 0x570cb0

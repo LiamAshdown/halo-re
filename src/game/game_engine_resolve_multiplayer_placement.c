@@ -23,6 +23,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Globals *global_globals;     // 0x00746fa0

@@ -21,6 +21,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Scenario *global_scenario;      // 0x00746f8c
 extern random_seed random_seed_global;    // 0x00719cd0

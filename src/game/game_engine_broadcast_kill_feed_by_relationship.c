@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern data_array *player_data;                   // 0x0087a480
@@ -29,8 +30,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern team_pair_globals *team_pair_data;        // 0x006b0b84
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
-    datum_index subject, char broadcast); // 0x460a30, this batch
+
 
 // blam-cc: stack -> source_player, no_source_message, message_a, message_b, subject
 // For every in-use player, broadcasts a kill-feed message id to it: `no_source_message` when

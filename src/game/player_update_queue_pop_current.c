@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // blam-cc: EAX -> out, EBX -> queue
 // Peeks the queue's head record and decrements its references_remaining. If that reaches zero,

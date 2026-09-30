@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern player_profile player_profile_cache[16];    // 0x006b0b88
 extern int32_t player_profile_cache_count;          // 0x006f1d34

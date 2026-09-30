@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // blam-cc: ECX -> variant
 // Clamps and normalizes every numeric/boolean field of a game-variant options block in place,

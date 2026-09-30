@@ -22,6 +22,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern tag_instance *tag_instances;            // 0x0087bc14

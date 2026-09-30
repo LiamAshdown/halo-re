@@ -63,6 +63,7 @@
 #include <string.h>
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant;            // 0x006f1c88 (::teams at 0x006f1cbc)
@@ -86,18 +87,16 @@ extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0, blam-cc: ECX, DX
-extern wchar_t *game_engine_get_default_multiplayer_string(int16_t string_index); // 0x45ce90
+
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 extern wchar_t *string_format_wide_va(const wchar_t *format, ...); // 0x557930
 extern uint32_t color_real_to_argb_pack(float alpha, real_vector3d *color); // 0x44da60
 extern int32_t select_players_to_display(int32_t mode, int32_t max_count,
     scoreboard_entry *out); // 0x45d4a0; mode/max_count not recovered here, see header
 
-extern void game_engine_build_end_game_result_text(datum_index player, wchar_t *out); // 0x45cf30, not in this batch
-extern int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row,
-    wchar_t *text, uint8_t highlighted); // 0x4653f0, this module; blam-cc: EAX -> params,
+
     // EDX -> row, stack -> (text, highlighted). `row` 0 means "no background box".
-extern int32_t game_engine_multiplayer_ui_state_id(void); // 0x4655d0, this batch
+
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
     uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text); // 0x514ab0, EAX clip, ECX dest rect, stack (0, 0, text)
     // 0x514ab0; blam-cc: EAX -> unknown (0 here), ECX -> bounds (hud_text_bounds *),

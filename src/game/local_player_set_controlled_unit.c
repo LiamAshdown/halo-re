@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern data_array *object_data;                             // 0x008603b0
@@ -27,7 +28,7 @@ extern data_array *player_data;                              // 0x0087a480
 
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_handle, uint8_t attaching); // 0x569bf0, units module,
     // not in this batch; blam-cc: stack -> unit_handle, CL -> attaching
-extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index); // 0x470e80
+
 
 // Detaches the local player slot's currently controlled unit (clears its controlling_player and
 // notifies unit_refresh_targeting_flag_and_weapons), then attaches `new_unit` as this local player's controlled unit

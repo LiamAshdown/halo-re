@@ -11,13 +11,14 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern data_array *player_data; // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t network_game_mode; // 0x00719720
 extern uint32_t ctf_team_captured_flags_mask[]; // 0x006b12d4
-extern void game_engine_check_bucket_scores_and_end_round(void); // 0x46db70
+
 
 void game_engine_race_player_new_life(datum_index player)
 {

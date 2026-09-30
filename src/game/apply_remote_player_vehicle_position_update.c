@@ -25,6 +25,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 // UNSURE: every field of vehicle_update_body is inferred from this function's own use of it
 // (tick, sequence, 16-dword body), with this function's own view of the body's fields.
@@ -33,8 +34,7 @@
 extern int32_t vehicle_wait_tick_counter;   // 0x007102e0, UNSURE name
 extern uint16_t local_player_name_filter[]; // 0x0071c420, UNSURE name/purpose
 
-extern uint8_t vehicle_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick,
-    vehicle_update_record *out); // this module (a later batch), 0x47a2c0
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void player_update_history_log_printf_filtered(int32_t level, const char *format, ...); // 0x4e5f20
 extern void unit_propagate_position_delta_to_children(void); // 0x570cb0, units module, not in this batch; UNSURE args

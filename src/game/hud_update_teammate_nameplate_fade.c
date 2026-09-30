@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int16_t current_local_player_index;           // 0x007c3108, UNSURE owning module
 extern uint8_t local_player_hud_status_table[];       // 0x007124a4, stride 0x28, UNSURE meaning
@@ -29,8 +30,7 @@ extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value; // 0x0087aa10, renamed to not collide with the
                                                    // game_engine_state enum tag in types/game.h
 
-extern void hud_draw_teammate_nameplate(datum_index player_handle); // 0x45e520, this batch
-extern void game_engine_rasterize_in_game_score(datum_index subject_player, float opacity); // 0x465690, blam-cc: stack -> subject_player, opacity
+
 extern double pow(double base, double exponent); // C runtime (the retail copy is the CRT _CIpow at 0x6283c0)
 
 // Fades the teammate-nameplate HUD element in or out for the current local player, then, once

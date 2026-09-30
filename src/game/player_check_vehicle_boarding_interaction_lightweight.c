@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -30,10 +31,9 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI, EDI
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970
 extern int16_t unit_count_deployed_weapons(uint32_t unit_index); // 0x56d990, EAX
-extern uint8_t player_is_busy_with_interaction(uint32_t candidate_object, uint32_t unit_or_player_index); // 0x478820, ESI, EDI
+
 extern uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t unit_index); // 0x56dae0, EAX, ECX
-extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat,
-    uint32_t player_index, uint32_t candidate_object); // this batch, 0x478e00
+
 
 // Lightweight version of player_check_vehicle_boarding_interaction: no ammo-transfer or device
 // handling, only the weapon-pickup/swap/assassination decision.

@@ -23,6 +23,7 @@
 #include "units.h"
 #include "game.h"
 #include "items.h"
+#include "fn_game.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -37,16 +38,14 @@ extern void hud_add_item_message(int16_t local_player_index, int32_t source, uin
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index); // 0x56d080, stack, EBX
 extern void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object); // 0x479930
-extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat, uint32_t player_index,
-    uint32_t candidate_object); // 0x478e00, stack, EAX, EBX
+
 extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI, EDI
 extern int16_t unit_count_deployed_weapons(uint32_t unit_index); // 0x56d990, EAX
-extern uint8_t player_is_busy_with_interaction(uint32_t candidate_object, uint32_t unit_or_player_index); // 0x478820, ESI, EDI
+
 extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index); // 0x56d400, stack, EAX, ECX
 extern uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t unit_index); // 0x56dae0, EAX, ECX
 extern void unit_invalidate_local_player_zoom_level(datum_index unit); // 0x4726f0, EAX
-extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key,
-    uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key); // 0x478ff0, ECX, EDI, stack
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)

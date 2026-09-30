@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern data_array *update_client_queues; // 0x006f7ed0

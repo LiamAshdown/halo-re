@@ -28,9 +28,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_game.h"
 
 extern game_variant *game_engine_variant_defaults_classic_slayer(game_variant *out); // 0x463c40
-extern void game_variant_sanitize_options(game_variant *variant); // 0x466730; blam-cc: ECX -> variant
+
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
 extern uint32_t saved_game_create_slot(uint16_t type, uint16_t *name); // 0x53c660, this module
 extern uint8_t saved_game_open_file_by_handle(int32_t handle, file_reference_record *out_ref); // 0x53c9f0, this module

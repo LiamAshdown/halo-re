@@ -10,9 +10,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 
-
-extern void cheat_teleport_to_camera(void); // 0x45a630
 
 void hs_evaluate_cheat_teleport_to_camera(int16_t function_index, uint32_t thread_index, char first)
 {

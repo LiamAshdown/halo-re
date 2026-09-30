@@ -12,14 +12,14 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode;   // 0x00719720
 extern game_engine_state game_engine_state_value; // 0x0087aa10, renamed to avoid the enum tag
 extern uint8_t *network_server;       // 0x0071c2d4
 extern float game_engine_end_game_timer; // 0x0087aa08
 
-extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
 extern void widget_close_all(void); // 0x498650
 
 // While hosting (network_game_mode == 2) and the end-of-game sequence hasn't started yet, flags

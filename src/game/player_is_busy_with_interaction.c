@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern game_engine_definition *current_game_engine; // 0x006f1d20

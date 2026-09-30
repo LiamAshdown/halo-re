@@ -12,6 +12,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -22,7 +23,7 @@ extern int32_t ctf_touch_counts_network[3]; // 0x0087a9e0 (team 0 / team 1 touch
 extern uint8_t ctf_active_team; // 0x006b0eb8
 extern int32_t ctf_flag_auto_return_ticks; // 0x006b0eb0
 extern datum_index ctf_team_flag_object[2]; // 0x006b0e90
-extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index); // 0x468840, blam-cc: EAX object_index
+
 extern uint8_t ctf_team_return_credit_active[2]; // 0x006b0ea4
 extern int32_t ctf_team_return_credit_ticks[2]; // 0x006b0ea8
 extern int32_t ctf_notify_throttle_tick; // 0x006b0eb4

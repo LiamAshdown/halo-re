@@ -52,6 +52,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -81,7 +82,7 @@ extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, c
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
     // 0x4cd820, blam-cc: EAX -> v, ECX -> axis, stack -> (sin_angle, cos_angle); checked at 0x55c374 / 0x55d4bc
 
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
+
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
 extern game_main_globals *main_game_globals; // 0x006b0b80
 

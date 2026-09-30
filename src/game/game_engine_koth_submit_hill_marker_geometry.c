@@ -25,6 +25,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h; WORD stores (0x46b306, 0x46b6c2, 0x46b6d2)
 extern void **rasterizer_dynamic_index_buffer;                // 0x006e09e8, UNSURE identity (vtable object, +0x30 called)

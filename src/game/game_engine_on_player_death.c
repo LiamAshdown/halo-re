@@ -27,6 +27,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 #include <stdint.h>
 

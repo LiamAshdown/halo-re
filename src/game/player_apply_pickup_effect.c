@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;              // 0x0087a480
 extern data_array *object_data;           // 0x008603b0
@@ -34,11 +35,10 @@ extern uint8_t *main_game_globals;             // 0x006b0b80, UNSURE identity, s
 extern int16_t network_game_mode;            // 0x00719720
 
 extern uint8_t object_shield_recharge_start(uint32_t object_index); // 0x4edba0, UNSURE exact signature
-extern void player_trigger_shield_recharge_effect(uint32_t player_index); // this batch, 0x479710
+
 extern uint8_t object_restore_full_body_vitality(uint32_t object_index); // 0x4ed9d0, UNSURE exact signature
-extern void player_trigger_full_health_effect(uint32_t player_index); // this batch, 0x479890
-extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle); // this batch, 0x479ba0
-extern void player_trigger_kill_streak_effect(uint32_t player_index); // this batch, 0x4797d0
+
+
 extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index,
     int8_t machine_id); // 0x4ae350, EAX count, ECX source, DL kind, stack (local player, machine)
 extern void equipment_pickup_play_sound(uint32_t object_index); // 0x4bbb50, EAX object

@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern data_array *update_server_queues; // 0x006f1d90
@@ -39,7 +40,7 @@ extern data_array *player_data;          // 0x0087a480
 extern void data_delete_all(data_array *array);            // 0x4d0580, blam-cc: array in ESI
 extern void *data_iterator_next(data_iterator *iterator);  // 0x4d05d0, blam-cc: iterator in EDI
 extern void player_update_queue_create(player_update_queue *queue); // 0x479f40, this batch (0x472cc0 area), blam-cc: ESI -> queue
-extern void update_client_dispose(void); // 0x472fa0, this batch
+
 
 // Resets update_server_queues to empty, re-creates one update_server_queue slot per currently
 // live player (reusing that player's own datum index and salt) and constructs its embedded

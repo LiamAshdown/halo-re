@@ -21,6 +21,7 @@
 #include "units.h"
 #include "items.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern data_array *actor_data;         // 0x00880360
@@ -38,8 +39,7 @@ extern void unit_project_onto_aiming_axis(datum_index unit_index, real *out_spee
     uint8_t use_unit_aiming_vector, real_point3d *point, real_vector3d *axis); // 0x5658f0, stack, EAX, EBX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
-extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position,
-    real_vector3d *fallback_facing); // 0x4593b0, EAX, stack
+
 
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
     datum_index role); // 0x4f53a0, EAX, stack

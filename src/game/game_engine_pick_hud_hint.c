@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -28,10 +29,9 @@ extern game_time_globals *game_time;                 // 0x006f1d6c
 extern game_variant game_engine_variant;            // 0x006f1c88 (game_engine_index aliased
                                                      // 0x006f1cb8, ctf_value_80 aliased 0x006f1d08)
 
-extern uint8_t game_engine_player_is_eliminated(uint32_t player_index); // 0x460f30, this batch
+
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_index); // 0x460e40, this batch
-extern uint8_t game_engine_build_message_text(wchar_t *out, uint32_t buffer_size, datum_index subject,
-    uint32_t param_1, uint32_t message_type); // 0x460890, this batch
+
 extern uint8_t game_engine_build_kill_feed_message_text(wchar_t *out, uint32_t message_type,
     datum_index subject, size_t buffer_size); // 0x45e680
 

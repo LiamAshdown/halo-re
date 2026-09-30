@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern game_variant_history_entry *game_variant_history; // 0x00687b0c
@@ -29,7 +30,7 @@ extern uint32_t game_variant_history_capacity;            // 0x00687b14
 
 
 extern uint32_t game_engine_is_map_and_variant_valid(const char *map_path, const char *variant_name); // 0x463920, this batch
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
+
     // 0x4622d0, this module; blam-cc: ECX -> name, stack -> out. A NULL `out` only tests
     // whether the name is recognized.
 extern char *string_convert_unicode_to_ascii(uint32_t size); // 0x557950, not in this batch; UNSURE

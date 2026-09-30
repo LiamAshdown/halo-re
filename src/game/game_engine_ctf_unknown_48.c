@@ -17,15 +17,16 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode; // 0x00719720
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t game_engine_state_value; // 0x0087aa10
 extern float game_engine_end_game_timer; // 0x0087aa08
 extern void widget_close_all(void); // 0x498650
-extern void game_engine_send_end_game_notification(uint32_t reason); // 0x4671d0, blam-cc: EAX reason
+
 extern int32_t ctf_flag_capture_limit_006b0ea0; // 0x006b0ea0, UNSURE name: the captures that end the game
 extern uint8_t ctf_team_return_credit_active[2]; // 0x006b0ea4
 extern int32_t ctf_team_return_credit_ticks[2]; // 0x006b0ea8

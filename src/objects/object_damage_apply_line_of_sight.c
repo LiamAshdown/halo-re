@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "projectiles.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,7 +31,7 @@ extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir)
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 extern real random_real(void); // 0x4019f0
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
+
 extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880

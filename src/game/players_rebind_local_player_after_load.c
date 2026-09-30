@@ -18,6 +18,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern player_globals *local_player_globals;      // 0x0087a478
@@ -29,7 +30,7 @@ extern uint8_t *hud_weapon_state;     // 0x00719430
 extern uint8_t *hud_unit_meters;                  // 0x0071942c
 
 extern void game_set_local_player(datum_index player_handle, int16_t local_player_index); // 0x474d50, ECX, SI
-extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index); // 0x470e80, EDX, AX
+
 
 void players_rebind_local_player_after_load(void)
 {

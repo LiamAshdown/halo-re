@@ -21,6 +21,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern game_engine_state game_engine_state_value;    // 0x0087aa10

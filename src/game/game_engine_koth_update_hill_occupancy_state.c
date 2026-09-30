@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -32,7 +33,7 @@ extern uint8_t king_hill_single_occupant_flag;      // 0x006c0f3f, UNSURE identi
 extern king_globals king_hill_state_globals;        // 0x006b1050
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
 
 void game_engine_koth_update_hill_occupancy_state(void)
 {

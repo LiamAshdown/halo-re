@@ -16,11 +16,12 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Globals *global_globals; // 0x00746fa0
 
 extern int32_t strstr(const char *a, const char *b); // 0x625430, UNSURE: CRT strcmp-shaped
-extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count); // 0x45a800
+
 
 // Finds the "warthog" vehicle tag by name in the loaded tag-index table and spawns one near the
 // camera.

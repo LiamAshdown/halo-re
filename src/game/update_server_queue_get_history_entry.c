@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *update_server_queues;          // 0x006f1d90
 extern int32_t update_server_tick;                 // 0x006f1d8c

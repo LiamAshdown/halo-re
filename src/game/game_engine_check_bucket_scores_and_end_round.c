@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern data_array *player_data;   // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_value_80/score_limit aliased
@@ -57,7 +58,7 @@ extern void game_engine_player_profile_cache_sync_all(datum_index player_handle)
 extern void widget_close(void *widget); // 0x497c00
 extern void widget_pool_list_free_all(void); // 0x4994b0
 extern void sound_start_unspatialized(float volume); // 0x543dd0
-extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_index); // 0x46bde0, this batch
+
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size

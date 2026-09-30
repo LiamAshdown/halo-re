@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // position_update_record is types/game.h's (0x14, tick / sequence / position).
 
-extern uint8_t circular_queue_pop(circular_queue *queue, void **out_record); // this batch, 0x47a200
 
 // Peeks (without removing) the head of `queue`. If it matches `target_tick`, copies its x/y/z
 // into `out` and removes it, returning 1. If it is older than `target_tick` by more than its

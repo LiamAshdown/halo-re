@@ -37,6 +37,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Scenario *global_scenario;      // 0x00746f8c
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -44,12 +45,9 @@ extern random_seed random_seed_global;    // 0x00719cd0
 extern float k_random_scale_65536; // 0x00672b84, UNSURE exact bit pattern
 extern double sqrt_pow_exponent;       // 0x00672cf0 QWORD == 0.5
 
-extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count,
-    int32_t current_engine_index); // 0x45f7c0
-extern uint8_t game_engine_location_blocked_by_vehicle(real_point3d *point); // 0x461e60, this
+
     // module; blam-cc: EDX -> point
-extern real game_engine_rate_player_starting_location(ScenarioPlayerStartingLocation *location,
-    datum_index player_handle); // 0x461d90, this module; blam-cc: EAX -> location,
+
     // stack -> player_handle
 extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpow
 

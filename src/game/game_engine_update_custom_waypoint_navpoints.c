@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant;            // 0x006f1c88 (objective_indicator aliased 0x006f1cc4,
@@ -27,8 +28,7 @@ extern player_globals *local_player_globals;          // 0x0087a478
 extern data_array *player_data;                     // 0x0087a480
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f1888
 
-extern uint8_t custom_waypoint_matches_filter(int32_t candidate, custom_waypoint *slot,
-    int32_t reference_team); // 0x4620c0, this batch
+
 extern void unit_get_primary_eye_marker_position(void); // 0x568f50, not in this batch
 extern int16_t hud_waypoint_visibility(uint32_t unknown_0, uint32_t unknown_1); // 0x4af540, not in this batch;
     // UNSURE: also called here with just one argument

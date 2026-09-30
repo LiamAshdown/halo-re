@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // Orders candidates by weight_primary (descending), then weight_secondary (descending), then
 // distance (ascending), then angle (ascending), then object index (ascending).

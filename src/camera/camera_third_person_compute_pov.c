@@ -30,6 +30,7 @@
 #include "units.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_game.h"
 
 extern data_array *object_data;                             // 0x008603b0
 extern player_control_globals *player_control_globals_ptr;  // 0x006b145c
@@ -39,8 +40,7 @@ extern double fsin(double angle); // FSIN
 extern double sqrt(double x);     // FSQRT
 
 // blam-cc: ESI -> out, AX -> local_player_index
-extern void chimera__spectate_fp_camera_position(camera_basis_out *out,
-    int16_t local_player_index);
+
 
 // blam-cc: ECX -> properties; angle, out = stack
 extern void first_person_camera_track_offset(unit_camera_properties *properties, float angle,

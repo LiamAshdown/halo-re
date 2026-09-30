@@ -22,6 +22,7 @@
 #include "units.h"
 #include "game.h"
 #include "effects.h"
+#include "fn_game.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -46,7 +47,7 @@ extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t or
     real_point3d *out_position, float radius, char grid_mode, char skip_reposition, char scale_radius,
     uint32_t object_index_a, real_vector3d *reference_direction); // 0x55a500, stack, EDX
 extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override); // 0x4760b0, EAX, stack
-extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index); // 0x470d80, EAX, CX
+
 extern void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t local_players_only); // 0x4782a0
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,

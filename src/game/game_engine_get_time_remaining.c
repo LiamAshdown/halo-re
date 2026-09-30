@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_variant game_engine_variant; // 0x006f1c88 (::game_time_limit at 0x006f1d00, time limit)
 extern game_time_globals *game_time;      // 0x006f1d6c

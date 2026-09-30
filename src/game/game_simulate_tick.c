@@ -29,6 +29,7 @@
 #include "game.h"
 #include "fn_hs.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern uint8_t DAT_0087ab18;                 // 0x0087ab18, UNSURE: "simulation in progress" reentrancy flag
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
@@ -41,27 +42,19 @@ extern uint8_t unknown_00699f40[];           // 0x00699f40, TYPES-GAP: message q
 extern int32_t network_scenario_round_counter_b;             // 0x0071cc24, TYPES-GAP: message queue count
 extern uint8_t unknown_0071cc20[];           // 0x0071cc20, TYPES-GAP: message queue buffer
 
-extern void game_engine_flag_local_player_units(void);      // 0x45b590, this module
-extern void team_pair_overrides_tick(void);                  // 0x45bcf0, this module
-extern void game_engine_tick(void);                          // 0x45ff30, this module
-
 
 extern void recorded_animations_update(void);            // 0x44aa90, UNSURE module
 extern void effects_update_all(float seconds_per_tick);  // 0x450aa0, UNSURE module/role
 extern void player_effect_clear_dead_players(void);                    // UNSURE module
-extern void game_engine_players_update_server(void);                    // 0x4740a0, UNSURE module (host/offline path)
-extern void game_engine_players_update_client(void);                    // 0x474590, UNSURE module (client path)
-extern void main_switch_structure_bsp(void);       // 0x4749a0, UNSURE module
-extern void game_engine_server_update_player_positions(void);                    // UNSURE module
-extern void players_server_catchup_on_client_updates(void); // 0x4768c0
-extern void players_client_catchup_on_server_updates(void); // 0x476d40, UNSURE module
+
+
 extern void first_person_weapon_interface_tick(void);                    // UNSURE module (hs-related, guarded by
                                                    //   player_effect_reentry_count)
 extern void hud_update_dispatch(void);                    // UNSURE module
 extern void network_client_send_local_player_updates(void); // 0x4e77e0, UNSURE module
 extern void network_event_feed_flush(void *queue);             // UNSURE module (flushes a message queue)
 extern void objects_update(void);                  // 0x4f4e90, objects module
-extern void network_server_broadcast_object_type_changes(void); // 0x45b680, this module
+
 
 // The per-frame simulation driver: resets the AI update-stagger record, sets the FPU control
 // word, ticks team-pair overrides and local-player flags, advances the network/host update

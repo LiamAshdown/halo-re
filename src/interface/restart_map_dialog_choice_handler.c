@@ -18,13 +18,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode;              // 0x00719720
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 
 extern void game_engine_player_profile_cache_sync_all(int32_t unknown); // 0x466cb0, UNSURE args
-extern void game_engine_reset_round_objects(void); // 0x468260, UNSURE
-extern void game_engine_send_round_reset_message(void); // 0x4682c0, UNSURE
+
+
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50
 extern void widget_close_all(void); // 0x498650
 

@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value;   // 0x0087aa10
@@ -29,8 +30,7 @@ extern uint8_t network_host_handoff_requested;                    // UNSURE iden
 extern uint8_t unknown_007124a0;                    // UNSURE identity/owning module
 extern uint8_t chimera_loading_screen_cleanup_gate;                    // UNSURE identity/owning module
 
-extern void game_engine_end_game_sequence_stage3(void); // 0x467180, not in this batch
-extern void game_engine_send_end_game_notification(uint32_t reason); // blam-cc: EAX reason; // 0x4671d0, not in this batch
+
 extern char input_get_key_state(void); // 0x490b50, not in this batch
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
 extern void chat_close(void); // 0x4aa900

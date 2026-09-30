@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern void *global_sound_effect_object; // 0x00721f24, UNSURE identity, see header note
 

@@ -15,6 +15,7 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_game.h"
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern player_globals *local_player_globals;           // 0x0087a478
@@ -27,7 +28,7 @@ extern void first_person_camera_for_unit_and_vector(observer_command *command, V
 // blam-cc: AX -> local_player_index (0x446dbb mov ax,[edi] right before the call)
 // UNSURE name: the game module calls 0x471f90 game_engine_get_max_look_pitch, but this caller
 // stores its result as the command field of view and eases the fov channel when it changes.
-extern real game_engine_get_max_look_pitch(int16_t local_player_index); // 0x471f90, game module
+
 
 // blam-cc: stack -> (data, input, command)
 // The per-mode pov callback for first person: derives the local player's look direction from

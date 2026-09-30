@@ -24,6 +24,7 @@
 #include "camera.h"
 #include "fn_hs.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
@@ -72,13 +73,13 @@ extern uint8_t *object_globals_pointer; // TYPES-GAP
 extern void camera_initialize(void);                       // 0x445580
 extern void observer_new(observer *this);                    // 0x447740, blam-cc: EDX -> this
 extern observer observers[];                                 // 0x006ac65c, one per local player (0x29c each)
-extern void team_pair_table_init_defaults(void);               // this batch, 0x45bc80
+
 extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c2c0,
     // blam-cc: EBX -> variant (matches src/game/game_engine_load_from_variant.c)                // this batch, 0x45c2c0
-extern void game_engine_initialize_for_new_game(void);                              // this batch, 0x45c370
-extern void game_engine_reset_player_look_state(void);              // 0x470de0
+
+
 extern uint8_t update_server_new(void);                             // 0x472aa0
-extern void players_dispose(void);                                   // 0x473670
+
 
 extern void interface_local_player_state_reset(void);                                        // UNSURE module
 extern void data_delete_all(data_array *array); // blam-cc: ESI -> array (src/memory/data_delete_all.c)                                // 0x4d0580, memory module, UNSURE arg

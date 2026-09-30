@@ -20,15 +20,16 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
 extern game_engine_state game_engine_state_value;    // 0x0087aa10
 extern game_time_globals *game_time;                 // 0x006f1d6c
 
-extern uint8_t game_engine_player_is_eliminated(uint32_t player_index); // 0x460f30, this batch
+
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_index); // 0x460e40, this batch
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
 
 // blam-cc: EAX -> player_index
 uint8_t game_engine_player_ready_to_respawn(uint32_t player_index)

@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern uint8_t update_client_initialized;      // 0x006f7e98

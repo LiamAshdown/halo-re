@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 #include <stdint.h>
 

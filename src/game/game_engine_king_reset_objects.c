@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern int16_t network_game_mode; // 0x00719720
@@ -22,7 +23,7 @@ extern int32_t king_hill_move_ticks_006b1068; // 0x006b1068, UNSURE name
 extern int32_t king_hill_index_006b1058; // 0x006b1058, UNSURE name
 extern int32_t king_hill_state_globals; // 0x006b1050 (king_globals +0x00)
 extern int32_t king_hill_state_006b1054; // 0x006b1054 (king_globals +0x04)
-extern void game_engine_koth_build_hill_boundary(void); // 0x46a240
+
 
 void game_engine_king_reset_objects(void)
 {

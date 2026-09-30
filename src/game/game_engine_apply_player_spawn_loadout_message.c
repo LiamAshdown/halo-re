@@ -33,6 +33,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -46,13 +47,13 @@ extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680; UNSU
 extern data_array *player_data; // 0x0087a480
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
-extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index); // 0x470e80
+
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle,
     uint8_t reset_stats); // 0x473c50, already rewritten
-extern void game_engine_apply_player_grenade_counts(uint32_t player_index); // 0x4613c0
+
 extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index); // 0x56d400, stack mode, EAX weapon, ECX unit
 extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack vehicle, seat
-extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle); // this batch, 0x479ba0
+
 
 // Decodes an incoming spawn-loadout message and, once the target player and unit are both
 // resolved, applies it: stamps the unit's owner/team fields, resets its look state (or, for a

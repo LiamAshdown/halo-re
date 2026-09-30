@@ -14,6 +14,7 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern wchar_t empty_string; // 0x00660c34

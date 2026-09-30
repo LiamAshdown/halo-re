@@ -28,6 +28,7 @@
 #include "game.h"
 #include "networking.h"
 #include "main.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -43,9 +44,8 @@ extern void input_reset_state_and_axis_configs(void); // 0x490aa0, foreign (inpu
 extern void input_bind_capture_reset(void);            // 0x48b5f0, foreign (input module)
 extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0x45aea0, foreign (game module)
     // blam-cc: EAX -> path, BL -> apply_state
-extern void game_start_new_map(void); // 0x45b050, foreign (game module)
-extern void game_engine_reset_all_players(void); // 0x45b8b0, foreign (game module)
-extern void game_engine_init_tick_record_for_mode(void); // 0x470ae0, foreign (game module)
+
+
 extern void main_ensure_local_players(void);    // 0x4c8800, this module
 extern char scenario_load(char *scenario_path); // 0x53e6a0, foreign (game module)
     // blam-cc: EAX -> scenario_path (0x4c961d mov eax,ebp; the callee hands EAX to 0x442290)

@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h (slot -> device index, -1 none)
 

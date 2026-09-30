@@ -14,18 +14,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time;                // 0x006f1d6c
 extern int32_t game_engine_round_reset_tick;        // 0x0087aa20, UNSURE identity
 
-extern void game_engine_reset_all_unit_grenade_counts(void);       // 0x467de0
-extern void game_engine_reset_respawns_and_cleanup_bipeds(void);   // 0x467e60
-extern void game_engine_cleanup_stray_items(void);                 // 0x468010, this batch
-extern void game_engine_cleanup_stray_projectiles(void);           // 0x467f70
-extern void game_engine_update_netgame_equipment(char force_respawn); // 0x45f9f0
-extern void game_engine_reset_vehicles_or_race_cleanup(void);      // 0x4681a0, this batch
-extern void game_engine_reset_player_profile_stats(void);          // 0x468150, this batch
 
 // The engine's per-round reset: clears every unit's grenade counts, respawns/cleans up bipeds,
 // deletes stray items, deletes stray projectiles, runs the loaded gametype's own reset_objects

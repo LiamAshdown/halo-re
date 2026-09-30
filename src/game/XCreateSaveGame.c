@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI dest, EDI source, stack capacity
     // UNSURE: EAX -> out_name, stack -> max_length (guessed -- builds the checkpoint/save name)

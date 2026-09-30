@@ -10,9 +10,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 
-
-extern void cheat_all_weapons(void); // 0x45a530
 
 void hs_evaluate_cheat_all_weapons(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -21,6 +21,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *object_data; // 0x008603b0
 

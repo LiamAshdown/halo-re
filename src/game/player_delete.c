@@ -29,15 +29,16 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern data_array *player_data;              // 0x0087a480
 extern int16_t network_game_mode;            // 0x00719720
 extern network_server_globals *network_server;
 extern datum_index machine_to_player[16];    // 0x006b1460
 
-extern void game_engine_player_changed_object(uint32_t param); // 0x45c570, this module (already
+
     // rewritten, src/game/game_engine_player_changed_object.c)
-extern void network_queue_destroy(circular_queue *queue); // 0x47a090, this batch's neighbor,
+
     // blam-cc: ESI -> queue
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array,
     // EDX -> handle

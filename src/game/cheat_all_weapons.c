@@ -22,12 +22,13 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern Globals *global_globals; // 0x00746fa0
 
 extern datum_index tag_iterator_next(tag_iterator *iterator); // 0x4425d0, blam-cc: ESI ->
     // iterator (matches src/cache/tag_iterator_next.c)
-extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count); // this batch, 0x45a800
+
 
 // Spawns one of every weapon near the camera: the globals tag's own weapon_list when it has
 // entries, otherwise the first 16 'weap' tags in the tag index.

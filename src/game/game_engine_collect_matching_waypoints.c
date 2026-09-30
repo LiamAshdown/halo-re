@@ -19,13 +19,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant;            // 0x006f1c88 (objective_indicator aliased 0x006f1cc4)
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f1888
 
-extern uint8_t custom_waypoint_matches_filter(int32_t candidate, custom_waypoint *slot,
-    int32_t reference_team); // 0x4620c0, this batch
 
 // blam-cc: stack -> candidate, out_positions, out_slots, max_count
 int16_t game_engine_collect_matching_waypoints(int32_t candidate, float *out_positions,

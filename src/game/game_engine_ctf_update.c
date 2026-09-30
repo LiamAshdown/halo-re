@@ -17,6 +17,7 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -25,13 +26,12 @@ extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
 extern int32_t game_engine_state_value; // 0x0087aa10
 extern datum_index ctf_team_flag_object[2]; // 0x006b0e90
-extern uint8_t unit_has_must_be_readied_weapon(uint32_t player_index); // 0x463300, blam-cc: ECX player_index
+
 extern void unit_reset_gauge_if_flagged(uint32_t player_index); // 0x4633a0, blam-cc: EAX player_index
 extern uint32_t weapon_must_be_readied(datum_index item_index); // 0x4c2ea0, blam-cc: EAX item_index
-extern uint8_t game_engine_ctf_point_within_team_flag_radius(float radius, int32_t team, real_point3d *point); // 0x468990, blam-cc: EAX team, ECX point
+
 extern void game_engine_ctf_notify_flag_carried_throttled(int32_t target_player); // 0x4689e0, blam-cc: EDI target_player
-extern void game_engine_ctf_player_touch_flag(uint32_t player_index, int32_t team); // 0x468910, blam-cc: EAX team
-extern void game_engine_ctf_player_drop_flag(uint32_t player_index, datum_index flag_object_index); // 0x4688b0, blam-cc: EAX player_index
+
 
 void game_engine_ctf_update(datum_index player_index)
 {

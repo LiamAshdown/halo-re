@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 
 // blam-cc: ESI -> queue

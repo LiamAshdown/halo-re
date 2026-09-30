@@ -20,13 +20,14 @@
 #include "math.h"
 #include "game.h"
 #include "objects.h"
+#include "fn_game.h"
 
 extern network_id_table *machine_table;
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590, blam-cc: EAX -> event,
     // ECX -> out_values
 extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670, blam-cc: EAX -> event
-extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle); // this batch, 0x479ba0
+
 
 // blam-cc: EAX -> envelope
 // Decodes an incoming kill-streak-update message and applies it via player_add_kill_streak,

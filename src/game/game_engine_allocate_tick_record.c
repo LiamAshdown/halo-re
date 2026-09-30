@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern uint8_t *game_state_base;    // 0x006e2dc8 (saved_games)

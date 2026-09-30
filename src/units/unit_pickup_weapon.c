@@ -17,6 +17,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -33,9 +34,9 @@ extern void unit_drop_inventory_weapons_except_current(uint32_t unit_index);    
 extern int16_t unit_find_empty_weapon_slot(uint32_t unit_index);                                  // 0x56d660, UNSURE signature
 extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI unit, EDI weapon
 extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot, int16_t direction); // 0x56dba0, EAX unit
-extern uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, datum_index weapon_index);                                // 0x462000, UNSURE signature
+
 extern void item_set_holder(uint32_t item_index, datum_index holder_index); // 0x4bcfc0, ECX item, EDX holder
-extern void unit_set_local_player_weapon_index(datum_index unit, int16_t weapon_index); // 0x472100, EAX unit
+
 
 uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index)
     // blam-cc: EAX -> weapon_index, ECX -> unit_index, stack -> pickup_mode

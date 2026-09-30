@@ -28,6 +28,7 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern file_reference savegame_index_file; // 0x00721330
 

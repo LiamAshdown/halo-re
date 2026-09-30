@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern datum_index machine_to_player[16]; // 0x006b1460
 extern data_array *update_server_queues;   // 0x006f1d90

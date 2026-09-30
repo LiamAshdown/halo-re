@@ -36,6 +36,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_game.h"
 
 extern uint8_t savegame_index_dirty; // 0x00721447
 extern int16_t quit_confirm_error_string_index; // 0x00718fac, UNSURE name (interface error code slot)
@@ -47,8 +48,7 @@ extern char savegames_directory[0x100]; // 0x00721549
 extern void saved_game_list_rebuild_index(void); // 0x53d720, this module
 extern int32_t saved_game_check_storage_availability(void); // 0x53d120, this module
 extern int32_t savegame_index_get_slot_count(void); // 0x53e420, FUN_0053e420 (src/game)
-extern uint32_t savegame_slot_handle_pack(uint32_t slot_index, uint32_t type_nibble, uint8_t flag_bit_30,
-    uint8_t flag_bit_31); // 0x53e630, FUN_0053e630 (src/game); blam-cc: EAX slot, ECX type, DL bit 30, stack byte bit 31
+
 extern uint8_t savegame_index_append_slot(const saved_game_index_entry *entry, int32_t *out_slot); // 0x53e300, FUN_0053e300 (src/game); bool in AL
 extern void *game_state_open_persistent_storage(char *directory_path); // 0x5398e0, outside this batch
 extern file_reference_record *file_reference_init(file_reference_record *ref, const char *component, uint8_t is_file); // 0x5554c0, this module
@@ -57,10 +57,9 @@ extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); //
 extern uint8_t file_reference_close(file_reference_record *ref); // 0x555890, this module
 extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size); // 0x555a90, this module
 
-extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
-    uint32_t out_path_size); // 0x551710, blam-cc: EAX save_game_name (src/game/XCreateSaveGame.c: validity_token)
+
                               // and saved_game_allocate_new_slot.c for the other observed uses)
-extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path); // 0x5519a0, blam-cc: EAX save_game_name, ECX root_path
+
                                                                     // (see saved_game_delete_by_handle.c)
 extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size); // 0x4d02d0
 

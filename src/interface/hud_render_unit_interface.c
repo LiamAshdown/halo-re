@@ -40,6 +40,7 @@
 #include "objects.h"
 #include "interface.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances;            // 0x0087bc14
@@ -55,8 +56,8 @@ extern datum_index hud_team_background_bitmap; // 0x00692fc8, cached ui\shell\bi
 
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even)
 extern int32_t ui_real_to_int_truncate(float value); // 0x4ab590
-extern uint8_t game_engine_is_valid_team_player(uint32_t identifier); // 0x466b60
-extern uint8_t game_engine_scores_tracked_individually(void); // 0x4635e0, UNSURE name: here it gates the motion sensor
+
+
 extern float *game_engine_get_player_color(uint32_t player_index, float *out_rgb); // 0x463290, blam-cc: EAX player_index, ESI out_rgb
 extern TagID unit_get_hud_interface_tag_id(Unit *unit_tag, uint8_t use_second); // 0x560c70, blam-cc: EDX unit_tag, AL use_second
 extern TagID unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uint8_t use_second); // 0x560cb0, blam-cc: ECX unit_tag, AX seat_index

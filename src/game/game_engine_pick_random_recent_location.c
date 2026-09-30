@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern random_seed random_seed_global;      // 0x00719cd0
 extern int16_t game_engine_recent_location_count; // 0x006b106c, UNSURE exact identity

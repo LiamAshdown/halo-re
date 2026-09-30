@@ -15,12 +15,11 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int32_t multiplayer_sound_queue_count; // 0x006b1140
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds]; // 0x006b10f0
 
-extern void game_engine_play_multiplayer_sound(int32_t sound_index, datum_index recipient_player,
-    uint8_t broadcast); // 0x46bd00, this batch
 
 // Counts down the head queue entry's remaining_ticks; once it expires, shifts the rest of the
 // queue down by one slot, and if anything is left, starts playing the new head entry.

@@ -17,6 +17,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0, UNSURE identity (see game_types_notes.md)
 

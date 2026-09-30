@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern data_array *player_data;  // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
@@ -23,8 +24,6 @@ extern int32_t king_alt_player_score[]; // 0x006b118c, UNSURE exact size (indexe
 extern int32_t king_alt_team_score[16]; // 0x006b114c (indexed by player::team)
 extern int32_t king_alt_score_target;   // 0x006b1148
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
-extern void game_engine_begin_end_game_sequence(void); // 0x45fd90
 
 // blam-cc: EAX -> player_index
 // While hosting, increments the player's own and their team's alternate hill-score counters,

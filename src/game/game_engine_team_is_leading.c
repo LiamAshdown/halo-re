@@ -13,13 +13,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t game_engine_teams_enabled_flag;       // 0x006f1cbc
 
-extern void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t out_score[2],
-    int32_t filter_value); // this batch, 0x470690
 
 // Returns false if no multiplayer engine with teams is loaded. Otherwise gathers the two team
 // score/count totals; if the two sides' match counts differ, the side with more matches is

@@ -27,6 +27,7 @@
 #include "cache.h"
 #include "game.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern player_globals *local_player_globals;            // 0x0087a478
 extern data_array *player_data;                         // 0x0087a480
@@ -42,8 +43,7 @@ extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_ind
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
     float *pill_radius_out); // 0x55a2e0, EAX, ECX, stack, EBX
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
-extern void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t target_object,
-    void *local_offset); // 0x475270
+
 
 static void players_clear_bsp_cluster(void)
 {

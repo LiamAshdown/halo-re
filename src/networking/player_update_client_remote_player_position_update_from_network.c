@@ -37,6 +37,7 @@
 #include "game.h"
 #include "objects.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern data_array *player_data; // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
@@ -47,9 +48,8 @@ extern uint8_t is_remote_player_update_in_order(player *target_player, uint8_t c
 extern int32_t player_update_queue_offset_from_head(player *target_player, int32_t update_id);
     // blam-cc: EDI -> target_player, EDX -> update_id; this module, 0x4e6aa0.
     // Returns -1 when the action queue is empty, else (update_id - oldest_queued_id) mod 0x40.
-extern uint8_t position_update_queue_push(circular_queue *queue, real x, real y, real z,
-    int32_t tick, int32_t sequence); // blam-cc: EBX -> queue, stack -> the rest; 0x47a0c0
-extern int32_t circular_queue_count(circular_queue *queue); // blam-cc: EDX -> queue; 0x47a230
+
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern real vector3d_distance(const real_point3d *a, const real_point3d *b);
     // blam-cc: EAX -> a, ECX -> b; 0x4088b0

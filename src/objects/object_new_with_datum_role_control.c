@@ -49,6 +49,7 @@
 #include "effects.h"
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 // TagID {index;id} is bit-identical in memory to a datum_index (low 16 bits index, high 16
 // bits salt/identifier), so a TagID is reinterpreted in place wherever the object header wants
@@ -67,7 +68,7 @@ extern int16_t network_game_mode; // 0x00719720 (also used in this batch's
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, the 0x7ff8-byte network
     // broadcast scratch buffer; the size is the literal pushed at 0x4f58d9
 
-extern uint32_t game_engine_remap_placement_by_type(uint32_t handle); // 0x4630b0, EAX handle; returns it, or the remapped tag
+
 extern datum_index object_block_data_new(int32_t specific_index, data_array *array, int16_t size); // 0x4f7d50, EAX specific_index
 extern uint8_t object_block_data_grow(uint32_t object_index, int16_t field_offset, int16_t extra_size); // 0x4f7e50, EAX object
 extern void object_type_definitions_notify_0x24(uint32_t object_index, uint32_t argument); // EBX object_index // 0x4f3e30, this batch

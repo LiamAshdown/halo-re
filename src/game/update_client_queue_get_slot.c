@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode;              // 0x00719720
 extern int32_t update_client_write_cursor;      // 0x006887b0

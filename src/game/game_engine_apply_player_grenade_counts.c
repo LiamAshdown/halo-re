@@ -26,6 +26,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
@@ -35,9 +36,6 @@ extern game_variant game_engine_variant;            // 0x006f1c88 (flags aliased
                                                      // starting_equipment aliased 0x006f1ce4)
 extern data_array *object_data;                  // 0x008603b0
 
-extern void game_engine_spawn_player_starting_loadout(uint32_t starting_equipment_index,
-    int32_t *frag_count, int32_t *plasma_count); // 0x4611f0, this batch
-extern uint32_t game_engine_pack_object_flags_or_passthrough(uint32_t input); // 0x462bd0, this batch
 
 // blam-cc: EAX -> player_index
 void game_engine_apply_player_grenade_counts(uint32_t player_index)

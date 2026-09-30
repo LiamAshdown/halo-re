@@ -21,11 +21,11 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_time_globals *game_time;         // 0x006f1d6c
 extern int32_t ctf_notify_throttle_tick;     // 0x006b0eb4
 
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 
 // Queues the "flag carried" announcer sound at most once every 4 seconds (120 ticks).
 // blam-cc: EDI -> target_player

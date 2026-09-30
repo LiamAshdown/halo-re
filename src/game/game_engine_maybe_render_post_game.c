@@ -10,11 +10,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value;    // 0x0087aa10
 
-extern void game_engine_post_rasterize_post_game(void); // 0x45d700
+
 extern void widget_draw_split_screen_region(void); // 0x498330, not in this batch
 
 void game_engine_maybe_render_post_game(void)

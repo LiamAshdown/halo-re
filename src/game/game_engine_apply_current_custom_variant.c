@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <string.h>
 
 extern uint32_t game_variant_history_count;    // 0x00687b10

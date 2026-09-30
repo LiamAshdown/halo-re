@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -24,8 +25,7 @@ extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670
     // (canonical form, per game_engine_handle_kill_feed_network_event.c)
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590; blam-cc:
     // EAX -> event, ECX -> out_values (canonical form; here out_values is the 2-byte pair)
-extern uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, int8_t key); // this batch, 0x4705f0
-extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired); // this batch, 0x470630
+
 
 // blam-cc: EAX -> envelope
 // While a multiplayer engine with teams is loaded, and only while this machine is the network

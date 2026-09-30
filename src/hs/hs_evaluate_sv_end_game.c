@@ -13,12 +13,13 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_game.h"
 
 
 extern void chimera__console_out(void *color, char *format, ...); // 0x496b50, blam-cc: EAX color
 extern int16_t network_game_mode; // 0x00719720
 extern uint8_t g_006f1d25; // 0x006f1d25
-extern void game_engine_begin_end_game_sequence(void); // 0x45fd90
+
 extern void *global_white_argb; // 0x006851fc
 
 void hs_evaluate_sv_end_game(int16_t function_index, uint32_t thread_index, char first)

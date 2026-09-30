@@ -25,12 +25,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern datum_index machine_to_player[16]; // 0x006b1460
 extern data_array *player_data; // 0x0087a480, stride 0x200 (game module)
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memory module
-extern void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source,
-    uint32_t extra); // 0x473390, blam-cc: EAX -> machine_index, EDX -> tick_count, stack -> source, extra
+
 
 // Applies one position/orientation delta record from `packet` onto `object`, but only if the
 // packet's tick is not older than the last one recorded in `state`, its delta-item count is 0

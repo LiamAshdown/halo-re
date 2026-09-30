@@ -18,6 +18,7 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -31,9 +32,7 @@ extern int32_t game_engine_state_value; // 0x0087aa10
 extern uint8_t custom_waypoints[]; // 0x006f1888 (0x20 bytes each)
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, const char *icon_name,
     float height_offset, datum_index player_filter, int16_t team_filter); // 0x462260, blam-cc: EAX owner, CX slot, EBX position, EDI icon
-extern void game_engine_player_select_random_target(datum_index player_or_all); // 0x46f1a0
-extern uint8_t game_engine_player_respawn_priority_gate(uint32_t player_index); // 0x463100, blam-cc: EDX player_index
-extern void game_engine_begin_end_game_sequence(void); // 0x45fd90
+
 
 void game_engine_slayer_update(datum_index player_index)
 {

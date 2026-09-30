@@ -36,6 +36,7 @@
 #include <stdint.h>
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_game.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
@@ -58,8 +59,8 @@ extern void player_effect_send_network_update(datum_index player_handle, const r
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd,
     const real_vector3d *direction, float random_blend, float damage_amount); // 0x456cf0, EAX, stack
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
-extern float game_engine_compute_time_scale(int32_t param_a, int32_t param_b); // 0x461550, EDX, ESI
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification); // 0x46fe10, stack, CX
+
+
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
 extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
 extern int32_t object_get_controlling_player_index(datum_index object_index); // 0x4ee2e0, EAX

@@ -30,6 +30,7 @@
 #include "game.h"
 #include "units.h"
 #include "networking.h"
+#include "fn_game.h"
 
 extern int16_t network_game_mode;   // 0x00719720
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0

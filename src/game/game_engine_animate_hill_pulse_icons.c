@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern uint8_t hill_pulse_fade_done;  // 0x006f1d05, UNSURE exact meaning ("done fading down" latch)
 extern uint8_t hill_pulse_grow_done;   // 0x006f1d04, UNSURE exact meaning ("done growing up" latch)

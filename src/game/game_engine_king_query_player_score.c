@@ -11,13 +11,14 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 
 extern data_array *player_data; // 0x0087a480
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX handle, ESI array
 extern uint32_t players_get_active_by_index(int32_t index); // 0x45c6f0, blam-cc: EAX
 extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590, GameSpy query-report string writer (networking phase)
-extern void game_time_format_minutes_seconds_ascii(uint32_t ticks, uint32_t count, char *dest); // 0x466600, blam-cc: ECX ticks
+
 
 uint8_t game_engine_king_query_player_score(int32_t key, int32_t index, void *buffer)
 {

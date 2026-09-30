@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 extern game_engine_state game_engine_state_value;      // 0x0087aa10
 extern uint8_t game_engine_dedicated_idle;             // 0x0087aa18

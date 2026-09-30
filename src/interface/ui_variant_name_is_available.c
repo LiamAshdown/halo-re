@@ -16,9 +16,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_game.h"
 
 extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI out, EDI wide source
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out); // 0x4622d0, blam-cc: ECX name
+
 
 // blam-cc: name -> EDI
 // Returns 1 when no saved game variant is called name.

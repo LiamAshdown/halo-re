@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -38,8 +39,7 @@ extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, da
     // 0x4d03d0, blam-cc: EAX -> requested_handle, EDX -> array
 extern void player_update_queue_create(player_update_queue *queue); // 0x479f40, this batch's
     // neighbor, blam-cc: ESI -> queue (matches src/game/update_server_dispose.c)
-extern void position_update_queue_create(circular_queue *queue); // 0x47a020, blam-cc: ESI -> queue
-extern void vehicle_update_queue_create(circular_queue *queue);  // 0x47a250, blam-cc: ESI -> queue
+
 
 // CORRECTED (phase 4 review, against objdump): Ghidra shows this as void; EAX carries the new
 // player's datum_index (or k_datum_index_none) on every return path, matching both callers.

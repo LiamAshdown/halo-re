@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
 // position_update_record is types/game.h's (0x14, tick / sequence / position).
 

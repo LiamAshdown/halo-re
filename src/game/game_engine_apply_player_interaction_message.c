@@ -17,6 +17,7 @@
 #include "math.h"
 #include "game.h"
 #include "objects.h"
+#include "fn_game.h"
 
 extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -26,7 +27,7 @@ extern void message_delta_decode_compound_field_staged(void *event); // 0x4ec670
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680; UNSURE array argument
 extern uint8_t player_execute_pending_interaction(uint32_t handle); // this batch, 0x4793a0
-extern uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon); // 0x479240, EAX player, stack weapon
+
 
 // blam-cc: EAX -> envelope
 // Decodes an incoming interaction message, resolves the target player (join_key) and its

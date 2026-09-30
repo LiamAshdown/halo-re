@@ -29,6 +29,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_game.h"
 #include <stdint.h>
 
 extern int16_t network_game_mode;               // 0x00719720

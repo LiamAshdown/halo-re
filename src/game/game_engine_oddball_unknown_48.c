@@ -18,6 +18,7 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *player_data; // 0x0087a480
@@ -26,10 +27,10 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc
 extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
+
 extern uint32_t king_hill_occupant_table[16]; // 0x006b120c
 extern int32_t oddball_ball_timers_006b11cc[16]; // 0x006b11cc
-extern void game_engine_koth_relocate_hill_marker(int32_t ball_index); // 0x46bfe0, blam-cc: ESI ball_index
+
 extern uint8_t custom_waypoints[]; // 0x006f1888 (0x20 bytes each)
 extern int16_t hud_waypoint_arrow_find(const char *name); // 0x4af070, blam-cc: EDI name
 

@@ -20,8 +20,8 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_game.h"
 
-extern void game_engine_broadcast_kill_feed_to_team(int32_t message_type, int32_t team, uint8_t broadcast); // 0x460ba0, blam-cc: ESI message_type, BL broadcast, stack team
 
 // FIXED 2026-09-28 from objdump 0x468460..0x46849f: only EAX (the team) is an input; the calls load ESI = 0x2f / 0x2e
 //   and BL = 1 themselves.

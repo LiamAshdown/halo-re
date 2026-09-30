@@ -26,6 +26,7 @@
 #include "cache.h"
 #include "game.h"
 #include "units.h"
+#include "fn_game.h"
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern Globals *global_globals;                              // 0x00746fa0
@@ -34,8 +35,7 @@ extern tag_instance *tag_instances;                            // 0x0087bc14
 
 // camera_basis_out now lives in types/game.h (folded there by the phase-4 review).
 
-extern void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_player_index); // 0x472020, ESI, AX
-extern void value_step_toward_target(float *value, float target, float max_step); // 0x470d40, ECX, stack
+
 extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b); // 0x4cd4f0, ECX, EDX
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
                                                 void *marker, uint32_t flags); // 0x4f6080

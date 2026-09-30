@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+#include "fn_game.h"
 
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode; // 0x00719720
@@ -40,8 +41,7 @@ extern int32_t game_engine_ctf_reset_ticks; // 0x0087aa24
 extern uint8_t network_single_flag_force_reset_value; // 0x0071c306
 extern int game_engine_find_valid_starting_locations(real_point3d *origin, float max_horizontal_dist,
     float max_height_delta, int16_t team, int16_t type, int32_t max_results, int32_t *results); // 0x461080, blam-cc: EBX origin
-extern datum_index game_engine_ctf_create_flag_object(real_point3d *position, uint16_t name_index); // 0x468360, blam-cc: EAX position
-extern void game_engine_broadcast_kill_feed_to_team(int32_t message_type, int32_t team, uint8_t broadcast); // 0x460ba0, blam-cc: ESI message_type, BL broadcast
+
 
 static float distance_squared(const real_point3d *a, const real_point3d *b)
 {
