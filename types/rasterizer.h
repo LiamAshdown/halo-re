@@ -57,6 +57,8 @@
 // Functions in this address range that are misnamed, misattributed or not real functions are
 // listed at the end of out/phase4/rasterizer_types_notes.md.
 
+#include <stddef.h>   /* NULL for the inline helpers below; the mingw-only check32 gate does not get it via windows.h */
+
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;

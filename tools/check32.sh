@@ -11,7 +11,12 @@ one() {
   if [ $? -ne 0 ]; then echo "FAIL $1"; echo "$out" | grep error | head -3; fi
 }
 export -f one; export WIN_INCLUDE
-if [ $# -eq 0 ]; then set -- src/*/*.c; fi
+if [ $# -eq 0 ]; then
+  # files that include d3d.h need the DirectX SDK (MSVC headers), which mingw-w64 lacks: checked by the MSVC build only
+  mapfile -t files < <(grep -L '"d3d.h"' src/*/*.c)
+  set -- "${files[@]}"
+  echo "check32: skipping $(grep -l '"d3d.h"' src/*/*.c | wc -l) file(s) that need the DirectX SDK"
+fi
 out=$(printf '%s\n' "$@" | xargs -P "$(nproc)" -I{} bash -c 'one {}')
 [ -n "$out" ] && echo "$out"
 fails=$(printf '%s' "$out" | grep -c '^FAIL')
