@@ -16,42 +16,22 @@
 //   squad") and ai_actor_unlink_from_unassigned_list (0x436990, phase-4 "removes an actor from the global list of
 //   squad-less actors").
 //
-// Given the size, the number of never-independently-confirmed ScenarioSquad/tag sub-fields
-// this reaches into, and several register-argument gaps at its callees (documented per call
-// site below), this rewrite is kept deliberately close to the Ghidra decompilation rather
-// than fully re-derived, the same tradeoff src/ai/actor_refresh_combat_context.c documents
-// for a function of comparable scope. Field accesses with an established types/ai.h name are
-// used; everything else is left as raw offset arithmetic with an inline comment, exactly as
-// Ghidra shows it.
+// VERIFIED against disassembly 0x4394a0..0x439d6d (2026-09-30), after these FIXED items: a single target is now the chosen
+// object/position, the successor actor is read before the actor is unlinked, encounter_add_actor receives the squad the actor
+// moves TO (EDX = best_squad), the occupied-distance seed is -FLT_MAX, and the squared-distance terms use the x87 order.
+// Field accesses with an established types/ai.h name are used; everything else is raw offset arithmetic with an inline comment.
 //
 // register convention: stack -> encounter_index (0xffffffff means "the global unassigned
 //   actor list" in the two places this function branches on it, matching the same sentinel
 //   in encounter_propagate_platoon_state_to_actors.c).
 //   // blam-cc: stack -> encounter_index
 //
-// UNSURE, broadly (see also the inline comments below):
-//  - encounter.unknown_68 is declared int16_t in types/ai.h but is read here as a float (the
-//    "leash distance" the redistribution allows before it stops); another same-offset type
-//    disagreement between functions, not resolved in the header.
-//  - The three floats used as a scratch `real_point3d` (local_1dc/local_1d8/local_1d4 in the
-//    original) are ALSO used, only in the sVar8==1 branch, as the first three fields of a
-//    stack-allocated `data_iterator` passed to data_iterator_next() over player_data --
-//    Ghidra shows this as three independent float writes because next_index is a 16-bit
-//    field embedded in a stack slot Ghidra typed as float. The lifetimes do not overlap
-//    (the iterator is only read by data_iterator_next before the position is ever used), so
-//    this rewrite models them as two separate C variables rather than one aliased slot.
-//  - The function-pointer table at 0x655278, indexed by actor.mode * 0x38, is one field
-//    (offset +0x24, inside the 28-byte "unknown_1c" tail types/ai.h leaves unnamed) short of
-//    lining up with actor_mode_definitions at 0x655254 (stride 0x38 there too) -- almost
-//    certainly the same table, an as-yet-unnamed fourth per-mode callback, but declared here
-//    as its own opaque table rather than asserting that without independent confirmation.
-//  - object_try_and_get(3), squad_remove_actor(0), and the two actor-iterator calls are
-//    called here with fewer/different arguments than a canonical signature would need
-//    (register-only handoffs Ghidra did not attribute); each is declared locally with
-//    exactly the arity this call site shows, per this module's established convention for
-//    that situation (see e.g. encounter_squad_spawn_actor.c).
-//  - The `auStackY_11c0[998]` stack array Ghidra shows in the original is never read or
-//    written anywhere in the decompiled body and is omitted here as dead/unused stack space.
+// Notes (confirmed by the disassembly):
+//  - encounter.unknown_68 is read as a float (the follow / leash distance).
+//  - The three floats used as a scratch real_point3d in the original are also the first fields of the stack data_iterator over
+//    player_data (target mode 1); the lifetimes do not overlap.
+//  - The function-pointer table at 0x655278, indexed by actor.mode * 0x38, is a per-mode callback table (called with the actor).
+//  - The `auStackY_11c0[998]` array is dead stack space (the prologue only reserves it).
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original; also the missing index = -1 store (0x43959a)
 
 #include "tags.h"
@@ -228,7 +208,10 @@ have_targets:
     }
 
     if (target_count == 1) {
-        object_get_position(&target_positions[0], targets[0]);
+        // FIXED (0x439785..0x439792): with a single target it IS the chosen object and its position the chosen position (the
+        //   draft left both unset)
+        chosen_object = targets[0];
+        object_get_position(&chosen_position, targets[0]);
     } else {
         int16_t t;
         datum_index next_actor;
@@ -263,7 +246,7 @@ have_targets:
                     float dx = member->body_position.x - target_positions[t].x;
                     float dy = member->body_position.y - target_positions[t].y;
                     float dz = member->body_position.z - target_positions[t].z;
-                    float d2 = dx * dx + dy * dy + dz * dz;
+                    float d2 = dz * dz + dy * dy + dx * dx; // x87 term order (0x43988d..0x43989b)
                     if (best_distance_to_target[t] <= d2) {
                         d2 = best_distance_to_target[t];
                     }
@@ -311,7 +294,7 @@ have_targets:
                 float dx = chosen_position.x - firing_positions[fp].position.x;
                 float dy = chosen_position.y - firing_positions[fp].position.y;
                 float dz = chosen_position.z - firing_positions[fp].position.z;
-                float d2 = dx * dx + dy * dy + dz * dz;
+                float d2 = dx * dx + dz * dz + dy * dy; // x87 term order (0x439a2e..0x439a3c)
                 if (group_distance[group] <= d2) {
                     d2 = group_distance[group];
                 }
@@ -320,7 +303,7 @@ have_targets:
         }
 
         best_squad_distance = 3.4028235e+38f;
-        best_occupied_distance = -1.0f; // matches the original's (float)0xff7fffff bit pattern used as "smallest so far, start below everything"
+        best_occupied_distance = -3.4028235e+38f; // (float)0xff7fffff (0x439a6b)
         best_squad = -1;
         best_occupied_squad = -1;
 
@@ -374,6 +357,10 @@ have_targets:
                     while (have_target && (next_actor != (datum_index)0xffffffff)) {
                         actor *member = (actor *)((uint8_t *)actor_data->data + (next_actor & 0xffff) * sizeof(actor));
                         int16_t member_squad = member->squad_index;
+                        datum_index current_actor = next_actor;
+
+                        // FIXED (0x439c17..0x439c1d): the successor is read BEFORE the actor is unlinked / re-linked below.
+                        next_actor = member->next_in_encounter;
 
                         if (((squad_considered_mask[member_squad >> 5] & (1u << (member_squad & 0x1f))) != 0) &&
                             (member_squad != best_squad)) {
@@ -386,22 +373,22 @@ have_targets:
                                 void (*dispatch)(datum_index) = *(void (**)(datum_index))
                                     ((uint8_t *)&ai_actor_mode_dispatch_table + member->mode * 0x38);
                                 if (dispatch != 0) {
-                                    dispatch(next_actor);
+                                    dispatch(current_actor);
                                 }
                             }
 
                             if (member->encounterless == 0) {
                                 if (member->encounter_index != (datum_index)0xffffffff) {
-                                    encounter_remove_actor(next_actor, 0);
+                                    encounter_remove_actor(current_actor, 0);
                                 }
                             } else {
-                                ai_actor_unlink_from_unassigned_list(next_actor); // FIXED: EDI = the actor (0x439ca7)
+                                ai_actor_unlink_from_unassigned_list(current_actor); // FIXED: EDI = the actor (0x439ca7)
                             }
 
                             if (encounter_index == (datum_index)0xffffffff) {
                                 if (ai_globals_ptr->actors_valid != 0) {
                                     member->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
-                                    ai_globals_ptr->first_encounterless_actor = next_actor;
+                                    ai_globals_ptr->first_encounterless_actor = current_actor;
                                     member->encounterless = 1;
                                     *(uint16_t *)&member->activation_delay = -(uint16_t)(member->active != 0) & 0x5a;
                                     // FIXED (0x439d05..0x439d31): the firing position and a type 3 / 4 movement are
@@ -415,16 +402,14 @@ have_targets:
                                         void (*dispatch)(datum_index) = *(void (**)(datum_index))
                                             ((uint8_t *)&ai_actor_mode_dispatch_table + member->mode * 0x38);
                                         if (dispatch != 0) {
-                                            dispatch(next_actor);
+                                            dispatch(current_actor);
                                         }
                                     }
                                 }
                             } else {
-                                encounter_add_actor(member->squad_index, next_actor, encounter_index, 1);
+                                encounter_add_actor(best_squad, current_actor, encounter_index, 1); // FIXED (0x439d5d): EDX = best_squad, the squad the actor is moved TO
                             }
                         }
-
-                        next_actor = member->next_in_encounter;
                     }
                 }
             }
