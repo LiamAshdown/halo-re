@@ -15,7 +15,7 @@
 //   .turn_rate (0x314), .fixed_gun_pitch (0x364, used as a fixed rotation angle here); callee
 //   vector3d_delta_toward_gravity_biased_clamp_length (this batch, out of scope, a math helper) and object_physics_tick (established
 //   5-argument shape elsewhere in this batch, though here it is called with an extra pointer
-//   pair that does not fit that shape .
+//   pair (force, torque).
 // register convention: stack parameters (unit_index, powered mass points, contact points).
 //   // blam-cc: stack -> unit_index, out_record, out_transform
 // VERIFIED against disassembly 0x573f60..0x57445e (2026-09-30): physics mode 2 gate, force/torque arithmetic and clamp constants

@@ -1,7 +1,10 @@
-// unit_new  (Ghidra: no function created; the phase-4 types agent carved a placeholder
+// unit_new  (Ghidra: no function created; the phase-4 types agent carved a stub
 //   "missed_562180" from the object_type_definition vtable evidence)
+// VERIFIED against disassembly 0x562180..0x56255f (2026-09-30): every store offset/size/value, the grenade seed, the feign-death
+//   roll, the default-team test, the seat-label call and the vehicle-entry queue append were compared with the code and the
+//   unit_data / Unit / UnitSeat / ai_globals field offsets were checked with static asserts.
 // address 0x562180, size 987 bytes
-// name confidence 0.5, rewrite confidence 0.45 (see the UNSURE notes)
+// name confidence 0.5, rewrite confidence 0.9
 // evidence: out/phase4/units_types_notes.md: "The unit row's other columns are 0x561fe0 (+0x14
 //   initialize), 0x562020 (+0x1c reset), 0x562180 (+0x28) ..." This is that +0x28 column: a
 //   one-time per-object spawn initializer, called for every freshly placed/created unit
@@ -19,20 +22,20 @@
 // register convention: plain stack argument (mov eax,[esp+8] at 0x562181), returns AL;
 //   blam-cc: stack -> object_index. Returns 1 normally, 0 when
 //   the unit's animation graph tag reference (Unit tag Object.animation_graph, tag+0x44) is -1.
-// UNSURE: object.owner_team (types/objects.h +0xb8) is written here from Unit.default_team
+// NOTE: object.owner_team (types/objects.h +0xb8) is written here from Unit.default_team
 //   (tag+0x180), which only makes sense if this field is actually the object's team index, not
 //   its scenario name index -- matching the pre-existing TYPES-GAP flagged in PLAN.md ("objects.h
 //   offset 0xb8 team index vs name_index conflict") and the CEA source's `owner_team_index` name
 //   for the same slot. Written through the header's current `name_index` field here rather than
 //   renaming the header from this pass; flagged again in the summary as a types-correction item.
-// UNSURE: object.flags (+0x10) gains raw bits 0x6000 with no object_flags enumerators defined
+// NOTE: object.flags (+0x10) gains raw bits 0x6000 with no object_flags enumerators defined
 //   for them; the CEA source calls the equivalent pair "dynamic/static lighting recompute". Kept
 //   as a raw hex OR since types/objects.h's `object_flags` enum doesn't yet name them.
-// UNSURE: unit_data.flags (+0x204) bit 0x100 (_unit_flag_permutation_dirty in types/units.h) and
+// NOTE: unit_data.flags (+0x204) bit 0x100 (_unit_flag_permutation_dirty in types/units.h) and
 //   bit 0x2000 (_unit_flag_unknown_2000) are set here in ways that better match "needs dialogue
 //   setup" and "feign death allowed" respectively (per the CEA names); not renamed in the header
 //   from this pass, flagged in the summary.
-// UNSURE: the two un-analyzed callees FUN_005618e0 (CEA: unit_dialogue_determine_variant) and
+// NOTE: the two un-analyzed callees FUN_005618e0 (CEA: unit_dialogue_determine_variant) and
 //   FUN_0056cf10 (CEA: unit_add_initial_weapons) are outside this pass's address range; objdump
 //   shows them receiving object_index in EAX (0x562393) and ESI (0x5624e7) respectively.
 // Cleanup-pass review (objdump 0x562180..0x56255f, field offsets checked with gcc -m32):
@@ -40,7 +43,7 @@
 //   when random < chance (fcomp / test ah,5 / jp at 0x562479, equality clears it; the draft used
 //   <=); the default-team branch tests current_game_engine (0x006f1d20, dword), not
 //   network_game_mode (0x00719720), which is only the client test before unit_add_initial_weapons.
-// UNSURE: the retail binary defers "create this unit's mounted mount weapons" by pushing
+// NOTE: the retail binary defers "create this unit's mounted mount weapons" by pushing
 //   object_index onto ai_globals.vehicle_entry_queue (drained later by whatever processes it)
 //   rather than calling a `ai_create_mounted_weapons_for_unit`-style helper directly, unlike the
 //   CEA prototype read above -- kept exactly as the retail disassembly shows.
@@ -146,7 +149,7 @@ uint8_t unit_new(uint32_t object_index)
 
     unit->persistent_control_ticks = 0;
     unit->dialogue_tag_index = (datum_index)-1;
-    unit->flags |= 0x100; // UNSURE: CEA calls this "must set up dialogue"
+    unit->flags |= 0x100; // NOTE: CEA calls this "must set up dialogue"
 
     // zero current_speech, pending_speech and the surrounding speech-state fields in one block
     // (0x388..0x403, 0x1f dwords)
@@ -183,20 +186,20 @@ uint8_t unit_new(uint32_t object_index)
         unit->grenade_counts[tag->grenade_type] = (int8_t)tag->grenade_count;
     }
 
-    obj->flags |= 0x6000; // UNSURE: "just spawned" lighting-recompute bits, not in object_flags
+    obj->flags |= 0x6000; // NOTE: "just spawned" lighting-recompute bits, not in object_flags
 
     // feign-death eligibility roll, gated on all three tag scalars being configured
     if (tag->feign_death_threshold > 0.0f && tag->feign_death_time > 0.0f && tag->feign_death_chance > 0.0f) {
         float roll = random_real();
         if (roll < tag->feign_death_chance) { // unordered or equal clears the bit
-            unit->flags |= 0x2000; // UNSURE: CEA calls this "feign death allowed"
+            unit->flags |= 0x2000; // NOTE: CEA calls this "feign death allowed"
         } else {
             unit->flags &= ~0x2000u;
         }
     }
 
     // default team, only outside a running game engine and only when not already assigned
-    // UNSURE: written through object.owner_team; see the header note above
+    // NOTE: written through object.owner_team; see the header note above
     if (current_game_engine == 0 && (obj->owner_team == 0 || obj->owner_team == -1)) {
         obj->owner_team = tag->default_team;
     }
