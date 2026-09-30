@@ -86,7 +86,19 @@ extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0, blam-cc: ECX, DX
-extern wchar_t *game_engine_get_default_multiplayer_string(int16_t string_index); // 0x45ce90
+extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0, blam-cc: ECX tag_id, DX index
+// tag_lookup("ui\\multiplayer_game_text") + text_string_list_get_string(tag, index), or the empty string when the tag is missing.
+// (This is the inlined `lookup + get_string(N)` pair the disassembly shows at every use; NOT the function at 0x45ce90, which
+// is multiplayer_game_text_string(entry) == get_place_string.)
+static wchar_t *multiplayer_game_text_string(int16_t index)
+{
+    datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr'
+
+    if (tag_id == k_datum_index_none) {
+        return &empty_string;
+    }
+    return text_string_list_get_string(tag_id, index);
+}
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 extern wchar_t *string_format_wide_va(const wchar_t *format, ...); // 0x557930
 extern uint32_t color_real_to_argb_pack(float alpha, real_vector3d *color); // 0x44da60
@@ -163,11 +175,11 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
 
     // Header row: five tag-driven column labels (indices 67..71, see header), the active game
     // engine's own live player-count string, and the literal "Ping".
-    col_a = game_engine_get_default_multiplayer_string(67); // UNSURE index role: header column
-    col_b = game_engine_get_default_multiplayer_string(68); // UNSURE index role: header column
-    col_c = game_engine_get_default_multiplayer_string(69); // UNSURE index role: header column
-    col_d = game_engine_get_default_multiplayer_string(70); // UNSURE index role: header column
-    col_e = game_engine_get_default_multiplayer_string(71); // UNSURE index role: header column
+    col_a = multiplayer_game_text_string(67); // UNSURE index role: header column
+    col_b = multiplayer_game_text_string(68); // UNSURE index role: header column
+    col_c = multiplayer_game_text_string(69); // UNSURE index role: header column
+    col_d = multiplayer_game_text_string(70); // UNSURE index role: header column
+    col_e = multiplayer_game_text_string(71); // UNSURE index role: header column
 
     ((void (*)(void *))current_game_engine->build_score_header_text)(header_names_buf);
     string_format_wide_va(L"\t%s\t%s\t%s\t%s\t%s\t%s\t%s", col_a, col_b, header_names_buf,
@@ -217,9 +229,9 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
                     if (!eliminated) {
                         status_text = (p->marked_for_deletion == 0)
                             ? header_names_buf
-                            : game_engine_get_default_multiplayer_string(139); // UNSURE index role
+                            : multiplayer_game_text_string(139); // UNSURE index role
                     } else {
-                        status_text = game_engine_get_default_multiplayer_string(138); // UNSURE index role
+                        status_text = multiplayer_game_text_string(138); // UNSURE index role
                     }
 
                     {
@@ -268,13 +280,13 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
 
     ui_state = game_engine_multiplayer_ui_state_id();
     if (ui_state != 8) {
-        wchar_t *prompt = game_engine_get_default_multiplayer_string(ui_state); // UNSURE index role
+        wchar_t *prompt = multiplayer_game_text_string(ui_state); // UNSURE index role
         if (prompt != (wchar_t *)0) {
             wchar_t line[128];
             if (current_game_engine == 0 || game_engine_variant.teams != 1) {
                 string_format_wide_va(&empty_string, prompt); // UNSURE: format string identity (PTR_DAT_006607c8)
             } else {
-                wchar_t *team_word = game_engine_get_default_multiplayer_string(13); // UNSURE index role
+                wchar_t *team_word = multiplayer_game_text_string(13); // UNSURE index role
                 string_format_wide_va(L"%s (%s)", prompt, team_word);
             }
             (void)line;
@@ -322,7 +334,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
         }
 
         if (address_text != (char *)0) {
-            wchar_t *label = game_engine_get_default_multiplayer_string(0xbf); // UNSURE index role
+            wchar_t *label = multiplayer_game_text_string(0xbf); // UNSURE index role
             wchar_t address_wide[0x100];
             size_t len = strlen(address_text);
             size_t i;

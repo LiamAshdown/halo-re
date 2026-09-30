@@ -12,7 +12,7 @@
 // array rather than a visible register argument. Those offsets divide evenly by the 0x14-byte
 // entry stride (confirmed against the matching `0x41 < count` .. `0x49 < count` bounds checks,
 // e.g. 0x514 / 0x14 == 0x41), so each one is transcribed as
-// `game_engine_get_default_multiplayer_string(N)` for the derived index N -- high confidence for
+// `multiplayer_game_text_string(N)` for the derived index N -- high confidence for
 // the index *values*, low confidence for what each one actually says (team name / column header
 // / bottom prompt -- inferred only from where it is used).
 // This rewrite keeps the original's flat local-variable shape deliberately close to the
@@ -63,7 +63,19 @@ extern wchar_t missing_string_text[];          // 0x00671fac, L"<missing string>
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
-extern wchar_t *game_engine_get_default_multiplayer_string(int16_t string_index); // 0x45ce90, this batch
+extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0, blam-cc: ECX tag_id, DX index
+// tag_lookup("ui\\multiplayer_game_text") + text_string_list_get_string(tag, index), or the empty string when the tag is missing.
+// (This is the inlined `lookup + get_string(N)` pair the disassembly shows at every use; NOT the function at 0x45ce90, which
+// is multiplayer_game_text_string(entry) == get_place_string.)
+static wchar_t *multiplayer_game_text_string(int16_t index)
+{
+    datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr'
+
+    if (tag_id == k_datum_index_none) {
+        return &empty_string;
+    }
+    return text_string_list_get_string(tag_id, index);
+}
 extern int32_t game_engine_get_scoreboard_place(datum_index player, int32_t mode,
     uint8_t invert_low_stat); // 0x45d440, this module; blam-cc: EDI -> player, EAX -> mode,
     // stack -> invert_low_stat. CORRECTED (phase 4 review): Ghidra shows no arguments at all
@@ -162,11 +174,11 @@ void game_engine_post_rasterize_post_game(void)
 
         tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr'
         team_name[0] = (tag_id == k_datum_index_none) ? &empty_string
-            : game_engine_get_default_multiplayer_string(0x41); // UNSURE index role: team0 name
+            : multiplayer_game_text_string(0x41); // UNSURE index role: team0 name
 
         tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
         team_name[1] = (tag_id == k_datum_index_none) ? &empty_string
-            : game_engine_get_default_multiplayer_string(0x42); // UNSURE index role: team1 name
+            : multiplayer_game_text_string(0x42); // UNSURE index role: team1 name
 
         if (winner == 0) {
             banner_a = 1;
@@ -190,11 +202,11 @@ void game_engine_post_rasterize_post_game(void)
         }
     }
 
-    col_a = game_engine_get_default_multiplayer_string(0x43); // UNSURE index role: header column
-    col_b = game_engine_get_default_multiplayer_string(0x44); // UNSURE index role: header column
-    col_c = game_engine_get_default_multiplayer_string(0x45); // UNSURE index role: header column
-    col_d = game_engine_get_default_multiplayer_string(0x46); // UNSURE index role: header column
-    col_e = game_engine_get_default_multiplayer_string(0x47); // UNSURE index role: header column
+    col_a = multiplayer_game_text_string(0x43); // UNSURE index role: header column
+    col_b = multiplayer_game_text_string(0x44); // UNSURE index role: header column
+    col_c = multiplayer_game_text_string(0x45); // UNSURE index role: header column
+    col_d = multiplayer_game_text_string(0x46); // UNSURE index role: header column
+    col_e = multiplayer_game_text_string(0x47); // UNSURE index role: header column
 
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(score_text);
     string_format_wide_va_bounded(0x100, line, L"\t%s\t%s\t%s\t%s\t%s\t%s",
@@ -238,7 +250,7 @@ void game_engine_post_rasterize_post_game(void)
 
         tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
         rank_text = (tag_id == k_datum_index_none) ? &empty_string
-            : game_engine_get_default_multiplayer_string((int16_t)rank_index + 0x24);
+            : multiplayer_game_text_string((int16_t)rank_index + 0x24);
             // UNSURE: role of indices 0x24..0x33 (per-rank label, e.g. "1st")
 
         string_format_wide_va_bounded(0x100, line, L" \t%s", rank_text);
@@ -353,13 +365,13 @@ void game_engine_post_rasterize_post_game(void)
             banner_a = ((int32_t)0x1a4 << 16) | (uint16_t)rel_y;
             tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
             if (tag_id != k_datum_index_none) {
-                (void)game_engine_get_default_multiplayer_string(0x49); // UNSURE index role
+                (void)multiplayer_game_text_string(0x49); // UNSURE index role
             }
         } else {
             banner_a = ((int32_t)0x118 << 16) | (uint16_t)rel_y;
             tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
             if (tag_id != k_datum_index_none) {
-                (void)game_engine_get_default_multiplayer_string(0x48); // UNSURE index role
+                (void)multiplayer_game_text_string(0x48); // UNSURE index role
             }
         }
     }
