@@ -18,6 +18,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#include "fn_text.h"
 
 extern datum_index hud_text_draw_font_tag_id;              // 0x006e472c
 extern int16_t hud_text_draw_color_or_flags;                 // 0x006e4734
@@ -25,11 +26,10 @@ extern int16_t hud_text_draw_column;         // 0x006e4736
 extern ColorARGB hud_text_draw_color_a;               // 0x006e4738
 
 // blam-cc: ECX=string, EDX=justification, EBX=style, ESI=state, stack=(font, color)
-extern void text_parse_state_initialize(void *string, int16_t justification, int16_t style,
-    text_parse_state *state, datum_index font, ColorARGB *color); // 0x556b00
+
 
 // blam-cc: EAX=state, no other arguments
-extern int16_t text_parse_next_token_wide(text_parse_state *state); // 0x556f10
+
 
 // blam-cc: string in ECX (a pure pass-through, never read here), max_width_inout on the stack
 // Walks string (UTF-16, via the wide tokenizer) accumulating glyph advance widths until the

@@ -25,6 +25,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#include "fn_text.h"
 
 extern datum_index hud_text_draw_font_tag_id;              // 0x006e472c
 extern int16_t hud_text_draw_color_or_flags;                 // 0x006e4734
@@ -34,11 +35,10 @@ extern int16_t text_highlight_start;       // 0x006e476a, first column drawn wit
 extern int16_t text_highlight_end;         // 0x006e476c, one past the last such column
 
 // blam-cc: ECX=string, EDX=justification, EBX=style, ESI=state, stack=(font, color)
-extern void text_parse_state_initialize(void *string, int16_t justification, int16_t style,
-    text_parse_state *state, datum_index font, ColorARGB *color); // 0x556b00
+
 
 // blam-cc: EAX=state, no other arguments
-extern int16_t text_parse_next_token_wide(text_parse_state *state); // 0x556f10
+
 
 // Draws the wide (UTF-16 code unit) text columns [start_column, end_column) of the
 // current parse string through callback, one glyph at a time, clipped to the

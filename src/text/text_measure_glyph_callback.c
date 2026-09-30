@@ -18,6 +18,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#include "fn_text.h"
 
 extern Rectangle2D text_measure_bounds;             // 0x006e4714, top, left, bottom, right
 extern uint32_t text_measure_font;                  // 0x006e471c, Font*

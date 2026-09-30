@@ -32,9 +32,8 @@
 #include "hs.h"
 #include "fn_hs.h"
 #include "fn_memory.h"
+#include "fn_text.h"
 #include <string.h>
-
-extern int16_t string_table_index_of(const char *search, int16_t count, const char **table); // blam-cc: EAX search, stack (count, table) // 0x004875c0, library-ish (cseries/text), not this module
 
 
 extern data_array *hs_syntax_data;           // 0x0087a474

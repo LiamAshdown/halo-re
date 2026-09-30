@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+#include "fn_text.h"
 
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern datum_index hud_text_draw_font_tag_id;                         // 0x006e472c
@@ -45,12 +46,6 @@ extern int16_t text_highlight_end;                             // 0x006e476c
 extern int16_t ui_prompt_clip_x;                          // 0x006e476e
 extern int16_t ui_prompt_clip_y;                         // 0x006e4770
 
-extern void text_parse_state_initialize(void *string, int16_t justification, int16_t style,
-    text_parse_state *state, datum_index font, ColorARGB *color); // 0x556b00
-extern int16_t text_parse_next_token_wide(text_parse_state *state); // 0x556f10
-extern void text_draw_character_range_wide(Rectangle2D *bounds, text_glyph_draw_proc callback,
-    Point2DInt *pen, Rectangle2D *clip, uint32_t color, void *string,
-    int16_t start_column, int16_t end_column); // 0x5572b0
 
 // blam-cc: stack -> callback, bounds, out_final_pen, clip, extra_line_spacing, string
 void text_wrap_and_draw_wide(text_glyph_draw_proc callback, Rectangle2D *bounds,

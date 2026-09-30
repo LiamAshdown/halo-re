@@ -20,6 +20,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#include "fn_text.h"
 
 extern uint8_t text_char_is_double_byte(uint8_t *string); // 0x557750
 

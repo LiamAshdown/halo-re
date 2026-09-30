@@ -37,6 +37,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+#include "fn_text.h"
 
 extern tag_instance *tag_instances;             // 0x0087bc14
 extern datum_index hud_text_draw_font_tag_id;                    // 0x006e472c
@@ -47,9 +48,7 @@ extern uint32_t text_measure_font;                  // 0x006e471c, Font* of the 
 
 // Not a Ghidra function (out/phase4/text_types_notes.md); owns the writes to
 // text_measure_bounds / text_measure_font while text_wrap_and_draw_wide runs.
-extern void text_measure_glyph_callback(text_parse_state *state, void *font, void *character,
-    uint32_t color, int16_t x, int16_t y, int16_t source_x, int16_t source_y,
-    int16_t width, int16_t height); // 0x556260
+
 
 extern void text_wrap_and_draw_wide(text_glyph_draw_proc callback, Rectangle2D *bounds,
     Point2DInt *out_final_pen, Rectangle2D *clip, int16_t extra_line_spacing, void *string); // 0x556780

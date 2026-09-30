@@ -17,6 +17,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#include "fn_text.h"
 
 // blam-cc: EAX=state, no other arguments
 // Reads the next 16-bit code unit from state->string at state->position, stores it in

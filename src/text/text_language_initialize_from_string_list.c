@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+#include "fn_text.h"
 #include <stdlib.h>
 
 // text_encoding, text_justification and text_flags are already the names of this

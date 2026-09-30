@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+#include "fn_text.h"
 #include <ctype.h>
 
 extern tag_instance *tag_instances;                 // 0x0087bc14
@@ -41,7 +42,7 @@ extern char missing_string[17];                    // 0x00671fd0, "<missing stri
 // blam-cc: EAX -> string; result in AL only
 extern uint8_t text_char_is_double_byte(uint8_t *string); // 0x557750
 // blam-cc: EBX -> target_character, stack -> string; result in AL only
-extern uint8_t text_find_character(int16_t target_character, uint8_t *string); // 0x557870
+
 
 // blam-cc: EDI -> state
 int16_t text_parse_next_token_narrow(text_parse_state *state)

@@ -16,6 +16,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_text.h"
 
 int16_t string_table_index_of(const char *search, int16_t count, const char **table)
 {

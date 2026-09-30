@@ -17,6 +17,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_text.h"
 #include <string.h>
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
@@ -33,7 +34,7 @@ extern float hud_text_draw_color_g;           // 0x006e4740
 extern float hud_text_draw_color_b;           // 0x006e4744
 
 extern void hud_state_reset(void); // 0x4a98d0
-extern void text_language_initialize_from_string_list(void); // 0x5561b0
+
 
 // Resets the HUD runtime state and text language, then zeroes local player 0's entire
 // first_person_weapon_interface, re-seeding unit_index/frame_sound_impulse/frame_sound_state to -1 and

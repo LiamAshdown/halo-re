@@ -46,9 +46,8 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_text.h"
 #include <string.h>
-
-extern int16_t string_table_index_of(const char *search, int16_t count, const char **table); // 0x004875c0, library-ish (cseries/text), not this module; blam-cc: search_text in EAX
 
 
 extern data_array *hs_syntax_data;           // 0x0087a474
