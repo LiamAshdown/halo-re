@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_units.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void unit_scripting_set_emotion_animation(uint32_t unit_index, const char *emotion_name); // 0x569cf0, blam-cc: EAX, ECX
 
 void hs_evaluate_unit_set_emotion_animation(int16_t function_index, uint32_t thread_index, char first)
 {

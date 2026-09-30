@@ -31,12 +31,13 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern data_array *player_data;         // 0x0087a480
 extern data_array *object_data;         // 0x008603b0
 extern game_time_globals *game_time;    // 0x006f1d6c
 
-extern uint32_t unit_noop_569670(uint32_t object_index); // 0x569670, EAX
+
 extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone,
     real_vector3d *facing, datum_index exclude_object, int16_t team, void *out); // 0x459a00, EBX, stack
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX

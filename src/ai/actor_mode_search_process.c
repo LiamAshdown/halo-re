@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data; // 0x008802c0
@@ -27,8 +28,6 @@ extern data_array *prop_data; // 0x008802c0
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
 extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x401020, EAX, ECX
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
-    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX
 
 
 uint8_t actor_mode_search_process(datum_index actor_index)

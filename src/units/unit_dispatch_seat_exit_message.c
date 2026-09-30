@@ -15,12 +15,13 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern uint8_t *object_network_id_table; // 0x00687130, the pooled-node table (+0x28: key -> object index)
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
-extern uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index); // 0x56c470, AL, EDI
+
 extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event); // 0x56c640, UNSURE signature
 
 typedef struct unit_seat_exit_message {

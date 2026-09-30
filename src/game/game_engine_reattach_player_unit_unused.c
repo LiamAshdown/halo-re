@@ -30,6 +30,7 @@
 #include <string.h>
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
@@ -56,9 +57,9 @@ extern void object_for_each_light_attachment(uint32_t object_index, int32_t regi
                                               int32_t invoke_callback); // 0x4f9a20, established elsewhere
 extern void unit_recompute_seat_occupants(void); // 0x56ce30, units module, not in this batch
 extern void unit_pick_and_ready_next_weapon(void); // 0x56d6a0, units module, not in this batch
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack unit, ECX request
+
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0}; // every caller builds these two bytes on its stack
-extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index); // 0x55add0, stack, EDI
+
 extern void object_recalculate_bounding_radius_recursive(datum_index object_index); // 0x4f82b0
 extern uint8_t unit_all_seats_unoccupied(void); // 0x566910, units module, not in this batch
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memory

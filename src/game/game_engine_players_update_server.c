@@ -48,6 +48,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_units.h"
 #include <string.h>
 #include <stdint.h>
 
@@ -82,7 +83,7 @@ extern void unit_release_selected_equipment(datum_index unit_handle); // 0x56d30
     // blam-cc: EAX -> unit_handle; UNSURE full behavior
 extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index); // 0x56dcd0,
     // blam-cc: param_1 -> event_byte, ECX -> unit_index
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
+
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
     // 0x5639f0, blam-cc: EAX -> unit_index, EDX -> control, stack -> source_id (0x474534: EAX = player unit,
     // EDX = the stack control block, the carry record's +4 pushed)

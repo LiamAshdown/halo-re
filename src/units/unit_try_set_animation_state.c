@@ -24,11 +24,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440
+
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
     int32_t stream); // 0x4d6280, blam-cc: EAX, DX, stack
 extern int32_t unit_animation_state_from_seat_type(int16_t animation_state); // 0x565da0, blam-cc: CX

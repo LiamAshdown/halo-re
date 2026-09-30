@@ -19,6 +19,7 @@
 #include "game.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -44,9 +45,7 @@ extern datum_index ai_communication_select_speaker_in_reference(float radius, in
 extern datum_index ai_communication_select_speaker_by_team(int16_t match_mode, datum_index object_a,
     datum_index object_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class,
     uint32_t line_id, int16_t seat_filter, uint8_t flags, int16_t team); // 0x4300d0, stack, DI
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
-    int32_t *chain_value); // 0x560d00, EAX, DL, stack
+
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 
 

@@ -55,6 +55,7 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -64,11 +65,11 @@ extern ai_globals *ai_globals_ptr;  // 0x00880354, foreign (ai)
 extern char *s_stand; // 0x0069fdec "stand" (matches unit_update_stance_and_jump.c)
 
 extern float random_real(void); // 0x4019f0
-extern void unit_dialogue_determine_variant(uint32_t object_index); // 0x5618e0, blam-cc: EAX -> object_index
+
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, const char *seat_label,
                                                        const char *weapon_label, uint8_t test_only); // 0x5651e0,
     // blam-cc: EAX -> unit_index, stack -> (seat_label, weapon_label, test_only)
-extern void unit_add_initial_weapons(uint32_t object_index); // 0x56cf10, blam-cc: ESI -> object_index
+
 
 // object_type_definition "unit" row, +0x28 column: one-time per-object spawn initializer for
 // bipeds and vehicles alike. Resets the seat/weapon/grenade/animation/vehicle-link/AI-dialogue

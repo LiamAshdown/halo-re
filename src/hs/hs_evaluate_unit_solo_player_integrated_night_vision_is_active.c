@@ -12,9 +12,8 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_units.h"
 
-
-extern uint8_t unit_local_player_weapon_flag_check(void); // 0x565b00
 
 void hs_evaluate_unit_solo_player_integrated_night_vision_is_active(int16_t function_index, uint32_t thread_index, char first)
 {

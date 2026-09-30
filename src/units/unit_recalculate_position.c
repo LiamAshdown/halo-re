@@ -16,6 +16,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t DAT_00689471;    // 0x00689471, the smoothing toggle

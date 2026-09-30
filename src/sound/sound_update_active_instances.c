@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_units.h"
 
 extern int16_t sound_channel_count;   // 0x007252b4
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
@@ -49,7 +50,7 @@ extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *o
 extern void matrix4x3_inverse_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cc080, math module
 extern void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cc010, math module
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern void unit_accumulate_clamped_offset(uint32_t object_index, float new_value); // 0x570400, units module, blam-cc: EAX, stack
+
 extern double sqrt(double x); // FSQRT, Ghidra's SQRT() pseudo-function
 
 // Per-update pass over every active playback channel: retires ones whose fade has reached

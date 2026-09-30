@@ -27,6 +27,7 @@
 #include "ai.h"
 #include "items.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -43,10 +44,7 @@ extern void actor_attempt_grenade_throw(datum_index actor_index); // 0x428ab0, s
 
 extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0, CX, stack
 extern void unit_detach_reposition_and_nudge(uint32_t unit_index); // 0x56ca40, EDI
-extern void unit_drop_inventory_weapons(uint32_t unit_index); // 0x56f060
-extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_index); // 0x56ed00
-extern void unit_drop_grenades(uint32_t unit_index); // 0x56ef60
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
+
 
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0 (via 0x696664)
@@ -60,8 +58,8 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
     int32_t invoke_callback); // 0x4f9a20, EAX, stack
-extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index); // 0x55add0, stack, EDI
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+
+
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
 extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX

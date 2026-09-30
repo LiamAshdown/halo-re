@@ -12,12 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_units.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern uint8_t unit_set_custom_animation_frame(uint32_t unit_index, uint8_t warn_if_missing,
-    datum_index graph_tag_id, const char *animation_name, int16_t frame); // 0x570220, blam-cc: ECX, EAX, EDI, stack
 
 void hs_evaluate_unit_custom_animation_at_frame(int16_t function_index, uint32_t thread_index, char first)
 {

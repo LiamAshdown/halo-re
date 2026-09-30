@@ -20,12 +20,12 @@
 #include "cache.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
-extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,
-                                                          uint8_t use_aiming_bounds); // 0x5697a0; EDI unit, stack (direction, flag)
+
 
 // blam-cc: EAX -> actor_index, ECX -> out_position
 void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3])

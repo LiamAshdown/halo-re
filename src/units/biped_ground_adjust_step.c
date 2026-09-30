@@ -21,14 +21,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;                             // 0x008603b0
 extern tag_instance *tag_instances;                          // 0x0087bc14
 extern real_point3d unit_ground_adjust_node_positions[64];   // 0x006e4a08
 
-extern void biped_ground_adjust_solve(uint32_t object_index, real_matrix4x3 *nodes); // 0x558000, stack (0x557b48 pushes nodes, object)
-extern void biped_ground_adjust_apply_node_rotations(uint32_t object_index, real_matrix4x3 *nodes,
-                                                       real_point3d *saved_positions); // 0x558a20
 
 // Snapshots the current world position of every skeleton node into the shared
 // unit_ground_adjust_node_positions buffer, runs the ground-contact/bone-length solve

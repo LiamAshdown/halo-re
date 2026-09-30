@@ -18,6 +18,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,8 +31,7 @@ extern float k_physics_gravity;      // 0x0069c52c, UNSURE
 // the object index is in ECX. Ghidra binds a different subset of the two operands at each call
 // site in this module, so the declaration is left unprototyped.
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
-extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
-    real_vector3d *out_normal, float distance, real_point3d *out_position); // 0x55aa20, ECX, ESI, EBX, stack
+
 extern real_vector3d *global_down3d_pointer; // 0x0069672c
 extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code); // 0x5614a0, ESI unit, stack code, next batch: reaction dispatcher
 

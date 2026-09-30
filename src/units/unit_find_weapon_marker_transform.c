@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "units.h"
 #include "models.h"
+#include "fn_units.h"
 #include <string.h>
 
 extern data_array *object_data;     // 0x008603b0

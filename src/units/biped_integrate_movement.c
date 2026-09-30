@@ -53,6 +53,7 @@
 #include "units.h"
 #include "fn_ai.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -88,9 +89,9 @@ extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
                                           float *pill_radius_out);    // 0x55a2e0, blam-cc: EAX position, ECX object, EBX radius, stack height
-extern void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);
+
     // 0x55eaa0, blam-cc: ECX -> timing_table (the Biped tag: EDI, reloaded from the tag slot), ESI -> object_base, stack -> threshold
-extern void biped_movement_solve(biped_movement_solver_data *solve);   // 0x55efd0
+
 extern void unit_update_up_vector(Biped *biped_tag, object *obj);      // 0x560800
 
 // Integrates one tick of biped movement against a caller-supplied object record, without

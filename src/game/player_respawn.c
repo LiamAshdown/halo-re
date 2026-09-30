@@ -29,6 +29,7 @@
 #include "camera.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern data_array *player_data;                     // 0x0087a480
 extern data_array *object_data;                     // 0x008603b0
@@ -64,7 +65,7 @@ extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_in
 extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, ESI
 // RESOLVED 2026-09-28: unit_build_network_update now takes (unit, buffer, 0x7ff8) and returns the encoded bit
 // count, as the binary pushes and tests (the buffer is the network scratch 0x871de0, named below after another use).
-extern int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t bit_budget); // 0x55aed0
+
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server,
     int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused); // 0x4e1a80, EAX, ECX
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle,

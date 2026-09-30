@@ -13,12 +13,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint32_t biped_ground_adjust_step(uint32_t object_index); // 0x557a90, stack (0x55e883 pushes only the object)
-extern void unit_rotate_basis_about_axis(uint32_t object_index);      // 0x55e6b0, this batch
+
 extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, next batch
 
 // Selects between three per-tick basis states for an idle biped: while a ground-adjust solve is

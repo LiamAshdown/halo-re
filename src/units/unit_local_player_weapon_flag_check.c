@@ -14,6 +14,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern uint8_t *local_player_globals; // 0x0087a478; count at +0xc, handles from +0x4
 extern data_array *player_data;        // 0x0087a480, stride 0x200, unit handle at +0x34

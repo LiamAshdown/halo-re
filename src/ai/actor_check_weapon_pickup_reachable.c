@@ -20,13 +20,11 @@
 #include "ai.h"
 #include "cache.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 extern Scenario *global_scenario; // 0x00746f8c
-
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
-    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
 
 
 uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *record)

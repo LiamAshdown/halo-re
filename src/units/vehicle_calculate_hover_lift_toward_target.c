@@ -21,8 +21,8 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
-extern void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index); // 0x574bc0, this batch
 
 // UNSURE: placeholder only; see file header.
 void vehicle_calculate_hover_lift_toward_target(uint32_t unit_index)

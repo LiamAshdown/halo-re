@@ -15,6 +15,7 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#include "fn_units.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern real_vector3d *global_up3d_pointer; // 0x00696720

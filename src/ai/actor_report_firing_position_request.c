@@ -16,12 +16,11 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data; // 0x00880360
 
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
-    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator); // 0x569190, stack, EAX accumulator
 
 
 // blam-cc: EAX -> actor_index, ECX -> query, EBX -> candidate

@@ -29,6 +29,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_units.h"
 #include <string.h>
 #include <stdint.h>
 
@@ -49,7 +50,7 @@ extern void apply_remote_player_position_update(player *plr, object *unit_obj); 
 extern void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj); // this batch, 0x477490, blam-cc: EAX -> plr, EBX -> unit_obj
 extern void player_update_history_log_printf_filtered(int32_t level, const char *format, ...); // 0x4e5f20
 extern void object_update(uint32_t object_index); // 0x4f7ef0
-extern uint8_t unit_update(uint32_t unit_index); // 0x5625b0, established (units module)
+
 extern uint32_t biped_update(uint32_t object_index); // 0x5590a0, established (units module)
 extern void unit_apply_control_block(void *record_or_field, int32_t grenade_value); // 0x5639f0, units module,
     // not in this batch; blam-cc: EDX -> record_or_field, ECX -> grenade_value

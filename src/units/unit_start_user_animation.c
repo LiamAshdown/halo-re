@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -29,7 +30,7 @@ extern int16_t animation_choose_random_permutation(datum_index animation_graph_t
     int32_t stream); // 0x4d6280, blam-cc: EAX, DX, stack
 extern void console_print_va(const char *format, ...); // 0x4c6920
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); // 0x4f6b70, EAX, DX
-extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
+
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 
 uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,

@@ -34,6 +34,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -52,7 +53,6 @@ extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_in
     uint8_t reset_stats); // 0x473c50, already rewritten
 
 extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index); // 0x56d400, stack mode, EAX weapon, ECX unit
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack vehicle, seat
 
 
 // Decodes an incoming spawn-loadout message and, once the target player and unit are both

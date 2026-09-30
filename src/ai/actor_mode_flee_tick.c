@@ -14,13 +14,14 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *actor_data; // 0x00880360
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
 extern game_time_globals *game_time; // 0x006f1d6c
-extern void unit_initialize_random_turn_angle(uint32_t object_index); // 0x570650, EAX
+
 
 void actor_mode_flee_tick(datum_index actor_index)
 {

@@ -11,11 +11,11 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_units.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
-extern void unit_detach_and_enter_named_seat(uint32_t unit_index, uint32_t target_parent_index, char *seat_marker_name);
     // 0x569d40
 
 void hs_evaluate_unit_enter_vehicle(int16_t function_index, uint32_t thread_index, char first)

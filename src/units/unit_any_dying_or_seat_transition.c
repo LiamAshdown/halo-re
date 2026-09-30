@@ -12,6 +12,7 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern object * object_iterator_next(object_iterator *iterator); // 0x4f6f20
 

@@ -23,6 +23,7 @@
 #include "ai.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *object_data;           // 0x008603b0
 extern tag_instance *tag_instances;       // 0x0087bc14
@@ -41,8 +42,7 @@ extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, ui
     // 0x56d400, blam-cc: EAX -> weapon_index, ECX -> unit_index, stack -> pickup_mode
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, blam-cc: EDI
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
-extern uint8_t unit_try_select_equipment(uint32_t unit_index, uint32_t new_equipment_object_index,
-    int16_t release_current); // 0x56d1a0
+
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, blam-cc: EAX
 
 static uint8_t *object_get(datum_index object_index)

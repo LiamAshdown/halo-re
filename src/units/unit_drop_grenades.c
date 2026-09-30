@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -31,7 +32,7 @@ extern void object_placement_data_initialize(object_placement_data *placement,
 extern uint32_t object_new_with_datum_role_control(object_placement_data *placement,
                                                     uint32_t role); // 0x4f54b0
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0
-extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_index); // 0x56ed00
+
 
 // Spawns and drops all of the unit's carried grenades of both types into the world (e.g. on
 // death), decrementing each grenade_counts slot to zero.

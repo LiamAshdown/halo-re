@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "units.h"
 #include "projectiles.h"
+#include "fn_units.h"
 #include <string.h>
 
 extern data_array *object_data;      // 0x008603b0
@@ -41,12 +42,11 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
     uint32_t exclude_object_index, collision_result *result); // 0x505880
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,
                                 int16_t region_index, int16_t material_index, uint32_t plane); // 0x4ee5e0
-extern void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id,
-                                             datum_index object_index); // 0x56f210, AX, ECX, EDX
+
 extern void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index,
                                            int32_t collision_surface_index); // 0x4ffde0, EBX, stack
 extern void device_machine_melee_attacked(uint32_t object_index); // 0x44b5d0, ECX
-extern void unit_apply_impulse_to_seat(uint32_t unit_index, real_vector3d *impulse); // 0x571cb0, ECX, EAX
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)

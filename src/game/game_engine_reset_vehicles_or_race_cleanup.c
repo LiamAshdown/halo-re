@@ -15,6 +15,7 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern game_variant game_engine_variant; // 0x006f1c88 (game_engine_index aliased 0x006f1cb8)
 extern data_array *object_data;       // 0x008603b0
@@ -22,7 +23,7 @@ extern data_array *object_data;       // 0x008603b0
 extern object *object_iterator_next(object_iterator *iterator);              // 0x4f6f20
 extern void object_delete_unparented(datum_index object_index);              // 0x4f5aa0
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings); // 0x4f59d0
-extern void unit_set_facing_from_index_table(uint32_t object_index);         // 0x570de0
+
 
 // In Race, deletes any unparented/stray vehicle exactly like the item and projectile sweeps
 // (network_role 0 -> both delete calls, network_role 3 -> recursive delete only). In every other

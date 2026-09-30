@@ -28,6 +28,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -45,7 +46,7 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points,
                           void *extra_force, void *extra_torque); // 0x507840, UNSURE signature
-extern void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index); // 0x574bc0, this batch
+
 extern double sqrt(double x);
 extern double fabs(double x);
 extern float fabsf(float x);

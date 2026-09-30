@@ -12,6 +12,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern char *unit_base_animation_state_names[6]; // 0x0069fde4
 extern tag_instance *tag_instances;              // 0x0087bc14

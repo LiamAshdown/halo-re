@@ -29,6 +29,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -38,9 +39,7 @@ extern void object_set_shield_depleted_flag(uint32_t object_index); // 0x4edb10,
   // real signature (object_set_shield_depleted_flag.c): void object_set_shield_depleted_flag(uint32_t object_index); Ghidra recovered 0 of 1 args at this call site
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, blam-cc: EAX -> object_index
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0, index in a register
-extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction,
-    uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle,
-    int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still); // 0x566de0, all ten on the stack
+
   // real signature (unit_update_stance_and_jump.c): void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction, uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle, int16_t weapon_class_index, int32_t fire_trigger_event, uint8_t require_still); Ghidra recovered 0 of 10 args at this call site
 extern void unit_drop_inventory_weapons_except_current(uint32_t unit_index); // 0x56d360, blam-cc: EAX -> unit_index
   // real signature (unit_drop_inventory_weapons_except_current.c): void unit_drop_inventory_weapons_except_current(uint32_t unit_index); Ghidra recovered 0 of 1 args at this call site

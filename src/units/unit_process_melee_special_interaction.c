@@ -23,6 +23,7 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,8 +31,7 @@ extern real_vector3d *global_origin3d_pointer; // 0x00696714
 extern real_vector3d *global_forward3d_pointer;     // 0x00696718
 extern real_vector3d *global_up3d_pointer;          // 0x00696720
 
-extern void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect, uint32_t target_object_index,
-    int16_t damage_param4, int16_t damage_param5, int16_t damage_param6, uint32_t damage_param7); // 0x56f2d0
+
 extern void object_set_health_frozen_flag(uint32_t object_index); // 0x4eda20, EAX
 extern void object_delete(uint32_t object_index); // 0x4f5bd0, EAX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0

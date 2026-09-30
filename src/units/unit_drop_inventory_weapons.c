@@ -12,13 +12,14 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern int16_t network_game_mode; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
 extern uint8_t weapon_is_out_of_ammo(uint32_t object_index); // 0x4c2c70, EAX; AL result
 extern void object_delete(uint32_t object_index);   // 0x4f5bd0, UNSURE exact signature
-extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_index); // 0x56ed00
+
 
 // Drops every weapon currently carried in the unit's inventory except the one currently in
 // hand, clearing each inventory slot as it is dropped and redirecting the desired-weapon index

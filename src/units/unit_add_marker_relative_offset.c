@@ -14,14 +14,13 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data; // 0x008603b0
 
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX, ECX
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out); // 0x568f80, ECX, EDI
-extern void unit_compute_marker_offset_position(uint32_t object_index, real_vector3d *reference_direction,
-    int16_t mode, real_point3d *out_position, float *base_position, float *offsets); // 0x55a170, ECX, EDX, BX, ESI, stack
-extern int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_position); // 0x571de0, ESI, EBX
+
 
 void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
                                      uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator)

@@ -30,13 +30,14 @@
 #include "game.h"
 #include "camera.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0, blam-cc: CX -> local_player_index
 extern player_globals *local_player_globals;     // 0x0087a478
 extern data_array *player_data;                  // 0x0087a480
 extern observer observers[1]; // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17), an array, not a pointer
 
-extern uint32_t unit_noop_569670(uint32_t object_index); // 0x569670, EAX object (its result is kept as the excluded object)
+
 extern void *player_control_globals_ptr; // 0x006b145c, 0x40-byte records per local player
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out); // 0x459e80,
     // blam-cc: EAX -> unit_index, EDX -> require_zoomed, EDI -> out

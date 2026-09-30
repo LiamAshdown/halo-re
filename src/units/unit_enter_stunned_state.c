@@ -18,12 +18,11 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern random_seed random_seed_global;   // 0x00719cd0
 
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
-extern void unit_initialize_random_turn_angle(uint32_t object_index); // 0x570650, this batch
 
 // Puts the unit into a disoriented/stunned state: drops its current weapon, sets the
 // disoriented flag and adjusts vitality flags, and -- if not already stunned -- picks a random

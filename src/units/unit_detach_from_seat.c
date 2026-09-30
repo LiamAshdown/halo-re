@@ -17,6 +17,7 @@
 #include "units.h"
 #include "networking.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -48,21 +49,15 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
     int32_t invoke_callback); // 0x4f9a20, EAX, stack
-extern void unit_recalculate_position(uint32_t object_index); // 0x558eb0, EAX
-extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index); // 0x55add0, stack, EDI
+
+
 extern void biped_update_facing(uint32_t object_index, int8_t *out_animation_state); // 0x55b7c0, EAX, stack
 extern void biped_integrate_movement_with_collision(uint32_t object_index, int8_t *state); // 0x55cfd0
-extern void biped_check_evade_reaction(uint32_t object_index); // 0x55e190
-extern void unit_evaluate_flee_reaction(uint32_t object_index); // 0x55e2d0, EDI
-extern void unit_check_fell_off_level(uint32_t object_index); // 0x55e4a0, ECX
-extern void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out); // 0x55e840, ESI, EDI
-extern void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out); // 0x55e940, EDI, stack
-extern void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out); // 0x55eb90, EAX, stack
-extern void biped_trigger_on_velocity_threshold(uint32_t object_index); // 0x55ec20, EAX
-extern uint32_t unit_snap_to_min_ground_height(uint32_t object_index); // 0x55ecf0
+
+
 extern void unit_update_footstep_and_idle_triggers(uint32_t unit_index); // 0x560410, EAX
 extern void unit_update_up_vector(Biped *biped_tag, object *obj); // 0x560800, EAX, ECX
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+
 extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, ECX
 extern void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command); // 0x565e00
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
@@ -72,8 +67,7 @@ extern void unit_notify_weapon_removed(int32_t object_index); // 0x56ab10, EAX (
 extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
 extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
 extern void unit_pick_and_ready_next_weapon(uint32_t unit_index); // 0x56d6a0, ESI
-extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0
-extern void unit_melee_attack_scan(uint32_t unit_index); // 0x56f550
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])

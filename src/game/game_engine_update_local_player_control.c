@@ -50,6 +50,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern player_globals *local_player_globals;                 // 0x0087a478
 extern data_array *object_data;                           // 0x008603b0
@@ -76,7 +77,7 @@ extern void unit_sample_camera_shake_from_velocity(uint32_t unit_index);       /
                                                                                // blam-cc: EBX
 extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot,
     int16_t direction);                                        // 0x56dba0, units; blam-cc: EAX unit
-extern uint16_t unit_find_weapon_index_with_fixed_flag(uint32_t unit_index);    // 0x570460, units
+
                                                                                // blam-cc: ECX
 extern int32_t weapon_get_next_zoom_level(int32_t current_level, datum_index item_index);
                                         // 0x4c2cf0, items; blam-cc: EAX -> current_level, ECX -> item

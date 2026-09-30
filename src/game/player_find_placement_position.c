@@ -23,6 +23,7 @@
 #include "game.h"
 #include "effects.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -43,9 +44,7 @@ extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward,
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, EAX, EDX, stack (EAX still = out after it)
 extern uint32_t object_get_root_object_index(uint32_t object_index); // 0x4f6fb0, ECX
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point); // 0x53f020, EAX, ECX
-extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object,
-    real_point3d *out_position, float radius, char grid_mode, char skip_reposition, char scale_radius,
-    uint32_t object_index_a, real_vector3d *reference_direction); // 0x55a500, stack, EDX
+
 extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override); // 0x4760b0, EAX, stack
 
 extern void game_engine_build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t local_players_only); // 0x4782a0

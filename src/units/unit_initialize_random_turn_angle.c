@@ -16,6 +16,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern random_seed random_seed_global;   // 0x00719cd0

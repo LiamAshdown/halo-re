@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_units.h"
 
 extern network_id_table *object_network_id_table; // 0x00687130
 
@@ -31,7 +32,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
     // 0x4f6ec0; object handle in ECX, type mask on the stack. Verified against the body at
     // 0x4f6ec0 (cmp ecx,-1 / test cx,cx / and message & 1 << header->type) and against the
     // call site in this file.
-extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction, uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle, int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still); // UNSURE: out of range, 0x566de0
+
 
 void object_apply_shield_charge_and_notify(void **message)
 {

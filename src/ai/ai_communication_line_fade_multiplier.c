@@ -20,12 +20,11 @@
 #include "game.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern float ai_communication_class_repeat_delay[]; // 0x00655930, stride 0x28 (10 floats) per class
 
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority,
-    uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value); // 0x560d00, EAX, DL, stack
 
 // REWRITTEN from objdump 0x42f8c0..0x42f99b. Stack: (unit, priority, extra delay ticks, follow_fallback, apply_fade,
 //   volume *); EAX: the chain value (in/out); ECX: the dialogue index (in/out); BX: the line class. Asks the unit's

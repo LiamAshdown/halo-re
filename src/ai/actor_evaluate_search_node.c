@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -31,8 +32,7 @@ extern double sqrt(double x);
 extern uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index); // 0x56cc10, EDI, SI
 extern uint8_t unit_seat_flag_bit10(uint32_t unit_index, int16_t seat_index); // 0x56cdd0, EAX, CX
 extern uint8_t unit_seat_flag_bit3(uint32_t unit_index, int16_t seat_index); // 0x56cd70, EAX, CX
-extern uint8_t unit_find_weapon_marker_transform(uint32_t unit_index, uint32_t vehicle_index, int16_t seat_index,
-    real_point3d *out_entry, real_point3d *out_seat, real_point3d *out_hint); // 0x5640a0, EAX unit, stack
+
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, EAX, ECX
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
 

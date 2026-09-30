@@ -20,6 +20,7 @@
 #include "hs.h"
 #include "game.h"
 #include "camera.h"
+#include "fn_units.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480, stride 0x200
@@ -44,8 +45,7 @@ extern void observer_advance(int16_t local_player_index);
 // blam-cc: AX -> local_player_index (0x448900, this module)
 extern void observer_commit(int16_t local_player_index);
 
-extern uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta,
-    real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction);
+
     // 0x55cca0, units module
 
 // Per-frame observer entry point: sets the observer's dt, applies its pending command (if any),

@@ -28,15 +28,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record,
-                                                   void *out_transform); // 0x573f60, this batch
-extern void vehicle_calculate_ground_contact_lean_alt(uint32_t unit_index, void *out_record,
-                                                       void *out_transform); // 0x574460, this batch
-extern void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index); // 0x574bc0, this batch
 
 // Selects between two ground-contact lean calculations for a mounted/turret-style vehicle unit
 // based on the sign of its Physics tag's first field, and always triggers the hover-thruster

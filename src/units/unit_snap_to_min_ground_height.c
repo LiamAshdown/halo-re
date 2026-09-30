@@ -15,6 +15,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -22,8 +23,6 @@ extern Globals *global_globals;
 extern uint8_t cheat_super_jump;    // 0x0087abc4
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 
-
-extern void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index); // 0x560590, EBX, stack
 
 // REWRITTEN from objdump 0x55ecf0..0x55eec4 (really the biped jump launch). Unless already airborne (+0x4cc bit 0)
 //   or +0x508 == 1: the Biped tag's jump speed (+0x3b4; a player's scaled by 1 - globals player info +0x84 * stun

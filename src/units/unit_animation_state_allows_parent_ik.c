@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "units.h"
+#include "fn_units.h"
 
 // blam-cc: ECX -> animation_block
 // False for the animation states 0x17..0x1b, 0x1d and 0x22..0x23; true for every other state.

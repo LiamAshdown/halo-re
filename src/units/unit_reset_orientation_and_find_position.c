@@ -11,16 +11,14 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern real_vector3d *global_forward3d_pointer; // 0x00696718
 extern real_vector3d *global_up3d_pointer;      // 0x00696720
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
-extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object,
-                                              real_point3d *out_position, float radius, char grid_mode,
-                                              char skip_reposition, char scale_radius,
-                                              uint32_t object_index_a, real_vector3d *reference_direction); // 0x55a500
+
 
 // REWRITTEN from objdump 0x55add0..0x55aec3. Stack: unit; EDI: the vehicle (or other object) it is leaving -- every
 //   caller loads EDI with it. Flattens the unit's forward (world forward when degenerate), sets up to world up,

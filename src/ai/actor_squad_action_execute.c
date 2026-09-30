@@ -25,6 +25,7 @@
 #include "game.h"
 #include "fn_hs.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 
 extern double fcos(double x); // FCOS
@@ -63,15 +64,12 @@ extern datum_index object_lookup_table_get(int16_t name_index); // 0x4f73c0, AX
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern int32_t object_iterator_next(object_iterator *iterator); // 0x4f6f20
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
-    int32_t *chain_value); // 0x560d00, EAX, DL, stack
+
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out); // 0x568f50, ECX, ESI
 extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out); // 0x569720, ECX, EAX
 extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta); // 0x56d160, EAX, DX, stack
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
-    uint8_t interpolate); // 0x5702a0, stack, EDI, EAX, stack
+
 extern int32_t float_compare_ascending(const void *a, const void *b); // 0x405360
 extern const char k_empty_string[]; // 0x0065512c, the empty string: a seat name filter matching every seat
 

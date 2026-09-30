@@ -35,6 +35,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_units.h"
 #include <stdint.h>
 
 extern data_array *player_data;                     // 0x0087a480
@@ -55,7 +56,7 @@ extern void unit_apply_control_block(uint32_t unit_index, const unit_control_dat
     int32_t source_id); // 0x5639f0, blam-cc: EAX -> unit_index, EDX -> control, stack -> source_id
 extern uint8_t player_unit_has_parent(datum_index player_handle); // 0x477210, blam-cc: ECX
 extern uint8_t object_update(uint32_t object_index); // 0x4f7ef0
-extern uint8_t unit_update(uint32_t unit_index);     // 0x5625b0
+
 extern uint32_t biped_update(uint32_t object_index); // 0x5590a0
 
 static object *object_from_index(datum_index object_index)

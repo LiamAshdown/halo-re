@@ -22,6 +22,7 @@
 #include "ai.h"
 #include "networking.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -44,8 +45,8 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table,
     int32_t invoke_callback); // 0x4f9a20, EAX, stack
-extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index); // 0x55add0, stack, EDI
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+
+
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
 extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
@@ -54,7 +55,7 @@ extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, E
 extern void unit_notify_weapon_removed(int32_t object_index); // 0x56ab10, EAX
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation,
                                                    int32_t stream); // 0x4d6280, EAX, DX, stack
-extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index); // 0x56ebd0, EAX, stack
+
 
 extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX
 

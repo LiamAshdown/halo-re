@@ -15,10 +15,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern uint32_t unit_snap_to_min_ground_height(uint32_t object_index); // 0x55ecf0, this batch
 
 // While a biped is airborne and has no resolved target-lock comparison, counts ticks (saturating
 // at 0x7f) since the last target lock; once past 5 ticks while the jump control is held, snaps

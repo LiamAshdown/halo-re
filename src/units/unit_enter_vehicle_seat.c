@@ -22,6 +22,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -35,7 +36,7 @@ extern void object_reorient_relative_to_marker(uint32_t parent_index, char *pare
 extern void unit_recompute_seat_occupants(uint32_t unit_index); // 0x56ce30, EAX
 extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, int32_t start_slot,
     int16_t direction); // 0x56dba0, EAX, stack
-extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0, stack (unit, force)
+
 extern char *unit_get_current_weapon_label(uint32_t unit_index); // 0x56dfd0, EAX
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
     uint8_t apply); // 0x5651e0, EAX, stack
@@ -46,7 +47,7 @@ extern void object_offset_node_translation(uint32_t object_index, real_vector3d 
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0, stack
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a,
     int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, all stack
-extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index); // 0x5659c0, stack
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index,
     uint32_t *out_occupant_index); // 0x566840, EAX self, EDX vehicle, stack seat, out

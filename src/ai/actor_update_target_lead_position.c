@@ -18,12 +18,12 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data; // 0x00880360
 
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
-extern datum_index biped_get_cached_look_at_position(uint32_t object_index, real_point3d *out_position); // 0x55ab30, stack
-extern int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3d *out_position); // 0x571de0, ESI, EBX
+
 
 // REWRITTEN from objdump 0x429570..0x429610. EAX: actor. When the cached location (+0x164) is unset, the point
 //   (+0x168) starts at the body position (+0x12c) and, unless flying (+0x99), the location comes from the vehicle

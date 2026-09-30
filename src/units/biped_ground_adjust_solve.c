@@ -33,6 +33,7 @@
 #include "units.h"
 #include "physics.h"
 #include "projectiles.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -46,8 +47,7 @@ extern int16_t physics_model_slide_along_contacts(real_point3d *start_position, 
 extern uint8_t physics_point_refresh_leaf(real_point3d *point, float radius); // 0x505540, EDX point, stack radius
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
-extern char biped_ground_adjust_solve_node(uint32_t object_index, real_point3d *reference_position,
-    int32_t node_index, real_matrix4x3 *nodes, real_point3d *own_position, uint32_t *success_bits); // 0x557b80, EAX, EBX
+
 
 extern double sqrt(double x);
 extern double fabs(double x);

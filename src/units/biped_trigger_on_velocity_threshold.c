@@ -12,11 +12,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 
-extern void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index); // 0x560590, next batch
 
 // Fires a paired trigger event (id 2) once a unit exceeds a small velocity threshold (~0.033
 // units/tick) after having been still for more than 3 ticks (biped_data.flags_bit1_ticks).

@@ -17,6 +17,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -33,7 +34,7 @@ extern real vector3d_normalize_with_length(real_vector3d *v);            // 0x40
 extern uint8_t recorded_animation_object_is_playing(datum_index unit_index); // 0x44acc0, ESI
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900, EAX out, ECX object
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX
-extern uint32_t unit_get_biped_specific_value(uint32_t object_index); // 0x570ad0, EAX (AL used)
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)

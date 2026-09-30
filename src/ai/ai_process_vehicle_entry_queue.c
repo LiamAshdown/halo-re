@@ -19,6 +19,7 @@
 #include <string.h>
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern data_array *object_data;     // 0x008603b0
@@ -27,7 +28,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 

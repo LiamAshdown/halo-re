@@ -11,12 +11,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;  // 0x008603b0
 extern uint8_t *cinematic_globals_ptr; // 0x006f187c, UNSURE
 extern uint8_t unit_updates_suppressed; // 0x0071c419
 
-extern void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index); // 0x560590, next batch: fires a numbered unit trigger event
 
 // Advances the biped's animation frame counter (frame_counter); once it reaches the loaded
 // threshold (frame_counter_limit), invalidates the cached comparison (unknown_508). Then, unless updates

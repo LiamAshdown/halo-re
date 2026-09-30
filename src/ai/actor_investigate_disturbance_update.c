@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -30,7 +31,7 @@ extern real vector3d_distance_squared(real_point3d *a, real_point3d *b); // 0x40
 
 
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack
+
 
 int32_t actor_investigate_disturbance_update(uint32_t actor_index)
 {

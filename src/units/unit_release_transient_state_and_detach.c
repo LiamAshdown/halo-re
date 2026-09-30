@@ -20,6 +20,7 @@
 #include "units.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *actor_data;      // 0x00880360
@@ -33,9 +34,7 @@ extern void player_reset_after_unit_change(uint32_t controlling_player);        
 extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0, CX, stack
 extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event); // 0x56c640, UNSURE signature
 extern void unit_detach_reposition_and_nudge(uint32_t unit_index);                          // 0x56ca40, UNSURE signature
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
-extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_index); // 0x56ed00
-extern void unit_drop_inventory_weapons(uint32_t unit_index);           // 0x56f060
+
 
 void unit_release_transient_state_and_detach(uint32_t unit_index, uint8_t is_light_reset) // blam-cc: param_1, param_2
 {

@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "fn_ai.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -34,8 +35,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern double fabs(double x);
 
 extern void unit_clear_selected_equipment(uint32_t unit_index); // 0x56d2c0, ECX
-extern uint8_t unit_try_select_equipment(uint32_t unit_index, uint32_t new_equipment_object_index,
-    int16_t release_current); // 0x56d1a0
+
 extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index,
     int8_t machine_id); // 0x4ae350, EAX, ECX, DL, stack
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
@@ -43,7 +43,7 @@ extern uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_
     uint32_t *out_occupant_index); // 0x566840, EAX, EDX vehicle, stack (seat, out)
 extern void unit_detach_from_seat(uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag,
     uint8_t fire_trigger_event); // 0x56c640
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index); // 0x566970, EAX unit, stack
+
 extern void player_update_history_free_all(void *queue); // 0x4e6f20
 extern void device_control_touched(uint32_t object_index); // 0x44c090, EAX
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); // 0x4f6a20, EAX, EDI

@@ -24,16 +24,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
 
-extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction,
-                                        uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction,
-                                        float turn_angle, int16_t weapon_class_index, const real_vector2d *throttle,
-                                        uint8_t require_still); // 0x566de0
-extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset); // 0x568610, UNSURE signature
-extern void unit_broadcast_state_change_event(unit_state_change_record record); // 0x566c00, the record by value
+
 extern uint8_t network_object_index_cache[]; // 0x006870d8, the object network index cache
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key); // 0x4e9d40, EAX container, ESI key
 

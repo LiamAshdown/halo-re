@@ -21,6 +21,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data;          // 0x00880360
 extern data_array *object_data;         // 0x008603b0
@@ -29,7 +30,7 @@ extern const uint8_t actor_control_animation_state_table[]; // 0x006558b8, 2 byt
 
 extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id); // 0x5639f0, EAX, EDX, stack
-extern uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command, const real_vector2d *direction); // 0x569530
+
 
 void actor_apply_queued_look_to_unit(datum_index actor_index)
 {

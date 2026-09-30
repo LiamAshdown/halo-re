@@ -27,6 +27,7 @@
 #include "units.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_units.h"
 #include <stdint.h>
 
 extern player_globals *local_player_globals; // 0x0087a478
@@ -36,7 +37,7 @@ extern data_array *object_data;              // 0x008603b0
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
-extern uint8_t unit_any_dying_or_seat_transition(void); // 0x56c070, units module, not in this batch; UNSURE purpose,
+
     // takes no visible arguments
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param); // 0x42c3e0, ai module, not in this batch;
     // blam-cc: stack -> param; UNSURE purpose

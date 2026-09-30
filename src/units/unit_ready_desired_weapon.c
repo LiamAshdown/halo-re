@@ -26,6 +26,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 #include <stdint.h>
 
 extern data_array *object_data;       // 0x008603b0
@@ -46,7 +47,7 @@ extern void object_for_each_light_attachment(uint32_t object_index, int32_t regi
     int32_t invoke_callback); // 0x4f9a20, EAX, stack, stack
 extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char *seat_label, char *weapon_label,
     uint8_t apply); // 0x5651e0
-extern void unit_validate_and_clear_weapon_switch(uint32_t unit_index); // 0x5659c0, stack
+
 extern char *unit_get_seat_or_state_name(uint32_t unit_index); // 0x56c2f0, EAX
 
 #define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])

@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;             // 0x008603b0
 extern real_vector3d *global_forward3d_pointer; // 0x00696718

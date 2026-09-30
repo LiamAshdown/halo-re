@@ -22,6 +22,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -31,8 +32,7 @@ extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern real vector3d_length(real_vector3d *v);                 // 0x401960, EAX
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a,
     int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data); // 0x42d340, all stack
-extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
-    real_vector3d *out_normal, float distance, real_point3d *out_position); // 0x55aa20, ECX, ESI, EBX, stack
+
 extern real_vector3d *global_down3d_pointer; // 0x0069672c
 extern float k_physics_gravity; // 0x0069c52c
 

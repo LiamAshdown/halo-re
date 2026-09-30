@@ -19,14 +19,12 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *actor_data;     // 0x00880360
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
 
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
-    int32_t *chain_value); // 0x560d00, EAX, DL, stack
 extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 extern void ai_communication_target_result_reset(void *record); // 0x42d310, this batch
 

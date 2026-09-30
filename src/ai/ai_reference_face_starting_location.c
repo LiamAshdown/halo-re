@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern Scenario *global_scenario;               // 0x00746f8c
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c
@@ -35,8 +36,7 @@ extern const real_vector3d *global_down3d_pointer; // 0x0069672c
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference,
     ai_reference_actor_iterator *out_iterator);                             // 0x432650
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0
-extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
-    real_vector3d *out_normal, float distance, real_point3d *out_position); // 0x55aa20, ECX, ESI, EBX, stack
+
 
 extern void object_set_position_and_orientation(datum_index object_index,
     real_vector3d *forward, real_vector3d *up, real_point3d *position); // 0x4f51c0

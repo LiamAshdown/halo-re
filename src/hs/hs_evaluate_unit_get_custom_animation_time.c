@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_units.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern int32_t unit_get_custom_animation_time_remaining(uint32_t object_index); // 0x5701b0, blam-cc: EAX
 
 void hs_evaluate_unit_get_custom_animation_time(int16_t function_index, uint32_t thread_index, char first)
 {

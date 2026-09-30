@@ -12,10 +12,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data; // 0x008603b0
 
-extern void unit_drop_object_from_hand(uint32_t unit_index, uint32_t dropped_object_index); // 0x56ed00
 
 void unit_clear_selected_equipment(uint32_t unit_index) // blam-cc: in_ECX
 {

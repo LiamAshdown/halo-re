@@ -44,6 +44,7 @@
 #include "projectiles.h"
 #include "fn_ai.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -89,20 +90,17 @@ extern int8_t collision_test_movement_segment(int32_t mask, real_point3d *origin
                             uint32_t ignore_object_index, void *out_record); // 0x505880, UNSURE signature
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
                                           float *pill_radius_out);    // 0x55a2e0, blam-cc: EAX position, ECX object, EBX radius, stack height
-extern void biped_update_target_lock_timer(datum_index target, uint32_t object_index); // 0x55e0a0, blam-cc: EAX target, ECX object
-extern void unit_apply_fall_damage(uint32_t object_index, float fall_speed); // 0x55e4f0
-extern void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);
+
+
     // 0x55eaa0, blam-cc: ECX -> timing_table (the Biped tag: EDI, reloaded from the tag slot), ESI -> object_base, stack -> threshold
-extern void unit_track_target_lock_timeout(uint32_t object_index);    // 0x55ec90, UNSURE: register arg
-extern void biped_movement_solve(biped_movement_solver_data *solve);   // 0x55efd0
+
+
 extern void unit_update_up_vector(Biped *biped_tag, object *obj);     // 0x560800
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 // real signature (unit_process_melee_special_interaction.c):
 //   void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index);
 // Ghidra shows five arguments at this call site; they are reproduced verbatim.
-extern void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index,
-    uint32_t node_pair, uint32_t region_pair, uint32_t material, real_point3d *contact_point,
-    real_plane3d *contact_plane, bsp_leaf_reference *contact_leaf); // 0x56ff40, EAX, stack
+
 
 // Integrates one tick of a live biped's movement, resolves it against the BSP, and applies
 // everything that falls out of the result.

@@ -26,12 +26,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
-    uint8_t interpolate); // 0x5702a0
 
 // Sets the current playback frame of the unit's active custom animation, if valid (i.e. if
 // unit_start_user_animation reports the animation is already active/continuing, and the frame

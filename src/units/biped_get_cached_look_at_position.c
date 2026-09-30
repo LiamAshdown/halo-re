@@ -16,6 +16,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -34,8 +35,7 @@ extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t co
     int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900; blam-cc: EAX out, ECX object_index
-extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction,
-    real_vector3d *out_normal, float distance, real_point3d *out_position); // 0x55aa20, ECX, ESI, EBX, stack
+
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern real_vector3d *global_down3d_pointer;           // 0x0069672c
 

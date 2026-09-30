@@ -33,6 +33,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -46,12 +47,11 @@ extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char 
     uint8_t test_only); // 0x5651e0, EAX, stack
 extern uint16_t unit_reset_light_effect(void *state, uint32_t animation_graph_tag_index, datum_index object_index);
     // 0x56ec10 (the animation slot advance), ECX, EAX, stack
-extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440
-extern void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect, uint32_t target_object_index,
-    int16_t damage_param4, int16_t damage_param5, int16_t damage_param6, uint32_t damage_param7); // 0x56f2d0
+
+
 extern void object_delete_teardown(uint32_t object_index); // 0x4edc80, EAX
 extern int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index); // 0x568540, EDI
-extern void unit_reset_ground_adjust_state(uint32_t object_index); // 0x55ad00, EAX
+
 extern void model_animation_get_frame_delta(int16_t frame, void *animation, real_vector3d *out, void *model);
     // 0x4d4a00, ECX, EDX, EBX, stack
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out); // 0x4f6a20, EAX, EDI

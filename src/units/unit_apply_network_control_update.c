@@ -34,6 +34,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_units.h"
 
 extern data_array *object_data;                    // 0x008603b0
 extern uint8_t *object_network_id_table;             // 0x00687130, +0x28: network key -> object index
@@ -44,9 +45,7 @@ extern uint8_t message_delta_decode_compound_field(void *decode_context, void *d
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context); // 0x4ec670, EAX context: rejects (skips) the message
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX handle, ESI array
-extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction,
-    uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle,
-    int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still); // 0x566de0, cdecl
+
 extern void unit_release_transient_state_and_detach(uint32_t unit_index, uint8_t is_light_reset); // 0x568cb0
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key); // 0x4e9d40, EAX container, ESI key
 

@@ -24,6 +24,7 @@
 #include "game.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 #include <string.h>
 
 extern game_time_globals *game_time;   // 0x006f1d6c
@@ -67,17 +68,13 @@ extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, C
 
 extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight,
     datum_index *out_player_object_index, float *out_distance, datum_index object_index); // 0x4303f0, EBX
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
-    int32_t *chain_value); // 0x560d00, EAX, DL, stack
+
 extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command); // 0x569470, EAX, ECX
 
 
 extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode); // 0x560f20, EAX, ECX, DX
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
     uint32_t maximum_markers); // 0x4f6080
-extern uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command,
-    const real_vector2d *direction); // 0x569530
 
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)

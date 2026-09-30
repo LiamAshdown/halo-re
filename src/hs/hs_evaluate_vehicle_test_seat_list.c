@@ -12,12 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_units.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern uint8_t unit_named_seat_occupant_in_zone(uint32_t unit_index, char *seat_label,
-    uint32_t zone_list_index); // 0x56b380, cdecl
 
 void hs_evaluate_vehicle_test_seat_list(int16_t function_index, uint32_t thread_index, char first)
 {

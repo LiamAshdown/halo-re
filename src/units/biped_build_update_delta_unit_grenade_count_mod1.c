@@ -23,11 +23,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern double fcos(double x);
 extern double fsin(double x);
 extern real random_real_range(real min, real max); // 0x401050
-extern void unit_rotate_basis_about_axis(uint32_t object_index); // 0x55e6b0, this batch
+
 
 void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base,
                                                         float magnitude, float dir_x, float dir_y,

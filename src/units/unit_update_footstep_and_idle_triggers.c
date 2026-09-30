@@ -24,11 +24,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void unit_fire_animation_sound_trigger(uint32_t unit_index, uint32_t trigger_kind, int16_t contact_point_index); // 0x560590
 
 void unit_update_footstep_and_idle_triggers(uint32_t unit_index) // blam-cc: in_EAX -> unit_index
 {

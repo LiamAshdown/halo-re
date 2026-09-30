@@ -14,6 +14,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_units.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -25,8 +26,6 @@ extern Scenario *global_scenario;
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
-    uint8_t interpolate); // 0x5702a0, stack unit, EDI graph, EAX name, stack interpolate
 
 void actor_mode_alert_tick(uint32_t actor_index)
 {

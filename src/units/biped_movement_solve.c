@@ -18,6 +18,7 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#include "fn_units.h"
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720

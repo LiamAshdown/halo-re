@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -49,8 +50,8 @@ extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_sta
 extern int32_t unit_pick_random_spawned_actor_count(uint32_t unit_index); // 0x568540, blam-cc: EDI
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, blam-cc: EAX, CX
 extern char *unit_get_current_weapon_label(uint32_t unit_index); // 0x56dfd0, blam-cc: EAX
-extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440, stack
-extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index);
+
+
     // 0x56ebd0, blam-cc: EAX -> object_index, stack -> graph, animation_index
 extern void unit_set_throw_aim_direction(uint32_t object_index, real_vector2d *direction_xy);
     // 0x5704d0, blam-cc: EAX -> object_index, ECX -> direction_xy

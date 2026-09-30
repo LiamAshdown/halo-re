@@ -37,12 +37,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t unit_animation_state_allows_parent_ik(uint8_t *animation_block); // 0x565d60, blam-cc: ECX -> animation_block;
-extern uint8_t unit_animation_state_allows_weapon_ik(uint8_t *animation_block); // 0x565d00, blam-cc: ECX -> animation_block;
+
 extern void object_solve_two_bone_ik_to_marker(uint32_t object_index, char *marker_a_name,
     uint32_t marker_b_object_index, char *marker_b_name, uint8_t *node_base); // 0x4f6d60,
 

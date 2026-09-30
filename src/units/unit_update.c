@@ -31,6 +31,7 @@
 #include "effects.h"
 #include "fn_ai.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -59,9 +60,9 @@ extern void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, r
     real_vector3d *angular_velocity, real maximum_velocity, real acceleration); // 0x4cf530, ESI, EDI, stack
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); // 0x4f6970
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale); // 0x543dd0, EDX, stack
-extern void unit_clear_ground_adjust_dirty(uint32_t object_index); // 0x55ad70, EAX
+
 extern void unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code); // 0x5614a0, ESI, stack
-extern void unit_update_animation_timers(uint32_t unit_index); // 0x561620, EAX
+
 extern uint8_t unit_is_look_target_valid(uint32_t unit_index); // 0x562570, ECX
 extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, real *bounds,
     real max_velocity, real max_acceleration, real_vector3d *target, real_matrix4x3 *transform); // 0x564ae0
@@ -70,24 +71,17 @@ extern uint8_t unit_set_or_test_seat_and_weapon_label(uint32_t unit_index, char 
 extern uint8_t unit_current_weapon_has_flag(uint32_t unit_index); // 0x565b60, ECX
 extern uint8_t unit_state_is_scripted_animation(unit_data *unit); // 0x565c60, ECX
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
-extern void unit_release_transient_state(uint32_t unit_index, uint8_t is_light_reset); // 0x568610
+
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970, EAX, CX
-extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,
-    uint8_t use_aiming_bounds); // 0x5697a0, EDI, stack
+
 extern int32_t unit_find_next_grenade_type_with_count(uint32_t unit_index, int32_t start_index,
     int16_t direction); // 0x5699a0, EAX, ECX, stack
 extern void unit_refresh_targeting_flag_and_weapons(uint32_t unit_index, uint8_t initial_targeting_flag); // 0x569bf0
 extern uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index); // 0x56da00, ESI, EDI
-extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force); // 0x56d6e0
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force); // 0x56dec0
+
+
 extern uint8_t unit_begin_throw_grenade(uint32_t unit_index, const real_vector2d *direction); // 0x56e080, EDI, stack
-extern void unit_throw_grenade_move_to_hand(uint32_t unit_index); // 0x56e280
-extern void unit_release_thrown_grenade(uint32_t object_index, uint8_t apply_throw_fraction); // 0x56e440
-extern void unit_update_look_delta_controls(uint32_t object_index); // 0x56e820, EAX
-extern void unit_calculate_luminosity(uint32_t object_index); // 0x56ec60, EDI
-extern void unit_melee_lunge_damage_tick(uint32_t unit_index); // 0x56fc80
-extern void unit_update_autoaim_interaction(uint32_t unit_index); // 0x570720
-extern void unit_update_random_turn_angle(uint32_t object_index, real_vector3d *out_axis); // 0x570840, EAX, EDI
+
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)

@@ -27,6 +27,7 @@
 #include "units.h"
 #include "fn_hs.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -48,10 +49,10 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern void object_reset_velocity_and_wake(uint32_t object_index); // 0x4f5160
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0
 extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset); // 0x475c60
-extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index); // 0x55add0, stack, EDI
+
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index); // 0x4f82b0
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback); // 0x4f9a20
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420, stack, ECX
+
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index); // 0x566910, EAX
 extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key); // 0x56c370, stack, ECX

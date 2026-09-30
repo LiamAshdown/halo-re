@@ -27,6 +27,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -34,7 +35,7 @@ extern float DAT_0069c52c; // UNSURE global, per sibling files
 
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points,
     real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
-extern void vehicle_create_hover_thruster_effects(uint32_t unit_index); // 0x574900
+
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 extern void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle,
     real cos_angle); // 0x4cd700, EAX, ECX, stack

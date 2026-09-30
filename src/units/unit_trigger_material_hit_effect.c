@@ -18,6 +18,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_units.h"
 
 extern Globals *global_globals;
 extern tag_instance *tag_instances; // 0x0087bc14

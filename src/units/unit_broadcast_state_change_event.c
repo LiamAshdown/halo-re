@@ -15,6 +15,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_units.h"
 
 extern uint8_t *object_network_id_table; // 0x00687130, object_network_id_table
 

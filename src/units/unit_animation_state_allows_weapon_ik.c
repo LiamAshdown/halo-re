@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "units.h"
+#include "fn_units.h"
 
 // blam-cc: ECX -> animation_block
 // True when the third animation overlay is unused, overlay_animation_command is clear and the current

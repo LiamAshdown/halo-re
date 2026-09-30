@@ -31,6 +31,7 @@
 #include "units.h"
 #include "hs.h"
 #include "ai.h"
+#include "fn_units.h"
 
 extern data_array *object_data;                // 0x008603b0
 extern data_array *object_list_header_data;    // 0x0087a464
@@ -38,8 +39,7 @@ extern data_array *object_list_reference_data; // 0x0087a468
 
 // UNSURE: opaque call, exactly the arguments Ghidra's own decompile of this call site shows; see
 // file header. Not the same binding as unit_start_user_animation.c's own established extern.
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
-    uint8_t interpolate); // 0x5702a0
+
 
 uint8_t ai_object_list_start_user_animation_until_failure(datum_index object_list_header_handle,
     datum_index graph_tag_id, const char *animation_name, uint8_t interpolate)

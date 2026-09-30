@@ -14,6 +14,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -25,7 +26,7 @@ extern real random_real_range(real min, real max); // 0x401050
 extern double fcos(double x);
 extern double fsin(double x);
 extern uint32_t biped_is_idle_eligible(uint32_t object_index); // 0x55e8e0, this batch
-extern void unit_rotate_basis_about_axis(uint32_t object_index); // 0x55e6b0, this batch
+
 
 // Nudges an idle-eligible unit with a small randomized angular impulse (perpendicular to its
 // up-vector when reasonably upright, otherwise a random direction in the horizontal plane) to

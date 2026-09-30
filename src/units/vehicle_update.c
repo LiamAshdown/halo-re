@@ -29,6 +29,7 @@
 #include "objects.h"
 #include "hs.h"
 #include "units.h"
+#include "fn_units.h"
 #include <string.h>
 
 extern data_array *object_data;         // 0x008603b0
@@ -45,30 +46,18 @@ extern double fabs(double x);
 
 extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0, EAX, ECX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
-extern uint8_t unit_get_recently_updated_flag(uint32_t object_index); // 0x570c80, EAX
-extern uint8_t unit_has_child_of_type5(uint32_t unit_index); // 0x570d70, ECX
-extern void unit_set_facing_from_index_table(uint32_t object_index); // 0x570de0
+
+
 extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); // 0x56cc80, EAX
 extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step); // 0x50b460, EDX, ECX
 extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target,
                                                  float rate); // 0x50b2f0, ESI, EDX, stack
-extern void vehicle_calculate_turret_controls(uint32_t unit_index, void *mass_points, float *powered_states); // 0x572b60, stack + EDI
-extern void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *mass_points, float *powered_states); // 0x572cd0, stack + EDI
-extern void vehicle_calculate_lean_controls(uint32_t unit_index, void *mass_points, float *powered_states); // 0x572df0, stack + ESI
-extern void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_transform); // 0x573100
-extern void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint8_t *node_output,
-                                                 uint8_t *contact_points); // 0x5734d0
-extern void vehicle_calculate_mounted_controls_dispatch(uint32_t unit_index, void *out_transform,
-                                                        void *out_record); // 0x573ee0, ESI, ECX, EDX
+
+
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *mass_points,
                                 real_vector3d *extra_force, real_vector3d *extra_torque); // 0x507840
-extern void unit_update_marker_skid_effects(uint32_t unit_index, uint8_t *contact_points); // 0x575460
-extern uint32_t unit_update_marker_traction_effects(uint32_t object_index); // 0x575170
-extern void unit_update_steering_deviation_effects(uint32_t unit_index, real_vector3d *reference_direction,
-                                                   uint8_t *contact_points); // 0x574f30
-extern void unit_update_ground_contact_counter(uint32_t unit_index, uint8_t *contact_points); // 0x575640
-extern void unit_update_recoil_decay(uint32_t object_index); // 0x574780
-extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request); // 0x565420
+
+
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
                                            char use_matched_index); // 0x4f6c60
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index,

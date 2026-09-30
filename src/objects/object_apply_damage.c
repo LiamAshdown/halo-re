@@ -37,6 +37,7 @@
 #include "units.h"
 #include "fn_ai.h"
 #include "fn_game.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
@@ -76,7 +77,7 @@ extern void object_damage_notify_and_impulse(uint32_t target_index, damage_data 
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
-extern uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index); // 0x56bc80, EAX, EDI
+
 
 static uint8_t *object_get(datum_index object_index)
 {

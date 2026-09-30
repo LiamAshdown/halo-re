@@ -11,6 +11,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_units.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern uint8_t DAT_0087abc3;        // UNSURE global (cheat/debug toggle)
