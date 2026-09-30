@@ -4,12 +4,11 @@
 // evidence: types/networking.h cites this address directly: "network_machine (0x4dec40 init,
 // 0x4df690 reset, ...)". flags |= k_network_machine_pending, timer_14/timer_18/unknown_50, and
 // the 0xd-dword (0x34-byte) zero of connect_state[0x34] at +0x1c all match exactly.
-// UNSURE: the leading network_channel_remote_address_or_default (network_channel_remote_address_or_default) call's arguments could not be
-// reconstructed in this context (no client/channel object is obviously in scope for a
-// per-machine reset); called with NULL placeholders, which makes it a no-op given that
-// function's own NULL-result guard.
+// The leading network_channel_remote_address_or_default call takes EAX = machine->channel and
+// ECX = &local scratch; its result is unused (verified 0x4df6a8..0x4df6b9).
 // register convention: machine in ESI (unaff_ESI). blam-cc: ESI -> machine
 
+// VERIFIED against disassembly 0x4df690..0x4df6e2 (2026-09-30)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

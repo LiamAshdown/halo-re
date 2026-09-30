@@ -8,6 +8,7 @@
 // register convention: EAX = buffer (uint32_t[5]).
 // blam-cc: EAX -> buffer
 
+// VERIFIED against disassembly 0x4e0790..0x4e0805 (2026-09-30): four dwords = "message in a bot"; 5th dword never written
 #include "tags.h"
 #include "memory.h"
 
