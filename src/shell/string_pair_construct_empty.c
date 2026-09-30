@@ -15,8 +15,8 @@
 // blam-cc: ECX -> source, stack -> dest
 // FIXED (register inputs, objdump): note phrasing only -- rewritten from the call-style
 // "f(x /*ECX*/)" comment the checker cannot parse into "ECX -> source, stack -> dest".
-// UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern, not rewritten here.
 
+// VERIFIED against disassembly 0x57c640..0x57c6ae (2026-09-30): ECX=source, stack=dest, ret 4
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

@@ -6,10 +6,8 @@
 // register convention: command line in EDI (unaff_EDI in Ghidra), count out-pointer on the
 // stack.
 // blam-cc: EDI -> command_line (1st parameter), stack arg -> out_count (2nd parameter)
-// UNSURE: kept as a literal transliteration of the decompile (including the odd
-// per-iteration re-index in the whitespace-skip loops, which Ghidra reconstructed from register
-// reuse) rather than a simplified rewrite, to avoid silently changing edge-case behaviour on
-// malformed input.
+// VERIFIED against disassembly 0x5425f0..0x54274f (2026-09-30). Note isspace() is called with the
+// sign-extended char (movsx before the call at 0x6253a8), not a zero-extended one.
 
 #include "crt.h"
 #include "win32.h"
@@ -57,10 +55,10 @@ char **command_line_parse_to_argv(char *command_line, int32_t *out_count)
         do {
             if (command_line[i] == '-') {
                 in_flag = 1;
-                if (i != 0 && (command_line[i - 1] == '\0' || isspace((uint8_t)command_line[i - 1]) != 0)) {
+                if (i != 0 && (command_line[i - 1] == '\0' || isspace((int32_t)(int8_t)command_line[i - 1]) != 0)) {
                     command_line[i - 1] = '\0';
                 }
-            } else if (isspace((uint8_t)command_line[i]) != 0 && in_flag) {
+            } else if (isspace((int32_t)(int8_t)command_line[i]) != 0 && in_flag) {
                 command_line[i] = '\0';
                 in_flag = 0;
             }
@@ -100,7 +98,7 @@ char **command_line_parse_to_argv(char *command_line, int32_t *out_count)
             if (command_line[i] == '\0') {
                 i++;
             } else {
-                while (isspace((uint8_t)command_line[i]) != 0) {
+                while (isspace((int32_t)(int8_t)command_line[i]) != 0) {
                     i++;
                 }
                 *out = command_line + i;
@@ -115,7 +113,7 @@ char **command_line_parse_to_argv(char *command_line, int32_t *out_count)
 
                 {
                     char *tail = command_line + i - 1;
-                    while (isspace((uint8_t)*tail) != 0) {
+                    while (isspace((int32_t)(int8_t)*tail) != 0) {
                         *tail = '\0';
                         tail--;
                     }

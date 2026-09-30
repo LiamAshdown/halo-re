@@ -24,7 +24,7 @@ typedef struct hwreq_parse_exception {
 extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *this,
     const msvc_std_string *message); // 0x5782b0, blam-cc: ECX -> this, stack -> message
 
-extern void hwreq_parse_exception_copy_construct(hwreq_parse_exception *this, const hwreq_parse_exception *other); // 0x57bc20
+extern hwreq_parse_exception *hwreq_parse_exception_copy_construct(hwreq_parse_exception *this, const hwreq_parse_exception *other); // 0x57bc20
 extern void *out_of_range_vtable; // 0x00655098
 
 hwreq_parse_exception *__fastcall std_out_of_range_copy_construct(hwreq_parse_exception *this, void *unused_edx,

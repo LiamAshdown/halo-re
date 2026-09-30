@@ -5,13 +5,11 @@
 // rewrite confidence: 0.55 (standard library code, confirmed against objdump and consistent
 //   with string_pair_construct_empty.c's field offsets)
 // evidence: types/shell.h hwreq_string_pair (first 0x00, second 0x1c).
-// register convention: EAX = dest (returned unchanged, matching the standard
-//   constructor-return convention), stack arguments = const msvc_std_string *first_source,
-//   const msvc_std_string *second_source.
-// blam-cc: hwreq_string_pair_construct(hwreq_string_pair *dest /*EAX*/,
-//   const msvc_std_string *first_source /*stack*/, const msvc_std_string *second_source /*stack*/)
-// UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern, not rewritten here.
+// register convention: __cdecl-style stack arguments (dest, first_source, second_source), callee pops
+//   0xc (ret 0xc); returns dest in EAX. The earlier 'EAX = dest' note was wrong.
+// blam-cc: (all three on the stack)
 
+// VERIFIED against disassembly 0x57b670..0x57b6df (2026-09-30): all three arguments are on the stack (ret 0xc), no register argument
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

@@ -6,8 +6,8 @@
 // evidence: types/shell.h msvc_std_string.
 // register convention: ECX = this, stack arguments = pos, count.
 // blam-cc: string_erase(msvc_std_string *this /*ECX*/, uint32_t pos /*stack*/, uint32_t count /*stack*/)
-// UNSURE: FUN_00638e74 (`_Xlen`/`_Xran`) and `memmove` are opaque externs, not rewritten here.
 
+// VERIFIED against disassembly 0x57bd80..0x57bdf5 (2026-09-30): also returns this in EAX
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
@@ -17,7 +17,7 @@
 
 extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 
-void string_erase(msvc_std_string *this, uint32_t pos, uint32_t count)
+msvc_std_string *string_erase(msvc_std_string *this, uint32_t pos, uint32_t count)
 {
     uint32_t remaining;
     char *buffer;
@@ -33,7 +33,7 @@ void string_erase(msvc_std_string *this, uint32_t pos, uint32_t count)
     }
 
     if (count == 0) {
-        return;
+        return this;
     }
 
     buffer = (this->capacity > 0xf) ? (char *)this->buffer.heap_buffer : this->buffer.inline_buffer;
@@ -44,6 +44,7 @@ void string_erase(msvc_std_string *this, uint32_t pos, uint32_t count)
 
     buffer = (this->capacity > 0xf) ? (char *)this->buffer.heap_buffer : this->buffer.inline_buffer;
     buffer[new_size] = 0;
+    return this;
 }
 
 #if 0

@@ -14,6 +14,7 @@
 //   first byte 0), assigned from name through 0x57bc90, and its heap buffer (capacity >= 0x10) is
 //   freed on both exits. The SEH frame only guards that destructor and is not reproduced.
 
+// VERIFIED against disassembly 0x5788f0..0x5789ce (2026-09-30): strlen loop, assign_n(ECX=key), find(EDI map,ESI key,EBX slot), head compare, key freed on both exits
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

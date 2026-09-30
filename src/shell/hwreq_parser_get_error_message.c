@@ -13,6 +13,7 @@
 //   `hwreq_get_string_fn` (vtable slots 0x28..0x34, 0x3c).
 // blam-cc: ECX -> parser.
 
+// VERIFIED against disassembly 0x5788e0..0x5788ee (2026-09-30)
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
