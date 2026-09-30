@@ -13,12 +13,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0
 extern char k_empty_string[];               // 0x0065512c
 
-extern datum_index looping_sound_new(datum_index object_index, datum_index definition_index, char *marker_name,
-    int16_t function_index); // 0x543c20, blam-cc: EAX, EDI, ECX, stack
 
 // blam-cc: EAX -> object_index, EDX -> definition_index, stack -> scale
 // Creates a script-gain game_looping_sound for `definition_index` with gain `scale`.

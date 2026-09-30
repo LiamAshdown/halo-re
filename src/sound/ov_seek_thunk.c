@@ -11,9 +11,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
-extern int32_t sound_ogg_seek_callback(sound_ogg_memory_file *file, uint32_t offset_low, int32_t offset_high,
-    int32_t whence); // 0x544e00, blam-cc: ESI -> file, EAX -> whence, stack -> (offset_low, offset_high)
 
 int32_t ov_seek_thunk(sound_ogg_memory_file *file, uint32_t offset_low, int32_t offset_high, int32_t whence)
 {

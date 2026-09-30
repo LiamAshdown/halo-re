@@ -16,8 +16,7 @@
 #include "ai.h"
 #include "cutscene.h"
 #include "fn_game.h"
-
-extern void sound_set_music_gain(float gain); // 0x548680
+#include "fn_sound.h"
 
 
 extern float sound_music_gain;                      // 0x007252a8

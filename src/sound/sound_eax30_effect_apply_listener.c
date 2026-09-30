@@ -17,12 +17,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern const uint8_t sound_eax30_listener_property_guid[16]; // 0x0064e310
 extern uint8_t directsound_deferred_dirty; // 0x00746132
 
 extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-call
-extern float sound_reverb_size_scale(float value); // this module, 0x550c10
+
 
 // mode: 0 = raw int32 passthrough, 1/2/3 = 2000*log10(value) clamped to [-10000, 0/1000/2000],
 // 4 = constant 0, 5 = sound_reverb_size_scale(value) as a float bit pattern

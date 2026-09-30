@@ -22,8 +22,9 @@
 #include "cache.h"
 #include "interface.h"
 #include "cutscene.h"
+#include "fn_sound.h"
 
-extern void sound_set_music_gain(float gain); // 0x548680
+
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error); // 0x498f20
 
 extern float cinematic_saved_music_gain; // 0x00686b60, -1.0 when nothing is saved

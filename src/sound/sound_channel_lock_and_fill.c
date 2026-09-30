@@ -20,11 +20,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
-
-extern void sound_channel_fill_pcm_data(int16_t channel_index, uint8_t *destination, int32_t base_position,
-    uint8_t *crosslap, int32_t byte_count); // 0x547ab0, blam-cc: stack x4, EAX
 
 
 // blam-cc: BX -> channel_index, stack -> fill_size

@@ -24,13 +24,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern const uint8_t sound_eax20_buffer_property_guid[16]; // 0x0064e300
 extern float sound_eax20_underwater_direct_gain; // 0x0069ff24, 0.25f (not 0x0069ff28, which EAX3 reads)
 extern uint8_t directsound_deferred_dirty; // 0x00746132
 
-extern int32_t sound_gain_to_directsound_volume(float gain, int32_t maximum); // this module, 0x54ee70
-extern int __cdecl sound_gain_to_millibels(float gain); // this module, 0x54eec0
+
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
 void __thiscall sound_eax20_effect_apply_channel(sound_eax_effect_object *this_object, int32_t channel_index)

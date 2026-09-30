@@ -28,6 +28,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_rasterizer.h"
+#include "fn_sound.h"
 
 extern uint8_t main_menu_music_pending; // 0x00718fc6
 
@@ -35,7 +36,7 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, foreign
     // blam-cc: EDI -> group, stack -> path
 extern void sound_looping_stop(datum_index sound_tag); // 0x544120, foreign (sound module)
     // blam-cc: EAX -> sound_tag (the tag_lookup result is still in EAX at the call site)
-extern void sound_stop_all(void);                        // 0x54adb0, foreign (sound module)
+
 
 extern uint8_t rasterizer_reset_device_if_needed(void);    // 0x517500, foreign (rasterizer module)
 extern void movie_play_bink(const char *movie_path);       // 0x43ed20, foreign (main module)

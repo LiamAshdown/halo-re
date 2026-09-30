@@ -16,6 +16,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_decode_block_proc k_sound_decode_procs[3]; // 0x0065e640
 extern sound_decode_block_proc sound_decode_proc;       // 0x00724a48

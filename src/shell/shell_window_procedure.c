@@ -57,6 +57,7 @@
 #include "interface.h"
 #include "main.h"
 #include "shell.h"
+#include "fn_sound.h"
 
 
 // Minimal GDI BITMAP layout: only the fields GetObjectA's caller reads are named (bmWidth,
@@ -84,8 +85,7 @@ extern void rasterizer_capture_and_present(const int16_t *tile, void *bitmap); /
                                                                  // (rasterizer); EAX = tile, push = bitmap
 extern void shell_handle_activate_app(uint8_t inactive);         // 0x5410d0, blam-cc: BL -> inactive;
                                                                  // blam-cc: BL -> inactive (sete bl at 0x541f63)
-extern void sound_pause(void);                                  // 0x548170, foreign (sound)
-extern void sound_resume(void);                                  // 0x5481a0
+
 
 extern uint8_t shell_window_proc_bypass;    // 0x00721e8d
 extern uint8_t shell_application_inactive;  // 0x00721e8c

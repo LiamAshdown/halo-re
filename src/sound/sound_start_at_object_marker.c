@@ -14,8 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
-extern uint8_t sound_location_object_marker(datum_index owner, void *callback_data, sound_location *location); // 0x5448c0
+
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,
     sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); // 0x549af0
 

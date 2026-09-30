@@ -16,6 +16,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t shell_application_inactive;   // 0x00721e8c
 extern uint8_t shell_window_proc_bypass;     // 0x00721e8d
@@ -26,8 +27,7 @@ extern uint8_t sound_paused;                 // 0x00725202
 extern sound_driver *current_sound_driver;   // 0x00725208
 extern int32_t sound_time;                   // 0x0072520c
 
-extern void sound_pause(void);                            // 0x548170
-extern void sound_resume(void);                           // 0x5481a0
+
 extern void input_directinput_unacquire_devices(void);    // 0x4906e0
 extern void input_directinput_acquire_devices(void);      // 0x490620
 extern void input_reset_state_and_axis_configs(void);     // 0x490aa0

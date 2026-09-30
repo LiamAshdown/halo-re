@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;      // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -23,9 +24,6 @@ extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; 
 extern int16_t sound_channel_count; // 0x007252b4
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 
-extern void sound_build_channel_candidates(sound_channel_candidate_list *out, datum_index sound_handle); // this module, 0x54c1d0
-extern int16_t sound_pick_replaceable_channel(datum_index sound_handle, int16_t *candidate_channels, int16_t count); // this module, 0x54c5e0
-extern int16_t sound_find_lowest_priority_channel(datum_index sound_handle); // this module, 0x54c440
 
 // blam-cc: sound handle as the recognized parameter
 // Chooses a playback channel for a sound that does not have one yet. Non-dialog sounds (and

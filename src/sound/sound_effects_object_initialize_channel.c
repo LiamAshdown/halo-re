@@ -12,6 +12,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_effect_object *global_sound_effect_object; // 0x00721f24
 

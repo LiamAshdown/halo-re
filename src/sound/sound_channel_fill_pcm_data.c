@@ -20,14 +20,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
-extern void sound_stream_decoder_close_slot(sound_stream_decoder *decoder, uint8_t crosslap); // 0x545760, blam-cc: ESI, AL
-extern int32_t sound_pcm_buffer_read(uint32_t *position, SoundPermutation *permutation, uint32_t *bytes_read_out,
-    uint32_t requested_size, void *destination); // 0x545860, blam-cc: stack (position, permutation, destination), ECX, EBX
-extern uint32_t sound_ogg_buffer_fill(SoundPermutation *permutation, void *destination, uint32_t requested_size,
-    char *want_crosslap, sound_stream_decoder *decoder, uint32_t *bytes_filled_out); // 0x545920, blam-cc: stack x4, ECX, EAX
 
 // blam-cc: stack -> (channel_index, destination, base_position, crosslap), EAX -> byte_count
 // Writes `byte_count` bytes of PCM into `destination` (one locked segment of the ring buffer

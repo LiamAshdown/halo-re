@@ -21,12 +21,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 
-extern void sound_channel_bind_hardware(int16_t logical_channel_index); // 0x5482e0, blam-cc: stack
-extern void sound_channel_queue_source(int16_t channel_index, SoundPermutation *source, int16_t sound_class,
-    uint8_t crosslap); // 0x547c80, blam-cc: stack -> (channel_index, source, sound_class), CL -> crosslap
 
 // blam-cc: stack -> (channel_index, source, unused, sound_class, crosslap)
 // Binds a hardware channel to `channel_index` if it does not already have one, then queues

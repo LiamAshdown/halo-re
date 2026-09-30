@@ -19,6 +19,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t directsound_deferred_dirty; // 0x00746132
 extern void *directsound_listener;          // 0x00746114, IDirectSound3DListener *
@@ -34,7 +35,7 @@ extern int16_t hud_text_draw_background_mode; // 0x006e4748 (src/game declares i
 extern int16_t text_tab_stops;     // 0x006e474a (src/game declares it void *; a word is stored here)
 extern char k_empty_string[];               // 0x0065512c
 
-extern void sound_update_streaming_channels(void); // 0x546b40
+
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693
 extern uint32_t strlen(const char *string);
 extern double log10(double x);

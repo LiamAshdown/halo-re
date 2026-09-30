@@ -18,12 +18,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint32_t config_enable_stop_start; // 0x00722b58, UNSURE, see file header
 extern uint8_t sound_stopping_all; // 0x007252b7
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
-extern void sound_channel_stream_update(int16_t channel_index, uint8_t unused); // 0x5478c0, blam-cc: AX, stack
 
 // blam-cc: AX -> channel_index
 // Clears the channel's queued sources; for a weapon-fire 3D channel not mid-stop-all, keeps it

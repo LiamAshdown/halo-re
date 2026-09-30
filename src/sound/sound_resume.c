@@ -13,6 +13,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t shell_window_proc_bypass;      // 0x00721e8d
 extern uint8_t directsound_eax_enabled;       // 0x00746121
@@ -21,7 +22,7 @@ extern uint8_t sound_paused;                  // 0x00725202
 extern sound_driver *current_sound_driver;    // 0x00725208
 extern int32_t sound_time;                    // 0x0072520c
 
-extern void sound_driver_set_eax_enabled(uint8_t eax_enabled, uint8_t force); // 0x548200, blam-cc: stack, CL
+
 extern int32_t time_query_performance_counter_ms(void); // 0x449210
 
 // Re-applies the EAX setting and, if the sound engine was paused, unpauses the driver and

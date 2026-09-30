@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 extern data_array *sound_data; // 0x007252c0, "sounds" 0x200 x 0xb0

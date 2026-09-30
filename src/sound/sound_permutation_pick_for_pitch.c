@@ -14,6 +14,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 // blam-cc: AX -> pitch_range_index, ECX -> tag, stack -> target_pitch
 // Returns `pitch_range_index` unchanged if it still has loaded permutations and its bend_bounds

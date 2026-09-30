@@ -14,12 +14,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern float sound_master_gain;  // 0x007252ac
 extern uint8_t sound_enabled;    // 0x00725201
 
-extern void sound_stop_all(void); // 0x54adb0
-extern void sound_update_active_instances(void); // 0x54c900
 
 // blam-cc: stack -> gain
 // Sets the master gain slider. Crossing from audible to silent stops every sound and disables

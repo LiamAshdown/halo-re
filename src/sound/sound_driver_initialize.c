@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern int32_t shell_nosound;                 // 0x007196e4, foreign (shell)
 extern void *shell_window;                    // 0x007461c4, HWND, foreign (shell)
@@ -58,12 +59,6 @@ extern const SoundEnvironment k_default_sound_environment; // 0x0065e508
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718 -> (1,0,0)
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720 -> (0,0,1)
 
-extern void sound_directsound_probe_channel_pools(int32_t *mono3d_count, uint32_t mono3d_requested,
-    int32_t *mono_count, uint32_t mono_requested, int32_t *stereo_count, uint32_t stereo_requested,
-    int32_t *stereo44k_count, uint32_t stereo44k_requested, uint32_t pool_mask); // 0x545a30
-extern uint8_t sound_channel_create(int16_t channel_index, uint16_t type_flags); // 0x546760, blam-cc: stack, CX
-extern void sound_driver_dispose(void);       // 0x546a60
-extern void sound_listener_update(sound_listener_parameters *parameters); // 0x547070
 
 typedef int32_t (__stdcall *direct_sound_create8_proc)(void *device_guid, void **direct_sound, void *outer);
 typedef int32_t (__stdcall *directsound_set_cooperative_level_proc)(void *self, void *window, uint32_t level);

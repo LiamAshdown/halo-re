@@ -28,6 +28,7 @@
 #include "fn_hs.h"
 #include "fn_ai.h"
 #include "fn_game.h"
+#include "fn_sound.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -75,7 +76,7 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
     // objdump -d --start-address=0x45a9c0 --stop-address=0x45b050.
     // NOTE: src/hs still declares the 2-argument view of this function.
 extern void saved_game_files_initialize(void);                       // 0x53c260
-extern void game_sound_initialize(void);                              // 0x543a30
+
 extern void detail_objects_globals_allocate(void); // UNSURE module
 
 // One-time post-map-load initialization that bump-allocates every particle/effect/render-state

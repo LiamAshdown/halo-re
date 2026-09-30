@@ -22,6 +22,7 @@
 #include "render.h"
 #include "interface.h"
 #include "main.h"
+#include "fn_sound.h"
 
 extern render_view pregame_render_view; // 0x006b79e8
 
@@ -30,7 +31,7 @@ extern render_view pregame_render_view; // 0x006b79e8
 extern double tan(double x);
 extern double atan2(double y, double x);
 
-extern void sound_update(void); // 0x549810, foreign (sound module)
+
 extern void viewport_split_rect_compute(int32_t view_count, int32_t view_index,
     Rectangle2D *window, Rectangle2D *out_viewport); // 0x4c8da0, this module
 extern void render_pregame_frame(render_view *view); // 0x50c590, foreign (render module)

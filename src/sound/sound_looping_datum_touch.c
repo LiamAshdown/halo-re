@@ -15,6 +15,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t sound_initialized;   // 0x00725200
 extern uint8_t sound_enabled;       // 0x00725201
@@ -22,7 +23,6 @@ extern uint8_t sound_disabled;      // 0x007252b6
 extern data_array *looping_sound_data; // 0x00724a50
 extern uint8_t sound_update_toggle; // 0x00725214
 
-extern datum_index sound_looping_find_by_owner(int32_t owner); // 0x54e5d0 (stack argument, confirmed)
 
 // blam-cc: stack -> reference
 // While the sound system is active, finds the looping_sound datum whose stored reference matches

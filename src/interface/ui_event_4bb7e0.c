@@ -22,11 +22,12 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_sound.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
 extern float sound_master_gain; // 0x007252ac
-extern void sound_set_master_gain(float gain); // 0x548590
+
 extern rasterizer_display_mode ui_video_requested_display_mode_006b7010; // 0x006b7010, UNSURE name (the video options screen's pick)
 extern uint8_t unknown_006894ba; // 0x006894ba
 extern int32_t game_time_force_single_tick; // 0x007196d8

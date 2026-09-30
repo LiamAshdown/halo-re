@@ -22,6 +22,7 @@
 #include "cache.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t sound_paused;        // 0x00725202
 extern uint8_t sound_initialized;   // 0x00725200
@@ -35,10 +36,9 @@ extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, outside this module: QueryPerformanceCounter * 1000 / frequency, i.e. the same millisecond clock as sound_update_clock (checked in the phase-4 review)
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, blam-cc: DX, EDI
-extern void sound_schedule_gain_fade(datum_index fade_in_handle, int16_t fade_curve, float duration_seconds,
-    datum_index fade_out_handle); // 0x54af60, blam-cc: EBX, stack
+
 extern void sound_idle_update(void); // 0x549960
-extern void sound_stop_all(void); // 0x54adb0
+
 extern void data_delete_all(data_array *array); // 0x4d0580
 
 static int32_t sound_fade_now_ms(void)

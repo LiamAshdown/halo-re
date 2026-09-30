@@ -26,6 +26,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern int16_t sound_channel_count;   // 0x007252b4
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
@@ -40,11 +41,10 @@ extern const real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern const real_vector3d *global_forward3d_pointer;   // 0x00696718
 extern const real_point3d *global_origin3d_pointer;    // 0x00696714
 
-extern float sound_evaluate_fade_gain(datum_index sound_handle); // this module, 0x54e3c0
+
 extern void sound_instance_stop(datum_index sound_handle); // this module, 0x54b180
-extern void sound_update_instance_gain(int16_t channel_index, float gain); // this module, 0x54c750
-extern void sound_update_looping_gain(int16_t channel_index, float gain); // this module, 0x54deb0
-extern uint8_t sound_location_object_marker(datum_index owner, void *callback_data, sound_location *location); // 0x5448c0
+
+
 extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point); // 0x4cbf80, math module
 extern void matrix4x3_inverse_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m); // 0x4cc080, math module
 extern void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cc010, math module

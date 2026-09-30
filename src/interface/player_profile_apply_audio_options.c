@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_sound.h"
 
 extern int32_t safe_mode; // 0x007196f4
 
@@ -27,9 +28,7 @@ extern uint8_t directsound_eax_available; // 0x00746120, UNSURE
 extern uint16_t sound_permutation_limit;       // 0x007252b8, UNSURE
 
 extern void sound_driver_set_quality(int32_t enabled, uint8_t flag_b7b, uint8_t value_b7d); // 0x5480f0, UNSURE
-extern void sound_set_master_gain(float gain);          // 0x548590, UNSURE: first of three gain setters
-extern void sound_set_music_gain(float gain);   // 0x548680
-extern void sound_set_effects_gain(float gain); // 0x5487b0
+
 
 // blam-cc: ESI -> settings
 // Applies the profile's audio settings: three 0..10 volume sliders (settings+0xb78..0xb7a,

@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 // blam-cc: ESI -> file, EAX -> whence, stack -> (offset_low, offset_high)
 // fseek-style SEEK_SET(0)/SEEK_CUR(1)/SEEK_END(2) position update on a bounds-checked in-memory

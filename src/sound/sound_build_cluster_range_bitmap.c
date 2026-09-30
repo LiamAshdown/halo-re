@@ -24,6 +24,7 @@
 #include "game.h"
 #include "camera.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words]; // 0x00746160

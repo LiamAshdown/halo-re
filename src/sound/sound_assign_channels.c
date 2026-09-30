@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;       // 0x007252c0, "sounds" 0x200 x 0xb0
 extern int32_t sound_time;           // 0x0072520c
@@ -25,8 +26,7 @@ extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d06
 extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wait_until_loaded,
     void *permutation); // 0x443e10, cache module, blam-cc: stack, stack, BL, EDI
 extern void sound_instance_stop(datum_index sound_handle); // this module, 0x54b180
-extern int16_t sound_pick_channel_for_instance(datum_index sound_handle); // this module, 0x54c2f0
-extern uint8_t sound_looping_detail_location_proc(datum_index owner, void *callback_data, sound_location *location); // this module, 0x54dc70
+
 
 // Per-update pass over every live sound whose start_time has arrived: if its permutation is not
 // yet resident in the sound cache, either leaves it waiting (retried next pass) or, for classes

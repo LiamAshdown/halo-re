@@ -17,15 +17,14 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern char k_empty_string[];               // 0x0065512c
 
 extern void sound_looping_stop(datum_index looping_definition); // 0x544120, blam-cc: EAX
-extern void game_sound_stop_loops_conflicting_with_music(void); // 0x544c70
-extern datum_index looping_sound_new(datum_index object_index, datum_index definition_index, char *marker_name,
-    int16_t function_index); // 0x543c20, blam-cc: EAX, EDI, ECX, stack
+
 
 // blam-cc: EAX -> definition_index, stack -> (object_index, scale)
 // hs sound_looping_start: (re)starts the scripted instance of a looping sound, optionally on an

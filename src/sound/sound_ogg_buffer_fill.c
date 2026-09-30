@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -29,9 +30,6 @@ extern int32_t sound_cache_size_megabytes;  // 0x006869c4
 extern char error_text_buffer[];            // 0x006e35c8
 extern int32_t sound_ogg_underrun_count;    // 0x00721f14
 
-extern uint8_t sound_ogg_stream_open(sound_stream_decoder *decoder, void *data, int32_t size); // 0x544eb0
-extern int32_t sound_ogg_stream_read(sound_stream_decoder *decoder, char *buffer, int32_t size,
-    char *want_crosslap); // 0x5451d0
 
 // blam-cc: stack -> (permutation, destination, requested_size, want_crosslap), ECX -> decoder,
 // EAX -> bytes_filled_out

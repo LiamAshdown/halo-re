@@ -21,13 +21,14 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0
 extern tag_instance *tag_instances;         // 0x0087bc14
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630
     // memory module; blam-cc: DX -> after_index, EDI -> array
-extern uint32_t sound_looping_definition_has_music_loop(datum_index looping_definition); // 0x544c10
+
 
 // For every live, not-object-bound game_looping_sound datum whose definition has a music-class
 // loop track, detaches its definition's currently scripted instance and marks that instance

@@ -23,6 +23,7 @@
 #include "ai.h"
 #include "fn_hs.h"
 #include "fn_game.h"
+#include "fn_sound.h"
 
 extern void *recorded_animations; // 0x006b0a10, TYPES-GAP (data_array*)
 extern uint32_t rasterizer_globals_data; // TYPES-GAP
@@ -64,8 +65,8 @@ extern void particle_systems_delete_all(void);              // UNSURE module
 extern void cache_flush(cache *self); // 0x4d17f0, blam-cc: ESI -> self (src/memory/cache_flush.c)                  // 0x4d17f0, memory module
 extern void objects_flush_dirty_state(void);     // 0x4f4cc0
 extern void font_glyph_cache_clear_all(void);     // 0x514cb0
-extern void game_sound_revert_scripting_sounds(void);                 // 0x543a90
-extern void sound_fade_out_and_stop_all(void);                     // UNSURE module
+
+
 extern void widget_close_all(void);                  // 0x498650
 
 // Shuts down the currently running game (frees scripts, flushes caches, reverts modded state)

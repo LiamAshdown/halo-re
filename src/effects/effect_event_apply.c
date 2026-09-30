@@ -50,6 +50,7 @@
 #include "sound.h"
 #include "units.h"
 #include "game.h"
+#include "fn_sound.h"
 
 extern random_seed random_seed_global;               // 0x00719cd0
 extern random_seed effect_random_seed;                // 0x00719cd4
@@ -78,8 +79,7 @@ extern void decal_spawn_for_response(datum_index response_tag_index, uint8_t det
     real_vector3d *direction, real radius, int32_t marker_index); // 0x44ece0, ESI, BL, ECX, stack
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement,
-    float scale); // 0x543d80, EDX, EAX, stack
+
 
 static int32_t effect_event_apply_marker_index(effect_location_marker *marker)
 {

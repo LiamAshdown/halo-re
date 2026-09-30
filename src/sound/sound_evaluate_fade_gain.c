@@ -13,6 +13,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;          // 0x007252c0, "sounds" 0x200 x 0xb0
 extern int32_t sound_time;              // 0x0072520c

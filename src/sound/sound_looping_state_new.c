@@ -18,6 +18,7 @@
 #include "math.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t sound_initialized;  // 0x00725200
 extern uint8_t sound_enabled;      // 0x00725201

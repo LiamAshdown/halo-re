@@ -18,11 +18,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 
-extern void sound_channel_bind_hardware(int16_t logical_channel_index); // 0x5482e0, blam-cc: stack
-extern void sound_channel_stream_update(int16_t channel_index, uint8_t unused); // 0x5478c0, blam-cc: AX, stack
 
 // blam-cc: stack -> (channel_index, unused, sound_class)
 // Binds a hardware channel to `channel_index` if it does not already have one, then refreshes

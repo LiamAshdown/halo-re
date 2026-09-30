@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_sound.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void sound_class_set_muted_by_name(uint8_t enabled, char *name); // 0x545420, blam-cc: BL, stack
 
 void hs_evaluate_debug_sounds_enable(int16_t function_index, uint32_t thread_index, char first)
 {

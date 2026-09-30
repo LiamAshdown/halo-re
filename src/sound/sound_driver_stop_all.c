@@ -17,11 +17,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern int16_t directsound_channel_count;   // 0x00725428
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
-extern void sound_channel_reset(int16_t channel_index); // 0x547f60, blam-cc: AX
 
 // blam-cc: void
 // Resets every hardware DirectSound channel (stopping its buffer and clearing its queued

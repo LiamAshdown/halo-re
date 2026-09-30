@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;            // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances;       // 0x0087bc14
@@ -39,7 +40,7 @@ extern void sound_permutation_release_page(SoundPermutation *permutation); // 0x
 extern void cache_evict_entry(datum_index handle, struct cache *self);    // 0x4d1c20, memory module
 extern void *datum_get(datum_index handle, data_array *array);            // 0x4d0680, memory module
 extern void datum_delete(data_array *array, datum_index handle);          // 0x4d0510, memory module
-extern void sound_channel_release_permutations(int16_t channel_index);    // 0x54d0d0
+
 
 // Releases the page-cache reference of every resident, unlocked permutation across every pitch
 // range of the sound tag `tag_id`. Used to reclaim memory once the last sound using a looping

@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;         // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -34,20 +35,10 @@ extern uint8_t sound_idle_update_active; // 0x00725203
 extern sound_channel_parameters_proc sound_channel_parameters_proc_ptr; // 0x006e36cc
 extern sound_driver *current_sound_driver; // 0x00725208, header calls this "sound_driver"
 
-extern float sound_compute_class_gain(SoundClass_t sound_class); // this module, 0x54b100
+
 extern void sound_instance_stop(datum_index sound_handle); // this module, 0x54b180
-extern void sound_channel_set_next_permutation(int16_t channel_index, SoundPermutation *permutation,
-    int16_t unknown, int16_t sound_class, uint8_t streaming); // this module, 0x54cd30
-extern int16_t sound_channel_release_detail_buffers(int16_t channel_index); // this module, 0x54d020
-extern datum_index sound_looping_create_detail_sound(datum_index owner, datum_index definition_index,
-    int16_t track_index, int16_t play_state); // this module, 0x54d9f0
-extern void sound_schedule_gain_fade(datum_index fade_in_handle, int16_t fade_curve, float duration_seconds,
-    datum_index fade_out_handle); // this module, 0x54af60
-extern float sound_clamp_gain_by_ratio(float gain, float compare, float ratio); // this module, 0x54e660
-extern void sound_instance_apply_pending_definition_switch(datum_index sound_handle); // this module, 0x54ddc0
-extern int16_t sound_permutation_pick_for_pitch(int16_t pitch_range_index, Sound *tag, float target_pitch); // 0x5454a0, other half of this module
-extern int16_t sound_permutation_pick_random(int16_t pitch_range_index, int16_t explicit_permutation_index,
-    Sound *tag); // 0x545590, other half of this module
+
+
 extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wait_until_loaded,
     void *permutation); // 0x443e10, cache module
 

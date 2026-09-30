@@ -39,6 +39,7 @@
 #include "game.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_sound.h"
 #include <string.h>
 
 // TYPES-GAP: mirrors types/units.h unit_speech (0x30 bytes) but names the tail three fields
@@ -50,8 +51,7 @@ extern Scenario *global_scenario;        // 0x00746f8c
 extern game_time_globals *game_time;     // 0x006f1d6c
 extern int32_t ai_communication_quiet_until_tick; // 0x00725204
 
-extern void sound_impulse_start(datum_index object_index, datum_index definition_index, float scale); // 0x543e10, EAX, ECX, stack
-extern int32_t sound_impulse_time(datum_index sound_tag_handle); // 0x543fc0, ECX
+
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority,
     uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value); // 0x560d00, EAX, DL, stack
 extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode); // 0x560f20, EAX, ECX, DX

@@ -13,13 +13,14 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_sound.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
 extern int16_t sound_supplementary_buffers_00746122; // 0x00746122, UNSURE name
 extern uint8_t directsound_eax_enabled; // 0x00746121
-extern void sound_driver_set_eax_enabled(uint8_t eax_enabled, uint8_t force); // 0x548200, blam-cc: stack, CL
+
 
 void hs_evaluate_sound_set_supplementary_buffers(int16_t function_index, uint32_t thread_index, char first)
 {

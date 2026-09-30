@@ -16,12 +16,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t directsound_paused;          // 0x00746118
 extern int16_t directsound_channel_count;   // 0x00725428
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
-extern void sound_channel_stream_update(int16_t channel_index, uint8_t unused); // 0x5478c0, blam-cc: AX, stack
 
 // blam-cc: stack -> paused
 // Only acts when the paused state actually changes. Going from paused to unpaused, every

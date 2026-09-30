@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern tag_instance *tag_instances;                    // 0x0087bc14
 extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; // 0x0069eae0

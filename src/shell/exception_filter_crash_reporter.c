@@ -45,6 +45,7 @@
 #include <string.h>
 #include "interface.h"
 #include "fn_rasterizer.h"
+#include "fn_sound.h"
 
 #if defined(_MSC_VER)
 #define CRASH_TRY __try
@@ -55,7 +56,6 @@
 #endif
 
 
-extern void sound_stop_all(void);                                              // 0x54adb0 (sound)
 extern int32_t __stdcall dialog_center_on_screen(void *hwnd, uint32_t message, uint32_t wparam,
                                                  int32_t lparam);              // 0x542f00
 

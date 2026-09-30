@@ -20,12 +20,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 
-extern void sound_channel_bind_hardware(int16_t logical_channel_index); // 0x5482e0, blam-cc: stack
-extern void sound_channel_set_spatial(int16_t channel_index, uint8_t spatialized, sound_channel_spatial *spatial,
-    float obstruction, float occlusion, uint8_t underwater, int16_t sound_class); // 0x5472d0,
+
     // blam-cc: stack -> (channel_index, obstruction, occlusion, underwater, sound_class),
     // BL -> spatialized, EDI -> spatial
 

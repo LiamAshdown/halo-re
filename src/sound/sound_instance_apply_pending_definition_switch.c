@@ -14,16 +14,13 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;      // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 
-extern int16_t sound_permutation_pick_for_pitch(int16_t pitch_range_index, Sound *tag, float target_pitch); // 0x5454a0, other half of this module
-extern int16_t sound_permutation_pick_random(int16_t pitch_range_index, int16_t explicit_permutation_index,
-    Sound *tag); // 0x545590, other half of this module
-extern void sound_build_channel_candidates(sound_channel_candidate_list *out, datum_index sound_handle); // this module, 0x54c1d0
-extern int16_t sound_pick_replaceable_channel(datum_index sound_handle, int16_t *candidate_channels, int16_t count); // this module, 0x54c5e0
+
 extern void sound_instance_stop(datum_index sound_handle); // this module, 0x54b180
 
 // blam-cc: EBX -> sound_handle

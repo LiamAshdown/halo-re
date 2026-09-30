@@ -20,6 +20,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430 (the loop walks &[i].buffer, 0x00725aa0)
 extern int16_t directsound_channel_count;   // 0x00725428

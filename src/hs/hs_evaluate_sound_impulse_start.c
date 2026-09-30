@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_sound.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void sound_impulse_start(datum_index object_index, datum_index definition_index, float scale); // 0x543e10, EAX, ECX, stack
 
 void hs_evaluate_sound_impulse_start(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -22,6 +22,7 @@
 #include "cache.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -35,8 +36,8 @@ extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d06
 extern void datum_delete(data_array *array, datum_index handle);       // 0x4d0510, memory module
 extern void cache_evict_entry(datum_index handle, struct cache *self); // 0x4d1c20, memory module
 extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170, math module
-extern void sound_random_detail_direction(SoundLoopingDetail *detail, real_vector3d *out); // this module, 0x54e4d0
-extern uint8_t sound_looping_detail_location_proc(datum_index owner, void *callback_data, sound_location *location); // this module, 0x54dc70
+
+
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,
     sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); // 0x549af0
 

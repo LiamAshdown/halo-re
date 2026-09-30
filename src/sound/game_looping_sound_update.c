@@ -24,6 +24,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *game_looping_sound_data;        // 0x007461a0
 extern tag_instance *tag_instances;                 // 0x0087bc14
@@ -35,8 +36,7 @@ extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
     real_vector3d *out_angular_velocity); // 0x4f6aa0, blam-cc: EAX -> object_index, ESI -> out_velocity, EDI -> out_angular_velocity
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array, EDX -> handle
-extern uint8_t sound_looping_set_state(int32_t owner, datum_index definition_index,
-    sound_location *location, int16_t state, uint8_t alternate, float fade_duration); // 0x549fa0, blam-cc: EAX, ECX, stack
+
 
 // blam-cc: stack -> (looping_sound_index, root_location)
 // Per-tick update of one game_looping_sound datum: reads its gain (object function value or

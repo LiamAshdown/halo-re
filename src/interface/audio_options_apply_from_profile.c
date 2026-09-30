@@ -23,13 +23,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_sound.h"
 
 extern int32_t selected_saved_item;   // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
 
-extern void sound_set_master_gain(float gain); // 0x548590, UNSURE: presumably a sound_set_*_gain sibling
-extern void sound_set_music_gain(float gain);   // 0x548680
-extern void sound_set_effects_gain(float gain); // 0x5487b0
 
 static widget_instance *find_row_control(widget_instance *row)
 {

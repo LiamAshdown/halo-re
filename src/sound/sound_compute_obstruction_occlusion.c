@@ -25,6 +25,7 @@
 #include "projectiles.h"
 #include "camera.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern observer observers[1];                            // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17)

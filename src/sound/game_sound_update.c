@@ -28,6 +28,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *game_looping_sound_data;        // 0x007461a0
 extern game_sound_globals *game_sound_globals_ptr;  // 0x007461a4
@@ -40,10 +41,7 @@ extern int64_t performance_frequency;               // 0x006ac8f8/0x006ac8fc, se
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
-extern void game_looping_sound_touch_if_valid(datum_index looping_sound_index); // 0x544290
-extern void game_looping_sound_update(datum_index looping_sound_index, int32_t *root_location); // 0x544330
-extern datum_index sound_looping_start_ambient(datum_index object_index, datum_index definition_index, float scale); // 0x544250, blam-cc: EAX, EDX, stack
-extern void sound_build_cluster_range_bitmap(void); // 0x544980
+
 
 extern void sound_environment_update(int32_t *background_tag_and_leaf, SoundEnvironment **environment,
     uint8_t *valid); // 0x53f150, UNSURE signature (outside this module), see file header

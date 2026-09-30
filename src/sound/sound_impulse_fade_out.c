@@ -14,11 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data; // 0x007252c0
 
-extern void sound_schedule_gain_fade(datum_index fade_in_handle, int16_t fade_curve, float duration_seconds,
-    datum_index fade_out_handle); // 0x54af60, blam-cc: EBX, stack
 
 // blam-cc: ECX -> sound_index
 // Stops a one-shot sound with a 0.3 s fade-out, if the handle is still live.

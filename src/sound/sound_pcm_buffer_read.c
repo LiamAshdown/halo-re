@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 #include <string.h>
 #include <stdio.h>
 

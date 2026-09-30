@@ -27,12 +27,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;              // 0x007252c0, "sounds" 0x200 x 0xb0
 extern int32_t sound_time;                  // 0x0072520c
 extern float sound_fade_duration_scale;     // 0x00672ae8, 1000.0 (seconds -> milliseconds)
 
-extern float sound_evaluate_fade_gain(datum_index sound_handle); // 0x54e3c0
 
 // blam-cc: EBX -> fade_in_handle, stack -> (fade_curve, duration_seconds, fade_out_handle)
 // Starts a `duration_seconds`-long gain fade on up to two sound instances: `fade_in_handle`

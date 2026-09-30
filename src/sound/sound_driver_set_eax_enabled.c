@@ -15,13 +15,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t directsound_initialized;   // 0x007252e0
 extern uint8_t directsound_eax_enabled;   // 0x00746121
 extern sound_driver_parameters driver_parameters; // 0x0069f514
 extern int32_t directsound_hardware_mode; // 0x0074612c
 
-extern uint8_t sound_reopen_device(sound_driver_parameters *new_parameters); // 0x5494a0 (tail call, stack argument replaced)
 
 // blam-cc: stack -> eax_enabled, CL -> force
 // If the sound driver is initialized and either the requested EAX state differs from the current

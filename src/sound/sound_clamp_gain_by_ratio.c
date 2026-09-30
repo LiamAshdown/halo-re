@@ -9,6 +9,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_sound.h"
 
 // Clamps `gain` against `compare` scaled or divided by `ratio`: if compare < gain, clamps gain
 // down to whichever of gain/(compare*ratio) is smaller; if compare > gain, clamps gain up to

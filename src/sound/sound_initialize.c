@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t sound_initialized;  // 0x00725200
 extern uint8_t sound_enabled;      // 0x00725201
@@ -50,10 +51,6 @@ extern void sound_cache_new(void); // 0x443ca0
 extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370, blam-cc: EBX -> element_size
 extern void data_delete_all(data_array *array); // 0x4d0580
 
-extern void sound_channel_parameters_proc_default(int16_t channel_index, sound_channel_parameters *parameters,
-    uint8_t update, int16_t sound_class); // 0x54ce50, UNSURE, see file header
-extern void sound_channel_parameters_proc_eax(int16_t channel_index, sound_channel_parameters *parameters,
-    uint8_t update, int16_t sound_class); // 0x54cf80, UNSURE, see file header
 
 // Initializes the sound engine: resets state, allocates the sound cache, and (unless
 // sound_disabled) resets the four gain sliders and reverb environment to their defaults, opens

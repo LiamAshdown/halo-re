@@ -37,6 +37,7 @@
 #include "math.h"
 #include "game.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *sound_data;      // 0x007252c0
@@ -54,20 +55,17 @@ extern uint8_t *cinematic_globals_ptr;   // 0x006f187c, UNSURE (see src/game/gam
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wait_until_loaded,
     void *permutation); // 0x443e10, src/cache/sound_cache_touch.c; blam-cc: stack, stack, BL, EDI
-extern float sound_definition_maximum_distance(datum_index sound_definition); // 0x545460, src/sound/sound_definition_maximum_distance.c
-extern uint32_t sound_definition_has_audible_permutations(TagID sound_tag_id); // 0x54af10, blam-cc: EAX
+
+
     // src/sound/sound_definition_has_audible_permutations.c (outside this module's range)
-extern int16_t sound_location_check_audibility(sound_location *location, float max_distance); // 0x54bb20, blam-cc: EAX, stack
-extern int16_t sound_definition_check_promotion(TagID sound_tag_id); // 0x54b050, blam-cc: ECX
+
+
     // src/sound/sound_definition_check_promotion.c (outside this module's range)
-extern float sound_location_distance(int16_t listener_index, sound_location *location); // 0x54bc50, blam-cc: stack, ECX
+
 extern const float sound_delay_per_world_unit; // 0x0065e560, 8.964706 ms: sound travel time per world unit
-extern float sound_compute_random_pitch(float pitch_bounds_min, float pitch_bounds_max,
-    float zero_pitch_modifier, float one_pitch_modifier, float distance_scale); // 0x54aec0
+
     // src/sound/sound_compute_random_pitch.c (outside this module's range)
-extern int16_t sound_permutation_pick_for_pitch(int16_t pitch_range_index, Sound *tag, float target_pitch); // 0x5454a0
-extern int16_t sound_permutation_pick_random(int16_t pitch_range_index, int16_t explicit_permutation_index,
-    Sound *tag); // 0x545590, src/sound/sound_permutation_pick_random.c
+
 
 // blam-cc: stack -> (definition_index, location, owner_index, location_proc, callback_data,
 // callback_data_size, first_person_hint)

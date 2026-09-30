@@ -14,6 +14,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern int32_t directsound_quality;         // 0x00746128
 extern uint8_t directsound_eax_enabled;      // 0x00746121
@@ -21,7 +22,7 @@ extern uint8_t directsound_eax_available;    // 0x00746120
 extern sound_effect_object *global_sound_effect_object; // 0x00721f24
 
 extern void sound_effects_object_reinitialize(int enable); // 0x5514d0
-extern void sound_driver_set_eax_enabled(uint8_t eax_enabled, uint8_t force); // 0x548200, blam-cc: stack, CL
+
 
 // blam-cc: stack -> (unknown, eax_enabled, quality)
 // Clamps and stores the sound quality level [0, 2] (default 1), reinitializes the EAX effects

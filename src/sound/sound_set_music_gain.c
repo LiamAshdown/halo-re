@@ -14,13 +14,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 #include <string.h>
 
 extern float sound_music_gain; // 0x007252a8
 extern char *sound_class_names[k_maximum_sound_classes]; // 0x0069f3a8
 extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; // 0x0069eae0
 
-extern void sound_update_active_instances(void); // 0x54c900
 
 // blam-cc: stack -> gain
 // Sets the music-class gain slider. Crossing from audible to silent mutes every "music"-named

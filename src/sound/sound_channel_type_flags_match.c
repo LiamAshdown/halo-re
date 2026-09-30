@@ -16,6 +16,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 // blam-cc: stack -> (compressed_requested, stereo_requested, sample_rate_44khz_requested), DX ->
 // flags, stack -> requested_3d

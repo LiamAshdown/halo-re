@@ -14,6 +14,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_sound.h"
 
 // Decodes one ADPCM sample: forms a signed delta from `step` gated by the low 3 bits of
 // `selector` (bit2 adds step, bit1 adds step/2, bit0 adds step/4, always adds step/8, negated

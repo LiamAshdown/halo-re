@@ -18,14 +18,13 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;      // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t sound_channel_count; // 0x007252b4
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 
-extern float sound_location_distance_squared(int16_t listener_index, sound_location *location); // this module, 0x54bbd0
-extern uint32_t sound_compare_priority(datum_index sound_a, datum_index sound_b, float distance_a_squared); // this module, 0x54c6b0
 
 // Scans every logical channel for one whose type flags match `sound_handle`'s spatialization,
 // sample rate, channel count and format needs: returns the first free one immediately, otherwise

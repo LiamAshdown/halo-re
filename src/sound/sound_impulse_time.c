@@ -17,6 +17,7 @@
 #include "cache.h"
 #include "game.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c

@@ -42,6 +42,7 @@
 #include <string.h>
 #include "units.h"
 #include "cutscene.h"
+#include "fn_sound.h"
 
 extern int32_t player_effect_reentry_count; // 0x00719ccc, foreign (effects module)
 extern main_globals main_globals_data;      // 0x00719700
@@ -68,7 +69,7 @@ extern uint8_t unknown_00873d30;                          // TYPES-GAP, UNSURE i
 extern double tan(double x);
 extern double atan2(double y, double x);
 
-extern void sound_update(void); // 0x549810, foreign (sound module)
+
 extern void viewport_split_rect_compute(int32_t view_count, int32_t view_index,
     Rectangle2D *window, Rectangle2D *out_viewport); // 0x4c8da0, this module
 extern void render_view_camera_fill(observer_camera *observer, render_view *view); // 0x4c9050, this module

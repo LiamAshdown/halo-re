@@ -13,6 +13,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_class_gain *sound_class_gains; // 0x00746140 holds a pointer to the 51-entry table (mov eax, [0x746140])
 extern float sound_ducking_gain;  // 0x007252a4, ramps toward 0.7 while dialog plays

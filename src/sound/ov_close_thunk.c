@@ -10,6 +10,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 int32_t ov_close_thunk(sound_ogg_memory_file *file)
 {

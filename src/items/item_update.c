@@ -27,6 +27,7 @@
 #include "effects.h"
 #include "sound.h"
 #include "physics.h"
+#include "fn_sound.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -50,7 +51,7 @@ extern uint8_t collision_test_movement_segment_between_points(real_point3d *orig
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point); // 0x453330, EDX
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index,
     uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset); // 0x453490, EAX, stack, EDX, EDI
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale); // 0x543d80
+
 extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal,
     real_point3d *point); // 0x4bd5d0, EAX, ECX, stack
 extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, ECX, stack

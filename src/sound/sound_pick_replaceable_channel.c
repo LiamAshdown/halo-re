@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;      // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -23,7 +24,6 @@ extern int32_t sound_time;          // 0x0072520c
 extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; // 0x0069eae0
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 
-extern float sound_location_distance_squared(int16_t listener_index, sound_location *location); // this module, 0x54bbd0
 
 // blam-cc: EAX -> sound_handle, stack -> (candidate_channels, count)
 // Among `candidate_channels[0..count)` (channel indices), returns the first whose current sound

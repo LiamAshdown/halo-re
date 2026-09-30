@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern random_seed effect_random_seed; // 0x00719cd4
 extern const real_point3d *global_origin3d_pointer; // 0x00696714

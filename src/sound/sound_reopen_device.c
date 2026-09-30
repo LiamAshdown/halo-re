@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;              // 0x007252c0
 extern sound_driver *current_sound_driver;      // 0x00725208
@@ -28,10 +29,7 @@ extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630
 extern void sound_instance_stop(datum_index sound_index); // 0x54b180
-extern void sound_channel_parameters_proc_default(int16_t channel_index, sound_channel_parameters *parameters,
-    uint8_t update, int16_t sound_class); // 0x54ce50, src/sound/sound_initialize.c
-extern void sound_channel_parameters_proc_eax(int16_t channel_index, sound_channel_parameters *parameters,
-    uint8_t update, int16_t sound_class); // 0x54cf80, src/sound/sound_initialize.c
+
 
 // blam-cc: stack -> new_parameters
 // Stops every currently playing sound, disposes the current DirectSound device, then reinitializes

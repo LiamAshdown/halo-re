@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t sound_initialized;    // 0x00725200
 extern uint8_t sound_idle_update_active; // 0x00725203
@@ -27,8 +28,6 @@ extern sound_driver *current_sound_driver; // 0x00725208
 extern uint8_t sound_paused;         // 0x00725202
 extern struct cache *sound_cache;    // 0x006ac530
 
-extern void sound_update_clock(void); // 0x54ae60
-extern void sound_update_active_instances(void); // 0x54c900
 
 // Reentrant-guarded lightweight tick: advances the sound clock and, once per
 // k_sound_update_interval_ms while not paused, refreshes every active instance's gain between the

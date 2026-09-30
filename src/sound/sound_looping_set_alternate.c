@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0
 extern tag_instance *tag_instances;         // 0x0087bc14

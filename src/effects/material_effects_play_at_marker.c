@@ -34,6 +34,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
@@ -42,7 +43,7 @@ extern datum_index effect_new_with_color(datum_index definition_index, datum_ind
     const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position,
     uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source,
     uint8_t force_create); // 0x450980, 12 stack arguments
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
+
     // 0x543d80, EDX definition_index, EAX placement, stack scale
 
 void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type,

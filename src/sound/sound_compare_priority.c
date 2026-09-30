@@ -16,12 +16,12 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;      // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; // 0x0069eae0
 
-extern float sound_location_distance_squared(int16_t listener_index, sound_location *location); // this module, 0x54bbd0
 
 // blam-cc: EAX -> sound_a, ECX -> sound_b, stack -> distance_a_squared
 // True if sound_a's class priority is more important (lower) than sound_b's, or if they tie and

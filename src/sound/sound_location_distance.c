@@ -12,6 +12,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_listener sound_listeners[1]; // 0x00725218
 

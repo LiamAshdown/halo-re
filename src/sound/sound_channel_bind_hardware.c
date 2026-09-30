@@ -15,6 +15,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 extern int16_t directsound_first_channel_of_type[4]; // 0x00746028
@@ -22,7 +23,6 @@ extern int16_t directsound_channel_count;   // 0x00725428
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 extern uint16_t sound_channel_type_flag_table[4]; // 0x0069f528
 
-extern uint32_t sound_channel_claim_if_finished(int16_t channel_index); // 0x547ff0
 
 // blam-cc: stack -> logical_channel_index
 // If `logical_channel_index` has no hardware channel bound yet, scans forward from that channel

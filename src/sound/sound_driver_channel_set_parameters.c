@@ -20,11 +20,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 
-extern void sound_channel_bind_hardware(int16_t logical_channel_index); // 0x5482e0, blam-cc: stack
-extern void sound_channel_set_parameters(int16_t channel_index, sound_channel_parameters *parameters, uint8_t update);
+
     // 0x5475b0, blam-cc: stack -> (channel_index, update), EDI -> parameters (prototype order as in
     // src/sound/sound_channel_set_parameters.c)
 

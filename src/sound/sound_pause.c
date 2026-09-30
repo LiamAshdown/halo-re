@@ -15,11 +15,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t sound_paused;    // 0x00725202
 extern sound_driver *current_sound_driver; // 0x00725208
 
-extern void sound_stop_all(void); // 0x54adb0
+
 extern void sound_cache_release_unused(void); // 0x443fd0
 
 // Stops every playing sound, marks the sound engine paused (notifying the driver once), then

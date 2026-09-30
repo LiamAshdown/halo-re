@@ -19,16 +19,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 extern void *directsound_listener;            // 0x00746114, IDirectSound3DListener *
 extern uint8_t directsound_deferred_dirty;    // 0x00746132
 extern int32_t k_sound_sample_rates[2];       // 0x0065e4f8, { 22050, 44100 }
-
-extern uint8_t sound_channel_lock_and_fill(int16_t channel_index, uint32_t fill_size); // 0x547a00, blam-cc: BX, stack
-extern uint32_t sound_channel_refresh_cursor(int16_t channel_index); // 0x547890, blam-cc: AX
-extern void sound_channel_stream_update(int16_t channel_index, uint8_t unused); // 0x5478c0, blam-cc: AX, stack
-extern int32_t sound_channel_restore_buffer(void *buffer, uint8_t *was_restored_out); // 0x547c10, blam-cc: ESI, EBX
 
 
 // blam-cc: stack -> (channel_index, source, sound_class), CL -> crosslap

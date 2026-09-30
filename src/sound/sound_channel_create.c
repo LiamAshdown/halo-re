@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 extern void *directsound;                    // 0x0074610c, IDirectSound*
@@ -39,12 +40,10 @@ extern uint8_t iid_directsound_3d_buffer[16]; // 0x0064e21c, IID_IDirectSound3DB
 extern uint32_t ds3dalg_hrtf_full[4];        // 0x0064e1fc, DS3DALG_HRTF_FULL
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 
-extern int32_t sound_effects_object_detect_mode(int16_t channel_index, directsound_channel *channel); // 0x551270, blam-cc: EAX, EDI
+
 extern void sound_effects_object_shutdown(void);        // 0x551420
-extern int32_t sound_effects_object_initialize_channel(int16_t channel_index); // 0x551460, blam-cc: EDX
-extern void sound_channel_set_spatial(int16_t channel_index, uint8_t spatialized, sound_channel_spatial *spatial,
-    float obstruction, float occlusion, uint8_t underwater, int16_t sound_class); // 0x5472d0, blam-cc: stack, BL, EDI, stack
-extern void sound_channel_set_parameters(int16_t channel_index, sound_channel_parameters *parameters, uint8_t update);
+
+
     // 0x5475b0, blam-cc: stack, EDI, stack
 
 

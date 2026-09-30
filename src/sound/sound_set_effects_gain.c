@@ -19,13 +19,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 #include <string.h>
 
 extern float sound_effects_gain; // 0x007252b0
 extern char *sound_class_names[k_maximum_sound_classes]; // 0x0069f3a8
 extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; // 0x0069eae0
 
-extern void sound_update_active_instances(void); // 0x54c900
 
 static const char *const k_effects_class_substrings_mute[25] = {
     "sound_class_projectile_impact", "sound_class_projectile_detonation", "weapon_fire",

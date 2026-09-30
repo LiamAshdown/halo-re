@@ -26,6 +26,7 @@
 #include "game.h"
 #include "camera.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern game_time_globals *game_time;              // 0x006f1d6c
 extern player_globals *local_player_globals;       // 0x0087a478

@@ -16,11 +16,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern int16_t adpcm_index_table[16]; // 0x0065e56c
 extern int16_t adpcm_step_table[89];  // 0x0065e590
 
-extern int32_t sound_adpcm_decode_sample(uint8_t selector, int32_t prediction, uint32_t step); // 0x54e8c0
 
 static int32_t adpcm_next_index(int32_t index, uint32_t nibble)
 {

@@ -32,14 +32,14 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_sound.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern datum_index light_new_attached(datum_index light_tag, datum_index owner_object, int16_t marker_index,
     int16_t marker_index_secondary, int16_t change_color_index); // 0x4f0af0, all on the stack
-extern datum_index looping_sound_new(datum_index object_index, datum_index definition_index, char *marker_name,
-    int16_t function_index); // 0x543c20, blam-cc: EAX, EDI, ECX, stack
+
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index,
     int16_t change_color_index, int16_t u, int16_t v); // 0x4506d0, blam-cc: EAX, EDX, CX, stack (u, v)
 extern datum_index contrail_new(int16_t attachment_index, datum_index object_index, datum_index definition_index);

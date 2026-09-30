@@ -28,6 +28,7 @@
 #include "sound.h"
 #include "interface.h"
 #include "main.h"
+#include "fn_sound.h"
 
 extern uint8_t sound_disabled;       // 0x007252b6
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -43,13 +44,7 @@ extern uint8_t sound_update_toggle;  // 0x00725214
 extern struct cache *sound_cache;    // 0x006ac530
 
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, outside this module: QueryPerformanceCounter * 1000 / frequency, i.e. the same millisecond clock as sound_update_clock (checked in the phase-4 review)
-extern void sound_class_update_gain_fade(int32_t ticks); // 0x545330
-extern void sound_update_clock(void); // 0x54ae60
-extern void sound_update_listener(void); // 0x54b970
-extern void sound_update_range_and_ducking(void); // 0x54bd60
-extern void sound_assign_channels(void); // 0x54c020
-extern void sound_update_active_instances(void); // 0x54c900
-extern void sound_update_looping_states(void); // 0x54d270
+
 
 // Per-tick sound engine update: syncs sound_paused to the game-pause/focus state (telling the
 // driver and, on resume, reseeding sound_time), then -- when initialized/enabled and at least

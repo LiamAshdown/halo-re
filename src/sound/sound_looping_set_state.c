@@ -25,6 +25,7 @@
 #include "math.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t sound_initialized;   // 0x00725200
 extern uint8_t sound_enabled;       // 0x00725201
@@ -40,17 +41,7 @@ extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 extern void cache_evict_entry(datum_index handle, struct cache *self); // 0x4d1c20
 extern void player_effect_apply_at_object(uint32_t tag_reference, int16_t local_player_index,
     real_point3d *origin); // 0x456900, effects module; see note at the call
-extern void sound_looping_check_audibility_gate(datum_index definition_index, sound_location *location); // 0x54e740
-extern datum_index sound_looping_find_by_owner(int32_t owner); // 0x54e5d0
-extern datum_index sound_looping_state_new(datum_index definition_index, int32_t owner,
-    sound_location *location); // 0x54d140
-extern datum_index sound_looping_create_detail_sound(datum_index owner, datum_index definition_index,
-    int16_t track_index, int16_t play_state); // 0x54d9f0
-extern void sound_schedule_gain_fade(datum_index fade_in_handle, int16_t fade_curve, float duration_seconds,
-    datum_index fade_out_handle); // 0x54af60
-extern void sound_instance_queue_definition_switch(datum_index sound_handle,
-    datum_index new_definition_index); // 0x54dd90
-extern int16_t sound_location_check_audibility(sound_location *location, float max_distance); // 0x54bb20
+
 
 // Evicts every cached, unlocked permutation sample block of one Sound tag and clears the
 // permutation's runtime cache words (samples_pointer = cache datum, _pad_30 = sample pointer).

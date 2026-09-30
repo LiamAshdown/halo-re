@@ -19,6 +19,7 @@
 #include "cache.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -30,11 +31,7 @@ extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint
     void *permutation); // 0x443e10, cache module
 extern real random_range_real(real minimum, real maximum); // 0x444af0, math module
 extern datum_index datum_new(data_array *array); // 0x4d0480, memory module
-extern int16_t sound_permutation_pick_for_pitch(int16_t pitch_range_index, Sound *tag, float target_pitch); // 0x5454a0, other half of this module
-extern int16_t sound_permutation_pick_random(int16_t pitch_range_index, int16_t explicit_permutation_index,
-    Sound *tag); // 0x545590, other half of this module
-extern int16_t sound_location_check_audibility(sound_location *location, float max_distance); // this module, 0x54bb20
-extern uint8_t sound_looping_track_location_proc(datum_index owner, void *callback_data, sound_location *location); // 0x54dc10
+
 
 // Creates a new one-shot detail sound for `definition_index`, owned by looping_sound `owner`,
 // starting at `track_index`/`play_state`. Returns k_datum_index_none if the definition has no

@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;      // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -27,8 +28,6 @@ extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; 
 extern int16_t sound_channel_count; // 0x007252b4
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 
-extern uint8_t sound_channel_type_flags_match(int16_t compressed_requested, int16_t stereo_requested,
-    uint16_t sample_rate_44khz_requested, uint16_t flags, int16_t requested_3d); // 0x548520, blam-cc: stack x3, DX, stack
 
 // blam-cc: ESI -> out, stack -> sound_handle
 // Scans every logical playback channel for ones playing the exact same sound tag as

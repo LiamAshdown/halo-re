@@ -22,9 +22,8 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 #include <stdio.h>
-
-extern void sound_ogg_error_to_string(int32_t vorbis_error_code); // 0x544f70
 
 
 // blam-cc: EDI -> decoder, stack -> (buffer, size, want_crosslap)

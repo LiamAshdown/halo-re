@@ -14,11 +14,12 @@
 #include "units.h"
 #include "cutscene.h"
 #include "fn_hs.h"
+#include "fn_sound.h"
 
 
 extern float cinematic_saved_music_gain; // 0x00686b60
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
-extern void sound_set_music_gain(float gain); // 0x548680
+
 
 void hs_evaluate_cinematic_skip_stop_internal(int16_t function_index, uint32_t thread_index, char first)
 {

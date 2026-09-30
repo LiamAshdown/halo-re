@@ -18,7 +18,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
-
+#include "fn_sound.h"
 
 
 // blam-cc: ESI -> buffer, EBX -> was_restored_out

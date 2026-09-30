@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_driver *current_sound_driver;  // 0x00725208, header calls this "sound_driver"
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60

@@ -28,6 +28,7 @@
 #include "sound.h"
 #include "physics.h"
 #include "fn_game.h"
+#include "fn_sound.h"
 #include <string.h>
 
 extern data_array *object_data;        // 0x008603b0
@@ -54,10 +55,10 @@ extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
 extern real vector3d_magnitude_squared(real_vector3d *v); // 0x401000, EAX
-extern float sound_definition_maximum_distance(datum_index sound_definition); // 0x545460, EAX
+
 extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v,
     real_vector3d *perp_out); // 0x4cda90, ECX, EDX, ESI, EDI
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale); // 0x543d80, EDX, EAX, stack
+
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0, EAX, ECX, stack
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, EAX, ECX, stack

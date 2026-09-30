@@ -10,6 +10,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 

@@ -20,11 +20,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern int16_t directsound_first_channel_of_type[4]; // 0x00746028
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
-extern void sound_channel_stream_update(int16_t channel_index, uint8_t unused); // 0x5478c0, blam-cc: AX, stack
 
 // Runs the streaming buffer-fill update (sound_channel_stream_update) for every channel of type 0
 // currently marked as streaming (the mono 3D block: the only channels whose reset keeps them

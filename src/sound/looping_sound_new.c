@@ -28,6 +28,7 @@
 #include "math.h"
 #include "objects.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0
 

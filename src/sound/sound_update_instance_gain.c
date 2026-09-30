@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;         // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -27,9 +28,6 @@ extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; 
 extern sound_channel_parameters_proc sound_channel_parameters_proc_ptr; // 0x006e36cc
 extern sound_driver *current_sound_driver; // 0x00725208, header calls this "sound_driver"
 
-extern float sound_compute_class_gain(SoundClass_t sound_class); // this module, 0x54b100
-extern void sound_channel_set_next_permutation(int16_t channel_index, SoundPermutation *permutation,
-    int16_t unknown, int16_t sound_class, uint8_t streaming); // this module, 0x54cd30
 
 // blam-cc: stack -> (channel_index, external_gain_multiplier)
 // Computes and applies the current gain (and, the first time this channel is assigned, the full

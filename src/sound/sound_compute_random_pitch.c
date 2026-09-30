@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern random_seed effect_random_seed; // 0x00719cd4
 

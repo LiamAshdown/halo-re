@@ -19,10 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_sound.h"
 
-extern void sound_set_master_gain(float gain); // 0x548590, UNSURE: presumably a sound_set_*_gain sibling, not in this module's range
-extern void sound_set_effects_gain(float gain); // 0x5487b0
-extern void sound_set_music_gain(float gain);   // 0x548680
+
 extern void widget_extended_description_sync_selection(widget_instance *widget); // 0x4a66b0
 
 // Finds the first spinner_list embedded under `row`'s children and returns its selection_index

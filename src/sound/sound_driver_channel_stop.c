@@ -15,11 +15,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
-extern void sound_channel_reset(int16_t channel_index); // 0x547f60, blam-cc: AX
 
 // blam-cc: stack -> channel_index
 // If `channel_index` has a bound hardware channel, resets that hardware channel and clears the

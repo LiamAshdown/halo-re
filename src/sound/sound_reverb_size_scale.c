@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_sound.h"
 
 // Maps SoundEnvironment +0x34 onto the value written to EAX 3.0 listener property 0x16
 // (HF reference): 1000 at or below 20, 20000 at or above 20000, 5000 kept exactly, otherwise

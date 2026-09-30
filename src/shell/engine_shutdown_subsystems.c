@@ -17,6 +17,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "fn_sound.h"
 
 extern uint32_t global_scenario_index;   // hs.h: datum_index global_scenario_index, -1 = none
 extern uint16_t global_structure_bsp_index;   // physics.h/items.h: int16_t structure bsp index
@@ -39,7 +40,7 @@ extern void data_file_close(void);                        // 0x00442a50
 extern void input_directinput_release_devices(void);      // 0x00490580
 extern void periodic_function_tables_free(void);          // 0x004cc960
 extern void rasterizer_shutdown(void);                    // 0x00518450
-extern void sound_dispose(void);                           // 0x00549760
+
 
 // Tears down the engine subsystems started by engine_initialize_subsystems: unloads the cache
 // file, shuts down the rasterizer, disposes sound, and releases assorted global buffers.

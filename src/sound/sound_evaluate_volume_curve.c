@@ -12,6 +12,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpow
 

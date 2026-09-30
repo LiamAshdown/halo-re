@@ -26,6 +26,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 static float sound_channel_set_spatial_fabsf(float x) { return (x < 0.0f) ? -x : x; }
 

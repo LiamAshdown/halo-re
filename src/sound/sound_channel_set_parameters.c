@@ -25,6 +25,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern float directsound_fade; // 0x0074611c
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
@@ -35,7 +36,7 @@ extern sound_effect_object *global_sound_effect_object; // 0x00721f24
 
 extern double log10(double x); // see src/sound/sound_linear_gain_to_attenuation.c
 extern int32_t k_sound_sample_rates[2]; // 0x0065e4f8, { 22050, 44100 }
-extern int32_t sound_linear_gain_to_attenuation(float gain, int32_t maximum); // 0x545710
+
 
 static float sound_linear_gain_to_attenuation_fabs(float x) { return (x < 0.0f) ? -x : x; }
 

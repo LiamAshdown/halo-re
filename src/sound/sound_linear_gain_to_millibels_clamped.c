@@ -16,6 +16,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_sound.h"
 
 extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-call
 

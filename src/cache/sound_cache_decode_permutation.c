@@ -22,6 +22,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#include "fn_sound.h"
 
 extern int32_t sound_decode_buffer_size; // 0x006f17f0
 extern void *sound_decode_buffer;        // 0x006f17ec
@@ -31,8 +32,7 @@ extern void *sound_decode_buffer;        // 0x006f17ec
 // permutation->samples's first field (structurally TagDataOffset::size), not the struct's
 // address -- Ghidra shows `*(undefined4 *)(in_EAX + 0x40)`, a value read, not a pointer.
 extern tag_instance *tag_instances; // 0x0087bc14
-extern int32_t sound_decode_dispatch(int16_t channel_count, void *destination, void *source,
-                                     int32_t source_size); // 0x54e830; ECX channels, EBX destination, stack (source, size)
+
 
 // blam-cc: SoundPermutation pointer in EAX (in_EAX)
 // If the permutation's format is 1 (xbox_adpcm is the one format the cache_io_completion

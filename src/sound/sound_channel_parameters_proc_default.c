@@ -18,14 +18,15 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 extern data_array *sound_data; // 0x007252c0, "sounds" 0x200 x 0xb0
 extern sound_driver *current_sound_driver; // 0x00725208
 
-extern int32_t sound_linear_gain_to_millibels_clamped(int32_t minimum, float gain, int32_t bias_and_maximum);
+
     // 0x54cda0, blam-cc: ESI -> minimum, stack -> (gain, bias_and_maximum)
-extern float sound_evaluate_volume_curve(int32_t attenuation, int32_t minimum, int32_t maximum); // 0x54cdf0
+
 
 void sound_channel_parameters_proc_default(int16_t channel_index, sound_channel_parameters *parameters,
     uint8_t update, int16_t sound_class)

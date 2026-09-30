@@ -15,12 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern sound_listener sound_listeners[1]; // 0x00725218
 
-extern float sound_location_distance_squared(int16_t listener_index, sound_location *location); // this module, 0x54bbd0
-extern void sound_compute_obstruction_occlusion(sound_location *location, int16_t listener_index,
-    float reference_distance); // 0x544aa0, blam-cc: EBX -> location, AX -> listener_index, stack
 
 extern double sqrt(double x); // FSQRT, Ghidra's SQRT() pseudo-function
 

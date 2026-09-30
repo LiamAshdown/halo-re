@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern data_array *sound_data;          // 0x007252c0
 extern data_array *looping_sound_data;  // 0x00724a50

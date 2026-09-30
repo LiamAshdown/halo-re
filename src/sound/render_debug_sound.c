@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t debug_sound;         // 0x00724a4d
 extern data_array *sound_data;      // 0x007252c0, "sounds" 0x200 x 0xb0

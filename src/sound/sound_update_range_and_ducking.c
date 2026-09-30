@@ -18,6 +18,7 @@
 #include "cache.h"
 #include "game.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *sound_data;               // 0x007252c0, "sounds" 0x200 x 0xb0
@@ -29,13 +30,10 @@ extern float sound_ducking_gain;             // 0x007252a4
 extern float sound_time_delta;               // 0x00725210
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
-extern int16_t sound_channel_release_detail_buffers(int16_t channel_index); // this module, 0x54d020
-extern uint32_t sound_instance_invoke_location_proc(datum_index sound_handle); // this module, 0x54bcd0
+
+
 extern void sound_instance_stop(datum_index sound_handle); // this module, 0x54b180
-extern int16_t sound_location_check_audibility(sound_location *location, float max_distance); // this module, 0x54bb20
-extern void render_debug_sound(datum_index sound_handle); // this module, 0x54e6d0
-extern void sound_schedule_gain_fade(datum_index fade_in_handle, int16_t fade_curve, float duration_seconds,
-    datum_index fade_out_handle); // this module, 0x54af60
+
 
 // Per-update pass over every live sound: stops any whose channel/location proc has failed,
 // range-checks it against a listener and fades it in or out of audible range, and (for scripted

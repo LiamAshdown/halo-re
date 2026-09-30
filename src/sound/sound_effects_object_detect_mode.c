@@ -22,6 +22,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern uint8_t directsound_eax_enabled;   // 0x00746121
 extern uint8_t directsound_eax_available; // 0x00746120

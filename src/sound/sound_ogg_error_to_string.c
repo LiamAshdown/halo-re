@@ -20,6 +20,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 #include <stdio.h>
 
 // blam-cc: stack -> vorbis_error_code

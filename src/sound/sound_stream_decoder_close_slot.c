@@ -21,6 +21,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 
 static void sound_stream_decoder_clear_ogg_vorbis_file(void *vorbis_file)

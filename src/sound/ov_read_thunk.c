@@ -12,6 +12,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#include "fn_sound.h"
 
 extern void *memcpy(void *destination, const void *source, uint32_t size); // 0x6236f0
 
