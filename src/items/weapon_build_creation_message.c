@@ -34,7 +34,8 @@ extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, mem
     //   4bbcbf: add esi,0xc                     ; ESI = root + 0x0c, the hash_table itself
     //   4bbcc2: call 0x4f05e0                   ; ECX = the datum_index being hashed
     // -- which matches the canonical declaration src/memory already uses for this symbol.
-extern int32_t network_index_cache_find_or_allocate_slot(uint32_t key); // 0x4e9c20, outside this module; opaque
+extern uint8_t network_object_index_cache[]; // 0x006870d8
+extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key); // 0x4e9c20, EAX container, stack key
     // fallback hash-table insert, see file header
 extern int message_delta_encode_message(int flag, int message_type, int changed_offset,
     void **items, int type_offset, int count, char force_changed); // 0x4ec940
@@ -69,7 +70,7 @@ void weapon_build_creation_message(datum_index item_index, uint32_t unused_param
         if (owner_hash == -1) owner_hash = 0;
     }
     if (object_hash == -1) {
-        object_hash = network_index_cache_find_or_allocate_slot(item_index);
+        object_hash = network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)item_index); // FIXED: EAX = 0x6870d8 (0x4c5adb), stack = item_index
     }
 
     message.definition_tag = item_obj->definition_tag;

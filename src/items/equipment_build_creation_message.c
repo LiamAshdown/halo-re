@@ -39,8 +39,8 @@ extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, mem
     //   4bbcbf: add esi,0xc                     ; ESI = root + 0x0c, the hash_table itself
     //   4bbcc2: call 0x4f05e0                   ; ECX = the datum_index being hashed
     // -- which matches the canonical declaration src/memory already uses for this symbol.
-extern int32_t network_index_cache_find_or_allocate_slot(uint32_t key); // 0x4e9c20, networking module; opaque fallback
-    // hash-table insert, see file header
+extern uint8_t network_object_index_cache[]; // 0x006870d8
+extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key); // 0x4e9c20, EAX container, stack key
 extern int message_delta_encode_message(int flag, int message_type, int changed_offset,
     void **items, int type_offset, int count, char force_changed); // 0x4ec940
 
@@ -70,7 +70,7 @@ void equipment_build_creation_message(uint32_t item_index, uint32_t unused_arg2,
         }
     }
     if (item_hash == -1) {
-        item_hash = network_index_cache_find_or_allocate_slot(item_index); // UNSURE: see file header
+        item_hash = network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)item_index); // FIXED: EAX = 0x6870d8 (0x4bbd1b), stack = item_index (0x4bbd16)
     }
 
     message.definition_tag = obj->definition_tag;
