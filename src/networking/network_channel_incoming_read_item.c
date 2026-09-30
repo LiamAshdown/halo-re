@@ -8,15 +8,14 @@
 // available bytes, then (on success) consumes the item into `destination` and reports the
 // decoded length via out_bit_offset/out_remaining_bits, resetting the buffer's cursors to 0 on
 // any failure path.
-// UNSURE (significant): `in_EAX`, the hidden bit-count bound the decoded length is checked
-// against (via a ceil-divide-by-8 idiom), could not be identified; modeled as an explicit
-// parameter (max_item_bits) rather than guessed at a specific global or field.
-// UNSURE: the exact stack layout feeding bit_stream_read_bits_chunked's hidden `buffer` and
-// `stream` arguments is reconstructed from local variable adjacency (a 6-dword bit_stream
-// immediately followed by a 7th dword matching a 16-bit chunk read), not observed directly.
+// max_item_bits arrives in EAX (mov esi,eax at entry) and is the bound the decoded byte length is
+// checked against. The local bit_stream is 6 dwords at [esp+0x10..0x27] (unknown_00 = 1,
+// data = the 2 peeked bytes, last_bit = 0xf); item_length sits right before it and is the buffer
+// the 16-bit chunk is read into.
 // register/parameter convention: max_item_bits in EAX (elided). blam-cc: EAX -> max_item_bits,
 // stack -> channel, destination, out_bit_offset, out_remaining_length_bits, out_address
 
+// VERIFIED against disassembly 0x4dcf10..0x4dd084 (2026-09-30): FIXED: bit count passed to the chunked read is network_bit_chunk_size (EAX=edi), ceil(bits/8) uses signed / and %, address is cleared when network_channel_get_remote_address returns nonzero (test ax,ax), 6th dword at +0x14 also zeroed
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -65,15 +64,14 @@ int32_t network_channel_incoming_read_item(network_channel *channel, uint8_t *de
     length_stream.byte_cursor = 0;
     length_stream.bit_cursor = 0;
     length_stream.last_bit = 0xf;
-    consumed_bits = bit_stream_read_bits_chunked(0x10, (uint32_t *)&item_length, &length_stream);
+    consumed_bits = bit_stream_read_bits_chunked(chunk_size, (uint32_t *)&item_length, &length_stream);
     if (consumed_bits != chunk_size) {
         return 0;
     }
     if (item_length > 1) {
-        // Ghidra's ceil(max_item_bits/8) is a signed-division idiom; simplified to the
-        // equivalent (bits>>3)+((bits&7)!=0) already used elsewhere in this batch, since
-        // max_item_bits is not expected to be negative in practice.
-        max_item_bytes = (max_item_bits >> 3) + ((max_item_bits & 7) != 0);
+        // ceil(max_item_bits / 8) with C signed division/remainder, exactly as the original's
+        // and/neg/sbb/cdq/sar idiom computes it (0x4dcfb8..0x4dcfd8).
+        max_item_bytes = max_item_bits / 8 + ((max_item_bits % 8) != 0);
         if (item_length <= max_item_bytes) {
             int32_t available2 = incoming->write_cursor - incoming->read_cursor;
             if (available2 < 0) {
@@ -82,14 +80,15 @@ int32_t network_channel_incoming_read_item(network_channel *channel, uint8_t *de
             if (item_length <= available2) {
                 circular_buffer_read(destination, item_length, 1, incoming);
                 if (out_address != 0) {
-                    network_channel_get_remote_address(out_address, channel->endpoint);
-                    if (channel->endpoint->last_error != 0) {
+                    if (network_channel_get_remote_address(out_address, channel->endpoint) != 0) {
                         out_address->ipv4 = 0;
                         out_address->ipv6_1 = 0;
                         out_address->ipv6_2 = 0;
                         out_address->ipv6_3 = 0;
                         out_address->size = k_network_address_size_ipv4;
                         out_address->port = 0;
+                        // the original zeroes six dwords (0x4dd026..0x4dd034): one past s_network_address
+                        *(uint32_t *)((uint8_t *)out_address + 0x14) = 0;
                     }
                 }
                 *out_bit_offset = chunk_size;

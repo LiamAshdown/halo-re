@@ -10,9 +10,8 @@
 // field offsets exactly (incoming, flags, children, listen_list, in.empty, in.stream.*,
 // out.empty, out.stream.*, reliable_count, reliable, send_budget), for both the listening and
 // plain variants.
-// UNSURE: network_receive_queue_free's own file documents connection_id/connection_key as an
-// unresolved pass-through this far up the call chain too; supplied here as 0/0 placeholders.
 
+// VERIFIED against disassembly 0x4dcae0..0x4dcc29 (2026-09-30): endpoint freed via EAX only; listen list, both streams, reliable slots and send_budget compared field by field
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -21,8 +20,7 @@
 #include "networking.h"
 
 
-extern void network_receive_queue_free(network_receive_queue *queue, int32_t connection_id,
-    int16_t connection_key); // 0x441c80, this module
+extern void network_receive_queue_free(network_receive_queue *queue); // 0x441c80, this module; blam-cc: EAX -> queue
 extern int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list); // 0x441b00, this module
 
 void network_channel_delete(network_channel *channel)
@@ -34,7 +32,7 @@ void network_channel_delete(network_channel *channel)
         return;
     }
     if (channel->endpoint != 0) {
-        network_receive_queue_free(channel->endpoint, 0, 0); // UNSURE: see header
+        network_receive_queue_free(channel->endpoint);
     }
     if (channel->incoming != 0) {
         GlobalFree(channel->incoming);

@@ -7,15 +7,12 @@
 // networking/02.md) as `if (channel->endpoint != 0) network_receive_queue_free();`, which is
 // how the EAX-as-queue-pointer convention is confirmed (channel->endpoint is loaded into the
 // register the comparison just used, and the call follows immediately).
-// register convention: receive-queue pointer in EAX (in_EAX). Ghidra shows no explicit
-// argument for the network_connection_stats_end() call here, matching that callee's own
-// documented EBX/DI pass-through convention (see network_connection_stats_end.c) -- this
-// function declares them as ordinary parameters purely to make the passthrough explicit.
-// UNSURE: this function's own caller (network_channel_delete, and its callers in turn) never
-// visibly sets EBX/DI either, so the ultimate source of the connection id/key handed to
-// network_connection_stats_end was not traced past this module; preserved as an unmodified
-// pass-through exactly as decompiled.
+// register convention: receive-queue pointer in EAX only. The connection id (EBX/ECX for
+// network_connection_stats_end) and key (DI) are NOT pass-throughs: they are the results of the
+// two socket queries made just before the call (0x6175f0 -> id, 0x6147d0 -> key), so the C computes them here.
 
+
+// VERIFIED against disassembly 0x441c80..0x441cd8 (2026-09-30): FIXED: connection id/key come from gamespy_array_length / gt2GetRemotePort (ebx/edi set at 0x441c95/0x441ca1), not from the caller
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -30,14 +27,12 @@ extern void network_connection_stats_end(int32_t connection_id, int16_t connecti
 extern void network_receive_queue_close_socket(network_receive_queue *queue); // 0x442040, this module
 extern void network_handle_registry_close_all(void); // 0x441bb0, this module
 
-// blam-cc: queue pointer in EAX (in_EAX); connection_id in EBX and connection_key in DI are an
-// unmodified pass-through into network_connection_stats_end (see UNSURE above)
-void network_receive_queue_free(network_receive_queue *queue, int32_t connection_id,
-                                 int16_t connection_key)
+// blam-cc: EAX -> queue
+void network_receive_queue_free(network_receive_queue *queue)
 {
     if (queue != 0 && queue->socket != 0) {
-        gamespy_array_length(queue->socket);
-        gt2GetRemotePort(queue->socket);
+        int32_t connection_id = (int32_t)gamespy_array_length(queue->socket);
+        int16_t connection_key = (int16_t)gt2GetRemotePort(queue->socket);
         network_connection_stats_end(connection_id, connection_key);
         gt2SetConnectionData(queue->socket, 0);
     }
