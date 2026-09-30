@@ -17,6 +17,9 @@
 extern const real_vector3d *global_white_color; // 0x00686b04, a POINTER (-> 0x65513c {1,1,1})
 extern king_hill_marker_history king_hill_markers; // 0x0087a9a0
 
+// VERIFIED against disassembly 0x46b250..0x46b2ea (2026-09-30): four 12-byte copies of *[0x686b04] into 0x87a9a0.. and four
+//   zeroed dwords at 0x87a9d0.. match. Note src/game/game_engine_koth_submit_hill_marker_geometry.c declared the same
+//   global as an inline vector (conflicting type, and it copied the pointer bits); fixed there.
 // Resets the moving-hill marker position history: all four slots are seeded with the same fixed
 // default vector (not a live hill position -- see evidence), and all four state slots are
 // cleared to 0.

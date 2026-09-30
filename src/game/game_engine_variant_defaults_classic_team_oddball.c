@@ -19,6 +19,10 @@
 #include "game.h"
 #include <string.h>
 
+// VERIFIED against disassembly 0x464430..0x46450f (2026-09-30): every field value/offset written by the original matches.
+//   The original builds the variant in an UNINITIALISED 0x98-byte stack local and rep-movs it out, so the bytes it never
+//   writes (name area 0x00..0x2f, padding, and the flags bits outside 0x11c/0xa3) carry stack garbage there; the memset(0) here
+//   is the deterministic equivalent, and is why a difftest reports differing bytes such as +0x4.
 // FIXED: the original returns its argument in EAX (mov eax,[ebp+8] ... rep movs; callers keep it)
 game_variant * game_engine_variant_defaults_classic_team_oddball(game_variant *out)
 {
