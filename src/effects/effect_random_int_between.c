@@ -23,8 +23,9 @@ extern random_seed effect_random_seed; // 0x00719cd4
 int16_t effect_random_int_between(int16_t minimum, int16_t maximum)
 {
     effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    return (int)(((int)maximum - (int)minimum) * (int)(effect_random_seed >> k_random_value_shift) >> 16) +
-           minimum;
+    // VERIFIED against disassembly 0x44c805 (2026-09-30): imul then LOGICAL shr 0x10 (uint32_t shift, not arithmetic)
+    return (int16_t)((int)((uint32_t)(((int)maximum - (int)minimum) * (int)(effect_random_seed >> k_random_value_shift)) >> 16) +
+                     minimum);
 }
 
 #if 0

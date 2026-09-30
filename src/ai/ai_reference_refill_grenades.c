@@ -58,7 +58,8 @@ void ai_reference_refill_grenades(uint32_t packed_reference)
 
             if (*(int16_t *)(variant_data + 0x180) != -1) {
                 random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                rolled = (int32_t)((((int32_t)(int16_t)(*(int16_t *)(variant_data + 0x1d2) + 1) -
+                // VERIFIED against disassembly 0x434bba (2026-09-30): imul then LOGICAL shr 0x10 (uint32_t shift)
+                rolled = (int32_t)((uint32_t)(((int32_t)(int16_t)(*(int16_t *)(variant_data + 0x1d2) + 1) -
                                      (int32_t)(int16_t)*(uint16_t *)(variant_data + 0x1d0)) *
                                     (int32_t)(random_seed_global >> 0x10)) >> 0x10) +
                          (int32_t)*(uint16_t *)(variant_data + 0x1d0);
