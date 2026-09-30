@@ -19,10 +19,9 @@
 // both render_frame (EBX) and the capture (EAX), the tiled call passes &tile to both and &page
 // on the stack (the phase 3 file passed NULL as screenshot_tile and always a tile to the
 // capture); 0x43f880 takes the bitmap in ESI.
-// UNSURE: the file_reference_record's path-field backslash-insertion preamble (objdump-confirmed
-// dead code exactly like src/main/movie_capture_frame_export.c's flags-bit-0 check: the record
-// is always freshly zeroed immediately before, so its path field is always empty at this point)
-// is simplified to the single strncpy it always reduces to, per that same file's precedent.
+// VERIFIED against disassembly 0x4ca1a0..0x4ca4a1 (2026-09-30). The file_reference_record's path-field backslash-insertion
+// preamble is dead code (the record is freshly zeroed, so its flags bit 0 and its path are both clear at that point) and reduces
+// to the single strncpy, exactly as src/main/movie_capture_frame_export.c.
 
 #include "win32.h"
 #include "tags.h"
