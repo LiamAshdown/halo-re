@@ -6,9 +6,10 @@
 // function has zero callers anywhere in the binary (out/functions.json callers=0); rewritten
 // anyway per the task instructions. Shares the challenge/send idiom with the rest of this
 // cluster (network_session_info_packet_send.c etc).
-// register convention: the client pointer arrives in ECX (in_ECX). // blam-cc: ECX -> client
-// UNSURE: every path through this function returns the literal constant 1; preserved exactly
-// (not simplified to `void`), matching Ghidra's own recovered `undefined4` return type.
+// register convention: the client pointer arrives in ECX and a 16-bit value in AX; AX is stored
+// (mov [esp+8],ax at 0x4da264) into the local whose address is the payload (EDX) of
+// network_prepare_challenge_packet(0x13). Every path returns 1 (AL).
+// blam-cc: ECX -> client, AX -> message_value
 
 // FIXED in the review pass: this file's 2-argument guess at network_channel_stream_flush is
 // resolved. Every message-send call site in the module is the same three operands --
@@ -19,6 +20,7 @@
 // the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (0: a message record) from a local, then
 // the encoded bits from challenge; the C passed placeholders or dropped the arguments.
 
+// VERIFIED against disassembly 0x4da250..0x4da317 (2026-09-30): FIXED: AX (message_value) is stored into the payload local passed to network_prepare_challenge_packet; send sequence compared, always returns 1
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -29,40 +31,37 @@ extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *pa
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
 
-// blam-cc: ECX -> client
-int32_t network_staged_message_commit(network_client_globals *client)
+// blam-cc: ECX -> client, AX -> message_value
+int32_t network_staged_message_commit(network_client_globals *client, uint16_t message_value)
 {
-    int32_t *challenge;
-    uint32_t challenge_payload[4]; // UNSURE: the caller-frame scratch EDX points at; its
-                                   //         contents are not visible in the decompilation
-    uint8_t *channel;
+    uint16_t *challenge;
+    uint32_t payload; // only its low word is written (mov [esp+8],ax); the upper word is uninitialized
+    network_channel *channel;
     int32_t bits_to_send;
-    char retransmit_ok;
+    uint32_t item_flag;
 
-    if (client->state != 2) { // UNSURE: live connection-mode value, not padding
+    if (client->state != 2) {
         return 1;
     }
-    // 0x4da26e: eax = 0x13; 0x4da26a: edx = the staged message scratch.
-    challenge = (int32_t *)network_prepare_challenge_packet(0x13, challenge_payload);
+    *(uint16_t *)&payload = message_value;
+    challenge = network_prepare_challenge_packet(0x13, &payload);
     if (challenge != 0) {
-        channel = (uint8_t *)client->channel;
-        bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
-        if ((*(uint8_t *)&((network_channel *)channel)->flags & 1) == 0) {
-            if ((((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit + *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
-                  *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) &&
-                (retransmit_ok = network_channel_stream_flush((network_channel_stream *)(channel + 0x10), (network_channel *)channel, 1), retransmit_ok == 0)) {
-                return 1;
+        channel = client->channel;
+        bits_to_send = (int32_t)(*challenge >> 4) * 8;
+        if ((channel->flags & 1) == 0) {
+            if ((int32_t)(channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8 -
+                          channel->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) {
+                if (network_channel_stream_flush(&channel->outgoing, channel, 1) == 0) {
+                    return 1;
+                }
             }
-            {
-
-                ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + bits_to_send + 1;
-                { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
-                ((network_channel *)channel)->outgoing.empty = 0;
-                bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
-                ((network_channel *)channel)->outgoing.empty = 0;
-            }
+            channel->send_budget = channel->send_budget + bits_to_send + 1;
+            item_flag = 0;
+            bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
+            channel->outgoing.empty = 0;
+            bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)challenge, bits_to_send);
+            channel->outgoing.empty = 0;
         }
-        return 1;
     }
     return 1;
 }
