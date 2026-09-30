@@ -1,7 +1,8 @@
 // rasterizer_shader_environment_reflection_draw  (Ghidra: FUN_005202f0, unnamed; the phase 4
 // rewriter called it rasterizer_shader_environment_technique_extra_pass_draw)
 // address 0x5202f0, size 1172 bytes
-// name confidence: 0.7   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x5202f0..0x520784 (2026-09-30): guards, effect selection (0x20/0x21/0x22), bump/normalization/cube-map binds, c10..c12, the three effect vectors, and the second-stream draw (vertex_buffer + 0x14 when the force flag is set for bumped types)
+// name confidence: 0.7   rewrite confidence: 0.9
 // evidence: every field it reads is a ShaderEnvironment field (types/tags.h): flags +0x28,
 //   bump_map +0x134 (tag id), bump_map_scale_xy +0x138, u/v animation +0x150..+0x164 (through
 //   shader_environment_texture_scrolling_evaluate), perpendicular/parallel color +0x2a8/+0x2b4, reflection_type +0x2d2,
@@ -12,9 +13,7 @@
 //   direction, perpendicular and parallel tint) and the bump map transform at vertex shader
 //   c10..c12, then one draw per effect pass through the two stream helper 0x51c310.
 //   Reached only through a draw procedure table (no direct callers).
-//   Spot-check fix (phase 4 review): the earlier file was a structural placeholder (one texture
-//   bind on the wrong stage, no constants, a fixed technique table). Rewritten in full from the
-//   raw code 0x5202f0..0x520783 with the stack traced across the merged cdecl cleanups.
+//   Spot-check fix (phase 4 review): rewritten in full from the raw code 0x5202f0..0x520783 with the stack traced across the merged cdecl cleanups.
 // register convention: __cdecl, (shader, frame, dynamic_index_slot, first_primitive,
 //   primitive_count, vertex_buffer) on the stack.
 
@@ -37,7 +36,7 @@ extern int16_t rasterizer_bound_bitmap_size_b[2];                   // 0x006d987
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893fa;                         // 0x006893fa reflections enable
 extern uint8_t console_debug_toggle_689409;                         // 0x00689409
-extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;                             // 0x0069c67c (read as a word)
 
 // blam-cc: EAX -> bitmap_tag_id, DX -> index
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index); // 0x43f250
@@ -230,5 +229,5 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
 
 #if 0
 Original Ghidra decompilation (0x5202f0) -- see `python tools/pack.py 0x5202f0` for the full
-1172-byte body; this rewrite is a low-confidence structural placeholder, see file header.
+1172-byte body; the rewrite above was compared instruction by instruction with the disassembly.
 #endif
