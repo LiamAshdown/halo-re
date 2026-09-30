@@ -6,20 +6,12 @@
 // channel's queued update via FUN_004df840/FUN_004e1b50; in the alternate[, ticks the game
 // engine directly]." unaff_ESI+4 matches network_server_globals::unknown_004;
 // unaff_ESI+0x3c4/+0x9f8 match ::machines[0].machine_id and ::unknown_9f8.
-// register convention: EAX = entry (network_player_entry *, forwarded only to
-// network_game_session_finalize_and_add_player), CX = update_count (int16_t),
-// ESI = server (network_server_globals *).
-// blam-cc: EAX -> entry, CX -> update_count, ESI -> server
-// UNSURE: EAX has no visible source in this function's own body; modelled as a pure
-// pass-through parameter per the register convention, mirroring the same situation in
-// network_game_session_finalize_and_add_player.c.
-// UNSURE: the byte this function reads at server+0x9f4 falls inside
-// network_server_globals::unknown_9bc (an unresolved 0x3c-byte span); accessed via an
-// explicit offset cast rather than a named field.
-// UNSURE: `if (machine_ptr != 0)` in the original is effectively always true once the search
-// loop finds an index (the computed pointer cannot be NULL); preserved literally rather than
-// simplified away.
+// register convention: CX = update_count (int16_t), ESI = server (network_server_globals *).
+// blam-cc: CX -> update_count, ESI -> server
+// The byte read at server+0x9f4 is pending_join_entry.machine_index (raw offset cast kept).
+// `if (machine != 0)` mirrors the original's (always-true) test at 0x4e0448.
 
+// VERIFIED against disassembly 0x4e03c0..0x4e0477 (2026-09-30): FIXED: no EAX argument (EAX is overwritten by movzx at 0x4e03c0); the finalize/broadcast entry is &server->pending_join_entry (esi+0x9d8, EAX for both callees); broadcast_state_snapshot(EAX = entry, stack = server) was called without args. State dispatch, update loop, machine search (stride 0x60, machine_id word vs sign-extended byte 0x9f4) and pending flag clear match
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -31,13 +23,13 @@ extern void update_server_push_player_tick_history(void); // other module (UNSUR
 extern void game_engine_tick(void); // other module, already named
 extern char network_game_session_finalize_and_add_player(network_player_entry *entry,
     network_server_globals *server, network_machine *machine); // 0x4df840, this batch
-extern void network_game_broadcast_state_snapshot(void); // 0x4e1b50, this batch (UNSURE args)
+extern uint32_t network_game_broadcast_state_snapshot(const uint32_t *record, network_server_globals *server); // 0x4e1b50; blam-cc: EAX -> record, stack -> server
 
 // While the server is in state 1 (client-processing), drains `update_count` queued update
 // packets and, if a deferred "process this machine's queued update" request is pending
 // (unknown_9f8), locates the matching machine by its saved id and finalizes/broadcasts its
 // join. In state 2, just ticks the game engine directly.
-void network_game_server_per_frame_tick(network_player_entry *entry, int16_t update_count, network_server_globals *server)
+void network_game_server_per_frame_tick(int16_t update_count, network_server_globals *server)
 {
     if (server->state == 1) {
         if (update_count > 0) {
@@ -70,9 +62,11 @@ void network_game_server_per_frame_tick(network_player_entry *entry, int16_t upd
             if (machine != 0) {
                 char ok;
 
+                network_player_entry *entry = &server->pending_join_entry;
+
                 ok = network_game_session_finalize_and_add_player(entry, server, machine);
                 if (ok != 0) {
-                    network_game_broadcast_state_snapshot();
+                    network_game_broadcast_state_snapshot((const uint32_t *)entry, server);
                 }
             }
             server->join_finalize_pending = 0;
