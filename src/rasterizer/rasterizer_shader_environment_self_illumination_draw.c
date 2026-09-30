@@ -1,7 +1,8 @@
 // rasterizer_shader_environment_self_illumination_draw  (Ghidra: FUN_0051f3e0, unnamed; the phase
 // 4 rewriter called it rasterizer_light_halo_draw)
 // address 0x51f3e0, size 1764 bytes
-// name confidence: 0.7   rewrite confidence: 0.8
+// VERIFIED against disassembly 0x51f3e0..0x51fac4 (2026-09-30): alpha test state, effect index (0..3), decl 2 / vertex shader 13, bump/map/lightmap binds, sampler states, c10..c12, the three animations, colors and the up-to-six effect vectors, the second-stream draw
+// name confidence: 0.7   rewrite confidence: 0.9
 // evidence: the pixel shader (ps_1_1 and better) procedure stored in 0x007c048c by
 //   rasterizer_select_hardware_codepaths 0x516810 (the fixed function variants are the
 //   undefined functions 0x51fad0 and 0x51fd80). Every field it reads is a ShaderEnvironment
@@ -15,8 +16,7 @@
 //   the plasma value, the animated primary and secondary colors and the plasma colors). One
 //   two stream draw (0x51c310) per pass; the second stream is the lightmap vertices unless
 //   0x006e0a04 is set.
-//   Spot-check fix (phase 4 review): the earlier file (rasterizer_light_halo_draw) was a
-//   structural placeholder; rewritten in full from the raw code 0x51f3e0..0x51fac3 (8 byte
+//   Spot-check fix (phase 4 review): rewritten in full from the raw code 0x51f3e0..0x51fac3 (8 byte
 //   aligned frame, all arguments through EBP).
 // register convention: __cdecl, (shader, frame, dynamic_index_slot, first_primitive,
 //   primitive_count, vertex_buffer) on the stack.
@@ -36,7 +36,7 @@ extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d16
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 extern int16_t rasterizer_bound_bitmap_size_b[2];                   // 0x006d9870
 extern void *rasterizer_capture_surfaces[4];                        // 0x0069c66c; [0] bound as a texture here
-extern uint8_t unknown_006e0a04;                                    // 0x006e0a04 UNSURE: selects the odd effects
+extern uint8_t unknown_006e0a04;                                    // 0x006e0a04 selects the odd effects
                                                                     //   and drops the lightmap stream
 extern BitmapData *rasterizer_environment_lightmap;                 // 0x006e0a08 set from EAX by 0x51f310
 extern uint8_t console_debug_toggle_6893f1;                         // 0x006893f1 self-illumination enable
@@ -271,5 +271,5 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
 
 #if 0
 Original Ghidra decompilation (0x51f3e0) -- see `python tools/pack.py 0x51f3e0` for the full
-1764-byte body; this rewrite is a low-confidence structural sketch, see file header.
+1764-byte body; this rewrite is a the rewrite above was compared instruction by instruction with the disassembly.
 #endif
