@@ -17,6 +17,7 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_models.h"
 
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0
 extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model,

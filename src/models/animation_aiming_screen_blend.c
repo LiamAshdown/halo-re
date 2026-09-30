@@ -44,14 +44,14 @@
 #include "math.h"
 #include "models.h"
 #include "fn_math.h"
+#include "fn_models.h"
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
 extern int __ftol(double value); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
 extern double fmod(double x, double y); // 0x628cca, MSVC 7.1 CRT _CIfmod: x in ST(1), y in ST(0)
 
-extern void *animation_get_frame_data(ModelAnimationsAnimation *animation, int16_t frame); // 0x4d4810
-extern void animation_quaternion16_decode(int16_t *source, real_quaternion *out); // 0x4d6330, this batch
+
 extern void animation_node_get_rotation(ModelAnimationsAnimation *animation, real frame,
                                          int16_t rotation_index, int16_t node, real_quaternion *out); // 0x4d6b60, this batch
 extern void animation_node_get_translation(ModelAnimationsAnimation *animation, real frame,

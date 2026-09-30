@@ -23,6 +23,7 @@
 #include "math.h"
 #include "models.h"
 #include "fn_math.h"
+#include "fn_models.h"
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 extern real_quaternion *global_identity_quaternion_pointer; // 0x00696738: indirect pointer to
@@ -30,8 +31,7 @@ extern real_quaternion *global_identity_quaternion_pointer; // 0x00696738: indir
                                                              // (0x0065c274), per the pattern in
                                                              // src/units/biped_update.c
 
-extern void *animation_get_frame_data(ModelAnimationsAnimation *animation, int16_t frame); // 0x4d4810, see animation_get_frame_data.c
-extern void animation_quaternion16_decode(int16_t *source, real_quaternion *out); // 0x4d6330
+
 extern void animation_node_get_rotation(ModelAnimationsAnimation *animation, float frame,
                                          int16_t rotation_index, int16_t node, real_quaternion *out); // 0x4d6b60
 extern void animation_node_get_translation(ModelAnimationsAnimation *animation, float frame,

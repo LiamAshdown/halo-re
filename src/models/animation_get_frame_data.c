@@ -15,6 +15,7 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_models.h"
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 

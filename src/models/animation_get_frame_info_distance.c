@@ -14,6 +14,7 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_models.h"
 
 // Sums the leading dx component of every frame_info entry (stride depends on frame_info_type)
 // and writes the running total through *dx_total; *dx_to_key_frame receives the same running

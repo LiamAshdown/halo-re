@@ -52,6 +52,7 @@
 #include "math.h"
 #include "models.h"
 #include "fn_math.h"
+#include "fn_models.h"
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
@@ -60,8 +61,7 @@ extern double floor(double x); // 0x623e40, MSVC CRT, see src/game/game_engine_a
 extern double fmod(double x, double y); // 0x628cca, MSVC 7.1 CRT _CIfmod: x in ST(1), y in ST(0),
                                         // see src/math/periodic_function_evaluate.c
 
-extern void *animation_get_frame_data(ModelAnimationsAnimation *animation, int16_t frame); // 0x4d4810, see animation_get_frame_data.c
-extern void animation_quaternion16_decode(int16_t *source, real_quaternion *out); // 0x4d6330
+
 extern void animation_node_get_rotation(ModelAnimationsAnimation *animation, float frame,
                                          int16_t rotation_index, int16_t node, real_quaternion *out); // 0x4d6b60
 extern void animation_node_get_translation(ModelAnimationsAnimation *animation, float frame,

@@ -38,6 +38,7 @@
 #include "models.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_models.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0

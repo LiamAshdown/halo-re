@@ -27,6 +27,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "fn_rasterizer.h"
+#include "fn_models.h"
 #include <stdint.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -49,9 +50,6 @@ extern uint8_t rasterizer_object_shadow_model_active; // 0x0071d265
 
 extern void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context, uint8_t mode); // 0x526f50
 
-
-extern void model_render_parts(GBXModel *model, uint8_t *region_permutations, rasterizer_node_matrices *node_matrices,
-                                model_level_of_detail lod, uint16_t forced_shader_permutation, uint32_t flags); // 0x4d72a0, this batch
 
 // Renders one model instance: builds the world-space node matrices (or, with no node matrices
 // given, k_maximum_nodes_per_model copies of the current camera view matrix), picks a level of

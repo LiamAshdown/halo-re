@@ -14,6 +14,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_models.h"
 
 // Decodes the four int16 components of an uncompressed animation rotation (i, j, k, w, in
 // that struct order) into a real_quaternion, each scaled by 1/32767. Does not normalize.

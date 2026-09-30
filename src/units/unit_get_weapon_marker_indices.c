@@ -21,11 +21,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_models.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, float *dx_to_key_frame, float *dx_total); // 0x4d4850, ECX, stack
 
 uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t out_dx_to_key_frame,
                                         uint32_t out_dx_total, int16_t *out_frame_count,

@@ -25,11 +25,12 @@
 #include "cache.h"
 #include "models.h"
 #include "objects.h"
+#include "fn_models.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0
-extern int16_t model_marker_group_index_from_name(datum_index model_tag_id, const char *name); // 0x4d77c0, this batch
+
 
 // Resolves a marker group by name and fills object_marker records for every instance in it
 // (optionally filtered by region_permutations, one entry per region: NULL means take every

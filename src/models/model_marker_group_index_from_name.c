@@ -14,6 +14,7 @@
 #include "math.h"
 #include "cache.h"
 #include "models.h"
+#include "fn_models.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 

@@ -22,6 +22,7 @@
 //   // blam-cc: EAX -> count, BX -> frame, stack -> times
 
 #include "tags.h"
+#include "fn_models.h"
 
 // Finds the index of the last keyframe time at or before `frame`, using a binary search that
 // narrows [lo, mid] or [mid, hi] one step at a time (see the file header for why this mirrors

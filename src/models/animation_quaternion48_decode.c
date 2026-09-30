@@ -17,6 +17,7 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#include "fn_models.h"
 
 // Unpacks the three 16-bit words of a 48-bit compressed animation rotation into four 12-bit
 // signed fields (i, j, k, w), each left-justified into a 16-bit half and scaled by 1/32767.
