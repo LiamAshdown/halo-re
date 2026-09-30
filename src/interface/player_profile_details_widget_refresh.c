@@ -25,6 +25,7 @@
 #include "interface.h"
 #include "cache.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern uint16_t hud_text_unknown[]; // 0x0066a750
 

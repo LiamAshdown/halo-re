@@ -23,6 +23,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t selected_saved_item;      // 0x00714e7c
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8 (validation_mode at 0x00719410)

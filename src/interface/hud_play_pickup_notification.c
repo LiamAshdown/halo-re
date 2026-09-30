@@ -34,6 +34,7 @@
 #include "interface.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances;  // 0x0087bc14, types/cache.h, stride 0x20, tag data at +0x14
@@ -41,8 +42,7 @@ extern data_array *player_data;      // 0x0087a480, "players"
 extern void *global_zero_vector3d_pointer;  // 0x006966f8, types/devices.h (points at global_origin3d 0x0065c230)
 extern real_vector3d *global_forward3d_pointer;  // 0x00696718, types/math.h
 
-extern int16_t item_type_to_message_stage(int16_t item_type_code);   // 0x4927c0, this module
-extern int16_t item_type_to_animation_stage(int16_t message_stage);  // 0x492880, this module
+
 extern void *datum_get(datum_index handle, data_array *array);       // 0x4d0680, memory module
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, objects module; blam-cc: ECX -> object_index
 

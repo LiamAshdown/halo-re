@@ -15,11 +15,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
 
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
 
 void ui_tab_group_sync_grouped(widget_instance *widget)
 {

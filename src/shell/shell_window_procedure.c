@@ -60,6 +60,7 @@
 #include "fn_sound.h"
 #include "fn_shell.h"
 #include "fn_input.h"
+#include "fn_interface.h"
 
 
 // Minimal GDI BITMAP layout: only the fields GetObjectA's caller reads are named (bmWidth,
@@ -80,7 +81,7 @@ extern void input_record_windows_key_message(int32_t key_or_char, int32_t messag
 
                                                                  // blam-cc: EDI -> key, stack -> duration_ms
 extern void chat_close(void);                                  // 0x4aa900, foreign (interface)
-extern void chat_submit_input(void);                            // 0x4aa9b0, foreign (interface)
+
 extern int32_t render_device_is_ready(void);                   // 0x511d80, foreign (render)
 extern void rasterizer_capture_and_present(const int16_t *tile, void *bitmap); // 0x518180, foreign
                                                                  // (rasterizer); EAX = tile, push = bitmap

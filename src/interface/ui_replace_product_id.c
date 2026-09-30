@@ -11,10 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint16_t ui_product_id_text[]; // 0x00719368
 extern uint16_t ui_format_narrow_string[]; // 0x0066a888, L"%S"
-extern void *registry_get_product_id(void); // 0x4a8790
+
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX, stack
 
 void *ui_replace_product_id(widget_instance *widget)

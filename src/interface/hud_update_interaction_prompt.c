@@ -39,6 +39,7 @@
 #include "items.h"
 #include "interface.h"
 #include "fn_items.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern tag_instance *tag_instances;          // 0x0087bc14
@@ -48,14 +49,7 @@ extern data_array *player_data;              // 0x0087a480
 extern int16_t current_local_player_index; // 0x007c3108
 extern hud_messaging_globals *hud_messaging; // 0x006b3a40
 
-extern void hud_set_player_message(int16_t message_index, int16_t local_player_index); // 0x4adfc0, blam-cc: EAX message_index
-extern void hud_set_message_string_argument(int16_t local_player_index, int16_t slot, int16_t string_index,
-                                            uint8_t from_scenario_names); // 0x4ae0b0, blam-cc: EAX local_player_index, ESI slot
-extern void hud_set_message_icon_argument(int16_t local_player_index, int16_t slot,
-                                          const hud_messaging_information *information); // 0x4ae050, blam-cc: EAX local_player_index, ESI slot
-extern void hud_set_action_text_shown(int16_t local_player_index, uint8_t shown); // 0x4ae110, blam-cc: EAX local_player_index, BL shown
-extern int16_t object_get_hud_text_message_index(datum_index object_index); // 0x4a9b40, blam-cc: EAX
-extern uint8_t weapon_hud_ammo_state_is_empty(const weapon_hud_ammo_state *state); // 0x4a9750, blam-cc: EAX
+
 extern uint8_t game_engine_pick_hud_hint(datum_index player_index, int32_t maximum_length, uint16_t *out_text); // 0x463150, blam-cc: ECX player, EAX 0x400
 
 extern int16_t unit_count_deployed_weapons(datum_index unit_index); // 0x56d990, blam-cc: EAX

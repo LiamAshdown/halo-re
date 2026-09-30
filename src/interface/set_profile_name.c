@@ -23,6 +23,7 @@
 #include <wchar.h>
 #include "cache.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool;    // 0x006926c4

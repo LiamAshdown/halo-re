@@ -30,19 +30,18 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_bitmaps.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern int32_t ui_real_to_int_truncate(float value); // 0x4ab590
+
 extern uint32_t color_rgb_float_to_int(const float *rgb); // 0x4ab5d0, a ColorRGB
 
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, blam-cc: EAX bitmap
-extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
-                                    void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
-                                    float scale, float rotation, uint32_t color, uint8_t split_screen); // 0x4acad0, blam-cc: EAX uv, EDX placement, BL pixel_uvs
+
 
 static int32_t hud_meter_alpha(const hud_meter_placement *meter, uint8_t value)
 {

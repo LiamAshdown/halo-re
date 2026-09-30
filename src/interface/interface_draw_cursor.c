@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern datum_index ui_cursor_bitmap; // 0x0068e67c, ui\shell\bitmaps\cursor
 extern int32_t ui_cursor_x;          // 0x00718f84

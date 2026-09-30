@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_interface.h"
 #include <stdint.h> // uintptr_t
 
 extern uint8_t console_debug_toggle_6893ec;                 // 0x006893ec
@@ -28,8 +29,7 @@ extern int16_t rasterizer_active_model_mode;                // 0x0071d1f8
 extern uint8_t rasterizer_render_target_capture_requested;  // 0x0071d1b1
 extern void *shader_environment_draw_simple;                // 0x007c0470 procedure for shader_type 3
 extern void *shader_environment_draw;                       // 0x007c0474 procedure for the other types
-extern void debug_fp_dispatch_note(int32_t toggle, int32_t mode, int32_t shader_type, int32_t primitives,
-    void *draw, void *draw_simple, void *overlay); // TEMPORARY
+
 
 // blam-cc: EAX -> link, stack -> (shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot, position)
 extern transparent_geometry_group *rasterizer_transparent_geometry_group_build(

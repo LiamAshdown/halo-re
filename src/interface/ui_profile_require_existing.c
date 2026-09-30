@@ -15,10 +15,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
-extern uint8_t ui_new_profile_name_entry_open(void *widget, int16_t *event, uint8_t *out_handled); // 0x4a1940, new profile name entry
+
 
 uint8_t ui_profile_require_existing(void *widget, int16_t *event, uint8_t *out_handled)
 {

@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "fn_objects.h"
+#include "fn_interface.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -36,7 +37,6 @@ extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, i
 
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index); // 0x46fe70, ECX, AX
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
-extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage); // 0x4b16e0, ECX, stack
 
 
 // 0x4ed7cd / 0x4ed88c: one damage timer pair decays by 1/60 a tick once running

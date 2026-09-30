@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 

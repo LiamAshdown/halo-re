@@ -51,10 +51,11 @@
 #include "cache.h"
 #include "fn_cache.h"
 #include "fn_shell.h"
+#include "fn_interface.h"
 
 
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
-extern void interface_handle_quit_request(void); // 0x499170
+
 
 extern int16_t cache_file_find_slot_by_name(char *name); // blam-cc: EDI; 0x443770
 

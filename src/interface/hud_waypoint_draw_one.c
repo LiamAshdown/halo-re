@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern data_array *player_data;        // 0x0087a480
@@ -47,8 +48,7 @@ extern uint8_t render_project_world_point_to_screen(real_point2d *out, const rea
                                               const void *frustum, const void *camera); // 0x50de30, blam-cc: ECX, EDX, ESI, EDI
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, blam-cc: EAX bitmap
-extern void ui_draw_rotated_screen_quad(int16_t *origin, int32_t source_record, float *corner_uvs,
-                                        float scale, float rotation_radians, float alpha_fraction); // 0x494d70, blam-cc: EAX origin
+
 
 // blam-cc: player_index -> EAX
 // Draws the teammate waypoint icon over the head of one player unit.

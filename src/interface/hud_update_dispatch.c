@@ -15,13 +15,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern hud_messaging_globals *hud_messaging; // 0x006b3a40
 
-extern void hud_weapon_interface_state_update(void); // 0x4b1740
-extern void hud_unit_meters_update(void); // 0x4b0110
-extern void hud_waypoints_update(void); // 0x4af320
-extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled); // 0x4afee0, blam-cc: EAX player
+
 extern data_array *player_data; // 0x0087a480
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20, UNSURE

@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: EAX -> widget, ESI -> profile_record
 // Finds the first spinner_list among each of widget's first three child "rows" and sets each

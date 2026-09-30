@@ -39,6 +39,7 @@
 #include "cutscene.h"
 #include "fn_game.h"
 #include "fn_bitmaps.h"
+#include "fn_interface.h"
 
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern player_globals *local_player_globals;   // 0x0087a478
@@ -76,14 +77,8 @@ extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpo
 
 
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
-extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
-                                                 const int16_t *offset, int16_t *out, int32_t selector); // 0x4ab690, blam-cc: AL has_scale, EDX offset, ECX child placement (selector)
-extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time); // 0x4ab980, blam-cc: ESI flash, EDI start_time
-extern void hud_draw_message_text_span(Rectangle2D *cursor, Rectangle2D *origin, const uint16_t *text,
-                                       uint8_t allow_button_prompts); // 0x4ad8e0, blam-cc: EAX cursor, ECX origin
-extern void hud_draw_message_icon(const hud_messaging_information *information, Rectangle2D *cursor,
-                                  uint32_t color); // 0x4ad970, blam-cc: ESI information
-extern int32_t hud_message_compare(const void *a, const void *b); // 0x4ae500
+
+
 extern uint8_t input_get_last_used_binding(int16_t key, uint8_t *out_binding); // 0x48bde0; blam-cc: EAX -> key, stack -> 12 byte out
 extern void input_get_binding_display_name(uint8_t *binding, uint16_t *out_name); // 0x48c7f0; blam-cc: EAX -> binding, ECX -> out_name
 extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out_bounds,

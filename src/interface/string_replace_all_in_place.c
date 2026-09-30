@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 
 // blam-cc: EAX -> buffer, then (search, replacement) on the stack

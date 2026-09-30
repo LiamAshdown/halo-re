@@ -21,6 +21,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern int32_t last_controller_index_00879f50; // 0x00879f50, TYPES-GAP, UNSURE name
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
@@ -28,10 +29,7 @@ extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern uint8_t ui_split_screen;            // 0x00718fc9
 extern float ui_unknown_718fa8;            // 0x00718fa8
 
-extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy,
-                                   uint32_t flag1, int32_t flag2); // 0x49a8c0, as defined in widget_instance_render.c
-extern void interface_draw_cursor(void); // 0x497380
-extern void virtual_keyboard_render(void); // 0x4a9510
+
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect); // 0x449780, solid rectangle fill
     // blam-cc: EAX -> packed_color, ECX -> rect (objdump call sites 0x494d28, 0x4973f9, 0x498617)
 

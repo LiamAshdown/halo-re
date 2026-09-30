@@ -20,6 +20,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 
 
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -27,7 +28,7 @@ extern void network_game_server_host_dispose(void *host); // 0x4deda0
 extern uint8_t network_server_host_valid; // 0x0071c2dd, UNSURE identity
 extern uint8_t local_team_00714dd8; // 0x00714dd8, TYPES-GAP
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc]; // 0x00714ddc, TYPES-GAP
-extern void network_game_setup_teardown(void); // 0x495520
+
 
 uint8_t ui_event_49d160(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

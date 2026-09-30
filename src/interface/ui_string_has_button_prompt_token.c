@@ -16,8 +16,8 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
-extern int16_t ui_button_prompt_index_from_string(uint16_t *text); // 0x49ac30, blam-cc: EBX -> text; -1 when no token matches
 
 // blam-cc: EAX -> text
 // Returns true if `text` contains at least one recognised "%buttonname" prompt-substitution

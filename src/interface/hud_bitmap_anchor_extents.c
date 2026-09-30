@@ -22,6 +22,7 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: CL -> pixel_uvs, ESI -> bitmap, EDX -> uv, EAX -> out_extents, stack -> anchor
 // Size of one HUD bitmap quad in screen pixels, laid out around its anchor point. uv is the

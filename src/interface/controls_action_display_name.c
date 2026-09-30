@@ -18,12 +18,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint16_t controls_action_name_buffer[]; // 0x006b3d48
 extern const uint16_t hud_text_unbound[];      // 0x00669cc8, L"???"
 
-extern uint8_t controls_enumerate_next_assignable_action(int32_t device, int16_t *record, const char *action_name,
-                                                          uint8_t accept_reserved_on_retry); // 0x4b43e0, blam-cc: EAX device, ECX record, EDI action_name
+
 extern void input_get_binding_display_name(uint8_t *binding, uint16_t *out_name); // 0x48c7f0; blam-cc: EAX -> binding, ECX -> out_name
 extern uint32_t wcslen_halo(const uint16_t *text); // 0x625b7a, wcslen
 

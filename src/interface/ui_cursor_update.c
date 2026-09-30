@@ -25,6 +25,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t ui_use_os_cursor;      // 0x00718f81
 extern int32_t previous_mouse_x;      // 0x006b2f24, last frame's OS cursor x
@@ -41,7 +42,7 @@ extern float cursor_sensitivity_y;            // 0x0068e678, UNSURE: Y-axis curv
 extern double cursor_sensitivity_curve_scale; // 0x00672da8, UNSURE: shared quadratic coefficient
 extern double cursor_sensitivity_curve_bias;  // 0x00672af8, UNSURE: shared additive constant
 
-extern void interface_update_for_resolution_change(int32_t new_cursor_x, int32_t new_cursor_y); // 0x497250
+
 extern int32_t __ftol(double x); // 0x6391b4, MSVC float-to-long (truncating)
 
 // blam-cc: no register-passed arguments

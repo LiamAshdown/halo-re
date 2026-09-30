@@ -24,9 +24,8 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
-extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy,
-                                    uint32_t flag1, int32_t flag2); // 0x49a8c0
 
 // blam-cc: EDI -> widget, stack -> tag, dest, offset_xy, flags
 // Propagates the widget's cumulative scale to its extended_description widget and renders it,

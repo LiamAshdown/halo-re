@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "units.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c

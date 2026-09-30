@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t chat_window_default_x; // 0x00692d80, UNSURE name
 extern int32_t chat_window_default_y; // 0x00692d84, UNSURE name
@@ -29,7 +30,6 @@ extern int32_t unknown_006b3914;    // UNSURE
 extern int32_t unknown_006b38f4;    // UNSURE
 extern int32_t chat_scope_active;    // UNSURE
 
-extern void hud_chat_listbox_clear(void); // 0x4ab400
 
 // Resets the multiplayer chat window's screen position/size to its defaults and clears its
 // message listbox.

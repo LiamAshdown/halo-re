@@ -24,6 +24,7 @@
 #include "interface.h"
 #include "fn_math.h"
 #include "fn_bitmaps.h"
+#include "fn_interface.h"
 
 extern double cos(double x);           // FCOS
 extern double sqrt(double x);          // FSQRT

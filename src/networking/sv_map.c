@@ -21,6 +21,7 @@
 #include "fn_game.h"
 #include "fn_networking.h"
 #include "fn_main.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern int16_t network_game_mode; // 0x00719720, 2 == host, 0 == local/not in a game
@@ -29,9 +30,6 @@ extern game_variant game_variant_saved_default; // 0x00714de0
 extern uint8_t game_variant_saved_default_valid; // 0x00714e78
 
 extern char game_engine_is_map_and_variant_valid(void); // foreign, validates the requested map/variant pair (UNSURE)
-
-
-extern void widget_close_all(void); // 0x498650, other module
 
 
 extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0

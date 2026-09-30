@@ -22,6 +22,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern data_array *player_data;                    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern hud_unit_meter_globals *hud_unit_meters;     // 0x0071942c

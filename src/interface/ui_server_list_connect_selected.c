@@ -23,20 +23,19 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int16_t network_game_mode;               // 0x00719720
 extern uint8_t network_host_handoff_requested;                 // 0x0071c2de
 
 extern void *widget_instance_find_root(widget_instance *widget); // 0x498e10, UNSURE args
-extern int32_t widget_get_sibling_index(widget_instance *widget); // 0x498e30
+
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
 extern void chat_close(void); // 0x4aa900
 
 extern void network_debug_fill_canary_buffer(void); // 0x4e0790, UNSURE argument
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args
+
 
 // blam-cc: matches ui_event_function (widget, event, out_handled)
 // If a connectable server entry is selected, initiates a connection to it and, once connected,

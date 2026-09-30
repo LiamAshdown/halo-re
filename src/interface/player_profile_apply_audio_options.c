@@ -20,6 +20,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_sound.h"
+#include "fn_interface.h"
 
 extern int32_t safe_mode; // 0x007196f4
 

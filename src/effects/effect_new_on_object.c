@@ -26,12 +26,11 @@
 #include "cache.h"
 #include "effects.h"
 #include "fn_effects.h"
+#include "fn_interface.h"
 
 extern data_array *effect_data;                 // 0x0087abdc
 extern uint8_t first_person_effects_enabled;    // 0x00687014
 
-
-extern int32_t local_player_index_for_object(datum_index object_index); // 0x4926f0, ESI object_index
 
 extern void effect_rebuild_markers(effect *self,
     int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t)); // 0x451710, this module

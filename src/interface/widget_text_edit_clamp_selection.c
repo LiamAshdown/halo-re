@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern void text_clamp_byte_length_to_character_boundary(char *string, int16_t *length);

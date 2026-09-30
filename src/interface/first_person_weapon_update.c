@@ -39,6 +39,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_math.h"
+#include "fn_interface.h"
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data; // 0x008603b0, "objects"
@@ -58,11 +59,7 @@ extern int32_t sound_start_at_object_marker(datum_index object_index, void *posi
                             datum_index sound, int32_t marker, float gain, uint8_t flag); // 0x543ce0
     // blam-cc: ESI -> object_index, ECX -> position, EAX -> forward, stack -> sound, marker, gain, flag
     // (objdump call sites 0x492ac4, 0x4932a6, 0x4c4866 all load ECX from 0x006966f8 and EAX from 0x00696718)
-extern void first_person_weapon_update_state(int16_t local_player_index); // 0x492d20, DX
-extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
-                                          int16_t new_state); // 0x492e60, new_state in AX
-extern void first_person_weapon_snapshot_pose(int16_t local_player_index, int16_t blend_gap); // 0x4930b0, AX/DX
-extern void first_person_weapon_interface_tick_reset(int16_t local_player_index); // 0x4942e0, AX
+
 
 extern real random_range_real(real minimum, real maximum); // 0x444af0
 extern float effect_random_fraction(void);                  // 0x4505b0
@@ -88,7 +85,6 @@ static ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *first_person_we
         animations->first_person_weapons.pointer;
 }
 
-extern void debug_play_diagnostics(void); // TEMPORARY play-test logging, src/interface/debug_play_diagnostics.c
 
 void first_person_weapon_update(int16_t local_player_index)
 {

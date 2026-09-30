@@ -15,14 +15,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t console_win32_attached;        // 0x006b2f18
 extern terminal_console *console_active;      // 0x006b2f0c
 extern char console_last_line[0x100];         // 0x006b2df8
 extern int32_t console_last_cursor_column;    // 0x006b2ef8
 
-extern void console_draw_input_line(void);    // 0x4970a0
-extern void console_position_cursor(void);    // 0x4971a0
 
 // Per-frame refresh of the attached win32 console window: if the input line text changed since
 // the last draw, redraws the input line and remembers the new text; then, independently, if the

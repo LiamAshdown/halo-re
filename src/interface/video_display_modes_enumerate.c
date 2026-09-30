@@ -29,6 +29,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern d3d9_interface *rasterizer_direct3d;       // 0x0071d178
 extern uint32_t d3d_adapter;                // 0x0071d180, UNSURE name
@@ -40,7 +41,7 @@ extern uint8_t rasterizer_fullscreen; // 0x0071d16c, UNSURE name
 extern void *rasterizer_device;                    // 0x0071d174
 
 extern int _stricmp(const char *a, const char *b); // 0x628d8b
-extern void video_resolution_add(int32_t height, int32_t width, int32_t refresh_rate); // 0x4badc0, blam-cc: EAX height
+
 
 static uint8_t video_mode_memory_limit_applies(void)
 {

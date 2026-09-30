@@ -22,6 +22,7 @@
 #include "interface.h"
 #include "main.h"
 #include "fn_game.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern uint8_t chat_dialog_open;      // 0x006b3858, UNSURE name
@@ -45,8 +46,7 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc
 extern uint16_t *text_string_list_get_string(void); // 0x5578c0, UNSURE signature, called with no visible arguments
 
 extern void input_keyboard_set_capture_mode(void); // 0x48b650, UNSURE signature, not in this module's range
-extern datum_index player_get_vehicle(datum_index player_index); // 0x4ab170, blam-cc: ECX player_index; the vehicle of the player unit or -1
-extern int32_t chat_default_team_channel(void); // 0x4ab1e0
+
 
 // Opens the multiplayer chat input dialog for the requested scope: 0 = all, 1 = team (falls
 // back to "all" if teams are disabled), 2 = vehicle (falls back to "team", then "all"),

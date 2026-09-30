@@ -23,10 +23,11 @@
 #include "networking.h"
 #include "interface.h"
 #include "objects.h"
+#include "fn_interface.h"
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
-extern int32_t local_player_index_for_unit(datum_index unit_index); // 0x4940a0, this module
+
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
                                                       object_marker *out, uint32_t name_arg); // 0x492ad0, this module
 

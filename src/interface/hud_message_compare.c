@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 int32_t hud_message_compare(const void *a, const void *b)
 {

@@ -25,13 +25,13 @@
 #include "fn_items.h"
 #include "fn_networking.h"
 #include "fn_effects.h"
+#include "fn_interface.h"
 
 extern int16_t network_game_mode; // 0x00719720
 extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE name
 
 extern void object_delete_by_pooled_node_id(void **context); // 0x4f5b50, EAX
 extern void object_type_override_call_0x70_release_node(void **context, network_client_globals *client); // 0x4f4680, EAX, stack
-extern void hud_receive_item_message(void **context); // 0x4ae200, EAX
 
 
 extern void unit_dispatch_seat_exit_message(void **context); // 0x56c400, EAX

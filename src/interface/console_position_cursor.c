@@ -15,6 +15,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t console_win32_attached;   // 0x006b2f18
 extern terminal_console *console_active; // 0x006b2f0c

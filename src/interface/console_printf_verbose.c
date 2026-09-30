@@ -18,6 +18,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <stdarg.h>
 
 extern uint8_t debug_log_level;           // 0x0087ac06, byte-wide (R01)
@@ -25,8 +26,6 @@ extern uint8_t terminal_initialized;       // 0x006b2efc
 extern data_array *terminal_messages;      // 0x006b2f00, "terminal output"
 extern char console_echo_prefix[];         // 0x00669140, matched by chimera__console_out
 
-extern datum_index console_message_new(void); // 0x496420
-extern void chimera__console_out_copy(char *text); // 0x496e90
 
 // blam-cc: EAX -> color, stack -> format, ...
 // Debug/verbose console print: only above verbosity level 3 (and only once the terminal has

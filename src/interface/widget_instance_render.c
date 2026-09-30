@@ -28,6 +28,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern double cos(double x);
 extern double sin(double x);
@@ -43,15 +44,14 @@ extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t
                                                      int16_t frame); // 0x43f290; blam-cc: EAX -> bitmap, EDI -> frame, stack -> sequence
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                                  int16_t *clip_rect, uint32_t vertex_color); // 0x498b20, UNSURE call mapping, see file header
-extern uint8_t widget_instance_is_top_of_stack(widget_instance *widget); // 0x499cb0
+
 extern void widget_instance_render_text_box(widget_instance *widget, UIWidgetDefinition *tag,
                                              Rectangle2D *dest, int32_t offset_xy,
                                              uint32_t flags); // 0x49b1d0
 extern void widget_instance_render_list_head(widget_instance *widget, UIWidgetDefinition *tag,
                                               Rectangle2D *dest, int32_t offset_xy,
                                               uint32_t flags); // 0x49b560
-extern void widget_instance_render_column_list_items(widget_instance *widget, UIWidgetDefinition *tag, Rectangle2D *dest,
-                         int32_t offset_xy, uint32_t flags); // 0x49bac0, blam-cc: EDI widget
+
 extern void ui_widget_list_item_activate(widget_instance *widget, UIWidgetDefinition *tag,
                                           int16_t *event, void *handler, uint8_t *out_handled); // 0x49a430
 

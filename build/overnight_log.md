@@ -2849,3 +2849,4 @@ types/interface.h first_person_weapon_interface 0x28 unknown_28 -> charge_blend_
 - extern removal: shell -> types/fn_shell.h (81 prototypes, 122 files edited); 28 names skipped (callers disagree). Renamed enum typedef os_platform -> os_platform_kind (it collided with the global int32_t os_platform).
 - extern removal: input -> types/fn_input.h (69 prototypes, 105 files edited); 16 names skipped (callers disagree). gen_prototypes.py now orders includes using 'header A uses a type defined in header B' constraints found while probing.
 - extern removal: render -> types/fn_render.h (39 prototypes, 59 files edited); 17 names skipped (callers disagree)
+- extern removal: interface -> types/fn_interface.h (266 prototypes, 448 files edited); 54 names skipped (callers disagree)

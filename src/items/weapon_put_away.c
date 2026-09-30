@@ -18,6 +18,7 @@
 #include "objects.h"
 #include "items.h"
 #include "fn_items.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0
 
@@ -27,7 +28,7 @@ extern void weapon_reset_triggers(datum_index item_index); // 0x4c4b50
 extern void effect_delete(datum_index handle); // 0x450be0
 extern uint32_t local_player_index_for_weapon(datum_index item_index); // 0x494010, outside this module, UNSURE signature
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action); // 0x4940f0
-extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, EBX, EAX
+
 
 // Puts a weapon away: refuses (returns 0) if it has active trigger/reload state and the request
 // isn't forced, otherwise clears control_flags, resets every trigger, deletes any overheat

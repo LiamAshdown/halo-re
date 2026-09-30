@@ -16,9 +16,10 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
+
 
 void ui_controls_4wide_selector_refresh(widget_instance *widget)
 {

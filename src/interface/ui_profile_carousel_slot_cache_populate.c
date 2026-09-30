@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770, blam-cc: ECX out_profile

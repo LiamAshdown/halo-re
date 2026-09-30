@@ -34,6 +34,7 @@
 #include "rasterizer.h"
 #include "interface.h"
 #include "fn_rasterizer.h"
+#include "fn_interface.h"
 
 extern int32_t safe_mode;   // 0x007196f4
 extern int16_t renderer_texture_quality;      // 0x0068944e

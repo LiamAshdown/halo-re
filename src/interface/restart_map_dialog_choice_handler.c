@@ -19,6 +19,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_game.h"
+#include "fn_interface.h"
 
 extern int16_t network_game_mode;              // 0x00719720
 extern game_engine_state game_engine_state_value; // 0x0087aa10
@@ -27,7 +28,7 @@ extern void game_engine_player_profile_cache_sync_all(int32_t unknown); // 0x466
 
 
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50
-extern void widget_close_all(void); // 0x498650
+
 
 // If `widget` is the dialog's first choice button, closes all widgets and, if hosting and the
 // game has not ended, restarts the current map (else logs a console message); returns 1 for

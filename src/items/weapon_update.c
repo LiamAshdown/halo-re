@@ -34,6 +34,7 @@
 #include "models.h"
 #include "fn_items.h"
 #include "fn_effects.h"
+#include "fn_interface.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -44,7 +45,6 @@ extern void object_set_permutation_by_name(uint32_t object_index, char *name, in
     char use_matched_index); // 0x4f6c60, EAX, stack
 extern char *weapon_blur_permutation_names[2]; // 0x006961b8
 
-extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code); // 0x492790, EAX, EDI
 
 extern void item_detonation_timer_start(uint32_t object_index); // 0x4bd450, this module
 extern animation_state_advance_result animation_state_advance(uint32_t animation_graph_tag_index, animation_state *state,

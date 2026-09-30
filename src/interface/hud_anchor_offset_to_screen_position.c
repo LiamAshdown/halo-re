@@ -23,6 +23,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper

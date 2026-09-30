@@ -16,6 +16,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "main.h"
+#include "fn_interface.h"
 
 extern console_globals console_globals_data;          // 0x006b7020, main.h; +0x00 active = console open (R08)
 extern uint8_t chat_dialog_open;   // 0x006b3858
@@ -23,8 +24,6 @@ extern uint8_t chat_hotkey_all;    // 0x007124a7, UNSURE name
 extern uint8_t chat_hotkey_team;   // 0x007124a8, UNSURE name
 extern uint8_t chat_hotkey_vehicle; // 0x007124a9, UNSURE name
 
-extern void chimera__chat_open(int32_t chat_scope); // 0x4aa700
-extern void hud_chat_listbox_update(void); // 0x4ab300, the caller reloads AL from 0x006b3858 afterwards
 
 // Opens the chat dialog for whichever scope hotkey is set (all, team, vehicle, checked in that
 // order), then always refreshes the chat message listbox.

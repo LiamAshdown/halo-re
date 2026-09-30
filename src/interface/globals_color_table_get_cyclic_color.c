@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern Globals *global_globals;     // 0x00746fa0
 extern tag_instance *tag_instances; // 0x0087bc14

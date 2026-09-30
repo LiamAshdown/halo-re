@@ -12,6 +12,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 

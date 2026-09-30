@@ -35,6 +35,7 @@
 #include "fn_effects.h"
 #include "fn_saved_games.h"
 #include "fn_input.h"
+#include "fn_interface.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -63,9 +64,6 @@ extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c
     // blam-cc: EBX -> variant (matches src/game/game_engine_load_from_variant.c)
 
 
-extern void interface_globals_allocate(void);   // UNSURE module
-extern void player_profile_subsystem_initialize(void);   // UNSURE module
-extern void widget_memory_pool_initialize(void);              // 0x4979b0
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0, memory module
 
     // memory module; blam-cc: element size in EBX, then the stack pair (name, maximum_count)

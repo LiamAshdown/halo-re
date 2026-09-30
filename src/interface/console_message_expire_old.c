@@ -13,11 +13,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern data_array *terminal_messages;     // 0x006b2f00, "terminal output"
 extern datum_index console_message_head;  // 0x006b2f04, newest
 
-extern void console_message_delete(datum_index message); // 0x496490
 
 // Walks every live console_message from newest to oldest, incrementing its age each frame and
 // deleting it once that age passes 150.

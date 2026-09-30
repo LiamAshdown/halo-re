@@ -14,10 +14,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern void player_profile_set_default_server_options(void); // 0x53a150, foreign (profile module), UNSURE
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
-extern uint8_t ui_network_game_options_populate(widget_instance *widget, const uint8_t *options_record); // 0x4a3960
+
 
 void ui_network_game_options_refresh(widget_instance *widget, const uint8_t *options_record)
 {

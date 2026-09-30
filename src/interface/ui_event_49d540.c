@@ -21,10 +21,11 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 
 extern uint8_t local_team_00714dd8; // 0x00714dd8, TYPES-GAP
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc]; // 0x00714ddc, TYPES-GAP
-extern void network_game_setup_teardown(void); // 0x495520
+
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
@@ -35,7 +36,7 @@ extern int16_t network_game_mode; // 0x00719720
 extern uint8_t save_in_progress_00719010; // 0x00719010
 extern int16_t local_player_count; // 0x006894b8
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
-extern void main_menu_play_title_music(void); // 0x4993e0
+
 
 uint8_t ui_event_49d540(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

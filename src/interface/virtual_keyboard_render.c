@@ -21,6 +21,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern tag_instance *tag_instances;               // 0x0087bc14
@@ -41,7 +42,7 @@ extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_
 extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0; blam-cc: ECX, DX
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1,
                                       const uint16_t *text); // 0x514ab0, blam-cc: EAX clip, ECX bounds
-extern void virtual_keyboard_draw_text(Rectangle2D *bounds); // 0x4a9300
+
 
 static void virtual_keyboard_set_text_state(int16_t column)
 {

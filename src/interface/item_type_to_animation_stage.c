@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // Second-stage remap from item_type_to_message_stage's result to the final index used to index
 // the weapon_hud_interface message table; -1 for any input with no entry.

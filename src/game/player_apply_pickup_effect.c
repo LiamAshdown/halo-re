@@ -27,6 +27,7 @@
 #include "game.h"
 #include "fn_game.h"
 #include "fn_objects.h"
+#include "fn_interface.h"
 
 extern data_array *player_data;              // 0x0087a480
 extern data_array *object_data;           // 0x008603b0
@@ -36,8 +37,6 @@ extern uint8_t *main_game_globals;             // 0x006b0b80, UNSURE identity, s
 extern int16_t network_game_mode;            // 0x00719720
 
 
-extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index,
-    int8_t machine_id); // 0x4ae350, EAX count, ECX source, DL kind, stack (local player, machine)
 extern void equipment_pickup_play_sound(uint32_t object_index); // 0x4bbb50, EAX object
 extern void object_delete(uint32_t object_index); // 0x4f5bd0
 

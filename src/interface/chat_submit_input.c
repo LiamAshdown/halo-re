@@ -12,6 +12,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern uint8_t chat_dialog_open; // 0x006b3858
@@ -23,8 +24,7 @@ extern chat_gui_find_child_fn chat_gui_find_child;    // 0x00721ecc
 extern chat_gui_get_property_string_fn keystone_control_get_attribute; // 0x00721ee0
 extern chat_gui_release_fn chat_gui_release;          // 0x00721ec8
 
-extern int32_t chat_default_team_channel(void); // 0x4ab1e0
-extern void chimera__chat_out(uint8_t team_index); // 0x4aab00
+
 extern void chat_close(void); // 0x4aa900
 
 // Reads the text typed into the open chat editbox and, if the default team channel is valid

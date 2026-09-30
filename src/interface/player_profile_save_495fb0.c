@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t unknown_00712f07;         // 0x00712f07, UNSURE
 extern int32_t saved_player_profile_slots_handle;    // 0x00714dd4
@@ -26,10 +27,10 @@ extern tag_instance *tag_instances;      // 0x0087bc14
 extern uint8_t profile_globals_block[];  // 0x00712dd8
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
-extern void hud_message_broadcast_to_local_players(const uint16_t *text); // 0x495f50, blam-cc: ESI text
+
 extern const uint16_t empty_string[];          // 0x00660c34, L""
 extern const uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"
-extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX (0 at both calls here)
+
 extern void console_out_printf(uint8_t unknown, const char *format, ...); // 0x4c6860
 extern void player_profile_write_data(int32_t slot, void *profile_data); // 0x53a950
 

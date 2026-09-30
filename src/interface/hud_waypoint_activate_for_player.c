@@ -15,6 +15,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern data_array *player_data;            // 0x0087a480
 extern hud_waypoint_state *hud_waypoints;  // 0x006b3a44

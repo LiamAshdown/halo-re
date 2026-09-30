@@ -26,6 +26,7 @@
 #include "interface.h"
 #include "fn_game.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4, UNSURE
 extern uint8_t network_server_host_valid;  // 0x0071c2dd, UNSURE
@@ -40,14 +41,12 @@ extern uint16_t split_screen_quit_prompt_string; // 0x00719754, word stores
 extern uint8_t split_screen_quit_prompt_armed;   // 0x00719757
 extern uint8_t network_join_error_reason; // 0x0071973c, byte stores only
 
-extern void widget_close_all(void); // 0x498650
+
 extern void network_game_server_host_dispose(void *host); // 0x4deda0
 
 extern void main_queue_map_change_by_name_or_clear(char *map_name); // 0x4c87a0; blam-cc: EDI -> map_name
 
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
+
 extern void game_engine_ensure_variant_history_has_entry(void); // 0x463b20
 extern uint8_t network_game_server_host_create(void); // 0x4ddd40, UNSURE
 extern void *network_session_create(void);              // 0x4d8a80, UNSURE

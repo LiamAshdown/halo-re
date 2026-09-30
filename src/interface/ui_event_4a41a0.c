@@ -19,11 +19,12 @@
 #include "cache.h"
 #include "interface.h"
 #include "fn_saved_games.h"
+#include "fn_interface.h"
 
 
 extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, void *callback, void *user_data); // 0x538e70
 extern uint8_t ui_restoring_previous_widget; // 0x00718fcb
-extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, blam-cc: EAX
+
 extern char *campaign_level_paths[]; // 0x00696574
 extern void main_queue_map_change(char *map_name); // 0x4c8740, blam-cc: EAX
 extern uint8_t network_wait_flag_00719739; // 0x00719739

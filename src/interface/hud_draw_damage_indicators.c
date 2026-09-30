@@ -35,6 +35,7 @@
 #include "effects.h"
 #include "interface.h"
 #include "fn_effects.h"
+#include "fn_interface.h"
 
 extern data_array *player_data;                    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern player_globals *local_player_globals;       // 0x0087a478
@@ -46,11 +47,9 @@ extern float hud_damage_indicator_screen_center_x; // 0x0067321c (== 320.0f, hal
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 
-extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
-                                           void **out_data, int32_t *out_offset); // 0x4ab8d0, blam-cc: EAX frame_index
+
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, blam-cc: EAX bitmap
-extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
-                               const Point2DInt *screen_position, float scale, float rotation, uint32_t color); // 0x4acbb0, blam-cc: EAX uv, EDX bitmap, CL pixel_uvs
+
 
 // blam-cc: local_player_index -> EAX
 // Draws the local player's four directional damage indicators (edge-of-screen arrows) for

@@ -25,6 +25,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t controls_selected_device;        // 0x006953ec
 extern int32_t selected_saved_item;             // 0x00714e7c

@@ -12,10 +12,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 
-extern void hud_waypoints_update_for_player(int16_t local_player_index); // 0x4af370
 
 void hud_waypoints_update(void)
 {

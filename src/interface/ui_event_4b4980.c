@@ -17,6 +17,7 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity
@@ -28,7 +29,7 @@ extern uint8_t ui_flag_00719444; // 0x00719444, UNSURE (only ever set to 1 here)
 extern void controls_build_device_label_table(void); // 0x4b4890
 extern int32_t controls_device_label_count; // 0x00719440
 extern uint8_t controls_device_labels[]; // 0x006932e8
-extern int32_t controls_binding_list_refresh_rows(widget_instance *widget, int32_t page); // 0x4b4790, blam-cc: EAX widget
+
 
 uint8_t ui_event_4b4980(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

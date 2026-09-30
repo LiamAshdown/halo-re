@@ -12,6 +12,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // Sets widget->state (and every descendant's state, recursively through first_child then
 // next_sibling) to the low byte of `state`.

@@ -17,11 +17,12 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern int32_t ui_list_current;      // 0x00692c04
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0
-extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items); // 0x4a8310, UNSURE: not analyzed separately
+
+
 extern void multiplayer_settings_select_list_update_item(widget_instance *description_widget, void *variant_data); // 0x4a5bc0, UNSURE signature, see header note
 
 // Rebuilds this widget's rows, refreshes the linked game-variant description widget, then

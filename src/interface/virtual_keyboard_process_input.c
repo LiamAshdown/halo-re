@@ -27,6 +27,7 @@
 #include "interface.h"
 #include "cache.h"
 #include "fn_saved_games.h"
+#include "fn_interface.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -44,10 +45,10 @@ extern uint8_t key_release_pending[0x6d]; // 0x006b168d (0x1b dwords + 1 byte cl
 
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
 extern void display_error(int32_t string_index, int32_t player_index, uint8_t modal, uint8_t is_error); // 0x498f20
-extern uint8_t virtual_keyboard_close(void);     // 0x4a9250
-extern void virtual_keyboard_backspace(void);    // 0x4a96f0
+
+
 extern uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text); // 0x4a8b10, blam-cc: EAX
-extern uint8_t ui_variant_name_is_available(const uint16_t *name); // 0x4a8b50, blam-cc: EDI
+
 extern uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t character); // 0x4a8b80, blam-cc: EAX mode, CL character
 extern uint32_t time_query_performance_counter_ms(void);              // 0x449210, millisecond clock
 

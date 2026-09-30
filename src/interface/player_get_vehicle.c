@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "units.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern data_array *player_data; // 0x0087a480, stride 0x200
 

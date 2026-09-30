@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern uint8_t ui_list_has_default;  // 0x007192f8

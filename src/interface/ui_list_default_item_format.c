@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern int32_t ui_list_current; // 0x00692c04

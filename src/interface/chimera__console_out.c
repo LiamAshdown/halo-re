@@ -17,14 +17,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <stdarg.h>
 
 extern uint8_t terminal_initialized;       // 0x006b2efc
 extern data_array *terminal_messages;      // 0x006b2f00, "terminal output"
 extern char console_echo_prefix[];         // 0x00669140, matched by chimera__console_out
 
-extern datum_index console_message_new(void); // 0x496420
-extern void chimera__console_out_copy(char *text); // 0x496e90
 
 // blam-cc: EAX -> color, stack -> format, ...
 // Formats `format` with vsnprintf into a fresh console_message (defaulting its color to

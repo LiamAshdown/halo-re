@@ -41,6 +41,7 @@
 #include "interface.h"
 #include "units.h"
 #include "fn_game.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances;            // 0x0087bc14
@@ -55,7 +56,6 @@ extern datum_index hud_team_icon_bitmap;       // 0x00692fc4, cached team_icon_<
 extern datum_index hud_team_background_bitmap; // 0x00692fc8, cached ui\shell\bitmaps\team_background
 
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even)
-extern int32_t ui_real_to_int_truncate(float value); // 0x4ab590
 
 
 extern float *game_engine_get_player_color(uint32_t player_index, float *out_rgb); // 0x463290, blam-cc: EAX player_index, ESI out_rgb
@@ -65,19 +65,7 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
 extern uint32_t color_rgb_float_to_int(const float *rgb); // 0x4ab5d0
-extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
-                                                 const int16_t *offset, int16_t *out, int32_t selector); // 0x4ab690, blam-cc: AL has_scale, EDX offset, ECX child placement (selector)
-extern void hud_meter_draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t flags,
-                                float fraction, float fraction_2, const hud_meter_placement *meter); // 0x4abbc0, blam-cc: ESI meter
-extern void hud_draw_static_element(int16_t local_player_index, uint16_t *anchor,
-                                    const hud_static_element_placement *element, uint32_t draw_flags,
-                                    int32_t flash_start_time); // 0x4ac6f0
-extern void hud_draw_rotated_bitmap_quad(const Point2DInt *screen_position, const float *scale,
-                                         void *meter_parameters, BitmapData *bitmap, const float *uv,
-                                         const float *extents, float rotation, uint32_t color); // 0x4acd50, blam-cc: EAX screen_position, ESI scale
-extern void motion_sensor_update_for_player(int16_t local_player_index); // 0x4b3e10
-extern void motion_sensor_render(uint8_t splitscreen, const int16_t *screen_center,
-                                 int16_t local_player_index); // 0x4b4120, blam-cc: EAX screen_center, CX local_player_index
+
 
 // fistp of the product, clamped to 0..255 (evaluated up to three times by the binary)
 static int32_t hud_alpha_round(float value)

@@ -25,6 +25,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 
 extern network_client_globals *network_client;
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
@@ -33,7 +34,7 @@ extern char network_session_info_packet_send(const uint32_t *source, void *clien
 extern uint8_t local_team_00714dd8[]; // 0x00714dd8, 0x2004 bytes per local player
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, TYPES-GAP
-extern uint32_t network_server_reset_game_stats(void); // 0x4a1670
+
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc]; // 0x00714ddc, TYPES-GAP
 
 extern void network_game_server_host_dispose(void *host); // 0x4deda0

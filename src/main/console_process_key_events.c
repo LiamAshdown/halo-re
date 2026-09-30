@@ -30,6 +30,7 @@
 #include "main.h"
 #include "fn_main.h"
 #include "fn_input.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern console_globals console_globals_data;         // 0x006b7020
@@ -38,7 +39,7 @@ extern input_abstraction_globals input_globals;  // 0x00710328 (system_key_state
 
 
 extern char console_process_command(char *command_line, uint32_t context_flags); // this module, 0x4c6a80, blam-cc: EDI -> command_line, stack -> context_flags
-extern void widget_text_edit_reset_length(text_edit_state *state); // 0x44c5b0, blam-cc: ESI -> state
+
 
 // Per-frame console input: toggles the console on the grave key, and while open, consumes every
 // buffered key event of the frame (paste, tab-completion, Enter/close, and command history

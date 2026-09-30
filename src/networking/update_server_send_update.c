@@ -35,6 +35,7 @@
 #include "fn_game.h"
 #include "fn_memory.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 #include <string.h>
 #include <stdint.h>
 
@@ -60,8 +61,8 @@ extern void update_server_new(void); // 0x472aa0, outside this batch
 
 
 extern void update_client_stage_entry(void); // 0x473090, outside this batch
-extern void ui_network_wait_timeout_check(void); // 0x49c7b0, outside this batch
-extern void ui_network_wait_timeout_start(void); // 0x49c810, outside this batch
+
+
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module

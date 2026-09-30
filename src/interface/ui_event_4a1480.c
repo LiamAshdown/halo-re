@@ -18,6 +18,7 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern void saved_game_allocate_new_slot(uint16_t *out_name); // 0x53ca80, blam-cc: EBX out_name
@@ -25,7 +26,7 @@ extern uint32_t saved_game_create_default_profile(uint16_t *name); // 0x539ab0, 
 extern void saved_item_select(int32_t item); // 0x495be0, blam-cc: EBX -> item
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970, blam-cc: AX, EDX, stack
+
 extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind); // 0x4a89a0, blam-cc: ESI destination
 extern int16_t quit_confirm_error_string_index; // 0x00718fac
 extern int16_t quit_confirm_error_unknown_ae; // 0x00718fae

@@ -24,14 +24,8 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_interface.h"
 
-extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
-                                                 const int16_t *offset, int16_t *out, int32_t selector); // 0x4ab690, blam-cc: AL has_scale, EDX offset, ECX child placement (selector)
-extern void hud_bitmap_anchor_extents(uint8_t pixel_uvs, const BitmapData *bitmap, const float *uv,
-                                      float *out_extents, int16_t anchor); // 0x4acc50, blam-cc: CL, ESI, EDX, EAX
-extern void hud_draw_rotated_bitmap_quad(const Point2DInt *screen_position, const float *scale,
-                                         void *meter_parameters, BitmapData *bitmap, const float *uv,
-                                         const float *extents, float rotation, uint32_t color); // 0x4acd50, blam-cc: EAX, ESI
 
 // blam-cc: uv -> EAX, placement -> EDX, pixel_uvs -> BL
 // Draws one HUD bitmap quad placed by a HUD interface element: its anchor offset, width and

@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: ESI -> widget
 // Returns widget's 0-based index among its parent's children (first_child, then next_sibling),

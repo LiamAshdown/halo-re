@@ -31,6 +31,7 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern float sinf(float x);
 extern float cosf(float x);
@@ -46,7 +47,7 @@ extern float hud_multitexture_effector_counter;              // 0x00719428, += 0
 
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
-extern uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out); // 0x4acef0, blam-cc: EAX player
+
 extern void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *vertices); // 0x51c9a0, rasterizer quad submitter, blam-cc: EAX state
 
 static datum_index hud_local_player_index_to_player(int16_t local_player_index)

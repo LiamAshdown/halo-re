@@ -22,6 +22,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: ECX -> node
 // True if every ancestor from `node` up to the tree root has its focused_child pointing back at

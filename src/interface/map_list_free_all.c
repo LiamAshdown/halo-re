@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern map_list_entry *map_list;  // 0x00712dcc
 extern int32_t map_list_count;    // 0x00712dd0

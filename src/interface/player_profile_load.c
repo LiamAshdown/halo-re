@@ -29,6 +29,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 
 extern int32_t saved_player_profile_slots_handle;               // 0x00714dd4, record 0 field +0x1ffc
 extern uint8_t profile_globals_block[];             // 0x00712dd8, stride 0x2004 per player
@@ -40,10 +41,8 @@ extern uint32_t network_session_start_game_type;                   // 0x007227b8
 extern int32_t cached_profile_slot;                 // 0x0068e66c (per player_profile_subsystem_initialize.c)
 extern char last_profile_name[];                    // 0x00718e80 (per player_profile_subsystem_initialize.c)
 
-extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX
+
 extern void control_profile_reestablish_device_slot_mappings(uint8_t *profile_record);         // 0x53b620; blam-cc: EAX -> profile_record
-extern uint8_t player_profile_apply_video_options(uint8_t *settings); // 0x495580
-extern void player_profile_apply_audio_options(uint8_t *settings);     // 0x4957d0
 
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name); // 0x53d080; blam-cc: EAX -> slot, ESI -> out_name

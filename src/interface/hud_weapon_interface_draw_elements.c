@@ -37,6 +37,7 @@
 #include "objects.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern data_array *object_data; // 0x008603b0
@@ -52,18 +53,10 @@ extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpo
 extern double fmod(double x, double y); // 0x628cca, MSVC 7.1 CRT _CIfmod
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even)
 extern int32_t __ftol(double x); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
-extern int32_t ui_real_to_int_truncate(float value); // 0x4ab590
+
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80, blam-cc: ECX unit_index, EDI out
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900, blam-cc: EAX out, ECX object
-extern void hud_meter_draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t flags,
-                                float fraction, float fraction_2, const hud_meter_placement *meter); // 0x4abbc0, blam-cc: ESI meter
-extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value,
-                            int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale); // 0x4ac0b0
-extern void hud_draw_static_element(int16_t local_player_index, uint16_t *anchor,
-                                    const hud_static_element_placement *element, uint32_t draw_flags,
-                                    int32_t flash_start_time); // 0x4ac6f0
-extern void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t type_mask,
-                              int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen); // 0x4ac950
+
 
 // trunc(value * 100) clamped to 0..100 (evaluated up to three times by the binary)
 static int32_t hud_percent(float value)

@@ -27,6 +27,7 @@
 #include "fn_game.h"
 #include "fn_cutscene.h"
 #include "fn_render.h"
+#include "fn_interface.h"
 
 extern render_camera render_camera_global;     // 0x007c3114, this module (named
                                                // render_camera_global; a variable cannot share
@@ -41,12 +42,6 @@ extern void chimera__render_camera_build_frustum(float *bounds, render_camera *c
 
 extern void rasterizer_begin_frame(rasterizer_window_parameters *source); // 0x5175c0, rasterizer
                                                                           // module
-
-
-extern void ui_error_modal_update(void);                      // 0x494ca0
-extern void hud_timer_draw(void); // 0x4add10
-extern void chimera__do_show_loading_screen(void);   // 0x497410
-extern void console_draw_overlay(void);              // 0x496730
 
 
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, this module

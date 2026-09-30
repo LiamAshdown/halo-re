@@ -19,6 +19,7 @@
 #include "math.h"
 #include "interface.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 
 extern uint8_t server_browser_initialized;                // 0x00719470
 extern void *server_list_thread;                          // 0x007196ac
@@ -50,8 +51,7 @@ extern void server_list_reset(uint8_t *entry);            // 0x4b65f0, EAX
 extern void ticker_text_buffer_reset(void *self);         // 0x4b8a00, EDI
 
 extern void saved_item_select(int32_t item);              // 0x495be0, EBX
-extern uint8_t saved_item_has_unsaved_changes(void);      // 0x495ea0
-extern uint8_t player_profile_save(void);                 // 0x495d40
+
 
 uint8_t server_browser_closed_event(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

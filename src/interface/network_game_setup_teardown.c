@@ -18,6 +18,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern uint8_t game_variant_saved_default_valid;      // 0x00714e78

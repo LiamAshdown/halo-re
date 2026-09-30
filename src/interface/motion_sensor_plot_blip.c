@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern game_time_globals *game_time;              // 0x006f1d6c

@@ -27,6 +27,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280, UNSURE name
 extern char k_empty_string[];                  // 0x0065512c
@@ -36,7 +37,7 @@ extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_by
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970, blam-cc: AX player_index, EDX source_profile
+
 extern uint8_t network_game_client_connect_to_address_async(const char *address, const char *password); // 0x4c8500
 
 uint8_t network_autojoin_from_command_line(void)

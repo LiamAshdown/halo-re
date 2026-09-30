@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: EAX -> widget
 // True if `widget` is reachable from the root purely by following focused_child (i.e. it is the

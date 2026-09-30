@@ -17,6 +17,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern growable_array hud_text_message_queue; // 0x006b37e8
 extern uint16_t empty_string[];  // 0x00660c34

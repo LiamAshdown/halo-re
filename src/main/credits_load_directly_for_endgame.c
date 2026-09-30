@@ -27,6 +27,7 @@
 #include "saved_games.h"
 #include "main.h"
 #include "fn_main.h"
+#include "fn_interface.h"
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8,
     // foreign (saved_games); slot 0 handle at 0x00714dd4 (+0x1ffc)
@@ -36,9 +37,6 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, foreign
     // blam-cc: EDI -> group, stack -> path
 extern void player_profile_write_data(int32_t handle, saved_player_profile *profile); // 0x53a950, foreign (saved_games module)
 
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, foreign (interface module)
 
 // Marks the current profile as having reached the end credits, saves it if a profile is
 // currently selected, returns to the main menu, and immediately shows the end-game credits

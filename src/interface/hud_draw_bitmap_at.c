@@ -21,12 +21,8 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_interface.h"
 
-extern void hud_bitmap_anchor_extents(uint8_t pixel_uvs, const BitmapData *bitmap, const float *uv,
-                                      float *out_extents, int16_t anchor); // 0x4acc50, blam-cc: CL, ESI, EDX, EAX
-extern void hud_draw_rotated_bitmap_quad(const Point2DInt *screen_position, const float *scale,
-                                         void *meter_parameters, BitmapData *bitmap, const float *uv,
-                                         const float *extents, float rotation, uint32_t color); // 0x4acd50, blam-cc: EAX, ESI
 
 // blam-cc: uv -> EAX, bitmap -> EDX, pixel_uvs -> CL
 // Draws one HUD bitmap quad whose anchor corner (0..4, see hud_bitmap_anchor_extents) sits at

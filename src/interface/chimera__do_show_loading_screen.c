@@ -34,6 +34,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern progress_screen_state join_ui_state; // 0x00718f8c, progress_screen_state in interface.h
 extern int32_t interface_loading_screen_address_b;      // 0x0068e684
@@ -57,7 +58,7 @@ extern uint32_t time_query_performance_counter_ms(void); // 0x449210
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550; blam-cc: group in EDI
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,
                                                      int16_t frame); // 0x43f290; blam-cc: EAX -> bitmap, EDI -> frame, stack -> sequence
-extern uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale); // 0x497970; blam-cc: EAX -> packed_color
+
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                                 int16_t *clip_rect, uint32_t vertex_color); // 0x498b20; blam-cc: EAX, ECX
 extern void text_set_render_context(datum_index font, ColorARGB *color, int32_t flags,

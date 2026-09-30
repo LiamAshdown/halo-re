@@ -18,6 +18,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern int32_t selected_saved_item;             // 0x00714e7c
@@ -25,7 +26,6 @@ extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern int32_t saved_player_profile_slots_handle;            // 0x00714dd4
 extern uint8_t profile_globals_block[0x60a4];    // 0x00712dd8, saved profile slot 0 first
 
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
 
 uint8_t ui_controls_options_reload_profile(void)
 {

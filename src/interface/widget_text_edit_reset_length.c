@@ -13,9 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
-extern void widget_text_edit_clamp_selection(text_edit_state *state); // 0x44c780, this module
 
 // blam-cc: state in ESI (unaff_ESI)
 // Re-clamps the control, then re-derives its cursor from the current string length and drops

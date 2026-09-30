@@ -23,6 +23,7 @@
 #include "interface.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_interface.h"
 
 extern player_globals *local_player_globals;   // 0x0087a478
 extern data_array *player_data;                // 0x0087a480
@@ -32,7 +33,6 @@ extern hud_unit_meter_globals *hud_unit_meters; // 0x0071942c
 extern hud_globals_flags *hud_flags;           // 0x00719420
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 
-extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled); // 0x4afee0, blam-cc: EAX player
 
 // blam-cc: local_player_index -> DI
 void hud_unit_meters_update_for_player(int16_t local_player_index)

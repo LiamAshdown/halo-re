@@ -16,12 +16,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern terminal_console *console_active; // 0x006b2f0c
 
-extern void widget_text_edit_clamp_selection(text_edit_state *state); // 0x44c780
-extern void console_restore_cursor(void); // 0x496c20
 
 // Lazily activates the developer console for `console` the first time it is opened: wires up
 // its embedded text_edit_state to edit `input` in place, seeds the cursor at the end of

@@ -20,6 +20,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_input.h"
+#include "fn_interface.h"
 
 extern uint8_t main_menu_reload_pending; // 0x006926c8, UNSURE name
 extern char *shell_command_line;    // 0x006e35c0, TYPES-GAP, UNSURE name
@@ -32,12 +33,10 @@ extern datum_index cached_saved_game_something; // 0x00692af8, TYPES-GAP, UNSURE
 
 
 extern void player_profile_check_storage_and_defaults(void); // 0x49c680, UNSURE
-extern void widget_close_all(void); // 0x498650
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
+
+
 extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error); // 0x498f20
-extern void main_menu_play_title_music(void); // 0x4993e0
+
 extern void virtual_keyboard_initialize(void); // 0x4a88f0
 
 // Loads and opens the main menu UI widget: if a reload is pending, tears down any tracked

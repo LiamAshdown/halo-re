@@ -35,6 +35,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern heap *widget_memory_pool;                          // 0x006926c4
 extern int32_t controls_capture_row; // 0x006953e8, -1 when no binding is being captured
@@ -47,12 +48,8 @@ extern uint8_t controls_action_table[][0x18];             // 0x00692fe8
 
 
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
-extern int32_t controls_binding_list_refresh_rows(widget_instance *widget, int32_t page); // 0x4b4790, blam-cc: EAX widget
-extern uint8_t controls_key_is_bindable(int32_t control); // 0x4b43c0, blam-cc: EDX control (returns 0 for a reserved one)
-extern uint8_t controls_enumerate_next_assignable_action(int32_t device, int16_t *record, const char *action_name,
-                                                          uint8_t accept_reserved_on_retry); // 0x4b43e0, blam-cc: EAX device, ECX record, EDI action_name
-extern uint8_t controls_binding_clear(int32_t action_index, int32_t device); // 0x4b4e20, blam-cc: EAX action_index
-extern uint8_t controls_action_column_is_bindable(int32_t slot, int32_t action_index); // 0x4b4df0, blam-cc: ECX slot, EDX action_index
+
+
 extern int16_t input_action_name_to_index(const char *action_name); // 0x48fe60, blam-cc: EBX action_name
 extern void control_profile_clear_binding(const int16_t *record); // 0x53ad00, blam-cc: ESI record
 extern void control_profile_set_binding(const int16_t *record, int32_t action); // 0x53ae10, blam-cc: ESI record

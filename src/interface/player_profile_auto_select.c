@@ -20,12 +20,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
     // 0x53c4e0; blam-cc: EBX -> capacity-then-count int32
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
+
 
 // Looks for an existing player profile at startup: tries a type-0 enumeration with flag 0 first
 // and loads that slot if it validates; otherwise (nothing found) tries flag 1 and, if that slot

@@ -12,13 +12,13 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_interface.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
-extern void hud_waypoint_activate_for_player(datum_index player_index, datum_index target, int16_t kind,
-    int16_t arrow_index, float vertical_offset); // 0x4af0d0, blam-cc: EAX, EBX, DX, stack
+
 
 void hs_evaluate_activate_nav_point_object(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -18,12 +18,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern data_array *player_data; // 0x0087a480
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
-extern void hud_waypoint_activate_for_player(datum_index player_index, datum_index target, int16_t kind,
-                                             int16_t arrow_index, float vertical_offset); // 0x4af0d0, blam-cc: EAX player_index, EBX target, DX kind
+
 
 // blam-cc: target -> EAX
 void hud_waypoint_activate_for_team(datum_index target, int16_t arrow_index, int16_t team, int16_t kind,

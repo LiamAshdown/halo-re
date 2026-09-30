@@ -24,6 +24,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern datum_index global_scenario_index; // 0x0069e8d4, UNSURE name
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -40,9 +41,6 @@ extern char player_help_name_c40[]; // 0x00669a40 FIXED: an array (the binary pu
 extern char player_help_name_d20[]; // 0x00669a3c FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 extern char player_help_name_d40[]; // 0x00669a38 FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
 
 // Selects and opens a specific player-help screen tag based on matching the current profile's
 // name against hardcoded name lists, then stashes `value` into the opened widget's first

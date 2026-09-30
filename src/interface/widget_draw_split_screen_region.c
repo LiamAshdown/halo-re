@@ -39,14 +39,13 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern uint8_t ui_split_screen;            // 0x00718fc9
 extern player_globals *local_player_globals; // 0x0087a478 (types/game.h)
 
-extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy,
-                                   uint32_t flag1, int32_t flag2); // 0x49a8c0, as defined in widget_instance_render.c
 
 // Draws the current root widget clipped to one split-screen viewport region. Only ever runs for
 // controller slot 0 (see header note); the destination rect is the caller's viewport shifted to

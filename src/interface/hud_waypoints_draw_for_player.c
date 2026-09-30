@@ -22,6 +22,7 @@
 #include "interface.h"
 #include "fn_game.h"
 #include "fn_objects.h"
+#include "fn_interface.h"
 
 extern player_globals *local_player_globals;  // 0x0087a478
 extern data_array *player_data;               // 0x0087a480

@@ -15,10 +15,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern heap *widget_memory_pool; // 0x006926c4
 
-extern void ui_list_free_all(void); // 0x4a7b20
 
 uint32_t ui_controls_options_free_list(widget_instance *widget)
 {

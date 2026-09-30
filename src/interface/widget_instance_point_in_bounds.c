@@ -20,6 +20,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_cursor_x; // 0x00718f84, clamped into 0 .. 0x280

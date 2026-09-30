@@ -37,6 +37,7 @@
 #include "units.h"
 #include "fn_rasterizer.h"
 #include "fn_objects.h"
+#include "fn_interface.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *light_data; // 0x00860b14
@@ -72,10 +73,7 @@ extern void *color_interpolate_argb_with_tint(uint32_t flags, void *color1, void
 extern void *color_interpolate(void *color1, void *color0, void *dest, uint32_t flags, float t); // 0x43f6a0,
     // EAX color1, ECX color0, stack dest, flags, t
 extern real transition_function_evaluate(int16_t type, real phase); // 0x4ccac0, CX type, stack phase
-extern void first_person_weapon_center_flashlight(datum_index unit_index, real_point3d *out_origin,
-    real_vector3d *out_extents, real_vector3d *out_direction); // 0x492b80
-extern uint8_t unit_get_first_person_marker_transform(datum_index object_index, const char *marker_name,
-    real_point3d *out_position, real_vector3d *out_extents, real_vector3d *out_direction); // 0x492c30
+
 
 extern int32_t local_player_index_for_weapon(datum_index weapon_index); // 0x494010
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,

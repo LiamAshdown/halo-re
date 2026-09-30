@@ -31,6 +31,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_bitmaps.h"
+#include "fn_interface.h"
 
 extern uint16_t formatted_prompt_scratch[0x100]; // 0x006b2fe8, copy of the source text split in place
 extern int16_t ui_prompt_clip_y; // 0x006e4770, word store
@@ -54,13 +55,12 @@ extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text); // 0x514ab0
     // blam-cc: EAX -> clip (NULL here), ECX -> bounds
-extern int16_t ui_button_prompt_index_from_string(uint16_t *text); // 0x49ac30; blam-cc: EBX -> text
-extern void ui_widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, Rectangle2D *origin); // 0x49ad30
+
+
     // blam-cc: EAX -> cursor, ECX -> origin
 extern uint8_t input_get_last_used_binding(int16_t key, uint8_t *out_binding); // 0x48bde0; blam-cc: EAX -> key, stack -> 12 byte out
 extern void input_get_binding_display_name(uint8_t *binding, uint16_t *out_name); // 0x48c7f0; blam-cc: EAX -> binding, ECX -> out_name
 
-extern void ui_button_prompt_draw_icon(HUDGlobalsButtonIcon *icon); // 0x49ac80; blam-cc: ESI -> icon
 
 // Draws one span at the running cursor: clip offset is the non-negative distance the cursor has
 // moved right of the origin, the span is measured, the cursor retreats 3, and the span is drawn

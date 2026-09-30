@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "fn_game.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -54,7 +55,7 @@ extern uint8_t game_engine_ensure_variant_history_has_entry(void); // foreign, U
 
 
 extern void network_host_round_reset(void); // this module (earlier batch)
-extern void widget_close_all(void); // foreign
+
 
 // Tears down any existing hosted session, opens the network channels, creates the server host
 // and (if not already present) the shared client/session globals, applies default UI/engine

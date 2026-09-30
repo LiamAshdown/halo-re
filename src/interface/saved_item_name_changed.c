@@ -16,6 +16,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern int32_t selected_saved_item;             // 0x00714e7c

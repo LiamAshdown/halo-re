@@ -25,6 +25,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern terminal_console *console_active; // 0x006b2f0c
 extern uint8_t console_caret_visible;    // 0x006b2f10
@@ -36,7 +37,6 @@ extern int16_t key_event_read_index;  // 0x006b16fa, int16 (word compares at 0x4
 extern int16_t key_event_count; // 0x006b16fc, int16
 extern ui_key_event key_events[];     // 0x006b16fe, UNSURE: ring array, capacity unknown
 
-extern void widget_text_edit_process_key(text_edit_state *state, ui_key_event *event); // 0x44c290
 
 // Per-frame developer-console update: while a scripted/queued key stream is active (state byte
 // 0x00712542 is not exactly 1, has bit 0x08 clear and bit 0x04 set) and the ring still has

@@ -21,6 +21,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern int32_t ui_network_wait_start_time;      // 0x006927c4, -1 when no wait is running
 extern datum_index trouble_brewing_bitmap_tag;  // 0x006927c8, TYPES-GAP

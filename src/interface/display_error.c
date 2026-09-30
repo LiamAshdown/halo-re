@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_interface.h"
 
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern ui_pending_error ui_pending_errors[4]; // 0x00718fb6
@@ -37,10 +38,6 @@ extern int16_t network_game_mode; // 0x00719720, types/game.h: 0 local, 1 client
 extern int16_t ui_pause_depth;                // 0x00718fa6
 extern game_time_globals *game_time; // 0x006f1d6c (types/game.h)
 
-extern void chimera__load_main_menu(void); // 0x4989f0
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
 
 // Queues or immediately opens the appropriately-sized modal/non-modal error dialog widget for the
 // given error message id, tag'd by how many local players are active and whether it should block

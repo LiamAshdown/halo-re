@@ -15,13 +15,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t console_win32_attached;    // 0x006b2f18
 extern void *console_output_handle;       // 0x006b2dd0, win32 console output handle
 extern terminal_console *console_active;  // 0x006b2f0c
 extern char console_window_title[0x20];   // 0x006b2dd8
 
-extern void console_draw_input_line(void); // 0x4970a0
 
 // While a win32 console is attached, forces its cursor back to visible, refreshes the window
 // title from the active console's prompt, and redraws the input line.

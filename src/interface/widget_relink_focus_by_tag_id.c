@@ -21,9 +21,8 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
-extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_index tag_id); // 0x499950
-extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child); // 0x49bba0
 
 // blam-cc: EAX -> widget, stack -> child_definition
 // Climbs from `widget` to the root of its tree, then relinks the root's descendant tagged

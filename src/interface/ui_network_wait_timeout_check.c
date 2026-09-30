@@ -15,6 +15,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t ui_network_wait_active;      // 0x00718fcd
 extern int32_t ui_network_wait_start_time;  // 0x006927c4, -1 when no wait is running

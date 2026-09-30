@@ -21,13 +21,11 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710, blam-cc: EBX widget
-extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget); // 0x4a7400, blam-cc: EAX out, ECX widget
-extern void ui_level_carousel_row_refresh(widget_instance *widget, int32_t slot_index); // 0x4a4e20, blam-cc: ECX widget, EAX index
 
 void ui_level_carousel_refresh(widget_instance *widget)
 {

@@ -26,6 +26,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances;           // 0x0087bc14
 extern Globals *global_globals;               // 0x00746fa0
@@ -35,9 +36,7 @@ extern game_time_globals *game_time;          // 0x006f1d6c
 extern int16_t current_local_player_index; // 0x007c3108, only passed on as the unused argument
 
 extern int32_t __ftol(double x); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
-extern uint32_t hud_timer_get_ticks(void); // 0x4adcc0
-extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value,
-                            int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale); // 0x4ac0b0
+
 
 // Draws the HUD countdown timer when a script armed it.
 void hud_timer_draw(void)

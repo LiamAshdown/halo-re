@@ -25,10 +25,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
-extern void widget_text_edit_clamp_selection(text_edit_state *state); // 0x44c780, this module
-extern uint32_t widget_text_edit_get_selection(text_edit_state *state, int16_t *out_start, int16_t *out_end); // 0x44c5e0, this module
+
 extern void text_find_character_boundary(char *string, int16_t *offset_in_out); // 0x5576d0, module text (foreign): walks from byte 0, stepping one full (possibly double-byte) character at a time, until the running offset would reach *offset_in_out, then writes back the last complete boundary <= the original value.
 extern uint16_t text_get_next_character(char *string, int16_t *offset_in_out); // 0x5576a0, module text (foreign): reads the (possibly double-byte) character at *offset_in_out and advances *offset_in_out past it.
 extern void text_clamp_byte_length_to_character_boundary(char *string, int16_t *length); // 0x557720, module text (foreign)

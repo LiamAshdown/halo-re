@@ -17,12 +17,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern data_array *player_data; // 0x0087a480
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
-extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target,
-                                               int16_t kind); // 0x4af230, blam-cc: EAX player_index, EDI target, SI kind
+
 
 // blam-cc: kind -> EAX
 void hud_waypoint_deactivate_for_team(int16_t kind, int16_t team, datum_index target)

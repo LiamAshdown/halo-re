@@ -22,6 +22,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern network_client_globals *network_client; // 0x0071c2d8, as network_game_host_start.c (dword pointer)
 extern network_server_globals *network_server; // 0x0071c2d4, as network_game_host_start.c (dword pointer)

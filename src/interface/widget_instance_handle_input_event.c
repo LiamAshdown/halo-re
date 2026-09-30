@@ -29,6 +29,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_time_milliseconds; // 0x00718f9c
@@ -39,16 +40,12 @@ extern uint8_t split_screen_quit_prompt_armed; // 0x00719757
 extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h (slot -> device, -1 none); DWORD reads 0x499d5d, 0x499d83
 
 extern void widget_close(widget_instance *widget); // 0x497c00
-extern uint8_t widget_list_select_next(widget_instance *widget); // 0x4986b0, UNSURE: called here with 3 args by Ghidra (widget, event, &out); own file's signature takes just widget -- extern arity disagreement, not resolved
-extern uint8_t widget_list_select_previous(widget_instance *widget); // 0x498820, same UNSURE as above
-extern uint8_t widget_instance_point_in_bounds(widget_instance *widget); // 0x4999f0
+
+
 extern void ui_widget_list_item_activate(widget_instance *widget, UIWidgetDefinition *tag,
                                           int16_t *event, void *handler, uint8_t *out_handled); // 0x49a430
-extern void widget_spinner_list_sync_selected(widget_instance *widget, UIWidgetDefinition *tag); // 0x49c000, spinner_list upkeep; blam-cc: ECX -> widget, EAX -> tag (objdump 0x499f79)
-extern void widget_column_list_sync_selected(widget_instance *widget); // 0x49c040, column_list upkeep; blam-cc: ECX -> widget
-extern void widget_focus_next_child(widget_instance *widget); // 0x49c080, walks next_sibling with wrap; blam-cc: EDX -> widget
-extern void widget_focus_previous_child(widget_instance *widget); // 0x49c0f0, walks previous_sibling with wrap; blam-cc: EDX -> widget
-extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0; blam-cc: EAX -> widget (objdump 0x499e21)
+
+
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
 extern void widget_instance_handle_input_event(widget_instance *widget, UIWidgetDefinition *tag,
                                                 int16_t *event, uint8_t *out_handled); // self

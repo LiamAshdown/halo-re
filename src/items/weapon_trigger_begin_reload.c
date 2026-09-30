@@ -19,13 +19,11 @@
 #include "objects.h"
 #include "items.h"
 #include "fn_items.h"
+#include "fn_interface.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t network_game_mode;   // 0x00719720
-
-
-extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code); // 0x492790, EAX, EDI
 
 
 // Starts loading a fresh round into a weapon trigger's chamber/magazine. When called

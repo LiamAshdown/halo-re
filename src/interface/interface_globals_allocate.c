@@ -15,14 +15,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t game_state_cursor;  // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
 extern uint32_t game_state_crc;    // 0x006e2dd4
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
-extern void terminal_initialize(void);   // 0x4963d0
-extern void hud_state_allocate(void);    // 0x4a9780
+
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0
 
 // Initializes the developer console and HUD state blocks, then reserves one

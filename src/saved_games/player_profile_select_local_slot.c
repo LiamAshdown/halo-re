@@ -25,13 +25,14 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "fn_saved_games.h"
+#include "fn_interface.h"
 
 extern char unknown_00719779[]; // 0x00719779, UNSURE: current scenario/level name buffer
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8
 
 extern int16_t campaign_level_find_index_for_path(char *scenario_name); // 0x4c8b90, not in this module; one stack argument, campaign level index or -1
 extern void player_profile_write_data(int32_t handle, saved_player_profile *profile); // 0x53a950
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970, blam-cc: AX player_index, EDX source_profile
+
 
 void player_profile_select_local_slot(int16_t local_player_index)
 {

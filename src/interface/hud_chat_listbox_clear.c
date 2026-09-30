@@ -12,6 +12,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern int32_t hud_chat_message_count;     // 0x00719424

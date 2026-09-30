@@ -17,6 +17,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern uint16_t network_host_name_field_00719238[32]; // 0x00719238
@@ -25,7 +26,6 @@ extern uint8_t profile_globals_block[0x60a4];             // 0x00712dd8
 
 extern heap *widget_memory_pool; // 0x006926c4
 
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
 
 void ui_network_name_fields_refresh(widget_instance *widget)
 {

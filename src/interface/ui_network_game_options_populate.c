@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint32_t network_game_option_a_00719210; // 0x00719210, TYPES-GAP
 extern uint32_t network_game_option_b_00719214; // 0x00719214, TYPES-GAP

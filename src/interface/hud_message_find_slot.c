@@ -17,6 +17,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: source -> ESI
 hud_message_slot *hud_message_find_slot(int32_t source, hud_player_messaging_state *record, uint8_t source_kind)

@@ -22,23 +22,13 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, blam-cc: EAX bitmap
-extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time); // 0x4ab980, blam-cc: ESI flash, EDI start_time
-extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
-                                                 const int16_t *offset, int16_t *out, int32_t selector); // 0x4ab690, blam-cc: AL has_scale, EDX offset, ECX child placement (selector)
-extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
-                                    void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
-                                    float scale, float rotation, uint32_t color, uint8_t split_screen); // 0x4acad0, blam-cc: EAX uv, EDX placement, BL pixel_uvs
-extern void hud_bitmap_anchor_extents(uint8_t pixel_uvs, const BitmapData *bitmap, const float *uv,
-                                      float *out_extents, int16_t anchor); // 0x4acc50, blam-cc: CL, ESI, EDX, EAX
-extern void hud_draw_multitexture_overlay(const float *scale, const HUDInterfaceMultitextureOverlay *overlay,
-                                          int16_t local_player_index, const Point2DInt *screen_position,
-                                          const float *uv, const float *extents, float rotation,
-                                          uint32_t color); // 0x4acfe0, blam-cc: EAX scale
+
 
 // Draws one HUD static element (its bitmap sprite plus every multitexture overlay attached to
 // it) at the element anchor. draw_flags: bit 0 blend in the flashing color from

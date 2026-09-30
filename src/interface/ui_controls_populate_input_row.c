@@ -18,6 +18,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t directsound_initialized; // 0x007252e0, TYPES-GAP
 extern uint8_t directsound_eax_available; // 0x00746120, TYPES-GAP

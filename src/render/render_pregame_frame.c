@@ -23,6 +23,7 @@
 #include "render.h"
 #include "fn_rasterizer.h"
 #include "fn_render.h"
+#include "fn_interface.h"
 
 extern int32_t render_frame_index;           // 0x007c3100, this module
 extern render_camera render_camera_global;   // 0x007c3114, this module
@@ -41,9 +42,9 @@ extern void chimera__render_camera_build_frustum(float *bounds, render_camera *c
 
 extern void rasterizer_begin_frame(rasterizer_window_parameters *source); // 0x5175c0, rasterizer
                                                                           // module
-extern void widget_draw_fullscreen_region(int16_t controller_index); // 0x4984c0, interface
+
     // module; blam-cc: AX -> controller_index
-extern void chimera__do_show_loading_screen(void); // 0x497410
+
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, this module
 extern void rasterizer_frame_statistics_sample(rasterizer_frame_statistics *statistics,
                                                uint8_t dropped);

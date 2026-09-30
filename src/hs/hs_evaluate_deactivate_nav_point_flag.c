@@ -11,12 +11,13 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_interface.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
 extern datum_index player_index_from_unit_index(datum_index unit_index); // 0x474db0, stack
-extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target, int16_t kind);
+
     // 0x4af230, blam-cc: EAX player, EDI target, SI kind
 
 void hs_evaluate_deactivate_nav_point_flag(int16_t function_index, uint32_t thread_index, char first)

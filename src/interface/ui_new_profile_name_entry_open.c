@@ -17,6 +17,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint16_t new_profile_name_buffer_006b37f4[0xc]; // 0x006b37f4, 11 characters plus the terminator at 0x006b380a
 extern int16_t new_profile_name_entry_player_00692b00;  // 0x00692b00, TYPES-GAP

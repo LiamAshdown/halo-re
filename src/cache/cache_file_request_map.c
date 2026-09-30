@@ -29,8 +29,8 @@
 #include "tags.h"
 #include "cache.h"
 #include "fn_cache.h"
+#include "fn_interface.h"
 
-extern void interface_handle_quit_request(void); // 0x499170
 
 extern int16_t cache_file_find_slot_by_name(char *name); // blam-cc: EDI; 0x443770
 extern uint8_t cache_file_download_matches(char *name); // blam-cc: EAX; this module, 0x4432f0

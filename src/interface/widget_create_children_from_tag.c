@@ -33,13 +33,11 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t widget_creating_children; // 0x00718fc3
 
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
 
 // blam-cc: stack -> tag, ESI -> widget
 // Instantiates and links in all of a widget's static child widgets: once per string when the tag

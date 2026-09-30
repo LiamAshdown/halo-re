@@ -12,12 +12,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern video_resolution video_resolutions[0x20]; // 0x006b6690
 extern int32_t video_resolution_count;            // 0x007196cc
 
-extern void video_display_modes_enumerate(uint32_t format); // 0x4baba0, blam-cc: EBX format
+
 extern int video_resolution_compare(const video_resolution *a, const video_resolution *b); // 0x4bab50, this module
 extern uint32_t video_refresh_rate_compare(const uint32_t *a, const uint32_t *b); // 0x4bab80, this module
 

@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern controls_gamepad_record controls_available_gamepads[8]; // 0x006b42d8
@@ -26,7 +27,6 @@ extern controls_gamepad_record controls_assigned_gamepads[4];   // 0x006b53d8
 extern int32_t controls_assigned_gamepad_count;             // 0x00719448
 extern int32_t controls_available_gamepad_count;           // 0x0071944c
 
-extern int32_t controls_gamepad_list_find(const controls_gamepad_record *entry, controls_gamepad_record *list); // 0x4b5760, this module
 
 // blam-cc: EDI -> list
 // FIXED (register inputs, objdump): note phrasing only -- rewritten from the reversed

@@ -27,6 +27,7 @@
 #include "interface.h"
 #include "units.h"
 #include "fn_items.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -36,11 +37,7 @@ extern hud_weapon_interface_state *hud_weapon_state; // 0x00719430
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index); // 0x569970; blam-cc: EAX, CX
 
 extern int16_t unit_count_deployed_weapons(datum_index unit_index); // 0x56d990, blam-cc: EAX
-extern void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo); // 0x4b2cf0, blam-cc: EAX hud_tag, ECX player
-extern void hud_weapon_interface_draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag,
-                                               const weapon_hud_ammo_state *ammo, const uint16_t *parent_state_flags,
-                                               const uint16_t *parent_overlay_types, const int16_t *parent_numbers); // 0x4b1ff0
-extern void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_index); // 0x4b2ac0
+
 
 void hud_draw_weapon_interface(player *p)
 {

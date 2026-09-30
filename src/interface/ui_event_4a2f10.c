@@ -18,6 +18,7 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
@@ -30,8 +31,8 @@ extern uint8_t save_in_progress_00719010; // 0x00719010
 extern int32_t resolution_selection_00719204; // 0x00719204
 extern uint8_t network_game_info_packet_flag; // 0x006894a2
 extern int32_t quality_selection_00692b04; // 0x00692b04
-extern uint8_t saved_item_has_unsaved_changes(void); // 0x495ea0
-extern uint8_t player_profile_save(void); // 0x495d40
+
+
 extern uint8_t network_game_start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password); // 0x4e4150
 
 uint8_t ui_event_4a2f10(widget_instance *widget, int16_t *event, uint8_t *out_handled)

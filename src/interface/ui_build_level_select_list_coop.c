@@ -28,6 +28,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern level_select_entry level_select_entries[10];  // 0x00719018

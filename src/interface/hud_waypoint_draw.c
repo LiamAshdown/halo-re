@@ -32,6 +32,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_bitmaps.h"
+#include "fn_interface.h"
 
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern player_globals *local_player_globals;  // 0x0087a478
@@ -49,20 +50,16 @@ extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpo
 extern double fmod(double x, double y); // 0x628cca, MSVC 7.1 CRT _CIfmod
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even)
 extern int32_t __ftol(double x); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
-extern int32_t ui_real_to_int_truncate(float value); // 0x4ab590
+
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80, blam-cc: ECX unit_index, EDI out
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0, blam-cc: EAX out, EDX point
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
                                                     void *camera); // 0x50de30, blam-cc: ECX out, EDX point, ESI frustum, EDI camera
 
 extern uint32_t color_rgb_float_to_int(const float *rgb); // 0x4ab5d0
-extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
-                                           void **out_data, int32_t *out_offset); // 0x4ab8d0, blam-cc: EAX frame_index
+
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, blam-cc: EAX bitmap
-extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
-                               const Point2DInt *screen_position, float scale, float rotation, uint32_t color); // 0x4acbb0, blam-cc: EAX uv, EDX bitmap, CL pixel_uvs
-extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value,
-                            int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale); // 0x4ac0b0
+
 
 static float hud_clamp01(float value)
 {

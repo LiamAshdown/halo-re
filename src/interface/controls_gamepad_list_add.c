@@ -21,6 +21,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern controls_gamepad_record controls_available_gamepads[8]; // 0x006b42d8

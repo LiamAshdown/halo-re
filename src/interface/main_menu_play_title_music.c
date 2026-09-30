@@ -20,6 +20,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t main_menu_music_pending; // 0x00718fc6
 extern int32_t main_menu_music_datum;   // 0x00719748, UNSURE: named by inference, nonzero blocks a restart

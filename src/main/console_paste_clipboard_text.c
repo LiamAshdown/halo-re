@@ -20,12 +20,11 @@
 #include "main.h"
 #include "fn_main.h"
 #include "fn_shell.h"
+#include "fn_interface.h"
 
 extern terminal_console *console_active; // 0x006b2f0c
 extern console_globals console_globals_data;  // 0x006b7020 (0x006b7024 is &console_globals_data.terminal)
 
-
-extern void widget_text_edit_insert_string(text_edit_state *state, char *insert_str); // 0x44c640, blam-cc: ESI -> state, EAX -> insert_str
 
 // Reads the current clipboard text into a local buffer and, if the console's own text edit is
 // the currently active one, inserts it at the cursor. Returns whether clipboard text was read at

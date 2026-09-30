@@ -16,14 +16,15 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current; // 0x00692c04
 extern uint8_t ui_list_has_default; // 0x007192f8
 extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, void *callback, void *user_data); // 0x538e70
-extern uint8_t checkpoint_list_add_row(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time, const void *time, void *user_data); // 0x4a4280
+
 extern char pending_delete_saved_game_name_00718fd0[]; // 0x00718fd0, UNSURE name
-extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, blam-cc: EAX
+
 
 uint8_t ui_event_4a44f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

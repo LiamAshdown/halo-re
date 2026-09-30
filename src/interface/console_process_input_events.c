@@ -17,6 +17,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t console_win32_attached; // 0x006b2f18
 extern void *console_input_handle;     // 0x006b2dcc, win32 console input handle (not otherwise named)

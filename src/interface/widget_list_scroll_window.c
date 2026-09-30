@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // Computes the previous/current/next item indices for a 3-wide scrolling list widget, wrapping
 // around item_count, writing -1 for any slot that ends up out of range. Which neighbor of

@@ -17,6 +17,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t console_rcon_handle;       // 0x006b2f1c, -1 routes output to the win32 console
 extern uint8_t console_rcon_out_reentrant_guard; // 0x00718f80, UNSURE: no other reference found
@@ -29,8 +30,7 @@ extern void *console_output_handle;       // 0x006b2dd0, win32 console output ha
 
 extern void chimera__rcon_out(int32_t rcon_handle);      // 0x4e50c0, networking module
 extern void console_clear_bottom_line(int32_t clear_all); // 0x497010
-extern void console_draw_input_line(void);                 // 0x4970a0
-extern void string_replace_all_in_place(char *buffer, char *search, char *replacement); // 0x496df0
+
 
 // blam-cc: EAX -> text
 // Mirrors one printed console line: forwards it to an active rcon session (reentrancy-guarded),

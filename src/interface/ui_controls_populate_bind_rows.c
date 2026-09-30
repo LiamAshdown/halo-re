@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint64_t game_variant_option_default_by_index(void); // 0x465380, UNSURE signature
 

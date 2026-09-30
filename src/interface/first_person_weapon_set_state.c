@@ -29,13 +29,13 @@
 #include "interface.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances; // 0x0087bc14, types/cache.h
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
-extern int16_t item_type_to_animation_stage(int16_t message_stage); // 0x492880, this module
-extern void first_person_weapon_snapshot_pose(int16_t local_player_index, int16_t blend_gap); // 0x4930b0, this module
+
 extern void sound_impulse_fade_out(datum_index sound_index); // 0x549ee0, ECX
 
 // Validates and applies a first-person weapon animation state transition. new_state (AX) is

@@ -20,6 +20,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t controls_reserved_action_table[9]; // 0x0065c15c .. 0x0065c180
 

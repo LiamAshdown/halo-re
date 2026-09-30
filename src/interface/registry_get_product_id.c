@@ -12,6 +12,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 #define HKEY_LOCAL_MACHINE ((HKEY)0x80000002)
 #define KEY_QUERY_VALUE 0x0001

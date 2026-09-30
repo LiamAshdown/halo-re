@@ -17,6 +17,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int16_t new_profile_name_entry_player_00692b00; // 0x00692b00
 extern virtual_keyboard_globals virtual_keyboard;       // 0x007193a8 (committed at 0x007193be)
@@ -36,7 +37,7 @@ extern uint8_t network_join_error_reason; // 0x0071973c, TYPES-GAP
 extern int32_t saved_game_create_default_profile(int16_t player_index); // 0x539ab0, foreign (profile module), UNSURE
 extern uint8_t player_profile_get_or_cached_default(void); // 0x539bc0, foreign (profile module), UNSURE
 extern void saved_game_allocate_new_slot(uint16_t *out_default_name); // 0x53ca80
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
+
 extern void saved_item_select(int32_t selection_id); // 0x495be0, UNSURE signature
 extern void main_queue_map_change(void); // 0x4c8740
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90

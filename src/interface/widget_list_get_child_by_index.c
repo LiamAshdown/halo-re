@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: EAX -> list, EDX -> index
 // Returns the Nth child of `list` (0-based), or NULL if the child list is shorter than `index`.

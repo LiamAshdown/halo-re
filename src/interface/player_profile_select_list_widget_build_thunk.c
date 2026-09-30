@@ -9,8 +9,8 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#include "fn_interface.h"
 
-extern void player_profile_select_list_widget_build(widget_instance *widget); // 0x4a85f0
 
 void player_profile_select_list_widget_build_thunk(widget_instance *widget)
 {

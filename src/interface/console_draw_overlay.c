@@ -29,6 +29,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern Globals *global_globals;           // 0x00746fa0

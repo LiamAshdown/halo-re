@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t save_in_progress_00719010;   // 0x00719010, TYPES-GAP
 extern int32_t saved_player_profile_slots_handle;        // 0x00714dd4

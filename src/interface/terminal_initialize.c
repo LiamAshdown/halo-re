@@ -14,6 +14,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern data_array *terminal_messages;           // 0x006b2f00, "terminal output"
 extern uint8_t terminal_initialized;             // 0x006b2efc

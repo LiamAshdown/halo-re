@@ -20,6 +20,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern Globals *global_globals; // 0x00746fa0
 
@@ -32,8 +33,6 @@ extern float hud_text_draw_color_r;           // 0x006e473c
 extern float hud_text_draw_color_g;           // 0x006e4740
 extern float hud_text_draw_color_b;           // 0x006e4744
 
-extern void globals_color_table_get_cyclic_color(int16_t table_index, int16_t color_index,
-                                                   ColorARGB *out); // 0x494430
 
 // blam-cc: stack -> (font_table_index, color_or_flags, column, unknown_4730, color_table_index,
 // color_index)

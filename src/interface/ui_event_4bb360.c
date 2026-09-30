@@ -20,6 +20,7 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_interface.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -36,7 +37,7 @@ extern void *rasterizer_device; // 0x0071d174
 extern void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterizer_display_mode *source); // 0x515fc0, blam-cc: EAX source
 extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters); // 0x515d90
 
-extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, blam-cc: EAX
+
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
 extern uint8_t ui_flag_007196d1; // 0x007196d1, UNSURE (cleared by 0x4bb290, gates the gamma apply in 0x4bb300)
 

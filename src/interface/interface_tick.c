@@ -50,6 +50,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern int32_t ui_time_milliseconds;              // 0x00718f9c
 extern loading_thread_record *loading_thread;      // 0x00718fbc
@@ -78,23 +79,19 @@ extern uint8_t quit_confirm_error_is_error;     // 0x00718fb1
 
 extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error); // 0x498f20
 extern uint8_t ui_check_for_pause_game(void); // 0x49c1a0
-extern void virtual_keyboard_process_input(void); // 0x4a8be0
+
 extern uint8_t network_game_is_active(void); // 0x4ddca0
 extern uint8_t input_queue_pop_event(uint8_t *event_scratch, int16_t controller_index); // 0x4922b0, TYPES-GAP/UNSURE
 extern void widget_instance_handle_input_event(widget_instance *widget, UIWidgetDefinition *tag,
                                                 uint8_t *event_scratch, uint8_t *out_handled); // 0x499d00
-extern void list_node_pop(widget_history_node *out, widget_history_node **head); // 0x499460
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
+
+
 extern void widget_instance_select_list_index(widget_instance *widget, datum_index list_definition /*EAX*/,
                                                int32_t selection /*stack*/); // 0x49bd00, blam-cc: EAX -> list_definition (child found by 0x499950), EBX -> widget; only the low word of selection is read
-extern widget_instance *widget_instance_find_at_point(widget_instance *root, int32_t x, int32_t y,
-                                                        int32_t initial_hint); // 0x499ad0
-extern uint8_t widget_instance_verify_stack_chain(widget_instance *node); // 0x499aa0
+
+
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
-extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget); // 0x4a7400, blam-cc: EAX out, ECX widget
-extern int32_t widget_get_sibling_index(widget_instance *widget); // 0x498e30, blam-cc: ESI -> widget
+
 
 // Main per-frame update for the interface/menu system: refreshes ui_time_milliseconds from the
 // performance counter; if a background loading thread is still tracked, polls it and, once it

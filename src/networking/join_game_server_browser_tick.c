@@ -37,6 +37,7 @@
 #include "networking.h"
 #include "fn_memory.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern void *server_browser_join_target;        // 0x00719450
@@ -74,7 +75,7 @@ extern char k_empty_string[];                     // shared empty-string default
 extern wchar_t empty_string[];                  // see UNSURE, argument to server_browser_list_row_populate
 
 extern int32_t network_join_request_resolve_host(void); // foreign, outside this session's range, see UNSURE
-extern void widget_close_all(void); // 0x498650, outside this session's range
+
 extern int32_t input_get_key_state(void); // foreign, outside this session's range, see UNSURE
 
 

@@ -21,9 +21,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
-extern void widget_play_sound_effect_tag(datum_index sound_tag); // 0x49bdd0, UNSURE signature
+
 // blam-cc: EAX -> sound_tag
 
 // blam-cc: AX -> effect_id

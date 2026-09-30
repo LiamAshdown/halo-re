@@ -20,6 +20,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t main_menu_music_pending;    // 0x00718fc6
 extern widget_instance *ui_root_widget[1]; // 0x00718f94

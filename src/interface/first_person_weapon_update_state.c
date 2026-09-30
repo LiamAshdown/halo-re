@@ -23,12 +23,12 @@
 #include "interface.h"
 #include "objects.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances; // 0x0087bc14, types/cache.h
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
-extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot, int16_t new_state); // 0x492e60, this module
 
 // Looks at the local player's current first-person weapon animation state and either leaves it
 // alone (states 3, 4, and the default case), decrements a countdown in place (state 0x12), or

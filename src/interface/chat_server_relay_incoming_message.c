@@ -33,6 +33,7 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 #include <stdint.h>
 
 extern network_server_globals *network_server;   // 0x0071c2d4
@@ -50,7 +51,7 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network
     void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused); // 0x4e1a80, EAX, ECX, stack
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, EDX, ESI
-extern datum_index player_get_vehicle(datum_index player_index); // 0x4ab170, ECX
+
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 
 typedef struct chat_relay_message {

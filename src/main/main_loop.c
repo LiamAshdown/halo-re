@@ -62,6 +62,7 @@
 #include "fn_main.h"
 #include "fn_shell.h"
 #include "fn_input.h"
+#include "fn_interface.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -114,16 +115,9 @@ extern int32_t rasterizer_present_counter_high;             // 0x0069c64c
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, foreign (render)
 
 
-extern void ui_chat_window_reset_position(void);                            // 0x4aa6b0, foreign (interface)
-
-extern void map_list_add_entry(char *path, int32_t map_id);                 // 0x4950c0, foreign (interface)
     // blam-cc: EAX -> path, stack -> map_id
 
 
-extern uint8_t network_autojoin_from_command_line(void);                    // 0x4c9c80, foreign (interface)
-
-
-extern void hud_display_checkpoint_message(uint8_t is_begin);               // 0x4aa310, foreign (interface)
     // blam-cc: DL -> is_begin
 
 
@@ -153,18 +147,13 @@ extern void network_bandwidth_graph_instance_history_reset(network_bandwidth_gra
 
 extern void chat_close(void);                                               // 0x4aa900, foreign (interface)
 
-extern void ui_cursor_update(void);                                         // 0x4972c0, foreign (interface)
-extern void interface_tick(void);                                           // 0x497e80, foreign (interface)
+
 extern uint32_t time_query_performance_counter_ms(void);                    // 0x449210, foreign (math)
-extern void console_process_input_events(void);                             // 0x496c80, foreign (interface)
-extern uint8_t console_process_queued_input(void);                          // 0x4965e0, foreign (interface)
-extern void console_message_expire_old(void);                               // 0x4966e0, foreign (interface)
-extern void console_update_display(void);                                   // 0x496d40, foreign (interface)
 
 
 extern void game_engine_update_local_player_control(int16_t local_player_index, float delta_time,
     int32_t ticks_this_frame);                                              // 0x471ae0, foreign (game)
-extern uint8_t chat_poll_hotkeys(void);                                     // 0x4aaa90, foreign (interface)
+
 extern char update_server_send_update(int32_t ticks, uint8_t frame_time_overflow); // 0x4ddfb0, foreign (networking)
 
 extern void *data_iterator_next(data_iterator *iterator);                   // 0x4d05d0, blam-cc: EDI -> iterator

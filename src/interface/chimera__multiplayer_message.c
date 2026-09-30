@@ -18,6 +18,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern int32_t hud_chat_message_count;     // 0x00719424
@@ -32,7 +33,6 @@ extern chat_gui_set_property_int_fn chat_gui_set_property_int; // 0x00721ee8
 extern chat_gui_finalize_fn chat_gui_finalize;  // 0x00721ed0
 extern chat_gui_release_fn chat_gui_release;    // 0x00721ec8
 
-extern uint32_t hud_chat_listbox_remove_oldest(void); // 0x4ab240
 
 // Appends a new line of text to the on-screen chat/message listbox GUI control, evicting the
 // oldest entry first if 8 or more are already shown, and stamps its expiry 8000 ms past the

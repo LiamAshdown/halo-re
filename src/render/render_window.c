@@ -59,6 +59,7 @@
 #include "fn_cseries.h"
 #include "fn_effects.h"
 #include "fn_render.h"
+#include "fn_interface.h"
 
 extern int32_t render_window_count;                   // 0x007c3104, this module
 extern int16_t current_local_player_index;             // 0x007c3108, this module
@@ -91,10 +92,6 @@ extern game_engine_definition *current_game_engine;   // 0x006f1d20, game module
 extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
     // 0x457000, effects module; blam-cc: EBX -> out, CX -> local_player_index
 extern void rasterizer_begin_frame(rasterizer_window_parameters *source); // 0x5175c0 (cdecl)
-extern void first_person_weapon_update_zoom_static_tint(uint8_t enabled); // 0x494af0; AL
-
-
-extern void first_person_weapon_update_active_state(void); // 0x492430, interface module
 
 
 extern void render_object_shadows(object_render_data *data); // 0x50eb70, this module; EAX
@@ -113,9 +110,6 @@ extern void structure_leaf_faces_for_each(int32_t render_context,
 extern void render_contrails(uint32_t render_type_flags); // 0x50df20, this module (cdecl here)
 
 
-extern void first_person_weapon_update_screen_effects(void); // 0x494730, interface module
-
-extern void widget_draw_fullscreen_region(int16_t controller_index); // 0x4984c0; AX
 extern void rasterizer_frame_statistics_sample(rasterizer_frame_statistics *statistics,
                                                uint8_t dropped);
     // 0x512530, this module; blam-cc: EBX -> statistics, stack -> dropped

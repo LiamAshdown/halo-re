@@ -13,14 +13,13 @@
 #include "math.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_interface.h"
 
 extern int16_t network_game_mode;   // 0x00719720
 extern game_engine_state game_engine_state_value; // 0x0087aa10, renamed to avoid the enum tag
 extern uint8_t *network_server;       // 0x0071c2d4
 extern float game_engine_end_game_timer; // 0x0087aa08
 
-
-extern void widget_close_all(void); // 0x498650
 
 // While hosting (network_game_mode == 2) and the end-of-game sequence hasn't started yet, flags
 // the network session as ending, starts the 7-second end-of-game countdown, queues the

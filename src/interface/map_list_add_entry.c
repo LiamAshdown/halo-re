@@ -33,6 +33,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_cache.h"
+#include "fn_interface.h"
 #include <string.h>
 #include <ctype.h>
 

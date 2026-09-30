@@ -22,6 +22,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern uint8_t profile_globals_block[];         // 0x00712dd8, stride 0x2004 per slot

@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_interface.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void player_help_screen_select_by_name(int16_t value); // 0x4991f0
 
 void hs_evaluate_display_scenario_help(int16_t function_index, uint32_t thread_index, char first)
 {

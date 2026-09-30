@@ -23,6 +23,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int16_t local_player_count;                 // 0x006894b8, TYPES-GAP
 extern int32_t joystick_slot_devices[4];                   // 0x006b2ce8, input.h (DWORD cmp at 0x49cff3)

@@ -17,6 +17,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_game.h"
+#include "fn_interface.h"
 
 extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI out, EDI wide source
 

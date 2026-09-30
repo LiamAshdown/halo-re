@@ -11,6 +11,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t interface_loading_screen_address_b;      // 0x0068e684
 extern uint32_t interface_loading_screen_address_a;   // 0x0068e680, UNSURE: header calls this progress_screen_bitmap; see chimera__do_show_loading_screen.c

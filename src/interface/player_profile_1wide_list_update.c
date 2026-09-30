@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60
@@ -33,7 +34,7 @@ extern char joystick_set_separator_0065f010[];           // 0x0065f010, CR LF (8
 extern uint16_t empty_string[];            // 0x00660c34
 extern heap *widget_memory_pool;                         // 0x006926c4
 
-extern void ui_profile_carousel_slot_cache_populate(int32_t count, const int32_t *candidate_ids); // 0x4a74b0, blam-cc: EBX candidate_ids
+
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 
 extern uint16_t *text_string_list_get_string(datum_index tag, int16_t index); // 0x5578c0, blam-cc: ECX tag, DX index

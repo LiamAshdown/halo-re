@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // First-stage remap from an item/weapon type code to an intermediate HUD message index; -1 for
 // any code with no entry.

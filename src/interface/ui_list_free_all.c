@@ -15,6 +15,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 

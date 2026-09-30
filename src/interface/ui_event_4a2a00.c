@@ -18,12 +18,13 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern int32_t ui_list_current; // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern uint8_t player_profile_get(int32_t index, void *out_buffer); // 0x53a770, blam-cc: ECX out_buffer
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970, blam-cc: AX, EDX, stack
+
 extern int16_t quit_confirm_error_string_index; // 0x00718fac
 extern int16_t quit_confirm_error_unknown_ae; // 0x00718fae
 extern uint8_t quit_confirm_error_modal; // 0x00718fb0

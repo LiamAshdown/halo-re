@@ -18,6 +18,7 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -25,7 +26,7 @@ extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX dest
-extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob, uint32_t data_size, uint8_t is_default); // 0x4a7ba0, blam-cc: EAX group_index, CL is_default
+
 
 // The inlined ascii to wide widening: at most 0xff characters, terminated, then cut at 12 by the caller.
 static void widen(uint16_t *out, const char *in)

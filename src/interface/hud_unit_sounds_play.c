@@ -24,6 +24,7 @@
 #include "units.h"
 #include "sound.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0, UNSURE name (elsewhere network_predicted_globals)
 

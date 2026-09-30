@@ -25,6 +25,7 @@
 #include "interface.h"
 #include "units.h"
 #include "fn_items.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -37,13 +38,7 @@ extern hud_weapon_interface_state *hud_weapon_state; // 0x00719430
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern int8_t unit_get_current_grenade_index(uint32_t unit_index); // 0x56e060, blam-cc: EAX unit_index
 extern int32_t unit_get_grenade_count(uint32_t unit_index, int16_t grenade_type); // 0x56e030, blam-cc: EAX unit_index, CX grenade_type
-extern void hud_draw_static_element(int16_t local_player_index, uint16_t *anchor,
-                                    const hud_static_element_placement *element, uint32_t draw_flags,
-                                    int32_t flash_start_time); // 0x4ac6f0
-extern void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value,
-                            int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale); // 0x4ac0b0
-extern void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t type_mask,
-                              int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen); // 0x4ac950
+
 
 void hud_draw_grenade_interface(int16_t local_player_index, datum_index unit_index)
 {

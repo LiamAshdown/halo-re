@@ -16,6 +16,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern hud_globals_flags *hud_flags;          // 0x00719420
 extern hud_messaging_globals *hud_messaging;  // 0x006b3a40

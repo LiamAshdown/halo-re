@@ -13,8 +13,8 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 
-extern void ui_list_free_all(void); // 0x4a7b20
 
 uint8_t ui_event_4a4570(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

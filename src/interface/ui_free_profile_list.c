@@ -14,10 +14,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern heap *widget_memory_pool; // 0x006926c4
 
-extern void ui_list_free_all(void); // 0x4a7b20
 
 // Frees the widget's allocated profile-slot-id array (if any), clears its item count, and frees
 // the three shared UI list groups.

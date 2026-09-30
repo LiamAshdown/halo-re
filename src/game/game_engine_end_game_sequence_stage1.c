@@ -20,12 +20,11 @@
 #include "math.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_interface.h"
 
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 extern float game_engine_end_game_timer;          // 0x0087aa08
 
-
-extern void widget_close_all(void); // 0x498650
 
 // Enters the "ending" end-of-game state: starts the 7-second countdown, queues the end-of-game
 // announcer sound and closes every open UI widget.

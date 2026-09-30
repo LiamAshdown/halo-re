@@ -25,6 +25,7 @@
 #include "items.h"
 #include "fn_game.h"
 #include "fn_items.h"
+#include "fn_interface.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -32,9 +33,6 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t network_game_mode;  // 0x00719720, 2 = host
 
 
-extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index,
-    int8_t machine_id); // 0x4ae350, EAX, ECX, DL, stack
-extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count); // 0x4ae400, EAX, ECX, BL, stack
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX, stack
 extern uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index); // 0x56d080, stack, EBX
 extern void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object); // 0x479930

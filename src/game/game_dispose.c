@@ -22,6 +22,7 @@
 #include "fn_game.h"
 #include "fn_objects.h"
 #include "fn_saved_games.h"
+#include "fn_interface.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t player_profile_cache_initialized;     // 0x006f1d38
@@ -54,9 +55,6 @@ extern uint32_t profile_globals_block[0x1829]; // TYPES-GAP
 extern uint32_t game_state_write_buffer_allocated; // TYPES-GAP
 extern void *game_state_persistent_storage; // TYPES-GAP (Win32 handle)
 extern uint32_t game_state_persistent_storage_created; // TYPES-GAP
-
-
-extern void widget_close_all(void);           // 0x498650, widget module
 
 
 extern void network_shutdown(void);           // 0x4416e0, network module

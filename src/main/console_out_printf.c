@@ -19,6 +19,7 @@
 #include "saved_games.h"
 #include "main.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,7 +32,6 @@ extern datum_index console_message_tail;   // 0x006b2f08
 extern uint8_t error_file_logging_enabled; // 0x007196d3
 
 
-extern void console_clear_screen(void); // 0x496f90
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, blam-cc: EAX -> color
 extern void write_to_error_file(char *message, char with_timestamp); // 0x449450
 

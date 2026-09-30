@@ -15,11 +15,11 @@
 #include "units.h"
 #include "fn_units.h"
 #include "fn_items.h"
+#include "fn_interface.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern int16_t network_game_mode; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
 
-extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code); // 0x492730, EAX, stack
 
 extern uint8_t weapon_is_out_of_ammo(datum_index item_index); // 0x4c2c70, EAX; AL result
 extern void object_delete(uint32_t object_index);                              // 0x4f5bd0, UNSURE signature

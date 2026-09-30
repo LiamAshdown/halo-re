@@ -24,12 +24,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_index tag_id); // 0x499950
-extern uint8_t widget_instance_is_input_eligible(widget_instance *widget); // 0x499c40
-extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child); // 0x49bba0
 
 // blam-cc: EAX -> list_definition, EBX -> widget, stack -> selection
 // Finds `widget`'s descendant tagged `list_definition`. With a negative `selection`, re-focuses

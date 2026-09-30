@@ -23,13 +23,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t console_win32_attached;   // 0x006b2f18
 extern terminal_console *console_active; // 0x006b2f0c
 extern char console_window_title[0x20];  // 0x006b2dd8
 extern void *console_output_handle;      // 0x006b2dd0
 
-extern void console_position_cursor(void); // 0x4971a0
 
 // Draws "<window title> <input line>" over the last row of the attached win32 console window.
 void console_draw_input_line(void)

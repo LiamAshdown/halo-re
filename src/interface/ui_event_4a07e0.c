@@ -15,12 +15,12 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 
-extern uint8_t saved_item_has_unsaved_changes(void); // 0x495ea0
+
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
-extern int32_t saved_item_name_changed(void); // 0x495c90
-extern uint8_t saved_item_name_edit_begin(void); // 0x495cf0
-extern uint8_t player_profile_save(void); // 0x495d40
+
+
 extern void widget_close(widget_instance *widget); // 0x497c00
 
 uint8_t ui_event_4a07e0(widget_instance *widget, int16_t *event, uint8_t *out_handled)

@@ -24,12 +24,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern widget_instance *widget_list_get_child_by_index(widget_instance *list, int32_t index); // 0x498630, blam-cc: EAX -> list, EDX -> index
-extern void widget_relink_focus_by_tag_id(widget_instance *widget, datum_index child_definition); // 0x49bb60; blam-cc: EAX -> widget, stack -> child_definition (objdump 0x498713)
-extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child); // 0x49bba0, focus change; blam-cc: EAX -> widget, ECX -> child (objdump 0x49bba0: walks EAX up +0x30, tests ECX+0x12)
 
 // Moves a list or scrollable widget's current selection to the next item, wrapping around at the
 // end; for column_list, walks the focused child's sibling chain and reopens the new child; for

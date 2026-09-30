@@ -33,6 +33,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t selected_saved_item;                // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80
@@ -43,10 +44,6 @@ extern int32_t controls_available_gamepad_count;             // 0x0071944c
 extern int32_t input_device_count; // 0x006b1844, input.h (0..8 connected input devices)
 extern uint8_t input_devices[]; // 0x006b1868, stride 0x240; UNSURE name
 
-extern void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen); // 0x4b5560, blam-cc: EAX out, ECX screen
-extern void controls_gamepad_lists_refresh(widget_instance *screen); // 0x4b55d0, blam-cc: ECX screen
-extern uint8_t controls_gamepad_list_add(const controls_gamepad_record *entry, controls_gamepad_record *list); // 0x4b5800, blam-cc: EAX list
-extern uint8_t controls_gamepad_list_remove(const controls_gamepad_record *entry, controls_gamepad_record *list); // 0x4b5850, blam-cc: EDI list
 
 uint8_t controls_gamepad_lists_load(widget_instance *screen)
 {

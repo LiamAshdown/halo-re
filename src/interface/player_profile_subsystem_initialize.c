@@ -26,6 +26,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8, 3 x 0x2004 byte profile records + tail
@@ -39,8 +40,6 @@ extern int32_t cached_profile_slot;           // 0x0068e66c, UNSURE
 extern int32_t safe_mode;    // 0x007196f4, UNSURE
 extern uint8_t profile_load_complete;         // 0x00718e78, UNSURE
 
-extern void player_profile_refresh_settings_cache(int16_t player_index); // 0x496060, BX
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
 
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count

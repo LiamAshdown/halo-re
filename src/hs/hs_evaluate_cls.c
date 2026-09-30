@@ -13,6 +13,7 @@
 #include "hs.h"
 #include "fn_hs.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 
 extern uint8_t terminal_initialized; // 0x006b2efc
@@ -20,7 +21,6 @@ extern data_array *terminal_messages; // 0x006b2f00
 extern int32_t console_message_head; // 0x006b2f04
 extern int32_t console_message_tail; // 0x006b2f08
 
-extern void console_clear_screen(void); // 0x496f90
 
 void hs_evaluate_cls(int16_t function_index, uint32_t thread_index, char first)
 {

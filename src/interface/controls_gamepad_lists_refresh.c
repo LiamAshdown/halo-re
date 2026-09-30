@@ -28,6 +28,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern heap *widget_memory_pool;                  // 0x006926c4
 extern controls_gamepad_record controls_available_gamepads[8]; // 0x006b42d8
@@ -35,8 +36,6 @@ extern controls_gamepad_record controls_assigned_gamepads[4];   // 0x006b53d8
 extern int32_t controls_assigned_gamepad_count;             // 0x00719448
 extern int32_t controls_available_gamepad_count;           // 0x0071944c
 
-
-extern void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen); // 0x4b5560, blam-cc: EAX out, ECX screen
 
 static void controls_gamepad_row_set_disabled(widget_instance *row)
 {

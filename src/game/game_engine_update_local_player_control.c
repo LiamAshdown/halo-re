@@ -52,6 +52,7 @@
 #include "fn_game.h"
 #include "fn_units.h"
 #include "fn_items.h"
+#include "fn_interface.h"
 
 extern player_globals *local_player_globals;                 // 0x0087a478
 extern data_array *object_data;                           // 0x008603b0
@@ -82,7 +83,7 @@ extern int16_t unit_find_next_zone_permitted_weapon_slot(uint32_t unit_index, in
                                                                                // blam-cc: ECX
 
                                         // 0x4c2cf0, items; blam-cc: EAX -> current_level, ECX -> item
-extern uint8_t player_profile_get_flag_by_id(int16_t local_player_index); // 0x495a60; blam-cc: EDX; UNSURE identity
+
 
 // The MSVC uninitialized-stack fill the retail build still emits for this record. Every field is
 // overwritten by game_engine_build_local_player_control_input before it is read, but the stores

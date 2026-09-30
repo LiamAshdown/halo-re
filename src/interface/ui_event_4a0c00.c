@@ -15,10 +15,11 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
-extern uint8_t saved_item_has_unsaved_changes(void); // 0x495ea0
-extern uint8_t player_profile_save(void); // 0x495d40
+
+
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern void widget_close(widget_instance *widget); // 0x497c00
 

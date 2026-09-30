@@ -16,6 +16,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480, UNSURE: iterated array, see header note

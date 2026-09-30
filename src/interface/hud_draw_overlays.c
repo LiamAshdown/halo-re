@@ -21,17 +21,13 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, blam-cc: EAX bitmap
-extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time); // 0x4ab980, blam-cc: ESI flash, EDI start_time
-extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
-                                           void **out_data, int32_t *out_offset); // 0x4ab8d0, blam-cc: EAX frame_index
-extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
-                                    void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
-                                    float scale, float rotation, uint32_t color, uint8_t split_screen); // 0x4acad0, blam-cc: EAX uv, EDX placement, BL pixel_uvs
+
 
 // Draws the overlays of one HUD overlay element whose type bits (show on flashing, empty,
 // reload/overheat, default, always) intersect type_mask. draw_flags bit 0 allows flashing and

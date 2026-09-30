@@ -15,12 +15,13 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
-extern uint8_t blip_type_get(int16_t local_player_index, datum_index object_index); // 0x4b3450, blam-cc: EBX object_index
+
 
 // blam-cc: EAX -> local_player_index, ECX -> object_index, ESI -> blip
 // FIXED (register inputs, objdump): note phrasing only -- rewritten from the reversed

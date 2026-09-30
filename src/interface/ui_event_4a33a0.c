@@ -21,6 +21,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_interface.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -30,7 +31,7 @@ extern int32_t unknown_00692b0c; // 0x00692b0c, UNSURE
 extern uint32_t unknown_00879f34; // 0x00879f34, UNSURE
 extern uint32_t unknown_00879f38; // 0x00879f38, UNSURE
 extern uint32_t unknown_00719208; // 0x00719208, UNSURE
-extern void ui_controls_populate_bind_rows(widget_instance *widget, uint32_t packed); // 0x4a3180
+
 
 static widget_instance *first_list_child(widget_instance *widget)
 {

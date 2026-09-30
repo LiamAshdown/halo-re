@@ -21,6 +21,7 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern float sinf(float x);
 extern float cosf(float x);

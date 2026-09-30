@@ -27,6 +27,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int16_t current_local_player_index; // 0x007c3108
 extern player_globals *local_player_globals; // 0x0087a478

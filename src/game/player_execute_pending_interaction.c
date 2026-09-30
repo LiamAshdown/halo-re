@@ -25,6 +25,7 @@
 #include "fn_game.h"
 #include "fn_units.h"
 #include "fn_devices.h"
+#include "fn_interface.h"
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -37,8 +38,7 @@ extern double fabs(double x);
 
 extern void unit_clear_selected_equipment(uint32_t unit_index); // 0x56d2c0, ECX
 
-extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index,
-    int8_t machine_id); // 0x4ae350, EAX, ECX, DL, stack
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern uint8_t unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index,
     uint32_t *out_occupant_index); // 0x566840, EAX, EDX vehicle, stack (seat, out)

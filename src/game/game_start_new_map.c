@@ -31,6 +31,7 @@
 #include "fn_memory.h"
 #include "fn_effects.h"
 #include "fn_saved_games.h"
+#include "fn_interface.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
@@ -84,8 +85,6 @@ extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c
 
 extern uint8_t update_server_new(void);                             // 0x472aa0
 
-
-extern void interface_local_player_state_reset(void);                                        // UNSURE module
 
 extern void scenario_objects_place(Scenario *scenario); // 0x4f3ba0. One plain stack
     // argument -- objdump shows 0x4f3ba0 reading [esp+0x24] twice and taking no register input,

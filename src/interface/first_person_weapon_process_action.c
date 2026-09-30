@@ -26,16 +26,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void unit_invalidate_local_player_zoom_level(datum_index unit); // 0x4726f0, EAX -> unit
-extern int16_t item_type_to_message_stage(int16_t item_type_code); // 0x4927c0, this module
-extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
-                                           int16_t new_state); // 0x492e60
-extern void first_person_weapon_interface_initialize(int16_t local_player_index); // 0x493c60
+
 
 // Applies weapon HUD action `action_code` to local_player_index's first-person weapon interface:
 // 0 nudges the charge float, 9/10 forward to unit_invalidate_local_player_zoom_level (presumably a reload/swap trigger), 12

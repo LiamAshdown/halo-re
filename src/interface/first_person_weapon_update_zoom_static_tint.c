@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_game.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t current_local_player_index; // 0x007c3108
@@ -33,7 +34,6 @@ extern float zoom_static_tint_r; // 0x0071d190
 extern float zoom_static_tint_g; // 0x0071d194
 extern float zoom_static_tint_b; // 0x0071d198
 
-extern int32_t local_player_get_weapon_hud_interface(float *out_intensity); // 0x494560
 
 extern int16_t render_local_view_count(void);                  // 0x4c9220, UNSURE: effective local player count
 extern float cinematic_screen_effect_get_script_value(uint16_t source);          // 0x5121a0; blam-cc: EAX -> source

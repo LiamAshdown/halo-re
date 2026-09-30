@@ -16,6 +16,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: ECX -> widget
 void widget_column_list_sync_selected(widget_instance *widget)

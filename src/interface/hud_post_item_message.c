@@ -20,13 +20,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int16_t network_game_mode;              // 0x00719720, 0 local, 1 client, 2 host
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, UNSURE name: shared encode buffer
 
-extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
-                                 int16_t count); // 0x4ae400, blam-cc: EAX local_player_index, ECX source, BL source_kind
+
 extern int32_t message_delta_encode_message(void *buffer, int32_t buffer_size, int32_t flag, int32_t message_type,
                                             int32_t changed_offset, void **items, int32_t type_offset,
                                             int32_t count, char force_changed); // 0x4ec940, blam-cc: EAX buffer, EDX buffer_size

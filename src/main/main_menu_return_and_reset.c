@@ -32,6 +32,7 @@
 #include "fn_hs.h"
 #include "fn_game.h"
 #include "fn_main.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern main_globals main_globals_data; // 0x00719700
@@ -51,9 +52,9 @@ extern uint8_t ui_network_wait_active;     // 0x00718fcd, foreign (interface mod
 extern int32_t ui_network_wait_start_time; // 0x006927c4, foreign (interface module)
 
 extern void chimera__load_ui_map(char play_title_music); // 0x4c8930, this module
-extern void chimera__load_main_menu(void);         // 0x4989f0, foreign (interface module)
+
 extern void predicted_resource_list_touch(TagReflexive *resources); // 0x4449f0, foreign (cache); blam-cc: ESI -> resources
-extern void hud_chat_listbox_clear(void);          // 0x4ab400, foreign (interface module)
+
 
 extern void update_server_new(void);               // 0x472aa0, foreign (game module)
 

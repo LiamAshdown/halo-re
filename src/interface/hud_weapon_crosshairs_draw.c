@@ -41,6 +41,7 @@
 #include "items.h"
 #include "interface.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern data_array *object_data; // 0x008603b0
@@ -55,10 +56,7 @@ extern int16_t render_viewport_right;                // 0x007c3146
 
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even)
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, blam-cc: EAX bitmap
-extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time); // 0x4ab980, blam-cc: ESI flash, EDI start_time
-extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
-                                    void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
-                                    float scale, float rotation, uint32_t color, uint8_t split_screen); // 0x4acad0, blam-cc: EAX uv, EDX placement, BL pixel_uvs
+
 
 // blam-cc: EAX -> hud_tag, ECX -> p, stack -> ammo
 void hud_weapon_crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo)

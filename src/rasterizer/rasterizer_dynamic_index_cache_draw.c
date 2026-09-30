@@ -19,10 +19,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_interface.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
-extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type,
-    uint32_t vertex_count, uint32_t primitive_count); // TEMPORARY first-person diagnostics
+
 extern uint8_t rasterizer_software_vertex_processing;               // 0x0069c680
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 extern int16_t rasterizer_vertex_sizes[k_rasterizer_vertex_type_count]; // 0x0065de00

@@ -22,12 +22,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence); // 0x43f290, blam-cc: EAX tag, DI frame
-extern int32_t bitmap_group_sequence_get_bitmap_offset(datum_index bitmap_tag, int16_t sequence_index,
-                                                         int16_t frame_index); // 0x4ab630, blam-cc: ECX bitmap_tag, AX sequence_index, DI frame_index
+
 
 // blam-cc: EAX -> frame_index, stack -> bitmap_tag, sequence_index, out_data, out_offset
 void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,

@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int16_t ui_prompt_clip_x;                 // 0x006e476e
 extern int16_t ui_prompt_clip_y;                 // 0x006e4770

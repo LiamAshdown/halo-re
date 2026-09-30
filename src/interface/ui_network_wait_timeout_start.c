@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t ui_network_wait_start_time; // 0x006927c4, -1 when no wait is running
 extern int64_t performance_frequency;      // 0x006ac8f8/0x006ac8fc

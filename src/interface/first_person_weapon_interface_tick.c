@@ -15,12 +15,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern player_globals *local_player_globals;          // 0x0087a478
 extern data_array *player_data;                       // 0x0087a480, "players"
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
-extern void first_person_weapon_interface_initialize(int16_t local_player_index); // 0x493c60, this module (movsx di at 0x493c6f)
+
 extern void first_person_weapon_update(int32_t local_player_index); // 0x493150, this module
 
 // Local player 0's per-frame first-person weapon entry point: if the current player slot is

@@ -21,11 +21,12 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern hud_messaging_globals *hud_messaging; // 0x006b3a40
 
-extern uint16_t *hud_get_message_string(int32_t message_index); // 0x4aa3f0
+
 extern void chimera__hud_message(int16_t local_player_index, const uint16_t *text); // 0x4ae180, blam-cc: AX local_player_index
 extern player_globals *local_player_globals; // 0x0087a478
 

@@ -13,8 +13,8 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
-extern void widget_text_edit_clamp_selection(text_edit_state *state); // 0x44c780, this module
 
 // Re-clamps the control, then reports its selection as an ordered [start, end) pair (start is
 // the lower of cursor/selection_anchor, end the higher). Returns 0 and leaves *out_start/

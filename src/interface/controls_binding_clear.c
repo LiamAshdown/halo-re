@@ -23,14 +23,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t controls_action_table[][0x18];   // 0x00692fe8
 extern int32_t selected_saved_item;             // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80
 extern int32_t controls_current_binding_table[][3]; // 0x007127d4
 
-extern uint8_t controls_enumerate_next_assignable_action(int32_t device, int16_t *record, const char *action_name,
-                                                          uint8_t accept_reserved_on_retry); // 0x4b43e0, blam-cc: EAX device, ECX record, EDI action_name
+
 extern int16_t input_action_name_to_index(const char *action_name); // 0x48fe60, blam-cc: EBX action_name
 extern void control_profile_clear_binding(const int16_t *record); // 0x53ad00, blam-cc: ESI record
 

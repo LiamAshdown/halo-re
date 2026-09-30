@@ -19,12 +19,11 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern map_list_entry *map_list;                 // 0x00712dcc
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0
-extern uint8_t ui_list_item_format_name_and_cache_flag(uint16_t *out_name, int32_t item_index); // 0x4a83d0
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710, blam-cc: EBX widget
+
 
 // Rebuilds this widget's rows with the map-name formatter, then mirrors the widget's cached
 // "selected combo index" (offset 0x3c) as a map_id into the three sibling widgets under

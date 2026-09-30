@@ -23,14 +23,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern variant_carousel_slot variant_carousel_slots[3]; // 0x00879d60
 extern uint8_t profile_globals_block[0x60a4];           // 0x00712dd8
 
-extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget); // 0x4a7400, blam-cc: EAX out, ECX widget
-extern void ui_variant_carousel_slot_cache_populate(int32_t *candidate_ids, int32_t count); // 0x4a7570, blam-cc: EBX candidate_ids
+
 extern void multiplayer_settings_select_list_update_item(widget_instance *widget, const uint16_t *record); // 0x4a5bc0
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710, blam-cc: EBX widget
+
 
 void multiplayer_settings_select_list_refresh_3wide(widget_instance *widget)
 {

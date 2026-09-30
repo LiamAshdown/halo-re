@@ -29,6 +29,7 @@
 #include "cache.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_interface.h"
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -46,9 +47,6 @@ extern widget_instance *ui_root_widget[1];            // 0x00718f94
 extern uint8_t widget_memory_pool_valid;              // 0x00718fc2
 extern widget_history_node *ui_widget_history[3];     // 0x00718f98
 
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args
 
 // Chooses and loads the appropriately-sized pause-menu widget (or, off-line, the solo/split-screen
 // one) for the current session, gated on a long list of "not a safe time to pause" checks, and

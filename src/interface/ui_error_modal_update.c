@@ -28,6 +28,7 @@
 #include "interface.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_interface.h"
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value; // 0x0087aa10, types/game.h

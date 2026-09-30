@@ -22,6 +22,7 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern data_array *object_data; // 0x008603b0, "objects"
 extern data_array *player_data;      // 0x0087a480, "players"

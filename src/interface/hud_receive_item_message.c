@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "interface.h"
 #include "fn_game.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480
@@ -35,8 +36,6 @@ extern int16_t network_game_mode;   // 0x00719720, 0 local, 1 client, 2 host
 extern int8_t message_delta_decode_compound_field(void *message, hud_item_message *out_payload); // 0x4ec590, message decode, blam-cc: EAX message, ECX out
 extern int32_t message_delta_decode_compound_field_staged(void *message); // 0x4ec670, networking; drops the message, blam-cc: EAX message
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, blam-cc: EDI -> iterator
-extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
-                                 int16_t count); // 0x4ae400, blam-cc: EAX local_player_index, ECX source, BL source_kind
 
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index

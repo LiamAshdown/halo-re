@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern uint16_t network_host_name_00719170[144];  // 0x00719170
@@ -45,7 +46,7 @@ extern heap *widget_memory_pool; // 0x006926c4
 
 extern void string_convert_ascii_to_unicode(void); // 0x557990, UNSURE args
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
+
 
 void ui_network_host_setup_refresh(widget_instance *widget)
 {

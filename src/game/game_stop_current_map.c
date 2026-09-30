@@ -26,6 +26,7 @@
 #include "fn_sound.h"
 #include "fn_objects.h"
 #include "fn_effects.h"
+#include "fn_interface.h"
 
 extern void *recorded_animations; // 0x006b0a10, TYPES-GAP (data_array*)
 extern uint32_t rasterizer_globals_data; // TYPES-GAP
@@ -65,8 +66,6 @@ extern void cache_flush(cache *self); // 0x4d17f0, blam-cc: ESI -> self (src/mem
 
 extern void font_glyph_cache_clear_all(void);     // 0x514cb0
 
-
-extern void widget_close_all(void);                  // 0x498650
 
 // Shuts down the currently running game (frees scripts, flushes caches, reverts modded state)
 // as the counterpart to game_start_new_map.

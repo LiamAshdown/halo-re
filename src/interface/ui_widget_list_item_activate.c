@@ -27,6 +27,7 @@
 #include "interface.h"
 #include "cache.h"
 #include "fn_hs.h"
+#include "fn_interface.h"
 
 extern Scenario *global_scenario; // 0x00746f8c
 extern void *ui_event_function_table[0xbe]; // 0x006927d0
@@ -36,15 +37,11 @@ extern heap *widget_memory_pool; // 0x006926c4
 
 
 extern void hs_evaluate_expression(int32_t expression); // 0x48a250, UNSURE signature
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args (objdump)
+
 extern void widget_close(widget_instance *widget); // 0x497c00
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
-extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_index tag_id); // 0x499950
-extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child); // 0x49bba0, focus change; blam-cc: EAX -> widget, ECX -> child (objdump 0x49bba0: walks EAX up +0x30, tests ECX+0x12)
-extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0; blam-cc: EAX -> widget (objdump 0x49a6fb)
-extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widget, datum_index open_tag); // 0x49c4c0, per src/interface/widget_close.c
+
+
 extern void sound_play_new(datum_index sound_tag, void *position, int32_t unknown1, int32_t unknown2,
                           void *callback_data, int32_t unknown4, int32_t unknown5); // 0x549af0, UNSURE signature
 

@@ -21,6 +21,7 @@
 #include "interface.h"
 #include "cache.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern datum_index ui_cursor_bitmap; // 0x0068e67c
 extern uint8_t ui_widget_opened;     // 0x00718fc8
@@ -31,9 +32,6 @@ extern widget_history_node *ui_widget_history[3]; // 0x00718f98
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550; blam-cc: group in EDI
 extern void widget_close(widget_instance *widget); // 0x497c00
-extern void list_node_prepend(widget_history_node *template_record, widget_history_node **head); // 0x499430
-extern void widget_initialize_from_tag(widget_instance *widget, datum_index tag_index, widget_instance *parent,
-                                       uint16_t controller_index, UIWidgetDefinition *tag); // 0x499780
 
 
 // Opens a UI widget: resolves the widget tag by index or by path, allocates a widget_instance

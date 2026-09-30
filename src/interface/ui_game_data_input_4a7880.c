@@ -19,6 +19,7 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint32_t unknown_00719208; // 0x00719208, UNSURE
 extern uint8_t variant_teams_enabled_0071920c; // 0x0071920c, UNSURE name (variant byte +0x34 != 0)
@@ -26,7 +27,7 @@ extern int32_t variant_team_selection_00692b08; // 0x00692b08, UNSURE name
 extern int32_t unknown_00692b0c; // 0x00692b0c, UNSURE
 extern uint32_t unknown_00879f34; // 0x00879f34, UNSURE
 extern uint32_t unknown_00879f38; // 0x00879f38, UNSURE
-extern void ui_controls_populate_bind_rows(widget_instance *widget, uint32_t packed); // 0x4a3180
+
 extern void widget_extended_description_sync_selection(widget_instance *widget); // 0x4a66b0
 
 static widget_instance *first_list_child(widget_instance *widget)

@@ -22,10 +22,11 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_networking.h"
+#include "fn_interface.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, UNSURE name; see file header
-extern void ui_network_wait_timeout_start(void); // 0x49c810, not in this batch
+
 extern char network_channel_service_light(int32_t flag); // 0x4dd240, UNSURE argument; not in this batch
 extern int16_t network_game_mode; // 0x00719720
 

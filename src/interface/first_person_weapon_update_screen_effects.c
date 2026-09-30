@@ -31,6 +31,7 @@
 #include "interface.h"
 #include "fn_game.h"
 #include "fn_rasterizer.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern int16_t current_local_player_index; // 0x007c3108
@@ -42,12 +43,9 @@ extern uint8_t rasterizer_caps_flag_68a;            // 0x0069c68a, UNSURE: disab
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value; // 0x0087aa10
 
-extern int32_t local_player_get_weapon_hud_interface(float *out_intensity); // 0x494560
+
 extern int16_t render_local_view_count(void);                       // 0x4c9220, UNSURE
 extern float cinematic_screen_effect_get_script_value(uint16_t source);               // 0x5121a0; blam-cc: EAX -> source
-
-
-extern void hud_update_player(void);                      // 0x4a99f0
 
 
 static float clamp_unit(float value)

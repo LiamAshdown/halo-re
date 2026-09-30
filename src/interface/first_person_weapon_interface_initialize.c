@@ -25,6 +25,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data; // 0x008603b0, "objects"
@@ -34,11 +35,8 @@ extern Globals *global_globals;     // 0x00746fa0
 extern void effect_reattach_markers_for_object(int16_t local_player_index, datum_index weapon_index); // 0x450cb0
 extern void effect_release_first_person_markers(int16_t local_player_index); // 0x450d50
 extern void particles_delete_by_first_person_weapon(uint8_t local_player_index); // 0x455c80
-extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
-                                           int16_t new_state); // 0x492e60
-extern uint8_t hud_meter_find_matching_elements(uint32_t source_tag_ref, uint32_t target_tag_ref,
-                                                 int16_t *out); // 0x493f00, this module
-extern void first_person_weapon_interface_tick_reset(int16_t local_player_index); // 0x4942e0, this module -- UNSURE
+
+
                                                               // name, see that file
 
 // blam-cc: stack -> local_player_index

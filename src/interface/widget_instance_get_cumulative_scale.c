@@ -15,6 +15,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: EAX -> widget
 // Returns widget->scale multiplied by every ancestor's own scale, walking up the parent chain.

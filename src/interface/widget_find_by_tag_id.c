@@ -12,6 +12,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // Recursively searches a widget tree for a node whose tag/definition matches `tag_id`, returning
 // it, or NULL if none of the subtree matches.

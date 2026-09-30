@@ -14,10 +14,11 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int16_t local_player_count; // 0x006894b8
 extern uint8_t save_in_progress_00719010; // 0x00719010
-extern uint32_t ui_start_campaign_from_level_one(void *widget, int16_t *event); // 0x49cfd0
+
 
 uint8_t ui_event_49d0d0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

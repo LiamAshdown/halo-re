@@ -21,15 +21,14 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern int32_t ui_list_current;    // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
 
-extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items); // 0x4a8310
-extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0
-extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
+
 extern heap *widget_memory_pool; // 0x006926c4
 
 

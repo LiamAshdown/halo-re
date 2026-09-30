@@ -36,6 +36,7 @@
 #include "fn_game.h"
 #include "fn_saved_games.h"
 #include "fn_main.h"
+#include "fn_interface.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -57,8 +58,6 @@ extern int16_t local_player_count;      // 0x006894b8, foreign (saved_games modu
 
 extern int32_t _access(const char *path, int32_t mode); // 0x624236, UNSURE, CRT-shaped; see file header
 
-
-extern void main_menu_on_shown(int32_t fade_milliseconds); // 0x498ab0, foreign (interface module)
 
 extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); // 0x45aea0, foreign (game module)
     // blam-cc: EAX -> path, BL -> apply_state

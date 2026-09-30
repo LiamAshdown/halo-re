@@ -17,6 +17,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: ECX -> widget, EAX -> tag
 void widget_spinner_list_sync_selected(widget_instance *widget, UIWidgetDefinition *tag)

@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_interface.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void hud_set_timer_time(int32_t minutes, int32_t seconds); // 0x4adbf0, blam-cc: ECX, EAX
 
 void hs_evaluate_hud_set_timer_time(int16_t function_index, uint32_t thread_index, char first)
 {

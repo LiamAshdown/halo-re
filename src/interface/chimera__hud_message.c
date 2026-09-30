@@ -18,13 +18,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern hud_messaging_globals *hud_messaging; // 0x006b3a40
 extern game_time_globals *game_time; // 0x006f1d6c
 
-extern hud_message_slot *hud_message_find_slot(int32_t source, hud_player_messaging_state *record,
-                                               uint8_t source_kind); // 0x4ae480, blam-cc: ESI source
 
 // blam-cc: local_player_index -> AX
 // Adds a new timestamped text message into local player `local_player_index`'s HUD message slot

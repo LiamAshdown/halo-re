@@ -23,6 +23,7 @@
 #include "game.h"
 #include "main.h"
 #include "fn_main.h"
+#include "fn_interface.h"
 
 extern main_globals main_globals_data;   // 0x00719700
 extern game_time_globals *game_time;     // 0x006f1d6c, foreign (game module)
@@ -30,7 +31,7 @@ extern int32_t game_time_force_single_tick; // 0x007196d8, foreign (main-owned g
 
 extern char game_safe_to_save(void); // 0x45ba50, foreign (game module)
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, this module
-extern void hud_display_checkpoint_message(uint8_t is_begin); // 0x4aa310, foreign (interface module)
+
 
 // Services a pending main_globals.save_map request: if it doesn't require a safe moment, saves
 // immediately (reporting "unsafe save" if debug_game_save is set); otherwise counts attempts,

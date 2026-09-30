@@ -28,6 +28,7 @@
 #include "interface.h"
 #include "cache.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool;    // 0x006926c4
@@ -40,7 +41,6 @@ extern game_time_globals *game_time; // 0x006f1d6c (types/game.h)
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c, types/game.h; a pointer (objdump 0x497c26)
 
 extern void widget_close(widget_instance *widget);
-extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widget, datum_index open_tag); // 0x49c4c0, UNSURE signature
 
 
 // Closes a widget instance: fires its tag's "deleted" event handlers, unlinks it from the

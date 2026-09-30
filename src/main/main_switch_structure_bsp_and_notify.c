@@ -28,6 +28,7 @@
 #include "main.h"
 #include "fn_scenario.h"
 #include "fn_main.h"
+#include "fn_interface.h"
 #include <wchar.h>
 
 extern HUDGlobals *hud_globals_tag_data;   // 0x0071941c, foreign (the hud globals tag)
@@ -37,7 +38,7 @@ extern main_globals main_globals_data;     // 0x00719700
 
     // blam-cc: SI -> structure_bsp_index (0x4c9b61 mov esi,[0x719754])
 extern player_globals *local_player_globals; // 0x0087a478, foreign (game module)
-extern uint16_t *hud_get_message_string(int32_t message_index); // 0x4aa3f0, foreign (interface module)
+
     // blam-cc: EDX -> message_index (0x4c9bae movsx edx,dx)
 extern void chimera__hud_message(int16_t local_player_index, const wchar_t *text); // 0x4ae180, foreign (interface module)
     // blam-cc: AX -> local_player_index, stack -> text

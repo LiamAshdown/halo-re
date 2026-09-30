@@ -21,14 +21,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int16_t quit_confirm_error_string_index; // 0x00718fac
 extern int16_t quit_confirm_error_unknown_ae; // 0x00718fae
 extern uint8_t quit_confirm_error_modal;   // 0x00718fb0
 extern uint8_t quit_confirm_error_is_error; // 0x00718fb1
 
-extern int16_t player_profile_find_index_by_id(int16_t id); // 0x4954f0
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id); // 0x495970
+
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
 

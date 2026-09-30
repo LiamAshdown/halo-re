@@ -20,6 +20,7 @@
 #include <wchar.h>
 #include "cache.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
@@ -34,8 +35,7 @@ extern uint32_t hud_text_draw_color_or_flags;        // 0x006e4734, TYPES-GAP
 extern int32_t hud_text_draw_unknown_4730;        // 0x006e4730, TYPES-GAP
 extern uint16_t missing_string_text[];               // 0x00671fac, L"<missing string>"
 
-extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, EAX
-extern int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag);
+
     // 0x4a3d90, EAX text, EBX top (the running bottom), stack string index; returns the entry height
 
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,

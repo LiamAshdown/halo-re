@@ -21,15 +21,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern widget_history_node *ui_widget_history[3]; // 0x00718f98
 extern uint8_t ui_restoring_previous_widget;      // 0x00718fcb
 
 extern void widget_close(widget_instance *widget); // 0x497c00
-extern void list_node_pop(widget_history_node *out, widget_history_node **head); // 0x499460
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
-    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
-    datum_index history_list_definition, int16_t history_selection); // 0x497a70, 7 stack args
+
+
 extern void widget_instance_select_list_index(widget_instance *widget, datum_index list_definition,
                                                int32_t selection); // 0x49bd00
 

@@ -19,6 +19,7 @@
 #include "input.h"
 #include "main.h"
 #include "fn_main.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern console_globals console_globals_data; // 0x006b7020
@@ -27,7 +28,6 @@ extern void *keyboard_device;           // 0x006b1800
 extern uint8_t key_frames[0x6d];        // 0x006b1620
 extern uint8_t key_release_pending[0x6d]; // 0x006b168d
 
-extern void console_close(terminal_console *console); // 0x496580, foreign (interface); blam-cc: EAX -> console
 
 // Closes the developer console (if it is both enabled and currently open), clears the console
 // input-capture bit of the input mode flags, and, when the keyboard device is acquired, flushes

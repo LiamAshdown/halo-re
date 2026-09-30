@@ -28,6 +28,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int16_t current_local_player_index; // 0x007c3108
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
@@ -40,8 +41,7 @@ extern float render_camera_global; // 0x007c3114 (render_camera_global.position;
 extern float camera_position_y; // 0x007c3118  standalone linker resolves a line by its single address, so the old
 extern float camera_position_z; // 0x007c311c  "x, y, z; // 0x007c3114/18/1c" line bound z to 0x7c3114)
 
-extern void hud_meter_permute_node_records(uint8_t *dest, uint8_t *source,
-                                            uint32_t target_tag_ref, int16_t *lookup); // 0x493ea0
+
 extern void *object_get_cached_render_lighting(datum_index object_index, real level_of_detail_pixels); // 0x50ea00, ESI object_index, stack level_of_detail_pixels
 extern void render_model(uint32_t model_tag_ref, uint8_t *node_records,
                           int32_t unknown_0, int32_t unknown_1, ColorRGB *change_colors,

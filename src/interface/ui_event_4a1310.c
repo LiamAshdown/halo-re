@@ -24,14 +24,15 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern void saved_game_allocate_new_slot(uint16_t *out_name); // 0x53ca80, blam-cc: EBX out_name
 extern uint32_t saved_game_create_custom_variant(uint32_t unused, uint16_t *name); // 0x53bb50, blam-cc: ECX name too
 extern void saved_item_select(int32_t item); // 0x495be0, blam-cc: EBX -> item
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
-extern int32_t ui_list_get_id(int32_t index); // 0x4a7c80, blam-cc: EDX index
-extern void *ui_list_get_data(int32_t index); // 0x4a7c50, blam-cc: EDX index
+
+
 extern void *game_engine_variant_defaults_classic_slayer(void *out); // 0x463c40
 extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind); // 0x4a89a0, blam-cc: ESI destination
 extern int32_t network_host_edit_field_00719410; // 0x00719410, UNSURE name (3 after the name, 0 after the subname)

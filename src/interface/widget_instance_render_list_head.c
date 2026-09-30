@@ -34,6 +34,7 @@
 #include "interface.h"
 #include "cache.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern double cos(double x);
 extern double sin(double x);
@@ -41,10 +42,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_time_milliseconds; // 0x00718f9c
 extern heap *widget_memory_pool; // 0x006926c4
 
-extern uint8_t widget_instance_point_in_bounds(widget_instance *widget); // 0x4999f0
-extern float widget_instance_get_cumulative_scale(widget_instance *widget); // 0x499c20
-extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy,
-                                    uint32_t flag1, int32_t flag2); // 0x49a8c0
+
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,
                                                      int16_t frame); // 0x43f290; blam-cc: EAX -> bitmap, EDI -> frame, stack -> sequence
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
@@ -53,13 +51,12 @@ extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_
 extern uint32_t wcslen(uint16_t *s); // 0x625b7a, wide strlen
 
 
-extern const uint16_t *ui_search_replace_function_call(int16_t function, widget_instance *widget); // 0x4a8730, blam-cc: AX function, ECX widget
     // blam-cc: AX -> function, ECX -> widget; L"<invalid>" (0x0066a8a0) outside 0..3, else ui_replace_function_table[function](widget)
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source); // 0x557990, 8-bit to wide copy
     // blam-cc: EAX -> dest, EDI -> dest_bytes, EBX -> source; returns dest
 extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replacement, uint16_t **text); // 0x49be10
-extern ColorRGB *ui_get_saved_color(ColorRGB *out); // 0x49c5c0, flash color (ui_saved_color); blam-cc: EAX -> out, fills three floats
-extern int32_t widget_cursor_side_of_midpoint(widget_instance *widget); // 0x4a1ff0; blam-cc: EAX -> widget (objdump 0x49b5ad)
+
+
 extern void text_set_render_context(datum_index font, ColorARGB *color, int32_t unknown_0,
                                     int32_t justification, int32_t unknown_1); // 0x5563b0
     // blam-cc: ECX -> font, EAX -> color, stack -> -1, justification, 0

@@ -26,6 +26,7 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern game_time_globals *game_time;               // 0x006f1d6c
 extern motion_sensor_globals *motion_sensor;       // 0x00719438
@@ -40,9 +41,7 @@ extern float motion_sensor_sweep_scale;            // 0x00692fe4, 1.1
 extern double fmod(double x, double y); // 0x628cca, MSVC 7.1 CRT _CIfmod
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80, blam-cc: ECX unit_index, EDI out
-extern uint8_t motion_sensor_object_is_detected(datum_index unit_index); // 0x4b36a0
-extern void motion_sensor_blip_fill(int16_t local_player_index, datum_index object_index,
-                                    motion_sensor_blip *blip); // 0x4b35f0, blam-cc: EAX, ECX, ESI
+
 
 static int16_t motion_sensor_next_local_player(int16_t local_player_index)
 {

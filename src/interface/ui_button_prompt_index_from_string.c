@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint16_t *ui_button_caption[0x28]; // 0x00692708, first entry is the a-button token
 

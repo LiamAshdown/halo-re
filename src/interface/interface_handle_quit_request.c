@@ -25,6 +25,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_shell.h"
+#include "fn_interface.h"
 
 extern uint8_t ui_force_quit;   // 0x00718fca
 extern uint8_t ui_split_screen; // 0x00718fc9

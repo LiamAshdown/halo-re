@@ -20,6 +20,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern uint8_t controls_row_device_mask_table[]; // 0x00692ffc, stride 0x18
 

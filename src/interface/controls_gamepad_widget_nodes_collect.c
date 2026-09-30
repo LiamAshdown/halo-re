@@ -22,6 +22,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: out -> EAX, screen -> ECX
 void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen)

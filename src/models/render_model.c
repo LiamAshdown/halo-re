@@ -28,6 +28,7 @@
 #include "render.h"
 #include "fn_rasterizer.h"
 #include "fn_models.h"
+#include "fn_interface.h"
 #include <stdint.h>
 
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -58,10 +59,7 @@ extern void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *
 // default globals for any NULL of region_permutations/effect/change_colors/function_values,
 // and does nothing at all if the model is both too small on screen and not in immediate mode.
 // TEMPORARY (2026-09-27): first-person draw diagnostics, src/interface/debug_play_diagnostics.c
-extern void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
-    const float *center, int32_t early_out);
-extern void debug_fp_clip_note(const float *world, int32_t effect_type);
-extern void debug_fp_state_arm(int32_t armed); // TEMPORARY
+
 
 void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t *region_permutations,
                    ColorRGB *change_colors, float *function_out_values, render_lighting *lighting,

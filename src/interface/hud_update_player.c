@@ -23,6 +23,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int16_t current_local_player_index; // 0x007c3108
 extern player_globals *local_player_globals;   // 0x0087a478, established in src/game/
@@ -36,15 +37,7 @@ extern uint8_t *cinematic_globals_ptr; // UNSURE: byte 9 tested
 extern game_time_globals *game_time; // 0x006f1d6c
 
 extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0, CX
-extern void hud_draw_weapon_interface(player *p); // 0x4b1e20, cdecl
-extern void hud_update_interaction_prompt(datum_index player_index); // 0x4a9b80, blam-cc: player_index -> EDX
-extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled); // 0x4afee0, blam-cc: EAX player
-extern void hud_render_unit_interface(player *p); // 0x4b0320, cdecl
-extern void hud_waypoints_draw_for_player(int16_t local_player_index); // 0x4afb90, cdecl
-extern void hud_draw_damage_indicators(int16_t local_player_index); // 0x4b14c0, blam-cc: EAX
-extern void hud_messaging_update(int16_t local_player_index); // 0x4ae550, blam-cc: EAX
-extern void hud_waypoint_draw_all_for_player(void); // 0x4aa5f0
-extern void chimera__motion_sensor_update(void); // 0x4b3920, UNSURE signature
+
 
 // Updates and renders the full player HUD for the currently displayed local player: waypoints
 // and motion sensor first (subject to several unrelated gates), then either the full

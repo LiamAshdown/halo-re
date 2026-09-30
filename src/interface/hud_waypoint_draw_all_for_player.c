@@ -18,13 +18,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 #include <string.h>
 
 extern int16_t current_local_player_index; // 0x007c3108
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
 
-extern void hud_waypoint_draw_one(datum_index player_index); // 0x4aa440, blam-cc: EAX
+
 extern void *data_iterator_next(data_iterator *iterator);    // 0x4d05d0, blam-cc: EDI
 
 // Draws a waypoint over every teammate of the local player that currently drives a unit.

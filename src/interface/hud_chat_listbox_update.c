@@ -14,6 +14,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t hud_chat_message_count;     // 0x00719424
 extern int32_t hud_chat_message_expiry[8]; // 0x006b3a20
@@ -29,7 +30,7 @@ extern chat_gui_set_state_fn chat_gui_set_state; // 0x00721edc
 extern chat_gui_release_fn chat_gui_release;    // 0x00721ec8
 
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, UNSURE: appears to be a millisecond clock
-extern uint32_t hud_chat_listbox_remove_oldest(void); // 0x4ab240
+
 
 // Expires timed-out chat messages (whose stored expiry has passed the current time) from the
 // front of the listbox, then shows or hides the GUI listbox control depending on

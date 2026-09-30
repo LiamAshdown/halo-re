@@ -32,6 +32,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_time_milliseconds; // 0x00718f9c
@@ -41,10 +42,10 @@ extern uint8_t ui_split_screen; // 0x00718fc9
 extern int16_t ui_pause_depth; // 0x00718fa6
 extern game_time_globals *game_time; // 0x006f1d6c (types/game.h)
 
-extern uint8_t widget_create_children_from_tag(widget_instance *widget, UIWidgetDefinition *tag); // 0x499540
+
 extern void ui_widget_list_item_activate(widget_instance *widget, UIWidgetDefinition *tag,
                                           int16_t *event, void *handler, uint8_t *out_handled); // 0x49a430, UNSURE call shape here (Ghidra shows 0 args)
-extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child); // 0x49bba0, focus change; blam-cc: EAX -> widget, ECX -> child (objdump 0x49bba0: walks EAX up +0x30, tests ECX+0x12)
+
 
 // blam-cc: ECX -> widget, EAX -> tag_index, EDX -> parent
 // Populates a freshly-allocated widget instance's fields from its tag definition, builds its

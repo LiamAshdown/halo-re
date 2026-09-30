@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern widget_instance *ui_root_widget[1];        // 0x00718f94
 extern widget_history_node *ui_widget_history[3]; // 0x00718f98

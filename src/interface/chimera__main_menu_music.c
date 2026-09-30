@@ -30,6 +30,7 @@
 #include "fn_rasterizer.h"
 #include "fn_sound.h"
 #include "fn_main.h"
+#include "fn_interface.h"
 
 extern uint8_t main_menu_music_pending; // 0x00718fc6
 
@@ -41,7 +42,6 @@ extern void sound_looping_stop(datum_index sound_tag); // 0x544120, foreign (sou
 
 extern uint8_t rasterizer_reset_device_if_needed(void);    // 0x517500, foreign (rasterizer module)
 
-extern void main_menu_play_title_music(void);              // 0x4993e0
 
 // Stops the main menu's looping title theme if it is still marked pending, stops every other
 // sound, plays the "ending.bik" movie (bracketing it with an end-of-frame/device-reset pair when

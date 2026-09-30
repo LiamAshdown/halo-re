@@ -23,6 +23,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern heap *widget_memory_pool; // 0x006926c4
 

@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 // blam-cc: state -> EAX
 uint8_t weapon_hud_ammo_state_is_empty(const weapon_hud_ammo_state *state)

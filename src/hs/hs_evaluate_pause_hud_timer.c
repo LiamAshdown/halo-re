@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_interface.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void hud_pause_timer(uint8_t paused); // 0x4adc60, blam-cc: DL
 
 void hs_evaluate_pause_hud_timer(int16_t function_index, uint32_t thread_index, char first)
 {

@@ -19,12 +19,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern hud_messaging_globals *hud_messaging;  // 0x006b3a40
 extern game_time_globals *game_time;          // 0x006f1d6c
 
-extern hud_message_slot *hud_message_find_slot(int32_t source, hud_player_messaging_state *record,
-                                               uint8_t source_kind); // 0x4ae480, blam-cc: ESI source
 
 // blam-cc: EAX -> local_player_index, ECX -> source, BL -> source_kind
 void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count)

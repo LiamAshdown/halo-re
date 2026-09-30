@@ -19,8 +19,9 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 
-extern int32_t widget_cursor_side_of_midpoint(widget_instance *widget); // 0x4a1ff0
+
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
 
 uint32_t widget_cyclable_list_nudge(widget_instance *widget)

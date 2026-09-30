@@ -27,6 +27,7 @@
 #include "interface.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_interface.h"
 
 extern tag_instance *tag_instances;            // 0x0087bc14
 extern player_globals *local_player_globals;   // 0x0087a478
@@ -36,8 +37,7 @@ extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern datum_index local_player_to_player_index(int16_t local_player_index); // 0x474d30, blam-cc: AX
 extern uint8_t game_engine_object_flag_bit3_clear(datum_index player_index); // 0x462c10, UNSURE: a player alive / playing test
-extern void hud_unit_sounds_play(uint32_t active_mask, const TagReflexive *sounds, int32_t *handles,
-                                 uint16_t *playing); // 0x4afd30
+
 
 // blam-cc: player -> EAX
 void hud_unit_sounds_update(player *p, uint8_t hud_enabled)

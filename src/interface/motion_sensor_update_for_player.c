@@ -22,6 +22,7 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern motion_sensor_globals *motion_sensor;        // 0x00719438
 extern player_globals *local_player_globals;        // 0x0087a478
@@ -33,7 +34,7 @@ extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern int32_t __ftol(double x); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out); // 0x568f80, blam-cc: ECX unit_index, EDI out
-extern uint8_t motion_sensor_object_is_detected(datum_index unit_index); // 0x4b36a0
+
 extern int16_t game_engine_collect_matching_waypoints(int32_t candidate, float *out_positions, uint8_t *out_slots,
                                                       int32_t max_count); // 0x462190
 

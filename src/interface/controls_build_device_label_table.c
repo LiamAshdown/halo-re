@@ -27,6 +27,7 @@
 #include "networking.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern int32_t selected_saved_item;      // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80; see UNSURE note above
@@ -35,7 +36,7 @@ extern int32_t controls_device_label_count;                 // 0x00719440
 extern tag_instance *tag_instances;      // 0x0087bc14
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group, stack path
-extern void controls_device_label_add(const uint16_t *name, int32_t device_type); // 0x4b4830, this module
+
 
 void __cdecl controls_build_device_label_table(void)
 {

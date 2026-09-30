@@ -26,6 +26,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60, reset to 0xff (0x1800 dwords)
@@ -43,8 +44,7 @@ extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, ui
 extern uint8_t saved_game_last_profile_read(char *name_buffer); // 0x53d2b0
 extern int32_t saved_game_find_by_name(char *name, int32_t unknown); // 0x53d4a0
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770; blam-cc: ECX -> out_profile
-extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob,
-                               uint32_t data_size, uint8_t is_default); // 0x4a7ba0
+
 
 // Resets the shared UI list arrays, allocates a 100-slot profile-id buffer, enumerates saved
 // profiles into it, and adds one list entry per occupied slot (skipping empty ones), while

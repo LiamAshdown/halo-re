@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_interface.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void network_game_host_start(char *map_name, char *variant_name, uint8_t disconnect_timeout_flag); // 0x495ac0, cdecl
 
 void hs_evaluate_fast_setup_network_server(int16_t function_index, uint32_t thread_index, char first)
 {

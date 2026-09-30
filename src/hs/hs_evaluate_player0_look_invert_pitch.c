@@ -11,11 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_interface.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void player_profile_save_495fb0(uint8_t flag); // 0x495fb0, blam-cc: AL
 
 void hs_evaluate_player0_look_invert_pitch(int16_t function_index, uint32_t thread_index, char first)
 {

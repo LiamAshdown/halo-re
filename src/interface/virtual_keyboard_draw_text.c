@@ -26,6 +26,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern tag_instance *tag_instances;               // 0x0087bc14

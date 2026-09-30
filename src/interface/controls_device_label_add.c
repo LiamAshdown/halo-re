@@ -19,6 +19,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern controls_device_label controls_device_labels[0x10]; // 0x006932e8
 extern int32_t controls_device_label_count;                 // 0x00719440

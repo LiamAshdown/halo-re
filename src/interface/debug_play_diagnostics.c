@@ -14,6 +14,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_interface.h"
 
 extern void __cdecl standalone_log(const char *format, ...);
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98

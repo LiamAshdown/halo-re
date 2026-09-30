@@ -33,6 +33,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_memory.h"
+#include "fn_interface.h"
 
 extern int32_t ui_time_milliseconds; // 0x00718f9c
 extern heap *widget_memory_pool;     // 0x006926c4
@@ -47,12 +48,12 @@ extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source); // 0x557990, 8-bit to wide copy
     // blam-cc: EAX -> dest, EDI -> dest_bytes, EBX -> source; returns dest
 extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replacement, uint16_t **text); // 0x49be10
-extern float widget_instance_get_cumulative_scale(widget_instance *widget); // 0x499c20; blam-cc: EAX -> widget
-extern ColorARGB *ui_get_saved_pulse_color(ColorARGB *out); // 0x49c620, highlight color; blam-cc: EAX -> out, returns a pointer to the color
+
+
 extern void text_set_render_context(datum_index font, ColorARGB *color, int32_t unknown_0,
                                     int32_t justification, int32_t unknown_1); // 0x5563b0
     // blam-cc: ECX -> font, EAX -> color, stack -> -1, justification, 0
-extern uint8_t ui_string_has_button_prompt_token(uint16_t *text); // 0x49ada0; blam-cc: EAX -> text
+
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text); // 0x514ab0
     // blam-cc: EAX -> clip, ECX -> bounds

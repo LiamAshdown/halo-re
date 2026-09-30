@@ -21,6 +21,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern level_select_entry level_select_entries[10]; // 0x00719018
 extern int8_t level_select_flags_0071916a;  // 0x0071916a, compared with movsx

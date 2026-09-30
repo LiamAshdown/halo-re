@@ -13,10 +13,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_interface.h"
 
 extern player_globals *local_player_globals; // 0x0087a478
 
-extern void hud_unit_meters_update_for_player(int16_t local_player_index); // 0x4b0160, blam-cc: DI local_player_index
 
 void hud_unit_meters_update(void)
 {
