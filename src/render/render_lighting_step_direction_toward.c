@@ -16,6 +16,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_math.h"
+#include "fn_render.h"
 
 
 // Steps a 3-component direction toward a target by at most max_delta per component, then

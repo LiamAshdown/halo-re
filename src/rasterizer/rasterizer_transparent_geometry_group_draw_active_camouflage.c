@@ -23,6 +23,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_render.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
@@ -58,7 +59,6 @@ extern void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *
 extern void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, uint32_t shader, uint32_t shader_permutation, uint32_t index_buffer,
                          int32_t dynamic_index_slot, int32_t primitive_count, uint32_t vertex_buffer); // 0x52b050
 
-extern void render_lighting_disable_workaround(void);                                     // 0x511ef0, render module
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);

@@ -10,6 +10,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_render.h"
 
 extern void rasterizer_object_shadow_structure_draw(void *vertex_buffer, int32_t dynamic_index_slot, int32_t first_primitive,
     int32_t primitive_count); // 0x531570, EAX, stack

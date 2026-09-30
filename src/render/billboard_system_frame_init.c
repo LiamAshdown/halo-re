@@ -16,6 +16,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "fn_math.h"
+#include "fn_render.h"
 
 extern float build_sprite_screen_coverage;      // 0x007c30c4
 extern int16_t build_sprite_large_quad_count;   // 0x007c30c8

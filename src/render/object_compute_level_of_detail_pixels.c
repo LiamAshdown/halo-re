@@ -23,6 +23,7 @@
 #include "rasterizer.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_render.h"
 
 extern data_array *object_data;                                  // 0x008603b0
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c

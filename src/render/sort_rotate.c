@@ -26,6 +26,7 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#include "fn_render.h"
 
 // Rotates [first, last) so that *mid becomes the first element.
 void sort_rotate(rendered_particle_datum *first, rendered_particle_datum *mid, rendered_particle_datum *last)

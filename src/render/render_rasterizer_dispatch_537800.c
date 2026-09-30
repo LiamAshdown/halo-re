@@ -10,6 +10,7 @@
 #include "tags.h"
 #include "math.h"
 #include "fn_rasterizer.h"
+#include "fn_render.h"
 
 
 int32_t render_rasterizer_dispatch_537800(int32_t slot_index, real_point3d *point, float radius)

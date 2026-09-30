@@ -39,12 +39,12 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "fn_math.h"
+#include "fn_render.h"
 
 extern tag_instance *tag_instances;       // 0x0087bc14, cache module
 extern const ColorARGB *global_white_argb; // 0x006851fc, points at {1,1,1,1} 0x00655138
 
-extern void render_sprite_transform_point_and_normal(real_point3d *position, real_vector3d *normal,
-    real_vector3d *out_normal, build_sprite_data *data, uint8_t flags, real_point3d *out_position);
+
     // 0x511190, this module; blam-cc: EDX -> position, ESI -> normal, EDI -> out_normal,
     // stack -> data/flags/out_position
 

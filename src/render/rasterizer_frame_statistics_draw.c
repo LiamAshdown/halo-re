@@ -43,6 +43,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "fn_networking.h"
+#include "fn_render.h"
 
 extern uint8_t console_debug_toggle_6893e0;       // 0x006893e0 frame statistics enabled
 extern int32_t frame_statistics_key_a_latch;      // 0x0071d120, this module
@@ -65,7 +66,7 @@ extern int16_t hud_text_draw_background_mode;     // 0x006e4748
 extern int16_t text_tab_stops[6];        // 0x006e474a UNSURE name
 
 extern uint8_t input_get_key_state(int16_t key_index); // 0x490b50, input; blam-cc: ECX
-extern void rasterizer_frame_statistics_graph_init(void); // 0x512700, this module (fg_init)
+
 extern void fg_add_sample(int32_t index, float sample);   // 0x512d90, this module;
     // blam-cc: ECX -> index, stack -> sample
 extern void fg_render(uint8_t render_graph, uint8_t render_infos); // 0x5129a0, this module;

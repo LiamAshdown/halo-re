@@ -17,6 +17,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_render.h"
 
 extern render_frustum render_frustum_global; // 0x007c3168, this module
 

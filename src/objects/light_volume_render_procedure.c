@@ -30,6 +30,7 @@
 #include "bitmaps.h"
 #include "fn_rasterizer.h"
 #include "fn_objects.h"
+#include "fn_render.h"
 
 extern uint8_t *light_volume_instances; // 0x006b8d70
 extern tag_instance *tag_instances;     // 0x0087bc14
@@ -45,15 +46,14 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
     uint32_t flags); // 0x4f6080
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value); // 0x4f6e70
 
-extern uint8_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index,
-    int16_t bitmap_index); // 0x5120f0, EAX, ECX, stack
+
 extern float curve_apply_exponent(float value, float exponent); // 0x4fea50
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest,
     color_interpolation_flags flags, float t); // 0x43f6a0, EAX, ECX, stack
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
 extern void rasterizer_lens_flare_quad_add(const float *scale, uint32_t diffuse, const real_point3d *position,
     float radius, float rotation_degrees); // 0x537550, EAX, EBX, stack
-extern void rasterizer_effect_slot_release_active(void); // 0x512150
+
 
 static float clamp01(float value)
 {

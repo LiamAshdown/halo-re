@@ -26,9 +26,8 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#include "fn_render.h"
 
-extern void sort_median_of_three(rendered_particle_datum *first, rendered_particle_datum *mid,
-    rendered_particle_datum *last, int32_t predicate); // 0x5109d0, blam-cc: ECX first, EAX mid, EDX last, stack predicate
 
 // The inlined comparison of every function in this instantiation (see the file header).
 static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)

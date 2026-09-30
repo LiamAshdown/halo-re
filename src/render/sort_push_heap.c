@@ -28,6 +28,7 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#include "fn_render.h"
 
 // The inlined comparison of every function in this instantiation (see the file header).
 static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)

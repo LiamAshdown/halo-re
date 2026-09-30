@@ -26,6 +26,7 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#include "fn_render.h"
 
 typedef struct rendered_particle_range { // std::pair<iterator, iterator>, returned through a hidden pointer
     rendered_particle_datum *first;
@@ -34,12 +35,7 @@ typedef struct rendered_particle_range { // std::pair<iterator, iterator>, retur
 
 extern rendered_particle_range *sort_unguarded_partition(rendered_particle_range *result,
     rendered_particle_datum *first, rendered_particle_datum *last, int32_t predicate); // 0x510500, cdecl
-extern void sort_heap_sort(rendered_particle_datum *first, rendered_particle_datum *last,
-    int32_t predicate); // 0x5107e0, blam-cc: EBX first, EAX last, stack predicate
-extern void sort_insertion_sort(rendered_particle_datum *first, rendered_particle_datum *last,
-    int32_t predicate); // 0x510830, cdecl
-extern void sort_make_heap(rendered_particle_datum *first, rendered_particle_datum *last,
-    int32_t predicate); // 0x510980, blam-cc: EAX last, stack (first, predicate)
+
 
 // The inlined comparison of every function in this instantiation (see the file header).
 static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)

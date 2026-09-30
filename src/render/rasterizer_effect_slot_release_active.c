@@ -16,6 +16,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_render.h"
 
 extern void **rasterizer_effect_pool_scratch; // 0x0071d278 UNSURE: &effects[48], types/rasterizer.h rasterizer_effect_slot
 extern void *rasterizer_device;              // 0x0071d174

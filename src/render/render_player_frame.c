@@ -38,6 +38,7 @@
 #include "cutscene.h"
 #include "fn_structures.h"
 #include "fn_scenario.h"
+#include "fn_render.h"
 
 extern render_fog render_fog_state;                  // 0x007c32f4, this module (named
                                                      // render_fog_state; a variable cannot share
@@ -85,10 +86,6 @@ extern void render_camera_mirror(render_camera *source_camera, structure_bsp_mir
 
     // structures module
 
-extern void render_window(int16_t local_player_index, render_camera *source_camera,
-                           render_frustum *source_frustum, render_camera *rasterizer_camera,
-                           render_frustum *rasterizer_frustum, int16_t rasterizer_target,
-                           uint8_t has_mirror); // 0x50bfb0, this module (cdecl)
 
 // Draws one local player's window: resolves the camera's leaf/cluster and fog, clamps the far
 // clip plane to the fog and to the camera's own near plane, computes the asymmetric projection

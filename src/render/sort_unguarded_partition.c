@@ -27,14 +27,13 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#include "fn_render.h"
 
 typedef struct rendered_particle_range { // std::pair<iterator, iterator>, returned through a hidden pointer
     rendered_particle_datum *first;
     rendered_particle_datum *second;
 } rendered_particle_range;
 
-extern void sort_median(rendered_particle_datum *first, rendered_particle_datum *mid,
-    rendered_particle_datum *last, int32_t predicate); // 0x5108f0, blam-cc: ECX first, EBX mid, stack (last, predicate)
 
 // The inlined comparison of every function in this instantiation (see the file header).
 static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)

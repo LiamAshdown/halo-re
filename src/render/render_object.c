@@ -33,6 +33,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "structures.h"
+#include "fn_render.h"
 #include <stdint.h> // uintptr_t
 
 extern data_array *object_data;   // 0x008603b0
@@ -41,7 +42,7 @@ extern render_fog render_fog_state;  // 0x007c32f4, this module (named render_fo
                                      // variable cannot share the render_fog typedef's own name)
 
 extern uint8_t render_object_is_camera_unit(datum_index object); // 0x50ea50, this module
-extern real object_compute_level_of_detail_pixels(datum_index object_index); // 0x50f740, this
+
     // module (below this batch); blam-cc: EAX=object_index
 extern render_lighting *object_get_cached_render_lighting(datum_index object_index,
                                                           real level_of_detail_pixels); // 0x50ea00,

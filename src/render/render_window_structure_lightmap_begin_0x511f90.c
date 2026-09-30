@@ -10,6 +10,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_render.h"
 
 extern int16_t console_debug_toggle_6893e4; // 0x006893e4
 extern uint8_t console_debug_toggle_6893f7; // 0x006893f7

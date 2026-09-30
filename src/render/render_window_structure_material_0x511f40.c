@@ -9,6 +9,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_render.h"
 
 extern void *unknown_007c0494; // 0x007c0494
 

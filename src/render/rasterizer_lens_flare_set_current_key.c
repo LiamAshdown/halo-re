@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_render.h"
 
 extern lens_flare_batch_key lens_flare_current_key;   // 0x00746fb0
 extern GlobalsRasterizerData *rasterizer_globals_data; // 0x0071d164

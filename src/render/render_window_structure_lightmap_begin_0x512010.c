@@ -9,6 +9,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_render.h"
 
 extern void rasterizer_shader_environment_set_lightmap(void *lightmap); // 0x520910, EAX
 

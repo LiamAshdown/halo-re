@@ -53,6 +53,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "fn_math.h"
+#include "fn_render.h"
 #include <stdint.h> // uintptr_t
 
 extern data_array *contrail_point_data;              // 0x0087abe8, effects module

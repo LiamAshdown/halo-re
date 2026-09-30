@@ -22,6 +22,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "fn_rasterizer.h"
+#include "fn_render.h"
 
 extern int32_t render_frame_index;           // 0x007c3100, this module
 extern render_camera render_camera_global;   // 0x007c3114, this module
@@ -47,7 +48,6 @@ extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c3
 extern void rasterizer_frame_statistics_sample(rasterizer_frame_statistics *statistics,
                                                uint8_t dropped);
     // 0x512530, this module; blam-cc: EBX -> statistics (always 0x007c30a0), stack -> dropped
-extern void rasterizer_frame_statistics_draw(void);               // this module, below this batch
 
 
 // Draws a frame with no scene at all (no active camera, e.g. before a scenario is loaded):

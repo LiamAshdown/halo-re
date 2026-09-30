@@ -26,6 +26,7 @@
 #include "math.h"
 #include "objects.h"
 #include "fn_objects.h"
+#include "fn_render.h"
 
 extern int32_t object_cluster_stamp;           // 0x008603cc, objects module
 extern object_globals *object_globals_pointer; // 0x006b8cbc, objects module
@@ -50,9 +51,6 @@ extern datum_index object_cluster_noncollideable_iterate_next(uint32_t *cursor);
 
     // 0x4f96f0 (functions.txt: object_disconnect_from_map)
 
-
-extern void render_object_get_cull_sphere(datum_index object_index, real_point3d *center,
-                                          float *radius); // 0x50e8d0, this module (cdecl)
 
 // Rebuilds rendered_objects: every object in a visible cluster whose render bounding sphere
 // passes the frustum test, collideable objects first, capped at 0x100 entries. Latches

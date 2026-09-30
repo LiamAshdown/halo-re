@@ -58,6 +58,7 @@
 #include "fn_structures.h"
 #include "fn_cseries.h"
 #include "fn_effects.h"
+#include "fn_render.h"
 
 extern int32_t render_window_count;                   // 0x007c3104, this module
 extern int16_t current_local_player_index;             // 0x007c3108, this module
@@ -91,11 +92,9 @@ extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t l
     // 0x457000, effects module; blam-cc: EBX -> out, CX -> local_player_index
 extern void rasterizer_begin_frame(rasterizer_window_parameters *source); // 0x5175c0 (cdecl)
 extern void first_person_weapon_update_zoom_static_tint(uint8_t enabled); // 0x494af0; AL
-extern void billboard_system_frame_init(void);        // 0x511410, this module
-extern void render_sky(void);                         // 0x510c50, this module
-extern void first_person_weapon_update_active_state(void); // 0x492430, interface module
 
-extern void render_objects(void);                     // 0x50e930, this module
+
+extern void first_person_weapon_update_active_state(void); // 0x492430, interface module
 
 
 extern void render_object_shadows(object_render_data *data); // 0x50eb70, this module; EAX
@@ -110,7 +109,6 @@ extern void structure_leaf_faces_for_each(int32_t render_context,
     // 0x552de0, structures module; blam-cc: ECX -> surface_indices,
     // EAX -> surface_index_count, stack -> the first five
 
-extern void render_particles(void);                   // 0x50fd90, this module
 
 extern void render_contrails(uint32_t render_type_flags); // 0x50df20, this module (cdecl here)
 
@@ -121,16 +119,16 @@ extern void widget_draw_fullscreen_region(int16_t controller_index); // 0x4984c0
 extern void rasterizer_frame_statistics_sample(rasterizer_frame_statistics *statistics,
                                                uint8_t dropped);
     // 0x512530, this module; blam-cc: EBX -> statistics, stack -> dropped
-extern void rasterizer_frame_statistics_draw(void);   // 0x512e80, this module
+
 
 // structure pass callbacks (code in this range that Ghidra never made functions; see header)
 extern void render_window_structure_material_0x511f70(void *shader_data,
     int16_t shader_permutation, int32_t render_context, int32_t first_surface,
     int32_t surface_count); // jmp [0x007c0490]
-extern void render_window_structure_lightmap_begin_0x511f90(void *bitmap_data);
+
 extern void render_window_structure_material_0x511fe0(void *shader_data, int16_t shader_permutation,
     int32_t render_context, int32_t first_surface, int32_t surface_count);
-extern void render_window_structure_lightmap_begin_0x512010(void *bitmap_data);
+
 extern void render_window_structure_material_0x512020(void *shader_data, int16_t shader_permutation,
     int32_t render_context, int32_t first_surface, int32_t surface_count);
 extern void render_window_structure_material_0x512040(void *shader_data, int16_t shader_permutation,

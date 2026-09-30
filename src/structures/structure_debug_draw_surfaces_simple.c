@@ -25,6 +25,7 @@
 #include "math.h"
 #include "structures.h"
 #include "fn_structures.h"
+#include "fn_render.h"
 
 extern int16_t geometry_buffer_warning;  // 0x0069fa48: accessed as WORD in the binary  // 0x0069fa48, this module
 extern void **rasterizer_dynamic_index_buffer; // 0x006e09e8, physics.h/objects.h (read, not owned)
@@ -51,8 +52,7 @@ extern void structure_leaf_faces_for_each(int32_t render_context,
 // (query_box) and arg4 its planes, while the incoming ECX is the plane count. An earlier rewrite
 // had only three stack parameters and mapped ECX onto one of them.
 // blam-cc: ECX -> plane_count
-extern void render_window_structure_material_0x511f50(void *shader_data, int16_t shader_permutation, int32_t render_context,
-    int32_t first_surface, int32_t surface_count, void *material_extra); // 0x511f50
+
 
 void structure_debug_draw_surfaces_simple(real_point3d *query_point, float radius,
     real_rectangle3d *query_box, real_plane3d *planes, int16_t plane_count)

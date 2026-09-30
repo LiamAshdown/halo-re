@@ -26,6 +26,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_render.h"
 
 extern uint8_t console_debug_toggle_6893ec; // 0x006893ec (matches
                                             // src/rasterizer/rasterizer_model_draw_prepare_states.c)
@@ -43,7 +44,7 @@ extern datum_index rendered_objects[0x100]; // 0x006b8dc4, this module
 typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 extern void first_person_weapon_update_lighting(void); // 0x4924b0, foreign; called on the pass that does not render
-extern void render_objects_collect(void); // 0x50eac0, this module: rebuilds rendered_objects
+
 extern void render_object(object_render_data *data); // 0x50eba0, this module; blam-cc: EDI=data
 
 // Per-frame object render driver: optionally forces D3D lighting off around the whole pass on

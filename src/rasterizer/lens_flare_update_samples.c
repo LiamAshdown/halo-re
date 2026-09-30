@@ -23,6 +23,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_render.h"
 
 extern uint8_t unknown_006893ff;    // 0x006893ff UNSURE: console/debug toggle, owner module unclear
 extern int16_t unknown_00719aac;    // 0x00719aac UNSURE: gating value, owner module unclear
@@ -35,8 +36,6 @@ extern int32_t lens_flare_instance_count;   // 0x0071d134
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale); // 0x401930, EAX out, ECX direction, stack base, scale
 // blam-cc: AX -> mode, ECX -> flags
 
-extern int32_t render_rasterizer_dispatch_537800(int32_t slot_index, real_point3d *point, float radius); // 0x512190, EDI slot, ECX point, stack radius
-extern void rasterizer_effect_slot_release_active(void); // 0x512150, UNSURE name/signature
 
 void lens_flare_update_samples(void)
 {

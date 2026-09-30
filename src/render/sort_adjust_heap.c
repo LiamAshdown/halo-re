@@ -27,9 +27,8 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#include "fn_render.h"
 
-extern void sort_push_heap(rendered_particle_datum *first, int32_t hole, int32_t top,
-    rendered_particle_datum value, int32_t predicate); // 0x510b20, blam-cc: ESI first, EAX hole, stack (top, value, predicate)
 
 // The inlined comparison of every function in this instantiation (see the file header).
 static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)

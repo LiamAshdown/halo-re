@@ -48,6 +48,7 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_render.h"
 
 extern tag_instance *tag_instances;                  // 0x0087bc14, cache module
 extern const ColorARGB *global_white_argb;            // 0x006851fc, points at {1,1,1,1} 0x00655138
@@ -59,19 +60,16 @@ extern int16_t build_sprite_large_quad_count;        // 0x007c30c8, this module
 
 extern int16_t build_sprite_get_group(build_sprite_data *data, BitmapData *bitmap);
     // 0x511520, this module; blam-cc: EDI=data, EAX=bitmap
-extern void render_sprite_transform_point_and_normal(real_point3d *position, real_vector3d *normal,
-    real_vector3d *out_normal, build_sprite_data *data, uint8_t flags, real_point3d *out_position);
+
     // 0x511190, this module; blam-cc: EDX -> position, ESI -> normal, EDI -> out_normal,
     // stack -> data/flags/out_position
-extern void render_billboard_build_orientation_basis(build_sprite_data *data, int16_t render_type,
-    real_vector3d *position, real_vector3d *normal, billboard_basis *out);
+
     // 0x5111f0, this module; blam-cc: EAX -> data, CX -> render_type,
     // stack -> position/normal/out_basis
-extern void render_billboard_compute_scale(build_sprite_data *data, float *scale,
-    int16_t render_type, real_point3d *position, BitmapData *bitmap);
+
     // 0x511330, this module; blam-cc: EAX -> data, ECX -> scale,
     // stack -> render_type/position/bitmap
-extern real render_billboard_compute_view_fade(real_vector3d *a, real_vector3d *b, int16_t render_type);
+
     // 0x5113b0, this module; blam-cc: EAX -> a, ECX -> b, stack -> render_type
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
     // 0x4052c0, math module; blam-cc: EAX -> out, stack -> a, ECX -> b

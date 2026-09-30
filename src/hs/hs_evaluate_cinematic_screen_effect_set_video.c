@@ -12,11 +12,10 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_render.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
-
-extern void cinematic_screen_effect_set_video(int16_t overbright_mode, float noise_intensity); // 0x5122a0
 
 void hs_evaluate_cinematic_screen_effect_set_video(int16_t function_index, uint32_t thread_index, char first)
 {

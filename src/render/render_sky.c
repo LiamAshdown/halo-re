@@ -48,6 +48,7 @@
 #include "objects.h"
 #include "render.h"
 #include "fn_math.h"
+#include "fn_render.h"
 
 extern uint8_t render_cluster_has_sky;               // 0x007c334d, structures module
 extern int16_t render_cluster_sky_index;             // 0x007c334e, structures module

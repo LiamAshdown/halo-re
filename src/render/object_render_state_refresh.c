@@ -37,6 +37,7 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_render.h"
 
 extern data_array *object_render_state_cache; // 0x007c30ec, this module
 extern data_array *object_data;                 // 0x008603b0, objects module
@@ -56,10 +57,9 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 
 extern void render_lighting_step_vector3_toward(float *current, float *target, float max_delta); // 0x50f520,
     // this module; blam-cc: ECX=current, EDX=target, stack=max_delta
-extern void render_lighting_step_vector4_toward(float *current, float *target, float max_delta); // 0x50f5c0,
+
     // this module; blam-cc: ECX=current, EDX=target, stack=max_delta
-extern void render_lighting_step_direction_toward(real_vector3d *current, real_vector3d *target,
-                                                  float max_delta); // 0x50f690, this module;
+
     // blam-cc: ECX=current, EDX=target, stack=max_delta
 
 // Refreshes one cached object render-state entry: a forced (full_sample) or overdue entry

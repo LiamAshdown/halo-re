@@ -33,6 +33,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_render.h"
 
 extern Rectangle2D game_window_top_left;     // 0x0069c634 top, 0x0069c636 left, 0x0069c638 bottom,
                                            // 0x0069c63a right (rasterizer module; src/rasterizer

@@ -23,6 +23,7 @@
 #include "math.h"
 #include "structures.h"
 #include "fn_structures.h"
+#include "fn_render.h"
 
 extern int32_t picked_surfaces_geometry; // 0x006e3adc, this module
 extern int16_t geometry_buffer_warning;  // 0x0069fa48: accessed as WORD in the binary  // 0x0069fa48, this module
@@ -59,8 +60,7 @@ extern void structure_leaf_faces_for_each(int32_t render_context,
 // structure_bsp_query_surfaces are its cluster_count / cluster_indices pair, not a "box"/"is_box"
 // pair, and the gate on the fallback path is `cluster_indices != NULL`. The query itself is always
 // issued with ECX = 0 (no query box) and EDX = this function's query_point.
-extern void render_window_structure_material_0x511f80(void *shader_data, int16_t shader_permutation, int32_t render_context,
-    int32_t first_surface, int32_t surface_count, void *material_extra); // 0x511f80
+
 
 void structure_debug_draw_surfaces_in_box(void *render_point, real_point3d *query_point,
     float radius, int16_t cluster_count, int16_t *cluster_indices)

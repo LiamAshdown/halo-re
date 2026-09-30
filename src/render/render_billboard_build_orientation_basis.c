@@ -26,6 +26,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "fn_math.h"
+#include "fn_render.h"
 
 // billboard_basis: folded into types/render.h (phase-4 review).
 

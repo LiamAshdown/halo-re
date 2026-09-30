@@ -26,6 +26,7 @@
 #include "render.h"
 #include "fn_game.h"
 #include "fn_cutscene.h"
+#include "fn_render.h"
 
 extern render_camera render_camera_global;     // 0x007c3114, this module (named
                                                // render_camera_global; a variable cannot share
@@ -52,7 +53,7 @@ extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c3
 extern void rasterizer_frame_statistics_sample(rasterizer_frame_statistics *statistics,
                                                uint8_t dropped);
     // 0x512530, this module; blam-cc: EBX -> statistics (always 0x007c30a0), stack -> dropped
-extern void rasterizer_frame_statistics_draw(void);               // this module, below this batch
+
 
 // Draws the non-3D placeholder pass for a window whose camera/unit is not valid: latches the
 // view's two cameras into the global render camera/frustum and a bare rasterizer_window_parameters

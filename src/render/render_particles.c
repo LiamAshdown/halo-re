@@ -54,6 +54,7 @@
 #include "interface.h"
 #include "render.h"
 #include "shaders.h"
+#include "fn_render.h"
 #include <stdint.h> // uintptr_t, for the 32 bit pointer fields of build_sprite_data
 
 extern uint8_t particle_spawn_debug_mode;          // 0x0069c565 particles enabled
@@ -67,14 +68,13 @@ extern data_array *object_data;                      // 0x008603b0, objects modu
 extern render_frustum render_frustum_global;         // 0x007c3168, this module
 extern int32_t render_frame_index;                   // 0x007c3100, this module
 
-extern int16_t render_local_player_gunner_seat_visible(int16_t local_player_index);
+
     // 0x50fcd0, this module; blam-cc: EAX -> local_player_index; the caller tests AL only
 extern datum_index datum_next(int16_t after_index, data_array *array);
     // 0x4d0630, memory module; blam-cc: DX=after_index, EDI=array
 extern void datum_delete(data_array *array, datum_index index);
     // 0x4d0510, memory module; blam-cc: EAX -> array, EDX -> index (sign extended word here)
-extern void sort_introsort_loop(rendered_particle_datum *first, rendered_particle_datum *last,
-                                int32_t ideal, int32_t predicate);
+
     // 0x510410, MSVC STL std::sort instantiation (library code, not rewritten); cdecl
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
                          int16_t mode, real_point3d *origin, real_vector3d *direction,

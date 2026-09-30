@@ -22,13 +22,14 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_render.h"
 
 extern data_array *contrail_data;   // 0x0087abec, effects module
 extern tag_instance *tag_instances; // 0x0087bc14, cache module
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module;
                                                                        // blam-cc: DX=after_index, EDI=array
 
-extern void render_contrail(contrail *c, Contrail *definition, int16_t instance); // 0x50e090,
+
                                                                                  // this module (cdecl)
 
 // Draws every live contrail whose Contrail render type is selected by render_type_flags, one
