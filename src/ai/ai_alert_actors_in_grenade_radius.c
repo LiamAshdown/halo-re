@@ -9,12 +9,9 @@
 //   actor_target_hearing_check and actor_find_or_create_shared_prop, neither established elsewhere in this repo, and
 //   actor_iterator_next (dropped iterator-state argument recovered in
 //   src/ai/ai_mark_recognized_objects_for_reaction.c).
-//   UNSURE: this is one of the least-confident rewrites in this pass. The BSP
-//   cluster-visibility bitset this function builds (from a triangular PVS byte table at the
-//   collision BSP's own data, DAT_00746f9c+0x134/+0x220) is preserved close to the original
-//   pointer arithmetic rather than modeled with named types, since no BSP/collision header
-//   exists in this repo. The large unused stack array the original declares
-//   (auStackY_1040[989]) is dead and is not reproduced.
+//   VERIFIED against disassembly 0x42a0e0..0x42a39a (2026-09-30): the PAS triangle index (16-bit truncated), the audible test
+//   ((byte & 0x7f) * 2.015748 < 40.0, bit 7 skips), the iterator initialisation, both hearing-check register/stack argument
+//   sets and the react call all agree. The BSP cluster-visibility bitset keeps the raw pointer arithmetic (no BSP header).
 // reconciled: R27 object.unknown_00c (datum_index) -> int32_t network_update_tick (game tick stamp, -1 = never)
 
 #include "tags.h"
@@ -46,7 +43,7 @@ extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index ta
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
-// REWRITTEN from objdump 0x42a0e0..0x42a39a. Stack: (object, stimulus, gate) -- ai_refresh_unit_stimulus_and_alert
+// Rewritten from the disassembly 0x42a0e0..0x42a39a. Stack: (object, stimulus, gate) -- ai_refresh_unit_stimulus_and_alert
 //   passes (unit, DI, BX). The clusters whose sound PAS byte from the object's (root's) cluster is audible and
 //   under 40 units (byte * 2.015748) are marked; every actor in a marked cluster (+0x148) other than the object's
 //   own (+0x1f8, else +0x1f4) that hears the object's location (0x41c030, stance 0) gets its prop for the object

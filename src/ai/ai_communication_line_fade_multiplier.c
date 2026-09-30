@@ -3,16 +3,12 @@
 // name confidence: 0.3   rewrite confidence: 0.9
 // evidence: phase-4 summary ("computes a fade/volume multiplier for a currently-playing or
 // about-to-play communication line based on its type and elapsed time").
-// register convention: BX -> some short threshold (unaff_BX, unresolved in Ghidra's own
-// decompile); the six recognized parameters are all genuine stack arguments.
-// blam-cc: BX -> short_range_limit (UNSURE), stack -> param_1, kind, param_3, param_4,
-// apply_fade_window, volume
-//
-// UNSURE, substantially: the float __ftol truncates has no visible FPU setup in Ghidra's own
-// decompile (a hidden dataflow this project already documents elsewhere, e.g.
-// actor_reseed_movement_pause_timer.c); modeled here as a zero elapsed-fraction placeholder
-// so the file compiles and the surrounding control flow is preserved, but the actual
-// fade-in ramp value is not reconstructed. Needs a disassembly pass to recover.
+// VERIFIED against disassembly 0x42f8c0..0x42f99b (2026-09-30): the fade-in ramp is
+//   (elapsed - limit) * volume * (1/60) with limit = ftol(class_repeat_delay * 30 + extra_delay); nothing is a placeholder.
+// register convention: EAX -> chain_value, ECX -> dialogue_index, BX -> line_class; the other six parameters are stack
+// arguments in declaration order.
+// blam-cc: EAX -> chain_value, ECX -> dialogue_index, BX -> line_class, stack -> unit_index, priority, extra_delay,
+//   follow_fallback, apply_fade, volume
 
 #include "tags.h"
 #include "memory.h"
@@ -26,7 +22,7 @@ extern float ai_communication_class_repeat_delay[]; // 0x00655930, stride 0x28 (
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority,
     uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value); // 0x560d00, EAX, DL, stack
 
-// REWRITTEN from objdump 0x42f8c0..0x42f99b. Stack: (unit, priority, extra delay ticks, follow_fallback, apply_fade,
+// Rewritten from the disassembly 0x42f8c0..0x42f99b. Stack: (unit, priority, extra delay ticks, follow_fallback, apply_fade,
 //   volume *); EAX: the chain value (in/out); ECX: the dialogue index (in/out); BX: the line class. Asks the unit's
 //   speech priority (0x560d00, allow_repeat 1; the tick it last spoke comes back in the slot that held ECX) and scales
 //   *volume by 0.3 when it answers 1. With apply_fade, a class under 5 and a known tick: inside the class repeat delay
