@@ -27,6 +27,10 @@ extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b
 extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); // 0x4cb970
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0
 
+// VERIFIED against disassembly 0x4d7690..0x4d77ab (2026-09-30): the argument slots (EAX root position, ECX forward, stack model /
+//   out_matrices / orientations / up), the root parent matrix, queue order (next sibling before first child), node stride 0x9c
+//   (+0x20/+0x22/+0x24), orientation stride 0x20, the local matrix assembly and the indirect multiply call (parent, local,
+//   out) match. The difftest crash needs random node links, where the original also walks off its 64 entry queue.
 // Breadth-first walk of a model's own node tree (as opposed to animation_graph_nodes_build_
 // matrices, which walks the animation graph's separate node list), converting each node's
 // local SQT orientation into a world-space real_matrix4x3 by composing it with its parent's
