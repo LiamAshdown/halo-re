@@ -11,6 +11,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "fn_rasterizer.h"
+#include "fn_structures.h"
 
 
 void structure_picked_polygon_lightmap_begin(void *bitmap_data)

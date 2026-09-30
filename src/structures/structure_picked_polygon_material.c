@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern void *unknown_007c048c; // 0x007c048c
 

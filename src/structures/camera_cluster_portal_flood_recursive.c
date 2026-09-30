@@ -30,6 +30,7 @@
 #include "math.h"
 #include "structures.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t render_cluster_index;        // 0x007c3348
@@ -44,13 +45,10 @@ extern float portal_visibility_tolerance;   // 0x007c3154 (render camera block +
 
 // math module, canonical form. blam-cc: ECX -> vertex_count, EDX -> vertices
 
-extern void polygon2d_bounds_expand(real_bounds *bounds_xy, polygon2d *polygon);
-extern uint8_t structure_bsp_portal_test_and_project(char same_side, int16_t portal_index,
-                                                      polygon2d *out);
+
 // this batch (0x554a20): "are these points all behind (within tolerance of) a camera-relative
 // band plane" -- used here as a cheap band-visibility test before falling back to the sky check.
-extern uint8_t structure_bsp_points_within_band(real_point3d *points, int16_t point_count,
-                                                 float tolerance);
+
 
 void camera_cluster_portal_flood_recursive(int16_t cluster_index, polygon2d *view_polygon)
 {

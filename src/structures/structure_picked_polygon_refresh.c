@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern int16_t visible_surface_count;   // 0x00850394: every store in the binary is

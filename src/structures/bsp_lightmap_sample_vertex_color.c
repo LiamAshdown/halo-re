@@ -57,6 +57,7 @@
 #include "rasterizer.h"
 #include "structures.h"
 #include "fn_rasterizer.h"
+#include "fn_structures.h"
 
 // UNSURE: signature reconstructed from this call site; see file header.
 

@@ -36,6 +36,7 @@
 #include "math.h"
 #include "structures.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 // math module. blam-cc: EAX -> out, EDX -> point, stack -> m
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,

@@ -17,6 +17,7 @@
 #include "math.h"
 #include "memory.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 // blam-cc: EDX -> bounds_xy, EDI -> polygon
 void polygon2d_bounds_expand(real_bounds *bounds_xy, polygon2d *polygon)

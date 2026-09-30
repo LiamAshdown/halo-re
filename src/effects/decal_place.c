@@ -34,6 +34,7 @@
 #include "game.h"
 #include "fn_rasterizer.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -59,8 +60,7 @@ extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB 
 extern void *texture_cache_get(void *bitmap, uint8_t wait, uint8_t allocate_if_missing);
     // 0x444550, EAX bitmap, stack (wait, allocate_if_missing)
 
-extern void structure_lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite_index, real scale,
-    real *out_extent, real *out_sprite_rect, const Decal *decal_definition);
+
     // 0x44db30 (the decal sprite rectangle builder), EDX out_sprite_rect, EDI decal_definition
 extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer,
     datum_index insert_before, uint8_t object_attached); // 0x44dd90, EAX requested_handle

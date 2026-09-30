@@ -24,6 +24,7 @@
 #include "math.h"
 #include "structures.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 // 0x00746f90 is a ModelCollisionGeometryBSP pointer, proved twice in this module: it is the ECX
 // argument of bsp3d_node_find_leaf at 0x553e4a / 0x549a6a, and 0x554b9f reads its +0x10 as

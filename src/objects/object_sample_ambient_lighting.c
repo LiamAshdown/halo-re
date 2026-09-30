@@ -33,11 +33,12 @@
 #include "objects.h"
 #include "rasterizer.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t object_lighting_sample_point(uint8_t flags, real_point3d *point, render_lighting *lighting); // 0x4f2550, cdecl;
+
     // `sample` below is that 0x74-byte render_lighting (types/rasterizer.h) walked as 29 floats
 
 

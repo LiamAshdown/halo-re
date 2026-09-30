@@ -34,6 +34,7 @@
 #include "math.h"
 #include "structures.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 

@@ -30,11 +30,12 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#include "fn_structures.h"
 
 extern int16_t collision_bsp_surface_get_vertices(ModelCollisionGeometryBSP *bsp,
                                                     int32_t surface_index,
                                                     real_point3d *out_vertices); // 0x501400, this batch
-extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
+
                           // 0x44dad0, src/structures; blam-cc: EAX out, EDX signed_index, stack
                           // planes_owner (0x503c74..0x503c7f); copies
                                                      // bsp->planes[plane_index & 0x7fffffff],

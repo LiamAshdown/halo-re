@@ -34,6 +34,7 @@
 #include "objects.h"   // bsp_leaf_reference, needed by projectiles.h's collision_result
 #include "projectiles.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
@@ -44,9 +45,7 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
     real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); // 0x505880
 
 // blam-cc: EAX -> raw_child, stack -> the rest
-extern uint8_t structure_bsp_leaf_find_material_surface(real_point3d *point, int32_t accepted_plane,
-    int16_t *out_lightmap_index, int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u,
-    void *out_barycentric_v, int32_t raw_child); // 0x554fa0, this module
+
 
 // Walks forward from `start_position` along `direction`, casting a collision segment each step,
 // until one of the surfaces it hits resolves to a BSP surface whose lightmap actually has a

@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;         // 0x00746f9c
 extern float k_cluster_query_radius_threshold;      // 0x0069fa4c
@@ -36,21 +37,6 @@ extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
                                       real_point3d *point); // types/physics.h, blam-cc: EAX/ECX/EDX
 
-extern int32_t structure_bsp_collect_surfaces_in_clusters(
-    int32_t *out_surfaces, int16_t max_count, real_rectangle3d *query_box, int16_t plane_count,
-    real_plane3d *planes, uint32_t *visited_bits, int16_t cluster_count,
-    int16_t *cluster_indices); // 0x553c40, this module
-
-extern int32_t structure_bsp_cluster_flood_seed(real_point3d *point, float radius,
-                                                 int16_t start_cluster, int16_t *output,
-                                                 int16_t max_count);
-
-extern int16_t bsp3d_node_query_recursive(int32_t node_index, real_rectangle3d *parent_bounds,
-                                           uint32_t *visited_bits, int32_t *output_array,
-                                           int32_t max_count, real_point3d *point,
-                                           float radius, real_rectangle3d *query_box,
-                                           int16_t plane_count, real_plane3d *planes,
-                                           int16_t inherited_classification); // 0x553f10
 
 // blam-cc: ECX -> query_box (nullable), EDX -> query_point, stack -> the rest
 // The return is the number of surface indices written: every caller in this module reads it

@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;   // 0x00746f9c
 extern int32_t render_cluster_index;          // 0x007c3348
@@ -36,13 +37,12 @@ extern uint8_t no_subcluster_path_taken;      // 0x006e3af0
 // blam-cc: EAX -> out (float[4]), ECX -> camera
 extern void render_frustum_compute_screen_clip_bounds(float *out, void *camera);
 
-extern void structure_bsp_camera_visibility_pass(void); // 0x5544f0, this module: portal flood
+
     // from the camera cluster, then a clipped frustum per visible cluster
 
 // this batch: the two cluster-visibility expansion passes (0x553920 subcluster-aabb path,
 // 0x553a70 no-subcluster/plane path), chosen below by whether cluster 0 has any subclusters.
-extern void structure_bsp_expand_visible_clusters_by_subcluster(ScenarioStructureBSP *tag);
-extern void structure_bsp_expand_visible_clusters_by_plane(ScenarioStructureBSP *tag);
+
 
 void structure_bsp_cluster_visibility_update(void)
 {

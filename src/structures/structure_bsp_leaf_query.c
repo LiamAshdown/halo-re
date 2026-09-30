@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits]; // 0x007d0394, this module
@@ -32,11 +33,9 @@ extern void bsp3d_node_bounds_decompress(real_rectangle3d *parent_bounds,
     uint8_t *compressed_bounds, real_rectangle3d *out); // 0x553380, this module
 
 // blam-cc: ECX -> box_a, EDX -> box_b
-extern structure_bsp_overlap aabb_overlap_classify(real_rectangle3d *box_a,
-    real_rectangle3d *box_b); // 0x5541b0, this module
+
 // blam-cc: EAX -> box, EBX -> planes, DI -> plane_count
-extern structure_bsp_overlap frustum_planes_classify_box(real_rectangle3d *box,
-    real_plane3d *planes, int16_t plane_count); // 0x554260, this module
+
 
 // blam-cc: EAX -> raw_child, ECX -> inherited_classification, stack -> the rest
 // The return is `mov ax,bp`, so only the low 16 bits are meaningful; max_count is likewise only

@@ -40,6 +40,7 @@
 #include "math.h"
 #include "physics.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 
@@ -48,15 +49,11 @@ extern void bsp3d_node_bounds_decompress(real_rectangle3d *parent_bounds,
     uint8_t *compressed_bounds, real_rectangle3d *out); // 0x553380, this module
 // blam-cc: ECX -> box_a, EDX -> box_b; returns _contained only when box_a encloses box_b, which is
 // why the query box is box_a here (a node fully inside the query needs no further testing).
-extern structure_bsp_overlap aabb_overlap_classify(real_rectangle3d *box_a,
-    real_rectangle3d *box_b); // 0x5541b0, this module
+
 // blam-cc: EAX -> box, EBX -> planes, DI -> plane_count
-extern structure_bsp_overlap frustum_planes_classify_box(real_rectangle3d *box,
-    real_plane3d *planes, int16_t plane_count); // 0x554260, this module
+
 // blam-cc: EAX -> raw_child, ECX -> inherited_classification, stack -> the rest
-extern int16_t structure_bsp_leaf_query(int32_t raw_child, int16_t inherited_classification,
-    real_rectangle3d *parent_bounds, uint32_t *visited_bits, int32_t *output_array,
-    int32_t max_count, real_rectangle3d *query_box, int16_t plane_count, real_plane3d *planes);
+
     // 0x5540c0, this module
 
 // Recursively descends the structure BSP's ModelCollisionGeometryBSP3DNode tree, decompressing

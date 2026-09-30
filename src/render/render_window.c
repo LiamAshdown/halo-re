@@ -55,6 +55,7 @@
 #include "render.h"
 #include "fn_rasterizer.h"
 #include "fn_objects.h"
+#include "fn_structures.h"
 
 extern int32_t render_window_count;                   // 0x007c3104, this module
 extern int16_t current_local_player_index;             // 0x007c3108, this module
@@ -83,7 +84,7 @@ extern d3d_caps9 rasterizer_caps;                     // 0x007c10c0, rasterizer 
 extern void *rasterizer_device;                       // 0x0071d174
 extern game_engine_definition *current_game_engine;   // 0x006f1d20, game module
 
-extern void structure_bsp_cluster_visibility_update(void); // 0x5537c0, structures module
+
 extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
     // 0x457000, effects module; blam-cc: EBX -> out, CX -> local_player_index
 extern void rasterizer_begin_frame(rasterizer_window_parameters *source); // 0x5175c0 (cdecl)
@@ -93,8 +94,7 @@ extern void render_sky(void);                         // 0x510c50, this module
 extern void first_person_weapon_update_active_state(void); // 0x492430, interface module
 
 extern void render_objects(void);                     // 0x50e930, this module
-extern void structure_picked_polygon_refresh(void);   // 0x5527f0, structures module
-extern void structure_picked_polygon_draw(void);      // 0x5528f0, structures module
+
 
 extern void render_object_shadows(object_render_data *data); // 0x50eb70, this module; EAX
 
@@ -112,7 +112,6 @@ extern void render_particles(void);                   // 0x50fd90, this module
 extern void particle_systems_render(void);            // 0x454b40, effects module
 extern void render_contrails(uint32_t render_type_flags); // 0x50df20, this module (cdecl here)
 
-extern void detail_objects_update_render_list(void);  // 0x5522d0, structures module
 
 extern void first_person_weapon_update_screen_effects(void); // 0x494730, interface module
 

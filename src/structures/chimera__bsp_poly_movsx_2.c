@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern int16_t geometry_buffer_warning;  // 0x0069fa48: accessed as WORD in the binary // 0x0069fa48, this module
 extern void **rasterizer_dynamic_index_buffer; // 0x006e09e8, physics.h/objects.h (read, not owned)
@@ -29,8 +30,7 @@ extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count); // 
     // blam-cc: EDX -> vertex_count
 extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle); // 0x511e80, foreign render module; UNSURE
     // blam-cc: ECX -> geometry_handle; returns the locked vertex destination buffer
-extern void structure_leaf_faces_gather_masked(int32_t *out_surface_indices, uint32_t *surface_bits,
-    ScenarioStructureBSPSurface *out_faces); // 0x552c20, this batch
+
 extern void structure_leaf_faces_gather_list(int16_t face_count, ScenarioStructureBSPSurface *out_faces,
     int32_t *face_indices); // 0x552cf0, this batch
 

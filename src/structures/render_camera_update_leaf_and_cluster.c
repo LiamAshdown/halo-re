@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "game.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, physics.h/objects.h (read, not owned)

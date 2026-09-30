@@ -20,6 +20,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_structures.h"
 
 void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index)
 {

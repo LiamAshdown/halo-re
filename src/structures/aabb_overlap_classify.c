@@ -26,6 +26,7 @@
 #include "math.h"
 #include "memory.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 // blam-cc: ECX -> box_a, EDX -> box_b
 structure_bsp_overlap aabb_overlap_classify(real_rectangle3d *box_a, real_rectangle3d *box_b)

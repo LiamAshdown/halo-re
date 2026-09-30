@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern int32_t cluster_flood_stamp; // 0x006e3f04
 extern uint8_t cluster_flood_in_progress; // 0x006e3f01

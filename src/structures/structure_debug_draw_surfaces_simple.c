@@ -24,14 +24,13 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern int16_t geometry_buffer_warning;  // 0x0069fa48: accessed as WORD in the binary  // 0x0069fa48, this module
 extern void **rasterizer_dynamic_index_buffer; // 0x006e09e8, physics.h/objects.h (read, not owned)
 
 // blam-cc: ECX -> query_box (NULL means "build one from query_point and radius"), EDX -> query_point
-extern int16_t structure_bsp_query_surfaces(real_rectangle3d *query_box, real_point3d *query_point,
-    int32_t *out_surfaces, int32_t max_count, float radius, int16_t plane_count,
-    real_plane3d *planes, int16_t cluster_count, int16_t *cluster_indices); // 0x553d80, this module
+
 extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count); // 0x51bd60, foreign render module; UNSURE
 extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle); // 0x511e80, foreign render module; UNSURE
 extern void structure_leaf_faces_gather_list(int16_t face_count, ScenarioStructureBSPSurface *out_faces,

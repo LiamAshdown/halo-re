@@ -38,6 +38,7 @@
 #include "objects.h"
 #include "items.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -55,7 +56,7 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
     object_marker *marker, uint32_t flags); // 0x4f6080
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,
     bsp_leaf_reference *location); // 0x4f5350, ESI, EDI, stack (location may be 0)
-extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index); // 0x44dad0, src/structures;
+
     // blam-cc: EAX out, EDX signed_index, stack planes_owner
     // UNSURE signature (EAX -> out, EDX -> plane_index, stack -> bsp_globals, per disassembly);
     // almost certainly a plane-table lookup, see file header

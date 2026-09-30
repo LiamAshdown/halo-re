@@ -20,6 +20,7 @@
 #include "physics.h"
 #include "fn_units.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720
@@ -49,7 +50,7 @@ extern int16_t physics_sweep_capsule_step(real_point3d *origin, real_vector3d *d
     uint32_t exclude_object_index, uint32_t flags, float pill_height, float pill_radius,
     real_point3d *out_position, int16_t max_contacts, physics_model_contact *contacts);
     // 0x506fb0, blam-cc: EDI origin, ESI delta, EBX out_velocity, ECX exclude, stack the rest
-extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
+
     // 0x44dad0, blam-cc: EAX out, EDX signed_index, stack planes_owner
 
 #define K_GROUND_NORMAL_OFFSET 0.0078125f   // 0x672ed0, 1/128

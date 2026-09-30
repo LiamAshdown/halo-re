@@ -36,6 +36,7 @@
 #include "game.h"
 #include "units.h"
 #include "cutscene.h"
+#include "fn_structures.h"
 
 extern render_fog render_fog_state;                  // 0x007c32f4, this module (named
                                                      // render_fog_state; a variable cannot share
@@ -58,7 +59,7 @@ extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern int16_t screenshot_scale; // UNSURE name/owner: screenshot tile grid divisor, see below
 extern int16_t unknown_00719aac; // UNSURE name/owner: screenshot tile grid divisor, see below
 
-extern void render_camera_update_leaf_and_cluster(real_point3d *point); // 0x553490, structures
+
     // module; blam-cc: EDX -> point (passed straight on to the leaf probe 0x5013a0; the
     // src/structures rewrite reads the global 0x007c3114 instead, which is not set yet here)
 
@@ -66,8 +67,7 @@ extern void scenario_sky_fog_state_update(int16_t sky_index, int16_t local_playe
     real_point3d *camera_position, render_fog *out); // 0x53e8c0, blam-cc: AX -> sky_index, stack -> local_player_index,
     // camera_position, out (0x50bab1..0x50babe)
 
-extern void structure_bsp_build_fog_environment(int16_t cluster_index,
-                                                 structure_fog_environment *out); // 0x555330,
+
     // structures module; blam-cc: AX=cluster_index, ESI=out
 
 extern void render_camera_compute_projection_skew(render_camera *camera, float bounds_out[4]);
@@ -82,8 +82,7 @@ extern void render_camera_mirror(render_camera *source_camera, structure_bsp_mir
                                   render_camera *out_camera); // 0x50c660, this module;
     // blam-cc: EBX=source_camera, stack=(mirror, out_camera)
 
-extern uint8_t structure_bsp_mirror_query(void *camera_ref, void *camera,
-                                           structure_bsp_mirror_result *out); // 0x553560,
+
     // structures module
 
 extern void render_window(int16_t local_player_index, render_camera *source_camera,

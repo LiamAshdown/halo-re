@@ -44,6 +44,7 @@
 #include "objects.h"
 #include "structures.h"
 #include "fn_objects.h"
+#include "fn_structures.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 
 extern real_vector3d *object_ambient_lightmap_default; // 0x00686b08 -> 0x0065514c
@@ -51,19 +52,15 @@ extern real_vector3d object_lightmap_probe_direction;  // 0x0065dd94, (0, 0, -10
 extern tag_instance *tag_instances;                    // 0x0087bc14
 extern ScenarioStructureBSP *global_structure_bsp;     // 0x00746f9c
 
-extern uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position,
-    real_point3d *position, int16_t *out_lightmap_index, void *out_barycentric_v, real_vector3d *direction,
-    int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u);
+
     // 0x555190, blam-cc: EAX start_position, ESI position, EDI out_lightmap_index, EBX param_7, rest on the stack
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
     // 0x43f250, blam-cc: EAX bitmap_tag_index, DX bitmap_data_index
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
     // 0x444550, blam-cc: EAX bitmap
-extern void bsp_lightmap_sample_vertex_color(BitmapData *bitmap, float weight_1, float weight_2,
-    ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices);
+
     // 0x4f0730, blam-cc: ECX material, EDX triangle_vertex_indices, rest on the stack
-extern void bsp_material_sample_base_map_color(BitmapData *bitmap, float weight_1, float weight_2,
-    ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices);
+
     // 0x4f0900, blam-cc: EAX material, ECX triangle_vertex_indices, rest on the stack
 
 // texture_cache_get's two-step attempt, inlined at both sample sites

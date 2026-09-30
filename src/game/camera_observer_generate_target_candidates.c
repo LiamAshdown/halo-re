@@ -42,11 +42,11 @@
 #include "memory.h"
 #include "game.h"
 #include "fn_objects.h"
+#include "fn_structures.h"
 
 extern double sin(double x); // x87 FSIN
 extern double cos(double x); // x87 FCOS
-extern int16_t cluster_flood_fill_with_predicate(real_point3d *position, real_vector3d *facing, real max_distance,
-    real sin_angle, real cos_angle, int16_t max_count, int16_t *output, int16_t start_cluster); // 0x554e30, AX start
+
 
     // all five are plain stack arguments; prototype taken from src/objects/object_collect_in_clusters.c.
     // UNSURE: that module reads argument 2 as a CLUSTER COUNT and argument 3 as the int16

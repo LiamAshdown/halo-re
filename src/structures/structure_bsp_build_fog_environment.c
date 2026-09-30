@@ -20,6 +20,7 @@
 #include "math.h"
 #include "cache.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern tag_instance *tag_instances;         // 0x0087bc14
@@ -27,9 +28,6 @@ extern Scenario *global_scenario;           // 0x00746f8c
 extern uint8_t fog_plane_vector_valid;  // 0x006e3ae0: accessed as BYTE      // 0x006e3ae0
 extern real_vector3d fog_plane_vector;      // 0x006e3ae4
 
-extern uint32_t structure_bsp_resolve_fog_tag(int16_t cluster_index,
-                                               ScenarioStructureBSP *global_structure_bsp,
-                                               uint8_t use_sky); // this batch
 
 // blam-cc: AX -> cluster_index, ESI -> out
 void structure_bsp_build_fog_environment(int16_t cluster_index, structure_fog_environment *out)

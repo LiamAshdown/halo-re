@@ -21,8 +21,9 @@
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 
 #include "cseries.h"
+#include "fn_structures.h"
 
-extern uint8_t structure_leaf_face_index_compare(int32_t element, int32_t other); // 0x552c00
+
 extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare);
     // 0x449590; blam-cc: EAX -> count, ECX -> elements, stack -> compare (0x552d01..0x552d0b)
 

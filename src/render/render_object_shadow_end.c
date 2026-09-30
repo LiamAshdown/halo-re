@@ -32,14 +32,14 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_structures.h"
 
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220, rasterizer module
 extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689 UNSURE
 extern uint8_t console_debug_toggle_6893f2;                 // 0x006893f2 object shadows enabled
 extern uint8_t rasterizer_object_shadow_window_restored;    // 0x0069e550, rasterizer module
 
-extern void structure_debug_draw_surfaces_simple(real_point3d *query_point, float radius,
-    real_rectangle3d *query_box, real_plane3d *planes, int16_t plane_count);
+
     // 0x552b40, structures module; blam-cc: stack -> (query_point, radius, query_box, planes),
     // ECX -> plane_count
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color,

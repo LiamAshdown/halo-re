@@ -16,6 +16,7 @@
 #include "math.h"
 #include "structures.h"
 #include "fn_rasterizer.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern uint8_t picked_surfaces_valid;    // 0x006e3ad8, this module
@@ -42,9 +43,7 @@ extern void structure_leaf_faces_for_each(int32_t render_context,
 // on for the duration (unless a bitmap-less BSP already has it on), enumerates the visible
 // surfaces' faces through the debug draw callbacks, and pokes the rasterizer device once more if
 // its version is old enough.
-extern void structure_picked_polygon_lightmap_begin(void *bitmap_data); // 0x511f20
-extern void structure_picked_polygon_material(void *shader_data, int16_t shader_permutation, int32_t render_context,
-    int32_t surface_offset, int16_t surface_count, void *material_extra); // 0x511f30
+
 
 void structure_picked_polygon_draw(void)
 {

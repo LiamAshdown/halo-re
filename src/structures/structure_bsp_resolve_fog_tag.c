@@ -21,6 +21,7 @@
 #include "math.h"
 #include "cache.h"
 #include "structures.h"
+#include "fn_structures.h"
 
 extern Scenario *global_scenario;     // 0x00746f8c (types/game.h)
 extern tag_instance *tag_instances;   // 0x0087bc14

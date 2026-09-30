@@ -37,6 +37,7 @@
 #include "rasterizer.h"
 #include "structures.h"
 #include "fn_rasterizer.h"
+#include "fn_structures.h"
 
 
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, EAX out, ECX packed (src/bitmaps)

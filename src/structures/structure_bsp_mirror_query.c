@@ -35,6 +35,7 @@
 #include "math.h"
 #include "structures.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;   // 0x00746f9c
 extern int32_t render_cluster_index;          // 0x007c3348
@@ -61,10 +62,7 @@ extern void render_frustum_compute_screen_clip_bounds(float *out, void *camera);
 // perspective-projects the survivors into `out`. Returns 0 (fully visible), 1 (fully behind/culled)
 // or 2 (straddles the near plane, `out` not filled by this call).
 // blam-cc: EAX -> plane, ECX -> camera_ref, EDX -> vertices, stack -> the rest
-extern uint8_t structure_bsp_portal_project(real_plane3d *plane, void *camera_ref,
-                                             real_point3d *vertices, void *camera,
-                                             uint32_t vertex_count, int16_t winding,
-                                             polygon2d *out);
+
 
 static ShaderEnvironment *mirror_shader_environment(ScenarioStructureBSPMirror *mirror)
 {

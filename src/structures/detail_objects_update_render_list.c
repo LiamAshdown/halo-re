@@ -26,6 +26,7 @@
 #include "game.h"
 #include "structures.h"
 #include "fn_rasterizer.h"
+#include "fn_structures.h"
 
 extern player_globals *local_player_globals; // 0x0087a478, game.h
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)

@@ -7,6 +7,7 @@
 
 #include "tags.h"
 #include "cseries.h"
+#include "fn_structures.h"
 
 uint8_t structure_leaf_face_index_compare(int32_t element, int32_t other)
 {

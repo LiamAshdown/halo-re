@@ -34,6 +34,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "fn_math.h"
+#include "fn_structures.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98, same declaration as
     // src/physics/collision_test_movement_segment.c
@@ -42,7 +43,7 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98,
 // edge ordinal. Ghidra sees the individual floats as DAT_006b0a18/1c/20/24.
 extern real_point2d decal_clip_buffers[2][12]; // 0x006b0a18
 
-extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
+
     // 0x44dad0, src/structures; blam-cc: EAX out, stack planes_owner, EDX signed_index
 
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known

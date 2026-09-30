@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "fn_rasterizer.h"
 #include "fn_objects.h"
+#include "fn_structures.h"
 
 extern uint8_t *lights_enabled;         // 0x0071cfb8
 extern game_engine_definition *current_game_engine;              // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
@@ -32,8 +33,7 @@ extern tag_instance *tag_instances;     // 0x0087bc14
 
 
     // 0x4f1700, blam-cc: ECX, SI, EDI (0x4f1a17: EDI = the local buffer, ESI = 0x200, ECX = the light)
-extern void structure_debug_draw_surfaces_in_box(void *render_point, real_point3d *query_point, float radius,
-    int16_t cluster_count, int16_t *cluster_indices); // 0x552980
+
 
 void lights_apply_spot_falloff_specular(void)
 {
