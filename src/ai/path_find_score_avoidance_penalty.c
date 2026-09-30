@@ -11,9 +11,8 @@
 // register convention: EBX -> context, ECX/EDX the segment (passed straight to 0x43b2f0); stack -> out_distance.
 //   // blam-cc: EBX -> context, ECX -> segment_start, EDX -> segment_end, stack -> out_distance
 //
-// UNSURE: path_find_closest_point_on_segment is called here with no visible arguments,
-// writing through Ghidra's `local_c/local_8/local_4` outputs -- the same hidden-output
-// pattern as path_find_compute_heuristic.c's use of the same callee.
+// VERIFIED against disassembly 0x43b3b0..0x43b445 (2026-09-30): EAX = avoid position (context + 0x28), ECX / EDX = the segment,
+// ESI = the output point; the miss path returns 0 with FLT_MAX in *out_distance.
 
 #include "tags.h"
 #include "memory.h"
@@ -41,7 +40,7 @@ float path_find_score_avoidance_penalty(path_find_context *context, const real_p
     dx = closest.x - request->avoid_position.x;
     dy = closest.y - request->avoid_position.y;
     dz = closest.z - request->avoid_position.z;
-    distance2 = dx * dx + dy * dy + dz * dz;
+    distance2 = dz * dz + dx * dx + dy * dy; // x87 term order (0x43b3e9)
     if (distance2 < request->avoid_radius * request->avoid_radius) {
         float distance = (float)sqrt(distance2);
 

@@ -13,14 +13,10 @@
 //   out_direction.
 //   // blam-cc: EDI -> context, stack -> point, out_distance, out_secondary, out_direction
 //
-// UNSURE: path_find_hash_lookup_vertex is called here with no visible vertex_id argument
-// (another register-forwarding gap); declared and called locally with just `context`, which
-// cannot be correct in general but matches this exact call site's visible operands.
-// path_find_node.unknown_00 is revealed here as a scratch field: the look-ahead-direction
-// walk overwrites it with the previous node's index while retracing the parent chain
-// forward, a detail types/ai.h does not currently document. PTR_DAT_00696714 is the
-// already-established {1,0,0} forward-vector constant used elsewhere in this module as a
-// not-found fallback direction.
+// VERIFIED against disassembly 0x43a310..0x43a4c5 (2026-09-30): path_find_hash_lookup_vertex takes ESI = vertex_id, EDX = context;
+// the look-ahead walk stores each node's child in node.unknown_00 while retracing the parent chain and accumulates node.cost until
+// 0.8 (the node position that pushes it over becomes the aim point, else the query point); the squared-distance terms are summed
+// in the x87 order shown.
 
 #include "tags.h"
 #include "memory.h"
@@ -79,7 +75,7 @@ uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_
             float fx = closest_x - ((path_find_request *)context)->avoid_position.x;
             float fy = closest_y - ((path_find_request *)context)->avoid_position.y;
             float fz = closest_z - ((path_find_request *)context)->avoid_position.z;
-            secondary = (float)sqrt(fx * fx + fy * fy + fz * fz);
+            secondary = (float)sqrt(fz * fz + fy * fy + fx * fx); // x87 term order (0x43a399)
         }
         if (node->avoid_distance < secondary) {
             secondary = node->avoid_distance;
@@ -89,7 +85,7 @@ uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_
     if (out_secondary != 0) {
         *out_secondary = secondary;
     }
-    *out_distance = (float)sqrt(dy * dy + dx * dx + dz * dz) + leash;
+    *out_distance = (float)sqrt(dz * dz + dx * dx + dy * dy) + leash; // x87 term order (0x43a356)
 
     if (out_direction != 0) {
         int16_t prev = -1;
