@@ -29,20 +29,25 @@
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern projection_axis_pair k_projection_axes[6]; // 0x0065c29c
 
+// VERIFIED against disassembly 0x44d860..0x44d8d0 (2026-09-30): table stride, the two stores, the 0.0001 (double) test and
+//   the solve order match; fixed: ESI is sign-extended from 16 bits and EAX zero-extended from 8 (see below).
 real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
                                             const real_plane3d *plane, const real_point2d *known)
 {
-    const projection_axis_pair *axes = &k_projection_axes[dominant_axis * 2 + (component_sign & 0xff)];
+    // 0x44d862/0x44d865: `movzx eax, al` / `movsx esi, si` -- only the low byte / low word of the two register arguments count
+    // (the draft used the full 32-bit ESI, which indexes far outside the 6-entry table for a caller-dirty register)
+    int32_t axis = (int16_t)dominant_axis;
+    const projection_axis_pair *axes = &k_projection_axes[axis * 2 + (component_sign & 0xff)];
     float *out_f = (float *)out;
     const float *plane_f = (const float *)plane;
 
     out_f[axes->i] = known->x;
     out_f[axes->j] = known->y;
 
-    if ((real)fabs((double)plane_f[dominant_axis]) < 0.0001f) {
-        out_f[dominant_axis] = 0.0f;
+    if ((real)fabs((double)plane_f[axis]) < 0.0001f) {
+        out_f[axis] = 0.0f;
     } else {
-        out_f[dominant_axis] = (plane->d - plane_f[axes->i] * known->x - plane_f[axes->j] * known->y) / plane_f[dominant_axis];
+        out_f[axis] = (plane->d - plane_f[axes->i] * known->x - plane_f[axes->j] * known->y) / plane_f[axis];
     }
 
     return out;
