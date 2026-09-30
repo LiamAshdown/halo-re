@@ -6,13 +6,8 @@
 // buffer"); out/phase2/networking/00.md's one visible call site is `FUN_004b6160(4);` -- a
 // literal string index argument that this function's own decompile never names (it shows no
 // parameters at all, only unaff_ESI/unaff_EBX for the output buffer and its capacity).
-// register convention: output buffer in ESI (unaff_ESI), capacity in EBX (unaff_EBX);
-// string_index is a genuine argument (proven by the call site) that this function's body never
-// reads directly -- it is reconstructed here as an explicit stack parameter forwarded into
-// text_string_list_get_string, matching the pattern already used for network_channel_attempt_connect's
-// unused_param_1.
-// UNSURE: text_string_list_get_string's real signature is not recovered; declared here as
-// (tag_index, string_index) purely from this call site's evidence.
+// register convention: output buffer in ESI, capacity in EBX, string_index the sole stack argument
+// (read at 0x4b617e as the EDX index of text_string_list_get_string; ECX = the tag index).
 
 // VERIFIED against disassembly 0x4b6160..0x4b619f (2026-09-30): FIXED: tag_lookup takes the group in EDI (0x75737472 'ustr') and text_string_list_get_string takes ECX = list, EDX = index; the copy/terminator sequence matches
 #include "crt.h"
