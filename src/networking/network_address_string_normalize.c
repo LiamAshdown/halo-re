@@ -18,6 +18,9 @@
 
 extern char network_address_parse_port(char *address_string, int32_t *port_out); // 0x4dc560, this module
 
+// VERIFIED against disassembly 0x4dc5e0..0x4dc726 (2026-09-30): sscanf argument order, the four range checks, the is-any
+//   flag, the parse_port call and both format argument orders match. Fixed: the original formats with the CRT _snprintf
+//   (0x623a2d, no NUL on truncation), not C99 snprintf.
 // Parses the leading "%d.%d.%d.%d" of address_string (tolerating one extra dot-delimited field
 // it never uses), range-checks each byte to 0..255, reports via out_is_any whether all four are
 // zero, then calls network_address_parse_port on the ORIGINAL string to look for a ':port'
@@ -45,10 +48,10 @@ char network_address_string_normalize(char *address_string, char *out_buffer, ui
         result = network_address_parse_port(address_string, &port);
         if (result == 1) {
             if (port != -1) {
-                snprintf(out_buffer, 0x19, "%d.%d.%d.%d:%d", a, b, c, d, port);
+                _snprintf(out_buffer, 0x19, "%d.%d.%d.%d:%d", a, b, c, d, port);
                 return 1;
             }
-            snprintf(out_buffer, 0x19, "%d.%d.%d.%d", a, b, c, d);
+            _snprintf(out_buffer, 0x19, "%d.%d.%d.%d", a, b, c, d);
         }
     }
     return result;
@@ -87,10 +90,10 @@ network_address_string_normalize(char *address_string,char *out_buffer,uchar *ou
     cVar2 = network_address_parse_port(&local_8);
     if (cVar2 == '\x01') {
       if (local_8 != -1) {
-        __snprintf(out_buffer,0x19,"%d.%d.%d.%d:%d",local_c,local_10,local_14,local_18,local_8);
+        ___snprintf(out_buffer,0x19,"%d.%d.%d.%d:%d",local_c,local_10,local_14,local_18,local_8);
         return '\x01';
       }
-      __snprintf(out_buffer,0x19,"%d.%d.%d.%d",local_c,local_10,local_14,local_18);
+      ___snprintf(out_buffer,0x19,"%d.%d.%d.%d",local_c,local_10,local_14,local_18);
     }
   }
   return cVar2;

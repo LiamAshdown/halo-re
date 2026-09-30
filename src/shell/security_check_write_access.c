@@ -6,6 +6,9 @@
 // caches its one-shot result in shell_access_check_state (0x0069eab0) and always reports
 // access granted on non-NT platforms, matching the shell_access_check_state enum in shell.h.
 // register convention: __cdecl, no arguments.
+// VERIFIED against disassembly 0x542840..0x542a77 (2026-09-30): every API call, argument order and branch matches.
+//   Fixed: the call to security_check_cleanup passed 5 arguments to a 6-parameter function (the missing sentinel, ESI == 0
+//   in the original), so the callee compared every handle against garbage and freed NULL/handles wrongly.
 // UNSURE: two dead stack writes in the original (local_48[1] = 1, local_48[2] = 3) do not feed
 // any subsequent Win32 call argument and are kept here as writes to otherwise-unused locals for
 // fidelity, without a resolved purpose. The SEH frame is dropped as in the other winmain-era
@@ -24,7 +27,7 @@ extern int32_t security_write_access_state; // 0x0069eab0
 
 extern void os_platform_identify(void);        // 0x005427e0
 extern void security_check_cleanup(void *descriptor, void *acl, void *sid, void *thread_token,
-                                    void *impersonation_token);                // 0x00542a80
+                                    void *impersonation_token, void *sentinel);                // 0x00542a80
 
 
 // Determines (once, then caches) whether the current thread token has write access under a
@@ -118,7 +121,7 @@ int32_t security_check_write_access(void)
     (void)unused_local_1;
     (void)unused_local_2;
 
-    security_check_cleanup(descriptor, acl, sid, thread_token, impersonation_token);
+    security_check_cleanup(descriptor, acl, sid, thread_token, impersonation_token, 0); // 0x542a4a: ESI == 0 is the sentinel
     security_write_access_state = (access_granted == 1);
     return security_write_access_state == 1;
 }

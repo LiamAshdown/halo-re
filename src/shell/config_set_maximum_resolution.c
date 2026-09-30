@@ -7,6 +7,9 @@
 //   0x4baba0 reads.
 // register convention: this is a config.txt property setter (shell_config_property_setter);
 //   objdump confirms the value string is a plain stack parameter.
+// VERIFIED against disassembly 0x57d080..0x57d0b5 (2026-09-30): sscanf "%d" into an (uninitialised, as in the original)
+//   local, then [0x280, 0x1000] range test with unsigned compares; matches. The harness "died" result is most likely
+//   the modern CRT's invalid-parameter abort on a bad string pointer, which the original 7.1 CRT does not have.
 // blam-cc: (value on the stack, matching Ghidra's recognized parameter)
 
 #include "tags.h"
