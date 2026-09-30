@@ -10,10 +10,10 @@
 #include "gamespy.h"
 
 #include "sb.h"
+#include "fn_gamespy.h"
 
 extern char *qr2_registered_key_list[0x100]; // 0x00683990
 
-extern int NTSLengthSB(const char *buf, int len);
 
 void ParseSingleQR2Reply(SBQueryEngine *engine, SBServer *server, char *data, int len)
 {

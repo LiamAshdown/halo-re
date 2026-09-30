@@ -9,10 +9,10 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 static const char GT2ChallengeKey[] = "3b8dd8995f7c40a9a5c5b7dd5b481341"; // the string at 0x00683db0
 
-extern int gti2VerifyChallenge(const unsigned char *challenge);
 
 unsigned char *gti2GetResponse(unsigned char *response, const unsigned char *challenge)
 {

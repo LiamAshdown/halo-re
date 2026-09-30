@@ -7,6 +7,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 typedef struct gcd_client {
     int local_id;                 // 0x00
@@ -48,10 +49,6 @@ gcd_client *gcd_find_client_by_hash(const char *hash, int skey);
 void gcd_send_disconnect(gcd_client *client, gcd_game *game);
 void gcd_send_auth_request(gcd_game *game, gcd_client *client, const char *challenge, const char *response);
 
-
-extern void gcd_process_auth_reply(const char *buf, int authorized);
-extern void gcd_send_user_count(const char *buf, const struct sockaddr *to);
-extern void gcd_send_is_online(const char *buf, const struct sockaddr *to);
 
 void gcd_process(char *buf, int len, const struct sockaddr *from)
 {

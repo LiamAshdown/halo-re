@@ -6,12 +6,10 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 #define FIELD(object, offset, type) (*(type *)((char *)(object) + (offset)))
 
-extern void SBServerSetNext(void *server, void *next);
-extern void *SBServerGetNext(void *server);
-extern void SBServerFree(void *elem);
 
 void SBServerListClear(void *slist)
 {

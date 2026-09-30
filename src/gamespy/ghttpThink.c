@@ -7,6 +7,7 @@
 #include "gamespy.h"
 
 #include "ghttp.h"
+#include "fn_gamespy.h"
 
 void ghttpThink(void)
 {

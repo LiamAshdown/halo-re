@@ -13,10 +13,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_gamespy.h"
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
-extern void ghttpThink(void); // foreign, UNSURE
+
 extern void ghttpCancelRequest(int32_t request_id); // foreign, UNSURE
 
 // Advances/cleans up the small asynchronous download slot table and returns the count of still

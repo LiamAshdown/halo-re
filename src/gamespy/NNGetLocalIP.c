@@ -6,6 +6,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 typedef void (*NegotiateProgressFunc)(int state, void *userdata);
 typedef void (*NegotiateCompletedFunc)(int result, SOCKET gamesocket, struct sockaddr_in *remoteaddr, void *userdata);
@@ -49,9 +50,6 @@ int ResolveServers(void);
 void NNCancel(int cookie);
 void NNProcessData(char *data, int len, struct sockaddr_in *fromaddr);
 
-
-extern struct hostent *getlocalhost(void);
-extern int IsPrivateIP(struct in_addr *addr);
 
 unsigned int NNGetLocalIP(void)
 {

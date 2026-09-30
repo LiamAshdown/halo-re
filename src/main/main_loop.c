@@ -53,6 +53,7 @@
 #include "units.h"
 #include "cutscene.h"
 #include "fn_game.h"
+#include "fn_gamespy.h"
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -153,7 +154,7 @@ extern void shell_pump_windows_messages(void);                              // 0
 extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); // 0x492340, foreign (input)
     // blam-cc: EAX -> queue_index, EDI -> record
 extern void network_session_host_update(void);                                             // 0x577940, foreign
-extern void gcd_think(void);                                             // 0x61b7e0, foreign
+
 extern uint32_t network_update(void);                                       // 0x4418d0, foreign (networking)
 extern void network_bandwidth_graph_instance_history_reset(network_bandwidth_graph *graph); // 0x4d8080
     // blam-cc: ESI -> graph

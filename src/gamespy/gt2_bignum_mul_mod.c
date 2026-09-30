@@ -9,6 +9,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 extern unsigned int gt2_bignum_length;          // 0x00683944, bytes per big number
 extern unsigned char gt2_bignum_modulus[0x400]; // 0x00723240

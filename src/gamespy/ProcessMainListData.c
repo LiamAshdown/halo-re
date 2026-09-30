@@ -12,10 +12,10 @@
 #include "gamespy.h"
 
 #include "sb.h"
+#include "fn_gamespy.h"
 
 extern SBServer *SBNullServer; // 0x006a27f8
 
-extern int NTSLengthSB(const char *buf, int len);
 
 int ProcessMainListData(SBServerList *slist)
 {

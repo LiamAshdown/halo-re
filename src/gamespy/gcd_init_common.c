@@ -6,6 +6,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 typedef struct gcd_client {
     int local_id;                 // 0x00

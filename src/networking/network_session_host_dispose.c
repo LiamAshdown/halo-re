@@ -12,13 +12,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_gamespy.h"
 
 extern void *network_session_host_object; // 0x00722a20
 extern int32_t network_session_host_state; // 0x00722a18, UNSURE
 extern int32_t network_console_connection_id; // 0x0069fdfc
 
 extern void network_session_host_update(void); // 0x577940, this module
-extern void gcd_shutdown(void); // foreign, UNSURE
+
 extern void qr2_shutdown(void *object); // foreign, UNSURE
 
 // Tears down the network channel/session object created by network_session_host_start, if one

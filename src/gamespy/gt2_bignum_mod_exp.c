@@ -8,12 +8,11 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 extern unsigned int gt2_bignum_length;          // 0x00683944, bytes per big number
 extern unsigned char gt2_bignum_modulus[0x400]; // 0x00723240
 
-extern void gt2_bignum_mul_mod(unsigned char *a, const unsigned char *b);
-extern void gt2_bignum_from_hex(char *hex, unsigned char *number);
 
 void gt2_bignum_mod_exp(char *base_hex, char *exponent_hex, char *modulus_hex, unsigned char *result)
 {

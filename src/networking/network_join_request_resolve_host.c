@@ -46,6 +46,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_gamespy.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -81,7 +82,7 @@ extern int32_t SBServerDirectConnect(int32_t handle);  // hostname-already-resol
 extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // address byte source, same idiom as
     // network_channel_get_remote_address.c's identical-named foreign accessor
 // Foreign GameSpy library accessors against master_server_query_engine.
-extern char *ServerBrowserGetMyPublicIP(void *handle);      // hostname/address string
+
 extern uint32_t ServerBrowserGetMyPublicIPAddr(void *handle);   // address byte source
 
 extern void network_channels_open(void); // 0x441300, this module (declared void: see UNSURE)

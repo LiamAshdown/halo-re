@@ -6,6 +6,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 #define FIELD(object, offset, type) (*(type *)((char *)(object) + (offset)))
 

@@ -9,6 +9,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 typedef struct qr2_buffer_s {
     char buffer[0x800];               // 0x000
@@ -58,7 +59,7 @@ void qr2_parse_queryA(qr2_implementation_s *qrec, char *query, int len, struct s
 extern char qr2_hostname[];              // 0x00723640
 extern unsigned int qr2_local_ips[5];    // 0x006a26d8
 extern int qr2_local_ip_count;           // 0x006a27f0
-extern struct hostent *getlocalhost(void);
+
 
 int qr2_init_socketA(qr2_implementation_s **qrec_out, SOCKET s, int boundport, const char *gamename, const char *secret_key,
     int ispublic, int natnegotiate, void *server_key_callback, void *player_key_callback, void *team_key_callback,

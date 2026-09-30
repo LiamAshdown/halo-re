@@ -12,6 +12,7 @@
 #include "gamespy.h"
 
 #include "ghttp.h"
+#include "fn_gamespy.h"
 
 typedef void (*ptPatchCallback)(int available, int mandatory, const char *versionName, int fileID,
     const char *downloadURL, void *param);
@@ -22,7 +23,7 @@ typedef struct ptaPatchData {
 } ptaPatchData;
 
 extern char ptaURL[0x200];                // 0x006a3070
-extern char *ptaGetKeyValue(const char *buffer, const char *key);
+
 
 static int ptaPatchCompletedCallback(int request, int result, char *buffer, int bufferLen, void *param) // 0x61c0d0
 {

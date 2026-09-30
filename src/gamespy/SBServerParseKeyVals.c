@@ -7,6 +7,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 #define FIELD(object, offset, type) (*(type *)((char *)(object) + (offset)))
 
@@ -45,7 +46,6 @@ static char *next_token(char *string, char delimiter)
     return start;
 }
 
-extern int SBIsReservedKey(const char *key);
 
 void SBServerParseKeyVals(void *server, char *keyvals)
 {

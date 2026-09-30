@@ -9,6 +9,7 @@
 #include "gamespy.h"
 
 #include "ghttp.h"
+#include "fn_gamespy.h"
 
 extern int ghiThrottleBufferSize;         // 0x00683dd4
 extern unsigned long ghiThrottleTimeDelay; // 0x00683dd8

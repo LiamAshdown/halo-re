@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_gamespy.h"
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count];   // 0x006f0db0
@@ -24,7 +25,6 @@ extern network_thread_record *autopatch_download_thread; // 0x007227c4
 extern uint8_t autopatch_download_pool_stop;              // 0x007227bc, set to 1 once init has run
 extern int32_t autopatch_download_active_count;           // 0x007227c8, UNSURE: used as a stop signal, see autopatch_download_worker_thread.c
 
-extern void ghttpStartup(void); // foreign, UNSURE
 
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
 extern uint32_t autopatch_download_worker_thread(void); // 0x576b80, this module

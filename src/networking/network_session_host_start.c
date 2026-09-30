@@ -9,6 +9,7 @@
 // blam-cc: cdecl
 
 #include "tags.h"
+#include "fn_gamespy.h"
 #include <string.h>
 #include <wchar.h>
 
@@ -24,7 +25,7 @@ extern void network_channels_open(void);                 // 0x441300
 extern int32_t qr2_init_socketA(void **qrec_out, uint32_t socket, int32_t port, const char *gamename, const char *secret_key,
     int32_t ispublic, int32_t natnegotiate, void *server_key, void *player_key, void *team_key, void *key_list, void *count,
     void *adderror, void *userdata); // 0x616340 qr2_init_socketA
-extern void qr2_register_natneg_callback(void *qrec, void *callback); // 0x615530 qr2_register_natneg_callback
+
 extern void gcd_init_qr2(void *qrec, int32_t game_id, int32_t use_network); // 0x61b6d0 gcd_init_qr2
 extern void network_session_host_natneg_callback(int32_t cookie); // 0x578160
 extern void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *user_data); // 0x5779c0

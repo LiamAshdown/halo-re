@@ -8,6 +8,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 typedef struct gcd_client {
     int local_id;                 // 0x00
@@ -50,7 +51,6 @@ void gcd_send_disconnect(gcd_client *client, gcd_game *game);
 void gcd_send_auth_request(gcd_game *game, gcd_client *client, const char *challenge, const char *response);
 
 
-extern void gcd_process(char *buf, int len, const struct sockaddr *from);
 extern char gcd_receive_buffer[0x400]; // 0x006a2810
 
 void gcd_think(void)

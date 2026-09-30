@@ -7,6 +7,7 @@
 // blam-cc: EBX -> len, EDI -> outbuf, stack -> qrec, challenge
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 typedef struct qr2_buffer_s {
     char buffer[0x800];               // 0x000
@@ -52,9 +53,6 @@ extern char *qr2_registered_key_list[0x100];      // 0x00683990
 void qr2_buffer_add(qr2_buffer_s *outbuf, const char *value);
 void qr2_parse_queryA(qr2_implementation_s *qrec, char *query, int len, struct sockaddr *sender);
 
-
-extern void gs_encrypt(const unsigned char *key, int key_len, unsigned char *buffer, int len);
-extern void B64Encode(char *output, const unsigned char *input, int len);
 
 void compute_challenge_response(qr2_implementation_s *qrec, qr2_buffer_s *outbuf, const char *challenge, int len)
 {

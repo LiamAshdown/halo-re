@@ -7,6 +7,7 @@
 #include "gamespy.h"
 
 #include "gt2.h"
+#include "fn_gamespy.h"
 
 void gti2CloseConnectionHardMap(void *elem, void *client_data)
 {

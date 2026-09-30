@@ -5,8 +5,8 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
-extern void *SBServerListNth(void *slist, int i);
 
 void *ServerBrowserGetServer(void *sb, int index)
 {

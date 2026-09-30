@@ -8,13 +8,10 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 #define FIELD(object, offset, type) (*(type *)((char *)(object) + (offset)))
 
-extern int gti2ConnectionHash(const void *elem, int num_buckets);
-extern int gti2ConnectionCompare(const void *elem1, const void *elem2);
-extern void gti2ClosedConnectionFree(void *elem);
-extern int gt2StringToAddress(const char *string, unsigned int *ip, unsigned short *port);
 
 int gt2CreateSocket(void **socket_out, const char *local_address, int outgoing_buffer_size, int incoming_buffer_size,
     void *socket_error_callback)

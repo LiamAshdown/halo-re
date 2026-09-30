@@ -8,6 +8,7 @@
 #include "gamespy.h"
 
 #include "ghttp.h"
+#include "fn_gamespy.h"
 
 extern char ptaKeyValue[0x100];           // 0x006a2e70
 

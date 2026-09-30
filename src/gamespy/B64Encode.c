@@ -6,6 +6,7 @@
 // blam-cc: EAX -> output, EDX -> input, stack -> len
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 typedef struct qr2_buffer_s {
     char buffer[0x800];               // 0x000

@@ -17,6 +17,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_gamespy.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -37,7 +38,7 @@ extern char network_session_broadcast_to_all(network_server_globals *server, int
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
 extern void network_channel_delete(network_channel *channel); // 0x4dcae0, this batch
 extern void network_session_host_update(void); // 0x577940, outside this batch
-extern void gcd_shutdown(void); // outside this batch, foreign
+
 extern void qr2_shutdown(void *object); // outside this batch, foreign
 
 void network_game_server_host_dispose(network_server_globals *host)

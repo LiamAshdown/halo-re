@@ -6,6 +6,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 int SBIsReservedKey(const char *key)
 {

@@ -8,6 +8,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 typedef struct gcd_client {
     int local_id;                 // 0x00
@@ -51,8 +52,7 @@ void gcd_send_auth_request(gcd_game *game, gcd_client *client, const char *chall
 
 
 extern unsigned char static_rec[]; // 0x00683838
-extern void gcd_process(char *buf, int len, const struct sockaddr *from);
-extern int gcd_init_common(int game_id);
+
 
 void gcd_init_qr2(void *qrec, int game_id, int use_network)
 {

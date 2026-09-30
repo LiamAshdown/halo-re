@@ -8,8 +8,8 @@
 #include "gamespy.h"
 
 #include "gt2.h"
+#include "fn_gamespy.h"
 
-extern void gti2CloseConnectionHardMap(void *elem, void *client_data);
 
 void gt2CloseAllConnectionsHard(GTI2Socket *socket)
 {

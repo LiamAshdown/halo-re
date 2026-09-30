@@ -8,6 +8,7 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 #include <ctype.h>
 
 int gt2StringToAddress(const char *string, unsigned int *ip, unsigned short *port)

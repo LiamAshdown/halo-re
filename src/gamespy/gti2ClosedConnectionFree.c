@@ -6,8 +6,8 @@
 // blam-cc: cdecl
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
-extern void gti2FreeConnection(void *connection);
 
 void gti2ClosedConnectionFree(void *elem)
 {

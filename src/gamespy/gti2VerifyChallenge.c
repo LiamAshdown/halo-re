@@ -6,6 +6,7 @@
 // blam-cc: EDI -> challenge
 
 #include "gamespy.h"
+#include "fn_gamespy.h"
 
 int gti2VerifyChallenge(const unsigned char *challenge)
 {
